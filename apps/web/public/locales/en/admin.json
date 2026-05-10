@@ -1,5 +1,153 @@
 {
+  "layout": {
+    "loading": "Loading panel...",
+    "panelTitle": "SuperAdmin Panel"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "workshops": "Workshops",
+    "learningPaths": "Learning Paths",
+    "liaAnalytics": "SofLIA Analytics",
+    "userStats": "User Statistics",
+    "companies": "Companies",
+    "reports": "Reports",
+    "reviews": "Reviews"
+  },
+  "dashboard": {
+    "greetings": {
+      "morning": "Good Morning!",
+      "afternoon": "Good Afternoon!",
+      "evening": "Good Evening!"
+    },
+    "stats": {
+      "users": "Total Users",
+      "courses": "Active Workshops",
+      "organizations": "Companies",
+      "engagement": "LIA Engagement"
+    },
+    "quickActions": {
+      "createCourse": {
+        "title": "Create Workshop",
+        "description": "Add new content to the catalog"
+      },
+      "manageUsers": {
+        "title": "Manage Users",
+        "description": "View and edit user list"
+      },
+      "manageCompanies": {
+        "title": "Manage Companies",
+        "description": "Administer organizations"
+      },
+      "viewAnalytics": {
+        "title": "LIA Analytics",
+        "description": "Assistant statistics"
+      },
+      "viewReports": {
+        "title": "View Reports",
+        "description": "Detailed reports"
+      }
+    },
+    "activities": {
+      "title": "Recent Activity",
+      "viewAll": "View all activity",
+      "defaultTitle": "System Activity",
+      "defaultDescription": "An action was performed on the platform",
+      "defaultUser": "Administrator"
+    }
+  },
+  "sidebar": {
+    "pinned": "Pinned menu",
+    "unpinned": "Floating menu",
+    "expandMenu": "Expand menu",
+    "collapseMenu": "Collapse menu"
+  },
   "users": {
+    "page": {
+      "title": "User Management",
+      "subtitle": "{{count}} users found",
+      "subtitle_one": "{{count}} user found",
+      "addUser": "Add User",
+      "stats": {
+        "total": "Total Users",
+        "verified": "Verified",
+        "instructors": "Instructors",
+        "admins": "Administrators"
+      },
+      "searchPlaceholder": "Search by name, email or username...",
+      "filterRoleAll": "All roles",
+      "empty": {
+        "title": "No users found",
+        "searchFilter": "Try adjusting the search filters",
+        "noUsers": "There are no users registered in the system"
+      },
+      "table": {
+        "user": "User",
+        "email": "Email",
+        "role": "Role",
+        "status": "Status",
+        "lastAccess": "Last access",
+        "actions": "Actions"
+      },
+      "status": {
+        "verified": "Verified",
+        "pending": "Pending"
+      },
+      "lastAccessNever": "Never",
+      "loading": "Loading users...",
+      "errorLoading": "Error loading users",
+      "retry": "Retry",
+      "errors": {
+        "updateFailed": "Error updating user",
+        "deleteFailed": "Error deleting user",
+        "createFailed": "Error creating user"
+      }
+    },
+    "roles": {
+      "Usuario": "User",
+      "Instructor": "Instructor",
+      "Administrador": "Administrator",
+      "Business": "Business"
+    },
+    "addModal": {
+      "title": "Add New User",
+      "subtitle": "Create a new user on the platform",
+      "tabs": {
+        "basic": "Basic",
+        "personal": "Personal",
+        "additional": "Additional"
+      },
+      "creating": "Creating...",
+      "create": "Create User"
+    },
+    "editModal": {
+      "title": "Edit User",
+      "tabs": {
+        "personal": "Personal",
+        "account": "Account"
+      },
+      "saving": "Saving...",
+      "saveChanges": "Save Changes"
+    },
+    "demographics": {
+      "username": "Username",
+      "email": "Email",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "displayName": "Display name",
+      "phone": "Phone",
+      "location": "Location",
+      "countryCode": "Country code",
+      "bio": "Bio",
+      "bioPlaceholder": "Write a brief description of the user...",
+      "roleType": "Role type",
+      "points": "Points",
+      "emailVerified": "Email verified",
+      "emailVerifiedDesc": "Check this box if the user's email has been verified",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "profilePictureUrl": "Profile picture URL"
+    },
     "deleteModal": {
       "title": "Delete User",
       "confirmQuestion": "Are you sure?",
@@ -20,9 +168,13 @@
       "errorDelete": "Error deleting user"
     },
     "roles": {
+      "Usuario": "User",
+      "Instructor": "Instructor",
+      "Administrador": "Administrator",
+      "Business": "Business",
       "member": {
         "label": "Member",
-        "description": "Basic platform access"
+        "description": "Basic access to the platform"
       },
       "admin": {
         "label": "Administrator",
@@ -30,8 +182,211 @@
       },
       "owner": {
         "label": "Owner",
-        "description": "Full control of the organization"
+        "description": "Full organization control"
       }
+    }
+  },
+  "workshops": {
+    "page": {
+      "title": "Workshops Management",
+      "description": "Manage all workshops on the platform",
+      "createButton": "Create Workshop"
+    },
+    "stats": {
+      "totalWorkshops": "Total Workshops",
+      "active": "Active",
+      "totalStudents": "Total Students",
+      "averageDuration": "Average Duration"
+    },
+    "filters": {
+      "searchPlaceholder": "Search workshops...",
+      "categories": {
+        "all": "All categories",
+        "ia": "Artificial Intelligence",
+        "tecnologia": "Technology",
+        "negocios": "Business",
+        "diseno": "Design",
+        "marketing": "Marketing"
+      },
+      "status": {
+        "all": "All statuses",
+        "active": "Active",
+        "inactive": "Inactive"
+      }
+    },
+    "card": {
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "instructorLabel": "Instructor",
+      "noInstructor": "No instructor",
+      "studentsLabel": "Students",
+      "level": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      }
+    },
+    "empty": {
+      "title": "No workshops found",
+      "filters": "Try adjusting the search filters",
+      "noWorkshops": "There are no workshops created in the system"
+    },
+    "editor": {
+      "header": {
+        "backButton": "Back to Workshops",
+        "createTitle": "Create New Course",
+        "editTitle": "Course Management",
+        "description": "Manage modules, lessons, materials and activities",
+        "estimatingTimes": "Estimating times...",
+        "estimateTimesButton": "Estimate times with AI"
+      },
+      "tabs": {
+        "modules": "Modules",
+        "config": "Settings",
+        "preview": "Preview",
+        "stats": "Analytics"
+      },
+      "modules": {
+        "title": "Workshop Structure",
+        "description": "Organize your workshop modules and lessons. Drag to reorder.",
+        "recalculateButton": "Recalculate Duration",
+        "recalculating": "Recalculating...",
+        "addModuleButton": "New Module",
+        "loading": "Loading modules...",
+        "emptyTitle": "No modules",
+        "emptyDescription": "Start by adding the first module to organize your content.",
+        "createFirstButton": "Create my first module",
+        "published": "Published",
+        "draft": "Draft",
+        "lessonCount": "{{count}} lesson",
+        "lessonCount_plural": "{{count}} lessons",
+        "addLesson": "Add lesson",
+        "addLessonShort": "+ Lesson",
+        "confirmDeleteModule": "Are you sure you want to delete this module and all its lessons?"
+      },
+      "config": {
+        "titleLabel": "Title *",
+        "titlePlaceholder": "Ex: Essential AI for Beginners",
+        "descriptionLabel": "Description *",
+        "descriptionPlaceholder": "Describe the content and objectives of the course...",
+        "categoryLabel": "Category *",
+        "levelLabel": "Level *",
+        "durationLabel": "Duration (minutes) *",
+        "priceLabel": "Price",
+        "imageLabel": "Course Image",
+        "slugLabel": "Slug (URL)",
+        "instructorLabel": "Instructor *",
+        "instructorPlaceholder": "Select an instructor",
+        "skillsLabel": "Skills Learned in this Course",
+        "skillsDescription": "Select the skills that students will gain upon completing this course. These will appear in their profile.",
+        "actionsTitle": "Actions",
+        "saving": "Saving...",
+        "saveButton": "Save configuration"
+      },
+      "preview": {
+        "loading": "Loading preview...",
+        "courseBadge": "Course",
+        "aboutTitle": "About this course",
+        "stats": {
+          "duration": "Duration",
+          "level": "Level",
+          "category": "Category",
+          "price": "Price",
+          "free": "Free"
+        },
+        "title": "Preview",
+        "publicPageButton": "View Public Page",
+        "status": "Status",
+        "published": "Published",
+        "realtimeTitle": "Real-time Preview",
+        "realtimeDescription": "This is a preview of how your course will look to students.",
+        "notFoundTitle": "Course not found",
+        "notFoundDescription": "Save the configuration first to view the preview"
+      },
+      "lessons": {
+        "editLesson": "Edit Lesson",
+        "createLesson": "Create Lesson",
+        "editLessonDesc": "Modify lesson information",
+        "createLessonDesc": "Add a new lesson to the module",
+        "tabs": {
+          "basic": "Basic",
+          "video": "Video",
+          "content": "Content"
+        },
+        "lessonTitleLabel": "Lesson Title *",
+        "lessonTitlePlaceholder": "e.g. Introduction to Machine Learning",
+        "lessonDescriptionLabel": "Description",
+        "lessonDescriptionPlaceholder": "Lesson description...",
+        "aiTitle": "Automatic Generation",
+        "aiDescription": "Analyzes the uploaded video to generate transcription and summary automatically with Gemini 2.0 Flash.",
+        "aiAnalyzing": "Analyzing...",
+        "aiGenerateButton": "Generate with AI",
+        "aiRequirements": "* Requires uploading a video (Direct) or direct URL (Custom) first.",
+        "transcriptLabel": "Transcription (Optional)",
+        "transcriptPlaceholder": "Video transcription...",
+        "summaryLabel": "Summary (Optional)",
+        "summaryPlaceholder": "Summary of the video content...",
+        "summaryHelp": "Brief summary of the lesson content. It will be shown in the course \"Summary\" tab.",
+        "durationLabel": "Duration (mm:ss) *",
+        "durationDetected": "✓ Automatically detected",
+        "durationDetectedDesc": "The duration was automatically detected from the video. You can edit it manually if necessary.",
+        "aiErrorVideo": "You must upload a video or provide a valid URL first (provider: Direct or Custom).",
+        "videoProviderLabel": "Video Provider",
+        "videoProviders": {
+          "direct": "Upload Video",
+          "custom": "Custom URL",
+          "uploadLabel": "Upload Video",
+          "videoSaved": "Video saved",
+          "uploading": "Uploading video... {{progress}}%",
+          "changeVideo": "Change Video",
+          "dropHere": "Drop the video here",
+          "dragOrClick": "Drag a video here or click to select",
+          "youtubeLabel": "YouTube ID or URL",
+          "youtubePlaceholder": "e.g. dQw4w9WgXcQ or https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "vimeoLabel": "Vimeo ID or URL",
+          "vimeoPlaceholder": "e.g. 123456789 or https://vimeo.com/123456789",
+          "customLabel": "Video URL",
+          "customPlaceholder": "https://example.com/video.mp4",
+          "detectingDuration": "Detecting video duration..."
+        },
+        "validation": {
+          "titleRequired": "Lesson title is required",
+          "instructorRequired": "You must select an instructor",
+          "videoRequired": "You must upload a video or provide a valid ID/URL",
+          "durationRequired": "Duration is required and must be greater than 0"
+        }
+      },
+      "stats": {
+        "loading": "Loading analytics...",
+        "kpiTitle": "Key Metrics",
+        "kpiDescription": "Main performance indicators",
+        "enrolledStudents": "Enrolled Students",
+        "completionRate": "Completion Rate",
+        "averageProgress": "Average Progress",
+        "rating": "Rating",
+        "noReviews": "No reviews",
+        "reviewsCount": "{{count}} review",
+        "reviewsCount_plural": "{{count}} reviews"
+      }
+    },
+    "errors": {
+      "load": "Error loading workshops",
+      "retry": "Retry",
+      "update": "Error updating workshop",
+      "delete": "Error deleting workshop",
+      "saveModule": "Error saving module",
+      "saveLesson": "Error saving lesson",
+      "processVideo": "Error processing video with AI",
+      "generateContent": "Error generating content with AI"
+    },
+    "deleteModal": {
+      "title": "Delete Workshop",
+      "confirmText": "Are you sure you want to delete this workshop?"
+    },
+    "pagination": {
+      "total": "{{count}} workshops found",
+      "previous": "Previous",
+      "next": "Next"
     }
   },
   "skills": {
@@ -118,17 +473,6 @@
       "active": "Active Communities"
     },
     "showing": "Showing {{filtered}} of {{total}} communities"
-  },
-  "workshops": {
-    "deleteModal": {
-      "title": "Delete Workshop",
-      "confirmText": "Are you sure you want to delete this workshop?"
-    },
-    "pagination": {
-      "total": "{{count}} workshops found",
-      "previous": "Previous",
-      "next": "Next"
-    }
   },
   "generic": {
     "irreversible": "This action cannot be undone.",
@@ -330,7 +674,56 @@
     "activityTitle": "Recent Activity",
     "activitySubtitle": "Latest platform actions",
     "activityEmpty": "No recent activity",
+    "activityBy": "by",
+    "greetings": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "stats": {
+      "users": "Total Users",
+      "courses": "Active Courses",
+      "organizations": "Active Companies",
+      "engagement": "Engagement"
+    },
+    "quickActions": {
+      "createCourse": {
+        "title": "Create New Course",
+        "description": "Add a new workshop to the platform"
+      },
+      "manageUsers": {
+        "title": "Manage Users",
+        "description": "Manage permissions and roles"
+      },
+      "manageCompanies": {
+        "title": "Manage Companies",
+        "description": "Manage B2B organizations"
+      },
+      "viewAnalytics": {
+        "title": "View Analytics",
+        "description": "Advanced AI metrics"
+      },
+      "viewReports": {
+        "title": "View Reports",
+        "description": "System reports and metrics"
+      }
+    },
+    "activities": {
+      "defaultTitle": "Activity",
+      "defaultDescription": "No description",
+      "defaultUser": "User"
+    },
     "activityBy": "by"
+  },
+  "layout": {
+    "panelTitle": "Administration Panel",
+    "loading": "Loading..."
+  },
+  "sidebar": {
+    "pinned": "Pinned menu",
+    "unpinned": "Floating menu",
+    "expandMenu": "Expand menu",
+    "collapseMenu": "Collapse menu"
   },
   "learningPathsPage": {
     "badge": "Learning paths",

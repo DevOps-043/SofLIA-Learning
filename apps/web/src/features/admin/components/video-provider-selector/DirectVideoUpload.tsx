@@ -41,12 +41,15 @@ export function DirectVideoUpload({
   onDragOver,
   onDrop,
 }: DirectVideoUploadProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('admin');
+  const { t: tc } = useTranslation('common');
   const hasPreview = Boolean(videoPreview);
 
   return (
     <div className="space-y-4">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('courseManagement.uploadVideo', { ns: 'admin' })}</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        {t('workshops.editor.lessons.videoProviders.uploadLabel')}
+      </label>
 
       {hasPreview ? (
         <div className="relative group">
@@ -64,7 +67,7 @@ export function DirectVideoUpload({
               type="button"
               onClick={onRemoveVideo}
               className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-colors z-10"
-              title={t('actions.delete')}
+              title={tc('actions.delete')}
             >
               <X className="w-4 h-4" />
             </button>
@@ -72,7 +75,9 @@ export function DirectVideoUpload({
             {(selectedFile || videoProviderId) && (
               <div className="absolute bottom-2 left-2 right-2 bg-black/70 backdrop-blur-sm rounded-lg p-2 text-white text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium truncate mr-2">{selectedFile ? selectedFile.name : 'Video guardado'}</span>
+                  <span className="font-medium truncate mr-2">
+                    {selectedFile ? selectedFile.name : t('workshops.editor.lessons.videoProviders.videoSaved')}
+                  </span>
                   {videoDuration && <span className="flex-shrink-0">{videoDuration}</span>}
                 </div>
                 {selectedFile && (
@@ -85,7 +90,9 @@ export function DirectVideoUpload({
           {uploading && (
             <div className="mt-3">
               <div className="flex items-center justify-between mb-1">
-                <p className="text-sm text-gray-600 dark:text-gray-400">Subiendo video... {uploadProgress}%</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {t('workshops.editor.lessons.videoProviders.uploading', { progress: uploadProgress })}
+                </p>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
@@ -109,7 +116,7 @@ export function DirectVideoUpload({
               disabled={disabled}
               className="mt-2 w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors text-sm font-medium"
             >
-              Cambiar Video
+              {t('workshops.editor.lessons.videoProviders.changeVideo')}
             </button>
           )}
         </div>
@@ -164,7 +171,9 @@ export function DirectVideoUpload({
               }`}
             />
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {dragActive ? 'Suelta el video aquí' : 'Arrastra un video aquí o haz clic para seleccionar'}
+              {dragActive 
+                ? t('workshops.editor.lessons.videoProviders.dropHere') 
+                : t('workshops.editor.lessons.videoProviders.dragOrClick')}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">MP4, WebM, OGG, MOV, AVI (máximo 1GB)</p>
           </div>

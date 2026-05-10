@@ -156,6 +156,10 @@ export function hasAnyActivityResponse(
     'response_payload' | 'response_text' | 'evidence_payload'
   >,
 ) {
+  if (activityConfig.interactionType === 'soflia_dialogue') {
+    return submission.status !== 'draft'
+  }
+
   const responseText = getPayloadText(
     submission.response_text,
     submission.response_payload,
@@ -189,6 +193,10 @@ export function isActivitySubmissionCompletionSatisfied(
   >,
   latestEvaluation: ActivityEvaluationRow | null,
 ) {
+  if (activityConfig.interactionType === 'soflia_dialogue') {
+    return submission.status === 'validated'
+  }
+
   if (submission.status === 'draft') {
     return false
   }

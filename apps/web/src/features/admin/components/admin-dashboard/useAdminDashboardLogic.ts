@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { useAdminStats } from '@/features/admin/hooks/useAdminStats'
 import { useOrganizationStylesContext } from '@/features/business-panel/contexts/OrganizationStylesContext'
 import { useProfile } from '@/features/profile/hooks/useProfile'
+import { useLanguage } from '@/core/providers/I18nProvider'
 import { useThemeStore } from '@/core/stores/themeStore'
 
 import {
@@ -18,6 +20,9 @@ import {
 import type { AdminDashboardActivityRecord } from './types'
 
 export function useAdminDashboardLogic() {
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
+  const { language } = useLanguage()
   const { stats, isLoading, error } = useAdminStats()
   const { profile } = useProfile()
   const { resolvedTheme } = useThemeStore()
@@ -73,21 +78,24 @@ export function useAdminDashboardLogic() {
     }
   }, [])
 
+  const locale =
+    language === 'es' ? 'es-MX' : language === 'pt' ? 'pt-BR' : 'en-US'
+
   return {
-    activities: mapAdminDashboardActivities(activityRecords),
+    activities: mapAdminDashboardActivities(activityRecords, tc, language, t),
     activitiesLoading,
     error,
-    greeting: getAdminDashboardGreeting(currentTime),
+    greeting: getAdminDashboardGreeting(currentTime, t),
     isLoading,
-    quickActions: getAdminDashboardQuickActions(),
-    statsData: buildAdminDashboardStatsData(stats),
+    quickActions: getAdminDashboardQuickActions(t),
+    statsData: buildAdminDashboardStatsData(stats, t),
     themeColors,
-    todayLabel: currentTime.toLocaleDateString('es-MX', {
+    todayLabel: currentTime.toLocaleDateString(locale, {
       day: 'numeric',
       month: 'long',
       weekday: 'long',
       year: 'numeric',
     }),
-    userName: getAdminDashboardUserName(profile),
+    userName: getAdminDashboardUserName(profile, t),
   }
 }

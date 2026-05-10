@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { ShieldCheckIcon, UserIcon } from '@heroicons/react/24/outline'
 import { EDIT_USER_TABS } from './service'
 import type { TabType } from './types'
@@ -19,6 +20,7 @@ export function EditUserModalTabs({
   activeTab,
   onChange,
 }: EditUserModalTabsProps) {
+  const { t } = useTranslation('admin')
   return (
     <div className="flex items-center gap-1 px-6 py-3 bg-[#E9ECEF]/50 dark:bg-[#0A0D12] border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
       {EDIT_USER_TABS.map((tab) => {
@@ -38,7 +40,7 @@ export function EditUserModalTabs({
             }`}
           >
             <Icon className="h-4 w-4" />
-            <span>{tab.label}</span>
+            <span>{t(`users.editModal.tabs.${tab.id}`)}</span>
             {isActive && (
               <motion.div
                 layoutId="activeTab"

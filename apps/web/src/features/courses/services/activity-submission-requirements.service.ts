@@ -59,6 +59,10 @@ export function getActivitySubmissionRequirementIssues(
   const issues: ActivitySubmissionRequirementIssue[] = []
   const responsePayload = toRecord(submission.responsePayload)
 
+  if (activityConfig.interactionType === 'soflia_dialogue') {
+    return issues
+  }
+
   if (
     activityConfig.interactionType === 'long_text' ||
     activityConfig.interactionType === 'external_tool_task'

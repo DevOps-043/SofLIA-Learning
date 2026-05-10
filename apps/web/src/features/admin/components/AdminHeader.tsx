@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Menu } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { useThemeStore } from '@/core/stores/themeStore'
 import { useAdminUser } from '../hooks/useAdminUser'
@@ -21,6 +22,7 @@ interface AdminHeaderProps {
 }
 
 export function AdminHeader({ onMenuClick, title }: AdminHeaderProps) {
+  const { t } = useTranslation('admin')
   const { user, isLoading } = useAdminUser()
   const { resolvedTheme } = useThemeStore()
   const panelTheme = useBusinessPanelTheme()
@@ -80,7 +82,7 @@ export function AdminHeader({ onMenuClick, title }: AdminHeaderProps) {
               onClick={onMenuClick}
               className="rounded-lg p-2 transition-colors hover:opacity-80 lg:hidden"
               style={{ color: navbarStyle.color }}
-              aria-label="Abrir menu"
+              aria-label={t('sidebar.expandMenu')}
             >
               <Menu className="h-5 w-5" />
             </button>

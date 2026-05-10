@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import { FormattedContentRenderer, PromptsRenderer } from "../ContentRenderers";
 import { QuizRenderer } from "../QuizRenderer";
 import { InteractiveActivityRenderer } from "./InteractiveActivityRenderer";
+import { SofliaDialogueActivityRenderer } from "./SofliaDialogueActivityRenderer";
 import {
   findQuizStatusItem,
   getNormalizedActivityContent,
@@ -104,6 +105,8 @@ export function ActivityCard({
 }: ActivityCardProps) {
   const { t } = useTranslation("learn");
   const isAiChat = activity.activity_type === "ai_chat";
+  const isSofliaDialogue =
+    activity.activity_config?.interactionType === "soflia_dialogue";
   const isQuiz = activity.activity_type === "quiz";
   const isInteractive = Boolean(activity.activity_config);
   const normalizedActivityContent = getNormalizedActivityContent(activity);
@@ -312,6 +315,13 @@ export function ActivityCard({
                     </p>
                   )}
                 </div>
+              ) : isSofliaDialogue ? (
+                <SofliaDialogueActivityRenderer
+                  activity={activity}
+                  lessonId={lessonId}
+                  onSessionUpdated={onQuizSubmitted}
+                  slug={slug}
+                />
               ) : isInteractive ? (
                 <InteractiveActivityRenderer
                   activity={activity}

@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useMotionSafe } from '../../../../lib/utils/motion'
+import { useTranslation } from 'react-i18next'
 import {
   BarChart3,
   Clock,
@@ -12,6 +13,7 @@ import {
   Sprout,
   Target,
   TrendingUp,
+  ExternalLink,
 } from 'lucide-react'
 
 import { useCourseManagementContext } from './CourseManagementContext'
@@ -41,58 +43,37 @@ import {
   COURSE_MANAGEMENT_SURFACE_CARD_HOVER_CLASS,
 } from './courseManagementTheme'
 
-type PreviewStat = {
-  Icon: typeof Clock
-  label: string
-  gradient: string
-  getValue: (
-    durationTotalMinutes: number,
-    level: string,
-    category: string,
-    price: number
-  ) => string
-}
-
-const previewStats: PreviewStat[] = [
-  {
-    Icon: Clock,
-    label: 'Duracion',
-    gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.accent,
-    getValue: (durationTotalMinutes) => `${durationTotalMinutes} min`,
-  },
-  {
-    Icon: BarChart3,
-    label: 'Nivel',
-    gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.primary,
-    getValue: (durationTotalMinutes, level) =>
-      level === 'beginner'
-        ? 'Principiante'
-        : level === 'intermediate'
-          ? 'Intermedio'
-          : 'Avanzado',
-  },
-  {
-    Icon: Target,
-    label: 'Categoria',
-    gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.success,
-    getValue: (durationTotalMinutes, level, category) => category || 'General',
-  },
-  {
-    Icon: DollarSign,
-    label: 'Precio',
-    gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.warning,
-    getValue: (
-      durationTotalMinutes: number,
-      level: string,
-      category: string,
-      price: number
-    ) => (price > 0 ? `$${price}` : 'Gratis'),
-  },
-] as const
-
 export function CoursePreviewTab() {
+  const { t } = useTranslation('admin')
   const { disableHeavy } = useMotionSafe()
   const { workshopPreview, previewLoading } = useCourseManagementContext().state
+
+  const previewStats = [
+    {
+      Icon: Clock,
+      label: t('workshops.editor.preview.stats.duration'),
+      gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.accent,
+      getValue: (durationTotalMinutes: number) => `${durationTotalMinutes} min`,
+    },
+    {
+      Icon: BarChart3,
+      label: t('workshops.editor.preview.stats.level'),
+      gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.primary,
+      getValue: (_: any, level: string) => t(`workshops.card.level.${level}`),
+    },
+    {
+      Icon: Target,
+      label: t('workshops.editor.preview.stats.category'),
+      gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.success,
+      getValue: (_: any, __: any, category: string) => category ? t(`workshops.filters.categories.${category}`) : 'General',
+    },
+    {
+      Icon: DollarSign,
+      label: t('workshops.editor.preview.stats.price'),
+      gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.warning,
+      getValue: (_: any, __: any, ___: any, price: number) => (price > 0 ? `$${price}` : t('workshops.editor.preview.stats.free')),
+    },
+  ]
 
   return (
     <motion.div
@@ -111,7 +92,7 @@ export function CoursePreviewTab() {
             className={`mb-4 h-16 w-16 ${COURSE_MANAGEMENT_LOADING_SPINNER_CLASS}`}
           />
           <p className={`text-sm font-medium ${COURSE_MANAGEMENT_MUTED_TEXT_CLASS}`}>
-            Cargando vista previa...
+            {t('workshops.editor.preview.loading')}
           </p>
         </div>
       ) : workshopPreview ? (
@@ -159,7 +140,7 @@ export function CoursePreviewTab() {
                 >
                   <span className={COURSE_MANAGEMENT_ACCENT_BADGE_CLASS}>
                     <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
-                    {workshopPreview.category || 'Curso'}
+                    {workshopPreview.category ? t(`workshops.filters.categories.${workshopPreview.category}`) : t('workshops.editor.preview.courseBadge')}
                   </span>
                 </motion.div>
 
@@ -181,17 +162,17 @@ export function CoursePreviewTab() {
                     {workshopPreview.level === 'beginner' ? (
                       <span className="flex items-center gap-1.5">
                         <Sprout className="h-4 w-4" />
-                        Principiante
+                        {t('workshops.card.level.beginner')}
                       </span>
                     ) : workshopPreview.level === 'intermediate' ? (
                       <span className="flex items-center gap-1.5">
                         <TrendingUp className="h-4 w-4" />
-                        Intermedio
+                        {t('workshops.card.level.intermediate')}
                       </span>
                     ) : (
                       <span className="flex items-center gap-1.5">
                         <Rocket className="h-4 w-4" />
-                        Avanzado
+                        {t('workshops.card.level.advanced')}
                       </span>
                     )}
                   </span>
@@ -223,11 +204,11 @@ export function CoursePreviewTab() {
             >
               <div className={`p-8 ${COURSE_MANAGEMENT_SURFACE_CARD_HOVER_CLASS}`}>
                 <div className="mb-6 flex items-center gap-3">
-                  <div className={`h-12 w-12 rounded-xl ${COURSE_MANAGEMENT_ICON_GRADIENT_CLASS}`}>
-                    <span className="text-2xl text-white">CP</span>
+                  <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${COURSE_MANAGEMENT_ICON_GRADIENT_CLASS}`}>
+                    <Book className="h-6 w-6 text-white" />
                   </div>
                   <h2 className={`text-2xl font-bold ${COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS}`}>
-                    Sobre este curso
+                    {t('workshops.editor.preview.aboutTitle')}
                   </h2>
                 </div>
                 <p className={`text-base leading-relaxed ${COURSE_MANAGEMENT_MUTED_TEXT_CLASS}`}>
@@ -289,12 +270,12 @@ export function CoursePreviewTab() {
                 <div className="space-y-4">
                   <div className="mb-6 flex items-center gap-3">
                     <div
-                      className={`h-10 w-10 ${COURSE_MANAGEMENT_ACCENT_ICON_GRADIENT_CLASS}`}
+                      className={`flex h-10 w-10 items-center justify-center rounded-lg ${COURSE_MANAGEMENT_ACCENT_ICON_GRADIENT_CLASS}`}
                     >
                       <Eye className="h-5 w-5 text-white" />
                     </div>
                     <h3 className={`text-lg font-bold ${COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS}`}>
-                      Vista Previa
+                      {t('workshops.editor.preview.title')}
                     </h3>
                   </div>
 
@@ -309,27 +290,27 @@ export function CoursePreviewTab() {
                     className={COURSE_MANAGEMENT_PREVIEW_PRIMARY_BUTTON_CLASS}
                   >
                     <div className={COURSE_MANAGEMENT_PREVIEW_BUTTON_GLOW_CLASS} />
-                    <Eye className="relative z-10 h-5 w-5" />
-                    <span className="relative z-10">Ver Pagina Publica</span>
+                    <ExternalLink className="relative z-10 h-5 w-5" />
+                    <span className="relative z-10">{t('workshops.editor.preview.publicPageButton')}</span>
                   </motion.button>
 
                   <div className={`space-y-3 ${COURSE_MANAGEMENT_DIVIDER_TOP_CLASS}`}>
                     <div className="flex items-center justify-between text-sm">
-                      <span className={COURSE_MANAGEMENT_MUTED_TEXT_CLASS}>Estado</span>
+                      <span className={COURSE_MANAGEMENT_MUTED_TEXT_CLASS}>{t('workshops.editor.preview.status')}</span>
                       <span className={COURSE_MANAGEMENT_STATUS_BADGE_CLASS}>
-                        <span className="h-2 w-2 animate-pulse rounded-full bg-current" />
-                        Publicado
+                        <span className={`h-2 w-2 rounded-full bg-current ${workshopPreview.is_published ? 'animate-pulse' : ''}`} />
+                        {workshopPreview.is_published ? t('workshops.editor.preview.published') : t('workshops.editor.modules.draft')}
                       </span>
                     </div>
 
-                    {workshopPreview.slug ? (
+                    {workshopPreview.slug && (
                       <div className="flex items-center justify-between text-sm">
                         <span className={COURSE_MANAGEMENT_MUTED_TEXT_CLASS}>URL</span>
                         <code className={COURSE_MANAGEMENT_CODE_BADGE_CLASS}>
                           /{workshopPreview.slug}
                         </code>
                       </div>
-                    ) : null}
+                    )}
                   </div>
 
                   <motion.div
@@ -344,10 +325,10 @@ export function CoursePreviewTab() {
                       </div>
                       <div>
                         <p className={`mb-1 text-xs font-semibold ${COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS}`}>
-                          Vista Previa en Tiempo Real
+                          {t('workshops.editor.preview.realtimeTitle')}
                         </p>
                         <p className={`text-xs leading-relaxed ${COURSE_MANAGEMENT_MUTED_TEXT_CLASS}`}>
-                          Esta es una vista previa de como se vera tu curso para los estudiantes.
+                          {t('workshops.editor.preview.realtimeDescription')}
                         </p>
                       </div>
                     </div>
@@ -369,10 +350,10 @@ export function CoursePreviewTab() {
             <Eye className={`h-10 w-10 ${COURSE_MANAGEMENT_MUTED_TEXT_CLASS}`} />
           </div>
           <p className={`mb-2 text-lg font-semibold ${COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS}`}>
-            No se encontro el curso
+            {t('workshops.editor.preview.notFoundTitle')}
           </p>
           <p className={`text-sm ${COURSE_MANAGEMENT_MUTED_TEXT_CLASS}`}>
-            Guarda la configuracion primero para ver la vista previa
+            {t('workshops.editor.preview.notFoundDescription')}
           </p>
         </motion.div>
       )}

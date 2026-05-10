@@ -229,6 +229,10 @@ function mergeToolTask(
   toolKey: ExternalToolKey | null,
   aiPrompts: string[],
 ): ActivityConfig {
+  if (activityConfig.interactionType === 'soflia_dialogue') {
+    return activityConfig
+  }
+
   if (!toolKey) {
     return activityConfig
   }
@@ -263,6 +267,10 @@ function mergeValidationState(
   activityConfig: ActivityConfig,
   requiresSofliaValidation: boolean,
 ): ActivityConfig {
+  if (activityConfig.interactionType === 'soflia_dialogue') {
+    return activityConfig
+  }
+
   if (!requiresSofliaValidation) {
     return activityConfig
   }

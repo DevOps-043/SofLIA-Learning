@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import {
   BookOpenIcon,
   ClockIcon,
@@ -38,6 +39,8 @@ interface AdminWorkshopsStatsGridProps {
 export function AdminWorkshopsStatsGrid({
   stats,
 }: AdminWorkshopsStatsGridProps) {
+  const { t } = useTranslation('admin')
+
   return (
     <motion.div
       variants={containerVariants}
@@ -55,7 +58,7 @@ export function AdminWorkshopsStatsGrid({
           </div>
           <div>
             <p className="text-xs font-medium text-[#6C757D] dark:text-white/70 uppercase tracking-wide">
-              Total Talleres
+              {t('workshops.stats.totalWorkshops')}
             </p>
             <p className="text-2xl font-bold text-[#0A2540] dark:text-white">
               {stats?.totalWorkshops || 0}
@@ -74,7 +77,7 @@ export function AdminWorkshopsStatsGrid({
           </div>
           <div>
             <p className="text-xs font-medium text-[#6C757D] dark:text-[#10B981] uppercase tracking-wide">
-              Activos
+              {t('workshops.stats.active')}
             </p>
             <p className="text-2xl font-bold text-[#0A2540] dark:text-white">
               {stats?.activeWorkshops || 0}
@@ -93,7 +96,7 @@ export function AdminWorkshopsStatsGrid({
           </div>
           <div>
             <p className="text-xs font-medium text-[#6C757D] dark:text-[#00D4B3] uppercase tracking-wide">
-              Total Estudiantes
+              {t('workshops.stats.totalStudents')}
             </p>
             <p className="text-2xl font-bold text-[#0A2540] dark:text-white">
               {stats?.totalStudents || 0}
@@ -112,7 +115,7 @@ export function AdminWorkshopsStatsGrid({
           </div>
           <div>
             <p className="text-xs font-medium text-[#6C757D] dark:text-[#F59E0B] uppercase tracking-wide">
-              Duracion Promedio
+              {t('workshops.stats.averageDuration')}
             </p>
             <p className="text-2xl font-bold text-[#0A2540] dark:text-white">
               {stats?.averageDuration || 0} min

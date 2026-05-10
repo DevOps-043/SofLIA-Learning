@@ -2,10 +2,12 @@
 
 import { motion } from 'framer-motion'
 import { BarChart3, Star, Target, TrendingUp, Users2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { useCourseManagementContext } from '../CourseManagementContext'
 
 export function CourseStatsKpiGrid() {
+  const { t } = useTranslation('admin')
   const {
     state: { userStats },
   } = useCourseManagementContext()
@@ -13,7 +15,7 @@ export function CourseStatsKpiGrid() {
   const kpis = [
     {
       icon: Users2,
-      label: 'Estudiantes Inscritos',
+      label: t('workshops.editor.stats.enrolledStudents'),
       value: userStats?.total_enrolled ?? 0,
       change: '+12%',
       changeType: 'positive' as const,
@@ -21,7 +23,7 @@ export function CourseStatsKpiGrid() {
     },
     {
       icon: TrendingUp,
-      label: 'Tasa de Finalizacion',
+      label: t('workshops.editor.stats.completionRate'),
       value: userStats?.completion_rate ? `${userStats.completion_rate.toFixed(1)}%` : '0%',
       change: '+5.2%',
       changeType: 'positive' as const,
@@ -29,7 +31,7 @@ export function CourseStatsKpiGrid() {
     },
     {
       icon: Target,
-      label: 'Progreso Promedio',
+      label: t('workshops.editor.stats.averageProgress'),
       value: userStats ? `${Math.round(userStats.average_progress)}%` : '0%',
       change: '+8.1%',
       changeType: 'positive' as const,
@@ -37,9 +39,11 @@ export function CourseStatsKpiGrid() {
     },
     {
       icon: Star,
-      label: 'Calificacion',
+      label: t('workshops.editor.stats.rating'),
       value: userStats?.average_rating ? userStats.average_rating.toFixed(1) : '0.0',
-      change: userStats?.total_reviews ? `${userStats.total_reviews} resenas` : 'Sin resenas',
+      change: userStats?.total_reviews 
+        ? t('workshops.editor.stats.reviewsCount', { count: userStats.total_reviews }) 
+        : t('workshops.editor.stats.noReviews'),
       changeType: 'neutral' as const,
       color: 'from-[#F59E0B] to-[#10B981]',
     },
@@ -56,9 +60,9 @@ export function CourseStatsKpiGrid() {
           <BarChart3 className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-[#0A2540] dark:text-white">Metricas Clave</h2>
+          <h2 className="text-2xl font-bold text-[#0A2540] dark:text-white">{t('workshops.editor.stats.kpiTitle')}</h2>
           <p className="text-sm text-[#6C757D] dark:text-white/60">
-            Indicadores principales de rendimiento
+            {t('workshops.editor.stats.kpiDescription')}
           </p>
         </div>
       </div>

@@ -16,14 +16,18 @@ import {
   UserCircleIcon,
   CheckCircleIcon,
   ClockIcon,
-  XMarkIcon
+  XMarkIcon,
+  CheckBadgeIcon
 } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid'
 import { useTranslation } from 'react-i18next'
+import { useLanguage } from '@/core/providers/I18nProvider'
 import { useAdminUsers } from '../hooks/useAdminUsers'
 import type { NewAdminUserData } from './AddUserModal'
 import type { AdminUser } from '../services/adminUsers.service'
 import { useThemeStore } from '@/core/stores/themeStore'
+import { formatDistanceToNow } from 'date-fns'
+import { es, enUS, pt } from 'date-fns/locale'
 
 const EditUserModal = dynamic(() => import('./EditUserModal').then(mod => ({ default: mod.EditUserModal })), {
   ssr: false
@@ -100,15 +104,37 @@ const formatValidationErrors = (errors: unknown) => {
   return messages.length > 0 ? messages.join(', ') : null
 }
 
+const StatCard = ({ icon: Icon, label, value, color }: { icon: any, label: string, value: number, color: 'primary' | 'success' | 'accent' | 'warning' }) => {
+  const colors = {
+    primary: 'text-[#0A2540] dark:text-white',
+    success: 'text-[#10B981]',
+    accent: 'text-[#F59E0B]',
+    warning: 'text-[#00D4B3]'
+  }
+  return (
+    <div className="bg-white dark:bg-[#1E2329] p-6 rounded-2xl border border-[#E9ECEF] dark:border-white/5 shadow-sm flex items-center justify-between">
+      <div>
+        <p className="text-[#6C757D] dark:text-white/60 text-sm font-medium">{label}</p>
+        <p className={`text-2xl font-bold mt-1 ${colors[color]}`}>{value}</p>
+      </div>
+      <div className={`p-3 rounded-xl bg-gray-50 dark:bg-[#0A0D12]`}>
+        <Icon className="h-6 w-6 text-[#6C757D]" />
+      </div>
+    </div>
+  )
+}
+
 export function AdminUsersPage() {
   const { users, stats, isLoading, error, refetch } = useAdminUsers()
   const { resolvedTheme } = useThemeStore()
   const isDark = resolvedTheme === 'dark'
   const primaryAccent = isDark ? '#00D4B3' : '#0A2540'
 
-  const { t } = useTranslation('common')
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
+  const { language } = useLanguage()
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterRole, setFilterRole] = useState('all')
+  const [roleFilter, setRoleFilter] = useState('all')
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
   const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -125,7 +151,7 @@ export function AdminUsersPage() {
                          email.toLowerCase().includes(searchQuery) ||
                          user.username.toLowerCase().includes(searchQuery)
     
-    const matchesRole = filterRole === 'all' || getAdminUserRole(user) === filterRole
+    const matchesRole = roleFilter === 'all' || getAdminUserRole(user) === roleFilter
     
     return matchesSearch && matchesRole
   })
@@ -163,6 +189,13 @@ export function AdminUsersPage() {
     }
   }
 
+  const dateLocalesMap = {
+    es,
+    en: enUS,
+    pt
+  }
+  const currentLocale = (dateLocalesMap[language as keyof typeof dateLocalesMap] || es) as any
+
   const handleEditUser = (user: AdminUser) => {
     setEditingUser(user)
     setIsEditModalOpen(true)
@@ -195,7 +228,7 @@ export function AdminUsersPage() {
       throw new Error(
         getStringValue(errorData, 'error') ||
         getStringValue(errorData, 'message') ||
-        'Error al actualizar usuario'
+        t('users.page.errors.updateFailed')
       )
     }
 
@@ -212,14 +245,14 @@ export function AdminUsersPage() {
 
       if (!response.ok) {
         const errorData = await parseErrorResponse(response)
-        throw new Error(getStringValue(errorData, 'error') || 'Error al eliminar usuario')
+        throw new Error(getStringValue(errorData, 'error') || t('users.page.errors.deleteFailed'))
       }
 
       await refetch()
       setIsDeleteModalOpen(false)
       setDeletingUser(null)
     } catch (error) {
-      setDeleteError(error instanceof Error ? error.message : 'Error al eliminar usuario')
+      setDeleteError(error instanceof Error ? error.message : t('users.page.errors.deleteFailed'))
     }
   }
 
@@ -231,10 +264,6 @@ export function AdminUsersPage() {
   const closeDeleteModal = () => {
     setIsDeleteModalOpen(false)
     setDeletingUser(null)
-  }
-
-  const handleAddUser = () => {
-    setIsAddModalOpen(true)
   }
 
   const handleSaveNewUser = async (userData: NewAdminUserData) => {
@@ -258,7 +287,7 @@ export function AdminUsersPage() {
         throw new Error(
           getStringValue(errorData, 'error') ||
           getStringValue(errorData, 'message') ||
-          'Error al crear usuario'
+          t('users.page.errors.createFailed')
         )
       }
 
@@ -279,8 +308,10 @@ export function AdminUsersPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-12 h-12 border-4 border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-full border-t-[#00D4B3] animate-spin"></div>
-              <p className="text-[#6C757D] dark:text-white/70">Cargando usuarios...</p>
+              <div className="w-12 h-12 border-4 border-[#00D4B3]/20 border-t-[#00D4B3] rounded-full animate-spin" />
+              <p className="text-[#6C757D] dark:text-white/60 animate-pulse font-medium">
+                {t('users.page.loading')}
+              </p>
             </div>
           </div>
         </div>
@@ -305,7 +336,7 @@ export function AdminUsersPage() {
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-2">
-                  Error al cargar usuarios
+                  {t('users.page.errorLoading')}
                 </h3>
                 <p className="text-sm text-[#6C757D] dark:text-white/70 mb-4">
                   {error}
@@ -317,7 +348,7 @@ export function AdminUsersPage() {
                   className="px-4 py-2 text-white rounded-xl text-sm font-medium transition-colors duration-200"
                   style={{ backgroundColor: primaryAccent }}
                 >
-                  Reintentar
+                  {t('users.page.retry')}
                 </motion.button>
               </div>
             </div>
@@ -328,244 +359,147 @@ export function AdminUsersPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 min-h-screen bg-white dark:bg-[#0F1419]">
-      <div className="max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 min-h-screen bg-[#F9FAFB] dark:bg-[#0F1419]">
+      <div className="max-w-7xl mx-auto space-y-8">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
+          className="flex flex-col gap-8"
         >
-          {/* Header Compacto */}
-          <motion.div variants={itemVariants} className="mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-[#0A2540] dark:text-white mb-1">
-                  Gestión de Usuarios
-                </h1>
-                <p className="text-sm text-[#6C757D] dark:text-white/70">
-                  {filteredUsers.length} {filteredUsers.length === 1 ? 'usuario' : 'usuarios'} encontrados
-                </p>
+         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 rounded-xl">
+                <UsersIcon className="h-6 w-6 text-[#00D4B3]" />
               </div>
-              <motion.button
-                onClick={handleAddUser}
-                whileHover={{ scale: 1.02, backgroundColor: isDark ? '#00BD9F' : '#0d2f4d' }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-2 px-4 py-2.5 text-white rounded-xl text-sm font-medium shadow-lg transition-all duration-200"
-                style={{ 
-                   backgroundColor: primaryAccent,
-                   boxShadow: isDark ? '0 10px 15px -3px rgba(0, 212, 179, 0.2)' : '0 10px 15px -3px rgba(10, 37, 64, 0.2)'
-                }}
-              >
-                <PlusIcon className="h-5 w-5" />
-                <span>Agregar Usuario</span>
-              </motion.button>
+              <h1 className="text-3xl font-bold text-[#0A2540] dark:text-white tracking-tight">
+                {t('users.page.title')}
+              </h1>
             </div>
-          </motion.div>
+            <p className="text-[#6C757D] dark:text-white/60 font-medium flex items-center gap-2 pl-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00D4B3]" />
+              {t(filteredUsers.length === 1 ? 'users.page.subtitle_one' : 'users.page.subtitle', { count: filteredUsers.length })}
+            </p>
+          </div>
 
-          {/* Stats Grid Rediseñado */}
-          <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {/* Total Users */}
-            <motion.div
-              whileHover={{ y: -2 }}
-              className="bg-white dark:bg-[#1E2329] rounded-[16px] p-4 border border-[#E9ECEF] dark:border-white/5 shadow-sm hover:shadow-lg transition-all duration-300 flex items-center gap-4 min-h-[90px] overflow-hidden relative group"
-            >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 bg-gradient-to-br from-[#0A2540] dark:from-[#00D4B3] to-transparent" />
-              <div className="relative z-10 flex items-center gap-4 w-full">
-                <div 
-                  className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-[14px] transition-transform duration-500 group-hover:scale-[1.05]"
-                  style={{
-                    background: isDark ? 'rgba(0, 212, 179, 0.15)' : 'rgba(10, 37, 64, 0.15)',
-                    border: isDark ? '1px solid rgba(0, 212, 179, 0.25)' : '1px solid rgba(10, 37, 64, 0.25)'
-                  }}
-                >
-                  <UsersIcon className="h-5 w-5 text-[#0A2540] dark:text-[#00D4B3]" />
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest font-bold text-[#6C757D] dark:text-white/60 mb-1">Total Usuarios</p>
-                  <p className="text-2xl font-black text-[#0A2540] dark:text-white leading-none">{(stats?.totalUsers || 0).toLocaleString()}</p>
-                </div>
-              </div>
-              <motion.div className="absolute bottom-0 left-0 h-[2px] bg-[#0A2540] dark:bg-[#00D4B3]" initial={{ width: 0 }} whileHover={{ width: '40%' }} transition={{ duration: 0.4 }} />
-            </motion.div>
+          <motion.button
+            whileHover={{ scale: 1.02, translateY: -2 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-[#0A2540] hover:bg-[#0d2f4d] text-white rounded-2xl font-semibold transition-all shadow-xl shadow-[#0A2540]/20 border border-white/10"
+          >
+            <div className="p-1 bg-white/10 rounded-lg">
+              <PlusIcon className="h-4 w-4" />
+            </div>
+            {t('users.page.addUser')}
+          </motion.button>
+        </div>
 
-            {/* Verificados */}
-            <motion.div
-              whileHover={{ y: -2 }}
-              className="bg-white dark:bg-[#1E2329] rounded-[16px] p-4 border border-[#E9ECEF] dark:border-white/5 shadow-sm hover:shadow-lg transition-all duration-300 flex items-center gap-4 min-h-[90px] overflow-hidden relative group"
-            >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 bg-gradient-to-br from-[#10B981] to-transparent" />
-              <div className="relative z-10 flex items-center gap-4 w-full">
-                <div 
-                  className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-[14px] transition-transform duration-500 group-hover:scale-[1.05]"
-                  style={{
-                    background: 'rgba(16, 185, 129, 0.15)',
-                    border: '1px solid rgba(16, 185, 129, 0.25)'
-                  }}
-                >
-                  <CheckCircleIconSolid className="h-5 w-5 text-[#10B981]" />
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest font-bold text-[#6C757D] dark:text-white/60 mb-1">Verificados</p>
-                  <p className="text-2xl font-black text-[#0A2540] dark:text-white leading-none">{(stats?.verifiedUsers || 0).toLocaleString()}</p>
-                </div>
-              </div>
-              <motion.div className="absolute bottom-0 left-0 h-[2px] bg-[#10B981]" initial={{ width: 0 }} whileHover={{ width: '40%' }} transition={{ duration: 0.4 }} />
-            </motion.div>
-
-            {/* Instructores */}
-            <motion.div
-              whileHover={{ y: -2 }}
-              className="bg-white dark:bg-[#1E2329] rounded-[16px] p-4 border border-[#E9ECEF] dark:border-white/5 shadow-sm hover:shadow-lg transition-all duration-300 flex items-center gap-4 min-h-[90px] overflow-hidden relative group"
-            >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 bg-gradient-to-br from-[#F59E0B] to-transparent" />
-              <div className="relative z-10 flex items-center gap-4 w-full">
-                <div 
-                  className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-[14px] transition-transform duration-500 group-hover:scale-[1.05]"
-                  style={{
-                    background: 'rgba(245, 158, 11, 0.15)',
-                    border: '1px solid rgba(245, 158, 11, 0.25)'
-                  }}
-                >
-                  <AcademicCapIcon className="h-5 w-5 text-[#F59E0B]" />
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest font-bold text-[#6C757D] dark:text-white/60 mb-1">Instructores</p>
-                  <p className="text-2xl font-black text-[#0A2540] dark:text-white leading-none">{(stats?.instructors || 0).toLocaleString()}</p>
-                </div>
-              </div>
-              <motion.div className="absolute bottom-0 left-0 h-[2px] bg-[#F59E0B]" initial={{ width: 0 }} whileHover={{ width: '40%' }} transition={{ duration: 0.4 }} />
-            </motion.div>
-
-            {/* Administradores */}
-            <motion.div
-              whileHover={{ y: -2 }}
-              className="bg-white dark:bg-[#1E2329] rounded-[16px] p-4 border border-[#E9ECEF] dark:border-white/5 shadow-sm hover:shadow-lg transition-all duration-300 flex items-center gap-4 min-h-[90px] overflow-hidden relative group"
-            >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 bg-gradient-to-br from-[#00D4B3] to-transparent" />
-              <div className="relative z-10 flex items-center gap-4 w-full">
-                <div 
-                  className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-[14px] transition-transform duration-500 group-hover:scale-[1.05]"
-                  style={{
-                    background: 'rgba(0, 212, 179, 0.15)',
-                    border: '1px solid rgba(0, 212, 179, 0.25)'
-                  }}
-                >
-                  <ShieldCheckIcon className="h-5 w-5 text-[#00D4B3]" />
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest font-bold text-[#6C757D] dark:text-white/60 mb-1">Administradores</p>
-                  <p className="text-2xl font-black text-[#0A2540] dark:text-white leading-none">{(stats?.administrators || 0).toLocaleString()}</p>
-                </div>
-              </div>
-              <motion.div className="absolute bottom-0 left-0 h-[2px] bg-[#00D4B3]" initial={{ width: 0 }} whileHover={{ width: '40%' }} transition={{ duration: 0.4 }} />
-            </motion.div>
-          </motion.div>
+          {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard
+            icon={UsersIcon}
+            label={t('users.page.stats.total')}
+            value={stats?.totalUsers || 0}
+            color="primary"
+          />
+          <StatCard
+            icon={CheckBadgeIcon}
+            label={t('users.page.stats.verified')}
+            value={stats?.verifiedUsers || 0}
+            color="success"
+          />
+          <StatCard
+            icon={AcademicCapIcon}
+            label={t('users.page.stats.instructors')}
+            value={stats?.instructors || 0}
+            color="accent"
+          />
+          <StatCard
+            icon={ShieldCheckIcon}
+            label={t('users.page.stats.admins')}
+            value={stats?.administrators || 0}
+            color="warning"
+          />
+        </div>
 
           {/* Search and Filter Bar */}
-          <motion.div variants={itemVariants} className="mb-6">
-            <div className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-4 shadow-sm">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1 relative">
-                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#6C757D] dark:text-white/60" />
-                  <input
-                    type="text"
-                    placeholder={t('searchPlaceholders.users', { ns: 'admin' })}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent bg-white dark:bg-[#0A0D12] text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 transition-all duration-200"
-                  />
-                </div>
-                <div className="relative">
-                  <motion.button
-                    onClick={() => setIsFilterOpen(!isFilterOpen)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="flex items-center gap-2 px-4 py-2.5 border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl bg-white dark:bg-[#0A0D12] text-[#0A2540] dark:text-white hover:bg-[#E9ECEF] dark:hover:bg-[#1E2329] transition-colors duration-200"
+          <motion.div variants={itemVariants}>
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="relative w-full md:w-96 group">
+              <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#6C757D] group-focus-within:text-[#00D4B3] transition-colors" />
+              <input
+                type="text"
+                placeholder={t('users.page.searchPlaceholder')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/20 rounded-2xl text-[#0A2540] dark:text-white placeholder-[#6C757D] focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all shadow-sm"
+              />
+            </div>
+
+            <div className="flex items-center w-full md:w-auto">
+              <div className="flex items-center gap-1 p-1 bg-[#E9ECEF] dark:bg-[#0A0D12] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/20 overflow-x-auto no-scrollbar max-w-full">
+                {['all', 'Usuario', 'Instructor', 'Administrador', 'Business'].map((role) => (
+                  <button
+                    key={role}
+                    onClick={() => setRoleFilter(role as any)}
+                    className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+                      roleFilter === role
+                        ? 'bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-[#00D4B3] shadow-sm'
+                        : 'text-[#6C757D] hover:text-[#0A2540] dark:hover:text-white'
+                    }`}
                   >
-                    <FunnelIcon className="h-5 w-5 text-[#6C757D] dark:text-white/60" />
-                    <span className="text-sm font-medium">
-                      {filterRole === 'all' ? 'Todos los roles' : filterRole}
-                    </span>
-                  </motion.button>
-                  
-                  <AnimatePresence>
-                    {isFilterOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#1E2329] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl shadow-xl z-50 overflow-hidden"
-                      >
-                        {['all', 'Usuario', 'Instructor', 'Administrador', 'Business'].map((role) => (
-                          <button
-                            key={role}
-                            onClick={() => {
-                              setFilterRole(role)
-                              setIsFilterOpen(false)
-                            }}
-                            className={`w-full text-left px-4 py-2.5 text-sm transition-colors duration-200 ${
-                              filterRole === role
-                                ? 'bg-[#10B981]/10 dark:bg-[#00D4B3]/20 text-[#10B981] dark:text-[#00D4B3] font-bold'
-                                : 'text-[#0A2540] dark:text-white hover:bg-[#E9ECEF] dark:hover:bg-white/5'
-                            }`}
-                          >
-                            {role === 'all' ? 'Todos los roles' : role}
-                          </button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                    {role === 'all' ? t('users.page.filterRoleAll') : t(`users.roles.${role}`)}
+                  </button>
+                ))}
               </div>
             </div>
+          </div>
           </motion.div>
 
           {/* Users Grid/List */}
           <motion.div variants={itemVariants}>
             {filteredUsers.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-12 text-center"
-              >
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#E9ECEF] dark:bg-[#0A0D12] flex items-center justify-center">
-                  <UsersIcon className="h-8 w-8 text-[#6C757D] dark:text-white/60" />
-                </div>
-                <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-2">
-                  No se encontraron usuarios
-                </h3>
-                <p className="text-sm text-[#6C757D] dark:text-white/70">
-                  {searchTerm || filterRole !== 'all'
-                    ? 'Intenta ajustar los filtros de búsqueda'
-                    : 'No hay usuarios registrados en el sistema'}
-                </p>
-              </motion.div>
+            <div className="p-20 text-center">
+              <div className="w-20 h-20 bg-[#E9ECEF] dark:bg-[#0A0D12] rounded-full flex items-center justify-center mx-auto mb-6 border border-[#E9ECEF] dark:border-[#6C757D]/20">
+                <UsersIcon className="h-10 w-10 text-[#6C757D]" />
+              </div>
+              <h3 className="text-xl font-bold text-[#0A2540] dark:text-white mb-2">
+                {t('users.page.empty.title')}
+              </h3>
+              <p className="text-[#6C757D] dark:text-white/60">
+                {searchTerm || roleFilter !== 'all'
+                  ? t('users.page.empty.searchFilter')
+                  : t('users.page.empty.noUsers')}
+              </p>
+            </div>
             ) : (
               <div className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 shadow-sm overflow-hidden flex flex-col">
                 <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-320px)] min-h-[300px]">
                   <table className="min-w-full divide-y divide-[#E9ECEF] dark:divide-[#6C757D]/30">
-                    <thead className="bg-gray-50 dark:bg-[#0A0D12] sticky top-0 z-10 ring-1 ring-black/5 dark:ring-white/5">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-[#6C757D] dark:text-white/70 uppercase tracking-wider">
-                          Usuario
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-[#6C757D] dark:text-white/70 uppercase tracking-wider">
-                          Email
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-[#6C757D] dark:text-white/70 uppercase tracking-wider">
-                          Rol
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-[#6C757D] dark:text-white/70 uppercase tracking-wider">
-                          Estado
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-[#6C757D] dark:text-white/70 uppercase tracking-wider">
-                          Último acceso
-                        </th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-[#6C757D] dark:text-white/70 uppercase tracking-wider">
-                          Acciones
-                        </th>
-                      </tr>
-                    </thead>
+                  <thead className="bg-[#E9ECEF]/30 dark:bg-[#0A0D12]/50 border-b border-[#E9ECEF] dark:border-[#6C757D]/20">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-[#6C757D] uppercase tracking-wider">
+                        {t('users.page.table.user')}
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-[#6C757D] uppercase tracking-wider">
+                        {t('users.page.table.email')}
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-[#6C757D] uppercase tracking-wider">
+                        {t('users.page.table.role')}
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-[#6C757D] uppercase tracking-wider">
+                        {t('users.page.table.status')}
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-[#6C757D] uppercase tracking-wider">
+                        {t('users.page.table.lastAccess')}
+                      </th>
+                      <th className="px-6 py-4 text-right text-xs font-bold text-[#6C757D] uppercase tracking-wider">
+                        {t('users.page.table.actions')}
+                      </th>
+                    </tr>
+                  </thead>
                     <tbody className="bg-white dark:bg-[#1E2329] divide-y divide-[#E9ECEF] dark:divide-[#6C757D]/30">
                       <AnimatePresence>
                         {filteredUsers.map((user, index) => {
@@ -584,7 +518,7 @@ export function AdminUsersPage() {
                               transition={{ delay: index * 0.02, duration: 0.3 }}
                               className="hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A0D12] transition-colors duration-200 group"
                             >
-                              <td className="px-4 py-4 whitespace-nowrap">
+                              <td className="px-4 py-5 whitespace-nowrap">
                                 <div className="flex items-center gap-3">
                                   <div className="relative">
                                     {user.profile_picture_url ? (
@@ -613,21 +547,21 @@ export function AdminUsersPage() {
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-4 py-4 whitespace-nowrap">
+                              <td className="px-4 py-5 whitespace-nowrap">
                                 <div className="text-sm text-[#0A2540] dark:text-white truncate max-w-[150px] sm:max-w-[200px] lg:max-w-[250px]" title={email || undefined}>
                                   {email}
                                 </div>
                               </td>
-                              <td className="px-4 py-4 whitespace-nowrap">
+                              <td className="px-4 py-5 whitespace-nowrap">
                                 <motion.span
                                   whileHover={{ scale: 1.05 }}
                                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg border ${roleBadge.bg} ${roleBadge.text} ${roleBadge.border}`}
                                 >
                                   <RoleIcon className="h-3.5 w-3.5" />
-                                  {role}
+                                  {t(`users.roles.${role}`)}
                                 </motion.span>
                               </td>
-                              <td className="px-4 py-4 whitespace-nowrap">
+                              <td className="px-4 py-5 whitespace-nowrap">
                                 <motion.span
                                   whileHover={{ scale: 1.05 }}
                                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg ${
@@ -641,28 +575,35 @@ export function AdminUsersPage() {
                                   ) : (
                                     <ClockIcon className="h-3.5 w-3.5" />
                                   )}
-                                  {user.email_verified ? 'Verificado' : 'Pendiente'}
+                                  {user.email_verified ? t('users.page.status.verified') : t('users.page.status.pending')}
                                 </motion.span>
                               </td>
-                              <td className="px-4 py-4 whitespace-nowrap">
-                                <div className="text-sm text-[#6C757D] dark:text-white/60">
-                                  {user.updated_at 
-                                    ? new Date(user.updated_at).toLocaleDateString('es-ES', { 
-                                        day: 'numeric', 
+                              <td className="px-4 py-5 whitespace-nowrap">
+                              <div className="flex flex-col">
+                                <span className="text-sm text-[#0A2540] dark:text-white/90 font-medium mb-0.5">
+                                  {user.updated_at
+                                    ? new Date(user.updated_at).toLocaleDateString(language === 'es' ? 'es-ES' : language === 'pt' ? 'pt-BR' : 'en-US', {
+                                        day: '2-digit',
                                         month: 'short',
                                         year: 'numeric'
                                       })
-                                    : 'Nunca'}
-                                </div>
+                                    : t('users.page.lastAccessNever')}
+                                </span>
+                                {user.updated_at && (
+                                  <span className="text-[10px] text-[#6C757D] dark:text-white/40 uppercase tracking-wider">
+                                    {formatDistanceToNow(new Date(user.updated_at), { addSuffix: true, locale: currentLocale })}
+                                  </span>
+                                )}
+                              </div>
                               </td>
-                              <td className="px-4 py-4 whitespace-nowrap text-right">
+                              <td className="px-4 py-5 whitespace-nowrap text-right">
                                 <div className="flex items-center justify-end gap-2">
                                   <motion.button
                                     onClick={() => handleEditUser(user)}
                                     whileHover={{ scale: 1.1, rotate: 5 }}
                                     whileTap={{ scale: 0.9 }}
                                     className="p-2 rounded-lg text-[#00D4B3] hover:bg-[#00D4B3]/10 dark:hover:bg-[#00D4B3]/20 transition-colors duration-200"
-                                    title={t('actions.edit')}
+                                    title={tc('actions.edit')}
                                   >
                                     <PencilIcon className="h-4 w-4" />
                                   </motion.button>
@@ -671,7 +612,7 @@ export function AdminUsersPage() {
                                     whileHover={{ scale: 1.1, rotate: -5 }}
                                     whileTap={{ scale: 0.9 }}
                                     className="p-2 rounded-lg text-red-500 hover:bg-red-500/10 dark:hover:bg-red-500/20 transition-colors duration-200"
-                                    title={t('actions.delete')}
+                                    title={tc('actions.delete')}
                                   >
                                     <TrashIcon className="h-4 w-4" />
                                   </motion.button>

@@ -1,0 +1,872 @@
+{
+  "layout": {
+    "loading": "Cargando panel...",
+    "panelTitle": "Panel SuperAdmin"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "users": "Usuarios",
+    "workshops": "Talleres",
+    "learningPaths": "Rutas de aprendizaje",
+    "liaAnalytics": "SofLIA Analytics",
+    "userStats": "Estadísticas de Usuarios",
+    "companies": "Empresas",
+    "reports": "Reportes",
+    "reviews": "Revisiones"
+  },
+  "dashboard": {
+    "greetings": {
+      "morning": "¡Buenos días!",
+      "afternoon": "¡Buenas tardes!",
+      "evening": "¡Buenas noches!"
+    },
+    "stats": {
+      "users": "Usuarios Totales",
+      "courses": "Talleres Activos",
+      "organizations": "Empresas",
+      "engagement": "Engagement LIA"
+    },
+    "quickActions": {
+      "createCourse": {
+        "title": "Crear Taller",
+        "description": "Añade nuevo contenido al catálogo"
+      },
+      "manageUsers": {
+        "title": "Gestionar Usuarios",
+        "description": "Ver y editar lista de usuarios"
+      },
+      "manageCompanies": {
+        "title": "Gestionar Empresas",
+        "description": "Administrar organizaciones"
+      },
+      "viewAnalytics": {
+        "title": "Analíticas LIA",
+        "description": "Estadísticas del asistente"
+      },
+      "viewReports": {
+        "title": "Ver Reportes",
+        "description": "Informes detallados"
+      }
+    },
+    "activities": {
+      "title": "Actividad Reciente",
+      "viewAll": "Ver toda la actividad",
+      "defaultTitle": "Actividad del sistema",
+      "defaultDescription": "Se realizó una acción en la plataforma",
+      "defaultUser": "Administrador"
+    }
+  },
+  "sidebar": {
+    "pinned": "Menú fijo",
+    "unpinned": "Menú flotante",
+    "expandMenu": "Expandir menú",
+    "collapseMenu": "Contraer menú"
+  },
+  "users": {
+    "page": {
+      "title": "Gestión de Usuarios",
+      "subtitle": "{{count}} usuarios encontrados",
+      "subtitle_one": "{{count}} usuario encontrado",
+      "addUser": "Agregar Usuario",
+      "stats": {
+        "total": "Total Usuarios",
+        "verified": "Verificados",
+        "instructors": "Instructores",
+        "admins": "Administradores"
+      },
+      "searchPlaceholder": "Buscar por nombre, email o username...",
+      "filterRoleAll": "Todos los roles",
+      "empty": {
+        "title": "No se encontraron usuarios",
+        "searchFilter": "Intenta ajustar los filtros de búsqueda",
+        "noUsers": "No hay usuarios registrados en el sistema"
+      },
+      "table": {
+        "user": "Usuario",
+        "email": "Email",
+        "role": "Rol",
+        "status": "Estado",
+        "lastAccess": "Último acceso",
+        "actions": "Acciones"
+      },
+      "status": {
+        "verified": "Verificado",
+        "pending": "Pendiente"
+      },
+      "lastAccessNever": "Nunca",
+      "loading": "Cargando usuarios...",
+      "errorLoading": "Error al cargar usuarios",
+      "retry": "Reintentar",
+      "errors": {
+        "updateFailed": "Error al actualizar usuario",
+        "deleteFailed": "Error al eliminar usuario",
+        "createFailed": "Error al crear usuario"
+      }
+    },
+    "roles": {
+      "Usuario": "Usuario",
+      "Instructor": "Instructor",
+      "Administrador": "Administrador",
+      "Business": "Empresa"
+    },
+    "addModal": {
+      "title": "Agregar Nuevo Usuario",
+      "subtitle": "Crear un nuevo usuario en la plataforma",
+      "tabs": {
+        "basic": "Básica",
+        "personal": "Personal",
+        "additional": "Adicional"
+      },
+      "creating": "Creando...",
+      "create": "Crear Usuario"
+    },
+    "editModal": {
+      "title": "Editar Usuario",
+      "tabs": {
+        "personal": "Personal",
+        "account": "Cuenta"
+      },
+      "saving": "Guardando...",
+      "saveChanges": "Guardar Cambios"
+    },
+    "demographics": {
+      "username": "Nombre de usuario",
+      "email": "Email",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "displayName": "Nombre para mostrar",
+      "phone": "Teléfono",
+      "location": "Ubicación",
+      "countryCode": "Código de país",
+      "bio": "Biografía",
+      "bioPlaceholder": "Escribe una breve descripción del usuario...",
+      "roleType": "Tipo de rol",
+      "points": "Puntos",
+      "emailVerified": "Email verificado",
+      "emailVerifiedDesc": "Marca esta casilla si el email del usuario ha sido verificado",
+      "password": "Contraseña",
+      "confirmPassword": "Confirmar Contraseña",
+      "profilePictureUrl": "URL de foto de perfil"
+    },
+    "deleteModal": {
+      "title": "Eliminar Usuario",
+      "confirmQuestion": "¿Estás seguro?",
+      "irreversible": "Esta acción no se puede deshacer. Se eliminará permanentemente:",
+      "alsoDeleted": "Se eliminarán también:",
+      "sessions": "Todas las sesiones del usuario",
+      "favorites": "Todos los favoritos del usuario",
+      "associatedData": "Todos los datos asociados",
+      "errorDeleting": "Error al eliminar usuario"
+    },
+    "manageModal": {
+      "editTitle": "Gestionar Miembro",
+      "deleteTitle": "Eliminar Miembro",
+      "changeRole": "Cambiar Rol",
+      "deleteConfirm": "¿Estás seguro de que deseas eliminar a este usuario? Esta acción no se puede deshacer y el usuario perderá acceso inmediato.",
+      "errorUpdate": "Error al actualizar el usuario",
+      "errorSave": "Error al guardar los cambios",
+      "errorDelete": "Error al eliminar el usuario"
+    },
+    "roles": {
+      "Usuario": "Usuario",
+      "Instructor": "Instructor",
+      "Administrador": "Administrador",
+      "Business": "Business",
+      "member": {
+        "label": "Miembro",
+        "description": "Acceso básico a la plataforma"
+      },
+      "admin": {
+        "label": "Administrador",
+        "description": "Puede gestionar usuarios y contenido"
+      },
+      "owner": {
+        "label": "Propietario",
+        "description": "Control total de la organización"
+      }
+    }
+  },
+  "workshops": {
+    "page": {
+      "title": "Gestión de Talleres",
+      "description": "Administra todos los talleres de la plataforma",
+      "createButton": "Crear Taller"
+    },
+    "stats": {
+      "totalWorkshops": "Total Talleres",
+      "active": "Activos",
+      "totalStudents": "Total Estudiantes",
+      "averageDuration": "Duración Promedio"
+    },
+    "filters": {
+      "searchPlaceholder": "Buscar talleres...",
+      "categories": {
+        "all": "Todas las categorías",
+        "ia": "Inteligencia Artificial",
+        "tecnologia": "Tecnología",
+        "negocios": "Negocios",
+        "diseno": "Diseño",
+        "marketing": "Marketing"
+      },
+      "status": {
+        "all": "Todos los estados",
+        "active": "Activos",
+        "inactive": "Inactivos"
+      }
+    },
+    "card": {
+      "statusActive": "Activo",
+      "statusInactive": "Inactivo",
+      "instructorLabel": "Instructor",
+      "noInstructor": "Sin instructor",
+      "studentsLabel": "Estudiantes",
+      "level": {
+        "beginner": "Principiante",
+        "intermediate": "Intermedio",
+        "advanced": "Avanzado"
+      }
+    },
+    "empty": {
+      "title": "No se encontraron talleres",
+      "filters": "Prueba a ajustar los filtros de búsqueda",
+      "noWorkshops": "No hay talleres creados en el sistema"
+    },
+    "editor": {
+      "header": {
+        "backButton": "Volver a Talleres",
+        "createTitle": "Crear Nuevo Curso",
+        "editTitle": "Gestión de Curso",
+        "description": "Administra módulos, lecciones, materiales y actividades",
+        "estimatingTimes": "Estimando tiempos...",
+        "estimateTimesButton": "Estimar tiempos con IA"
+      },
+      "tabs": {
+        "modules": "Módulos",
+        "config": "Configuración",
+        "preview": "Vista Previa",
+        "stats": "Estadísticas"
+      },
+      "modules": {
+        "title": "Estructura del Taller",
+        "description": "Organiza los módulos y lecciones de tu taller. Arrastra para reordenar.",
+        "recalculateButton": "Recalcular Duración",
+        "recalculating": "Recalculando...",
+        "addModuleButton": "Nuevo Módulo",
+        "loading": "Cargando módulos...",
+        "emptyTitle": "No hay módulos",
+        "emptyDescription": "Comienza agregando el primer módulo para organizar tu contenido.",
+        "createFirstButton": "Crear mi primer módulo",
+        "published": "Publicado",
+        "draft": "Borrador",
+        "lessonCount": "{{count}} lección",
+        "lessonCount_plural": "{{count}} lecciones",
+        "addLesson": "Agregar lección",
+        "addLessonShort": "+ Lección",
+        "confirmDeleteModule": "¿Estás seguro de eliminar este módulo y todas sus lecciones?"
+      },
+      "config": {
+        "titleLabel": "Título *",
+        "titlePlaceholder": "Ej: IA Esencial para Principiantes",
+        "descriptionLabel": "Descripción *",
+        "descriptionPlaceholder": "Describe el contenido y objetivos del curso...",
+        "categoryLabel": "Categoría *",
+        "levelLabel": "Nivel *",
+        "durationLabel": "Duración (minutos) *",
+        "priceLabel": "Precio",
+        "imageLabel": "Imagen del Curso",
+        "slugLabel": "Slug (URL)",
+        "instructorLabel": "Instructor *",
+        "instructorPlaceholder": "Selecciona un instructor",
+        "skillsLabel": "Skills que se Aprenden en este Curso",
+        "skillsDescription": "Selecciona las skills que los estudiantes obtendrán al completar este curso. Estas aparecerán en su perfil.",
+        "actionsTitle": "Acciones",
+        "saving": "Guardando...",
+        "saveButton": "Guardar configuración"
+      },
+      "preview": {
+        "loading": "Cargando vista previa...",
+        "courseBadge": "Curso",
+        "aboutTitle": "Sobre este curso",
+        "stats": {
+          "duration": "Duración",
+          "level": "Nivel",
+          "category": "Categoría",
+          "price": "Precio",
+          "free": "Gratis"
+        },
+        "title": "Vista Previa",
+        "publicPageButton": "Ver Página Pública",
+        "status": "Estado",
+        "published": "Publicado",
+        "realtimeTitle": "Vista Previa en Tiempo Real",
+        "realtimeDescription": "Esta es una vista previa de cómo se verá tu curso para los estudiantes.",
+        "notFoundTitle": "No se encontró el curso",
+        "notFoundDescription": "Guarda la configuración primero para ver la vista previa"
+      },
+      "lessons": {
+        "editLesson": "Editar Lección",
+        "createLesson": "Crear Lección",
+        "editLessonDesc": "Modifica la información de la lección",
+        "createLessonDesc": "Agrega una nueva lección al módulo",
+        "tabs": {
+          "basic": "Básica",
+          "video": "Video",
+          "content": "Contenido"
+        },
+        "lessonTitleLabel": "Título de la Lección *",
+        "lessonTitlePlaceholder": "Ej: Introducción al Machine Learning",
+        "lessonDescriptionLabel": "Descripción",
+        "lessonDescriptionPlaceholder": "Descripción de la lección...",
+        "aiTitle": "Generación Automática",
+        "aiDescription": "Analiza el video subido para generar transcripción y resumen automáticamente con Gemini 2.0 Flash.",
+        "aiAnalyzing": "Analizando...",
+        "aiGenerateButton": "Generar con IA",
+        "aiRequirements": "* Requiere subir un video (Directo) o URL directa (Custom) primero.",
+        "transcriptLabel": "Transcripción (Opcional)",
+        "transcriptPlaceholder": "Transcripción del video...",
+        "summaryLabel": "Resumen (Opcional)",
+        "summaryPlaceholder": "Resumen del contenido del video...",
+        "summaryHelp": "Resumen breve del contenido de la lección. Se mostrará en la pestaña \"Resumen\" del curso.",
+        "durationLabel": "Duración (mm:ss) *",
+        "durationDetected": "✓ Detectada automáticamente",
+        "durationDetectedDesc": "La duración se detectó automáticamente del video. Puedes editarla manualmente si es necesario.",
+        "aiErrorVideo": "Debes subir un video o proporcionar una URL válida primero (proveedor: Directo o Custom).",
+        "videoProviderLabel": "Proveedor de Video",
+        "videoProviders": {
+          "direct": "Subir Video",
+          "custom": "URL Personalizada",
+          "uploadLabel": "Subir Video",
+          "videoSaved": "Video guardado",
+          "uploading": "Subiendo video... {{progress}}%",
+          "changeVideo": "Cambiar Video",
+          "dropHere": "Suelta el video aquí",
+          "dragOrClick": "Arrastra un video aquí o haz clic para seleccionar",
+          "youtubeLabel": "ID o URL de YouTube",
+          "youtubePlaceholder": "Ej: dQw4w9WgXcQ o https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "vimeoLabel": "ID o URL de Vimeo",
+          "vimeoPlaceholder": "Ej: 123456789 o https://vimeo.com/123456789",
+          "customLabel": "URL del Video",
+          "customPlaceholder": "https://ejemplo.com/video.mp4",
+          "detectingDuration": "Detectando duración del video..."
+        },
+        "validation": {
+          "titleRequired": "El título de la lección es obligatorio",
+          "instructorRequired": "Debes seleccionar un instructor",
+          "videoRequired": "Debes subir un video o proporcionar una ID/URL válida",
+          "durationRequired": "La duración es obligatoria y debe ser mayor a 0"
+        }
+      },
+      "stats": {
+        "loading": "Cargando estadísticas...",
+        "kpiTitle": "Métricas Clave",
+        "kpiDescription": "Indicadores principales de rendimiento",
+        "enrolledStudents": "Estudiantes Inscritos",
+        "completionRate": "Tasa de Finalización",
+        "averageProgress": "Progreso Promedio",
+        "rating": "Calificación",
+        "noReviews": "Sin reseñas",
+        "reviewsCount": "{{count}} reseña",
+        "reviewsCount_plural": "{{count}} reseñas"
+      }
+    },
+    "errors": {
+      "load": "Error al cargar los talleres",
+      "retry": "Reintentar",
+      "update": "Error al actualizar el taller",
+      "delete": "Error al eliminar el taller",
+      "saveModule": "Error al guardar el módulo",
+      "saveLesson": "Error al guardar la lección",
+      "processVideo": "Error al procesar el video con IA",
+      "generateContent": "Error al generar contenido con IA"
+    },
+    "deleteModal": {
+      "title": "Eliminar Taller",
+      "confirmText": "¿Estás seguro de que deseas eliminar este taller?"
+    },
+    "pagination": {
+      "total": "{{count}} talleres encontrados",
+      "previous": "Anterior",
+      "next": "Siguiente"
+    }
+  },
+  "skills": {
+    "deleteModal": {
+      "title": "Eliminar Skill",
+      "confirmText": "¿Estás seguro de que deseas eliminar la skill {{name}}?",
+      "warningText": "Esta acción marcará la skill como inactiva. Los usuarios que ya la tienen seguirán conservándola, pero no se podrá asignar a nuevos cursos."
+    },
+    "page": {
+      "searchPlaceholder": "Buscar skills...",
+      "emptyFiltered": "No se encontraron skills con los filtros aplicados",
+      "emptyAll": "No hay skills registradas. Crea la primera skill.",
+      "tooltipEdit": "Editar",
+      "tooltipDelete": "Eliminar"
+    },
+    "categories": {
+      "all": "Todas",
+      "general": "General",
+      "programming": "Programación",
+      "design": "Diseño",
+      "marketing": "Marketing",
+      "business": "Negocios",
+      "data": "Datos",
+      "ai": "Inteligencia Artificial",
+      "cloud": "Cloud Computing",
+      "security": "Seguridad",
+      "devops": "DevOps",
+      "leadership": "Liderazgo",
+      "communication": "Comunicación",
+      "other": "Otros"
+    }
+  },
+  "news": {
+    "deleteModal": {
+      "title": "Eliminar Noticia",
+      "confirmText": "¿Estás seguro de que deseas eliminar esta noticia?"
+    },
+    "page": {
+      "searchPlaceholder": "Buscar noticias...",
+      "tooltipView": "Ver detalles",
+      "tooltipEdit": "Editar",
+      "tooltipDelete": "Eliminar"
+    }
+  },
+  "apps": {
+    "deleteModal": {
+      "title": "Eliminar App",
+      "confirmText": "¿Estás seguro de que deseas eliminar esta aplicación?"
+    }
+  },
+  "prompts": {
+    "deleteModal": {
+      "title": "Eliminar Prompt",
+      "confirmText": "¿Estás seguro de que deseas eliminar este prompt?"
+    }
+  },
+  "reels": {
+    "deleteModal": {
+      "title": "Eliminar Reel",
+      "confirmText": "¿Estás seguro de que deseas eliminar este reel?"
+    },
+    "page": {
+      "searchPlaceholder": "Buscar reels...",
+      "statusActive": "Activo",
+      "statusInactive": "Inactivo",
+      "tooltipView": "Ver detalles",
+      "tooltipEdit": "Editar",
+      "tooltipDeactivate": "Desactivar",
+      "tooltipActivate": "Activar",
+      "tooltipUnfeature": "Quitar destacado",
+      "tooltipFeature": "Destacar",
+      "tooltipDelete": "Eliminar"
+    }
+  },
+  "communities": {
+    "deleteModal": {
+      "title": "Eliminar Comunidad",
+      "confirmText": "¿Estás seguro de que deseas eliminar esta comunidad?"
+    },
+    "stats": {
+      "total": "Total Comunidades",
+      "members": "Total Miembros",
+      "posts": "Total Posts",
+      "active": "Comunidades Activas"
+    },
+    "showing": "Mostrando {{filtered}} de {{total}} comunidades"
+  },
+  "generic": {
+    "irreversible": "Esta acción no se puede deshacer.",
+    "errorDeleting": "Error al eliminar",
+    "errorLoading": "Error al cargar los datos"
+  },
+  "pendingCourses": {
+    "title": "Revisiones Pendientes",
+    "subtitle": "Revisar y aprobar cursos enviados desde Course Engine",
+    "tabPending": "Pendientes",
+    "tabRejected": "Rechazados",
+    "searchPlaceholder": "Buscar por título o instructor...",
+    "loading": "Cargando revisiones...",
+    "emptyPending": "No hay cursos pendientes",
+    "emptyPendingDesc": "¡Todo al día! No hay nuevas solicitudes.",
+    "emptyRejected": "No hay cursos rechazados",
+    "emptyRejectedDesc": "No se encontraron cursos rechazados con los filtros actuales.",
+    "statusRejected": "Rechazado",
+    "statusPending": "Pendiente",
+    "statusUpdate": "Actualización",
+    "statusNew": "Nuevo",
+    "btnApprove": "Aprobar",
+    "btnReconsider": "Reconsiderar",
+    "tooltipApprove": "Aprobar y Publicar",
+    "tooltipDetails": "Ver Detalles",
+    "tooltipReject": "Rechazar",
+    "tooltipDelete": "Eliminar permanentemente",
+    "errorApprove": "Error al aprobar el curso",
+    "errorReject": "Error al rechazar el curso",
+    "errorDelete": "Error al eliminar el curso",
+    "approveModal": {
+      "title": "Aprobar Curso",
+      "message": "¿Estás seguro de que deseas aprobar este curso? Se hará público y visible para los estudiantes inmediatamente.",
+      "confirm": "Aprobar y Publicar"
+    },
+    "rejectModal": {
+      "title": "Rechazar Curso",
+      "message": "¿Estás seguro de rechazar este curso?",
+      "confirm": "Rechazar"
+    },
+    "deleteModal": {
+      "title": "Eliminar Curso Rechazado",
+      "message": "¿Estás seguro de que deseas eliminar permanentemente este curso? Esta acción no se puede deshacer y borrará todos los datos asociados.",
+      "confirm": "Eliminar Definitivamente"
+    }
+  },
+  "layout": {
+    "panelTitle": "Panel de Administración",
+    "loading": "Cargando..."
+  },
+  "pendingCourseDetail": {
+    "backToPending": "Volver a pendientes",
+    "courseContent": "Contenido del Curso",
+    "notFound": "Curso no encontrado",
+    "errorApprove": "Error al aprobar",
+    "errorReject": "Error al rechazar",
+    "errorDelete": "Error al eliminar",
+    "errorReconsider": "Error al reconsiderar",
+    "approveModal": {
+      "title": "Confirmar Publicación",
+      "message": "¿Estás seguro de publicar este curso? Será visible inmediatamente para los estudiantes.",
+      "confirm": "Sí, Publicar"
+    },
+    "rejectModal": {
+      "title": "Rechazar Curso",
+      "message": "Esta acción no se puede deshacer fácilmente. El curso pasará a estado rechazado.",
+      "confirm": "Sí, Rechazar"
+    },
+    "deleteModal": {
+      "title": "Eliminar Curso",
+      "message": "¿Estás seguro de que deseas eliminar permanentemente este curso? Esta acción no se puede deshacer.",
+      "confirm": "Sí, Eliminar"
+    }
+  },
+  "companies": {
+    "stats": {
+      "active": {
+        "title": "Empresas Activas",
+        "subtitle": "de {{total}} registradas"
+      },
+      "pending": {
+        "title": "Pendientes",
+        "subtitle": "Requieren activación"
+      },
+      "trial": {
+        "title": "En Trial",
+        "subtitle": "Conversiones prioritarias"
+      },
+      "paused": {
+        "title": "Pausadas",
+        "subtitle": "Revisar facturación"
+      },
+      "avgUsage": {
+        "title": "Uso Promedio",
+        "subtitle": "{{used}} / {{total}} licencias"
+      }
+    }
+  },
+  "communityDetail": {
+    "members": {
+      "empty": "No hay miembros en esta comunidad",
+      "userNotFound": "Usuario no encontrado",
+      "activeStatus": "Activo",
+      "joinedAt": "Se unió:",
+      "removeFromCommunity": "Remover de la comunidad",
+      "demoteToMember": "Degradar a miembro",
+      "promoteToAdmin": "Promover a admin"
+    },
+    "posts": {
+      "empty": "No hay posts en esta comunidad",
+      "noContent": "Post sin contenido",
+      "pinned": "Fijado",
+      "hidden": "Oculto",
+      "likesLabel": "likes",
+      "commentsLabel": "comentarios",
+      "unpinPost": "Desfijar post",
+      "pinPost": "Fijar post",
+      "showPost": "Mostrar post",
+      "hidePost": "Ocultar post",
+      "deletePost": "Eliminar post",
+      "viewDetails": "Ver detalles del post"
+    }
+  },
+  "communityCard": {
+    "typePrivate": "Privada",
+    "typeModerated": "Moderada",
+    "typePublic": "Pública",
+    "statusActive": "Activa",
+    "statusInactive": "Inactiva",
+    "membersLabel": "Miembros",
+    "postsLabel": "Posts",
+    "noCreator": "Sin creador",
+    "deactivate": "Desactivar",
+    "activate": "Activar"
+  },
+  "workshopCard": {
+    "statusActive": "Activo",
+    "statusInactive": "Inactivo",
+    "instructorLabel": "Instructor",
+    "noInstructor": "Sin instructor",
+    "studentsLabel": "estudiantes"
+  },
+  "courseManagement": {
+    "addLesson": "Agregar lección",
+    "addMaterial": "Agregar material",
+    "addActivity": "Agregar actividad",
+    "recalcDurations": "Recalcular duraciones de todas las lecciones",
+    "uploadVideo": "Subir Video",
+    "confirmDeleteMaterial": "¿Estás seguro de eliminar este material?",
+    "confirmDeleteActivity": "¿Estás seguro de eliminar esta actividad?",
+    "materialsLabel": "Materiales",
+    "activitiesLabel": "Actividades",
+    "addButton": "+ Agregar",
+    "noMaterials": "No hay materiales",
+    "noActivities": "No hay actividades",
+    "confirmDeleteModule": "¿Estás seguro de eliminar este módulo y todas sus lecciones?",
+    "confirmDeleteLesson": "¿Estás seguro de eliminar esta lección?",
+    "published": "Publicado",
+    "draft": "Borrador",
+    "lessonCount_one": "{{count}} lección",
+    "lessonCount_other": "{{count}} lecciones",
+    "addLessonShort": "Lección"
+  },
+  "lessonContent": {
+    "transcript": "Transcripción",
+    "summary": "Resumen",
+    "activities": "Actividades"
+  },
+  "searchPlaceholders": {
+    "apps": "Buscar apps...",
+    "users": "Buscar por nombre, email o username...",
+    "reportes": "Buscar por título o descripción...",
+    "communities": "Buscar comunidades por nombre, descripción o creador...",
+    "companies": "Buscar por nombre, slug o email...",
+    "accessRequests": "Buscar por usuario, email o comunidad..."
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "users": "Usuarios",
+    "workshops": "Talleres",
+    "learningPaths": "Rutas de aprendizaje",
+    "liaAnalytics": "SofLIA Analytics",
+    "userStats": "Estadísticas de Usuarios",
+    "companies": "Empresas",
+    "reports": "Reportes",
+    "reviews": "Revisiones"
+  },
+  "dashboard": {
+    "confirmResetLayout": "¿Estás seguro de que deseas restablecer el layout por defecto?",
+    "customizeLayout": "Personalizar Layout",
+    "restoreLayout": "Restaurar",
+    "heroEyebrow": "Panel de Control",
+    "heroSubtitle": "Gestiona tu plataforma de aprendizaje con IA y supervisa el sistema.",
+    "statsTitle": "Estadisticas Generales",
+    "statsSubtitle": "Metricas clave de la plataforma",
+    "statsError": "Error al cargar estadisticas: {{error}}",
+    "quickActionsTitle": "Accesos Rapidos",
+    "quickActionsSubtitle": "Accesos directos",
+    "activityTitle": "Actividad Reciente",
+    "activitySubtitle": "Últimas acciones en la plataforma",
+    "activityEmpty": "No hay actividad reciente",
+    "activityBy": "por",
+    "greetings": {
+      "morning": "Buenos días",
+      "afternoon": "Buenas tardes",
+      "evening": "Buenas noches"
+    },
+    "stats": {
+      "users": "Usuarios Totales",
+      "courses": "Cursos Activos",
+      "organizations": "Empresas Activas",
+      "engagement": "Engagement"
+    },
+    "quickActions": {
+      "createCourse": {
+        "title": "Crear Nuevo Curso",
+        "description": "Añade un nuevo taller a la plataforma"
+      },
+      "manageUsers": {
+        "title": "Gestionar Usuarios",
+        "description": "Administra permisos y roles"
+      },
+      "manageCompanies": {
+        "title": "Gestionar Empresas",
+        "description": "Administra organizaciones B2B"
+      },
+      "viewAnalytics": {
+        "title": "Ver Analytics",
+        "description": "Métricas avanzadas de la IA"
+      },
+      "viewReports": {
+        "title": "Ver Reportes",
+        "description": "Reportes y métricas del sistema"
+      }
+    },
+    "activities": {
+      "defaultTitle": "Actividad",
+      "defaultDescription": "Sin descripción",
+      "defaultUser": "Usuario"
+    },
+    "activityBy": "por"
+  },
+  "layout": {
+    "panelTitle": "Panel de Administración",
+    "loading": "Cargando..."
+  },
+  "sidebar": {
+    "pinned": "Menú fijo",
+    "unpinned": "Menú flotante",
+    "expandMenu": "Expandir menú",
+    "collapseMenu": "Contraer menú"
+  },
+  "learningPathsPage": {
+    "badge": "Rutas de aprendizaje",
+    "listTitle": "Secuencias administrables de talleres",
+    "heroDescription": "Crea rutas ordenadas de talleres, reutiliza un mismo taller en distintas rutas y prepara la asignacion organizacional o individual sin tocar el dominio actual de cursos.",
+    "statsTotal": "Total",
+    "statsActive": "Activos",
+    "statsWorkshops": "Talleres",
+    "statsOrganizations": "Empresas",
+    "statsUsers": "Usuarios",
+    "createTitle": "Crear ruta de aprendizaje",
+    "createDescription": "Empieza con metadatos minimos; el orden y contenido se administran en el detalle.",
+    "titleLabel": "Titulo",
+    "slugLabel": "Slug",
+    "descriptionLabel": "Descripcion",
+    "titlePlaceholder": "Ruta de onboarding comercial",
+    "slugPlaceholder": "ruta-onboarding-comercial",
+    "descriptionPlaceholder": "Que objetivo cubre esta ruta y a quien esta dirigida.",
+    "creating": "Creando...",
+    "createButton": "Crear ruta de aprendizaje",
+    "createError": "No se pudo crear la ruta de aprendizaje",
+    "updateError": "No se pudo actualizar la ruta de aprendizaje",
+    "deleteError": "No se pudo eliminar la ruta de aprendizaje",
+    "loadError": "No se pudo cargar la ruta de aprendizaje",
+    "loadCompaniesError": "No se pudieron cargar las empresas",
+    "loadAssignmentsError": "No se pudieron cargar las asignaciones",
+    "loadCatalogError": "No se pudo cargar el catalogo de cursos",
+    "addError": "No se pudo agregar el curso",
+    "reorderError": "No se pudo reordenar la ruta",
+    "removeError": "No se pudo eliminar el taller",
+    "assignOrganizationError": "No se pudo asignar la ruta a la empresa",
+    "assignUserError": "No se pudo asignar la ruta al usuario",
+    "revokeOrganizationError": "No se pudo revocar la asignacion organizacional",
+    "revokeUserError": "No se pudo revocar la asignacion individual",
+    "existingTitle": "Rutas de aprendizaje existentes",
+    "existingDescription": "Administra metadatos, estado activo y contenido ordenado.",
+    "reload": "Recargar",
+    "loading": "Cargando rutas de aprendizaje...",
+    "empty": "Todavia no hay rutas de aprendizaje creadas.",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "noDescription": "Sin descripcion",
+    "noDescriptionYet": "Sin descripcion todavia.",
+    "workshopsCount": "{{count}} talleres",
+    "slugValue": "Slug: {{slug}}",
+    "autoSlug": "auto",
+    "updatedAt": "Actualizado: {{date}}",
+    "manageContent": "Gestionar contenido",
+    "deactivate": "Desactivar",
+    "activate": "Activar",
+    "delete": "Eliminar",
+    "deleteTitle": "Eliminar ruta de aprendizaje",
+    "deleteMessage": "Se eliminara \"{{title}}\" y dejara de estar disponible para nuevas asignaciones. El progreso historico se conserva.",
+    "deleteConfirm": "Eliminar",
+    "notFound": "Ruta de aprendizaje no encontrada",
+    "backToList": "Volver a rutas de aprendizaje",
+    "metadata": "Metadatos",
+    "saving": "Guardando...",
+    "assigning": "Asignando...",
+    "saveMetadata": "Guardar metadatos",
+    "addWorkshop": "Agregar taller",
+    "addWorkshopDescription": "El mismo taller puede vivir en varias rutas, pero una sola vez dentro de esta.",
+    "selectWorkshop": "Selecciona un taller",
+    "adding": "Agregando...",
+    "addToPath": "Agregar a la ruta",
+    "sequenceTitle": "Secuencia de la ruta",
+    "sequenceDescription": "El siguiente taller se desbloqueara solo cuando el anterior este completado.",
+    "emptySequence": "Esta ruta esta vacia. Agrega el primer taller para iniciar la secuencia.",
+    "untitledCourse": "Curso sin titulo",
+    "noCategory": "Sin categoria",
+    "noLevel": "Sin nivel",
+    "moveUp": "Subir",
+    "moveDown": "Bajar",
+    "removeWorkshop": "Eliminar",
+    "removeTitle": "Quitar taller de la ruta",
+    "removeMessage": "El taller se quitara de la secuencia, pero no se revocara el acceso que ya haya sido otorgado por otras asignaciones.",
+    "removeConfirm": "Quitar taller",
+    "assignOrganizationTitle": "Asignar a empresa",
+    "assignOrganizationDescription": "Entrega esta ruta completa a una organizacion con el orden secuencial ya definido.",
+    "selectOrganization": "Selecciona una empresa",
+    "assignOrganizationButton": "Asignar a empresa",
+    "assignUserTitle": "Asignar a usuario",
+    "assignUserDescription": "Asigna la ruta a un usuario puntual dentro de una empresa.",
+    "selectUserOrganization": "Selecciona una empresa para elegir usuarios",
+    "selectUser": "Selecciona un usuario",
+    "assignUserButton": "Asignar a usuario",
+    "assignUserDelegatedTitle": "Asignacion a usuarios desde empresa",
+    "assignUserDelegatedDescription": "Una vez creada la ruta y entregada a una empresa, esa organizacion decide desde su propio panel a que usuarios asignarla.",
+    "assignUserDelegatedHint": "El panel admin mantiene la creacion, edicion y asignacion por empresa. La asignacion individual queda delegada al panel de cada organizacion.",
+    "organizationAssignmentsTitle": "Empresas con esta ruta",
+    "organizationAssignmentsDescription": "Controla que organizaciones tienen activa esta ruta de aprendizaje.",
+    "noOrganizationAssignments": "Esta ruta todavia no esta asignada a ninguna empresa.",
+    "revokeOrganizationAssignment": "Revocar asignacion",
+    "revokeOrganizationTitle": "Revocar asignacion organizacional",
+    "revokeOrganizationMessage": "La empresa \"{{organization}}\" dejara de tener esta ruta activa para nuevas consultas. Los accesos directos ya otorgados por otras vias no se eliminan automaticamente.",
+    "userAssignmentsTitle": "Usuarios con asignacion individual",
+    "userAssignmentsDescription": "Revisa y administra las asignaciones manuales hechas a usuarios especificos.",
+    "userAssignmentsReadonlyDescription": "Consulta las asignaciones hechas por cada empresa desde su panel. Este listado es solo informativo.",
+    "noUserAssignments": "Esta ruta todavia no tiene asignaciones individuales.",
+    "revokeUserAssignment": "Revocar asignacion",
+    "revokeUserTitle": "Revocar asignacion individual",
+    "revokeUserMessage": "El usuario \"{{user}}\" perdera esta asignacion individual de la ruta.",
+    "assignedAt": "Asignado: {{date}}",
+    "managedByCompany": "Gestionado por empresa",
+    "unnamedUser": "Usuario sin nombre"
+  },
+  "coursesSection": {
+    "revoke": "Revocar Acceso",
+    "acquired": "Adquirido:",
+    "user": "Usuario",
+    "course": "Curso",
+    "progress": "Progreso",
+    "actionsHeader": "Acciones",
+    "learningPath": "Ruta de aprendizaje",
+    "learningPaths": "Rutas de aprendizaje",
+    "noOrgLearningPaths": "No hay rutas de aprendizaje asignadas a toda la organizacion.",
+    "noUserLearningPaths": "No hay asignaciones individuales de rutas de aprendizaje registradas.",
+    "untitledPath": "Ruta sin titulo",
+    "noDescription": "Sin descripcion",
+    "workshopsCount": "{{count}} talleres",
+    "assignedOn": "Asignado {{date}}",
+    "revokePath": "Revocar ruta",
+    "pathCatalogTitle": "Catálogo de rutas de aprendizaje",
+    "pathCatalogSubtitle": "Asigna rutas completas manteniendo el orden secuencial de talleres.",
+    "pathSearchPlaceholder": "Busca por título o descripción...",
+    "noLearningPathsFound": "No se encontraron rutas de aprendizaje",
+    "sequentialPath": "Ruta secuencial",
+    "workshopsInSequence": "{{count}} talleres en secuencia",
+    "alreadyAssigned": "Ya asignado",
+    "processing": "Procesando...",
+    "assignPath": "Asignar ruta",
+    "assignPathTitle": "Asignar ruta de aprendizaje",
+    "assignPathSubtitle": "Entrega una ruta completa respetando el orden de desbloqueo.",
+    "selectMember": "Seleccionar miembro",
+    "memberPlaceholder": "Buscar miembro...",
+    "selectLearningPath": "Seleccionar ruta de aprendizaje",
+    "pathPlaceholder": "Buscar ruta de aprendizaje...",
+    "assigning": "Asignando...",
+    "confirmAssignment": "Confirmar asignación",
+    "cancel": "Cancelar",
+    "noOrgCourses": "No hay cursos adquiridos para toda la organización. Abre el catálogo para empezar.",
+    "noUserAssignments": "No hay asignaciones individuales registradas.",
+    "confirmRevokeOrg": "¿Revocar el acceso a este curso para TODA la organización?",
+    "confirmRevokeUser": "¿Revocar esta asignación individual?"
+  }
+}

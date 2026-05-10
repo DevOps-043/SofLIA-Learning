@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 
 interface AdminWorkshopsErrorStateProps {
@@ -12,6 +13,8 @@ export function AdminWorkshopsErrorState({
   error,
   onRetry,
 }: AdminWorkshopsErrorStateProps) {
+  const { t } = useTranslation('admin')
+
   return (
     <div className="p-6">
       <motion.div
@@ -25,7 +28,7 @@ export function AdminWorkshopsErrorState({
           </div>
           <div>
             <h3 className="text-sm font-semibold text-red-500 dark:text-red-400 mb-1">
-              Error al cargar los talleres
+              {t('workshops.errors.load')}
             </h3>
             <p className="text-xs text-red-500/80 dark:text-red-400/80">
               {error}
@@ -34,7 +37,7 @@ export function AdminWorkshopsErrorState({
               onClick={onRetry}
               className="mt-3 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 rounded-lg text-sm font-medium transition-colors"
             >
-              Reintentar
+              {t('workshops.errors.retry')}
             </button>
           </div>
         </div>

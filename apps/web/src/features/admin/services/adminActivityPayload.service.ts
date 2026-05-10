@@ -64,13 +64,18 @@ function resolveToolKey(
   explicitToolKey: z.infer<typeof externalToolKeySchema> | undefined,
   normalizedConfig: ReturnType<typeof normalizeActivityConfigValue>,
 ) {
-  if (normalizedConfig?.toolTask?.toolKey) {
-    if (explicitToolKey && explicitToolKey !== normalizedConfig.toolTask.toolKey) {
+  const configToolKey =
+    normalizedConfig && 'toolTask' in normalizedConfig
+      ? normalizedConfig.toolTask?.toolKey
+      : undefined
+
+  if (configToolKey) {
+    if (explicitToolKey && explicitToolKey !== configToolKey) {
       throw new Error(
         'external_tool_key no coincide con activity_config.toolTask.toolKey.',
       )
     }
-    return normalizedConfig.toolTask.toolKey
+    return configToolKey
   }
 
   return explicitToolKey ?? null

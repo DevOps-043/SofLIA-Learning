@@ -3,9 +3,11 @@
 import { motion } from 'framer-motion'
 import { ArrowLeft, Sparkles } from 'lucide-react'
 
+import { useTranslation } from 'react-i18next'
 import { useCourseManagementContext } from './CourseManagementContext'
 
 export function CourseManagementHeader() {
+  const { t } = useTranslation('admin')
   const {
     state: { estimatingMissingTimes, handleEstimateMissingTimes, isNewCourse, router },
   } = useCourseManagementContext()
@@ -24,16 +26,16 @@ export function CourseManagementHeader() {
         className="group mb-6 inline-flex items-center text-[#6C757D] transition-colors hover:text-[#0A2540] dark:text-white/60 dark:hover:text-white"
       >
         <ArrowLeft className="mr-2 h-4 w-4 transition-transform" />
-        <span className="text-sm font-medium">Volver a Talleres</span>
+        <span className="text-sm font-medium">{t('workshops.editor.header.backButton')}</span>
       </motion.button>
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <h1 className="mb-2 text-2xl font-bold text-[#0A2540] dark:text-white sm:text-3xl md:text-4xl">
-            {isNewCourse ? 'Crear Nuevo Curso' : 'Gestion de Curso'}
+            {isNewCourse ? t('workshops.editor.header.createTitle') : t('workshops.editor.header.editTitle')}
           </h1>
           <p className="max-w-2xl text-sm text-[#6C757D] dark:text-white/60 sm:text-base">
-            Administra modulos, lecciones, materiales y actividades
+            {t('workshops.editor.header.description')}
           </p>
         </div>
 
@@ -52,8 +54,8 @@ export function CourseManagementHeader() {
             )}
             <span>
               {estimatingMissingTimes
-                ? 'Estimando tiempos...'
-                : 'Estimar tiempos con IA'}
+                ? t('workshops.editor.header.estimatingTimes')
+                : t('workshops.editor.header.estimateTimesButton')}
             </span>
           </motion.button>
         )}

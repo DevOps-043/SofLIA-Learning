@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { 
   XMarkIcon,
   BookOpenIcon,
@@ -16,6 +17,8 @@ interface ModuleModalProps {
 }
 
 export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
   const [formData, setFormData] = useState({
     module_title: '',
     module_description: '',
@@ -53,7 +56,7 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
       await onSave(formData)
       onClose()
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error al guardar el módulo')
+      setError(error instanceof Error ? error.message : t('workshops.errors.saveModule'))
     } finally {
       setLoading(false)
     }
@@ -128,7 +131,7 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
                           transition={{ delay: 0.15 }}
                           className="text-xl font-bold text-white"
                         >
-                          {module ? 'Editar Módulo' : 'Crear Módulo'}
+                          {module ? t('workshops.editor.modules.editModule') : t('workshops.editor.modules.createModule')}
                         </motion.h3>
                         <motion.p 
                           initial={{ x: -20, opacity: 0 }}
@@ -136,7 +139,7 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
                           transition={{ delay: 0.2 }}
                           className="text-xs text-white/70 mt-0.5"
                         >
-                          {module ? 'Modifica la información del módulo' : 'Agrega un nuevo módulo al curso'}
+                          {module ? t('workshops.editor.modules.editModuleDesc') : t('workshops.editor.modules.createModuleDesc')}
                         </motion.p>
                       </div>
                     </div>
@@ -176,7 +179,7 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
                       className="group"
                     >
                       <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-2 uppercase tracking-wide">
-                        Título del Módulo *
+                        {t('workshops.editor.modules.moduleTitleLabel')}
                       </label>
                       <div className="relative">
                         <motion.div
@@ -193,7 +196,7 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
                           value={formData.module_title}
                           onChange={(e) => setFormData(prev => ({ ...prev, module_title: e.target.value }))}
                           className="w-full pl-10 pr-4 py-3 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-[#00D4B3]/50 transition-all duration-200"
-                          placeholder="Ej: Introducción a la IA"
+                          placeholder={t('workshops.editor.modules.moduleTitlePlaceholder')}
                         />
                       </div>
                     </motion.div>
@@ -205,15 +208,17 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
                       transition={{ delay: 0.15 }}
                     >
                       <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-2 uppercase tracking-wide">
-                        Descripción
+                        {t('workshops.editor.modules.moduleDescriptionLabel')}
                       </label>
-                      <textarea
-                        rows={4}
-                        value={formData.module_description}
-                        onChange={(e) => setFormData(prev => ({ ...prev, module_description: e.target.value }))}
-                        className="w-full px-4 py-3 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-[#00D4B3]/50 transition-all duration-200 resize-none"
-                        placeholder="Descripción del módulo..."
-                      />
+                      <div className="relative">
+                        <textarea
+                          rows={4}
+                          value={formData.module_description}
+                          onChange={(e) => setFormData(prev => ({ ...prev, module_description: e.target.value }))}
+                          className="w-full px-4 py-3 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-[#00D4B3]/50 transition-all duration-200 resize-none"
+                          placeholder={t('workshops.editor.modules.moduleDescriptionPlaceholder')}
+                        />
+                      </div>
                     </motion.div>
 
                     {/* Checkboxes Mejorados */}
@@ -261,10 +266,10 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
                           </div>
                           <div>
                             <span className="text-sm font-semibold text-[#0A2540] dark:text-white">
-                              Módulo Requerido
+                              {t('workshops.editor.modules.requiredLabel')}
                             </span>
                             <p className="text-xs text-[#6C757D] dark:text-white/60 mt-0.5">
-                              Los estudiantes deben completarlo
+                              {t('workshops.editor.modules.requiredDesc')}
                             </p>
                           </div>
                         </label>
@@ -308,10 +313,10 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
                           </div>
                           <div>
                             <span className="text-sm font-semibold text-[#0A2540] dark:text-white">
-                              Publicado
+                              {t('workshops.editor.modules.publishedLabel')}
                             </span>
                             <p className="text-xs text-[#6C757D] dark:text-white/60 mt-0.5">
-                              Visible para los estudiantes
+                              {t('workshops.editor.modules.publishedDesc')}
                             </p>
                           </div>
                         </label>
@@ -334,7 +339,7 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
                       className="w-full rounded-xl border border-[#E9ECEF] bg-white px-6 py-2.5 text-sm font-medium text-[#6C757D] shadow-sm transition-all duration-200 hover:bg-[#E9ECEF] hover:shadow-md dark:border-[#6C757D]/30 dark:bg-[#1E2329] dark:text-white/70 dark:hover:bg-[#0A2540]/30 sm:w-auto"
                       disabled={loading}
                     >
-                      Cancelar
+                      {tc('actions.cancel')}
                     </motion.button>
                     <motion.button
                       type="submit"
@@ -353,12 +358,12 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
                             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                             className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full relative z-10"
                           />
-                          <span className="relative z-10">Guardando...</span>
+                          <span className="relative z-10">{tc('actions.saving')}</span>
                         </>
                       ) : (
                         <>
                           <CheckCircleIcon className="h-4 w-4 relative z-10" />
-                          <span className="relative z-10">Guardar</span>
+                          <span className="relative z-10">{tc('actions.save')}</span>
                         </>
                       )}
                     </motion.button>

@@ -268,6 +268,7 @@ export function ActivityModal({
 
     const config = normalizeActivityConfig(activity.activity_config)
     if (!config) return
+    if (config.interactionType === 'soflia_dialogue') return
 
     setInteractionType(config.interactionType)
     setResponsePlaceholder(config.submission.responsePlaceholder || '')

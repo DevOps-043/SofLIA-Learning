@@ -1,6 +1,7 @@
 'use client'
 
 import { ClockIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import { VideoProviderSelector } from '../VideoProviderSelector'
 import { formatLessonDuration, parseLessonDuration } from './service'
 import type { LessonFormData } from './types'
@@ -20,6 +21,8 @@ export function LessonVideoTab({
   onDurationAutoDetectedChange,
   onGenerateAI,
 }: LessonVideoTabProps) {
+  const { t } = useTranslation('admin')
+
   return (
     <div className="space-y-4">
       <VideoProviderSelector
@@ -60,11 +63,11 @@ export function LessonVideoTab({
       <div className="group">
         <div className="flex items-center justify-between mb-1.5">
           <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 uppercase tracking-wide">
-            Duración (mm:ss) *
+            {t('workshops.editor.lessons.durationLabel')}
           </label>
           {durationAutoDetected && (
             <span className="text-xs text-[#10B981] dark:text-[#10B981] font-medium">
-              ✓ Detectada automáticamente
+              {t('workshops.editor.lessons.durationDetected')}
             </span>
           )}
         </div>
@@ -94,8 +97,7 @@ export function LessonVideoTab({
         </div>
         {durationAutoDetected && (
           <p className="mt-1 text-xs text-[#6C757D] dark:text-white/60">
-            La duración se detectó automáticamente del video. Puedes editarla
-            manualmente si es necesario.
+            {t('workshops.editor.lessons.durationDetectedDesc')}
           </p>
         )}
       </div>

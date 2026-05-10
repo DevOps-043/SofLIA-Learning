@@ -73,7 +73,8 @@ export type LearnActivityType =
   | "quiz"
   | "discussion"
   | "ai_chat"
-  | "reading";
+  | "reading"
+  | "soflia_dialogue";
 
 export type LearnMaterialType =
   | "pdf"

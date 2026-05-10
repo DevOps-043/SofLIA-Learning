@@ -6,10 +6,11 @@ import { Bell, X, Check, CheckCheck, Archive, Trash2, AlertCircle, Info, CheckCi
 import { useNotifications } from '@/features/notifications/hooks/useNotifications'
 import type { Notification } from '@/features/notifications/services/notification.service'
 import { formatDistanceToNow } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { es, enUS, pt } from 'date-fns/locale'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
+import { useLanguage } from '@/core/providers/I18nProvider'
 import { getNotificationIcon, getNotificationBorderColor, getNotificationBgColor, getNotificationTextColor } from '@/features/notifications/utils/notification-categories'
 import { useMotionSafe } from '../../../lib/utils/motion'
 
@@ -66,6 +67,7 @@ export function NotificationBell({
   } = useNotifications()
 
   const { t } = useTranslation('common')
+  const { language } = useLanguage()
 
   const { disableHeavy } = useMotionSafe()
   const router = useRouter()
@@ -131,6 +133,13 @@ export function NotificationBell({
       window.removeEventListener('resize', updateDropdownPosition)
     }
   }, [isMobile, isDropdownOpen])
+
+  const dateLocales = {
+    es,
+    en: enUS,
+    pt
+  }
+  const currentLocale = (dateLocales[language as keyof typeof dateLocales] || es) as any
 
   // Cerrar dropdown al hacer clic fuera
   useEffect(() => {
@@ -469,7 +478,7 @@ export function NotificationBell({
                                     <p className="text-xs text-[#6C757D] dark:text-gray-500">
                                       {formatDistanceToNow(new Date(notification.created_at), { 
                                         addSuffix: true, 
-                                        locale: es 
+                                        locale: currentLocale 
                                       })}
                                     </p>
                                   </div>

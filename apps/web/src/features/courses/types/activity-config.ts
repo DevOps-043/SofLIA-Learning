@@ -1,4 +1,9 @@
 import { z } from 'zod'
+import {
+  dialogueActivityConfigSchema,
+  isDialogueActivityConfig,
+  type DialogueActivityConfig,
+} from './dialogue-runtime'
 
 export const supportedExternalToolKeys = [
   'chatgpt',
@@ -182,10 +187,13 @@ export const activityConfigSchema = z.discriminatedUnion('interactionType', [
   inlineAnswersActivityConfigSchema,
   checklistActivityConfigSchema,
   externalToolTaskActivityConfigSchema,
+  dialogueActivityConfigSchema,
 ])
 
 export type ActivityConfig = z.infer<typeof activityConfigSchema>
 export type ActivityInteractionType = ActivityConfig['interactionType']
+export type { DialogueActivityConfig }
+export { isDialogueActivityConfig }
 
 const unknownRecordSchema = z.record(z.string(), z.unknown())
 

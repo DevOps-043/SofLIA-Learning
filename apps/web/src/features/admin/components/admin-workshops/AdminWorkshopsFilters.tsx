@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import {
   FunnelIcon,
   MagnifyingGlassIcon,
@@ -27,6 +28,8 @@ export function AdminWorkshopsFilters({
   onCategoryChange,
   onStatusChange,
 }: AdminWorkshopsFiltersProps) {
+  const { t } = useTranslation('admin')
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -39,7 +42,7 @@ export function AdminWorkshopsFilters({
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#6C757D] dark:text-white/60" />
           <input
             type="text"
-            placeholder="Buscar talleres..."
+            placeholder={t('workshops.filters.searchPlaceholder')}
             value={searchTerm}
             onChange={(event) => onSearchChange(event.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
@@ -54,7 +57,7 @@ export function AdminWorkshopsFilters({
           >
             {ADMIN_WORKSHOP_CATEGORY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {t(`workshops.filters.categories.${option.value}`)}
               </option>
             ))}
           </select>
@@ -65,7 +68,7 @@ export function AdminWorkshopsFilters({
           >
             {ADMIN_WORKSHOP_STATUS_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {t(`workshops.filters.status.${option.value}`)}
               </option>
             ))}
           </select>
