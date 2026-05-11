@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { requireBusinessUser } from '@/lib/auth/requireBusiness'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { fromLoose } from '@/lib/supabase/looseQuery'
 import { logger } from '@/lib/utils/logger'
 import { loadBusinessUserLearningPaths } from '@/features/learning-paths/services/learning-path-dashboard.server'
 import { LearningPathDefaultsService } from '@/features/learning-paths/services/learning-path-defaults.server'
@@ -43,6 +44,25 @@ interface CourseAccessRow {
   id: string
 }
 
+interface LearningPreviewSummaryRow {
+  payload: unknown
+  model_name: string | null
+}
+
+interface LearningPreviewSummaryWrite {
+  kind: 'course' | 'learning_path'
+  target_id: string
+  locale: 'es' | 'en' | 'pt'
+  model_name: string
+  payload: PreviewResponsePayload
+}
+
+interface LegacyLearningPreviewCacheRow {
+  payload: unknown
+  model_name: string | null
+  expires_at: string | null
+}
+
 interface GeminiPreviewResult {
   description: string
   points: string[]
@@ -53,16 +73,25 @@ type PreviewResponsePayload = GeminiPreviewResult & {
   model: string
 }
 
-const PREVIEW_CACHE_TTL_MS = 1000 * 60 * 60 * 6
 const GEMINI_PREVIEW_TIMEOUT_MS = 3500
 
 function getGeminiApiKey() {
   return process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || null
 }
 
+function normalizePreviewLocale(locale?: string): 'es' | 'en' | 'pt' {
+  const normalized = locale?.toLowerCase().trim()
+
+  if (normalized?.startsWith('en')) return 'en'
+  if (normalized?.startsWith('pt')) return 'pt'
+  return 'es'
+}
+
 function getPreviewLanguage(locale?: string) {
-  if (locale?.startsWith('en')) return 'English'
-  if (locale?.startsWith('pt')) return 'Portuguese'
+  const normalizedLocale = normalizePreviewLocale(locale)
+
+  if (normalizedLocale === 'en') return 'English'
+  if (normalizedLocale === 'pt') return 'Portuguese'
   return 'Spanish'
 }
 
@@ -104,6 +133,29 @@ function parseGeminiPreview(raw: string | undefined): GeminiPreviewResult | null
     return { description, points }
   } catch {
     return null
+  }
+}
+
+function parseCachedPreview(
+  payload: unknown,
+  modelName?: string | null,
+): PreviewResponsePayload | null {
+  if (!payload || typeof payload !== 'object') return null
+
+  const cachedPayload = payload as Partial<PreviewResponsePayload>
+  const description = sanitizeText(cachedPayload.description)
+  const points = normalizePoints(cachedPayload.points)
+
+  if (!description || points.length === 0) return null
+
+  return {
+    description,
+    points,
+    source: 'cache',
+    model:
+      sanitizeText(modelName) ||
+      sanitizeText(cachedPayload.model) ||
+      'cache',
   }
 }
 
@@ -254,39 +306,63 @@ async function getPreviewResult(input: {
   locale?: string
 }): Promise<PreviewResponsePayload> {
   const supabase = createAdminClient()
-  const currentLocale = input.locale || 'es'
+  const currentLocale = normalizePreviewLocale(input.locale)
+  const universalCacheTable = fromLoose<
+    LearningPreviewSummaryRow,
+    LearningPreviewSummaryWrite
+  >(supabase, 'learning_preview_summaries')
 
   try {
-    const { data: cached } = await supabase
-      .from('learning_preview_cache')
-      .select('payload, expires_at')
-      .eq('organization_id', input.organizationId)
+    const { data: cached } = await universalCacheTable
+      .select('payload, model_name')
       .eq('kind', input.kind)
       .eq('target_id', input.targetId)
       .eq('locale', currentLocale)
       .maybeSingle()
 
     if (cached) {
-      if (new Date(cached.expires_at).getTime() > Date.now()) {
-        const payload = cached.payload as Record<string, any>
-        return {
-          description: payload.description || '',
-          points: Array.isArray(payload.points) ? payload.points : [],
-          source: 'cache',
-          model: payload.model_name || 'cache',
-        }
-      } else {
-        await supabase
-          .from('learning_preview_cache')
-          .delete()
-          .eq('organization_id', input.organizationId)
-          .eq('kind', input.kind)
-          .eq('target_id', input.targetId)
-          .eq('locale', currentLocale)
+      const parsed = parseCachedPreview(cached.payload, cached.model_name)
+
+      if (parsed) {
+        return parsed
       }
     }
   } catch (error) {
-    logger.error('Failed to read learning preview from cache table', error)
+    logger.error('Failed to read learning preview from universal cache table', error)
+  }
+
+  try {
+    const { data: legacyCached } = await supabase
+      .from('learning_preview_cache')
+      .select('payload, model_name, expires_at')
+      .eq('organization_id', input.organizationId)
+      .eq('kind', input.kind)
+      .eq('target_id', input.targetId)
+      .eq('locale', currentLocale)
+      .maybeSingle<LegacyLearningPreviewCacheRow>()
+
+    const parsedLegacy = parseCachedPreview(
+      legacyCached?.payload,
+      legacyCached?.model_name,
+    )
+
+    if (parsedLegacy) {
+      await universalCacheTable
+        .upsert(
+          {
+            kind: input.kind,
+            target_id: input.targetId,
+            locale: currentLocale,
+            model_name: parsedLegacy.model,
+            payload: parsedLegacy,
+          },
+          { onConflict: 'kind,target_id,locale' },
+        )
+
+      return parsedLegacy
+    }
+  } catch (error) {
+    logger.error('Failed to read learning preview from legacy cache table', error)
   }
 
   const fallback = {
@@ -302,19 +378,18 @@ async function getPreviewResult(input: {
   const result = generated || fallback
 
   try {
-    await supabase
-      .from('learning_preview_cache')
-      .upsert({
-        organization_id: input.organizationId,
+    await universalCacheTable.upsert(
+      {
         kind: input.kind,
         target_id: input.targetId,
         locale: currentLocale,
         model_name: result.model,
         payload: result,
-        expires_at: new Date(Date.now() + PREVIEW_CACHE_TTL_MS).toISOString(),
-      }, { onConflict: 'organization_id,kind,target_id,locale' })
+      },
+      { onConflict: 'kind,target_id,locale' },
+    )
   } catch (error) {
-    logger.error('Failed to write learning preview to cache table', error)
+    logger.error('Failed to write learning preview to universal cache table', error)
   }
 
   return result

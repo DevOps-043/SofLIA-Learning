@@ -69,6 +69,10 @@ export interface LooseMutationChain<T> extends Promise<LooseMutationResult> {
 export interface LooseMutableTable<TRead, TWrite = Partial<TRead>> {
   select(query: string, options?: LooseSelectOptions): LooseQueryChain<TRead>
   insert(values: TWrite | TWrite[]): LooseMutationChain<TRead>
+  upsert(
+    values: TWrite | TWrite[],
+    options?: { onConflict?: string; ignoreDuplicates?: boolean }
+  ): LooseMutationChain<TRead>
   update(values: Partial<TWrite>): LooseMutationChain<TRead>
   delete(): LooseMutationChain<TRead>
 }

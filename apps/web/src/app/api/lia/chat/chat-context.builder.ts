@@ -23,7 +23,7 @@ export async function buildFullContext(
   const fullContext: PlatformContext = {
     ...platformContext,
     ...requestContext,
-    userName: requestContext?.userName || platformContext.userName,
+    userName: platformContext.userName || requestContext?.userName,
     userJobTitle: resolvedUserJobTitle,
   };
 

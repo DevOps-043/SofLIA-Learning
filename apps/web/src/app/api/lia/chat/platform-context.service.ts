@@ -189,6 +189,13 @@ interface UserOrganizationRow {
   } | null;
 }
 
+interface UserProfileNameRow {
+  first_name: string | null;
+  last_name: string | null;
+  display_name: string | null;
+  username: string | null;
+}
+
 interface AssignedCourseRow {
   course: {
     id: string;
@@ -204,6 +211,15 @@ function normalizeNullableValue<T>(
   value: T | null | undefined
 ): T | undefined {
   return value ?? undefined;
+}
+
+function buildUserDisplayName(userData: UserProfileNameRow): string | undefined {
+  const fullName = [userData.first_name, userData.last_name]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+
+  return fullName || userData.display_name || userData.username || undefined;
 }
 
 function applyResolvedOrganizationContext(
@@ -354,12 +370,11 @@ export async function fetchPlatformContext(params: {
       // NOTA: El cargo profesional viene de organization_users.job_title, NO de users.cargo_rol
       const { data: userData } = await supabase
         .from('users')
-        .select('first_name, display_name, username')
+        .select('first_name, last_name, display_name, username')
         .eq('id', userId)
         .single();
       if (userData) {
-        context.userName =
-          userData.first_name || userData.display_name || userData.username;
+        context.userName = buildUserDisplayName(userData as UserProfileNameRow);
 
         // ✅ OBTENER ORGANIZACIÓN ACTIVA (nombre, slug y job_title del usuario)
         // NOTA: type_rol fue eliminado de la tabla users. El cargo profesional
