@@ -19,11 +19,12 @@ export const getContextPrompt = (
   userRole?: string,
   language: SupportedLanguage = 'es',
   _isFirstMessage = false,
-  studyPlannerContextString?: string
+  studyPlannerContextString?: string,
+  userRoleDescription?: string
 ) => {
   const role = userRole || courseContext?.userRole || workshopContext?.userRole
   const nameGreeting = buildNameGreeting(userName)
-  const roleInfo = buildRoleInfo(role)
+  const roleInfo = buildRoleInfo(role, userRoleDescription)
   const pageInfo = buildPageInfo(pageContext)
 
   if (courseContext && context === 'course') {

@@ -15,6 +15,8 @@ type UserRow = Database['public']['Tables']['users']['Row']
 type UserProfileExtraFields = {
   phone_number?: string | null
   points?: number | null
+  job_title?: string | null
+  job_description?: string | null
 }
 type UserProfileRow = Partial<UserRow> & UserProfileExtraFields & Pick<UserRow, 'id' | 'created_at'>
 
@@ -64,6 +66,8 @@ export function mapUserProfileRow(data: UserProfileRow): UserProfile {
     location: data.location || '',
     cargo_rol: data.cargo_rol || '',
     type_rol: data.type_rol || '',
+    job_title: data.job_title || '',
+    job_description: data.job_description || '',
     profile_picture_url: data.profile_picture_url || '',
     country_code: data.country_code || '',
     date_of_birth: data.date_of_birth || null,
@@ -132,6 +136,22 @@ export function pickAllowedProfileUpdates(updates: UpdateProfileRequest): Partia
   }, {})
 }
 
+export function pickAllowedOrganizationProfileUpdates(
+  updates: UpdateProfileRequest
+): Pick<UpdateProfileRequest, 'job_title' | 'job_description'> {
+  const organizationUpdates: Pick<UpdateProfileRequest, 'job_title' | 'job_description'> = {}
+
+  if (updates.job_title !== undefined) {
+    organizationUpdates.job_title = updates.job_title
+  }
+
+  if (updates.job_description !== undefined) {
+    organizationUpdates.job_description = updates.job_description
+  }
+
+  return organizationUpdates
+}
+
 export function createProfileUpdateRequest(profile: UserProfile): UpdateProfileRequest {
   return {
     username: profile.username,
@@ -143,11 +163,26 @@ export function createProfileUpdateRequest(profile: UserProfile): UpdateProfileR
     location: profile.location,
     cargo_rol: profile.cargo_rol,
     type_rol: profile.type_rol,
+    job_title: profile.job_title,
+    job_description: profile.job_description,
     profile_picture_url: profile.profile_picture_url,
     country_code: profile.country_code,
     date_of_birth: profile.date_of_birth,
     gender: profile.gender,
   }
+}
+
+export function resolveChangedOrganizationProfileFields(
+  previousMembership: { job_title?: string | null; job_description?: string | null } | null | undefined,
+  updates: Pick<UpdateProfileRequest, 'job_title' | 'job_description'>
+): string[] {
+  return Object.entries(updates).reduce<string[]>((changedFields, [field, nextValue]) => {
+    const previousValue = previousMembership?.[field as 'job_title' | 'job_description']
+    if (String(previousValue || '') !== String(nextValue || '')) {
+      changedFields.push(field)
+    }
+    return changedFields
+  }, [])
 }
 
 export function resolveChangedProfileFields(

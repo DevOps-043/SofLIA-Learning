@@ -15,6 +15,7 @@ interface User {
   cargo_rol?: string
   created_at?: string
   job_title?: string
+  job_description?: string
   profile_picture_url?: string
   updated_at?: string
   organization_id?: string | null

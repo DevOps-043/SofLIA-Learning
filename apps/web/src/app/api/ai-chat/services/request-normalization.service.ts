@@ -16,6 +16,8 @@ export interface RequestUserInfo {
   last_name?: string
   username?: string
   type_rol?: string
+  job_title?: string
+  job_description?: string
 }
 
 export interface AiChatRequestBody {
@@ -44,6 +46,8 @@ const requestUserInfoSchema = z.object({
   last_name: z.string().optional(),
   username: z.string().optional(),
   type_rol: z.string().optional(),
+  job_title: z.string().optional(),
+  job_description: z.string().optional(),
 })
 
 const aiChatRequestSchema = z.object({

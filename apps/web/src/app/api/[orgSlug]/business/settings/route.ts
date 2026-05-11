@@ -125,7 +125,12 @@ export async function PUT(
       slug: newSlug,
       google_login_enabled,
       microsoft_login_enabled,
-      show_navbar_name
+      show_navbar_name,
+      industry,
+      company_size,
+      company_type,
+      company_mission,
+      company_country,
     } = body
 
     // Validar campos requeridos
@@ -195,6 +200,11 @@ export async function PUT(
     if (google_login_enabled !== undefined) updateData.google_login_enabled = google_login_enabled
     if (microsoft_login_enabled !== undefined) updateData.microsoft_login_enabled = microsoft_login_enabled
     if (show_navbar_name !== undefined) updateData.show_navbar_name = show_navbar_name
+    if (industry !== undefined) updateData.industry = industry?.trim() || null
+    if (company_size !== undefined) updateData.company_size = company_size?.trim() || null
+    if (company_type !== undefined) updateData.company_type = company_type?.trim() || null
+    if (company_mission !== undefined) updateData.company_mission = company_mission?.trim() || null
+    if (company_country !== undefined) updateData.company_country = company_country?.trim() || null
 
     const { data: updatedOrganization, error: updateError } = await supabase
       .from('organizations')

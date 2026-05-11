@@ -225,7 +225,15 @@ export function useAIChatSendMessage(params: SendMessageParams) {
             pageContext: { pathname, description: pageContextInfo, detectedArea: detectedContext, pageTitle: pageContent?.title || '', metaDescription: pageContent?.metaDescription || '', headings: pageContent?.headings || [], mainText: pageContent?.mainText || '', platformContext: getPlatformContext(), availableLinks },
             conversationHistory: normalMessages.map(m => ({ role: m.role, content: m.content })),
             userName: user?.display_name || user?.username || user?.first_name,
-            userInfo: user ? { display_name: user.display_name, first_name: user.first_name, last_name: user.last_name, username: user.username, type_rol: user.type_rol } : undefined,
+            userInfo: user ? {
+              display_name: user.display_name,
+              first_name: user.first_name,
+              last_name: typeof user.last_name === 'string' ? user.last_name : undefined,
+              username: user.username,
+              type_rol: typeof user.job_title === 'string' ? user.job_title : typeof user.type_rol === 'string' ? user.type_rol : undefined,
+              job_title: typeof user.job_title === 'string' ? user.job_title : undefined,
+              job_description: typeof user.job_description === 'string' ? user.job_description : undefined,
+            } : undefined,
           }),
         });
         if (!response.ok) { const errorData = await response.json().catch(() => ({ error: 'Error desconocido' })); throw new Error(errorData.error || `Error ${response.status}`); }

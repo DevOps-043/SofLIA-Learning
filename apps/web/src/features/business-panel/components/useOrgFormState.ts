@@ -16,6 +16,11 @@ export interface OrgFormData {
   show_navbar_name: boolean
   banner_url: string
   icon_url: string
+  industry: string
+  company_size: string
+  company_type: string
+  company_mission: string
+  company_country: string
 }
 
 interface UseOrgFormStateProps {
@@ -53,6 +58,11 @@ export function useOrgFormState({
     show_navbar_name: organization?.show_navbar_name ?? true,
     banner_url: branding?.banner_url || '',
     icon_url: organization?.logo_url || '',
+    industry: organization?.industry || '',
+    company_size: organization?.company_size || '',
+    company_type: organization?.company_type || '',
+    company_mission: organization?.company_mission || '',
+    company_country: organization?.company_country || '',
   })
   const [isSaving, setIsSaving] = useState(false)
   const [copiedFields, setCopiedFields] = useState<Record<string, boolean>>({})
@@ -70,6 +80,11 @@ export function useOrgFormState({
         max_users: organization.max_users?.toString() || '10',
         show_navbar_name: organization.show_navbar_name ?? true,
         icon_url: organization.logo_url || '',
+        industry: organization.industry || '',
+        company_size: organization.company_size || '',
+        company_type: organization.company_type || '',
+        company_mission: organization.company_mission || '',
+        company_country: organization.company_country || '',
       }))
     }
     if (branding) {
@@ -80,7 +95,7 @@ export function useOrgFormState({
     }
   }, [organization, branding])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
 
@@ -104,6 +119,11 @@ export function useOrgFormState({
         logo_url: formData.logo_url.trim() || null,
         max_users: parseInt(formData.max_users),
         show_navbar_name: formData.show_navbar_name,
+        industry: formData.industry.trim() || null,
+        company_size: formData.company_size.trim() || null,
+        company_type: formData.company_type.trim() || null,
+        company_mission: formData.company_mission.trim() || null,
+        company_country: formData.company_country.trim() || null,
       }
 
       const successOrg = await updateOrganization(updateData)
@@ -141,6 +161,11 @@ export function useOrgFormState({
         show_navbar_name: organization.show_navbar_name ?? true,
         banner_url: branding?.banner_url || '',
         icon_url: organization.logo_url || '',
+        industry: organization.industry || '',
+        company_size: organization.company_size || '',
+        company_type: organization.company_type || '',
+        company_mission: organization.company_mission || '',
+        company_country: organization.company_country || '',
       })
       setSaveError(null)
       setSaveSuccess(null)

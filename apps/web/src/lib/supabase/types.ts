@@ -4032,6 +4032,7 @@ export type Database = {
           id: string
           invited_at: string | null
           invited_by: string | null
+          job_description: string | null
           job_title: string | null
           joined_at: string | null
           organization_id: string
@@ -4045,6 +4046,7 @@ export type Database = {
           id?: string
           invited_at?: string | null
           invited_by?: string | null
+          job_description?: string | null
           job_title?: string | null
           joined_at?: string | null
           organization_id: string
@@ -4058,6 +4060,7 @@ export type Database = {
           id?: string
           invited_at?: string | null
           invited_by?: string | null
+          job_description?: string | null
           job_title?: string | null
           joined_at?: string | null
           organization_id?: string
@@ -4156,12 +4159,17 @@ export type Database = {
           brand_favicon_url: string | null
           brand_font_family: string | null
           brand_logo_url: string | null
+          company_country: string | null
+          company_mission: string | null
+          company_size: string | null
+          company_type: string | null
           contact_email: string | null
           contact_phone: string | null
           created_at: string | null
           description: string | null
           google_login_enabled: boolean | null
           id: string
+          industry: string | null
           is_active: boolean | null
           login_styles: Json | null
           logo_url: string | null
@@ -4170,6 +4178,7 @@ export type Database = {
           name: string
           panel_styles: Json | null
           selected_theme: string | null
+          show_navbar_name: boolean | null
           slug: string
           subscription_end_date: string | null
           subscription_plan: string | null
@@ -4188,12 +4197,17 @@ export type Database = {
           brand_favicon_url?: string | null
           brand_font_family?: string | null
           brand_logo_url?: string | null
+          company_country?: string | null
+          company_mission?: string | null
+          company_size?: string | null
+          company_type?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string | null
           description?: string | null
           google_login_enabled?: boolean | null
           id?: string
+          industry?: string | null
           is_active?: boolean | null
           login_styles?: Json | null
           logo_url?: string | null
@@ -4202,6 +4216,7 @@ export type Database = {
           name: string
           panel_styles?: Json | null
           selected_theme?: string | null
+          show_navbar_name?: boolean | null
           slug: string
           subscription_end_date?: string | null
           subscription_plan?: string | null
@@ -4220,12 +4235,17 @@ export type Database = {
           brand_favicon_url?: string | null
           brand_font_family?: string | null
           brand_logo_url?: string | null
+          company_country?: string | null
+          company_mission?: string | null
+          company_size?: string | null
+          company_type?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string | null
           description?: string | null
           google_login_enabled?: boolean | null
           id?: string
+          industry?: string | null
           is_active?: boolean | null
           login_styles?: Json | null
           logo_url?: string | null
@@ -4234,6 +4254,7 @@ export type Database = {
           name?: string
           panel_styles?: Json | null
           selected_theme?: string | null
+          show_navbar_name?: boolean | null
           slug?: string
           subscription_end_date?: string | null
           subscription_plan?: string | null

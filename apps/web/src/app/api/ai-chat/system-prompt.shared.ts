@@ -77,12 +77,13 @@ export function buildNameGreeting(userName?: string): string {
     : ''
 }
 
-export function buildRoleInfo(role?: string): string {
-  return role
-    ? `\n\nROL PROFESIONAL DEL USUARIO:
-- El usuario tiene el rol profesional: "${role}"
-- DEBES adaptar tus respuestas, ejemplos y casos de uso a ese contexto profesional`
-    : ''
+export function buildRoleInfo(role?: string, roleDescription?: string): string {
+  if (!role && !roleDescription) {
+    return ''
+  }
+
+  return `\n\nROL PROFESIONAL DEL USUARIO:
+${role ? `- El usuario tiene el rol profesional: "${role}"\n` : ''}${roleDescription ? `- Funciones y responsabilidades declaradas: "${roleDescription}"\n` : ''}- DEBES adaptar tus respuestas, ejemplos, actividades y casos de uso a ese contexto profesional`
 }
 
 export function buildPageInfo(pageContext?: PageContext): string {

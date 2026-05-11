@@ -1090,6 +1090,7 @@
       "lastName": "Sobrenome",
       "username": "Nome de Usuário",
       "role": "Cargo na Empresa",
+      "roleDescription": "Funções e responsabilidades do cargo",
       "phone": "Telefone",
       "location": "Localização",
       "bio": "Biografia"

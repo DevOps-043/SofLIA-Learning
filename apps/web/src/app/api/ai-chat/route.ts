@@ -147,6 +147,7 @@ export async function POST(request: NextRequest) {
       language: resolveRequestLanguage(sanitizedMessage, languageFromRequest),
       displayName: userContext.displayName,
       userRole: userContext.userRole,
+      userRoleDescription: userContext.userRoleDescription,
       courseContext: userContext.courseContext,
       workshopContext: sanitizedWorkshopContext,
       pageContext: sanitizedPageContext,

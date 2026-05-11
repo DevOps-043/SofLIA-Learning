@@ -5,6 +5,7 @@ import { logger } from '@/lib/utils/logger';
 import { createClient } from '@/lib/supabase/server';
 import { MemoryCache } from '@/lib/cache/memory-cache';
 import { applyAuthReadRateLimit } from '@/lib/auth/auth-rate-limit'
+import { resolveUserPrimaryMembershipWithOrg } from '@/lib/services/user-org-context.service'
 
 // ⚡ OPTIMIZACIÓN: Cache de organizaciones (5MB, 5min TTL)
 interface CachedOrganizationData {
@@ -18,6 +19,7 @@ interface CachedOrganizationData {
     slug?: string | null
   } | null
   jobTitle: string | null
+  jobDescription: string | null
 }
 
 const orgCache = new MemoryCache<CachedOrganizationData>(5, 5 * 60 * 1000);
@@ -43,6 +45,7 @@ export async function GET(request: Request) {
 
     // ⚡ OPTIMIZACIÓN: Buscar organización con cache y query simplificada
     let organization = null;
+    let jobDescription: string | null = null;
     let jobTitle: string | null = null; // Cargo/puesto del usuario en la organización
 
     // Verificar cache primero
@@ -51,23 +54,15 @@ export async function GET(request: Request) {
 
     if (cachedOrg) {
       organization = cachedOrg.organization;
+      jobDescription = cachedOrg.jobDescription;
       jobTitle = cachedOrg.jobTitle;
     } else {
       try {
         const supabase = await createClient();
+        const membership = await resolveUserPrimaryMembershipWithOrg(supabase, user.id);
 
-        // Buscar en organization_users (única fuente de verdad después de eliminar users.organization_id)
-        // Incluimos job_title para obtener el cargo del usuario
-        const { data: userOrgs, error: userOrgsError } = await supabase
-          .from('organization_users')
-          .select('organization_id, joined_at, job_title, organizations!inner(id, name, logo_url, brand_logo_url, brand_favicon_url, slug)')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .order('joined_at', { ascending: false })
-          .limit(1);
-
-        if (!userOrgsError && userOrgs && userOrgs.length > 0) {
-          const org = userOrgs[0].organizations;
+        if (membership) {
+          const org = membership.organizations;
           organization = {
             id: org.id,
             name: org.name,
@@ -77,16 +72,15 @@ export async function GET(request: Request) {
             favicon_url: org.brand_favicon_url,
             slug: org.slug
           };
-          // Obtener job_title del usuario en la organización
-          jobTitle = userOrgs[0].job_title || null;
+          jobTitle = membership.job_title || null;
+          jobDescription = membership.job_description || null;
         }
 
-        // Cachear resultado (incluido null para evitar queries repetidas)
         if (organization) {
-          orgCache.set(cacheKey, { organization, jobTitle });
+          orgCache.set(cacheKey, { organization, jobTitle, jobDescription });
         }
       } catch (orgError) {
-        // Error manejado silenciosamente (ya optimizado en FASE 1)
+        logger.error('Error resolving user organization context:', orgError);
       }
     }
 
@@ -96,6 +90,7 @@ export async function GET(request: Request) {
         ...user,
         organization_id: organization?.id || null, // ID directo para acceso fácil en hooks
         organization: organization, // Información completa de la organización (opcional)
+        job_description: jobDescription,
         job_title: jobTitle // Cargo/puesto del usuario en la organización (antes type_rol)
       }
     }, {

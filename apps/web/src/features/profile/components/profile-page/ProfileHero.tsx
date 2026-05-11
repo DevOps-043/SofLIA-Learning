@@ -30,12 +30,12 @@ export function ProfileHero({
     <div id={PROFILE_TOUR_TARGET_IDS.hero} className="relative overflow-hidden">
       <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${colors.accent}10 0%, transparent 100%)` }} />
       <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-[120px]" style={{ backgroundColor: `${colors.accent}20` }} />
-      <div className="absolute top-0 right-1/4 w-96 h-96 rounded-full blur-[120px]" style={{ backgroundColor: '#8B5CF620' }} />
+      <div className="absolute top-0 right-1/4 w-96 h-96 rounded-full blur-[120px]" style={{ backgroundColor: `${colors.primary}20` }} />
 
       <div className="relative px-6 lg:px-12 py-12">
         <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
           <motion.div id={PROFILE_TOUR_TARGET_IDS.avatar} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative group">
-            <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-3xl p-1" style={{ background: `linear-gradient(135deg, ${colors.accent}30, #8B5CF630)` }}>
+            <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-3xl p-1" style={{ background: `linear-gradient(135deg, ${colors.accent}30, ${colors.primary}30)` }}>
               <div className="w-full h-full rounded-[22px] overflow-hidden flex items-center justify-center relative" style={{ backgroundColor: colors.bgSecondary }}>
                 {profile.profile_picture_url && !imageError ? (
                   <img
@@ -80,7 +80,7 @@ export function ProfileHero({
               <h1 className="text-3xl lg:text-4xl font-bold mb-2" style={{ color: colors.text }}>{profile.display_name}</h1>
               <p className="text-lg flex items-center gap-2" style={{ color: colors.textSecondary }}>
                 <Briefcase className="w-4 h-4" />
-                {profile.type_rol || t('profile.hero.noRole')}
+                {profile.job_title || t('profile.hero.noRole')}
               </p>
               <div className="flex flex-wrap items-center gap-4 mt-4 text-sm" style={{ color: colors.textSecondary }}>
                 <span className="flex items-center gap-1.5">
@@ -97,8 +97,8 @@ export function ProfileHero({
 
           <motion.div id={PROFILE_TOUR_TARGET_IDS.stats} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="flex gap-3 lg:gap-4">
             {[
-              { icon: <BookOpen className="w-5 h-5" />, value: stats?.completedLessons ?? 0, label: t('profile.hero.stats.lessons'), color: '#3B82F6' },
-              { icon: <GraduationCap className="w-5 h-5" />, value: stats?.certificates ?? 0, label: t('profile.hero.stats.certificates'), color: '#8B5CF6' }
+              { icon: <BookOpen className="w-5 h-5" />, value: stats?.completedLessons ?? 0, label: t('profile.hero.stats.lessons'), color: colors.accent },
+              { icon: <GraduationCap className="w-5 h-5" />, value: stats?.certificates ?? 0, label: t('profile.hero.stats.certificates'), color: colors.primary }
             ].map(stat => (
               <motion.div key={stat.label} className="rounded-2xl p-4 lg:p-5 text-center min-w-[100px]" style={{ backgroundColor: colors.bgSecondary }} whileHover={{ scale: 1.05, y: -3 }}>
                 <div className="mb-2 flex justify-center" style={{ color: stat.color }}>{stat.icon}</div>

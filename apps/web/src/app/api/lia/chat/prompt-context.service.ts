@@ -13,12 +13,16 @@ export function buildUserContextSection(context: PlatformContext): string {
 
   const orgPrefix = context.organizationSlug ? '/' + context.organizationSlug : '';
 
+  section += '\n### FUENTE DE VERDAD: Datos verificados desde la base de datos de SofLIA\n';
+  section += 'REGLA ABSOLUTA: Si un dato aparece en esta sección, es el valor oficial y verificado. NUNCA lo contradigas ni lo mezcles con suposiciones o datos de sesiones anteriores.\n';
+  section += 'SEPARACIÓN OBLIGATORIA: El cargo del usuario es su rol profesional en su empresa. El nombre de la organización es el de su empleador. NO mezcles estos conceptos entre sí ni con el rol técnico dentro de la plataforma (Admin, BusinessUser, etc.).\n\n';
+
   if (context.userName) {
     section += '- Usuario activo: ' + context.userName + '\n';
   }
 
   if (context.organizationName) {
-    section += '- Organización del usuario: ' + context.organizationName + '\n';
+    section += '- Organización empleadora del usuario: ' + context.organizationName + '\n';
     section +=
       'IMPORTANTE: El usuario pertenece a la organización "' +
       context.organizationName +
@@ -43,26 +47,55 @@ export function buildUserContextSection(context: PlatformContext): string {
       'NUNCA uses /business-panel/... o /business-user/... sin el slug de organización.\n';
   }
 
-  if (context.userJobTitle || context.userCheck) {
-    section += '\n### Perfil Profesional del Usuario (Personalización Obligatoria)\n';
+  const hasOrgContext = context.organizationIndustry || context.organizationSize ||
+    context.organizationType || context.organizationMission || context.organizationCountry;
 
-    if (context.userJobTitle) {
-      section += '- Cargo Actual: ' + context.userJobTitle + '\n';
+  if (hasOrgContext) {
+    section += '\n### Perfil de la Empresa (Contexto Organizacional)\n';
+    section +=
+      'INSTRUCCIÓN: Usa esta información para contextualizar TODOS los ejemplos, casos de uso y recomendaciones a la realidad específica de la empresa del usuario.\n';
+
+    if (context.organizationIndustry) {
+      section += '- Sector / Giro: ' + context.organizationIndustry + '\n';
+    }
+    if (context.organizationSize) {
+      section += '- Tamaño de la empresa: ' + context.organizationSize + ' empleados\n';
       section +=
-        'CONTEXTO: El usuario tiene el cargo de: ' +
-        context.userJobTitle +
-        '. Ten esto en cuenta para dar respuestas relevantes a su nivel, pero NO inicies frases diciendo "Como ' +
-        context.userJobTitle +
-        '..." a menos que sea estrictamente necesario para el contexto.\n';
+        'CONTEXTO DE ESCALA: Adapta la complejidad y escala de los ejemplos al tamaño real de la organización. ' +
+        'Una empresa de ' + context.organizationSize + ' empleados tiene dinámicas, procesos y desafíos muy distintos a empresas de otro tamaño.\n';
+    }
+    if (context.organizationType) {
+      section += '- Modelo de negocio: ' + context.organizationType + '\n';
+    }
+    if (context.organizationCountry) {
+      section += '- País de operación: ' + context.organizationCountry + '\n';
+    }
+    if (context.organizationMission) {
+      section += '- Misión / Propósito: ' + context.organizationMission + '\n';
+      section +=
+        'CONTEXTO: La misión de la empresa define el propósito detrás del trabajo del usuario. ' +
+        'Úsala para dar ejemplos que conecten el aprendizaje con el impacto real en la organización.\n';
     }
 
-    if (context.userCheck?.area) section += '- Área: ' + context.userCheck.area + '\n';
-    if (context.userCheck?.companySize)
-      section += '- Tamaño Empresa: ' + context.userCheck.companySize + '\n';
-
-    section += '\nINSTRUCCIÓN DE ADAPTACIÓN: El usuario es un profesional en activo.\n';
+    section += '\nINSTRUCCIÓN DE CONTEXTUALIZACIÓN EMPRESARIAL:\n';
     section +=
-      'Usa su "Cargo Actual" para dar ejemplos de negocios concretos y contextualizar el aprendizaje a su realidad laboral.\n';
+      'Cuando el usuario aprenda un concepto, siempre da ejemplos concretos aplicados a:\n';
+    section += '1. El sector específico (' + (context.organizationIndustry || 'su industria') + ')\n';
+    section += '2. La escala de la empresa (' + (context.organizationSize ? context.organizationSize + ' empleados' : 'su tamaño') + ')\n';
+    section += '3. El tipo de clientes que sirve (' + (context.organizationType || 'su modelo de negocio') + ')\n';
+    section += 'NUNCA des ejemplos genéricos cuando tengas contexto empresarial disponible.\n';
+  }
+
+  // NOTE: User job title and description are injected by buildUniversalUserRoleSection
+  // (in prompt-instructions.service.ts) which is assembled earlier in the prompt.
+  // Do NOT repeat them here — duplication confuses the model.
+  // Only include supplemental user context that is NOT covered there.
+  if (context.userCheck?.area) {
+    section += '\n- Área funcional del usuario (complementario): ' + context.userCheck.area + '\n';
+  }
+  // userCheck.companySize is suppressed when organizationSize is available (DB wins).
+  if (context.userCheck?.companySize && !context.organizationSize) {
+    section += '- Tamaño de empresa (declarado por usuario): ' + context.userCheck.companySize + '\n';
   }
 
   if (context.currentPage) {

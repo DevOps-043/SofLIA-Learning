@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import {
   AlertCircle,
+  Brain,
   Building2,
   Check,
   CheckCircle,
@@ -12,6 +13,7 @@ import {
   Info,
   Loader2,
   Mail,
+  MapPin,
   Save,
   Sparkles,
   Type,
@@ -470,6 +472,160 @@ export function OrganizationTab({
           </div>
         </motion.div>
       </div>
+
+      {/* SofLIA AI Context Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="rounded-2xl p-6 border space-y-5"
+        style={cardStyle}
+      >
+        <div className="flex items-center gap-3 mb-2">
+          <div
+            className="p-3 rounded-xl"
+            style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}
+          >
+            <Brain className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold" style={labelStyle}>
+              Contexto para SofLIA
+            </h3>
+            <p className="text-sm" style={helpStyle}>
+              Esta información permite a SofLIA adaptar sus respuestas al perfil real de tu empresa
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="industry" className="block text-sm font-medium mb-2" style={labelStyle}>
+              Giro / Sector de la Empresa
+            </label>
+            <select
+              id="industry"
+              name="industry"
+              value={formData.industry}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-xl border-2 transition-colors focus:outline-none"
+              style={inputStyle}
+            >
+              <option value="">Selecciona un sector...</option>
+              <option value="Tecnología e IT">Tecnología e IT</option>
+              <option value="Manufactura e Industria">Manufactura e Industria</option>
+              <option value="Salud y Farmacéutica">Salud y Farmacéutica</option>
+              <option value="Servicios Financieros y Banca">Servicios Financieros y Banca</option>
+              <option value="Retail y Comercio">Retail y Comercio</option>
+              <option value="Educación">Educación</option>
+              <option value="Logística y Transporte">Logística y Transporte</option>
+              <option value="Construcción e Inmobiliaria">Construcción e Inmobiliaria</option>
+              <option value="Alimentos y Bebidas">Alimentos y Bebidas</option>
+              <option value="Marketing y Publicidad">Marketing y Publicidad</option>
+              <option value="Consultoría y Servicios Profesionales">Consultoría y Servicios Profesionales</option>
+              <option value="Energía y Recursos Naturales">Energía y Recursos Naturales</option>
+              <option value="Telecomunicaciones">Telecomunicaciones</option>
+              <option value="Turismo y Hospitalidad">Turismo y Hospitalidad</option>
+              <option value="Gobierno y Sector Público">Gobierno y Sector Público</option>
+              <option value="ONG y Sector Social">ONG y Sector Social</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="company_size" className="block text-sm font-medium mb-2" style={labelStyle}>
+              <span className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Tamaño de la Empresa
+              </span>
+            </label>
+            <select
+              id="company_size"
+              name="company_size"
+              value={formData.company_size}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-xl border-2 transition-colors focus:outline-none"
+              style={inputStyle}
+            >
+              <option value="">Selecciona un rango...</option>
+              <option value="1-10">1 – 10 empleados</option>
+              <option value="11-50">11 – 50 empleados</option>
+              <option value="51-200">51 – 200 empleados</option>
+              <option value="201-1000">201 – 1,000 empleados</option>
+              <option value="1001-5000">1,001 – 5,000 empleados</option>
+              <option value="5000+">Más de 5,000 empleados</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="company_type" className="block text-sm font-medium mb-2" style={labelStyle}>
+              Tipo de Empresa
+            </label>
+            <select
+              id="company_type"
+              name="company_type"
+              value={formData.company_type}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-xl border-2 transition-colors focus:outline-none"
+              style={inputStyle}
+            >
+              <option value="">Selecciona un tipo...</option>
+              <option value="B2B">B2B – Empresa a Empresa</option>
+              <option value="B2C">B2C – Empresa a Consumidor</option>
+              <option value="Mixto">Mixto – B2B y B2C</option>
+              <option value="Pública">Empresa Pública / Gubernamental</option>
+              <option value="ONG">ONG / Sin fines de lucro</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="company_country" className="block text-sm font-medium mb-2" style={labelStyle}>
+              <span className="flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                País de Operación
+              </span>
+            </label>
+            <input
+              type="text"
+              id="company_country"
+              name="company_country"
+              value={formData.company_country}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-xl border-2 transition-colors focus:outline-none"
+              style={inputStyle}
+              placeholder="México, Colombia, España..."
+            />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="company_mission" className="block text-sm font-medium mb-2" style={labelStyle}>
+            Misión / Propósito de la Empresa
+          </label>
+          <div className="relative">
+            <textarea
+              id="company_mission"
+              name="company_mission"
+              value={formData.company_mission}
+              onChange={handleChange}
+              rows={3}
+              maxLength={500}
+              className="w-full px-4 py-3 rounded-xl border-2 transition-colors resize-none focus:outline-none"
+              style={inputStyle}
+              placeholder="Describe la misión o propósito central de tu empresa..."
+            />
+            <div
+              className="absolute bottom-3 right-3 text-xs px-2 py-1 rounded-full"
+              style={{ backgroundColor: theme.hoverBg, color: theme.subtextColor }}
+            >
+              {formData.company_mission.length}/500
+            </div>
+          </div>
+          <p className="text-xs mt-1.5" style={helpStyle}>
+            SofLIA usará esta información para contextualizar ejemplos, actividades y recomendaciones a la realidad de tu empresa.
+          </p>
+        </div>
+      </motion.div>
 
       {saveSuccess && (
         <motion.div

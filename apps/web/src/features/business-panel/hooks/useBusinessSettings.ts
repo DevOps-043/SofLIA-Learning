@@ -25,6 +25,11 @@ export interface OrganizationData {
   google_login_enabled?: boolean
   microsoft_login_enabled?: boolean
   show_navbar_name?: boolean
+  industry?: string | null
+  company_size?: string | null
+  company_type?: string | null
+  company_mission?: string | null
+  company_country?: string | null
 }
 
 export interface SubscriptionData {

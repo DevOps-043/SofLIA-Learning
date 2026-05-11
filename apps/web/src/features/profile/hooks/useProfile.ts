@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../../auth/hooks/useAuth'
+import { useCurrentOrganizationId } from '../../../core/stores/organizationStore'
 import { ProfileService } from '../services/profile.service'
 import { createEmptyUserStats } from '../services/profile.shared'
 import type { UpdateProfileRequest, UseProfileReturn, UserProfile, UserStats } from '../types/profile.types'
@@ -15,6 +16,9 @@ export function useProfile(): UseProfileReturn {
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const { user } = useAuth()
+  // Use the org store as source of truth — when inside /[orgSlug]/*, the layout
+  // sets this from server-side slug validation, so it's always the correct org.
+  const organizationId = useCurrentOrganizationId()
 
   const fetchProfile = useCallback(async () => {
     if (!user?.id) {
@@ -28,7 +32,7 @@ export function useProfile(): UseProfileReturn {
       setError(null)
 
       const [profileData, userStats] = await Promise.all([
-        ProfileService.getProfile(),
+        ProfileService.getProfile(organizationId),
         ProfileService.getStats()
       ])
 
@@ -40,7 +44,7 @@ export function useProfile(): UseProfileReturn {
     } finally {
       setLoading(false)
     }
-  }, [user?.id])
+  }, [user?.id, organizationId])
 
   const updateProfile = useCallback(async (updates: UpdateProfileRequest) => {
     if (!user?.id) {
@@ -50,7 +54,7 @@ export function useProfile(): UseProfileReturn {
     try {
       setSaving(true)
       setError(null)
-      const updatedProfile = await ProfileService.updateProfile(updates)
+      const updatedProfile = await ProfileService.updateProfile(updates, organizationId)
       setProfile(updatedProfile)
 
       if (typeof window !== 'undefined') {

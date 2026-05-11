@@ -1,9 +1,15 @@
 interface OrganizationMembershipRow {
   job_title: string | null
+  job_description: string | null
   organizations: {
     id: string
     name: string
     slug: string
+    industry: string | null
+    company_size: string | null
+    company_type: string | null
+    company_mission: string | null
+    company_country: string | null
   } | null
 }
 
@@ -12,6 +18,12 @@ export interface ResolvedOrganizationContext {
   organizationName: string
   organizationSlug: string
   userJobTitle?: string
+  userJobDescription?: string
+  organizationIndustry?: string
+  organizationSize?: string
+  organizationType?: string
+  organizationMission?: string
+  organizationCountry?: string
 }
 
 export interface OrganizationContextRepository {
@@ -60,6 +72,12 @@ function mapMembershipRow(
     organizationName: row.organizations.name,
     organizationSlug: row.organizations.slug,
     userJobTitle: row.job_title || undefined,
+    userJobDescription: row.job_description || undefined,
+    organizationIndustry: row.organizations.industry || undefined,
+    organizationSize: row.organizations.company_size || undefined,
+    organizationType: row.organizations.company_type || undefined,
+    organizationMission: row.organizations.company_mission || undefined,
+    organizationCountry: row.organizations.company_country || undefined,
   }
 }
 
@@ -83,7 +101,7 @@ export function createOrganizationContextRepository(
       return loadMembership(
         supabase
           .from('organization_users')
-          .select('job_title, organizations!inner(id, name, slug)')
+          .select('job_title, job_description, organizations!inner(id, name, slug, industry, company_size, company_type, company_mission, company_country)')
           .eq('user_id', userId)
           .eq('organization_id', organizationId)
           .eq('status', 'active')
@@ -95,7 +113,7 @@ export function createOrganizationContextRepository(
       return loadMembership(
         supabase
           .from('organization_users')
-          .select('job_title, organizations!inner(id, name, slug)')
+          .select('job_title, job_description, organizations!inner(id, name, slug, industry, company_size, company_type, company_mission, company_country)')
           .eq('user_id', userId)
           .eq('status', 'active')
           .eq('organizations.slug', organizationSlug)
@@ -107,7 +125,7 @@ export function createOrganizationContextRepository(
       return loadMembership(
         supabase
           .from('organization_users')
-          .select('job_title, organizations!inner(id, name, slug)')
+          .select('job_title, job_description, organizations!inner(id, name, slug, industry, company_size, company_type, company_mission, company_country)')
           .eq('user_id', userId)
           .eq('status', 'active')
           .order('joined_at', { ascending: false })

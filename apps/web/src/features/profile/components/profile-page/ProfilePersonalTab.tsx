@@ -27,7 +27,7 @@ export function ProfilePersonalTab({ formData, handleInputChange, colors }: Prof
         <PremiumInput label={t('profile.personal.firstName')} value={formData.first_name || ''} onChange={value => handleInputChange('first_name', value)} icon={<User className="w-4 h-4" />} colors={colors} />
         <PremiumInput label={t('profile.personal.lastName')} value={formData.last_name || ''} onChange={value => handleInputChange('last_name', value)} icon={<User className="w-4 h-4" />} colors={colors} />
         <PremiumInput label={t('profile.personal.username')} value={formData.username || ''} onChange={value => handleInputChange('username', value)} icon={<AtSign className="w-4 h-4" />} colors={colors} />
-        <PremiumInput label={t('profile.personal.role')} value={formData.type_rol || ''} onChange={value => handleInputChange('type_rol', value)} icon={<Briefcase className="w-4 h-4" />} colors={colors} />
+        <PremiumInput label={t('profile.personal.role')} value={formData.job_title || ''} onChange={value => handleInputChange('job_title', value)} icon={<Briefcase className="w-4 h-4" />} colors={colors} />
         <PremiumInput label={t('profile.personal.phone')} value={formData.phone || ''} onChange={value => handleInputChange('phone', value)} icon={<Phone className="w-4 h-4" />} type="tel" colors={colors} />
         <PremiumInput label={t('profile.personal.location')} value={formData.location || ''} onChange={value => handleInputChange('location', value)} icon={<MapPin className="w-4 h-4" />} colors={colors} />
       </div>
@@ -42,6 +42,7 @@ export function ProfilePersonalTab({ formData, handleInputChange, colors }: Prof
         </div>
       </section>
 
+      <PremiumTextarea label={t('profile.personal.roleDescription')} value={formData.job_description || ''} onChange={value => handleInputChange('job_description', value)} maxLength={1000} rows={5} colors={colors} />
       <PremiumTextarea label={t('profile.personal.bio')} value={formData.bio || ''} onChange={value => handleInputChange('bio', value)} maxLength={500} rows={4} colors={colors} />
     </motion.div>
   )

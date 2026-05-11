@@ -18,15 +18,25 @@ export async function buildFullContext(
   platformContext: PlatformContext,
   requestContext: ChatRequest['context']
 ): Promise<PlatformContext> {
+  // Server-resolved fields take precedence — spread order matters:
+  // 1. requestContext first (client navigation/lesson data: currentPage, currentLessonContext, etc.)
+  // 2. platformContext second (server DB identity/org data overrides client-supplied values)
+  // This prevents the client from injecting fake org names, job titles, or org metadata.
   const resolvedUserJobTitle =
     platformContext.userJobTitle || requestContext?.userJobTitle;
+  const resolvedUserJobDescription =
+    platformContext.userJobDescription || requestContext?.userJobDescription;
+
   const fullContext: PlatformContext = {
-    ...platformContext,
-    ...requestContext,
+    ...requestContext,   // client navigation context (currentPage, currentLessonContext, pageType, etc.)
+    ...platformContext,  // server identity/org data wins — org name, slug, job title, courses
+    // Explicit merge: server-first with client fallback for display/identity fields
     userName: platformContext.userName || requestContext?.userName,
     userJobTitle: resolvedUserJobTitle,
+    userJobDescription: resolvedUserJobDescription,
   };
 
+  // Inject server-resolved job title into lesson context so it can't be spoofed from client
   if (fullContext.currentLessonContext && resolvedUserJobTitle) {
     fullContext.currentLessonContext = {
       ...fullContext.currentLessonContext,
@@ -34,7 +44,7 @@ export async function buildFullContext(
     };
   }
 
-  // Fallback: extract organizationSlug from pathname when not available from DB
+  // Fallback: extract organizationSlug from pathname only when DB resolution returned nothing
   if (!fullContext.organizationSlug && fullContext.currentPage) {
     fullContext.organizationSlug = extractOrganizationSlugFromPage(
       fullContext.currentPage

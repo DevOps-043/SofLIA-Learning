@@ -44,14 +44,20 @@ export interface PlatformContext {
   userName?: string;
   userRole?: string;
   userJobTitle?: string; // Nuevo: type_rol (Cargo real)
+  userJobDescription?: string;
   userId?: string;
   currentPage?: string;
   currentTab?: string;
   // Propiedades dinámicas
   pageType?: string;
   organizationId?: string;
-  organizationName?: string; // ✅ Campo nuevo
-  organizationSlug?: string; // ✅ Campo para rutas dinámicas
+  organizationName?: string;
+  organizationSlug?: string;
+  organizationIndustry?: string;
+  organizationSize?: string;
+  organizationType?: string;
+  organizationMission?: string;
+  organizationCountry?: string;
   noCoursesAssigned?: boolean;
   [key: string]: unknown;
   // Datos de la plataforma
@@ -182,10 +188,16 @@ interface LessonProgressRow {
 
 interface UserOrganizationRow {
   job_title: string | null;
+  job_description: string | null;
   organizations: {
     id: string;
     name: string;
     slug: string;
+    industry: string | null;
+    company_size: string | null;
+    company_type: string | null;
+    company_mission: string | null;
+    company_country: string | null;
   } | null;
 }
 
@@ -234,6 +246,12 @@ function applyResolvedOrganizationContext(
   context.organizationName = organizationContext.organizationName;
   context.organizationSlug = organizationContext.organizationSlug;
   context.userJobTitle = organizationContext.userJobTitle;
+  context.userJobDescription = organizationContext.userJobDescription;
+  context.organizationIndustry = organizationContext.organizationIndustry;
+  context.organizationSize = organizationContext.organizationSize;
+  context.organizationType = organizationContext.organizationType;
+  context.organizationMission = organizationContext.organizationMission;
+  context.organizationCountry = organizationContext.organizationCountry;
 }
 
 async function loadLatestUserOrganizationContext(
@@ -242,7 +260,7 @@ async function loadLatestUserOrganizationContext(
   const supabase = await createClient();
   const { data: userOrg } = await supabase
     .from('organization_users')
-    .select('job_title, organizations!inner(id, name, slug)')
+    .select('job_title, job_description, organizations!inner(id, name, slug, industry, company_size, company_type, company_mission, company_country)')
     .eq('user_id', userId)
     .eq('status', 'active')
     .order('joined_at', { ascending: false })
@@ -263,6 +281,12 @@ async function loadLatestUserOrganizationContext(
     organizationName: orgRow.organizations.name,
     organizationSlug: orgRow.organizations.slug,
     userJobTitle: orgRow.job_title || undefined,
+    userJobDescription: orgRow.job_description || undefined,
+    organizationIndustry: orgRow.organizations.industry || undefined,
+    organizationSize: orgRow.organizations.company_size || undefined,
+    organizationType: orgRow.organizations.company_type || undefined,
+    organizationMission: orgRow.organizations.company_mission || undefined,
+    organizationCountry: orgRow.organizations.company_country || undefined,
   };
 }
 

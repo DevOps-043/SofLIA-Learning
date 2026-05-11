@@ -1090,6 +1090,7 @@
       "lastName": "Last Name",
       "username": "Username",
       "role": "Role at Company",
+      "roleDescription": "Role duties and responsibilities",
       "phone": "Phone",
       "location": "Location",
       "bio": "Bio"

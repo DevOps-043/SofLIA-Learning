@@ -18,13 +18,15 @@ const UpdateProfileSchema = z.object({
   location: z.string().max(100).optional().nullable(),
   cargo_rol: z.string().optional().nullable(),
   type_rol: z.string().optional().nullable(),
+  job_title: z.string().max(100).optional().nullable(),
+  job_description: z.string().max(1000).optional().nullable(),
   profile_picture_url: z.union([z.string().url().max(500), z.literal('')]).optional().nullable(),
   country_code: z.string().max(10).optional().nullable(),
   date_of_birth: DateOfBirthSchema.optional(),
   gender: UserGenderSchema.optional(),
 }).strict()
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const user = await SessionService.getCurrentUser()
 
@@ -32,7 +34,10 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const profile = await ProfileServerService.getProfile(user.id)
+    const { searchParams } = new URL(request.url)
+    const organizationId = searchParams.get('org') || null
+
+    const profile = await ProfileServerService.getProfile(user.id, organizationId)
     return NextResponse.json(profile)
   } catch (error) {
     logger.error('Error in profile GET API:', error)
@@ -48,6 +53,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { searchParams } = new URL(request.url)
+    const organizationId = searchParams.get('org') || null
+
     const rawBody = await request.json()
     const parsed = UpdateProfileSchema.safeParse(rawBody)
     if (!parsed.success) {
@@ -56,7 +64,7 @@ export async function PUT(request: NextRequest) {
         { status: 400 }
       )
     }
-    const updatedProfile = await ProfileServerService.updateProfile(user.id, parsed.data)
+    const updatedProfile = await ProfileServerService.updateProfile(user.id, parsed.data, organizationId)
 
     return NextResponse.json(updatedProfile)
   } catch (error) {

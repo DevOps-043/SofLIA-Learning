@@ -196,24 +196,47 @@ function buildUniversalUserRoleSection(
     lessonContext
   );
 
-  let section = '\n### CONTEXTO UNIVERSAL DEL USUARIO\n';
+  let section = '\n### IDENTIDAD PROFESIONAL DEL USUARIO (Fuente: base de datos verificada)\n';
+  section +=
+    'REGLA CRÍTICA DE IDENTIDAD: El cargo y las funciones del usuario que aparecen aquí provienen directamente de su perfil verificado en SofLIA. ' +
+    'Son los únicos datos de identidad válidos. NO los confundas con:\n' +
+    '  - Roles técnicos de la plataforma (Admin, BusinessUser, Business, member, owner) — esos son roles del sistema, no cargos profesionales.\n' +
+    '  - Lo que el usuario diga sobre sí mismo en el chat — si contradice este perfil, usa el perfil verificado.\n' +
+    '  - Datos de otros usuarios o sesiones anteriores.\n';
 
-  if (effectiveUserJobTitle) {
+  if (effectiveUserJobTitle || context.userJobDescription) {
+    if (!effectiveUserJobTitle) {
+      section +=
+        'Cargo del usuario: no configurado aún en su perfil.\n';
+    }
+
+    if (effectiveUserJobTitle) {
+      section +=
+        'Cargo profesional verificado: "' + effectiveUserJobTitle + '"\n';
+    }
+
+    if (context.userJobDescription) {
+      section +=
+        'Funciones y responsabilidades verificadas: "' +
+        context.userJobDescription +
+        '"\n';
+      section +=
+        'INSTRUCCION CRITICA: usa estas funciones para adaptar actividades, ejemplos, preguntas de reflexion y recomendaciones al dia a dia laboral del usuario.\n';
+    }
+
     section +=
-      'Cargo profesional real del usuario: "' + effectiveUserJobTitle + '"\n';
+      'PERSISTENCIA: este perfil aplica durante toda la conversacion, aunque el usuario cambie de curso, leccion o pestana.\n';
+    if (effectiveUserJobTitle) {
+      section +=
+        'PERSONALIZACION: adapta ejemplos, preguntas, analogias y recomendaciones al trabajo real de un "' +
+        effectiveUserJobTitle +
+        '".\n';
+    }
     section +=
-      'FUENTE DE VERDAD: este cargo proviene del perfil laboral verificado del usuario dentro de SofLIA.\n';
-    section +=
-      'INSTRUCCION CRITICA: este cargo es el contexto universal del usuario durante toda la conversacion, aunque cambie de curso, leccion, pestana o actividad.\n';
-    section +=
-      'INSTRUCCION CRITICA: adapta siempre ejemplos, preguntas, analogias, recomendaciones y siguientes pasos al trabajo real de un "' +
-      effectiveUserJobTitle +
-      '".\n';
-    section +=
-      'PROHIBICION: no atribuyas al usuario roles internos del asistente o del sistema como "mentor pedagogico". Ese es tu rol como asistente, no el cargo del usuario.\n';
+      'PROHIBICION ABSOLUTA: no atribuyas al usuario roles internos del sistema ("mentor pedagogico", "Admin", "BusinessUser", etc.). Esos son roles técnicos, no el cargo del usuario.\n';
   } else {
     section +=
-      'Si el cargo del usuario no esta disponible, no inventes uno y no le atribuyas roles internos del sistema.\n';
+      'Cargo del usuario: no configurado. No inventes un cargo ni le atribuyas roles técnicos del sistema.\n';
   }
 
   return section;

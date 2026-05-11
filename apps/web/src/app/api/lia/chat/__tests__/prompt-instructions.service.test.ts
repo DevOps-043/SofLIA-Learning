@@ -5,6 +5,7 @@ describe('buildPageInstructionsSection', () => {
   it('treats the user job title as universal context during lessons', () => {
     const section = buildPageInstructionsSection({
       userJobTitle: 'Ejecutivo de ventas',
+      userJobDescription: 'Califica prospectos, prepara propuestas y da seguimiento a cuentas clave.',
       currentActivityContext: {
         title: 'Entendiendo el Comite de Compras B2B',
         type: 'exercise',
@@ -21,7 +22,10 @@ describe('buildPageInstructionsSection', () => {
       'Cargo profesional real del usuario: "Ejecutivo de ventas"'
     );
     expect(section).toContain(
-      'perfil laboral verificado del usuario dentro de SofLIA'
+      'datos provienen del perfil laboral verificado del usuario dentro de SofLIA'
+    );
+    expect(section).toContain(
+      'Funciones y responsabilidades reales del usuario: "Califica prospectos, prepara propuestas y da seguimiento a cuentas clave."'
     );
     expect(section).toContain(
       'Aterriza toda explicacion, ejemplo, pregunta de reflexion y siguiente paso al trabajo real de un "Ejecutivo de ventas".'

@@ -1090,6 +1090,7 @@
       "lastName": "Apellido",
       "username": "Nombre de Usuario",
       "role": "Rol en la Empresa",
+      "roleDescription": "Funciones y responsabilidades del rol",
       "phone": "Teléfono",
       "location": "Ubicación",
       "bio": "Biografía"

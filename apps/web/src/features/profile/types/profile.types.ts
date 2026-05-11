@@ -12,6 +12,8 @@ export interface UserProfile {
   location: string
   cargo_rol: string
   type_rol: string
+  job_title: string
+  job_description: string
   profile_picture_url: string
   country_code: string
   date_of_birth: string | null
@@ -33,6 +35,8 @@ export interface UpdateProfileRequest {
   location?: string
   cargo_rol?: string
   type_rol?: string
+  job_title?: string
+  job_description?: string
   profile_picture_url?: string
   country_code?: string
   date_of_birth?: string | null

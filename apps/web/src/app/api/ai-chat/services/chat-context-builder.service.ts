@@ -35,6 +35,7 @@ interface BuildAiChatContextParams {
   language: SupportedLanguage
   displayName: string
   userRole?: string
+  userRoleDescription?: string
   courseContext?: CourseLessonContext
   workshopContext?: CourseLessonContext
   pageContext?: PageContext
@@ -245,6 +246,7 @@ export async function buildAiChatContext({
   language,
   displayName,
   userRole,
+  userRoleDescription,
   courseContext,
   workshopContext,
   pageContext,
@@ -274,6 +276,7 @@ export async function buildAiChatContext({
     effectiveLanguage,
     isFirstMessage,
     studyPlannerContextString,
+    userRoleDescription,
   )
 
   if (context === 'study-planner' && user) {

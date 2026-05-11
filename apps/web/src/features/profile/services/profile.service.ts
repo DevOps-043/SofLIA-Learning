@@ -34,8 +34,12 @@ function validateUpload(file: File, allowedTypes: readonly string[], invalidType
 }
 
 export class ProfileService {
-  static async getProfile(): Promise<UserProfile> {
-    const response = await fetch('/api/profile', {
+  static async getProfile(organizationId?: string | null): Promise<UserProfile> {
+    const url = organizationId
+      ? `/api/profile?org=${encodeURIComponent(organizationId)}`
+      : '/api/profile'
+
+    const response = await fetch(url, {
       method: 'GET',
       credentials: 'include'
     })
@@ -57,8 +61,12 @@ export class ProfileService {
     return normalizeUserStats(await response.json())
   }
 
-  static async updateProfile(updates: UpdateProfileRequest): Promise<UserProfile> {
-    const response = await fetch('/api/profile', {
+  static async updateProfile(updates: UpdateProfileRequest, organizationId?: string | null): Promise<UserProfile> {
+    const url = organizationId
+      ? `/api/profile?org=${encodeURIComponent(organizationId)}`
+      : '/api/profile'
+
+    const response = await fetch(url, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'

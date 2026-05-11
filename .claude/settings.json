@@ -11,7 +11,9 @@
       "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\Pulse Hub\\\\SofLIA - Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\core\\\\components\\\\GlobalRecorderProvider.tsx\")",
       "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\Pulse Hub\\\\SofLIA - Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\core\\\\reporting\\\\lia-chat-reporting.ts\")",
       "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\Pulse Hub\\\\SofLIA - Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\hooks\\\\useDifficultyDetection.ts\")",
-      "PowerShell(\"done\")"
+      "PowerShell(\"done\")",
+      "Bash(Get-Content \"C:\\\\Users\\\\fysg5\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-fysg5-OneDrive-Escritorio-Pulse-Hub-SofLIA---Learning-SofLIA-Learning\\\\861281b8-aa39-466b-9529-7a538f582e77\\\\tasks\\\\bp4bgj01w.output\")",
+      "Bash(Select-Object -First 80)"
     ]
   }
 }

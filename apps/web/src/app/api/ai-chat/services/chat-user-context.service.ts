@@ -13,7 +13,10 @@ export type ChatUserInfo = Pick<
   | 'last_name'
   | 'profile_picture_url'
   | 'type_rol'
->
+> & {
+  job_title?: string | null
+  job_description?: string | null
+}
 
 interface AuthenticatedUser {
   id: string
@@ -31,6 +34,7 @@ export interface ResolveChatUserContextResult {
   userInfo: ChatUserInfo | null
   displayName: string
   userRole?: string
+  userRoleDescription?: string
   courseContext?: CourseLessonContext
 }
 
@@ -42,19 +46,33 @@ async function loadChatUserInfo(
     return null
   }
 
-  const { data, error } = await supabase
+  const [{ data, error }, { data: membership }] = await Promise.all([
+    supabase
     .from('users')
     .select(
       'display_name, username, first_name, last_name, profile_picture_url, type_rol',
     )
     .eq('id', authenticatedUser.id)
-    .single()
+    .single(),
+    supabase
+      .from('organization_users')
+      .select('job_title, job_description')
+      .eq('user_id', authenticatedUser.id)
+      .eq('status', 'active')
+      .order('joined_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ])
 
   if (error || !data) {
     return null
   }
 
-  return data as ChatUserInfo
+  return {
+    ...(data as ChatUserInfo),
+    job_title: membership?.job_title ?? null,
+    job_description: membership?.job_description ?? null,
+  }
 }
 
 export async function resolveChatUserContext({
@@ -64,9 +82,17 @@ export async function resolveChatUserContext({
   userName,
   courseContext,
 }: ResolveChatUserContextParams): Promise<ResolveChatUserContextResult> {
-  const userInfo = requestUserInfo
-    ? (requestUserInfo as ChatUserInfo)
-    : await loadChatUserInfo(supabase, authenticatedUser)
+  const databaseUserInfo = await loadChatUserInfo(supabase, authenticatedUser)
+  const requestInfo = requestUserInfo ? (requestUserInfo as ChatUserInfo) : null
+  const userInfo = (databaseUserInfo || requestInfo)
+    ? {
+        ...databaseUserInfo,
+        ...requestInfo,
+        job_title: databaseUserInfo?.job_title || requestInfo?.job_title || null,
+        job_description: databaseUserInfo?.job_description || requestInfo?.job_description || null,
+        type_rol: databaseUserInfo?.job_title || requestInfo?.type_rol || databaseUserInfo?.type_rol || null,
+      } as ChatUserInfo
+    : null
 
   const displayName =
     userInfo?.first_name ||
@@ -75,7 +101,8 @@ export async function resolveChatUserContext({
     userName ||
     'usuario'
 
-  const userRole = userInfo?.type_rol || courseContext?.userRole || undefined
+  const userRole = userInfo?.job_title || userInfo?.type_rol || courseContext?.userRole || undefined
+  const userRoleDescription = userInfo?.job_description || undefined
   const normalizedCourseContext =
     courseContext && userRole && !courseContext.userRole
       ? { ...courseContext, userRole }
@@ -85,6 +112,7 @@ export async function resolveChatUserContext({
     userInfo,
     displayName,
     userRole,
+    userRoleDescription,
     courseContext: normalizedCourseContext,
   }
 }
