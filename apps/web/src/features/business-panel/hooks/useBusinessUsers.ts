@@ -180,6 +180,24 @@ export function useBusinessUsers(
     void fetchResource(activeResource, currentPage)
   }, [activeResource, fetchResource])
 
+  // Refetch when admin returns to the tab so last_login_at stays current
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncOrgData()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [syncOrgData])
+
+  // Periodic background refresh every 5 minutes
+  useEffect(() => {
+    if (!orgSlug) return
+    const interval = setInterval(syncOrgData, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [orgSlug, syncOrgData])
+
   const setResourcePage = useCallback(
     (resource: BusinessUsersResource, page: number) => {
       void fetchResource(resource, page)

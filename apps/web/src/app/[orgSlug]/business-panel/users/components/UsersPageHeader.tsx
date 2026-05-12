@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Download, Mail, Plus, Sparkles, Upload } from 'lucide-react'
+import { Download, Mail, Plus, RefreshCw, Sparkles, Upload } from 'lucide-react'
 import type { TFunction } from 'i18next'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 
@@ -11,9 +11,11 @@ interface UsersPageHeaderProps {
   onImportClick: () => void
   onInviteClick: () => void
   onAddClick: () => void
+  onRefresh?: () => void
+  isRefreshing?: boolean
 }
 
-export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInviteClick, onAddClick }: UsersPageHeaderProps) {
+export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInviteClick, onAddClick, onRefresh, isRefreshing }: UsersPageHeaderProps) {
   const {
     accentColor,
     primaryColor,
@@ -102,10 +104,11 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
 
           <div id="tour-users-actions" className="flex flex-wrap items-center justify-start gap-3 lg:justify-end">
             {[
+              { id: 'tour-users-refresh-button', icon: RefreshCw, label: t('users.buttons.refresh', 'Actualizar'), onClick: onRefresh ?? (() => {}), delay: 0.35, spin: isRefreshing },
               { id: 'tour-users-template-button', icon: Download, label: t('users.buttons.template'), onClick: onDownloadTemplate, delay: 0.4 },
               { id: 'tour-users-import-button', icon: Upload, label: t('users.buttons.import', 'Importar'), onClick: onImportClick, delay: 0.45 },
               { id: 'tour-users-invite-button', icon: Mail, label: t('users.buttons.invite', 'Invitar'), onClick: onInviteClick, delay: 0.45 },
-            ].map(({ id, icon: Icon, label, onClick, delay }) => (
+            ].map(({ id, icon: Icon, label, onClick, delay, spin }) => (
               <motion.button
                 id={id}
                 key={label}
@@ -122,7 +125,7 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
                 whileHover={{ scale: 1.02, backgroundColor: inverseSurface }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className={`w-4 h-4${spin ? ' animate-spin' : ''}`} />
                 {label}
               </motion.button>
             ))}
