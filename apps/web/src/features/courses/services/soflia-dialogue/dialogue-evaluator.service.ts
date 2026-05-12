@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import OpenAI from 'openai'
 
 import {
   dialogueEvaluationResultSchema,
@@ -14,6 +14,20 @@ function stringify(value: unknown) {
 
 function stripJsonFence(value: string) {
   return value.trim().replace(/^```json\s*|\s*```$/g, '')
+}
+
+function resolveDialogueOpenAIModel(config: DialogueActivityConfig) {
+  return (
+    config.evaluator.model ||
+    process.env.SOFLIA_DIALOGUE_MODEL ||
+    process.env.CHATBOT_MODEL ||
+    'gpt-4o-mini'
+  )
+}
+
+function resolveDialogueEvaluationTimeoutMs() {
+  const rawTimeout = Number(process.env.SOFLIA_DIALOGUE_EVALUATOR_TIMEOUT_MS)
+  return Number.isFinite(rawTimeout) && rawTimeout > 0 ? rawTimeout : 25000
 }
 
 function buildEvaluatorPrompt(input: {
@@ -93,31 +107,41 @@ export async function evaluateDialogueTurn(input: {
   recentTurns: DialogueTurnRow[]
   studentMessage: string
 }): Promise<{ evaluation: DialogueEvaluationResult; modelName: string }> {
-  const googleApiKey = process.env.GOOGLE_API_KEY
-  const modelName =
-    input.config.evaluator.model || process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp'
+  const openaiApiKey = process.env.OPENAI_API_KEY
+  const modelName = resolveDialogueOpenAIModel(input.config)
 
-  if (!googleApiKey) {
+  if (!openaiApiKey) {
     throw new DialogueRuntimeError(
       'DIALOGUE_EVALUATION_FAILED',
       503,
-      'La evaluacion SofLIA no esta disponible en este entorno',
+      'La evaluacion SofLIA no esta disponible porque falta OPENAI_API_KEY',
     )
   }
 
-  const genAI = new GoogleGenerativeAI(googleApiKey)
-  const model = genAI.getGenerativeModel({
-    model: modelName,
-    generationConfig: {
-      maxOutputTokens: 1800,
-      temperature: 0.15,
-      responseMimeType: 'application/json',
-    },
-  })
+  const openai = new OpenAI({ apiKey: openaiApiKey })
 
   try {
-    const result = await model.generateContent(buildEvaluatorPrompt(input))
-    const parsed = JSON.parse(stripJsonFence(result.response.text()))
+    const completion = await openai.chat.completions.create({
+      max_tokens: 1800,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'Eres un evaluador estricto de aprendizaje. Responde exclusivamente JSON valido.',
+        },
+        {
+          role: 'user',
+          content: buildEvaluatorPrompt(input),
+        },
+      ],
+      model: modelName,
+      response_format: { type: 'json_object' },
+      temperature: 0.15,
+    }, {
+      signal: AbortSignal.timeout(resolveDialogueEvaluationTimeoutMs()),
+    })
+    const responseText = completion.choices[0]?.message?.content || '{}'
+    const parsed = JSON.parse(stripJsonFence(responseText))
 
     return {
       evaluation: dialogueEvaluationResultSchema.parse(parsed),

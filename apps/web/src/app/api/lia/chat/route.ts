@@ -39,6 +39,7 @@ import {
   getLatestAssistantMessageContent,
   persistConversationTurn,
 } from './lia-chat-history.service';
+import { detectTechnicalBugReportIntent } from './bug-report-intent.service';
 
 function buildCurrentMessageParts(
   promptWithContext: string,
@@ -251,12 +252,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const bugReportIntent = detectTechnicalBugReportIntent({
+      message: lastMessage.content,
+      isBugReportFlag: body.isBugReport || false,
+      requestContext: sanitizedRequestContext,
+      hasPendingDraft: Boolean(activeBugReportDraft),
+    });
+
     // Optionally append bug-report context
     systemPrompt = await appendBugReportContext(
       systemPrompt,
       lastMessage.content,
-      body.isBugReport || false,
-      fullContext.currentPage
+      bugReportIntent.isBugReport,
+      fullContext.currentPage,
+      sanitizedRequestContext,
+      Boolean(activeBugReportDraft)
     );
 
     if (activeBugReportDraft) {
@@ -297,7 +307,8 @@ export async function POST(request: NextRequest) {
       body,
       sanitizedRequestContext,
       request,
-      activeBugReportDraft
+      activeBugReportDraft,
+      { allowBugReportDraft: bugReportIntent.isBugReport }
     );
     const securedClientContent = enforceSecurityResponsePolicy({
       content: clientContent,

@@ -29,7 +29,8 @@ Implement a new `SOFLIA_DIALOGUE` runtime in SofLIA Learning for evaluable works
 
 - Activity schemas: add `soflia_dialogue` configuration and runtime result contracts.
 - Database: add tables for sessions, turns, evaluations, results, and events.
-- Backend services: session orchestration, evaluator, policy engine, tutor response, events, result sync.
+- Backend services: session orchestration, OpenAI evaluator, policy engine, OpenAI tutor response, events, result sync.
+- Runtime configuration: requires `OPENAI_API_KEY`; optional `SOFLIA_DIALOGUE_MODEL` overrides the model for dialogue activities and falls back to `CHATBOT_MODEL` or `gpt-4o-mini`.
 - API routes:
   - `GET /api/courses/[slug]/lessons/[lessonId]/activities/[activityId]/dialogue/session`
   - `POST /api/courses/[slug]/lessons/[lessonId]/activities/[activityId]/dialogue/message`
@@ -44,7 +45,7 @@ npm run type-check --workspace=apps/web
 
 ## Risks
 
-- LLM output may be malformed. Mitigation: strict Zod parsing, recoverable API errors, and event logging.
+- OpenAI output may be malformed. Mitigation: JSON mode, strict Zod parsing, recoverable API errors, and event logging.
 - Tutor could become too permissive. Mitigation: tutor does not decide completion; backend policy does.
 - Existing activity progress could ignore dialogue sessions. Mitigation: sync terminal result to `user_activity_submissions`.
 - Course Engine contract may evolve. Mitigation: version `schemaVersion`, `rubricVersion`, and `promptVersion` in config and snapshots.

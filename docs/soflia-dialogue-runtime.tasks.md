@@ -7,6 +7,7 @@
 - [x] Add dialogue runtime schemas and type guards.
 - [x] Add Supabase migration for dialogue runtime tables.
 - [x] Add backend services for session, evaluation, policy, tutor, events, and result sync.
+- [x] Switch dialogue evaluator and tutor runtime to OpenAI.
 - [x] Add dialogue session and message API routes.
 - [x] Add learning UI renderer for `soflia_dialogue`.
 - [x] Wire renderer into activity cards without changing legacy `ai_chat`.

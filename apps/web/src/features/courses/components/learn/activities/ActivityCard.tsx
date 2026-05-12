@@ -104,9 +104,9 @@ export function ActivityCard({
   slug,
 }: ActivityCardProps) {
   const { t } = useTranslation("learn");
-  const isAiChat = activity.activity_type === "ai_chat";
   const isSofliaDialogue =
     activity.activity_config?.interactionType === "soflia_dialogue";
+  const isAiChat = activity.activity_type === "ai_chat" && !isSofliaDialogue;
   const isQuiz = activity.activity_type === "quiz";
   const isInteractive = Boolean(activity.activity_config);
   const normalizedActivityContent = getNormalizedActivityContent(activity);
@@ -281,7 +281,14 @@ export function ActivityCard({
                 );
               })()}
 
-              {isAiChat ? (
+              {isSofliaDialogue ? (
+                <SofliaDialogueActivityRenderer
+                  activity={activity}
+                  lessonId={lessonId}
+                  onSessionUpdated={onQuizSubmitted}
+                  slug={slug}
+                />
+              ) : isAiChat ? (
                 <div className="p-4 text-center">
                   <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-white/5">
                     <MessageCircle className="h-5 w-5 text-gray-500 dark:text-white/50" />
@@ -315,13 +322,6 @@ export function ActivityCard({
                     </p>
                   )}
                 </div>
-              ) : isSofliaDialogue ? (
-                <SofliaDialogueActivityRenderer
-                  activity={activity}
-                  lessonId={lessonId}
-                  onSessionUpdated={onQuizSubmitted}
-                  slug={slug}
-                />
               ) : isInteractive ? (
                 <InteractiveActivityRenderer
                   activity={activity}

@@ -14,7 +14,7 @@ type RouteParams = {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<RouteParams> },
 ) {
   try {
@@ -37,6 +37,7 @@ export async function GET(
     const session = await getDialogueRuntimeSession({
       client: adminClient,
       context,
+      restart: request.nextUrl.searchParams.get('restart') === '1',
     })
 
     return NextResponse.json({ session })

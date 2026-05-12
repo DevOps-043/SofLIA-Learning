@@ -10,6 +10,7 @@
 import type { ChatRequest } from './platform-context.service';
 import {
   prepareDraftResponseForPersistence,
+  stripBugReportTokens,
   type BugReportDraftTokenPayload,
   type LiaChatProcessingBody,
 } from './lia-report-workflow.service';
@@ -23,22 +24,36 @@ export interface ProcessedResponse {
   bugReportSaved: boolean;
 }
 
+export interface ProcessAIResponseOptions {
+  allowBugReportDraft?: boolean;
+}
+
 export async function processAIResponse(
   finalContent: string,
   body: LiaChatProcessingBody,
   requestContext: ChatRequest['context'],
   _request: { headers: { get: (key: string) => string | null } },
-  previousDraft?: BugReportDraftTokenPayload | null
+  previousDraft?: BugReportDraftTokenPayload | null,
+  options: ProcessAIResponseOptions = {}
 ): Promise<ProcessedResponse> {
   let clientContent = finalContent;
   let assistantContentToPersist = finalContent;
 
-  const preparedDraftResponse = await prepareDraftResponseForPersistence({
-    finalContent,
-    body,
-    requestContext,
-    previousDraft,
-  });
+  const allowBugReportDraft =
+    options.allowBugReportDraft ?? Boolean(previousDraft || body.isBugReport);
+  const preparedDraftResponse = allowBugReportDraft
+    ? await prepareDraftResponseForPersistence({
+        finalContent,
+        body,
+        requestContext,
+        previousDraft,
+      })
+    : null;
+
+  if (!allowBugReportDraft) {
+    clientContent = stripBugReportTokens(finalContent);
+    assistantContentToPersist = clientContent;
+  }
 
   if (preparedDraftResponse) {
     clientContent = preparedDraftResponse.clientContent;

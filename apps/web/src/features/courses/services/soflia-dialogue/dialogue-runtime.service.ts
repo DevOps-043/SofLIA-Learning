@@ -17,6 +17,7 @@ import { persistDialogueResult } from './dialogue-result.service'
 import { DialogueRuntimeError } from './dialogue-runtime.errors'
 import {
   findTurnByClientTurnId,
+  createDialogueSession,
   getDialogueEvaluations,
   getDialogueResult,
   getDialogueSessionById,
@@ -125,13 +126,16 @@ async function buildResponse(input: {
 export async function getDialogueRuntimeSession(input: {
   client: unknown
   context: CourseActivityContext
+  restart?: boolean
 }) {
   const config = resolveDialogueConfig(input.context)
   const latestSession = await getLatestDialogueSession(input)
   const session =
-    latestSession && latestSession.state !== 'FAIL_OR_RETRY'
+    !input.restart && latestSession && latestSession.state !== 'FAIL_OR_RETRY'
       ? latestSession
-      : await getOrCreateDialogueSession({ ...input, config })
+      : input.restart
+        ? await createDialogueSession({ ...input, config })
+        : await getOrCreateDialogueSession({ ...input, config })
 
   await ensureOpeningTurn({
     client: input.client,

@@ -157,6 +157,14 @@ export async function getOrCreateDialogueSession(input: {
     return activeSession
   }
 
+  return createDialogueSession(input)
+}
+
+export async function createDialogueSession(input: {
+  client: unknown
+  config: DialogueActivityConfig
+  context: CourseActivityContext
+}) {
   const { data, error } = await dialogueSessionsTable(input.client)
     .insert({
       activity_config_snapshot: input.config,

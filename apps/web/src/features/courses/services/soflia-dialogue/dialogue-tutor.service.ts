@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import OpenAI from 'openai'
 
 import type {
   DialogueActivityConfig,
@@ -20,6 +20,10 @@ function fallbackTutorMessage(input: {
 
   if (policy.nextState === 'FAIL_OR_RETRY') {
     return 'Aun no hay evidencia suficiente para acreditar esta actividad. Revisa el enfoque y vuelve a intentarlo cuando estes listo.'
+  }
+
+  if (policy.nextState === 'SESSION_SUMMARY') {
+    return 'La actividad se cierra por ahora. Revisa la retroalimentacion final antes de continuar.'
   }
 
   if (policy.nextState === 'RESCUE') {
@@ -79,30 +83,60 @@ ${input.recentTurns
 `.trim()
 }
 
+function resolveDialogueTutorModel() {
+  return (
+    process.env.SOFLIA_DIALOGUE_MODEL ||
+    process.env.CHATBOT_MODEL ||
+    'gpt-4o-mini'
+  )
+}
+
+function resolveDialogueTutorTimeoutMs() {
+  const rawTimeout = Number(process.env.SOFLIA_DIALOGUE_TUTOR_TIMEOUT_MS)
+  return Number.isFinite(rawTimeout) && rawTimeout > 0 ? rawTimeout : 15000
+}
+
 export async function generateDialogueTutorMessage(input: {
   config: DialogueActivityConfig
   evaluation: DialogueEvaluationResult
   policy: DialoguePolicyDecision
   recentTurns: DialogueTurnRow[]
 }) {
-  const googleApiKey = process.env.GOOGLE_API_KEY
-  if (!googleApiKey) {
+  if (
+    input.policy.nextState === 'COMPLETE' ||
+    input.policy.nextState === 'FAIL_OR_RETRY' ||
+    input.policy.nextState === 'SESSION_SUMMARY'
+  ) {
     return fallbackTutorMessage(input)
   }
 
-  const genAI = new GoogleGenerativeAI(googleApiKey)
-  const modelName = process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp'
-  const model = genAI.getGenerativeModel({
-    model: modelName,
-    generationConfig: {
-      maxOutputTokens: 500,
-      temperature: 0.35,
-    },
-  })
+  const openaiApiKey = process.env.OPENAI_API_KEY
+  if (!openaiApiKey) {
+    return fallbackTutorMessage(input)
+  }
+
+  const openai = new OpenAI({ apiKey: openaiApiKey })
 
   try {
-    const result = await model.generateContent(buildTutorPrompt(input))
-    const content = result.response.text().trim()
+    const completion = await openai.chat.completions.create({
+      max_tokens: 500,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'Eres SofLIA. Genera solo el mensaje visible para el estudiante, sin JSON ni instrucciones internas.',
+        },
+        {
+          role: 'user',
+          content: buildTutorPrompt(input),
+        },
+      ],
+      model: resolveDialogueTutorModel(),
+      temperature: 0.35,
+    }, {
+      signal: AbortSignal.timeout(resolveDialogueTutorTimeoutMs()),
+    })
+    const content = completion.choices[0]?.message?.content?.trim() || ''
     return content || fallbackTutorMessage(input)
   } catch {
     return fallbackTutorMessage(input)

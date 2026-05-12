@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Loader2, Send, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CheckCircle2, Loader2, RefreshCcw, Send, Sparkles } from "lucide-react";
 
 import type { DialogueState } from "@/features/courses/types/dialogue-runtime";
 
@@ -54,6 +54,16 @@ function buildClientTurnId() {
   return `turn-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function createRequestController(timeoutMs: number) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  return {
+    controller,
+    clear: () => window.clearTimeout(timeoutId),
+  };
+}
+
 async function parseDialogueResponse<T>(response: Response): Promise<T> {
   const payload = await response.json().catch(() => ({}));
 
@@ -84,6 +94,7 @@ export function SofliaDialogueActivityRenderer({
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [session, setSession] = useState<DialogueSession | null>(null);
+  const mountedRef = useRef(false);
 
   const endpointBase = useMemo(
     () =>
@@ -91,52 +102,77 @@ export function SofliaDialogueActivityRenderer({
     [activity.activity_id, lessonId, slug],
   );
 
-  useEffect(() => {
-    let isMounted = true;
+  const loadSession = useCallback(
+    async ({
+      restart = false,
+      showLoading = true,
+    }: { restart?: boolean; showLoading?: boolean } = {}) => {
+      const request = createRequestController(15000);
 
-    async function loadSession() {
       try {
-        setLoading(true);
-        setError(null);
+        if (showLoading && mountedRef.current) {
+          setLoading(true);
+        }
+        if (mountedRef.current) {
+          setError(null);
+        }
 
-        const response = await fetch(`${endpointBase}/session`, {
+        const response = await fetch(
+          `${endpointBase}/session${restart ? "?restart=1" : ""}`,
+          {
           cache: "no-store",
           credentials: "include",
-        });
+          signal: request.controller.signal,
+          },
+        );
         const payload = await parseDialogueResponse<{ session: DialogueSession }>(
           response,
         );
 
-        if (isMounted) {
+        if (mountedRef.current) {
           setSession(payload.session);
+          setDraftMessage("");
         }
       } catch (loadError) {
-        if (isMounted) {
+        if (mountedRef.current) {
           setError(
-            loadError instanceof Error
+            loadError instanceof DOMException && loadError.name === "AbortError"
+              ? "La sesion tardo demasiado en cargar. Recarga la pagina o intenta de nuevo."
+              : loadError instanceof Error
               ? loadError.message
               : "No fue posible cargar el dialogo.",
           );
         }
       } finally {
-        if (isMounted) {
+        request.clear();
+        if (showLoading && mountedRef.current) {
           setLoading(false);
         }
       }
-    }
+    },
+    [endpointBase],
+  );
+
+  useEffect(() => {
+    mountedRef.current = true;
 
     void loadSession();
 
     return () => {
-      isMounted = false;
+      mountedRef.current = false;
     };
-  }, [endpointBase]);
+  }, [loadSession]);
+
+  const canRetry =
+    session?.state === "FAIL_OR_RETRY" &&
+    session.result?.activityResult === "needs_retry";
+  const canPracticeAgain = session?.result?.activityResult === "completed";
+  const canStartNewAttempt = canRetry || canPracticeAgain;
 
   const isTerminal =
     session?.state === "COMPLETE" ||
     session?.state === "SESSION_SUMMARY" ||
-    (session?.state === "FAIL_OR_RETRY" &&
-      session.result?.activityResult === "needs_retry");
+    canRetry;
 
   const sendMessage = useCallback(async () => {
     const trimmedMessage = draftMessage.trim();
@@ -147,26 +183,42 @@ export function SofliaDialogueActivityRenderer({
     try {
       setSending(true);
       setError(null);
+      const request = createRequestController(45000);
 
-      const response = await fetch(`${endpointBase}/message`, {
-        body: JSON.stringify({
-          clientTurnId: buildClientTurnId(),
-          message: trimmedMessage,
-          sessionId: session?.sessionId,
-        }),
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        method: "POST",
-      });
+      try {
+        const response = await fetch(`${endpointBase}/message`, {
+          body: JSON.stringify({
+            clientTurnId: buildClientTurnId(),
+            message: trimmedMessage,
+            sessionId: session?.sessionId,
+          }),
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+          signal: request.controller.signal,
+        });
 
-      const payload =
-        await parseDialogueResponse<DialogueMessageResponse>(response);
-      setSession(payload.session);
-      setDraftMessage("");
-      await onSessionUpdated?.();
+        const payload =
+          await parseDialogueResponse<DialogueMessageResponse>(response);
+        setSession(payload.session);
+        setDraftMessage("");
+
+        const sessionClosed =
+          payload.session.state === "COMPLETE" ||
+          payload.session.state === "SESSION_SUMMARY" ||
+          payload.session.state === "FAIL_OR_RETRY";
+
+        if (sessionClosed) {
+          void Promise.resolve(onSessionUpdated?.()).catch(() => undefined);
+        }
+      } finally {
+        request.clear();
+      }
     } catch (sendError) {
       setError(
-        sendError instanceof Error
+        sendError instanceof DOMException && sendError.name === "AbortError"
+          ? "SofLIA tardo demasiado en responder. Tu respuesta pudo guardarse; reintenta o recarga la sesion."
+          : sendError instanceof Error
           ? sendError.message
           : "No fue posible enviar tu respuesta.",
       );
@@ -182,6 +234,19 @@ export function SofliaDialogueActivityRenderer({
     session?.sessionId,
   ]);
 
+  const retrySession = useCallback(async () => {
+    if (!canStartNewAttempt || loading || sending) {
+      return;
+    }
+
+    try {
+      setSending(true);
+      await loadSession({ restart: true, showLoading: false });
+    } finally {
+      setSending(false);
+    }
+  }, [canStartNewAttempt, loadSession, loading, sending]);
+
   if (loading) {
     return (
       <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-300">
@@ -193,23 +258,21 @@ export function SofliaDialogueActivityRenderer({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-medium text-gray-600 dark:bg-white/10 dark:text-white/70">
-          Estado: {session?.state || "START"}
-        </span>
-        <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-medium text-gray-600 dark:bg-white/10 dark:text-white/70">
-          Score: {Math.round(session?.score ?? 0)}
-        </span>
-        <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-medium text-gray-600 dark:bg-white/10 dark:text-white/70">
-          Pistas: {session?.hintsUsed ?? 0}
-        </span>
-        {session?.result?.activityResult === "completed" && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            Completado
-          </span>
-        )}
-      </div>
+      {(canPracticeAgain || canRetry) && (
+        <div className="flex flex-wrap items-center gap-2">
+          {canPracticeAgain && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Completado
+            </span>
+          )}
+          {canRetry && (
+            <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+              Reintento disponible
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="max-h-[420px] space-y-3 overflow-y-auto rounded-lg border border-gray-200 bg-white p-3 dark:border-white/10 dark:bg-gray-900">
         {session?.messages.map((message) => (
@@ -253,6 +316,24 @@ export function SofliaDialogueActivityRenderer({
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
           {error}
         </div>
+      )}
+
+      {canStartNewAttempt && (
+        <button
+          type="button"
+          onClick={() => {
+            void retrySession();
+          }}
+          disabled={sending}
+          className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10"
+        >
+          {sending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCcw className="h-4 w-4" />
+          )}
+          {canPracticeAgain ? "Practicar de nuevo" : "Reintentar actividad"}
+        </button>
       )}
 
       <div className="flex gap-2">

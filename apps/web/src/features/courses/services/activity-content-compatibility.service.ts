@@ -301,13 +301,18 @@ export function resolveActivityConfig({
   requiresSofliaValidation,
   externalToolKey,
 }: ResolveActivityConfigInput): ActivityConfig | null {
+  const parsedConfig = normalizeActivityConfig(rawActivityConfig)
+
+  if (parsedConfig?.interactionType === 'soflia_dialogue') {
+    return parsedConfig
+  }
+
   if (!isInteractiveLessonActivity(activityType)) {
     return null
   }
 
   const normalizedContent = normalizeContentForRenderer(activityContent)
   const normalizedPrompts = parsePromptList(aiPrompts)
-  const parsedConfig = normalizeActivityConfig(rawActivityConfig)
 
   const detectedToolKey = detectExternalToolKey({
     activityContent: normalizedContent,
