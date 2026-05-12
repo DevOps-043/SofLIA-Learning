@@ -326,7 +326,12 @@ export async function fetchCompletionData(
     new Set(lessonProgress.map((progress) => progress.lesson_id).filter(Boolean)),
   )
   const courseIds = Array.from(
-    new Set(enrollments.map((enrollment) => enrollment.course_id).filter(Boolean)),
+    new Set(
+      [
+        ...enrollments.map((enrollment) => enrollment.course_id),
+        ...assignments.map((assignment) => assignment.course_id),
+      ].filter(Boolean),
+    ),
   )
   const instructorIds = Array.from(
     new Set(

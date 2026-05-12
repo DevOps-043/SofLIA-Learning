@@ -7,9 +7,11 @@ import type {
 } from '../types/business-user-stats.types'
 import type {
   BusinessUserStatsActivityCompletionRecord,
+  BusinessUserStatsAssignmentRecord,
   BusinessUserStatsCourseModuleRecord,
   BusinessUserStatsInstructorRecord,
   BusinessUserStatsLiaConversationRecord,
+  BusinessUserStatsLiaMessageRecord,
   BusinessUserStatsLessonCountRecord,
   BusinessUserStatsLessonNoteRecord,
   BusinessUserStatsLessonProgressRecord,
@@ -32,7 +34,11 @@ export function buildBusinessUserStatsResponse(
   )
   const instructorMap = createInstructorMap(data.instructors)
   const enrichedCertificates = buildEnrichedCertificates(data, instructorMap)
-  const courseStatsMap = createCourseStatsMap(data.enrollments, enrichedCertificates)
+  const courseStatsMap = createCourseStatsMap(
+    data.enrollments,
+    enrichedCertificates,
+    data.assignments,
+  )
 
   const courseIdByLessonId = new Map<string, string>()
   data.lessonProgress.forEach((progress) => {
@@ -42,34 +48,24 @@ export function buildBusinessUserStatsResponse(
     }
   })
 
-  applyLiaStats(courseStatsMap, data.liaConversations)
+  applyLiaStats(courseStatsMap, data.liaConversations, data.liaMessages)
   applyQuizStats(courseStatsMap, data.quizSubmissions)
   applyActivityStats(courseStatsMap, data.activityCompletions)
   applyNotesStats(courseStatsMap, data.lessonNotes, courseIdByLessonId)
   applyLessonProgressStats(courseStatsMap, data.lessonProgress, realLessonsByCourse)
   applyModuleStats(courseStatsMap, data.courseModules, data.lessonProgress, lessonInfoById)
 
-  const totalEnrollments = data.enrollments.length
-  const completedEnrollments = data.enrollments.filter(
-    (enrollment) => enrollment.enrollment_status === 'completed',
-  ).length
-  const inProgressEnrollments = data.enrollments.filter(
-    (enrollment) =>
-      enrollment.enrollment_status === 'active' &&
-      (enrollment.overall_progress_percentage || 0) > 0 &&
-      (enrollment.overall_progress_percentage || 0) < 100,
-  ).length
-  const notStartedEnrollments = data.enrollments.filter(
-    (enrollment) =>
-      enrollment.enrollment_status === 'active' &&
-      (enrollment.overall_progress_percentage || 0) === 0,
-  ).length
+  const coursesData = Array.from(courseStatsMap.values())
+  const totalCourses = coursesData.length
+  const completedCourses = coursesData.filter(isCompletedCourseStats).length
+  const inProgressCourses = coursesData.filter(isInProgressCourseStats).length
+  const notStartedCourses = Math.max(totalCourses - completedCourses - inProgressCourses, 0)
   const averageProgress =
-    totalEnrollments > 0
-      ? data.enrollments.reduce(
-          (sum, enrollment) => sum + (Number(enrollment.overall_progress_percentage) || 0),
+    totalCourses > 0
+      ? coursesData.reduce(
+          (sum, course) => sum + (Number(course.progress) || 0),
           0,
-        ) / totalEnrollments
+        ) / totalCourses
       : 0
   const totalTimeSpent = data.lessonProgress.reduce(
     (sum, progress) => sum + (progress.time_spent_minutes || 0),
@@ -80,9 +76,8 @@ export function buildBusinessUserStatsResponse(
     (sum, count) => sum + count,
     0,
   )
-  const coursesData = Array.from(courseStatsMap.values())
   const timeByCourse = buildTimeByCourse(coursesData)
-  const completedByMonth = buildCompletedByMonth(data.enrollments)
+  const completedByMonth = buildCompletedByMonth(data.enrollments, data.assignments)
 
   return {
     success: true,
@@ -97,10 +92,10 @@ export function buildBusinessUserStatsResponse(
       profile_picture_url: user.profile_picture_url,
     },
     stats: {
-      total_courses: totalEnrollments,
-      completed_courses: completedEnrollments,
-      in_progress_courses: inProgressEnrollments,
-      not_started_courses: notStartedEnrollments,
+      total_courses: totalCourses,
+      completed_courses: completedCourses,
+      in_progress_courses: inProgressCourses,
+      not_started_courses: notStartedCourses,
       average_progress: Math.round(averageProgress * 10) / 10,
       total_time_spent_minutes: totalTimeSpent,
       total_time_spent_hours: Math.round((totalTimeSpent / 60) * 10) / 10,
@@ -136,9 +131,9 @@ export function buildBusinessUserStatsResponse(
       time_by_course: timeByCourse,
       completed_by_month: completedByMonth,
       distribution: {
-        completed: completedEnrollments,
-        in_progress: inProgressEnrollments,
-        not_started: notStartedEnrollments,
+        completed: completedCourses,
+        in_progress: inProgressCourses,
+        not_started: notStartedCourses,
       },
     },
     courses: coursesData,
@@ -246,54 +241,175 @@ function buildEnrichedCertificates(
 function createCourseStatsMap(
   enrollments: BusinessUserStatsQueryData['enrollments'],
   certificates: BusinessUserStatsCertificate[],
+  assignments: BusinessUserStatsAssignmentRecord[],
 ) {
   const map = new Map<string, BusinessUserStatsCourseData>()
 
   enrollments.forEach((enrollment) => {
     const course = unwrapRelation(enrollment.courses)
-    map.set(enrollment.course_id, {
-      course_id: enrollment.course_id,
-      course_title: course?.title || 'Curso desconocido',
-      progress: Number(enrollment.overall_progress_percentage) || 0,
-      status: enrollment.enrollment_status || 'active',
-      enrolled_at: enrollment.enrolled_at,
-      completed_at: enrollment.completed_at,
-      has_certificate: certificates.some(
-        (certificate) => certificate.course_id === enrollment.course_id,
-      ),
-      lia_conversations_count: 0,
-      lia_messages_count: 0,
-      lia_avg_duration_minutes: 0,
-      lia_last_conversation: null,
-      quiz_total: 0,
-      quiz_passed: 0,
-      quiz_failed: 0,
-      quiz_average_score: 0,
-      quiz_best_score: 0,
-      quiz_total_attempts: 0,
-      lia_activities_completed: 0,
-      notes_count: 0,
-      time_spent_minutes: 0,
-      modules_total: 0,
-      modules_completed: 0,
-      lessons_total: 0,
-      lessons_completed: 0,
-      lessons_in_progress: 0,
-      activities_completed: 0,
-      activities_total: 0,
-      readings_viewed: 0,
-      quiz_lessons_completed: 0,
-    })
+    const progress = normalizeCourseProgress(
+      enrollment.enrollment_status,
+      Number(enrollment.overall_progress_percentage) || 0,
+    )
+
+    map.set(
+      enrollment.course_id,
+      createEmptyCourseStats({
+        courseId: enrollment.course_id,
+        title: course?.title,
+        progress,
+        status: normalizeCourseStatus(enrollment.enrollment_status, progress),
+        enrolledAt: enrollment.enrolled_at,
+        completedAt: enrollment.completed_at,
+        hasCertificate: certificates.some(
+          (certificate) => certificate.course_id === enrollment.course_id,
+        ),
+      }),
+    )
+  })
+
+  assignments.forEach((assignment) => {
+    const existing = map.get(assignment.course_id)
+    const assignmentProgress = normalizeCourseProgress(
+      assignment.status,
+      Number(assignment.completion_percentage) || 0,
+    )
+    const assignmentStatus = normalizeCourseStatus(assignment.status, assignmentProgress)
+
+    if (existing) {
+      existing.is_assigned = true
+      existing.assignment_status = assignment.status
+      existing.assigned_at = assignment.assigned_at
+      existing.due_date = assignment.due_date
+
+      if (assignmentProgress > existing.progress) {
+        existing.progress = assignmentProgress
+      }
+
+      if (assignmentStatus === 'completed') {
+        existing.status = 'completed'
+        existing.completed_at = existing.completed_at || assignment.completed_at
+      }
+
+      return
+    }
+
+    const course = unwrapRelation(assignment.courses)
+    map.set(
+      assignment.course_id,
+      createEmptyCourseStats({
+        courseId: assignment.course_id,
+        title: course?.title,
+        progress: assignmentProgress,
+        status: assignmentStatus,
+        enrolledAt: null,
+        assignedAt: assignment.assigned_at,
+        dueDate: assignment.due_date,
+        completedAt: assignment.completed_at,
+        assignmentStatus: assignment.status,
+        isAssigned: true,
+        hasCertificate: certificates.some(
+          (certificate) => certificate.course_id === assignment.course_id,
+        ),
+      }),
+    )
   })
 
   return map
 }
 
+function createEmptyCourseStats({
+  courseId,
+  title,
+  progress,
+  status,
+  enrolledAt,
+  assignedAt,
+  dueDate,
+  completedAt,
+  assignmentStatus,
+  isAssigned = false,
+  hasCertificate,
+}: {
+  courseId: string
+  title: string | null | undefined
+  progress: number
+  status: string
+  enrolledAt: string | null
+  assignedAt?: string | null
+  dueDate?: string | null
+  completedAt: string | null
+  assignmentStatus?: string | null
+  isAssigned?: boolean
+  hasCertificate: boolean
+}): BusinessUserStatsCourseData {
+  return {
+    course_id: courseId,
+    course_title: title || 'Curso desconocido',
+    progress,
+    status,
+    assignment_status: assignmentStatus,
+    enrolled_at: enrolledAt,
+    assigned_at: assignedAt,
+    due_date: dueDate,
+    completed_at: completedAt,
+    is_assigned: isAssigned,
+    has_certificate: hasCertificate,
+    lia_conversations_count: 0,
+    lia_messages_count: 0,
+    lia_avg_duration_minutes: 0,
+    lia_last_conversation: null,
+    quiz_total: 0,
+    quiz_passed: 0,
+    quiz_failed: 0,
+    quiz_average_score: 0,
+    quiz_best_score: 0,
+    quiz_total_attempts: 0,
+    lia_activities_completed: 0,
+    notes_count: 0,
+    time_spent_minutes: 0,
+    modules_total: 0,
+    modules_completed: 0,
+    lessons_total: 0,
+    lessons_completed: 0,
+    lessons_in_progress: 0,
+    activities_completed: 0,
+    activities_total: 0,
+    readings_viewed: 0,
+    quiz_lessons_completed: 0,
+  }
+}
+
+function normalizeCourseStatus(status: string | null, progress: number): string {
+  if (status === 'completed' || progress >= 100) return 'completed'
+  if (status === 'active' || status === 'in_progress' || progress > 0) return 'active'
+  return status || 'assigned'
+}
+
+function normalizeCourseProgress(status: string | null, progress: number): number {
+  const boundedProgress = Math.min(Math.max(progress, 0), 100)
+  if (status === 'completed') return 100
+  return boundedProgress
+}
+
+function isCompletedCourseStats(course: BusinessUserStatsCourseData): boolean {
+  return course.status === 'completed' || course.progress >= 100
+}
+
+function isInProgressCourseStats(course: BusinessUserStatsCourseData): boolean {
+  return !isCompletedCourseStats(course) && course.progress > 0
+}
+
 function applyLiaStats(
   courseStatsMap: Map<string, BusinessUserStatsCourseData>,
   conversations: BusinessUserStatsLiaConversationRecord[],
+  messages: BusinessUserStatsLiaMessageRecord[],
 ) {
   const durationsByCourse = new Map<string, number[]>()
+  const messagesByConversation = messages.reduce((map, message) => {
+    map.set(message.conversation_id, (map.get(message.conversation_id) || 0) + 1)
+    return map
+  }, new Map<string, number>())
 
   conversations.forEach((conversation) => {
     if (!conversation.course_id || !courseStatsMap.has(conversation.course_id)) return
@@ -302,7 +418,9 @@ function applyLiaStats(
     if (!stats) return
 
     stats.lia_conversations_count = (stats.lia_conversations_count || 0) + 1
-    stats.lia_messages_count = (stats.lia_messages_count || 0) + (conversation.total_messages || 0)
+    stats.lia_messages_count =
+      (stats.lia_messages_count || 0) +
+      (conversation.total_messages ?? messagesByConversation.get(conversation.conversation_id) ?? 0)
 
     if (conversation.started_at && conversation.ended_at) {
       const duration =
@@ -542,18 +660,28 @@ function buildTimeByCourse(
 
 function buildCompletedByMonth(
   enrollments: BusinessUserStatsQueryData['enrollments'],
+  assignments: BusinessUserStatsAssignmentRecord[],
 ): BusinessUserStatsCompletedByMonthPoint[] {
-  const countByMonth = enrollments
-    .filter((enrollment) => enrollment.completed_at)
-    .reduce((map, enrollment) => {
-      const completedAt = enrollment.completed_at
-      if (!completedAt) return map
+  const completedAtByCourse = new Map<string, string>()
 
-      const date = new Date(completedAt)
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-      map.set(monthKey, (map.get(monthKey) || 0) + 1)
-      return map
-    }, new Map<string, number>())
+  enrollments.forEach((enrollment) => {
+    if (enrollment.completed_at) {
+      completedAtByCourse.set(enrollment.course_id, enrollment.completed_at)
+    }
+  })
+
+  assignments.forEach((assignment) => {
+    if (assignment.completed_at && !completedAtByCourse.has(assignment.course_id)) {
+      completedAtByCourse.set(assignment.course_id, assignment.completed_at)
+    }
+  })
+
+  const countByMonth = Array.from(completedAtByCourse.values()).reduce((map, completedAt) => {
+    const date = new Date(completedAt)
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+    map.set(monthKey, (map.get(monthKey) || 0) + 1)
+    return map
+  }, new Map<string, number>())
 
   return Array.from(countByMonth.entries())
     .map(([month, count]) => ({ month, count }))

@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { HierarchyTree } from '@/features/business-panel/components/hierarchy/HierarchyTree';
 import { HierarchySettings } from '@/features/business-panel/components/hierarchy/HierarchySettings';
 import { Network, Settings, LayoutGrid, type LucideIcon } from 'lucide-react';
@@ -17,10 +17,11 @@ export default function BusinessPanelHierarchyPage() {
     { id: 'tree', label: t('hierarchy.tabs.treeView'), icon: LayoutGrid },
     { id: 'settings', label: t('hierarchy.tabs.settings'), icon: Settings },
   ];
+  const tourSteps = useMemo(() => getAdminHierarchySteps(t), [t]);
   
   const { joyrideProps } = useFeatureTour({
     tourId: ADMIN_HIERARCHY_TOUR_ID,
-    steps: getAdminHierarchySteps(t),
+    steps: tourSteps,
   })
 
   return (

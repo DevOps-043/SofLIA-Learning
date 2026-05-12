@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { AlertCircle, RefreshCw, Settings as SettingsIcon, XCircle } from 'lucide-react'
 import Image from 'next/image'
@@ -34,9 +35,11 @@ export function BusinessSettings() {
     canUseBranding,
   } = useBusinessSettingsLogic()
 
+  const tourSteps = useMemo(() => getAdminSettingsSteps(t), [t])
+
   const { joyrideProps } = useFeatureTour({
     tourId: ADMIN_SETTINGS_TOUR_ID,
-    steps: getAdminSettingsSteps(t),
+    steps: tourSteps,
     enabled: !isLoading,
   })
 

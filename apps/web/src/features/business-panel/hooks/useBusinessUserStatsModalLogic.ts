@@ -64,6 +64,31 @@ const fallbackTranslations: Record<string, string> = {
   'users.stats.coursesList.lia': 'SofLIA',
   'users.stats.coursesList.quiz': 'Quiz',
   'users.stats.coursesList.notes': 'Notas',
+  'users.modals.stats.coursesList.empty': 'No hay cursos asignados',
+  'users.modals.stats.coursesList.enrolled': 'Inscrito',
+  'users.modals.stats.coursesList.assignedAt': 'Asignado',
+  'users.modals.stats.coursesList.due': 'Fecha limite',
+  'users.modals.stats.coursesList.certificate': 'Certificado',
+  'users.modals.stats.coursesList.completed': 'Completado',
+  'users.modals.stats.coursesList.inProgress': 'En progreso',
+  'users.modals.stats.coursesList.notStarted': 'Sin iniciar',
+  'users.modals.stats.coursesList.progress': 'Progreso del curso',
+  'users.modals.stats.coursesList.courseBreakdown': 'Cursos asignados',
+  'users.modals.stats.coursesList.learningProgress': 'Progreso de aprendizaje',
+  'users.modals.stats.coursesList.engagementBreakdown': 'Engagement por curso',
+  'users.modals.stats.coursesList.lessons': 'Lecciones',
+  'users.modals.stats.coursesList.modules': 'Modulos',
+  'users.modals.stats.coursesList.studyTime': 'Tiempo de estudio',
+  'users.modals.stats.coursesList.activities': 'Actividades',
+  'users.modals.stats.coursesList.quizzes': 'Cuestionarios',
+  'users.modals.stats.coursesList.sofliaInteractions': 'Interacciones SofLIA',
+  'users.modals.stats.coursesList.notes': 'Notas',
+  'users.modals.stats.coursesList.notesCreated': 'Notas creadas',
+  'users.modals.stats.coursesList.completedOfTotal': '{{completed}} de {{total}} completadas',
+  'users.modals.stats.coursesList.avgScore': '{{score}}% promedio',
+  'users.modals.stats.coursesList.messagesCount': '{{count}} mensajes',
+  'users.modals.stats.coursesList.minutesShort': ' min',
+  'users.modals.stats.coursesList.hoursShort': ' h',
   'users.stats.timeline.empty': 'No hay progreso que mostrar',
   'users.stats.timeline.modules': 'módulos',
   'users.stats.timeline.lessons': 'lecciones',
@@ -107,8 +132,10 @@ export function useBusinessUserStatsModalLogic({
 
     if (resultString === key || resultString.includes('.stats.')) {
       let fallback = fallbackTranslations[key] || (typeof options === 'string' ? options : key)
-      if (typeof options !== 'string' && options?.count !== undefined && fallback.includes('{{count}}')) {
-        fallback = fallback.replace('{{count}}', String(options.count))
+      if (typeof options !== 'string' && options) {
+        Object.entries(options).forEach(([optionKey, value]) => {
+          fallback = fallback.replaceAll(`{{${optionKey}}}`, String(value))
+        })
       }
       return fallback
     }

@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import type { ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   AlertCircle,
@@ -163,9 +163,11 @@ export default function BusinessPanelUsersPage() {
     reviewingId,
   } = useBusinessUsersPageLogic()
 
+  const tourSteps = useMemo(() => getAdminUsersSteps(t), [t])
+
   const { joyrideProps } = useFeatureTour({
     tourId: ADMIN_USERS_TOUR_ID,
-    steps: getAdminUsersSteps(t),
+    steps: tourSteps,
     enabled: !isLoading,
   })
 

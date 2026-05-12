@@ -39,6 +39,9 @@ interface UserDropdownProps {
   certificatesCount?: number
 }
 
+const USER_DROPDOWN_BACKDROP_Z_INDEX = 1000002
+const USER_DROPDOWN_MENU_Z_INDEX = 1000003
+
 export const UserDropdown = React.memo(function UserDropdown({ 
   className = '', 
   user: userProp,
@@ -191,7 +194,8 @@ export const UserDropdown = React.memo(function UserDropdown({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[9998] bg-black/10"
+                className="fixed inset-0 bg-black/10"
+                style={{ zIndex: USER_DROPDOWN_BACKDROP_Z_INDEX }}
                 onClick={() => { setIsOpen(false); setActiveSubmenu(null) }}
               />
               
@@ -203,7 +207,7 @@ export const UserDropdown = React.memo(function UserDropdown({
                 transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                 className="fixed w-[240px] rounded-2xl border backdrop-blur-xl shadow-2xl overflow-hidden bg-white/95 dark:bg-[#1A1F25]/95 border-gray-200 dark:border-white/10"
                 style={{
-                  zIndex: 9999,
+                  zIndex: USER_DROPDOWN_MENU_Z_INDEX,
                   top: pos.top,
                   right: pos.right,
                 }}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { CallBackProps, STATUS, ACTIONS, EVENTS, Step } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
@@ -197,10 +197,18 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
     }
   }, [dbStartTour, steps, tourId]);
 
-  // Manual start (for "Replay" buttons)
-  const manualStartTour = useCallback(() => {
-    startAtFirstStep();
+  const startAtFirstStepRef = useRef(startAtFirstStep);
+
+  useEffect(() => {
+    startAtFirstStepRef.current = startAtFirstStep;
   }, [startAtFirstStep]);
+
+  // Manual start (for "Replay" buttons). Keep this callback stable so pages
+  // that accidentally pass a fresh steps array do not churn the global tour
+  // restart context on every render.
+  const manualStartTour = useCallback(() => {
+    startAtFirstStepRef.current();
+  }, []);
 
   // Register with global context for header replay button
   useEffect(() => {

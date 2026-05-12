@@ -41,6 +41,10 @@ const steps: Step[] = [
   },
 ];
 
+function cloneSteps(): Step[] {
+  return steps.map((step) => ({ ...step }));
+}
+
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (_key: string, fallback?: string) => fallback ?? _key,
@@ -147,5 +151,24 @@ describe('useFeatureTour', () => {
 
     expect(skipTour).toHaveBeenCalledTimes(1);
     expect(result.current.run).toBe(false);
+  });
+
+  it('keeps the restart registration stable when the steps array identity changes', () => {
+    const { rerender } = renderHook(
+      ({ tourSteps }: { tourSteps: Step[] }) =>
+        useFeatureTour({
+          steps: tourSteps,
+          tourId: 'admin-users-tour',
+        }),
+      {
+        initialProps: { tourSteps: cloneSteps() },
+      },
+    );
+
+    expect(setRestart).toHaveBeenCalledTimes(1);
+
+    rerender({ tourSteps: cloneSteps() });
+
+    expect(setRestart).toHaveBeenCalledTimes(1);
   });
 });

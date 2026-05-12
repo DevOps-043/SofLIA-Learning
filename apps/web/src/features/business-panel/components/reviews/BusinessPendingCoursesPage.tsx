@@ -72,10 +72,11 @@ export function BusinessPendingCoursesPage({
     useAdminPendingCourses()
   const { i18n, t: tBusiness } = useTranslation('business')
   const tReviews = (key: string) => tBusiness(`reviewsPage.${key}`)
+  const tourSteps = useMemo(() => getAdminReviewsSteps(tBusiness), [tBusiness])
 
   const { joyrideProps } = useFeatureTour({
     tourId: ADMIN_REVIEWS_TOUR_ID,
-    steps: getAdminReviewsSteps(tBusiness),
+    steps: tourSteps,
     enabled: !isLoading,
   })
 

@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { 
   BarChart3, 
+  BookOpen,
   Clock, 
   X, 
   User, 
@@ -17,7 +18,9 @@ import { useBusinessUserStatsModalLogic } from '../hooks/useBusinessUserStatsMod
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 import {
   BusinessUserStatsActivityTab,
+  BusinessUserStatsCoursesTab,
   BusinessUserStatsOverviewTab,
+  type BusinessUserStatsHeaderTab,
   type BusinessUserStatsTheme,
 } from './business-user-stats-modal'
 
@@ -77,13 +80,13 @@ export function BusinessUserStatsModal({
   const inputBg = panelTheme.inputBg
 
   // Simplified Tabs
-  const tabs = [
+  const tabs: BusinessUserStatsHeaderTab[] = [
     { id: 'overview', label: t('users.modals.stats.tabs.overview', 'Resumen'), icon: BarChart3 },
+    { id: 'courses', label: t('users.modals.stats.tabs.courses', 'Cursos'), icon: BookOpen },
     { id: 'activity', label: t('users.modals.stats.tabs.activity', 'Actividad'), icon: Clock },
   ]
 
-  // Ensure active tab is valid after simplification
-  const safeActiveTab = activeTab === 'activity' ? 'activity' : 'overview'
+  const safeActiveTab = tabs.some((tab) => tab.id === activeTab) ? activeTab : 'overview'
 
   return (
     <AnimatePresence>
@@ -154,7 +157,7 @@ export function BusinessUserStatsModal({
                       {tabs.map((tab) => (
                          <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id as any)}
+                            onClick={() => setActiveTab(tab.id)}
                             className={`p-2.5 rounded-2xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${safeActiveTab === tab.id ? 'shadow-xl' : 'opacity-30 grayscale hover:opacity-100 hover:grayscale-0'}`}
                             style={safeActiveTab === tab.id ? {
                                backgroundColor: theme.primaryColor,
@@ -215,6 +218,13 @@ export function BusinessUserStatsModal({
                     <div className="max-w-5xl mx-auto">
                       {safeActiveTab === 'overview' ? (
                         <BusinessUserStatsOverviewTab stats={stats} t={t} theme={theme} />
+                      ) : safeActiveTab === 'courses' ? (
+                        <BusinessUserStatsCoursesTab
+                          stats={stats}
+                          t={t}
+                          theme={theme}
+                          formatDate={formatDate}
+                        />
                       ) : (
                         <BusinessUserStatsActivityTab
                           stats={stats}

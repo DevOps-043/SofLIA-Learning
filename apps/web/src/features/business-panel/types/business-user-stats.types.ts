@@ -5,8 +5,12 @@ export interface BusinessUserStatsCourseData {
   course_title: string
   progress: number
   status: string
+  assignment_status?: string | null
   enrolled_at: string | null
+  assigned_at?: string | null
+  due_date?: string | null
   completed_at: string | null
+  is_assigned?: boolean
   has_certificate: boolean
   lia_conversations_count?: number
   lia_messages_count?: number

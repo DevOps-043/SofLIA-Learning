@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
   BookOpen,
@@ -50,9 +51,11 @@ export function CoursesPageContent() {
     orgSlug,
   } = useCoursesPageLogic()
 
+  const tourSteps = useMemo(() => getAdminCoursesSteps(t), [t])
+
   const { joyrideProps } = useFeatureTour({
     tourId: ADMIN_COURSES_TOUR_ID,
-    steps: getAdminCoursesSteps(t),
+    steps: tourSteps,
     enabled: !isLoading,
   })
 
