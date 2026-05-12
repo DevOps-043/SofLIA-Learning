@@ -38,6 +38,60 @@ export interface ResolveChatUserContextResult {
   courseContext?: CourseLessonContext
 }
 
+const GENERIC_ROLE_LIKE_NAMES = new Set([
+  'admin',
+  'administrator',
+  'administrador',
+  'administradora',
+  'business',
+  'businessuser',
+  'business user',
+  'business_user',
+  'instructor',
+  'instructora',
+  'user',
+  'usuario',
+  'usuaria',
+  'guest',
+  'invitado',
+  'invitada',
+])
+
+function isUsableDisplayName(value: unknown): value is string {
+  if (typeof value !== 'string') {
+    return false
+  }
+
+  const trimmed = value.trim()
+  if (trimmed.length < 2) {
+    return false
+  }
+
+  if (trimmed.includes('@')) {
+    return false
+  }
+
+  return !GENERIC_ROLE_LIKE_NAMES.has(trimmed.toLowerCase())
+}
+
+function pickUsableName(...candidates: Array<string | null | undefined>): string | undefined {
+  for (const candidate of candidates) {
+    if (isUsableDisplayName(candidate)) {
+      return candidate.trim()
+    }
+  }
+  return undefined
+}
+
+function preferTruthy<T>(...values: Array<T | null | undefined>): T | null {
+  for (const value of values) {
+    if (value !== null && value !== undefined && value !== '') {
+      return value
+    }
+  }
+  return null
+}
+
 async function loadChatUserInfo(
   supabase: SupabaseServerClient,
   authenticatedUser?: AuthenticatedUser | null,
@@ -84,22 +138,36 @@ export async function resolveChatUserContext({
 }: ResolveChatUserContextParams): Promise<ResolveChatUserContextResult> {
   const databaseUserInfo = await loadChatUserInfo(supabase, authenticatedUser)
   const requestInfo = requestUserInfo ? (requestUserInfo as ChatUserInfo) : null
+  // La DB es la fuente autoritativa. requestInfo solo rellena campos vacios
+  // para evitar que valores null/undefined del cliente pisen datos validos de la DB.
   const userInfo = (databaseUserInfo || requestInfo)
     ? {
-        ...databaseUserInfo,
-        ...requestInfo,
-        job_title: databaseUserInfo?.job_title || requestInfo?.job_title || null,
-        job_description: databaseUserInfo?.job_description || requestInfo?.job_description || null,
-        type_rol: databaseUserInfo?.job_title || requestInfo?.type_rol || databaseUserInfo?.type_rol || null,
+        display_name: preferTruthy(databaseUserInfo?.display_name, requestInfo?.display_name),
+        username: preferTruthy(databaseUserInfo?.username, requestInfo?.username),
+        first_name: preferTruthy(databaseUserInfo?.first_name, requestInfo?.first_name),
+        last_name: preferTruthy(databaseUserInfo?.last_name, requestInfo?.last_name),
+        profile_picture_url: preferTruthy(
+          databaseUserInfo?.profile_picture_url,
+          requestInfo?.profile_picture_url,
+        ),
+        type_rol: preferTruthy(databaseUserInfo?.type_rol, requestInfo?.type_rol),
+        job_title: preferTruthy(databaseUserInfo?.job_title, requestInfo?.job_title),
+        job_description: preferTruthy(
+          databaseUserInfo?.job_description,
+          requestInfo?.job_description,
+        ),
       } as ChatUserInfo
     : null
 
+  // Saltamos valores genericos tipo "Admin", "Usuario", emails, etc.
+  // que no son nombres reales y producirian saludos como "Hola Admin".
   const displayName =
-    userInfo?.first_name ||
-    userInfo?.display_name ||
-    userInfo?.username ||
-    userName ||
-    'usuario'
+    pickUsableName(
+      userInfo?.first_name,
+      userInfo?.display_name,
+      userInfo?.username,
+      userName,
+    ) || 'usuario'
 
   const userRole = userInfo?.job_title || userInfo?.type_rol || courseContext?.userRole || undefined
   const userRoleDescription = userInfo?.job_description || undefined

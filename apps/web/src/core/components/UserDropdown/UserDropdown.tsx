@@ -14,7 +14,6 @@ import { getOrganizationUserDashboardPath } from '../../utils/organizationNaviga
 // Lucide Icons
 import {
   User,
-  Pencil,
   Moon,
   Sun,
   LogOut,
@@ -25,6 +24,8 @@ import {
   LayoutDashboard,
   ShieldCheck,
   Check,
+  BarChart3,
+  Award,
   LucideIcon
 } from 'lucide-react'
 import { cn } from '@/shared/utils/cn'
@@ -33,19 +34,14 @@ import { useOrganization } from '../../hooks/useOrganization'
 interface UserDropdownProps {
   className?: string
   user?: any // Optional user prop to override useAuth
-  onRestartTour?: () => void
-  onCertificatesClick?: () => void
-  onAnalyticsClick?: () => void
-  certificatesCount?: number
 }
 
 const USER_DROPDOWN_BACKDROP_Z_INDEX = 1000002
 const USER_DROPDOWN_MENU_Z_INDEX = 1000003
 
-export const UserDropdown = React.memo(function UserDropdown({ 
-  className = '', 
+export const UserDropdown = React.memo(function UserDropdown({
+  className = '',
   user: userProp,
-  onRestartTour,
 }: UserDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [pos, setPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 })
@@ -113,6 +109,19 @@ export const UserDropdown = React.memo(function UserDropdown({
         : '/dashboard'
     )
   }, [currentOrganization?.slug, handleNavigation])
+
+  // Para "Mis Estadísticas" preferimos las analíticas personales del usuario
+  // dentro de la organización. Si no hay organización pero es Admin de plataforma,
+  // mandamos a las estadísticas del panel admin.
+  const userStatsPath = useMemo(() => {
+    if (currentOrganization?.slug) {
+      return `/${currentOrganization.slug}/business-user/analytics`
+    }
+    if (isAdmin) {
+      return '/admin/statistics'
+    }
+    return null
+  }, [currentOrganization?.slug, isAdmin])
 
   const handleThemeToggle = useCallback(() => {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
@@ -289,30 +298,37 @@ export const UserDropdown = React.memo(function UserDropdown({
                   />
                 )}
 
+                {/* My Stats */}
+                {userStatsPath && (
+                  <MenuItem
+                    icon={BarChart3}
+                    label={t('menu.stats')}
+                    onClick={() => handleNavigation(userStatsPath)}
+                  />
+                )}
+
+                {/* My Certificates */}
+                <MenuItem
+                  icon={Award}
+                  label={t('menu.certificates')}
+                  onClick={() => handleNavigation('/certificates')}
+                />
+
                 {/* Edit Profile */}
-                <MenuItem 
-                  icon={User} 
-                  label={t('menu.profile')} 
-                  onClick={() => handleNavigation('/profile')} 
+                <MenuItem
+                  icon={User}
+                  label={t('menu.profile')}
+                  onClick={() => handleNavigation('/profile')}
                 />
 
                 {/* Theme Toggle */}
-                <MenuItem 
-                  icon={resolvedTheme === 'dark' ? Sun : Moon} 
+                <MenuItem
+                  icon={resolvedTheme === 'dark' ? Sun : Moon}
                   label={isMounted ? (
                     resolvedTheme === 'dark' ? t('menu.theme.light') : t('menu.theme.dark')
-                  ) : '...'} 
-                  onClick={handleThemeToggle} 
+                  ) : '...'}
+                  onClick={handleThemeToggle}
                 />
-
-                {/* Restart Tour */}
-                {onRestartTour && (
-                  <MenuItem 
-                    icon={Pencil} 
-                    label={t('menu.restartTour')} 
-                    onClick={() => { onRestartTour(); setIsOpen(false); }} 
-                  />
-                )}
 
                 {/* Language submenu */}
                 <div className="relative">

@@ -67,14 +67,41 @@ export function buildVoiceLanguageInstruction(
   return 'CRITICO: El usuario acaba de hablarte en ESPANOL. Debes responder SOLO en ESPANOL.'
 }
 
+const ROLE_LIKE_TOKENS = new Set([
+  'admin',
+  'administrator',
+  'administrador',
+  'administradora',
+  'business',
+  'businessuser',
+  'instructor',
+  'instructora',
+  'user',
+  'usuario',
+  'usuaria',
+])
+
+function looksLikeRealName(value?: string): boolean {
+  if (!value) return false
+  const trimmed = value.trim()
+  if (trimmed.length < 2) return false
+  if (trimmed.includes('@')) return false
+  return !ROLE_LIKE_TOKENS.has(trimmed.toLowerCase())
+}
+
 export function buildNameGreeting(userName?: string): string {
-  return userName && userName !== 'usuario'
-    ? `INFORMACION DEL USUARIO:
-- El nombre del usuario es: ${userName}
-- NO uses el nombre del usuario en tus respuestas
-- NO saludes con "Hola", "Hi", "Bienvenido", etc.
-- Responde de forma directa y natural sin saludos ni nombres`
-    : ''
+  if (!looksLikeRealName(userName)) {
+    return `INFORMACION DEL USUARIO:
+- No se dispone del nombre real del usuario.
+- NUNCA inventes un nombre y NUNCA uses palabras genericas como "Admin", "Administrador", "Usuario" o "User" como si fueran un nombre.
+- Responde de forma directa y natural sin saludos personalizados.`
+  }
+
+  return `INFORMACION DEL USUARIO:
+- El nombre real del usuario es: ${userName}
+- Si necesitas dirigirte a la persona, usa exclusivamente este nombre.
+- NUNCA uses el rol profesional, el cargo o palabras como "Admin", "Administrador", "Usuario", "User", "Business" como si fueran un nombre.
+- Evita saludos repetitivos: no abras cada respuesta con "Hola ${userName}".`
 }
 
 export function buildRoleInfo(role?: string, roleDescription?: string): string {
