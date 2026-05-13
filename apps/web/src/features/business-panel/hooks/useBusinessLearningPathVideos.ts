@@ -3,11 +3,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import {
+  INTRO_VIDEO_MAX_SIZE_BYTES,
+  isStreamableVideoMimeType,
+} from '@/lib/media/video-upload-policy'
 import type { BusinessLearningPath } from '../services/businessLearningPaths.service'
 
-const MAX_VIDEO_SIZE_BYTES = 100 * 1024 * 1024 // 100 MB
-const ALLOWED_MIME_TYPES = ['video/mp4', 'video/webm'] as const
-type AllowedMime = (typeof ALLOWED_MIME_TYPES)[number]
+const MAX_VIDEO_SIZE_BYTES = INTRO_VIDEO_MAX_SIZE_BYTES
+
+interface UploadVideoDirectMessages {
+  fileTooLarge: string
+  invalidType: string
+  uploadFailed: string
+}
 
 /**
  * Upload de video usando el endpoint /api/upload existente (service role, sin
@@ -19,12 +27,13 @@ async function uploadVideoDirect(
   file: File,
   orgSlug: string,
   folder: string,
+  messages: UploadVideoDirectMessages,
 ): Promise<string> {
   if (file.size > MAX_VIDEO_SIZE_BYTES) {
-    throw new Error(`El archivo excede el límite de 100 MB`)
+    throw new Error(messages.fileTooLarge)
   }
-  if (!ALLOWED_MIME_TYPES.includes(file.type as AllowedMime)) {
-    throw new Error(`Tipo de archivo no permitido: ${file.type}`)
+  if (!isStreamableVideoMimeType(file.type)) {
+    throw new Error(messages.invalidType)
   }
 
   const formData = new FormData()
@@ -41,7 +50,7 @@ async function uploadVideoDirect(
   const uploadData = await uploadResponse.json() as { success: boolean; url?: string; error?: string }
 
   if (!uploadData.success || !uploadData.url) {
-    throw new Error(uploadData.error ?? 'Error al subir el video')
+    throw new Error(uploadData.error ?? messages.uploadFailed)
   }
 
   return uploadData.url
@@ -129,6 +138,12 @@ export function useBusinessLearningPathVideos(
     setState((prev) => ({ ...prev, error: null, success: null }))
   }, [])
 
+  const getUploadMessages = useCallback((): UploadVideoDirectMessages => ({
+    fileTooLarge: t('learningPathsPage.introVideos.errorFileTooLarge'),
+    invalidType: t('learningPathsPage.introVideos.errorInvalidFileType'),
+    uploadFailed: t('learningPathsPage.introVideos.errorUpload'),
+  }), [t])
+
   const handleUploadLpVideo = useCallback(
     async (file: File) => {
       if (!learningPath) return
@@ -136,7 +151,7 @@ export function useBusinessLearningPathVideos(
       setUploading(key, true)
       setState((prev) => ({ ...prev, error: null, success: null }))
       try {
-        const publicUrl = await uploadVideoDirect(file, orgSlug, 'lp')
+        const publicUrl = await uploadVideoDirect(file, orgSlug, 'lp', getUploadMessages())
 
         const saveRes = await fetch(
           `/api/${orgSlug}/business/intro-videos/learning-path/${learningPath.id}`,
@@ -162,7 +177,7 @@ export function useBusinessLearningPathVideos(
         setUploading(key, false)
       }
     },
-    [learningPath, orgSlug, setUploading, t],
+    [getUploadMessages, learningPath, orgSlug, setUploading, t],
   )
 
   const handleDeleteLpVideo = useCallback(async () => {
@@ -193,7 +208,7 @@ export function useBusinessLearningPathVideos(
       setUploading(key, true)
       setState((prev) => ({ ...prev, error: null, success: null }))
       try {
-        const publicUrl = await uploadVideoDirect(file, orgSlug, 'courses')
+        const publicUrl = await uploadVideoDirect(file, orgSlug, 'courses', getUploadMessages())
 
         const saveRes = await fetch(
           `/api/${orgSlug}/business/intro-videos/course/${courseId}`,
@@ -219,7 +234,7 @@ export function useBusinessLearningPathVideos(
         setUploading(key, false)
       }
     },
-    [orgSlug, setUploading, t],
+    [getUploadMessages, orgSlug, setUploading, t],
   )
 
   const handleDeleteCourseVideo = useCallback(

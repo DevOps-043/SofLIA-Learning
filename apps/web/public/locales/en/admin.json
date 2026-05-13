@@ -341,6 +341,7 @@
           "changeVideo": "Change Video",
           "dropHere": "Drop the video here",
           "dragOrClick": "Drag a video here or click to select",
+          "uploadHelp": "Web-optimized MP4 or WebM (max 1GB)",
           "youtubeLabel": "YouTube ID or URL",
           "youtubePlaceholder": "e.g. dQw4w9WgXcQ or https://www.youtube.com/watch?v=dQw4w9WgXcQ",
           "vimeoLabel": "Vimeo ID or URL",

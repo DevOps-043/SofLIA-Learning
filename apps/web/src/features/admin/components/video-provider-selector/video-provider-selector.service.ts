@@ -1,16 +1,15 @@
 import { createClient } from '../../../../lib/supabase/client';
+import {
+  COURSE_VIDEO_MAX_SIZE_BYTES,
+  STREAMABLE_VIDEO_MIME_TYPES,
+  VIDEO_ASSET_CACHE_CONTROL,
+  isStreamableVideoMimeType,
+} from '@/lib/media/video-upload-policy';
 import type { VideoProvider } from './types';
 
-export const ALLOWED_VIDEO_MIME_TYPES = [
-  'video/mp4',
-  'video/webm',
-  'video/ogg',
-  'video/quicktime',
-  'video/x-msvideo',
-  'video/avi',
-];
+export const ALLOWED_VIDEO_MIME_TYPES = STREAMABLE_VIDEO_MIME_TYPES;
 
-export const MAX_VIDEO_SIZE_BYTES = 1024 * 1024 * 1024;
+export const MAX_VIDEO_SIZE_BYTES = COURSE_VIDEO_MAX_SIZE_BYTES;
 
 export function formatVideoDuration(durationSeconds: number): string {
   const minutes = Math.floor(durationSeconds / 60);
@@ -19,8 +18,8 @@ export function formatVideoDuration(durationSeconds: number): string {
 }
 
 export function validateVideoFile(file: Pick<File, 'type' | 'size'>): string | null {
-  if (!ALLOWED_VIDEO_MIME_TYPES.includes(file.type)) {
-    return 'Tipo de video no válido. Solo se permiten MP4, WebM y OGG';
+  if (!isStreamableVideoMimeType(file.type)) {
+    return 'Tipo de video no válido. Solo se permiten MP4 o WebM';
   }
 
   if (file.size > MAX_VIDEO_SIZE_BYTES) {
@@ -188,7 +187,7 @@ export async function uploadCourseVideo(
   onProgress(30);
 
   const { data: uploadData, error: uploadError } = await supabase.storage.from('course-videos').upload(filePath, file, {
-    cacheControl: '3600',
+    cacheControl: VIDEO_ASSET_CACHE_CONTROL,
     upsert: false,
     contentType: file.type,
   });

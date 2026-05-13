@@ -446,6 +446,7 @@ export function VideoContent({
               className="w-full h-full"
               lessonId={lesson.lesson_id}
               playbackContext="lesson"
+              seekControlsLocked={shouldBlockLessonVideoAdvance(lesson)}
               onComplete={handleVideoComplete}
             />
             <VideoNavigationOverlay

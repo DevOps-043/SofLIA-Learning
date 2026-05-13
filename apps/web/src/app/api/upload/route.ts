@@ -6,17 +6,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/utils/logger';
 import { createClient } from '@supabase/supabase-js';
 import { 
-  validateFile, 
   sanitizePath, 
-  validateBucket, 
   generateSafeFileName,
-  UPLOAD_CONFIG 
 } from '@/lib/upload/validation';
+import {
+  INTRO_VIDEO_MAX_SIZE_BYTES,
+  VIDEO_ASSET_CACHE_CONTROL,
+  isStreamableVideoMimeType,
+} from '@/lib/media/video-upload-policy';
 
 export const runtime = 'nodejs';
 
-const INTRO_VIDEO_MAX_SIZE_BYTES = 100 * 1024 * 1024;
-const INTRO_VIDEO_ALLOWED_TYPES = ['video/mp4', 'video/webm'];
+const DEFAULT_ASSET_CACHE_CONTROL = '3600';
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
     
     // Validaciones especificas para el bucket "intro-videos" (videos cortos, 100MB)
     if (bucket === 'intro-videos') {
-      if (!INTRO_VIDEO_ALLOWED_TYPES.includes(file.type)) {
+      if (!isStreamableVideoMimeType(file.type)) {
         return NextResponse.json(
           { error: 'El bucket "intro-videos" solo acepta videos MP4 o WebM' },
           { status: 400 }
@@ -99,7 +100,9 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase.storage
       .from(bucket)
       .upload(filePath, file, {
-        cacheControl: '3600',
+        cacheControl: isStreamableVideoMimeType(file.type)
+          ? VIDEO_ASSET_CACHE_CONTROL
+          : DEFAULT_ASSET_CACHE_CONTROL,
         upsert: false
       });
 

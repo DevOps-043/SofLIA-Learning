@@ -13,7 +13,9 @@ describe('video-provider-selector.service', () => {
 
   it('validates file size and mime type', () => {
     expect(validateVideoFile({ type: 'video/mp4', size: 1024 } as File)).toBeNull();
+    expect(validateVideoFile({ type: 'video/webm', size: 1024 } as File)).toBeNull();
     expect(validateVideoFile({ type: 'application/pdf', size: 1024 } as File)).toContain('Tipo de video');
+    expect(validateVideoFile({ type: 'video/quicktime', size: 1024 } as File)).toContain('MP4 o WebM');
     expect(validateVideoFile({ type: 'video/mp4', size: 1024 * 1024 * 1024 + 1 } as File)).toContain(
       '1GB'
     );

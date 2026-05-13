@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import {
+  COURSE_VIDEO_MAX_SIZE_BYTES,
+  VIDEO_ASSET_CACHE_CONTROL,
+  isStreamableVideoMimeType,
+} from '@/lib/media/video-upload-policy'
 
 // Configurar para permitir uploads grandes
 export const runtime = 'nodejs'
@@ -15,8 +20,7 @@ export async function POST(request: NextRequest) {
     const contentLength = request.headers.get('content-length')
     if (contentLength) {
       const sizeBytes = parseInt(contentLength, 10)
-      const maxSize = 1024 * 1024 * 1024 // 1GB
-      if (sizeBytes > maxSize) {
+      if (sizeBytes > COURSE_VIDEO_MAX_SIZE_BYTES) {
         return NextResponse.json(
           { 
             error: 'El archivo excede el tamaño máximo de 1GB',
@@ -88,8 +92,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validar tamaño (máximo 1GB para videos)
-    const maxSize = 1024 * 1024 * 1024 // 1GB
-    if (file.size > maxSize) {
+    if (file.size > COURSE_VIDEO_MAX_SIZE_BYTES) {
       return NextResponse.json(
         { error: 'El video excede el tamaño máximo de 1GB' },
         { 
@@ -100,10 +103,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validar tipo de archivo
-    const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/x-msvideo']
-    if (!allowedTypes.includes(file.type)) {
+    if (!isStreamableVideoMimeType(file.type)) {
       return NextResponse.json({ 
-        error: 'Tipo de video no permitido. Solo se permiten MP4, WebM y OGG',
+        error: 'Tipo de video no permitido. Solo se permiten MP4 o WebM',
         receivedType: file.type
       }, { status: 400 })
     }
@@ -141,7 +143,7 @@ export async function POST(request: NextRequest) {
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('course-videos')
       .upload(filePath, file, {
-        cacheControl: '3600',
+        cacheControl: VIDEO_ASSET_CACHE_CONTROL,
         upsert: false,
         contentType: file.type
       })
@@ -224,4 +226,3 @@ export async function POST(request: NextRequest) {
     }
   }
 }
-

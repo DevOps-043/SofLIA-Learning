@@ -926,7 +926,36 @@
         },
         "lessons": {
           "empty": "No lesson data available",
-          "title": "Lesson breakdown"
+          "title": "Lesson breakdown",
+          "untitledLesson": "Untitled lesson",
+          "untitledCourse": "Untitled course",
+          "noLessons": "No lessons recorded",
+          "badges": {
+            "video": {
+              "watched": "Watched",
+              "notWatched": "Not watched"
+            },
+            "activity": {
+              "empty": "Act. —",
+              "count": "Act. {{completed}}/{{total}}"
+            },
+            "quiz": {
+              "empty": "Quiz —",
+              "passedScore": "Quiz {{score}}%",
+              "passedNoScore": "Quiz OK",
+              "failedScore": "Quiz {{score}}%",
+              "failedNoScore": "Quiz Fail"
+            },
+            "lia": {
+              "empty": "SofLIA —",
+              "count": "{{count}} SofLIA"
+            },
+            "notes": {
+              "empty": "Notes —",
+              "countSingular": "{{count}} Note",
+              "countPlural": "{{count}} Notes"
+            }
+          }
         }
       },
       "invite": {
@@ -1777,6 +1806,7 @@
       "coursesSectionTitle": "Videos per course",
       "upload": "Upload video",
       "uploading": "Uploading...",
+      "active": "Active",
       "delete": "Delete video",
       "deleting": "Deleting...",
       "noVideo": "No video configured. Click to upload.",
@@ -1785,9 +1815,11 @@
       "errorUpload": "Error uploading the video. Please try again.",
       "errorDelete": "Error deleting the video. Please try again.",
       "errorLoad": "Error loading existing videos.",
-      "errorFileTooLarge": "File exceeds the 500 MB limit",
+      "errorFileTooLarge": "File exceeds the 100 MB limit",
+      "errorInvalidFileType": "Unsupported file type. Use MP4 or WebM.",
       "unnamedCourse": "Untitled course",
-      "close": "Close"
+      "close": "Close",
+      "done": "Done"
     },
     "defaults": {
       "title": "Default path",

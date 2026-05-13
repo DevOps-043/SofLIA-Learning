@@ -26,13 +26,19 @@ export function CustomVideoPlayerControls({
   return (
     <>
       {controller.isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[#0F1419]/80 backdrop-blur-sm z-30">
+        <div
+          className="absolute inset-0 flex items-center justify-center bg-[#0F1419]/80 backdrop-blur-sm z-30"
+          data-video-loading-indicator="true"
+        >
           <div className="w-12 h-12 border-4 border-[#00D4B3]/20 border-t-[#00D4B3] rounded-full animate-spin" />
         </div>
       )}
 
       {controller.isBuffering && controller.isPlaying && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[#0F1419]/50 z-20">
+        <div
+          className="absolute inset-0 flex items-center justify-center bg-[#0F1419]/50 z-20"
+          data-video-buffering-indicator="true"
+        >
           <div className="w-12 h-12 border-4 border-[#00D4B3]/20 border-t-[#00D4B3] rounded-full animate-spin" />
         </div>
       )}
@@ -58,7 +64,8 @@ export function CustomVideoPlayerControls({
                 </span>
               </button>
               <button
-                className="p-1.5 sm:p-2 bg-black/60 hover:bg-black/80 backdrop-blur-md rounded-lg transition-all duration-200 group/btn"
+                className="p-1.5 sm:p-2 bg-black/60 hover:bg-black/80 backdrop-blur-md rounded-lg transition-all duration-200 group/btn disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-black/60"
+                disabled={controller.isSeekingLocked}
                 onClick={() => controller.skip(10)}
                 title="Avanzar 10s"
               >
@@ -89,8 +96,12 @@ export function CustomVideoPlayerControls({
 
             <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3 md:p-4 pointer-events-auto">
               <div
-                className={`w-full h-1 sm:h-1.5 bg-white/20 rounded-full mb-2 sm:mb-3 md:mb-4 cursor-pointer group/progress hover:h-2 transition-all duration-200 ${
+                className={`w-full h-1 sm:h-1.5 bg-white/20 rounded-full mb-2 sm:mb-3 md:mb-4 group/progress transition-all duration-200 ${
                   controller.isDraggingProgress ? 'h-2' : ''
+                } ${
+                  controller.isSeekingLocked
+                    ? 'cursor-not-allowed'
+                    : 'cursor-pointer hover:h-2'
                 }`}
                 onClick={controller.handleProgressClick}
                 onMouseDown={controller.handleProgressMouseDown}
@@ -100,6 +111,8 @@ export function CustomVideoPlayerControls({
                 onTouchEnd={controller.handleProgressTouchEnd}
                 onTouchMove={controller.handleProgressTouchMove}
                 onTouchStart={controller.handleProgressTouchStart}
+                data-seek-locked={controller.isSeekingLocked}
+                data-video-progress-bar="true"
                 ref={controller.progressBarRef}
                 style={{ userSelect: 'none' }}
               >

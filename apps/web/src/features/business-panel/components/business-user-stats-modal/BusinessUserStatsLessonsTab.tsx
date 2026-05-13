@@ -12,6 +12,7 @@ import {
   MessageCircle,
   Layers,
   MinusCircle,
+  StickyNote,
 } from 'lucide-react'
 import { BusinessUserStatsEmptyState } from './shared'
 import type { BusinessUserStatsTabProps } from './types'
@@ -29,13 +30,20 @@ function fmtMinutes(minutes: number): string {
 
 // ─── Lesson Row ──────────────────────────────────────────────────────────────
 
+interface BadgeProps {
+  lesson: LessonDetail
+  theme: BusinessUserStatsTabProps['theme']
+  t: BusinessUserStatsTabProps['t']
+}
+
 interface LessonRowProps {
   lesson: LessonDetail
   index: number
   theme: BusinessUserStatsTabProps['theme']
+  t: BusinessUserStatsTabProps['t']
 }
 
-function VideoBadge({ lesson, theme }: { lesson: LessonDetail; theme: BusinessUserStatsTabProps['theme'] }) {
+function VideoBadge({ lesson, theme, t }: BadgeProps) {
   if (lesson.video_watched) {
     return (
       <span
@@ -43,7 +51,7 @@ function VideoBadge({ lesson, theme }: { lesson: LessonDetail; theme: BusinessUs
         style={{ backgroundColor: `${theme.successColor}20`, color: theme.successColor }}
       >
         <Play className="w-2.5 h-2.5 fill-current" />
-        Visto
+        {t('users.stats.lessons.badges.video.watched')}
       </span>
     )
   }
@@ -64,13 +72,28 @@ function VideoBadge({ lesson, theme }: { lesson: LessonDetail; theme: BusinessUs
       style={{ backgroundColor: `${theme.textColor}10`, color: theme.textColor }}
     >
       <Play className="w-2.5 h-2.5" />
-      Sin ver
+      {t('users.stats.lessons.badges.video.notWatched')}
     </span>
   )
 }
 
-function ActivityBadge({ lesson, theme }: { lesson: LessonDetail; theme: BusinessUserStatsTabProps['theme'] }) {
-  if (lesson.activities_total === 0) return null
+function ActivityBadge({ lesson, theme, t }: BadgeProps) {
+  if (lesson.activities_total === 0) {
+    return (
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest opacity-40"
+        style={{ backgroundColor: `${theme.textColor}10`, color: theme.textColor }}
+      >
+        <MinusCircle className="w-2.5 h-2.5" />
+        {t('users.stats.lessons.badges.activity.empty')}
+      </span>
+    )
+  }
+
+  const countLabel = t('users.stats.lessons.badges.activity.count', {
+    completed: lesson.activities_completed,
+    total: lesson.activities_total,
+  })
 
   if (lesson.activity_done) {
     return (
@@ -79,7 +102,7 @@ function ActivityBadge({ lesson, theme }: { lesson: LessonDetail; theme: Busines
         style={{ backgroundColor: `${theme.successColor}20`, color: theme.successColor }}
       >
         <CheckCircle2 className="w-2.5 h-2.5" />
-        Act. {lesson.activities_completed}/{lesson.activities_total}
+        {countLabel}
       </span>
     )
   }
@@ -89,19 +112,19 @@ function ActivityBadge({ lesson, theme }: { lesson: LessonDetail; theme: Busines
       style={{ backgroundColor: `${theme.warningColor}20`, color: theme.warningColor }}
     >
       <MinusCircle className="w-2.5 h-2.5" />
-      Act. {lesson.activities_completed}/{lesson.activities_total}
+      {countLabel}
     </span>
   )
 }
 
-function QuizBadge({ lesson, theme }: { lesson: LessonDetail; theme: BusinessUserStatsTabProps['theme'] }) {
+function QuizBadge({ lesson, theme, t }: BadgeProps) {
   if (!lesson.quiz_completed) {
     return (
       <span
         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest opacity-40"
         style={{ backgroundColor: `${theme.textColor}10`, color: theme.textColor }}
       >
-        Quiz —
+        {t('users.stats.lessons.badges.quiz.empty')}
       </span>
     )
   }
@@ -112,7 +135,9 @@ function QuizBadge({ lesson, theme }: { lesson: LessonDetail; theme: BusinessUse
         style={{ backgroundColor: `${theme.successColor}20`, color: theme.successColor }}
       >
         <CheckCircle2 className="w-2.5 h-2.5" />
-        Quiz {lesson.quiz_score !== null ? `${lesson.quiz_score}%` : 'OK'}
+        {lesson.quiz_score !== null
+          ? t('users.stats.lessons.badges.quiz.passedScore', { score: lesson.quiz_score })
+          : t('users.stats.lessons.badges.quiz.passedNoScore')}
       </span>
     )
   }
@@ -122,25 +147,64 @@ function QuizBadge({ lesson, theme }: { lesson: LessonDetail; theme: BusinessUse
       style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444' }}
     >
       <XCircle className="w-2.5 h-2.5" />
-      Quiz {lesson.quiz_score !== null ? `${lesson.quiz_score}%` : 'Fail'}
+      {lesson.quiz_score !== null
+        ? t('users.stats.lessons.badges.quiz.failedScore', { score: lesson.quiz_score })
+        : t('users.stats.lessons.badges.quiz.failedNoScore')}
     </span>
   )
 }
 
-function LiasBadge({ lesson, theme }: { lesson: LessonDetail; theme: BusinessUserStatsTabProps['theme'] }) {
-  if (lesson.lia_conversations === 0) return null
+function LiasBadge({ lesson, theme, t }: BadgeProps) {
+  if (lesson.lia_conversations === 0) {
+    return (
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest opacity-40"
+        style={{ backgroundColor: `${theme.textColor}10`, color: theme.textColor }}
+      >
+        <MessageCircle className="w-2.5 h-2.5" />
+        {t('users.stats.lessons.badges.lia.empty')}
+      </span>
+    )
+  }
   return (
     <span
       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest"
       style={{ backgroundColor: `${theme.accentColor}20`, color: theme.accentColor }}
     >
       <MessageCircle className="w-2.5 h-2.5" />
-      {lesson.lia_conversations} SofLIA
+      {t('users.stats.lessons.badges.lia.count', { count: lesson.lia_conversations })}
     </span>
   )
 }
 
-function LessonRow({ lesson, index, theme }: LessonRowProps) {
+function NotesBadge({ lesson, theme, t }: BadgeProps) {
+  if (lesson.notes_count === 0) {
+    return (
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest opacity-40"
+        style={{ backgroundColor: `${theme.textColor}10`, color: theme.textColor }}
+      >
+        <StickyNote className="w-2.5 h-2.5" />
+        {t('users.stats.lessons.badges.notes.empty')}
+      </span>
+    )
+  }
+  const notesKey =
+    lesson.notes_count === 1
+      ? 'users.stats.lessons.badges.notes.countSingular'
+      : 'users.stats.lessons.badges.notes.countPlural'
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest"
+      style={{ backgroundColor: `${theme.primaryColor}20`, color: theme.primaryColor }}
+    >
+      <StickyNote className="w-2.5 h-2.5" />
+      {t(notesKey, { count: lesson.notes_count })}
+    </span>
+  )
+}
+
+function LessonRow({ lesson, index, theme, t }: LessonRowProps) {
   const statusDot = {
     completed: theme.successColor,
     in_progress: theme.warningColor,
@@ -172,16 +236,17 @@ function LessonRow({ lesson, index, theme }: LessonRowProps) {
           style={{ color: theme.textColor }}
         >
           {lesson.lesson_order !== null ? `${lesson.lesson_order}. ` : ''}
-          {lesson.lesson_title ?? 'Lección sin título'}
+          {lesson.lesson_title ?? t('users.stats.lessons.untitledLesson')}
         </span>
       </div>
 
       {/* Badges */}
       <div className="flex flex-wrap items-center gap-1.5 shrink-0 pl-5 sm:pl-0">
-        <VideoBadge lesson={lesson} theme={theme} />
-        <ActivityBadge lesson={lesson} theme={theme} />
-        <QuizBadge lesson={lesson} theme={theme} />
-        <LiasBadge lesson={lesson} theme={theme} />
+        <VideoBadge lesson={lesson} theme={theme} t={t} />
+        <ActivityBadge lesson={lesson} theme={theme} t={t} />
+        <QuizBadge lesson={lesson} theme={theme} t={t} />
+        <LiasBadge lesson={lesson} theme={theme} t={t} />
+        <NotesBadge lesson={lesson} theme={theme} t={t} />
         {lesson.time_spent_minutes > 0 ? (
           <span
             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest opacity-50"
@@ -236,7 +301,7 @@ function CourseAccordion({ courseData, courseIndex, theme, t, defaultOpen }: Cou
 
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold truncate" style={{ color: theme.textColor }}>
-            {courseData.course_title ?? 'Curso sin título'}
+            {courseData.course_title ?? t('users.stats.lessons.untitledCourse')}
           </p>
           <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: theme.mutedTextColor }}>
             {completedCount}/{totalCount} {t('users.stats.timeline.lessons')}
@@ -276,7 +341,7 @@ function CourseAccordion({ courseData, courseIndex, theme, t, defaultOpen }: Cou
                   className="text-center py-4 text-[10px] font-black uppercase tracking-widest opacity-40"
                   style={{ color: theme.textColor }}
                 >
-                  Sin lecciones registradas
+                  {t('users.stats.lessons.noLessons')}
                 </p>
               ) : (
                 courseData.lessons.map((lesson, index) => (
@@ -285,6 +350,7 @@ function CourseAccordion({ courseData, courseIndex, theme, t, defaultOpen }: Cou
                     lesson={lesson}
                     index={index}
                     theme={theme}
+                    t={t}
                   />
                 ))
               )}

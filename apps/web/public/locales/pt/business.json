@@ -927,7 +927,36 @@
         },
         "lessons": {
           "empty": "Sem dados de lições disponíveis",
-          "title": "Detalhe por lição"
+          "title": "Detalhe por lição",
+          "untitledLesson": "Lição sem título",
+          "untitledCourse": "Curso sem título",
+          "noLessons": "Sem lições registradas",
+          "badges": {
+            "video": {
+              "watched": "Visto",
+              "notWatched": "Não visto"
+            },
+            "activity": {
+              "empty": "Ativ. —",
+              "count": "Ativ. {{completed}}/{{total}}"
+            },
+            "quiz": {
+              "empty": "Quiz —",
+              "passedScore": "Quiz {{score}}%",
+              "passedNoScore": "Quiz OK",
+              "failedScore": "Quiz {{score}}%",
+              "failedNoScore": "Quiz Fail"
+            },
+            "lia": {
+              "empty": "SofLIA —",
+              "count": "{{count}} SofLIA"
+            },
+            "notes": {
+              "empty": "Notas —",
+              "countSingular": "{{count}} Nota",
+              "countPlural": "{{count}} Notas"
+            }
+          }
         }
       },
       "invite": {
@@ -1778,6 +1807,7 @@
       "coursesSectionTitle": "Vídeos por curso",
       "upload": "Enviar vídeo",
       "uploading": "Enviando...",
+      "active": "Ativo",
       "delete": "Excluir vídeo",
       "deleting": "Excluindo...",
       "noVideo": "Nenhum vídeo configurado. Clique para enviar.",
@@ -1786,9 +1816,11 @@
       "errorUpload": "Erro ao enviar o vídeo. Tente novamente.",
       "errorDelete": "Erro ao excluir o vídeo. Tente novamente.",
       "errorLoad": "Erro ao carregar os vídeos existentes.",
-      "errorFileTooLarge": "O arquivo excede o limite de 500 MB",
+      "errorFileTooLarge": "O arquivo excede o limite de 100 MB",
+      "errorInvalidFileType": "Tipo de arquivo não permitido. Use MP4 ou WebM.",
       "unnamedCourse": "Curso sem título",
-      "close": "Fechar"
+      "close": "Fechar",
+      "done": "Concluído"
     },
     "defaults": {
       "title": "Rota padrao",

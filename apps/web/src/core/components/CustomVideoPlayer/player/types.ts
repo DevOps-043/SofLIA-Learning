@@ -20,6 +20,7 @@ export interface CustomVideoPlayerProps {
   pauseWhenHidden?: boolean;
   pauseWhenOutsideViewport?: boolean;
   preload?: NativeVideoPreload;
+  seekControlsLocked?: boolean;
   src: string;
   title?: string;
   trackingId?: string;
@@ -65,6 +66,7 @@ export interface CustomVideoPlayerController {
   isMuted: boolean;
   isPiP: boolean;
   isPlaying: boolean;
+  isSeekingLocked: boolean;
   onRootMouseEnter: () => void;
   onRootMouseLeave: () => void;
   onRootMouseMove: () => void;

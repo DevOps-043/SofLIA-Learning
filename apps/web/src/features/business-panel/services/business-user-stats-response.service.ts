@@ -722,6 +722,13 @@ function buildLessonDetailByCourse(data: BusinessUserStatsQueryData): CourseWith
     )
   })
 
+  // Count user_lesson_notes per lesson_id
+  const notesByLesson = new Map<string, number>()
+  data.lessonNotes.forEach((note) => {
+    if (!note.lesson_id) return
+    notesByLesson.set(note.lesson_id, (notesByLesson.get(note.lesson_id) ?? 0) + 1)
+  })
+
   // Count quiz submissions per lesson_id (take best score if multiple attempts)
   const quizByLesson = new Map<string, { passed: boolean; score: number | null }>()
   data.quizSubmissions.forEach((q) => {
@@ -789,6 +796,7 @@ function buildLessonDetailByCourse(data: BusinessUserStatsQueryData): CourseWith
           quiz_score: quiz?.score ?? null,
           lia_conversations: liaCalls,
           lia_messages: liaMsg,
+          notes_count: notesByLesson.get(lesson.lesson_id) ?? 0,
           time_spent_minutes: progress?.time_spent_minutes ?? 0,
         }
       })

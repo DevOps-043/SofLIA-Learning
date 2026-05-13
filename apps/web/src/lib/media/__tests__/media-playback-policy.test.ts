@@ -12,7 +12,7 @@ const DESKTOP_CHROME_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
 
 describe('media-playback-policy', () => {
-  it('requires user interaction and no preload for iPhone lesson videos', () => {
+  it('requires user interaction and metadata preload for iPhone lesson videos', () => {
     const policy = resolveMediaPlaybackPolicy(
       {
         userAgent: IPHONE_UA,
@@ -24,11 +24,12 @@ describe('media-playback-policy', () => {
     expect(policy.isIOSLike).toBe(true);
     expect(policy.requiresUserGesture).toBe(true);
     expect(policy.allowAutoplay).toBe(false);
-    expect(getNativeVideoPreload(policy)).toBe('none');
+    expect(getNativeVideoPreload(policy)).toBe('metadata');
+    expect(policy.pauseWhenOutsideViewport).toBe(false);
     expect(shouldUseEmbedFacade(policy)).toBe(true);
   });
 
-  it('keeps desktop lesson video metadata preload and immediate embeds', () => {
+  it('uses auto preload for desktop lesson videos and immediate embeds', () => {
     const policy = resolveMediaPlaybackPolicy(
       {
         effectiveType: '4g',
@@ -41,7 +42,8 @@ describe('media-playback-policy', () => {
 
     expect(policy.requiresUserGesture).toBe(false);
     expect(policy.allowAutoplay).toBe(true);
-    expect(policy.nativeVideoPreload).toBe('metadata');
+    expect(policy.nativeVideoPreload).toBe('auto');
+    expect(policy.pauseWhenOutsideViewport).toBe(false);
     expect(policy.shouldUseEmbedFacade).toBe(false);
   });
 
@@ -67,9 +69,10 @@ describe('media-playback-policy', () => {
     expect(saveDataPolicy.shouldPrefetchVideo).toBe(false);
     expect(saveDataPolicy.nativeVideoPreload).toBe('none');
     expect(slowConnectionPolicy.shouldPrefetchVideo).toBe(false);
+    expect(slowConnectionPolicy.nativeVideoPreload).toBe('metadata');
   });
 
-  it('keeps desktop tour videos on metadata preload without speculative prefetch', () => {
+  it('uses auto preload for desktop tour videos without speculative prefetch', () => {
     const policy = resolveMediaPlaybackPolicy(
       {
         effectiveType: '4g',
@@ -81,7 +84,8 @@ describe('media-playback-policy', () => {
     );
 
     expect(policy.allowAutoplay).toBe(true);
-    expect(policy.nativeVideoPreload).toBe('metadata');
+    expect(policy.nativeVideoPreload).toBe('auto');
+    expect(policy.pauseWhenOutsideViewport).toBe(false);
     expect(policy.shouldPrefetchVideo).toBe(false);
   });
 
@@ -97,5 +101,6 @@ describe('media-playback-policy', () => {
 
     expect(policy.shouldUseEmbedFacade).toBe(true);
     expect(policy.nativeVideoPreload).toBe('metadata');
+    expect(policy.pauseWhenOutsideViewport).toBe(true);
   });
 });

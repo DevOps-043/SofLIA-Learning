@@ -3,6 +3,11 @@ import { z } from 'zod'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import {
+  INTRO_VIDEO_MAX_SIZE_BYTES,
+  STREAMABLE_VIDEO_MIME_TYPES,
+  isStreamableVideoExtension,
+} from '@/lib/media/video-upload-policy'
 import { logger } from '@/lib/utils/logger'
 
 interface RouteParams {
@@ -10,12 +15,10 @@ interface RouteParams {
 }
 
 const BUCKET = 'intro-videos'
-const ALLOWED_EXTENSIONS = ['mp4', 'webm']
-const MAX_VIDEO_SIZE_BYTES = 100 * 1024 * 1024
 
 const BodySchema = z.object({
   fileName: z.string().min(1),
-  contentType: z.enum(['video/mp4', 'video/webm']),
+  contentType: z.enum(STREAMABLE_VIDEO_MIME_TYPES),
   fileSize: z.number().int().positive().optional(),
   folder: z.string().max(120).optional(),
 })
@@ -45,15 +48,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }, { status: 400 })
     }
 
-    const { fileName, contentType, fileSize, folder } = parsed.data
+    const { fileName, fileSize, folder } = parsed.data
 
     // Validar extensión del archivo
     const ext = fileName.split('.').pop()?.toLowerCase() ?? ''
-    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+    if (!isStreamableVideoExtension(ext)) {
       return NextResponse.json({ success: false, error: `Extensión no permitida: .${ext}` }, { status: 400 })
     }
 
-    if (fileSize && fileSize > MAX_VIDEO_SIZE_BYTES) {
+    if (fileSize && fileSize > INTRO_VIDEO_MAX_SIZE_BYTES) {
       return NextResponse.json({ success: false, error: 'El video introductorio es demasiado grande. Máximo 100MB' }, { status: 400 })
     }
 

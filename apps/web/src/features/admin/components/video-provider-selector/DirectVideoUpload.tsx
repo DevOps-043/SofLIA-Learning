@@ -1,6 +1,7 @@
 import type { ChangeEventHandler, DragEventHandler, RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Upload, X } from 'lucide-react';
+import { STREAMABLE_VIDEO_ACCEPT } from '@/lib/media/video-upload-policy';
 
 interface DirectVideoUploadProps {
   selectedFile: File | null;
@@ -103,7 +104,7 @@ export function DirectVideoUpload({
           <input
             ref={fileInputRef}
             type="file"
-            accept="video/mp4,video/webm,video/ogg,video/quicktime,video/x-msvideo,video/avi"
+            accept={STREAMABLE_VIDEO_ACCEPT}
             onChange={onFileInputChange}
             disabled={disabled || uploading}
             className="hidden"
@@ -158,7 +159,7 @@ export function DirectVideoUpload({
           <input
             ref={fileInputRef}
             type="file"
-            accept="video/mp4,video/webm,video/ogg,video/quicktime,video/x-msvideo,video/avi"
+            accept={STREAMABLE_VIDEO_ACCEPT}
             onChange={onFileInputChange}
             disabled={disabled || uploading}
             className="hidden"
@@ -175,7 +176,9 @@ export function DirectVideoUpload({
                 ? t('workshops.editor.lessons.videoProviders.dropHere') 
                 : t('workshops.editor.lessons.videoProviders.dragOrClick')}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">MP4, WebM, OGG, MOV, AVI (máximo 1GB)</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {t('workshops.editor.lessons.videoProviders.uploadHelp')}
+            </p>
           </div>
         </div>
       )}

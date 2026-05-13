@@ -18,6 +18,7 @@ export interface LessonDetail {
   quiz_score: number | null
   lia_conversations: number
   lia_messages: number
+  notes_count: number
   time_spent_minutes: number
 }
 

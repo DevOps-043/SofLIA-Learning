@@ -17,11 +17,10 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import { STREAMABLE_VIDEO_ACCEPT } from '@/lib/media/video-upload-policy'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 import { useBusinessLearningPathVideos } from '../hooks/useBusinessLearningPathVideos'
 import type { BusinessLearningPath } from '../services/businessLearningPaths.service'
-
-const VIDEO_MIME_TYPES = 'video/mp4,video/webm'
 
 interface BusinessLearningPathVideosModalProps {
   isOpen: boolean
@@ -59,7 +58,7 @@ function VideoSlot({ title, videoUrl, isUploading, isDeleting, onUpload, onDelet
           <div className="flex items-center gap-1.5 shrink-0">
             <CheckCircle2 className="h-3.5 w-3.5" style={{ color: theme.successColor }} />
             <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: theme.successColor }}>
-              Activo
+              {t('learningPathsPage.introVideos.active')}
             </span>
           </div>
         )}
@@ -73,8 +72,8 @@ function VideoSlot({ title, videoUrl, isUploading, isDeleting, onUpload, onDelet
               src={videoUrl}
               controls
               preload="metadata"
-              className="w-full rounded-2xl block"
-              style={{ maxHeight: 160, backgroundColor: '#000' }}
+              className="w-full rounded-2xl block bg-gray-900"
+              style={{ maxHeight: 160 }}
             />
             <div className="flex gap-2">
               <button
@@ -124,7 +123,7 @@ function VideoSlot({ title, videoUrl, isUploading, isDeleting, onUpload, onDelet
         )}
       </div>
 
-      <input ref={inputRef} type="file" accept={VIDEO_MIME_TYPES} className="hidden"
+      <input ref={inputRef} type="file" accept={STREAMABLE_VIDEO_ACCEPT} className="hidden"
         onChange={(e) => { const f = e.target.files?.[0]; if (f) { onUpload(f); e.target.value = '' } }}
       />
     </div>
@@ -308,7 +307,7 @@ export function BusinessLearningPathVideosModal({
               <div className="hidden sm:flex items-center gap-2 opacity-30 select-none">
                 <Film className="w-5 h-5" style={{ color: textColor }} />
                 <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: textColor }}>
-                  Videos Introductorios
+                  {t('learningPathsPage.introVideos.modalTitle')}
                 </span>
               </div>
               <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -328,7 +327,7 @@ export function BusinessLearningPathVideosModal({
                   className="flex-[2] sm:flex-none px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg flex items-center justify-center gap-3"
                   style={{ backgroundColor: primaryColor, color: onPrimaryColor }}
                 >
-                  <span>Listo</span>
+                  <span>{t('learningPathsPage.introVideos.done')}</span>
                   <ChevronRight className="w-4 h-4" strokeWidth={3} />
                 </motion.button>
               </div>

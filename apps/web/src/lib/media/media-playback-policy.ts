@@ -74,6 +74,32 @@ function isSlowEffectiveType(effectiveType?: string): boolean {
   return Boolean(effectiveType && SLOW_EFFECTIVE_TYPES.has(effectiveType));
 }
 
+function resolveNativeVideoPreload({
+  context,
+  isConstrainedNetwork,
+  isMobile,
+  isWebKitLike,
+  prefersReducedMotion,
+  saveData,
+}: {
+  context: MediaPlaybackContext;
+  isConstrainedNetwork: boolean;
+  isMobile: boolean;
+  isWebKitLike: boolean;
+  prefersReducedMotion: boolean;
+  saveData?: boolean;
+}): NativeVideoPreload {
+  if (saveData || prefersReducedMotion) {
+    return 'none';
+  }
+
+  if (context !== 'lesson' && context !== 'tour') {
+    return 'metadata';
+  }
+
+  return isMobile || isWebKitLike || isConstrainedNetwork ? 'metadata' : 'auto';
+}
+
 export function resolveMediaPlaybackPolicy(
   environment: MediaPlaybackEnvironment,
   context: MediaPlaybackContext
@@ -85,11 +111,21 @@ export function resolveMediaPlaybackPolicy(
     environment.viewportWidth <= MOBILE_VIEWPORT_MAX_WIDTH_PX;
   const isMobile = isMobileViewport || detectMobileUserAgent(environment.userAgent);
   const prefersReducedMotion = environment.prefersReducedMotion === true;
+  const saveData = environment.saveData === true;
   const isConstrainedNetwork =
-    environment.saveData === true || isSlowEffectiveType(environment.effectiveType);
+    saveData || isSlowEffectiveType(environment.effectiveType);
   const requiresUserGesture =
     isMobile || isIOSLike || prefersReducedMotion || isConstrainedNetwork;
   const shouldConserve = requiresUserGesture || isWebKitLike;
+  const isPrimaryPlaybackSurface = context === 'lesson' || context === 'tour';
+  const nativeVideoPreload = resolveNativeVideoPreload({
+    context,
+    isConstrainedNetwork,
+    isMobile,
+    isWebKitLike,
+    prefersReducedMotion,
+    saveData,
+  });
 
   return {
     allowAutoplay: !requiresUserGesture,
@@ -100,9 +136,9 @@ export function resolveMediaPlaybackPolicy(
     isMobile,
     isMobileViewport,
     isWebKitLike,
-    nativeVideoPreload: shouldConserve ? 'none' : 'metadata',
+    nativeVideoPreload,
     pauseWhenHidden: true,
-    pauseWhenOutsideViewport: shouldConserve || context !== 'lesson',
+    pauseWhenOutsideViewport: !isPrimaryPlaybackSurface,
     prefersReducedMotion,
     requiresUserGesture,
     shouldPrefetchVideo: false,

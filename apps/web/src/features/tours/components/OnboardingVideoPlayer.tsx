@@ -5,6 +5,12 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX, SkipForward, Wifi } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useMediaPlaybackPolicy } from '@/core/hooks/useMediaPlaybackPolicy';
+import {
+  NATIVE_VIDEO_BUFFERING_DELAY_MS,
+  NATIVE_VIDEO_STALLED_DELAY_MS,
+  hasNativeVideoPlayableData,
+  isNativeVideoWaitingForPlayableData,
+} from '@/lib/media';
 
 interface OnboardingVideoPlayerProps {
   videos: string[];
@@ -28,6 +34,7 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
   const videoRef = useRef<HTMLVideoElement>(null);
   const prevVideosRef = useRef<string[]>([]);
   const lastProgressRenderRef = useRef(0);
+  const bufferingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const playbackPolicy = useMediaPlaybackPolicy('tour');
   const { t } = useTranslation('common');
   const skipIntroLabel = t('onboarding.buttons.skipIntro');
@@ -56,12 +63,38 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
     return () => connection.removeEventListener?.('change', evaluate);
   }, []);
 
+  const clearBufferingTimeout = useCallback(() => {
+    if (bufferingTimeoutRef.current) {
+      clearTimeout(bufferingTimeoutRef.current);
+      bufferingTimeoutRef.current = null;
+    }
+  }, []);
+
+  const markVideoResponsive = useCallback(() => {
+    clearBufferingTimeout();
+    setIsBuffering(false);
+  }, [clearBufferingTimeout]);
+
+  const scheduleBufferingIndicator = useCallback(
+    (delayMs: number) => {
+      clearBufferingTimeout();
+      bufferingTimeoutRef.current = setTimeout(() => {
+        bufferingTimeoutRef.current = null;
+        if (isNativeVideoWaitingForPlayableData(videoRef.current)) {
+          setIsBuffering(true);
+        }
+      }, delayMs);
+    },
+    [clearBufferingTimeout]
+  );
+
   // ── Reload player when video list changes ─────────────────────────────────
   useEffect(() => {
     const videosChanged =
       JSON.stringify(videos) !== JSON.stringify(prevVideosRef.current);
 
     if (videosChanged) {
+      clearBufferingTimeout();
       setHasError(false);
       setIsPlaying(false);
       setIsBuffering(false);
@@ -88,7 +121,7 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
     } else if (currentVideoIndex > 0) {
       setIsPlaying(false);
     }
-  }, [currentVideoIndex, playbackPolicy.allowAutoplay, videos, hasError]);
+  }, [clearBufferingTimeout, currentVideoIndex, playbackPolicy.allowAutoplay, videos, hasError]);
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -114,26 +147,41 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
   useEffect(() => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      clearBufferingTimeout();
     };
-  }, []);
+  }, [clearBufferingTimeout]);
 
   // ── Buffering event handlers ───────────────────────────────────────────────
-  const handleWaiting  = useCallback(() => setIsBuffering(true), []);
+  const handleWaiting  = useCallback(() => {
+    scheduleBufferingIndicator(NATIVE_VIDEO_BUFFERING_DELAY_MS);
+  }, [scheduleBufferingIndicator]);
   const handleCanPlay  = useCallback(() => {
-    setIsBuffering(false);
+    markVideoResponsive();
     // Auto-play en primer video cuando el buffer está listo
     if (playbackPolicy.allowAutoplay && !isPlaying && currentVideoIndex === 0 && videoRef.current && !hasError) {
       videoRef.current.play()
         .then(() => { setIsPlaying(true); setShowControls(false); })
         .catch(() => {}); // silencio — algunos browsers requieren interacción
     }
-  }, [playbackPolicy.allowAutoplay, isPlaying, currentVideoIndex, hasError]);
-  const handlePlaying  = useCallback(() => { setIsBuffering(false); setIsPlaying(true); }, []);
-  const handleStalled  = useCallback(() => setIsBuffering(true), []);
+  }, [markVideoResponsive, playbackPolicy.allowAutoplay, isPlaying, currentVideoIndex, hasError]);
+  const handlePlaying  = useCallback(() => {
+    markVideoResponsive();
+    setIsPlaying(true);
+  }, [markVideoResponsive]);
+  const handleStalled  = useCallback(() => {
+    scheduleBufferingIndicator(NATIVE_VIDEO_STALLED_DELAY_MS);
+  }, [scheduleBufferingIndicator]);
+
+  const handleProgressEvent = useCallback(() => {
+    if (hasNativeVideoPlayableData(videoRef.current)) {
+      markVideoResponsive();
+    }
+  }, [markVideoResponsive]);
 
   // ── Progress / time ───────────────────────────────────────────────────────
   const handleTimeUpdate = useCallback(() => {
     const el = videoRef.current;
+    markVideoResponsive();
     if (!el || !el.duration || isNaN(el.duration)) return;
 
     const now = performance.now();
@@ -142,13 +190,13 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
 
     setCurrentTime(el.currentTime);
     setProgress((el.currentTime / el.duration) * 100);
-  }, []);
+  }, [markVideoResponsive]);
 
   const handleLoadedMetadata = useCallback(() => {
     const el = videoRef.current;
     if (el && !isNaN(el.duration)) setDuration(el.duration);
-    setIsBuffering(false);
-  }, []);
+    markVideoResponsive();
+  }, [markVideoResponsive]);
 
   const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const el = videoRef.current;
@@ -168,6 +216,8 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
 
   // ── Playback handlers ──────────────────────────────────────────────────────
   const handleVideoEnd = useCallback(() => {
+    markVideoResponsive();
+    setIsPlaying(false);
     setProgress(0);
     setCurrentTime(0);
     setDuration(0);
@@ -176,19 +226,21 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
     } else {
       onComplete();
     }
-  }, [currentVideoIndex, videos.length, onComplete]);
+  }, [currentVideoIndex, markVideoResponsive, videos.length, onComplete]);
 
   const togglePlay = useCallback(() => {
     const el = videoRef.current;
     if (!el) return;
     if (isPlaying) {
       el.pause();
+      clearBufferingTimeout();
+      setIsBuffering(false);
       setIsPlaying(false);
     } else {
       el.play().catch((err) => console.error('[OnboardingVideoPlayer] play error:', err));
       setShowControls(true);
     }
-  }, [isPlaying]);
+  }, [clearBufferingTimeout, isPlaying]);
 
   const handleInteraction = useCallback(() => {
     if (isPlaying) {
@@ -220,10 +272,11 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
   }, [currentVideoIndex]);
 
   const handleRetry = useCallback(() => {
+    clearBufferingTimeout();
     setHasError(false);
     setIsBuffering(false);
     videoRef.current?.load();
-  }, []);
+  }, [clearBufferingTimeout]);
 
   if (!videos || videos.length === 0) return null;
 
@@ -244,8 +297,8 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
         >
 
           {/*
-            ONE video element. Native preload is capped by the shared media
-            policy so large intro files do not monopolize the connection.
+            ONE video element. The shared media policy uses eager preload only
+            for the active video on unconstrained desktop connections.
           */}
           <video
             ref={videoRef}
@@ -255,15 +308,35 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
             muted={isMuted}
             className={`w-full h-full object-contain ${hasError ? 'hidden' : 'block'}`}
             onEnded={handleVideoEnd}
-            onLoadStart={() => setIsBuffering(true)}
-            onLoadedData={() => setIsBuffering(false)}
+            onLoadStart={() => {
+              clearBufferingTimeout();
+              setIsBuffering(true);
+            }}
+            onLoadedData={markVideoResponsive}
             onWaiting={handleWaiting}
             onStalled={handleStalled}
             onCanPlay={handleCanPlay}
+            onCanPlayThrough={markVideoResponsive}
+            onProgress={handleProgressEvent}
+            onSeeked={handleProgressEvent}
             onPlaying={handlePlaying}
+            onPlay={() => {
+              setIsPlaying(true);
+              if (hasNativeVideoPlayableData(videoRef.current)) {
+                markVideoResponsive();
+              } else {
+                scheduleBufferingIndicator(NATIVE_VIDEO_BUFFERING_DELAY_MS);
+              }
+            }}
+            onPause={() => {
+              clearBufferingTimeout();
+              setIsBuffering(false);
+              setIsPlaying(false);
+            }}
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
             onError={() => {
+              clearBufferingTimeout();
               setHasError(true);
               setIsBuffering(false);
             }}
@@ -310,7 +383,10 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
 
           {/* Buffering spinner */}
           {isBuffering && !hasError && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <div
+              className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
+              data-video-buffering-indicator="true"
+            >
               <div className="h-12 w-12 rounded-full border-4 border-white/20 border-t-white animate-spin sm:h-16 sm:w-16" />
               {isSlowConnection && (
                 <div className="mt-4 flex items-center gap-2 bg-black/60 px-4 py-2 rounded-full">

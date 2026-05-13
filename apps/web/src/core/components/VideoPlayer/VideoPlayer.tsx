@@ -19,6 +19,7 @@ interface VideoPlayerProps {
   initialTime?: number;
   initialPlaybackRate?: number;
   playbackContext?: MediaPlaybackContext;
+  seekControlsLocked?: boolean;
   // Video tracking props
   lessonId?: string;
   trackingId?: string;
@@ -119,6 +120,7 @@ export const VideoPlayer = forwardRef<CustomVideoPlayerRef, VideoPlayerProps>(({
   initialTime = 0,
   initialPlaybackRate = 1,
   playbackContext = 'lesson',
+  seekControlsLocked = false,
   lessonId,
   trackingId
 }, ref) => {
@@ -268,6 +270,7 @@ export const VideoPlayer = forwardRef<CustomVideoPlayerRef, VideoPlayerProps>(({
           pauseWhenHidden={playbackPolicy.pauseWhenHidden}
           pauseWhenOutsideViewport={playbackPolicy.pauseWhenOutsideViewport}
           preload={playbackPolicy.nativeVideoPreload}
+          seekControlsLocked={seekControlsLocked}
           lessonId={lessonId}
           trackingId={trackingId}
         />

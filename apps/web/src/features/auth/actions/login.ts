@@ -4,6 +4,7 @@ import { fromLoose } from '@/lib/supabase/looseQuery'
 import { createClient } from '../../../lib/supabase/server'
 import { AuthService } from '../services/auth.service'
 import { SessionService } from '../services/session.service'
+import { updateLastLoginAt } from '../services/auth-session.service'
 import { RefreshTokenService } from '../../../lib/auth/refreshToken.service'
 import { SECURE_COOKIE_OPTIONS, getCustomCookieOptions } from '../../../lib/auth/cookie-config'
 import { z } from 'zod'
@@ -412,16 +413,13 @@ export async function loginAction(formData: FormData) {
     // 7. Limpiar sesiones expiradas (mantenimiento) fuera del camino critico.
     scheduleExpiredSessionCleanup()
 
-    // 7.5. Actualizar last_login_at — awaited: fire-and-forget no funciona en Server Actions
-    // porque Next.js termina el request antes de que la Promise resuelva
-    await supabase
-      .from('users')
-      .update({ last_login_at: new Date().toISOString() })
-      .eq('id', user.id)
-      .then(({ error }) => {
-        if (error) console.warn('No se pudo actualizar last_login_at:', error)
-      })
-      .catch(() => undefined)
+    // 7.5. Actualizar last_login_at de forma awaitable y centralizada.
+    // Antes era fire-and-forget con `void`: la Server Action retornaba antes de
+    // completar el UPDATE y el cliente Supabase (atado al cookie store del request)
+    // quedaba huérfano, abortando la query silenciosamente. Resultado: la última
+    // conexión visible quedaba congelada aunque updated_at sí avanzaba via otros
+    // endpoints. updateLastLoginAt registra fallos via logger sin tragarlos.
+    await updateLastLoginAt(supabase, user.id)
 
     // 8. Redirección basada en cargo_rol (enfoque B2B)
     // - Administrador -> /admin/dashboard

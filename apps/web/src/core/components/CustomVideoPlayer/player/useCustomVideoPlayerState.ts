@@ -12,6 +12,12 @@ import type {
   CustomVideoPlayerRef,
 } from './types';
 import {
+  NATIVE_VIDEO_BUFFERING_DELAY_MS,
+  NATIVE_VIDEO_STALLED_DELAY_MS,
+  hasNativeVideoPlayableData,
+  isNativeVideoWaitingForPlayableData,
+} from '@/lib/media';
+import {
   calculateProgressTime,
   calculateVolumeLevel,
   clampPlaybackTime,
@@ -37,6 +43,7 @@ export function useCustomVideoPlayerState(
     pauseWhenHidden = true,
     pauseWhenOutsideViewport = false,
     preload = 'metadata',
+    seekControlsLocked = false,
     src,
     title,
     trackingId,
@@ -242,6 +249,12 @@ export function useCustomVideoPlayerState(
   }, [isHovering, isPlaying, resetControlsTimeout]);
 
   useEffect(() => {
+    if (seekControlsLocked) {
+      setIsDraggingProgress(false);
+    }
+  }, [seekControlsLocked]);
+
+  useEffect(() => {
     return () => {
       if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current);
     };
@@ -254,7 +267,30 @@ export function useCustomVideoPlayerState(
       return;
     }
 
-    let bufferingTimeout: ReturnType<typeof setTimeout> | null = null;
+    let bufferingIndicatorTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const clearBufferingTimeout = () => {
+      if (bufferingIndicatorTimeout) {
+        clearTimeout(bufferingIndicatorTimeout);
+        bufferingIndicatorTimeout = null;
+      }
+    };
+
+    const markVideoResponsive = () => {
+      clearBufferingTimeout();
+      setIsBuffering(false);
+      setIsLoading(false);
+    };
+
+    const scheduleBufferingIndicator = (delayMs: number) => {
+      clearBufferingTimeout();
+      bufferingIndicatorTimeout = setTimeout(() => {
+        bufferingIndicatorTimeout = null;
+        if (isNativeVideoWaitingForPlayableData(videoElement)) {
+          setIsBuffering(true);
+        }
+      }, delayMs);
+    };
 
     const notifyCompletion = () => {
       if (hasNotifiedCompletionRef.current) {
@@ -267,6 +303,7 @@ export function useCustomVideoPlayerState(
 
     const updateTime = () => {
       const playbackTime = videoElement.currentTime;
+      markVideoResponsive();
 
       // ── Completion check — runs every timeupdate (no throttle) ──────────
       if (duration > 0 && !videoElement.paused && !videoElement.ended) {
@@ -310,35 +347,23 @@ export function useCustomVideoPlayerState(
     };
 
     const handleEnded = () => {
+      markVideoResponsive();
       setIsPlaying(false);
       notifyCompletion();
     };
 
     const handleWaiting = () => {
-      if (bufferingTimeout) {
-        clearTimeout(bufferingTimeout);
-      }
-
-      bufferingTimeout = setTimeout(() => {
-        setIsBuffering(true);
-      }, 300);
+      scheduleBufferingIndicator(NATIVE_VIDEO_BUFFERING_DELAY_MS);
     };
 
     const handleStalled = () => {
       // Safari can emit "stalled" during normal bandwidth management. Avoid
       // synthetic seeks here: they wake the decoder and can increase heat on iOS.
-      if (bufferingTimeout) clearTimeout(bufferingTimeout);
-      bufferingTimeout = setTimeout(() => setIsBuffering(true), 500);
+      scheduleBufferingIndicator(NATIVE_VIDEO_STALLED_DELAY_MS);
     };
 
     const handleCanPlay = () => {
-      if (bufferingTimeout) {
-        clearTimeout(bufferingTimeout);
-        bufferingTimeout = null;
-      }
-
-      setIsBuffering(false);
-      setIsLoading(false);
+      markVideoResponsive();
 
       if (!hasInitialTimeSet && initialTime > 0) {
         videoElement.currentTime = initialTime;
@@ -351,38 +376,58 @@ export function useCustomVideoPlayerState(
     };
 
     const handlePlaying = () => {
-      if (bufferingTimeout) {
-        clearTimeout(bufferingTimeout);
-        bufferingTimeout = null;
-      }
-
-      setIsBuffering(false);
+      markVideoResponsive();
+      setIsPlaying(true);
     };
 
-    const handleNativePlay = () => setIsPlaying(true);
-    const handleNativePause = () => setIsPlaying(false);
+    const handleProgress = () => {
+      if (hasNativeVideoPlayableData(videoElement)) {
+        markVideoResponsive();
+      }
+    };
+
+    const handleNativePlay = () => {
+      setIsPlaying(true);
+      if (hasNativeVideoPlayableData(videoElement)) {
+        markVideoResponsive();
+        return;
+      }
+
+      scheduleBufferingIndicator(NATIVE_VIDEO_BUFFERING_DELAY_MS);
+    };
+    const handleNativePause = () => {
+      clearBufferingTimeout();
+      setIsBuffering(false);
+      setIsPlaying(false);
+    };
 
     videoElement.addEventListener('timeupdate', updateTime);
     videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
+    videoElement.addEventListener('loadeddata', markVideoResponsive);
     videoElement.addEventListener('ended', handleEnded);
     videoElement.addEventListener('waiting', handleWaiting);
     videoElement.addEventListener('stalled', handleStalled);
     videoElement.addEventListener('canplay', handleCanPlay);
+    videoElement.addEventListener('canplaythrough', markVideoResponsive);
+    videoElement.addEventListener('progress', handleProgress);
+    videoElement.addEventListener('seeked', handleProgress);
     videoElement.addEventListener('playing', handlePlaying);
     videoElement.addEventListener('play', handleNativePlay);
     videoElement.addEventListener('pause', handleNativePause);
 
     return () => {
-      if (bufferingTimeout) {
-        clearTimeout(bufferingTimeout);
-      }
+      clearBufferingTimeout();
 
       videoElement.removeEventListener('timeupdate', updateTime);
       videoElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      videoElement.removeEventListener('loadeddata', markVideoResponsive);
       videoElement.removeEventListener('ended', handleEnded);
       videoElement.removeEventListener('waiting', handleWaiting);
       videoElement.removeEventListener('stalled', handleStalled);
       videoElement.removeEventListener('canplay', handleCanPlay);
+      videoElement.removeEventListener('canplaythrough', markVideoResponsive);
+      videoElement.removeEventListener('progress', handleProgress);
+      videoElement.removeEventListener('seeked', handleProgress);
       videoElement.removeEventListener('playing', handlePlaying);
       videoElement.removeEventListener('play', handleNativePlay);
       videoElement.removeEventListener('pause', handleNativePause);
@@ -423,6 +468,10 @@ export function useCustomVideoPlayerState(
   }, [isPlaying]);
 
   const updateProgress = (clientX: number) => {
+    if (seekControlsLocked) {
+      return;
+    }
+
     const videoElement = videoRef.current;
     const progressBarElement = progressBarRef.current;
 
@@ -603,6 +652,11 @@ export function useCustomVideoPlayerState(
   };
 
   const skip = (seconds: number) => {
+    if (seekControlsLocked && seconds > 0) {
+      setShowControls(true);
+      return;
+    }
+
     const videoElement = videoRef.current;
 
     if (!videoElement) {
@@ -626,6 +680,11 @@ export function useCustomVideoPlayerState(
     duration,
     formatTime: formatVideoTime,
     handleProgressClick: (event) => {
+      if (seekControlsLocked) {
+        setShowControls(true);
+        return;
+      }
+
       if (!isDraggingProgress) {
         updateProgress(event.clientX);
         setShowControls(true);
@@ -633,6 +692,11 @@ export function useCustomVideoPlayerState(
     },
     handleProgressMouseDown: (event) => {
       event.preventDefault();
+      if (seekControlsLocked) {
+        setShowControls(true);
+        return;
+      }
+
       setIsDraggingProgress(true);
       updateProgress(event.clientX);
       setShowControls(true);
@@ -658,6 +722,11 @@ export function useCustomVideoPlayerState(
     },
     handleProgressTouchStart: (event) => {
       event.preventDefault();
+      if (seekControlsLocked) {
+        setShowControls(true);
+        return;
+      }
+
       setIsDraggingProgress(true);
       const touch = event.touches[0];
       if (touch) {
@@ -669,8 +738,14 @@ export function useCustomVideoPlayerState(
       setIsLoading(false);
       setIsBuffering(false);
     },
-    handleVideoLoadedData: () => setIsLoading(false),
-    handleVideoLoadStart: () => setIsLoading(true),
+    handleVideoLoadedData: () => {
+      setIsLoading(false);
+      setIsBuffering(false);
+    },
+    handleVideoLoadStart: () => {
+      setIsLoading(true);
+      setIsBuffering(false);
+    },
     handleVolumeClick: (event) => {
       if (!isDraggingVolume) {
         updateVolume(event.clientY);
@@ -718,6 +793,7 @@ export function useCustomVideoPlayerState(
     isMuted,
     isPiP,
     isPlaying,
+    isSeekingLocked: seekControlsLocked,
     onRootMouseEnter: () => setIsHovering(true),
     onRootMouseLeave: () => setIsHovering(false),
     onRootMouseMove: () => {

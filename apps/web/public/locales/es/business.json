@@ -927,7 +927,36 @@
         },
         "lessons": {
           "empty": "Sin datos de lecciones disponibles",
-          "title": "Detalle por lección"
+          "title": "Detalle por lección",
+          "untitledLesson": "Lección sin título",
+          "untitledCourse": "Curso sin título",
+          "noLessons": "Sin lecciones registradas",
+          "badges": {
+            "video": {
+              "watched": "Visto",
+              "notWatched": "Sin ver"
+            },
+            "activity": {
+              "empty": "Act. —",
+              "count": "Act. {{completed}}/{{total}}"
+            },
+            "quiz": {
+              "empty": "Quiz —",
+              "passedScore": "Quiz {{score}}%",
+              "passedNoScore": "Quiz OK",
+              "failedScore": "Quiz {{score}}%",
+              "failedNoScore": "Quiz Fail"
+            },
+            "lia": {
+              "empty": "SofLIA —",
+              "count": "{{count}} SofLIA"
+            },
+            "notes": {
+              "empty": "Notas —",
+              "countSingular": "{{count}} Nota",
+              "countPlural": "{{count}} Notas"
+            }
+          }
         }
       },
       "invite": {
@@ -1778,6 +1807,7 @@
       "coursesSectionTitle": "Videos por curso",
       "upload": "Subir video",
       "uploading": "Subiendo...",
+      "active": "Activo",
       "delete": "Eliminar video",
       "deleting": "Eliminando...",
       "noVideo": "Sin video configurado. Haz clic para subir.",
@@ -1786,9 +1816,11 @@
       "errorUpload": "Error al subir el video. Intenta de nuevo.",
       "errorDelete": "Error al eliminar el video. Intenta de nuevo.",
       "errorLoad": "Error al cargar los videos existentes.",
-      "errorFileTooLarge": "El archivo excede el límite de 500 MB",
+      "errorFileTooLarge": "El archivo excede el límite de 100 MB",
+      "errorInvalidFileType": "Tipo de archivo no permitido. Usa MP4 o WebM.",
       "unnamedCourse": "Curso sin título",
-      "close": "Cerrar"
+      "close": "Cerrar",
+      "done": "Listo"
     },
     "defaults": {
       "title": "Ruta predeterminada",

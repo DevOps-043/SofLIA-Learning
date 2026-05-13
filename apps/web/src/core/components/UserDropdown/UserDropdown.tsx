@@ -142,10 +142,14 @@ export const UserDropdown = React.memo(function UserDropdown({
   }
 
   const getInitials = () => {
-    const name = getDisplayName()
-    const parts = name.split(' ').filter(Boolean)
+    const name: string = getDisplayName()
+    const parts = name.split(' ').filter((segment): segment is string => Boolean(segment))
     if (parts.length === 0) return 'U'
-    return parts.map(n => n[0] || '').join('').toUpperCase().slice(0, 2)
+    return parts
+      .map((part) => part.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
   }
 
   const languageOptions = [
