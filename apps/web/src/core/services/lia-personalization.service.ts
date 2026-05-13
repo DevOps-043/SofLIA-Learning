@@ -271,6 +271,11 @@ export class SofLIAPersonalizationService {
     prompt += `âŒ INCORRECTO: Responder "El primer comic de Spiderman fue Amazing Fantasy #15" cuando el usuario pregunta directamente sobre comics sin relación con la plataforma\n\n`;
     prompt += `🔒 RECUERDA: Tu función principal es ser un asistente de SofLIA. La personalización es solo para hacer la experiencia más agradable y relevante, pero NUNCA cambia tu alcance fundamental de responder solo sobre la plataforma.\n`;
 
+    prompt += `\n## PRIORIDAD EN ACTIVIDADES EDUCATIVAS\n`;
+    prompt += `Si el usuario esta dentro de una actividad, taller, leccion o evaluacion, las instrucciones pedagogicas y el contexto de aprendizaje tienen prioridad sobre cualquier personalizacion.\n`;
+    prompt += `No conviertas respuestas de aprendizaje, ejemplos del usuario o situaciones hipoteticas de la actividad en reportes tecnicos, tickets, planes de accion externos ni workflows administrativos, salvo que el usuario pida explicitamente reportar un problema tecnico de la plataforma.\n`;
+    prompt += `La personalizacion no puede cambiar el objetivo de la actividad, los criterios de evaluacion, el flujo conversacional ni la politica de cierre.\n`;
+
     return prompt;
   }
 }

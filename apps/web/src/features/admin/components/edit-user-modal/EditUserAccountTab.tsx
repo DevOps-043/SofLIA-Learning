@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { CheckCircleIcon, StarIcon } from '@heroicons/react/24/outline'
 import { RoleSelect } from './RoleSelect'
 import type { EditUserFormData } from './types'
@@ -18,6 +19,7 @@ export function EditUserAccountTab({
   formData,
   onFieldChange,
 }: EditUserAccountTabProps) {
+  const { t } = useTranslation('admin')
   return (
     <motion.div
       key="account"
@@ -35,7 +37,7 @@ export function EditUserAccountTab({
 
         <div>
           <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-            Tipo de rol
+            {t('users.demographics.roleType')}
           </label>
           <input
             type="text"
@@ -49,7 +51,7 @@ export function EditUserAccountTab({
 
         <div className="group">
           <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-            Puntos
+            {t('users.demographics.points')}
           </label>
           <div className="relative">
             <StarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
@@ -100,10 +102,10 @@ export function EditUserAccountTab({
           </div>
           <div>
             <span className="text-sm font-medium text-[#0A2540] dark:text-white">
-              Email verificado
+              {t('users.demographics.emailVerified')}
             </span>
             <p className="text-xs text-[#6C757D] dark:text-white/60 mt-0.5">
-              Marca esta casilla si el email del usuario ha sido verificado
+              {t('users.demographics.emailVerifiedDesc')}
             </p>
           </div>
         </label>

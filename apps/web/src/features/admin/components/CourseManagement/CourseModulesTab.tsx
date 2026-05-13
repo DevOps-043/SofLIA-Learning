@@ -38,10 +38,10 @@ export function CourseModulesTab() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <h2 className="text-2xl font-bold text-[#0A2540] dark:text-white">
-            Modulos del Curso
+            {t('workshops.editor.modules.title')}
           </h2>
           <p className="mt-1 text-sm text-[#6C757D] dark:text-white/60">
-            Organiza el contenido en modulos y lecciones
+            {t('workshops.editor.modules.description')}
           </p>
         </div>
 
@@ -55,20 +55,20 @@ export function CourseModulesTab() {
             }}
             whileTap={{ scale: recalculatingDurations ? 1 : 0.95 }}
             className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg border border-[#E9ECEF] bg-[#E9ECEF] px-3 py-2 text-xs font-medium text-[#6C757D] shadow-sm transition-all duration-200 hover:border-[#00D4B3]/30 hover:bg-[#00D4B3]/10 hover:text-[#00D4B3] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white/60 dark:hover:bg-[#00D4B3]/20 sm:w-auto"
-            title={t('courseManagement.recalcDurations')}
+            title={t('workshops.editor.modules.recalculateButton')}
           >
             <motion.div
               animate={recalculatingDurations ? { rotate: 360 } : {}}
               transition={
                 recalculatingDurations
-                  ? { duration: 1, repeat: Infinity, ease: 'linear' }
+                   ? { duration: 1, repeat: Infinity, ease: 'linear' }
                   : {}
               }
             >
               <RefreshCw className="h-3.5 w-3.5" />
             </motion.div>
             <span>
-              {recalculatingDurations ? 'Recalculando...' : 'Recalcular tiempos'}
+              {recalculatingDurations ? t('workshops.editor.modules.recalculating') : t('workshops.editor.modules.recalculateButton')}
             </span>
           </motion.button>
 
@@ -89,7 +89,7 @@ export function CourseModulesTab() {
             >
               <Plus className="h-4 w-4" />
             </motion.div>
-            <span className="relative z-10">Agregar Modulo</span>
+            <span className="relative z-10">{t('workshops.editor.modules.addModuleButton')}</span>
           </motion.button>
         </div>
       </div>
@@ -102,7 +102,7 @@ export function CourseModulesTab() {
             className="mx-auto mb-3 h-12 w-12 rounded-full border-3 border-[#00D4B3]/20 border-t-[#00D4B3]"
           />
           <p className="text-sm text-[#6C757D] dark:text-white/60">
-            Cargando modulos...
+            {t('workshops.editor.modules.loading')}
           </p>
         </div>
       ) : modules.length === 0 ? (
@@ -119,10 +119,10 @@ export function CourseModulesTab() {
             <Book className="h-8 w-8 text-[#00D4B3]" />
           </motion.div>
           <p className="mb-1.5 text-base font-semibold text-[#0A2540] dark:text-white">
-            No hay modulos aun
+            {t('workshops.editor.modules.emptyTitle')}
           </p>
           <p className="mb-5 text-xs text-[#6C757D] dark:text-white/60">
-            Comienza creando tu primer modulo
+            {t('workshops.editor.modules.emptyDescription')}
           </p>
           <motion.button
             onClick={() => {
@@ -134,7 +134,7 @@ export function CourseModulesTab() {
             className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 px-4 py-2 text-sm font-medium text-white shadow-md transition-all duration-200 hover:from-[#0d2f4d] hover:to-[#0A2540] hover:shadow-lg"
           >
             <Plus className="h-4 w-4" />
-            <span>Crear tu primer modulo</span>
+            <span>{t('workshops.editor.modules.createFirstButton')}</span>
           </motion.button>
         </motion.div>
       ) : (

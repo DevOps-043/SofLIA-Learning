@@ -19,20 +19,23 @@
  * // Returns: "hace 2 días"
  * ```
  */
-export function formatRelativeTime(dateString: string): string {
+/**
+ * Formats a date string to relative time (e.g., "hace 2 días", "2 days ago")
+ *
+ * @param dateString - ISO date string or date string from database
+ * @param locale - Locale to use: 'es' | 'en' | 'pt'
+ * @returns Formatted relative time string
+ */
+export function formatRelativeTime(dateString: string, locale: 'es' | 'en' | 'pt' = 'es'): string {
   try {
     const date = new Date(dateString)
     const now = new Date()
-
-    // Calcular diferencia en milisegundos
     const diffMs = now.getTime() - date.getTime()
 
-    // Si la fecha es futura o inválida, retornar "Ahora"
     if (diffMs < 0 || isNaN(diffMs)) {
-      return 'Ahora'
+      return locale === 'es' ? 'Ahora' : locale === 'pt' ? 'Agora' : 'Just now'
     }
 
-    // Convertir a diferentes unidades
     const diffSeconds = Math.floor(diffMs / 1000)
     const diffMinutes = Math.floor(diffSeconds / 60)
     const diffHours = Math.floor(diffMinutes / 60)
@@ -41,25 +44,68 @@ export function formatRelativeTime(dateString: string): string {
     const diffMonths = Math.floor(diffDays / 30)
     const diffYears = Math.floor(diffDays / 365)
 
-    // Retornar formato apropiado según el tiempo transcurrido
-    if (diffSeconds < 60) {
-      return 'Hace unos segundos'
-    } else if (diffMinutes < 60) {
-      return `Hace ${diffMinutes} ${diffMinutes === 1 ? 'minuto' : 'minutos'}`
-    } else if (diffHours < 24) {
-      return `Hace ${diffHours} ${diffHours === 1 ? 'hora' : 'horas'}`
-    } else if (diffDays < 7) {
-      return `Hace ${diffDays} ${diffDays === 1 ? 'día' : 'días'}`
-    } else if (diffWeeks < 4) {
-      return `Hace ${diffWeeks} ${diffWeeks === 1 ? 'semana' : 'semanas'}`
-    } else if (diffMonths < 12) {
-      return `Hace ${diffMonths} ${diffMonths === 1 ? 'mes' : 'meses'}`
-    } else {
-      return `Hace ${diffYears} ${diffYears === 1 ? 'año' : 'años'}`
+    const strings = {
+      es: {
+        now: 'Hace unos segundos',
+        minute: 'Hace {{count}} minuto',
+        minutes: 'Hace {{count}} minutos',
+        hour: 'Hace {{count}} hora',
+        hours: 'Hace {{count}} horas',
+        day: 'Hace {{count}} día',
+        days: 'Hace {{count}} días',
+        week: 'Hace {{count}} semana',
+        weeks: 'Hace {{count}} semanas',
+        month: 'Hace {{count}} mes',
+        months: 'Hace {{count}} meses',
+        year: 'Hace {{count}} año',
+        years: 'Hace {{count}} años',
+        fallback: 'Hace algún tiempo'
+      },
+      en: {
+        now: 'Just now',
+        minute: '{{count}} minute ago',
+        minutes: '{{count}} minutes ago',
+        hour: '{{count}} hour ago',
+        hours: '{{count}} hours ago',
+        day: '{{count}} day ago',
+        days: '{{count}} days ago',
+        week: '{{count}} week ago',
+        weeks: '{{count}} weeks ago',
+        month: '{{count}} month ago',
+        months: '{{count}} months ago',
+        year: '{{count}} year ago',
+        years: '{{count}} years ago',
+        fallback: 'Some time ago'
+      },
+      pt: {
+        now: 'Agora mesmo',
+        minute: 'Há {{count}} minuto',
+        minutes: 'Há {{count}} minutos',
+        hour: 'Há {{count}} hora',
+        hours: 'Há {{count}} horas',
+        day: 'Há {{count}} dia',
+        days: 'Há {{count}} dias',
+        week: 'Há {{count}} semana',
+        weeks: 'Há {{count}} semanas',
+        month: 'Há {{count}} mês',
+        months: 'Há {{count}} meses',
+        year: 'Há {{count}} ano',
+        years: 'Há {{count}} anos',
+        fallback: 'Há algum tempo'
+      }
     }
+
+    const s = strings[locale]
+
+    if (diffSeconds < 60) return s.now
+    if (diffMinutes < 60) return diffMinutes === 1 ? s.minute.replace('{{count}}', '1') : s.minutes.replace('{{count}}', diffMinutes.toString())
+    if (diffHours < 24) return diffHours === 1 ? s.hour.replace('{{count}}', '1') : s.hours.replace('{{count}}', diffHours.toString())
+    if (diffDays < 7) return diffDays === 1 ? s.day.replace('{{count}}', '1') : s.days.replace('{{count}}', diffDays.toString())
+    if (diffWeeks < 4) return diffWeeks === 1 ? s.week.replace('{{count}}', '1') : s.weeks.replace('{{count}}', diffWeeks.toString())
+    if (diffMonths < 12) return diffMonths === 1 ? s.month.replace('{{count}}', '1') : s.months.replace('{{count}}', diffMonths.toString())
+    return diffYears === 1 ? s.year.replace('{{count}}', '1') : s.years.replace('{{count}}', diffYears.toString())
   } catch (error) {
-    // En caso de error, retornar string genérico
-    return 'Hace algún tiempo'
+    return locale === 'es' ? 'Hace algún tiempo' : locale === 'pt' ? 'Há algum tempo' : 'Some time ago'
   }
 }
 

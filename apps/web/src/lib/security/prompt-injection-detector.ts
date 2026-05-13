@@ -213,6 +213,42 @@ function hasCloneIntentSignals(corpus: string) {
   )
 }
 
+function isEducationalTechnicalReflection(corpus: string) {
+  const learningContext =
+    /\b(actividad|leccion|curso|taller|aprendizaje|comunicacion asertiva|refactorizacion|desarrollador web|companeros|equipo)\b/i.test(
+      corpus,
+    )
+  const consequenceLanguage =
+    /\b(impacto|riesgo|latencia|errores|usuarios|mantenibilidad|calidad|soportar|servicio|codigo actual|seguir adelante)\b/i.test(
+      corpus,
+    )
+
+  return learningContext && consequenceLanguage
+}
+
+function hasEducationalActivityContext(corpus: string) {
+  return /\b(actividad|leccion|curso|taller|aprendizaje|comunicacion asertiva|refactorizacion|desarrollador web|companeros|equipo)\b/i.test(
+    corpus,
+  )
+}
+
+function isDirectCloneOrSecretRequest(corpus: string) {
+  return DETECTION_RULES.some((rule) => {
+    if (
+      ![
+        'cloning',
+        'prompt_leak',
+        'secret_access',
+        'internal_systems',
+      ].includes(rule.category)
+    ) {
+      return false
+    }
+
+    return rule.patterns.some((pattern) => pattern.test(corpus))
+  })
+}
+
 export function evaluatePromptInjectionRisk(input: {
   message: string
   contextExcerpt?: string
@@ -222,20 +258,35 @@ export function evaluatePromptInjectionRisk(input: {
     .join('\n')
     .slice(0, 12000)
   const normalizedCorpus = normalizeSecurityText(corpus)
+  const normalizedMessage = normalizeSecurityText(input.message)
+  const educationalReflection =
+    (isEducationalTechnicalReflection(normalizedMessage) ||
+      hasEducationalActivityContext(normalizedCorpus)) &&
+    !isDirectCloneOrSecretRequest(normalizedMessage)
 
   let score = 0
   const categories: string[] = []
   const reasons: string[] = []
 
   for (const rule of DETECTION_RULES) {
-    if (rule.patterns.some((pattern) => pattern.test(normalizedCorpus))) {
+    const ruleCorpus =
+      educationalReflection &&
+      ['cloning', 'internal_systems'].includes(rule.category)
+        ? normalizedMessage
+        : normalizedCorpus
+
+    if (rule.patterns.some((pattern) => pattern.test(ruleCorpus))) {
       score += rule.weight
       categories.push(rule.category)
       reasons.push(rule.reason)
     }
   }
 
-  if (!categories.includes('cloning') && hasCloneIntentSignals(normalizedCorpus)) {
+  if (
+    !educationalReflection &&
+    !categories.includes('cloning') &&
+    hasCloneIntentSignals(normalizedCorpus)
+  ) {
     score += 45
     categories.push('cloning')
     reasons.push('Keyword combination suggests cloning or reverse-engineering intent.')

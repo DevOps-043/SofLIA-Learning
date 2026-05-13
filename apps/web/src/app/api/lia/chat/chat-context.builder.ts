@@ -9,6 +9,7 @@
 import { createClient } from '../../../../lib/supabase/server';
 import type { PlatformContext, ChatRequest } from './platform-context.service';
 import { extractOrganizationSlugFromPage } from './organization-context.service';
+import { detectTechnicalBugReportIntent } from './bug-report-intent.service';
 
 /**
  * Builds the full enriched context for a LIA chat request.
@@ -51,34 +52,45 @@ export async function buildFullContext(
     );
   }
 
-  // Second pass: load assigned courses when organizationSlug became available after fetchPlatformContext
-  if (fullContext.organizationId && requestContext?.userId && !fullContext.coursesWithContent) {
+  if (
+    fullContext.organizationId &&
+    requestContext?.userId &&
+    !fullContext.coursesWithContent
+  ) {
     try {
       const supabase = await createClient();
       const { data: assignedCourses, error } = await supabase
         .from('organization_course_assignments')
-        .select('course:courses!inner(id, title, slug, description, level, duration_total_minutes)')
+        .select(
+          'course:courses!inner(id, title, slug, description, level, duration_total_minutes)'
+        )
         .eq('user_id', requestContext.userId)
         .eq('organization_id', fullContext.organizationId)
         .limit(20);
 
       if (error) {
-        console.error('⚠️ Error cargando cursos asignados:', error);
+        console.error('Error cargando cursos asignados:', error);
       } else if (assignedCourses && assignedCourses.length > 0) {
-        fullContext.coursesWithContent = assignedCourses.map((assignment: Record<string, unknown> & { course?: Record<string, unknown> }) => ({
-          title: assignment.course?.title,
-          slug: assignment.course?.slug,
-          description: assignment.course?.description,
-          level: assignment.course?.level,
-          durationMinutes: assignment.course?.duration_total_minutes,
-          isAssigned: true
-        }));
+        fullContext.coursesWithContent = assignedCourses.map(
+          (
+            assignment: Record<string, unknown> & {
+              course?: Record<string, unknown>;
+            }
+          ) => ({
+            title: assignment.course?.title,
+            slug: assignment.course?.slug,
+            description: assignment.course?.description,
+            level: assignment.course?.level,
+            durationMinutes: assignment.course?.duration_total_minutes,
+            isAssigned: true,
+          })
+        );
       } else {
         fullContext.coursesWithContent = [];
         fullContext.noCoursesAssigned = true;
       }
     } catch (err) {
-      console.error('⚠️ Error en segunda carga de cursos:', err);
+      console.error('Error en segunda carga de cursos:', err);
     }
   }
 
@@ -93,40 +105,54 @@ export async function appendPersonalizationPrompt(
   userId: string
 ): Promise<string> {
   try {
-    const { SofLIAPersonalizationService } = await import('@/core/services/lia-personalization.service');
-    const personalizationSettings = await SofLIAPersonalizationService.getSettings(userId);
+    const { SofLIAPersonalizationService } = await import(
+      '@/core/services/lia-personalization.service'
+    );
+    const personalizationSettings =
+      await SofLIAPersonalizationService.getSettings(userId);
     if (personalizationSettings) {
-      const personalizationPrompt = SofLIAPersonalizationService.buildPersonalizationPrompt(personalizationSettings);
+      const personalizationPrompt =
+        SofLIAPersonalizationService.buildPersonalizationPrompt(
+          personalizationSettings
+        );
       return basePrompt + personalizationPrompt;
     }
   } catch (error) {
-    console.warn('⚠️ Error cargando personalización de LIA:', error);
+    console.warn('Error cargando personalizacion de LIA:', error);
   }
   return basePrompt;
 }
 
 /**
  * Optionally appends bug-report context to the system prompt
- * when the user's message looks like a bug report.
+ * when the user's message has a technical platform issue intent.
  */
 export async function appendBugReportContext(
   systemPrompt: string,
   lastMessageContent: string,
   isBugReportFlag: boolean,
-  currentPage?: string
+  currentPage?: string,
+  requestContext?: ChatRequest['context'],
+  hasPendingDraft = false
 ): Promise<string> {
-  const bugKeywords = /error|bug|falla|problema|no funciona|no carga|rompi|broken|crash|colgó|lento|cuelga|no responde|pantalla en blanco|500|404|timeout|se cayó/i;
-  const isBugReport = isBugReportFlag || bugKeywords.test(lastMessageContent.toLowerCase());
+  const { isBugReport } = detectTechnicalBugReportIntent({
+    message: lastMessageContent,
+    isBugReportFlag,
+    requestContext,
+    hasPendingDraft,
+  });
 
   if (isBugReport && currentPage) {
     try {
-      const { PageContextService } = await import('../../../../lib/lia-context/services/page-context.service');
+      const { PageContextService } = await import(
+        '../../../../lib/lia-context/services/page-context.service'
+      );
       const bugContext = PageContextService.buildBugReportContext(currentPage);
       if (bugContext && !bugContext.includes('No hay metadata')) {
         return systemPrompt + '\n\n---\n\n' + bugContext;
       }
     } catch (error) {
-      console.warn('⚠️ Error obteniendo contexto de bug:', error);
+      console.warn('Error obteniendo contexto de bug:', error);
     }
   }
 
@@ -141,19 +167,17 @@ export function buildCleanHistory(
   messages: Array<{ role: string; content: string }>
 ): Array<{ role: string; parts: [{ text: string }] }> {
   let history = messages
-    .filter(m => m.role !== 'system')
+    .filter((m) => m.role !== 'system')
     .slice(0, -1)
-    .map(m => ({
+    .map((m) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }] as [{ text: string }]
+      parts: [{ text: m.content }] as [{ text: string }],
     }));
 
-  // Ensure history starts with 'user'
   while (history.length > 0 && history[0].role === 'model') {
     history = history.slice(1);
   }
 
-  // Merge consecutive messages from the same role
   const cleanHistory: typeof history = [];
   for (const msg of history) {
     const lastMsg = cleanHistory[cleanHistory.length - 1];

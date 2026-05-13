@@ -48,6 +48,7 @@ export interface AdminDashboardActivityUser {
 export interface AdminDashboardActivityRecord {
   created_at: string
   message?: string | null
+  metadata?: Record<string, unknown> | null
   notification_id: string
   notification_type?: string | null
   title?: string | null
@@ -57,6 +58,7 @@ export interface AdminDashboardActivityRecord {
 export interface AdminDashboardActivityItem {
   description: string
   id: string
+  metadata?: Record<string, unknown> | null
   timestamp: string
   title: string
   type: 'ai-app' | 'news' | 'system' | 'user' | 'workshop'

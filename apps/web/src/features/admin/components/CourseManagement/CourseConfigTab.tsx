@@ -1,9 +1,10 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Book, FileText, Flag, Clock, BarChart3, Users2, DollarSign, Settings, Award, CheckCircle2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { ImageUploadCourse } from '../../../instructor/components/ImageUploadCourse'
-import { CourseSkillsSelector, CourseSkill } from '../../../courses/components/CourseSkillsSelector'
+import { CourseSkillsSelector } from '../../../courses/components/CourseSkillsSelector'
 import {
   COURSE_MANAGEMENT_ACTION_BUTTON_CLASS,
   COURSE_MANAGEMENT_ACCENT_ICON_CLASS,
@@ -23,14 +24,11 @@ import {
 import { useCourseManagementContext } from './CourseManagementContext'
 
 export function CourseConfigTab() {
+  const { t } = useTranslation('admin')
   const {
-    isNewCourse,
     configData, setConfigData, handleConfigChange, handleSaveConfig, savingConfig,
     instructors,
-    selectedCertificateTemplate, setSelectedCertificateTemplate,
-    instructorSignatureUrl, instructorSignatureName,
     courseSkills, setCourseSkills, savingSkills,
-    showTemplatePreview, setShowTemplatePreview,
   } = useCourseManagementContext().state
   const { courseId } = useCourseManagementContext()
 
@@ -54,7 +52,7 @@ export function CourseConfigTab() {
             className={COURSE_MANAGEMENT_FIELD_CARD_CLASS}
           >
             <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
-              Título *
+              {t('workshops.editor.config.titleLabel')}
             </label>
             <div className="relative">
               <Book className={COURSE_MANAGEMENT_FIELD_ICON_CLASS} />
@@ -63,7 +61,7 @@ export function CourseConfigTab() {
                 value={configData.title}
                 onChange={handleConfigChange}
                 className={COURSE_MANAGEMENT_INPUT_WITH_ICON_CLASS}
-                placeholder="Ej: IA Esencial para Principiantes"
+                placeholder={t('workshops.editor.config.titlePlaceholder')}
               />
             </div>
           </motion.div>
@@ -76,7 +74,7 @@ export function CourseConfigTab() {
             className={COURSE_MANAGEMENT_PANEL_CARD_CLASS}
           >
             <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
-              Descripción *
+              {t('workshops.editor.config.descriptionLabel')}
             </label>
             <textarea
               name="description"
@@ -84,7 +82,7 @@ export function CourseConfigTab() {
               onChange={handleConfigChange}
               rows={6}
               className={COURSE_MANAGEMENT_TEXTAREA_CLASS}
-              placeholder="Describe el contenido y objetivos del curso..."
+              placeholder={t('workshops.editor.config.descriptionPlaceholder')}
             />
           </motion.div>
 
@@ -97,7 +95,7 @@ export function CourseConfigTab() {
               className={COURSE_MANAGEMENT_FIELD_CARD_CLASS}
             >
               <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
-                Categoría *
+                {t('workshops.editor.config.categoryLabel')}
               </label>
               <div className="relative">
                 <Flag className={COURSE_MANAGEMENT_FIELD_ICON_CLASS} />
@@ -106,13 +104,13 @@ export function CourseConfigTab() {
                   value={configData.category}
                   onChange={handleConfigChange}
                   className={COURSE_MANAGEMENT_SELECT_WITH_ICON_CLASS}
-                  title="Selecciona la categoría del curso"
+                  title={t('workshops.editor.config.categoryLabel')}
                 >
-                  <option value="ia">Inteligencia Artificial</option>
-                  <option value="tecnologia">Tecnología</option>
-                  <option value="negocios">Negocios</option>
-                  <option value="diseño">Diseño</option>
-                  <option value="marketing">Marketing</option>
+                  <option value="ia">{t('workshops.filters.categories.ia')}</option>
+                  <option value="tecnologia">{t('workshops.filters.categories.tecnologia')}</option>
+                  <option value="negocios">{t('workshops.filters.categories.negocios')}</option>
+                  <option value="diseño">{t('workshops.filters.categories.diseno')}</option>
+                  <option value="marketing">{t('workshops.filters.categories.marketing')}</option>
                 </select>
               </div>
             </motion.div>
@@ -123,7 +121,7 @@ export function CourseConfigTab() {
               className={COURSE_MANAGEMENT_FIELD_CARD_CLASS}
             >
               <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
-                Nivel *
+                {t('workshops.editor.config.levelLabel')}
               </label>
               <div className="relative">
                 <BarChart3 className={COURSE_MANAGEMENT_FIELD_ICON_CLASS} />
@@ -132,11 +130,11 @@ export function CourseConfigTab() {
                   value={configData.level}
                   onChange={handleConfigChange}
                   className={COURSE_MANAGEMENT_SELECT_WITH_ICON_CLASS}
-                  title="Selecciona el nivel del curso"
+                  title={t('workshops.editor.config.levelLabel')}
                 >
-                  <option value="beginner">Principiante</option>
-                  <option value="intermediate">Intermedio</option>
-                  <option value="advanced">Avanzado</option>
+                  <option value="beginner">{t('workshops.card.level.beginner')}</option>
+                  <option value="intermediate">{t('workshops.card.level.intermediate')}</option>
+                  <option value="advanced">{t('workshops.card.level.advanced')}</option>
                 </select>
               </div>
             </motion.div>
@@ -151,7 +149,7 @@ export function CourseConfigTab() {
               className={COURSE_MANAGEMENT_FIELD_CARD_CLASS}
             >
               <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
-                Duración (minutos) *
+                {t('workshops.editor.config.durationLabel')}
               </label>
               <div className="relative">
                 <Clock className={COURSE_MANAGEMENT_FIELD_ICON_CLASS} />
@@ -172,7 +170,7 @@ export function CourseConfigTab() {
               className={COURSE_MANAGEMENT_FIELD_CARD_CLASS}
             >
               <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
-                Precio
+                {t('workshops.editor.config.priceLabel')}
               </label>
               <div className="relative">
                 <DollarSign className={COURSE_MANAGEMENT_FIELD_ICON_CLASS} />
@@ -197,7 +195,7 @@ export function CourseConfigTab() {
             className={COURSE_MANAGEMENT_PANEL_CARD_CLASS}
           >
             <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
-              Imagen del Curso
+              {t('workshops.editor.config.imageLabel')}
             </label>
             <ImageUploadCourse
               value={configData.thumbnail_url}
@@ -214,7 +212,7 @@ export function CourseConfigTab() {
             className={COURSE_MANAGEMENT_FIELD_CARD_CLASS}
           >
             <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
-              Slug (URL)
+              {t('workshops.editor.config.slugLabel')}
             </label>
             <div className="relative">
               <FileText className={COURSE_MANAGEMENT_FIELD_ICON_CLASS} />
@@ -236,7 +234,7 @@ export function CourseConfigTab() {
             className={COURSE_MANAGEMENT_FIELD_CARD_CLASS}
           >
             <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
-              Instructor *
+              {t('workshops.editor.config.instructorLabel')}
             </label>
             <div className="relative">
               <Users2 className={COURSE_MANAGEMENT_FIELD_ICON_CLASS} />
@@ -246,7 +244,7 @@ export function CourseConfigTab() {
                 onChange={handleConfigChange}
                 className={COURSE_MANAGEMENT_SELECT_WITH_ICON_CLASS}
               >
-                <option value="">Selecciona un instructor</option>
+                <option value="">{t('workshops.editor.config.instructorPlaceholder')}</option>
                 {instructors.map((instructor) => (
                   <option key={instructor.id} value={instructor.id}>
                     {instructor.name}
@@ -266,11 +264,11 @@ export function CourseConfigTab() {
             <div className="flex items-center gap-2 mb-2">
               <Award className={`w-4 h-4 ${COURSE_MANAGEMENT_ACCENT_ICON_CLASS}`} />
               <label className={COURSE_MANAGEMENT_LABEL_CLASS}>
-                Skills que se Aprenden en este Curso
+                {t('workshops.editor.config.skillsLabel')}
               </label>
             </div>
             <p className={`mb-4 ml-6 text-xs ${COURSE_MANAGEMENT_MUTED_TEXT_CLASS}`}>
-              Selecciona las skills que los estudiantes obtendrán al completar este curso. Estas aparecerán en su perfil.
+              {t('workshops.editor.config.skillsDescription')}
             </p>
             <CourseSkillsSelector
               courseId={courseId}
@@ -291,7 +289,7 @@ export function CourseConfigTab() {
           >
             <div className={`mb-4 flex items-center gap-2 border-b pb-4 ${COURSE_MANAGEMENT_DIVIDER_CLASS}`}>
               <Settings className={`w-4 h-4 ${COURSE_MANAGEMENT_ACCENT_ICON_CLASS}`} />
-              <div className={`text-sm font-bold ${COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS}`}>Acciones</div>
+              <div className={`text-sm font-bold ${COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS}`}>{t('workshops.editor.config.actionsTitle')}</div>
             </div>
             <motion.button
               type="submit"
@@ -303,12 +301,12 @@ export function CourseConfigTab() {
               {savingConfig ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  <span>Guardando...</span>
+                  <span>{t('workshops.editor.config.saving')}</span>
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Guardar configuración</span>
+                  <span>{t('workshops.editor.config.saveButton')}</span>
                 </>
               )}
             </motion.button>
@@ -318,5 +316,3 @@ export function CourseConfigTab() {
     </motion.div>
   )
 }
-
-

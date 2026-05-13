@@ -24,6 +24,19 @@ type LessonActivityRecord = Record<string, unknown> & {
   requires_soflia_validation?: boolean | null
 }
 
+function hasActivityValidationEnabled(config: unknown) {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    return false
+  }
+
+  const validation = (config as { validation?: unknown }).validation
+  if (!validation || typeof validation !== 'object' || Array.isArray(validation)) {
+    return false
+  }
+
+  return Boolean((validation as { enabled?: unknown }).enabled)
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string; lessonId: string }> },
@@ -130,7 +143,7 @@ export async function GET(
         latest_submission_summary: submissionSummary,
         requires_soflia_validation: Boolean(
           normalizedActivity.requires_soflia_validation ||
-            resolvedActivityConfig?.validation.enabled,
+            hasActivityValidationEnabled(resolvedActivityConfig),
         ),
       }
     })

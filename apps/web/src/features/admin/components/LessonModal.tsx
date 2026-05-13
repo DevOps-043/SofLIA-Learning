@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import {
   XMarkIcon,
   AcademicCapIcon,
@@ -25,6 +26,8 @@ export function LessonModal({
   onSave,
   instructors = [],
 }: LessonModalProps) {
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
   const [formData, setFormData] = useState(() =>
     createLessonFormData(lesson, instructors),
   )
@@ -46,9 +49,7 @@ export function LessonModal({
     const targetUrl = videoUrl || formData.video_provider_id
 
     if (!canGenerateLessonAi(formData.video_provider, targetUrl)) {
-      setError(
-        'Debes subir un video o proporcionar una URL válida primero (proveedor: Directo o Custom).',
-      )
+      setError(t('workshops.editor.lessons.aiErrorVideo'))
       return
     }
 
@@ -71,7 +72,7 @@ export function LessonModal({
       }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error al procesar el video con IA')
+        throw new Error(data.error || t('workshops.errors.processVideo'))
       }
 
       setFormData((currentFormData) => ({
@@ -83,7 +84,7 @@ export function LessonModal({
       setError(
         generationError instanceof Error
           ? generationError.message
-          : 'Error al generar contenido con IA',
+          : t('workshops.errors.generateContent'),
       )
     } finally {
       setGeneratingAI(false)
@@ -96,7 +97,7 @@ export function LessonModal({
 
     const validationError = validateLessonForm(formData)
     if (validationError) {
-      setError(validationError)
+      setError(t(`workshops.editor.lessons.validation.${validationError}`))
       return
     }
 
@@ -109,7 +110,7 @@ export function LessonModal({
       setError(
         saveError instanceof Error
           ? saveError.message
-          : 'Error desconocido al guardar la lección',
+          : t('workshops.errors.saveLesson'),
       )
     } finally {
       setLoading(false)
@@ -147,12 +148,12 @@ export function LessonModal({
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-white">
-                        {lesson ? 'Editar Lección' : 'Crear Lección'}
+                        {lesson ? t('workshops.editor.lessons.editLesson') : t('workshops.editor.lessons.createLesson')}
                       </h3>
                       <p className="text-xs text-white/70">
                         {lesson
-                          ? 'Modifica la información de la lección'
-                          : 'Agrega una nueva lección al módulo'}
+                          ? t('workshops.editor.lessons.editLessonDesc')
+                          : t('workshops.editor.lessons.createLessonDesc')}
                       </p>
                     </div>
                   </div>
@@ -184,7 +185,7 @@ export function LessonModal({
                       }`}
                     >
                       <Icon className="h-4 w-4" />
-                      <span>{tab.label}</span>
+                      <span>{t(`workshops.editor.lessons.tabs.${tab.id}`)}</span>
                       {isActive && (
                         <motion.div
                           layoutId="activeTab"
@@ -225,7 +226,7 @@ export function LessonModal({
                       >
                         <div className="group">
                           <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                            Título de la Lección *
+                            {t('workshops.editor.lessons.lessonTitleLabel')}
                           </label>
                           <div className="relative">
                             <AcademicCapIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
@@ -240,14 +241,14 @@ export function LessonModal({
                                 }))
                               }
                               className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
-                              placeholder="Ej: Introducción al Machine Learning"
+                              placeholder={t('workshops.editor.lessons.lessonTitlePlaceholder')}
                             />
                           </div>
                         </div>
 
                         <div>
                           <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                            Descripción
+                            {t('workshops.editor.lessons.lessonDescriptionLabel')}
                           </label>
                           <textarea
                             rows={3}
@@ -259,7 +260,7 @@ export function LessonModal({
                               }))
                             }
                             className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 resize-none"
-                            placeholder="Descripción de la lección..."
+                            placeholder={t('workshops.editor.lessons.lessonDescriptionPlaceholder')}
                           />
                         </div>
 
@@ -319,10 +320,10 @@ export function LessonModal({
                             </div>
                             <div>
                               <span className="text-sm font-medium text-[#0A2540] dark:text-white">
-                                Publicado
+                                {t('workshops.editor.modules.publishedLabel')}
                               </span>
                               <p className="text-xs text-[#6C757D] dark:text-white/60 mt-0.5">
-                                Visible para los estudiantes
+                                {t('workshops.editor.modules.publishedDesc')}
                               </p>
                             </div>
                           </label>
@@ -376,7 +377,7 @@ export function LessonModal({
                     className="w-full rounded-xl border border-[#E9ECEF] bg-white px-6 py-2.5 text-sm font-medium text-[#6C757D] transition-colors duration-200 hover:bg-[#E9ECEF] dark:border-[#6C757D]/30 dark:bg-[#1E2329] dark:text-white/70 dark:hover:bg-[#0A2540]/30 sm:w-auto"
                     disabled={loading}
                   >
-                    Cancelar
+                    {tc('actions.cancel')}
                   </motion.button>
                   <motion.button
                     type="submit"
@@ -388,12 +389,12 @@ export function LessonModal({
                     {loading ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Guardando...</span>
+                        <span>{tc('actions.saving')}</span>
                       </>
                     ) : (
                       <>
                         <CheckCircleIcon className="h-4 w-4" />
-                        <span>Guardar</span>
+                        <span>{tc('actions.save')}</span>
                       </>
                     )}
                   </motion.button>

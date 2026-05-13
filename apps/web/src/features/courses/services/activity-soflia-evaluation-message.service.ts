@@ -133,6 +133,10 @@ export function hasActivityResponseForSofliaEvaluation({
     return Boolean(primaryResponseText || evidenceText)
   }
 
+  if (activity.activity_config.interactionType === 'soflia_dialogue') {
+    return false
+  }
+
   if (activity.activity_config.interactionType === 'inline_answers') {
     const answers = normalizeRecordValue(responsePayload?.answers)
     const hasAnyAnswer =
@@ -176,7 +180,9 @@ export function buildActivitySofliaEvaluationMessage({
   const primaryResponseText = resolvePrimaryResponseText(request)
   const evidenceText = resolveEvidenceText(request.evidencePayload)
   const rubricLines = activityConfig
-    ? buildRubricLines(activityConfig.validation.rubric)
+    ? activityConfig.interactionType === 'soflia_dialogue'
+      ? []
+      : buildRubricLines(activityConfig.validation.rubric)
     : []
   const sections: string[] = [
     '[SYSTEM_EVENT: ACTIVITY_EVALUATION_REQUEST]',
@@ -200,7 +206,11 @@ export function buildActivitySofliaEvaluationMessage({
     )
   }
 
-  if (activityConfig?.toolTask?.promptTemplate?.trim()) {
+  if (
+    activityConfig &&
+    activityConfig.interactionType !== 'soflia_dialogue' &&
+    activityConfig.toolTask?.promptTemplate?.trim()
+  ) {
     sections.push(
       '',
       'Prompt o guia base de la actividad:',

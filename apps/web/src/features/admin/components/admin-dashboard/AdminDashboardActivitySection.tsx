@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { ClockIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
@@ -37,7 +38,35 @@ function AdminDashboardActivityItemRow({
   delay: number
   themeColors: AdminDashboardThemeColors
 }) {
-  const { t } = useTranslation('admin')
+  const { t } = useTranslation(['common', 'admin'])
+  
+  const metadata = useMemo(() => {
+    if (!activity.metadata) return {}
+    if (typeof activity.metadata === 'string') {
+      try {
+        return JSON.parse(activity.metadata)
+      } catch (e) {
+        return {}
+      }
+    }
+    return activity.metadata as Record<string, any>
+  }, [activity.metadata])
+
+  const titleKey = activity.title
+  const descKey = activity.description
+  const isLocalized = !!metadata?.is_localized || titleKey?.startsWith('notifications.')
+  
+  const location = metadata?.location || metadata?.ip || t('notifications.unknownLocation', { defaultValue: 'Ubicación desconocida' })
+
+  // Try to resolve title
+  const displayTitle = isLocalized 
+    ? t(titleKey, { ...metadata, location, ns: 'common' })
+    : titleKey
+
+  // Try to resolve description
+  const displayDescription = (isLocalized || descKey?.startsWith('notifications.'))
+    ? t(descKey, { ...metadata, location, ns: 'common' })
+    : descKey
 
   return (
     <motion.div
@@ -57,7 +86,7 @@ function AdminDashboardActivityItemRow({
             className="truncate text-sm font-medium"
             style={{ color: themeColors.textPrimary }}
           >
-            {activity.title}
+            {displayTitle}
           </h4>
           <div
             className="flex items-center gap-1 whitespace-nowrap text-xs"
@@ -68,10 +97,10 @@ function AdminDashboardActivityItemRow({
           </div>
         </div>
         <p className="mt-1 line-clamp-1 text-xs" style={{ color: themeColors.textSecondary }}>
-          {activity.description}
+          {displayDescription}
         </p>
         <p className="mt-1 text-xs font-medium" style={{ color: themeColors.accent }}>
-          {t('dashboard.activityBy')} {activity.user}
+          {t('admin:dashboard.activityBy')} {activity.user}
         </p>
       </div>
     </motion.div>

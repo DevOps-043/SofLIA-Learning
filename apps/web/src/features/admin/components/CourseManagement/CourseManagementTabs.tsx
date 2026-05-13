@@ -3,7 +3,8 @@
 import { motion } from 'framer-motion'
 import { Book, BarChart3, Eye, Settings } from 'lucide-react'
 
-import { COURSE_MANAGEMENT_TABS, isCourseManagementTabDisabled } from './CourseManagement.utils'
+import { useTranslation } from 'react-i18next'
+import { isCourseManagementTabDisabled } from './CourseManagement.utils'
 import type { ActiveTab } from './types'
 import { useCourseManagementContext } from './CourseManagementContext'
 
@@ -15,9 +16,17 @@ const TAB_ICONS: Record<Exclude<ActiveTab, 'certificates'>, typeof Book> = {
 }
 
 export function CourseManagementTabs() {
+  const { t } = useTranslation('admin')
   const {
     state: { activeTab, setActiveTab, isNewCourse },
   } = useCourseManagementContext()
+
+  const tabs: Array<{ key: Exclude<ActiveTab, 'certificates'>; label: string }> = [
+    { key: 'modules', label: t('workshops.editor.tabs.modules') },
+    { key: 'config', label: t('workshops.editor.tabs.config') },
+    { key: 'preview', label: t('workshops.editor.tabs.preview') },
+    { key: 'stats', label: t('workshops.editor.tabs.stats') },
+  ]
 
   return (
     <motion.div
@@ -27,7 +36,7 @@ export function CourseManagementTabs() {
       className="mb-6 rounded-xl border border-[#E9ECEF] bg-white p-1.5 shadow-sm dark:border-[#6C757D]/30 dark:bg-[#1E2329]"
     >
       <div className="scrollbar-hide -mx-1 flex gap-1.5 overflow-x-auto px-1 sm:mx-0 sm:px-0">
-        {COURSE_MANAGEMENT_TABS.map((tab) => {
+        {tabs.map((tab) => {
           const isDisabled = isCourseManagementTabDisabled(tab.key, isNewCourse)
           const Icon = TAB_ICONS[tab.key]
 

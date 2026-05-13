@@ -26,6 +26,14 @@ function stringifyPretty(value: unknown) {
 }
 
 function buildRubricText(activityConfig: ActivityConfig) {
+  if (activityConfig.interactionType === 'soflia_dialogue') {
+    return activityConfig.rubric
+      .map((item) =>
+        item.description ? `- ${item.label}: ${item.description}` : `- ${item.label}`,
+      )
+      .join('\n')
+  }
+
   if (!activityConfig.validation.rubric.length) {
     return '- Evalua si la respuesta cumple con la consigna y es util para el usuario.'
   }
@@ -98,7 +106,11 @@ export async function evaluateActivitySubmissionWithSoflia(input: {
 }) {
   const { context, submission } = input
 
-  if (!context.resolvedActivityConfig?.validation.enabled) {
+  if (
+    !context.resolvedActivityConfig ||
+    context.resolvedActivityConfig.interactionType === 'soflia_dialogue' ||
+    !context.resolvedActivityConfig.validation.enabled
+  ) {
     throw new CourseActivityError(
       'VALIDATION_NOT_ENABLED',
       400,

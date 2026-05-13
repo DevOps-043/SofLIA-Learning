@@ -56,22 +56,23 @@ export function buildAdminDashboardThemeColors(
   }
 }
 
-export function getAdminDashboardGreeting(now: Date) {
+export function getAdminDashboardGreeting(now: Date, t: any) {
   const hour = now.getHours()
 
   if (hour < 12) {
-    return 'Buenos dias'
+    return t('dashboard.greetings.morning')
   }
 
   if (hour < 18) {
-    return 'Buenas tardes'
+    return t('dashboard.greetings.afternoon')
   }
 
-  return 'Buenas noches'
+  return t('dashboard.greetings.evening')
 }
 
 export function getAdminDashboardUserName(
-  profile?: AdminDashboardProfileLike | null
+  profile?: AdminDashboardProfileLike | null,
+  t?: any
 ) {
   if (profile?.first_name && profile?.last_name) {
     return `${profile.first_name} ${profile.last_name}`
@@ -89,11 +90,12 @@ export function getAdminDashboardUserName(
     return profile.username
   }
 
-  return 'Administrador'
+  return t ? t('dashboard.activities.defaultUser') : 'Administrador'
 }
 
 export function buildAdminDashboardStatsData(
-  stats: AdminStatsWithChanges | null
+  stats: AdminStatsWithChanges | null,
+  t: any
 ): AdminDashboardStatItem[] {
   if (!stats) {
     return []
@@ -105,7 +107,7 @@ export function buildAdminDashboardStatsData(
       href: '/admin/users',
       iconKey: 'users',
       iconColor: DEFAULT_PRIMARY,
-      title: 'Usuarios Totales',
+      title: t('dashboard.stats.users'),
       value: stats.totalUsers,
     },
     {
@@ -113,7 +115,7 @@ export function buildAdminDashboardStatsData(
       href: '/admin/workshops',
       iconKey: 'courses',
       iconColor: DEFAULT_SUCCESS,
-      title: 'Cursos Activos',
+      title: t('dashboard.stats.courses'),
       value: stats.activeCourses,
     },
     {
@@ -121,7 +123,7 @@ export function buildAdminDashboardStatsData(
       href: '/admin/companies',
       iconKey: 'organizations',
       iconColor: DEFAULT_ACCENT,
-      title: 'Empresas Activas',
+      title: t('dashboard.stats.organizations'),
       value: stats.totalOrganizations || 0,
     },
     {
@@ -129,48 +131,48 @@ export function buildAdminDashboardStatsData(
       href: '/admin/lia-analytics',
       iconKey: 'engagement',
       iconColor: DEFAULT_PURPLE,
-      title: 'Engagement',
+      title: t('dashboard.stats.engagement'),
       value: `${stats.engagementRate}%`,
     },
   ]
 }
 
-export function getAdminDashboardQuickActions(): AdminDashboardQuickActionItem[] {
+export function getAdminDashboardQuickActions(t: any): AdminDashboardQuickActionItem[] {
   return [
     {
       color: DEFAULT_SUCCESS,
-      description: 'Anade un nuevo taller a la plataforma',
+      description: t('dashboard.quickActions.createCourse.description'),
       href: '/admin/workshops/new',
       iconKey: 'courses',
-      title: 'Crear Nuevo Curso',
+      title: t('dashboard.quickActions.createCourse.title'),
     },
     {
       color: DEFAULT_PRIMARY,
-      description: 'Administra permisos y roles',
+      description: t('dashboard.quickActions.manageUsers.description'),
       href: '/admin/users',
       iconKey: 'users',
-      title: 'Gestionar Usuarios',
+      title: t('dashboard.quickActions.manageUsers.title'),
     },
     {
       color: DEFAULT_ACCENT,
-      description: 'Administra organizaciones B2B',
+      description: t('dashboard.quickActions.manageCompanies.description'),
       href: '/admin/companies',
       iconKey: 'organizations',
-      title: 'Gestionar Empresas',
+      title: t('dashboard.quickActions.manageCompanies.title'),
     },
     {
       color: DEFAULT_PURPLE,
-      description: 'Metricas avanzadas de la IA',
+      description: t('dashboard.quickActions.viewAnalytics.description'),
       href: '/admin/lia-analytics',
       iconKey: 'engagement',
-      title: 'Ver Analytics',
+      title: t('dashboard.quickActions.viewAnalytics.title'),
     },
     {
       color: DEFAULT_WARNING,
-      description: 'Reportes y metricas del sistema',
+      description: t('dashboard.quickActions.viewReports.description'),
       href: '/admin/reportes',
       iconKey: 'documents',
-      title: 'Ver Reportes',
+      title: t('dashboard.quickActions.viewReports.title'),
     },
   ]
 }
@@ -195,26 +197,52 @@ function getActivityType(notificationType?: string | null) {
   return 'system' as const
 }
 
-function getActivityUserName(record: AdminDashboardActivityRecord) {
+function getActivityUserName(record: AdminDashboardActivityRecord, t: any) {
   const user = record.users
 
   return (
     user?.display_name ||
     `${user?.first_name || ''} ${user?.last_name || ''}`.trim() ||
     user?.username ||
-    'Usuario'
+    t('dashboard.activities.defaultUser')
   )
 }
 
 export function mapAdminDashboardActivities(
-  activities: AdminDashboardActivityRecord[]
+  activities: AdminDashboardActivityRecord[],
+  tn: any, // t for notifications (common)
+  language: 'es' | 'en' | 'pt' = 'es',
+  ta?: any // t for admin/fallbacks (admin)
 ): AdminDashboardActivityItem[] {
-  return activities.map((activity) => ({
-    description: activity.message || 'Sin descripcion',
-    id: activity.notification_id,
-    timestamp: formatRelativeTime(activity.created_at),
-    title: activity.title || 'Actividad',
-    type: getActivityType(activity.notification_type),
-    user: getActivityUserName(activity),
-  }))
+  const t = tn;
+  const tFallback = ta || tn;
+  return activities.map((activity) => {
+    // Asegurar que metadata sea un objeto (manejar posibles strings JSON)
+    let metadata = activity.metadata
+    if (typeof metadata === 'string') {
+      try {
+        metadata = JSON.parse(metadata)
+      } catch (e) {
+        metadata = {}
+      }
+    }
+
+    const title = metadata?.is_localized && activity.title
+      ? t(activity.title)
+      : activity.title || tFallback('dashboard.activities.defaultTitle')
+
+    const description = metadata?.is_localized && activity.message
+      ? t(activity.message, metadata as any)
+      : activity.message || tFallback('dashboard.activities.defaultDescription')
+
+    return {
+      description,
+      id: activity.notification_id,
+      metadata: (metadata || {}) as Record<string, unknown>,
+      timestamp: formatRelativeTime(activity.created_at, language),
+      title,
+      type: getActivityType(activity.notification_type),
+      user: getActivityUserName(activity, tFallback),
+    }
+  })
 }

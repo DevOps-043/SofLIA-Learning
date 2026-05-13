@@ -56,6 +56,22 @@ type ActivitySubmissionRow = {
   updated_at: string | null
 }
 
+export type ActivitySubmissionMutationPayload = {
+  activity_id: string
+  course_id: string
+  enrollment_id: string
+  evidence_payload: Record<string, unknown> | null
+  last_validated_at: string | null
+  lesson_id: string
+  organization_id: string | null
+  response_payload: Record<string, unknown>
+  response_text: string | null
+  status: ActivitySubmissionStatus
+  submitted_at: string | null
+  updated_at: string
+  user_id: string
+}
+
 type ActivityEvaluationRow = {
   created_at: string
   evaluation_id: string
@@ -63,6 +79,9 @@ type ActivityEvaluationRow = {
   result_status: 'pass' | 'revise' | 'error'
   submission_id: string
 }
+
+const ACTIVITY_SUBMISSION_SELECT =
+  'submission_id, activity_id, status, response_text, response_payload, evidence_payload, submitted_at, last_validated_at, updated_at, created_at'
 
 export interface CourseLessonContext {
   courseId: string
@@ -156,6 +175,10 @@ export function hasAnyActivityResponse(
     'response_payload' | 'response_text' | 'evidence_payload'
   >,
 ) {
+  if (activityConfig.interactionType === 'soflia_dialogue') {
+    return submission.status !== 'draft'
+  }
+
   const responseText = getPayloadText(
     submission.response_text,
     submission.response_payload,
@@ -189,6 +212,10 @@ export function isActivitySubmissionCompletionSatisfied(
   >,
   latestEvaluation: ActivityEvaluationRow | null,
 ) {
+  if (activityConfig.interactionType === 'soflia_dialogue') {
+    return submission.status === 'validated'
+  }
+
   if (submission.status === 'draft') {
     return false
   }
@@ -550,7 +577,7 @@ function buildSubmissionUpsertPayload(
   context: CourseActivityContext,
   request: ActivitySubmissionRequest,
   now: string,
-) {
+): ActivitySubmissionMutationPayload {
   const responsePayload = toRecord(request.responsePayload)
   const evidencePayload = request.evidencePayload
     ? toRecord(request.evidencePayload)
@@ -571,6 +598,44 @@ function buildSubmissionUpsertPayload(
     updated_at: now,
     user_id: context.userId,
   }
+}
+
+export async function persistActivitySubmissionPayload(
+  supabase: SupabaseServerClient,
+  submissionPayload: ActivitySubmissionMutationPayload,
+  selectColumns = ACTIVITY_SUBMISSION_SELECT,
+) {
+  const { data: existingSubmission, error: lookupError } = await supabase
+    .from('user_activity_submissions')
+    .select('submission_id')
+    .eq('user_id', submissionPayload.user_id)
+    .eq('activity_id', submissionPayload.activity_id)
+    .eq('enrollment_id', submissionPayload.enrollment_id)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (lookupError) {
+    return {
+      data: null,
+      error: lookupError,
+    }
+  }
+
+  if (existingSubmission?.submission_id) {
+    return supabase
+      .from('user_activity_submissions')
+      .update(submissionPayload)
+      .eq('submission_id', existingSubmission.submission_id)
+      .select(selectColumns)
+      .single()
+  }
+
+  return supabase
+    .from('user_activity_submissions')
+    .insert(submissionPayload)
+    .select(selectColumns)
+    .single()
 }
 
 export async function saveActivitySubmission(
@@ -614,15 +679,10 @@ export async function saveActivitySubmission(
     )
   }
 
-  const { data: submission, error } = await supabase
-    .from('user_activity_submissions')
-    .upsert(submissionPayload, {
-      onConflict: 'user_id,activity_id,enrollment_id',
-    })
-    .select(
-      'submission_id, activity_id, status, response_text, response_payload, evidence_payload, submitted_at, last_validated_at, updated_at, created_at',
-    )
-    .single()
+  const { data: submission, error } = await persistActivitySubmissionPayload(
+    supabase,
+    submissionPayload,
+  )
 
   if (error || !submission) {
     throw new CourseActivityError(

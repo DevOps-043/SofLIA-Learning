@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import {
   AcademicCapIcon,
   CheckCircleIcon,
@@ -38,6 +39,7 @@ const roles = [
 ]
 
 export function RoleSelect({ value, onChange }: RoleSelectProps) {
+  const { t } = useTranslation('admin')
   const [isOpen, setIsOpen] = useState(false)
   const selectRef = useRef<HTMLDivElement>(null)
   const selectedRole = roles.find((role) => role.value === value) || roles[0]
@@ -64,7 +66,7 @@ export function RoleSelect({ value, onChange }: RoleSelectProps) {
   return (
     <div className="group" ref={selectRef}>
       <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-        Rol *
+        {t('users.demographics.role')} *
       </label>
       <div className="relative">
         <motion.button
@@ -84,7 +86,7 @@ export function RoleSelect({ value, onChange }: RoleSelectProps) {
                 isOpen ? 'text-[#00D4B3]' : 'text-[#6C757D] dark:text-white/60'
               }`}
             />
-            <span className="font-medium">{selectedRole.label}</span>
+            <span className="font-medium">{t(`users.roles.${selectedRole.value}`)}</span>
           </div>
           <motion.div
             animate={{ rotate: isOpen ? 180 : 0 }}
@@ -160,7 +162,7 @@ export function RoleSelect({ value, onChange }: RoleSelectProps) {
                               }`}
                             />
                           </div>
-                          <span className="font-medium">{role.label}</span>
+                          <span className="font-medium">{t(`users.roles.${role.value}`)}</span>
                         </div>
                         {isSelected && (
                           <motion.div

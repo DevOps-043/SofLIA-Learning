@@ -105,6 +105,15 @@ export function InteractiveActivityRenderer({
     );
   }
 
+  if (activityConfig.interactionType === "soflia_dialogue") {
+    return (
+      <FormattedContentRenderer
+        content={activity.activity_content}
+        activityId={activity.activity_id}
+      />
+    );
+  }
+
   const latestEvaluation = submission?.latestEvaluation?.feedback;
   const promptText = activityConfig.toolTask?.promptTemplate?.trim() || "";
   const isSubmissionStructurallyComplete =

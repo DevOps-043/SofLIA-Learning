@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { BookOpenIcon } from '@heroicons/react/24/outline'
 
 interface AdminWorkshopsEmptyStateProps {
@@ -10,6 +11,8 @@ interface AdminWorkshopsEmptyStateProps {
 export function AdminWorkshopsEmptyState({
   hasActiveFilters,
 }: AdminWorkshopsEmptyStateProps) {
+  const { t } = useTranslation('admin')
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -19,12 +22,12 @@ export function AdminWorkshopsEmptyState({
       <div className="flex flex-col items-center justify-center">
         <BookOpenIcon className="h-16 w-16 text-[#6C757D] dark:text-white/30 mb-4" />
         <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-2">
-          No se encontraron talleres
+          {t('workshops.empty.title')}
         </h3>
         <p className="text-sm text-[#6C757D] dark:text-white/60 text-center">
           {hasActiveFilters
-            ? 'Intenta ajustar los filtros de busqueda'
-            : 'No hay talleres creados en el sistema'}
+            ? t('workshops.empty.filters')
+            : t('workshops.empty.noWorkshops')}
         </p>
       </div>
     </motion.div>

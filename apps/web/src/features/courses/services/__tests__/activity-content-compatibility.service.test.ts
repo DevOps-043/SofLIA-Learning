@@ -92,6 +92,37 @@ describe('activity-content-compatibility.service', () => {
     expect(isInteractiveLessonActivity('ai_chat')).toBe(false)
   })
 
+  it('keeps explicit SofLIA dialogue config even on legacy ai_chat activities', () => {
+    const config = resolveActivityConfig({
+      activityType: 'ai_chat',
+      activityContent: '{"scenes":[]}',
+      rawActivityConfig: {
+        interactionType: 'soflia_dialogue',
+        runtimeType: 'SOFLIA_DIALOGUE',
+        visibleGoal: 'Practicar comunicacion asertiva.',
+        scenario: 'Explica una situacion laboral con tension comunicativa.',
+        openingMessage: 'Describe brevemente la situacion.',
+        successCriteria: [
+          {
+            id: 'impacto',
+            label: 'Explica impacto',
+            required: true,
+          },
+        ],
+        rescueContent: 'Una respuesta fuerte conecta conducta, impacto y alternativa.',
+        rubric: [
+          {
+            id: 'claridad',
+            label: 'Claridad',
+            weight: 100,
+          },
+        ],
+      },
+    })
+
+    expect(config?.interactionType).toBe('soflia_dialogue')
+  })
+
   it('does not infer external tool actions from plain mentions in the question text', () => {
     const config = resolveActivityConfig({
       activityType: 'exercise',

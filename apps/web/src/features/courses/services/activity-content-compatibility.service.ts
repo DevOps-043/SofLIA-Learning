@@ -229,6 +229,10 @@ function mergeToolTask(
   toolKey: ExternalToolKey | null,
   aiPrompts: string[],
 ): ActivityConfig {
+  if (activityConfig.interactionType === 'soflia_dialogue') {
+    return activityConfig
+  }
+
   if (!toolKey) {
     return activityConfig
   }
@@ -263,6 +267,10 @@ function mergeValidationState(
   activityConfig: ActivityConfig,
   requiresSofliaValidation: boolean,
 ): ActivityConfig {
+  if (activityConfig.interactionType === 'soflia_dialogue') {
+    return activityConfig
+  }
+
   if (!requiresSofliaValidation) {
     return activityConfig
   }
@@ -293,13 +301,18 @@ export function resolveActivityConfig({
   requiresSofliaValidation,
   externalToolKey,
 }: ResolveActivityConfigInput): ActivityConfig | null {
+  const parsedConfig = normalizeActivityConfig(rawActivityConfig)
+
+  if (parsedConfig?.interactionType === 'soflia_dialogue') {
+    return parsedConfig
+  }
+
   if (!isInteractiveLessonActivity(activityType)) {
     return null
   }
 
   const normalizedContent = normalizeContentForRenderer(activityContent)
   const normalizedPrompts = parsePromptList(aiPrompts)
-  const parsedConfig = normalizeActivityConfig(rawActivityConfig)
 
   const detectedToolKey = detectExternalToolKey({
     activityContent: normalizedContent,

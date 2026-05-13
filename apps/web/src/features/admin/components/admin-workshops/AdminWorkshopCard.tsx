@@ -86,7 +86,7 @@ export function AdminWorkshopCard({
                 workshop.is_active ? 'bg-white animate-pulse' : 'bg-white/70'
               }`}
             />
-            {workshop.is_active ? ta('workshopCard.statusActive') : ta('workshopCard.statusInactive')}
+            {workshop.is_active ? ta('workshops.card.statusActive') : ta('workshops.card.statusInactive')}
           </span>
         </motion.div>
         <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 z-10">
@@ -96,7 +96,7 @@ export function AdminWorkshopCard({
             transition={disableHeavy ? undefined : { delay: index * 0.05 + 0.1, type: 'spring' }}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border backdrop-blur-md shadow-lg ${categoryTone.bg} ${categoryTone.text} ${categoryTone.border}`}
           >
-            {workshop.category}
+            {t(`common.categories.${workshop.category}`, workshop.category)}
           </motion.span>
           <motion.span
             initial={disableHeavy ? false : { x: -30, opacity: 0 }}
@@ -104,7 +104,7 @@ export function AdminWorkshopCard({
             transition={disableHeavy ? undefined : { delay: index * 0.05 + 0.15, type: 'spring' }}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border backdrop-blur-md shadow-lg ${levelTone.bg} ${levelTone.text} ${levelTone.border}`}
           >
-            {getWorkshopLevelLabel(workshop.level)}
+            {ta(`workshops.card.level.${workshop.level}`)}
           </motion.span>
         </div>
       </div>
@@ -142,7 +142,7 @@ export function AdminWorkshopCard({
                 </div>
                 <Image
                   src={workshop.instructor_profile_picture_url}
-                  alt={workshop.instructor_name || ta('workshopCard.instructorLabel')}
+                  alt={workshop.instructor_name || ta('workshops.card.instructorLabel')}
                   fill
                   sizes="40px"
                   className="relative z-10 object-cover"
@@ -156,10 +156,10 @@ export function AdminWorkshopCard({
             )}
             <div className="min-w-0 flex-1">
               <p className="text-xs text-gray-500 dark:text-white/50 uppercase tracking-wide mb-0.5">
-                {ta('workshopCard.instructorLabel')}
+                {ta('workshops.card.instructorLabel')}
               </p>
               <p className="text-sm font-semibold text-primary dark:text-white truncate">
-                {workshop.instructor_name || ta('workshopCard.noInstructor')}
+                {workshop.instructor_name || ta('workshops.card.noInstructor')}
               </p>
             </div>
           </div>
@@ -188,7 +188,7 @@ export function AdminWorkshopCard({
             <span className="text-sm font-semibold text-primary dark:text-white">
               {workshop.student_count || 0}{' '}
               <span className="text-xs font-normal text-gray-500 dark:text-white/60">
-                {ta('workshopCard.studentsLabel')}
+                {ta('workshops.card.studentsLabel')}
               </span>
             </span>
           </motion.div>
