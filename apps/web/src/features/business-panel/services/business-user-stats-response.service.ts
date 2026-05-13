@@ -4,6 +4,8 @@ import type {
   BusinessUserStatsCompletedByMonthPoint,
   BusinessUserStatsCourseData,
   BusinessUserStatsTimeByCoursePoint,
+  CourseWithLessons,
+  LessonDetail,
 } from '../types/business-user-stats.types'
 import type {
   BusinessUserStatsActivityCompletionRecord,
@@ -78,6 +80,7 @@ export function buildBusinessUserStatsResponse(
   )
   const timeByCourse = buildTimeByCourse(coursesData)
   const completedByMonth = buildCompletedByMonth(data.enrollments, data.assignments)
+  const coursesWithLessons = buildLessonDetailByCourse(data)
 
   return {
     success: true,
@@ -128,6 +131,7 @@ export function buildBusinessUserStatsResponse(
       ).length,
       lia_activities_total: data.activityCompletions.length,
       courses_data: coursesData,
+      courses_with_lessons: coursesWithLessons,
       time_by_course: timeByCourse,
       completed_by_month: completedByMonth,
       distribution: {
@@ -137,6 +141,7 @@ export function buildBusinessUserStatsResponse(
       },
     },
     courses: coursesData,
+    courses_with_lessons: coursesWithLessons,
     certificates: enrichedCertificates,
     assignments: data.assignments.map((assignment) => ({
       assignment_id: assignment.id,
@@ -686,4 +691,115 @@ function buildCompletedByMonth(
   return Array.from(countByMonth.entries())
     .map(([month, count]) => ({ month, count }))
     .sort((left, right) => left.month.localeCompare(right.month))
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Per-lesson detail builder
+// ─────────────────────────────────────────────────────────────────────────────
+
+function buildLessonDetailByCourse(data: BusinessUserStatsQueryData): CourseWithLessons[] {
+  // Index lesson progress by lesson_id for O(1) lookup
+  const progressByLesson = new Map<string, BusinessUserStatsLessonProgressRecord>()
+  data.lessonProgress.forEach((p) => {
+    progressByLesson.set(p.lesson_id, p)
+  })
+
+  // Index lesson metadata by lesson_id
+  const lessonMetaById = new Map<string, BusinessUserStatsLessonRecord>()
+  data.lessons.forEach((l) => {
+    lessonMetaById.set(l.lesson_id, l)
+  })
+
+  // Count lia_conversations per lesson_id
+  const liaConvByLesson = new Map<string, number>()
+  const liaMsgByLesson = new Map<string, number>()
+  data.liaConversations.forEach((conv) => {
+    if (!conv.lesson_id) return
+    liaConvByLesson.set(conv.lesson_id, (liaConvByLesson.get(conv.lesson_id) ?? 0) + 1)
+    liaMsgByLesson.set(
+      conv.lesson_id,
+      (liaMsgByLesson.get(conv.lesson_id) ?? 0) + (conv.total_messages ?? 0),
+    )
+  })
+
+  // Count quiz submissions per lesson_id (take best score if multiple attempts)
+  const quizByLesson = new Map<string, { passed: boolean; score: number | null }>()
+  data.quizSubmissions.forEach((q) => {
+    if (!q.lesson_id) return
+    const existing = quizByLesson.get(q.lesson_id)
+    const score = q.percentage_score ?? null
+    if (!existing || (score ?? 0) > (existing.score ?? 0)) {
+      quizByLesson.set(q.lesson_id, {
+        passed: q.is_passed ?? false,
+        score,
+      })
+    }
+  })
+
+  // Group lessons by course_id using lesson metadata
+  const lessonsByCourse = new Map<string, BusinessUserStatsLessonRecord[]>()
+  data.lessons.forEach((lesson) => {
+    const module = unwrapRelation(lesson.course_modules)
+    const courseId = module?.course_id
+    if (!courseId) return
+    if (!lessonsByCourse.has(courseId)) lessonsByCourse.set(courseId, [])
+    lessonsByCourse.get(courseId)!.push(lesson)
+  })
+
+  // Build one CourseWithLessons per enrolled course
+  const result: CourseWithLessons[] = []
+
+  data.enrollments.forEach((enrollment) => {
+    const courseId = enrollment.course_id
+    const courseTitle = unwrapRelation(enrollment.courses)?.title ?? null
+    const courseLessons = lessonsByCourse.get(courseId) ?? []
+
+    const lessons: LessonDetail[] = courseLessons
+      .map((lesson): LessonDetail => {
+        const meta = lessonMetaById.get(lesson.lesson_id)
+        const module = unwrapRelation(meta?.course_modules ?? lesson.course_modules)
+        const progress = progressByLesson.get(lesson.lesson_id)
+        const liaCalls = liaConvByLesson.get(lesson.lesson_id) ?? 0
+        const liaMsg = liaMsgByLesson.get(lesson.lesson_id) ?? 0
+        const quiz = quizByLesson.get(lesson.lesson_id)
+
+        const videoPct = progress?.video_progress_percentage ?? 0
+        const actDone = progress?.required_activities_completed ?? 0
+        const actTotal = progress?.required_activities_total ?? 0
+        const status: 'not_started' | 'in_progress' | 'completed' =
+          progress?.is_completed ? 'completed'
+          : progress?.lesson_status === 'in_progress' ? 'in_progress'
+          : 'not_started'
+
+        return {
+          lesson_id: lesson.lesson_id,
+          lesson_title: lesson.lesson_title,
+          lesson_order: lesson.lesson_order_index ?? null,
+          module_id: lesson.module_id ?? null,
+          module_title: module?.module_title ?? null,
+          module_order: module?.module_order_index ?? null,
+          status,
+          video_progress_pct: videoPct,
+          video_watched: videoPct >= 80 || status === 'completed',
+          activities_completed: actDone,
+          activities_total: actTotal,
+          activity_done: actTotal > 0 ? actDone >= actTotal : false,
+          quiz_completed: progress?.quiz_completed ?? false,
+          quiz_passed: quiz?.passed ?? null,
+          quiz_score: quiz?.score ?? null,
+          lia_conversations: liaCalls,
+          lia_messages: liaMsg,
+          time_spent_minutes: progress?.time_spent_minutes ?? 0,
+        }
+      })
+      .sort((a, b) => {
+        const modDiff = (a.module_order ?? 99) - (b.module_order ?? 99)
+        if (modDiff !== 0) return modDiff
+        return (a.lesson_order ?? 99) - (b.lesson_order ?? 99)
+      })
+
+    result.push({ course_id: courseId, course_title: courseTitle, lessons })
+  })
+
+  return result
 }

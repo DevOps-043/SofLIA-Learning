@@ -1,4 +1,31 @@
-export type BusinessUserStatsTabId = 'overview' | 'courses' | 'progress' | 'activity'
+export type BusinessUserStatsTabId = 'overview' | 'courses' | 'progress' | 'activity' | 'lessons'
+
+export interface LessonDetail {
+  lesson_id: string
+  lesson_title: string | null
+  lesson_order: number | null
+  module_id: string | null
+  module_title: string | null
+  module_order: number | null
+  status: 'not_started' | 'in_progress' | 'completed'
+  video_progress_pct: number
+  video_watched: boolean
+  activities_completed: number
+  activities_total: number
+  activity_done: boolean
+  quiz_completed: boolean
+  quiz_passed: boolean | null
+  quiz_score: number | null
+  lia_conversations: number
+  lia_messages: number
+  time_spent_minutes: number
+}
+
+export interface CourseWithLessons {
+  course_id: string
+  course_title: string | null
+  lessons: LessonDetail[]
+}
 
 export interface BusinessUserStatsCourseData {
   course_id: string
@@ -77,6 +104,7 @@ export interface BusinessUserStatsData {
   lia_activities_completed?: number
   lia_activities_total?: number
   courses_data: BusinessUserStatsCourseData[]
+  courses_with_lessons: CourseWithLessons[]
   time_by_course: BusinessUserStatsTimeByCoursePoint[]
   completed_by_month: BusinessUserStatsCompletedByMonthPoint[]
   distribution: BusinessUserStatsDistribution
@@ -120,6 +148,7 @@ export interface BusinessUserStatsApiResponse {
   user: BusinessUserStatsApiUser
   stats: BusinessUserStatsData
   courses: BusinessUserStatsCourseData[]
+  courses_with_lessons: CourseWithLessons[]
   certificates: BusinessUserStatsCertificate[]
   assignments: BusinessUserStatsAssignment[]
 }

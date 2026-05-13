@@ -1,14 +1,15 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { 
-  BarChart3, 
+import {
+  BarChart3,
   BookOpen,
-  Clock, 
-  X, 
-  User, 
-  Mail, 
-  ChevronRight, 
+  Clock,
+  GanttChart,
+  X,
+  User,
+  Mail,
+  ChevronRight,
   Sparkles,
   Info
 } from 'lucide-react'
@@ -19,6 +20,7 @@ import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 import {
   BusinessUserStatsActivityTab,
   BusinessUserStatsCoursesTab,
+  BusinessUserStatsLessonsTab,
   BusinessUserStatsOverviewTab,
   type BusinessUserStatsHeaderTab,
   type BusinessUserStatsTheme,
@@ -83,6 +85,7 @@ export function BusinessUserStatsModal({
   const tabs: BusinessUserStatsHeaderTab[] = [
     { id: 'overview', label: t('users.modals.stats.tabs.overview', 'Resumen'), icon: BarChart3 },
     { id: 'courses', label: t('users.modals.stats.tabs.courses', 'Cursos'), icon: BookOpen },
+    { id: 'lessons', label: t('users.modals.stats.tabs.lessons', 'Lecciones'), icon: GanttChart },
     { id: 'activity', label: t('users.modals.stats.tabs.activity', 'Actividad'), icon: Clock },
   ]
 
@@ -225,6 +228,8 @@ export function BusinessUserStatsModal({
                           theme={theme}
                           formatDate={formatDate}
                         />
+                      ) : safeActiveTab === 'lessons' ? (
+                        <BusinessUserStatsLessonsTab stats={stats} t={t} theme={theme} />
                       ) : (
                         <BusinessUserStatsActivityTab
                           stats={stats}

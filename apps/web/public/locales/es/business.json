@@ -431,42 +431,42 @@
       "badge": "Ruta de aprendizaje",
       "progress": "Progreso",
       "nextCourse": "Siguiente curso",
-        "continueCta": "Continuar ruta",
-        "completedCta": "Ruta completada",
-        "itemProgress": "avance",
-        "coursesLabel": "cursos",
-        "courseFallback": "Curso sin título",
-        "viewTour": "Video introductorio",
-        "tourLoading": "Cargando video",
-        "tourUnavailable": "Video no disponible",
-        "previousCourses": "Cursos anteriores",
-        "nextCourses": "Más cursos",
-        "emptyPath": "Esta ruta aún no tiene cursos asignados.",
-        "of": "de",
-        "completedCoursesSuffix": "cursos completados",
-        "lockedHint": "Completa el curso anterior",
-        "viewCertificate": "Ver certificado",
-        "previewBadge": "Resumen",
-        "previewLoadingBadge": "Analizando",
-        "geminiPreviewBadge": "Análisis Gemini",
-        "previewLoading": "Gemini está analizando la descripción real y el contexto de aprendizaje.",
-        "previewUnavailable": "No se pudo generar el análisis con Gemini en este momento.",
-        "coursePreviewMeta": "Curso {{position}} de la ruta {{pathTitle}}",
-        "courseAiDescription": "Resumen IA: este curso te ayuda a comprender y aplicar {{courseTitle}} dentro de {{pathTitle}}, con foco en conceptos clave, actividades guiadas y avance medible.",
-        "coursePreviewPointOne": "Comprende los conceptos centrales antes de avanzar.",
-        "coursePreviewPointTwo": "Aplica lo aprendido en ejercicios y actividades de la ruta.",
-        "coursePreviewPointThree": "Conecta este curso con los siguientes pasos del learning path.",
-        "standaloneTitle": "Cursos independientes",
-        "standaloneSummary": "{{completed}} de {{total}} cursos completados",
-        "pathPreviewMeta": "{{count}} cursos en secuencia",
-        "pathAiDescription": "Resumen IA: esta ruta organiza los cursos para que avances con una secuencia clara, comenzando por {{firstCourse}} y conectando cada tema con el siguiente.",
-        "pathPreviewPointOne": "Avance recomendado para evitar saltos de contexto.",
-        "pathPreviewPointTwo": "Cursos ordenados por prioridad y dependencia.",
-        "pathPreviewPointThree": "Tour disponible para entender el objetivo completo de la ruta.",
-        "pathPreviewStatus": "{{completed}} de {{total}} completados",
-        "status": {
-          "completed": "Completado",
-          "available": "Disponible",
+      "continueCta": "Continuar ruta",
+      "completedCta": "Ruta completada",
+      "itemProgress": "avance",
+      "coursesLabel": "cursos",
+      "courseFallback": "Curso sin título",
+      "viewTour": "Video introductorio",
+      "tourLoading": "Cargando video",
+      "tourUnavailable": "Video no disponible",
+      "previousCourses": "Cursos anteriores",
+      "nextCourses": "Más cursos",
+      "emptyPath": "Esta ruta aún no tiene cursos asignados.",
+      "of": "de",
+      "completedCoursesSuffix": "cursos completados",
+      "lockedHint": "Completa el curso anterior",
+      "viewCertificate": "Ver certificado",
+      "previewBadge": "Resumen",
+      "previewLoadingBadge": "Analizando",
+      "geminiPreviewBadge": "Análisis Gemini",
+      "previewLoading": "Gemini está analizando la descripción real y el contexto de aprendizaje.",
+      "previewUnavailable": "No se pudo generar el análisis con Gemini en este momento.",
+      "coursePreviewMeta": "Curso {{position}} de la ruta {{pathTitle}}",
+      "courseAiDescription": "Resumen IA: este curso te ayuda a comprender y aplicar {{courseTitle}} dentro de {{pathTitle}}, con foco en conceptos clave, actividades guiadas y avance medible.",
+      "coursePreviewPointOne": "Comprende los conceptos centrales antes de avanzar.",
+      "coursePreviewPointTwo": "Aplica lo aprendido en ejercicios y actividades de la ruta.",
+      "coursePreviewPointThree": "Conecta este curso con los siguientes pasos del learning path.",
+      "standaloneTitle": "Cursos independientes",
+      "standaloneSummary": "{{completed}} de {{total}} cursos completados",
+      "pathPreviewMeta": "{{count}} cursos en secuencia",
+      "pathAiDescription": "Resumen IA: esta ruta organiza los cursos para que avances con una secuencia clara, comenzando por {{firstCourse}} y conectando cada tema con el siguiente.",
+      "pathPreviewPointOne": "Avance recomendado para evitar saltos de contexto.",
+      "pathPreviewPointTwo": "Cursos ordenados por prioridad y dependencia.",
+      "pathPreviewPointThree": "Tour disponible para entender el objetivo completo de la ruta.",
+      "pathPreviewStatus": "{{completed}} de {{total}} completados",
+      "status": {
+        "completed": "Completado",
+        "available": "Disponible",
         "locked": "Bloqueado"
       }
     },
@@ -836,7 +836,8 @@
           "overview": "Resumen",
           "courses": "Cursos",
           "progress": "Progreso",
-          "activity": "Actividad"
+          "activity": "Actividad",
+          "lessons": "Lecciones"
         },
         "cards": {
           "courses": "Cursos",
@@ -923,6 +924,10 @@
           "joined": "Se unió",
           "lastConnection": "Última Conexión",
           "typeRole": "Tipo de Rol"
+        },
+        "lessons": {
+          "empty": "Sin datos de lecciones disponibles",
+          "title": "Detalle por lección"
         }
       },
       "invite": {
@@ -1441,7 +1446,30 @@
     "goal": "Objetivo",
     "monthlyTarget": "Meta Mensual",
     "description": "Descripción",
-    "location": "Ubicación",
+    "location": {
+      "title": "Dirección",
+      "fillFromCoords": "Rellenar desde coordenadas",
+      "calculateFromFields": "Calcular coordenadas desde campos",
+      "fields": {
+        "street": "Calle / avenida",
+        "extNum": "No. ext.",
+        "intNum": "No. int.",
+        "neighborhood": "Colonia / barrio",
+        "zipCode": "C.P.",
+        "city": "Ciudad / municipio",
+        "state": "Estado",
+        "country": "País",
+        "latitude": "Latitud",
+        "longitude": "Longitud"
+      },
+      "placeholders": {
+        "street": "Ej: Av. Reforma",
+        "neighborhood": "Ej: Juárez",
+        "city": "Cuauhtémoc",
+        "state": "CDMX",
+        "country": "México"
+      }
+    },
     "contact": "Contacto",
     "info": "Información",
     "created": "Creado",
@@ -1567,30 +1595,6 @@
       },
       "types": {
         "custom": "Otro / personalizado"
-      }
-    },
-    "location": {
-      "title": "Dirección",
-      "fillFromCoords": "Rellenar desde coordenadas",
-      "calculateFromFields": "Calcular coordenadas desde campos",
-      "fields": {
-        "street": "Calle / avenida",
-        "extNum": "No. ext.",
-        "intNum": "No. int.",
-        "neighborhood": "Colonia / barrio",
-        "zipCode": "C.P.",
-        "city": "Ciudad / municipio",
-        "state": "Estado",
-        "country": "País",
-        "latitude": "Latitud",
-        "longitude": "Longitud"
-      },
-      "placeholders": {
-        "street": "Ej: Av. Reforma",
-        "neighborhood": "Ej: Juárez",
-        "city": "Cuauhtémoc",
-        "state": "CDMX",
-        "country": "México"
       }
     },
     "structureForm": {

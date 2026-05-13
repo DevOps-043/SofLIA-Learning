@@ -129,7 +129,21 @@ export async function createOrganizationUser(
     )
 
     if (organizationUserError) {
-      await fromLoose(supabase, 'users').delete().eq('id', newUser.id)
+      // Best-effort rollback — if this also fails, the user is orphaned in `users`
+      // but that's preferable to silently swallowing the org-link error
+      const { error: rollbackError } = await fromLoose(supabase, 'users')
+        .delete()
+        .eq('id', newUser.id)
+
+      if (rollbackError) {
+        // Log the orphaned user so it can be manually cleaned up
+        console.error('[createOrganizationUser] Rollback failed — orphaned user:', {
+          userId: newUser.id,
+          orgError: organizationUserError,
+          rollbackError,
+        })
+      }
+
       throw organizationUserError
     }
 
