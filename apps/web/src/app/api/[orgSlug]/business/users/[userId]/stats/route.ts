@@ -46,7 +46,9 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(buildBusinessUserStatsResponse(result.data))
+    return NextResponse.json(buildBusinessUserStatsResponse(result.data), {
+      headers: { 'Cache-Control': 'private, no-cache, no-store, must-revalidate' },
+    })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Error al obtener estadísticas'
     logger.error('Error in /api/[orgSlug]/business/users/[userId]/stats:', { message })

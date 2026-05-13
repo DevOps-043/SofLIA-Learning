@@ -412,8 +412,9 @@ export async function loginAction(formData: FormData) {
     // 7. Limpiar sesiones expiradas (mantenimiento) fuera del camino critico.
     scheduleExpiredSessionCleanup()
 
-    // 7.5. Actualizar last_login_at — fire-and-forget, no bloquea la respuesta
-    void supabase
+    // 7.5. Actualizar last_login_at — awaited: fire-and-forget no funciona en Server Actions
+    // porque Next.js termina el request antes de que la Promise resuelva
+    await supabase
       .from('users')
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', user.id)

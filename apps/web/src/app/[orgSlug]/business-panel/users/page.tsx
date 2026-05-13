@@ -212,6 +212,8 @@ export default function BusinessPanelUsersPage() {
         onImportClick={() => setIsImportModalOpen(true)}
         onInviteClick={() => setIsUnifiedInviteModalOpen(true)}
         onAddClick={() => setIsAddModalOpen(true)}
+        onRefresh={refetch}
+        isRefreshing={isLoading}
       />
 
       {error && (

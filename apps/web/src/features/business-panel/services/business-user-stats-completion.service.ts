@@ -211,6 +211,9 @@ export async function fetchCompletionData(
         quiz_progress_percentage,
         quiz_completed,
         quiz_passed,
+        video_progress_percentage,
+        required_activities_completed,
+        required_activities_total,
         user_course_enrollments!inner (
           course_id,
           courses (
@@ -348,6 +351,7 @@ export async function fetchCompletionData(
           .select(`
             lesson_id,
             lesson_title,
+            lesson_order_index,
             module_id,
             course_modules (
               module_id,
