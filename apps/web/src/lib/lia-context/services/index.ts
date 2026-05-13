@@ -11,4 +11,15 @@ export {
 export { ErrorContextService } from './error-context.service';
 export type { SimilarBug, UserError } from './error-context.service';
 export { ContextCacheService } from './context-cache.service';
-
+export {
+  buildOrganizationAiContextPromptSection,
+  createOrganizationAiContextRepository,
+  extractOrganizationSlugFromPage,
+  resolveActiveOrganizationAiContext,
+  resolveStrictOrganizationAiContext,
+} from './organization-ai-context.service';
+export type {
+  OrganizationAiContextPromptOptions,
+  OrganizationAiContextRepository,
+  ResolvedOrganizationAiContext,
+} from './organization-ai-context.service';

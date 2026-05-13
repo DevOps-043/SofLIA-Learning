@@ -1,4 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
+import {
+  createOrganizationAiContextRepository,
+  resolveStrictOrganizationAiContext,
+  type ResolvedOrganizationAiContext,
+} from '@/lib/lia-context/services/organization-ai-context.service'
 
 import {
   resolveActivityConfigFromRecord,
@@ -95,6 +100,7 @@ export interface CourseLessonContext {
 
 export interface CourseActivityContext extends CourseLessonContext {
   activity: ActivityLikeRecord
+  organizationAiContext: ResolvedOrganizationAiContext | null
   resolvedActivityConfig: ActivityConfig | null
 }
 
@@ -468,6 +474,11 @@ export async function resolveCourseActivityContext(
   return {
     ...lessonContext,
     activity: activity as ActivityLikeRecord,
+    organizationAiContext: await resolveStrictOrganizationAiContext({
+      organizationId: lessonContext.organizationId,
+      repository: createOrganizationAiContextRepository(supabase),
+      userId,
+    }),
     resolvedActivityConfig,
   }
 }

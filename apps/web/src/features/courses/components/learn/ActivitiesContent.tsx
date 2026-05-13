@@ -66,12 +66,25 @@ export function ActivitiesContent({
   onActivityFocused,
 }: ActivitiesContentProps) {
   const { t } = useTranslation("learn");
-  const { setActivity, openLia, isOpen: isLiaOpen, liaChat, courseContext } =
+  const {
+    setActivity,
+    openLia,
+    isOpen: isLiaOpen,
+    liaChat,
+    courseContext,
+    isInteractionBlocked,
+    closeLia,
+  } =
     useLiaCourse();
 
   const sendLiaMessage = useCallback(
     async (message: string, isSystemMessage: boolean = false) => {
       if (!liaChat?.sendMessage) {
+        return;
+      }
+
+      if (isInteractionBlocked) {
+        closeLia();
         return;
       }
 
@@ -86,7 +99,7 @@ export function ActivitiesContent({
         isSystemMessage
       );
     },
-    [courseContext, isLiaOpen, liaChat, openLia]
+    [closeLia, courseContext, isInteractionBlocked, isLiaOpen, liaChat, openLia]
   );
 
   const {
@@ -176,18 +189,27 @@ export function ActivitiesContent({
   ]);
 
   const handleStartAiChat = useCallback(
-    (activity: LearnActivity) => {
+    (
+      activity: LearnActivity,
+      onUserMessageCompleted: (conversationId?: string | null) => void | Promise<void>
+    ) => {
+      if (isInteractionBlocked) {
+        closeLia();
+        return;
+      }
+
       setActivity({
         id: activity.activity_id,
         title: activity.activity_title,
         type: activity.activity_type,
         description: activity.activity_description || "",
         prompts: extractPromptList(activity.ai_prompts),
+        onUserMessageCompleted,
         timestamp: Date.now(),
       });
       openLia();
     },
-    [openLia, setActivity]
+    [closeLia, isInteractionBlocked, openLia, setActivity]
   );
 
   const hasActivities = activities.length > 0;

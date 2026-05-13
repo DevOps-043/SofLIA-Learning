@@ -47,6 +47,7 @@ export interface UseLiaCourseChatReturn {
   clearHistory: () => void;
   loadConversation: (conversationId: string) => Promise<void>;
   currentConversationId: string | null;
+  getCurrentConversationId: () => string | null;
 }
 
 function buildCurrentLessonContext(
@@ -433,6 +434,10 @@ export function useLiaCourseChat(
     }
   }, []);
 
+  const getCurrentConversationId = useCallback(() => {
+    return conversationIdRef.current;
+  }, []);
+
   const clearHistory = useCallback(async () => {
     if (conversationIdRef.current && user) {
       try {
@@ -499,6 +504,7 @@ export function useLiaCourseChat(
       clearHistory,
       loadConversation,
       currentConversationId: conversationIdRef.current,
+      getCurrentConversationId,
     }),
     [
       messages,
@@ -509,6 +515,7 @@ export function useLiaCourseChat(
       stop,
       clearHistory,
       loadConversation,
+      getCurrentConversationId,
     ]
   );
 }

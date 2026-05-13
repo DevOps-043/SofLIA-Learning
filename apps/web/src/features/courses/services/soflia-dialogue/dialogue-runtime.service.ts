@@ -242,6 +242,7 @@ export async function processDialogueMessage(input: {
         }
       : await evaluateDialogueTurn({
           config,
+          organizationAiContext: input.context.organizationAiContext,
           previousEvaluations,
           recentTurns,
           studentMessage: sanitizedMessage,
@@ -286,6 +287,7 @@ export async function processDialogueMessage(input: {
   const assistantMessage = await generateDialogueTutorMessage({
     config,
     evaluation: evaluationWithModel.evaluation,
+    organizationAiContext: input.context.organizationAiContext,
     policy,
     recentTurns,
   })

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '../../../../lib/supabase/admin';
 import { SessionService } from '../../../../features/auth/services/session.service';
+import { resolveActivityCompletionAttempt } from './activity-completion-attempts.service';
 
 type CompletionStatus = 'completed';
 
@@ -9,13 +10,16 @@ interface CompleteActivityRequest {
   conversationId?: string | null;
   activityType?: string;
   generatedOutput?: unknown;
+  requireUserMessage?: boolean;
   timeSpentSeconds?: number;
 }
 
 interface ActivityCompletionRecord {
+  activity_id?: string;
   completion_id: string;
   started_at: string | null;
   total_steps: number | null;
+  status?: string;
 }
 
 interface ActivityCompletionUpdate {
@@ -31,10 +35,52 @@ interface ActivityCompletionInsert extends ActivityCompletionUpdate {
   conversation_id: string | null;
   user_id: string;
   activity_id: string;
+  attempts_to_complete: number;
   total_steps: number;
   current_step: number;
   lia_had_to_redirect: number;
   started_at: string;
+}
+
+async function hasUserMessageInConversation(input: {
+  activityId: string;
+  conversationId?: string | null;
+  supabase: ReturnType<typeof createAdminClient>;
+  userId: string;
+}) {
+  if (!input.conversationId) {
+    return false;
+  }
+
+  const { data: conversation, error: conversationError } = await input.supabase
+    .from('lia_conversations')
+    .select('conversation_id')
+    .eq('conversation_id', input.conversationId)
+    .eq('user_id', input.userId)
+    .eq('activity_id', input.activityId)
+    .maybeSingle();
+
+  if (conversationError) {
+    console.error('Error validating LIA conversation ownership:', conversationError);
+    return false;
+  }
+
+  if (!conversation) {
+    return false;
+  }
+
+  const { count, error } = await input.supabase
+    .from('lia_messages')
+    .select('message_id', { count: 'exact', head: true })
+    .eq('conversation_id', input.conversationId)
+    .eq('role', 'user');
+
+  if (error) {
+    console.error('Error validating LIA user message:', error);
+    return false;
+  }
+
+  return (count || 0) > 0;
 }
 
 /**
@@ -61,6 +107,7 @@ export async function POST(request: NextRequest) {
       conversationId,
       activityType,
       generatedOutput,
+      requireUserMessage = false,
       timeSpentSeconds 
     }: CompleteActivityRequest = await request.json();
 
@@ -131,10 +178,61 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (requireUserMessage) {
+      const hasUserMessage = await hasUserMessageInConversation({
+        activityId: activityType,
+        conversationId,
+        supabase,
+        userId: user.id,
+      });
+
+      if (!hasUserMessage) {
+        return NextResponse.json(
+          { error: 'La actividad requiere al menos un mensaje real del usuario' },
+          { status: 409 }
+        );
+      }
+    }
+
+    const { data: existingCompletions, error: completionLookupError } =
+      await supabase
+        .from('lia_activity_completions')
+        .select('completion_id, status, started_at, total_steps, activity_id')
+        .eq('user_id', user.id)
+        .eq('activity_id', activityType)
+        .order('started_at', { ascending: true });
+
+    if (completionLookupError) {
+      console.error('Error counting activity attempts:', completionLookupError);
+      return NextResponse.json(
+        { error: 'Error al validar intentos de actividad' },
+        { status: 500 }
+      );
+    }
+
+    const completionRows = (existingCompletions || []) as ActivityCompletionRecord[];
+    const attemptDecision = resolveActivityCompletionAttempt(completionRows);
+
+    if (attemptDecision.kind === 'already_completed') {
+      return NextResponse.json({
+        success: true,
+        completionId: attemptDecision.completionId,
+        completed: true,
+      });
+    }
+
+    if (attemptDecision.kind === 'limit_reached') {
+      return NextResponse.json(
+        { error: 'Se alcanzo el limite de 3 intentos para esta actividad' },
+        { status: 409 }
+      );
+    }
+
     const insertData: ActivityCompletionInsert = {
       conversation_id: conversationId || null,
       user_id: user.id,
       activity_id: activityType,
+      attempts_to_complete: attemptDecision.attemptNumber,
       status: 'completed',
       total_steps: 1,
       completed_steps: 1,

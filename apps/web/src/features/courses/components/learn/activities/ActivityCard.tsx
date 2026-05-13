@@ -32,7 +32,10 @@ type ActivityCardProps = {
   isCollapsed: boolean;
   lessonId: string;
   onQuizSubmitted: () => void | Promise<void>;
-  onStartAiChat: (activity: LearnActivity) => void;
+  onStartAiChat: (
+    activity: LearnActivity,
+    onUserMessageCompleted: (conversationId?: string | null) => void | Promise<void>
+  ) => void;
   onToggle: (activityId: string) => void;
   onTriggerLiaFeedback: (prompt: string) => void | Promise<void>;
   quizStatus: LessonQuizStatus | null;
@@ -125,7 +128,7 @@ export function ActivityCard({
   const canZoomOut = contentZoom > ZOOM_STEPS[0];
   const aiActivityCompleted = Boolean(activity.is_completed || aiCompletionCompleted);
 
-  const markAiChatActivityCompleted = async () => {
+  const markAiChatActivityCompleted = async (conversationId?: string | null) => {
     if (aiActivityCompleted || aiCompletionSaving) {
       return;
     }
@@ -137,11 +140,13 @@ export function ActivityCard({
       const response = await fetch("/api/lia/complete-activity", {
         body: JSON.stringify({
           activityType: activity.activity_id,
+          conversationId,
           generatedOutput: {
-            source: "course_ai_chat_activity",
+            source: "course_ai_chat_activity_user_message",
             title: activity.activity_title,
             type: activity.activity_type,
           },
+          requireUserMessage: true,
         }),
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -303,8 +308,7 @@ export function ActivityCard({
                     disabled={aiCompletionSaving}
                     onClick={(event) => {
                       event.stopPropagation();
-                      onStartAiChat(activity);
-                      void markAiChatActivityCompleted();
+                      onStartAiChat(activity, markAiChatActivityCompleted);
                     }}
                     className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-accent dark:text-primary"
                   >

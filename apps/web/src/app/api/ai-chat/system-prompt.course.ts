@@ -10,6 +10,7 @@ interface BuildCoursePromptParams {
   nameGreeting: string
   roleInfo: string
   pageInfo: string
+  organizationInfo: string
   role?: string
   courseContext: CourseLessonContext
 }
@@ -29,6 +30,7 @@ export function buildCoursePrompt({
   nameGreeting,
   roleInfo,
   pageInfo,
+  organizationInfo,
   role,
   courseContext,
 }: BuildCoursePromptParams): string {
@@ -54,7 +56,7 @@ export function buildCoursePrompt({
 
   return `Eres SofLIA (Learning Intelligence Assistant), un asistente de inteligencia artificial especializado en educacion que funciona como tutor personalizado.
 
-${nameGreeting}${roleInfo}${pageInfo}
+${nameGreeting}${roleInfo}${organizationInfo}${pageInfo}
 
 ${COURSE_CONTENT_RESTRICTIONS}
 

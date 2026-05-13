@@ -1,6 +1,11 @@
+import type { CourseLessonContext } from '@/core/types/lia.types'
+import {
+  resolveActiveOrganizationAiContext,
+  type ResolvedOrganizationAiContext,
+} from '@/lib/lia-context/services/organization-ai-context.service'
 import { createClient } from '@/lib/supabase/server'
 import type { Database } from '@/lib/supabase/types'
-import type { CourseLessonContext } from '@/core/types/lia.types'
+import type { PageContext } from '../system-prompt.types'
 import type { RequestUserInfo } from './request-normalization.service'
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
@@ -23,19 +28,21 @@ interface AuthenticatedUser {
 }
 
 interface ResolveChatUserContextParams {
-  supabase: SupabaseServerClient
   authenticatedUser?: AuthenticatedUser | null
-  requestUserInfo?: RequestUserInfo
-  userName?: string
   courseContext?: CourseLessonContext
+  pageContext?: PageContext
+  requestUserInfo?: RequestUserInfo
+  supabase: SupabaseServerClient
+  userName?: string
 }
 
 export interface ResolveChatUserContextResult {
-  userInfo: ChatUserInfo | null
+  courseContext?: CourseLessonContext
   displayName: string
+  organizationAiContext?: ResolvedOrganizationAiContext | null
+  userInfo: ChatUserInfo | null
   userRole?: string
   userRoleDescription?: string
-  courseContext?: CourseLessonContext
 }
 
 const GENERIC_ROLE_LIKE_NAMES = new Set([
@@ -100,33 +107,33 @@ async function loadChatUserInfo(
     return null
   }
 
-  const [{ data, error }, { data: membership }] = await Promise.all([
-    supabase
+  const { data, error } = await supabase
     .from('users')
     .select(
       'display_name, username, first_name, last_name, profile_picture_url, type_rol',
     )
     .eq('id', authenticatedUser.id)
-    .single(),
-    supabase
-      .from('organization_users')
-      .select('job_title, job_description')
-      .eq('user_id', authenticatedUser.id)
-      .eq('status', 'active')
-      .order('joined_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ])
+    .single()
 
   if (error || !data) {
     return null
   }
 
-  return {
-    ...(data as ChatUserInfo),
-    job_title: membership?.job_title ?? null,
-    job_description: membership?.job_description ?? null,
+  return data as ChatUserInfo
+}
+
+async function loadOrganizationAiContext(input: {
+  authenticatedUser?: AuthenticatedUser | null
+  pageContext?: PageContext
+}) {
+  if (!input.authenticatedUser) {
+    return null
   }
+
+  return resolveActiveOrganizationAiContext({
+    currentPage: input.pageContext?.pathname,
+    userId: input.authenticatedUser.id,
+  })
 }
 
 export async function resolveChatUserContext({
@@ -135,12 +142,17 @@ export async function resolveChatUserContext({
   requestUserInfo,
   userName,
   courseContext,
+  pageContext,
 }: ResolveChatUserContextParams): Promise<ResolveChatUserContextResult> {
-  const databaseUserInfo = await loadChatUserInfo(supabase, authenticatedUser)
+  const [databaseUserInfo, organizationAiContext] = await Promise.all([
+    loadChatUserInfo(supabase, authenticatedUser),
+    loadOrganizationAiContext({ authenticatedUser, pageContext }),
+  ])
   const requestInfo = requestUserInfo ? (requestUserInfo as ChatUserInfo) : null
+
   // La DB es la fuente autoritativa. requestInfo solo rellena campos vacios
   // para evitar que valores null/undefined del cliente pisen datos validos de la DB.
-  const userInfo = (databaseUserInfo || requestInfo)
+  const userInfo = (databaseUserInfo || requestInfo || organizationAiContext)
     ? {
         display_name: preferTruthy(databaseUserInfo?.display_name, requestInfo?.display_name),
         username: preferTruthy(databaseUserInfo?.username, requestInfo?.username),
@@ -151,8 +163,13 @@ export async function resolveChatUserContext({
           requestInfo?.profile_picture_url,
         ),
         type_rol: preferTruthy(databaseUserInfo?.type_rol, requestInfo?.type_rol),
-        job_title: preferTruthy(databaseUserInfo?.job_title, requestInfo?.job_title),
+        job_title: preferTruthy(
+          organizationAiContext?.userJobTitle,
+          databaseUserInfo?.job_title,
+          requestInfo?.job_title,
+        ),
         job_description: preferTruthy(
+          organizationAiContext?.userJobDescription,
           databaseUserInfo?.job_description,
           requestInfo?.job_description,
         ),
@@ -169,7 +186,8 @@ export async function resolveChatUserContext({
       userName,
     ) || 'usuario'
 
-  const userRole = userInfo?.job_title || userInfo?.type_rol || courseContext?.userRole || undefined
+  const userRole =
+    userInfo?.job_title || userInfo?.type_rol || courseContext?.userRole || undefined
   const userRoleDescription = userInfo?.job_description || undefined
   const normalizedCourseContext =
     courseContext && userRole && !courseContext.userRole
@@ -181,6 +199,7 @@ export async function resolveChatUserContext({
     displayName,
     userRole,
     userRoleDescription,
+    organizationAiContext,
     courseContext: normalizedCourseContext,
   }
 }
