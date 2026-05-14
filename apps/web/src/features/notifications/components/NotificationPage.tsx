@@ -1,392 +1,212 @@
 'use client'
 
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Bell, 
-  Search, 
-  Filter, 
-  Trash2, 
-  Archive, 
-  CheckCircle2, 
-  X, 
-  Clock, 
-  ChevronRight,
-  MoreVertical,
-  CheckCheck,
-  AlertCircle,
-  Inbox,
-  LayoutGrid,
-  List as ListIcon,
-  RefreshCw,
-  ArrowLeft
-} from 'lucide-react'
-import { useTranslation } from 'react-i18next'
+import React, { useMemo, useState } from 'react'
+import { Archive, ArrowLeft, Bell, CheckCheck, Inbox, RefreshCw, Search } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { es, enUS, pt } from 'date-fns/locale'
-import { useNotifications } from '../hooks/useNotifications'
-import { useNotificationList, NotificationStatusFilter } from '../hooks/useNotificationList'
-import { cn } from '@/shared/utils/cn'
-import { 
-  getNotificationIcon, 
-  getNotificationBgColor, 
-  getNotificationTextColor,
-  getNotificationBorderColor
-} from '../utils/notification-categories'
+import { enUS, es, pt } from 'date-fns/locale'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
+
+import { cn } from '@/shared/utils/cn'
+import { useNotifications } from '../hooks/useNotifications'
+import { NotificationStatusFilter, useNotificationList } from '../hooks/useNotificationList'
+import {
+  getNotificationActionUrl,
+  NotificationEmptyState,
+  NotificationListItem,
+  NotificationLoadingState,
+} from './notification-ui'
+import type { Notification } from '../services/notification.service'
 
 const dateLocales = {
   es,
   en: enUS,
-  pt
+  pt,
 }
+
+const statusFilters: Array<{ id: NotificationStatusFilter; labelKey: string; icon: typeof Inbox }> = [
+  { id: 'all', labelKey: 'actions.notificationsPage.all', icon: Inbox },
+  { id: 'unread', labelKey: 'actions.notificationsPage.unread', icon: Bell },
+  { id: 'archived', labelKey: 'actions.notificationsPage.archived', icon: Archive },
+]
 
 export function NotificationPage() {
   const { t, i18n } = useTranslation('common')
   const router = useRouter()
-  const currentLocale = (dateLocales[i18n.language as keyof typeof dateLocales] || es) as any
-  
-  const { 
-    markAsRead, 
-    markAllAsRead, 
-    archiveNotification, 
+  const currentLocale = dateLocales[i18n.language as keyof typeof dateLocales] || es
+  const {
+    markAsRead,
+    markAllAsRead,
+    archiveNotification,
     deleteNotification,
-    unreadCount 
+    unreadCount,
   } = useNotifications()
-  
-  const { 
-    notifications, 
-    isLoading, 
-    mutate, 
-    statusFilter, 
-    setStatusFilter 
+  const {
+    notifications,
+    isLoading,
+    mutate,
+    statusFilter,
+    setStatusFilter,
+    total,
   } = useNotificationList()
-
   const [searchQuery, setSearchQuery] = useState('')
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
-  const [isMounted, setIsMounted] = useState(false)
 
-  React.useEffect(() => {
-    setIsMounted(true)
-  }, [])
+  const filteredNotifications = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase()
+    if (!normalizedQuery) return notifications
 
-  const filteredNotifications = notifications.filter(n => {
-    const searchContent = `${n.title} ${n.message}`.toLowerCase()
-    return searchContent.includes(searchQuery.toLowerCase())
-  })
+    return notifications.filter((notification) => {
+      const searchableText = `${notification.title} ${notification.message}`.toLowerCase()
+      return searchableText.includes(normalizedQuery)
+    })
+  }, [notifications, searchQuery])
 
-  const handleAction = async (action: () => Promise<void>) => {
-    try {
-      await action()
-      await mutate()
-    } catch (error) {
-      console.error('Error executing notification action:', error)
+  const runAction = async (action: () => Promise<void> | void) => {
+    await action()
+    await mutate()
+  }
+
+  const openNotification = async (notification: Notification) => {
+    if (notification.status === 'unread') {
+      await runAction(() => markAsRead(notification.notification_id))
+    }
+
+    const actionUrl = getNotificationActionUrl(notification)
+    if (actionUrl) {
+      router.push(actionUrl)
     }
   }
 
-  const handleNotificationClick = async (n: any) => {
-    if (n.status === 'unread') {
-      await handleAction(() => markAsRead(n.notification_id))
-    }
-    
-    if (n.metadata?.action_url) {
-      router.push(n.metadata.action_url)
-    }
-  }
+  const formatTime = (createdAt: string) =>
+    formatDistanceToNow(new Date(createdAt), {
+      addSuffix: true,
+      locale: currentLocale,
+    })
+
+  const emptyDescription = searchQuery
+    ? t('actions.notificationsPage.emptySearch', { query: searchQuery })
+    : statusFilter === 'unread'
+      ? t('actions.notificationsPage.emptyUnread')
+      : t('actions.notificationsPage.emptyDefault')
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] transition-colors duration-300 relative overflow-hidden">
-      {/* Decorative Gradients */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#00D4B3]/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#0A2540]/10 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2" />
+    <div className="min-h-screen bg-gray-50 transition-colors dark:bg-gray-900">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+        <header className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex min-w-0 items-start gap-3">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="mt-1 rounded-lg border border-gray-200 bg-white p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-primary dark:border-white/10 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+              title={t('actions.back')}
+              aria-label={t('actions.back')}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
 
-      <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
-        
-        {/* Header Section */}
-        <header className="mb-10">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-5">
-              <button 
-                onClick={() => router.back()}
-                className="p-2.5 bg-white dark:bg-white/5 text-[#6C757D] dark:text-gray-400 rounded-xl hover:text-[#0A2540] dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-all border border-gray-200 dark:border-white/5"
-                title={isMounted ? t('actions.back') : ''}
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <div className="p-4 bg-gradient-to-br from-[#0A2540] to-[#1E293B] dark:from-[#00D4B3] dark:to-[#00A896] rounded-2xl shadow-2xl shadow-primary/20 ring-4 ring-white dark:ring-white/10">
-                <Bell className="w-8 h-8 text-white dark:text-[#0A2540]" />
+            <div className="min-w-0">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="rounded-lg bg-primary/10 p-2 text-primary dark:bg-accent/10 dark:text-accent">
+                  <Bell className="h-5 w-5" />
+                </span>
+                <span className="text-sm font-semibold text-accent">
+                  {t('actions.notificationsPage.totalCount', { count: total })}
+                </span>
               </div>
-              <div>
-                <h1 className="text-3xl font-black text-[#0A2540] dark:text-white tracking-tight uppercase italic">
-                  {isMounted ? t('actions.notificationsPage.title') : '...'}
-                </h1>
-                <p className="text-[#6C757D] dark:text-gray-400 font-medium">
-                  {isMounted ? (
-                    unreadCount > 0 
-                      ? t('actions.notificationsPage.subtitle')
-                      : t('actions.notificationsPage.noNotifications')
-                  ) : '...'}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => handleAction(markAllAsRead)}
-                disabled={unreadCount === 0}
-                className="flex items-center gap-2 px-5 py-2.5 bg-[#0A2540] dark:bg-[#00D4B3] text-white dark:text-[#0A2540] rounded-xl font-bold text-sm hover:brightness-110 transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none shadow-lg shadow-[#0A2540]/10 dark:shadow-[#00D4B3]/10"
-              >
-                <CheckCheck className="w-4 h-4" />
-                {isMounted ? t('actions.notificationsPage.markAllRead') : '...'}
-              </button>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
+                {t('actions.notificationsPage.title')}
+              </h1>
+              <p className="mt-1 max-w-2xl text-sm text-gray-600 dark:text-gray-400">
+                {unreadCount > 0
+                  ? t('actions.notificationsPage.unreadCount', { count: unreadCount })
+                  : t('actions.notificationsPage.noUnread')}
+              </p>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => runAction(markAllAsRead)}
+            disabled={unreadCount === 0}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-accent dark:text-primary dark:hover:bg-accent/90"
+          >
+            <CheckCheck className="h-4 w-4" />
+            {t('actions.notificationsPage.markAllRead')}
+          </button>
         </header>
 
-        {/* Filters and Search */}
-        <div className="bg-white dark:bg-[#1E2329] rounded-2xl border border-[#E9ECEF] dark:border-white/5 p-4 mb-6 shadow-sm">
-          <div className="flex flex-col lg:flex-row items-center gap-4">
-            
-            {/* Search */}
-            <div className="relative w-full lg:flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6C757D] dark:text-gray-500" />
+        <section className="mb-5 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-800">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <label className="relative flex-1">
+              <span className="sr-only">{t('actions.notificationsPage.searchPlaceholder')}</span>
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
               <input
-                type="text"
-                placeholder={isMounted ? t('actions.notificationsPage.searchPlaceholder') : '...'}
+                type="search"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-gray-50 dark:bg-[#0A2540]/30 border border-[#E9ECEF] dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-[#00D4B3]/50 focus:border-[#00D4B3] outline-none transition-all dark:text-white"
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder={t('actions.notificationsPage.searchPlaceholder')}
+                className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm text-gray-900 outline-none transition-colors focus:border-accent focus:bg-white focus:ring-2 focus:ring-accent/20 dark:border-white/10 dark:bg-gray-900 dark:text-white dark:focus:bg-gray-900"
               />
+            </label>
+
+            <div className="flex gap-1 overflow-x-auto rounded-lg bg-gray-100 p-1 dark:bg-gray-900">
+              {statusFilters.map((filter) => {
+                const Icon = filter.icon
+                const isActive = statusFilter === filter.id
+
+                return (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    onClick={() => setStatusFilter(filter.id)}
+                    className={cn(
+                      'inline-flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold transition-colors',
+                      isActive
+                        ? 'bg-white text-primary shadow-sm dark:bg-gray-800 dark:text-accent'
+                        : 'text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-white',
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {t(filter.labelKey)}
+                  </button>
+                )
+              })}
             </div>
 
-            {/* Tab Filters */}
-            <div className="flex items-center p-1 bg-gray-100 dark:bg-[#0A2540]/50 rounded-xl w-full lg:w-auto overflow-x-auto no-scrollbar">
-              {[
-                { id: 'all', label: isMounted ? t('actions.notificationsPage.all') : '...', icon: Inbox },
-                { id: 'unread', label: isMounted ? t('actions.notificationsPage.unread') : '...', icon: Bell },
-                { id: 'archived', label: isMounted ? t('actions.notificationsPage.archived') : '...', icon: Archive }
-              ].map((filter) => (
-                <button
-                  key={filter.id}
-                  onClick={() => setStatusFilter(filter.id as NotificationStatusFilter)}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap",
-                    statusFilter === filter.id
-                      ? "bg-white dark:bg-[#00D4B3] text-[#0A2540] shadow-sm"
-                      : "text-[#6C757D] dark:text-gray-400 hover:text-[#0A2540] dark:hover:text-white"
-                  )}
-                >
-                  <filter.icon className="w-4 h-4" />
-                  {filter.label}
-                </button>
-              ))}
-            </div>
-
-            {/* View Mode Toggle */}
-            <div className="hidden sm:flex items-center gap-1 p-1 bg-gray-100 dark:bg-[#0A2540]/50 rounded-xl">
-              <button
-                onClick={() => setViewMode('list')}
-                className={cn(
-                  "p-1.5 rounded-lg transition-all",
-                  viewMode === 'list' ? "bg-white dark:bg-white/10 text-[#0A2540] dark:text-[#00D4B3] shadow-sm" : "text-[#6C757D] dark:text-gray-500"
-                )}
-              >
-                <ListIcon className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                className={cn(
-                  "p-1.5 rounded-lg transition-all",
-                  viewMode === 'grid' ? "bg-white dark:bg-white/10 text-[#0A2540] dark:text-[#00D4B3] shadow-sm" : "text-[#6C757D] dark:text-gray-500"
-                )}
-              >
-                <LayoutGrid className="w-4 h-4" />
-              </button>
-            </div>
-
-            <button 
+            <button
+              type="button"
               onClick={() => mutate()}
-              className="p-2.5 bg-gray-100 dark:bg-[#0A2540]/50 text-[#6C757D] dark:text-gray-400 rounded-xl hover:bg-gray-200 dark:hover:bg-white/10 transition-all"
-              title={isMounted ? t('actions.refresh') : ''}
+              className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-2.5 text-gray-600 transition-colors hover:bg-gray-100 hover:text-primary dark:border-white/10 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-accent"
+              title={t('actions.refresh')}
+              aria-label={t('actions.refresh')}
             >
-              <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+              <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />
             </button>
           </div>
-        </div>
+        </section>
 
-        {/* Notifications Content */}
-        <div className={cn(
-          "relative",
-          viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-3"
-        )}>
-          <AnimatePresence mode="popLayout">
-            {isLoading && notifications.length === 0 ? (
-              <div className="col-span-full py-20 flex flex-col items-center justify-center">
-                <div className="w-12 h-12 border-4 border-[#00D4B3]/20 border-t-[#00D4B3] rounded-full animate-spin mb-4" />
-                <p className="text-[#6C757D] dark:text-gray-400 font-medium">{isMounted ? t('actions.notificationsPage.loading') : '...'}</p>
-              </div>
-            ) : filteredNotifications.length === 0 ? (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="col-span-full py-20 bg-white dark:bg-[#1E2329] rounded-3xl border border-[#E9ECEF] dark:border-white/5 flex flex-col items-center justify-center text-center px-4"
-              >
-                <div className="w-20 h-20 bg-gray-50 dark:bg-[#0A2540]/30 rounded-[2.5rem] flex items-center justify-center mb-6 rotate-3">
-                  <Bell className="w-10 h-10 text-[#6C757D] dark:text-gray-600" />
-                </div>
-                <h3 className="text-xl font-black text-[#0A2540] dark:text-white uppercase italic mb-2">
-                  {isMounted ? t('actions.notificationsPage.emptyTitle') : '...'}
-                </h3>
-                <p className="text-[#6C757D] dark:text-gray-400 max-w-sm font-medium">
-                  {isMounted ? (
-                    searchQuery 
-                      ? t('actions.notificationsPage.emptySearch', { query: searchQuery })
-                      : statusFilter === 'unread' 
-                        ? t('actions.notificationsPage.emptyUnread')
-                        : t('actions.notificationsPage.emptyDefault')
-                  ) : '...'}
-                </p>
-                {searchQuery && (
-                  <button 
-                    onClick={() => setSearchQuery('')}
-                    className="mt-6 text-[#00D4B3] font-bold hover:underline"
-                  >
-                    {isMounted ? t('actions.notificationsPage.clearSearch') : '...'}
-                  </button>
-                )}
-              </motion.div>
-            ) : (
-              filteredNotifications.map((notification, index) => {
-                const Icon = getNotificationIcon(notification.notification_type)
-                const bgColor = getNotificationBgColor(notification.notification_type)
-                const textColor = getNotificationTextColor(notification.notification_type)
-                const borderColor = getNotificationBorderColor(notification.notification_type)
-                const isUnread = notification.status === 'unread'
-                
-                return (
-                  <motion.div
-                    key={notification.notification_id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.3, delay: index * 0.03 }}
-                    className={cn(
-                      "group relative transition-all duration-500 rounded-2xl border",
-                      "bg-white/80 dark:bg-white/[0.03] backdrop-blur-md",
-                      isUnread 
-                        ? "border-[#0A2540]/20 dark:border-[#00D4B3]/40 shadow-xl shadow-[#0A2540]/5 dark:shadow-[#00D4B3]/5 ring-1 ring-[#0A2540]/5 dark:ring-[#00D4B3]/20" 
-                        : "border-gray-200 dark:border-white/5 hover:border-[#00D4B3]/30",
-                      "hover:shadow-2xl hover:shadow-[#00D4B3]/10 hover:-translate-y-1",
-                      viewMode === 'grid' ? "flex flex-col p-6 h-full" : "flex items-center gap-5 p-5"
-                    )}
-                  >
-                    {/* Status Indicator */}
-                    {isUnread && (
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#0A2540] to-[#00D4B3] rounded-l-2xl" />
-                    )}
-
-                    {/* Icon Container */}
-                    <div className={cn(
-                      "flex-shrink-0 p-3 rounded-xl",
-                      bgColor,
-                      viewMode === 'grid' ? "w-12 h-12 mb-4" : "w-14 h-14"
-                    )}>
-                      <Icon className={cn("w-full h-full", textColor.replace('text-', ''))} />
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0" onClick={() => handleNotificationClick(notification)}>
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <h4 className={cn(
-                          "font-bold text-sm sm:text-base leading-tight truncate cursor-pointer hover:text-[#00D4B3] transition-colors",
-                          isUnread ? "text-[#0A2540] dark:text-white" : "text-[#6C757D] dark:text-gray-300"
-                        )}>
-                          {isMounted 
-                            ? (notification.metadata?.is_localized ? t(notification.title) : notification.title)
-                            : '...'}
-                        </h4>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <span className="text-[10px] font-bold text-[#6C757D] dark:text-gray-500 uppercase tracking-widest flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {isMounted ? formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: currentLocale }) : '...'}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <p className={cn(
-                        "text-xs sm:text-sm leading-relaxed mb-3",
-                        isUnread ? "text-[#6C757D] dark:text-gray-300" : "text-[#6C757D] dark:text-gray-500",
-                        viewMode === 'list' ? "line-clamp-1" : "line-clamp-3"
-                      )}>
-                        {isMounted ? (
-                          notification.metadata?.is_localized 
-                            ? t(notification.message, notification.metadata as any) 
-                            : notification.message
-                        ) : '...'}
-                      </p>
-
-                      <div className="flex items-center gap-4">
-                        {notification.priority === 'critical' && (
-                          <span className="px-2 py-0.5 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-[10px] font-black uppercase rounded-md flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3" />
-                            {isMounted ? t('actions.notificationsPage.priority.critical') : '...'}
-                          </span>
-                        )}
-                        {notification.priority === 'high' && (
-                          <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase rounded-md">
-                            {isMounted ? t('actions.notificationsPage.priority.high') : '...'}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className={cn(
-                      "flex items-center gap-1",
-                      viewMode === 'grid' ? "mt-auto pt-4 border-t border-[#E9ECEF] dark:border-white/5 justify-end" : "ml-4"
-                    )}>
-                      {isUnread && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleAction(() => markAsRead(notification.notification_id)) }}
-                          className="p-2 text-[#6C757D] dark:text-gray-400 hover:text-green-500 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-500/10 rounded-lg transition-all"
-                          title={isMounted ? t('actions.markAsRead') : ''}
-                        >
-                          <CheckCircle2 className="w-4 h-4" />
-                        </button>
-                      )}
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleAction(() => archiveNotification(notification.notification_id)) }}
-                        className="p-2 text-[#6C757D] dark:text-gray-400 hover:text-[#0A2540] dark:hover:text-[#00D4B3] hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-all"
-                        title={isMounted ? t('actions.archive') : ''}
-                      >
-                        <Archive className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleAction(() => deleteNotification(notification.notification_id)) }}
-                        className="p-2 text-[#6C757D] dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all"
-                        title={isMounted ? t('actions.delete') : ''}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                      
-                      {notification.metadata?.action_url && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); router.push(notification.metadata.action_url) }}
-                          className="p-2 text-[#0A2540] dark:text-[#00D4B3] hover:bg-[#00D4B3]/10 rounded-lg transition-all"
-                          title={isMounted ? t('actions.viewDetails') : ''}
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </motion.div>
-                )
-              })
-            )}
-          </AnimatePresence>
-        </div>
+        <section className="space-y-3">
+          {isLoading && notifications.length === 0 ? (
+            <NotificationLoadingState label={t('actions.notificationsPage.loading')} />
+          ) : filteredNotifications.length === 0 ? (
+            <NotificationEmptyState
+              title={t('actions.notificationsPage.emptyTitle')}
+              description={emptyDescription}
+            />
+          ) : (
+            filteredNotifications.map((notification) => (
+              <NotificationListItem
+                key={notification.notification_id}
+                notification={notification}
+                formattedTime={formatTime(notification.created_at)}
+                onOpen={openNotification}
+                onMarkAsRead={(notificationId) => runAction(() => markAsRead(notificationId))}
+                onArchive={(notificationId) => runAction(() => archiveNotification(notificationId))}
+                onDelete={(notificationId) => runAction(() => deleteNotification(notificationId))}
+              />
+            ))
+          )}
+        </section>
       </div>
     </div>
   )

@@ -172,6 +172,7 @@
     "notAvailable": "Activities not available",
     "notAvailableMessage": "This lesson does not have available activities yet. Activities will be added soon.",
     "aiChat": "AI Chat",
+    "sofliaActivityType": "AI Conversation",
     "attempted": "Attempted",
     "needsRevision": "Needs revision",
     "aiChatActivity": "SofLIA Activity",
@@ -181,6 +182,46 @@
     "promptsAndExercises": "Prompts and exercises",
     "quizError": "Error: Quiz does not have the expected structure",
     "aiCompletionError": "Could not complete the activity with SofLIA.",
+    "dialogue": {
+      "title": "Guided conversation with SofLIA",
+      "subtitle": "Answer with your own ideas. SofLIA will evaluate evidence, criteria, and next steps inside this activity.",
+      "loadingTitle": "Preparing SofLIA activity",
+      "loadingDescription": "We are restoring your session and the activity context.",
+      "emptyTitle": "SofLIA is ready to begin",
+      "emptyDescription": "Write your first answer to start the guided conversation.",
+      "userLabel": "Your answer",
+      "responding": "SofLIA is reviewing your answer...",
+      "finalFeedback": "Final feedback",
+      "practiceAgain": "Practice again",
+      "retryActivity": "Retry activity",
+      "placeholder": "Write your answer for SofLIA...",
+      "closedPlaceholder": "This session has already been closed.",
+      "helper": "Send a concrete answer with evidence of your reasoning.",
+      "closedHelper": "The session is closed. You can review feedback or start another attempt if available.",
+      "send": "Send answer",
+      "metrics": {
+        "criteria": "Criteria",
+        "turns": "Interactions",
+        "score": "Score"
+      },
+      "states": {
+        "START": "Ready",
+        "ASK_FIRST_QUESTION": "First question",
+        "EVALUATE_RESPONSE": "Evaluating",
+        "CHALLENGE_OR_PROBE": "Deepening",
+        "HINT": "Hint",
+        "RESCUE": "Support",
+        "SESSION_SUMMARY": "Summary",
+        "COMPLETE": "Completed",
+        "FAIL_OR_RETRY": "Retry available"
+      },
+      "errors": {
+        "loadTimeout": "The session took too long to load. Refresh the page or try again.",
+        "loadFailed": "Could not load the dialogue.",
+        "sendTimeout": "SofLIA took too long to respond. Your answer may have been saved; retry or reload the session.",
+        "sendFailed": "Could not send your answer."
+      }
+    },
     "tips": {
       "manual": "Activities are added manually",
       "contactInstructor": "Contact the instructor if you need help"

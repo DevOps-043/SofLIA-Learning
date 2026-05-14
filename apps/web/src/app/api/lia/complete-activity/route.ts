@@ -253,6 +253,14 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating completed activity:', error);
+
+      if (error.message?.includes('limite de 3 intentos')) {
+        return NextResponse.json(
+          { error: 'Se alcanzo el limite de 3 intentos para esta actividad' },
+          { status: 409 }
+        );
+      }
+
       return NextResponse.json(
         { error: 'Error al registrar actividad completada' },
         { status: 500 }

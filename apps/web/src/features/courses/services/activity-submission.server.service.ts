@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import type { createAdminClient } from '@/lib/supabase/admin'
 import {
   createOrganizationAiContextRepository,
   resolveStrictOrganizationAiContext,
@@ -22,7 +23,9 @@ import {
   summarizeActivitySubmissionRequirementIssues,
 } from './activity-submission-requirements.service'
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+type SupabaseServerClient =
+  | Awaited<ReturnType<typeof createClient>>
+  | ReturnType<typeof createAdminClient>
 
 type CourseRow = {
   id: string

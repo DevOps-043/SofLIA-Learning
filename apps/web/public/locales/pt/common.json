@@ -1163,6 +1163,9 @@
       "title": "Notificações",
       "subtitle": "Gerencie suas notificações e mantenha-se atualizado",
       "noNotifications": "Nenhuma notificação",
+      "noUnread": "Você não tem notificações não lidas",
+      "unreadCount": "{{count}} não lidas",
+      "totalCount": "{{count}} notificações",
       "all": "Todas",
       "unread": "Não lidas",
       "archived": "Arquivadas",
@@ -1177,7 +1180,9 @@
       "clearSearch": "Limpar busca",
       "priority": {
         "critical": "Crítico",
-        "high": "Alta"
+        "high": "Alta",
+        "medium": "Média",
+        "low": "Baixa"
       }
     }
   },

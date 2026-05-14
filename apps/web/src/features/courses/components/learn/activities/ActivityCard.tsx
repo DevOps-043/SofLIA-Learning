@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { TFunction } from "i18next";
 import {
   Activity,
   BookOpen,
@@ -71,7 +72,7 @@ function QuizFallback({
   );
 }
 
-function CompletionBadge({ activity, t }: { activity: LearnActivity, t: any }) {
+function CompletionBadge({ activity, t }: { activity: LearnActivity, t: TFunction<"learn"> }) {
   if (activity.activity_type === "quiz") {
     return null;
   }
@@ -110,6 +111,7 @@ export function ActivityCard({
   const isSofliaDialogue =
     activity.activity_config?.interactionType === "soflia_dialogue";
   const isAiChat = activity.activity_type === "ai_chat" && !isSofliaDialogue;
+  const isSofliaActivity = isAiChat || isSofliaDialogue;
   const isQuiz = activity.activity_type === "quiz";
   const isInteractive = Boolean(activity.activity_config);
   const normalizedActivityContent = getNormalizedActivityContent(activity);
@@ -189,13 +191,17 @@ export function ActivityCard({
       >
         <div
           className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${
-            isAiChat
-              ? "bg-indigo-50 dark:bg-white/10"
+            isSofliaActivity
+              ? "overflow-hidden border border-accent/25 bg-accent/10 dark:bg-accent/15"
               : "bg-gray-100 dark:bg-white/5"
           }`}
         >
-          {isAiChat ? (
-            <MessageCircle className="h-4 w-4 text-indigo-500 dark:text-white/60" />
+          {isSofliaActivity ? (
+            <img
+              src="/lia-avatar.webp"
+              alt="SofLIA"
+              className="h-full w-full object-cover"
+            />
           ) : isQuiz ? (
             <FileText className="h-4 w-4 text-gray-500 dark:text-white/60" />
           ) : activity.activity_type === "reading" ? (
@@ -215,8 +221,14 @@ export function ActivityCard({
                 {t("activities.required")}
               </span>
             )}
-            <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium capitalize text-gray-500 dark:bg-white/5 dark:text-white/40">
-              {isAiChat ? t("activities.aiChat") : activity.activity_type}
+            <span
+              className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                isSofliaActivity
+                  ? "border border-accent/20 bg-accent/10 text-primary dark:bg-accent/15 dark:text-accent"
+                  : "capitalize bg-gray-100 text-gray-500 dark:bg-white/5 dark:text-white/40"
+              }`}
+            >
+              {isSofliaActivity ? t("activities.sofliaActivityType") : activity.activity_type}
             </span>
             {activity.is_required && quizInfo?.isPassed && (
               <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
@@ -345,7 +357,8 @@ export function ActivityCard({
                         if (currentIndex > 0) setContentZoom(ZOOM_STEPS[currentIndex - 1]);
                       }}
                       disabled={!canZoomOut}
-                      title="Reducir tamaño de texto"
+                      title={t("reading.decreaseFontSize")}
+                      aria-label={t("reading.decreaseFontSize")}
                       className="rounded px-1.5 py-0.5 text-xs font-semibold text-gray-500 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30 dark:text-white/40 dark:hover:bg-white/10"
                     >
                       A−
@@ -358,7 +371,8 @@ export function ActivityCard({
                         if (currentIndex < ZOOM_STEPS.length - 1) setContentZoom(ZOOM_STEPS[currentIndex + 1]);
                       }}
                       disabled={!canZoomIn}
-                      title="Aumentar tamaño de texto"
+                      title={t("reading.increaseFontSize")}
+                      aria-label={t("reading.increaseFontSize")}
                       className="rounded px-1.5 py-0.5 text-xs font-semibold text-gray-500 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30 dark:text-white/40 dark:hover:bg-white/10"
                     >
                       A+
