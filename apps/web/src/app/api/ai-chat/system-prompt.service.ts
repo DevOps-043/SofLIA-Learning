@@ -1,4 +1,8 @@
 import type { CourseLessonContext } from '../../../core/types/lia.types'
+import {
+  buildOrganizationAiContextPromptSection,
+  type ResolvedOrganizationAiContext,
+} from '@/lib/lia-context/services/organization-ai-context.service'
 import { buildCoursePrompt } from './system-prompt.course'
 import { buildContextPrompts } from './system-prompt.contexts'
 import {
@@ -20,11 +24,13 @@ export const getContextPrompt = (
   language: SupportedLanguage = 'es',
   _isFirstMessage = false,
   studyPlannerContextString?: string,
-  userRoleDescription?: string
+  userRoleDescription?: string,
+  organizationAiContext?: ResolvedOrganizationAiContext | null
 ) => {
   const role = userRole || courseContext?.userRole || workshopContext?.userRole
   const nameGreeting = buildNameGreeting(userName)
   const roleInfo = buildRoleInfo(role, userRoleDescription)
+  const organizationInfo = buildOrganizationAiContextPromptSection(organizationAiContext)
   const pageInfo = buildPageInfo(pageContext)
 
   if (courseContext && context === 'course') {
@@ -32,6 +38,7 @@ export const getContextPrompt = (
       nameGreeting,
       roleInfo,
       pageInfo,
+      organizationInfo,
       role,
       courseContext,
     })
@@ -41,6 +48,7 @@ export const getContextPrompt = (
     language,
     nameGreeting,
     roleInfo,
+    organizationInfo,
     pageInfo,
     role,
     userName,

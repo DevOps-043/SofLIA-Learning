@@ -138,6 +138,7 @@ export async function POST(request: NextRequest) {
       requestUserInfo: sanitizedUserInfo,
       userName: sanitizedUserName,
       courseContext: sanitizedCourseContext,
+      pageContext: sanitizedPageContext,
     })
 
     const { effectiveLanguage, contextPrompt: baseContextPrompt } = await buildAiChatContext({
@@ -148,6 +149,7 @@ export async function POST(request: NextRequest) {
       displayName: userContext.displayName,
       userRole: userContext.userRole,
       userRoleDescription: userContext.userRoleDescription,
+      organizationAiContext: userContext.organizationAiContext,
       courseContext: userContext.courseContext,
       workshopContext: sanitizedWorkshopContext,
       pageContext: sanitizedPageContext,

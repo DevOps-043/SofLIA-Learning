@@ -1,4 +1,8 @@
 import OpenAI from 'openai'
+import {
+  buildOrganizationAiContextPromptSection,
+  type ResolvedOrganizationAiContext,
+} from '@/lib/lia-context/services/organization-ai-context.service'
 
 import {
   dialogueEvaluationResultSchema,
@@ -30,13 +34,18 @@ function resolveDialogueEvaluationTimeoutMs() {
   return Number.isFinite(rawTimeout) && rawTimeout > 0 ? rawTimeout : 25000
 }
 
-function buildEvaluatorPrompt(input: {
+export function buildEvaluatorPrompt(input: {
   config: DialogueActivityConfig
+  organizationAiContext?: ResolvedOrganizationAiContext | null
   recentTurns: DialogueTurnRow[]
   studentMessage: string
   previousEvaluations: DialogueEvaluationRow[]
 }) {
   const { config } = input
+  const organizationContext = buildOrganizationAiContextPromptSection(
+    input.organizationAiContext,
+    config.contextAdaptation,
+  )
 
   return `
 Eres el evaluador runtime de una actividad conversacional de SofLIA.
@@ -80,6 +89,8 @@ ${stringify({
   approvalMinimum: config.policy.approvalMinimum,
 })}
 
+${organizationContext}
+
 Historial reciente:
 ${input.recentTurns
   .slice(-8)
@@ -103,6 +114,7 @@ ${input.studentMessage}
 
 export async function evaluateDialogueTurn(input: {
   config: DialogueActivityConfig
+  organizationAiContext?: ResolvedOrganizationAiContext | null
   previousEvaluations: DialogueEvaluationRow[]
   recentTurns: DialogueTurnRow[]
   studentMessage: string

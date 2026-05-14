@@ -20,6 +20,7 @@ interface BuildContextPromptsParams {
   language: SupportedLanguage
   nameGreeting: string
   roleInfo: string
+  organizationInfo: string
   pageInfo: string
   role?: string
   userName?: string
@@ -61,11 +62,12 @@ function buildWorkshopMetadataInfo(workshopContext?: CourseLessonContext): strin
 function buildStandardContextPrompt(
   intro: string,
   nameGreeting: string,
+  organizationInfo: string,
   pageInfo: string,
   extraSections = ''
 ): string {
   return `${intro}
-${nameGreeting}${pageInfo}${URL_INSTRUCTIONS}${extraSections}
+${nameGreeting}${organizationInfo}${pageInfo}${URL_INSTRUCTIONS}${extraSections}
 
 ${CONTENT_RESTRICTIONS}
 
@@ -76,6 +78,7 @@ export function buildContextPrompts({
   language,
   nameGreeting,
   roleInfo,
+  organizationInfo,
   pageInfo,
   role,
   userName,
@@ -91,6 +94,7 @@ export function buildContextPrompts({
 
 Eres SofLIA, un asistente especializado en talleres y cursos de inteligencia artificial y tecnología educativa.`,
       nameGreeting,
+      organizationInfo,
       pageInfo,
       workshopMetadataInfo
     ),
@@ -100,6 +104,7 @@ Eres SofLIA, un asistente especializado en talleres y cursos de inteligencia art
 
 Eres SofLIA, un asistente especializado en comunidades y networking.`,
       nameGreeting,
+      organizationInfo,
       pageInfo
     ),
 
@@ -108,6 +113,7 @@ Eres SofLIA, un asistente especializado en comunidades y networking.`,
 
 Eres SofLIA, un asistente especializado en noticias y actualidades sobre inteligencia artificial, tecnología y educación.`,
       nameGreeting,
+      organizationInfo,
       pageInfo
     ),
 
@@ -122,6 +128,7 @@ MODO ESPECIAL: CREACIÓN DE PROMPTS
 - Genera prompts claros, reutilizables y bien estructurados
 ${role ? `- Personaliza ejemplos y casos de uso al rol profesional "${role}"` : ''}`,
       nameGreeting,
+      organizationInfo,
       pageInfo
     ),
 
@@ -131,6 +138,7 @@ ${role ? `- Personaliza ejemplos y casos de uso al rol profesional "${role}"` : 
 Eres SofLIA, un asistente virtual especializado en inteligencia artificial, adopción tecnológica y mejores prácticas empresariales.
 ${roleInfo}`,
       nameGreeting,
+      organizationInfo,
       pageInfo
     ),
 
@@ -139,7 +147,7 @@ ${roleInfo}`,
 ${buildVoiceLanguageInstruction(language)}
 
 Eres SofLIA, un asistente virtual entusiasta que guía a un nuevo usuario en su proceso de onboarding en SofLIA.
-${nameGreeting}${pageInfo}${URL_INSTRUCTIONS}
+${nameGreeting}${organizationInfo}${pageInfo}${URL_INSTRUCTIONS}
 
 CONTEXTO ESPECIAL - CONVERSACIÓN POR VOZ:
 - Respuestas máximo 2-3 oraciones
@@ -153,7 +161,7 @@ FORMATO DE RESPUESTA: Escribe SOLO texto plano. Como es conversación por voz, e
     'tour-prompt-directory': `${languageNote}
 
 Eres SofLIA, un asistente virtual entusiasta que guía a un usuario en un tour del DIRECTORIO DE PROMPTS.
-${nameGreeting}${pageInfo}${URL_INSTRUCTIONS}
+${nameGreeting}${organizationInfo}${pageInfo}${URL_INSTRUCTIONS}
 
 CONTEXTO ESPECIAL - CONVERSACIÓN POR VOZ:
 - El usuario está viendo el directorio de prompts
@@ -167,7 +175,7 @@ FORMATO DE RESPUESTA: Escribe SOLO texto plano. Como es conversación por voz, e
     'tour-course-learn': `${languageNote}
 
 Eres SofLIA, un asistente virtual entusiasta que guía a un usuario en un tour de la interfaz de aprendizaje de cursos.
-${nameGreeting}${pageInfo}${URL_INSTRUCTIONS}
+${nameGreeting}${organizationInfo}${pageInfo}${URL_INSTRUCTIONS}
 
 CONTEXTO ESPECIAL - CONVERSACIÓN POR VOZ:
 - El usuario está viendo la página de aprendizaje de un curso

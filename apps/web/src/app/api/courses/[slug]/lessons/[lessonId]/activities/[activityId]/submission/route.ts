@@ -10,7 +10,7 @@ import {
   resolveCourseActivityContext,
   saveActivitySubmission,
 } from '@/features/courses/services/activity-submission.server.service'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 type RouteParams = {
   slug: string
@@ -29,7 +29,7 @@ export async function GET(
     }
 
     const { slug, lessonId, activityId } = await params
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const context = await resolveCourseActivityContext(
       supabase,
       currentUser.id,
@@ -43,14 +43,13 @@ export async function GET(
       submission,
     })
   } catch (error) {
-    const status =
-      error instanceof CourseActivityError ? error.status : 500
+    const isCourseActivityError = error instanceof CourseActivityError
+    const status = isCourseActivityError ? error.status : 500
 
     return NextResponse.json(
       {
-        code: error instanceof CourseActivityError ? error.code : undefined,
-        error:
-          error instanceof Error ? error.message : 'Error interno del servidor',
+        code: isCourseActivityError ? error.code : undefined,
+        error: isCourseActivityError ? error.message : 'Error interno del servidor',
       },
       { status },
     )
@@ -80,7 +79,7 @@ export async function POST(
     }
 
     const { slug, lessonId, activityId } = await params
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const context = await resolveCourseActivityContext(
       supabase,
       currentUser.id,
@@ -98,16 +97,14 @@ export async function POST(
       submission,
     })
   } catch (error) {
-    const status =
-      error instanceof CourseActivityError ? error.status : 500
+    const isCourseActivityError = error instanceof CourseActivityError
+    const status = isCourseActivityError ? error.status : 500
 
     return NextResponse.json(
       {
-        code: error instanceof CourseActivityError ? error.code : undefined,
-        error:
-          error instanceof Error ? error.message : 'Error interno del servidor',
-        details:
-          error instanceof CourseActivityError ? error.details : undefined,
+        code: isCourseActivityError ? error.code : undefined,
+        error: isCourseActivityError ? error.message : 'Error interno del servidor',
+        details: isCourseActivityError ? error.details : undefined,
       },
       { status },
     )

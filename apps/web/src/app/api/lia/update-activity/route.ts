@@ -63,7 +63,8 @@ export async function POST(request: NextRequest) {
     const { error } = await supabase
       .from('lia_activity_completions')
       .update(updateData)
-      .eq('completion_id', completionId);
+      .eq('completion_id', completionId)
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Error updating activity progress:', error);

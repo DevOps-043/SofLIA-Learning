@@ -1,6 +1,7 @@
 import type { CourseLessonContext } from '@/core/types/lia.types'
 import { SofLIAPersonalizationService } from '@/core/services/lia-personalization.service'
 import { SofLIAContextService } from '@/features/study-planner/services/lia-context.service'
+import type { ResolvedOrganizationAiContext } from '@/lib/lia-context/services/organization-ai-context.service'
 import { logger } from '@/lib/utils/logger'
 import { getContextPrompt, type PageContext } from '../system-prompt.service'
 import { validateProposedSchedule } from './calendar-validation.service'
@@ -36,6 +37,7 @@ interface BuildAiChatContextParams {
   displayName: string
   userRole?: string
   userRoleDescription?: string
+  organizationAiContext?: ResolvedOrganizationAiContext | null
   courseContext?: CourseLessonContext
   workshopContext?: CourseLessonContext
   pageContext?: PageContext
@@ -247,6 +249,7 @@ export async function buildAiChatContext({
   displayName,
   userRole,
   userRoleDescription,
+  organizationAiContext,
   courseContext,
   workshopContext,
   pageContext,
@@ -277,6 +280,7 @@ export async function buildAiChatContext({
     isFirstMessage,
     studyPlannerContextString,
     userRoleDescription,
+    organizationAiContext,
   )
 
   if (context === 'study-planner' && user) {

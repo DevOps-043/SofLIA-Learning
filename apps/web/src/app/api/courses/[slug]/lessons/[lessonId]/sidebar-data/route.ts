@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { SessionService } from '@/features/auth/services/session.service'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
 import { resolveLearningPathAccessForCourse } from '@/features/learning-paths/services/learning-path-access.server'
@@ -79,7 +79,7 @@ export async function GET(
 ) {
   try {
     const { slug, lessonId } = await params
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const organizationId = request.nextUrl.searchParams.get('orgId')?.trim() || null
     const language = normalizeLearnLanguage(
       request.nextUrl.searchParams.get('language'),
@@ -405,7 +405,6 @@ export async function GET(
     return NextResponse.json(
       {
         error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido',
       },
       { status: 500 },
     )

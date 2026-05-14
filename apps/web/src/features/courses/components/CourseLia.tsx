@@ -144,7 +144,11 @@ function parseMarkdownContent(text: string, onLinkClick: (link: NormalizedLiaLin
 
 // Botón Flotante - Solo visible en tablets/desktop (md:), en móviles se integra en la barra inferior
 function CourseLiaFloatingButton() {
-  const { isOpen, toggleLia } = useLiaCourse();
+  const { isOpen, toggleLia, isInteractionBlocked } = useLiaCourse();
+
+  if (isInteractionBlocked) {
+    return null;
+  }
   
   return (
     <>
@@ -221,6 +225,7 @@ function CourseLiaPanelContent({
   const {
     isOpen,
     closeLia,
+    isInteractionBlocked,
     currentActivity,
     registerLiaChat,
     setCourseContext,
@@ -462,6 +467,16 @@ function CourseLiaPanelContent({
   }, [router]);
 
   useEffect(() => {
+    if (isInteractionBlocked) {
+      closeLia();
+      stop();
+      setInputValue('');
+      setEditingMessageId(null);
+      setEditingValue('');
+    }
+  }, [closeLia, isInteractionBlocked, stop]);
+
+  useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
@@ -545,6 +560,11 @@ function CourseLiaPanelContent({
   }, [isOpen, currentActivity, resolvedLessonContext, sendMessage]);
 
   const handleSendMessage = useCallback(async () => {
+    if (isInteractionBlocked) {
+      closeLia();
+      return;
+    }
+
     if (!inputValue.trim() || isLoading) return;
     const message = inputValue.trim();
     setInputValue('');
@@ -556,9 +576,20 @@ function CourseLiaPanelContent({
       undefined,
       false
     );
-  }, [inputValue, isLoading, resolvedLessonContext, sendMessage]);
+
+    if (currentActivity?.type === 'ai_chat') {
+      await currentActivity.onUserMessageCompleted?.(
+        liaChat.getCurrentConversationId(),
+      );
+    }
+  }, [closeLia, currentActivity, inputValue, isInteractionBlocked, isLoading, liaChat, resolvedLessonContext, sendMessage]);
 
   const handlePrimaryAction = useCallback(() => {
+    if (isInteractionBlocked) {
+      closeLia();
+      return;
+    }
+
     if (isLoading) {
       stop();
       return;
@@ -574,7 +605,7 @@ function CourseLiaPanelContent({
     }
 
     void handleSendMessage();
-  }, [handleSendMessage, inputValue, isListening, isLoading, stop, toggleListening]);
+  }, [closeLia, handleSendMessage, inputValue, isInteractionBlocked, isListening, isLoading, stop, toggleListening]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -584,13 +615,13 @@ function CourseLiaPanelContent({
   };
 
   const handleStartEditingMessage = useCallback((message: SofLIAMessage) => {
-    if (isLoading || message.role !== 'user') {
+    if (isInteractionBlocked || isLoading || message.role !== 'user') {
       return;
     }
 
     setEditingMessageId(message.id);
     setEditingValue(message.content);
-  }, [isLoading]);
+  }, [isInteractionBlocked, isLoading]);
 
   const handleCancelEditingMessage = useCallback(() => {
     setEditingMessageId(null);
@@ -598,6 +629,11 @@ function CourseLiaPanelContent({
   }, []);
 
   const handleSubmitEditedMessage = useCallback(async () => {
+    if (isInteractionBlocked) {
+      closeLia();
+      return;
+    }
+
     if (!editingMessageId || !editingValue.trim() || isLoading) {
       return;
     }
@@ -615,8 +651,10 @@ function CourseLiaPanelContent({
     );
   }, [
     editMessageAndRegenerate,
+    closeLia,
     editingMessageId,
     editingValue,
+    isInteractionBlocked,
     isLoading,
     resolvedLessonContext,
   ]);
@@ -672,7 +710,7 @@ function CourseLiaPanelContent({
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      {isOpen && !isInteractionBlocked && (
         <motion.aside
           ref={panelRef}
           initial={animationInitial}
@@ -909,9 +947,14 @@ function CourseLiaPanelContent({
                <textarea
                  ref={inputRef}
                  value={inputValue}
-                 onChange={(e) => setInputValue(e.target.value)}
+                 onChange={(e) => {
+                   if (!isInteractionBlocked) {
+                     setInputValue(e.target.value);
+                   }
+                 }}
                  onKeyDown={handleKeyDown}
                  placeholder={t('lia.coursePlaceholder')}
+                 disabled={isInteractionBlocked}
                  rows={1}
                  style={{ flex: 1, minHeight: '20px', maxHeight: '120px', resize: 'none', backgroundColor: 'transparent', border: 'none', outline: 'none', color: themeColors.textPrimary, fontSize: '14px', lineHeight: '20px', padding: 0, overflowY: 'hidden', display: 'block' }}
                  id="lia-course-chat-input"
@@ -920,6 +963,7 @@ function CourseLiaPanelContent({
                <motion.button
                  type="button"
                  onClick={handlePrimaryAction}
+                 disabled={isInteractionBlocked}
                  whileHover={{ scale: 1.05 }}
                  whileTap={{ scale: 0.95 }}
                  title={primaryActionLabel}
@@ -936,7 +980,7 @@ function CourseLiaPanelContent({
                      ? 'rgba(16,185,129,0.16)'
                      : (isLightTheme ? '#CBD5E1' : '#374151'),
                    border: 'none',
-                   cursor: 'pointer',
+                   cursor: isInteractionBlocked ? 'not-allowed' : 'pointer',
                    display: 'flex',
                    alignItems: 'center',
                    justifyContent: 'center',

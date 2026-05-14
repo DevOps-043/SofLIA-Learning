@@ -51,7 +51,14 @@ export function useLearnPageLogic() {
   const router = useRouter()
   const slug = params.slug as string
 
-  const { isOpen: isLiaOpen, openLia, closeLia, liaChat } = useLiaCourse()
+  const {
+    isOpen: isLiaOpen,
+    openLia,
+    closeLia,
+    liaChat,
+    isInteractionBlocked: isLiaInteractionBlocked,
+    setInteractionBlocked: setLiaInteractionBlocked,
+  } = useLiaCourse()
   const { user } = useAuth()
   const organizationId = useCurrentOrganizationId()
   const colors = useCourseTheme()
@@ -103,6 +110,11 @@ export function useLearnPageLogic() {
         return
       }
 
+      if (isLiaInteractionBlocked) {
+        closeLia()
+        return
+      }
+
       if (!isLiaOpen) {
         openLia()
       }
@@ -114,7 +126,7 @@ export function useLearnPageLogic() {
         isSystemMessage,
       )
     },
-    [isLiaOpen, liaChat, openLia],
+    [closeLia, isLiaInteractionBlocked, isLiaOpen, liaChat, openLia],
   )
 
   useEffect(() => {
@@ -259,6 +271,19 @@ export function useLearnPageLogic() {
       prevPromptsLengthRef.current = 0
     }
   }, [activeTab])
+
+  useEffect(() => {
+    const shouldBlockLia = activeTab === 'activities'
+    setLiaInteractionBlocked(shouldBlockLia)
+
+    if (shouldBlockLia) {
+      closeLia()
+    }
+
+    return () => {
+      setLiaInteractionBlocked(false)
+    }
+  }, [activeTab, closeLia, setLiaInteractionBlocked])
 
   useEffect(() => {
     const previousLength = prevPromptsLengthRef.current

@@ -29,6 +29,31 @@ const activeDialogueStates: DialogueState[] = [
   'RESCUE',
 ]
 
+export const MAX_DIALOGUE_ACTIVITY_ATTEMPTS = 3
+
+export type DialogueAttemptDecision =
+  | {
+      kind: 'can_create'
+      attemptNumber: number
+    }
+  | {
+      kind: 'limit_reached'
+    }
+
+export function resolveDialogueAttempt(
+  existingSessionCount: number,
+  maxAttempts = MAX_DIALOGUE_ACTIVITY_ATTEMPTS,
+): DialogueAttemptDecision {
+  if (existingSessionCount >= maxAttempts) {
+    return { kind: 'limit_reached' }
+  }
+
+  return {
+    kind: 'can_create',
+    attemptNumber: existingSessionCount + 1,
+  }
+}
+
 export function resolveDialogueConfig(
   context: CourseActivityContext,
 ): DialogueActivityConfig {
@@ -165,6 +190,31 @@ export async function createDialogueSession(input: {
   config: DialogueActivityConfig
   context: CourseActivityContext
 }) {
+  const { count, error: countError } = await dialogueSessionsTable(input.client)
+    .select('session_id', { count: 'exact', head: true })
+    .eq('user_id', input.context.userId)
+    .eq('activity_id', input.context.activity.activity_id)
+    .eq('enrollment_id', input.context.enrollmentId)
+
+  if (countError) {
+    throw new DialogueRuntimeError(
+      'DIALOGUE_PERSISTENCE_FAILED',
+      500,
+      'No fue posible validar los intentos del dialogo',
+      { message: countError.message },
+    )
+  }
+
+  const attemptDecision = resolveDialogueAttempt(count || 0)
+
+  if (attemptDecision.kind === 'limit_reached') {
+    throw new DialogueRuntimeError(
+      'DIALOGUE_ATTEMPT_LIMIT_REACHED',
+      409,
+      'Se alcanzo el limite de 3 intentos para esta actividad',
+    )
+  }
+
   const { data, error } = await dialogueSessionsTable(input.client)
     .insert({
       activity_config_snapshot: input.config,
@@ -186,6 +236,14 @@ export async function createDialogueSession(input: {
     .single()
 
   if (error || !data) {
+    if (error?.message?.includes('limite de 3 intentos')) {
+      throw new DialogueRuntimeError(
+        'DIALOGUE_ATTEMPT_LIMIT_REACHED',
+        409,
+        'Se alcanzo el limite de 3 intentos para esta actividad',
+      )
+    }
+
     throw new DialogueRuntimeError(
       'DIALOGUE_PERSISTENCE_FAILED',
       500,

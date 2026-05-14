@@ -1163,6 +1163,9 @@
       "title": "Notifications",
       "subtitle": "Manage your notifications and stay up to date",
       "noNotifications": "No notifications",
+      "noUnread": "You have no unread notifications",
+      "unreadCount": "{{count}} unread",
+      "totalCount": "{{count}} notifications",
       "all": "All",
       "unread": "Unread",
       "archived": "Archived",
@@ -1177,7 +1180,9 @@
       "clearSearch": "Clear search",
       "priority": {
         "critical": "Critical",
-        "high": "High"
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
       }
     }
   },

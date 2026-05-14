@@ -1,4 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
+import type { createAdminClient } from '@/lib/supabase/admin'
+import {
+  createOrganizationAiContextRepository,
+  resolveStrictOrganizationAiContext,
+  type ResolvedOrganizationAiContext,
+} from '@/lib/lia-context/services/organization-ai-context.service'
 
 import {
   resolveActivityConfigFromRecord,
@@ -17,7 +23,9 @@ import {
   summarizeActivitySubmissionRequirementIssues,
 } from './activity-submission-requirements.service'
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+type SupabaseServerClient =
+  | Awaited<ReturnType<typeof createClient>>
+  | ReturnType<typeof createAdminClient>
 
 type CourseRow = {
   id: string
@@ -95,6 +103,7 @@ export interface CourseLessonContext {
 
 export interface CourseActivityContext extends CourseLessonContext {
   activity: ActivityLikeRecord
+  organizationAiContext: ResolvedOrganizationAiContext | null
   resolvedActivityConfig: ActivityConfig | null
 }
 
@@ -468,6 +477,11 @@ export async function resolveCourseActivityContext(
   return {
     ...lessonContext,
     activity: activity as ActivityLikeRecord,
+    organizationAiContext: await resolveStrictOrganizationAiContext({
+      organizationId: lessonContext.organizationId,
+      repository: createOrganizationAiContextRepository(supabase),
+      userId,
+    }),
     resolvedActivityConfig,
   }
 }

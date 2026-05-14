@@ -1,4 +1,8 @@
 import OpenAI from 'openai'
+import {
+  buildOrganizationAiContextPromptSection,
+  type ResolvedOrganizationAiContext,
+} from '@/lib/lia-context/services/organization-ai-context.service'
 
 import type {
   DialogueActivityConfig,
@@ -41,9 +45,10 @@ function fallbackTutorMessage(input: {
     : 'Vas encaminado, pero necesito una conexion mas clara entre tu decision, la razon y la consecuencia.'
 }
 
-function buildTutorPrompt(input: {
+export function buildTutorPrompt(input: {
   config: DialogueActivityConfig
   evaluation: DialogueEvaluationResult
+  organizationAiContext?: ResolvedOrganizationAiContext | null
   policy: DialoguePolicyDecision
   recentTurns: DialogueTurnRow[]
 }) {
@@ -56,6 +61,11 @@ function buildTutorPrompt(input: {
       id: criterion!.id,
       label: criterion!.label,
     }))
+
+  const organizationContext = buildOrganizationAiContextPromptSection(
+    input.organizationAiContext,
+    input.config.contextAdaptation,
+  )
 
   return `
 Eres SofLIA en una actividad conversacional educativa.
@@ -74,6 +84,8 @@ Contexto visible:
 - Feedback interno breve: ${input.evaluation.feedbackForTutor}
 - Pista autorizada: ${input.policy.hintToUse?.content || ''}
 - Rescate autorizado: ${input.policy.nextState === 'RESCUE' ? input.config.rescueContent : ''}
+
+${organizationContext}
 
 Historial reciente:
 ${input.recentTurns
@@ -99,6 +111,7 @@ function resolveDialogueTutorTimeoutMs() {
 export async function generateDialogueTutorMessage(input: {
   config: DialogueActivityConfig
   evaluation: DialogueEvaluationResult
+  organizationAiContext?: ResolvedOrganizationAiContext | null
   policy: DialoguePolicyDecision
   recentTurns: DialogueTurnRow[]
 }) {

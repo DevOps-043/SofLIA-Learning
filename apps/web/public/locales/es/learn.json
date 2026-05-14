@@ -172,6 +172,7 @@
     "notAvailable": "Actividades no disponibles",
     "notAvailableMessage": "Esta lección aún no tiene actividades disponibles. Las actividades se agregarán próximamente.",
     "aiChat": "Chat IA",
+    "sofliaActivityType": "Conversación IA",
     "attempted": "Intentado",
     "needsRevision": "Requiere revisión",
     "aiChatActivity": "Actividad con SofLIA",
@@ -181,6 +182,46 @@
     "promptsAndExercises": "Prompts y ejercicios",
     "quizError": "Error: El quiz no tiene la estructura esperada",
     "aiCompletionError": "No fue posible completar la actividad con SofLIA.",
+    "dialogue": {
+      "title": "Conversacion guiada con SofLIA",
+      "subtitle": "Responde con tus propias ideas. SofLIA evaluara evidencia, criterios y siguientes pasos dentro de esta actividad.",
+      "loadingTitle": "Preparando actividad con SofLIA",
+      "loadingDescription": "Estamos recuperando tu sesion y el contexto de la actividad.",
+      "emptyTitle": "SofLIA esta lista para empezar",
+      "emptyDescription": "Escribe tu primera respuesta para iniciar la conversacion guiada.",
+      "userLabel": "Tu respuesta",
+      "responding": "SofLIA esta revisando tu respuesta...",
+      "finalFeedback": "Retroalimentacion final",
+      "practiceAgain": "Practicar de nuevo",
+      "retryActivity": "Reintentar actividad",
+      "placeholder": "Escribe tu respuesta para SofLIA...",
+      "closedPlaceholder": "Esta sesion ya fue cerrada.",
+      "helper": "Envia una respuesta concreta y con evidencia de tu razonamiento.",
+      "closedHelper": "La sesion ya se cerro. Puedes revisar la retroalimentacion o iniciar otro intento si esta disponible.",
+      "send": "Enviar respuesta",
+      "metrics": {
+        "criteria": "Criterios",
+        "turns": "Interacciones",
+        "score": "Puntaje"
+      },
+      "states": {
+        "START": "Lista",
+        "ASK_FIRST_QUESTION": "Pregunta inicial",
+        "EVALUATE_RESPONSE": "Evaluando",
+        "CHALLENGE_OR_PROBE": "Profundizando",
+        "HINT": "Pista",
+        "RESCUE": "Apoyo",
+        "SESSION_SUMMARY": "Resumen",
+        "COMPLETE": "Completada",
+        "FAIL_OR_RETRY": "Reintento disponible"
+      },
+      "errors": {
+        "loadTimeout": "La sesion tardo demasiado en cargar. Recarga la pagina o intenta de nuevo.",
+        "loadFailed": "No fue posible cargar el dialogo.",
+        "sendTimeout": "SofLIA tardo demasiado en responder. Tu respuesta pudo guardarse; reintenta o recarga la sesion.",
+        "sendFailed": "No fue posible enviar tu respuesta."
+      }
+    },
     "tips": {
       "manual": "Las actividades se agregan manualmente",
       "contactInstructor": "Contacta al instructor si necesitas ayuda"

@@ -49,6 +49,23 @@ const dialogueHintSchema = z
   })
   .strict()
 
+const dialogueContextAdaptationFocusSchema = z.enum([
+  'scale',
+  'industry',
+  'role',
+  'mission',
+  'country',
+])
+
+const dialogueContextAdaptationSchema = z
+  .object({
+    enabled: z.boolean().default(true),
+    instructions: z.string().trim().max(1000).optional(),
+    focus: z.array(dialogueContextAdaptationFocusSchema).max(5).default([]),
+  })
+  .strict()
+  .default({})
+
 export const dialogueActivityConfigSchema = z
   .object({
     interactionType: z.literal('soflia_dialogue'),
@@ -66,6 +83,7 @@ export const dialogueActivityConfigSchema = z
     commonMistakes: z.array(z.string().trim().min(1).max(600)).default([]),
     hintLadder: z.array(dialogueHintSchema).default([]),
     challengePrompts: z.array(z.string().trim().min(1).max(600)).default([]),
+    contextAdaptation: dialogueContextAdaptationSchema,
     rescueContent: z.string().trim().min(1).max(2500),
     rubric: z.array(dialogueRubricDimensionSchema).min(1).max(12),
     policy: z

@@ -11,7 +11,7 @@ import {
 } from '@/features/courses/services/activity-submission.server.service'
 import type { ExternalToolKey } from '@/features/courses/types/activity-config'
 import { normalizeLessonActivityRecord } from '@/lib/course-content'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { cacheHeaders, withCacheHeaders } from '@/lib/utils/cache-headers'
 
 type LessonActivityRecord = Record<string, unknown> & {
@@ -50,7 +50,7 @@ export async function GET(
     const { slug, lessonId } = await params
     const { searchParams } = new URL(request.url)
     const language = (searchParams.get('language') || 'es') as SupportedLanguage
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const lessonContext = await resolveCourseLessonContext(
       supabase,
       currentUser.id,
@@ -160,8 +160,9 @@ export async function GET(
 
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : 'Error interno del servidor',
+        error: status < 500 && error instanceof Error
+          ? error.message
+          : 'Error interno del servidor',
       },
       { status },
     )
