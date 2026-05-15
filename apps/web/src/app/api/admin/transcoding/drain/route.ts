@@ -11,8 +11,9 @@ import {
 export const runtime = 'nodejs'
 
 const BodySchema = z.object({
-  /** Max BG functions to invoke in this drain call.  Defaults to 3. */
-  concurrency: z.number().int().min(1).max(10).default(3),
+  /** Max BG functions to invoke in this drain call.  Defaults to 5 to
+   *  match scan-and-queue's default. */
+  concurrency: z.number().int().min(1).max(10).default(5),
 })
 
 /**

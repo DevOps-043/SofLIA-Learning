@@ -15,9 +15,12 @@ const BodySchema = z.object({
   bucket: z.string().min(1).max(64).default('course-videos'),
   folder: z.string().max(200).default('videos'),
   /** Max number of BG functions to invoke immediately.  The rest stay
-   *  queued and must be drained manually with /drain.  Defaults to 3 to
-   *  stay well under Netlify's concurrency limits. */
-  concurrency: z.number().int().min(1).max(10).default(3),
+   *  queued and must be drained manually with /drain.  Defaults to 5 —
+   *  a balanced point: ~40% faster than concurrency=3 for bulk backfill
+   *  while staying well within Netlify Pro concurrency caps and below
+   *  the Supabase Storage rate-limit threshold (with retries as a
+   *  safety net for transient HTML proxy errors). */
+  concurrency: z.number().int().min(1).max(10).default(5),
 })
 
 interface StorageObject {
