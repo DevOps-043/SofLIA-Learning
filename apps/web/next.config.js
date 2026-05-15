@@ -26,8 +26,69 @@ const nextConfig = {
     externalDir: true,
     // Optimizar importaciones de paquetes como lucide-react
     optimizePackageImports: ['lucide-react'],
+    // Excluir paquetes de solo-cliente del bundle del servidor de Netlify.
+    // Estos paquetes usan APIs de navegador (WebGL, Canvas, DOM, window) y NUNCA
+    // deben aparecer en el SSR handler. Sin esto, el handler excede los 250 MB.
+    // Los patrones son relativos a outputFileTracingRoot (raíz del monorepo).
+    outputFileTracingExcludes: {
+      '*': [
+        // Three.js / WebGL — el servidor no tiene GPU ni contexto WebGL
+        './node_modules/three/**',
+        './node_modules/@react-three/**',
+        // Video.js — necesita HTMLVideoElement (browser only)
+        './node_modules/video.js/**',
+        './node_modules/videojs-vtt.js/**',
+        // Nivo charts — renderiza con SVG DOM (browser only)
+        './node_modules/@nivo/**',
+        // Recharts + D3 — renderizado SVG/DOM
+        './node_modules/recharts/**',
+        './node_modules/d3-**',
+        './node_modules/victory-**',
+        // Tremor — usa Recharts internamente, solo cliente
+        './node_modules/@tremor/**',
+        // Particle animations — Canvas API (browser only)
+        './node_modules/@tsparticles/**',
+        './node_modules/tsparticles/**',
+        // Leaflet maps — depende directamente de window/document
+        './node_modules/leaflet/**',
+        './node_modules/react-leaflet/**',
+        // GSAP animations — usa window/requestAnimationFrame
+        './node_modules/gsap/**',
+        './node_modules/@gsap/**',
+        // FullCalendar — DOM-heavy, requiere browser
+        './node_modules/@fullcalendar/**',
+        // Moment locales — ~50 MB de archivos de localización que no se usan
+        // (se conserva el core de moment para react-big-calendar)
+        './node_modules/moment/locale/**',
+        './node_modules/moment/min/**',
+        './node_modules/react-big-calendar/**',
+        // Framer Motion — animaciones, no se necesita el engine completo en servidor
+        './node_modules/framer-motion/**',
+        // Paquetes pequeños solo-cliente
+        './node_modules/typewriter-effect/**',
+        './node_modules/swapy/**',
+        './node_modules/react-joyride/**',
+        './node_modules/react-easy-crop/**',
+      ],
+    },
   },
-  serverExternalPackages: ['exceljs', 'pdfmake'],
+  serverExternalPackages: [
+    // PDF y Excel — tienen dependencias con binarios nativos o peso considerable
+    'exceljs',
+    'pdfmake',
+    // OpenAI SDK — cargado solo en API routes, no necesita ser webpack-bundled
+    'openai',
+    // Nodemailer — solo API routes
+    'nodemailer',
+    // SCORM
+    'xml2js',
+    // Exports / archivos ZIP
+    'jszip',
+    // Color extraction — usa canvas internamente
+    'node-vibrant',
+    // Bcrypt — módulo con binarios nativos
+    'bcryptjs',
+  ],
 
   // Optimización de imágenes
   images: {
