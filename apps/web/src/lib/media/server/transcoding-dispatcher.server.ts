@@ -32,38 +32,93 @@ export function isTranscodingEnabled(): boolean {
   return process.env.VIDEO_TRANSCODING_ENABLED?.toLowerCase() === 'true'
 }
 
+export interface TriggerResult {
+  ok: boolean
+  jobId: string
+  /** Machine-readable failure code when ok=false. */
+  reason?:
+    | 'missing_url'
+    | 'missing_secret'
+    | 'network_error'
+    | 'non_202_response'
+  /** Human-readable detail (HTTP status code, error message, etc.). */
+  detail?: string
+}
+
 /**
- * Fire the background function for an already-existing job row.  Used by the
- * bulk reprocess flow which inserts queued rows first and then drips
- * background invocations to control concurrency.  Returns true when the
- * BG function call was attempted, false when env vars are missing.
+ * Fire the background function for an already-existing job row.
+ *
+ * IMPORTANT: We `await` the fetch.  Netlify Background Functions return
+ * 202 immediately, so the await only costs the request round-trip
+ * (~100-500ms), not the full transcoding time.  Without awaiting, the
+ * promise gets cancelled when the Next.js serverless handler returns —
+ * which is exactly why the BG function was never being invoked.
  */
-export function triggerTranscodingBackground(input: TriggerBackgroundInput): boolean {
-  const netlifyUrl = process.env.NETLIFY_URL ?? process.env.URL
-  const secret = process.env.TRANSCODING_INTERNAL_SECRET
-  if (!netlifyUrl || !secret) {
-    console.warn('[transcoding-dispatcher] NETLIFY_URL or TRANSCODING_INTERNAL_SECRET not set')
-    return false
+export async function triggerTranscodingBackground(
+  input: TriggerBackgroundInput,
+): Promise<TriggerResult> {
+  const netlifyUrl =
+    process.env.NETLIFY_URL ?? process.env.URL ?? process.env.DEPLOY_URL
+  if (!netlifyUrl) {
+    console.warn('[transcoding-dispatcher] No site URL env var (NETLIFY_URL / URL / DEPLOY_URL)')
+    return { ok: false, jobId: input.jobId, reason: 'missing_url' }
   }
+
+  const secret = process.env.TRANSCODING_INTERNAL_SECRET
+  if (!secret) {
+    console.warn('[transcoding-dispatcher] TRANSCODING_INTERNAL_SECRET not configured')
+    return { ok: false, jobId: input.jobId, reason: 'missing_secret' }
+  }
+
   const bgFunctionUrl = `${netlifyUrl.replace(/\/$/, '')}/.netlify/functions/transcode-video-background`
-  fetch(bgFunctionUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${secret}`,
-    },
-    body: JSON.stringify({
+
+  try {
+    const response = await fetch(bgFunctionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${secret}`,
+      },
+      body: JSON.stringify({
+        jobId: input.jobId,
+        sourcePath: input.sourcePath,
+        sourceUrl: input.sourceUrl,
+        bucket: input.bucket,
+        contentType: input.contentType,
+        sizeBytes: input.sizeBytes ?? undefined,
+      }),
+      // Reasonable bound — the BG function returns 202 in well under 5s
+      // even on cold starts.
+      signal: AbortSignal.timeout(15_000),
+    })
+
+    // Netlify BG functions always reply 202 Accepted on success.
+    if (response.status !== 202) {
+      const body = await response.text().catch(() => '')
+      console.error(
+        '[transcoding-dispatcher] BG function returned non-202:',
+        response.status,
+        body.slice(0, 500),
+      )
+      return {
+        ok: false,
+        jobId: input.jobId,
+        reason: 'non_202_response',
+        detail: `HTTP ${response.status} ${body.slice(0, 200)}`,
+      }
+    }
+
+    return { ok: true, jobId: input.jobId }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[transcoding-dispatcher] Fetch to BG function failed:', message)
+    return {
+      ok: false,
       jobId: input.jobId,
-      sourcePath: input.sourcePath,
-      sourceUrl: input.sourceUrl,
-      bucket: input.bucket,
-      contentType: input.contentType,
-      sizeBytes: input.sizeBytes ?? undefined,
-    }),
-  }).catch((err: unknown) => {
-    console.error('[transcoding-dispatcher] Failed to trigger background function:', err)
-  })
-  return true
+      reason: 'network_error',
+      detail: message,
+    }
+  }
 }
 
 /**
@@ -96,7 +151,7 @@ export async function dispatchTranscodingJob(input: DispatchInput): Promise<Disp
 
   const jobId: string = job.id
 
-  triggerTranscodingBackground({
+  await triggerTranscodingBackground({
     jobId,
     sourcePath,
     sourceUrl,

@@ -24,6 +24,13 @@ interface JobsApiResponse {
   summary: Record<TranscodingJobStatus, number>
 }
 
+interface DispatchFailure {
+  ok: false
+  jobId: string
+  reason?: string
+  detail?: string
+}
+
 interface ScanResponse {
   success: boolean
   totalFound: number
@@ -31,14 +38,37 @@ interface ScanResponse {
   queued: number
   invoked: number
   jobIds: string[]
+  failures?: DispatchFailure[]
   error?: string
 }
 
 interface DrainResponse {
   success: boolean
   invoked: number
+  jobIds?: string[]
+  failures?: DispatchFailure[]
   message?: string
   error?: string
+}
+
+interface DiagnosticsResponse {
+  transcodingEnabled: boolean
+  netlifyUrl: string | null
+  netlifyUrlSource: string | null
+  hasTranscodingInternalSecret: boolean
+  bgFunctionProbe: {
+    reachable: boolean | null
+    status: number | null
+    error: string | null
+  }
+  summary: { healthy: boolean; problems: string[] }
+}
+
+const FAILURE_REASON_COPY: Record<string, string> = {
+  missing_url: 'Falta NETLIFY_URL / URL en env vars',
+  missing_secret: 'Falta TRANSCODING_INTERNAL_SECRET en env vars',
+  network_error: 'Error de red al llamar a la BG function',
+  non_202_response: 'La BG function no devolvió 202',
 }
 
 const REFRESH_INTERVAL_MS = 5000
@@ -82,7 +112,37 @@ export function AdminTranscodingPage() {
   const [isDraining, setIsDraining] = useState(false)
   const [drainResult, setDrainResult] = useState<DrainResponse | null>(null)
 
+  const [diagnostics, setDiagnostics] = useState<DiagnosticsResponse | null>(null)
+  const [isDiagnosing, setIsDiagnosing] = useState(false)
+
   const fetchControllerRef = useRef<AbortController | null>(null)
+
+  const runDiagnostics = useCallback(async () => {
+    setIsDiagnosing(true)
+    try {
+      const response = await fetch('/api/admin/transcoding/diagnostics', {
+        credentials: 'include',
+      })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const body = (await response.json()) as DiagnosticsResponse
+      setDiagnostics(body)
+    } catch (err) {
+      setDiagnostics({
+        transcodingEnabled: false,
+        netlifyUrl: null,
+        netlifyUrlSource: null,
+        hasTranscodingInternalSecret: false,
+        bgFunctionProbe: { reachable: null, status: null, error: err instanceof Error ? err.message : 'error' },
+        summary: { healthy: false, problems: ['No se pudo ejecutar el diagnóstico'] },
+      })
+    } finally {
+      setIsDiagnosing(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void runDiagnostics()
+  }, [runDiagnostics])
 
   const fetchJobs = useCallback(async () => {
     fetchControllerRef.current?.abort()
@@ -224,6 +284,68 @@ export function AdminTranscodingPage() {
         </p>
       </header>
 
+      {/* Diagnostics banner */}
+      {diagnostics && (
+        <div
+          className={`mb-6 rounded-xl border p-4 ${
+            diagnostics.summary.healthy
+              ? 'border-[#10B981]/40 bg-[#10B981]/5'
+              : 'border-[#F59E0B]/50 bg-[#F59E0B]/10'
+          }`}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1">
+              <p
+                className={`text-sm font-semibold ${
+                  diagnostics.summary.healthy ? 'text-[#10B981]' : 'text-[#F59E0B]'
+                }`}
+              >
+                {diagnostics.summary.healthy
+                  ? 'Pipeline configurado correctamente'
+                  : 'Faltan piezas de configuración'}
+              </p>
+              {!diagnostics.summary.healthy && (
+                <ul className="mt-2 text-xs text-[#0A2540] dark:text-white/80 space-y-1 list-disc pl-5">
+                  {diagnostics.summary.problems.map((problem) => (
+                    <li key={problem}>{problem}</li>
+                  ))}
+                </ul>
+              )}
+              <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-[#6C757D] dark:text-white/60">
+                <div>
+                  <span className="font-medium">Transcoding:</span>{' '}
+                  {diagnostics.transcodingEnabled ? '✓ activo' : '✗ desactivado'}
+                </div>
+                <div>
+                  <span className="font-medium">Secret:</span>{' '}
+                  {diagnostics.hasTranscodingInternalSecret ? '✓ configurado' : '✗ falta'}
+                </div>
+                <div>
+                  <span className="font-medium">URL:</span>{' '}
+                  {diagnostics.netlifyUrl ? `✓ ${diagnostics.netlifyUrlSource}` : '✗ falta'}
+                </div>
+                <div>
+                  <span className="font-medium">BG fn:</span>{' '}
+                  {diagnostics.bgFunctionProbe.reachable === true
+                    ? `✓ alcanzable (HTTP ${diagnostics.bgFunctionProbe.status})`
+                    : diagnostics.bgFunctionProbe.reachable === false
+                      ? `✗ no responde (${diagnostics.bgFunctionProbe.error ?? `HTTP ${diagnostics.bgFunctionProbe.status}`})`
+                      : '?'}
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => void runDiagnostics()}
+              disabled={isDiagnosing}
+              className="text-xs text-[#0A2540] dark:text-white/80 hover:underline"
+            >
+              {isDiagnosing ? 'Verificando…' : 'Re-verificar'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Action bar */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <button
@@ -279,14 +401,28 @@ export function AdminTranscodingPage() {
           ) : (
             <p>Error: {scanResult.error}</p>
           )}
+          <FailureList failures={scanResult.failures} />
         </div>
       )}
 
       {drainResult && (
-        <div className="mb-4 rounded-xl border border-[#0A2540]/20 dark:border-white/10 bg-[#0A2540]/5 dark:bg-white/5 p-3 text-sm text-[#0A2540] dark:text-white/80">
-          {drainResult.success
-            ? drainResult.message ?? `Disparados ${drainResult.invoked} nuevos jobs.`
-            : `Error: ${drainResult.error}`}
+        <div
+          className={`mb-4 rounded-xl border p-3 text-sm ${
+            drainResult.success
+              ? drainResult.invoked > 0
+                ? 'border-[#10B981]/40 bg-[#10B981]/10 text-[#10B981]'
+                : 'border-[#0A2540]/20 dark:border-white/10 bg-[#0A2540]/5 dark:bg-white/5 text-[#0A2540] dark:text-white/80'
+              : 'border-[#ef4444]/40 bg-[#ef4444]/10 text-[#ef4444]'
+          }`}
+        >
+          <p>
+            {drainResult.success
+              ? drainResult.invoked > 0
+                ? `Disparados ${drainResult.invoked} nuevos jobs.`
+                : drainResult.message ?? 'No se disparó ningún job nuevo.'
+              : `Error: ${drainResult.error}`}
+          </p>
+          <FailureList failures={drainResult.failures} />
         </div>
       )}
 
@@ -415,6 +551,35 @@ export function AdminTranscodingPage() {
       <p className="mt-4 text-xs text-[#6C757D] dark:text-white/50">
         La tabla se refresca automáticamente cada 5 segundos.
       </p>
+    </div>
+  )
+}
+
+function FailureList({ failures }: { failures: DispatchFailure[] | undefined }) {
+  if (!failures || failures.length === 0) return null
+  return (
+    <div className="mt-2 rounded-lg bg-[#ef4444]/10 border border-[#ef4444]/30 p-2 text-xs">
+      <p className="font-semibold text-[#ef4444] mb-1">
+        {failures.length} {failures.length === 1 ? 'disparo falló' : 'disparos fallaron'}:
+      </p>
+      <ul className="text-[#0A2540] dark:text-white/80 space-y-0.5">
+        {failures.map((failure) => (
+          <li key={failure.jobId}>
+            • Job {failure.jobId.slice(0, 8)}…{' '}
+            <span className="text-[#ef4444]">
+              {failure.reason
+                ? (FAILURE_REASON_COPY[failure.reason] ?? failure.reason)
+                : 'razón desconocida'}
+            </span>
+            {failure.detail && (
+              <span className="text-[#6C757D] dark:text-white/50">
+                {' '}
+                — {failure.detail}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

@@ -195,19 +195,24 @@ export async function POST(request: NextRequest) {
   }
 
   // 4. Trigger the first N BG functions (concurrency-limited).
+  // Run all invocations in parallel — each fetch awaits the 202 response
+  // which is fast (~100-500ms).  Promise.all lets the slowest one bound
+  // the whole step instead of summing them sequentially.
   const toInvoke = insertedRows.slice(0, concurrency)
-  let invokedCount = 0
-  for (const row of toInvoke) {
-    const ok = triggerTranscodingBackground({
-      jobId: row.id,
-      sourcePath: row.source_path,
-      sourceUrl: row.source_url,
-      bucket: row.bucket,
-      contentType: row.content_type,
-      sizeBytes: row.size_bytes,
-    })
-    if (ok) invokedCount += 1
-  }
+  const dispatchResults = await Promise.all(
+    toInvoke.map((row) =>
+      triggerTranscodingBackground({
+        jobId: row.id,
+        sourcePath: row.source_path,
+        sourceUrl: row.source_url,
+        bucket: row.bucket,
+        contentType: row.content_type,
+        sizeBytes: row.size_bytes,
+      }),
+    ),
+  )
+  const invokedCount = dispatchResults.filter((result) => result.ok).length
+  const failures = dispatchResults.filter((result) => !result.ok)
 
   return NextResponse.json({
     success: true,
@@ -216,5 +221,6 @@ export async function POST(request: NextRequest) {
     queued: insertedRows.length,
     invoked: invokedCount,
     jobIds: insertedRows.map((row) => row.id),
+    failures,
   })
 }

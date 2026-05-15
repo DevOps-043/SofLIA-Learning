@@ -97,26 +97,26 @@ export async function POST(request: NextRequest) {
     })
   }
 
-  let invokedCount = 0
-  const invokedIds: string[] = []
-  for (const row of queuedRows) {
-    const ok = triggerTranscodingBackground({
-      jobId: row.id,
-      sourcePath: row.source_path,
-      sourceUrl: row.source_url,
-      bucket: row.bucket,
-      contentType: row.content_type,
-      sizeBytes: row.size_bytes,
-    })
-    if (ok) {
-      invokedCount += 1
-      invokedIds.push(row.id)
-    }
-  }
+  const dispatchResults = await Promise.all(
+    queuedRows.map((row) =>
+      triggerTranscodingBackground({
+        jobId: row.id,
+        sourcePath: row.source_path,
+        sourceUrl: row.source_url,
+        bucket: row.bucket,
+        contentType: row.content_type,
+        sizeBytes: row.size_bytes,
+      }),
+    ),
+  )
+
+  const successes = dispatchResults.filter((result) => result.ok)
+  const failures = dispatchResults.filter((result) => !result.ok)
 
   return NextResponse.json({
     success: true,
-    invoked: invokedCount,
-    jobIds: invokedIds,
+    invoked: successes.length,
+    jobIds: successes.map((result) => result.jobId),
+    failures,
   })
 }
