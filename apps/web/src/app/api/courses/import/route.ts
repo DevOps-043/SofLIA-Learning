@@ -1,10 +1,8 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import {
-    normalizeImportedActivityContent,
-    normalizeImportedMaterialContent,
-} from '@/lib/course-content'
+import { normalizeImportedMaterialContent } from '@/lib/course-content'
+import { buildImportedActivityRow } from '@/lib/course-import-activities'
 import { extractGeneratedCourseInstructorHint } from '@/lib/generated-course-instructor'
 
 interface QuizQuestionLike {
@@ -115,6 +113,10 @@ const ActivitySchema = z.object({
     title: z.string(),
     type: z.enum(['quiz', 'lia_script', 'puzzle', 'reflection']), // Ajustable según lo que llegue
     data: z.record(z.unknown()),
+    activity_config: z.unknown().optional(),
+    activity_schema_version: z.number().int().positive().optional(),
+    estimated_time_minutes: z.number().int().positive().optional(),
+    is_required: z.boolean().optional(),
 })
 
 const NewMaterialSchema = z.object({
@@ -417,20 +419,18 @@ export async function POST(request: Request) {
                     // Crear Actividades (Nuevo)
                     if (lesson.activities && lesson.activities.length > 0) {
                         const activitiesToInsert = lesson.activities.map((act, idx) => {
-                            // Adaptar tipo
-                            let actType = 'exercise'
-                            if (act.type === 'quiz') actType = 'quiz'
-                            if (act.type === 'lia_script') actType = 'ai_chat' // Mapeamos lia_script a ai_chat o similar
+                            const row = buildImportedActivityRow({
+                                activity: act,
+                                index: idx,
+                                lessonId: newLesson.lesson_id,
+                            })
 
                             return {
-                                lesson_id: newLesson.lesson_id,
-                                activity_title: act.title,
-                                activity_type: actType,
+                                ...row,
+                                activity_type: act.type === 'quiz' ? 'quiz' : row.activity_type,
                                 activity_content: act.type === 'quiz'
                                     ? JSON.stringify(normalizeQuizData(act.data))
-                                    : normalizeImportedActivityContent(act.type, act.data),
-                                activity_order_index: idx + 1,
-                                is_required: false
+                                    : row.activity_content,
                             }
                         })
 

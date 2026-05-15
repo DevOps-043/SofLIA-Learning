@@ -123,6 +123,39 @@ describe('activity-content-compatibility.service', () => {
     expect(config?.interactionType).toBe('soflia_dialogue')
   })
 
+  it('promotes SofLIA dialogue config from activity_content for generated ai_chat records', () => {
+    const config = resolveActivityConfig({
+      activityType: 'ai_chat',
+      activityContent: JSON.stringify({
+        interactionType: 'soflia_dialogue',
+        runtimeType: 'SOFLIA_DIALOGUE',
+        visibleGoal: 'Analizar seguridad psicologica en equipos remotos.',
+        scenario: 'Un equipo remoto evita compartir ideas en reuniones.',
+        openingMessage: 'Que desafios has notado?',
+        successCriteria: [
+          {
+            id: 'identifies_challenges',
+            label: 'Identifica desafios',
+            required: true,
+          },
+        ],
+        rescueContent:
+          'La seguridad psicologica permite participar sin miedo a castigo.',
+        rubric: [
+          {
+            id: 'challenges_identified',
+            label: 'Identificacion de desafios',
+            weight: 100,
+          },
+        ],
+      }),
+      rawActivityConfig: null,
+    })
+
+    expect(config?.interactionType).toBe('soflia_dialogue')
+    expect(config?.runtimeType).toBe('SOFLIA_DIALOGUE')
+  })
+
   it('does not infer external tool actions from plain mentions in the question text', () => {
     const config = resolveActivityConfig({
       activityType: 'exercise',

@@ -18,6 +18,7 @@ import { ChecklistActivityRenderer } from "./ChecklistActivityRenderer";
 import { ExternalToolActivityRenderer } from "./ExternalToolActivityRenderer";
 import { InlineAnswersActivityRenderer } from "./InlineAnswersActivityRenderer";
 import { LongTextActivityRenderer } from "./LongTextActivityRenderer";
+import { SofliaDialogueActivityRenderer } from "./SofliaDialogueActivityRenderer";
 import { useActivitySubmission } from "./useActivitySubmission";
 
 function SubmissionStatusBadge({ activity }: { activity: LearnActivity }) {
@@ -114,9 +115,11 @@ export function InteractiveActivityRenderer({
 
   if (activityConfig.interactionType === "soflia_dialogue") {
     return (
-      <FormattedContentRenderer
-        content={activity.activity_content}
-        activityId={activity.activity_id}
+      <SofliaDialogueActivityRenderer
+        activity={activity}
+        lessonId={lessonId}
+        onSessionUpdated={onSubmissionSaved}
+        slug={slug}
       />
     );
   }

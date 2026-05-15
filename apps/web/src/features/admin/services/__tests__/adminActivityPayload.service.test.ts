@@ -70,6 +70,29 @@ describe('adminActivityPayload.service', () => {
     expect(payload.activity_config).toBeNull()
   })
 
+  it('preserves SofLIA dialogue config on ai_chat payloads for the new runtime', () => {
+    const payload = validateCreateActivityPayload({
+      activity_title: 'Dialogo con SofLIA',
+      activity_type: 'ai_chat',
+      activity_content: '{"introduction":"Caso"}',
+      activity_config: {
+        interactionType: 'soflia_dialogue',
+        runtimeType: 'SOFLIA_DIALOGUE',
+        visibleGoal: 'Justificar una decision.',
+        scenario: 'Caso breve.',
+        openingMessage: 'Que harias y por que?',
+        successCriteria: [{ id: 'criterion_1', label: 'Explica causa' }],
+        rescueContent: 'Una respuesta fuerte conecta causa y efecto.',
+        rubric: [{ id: 'causality', label: 'Causalidad', weight: 100 }],
+      },
+    })
+
+    expect(payload.activity_type).toBe('ai_chat')
+    expect(payload.activity_schema_version).toBe(2)
+    expect(payload.activity_config?.interactionType).toBe('soflia_dialogue')
+    expect(payload.requires_soflia_validation).toBe(false)
+  })
+
   it('rejects mismatched external tool keys', () => {
     expect(() =>
       validateUpdateActivityPayload({
