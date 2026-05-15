@@ -7,10 +7,10 @@ import {
   COURSE_VIDEO_MAX_SIZE_BYTES,
   STREAMABLE_VIDEO_MIME_TYPES,
 } from '@/lib/media/video-upload-policy';
-import { processStoredVideoForAdaptiveStreaming } from '@/lib/media/server/adaptive-video-transcoding.server';
+import { dispatchTranscodingJob } from '@/lib/media/server/transcoding-dispatcher.server';
 
 export const runtime = 'nodejs';
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 const BodySchema = z.object({
   contentType: z.enum(STREAMABLE_VIDEO_MIME_TYPES),
@@ -48,18 +48,19 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const result = await processStoredVideoForAdaptiveStreaming({
+    const result = await dispatchTranscodingJob({
+      supabase,
       bucket: 'course-videos',
       contentType: parsed.data.contentType,
-      publicUrl: parsed.data.publicUrl,
+      sourceUrl: parsed.data.publicUrl,
       sizeBytes: parsed.data.size,
       sourcePath: parsed.data.sourcePath,
-      supabase,
     });
 
     return NextResponse.json({
       success: true,
-      adaptive: result,
+      jobId: result.jobId ?? null,
+      transcoding: result.status,
       path: result.playbackPath,
       url: result.playbackUrl,
     });
