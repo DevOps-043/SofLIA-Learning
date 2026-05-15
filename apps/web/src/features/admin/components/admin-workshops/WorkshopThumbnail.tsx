@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
+import { BookOpen } from 'lucide-react'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 import { useMotionSafe } from '../../../../lib/utils/motion'
-import { BookOpenIcon } from '@heroicons/react/24/outline'
 
 interface WorkshopThumbnailProps {
   thumbnailUrl?: string
@@ -16,6 +17,7 @@ export function WorkshopThumbnail({
   title,
 }: WorkshopThumbnailProps) {
   const { disableHeavy } = useMotionSafe()
+  const theme = useAdminPanelTheme()
   const [imageError, setImageError] = useState(false)
 
   if (!thumbnailUrl || imageError) {
@@ -23,14 +25,14 @@ export function WorkshopThumbnail({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#0A2540] via-[#00D4B3]/30 to-[#0A2540] dark:from-[#0A2540] dark:via-[#00D4B3]/20 dark:to-[#0A2540]"
+        className="absolute inset-0 flex items-center justify-center"
+        style={{ background: theme.heroBackground }}
       >
         <div className="absolute inset-0 opacity-10">
           <div
             className="absolute inset-0"
             style={{
-              backgroundImage:
-                'radial-gradient(circle at 2px 2px, #00D4B3 1px, transparent 0)',
+              backgroundImage: `radial-gradient(circle at 2px 2px, ${theme.accentColor} 1px, transparent 0)`,
               backgroundSize: '40px 40px',
             }}
           />
@@ -47,8 +49,17 @@ export function WorkshopThumbnail({
           }}
           className="relative z-10"
         >
-          <div className="p-6 bg-white/10 dark:bg-white/5 rounded-2xl backdrop-blur-sm border border-white/20 dark:border-white/10">
-            <BookOpenIcon className="h-24 w-24 text-[#00D4B3] dark:text-[#00D4B3]/60" />
+          <div
+            className="rounded-2xl border p-6 backdrop-blur-sm"
+            style={{
+              backgroundColor: theme.inverseSurface,
+              borderColor: theme.inverseBorderColor,
+            }}
+          >
+            <BookOpen
+              className="h-24 w-24"
+              style={{ color: theme.accentColor }}
+            />
           </div>
         </motion.div>
       </motion.div>
@@ -72,10 +83,20 @@ export function WorkshopThumbnail({
           onError={() => setImageError(true)}
         />
       </motion.div>
-      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(to top, rgba(0,0,0,0.2), transparent 60%)',
+        }}
+      />
       {!disableHeavy && (
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 pointer-events-none"
+          className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100"
+          style={{
+            background:
+              'linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent)',
+          }}
           animate={{ x: ['-100%', '200%'] }}
           transition={{
             duration: 1.5,

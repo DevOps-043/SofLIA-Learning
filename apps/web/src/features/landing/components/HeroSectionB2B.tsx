@@ -52,28 +52,37 @@ export function HeroSectionB2B() {
 
   return (
     <section className="min-h-screen flex items-center relative overflow-hidden bg-white dark:bg-[#0F1419] pt-20">
-      {/* Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Gradient Orbs */}
-        <motion.div
-          className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full opacity-20 dark:opacity-10"
-          style={{
-            background: 'radial-gradient(circle, rgba(0, 212, 179, 0.3), transparent 60%)',
-          }}
-          animate={disableHeavy ? {} : { scale: [1, 1.1, 1], x: [0, 30, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] rounded-full opacity-20 dark:opacity-10"
-          style={{
-            background: 'radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent 60%)',
-          }}
-          animate={disableHeavy ? {} : { scale: [1, 1.15, 1], y: [0, -30, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-        />
+      {/*
+        Background Elements.  The animated radial-gradient orbs are large
+        decorative elements that pin GPU composition layers in WebKit and
+        were a major source of overheating on iPhone/iPad/Mac.  When
+        disableHeavy is on, we skip them entirely — the grid pattern stays
+        because it's a flat painted background (no GPU layer).
+      */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
+        {!disableHeavy && (
+          <>
+            <motion.div
+              className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full opacity-20 dark:opacity-10"
+              style={{
+                background: 'radial-gradient(circle, rgba(0, 212, 179, 0.3), transparent 60%)',
+              }}
+              animate={{ scale: [1, 1.1, 1], x: [0, 30, 0] }}
+              transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <motion.div
+              className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] rounded-full opacity-20 dark:opacity-10"
+              style={{
+                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent 60%)',
+              }}
+              animate={{ scale: [1, 1.15, 1], y: [0, -30, 0] }}
+              transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+            />
+          </>
+        )}
 
-        {/* Grid Pattern */}
-        <div 
+        {/* Grid Pattern (cheap — flat painted bg, no GPU layer) */}
+        <div
           className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]"
           style={{
             backgroundImage: `radial-gradient(circle at 1px 1px, #0A2540 1px, transparent 0)`,
@@ -165,34 +174,50 @@ export function HeroSectionB2B() {
           >
             {/* Main Logo with Glow */}
             <div className="relative w-full max-w-[400px] lg:max-w-[480px]">
-              {/* Glow Effect */}
-              <motion.div
-                className="absolute inset-0 rounded-full blur-3xl opacity-30"
-                style={{
-                  background: 'radial-gradient(circle, #00D4B3, transparent 70%)',
-                }}
-                animate={disableHeavy ? {} : { scale: [1, 1.1, 1], opacity: [0.2, 0.3, 0.2] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              />
-
-              {/* Logo */}
-              <motion.div
-                animate={disableHeavy ? {} : { y: [0, -15, 0] }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-                className="relative aspect-square"
-              >
-                <Image
-                  src="/Logo.png"
-                  alt="SofLIA"
-                  fill
-                  className="object-contain drop-shadow-2xl"
-                  priority
+              {/* Glow Effect — skipped on heat-sensitive devices because the
+                  blur-3xl on an absolutely-positioned element forces continuous
+                  GPU compositing in WebKit. */}
+              {!disableHeavy && (
+                <motion.div
+                  className="absolute inset-0 rounded-full blur-3xl opacity-30"
+                  style={{
+                    background: 'radial-gradient(circle, #00D4B3, transparent 70%)',
+                  }}
+                  animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.3, 0.2] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
                 />
-              </motion.div>
+              )}
+
+              {/* Logo — keep the floating animation only when allowed. */}
+              {disableHeavy ? (
+                <div className="relative aspect-square">
+                  <Image
+                    src="/Logo.png"
+                    alt="SofLIA"
+                    fill
+                    className="object-contain drop-shadow-2xl"
+                    priority
+                  />
+                </div>
+              ) : (
+                <motion.div
+                  animate={{ y: [0, -15, 0] }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                  className="relative aspect-square"
+                >
+                  <Image
+                    src="/Logo.png"
+                    alt="SofLIA"
+                    fill
+                    className="object-contain drop-shadow-2xl"
+                    priority
+                  />
+                </motion.div>
+              )}
             </div>
 
             {/* Floating Cards */}

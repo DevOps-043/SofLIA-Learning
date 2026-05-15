@@ -1,8 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { XMarkIcon } from '@heroicons/react/24/outline'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 
 interface AdminWorkshopsErrorStateProps {
   error: string
@@ -14,34 +15,54 @@ export function AdminWorkshopsErrorState({
   onRetry,
 }: AdminWorkshopsErrorStateProps) {
   const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
 
   return (
-    <div className="p-6">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-red-500/10 dark:bg-red-500/20 border border-red-500/20 dark:border-red-500/30 rounded-xl p-6"
-      >
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-red-500/20 rounded-lg">
-            <XMarkIcon className="h-5 w-5 text-red-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-red-500 dark:text-red-400 mb-1">
-              {t('workshops.errors.load')}
-            </h3>
-            <p className="text-xs text-red-500/80 dark:text-red-400/80">
-              {error}
-            </p>
-            <button
-              onClick={onRetry}
-              className="mt-3 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 rounded-lg text-sm font-medium transition-colors"
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8" style={{ backgroundColor: theme.panelBg }}>
+      <div className="mx-auto max-w-7xl">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-[24px] border p-6 shadow-sm"
+          style={{
+            backgroundColor: theme.cardBg,
+            borderColor: `${theme.dangerColor}30`,
+          }}
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <div
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border"
+              style={{
+                backgroundColor: `${theme.dangerColor}12`,
+                borderColor: `${theme.dangerColor}24`,
+                color: theme.dangerColor,
+              }}
             >
-              {t('workshops.errors.retry')}
-            </button>
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-lg font-extrabold" style={{ color: theme.textColor }}>
+                {t('workshops.errors.load')}
+              </h3>
+              <p className="mt-2 text-sm font-medium" style={{ color: theme.subtextColor }}>
+                {error}
+              </p>
+              <button
+                type="button"
+                onClick={onRetry}
+                className="mt-5 inline-flex h-11 items-center gap-2 rounded-2xl px-5 text-sm font-bold"
+                style={{
+                  backgroundColor: theme.primaryColor,
+                  color: theme.onPrimaryColor,
+                }}
+              >
+                <RefreshCw className="h-4 w-4" />
+                {t('workshops.errors.retry')}
+              </button>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   )
 }

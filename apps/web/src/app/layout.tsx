@@ -139,6 +139,34 @@ export default function RootLayout({
           }}
         />
 
+        {/*
+          Pre-paint device detection.  We mark the html element with
+          `is-apple-platform` when running on Safari (iOS, iPadOS, macOS
+          Safari).  The CSS at globals.css uses this hook to hide
+          GPU-heavy decorative blur orbs that overheat the device.
+          Runs synchronously in <head> so the class is set before the
+          first paint of <body>.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var ua = navigator.userAgent || '';
+                  var platform = navigator.platform || '';
+                  var maxTouchPoints = navigator.maxTouchPoints || 0;
+                  var isIOS = /iPhone|iPad|iPod/i.test(ua) || (platform === 'MacIntel' && maxTouchPoints > 1);
+                  var isMacLike = /Macintosh|Mac OS X/i.test(ua) || platform.indexOf('Mac') === 0;
+                  var isWebKit = ua.indexOf('AppleWebKit') !== -1 && ua.indexOf('Safari') !== -1 && !/Chrome|Chromium|CriOS|Edg|OPR|FxiOS|Firefox/.test(ua);
+                  if (isIOS || isMacLike || isWebKit) {
+                    document.documentElement.classList.add('is-apple-platform');
+                  }
+                } catch (e) { /* swallow */ }
+              })();
+            `,
+          }}
+        />
+
         {/* ðŸŽ¨ Script para aplicar tema antes del render (evita flash) */}
         <script
           dangerouslySetInnerHTML={{

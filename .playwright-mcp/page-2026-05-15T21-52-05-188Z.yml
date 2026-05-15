@@ -1,0 +1,628 @@
+- generic [active] [ref=e1]:
+  - link [ref=e2] [cursor=pointer]:
+    - /url: /api/_agent-trap?source=layout
+    - text: Internal diagnostics
+  - main [ref=e4]:
+    - navigation [ref=e7]:
+      - generic [ref=e8]:
+        - link "SOFLIA SofLIA Learning" [ref=e9] [cursor=pointer]:
+          - /url: /
+          - img "SOFLIA" [ref=e11]
+          - generic [ref=e12]:
+            - generic [ref=e13]: SofLIA
+            - generic [ref=e14]: Learning
+        - generic [ref=e15]:
+          - link "Inicio" [ref=e16] [cursor=pointer]:
+            - /url: /
+          - link "Descargar Hub" [ref=e17] [cursor=pointer]:
+            - /url: /downloads
+            - generic [ref=e18]: Descargar Hub
+      - generic [ref=e19]:
+        - button "Cambiar idioma" [ref=e21] [cursor=pointer]:
+          - img [ref=e22]
+        - button "Cambiar tema" [ref=e26] [cursor=pointer]:
+          - img [ref=e27]
+        - link "Acceso clientes" [ref=e34] [cursor=pointer]:
+          - /url: /auth
+          - generic [ref=e35]: Acceso clientes
+        - link "Agendar demo" [ref=e36] [cursor=pointer]:
+          - /url: "#contact"
+          - generic [ref=e37]: Agendar demo
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e43]: Plataforma B2B de Capacitación en IA
+        - heading "Capacitación en IA con impacto medible para tu organización" [level=1] [ref=e45]
+        - paragraph [ref=e46]: SofLIA es la plataforma de capacitación corporativa que combina inteligencia artificial, planificación inteligente y certificaciones verificables para desarrollar las competencias de tu equipo.
+        - generic [ref=e47]:
+          - link "Agendar demo ejecutiva" [ref=e48] [cursor=pointer]:
+            - /url: "#contact"
+            - button "Agendar demo ejecutiva" [ref=e49]:
+              - img [ref=e50]
+              - text: Agendar demo ejecutiva
+              - img [ref=e52]
+          - link "Solicitar diagnóstico" [ref=e54] [cursor=pointer]:
+            - /url: "#contact"
+            - button "Solicitar diagnóstico" [ref=e55]:
+              - img [ref=e56]
+              - text: Solicitar diagnóstico
+        - generic [ref=e59]:
+          - generic [ref=e60]:
+            - img [ref=e61]
+            - generic [ref=e64]: Potenciado por IA
+          - generic [ref=e65]:
+            - img [ref=e66]
+            - generic [ref=e68]: Resultados medibles
+          - generic [ref=e69]:
+            - img [ref=e70]
+            - generic [ref=e75]: Escalable
+      - generic [ref=e76]:
+        - img "SofLIA" [ref=e80]
+        - generic [ref=e82]:
+          - img [ref=e84]
+          - generic [ref=e87]:
+            - paragraph [ref=e88]: Completitud
+            - paragraph [ref=e89]: +85%
+        - generic [ref=e91]:
+          - img [ref=e93]
+          - generic [ref=e96]:
+            - paragraph [ref=e97]: Mentoría
+            - paragraph [ref=e98]: 24/7
+    - generic [ref=e100]:
+      - generic [ref=e101]:
+        - heading "Enterprise-ready desde el día uno" [level=2] [ref=e102]
+        - paragraph [ref=e103]: Diseñada para cumplir con los estándares más exigentes de capacitación corporativa
+      - generic [ref=e104]:
+        - generic [ref=e105]:
+          - img [ref=e107]
+          - heading "Multilingüe" [level=3] [ref=e112]
+          - paragraph [ref=e113]: ES, EN, PT
+        - generic [ref=e114]:
+          - img [ref=e116]
+          - heading "SCORM" [level=3] [ref=e120]
+          - paragraph [ref=e121]: Compatible
+        - generic [ref=e122]:
+          - img [ref=e124]
+          - heading "Certificados" [level=3] [ref=e127]
+          - paragraph [ref=e128]: Verificables
+        - generic [ref=e129]:
+          - img [ref=e131]
+          - heading "Roles" [level=3] [ref=e136]
+          - paragraph [ref=e137]: Personalizables
+        - generic [ref=e138]:
+          - img [ref=e140]
+          - heading "Analytics" [level=3] [ref=e142]
+          - paragraph [ref=e143]: En tiempo real
+        - generic [ref=e144]:
+          - img [ref=e146]
+          - heading "Seguridad" [level=3] [ref=e149]
+          - paragraph [ref=e150]: Enterprise
+      - generic [ref=e151]:
+        - generic [ref=e152]:
+          - paragraph [ref=e153]: "3"
+          - paragraph [ref=e154]: Idiomas
+        - generic [ref=e155]:
+          - paragraph [ref=e156]: SCORM
+          - paragraph [ref=e157]: Compatible
+        - generic [ref=e158]:
+          - paragraph [ref=e159]: 24/7
+          - paragraph [ref=e160]: Asistente SofLIA
+        - generic [ref=e161]:
+          - paragraph [ref=e162]: SHA-256
+          - paragraph [ref=e163]: Certificados
+    - generic [ref=e166]:
+      - generic [ref=e167]:
+        - generic [ref=e168]: La Plataforma
+        - heading "Capacitación corporativa potenciada por inteligencia artificial" [level=2] [ref=e169]
+        - paragraph [ref=e170]: SofLIA combina tecnología de punta con diseño centrado en el usuario para ofrecer una experiencia de aprendizaje que genera resultados medibles para tu organización.
+        - generic [ref=e171]:
+          - generic [ref=e172]:
+            - img [ref=e174]
+            - generic [ref=e177]:
+              - heading "Capacitación en IA" [level=3] [ref=e178]
+              - paragraph [ref=e179]: Cursos especializados en inteligencia artificial para equipos corporativos
+            - img [ref=e180]
+          - generic [ref=e182]:
+            - img [ref=e184]
+            - generic [ref=e187]:
+              - heading "Asistente SofLIA" [level=3] [ref=e188]
+              - paragraph [ref=e189]: IA contextual 24/7 que se adapta a cada usuario y lección
+            - img [ref=e190]
+          - generic [ref=e192]:
+            - img [ref=e194]
+            - generic [ref=e196]:
+              - heading "Planificador de Estudios" [level=3] [ref=e197]
+              - paragraph [ref=e198]: Sincronización automática con Google Calendar y Microsoft Outlook
+            - img [ref=e199]
+          - generic [ref=e201]:
+            - img [ref=e203]
+            - generic [ref=e206]:
+              - heading "Analytics Ejecutivos" [level=3] [ref=e207]
+              - paragraph [ref=e208]: Dashboards y reportes para medir ROI y tomar decisiones
+            - img [ref=e209]
+          - generic [ref=e211]:
+            - img [ref=e213]
+            - generic [ref=e216]:
+              - heading "Certificados Verificables" [level=3] [ref=e217]
+              - paragraph [ref=e218]: Hash SHA-256 + QR para validación instantánea
+            - img [ref=e219]
+      - generic [ref=e221]:
+        - img "SofLIA Dashboard" [ref=e224]
+        - generic [ref=e236]:
+          - img [ref=e238]
+          - generic [ref=e241]:
+            - paragraph [ref=e242]: Tutor IA
+            - paragraph [ref=e243]: Disponible 24/7
+        - generic [ref=e245]:
+          - img [ref=e247]
+          - generic [ref=e250]:
+            - paragraph [ref=e251]: +85%
+            - paragraph [ref=e252]: Completitud
+    - generic [ref=e256]:
+      - generic [ref=e257]:
+        - generic [ref=e258]: Capacidades
+        - heading "Todo lo que necesitas para capacitar a tu equipo" [level=2] [ref=e259]
+        - paragraph [ref=e260]: Cada funcionalidad está diseñada para generar impacto medible en tu organización
+      - generic [ref=e261]:
+        - generic [ref=e262]:
+          - img [ref=e264]
+          - heading "SofLIA - Asistente IA" [level=3] [ref=e267]
+          - paragraph [ref=e268]: Ayuda contextual 24/7 en ES, EN y PT
+          - paragraph [ref=e269]: Reduce consultas a RRHH
+        - generic [ref=e270]:
+          - img [ref=e272]
+          - heading "Study Planner" [level=3] [ref=e274]
+          - paragraph [ref=e275]: Sincronización con calendarios corporativos
+          - paragraph [ref=e276]: Adopción sin fricción
+        - generic [ref=e277]:
+          - img [ref=e279]
+          - heading "Analytics y Reportes" [level=3] [ref=e281]
+          - paragraph [ref=e282]: Dashboards para C-level y gerentes
+          - paragraph [ref=e283]: Visibilidad de ROI
+        - generic [ref=e284]:
+          - img [ref=e286]
+          - heading "Gestión por Equipos" [level=3] [ref=e290]
+          - paragraph [ref=e291]: Jerarquías región/zona/equipo
+          - paragraph [ref=e292]: Control granular
+        - generic [ref=e293]:
+          - img [ref=e295]
+          - heading "Certificados" [level=3] [ref=e298]
+          - paragraph [ref=e299]: Hash + QR verificable públicamente
+          - paragraph [ref=e300]: Credenciales confiables
+        - generic [ref=e301]:
+          - img [ref=e303]
+          - heading "White-label" [level=3] [ref=e309]
+          - paragraph [ref=e310]: Branding corporativo completo
+          - paragraph [ref=e311]: Experiencia de marca
+        - generic [ref=e312]:
+          - img [ref=e314]
+          - heading "SCORM" [level=3] [ref=e319]
+          - paragraph [ref=e320]: Compatibilidad con estándares e-learning
+          - paragraph [ref=e321]: Migración sin fricciones
+        - generic [ref=e322]:
+          - img [ref=e324]
+          - heading "Comunidad" [level=3] [ref=e326]
+          - paragraph [ref=e327]: Foros y colaboración entre empleados
+          - paragraph [ref=e328]: Cultura de aprendizaje
+    - generic [ref=e330]:
+      - generic [ref=e331]:
+        - generic [ref=e332]: Casos de Uso
+        - heading "Casos de uso que impulsan resultados" [level=2] [ref=e333]
+        - paragraph [ref=e334]: Cada solución está diseñada para resolver desafíos específicos de tu organización
+      - generic [ref=e335]:
+        - generic [ref=e340]:
+          - img [ref=e342]
+          - heading "Upskilling en IA a Escala" [level=3] [ref=e350]
+          - generic [ref=e351]:
+            - paragraph [ref=e352]: Desafío
+            - paragraph [ref=e353]: Equipos sin competencias en inteligencia artificial
+          - generic [ref=e354]:
+            - paragraph [ref=e355]: Solución
+            - paragraph [ref=e356]: Rutas de aprendizaje estructuradas con certificación
+          - generic [ref=e357]:
+            - paragraph [ref=e358]: Resultado
+            - paragraph [ref=e359]: Capacitación estandarizada en toda la organización
+          - img [ref=e361]
+        - generic [ref=e367]:
+          - img [ref=e369]
+          - heading "Onboarding Acelerado" [level=3] [ref=e374]
+          - generic [ref=e375]:
+            - paragraph [ref=e376]: Desafío
+            - paragraph [ref=e377]: Tiempo de productividad demasiado largo
+          - generic [ref=e378]:
+            - paragraph [ref=e379]: Solución
+            - paragraph [ref=e380]: Rutas de inducción + SofLIA como guía
+          - generic [ref=e381]:
+            - paragraph [ref=e382]: Resultado
+            - paragraph [ref=e383]: Reducción de tiempo de ramp-up
+          - img [ref=e385]
+        - generic [ref=e391]:
+          - img [ref=e393]
+          - heading "Enablement Comercial" [level=3] [ref=e396]
+          - generic [ref=e397]:
+            - paragraph [ref=e398]: Desafío
+            - paragraph [ref=e399]: Equipos de ventas desactualizados
+          - generic [ref=e400]:
+            - paragraph [ref=e401]: Solución
+            - paragraph [ref=e402]: Capacitación continua + certificaciones
+          - generic [ref=e403]:
+            - paragraph [ref=e404]: Resultado
+            - paragraph [ref=e405]: Mejora en tasas de conversión
+          - img [ref=e407]
+        - generic [ref=e413]:
+          - img [ref=e415]
+          - heading "Capacitación a Partners" [level=3] [ref=e420]
+          - generic [ref=e421]:
+            - paragraph [ref=e422]: Desafío
+            - paragraph [ref=e423]: Partners sin conocimiento de producto
+          - generic [ref=e424]:
+            - paragraph [ref=e425]: Solución
+            - paragraph [ref=e426]: Portal white-label para canales
+          - generic [ref=e427]:
+            - paragraph [ref=e428]: Resultado
+            - paragraph [ref=e429]: Partners más productivos
+          - img [ref=e431]
+        - generic [ref=e437]:
+          - img [ref=e439]
+          - heading "Capacitación a Clientes" [level=3] [ref=e442]
+          - generic [ref=e443]:
+            - paragraph [ref=e444]: Desafío
+            - paragraph [ref=e445]: Baja adopción de producto
+          - generic [ref=e446]:
+            - paragraph [ref=e447]: Solución
+            - paragraph [ref=e448]: Academy para clientes y usuarios
+          - generic [ref=e449]:
+            - paragraph [ref=e450]: Resultado
+            - paragraph [ref=e451]: Mayor retención y NPS
+          - img [ref=e453]
+        - generic [ref=e459]:
+          - img [ref=e461]
+          - heading "Compliance y Estandarización" [level=3] [ref=e465]
+          - generic [ref=e466]:
+            - paragraph [ref=e467]: Desafío
+            - paragraph [ref=e468]: Falta de trazabilidad en capacitación
+          - generic [ref=e469]:
+            - paragraph [ref=e470]: Solución
+            - paragraph [ref=e471]: Certificados verificables + reportes
+          - generic [ref=e472]:
+            - paragraph [ref=e473]: Resultado
+            - paragraph [ref=e474]: Cumplimiento auditable
+          - img [ref=e476]
+    - generic [ref=e481]:
+      - generic [ref=e482]:
+        - generic [ref=e483]: Impacto Medible
+        - heading "ROI que habla por sí mismo" [level=2] [ref=e484]
+        - paragraph [ref=e485]: Resultados reales de organizaciones que transformaron su capacitación con SofLIA
+      - generic [ref=e486]:
+        - generic [ref=e487]:
+          - img [ref=e489]
+          - generic [ref=e492]:
+            - generic [ref=e494]: 0%
+            - img [ref=e496]
+          - paragraph [ref=e499]: Reducción tiempo de onboarding
+        - generic [ref=e500]:
+          - img [ref=e502]
+          - generic [ref=e504]:
+            - generic [ref=e506]: $0K
+            - img [ref=e508]
+          - paragraph [ref=e511]: Ahorro anual estimado
+        - generic [ref=e512]:
+          - img [ref=e514]
+          - generic [ref=e517]:
+            - generic [ref=e519]: 0%
+            - img [ref=e521]
+          - paragraph [ref=e524]: Tasa de completitud de cursos
+        - generic [ref=e525]:
+          - img [ref=e527]
+          - generic [ref=e529]:
+            - generic [ref=e531]: 0%
+            - img [ref=e533]
+          - paragraph [ref=e536]: Incremento en productividad
+      - paragraph [ref=e538]: "* Métricas basadas en resultados promedio de clientes. Los resultados pueden variar según la implementación."
+    - generic [ref=e540]:
+      - generic [ref=e541]:
+        - generic [ref=e542]:
+          - img [ref=e543]
+          - generic [ref=e546]: Asistente de IA
+        - heading "¿Qué puede hacer SofLIA por ti?" [level=2] [ref=e547]
+        - paragraph [ref=e548]: SofLIA es tu asistente de aprendizaje con inteligencia artificial, disponible 24/7 para ayudarte en cada paso de tu capacitación.
+      - generic [ref=e549]:
+        - generic [ref=e550]:
+          - heading "Capacidades de SofLIA" [level=3] [ref=e551]
+          - generic [ref=e552]:
+            - generic [ref=e553]:
+              - img [ref=e555]
+              - heading "Conversación Natural" [level=4] [ref=e557]
+              - paragraph [ref=e558]: Comunícate como si hablaras con un tutor personal
+            - generic [ref=e559]:
+              - img [ref=e561]
+              - heading "Contexto Inteligente" [level=4] [ref=e569]
+              - paragraph [ref=e570]: Entiende en qué lección estás y te ayuda específicamente
+            - generic [ref=e571]:
+              - img [ref=e573]
+              - heading "Planificador Proactivo" [level=4] [ref=e575]
+              - paragraph [ref=e576]: Crea y gestiona tu plan de estudios, detecta atrasos y reprograma
+            - generic [ref=e577]:
+              - img [ref=e579]
+              - heading "Según tu Rol" [level=4] [ref=e591]
+              - paragraph [ref=e592]: Personaliza la experiencia según tu cargo y nivel en la empresa
+            - generic [ref=e593]:
+              - img [ref=e595]
+              - heading "Donde Estés" [level=4] [ref=e598]
+              - paragraph [ref=e599]: Te ayuda en cualquier sección de la plataforma
+            - generic [ref=e600]:
+              - img [ref=e602]
+              - heading "Multilingüe" [level=4] [ref=e605]
+              - paragraph [ref=e606]: Responde en español, inglés y portugués
+            - generic [ref=e607]:
+              - img [ref=e609]
+              - heading "Recomendaciones" [level=4] [ref=e611]
+              - paragraph [ref=e612]: Sugiere cursos y recursos según tus intereses
+            - generic [ref=e613]:
+              - img [ref=e615]
+              - heading "Soporte Continuo" [level=4] [ref=e618]
+              - paragraph [ref=e619]: Disponible 24/7 para resolver tus dudas
+        - generic [ref=e620]:
+          - heading "SofLIA puede ayudarte a:" [level=3] [ref=e621]
+          - generic [ref=e622]:
+            - generic [ref=e623]:
+              - img [ref=e624]
+              - generic [ref=e627]: Responder dudas sobre cualquier contenido del curso
+            - generic [ref=e628]:
+              - img [ref=e629]
+              - generic [ref=e632]: Explicar conceptos complejos de manera simple
+            - generic [ref=e633]:
+              - img [ref=e634]
+              - generic [ref=e637]: Crear y gestionar tu plan de estudios proactivamente
+            - generic [ref=e638]:
+              - img [ref=e639]
+              - generic [ref=e642]: Detectar sesiones atrasadas y proponer reprogramaciones
+            - generic [ref=e643]:
+              - img [ref=e644]
+              - generic [ref=e647]: Personalizar recomendaciones según tu rol y nivel
+            - generic [ref=e648]:
+              - img [ref=e649]
+              - generic [ref=e652]: Ayudarte en cualquier sección de la plataforma
+            - generic [ref=e653]:
+              - img [ref=e654]
+              - generic [ref=e657]: Guiarte por la plataforma paso a paso
+            - generic [ref=e658]:
+              - img [ref=e659]
+              - generic [ref=e662]: Generar resúmenes de lecciones
+          - generic [ref=e663]:
+            - generic [ref=e666]:
+              - img "LIA" [ref=e668]
+              - generic [ref=e669]:
+                - generic [ref=e670]:
+                  - generic [ref=e671]: SofLIA
+                  - generic [ref=e672]: En línea
+                - paragraph [ref=e673]: Tu asistente de aprendizaje
+            - generic [ref=e676]:
+              - generic [ref=e677]: Escribe tu pregunta...
+              - img [ref=e679]
+    - generic [ref=e683]:
+      - generic [ref=e684]:
+        - generic [ref=e685]: Seguridad Enterprise
+        - heading "Gobierno y control que tu organización necesita" [level=2] [ref=e686]
+        - paragraph [ref=e687]: Diseñada para cumplir con los estándares de seguridad y trazabilidad más exigentes
+      - generic [ref=e688]:
+        - generic [ref=e689]:
+          - img [ref=e691]
+          - heading "Roles y Permisos" [level=3] [ref=e696]
+          - paragraph [ref=e697]: Control granular de acceso por rol y jerarquía
+          - generic [ref=e698]:
+            - generic [ref=e699]:
+              - img [ref=e700]
+              - generic [ref=e703]: Permisos personalizables
+            - generic [ref=e704]:
+              - img [ref=e705]
+              - generic [ref=e708]: Segregación de datos
+        - generic [ref=e709]:
+          - img [ref=e711]
+          - heading "Gestión Jerárquica" [level=3] [ref=e714]
+          - paragraph [ref=e715]: Organiza por región, zona, departamento y equipo
+          - generic [ref=e716]:
+            - generic [ref=e717]:
+              - img [ref=e718]
+              - generic [ref=e721]: Multinivel flexible
+            - generic [ref=e722]:
+              - img [ref=e723]
+              - generic [ref=e726]: Reportes por unidad
+        - generic [ref=e727]:
+          - img [ref=e729]
+          - heading "Auditoría y Logs" [level=3] [ref=e734]
+          - paragraph [ref=e735]: Trazabilidad completa de acciones y eventos
+          - generic [ref=e736]:
+            - generic [ref=e737]:
+              - img [ref=e738]
+              - generic [ref=e741]: Historial completo
+            - generic [ref=e742]:
+              - img [ref=e743]
+              - generic [ref=e746]: Exportable para auditorías
+        - generic [ref=e747]:
+          - img [ref=e749]
+          - heading "Visibilidad Ejecutiva" [level=3] [ref=e752]
+          - paragraph [ref=e753]: Dashboards y reportes para la dirección
+          - generic [ref=e754]:
+            - generic [ref=e755]:
+              - img [ref=e756]
+              - generic [ref=e759]: KPIs en tiempo real
+            - generic [ref=e760]:
+              - img [ref=e761]
+              - generic [ref=e764]: Alertas configurables
+        - generic [ref=e765]:
+          - img [ref=e767]
+          - heading "Encriptación" [level=3] [ref=e770]
+          - paragraph [ref=e771]: Datos protegidos en tránsito y en reposo
+          - generic [ref=e772]:
+            - generic [ref=e773]:
+              - img [ref=e774]
+              - generic [ref=e777]: TLS 1.3
+            - generic [ref=e778]:
+              - img [ref=e779]
+              - generic [ref=e782]: Encriptación AES-256
+        - generic [ref=e783]:
+          - img [ref=e785]
+          - heading "SSO / SAML" [level=3] [ref=e787]
+          - paragraph [ref=e788]: Integración con proveedores de identidad
+          - generic [ref=e789]:
+            - generic [ref=e790]:
+              - img [ref=e791]
+              - generic [ref=e794]: Azure AD, Okta, Google
+            - generic [ref=e795]:
+              - img [ref=e796]
+              - generic [ref=e799]: Próximamente disponible
+      - generic [ref=e801]:
+        - img [ref=e802]
+        - generic [ref=e804]: Enterprise-ready desde el día uno
+    - generic [ref=e807]:
+      - generic [ref=e808]:
+        - generic [ref=e809]: Preguntas Frecuentes
+        - heading "Respuestas a las preguntas que importan" [level=2] [ref=e810]
+        - paragraph [ref=e811]: Todo lo que necesitas saber para tomar una decisión informada.
+        - generic [ref=e812]:
+          - img [ref=e814]
+          - generic [ref=e817]:
+            - paragraph [ref=e818]: ¿Tienes más preguntas?
+            - paragraph [ref=e819]: Agenda una demo y resolvemos todas tus dudas.
+      - generic [ref=e820]:
+        - generic [ref=e821]:
+          - button "¿Cómo se mide el ROI de la capacitación?" [ref=e822] [cursor=pointer]:
+            - generic [ref=e823]: ¿Cómo se mide el ROI de la capacitación?
+            - img [ref=e825]
+          - paragraph [ref=e827]: "SofLIA proporciona dashboards con métricas clave: tasa de completitud, tiempo de capacitación, certificaciones obtenidas y correlación con indicadores de negocio. Puedes exportar reportes para justificar la inversión ante dirección."
+        - button "¿Cuál es el tiempo de implementación?" [ref=e829] [cursor=pointer]:
+          - generic [ref=e830]: ¿Cuál es el tiempo de implementación?
+          - img [ref=e832]
+        - button "¿Cómo se integra con sistemas existentes?" [ref=e835] [cursor=pointer]:
+          - generic [ref=e836]: ¿Cómo se integra con sistemas existentes?
+          - img [ref=e838]
+        - button "¿Cómo se gobierna el acceso y la trazabilidad?" [ref=e841] [cursor=pointer]:
+          - generic [ref=e842]: ¿Cómo se gobierna el acceso y la trazabilidad?
+          - img [ref=e844]
+        - button "¿Cómo soporta multi-idioma?" [ref=e847] [cursor=pointer]:
+          - generic [ref=e848]: ¿Cómo soporta multi-idioma?
+          - img [ref=e850]
+        - button "¿Cómo funciona la certificación verificable?" [ref=e853] [cursor=pointer]:
+          - generic [ref=e854]: ¿Cómo funciona la certificación verificable?
+          - img [ref=e856]
+        - button "¿Qué incluye el white-label?" [ref=e859] [cursor=pointer]:
+          - generic [ref=e860]: ¿Qué incluye el white-label?
+          - img [ref=e862]
+        - button "¿Cómo se gestiona el cambio y adopción?" [ref=e865] [cursor=pointer]:
+          - generic [ref=e866]: ¿Cómo se gestiona el cambio y adopción?
+          - img [ref=e868]
+    - generic [ref=e872]:
+      - generic [ref=e873]:
+        - generic [ref=e874]: Comienza Hoy
+        - heading "Transforma la capacitación de tu organización" [level=2] [ref=e875]
+        - paragraph [ref=e876]: Agenda una demo ejecutiva y descubre cómo SofLIA puede impulsar el desarrollo de tu equipo con resultados medibles.
+      - generic [ref=e878]:
+        - generic [ref=e879]:
+          - generic [ref=e880]:
+            - img [ref=e881]
+            - textbox "Tu nombre" [ref=e884]
+          - generic [ref=e885]:
+            - img [ref=e886]
+            - textbox "tu@empresa.com" [ref=e889]
+        - generic [ref=e890]:
+          - img [ref=e891]
+          - textbox "Nombre de tu empresa" [ref=e895]
+        - button "Solicitar demo ejecutiva" [ref=e896] [cursor=pointer]:
+          - text: Solicitar demo ejecutiva
+          - img [ref=e897]
+        - paragraph [ref=e900]:
+          - text: ¿Prefieres contactarnos directamente?
+          - link "ernesto.hernandez@ecosdeliderazgo.com" [ref=e901] [cursor=pointer]:
+            - /url: mailto:ernesto.hernandez@ecosdeliderazgo.com
+      - generic [ref=e902]:
+        - generic [ref=e903]:
+          - img [ref=e904]
+          - generic [ref=e907]: Sin compromiso
+        - generic [ref=e908]:
+          - img [ref=e909]
+          - generic [ref=e912]: Demo personalizada
+        - generic [ref=e913]:
+          - img [ref=e914]
+          - generic [ref=e917]: Respuesta en 24h
+    - generic [ref=e918]:
+      - generic [ref=e920]:
+        - generic [ref=e921]:
+          - link "SofLIA SofLIA" [ref=e922] [cursor=pointer]:
+            - /url: /
+            - img "SofLIA" [ref=e924]
+            - generic [ref=e925]: SofLIA
+          - paragraph [ref=e926]: Plataforma de capacitación corporativa en IA que transforma el desarrollo de talento con inteligencia artificial, planificación inteligente y certificaciones verificables.
+        - generic [ref=e927]:
+          - heading "Plataforma" [level=4] [ref=e928]
+          - list [ref=e929]:
+            - listitem [ref=e930]:
+              - link "Características" [ref=e931] [cursor=pointer]:
+                - /url: "#capabilities"
+            - listitem [ref=e932]:
+              - link "Asistente SofLIA" [ref=e933] [cursor=pointer]:
+                - /url: "#platform"
+            - listitem [ref=e934]:
+              - link "Study Planner" [ref=e935] [cursor=pointer]:
+                - /url: "#platform"
+            - listitem [ref=e936]:
+              - link "Analytics" [ref=e937] [cursor=pointer]:
+                - /url: "#platform"
+            - listitem [ref=e938]:
+              - link "Soflia Hub" [ref=e939] [cursor=pointer]:
+                - /url: /downloads
+            - listitem [ref=e940]:
+              - link "Certificados" [ref=e941] [cursor=pointer]:
+                - /url: "#platform"
+        - generic [ref=e942]:
+          - heading "Soluciones" [level=4] [ref=e943]
+          - list [ref=e944]:
+            - listitem [ref=e945]:
+              - link "Upskilling IA" [ref=e946] [cursor=pointer]:
+                - /url: "#use-cases"
+            - listitem [ref=e947]:
+              - link "Onboarding" [ref=e948] [cursor=pointer]:
+                - /url: "#use-cases"
+            - listitem [ref=e949]:
+              - link "Ventas" [ref=e950] [cursor=pointer]:
+                - /url: "#use-cases"
+            - listitem [ref=e951]:
+              - link "Partners" [ref=e952] [cursor=pointer]:
+                - /url: "#use-cases"
+            - listitem [ref=e953]:
+              - link "Clientes" [ref=e954] [cursor=pointer]:
+                - /url: "#use-cases"
+        - generic [ref=e955]:
+          - heading "Recursos" [level=4] [ref=e956]
+          - list [ref=e957]:
+            - listitem [ref=e958]:
+              - link "Documentación" [ref=e959] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e960]:
+              - link "SofLIA" [ref=e961] [cursor=pointer]:
+                - /url: "#integrations"
+            - listitem [ref=e962]:
+              - link "Seguridad" [ref=e963] [cursor=pointer]:
+                - /url: "#security"
+            - listitem [ref=e964]:
+              - link "FAQ" [ref=e965] [cursor=pointer]:
+                - /url: "#faq"
+        - generic [ref=e966]:
+          - heading "Compañía" [level=4] [ref=e967]
+          - list [ref=e968]:
+            - listitem [ref=e969]:
+              - link "Contacto" [ref=e970] [cursor=pointer]:
+                - /url: "#contact"
+      - generic [ref=e973]:
+        - generic [ref=e974]:
+          - generic [ref=e975]: © 2026 SofLIA Learning
+          - generic [ref=e976]: ·
+          - generic [ref=e977]:
+            - img [ref=e978]
+            - text: México
+        - generic [ref=e981]:
+          - link "Privacidad" [ref=e982] [cursor=pointer]:
+            - /url: /privacy
+          - link "Términos" [ref=e983] [cursor=pointer]:
+            - /url: /terms
+          - link "Contacto" [ref=e984] [cursor=pointer]:
+            - /url: "#contact"

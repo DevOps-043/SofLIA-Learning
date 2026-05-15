@@ -1,35 +1,39 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import {
-  ArrowPathIcon,
-  BuildingOffice2Icon,
-  ExclamationTriangleIcon,
-} from '@heroicons/react/24/outline'
-
-import {
-  adminCompaniesColors,
-  type AdminCompaniesThemeColors,
-} from '../../services/admin-companies'
+import { AlertTriangle, Building2, RefreshCw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
+import type { AdminCompaniesThemeColors } from '../../services/admin-companies'
 
 interface AdminCompaniesLoadingStateProps {
   themeColors: AdminCompaniesThemeColors
 }
 
 export function AdminCompaniesLoadingState({ themeColors }: AdminCompaniesLoadingStateProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
+
   return (
-    <div className="min-h-screen p-6 lg:p-8" style={{ backgroundColor: themeColors.background }}>
-      <div className="animate-pulse space-y-8">
-        <div className="h-12 w-1/3 rounded-xl bg-gray-800" />
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="h-36 rounded-2xl bg-gray-800" />
-          ))}
-        </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="h-72 rounded-2xl bg-gray-800" />
-          ))}
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8" style={{ backgroundColor: themeColors.background }}>
+      <div className="mx-auto flex min-h-[60vh] max-w-7xl items-center justify-center">
+        <div
+          className="flex w-full max-w-sm flex-col items-center rounded-[28px] border p-8 text-center shadow-sm"
+          style={{
+            backgroundColor: themeColors.cardBackground,
+            borderColor: themeColors.borderColor,
+          }}
+        >
+          <div
+            className="mb-5 h-12 w-12 animate-spin rounded-full border-4 border-transparent"
+            style={{
+              borderTopColor: theme.primaryColor,
+              borderRightColor: `${theme.primaryColor}40`,
+            }}
+          />
+          <p className="text-sm font-bold" style={{ color: themeColors.textPrimary }}>
+            {t('companies.page.loading')}
+          </p>
         </div>
       </div>
     </div>
@@ -47,37 +51,48 @@ export function AdminCompaniesErrorState({
   onRetry,
   themeColors,
 }: AdminCompaniesErrorStateProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
+
   return (
     <div
-      className="flex min-h-screen items-center justify-center p-6 lg:p-8"
+      className="flex min-h-screen items-center justify-center p-4 sm:p-6 lg:p-8"
       style={{ backgroundColor: themeColors.background }}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="max-w-md rounded-2xl border p-8 text-center"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md rounded-[24px] border p-8 text-center shadow-sm"
         style={{
           backgroundColor: themeColors.cardBackground,
-          borderColor: `${adminCompaniesColors.error}30`,
+          borderColor: `${theme.dangerColor}30`,
         }}
       >
-        <ExclamationTriangleIcon className="mx-auto mb-4 h-12 w-12" style={{ color: adminCompaniesColors.error }} />
-        <h2 className="mb-2 text-xl font-bold" style={{ color: themeColors.textPrimary }}>
-          Error al cargar
+        <div
+          className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border"
+          style={{
+            backgroundColor: `${theme.dangerColor}12`,
+            borderColor: `${theme.dangerColor}24`,
+            color: theme.dangerColor,
+          }}
+        >
+          <AlertTriangle className="h-7 w-7" />
+        </div>
+        <h2 className="mb-2 text-xl font-extrabold" style={{ color: themeColors.textPrimary }}>
+          {t('companies.page.errorLoading')}
         </h2>
-        <p className="mb-6" style={{ color: adminCompaniesColors.grayMedium }}>
+        <p className="mb-6 text-sm font-medium" style={{ color: themeColors.textSecondary }}>
           {error}
         </p>
-        <motion.button
+        <button
+          type="button"
           onClick={onRetry}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="mx-auto flex items-center gap-2 rounded-xl px-6 py-3 font-medium"
-          style={{ backgroundColor: adminCompaniesColors.accent, color: adminCompaniesColors.primary }}
+          className="mx-auto flex h-11 items-center gap-2 rounded-2xl px-6 text-sm font-bold"
+          style={{ backgroundColor: theme.primaryColor, color: theme.onPrimaryColor }}
         >
-          <ArrowPathIcon className="h-5 w-5" />
-          Reintentar
-        </motion.button>
+          <RefreshCw className="h-4 w-4" />
+          {t('companies.actions.retry')}
+        </button>
       </motion.div>
     </div>
   )
@@ -88,21 +103,35 @@ interface AdminCompaniesEmptyStateProps {
 }
 
 export function AdminCompaniesEmptyState({ themeColors }: AdminCompaniesEmptyStateProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="col-span-full rounded-2xl border p-12 text-center transition-colors"
+      className="col-span-full flex min-h-[320px] flex-col items-center justify-center rounded-[24px] border p-12 text-center shadow-sm"
       style={{
         backgroundColor: themeColors.cardBackground,
-        borderColor: `${themeColors.borderColor}30`,
+        borderColor: themeColors.borderColor,
       }}
     >
-      <BuildingOffice2Icon className="mx-auto mb-4 h-16 w-16" style={{ color: themeColors.textSecondary }} />
-      <p className="mb-2 text-lg font-medium" style={{ color: themeColors.textPrimary }}>
-        No se encontraron empresas
+      <div
+        className="mb-6 flex h-20 w-20 items-center justify-center rounded-[24px] border"
+        style={{
+          backgroundColor: themeColors.inputBg,
+          borderColor: themeColors.borderColor,
+          color: theme.primaryColor,
+        }}
+      >
+        <Building2 className="h-9 w-9" />
+      </div>
+      <p className="mb-2 text-lg font-extrabold" style={{ color: themeColors.textPrimary }}>
+        {t('companies.empty.title')}
       </p>
-      <p style={{ color: themeColors.textSecondary }}>Intenta ajustar los filtros de busqueda</p>
+      <p className="text-sm font-medium" style={{ color: themeColors.textSecondary }}>
+        {t('companies.empty.description')}
+      </p>
     </motion.div>
   )
 }

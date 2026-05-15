@@ -1,22 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import {
-  ClockIcon,
-  EyeIcon,
-  PencilIcon,
-  TrashIcon,
-} from '@heroicons/react/24/outline'
+  Clock,
+  Eye,
+  Pencil,
+  Trash2,
+  Users,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 import type { AdminWorkshop } from '../../services/adminWorkshops.service'
 import {
   formatWorkshopDuration,
-  getWorkshopCategoryTone,
+  getAdminWorkshopCategoryConfig,
+  getAdminWorkshopLevelConfig,
+  getAdminWorkshopStatusConfig,
   getWorkshopInstructorInitials,
-  getWorkshopLevelLabel,
-  getWorkshopLevelTone,
 } from './admin-workshops-display.service'
 import { WorkshopThumbnail } from './WorkshopThumbnail'
 import { useMotionSafe } from '@/lib/utils/motion'
@@ -36,15 +38,27 @@ export function AdminWorkshopCard({
   onEdit,
   onDelete,
 }: AdminWorkshopCardProps) {
-  const { t } = useTranslation('common')
+  const { t: tc } = useTranslation('common')
   const { t: ta } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
   const { disableHeavy, safeTransition } = useMotionSafe()
   const [instructorImageError, setInstructorImageError] = useState(false)
-  const levelTone = getWorkshopLevelTone(workshop.level)
-  const categoryTone = getWorkshopCategoryTone(workshop.category)
+  const categoryConfig = getAdminWorkshopCategoryConfig(workshop.category, theme)
+  const levelConfig = getAdminWorkshopLevelConfig(workshop.level, theme)
+  const statusConfig = getAdminWorkshopStatusConfig(workshop.is_active, theme)
   const instructorInitials = getWorkshopInstructorInitials(
     workshop.instructor_name,
   )
+  const categoryLabel = tc(
+    `common.categories.${workshop.category}`,
+    workshop.category,
+  )
+  const levelLabel = levelConfig.labelKey
+    ? ta(levelConfig.labelKey)
+    : levelConfig.fallbackLabel
+  const statusLabel = statusConfig.labelKey
+    ? ta(statusConfig.labelKey)
+    : statusConfig.fallbackLabel
 
   return (
     <motion.div
@@ -59,15 +73,31 @@ export function AdminWorkshopCard({
       whileHover={disableHeavy ? undefined : { y: -8, scale: 1.02 }}
       transition={disableHeavy ? safeTransition : { type: 'spring', stiffness: 300, damping: 20 }}
       onClick={() => onView(workshop)}
-      className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-500/30 overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col group cursor-pointer"
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl border shadow-lg transition-all duration-300 hover:shadow-2xl"
+      style={{
+        backgroundColor: theme.cardBg,
+        borderColor: theme.borderColor,
+      }}
     >
-      <div className="h-56 bg-gradient-to-br from-primary/10 to-accent/10 dark:from-gray-900 dark:to-primary/20 relative overflow-hidden flex-shrink-0 group/image">
+      <div
+        className="group/image relative h-56 flex-shrink-0 overflow-hidden"
+        style={{ backgroundColor: theme.inputBg }}
+      >
         <WorkshopThumbnail
           thumbnailUrl={workshop.thumbnail_url}
           title={workshop.title}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
-        <div className="absolute inset-0 border-2 border-accent/0 group-hover:border-accent/50 transition-all duration-500 rounded-t-2xl pointer-events-none" />
+        <div
+          className="absolute inset-0 opacity-60 transition-opacity duration-500 group-hover:opacity-80"
+          style={{
+            background:
+              'linear-gradient(to top, rgba(0,0,0,0.62), rgba(0,0,0,0.18), transparent)',
+          }}
+        />
+        <div
+          className="pointer-events-none absolute inset-0 rounded-t-2xl border-2 border-transparent transition-all duration-500 group-hover:opacity-100"
+          style={{ borderColor: 'transparent' }}
+        />
         <motion.div
           initial={disableHeavy ? false : { scale: 0, rotate: -180 }}
           animate={disableHeavy ? undefined : { scale: 1, rotate: 0 }}
@@ -75,18 +105,18 @@ export function AdminWorkshopCard({
           className="absolute top-4 right-4 z-10"
         >
           <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border backdrop-blur-md shadow-xl ${
-              workshop.is_active
-                ? 'bg-success/95 dark:bg-success/40 text-white dark:text-success border-success/50 shadow-success/30'
-                : 'bg-gray-500/95 dark:bg-gray-500/40 text-white dark:text-gray-500 border-gray-500/50 shadow-gray-500/30'
-            }`}
+            className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold shadow-xl backdrop-blur-md"
+            style={{
+              backgroundColor: statusConfig.bg,
+              borderColor: statusConfig.border,
+              color: statusConfig.color,
+            }}
           >
             <div
-              className={`w-1.5 h-1.5 rounded-full ${
-                workshop.is_active ? 'bg-white animate-pulse' : 'bg-white/70'
-              }`}
+              className={workshop.is_active ? 'h-1.5 w-1.5 animate-pulse rounded-full' : 'h-1.5 w-1.5 rounded-full'}
+              style={{ backgroundColor: statusConfig.color }}
             />
-            {workshop.is_active ? ta('workshops.card.statusActive') : ta('workshops.card.statusInactive')}
+            {statusLabel}
           </span>
         </motion.div>
         <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 z-10">
@@ -94,17 +124,27 @@ export function AdminWorkshopCard({
             initial={disableHeavy ? false : { x: -30, opacity: 0 }}
             animate={disableHeavy ? undefined : { x: 0, opacity: 1 }}
             transition={disableHeavy ? undefined : { delay: index * 0.05 + 0.1, type: 'spring' }}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border backdrop-blur-md shadow-lg ${categoryTone.bg} ${categoryTone.text} ${categoryTone.border}`}
+            className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold shadow-lg backdrop-blur-md"
+            style={{
+              backgroundColor: categoryConfig.bg,
+              borderColor: categoryConfig.border,
+              color: categoryConfig.color,
+            }}
           >
-            {t(`common.categories.${workshop.category}`, workshop.category)}
+            {categoryLabel}
           </motion.span>
           <motion.span
             initial={disableHeavy ? false : { x: -30, opacity: 0 }}
             animate={disableHeavy ? undefined : { x: 0, opacity: 1 }}
             transition={disableHeavy ? undefined : { delay: index * 0.05 + 0.15, type: 'spring' }}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border backdrop-blur-md shadow-lg ${levelTone.bg} ${levelTone.text} ${levelTone.border}`}
+            className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold shadow-lg backdrop-blur-md"
+            style={{
+              backgroundColor: levelConfig.bg,
+              borderColor: levelConfig.border,
+              color: levelConfig.color,
+            }}
           >
-            {ta(`workshops.card.level.${workshop.level}`)}
+            {levelLabel}
           </motion.span>
         </div>
       </div>
@@ -114,7 +154,8 @@ export function AdminWorkshopCard({
           initial={disableHeavy ? false : { opacity: 0 }}
           animate={disableHeavy ? undefined : { opacity: 1 }}
           transition={disableHeavy ? undefined : { delay: index * 0.05 + 0.2 }}
-          className="text-xl font-bold text-primary dark:text-white mb-3 line-clamp-2 min-h-[3.5rem] group-hover:text-accent transition-colors duration-300"
+          className="mb-3 line-clamp-2 min-h-[3.5rem] text-xl font-bold transition-colors duration-300"
+          style={{ color: theme.textColor }}
         >
           {workshop.title}
         </motion.h3>
@@ -123,7 +164,8 @@ export function AdminWorkshopCard({
           initial={disableHeavy ? false : { opacity: 0 }}
           animate={disableHeavy ? undefined : { opacity: 1 }}
           transition={disableHeavy ? undefined : { delay: index * 0.05 + 0.25 }}
-          className="text-sm text-gray-500 dark:text-white/60 mb-5 line-clamp-2 flex-1 min-h-[2.5rem] leading-relaxed"
+          className="mb-5 line-clamp-2 min-h-[2.5rem] flex-1 text-sm leading-relaxed"
+          style={{ color: theme.subtextColor }}
         >
           {workshop.description}
         </motion.p>
@@ -136,8 +178,17 @@ export function AdminWorkshopCard({
         >
           <div className="flex items-center gap-3 min-w-0 flex-1">
             {workshop.instructor_profile_picture_url && !instructorImageError ? (
-              <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-accent/20 dark:ring-accent/30 flex-shrink-0">
-                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-accent to-primary text-xs font-bold text-white">
+              <div
+                className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-2"
+                style={{ '--tw-ring-color': `${theme.accentColor}33` } as CSSProperties}
+              >
+                <div
+                  className="absolute inset-0 flex items-center justify-center text-xs font-bold"
+                  style={{
+                    background: `linear-gradient(135deg, ${theme.accentColor}, ${theme.primaryColor})`,
+                    color: theme.onPrimaryColor,
+                  }}
+                >
                   {instructorInitials}
                 </div>
                 <Image
@@ -150,22 +201,41 @@ export function AdminWorkshopCard({
                 />
               </div>
             ) : (
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center text-white text-xs font-bold ring-2 ring-accent/20 dark:ring-accent/30 flex-shrink-0">
+              <div
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ring-2"
+                style={{
+                  '--tw-ring-color': `${theme.accentColor}33`,
+                  background: `linear-gradient(135deg, ${theme.accentColor}, ${theme.primaryColor})`,
+                  color: theme.onPrimaryColor,
+                } as CSSProperties}
+              >
                 {instructorInitials}
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-gray-500 dark:text-white/50 uppercase tracking-wide mb-0.5">
+              <p
+                className="mb-0.5 text-xs uppercase tracking-wide"
+                style={{ color: theme.mutedTextColor }}
+              >
                 {ta('workshops.card.instructorLabel')}
               </p>
-              <p className="text-sm font-semibold text-primary dark:text-white truncate">
+              <p
+                className="truncate text-sm font-semibold"
+                style={{ color: theme.textColor }}
+              >
                 {workshop.instructor_name || ta('workshops.card.noInstructor')}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 ml-4 flex-shrink-0 px-3 py-1.5 bg-gray-200/50 dark:bg-gray-900 rounded-lg">
-            <ClockIcon className="h-4 w-4 text-gray-500 dark:text-white/60" />
-            <span className="text-sm font-medium text-primary dark:text-white">
+          <div
+            className="ml-4 flex flex-shrink-0 items-center gap-2 rounded-lg px-3 py-1.5"
+            style={{ backgroundColor: theme.inputBg }}
+          >
+            <Clock className="h-4 w-4" style={{ color: theme.subtextColor }} />
+            <span
+              className="text-sm font-medium"
+              style={{ color: theme.textColor }}
+            >
               {formatWorkshopDuration(workshop.duration_total_minutes)}
             </span>
           </div>
@@ -175,24 +245,35 @@ export function AdminWorkshopCard({
           initial={disableHeavy ? false : { opacity: 0, y: 10 }}
           animate={disableHeavy ? undefined : { opacity: 1, y: 0 }}
           transition={disableHeavy ? undefined : { delay: index * 0.05 + 0.35 }}
-          className="flex items-center justify-between pt-5 border-t border-gray-200 dark:border-gray-500/30 mt-auto"
+          className="mt-auto flex items-center justify-between border-t pt-5"
+          style={{ borderColor: theme.dividerColor }}
         >
           <motion.div
             whileHover={disableHeavy ? undefined : { scale: 1.05 }}
-            className="flex items-center gap-2 px-3 py-1.5 bg-gray-200/50 dark:bg-gray-900 rounded-lg"
+            className="flex items-center gap-2 rounded-lg px-3 py-1.5"
+            style={{ backgroundColor: theme.inputBg }}
           >
-            <div className="relative">
-              <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-              <div className="absolute inset-0 w-2 h-2 rounded-full bg-accent animate-ping opacity-75" />
-            </div>
-            <span className="text-sm font-semibold text-primary dark:text-white">
+            <Users className="h-4 w-4" style={{ color: theme.accentColor }} />
+            <span
+              className="text-sm font-semibold"
+              style={{ color: theme.textColor }}
+            >
               {workshop.student_count || 0}{' '}
-              <span className="text-xs font-normal text-gray-500 dark:text-white/60">
+              <span
+                className="text-xs font-normal"
+                style={{ color: theme.subtextColor }}
+              >
                 {ta('workshops.card.studentsLabel')}
               </span>
             </span>
           </motion.div>
-          <div className="flex items-center gap-2 bg-gray-200/30 dark:bg-gray-900 p-1.5 rounded-xl border border-gray-200 dark:border-gray-500/20">
+          <div
+            className="flex items-center gap-2 rounded-xl border p-1.5"
+            style={{
+              backgroundColor: theme.inputBg,
+              borderColor: theme.borderColor,
+            }}
+          >
             <motion.button
               whileHover={disableHeavy ? undefined : { scale: 1.2, y: -2 }}
               whileTap={disableHeavy ? undefined : { scale: 0.9 }}
@@ -200,14 +281,12 @@ export function AdminWorkshopCard({
                 event.stopPropagation()
                 onView(workshop)
               }}
-              className="relative p-2.5 text-gray-500 dark:text-white/60 hover:text-white hover:bg-accent rounded-lg transition-all duration-300 group/btn"
-              title={t('actions.viewDetails')}
+              className="rounded-lg p-2.5 transition-all duration-300"
+              style={{ color: theme.subtextColor }}
+              title={tc('actions.viewDetails')}
+              type="button"
             >
-              <EyeIcon className="h-4 w-4 relative z-10" />
-              <motion.div
-                className="absolute inset-0 bg-accent rounded-lg opacity-0 group-hover/btn:opacity-100"
-                transition={{ duration: 0.2 }}
-              />
+              <Eye className="h-4 w-4" />
             </motion.button>
             <motion.button
               whileHover={disableHeavy ? undefined : { scale: 1.2, y: -2 }}
@@ -216,14 +295,12 @@ export function AdminWorkshopCard({
                 event.stopPropagation()
                 onEdit(workshop)
               }}
-              className="relative p-2.5 text-gray-500 dark:text-white/60 hover:text-white hover:bg-success rounded-lg transition-all duration-300 group/btn"
-              title={t('actions.edit')}
+              className="rounded-lg p-2.5 transition-all duration-300"
+              style={{ color: theme.successColor }}
+              title={tc('actions.edit')}
+              type="button"
             >
-              <PencilIcon className="h-4 w-4 relative z-10" />
-              <motion.div
-                className="absolute inset-0 bg-success rounded-lg opacity-0 group-hover/btn:opacity-100"
-                transition={{ duration: 0.2 }}
-              />
+              <Pencil className="h-4 w-4" />
             </motion.button>
             <motion.button
               whileHover={disableHeavy ? undefined : { scale: 1.2, y: -2 }}
@@ -233,15 +310,12 @@ export function AdminWorkshopCard({
                 event.stopPropagation()
                 onDelete(workshop)
               }}
-              className="relative p-2.5 text-gray-500 dark:text-white/60 hover:text-white hover:bg-error rounded-lg transition-all duration-300 group/btn"
-              title={t('actions.delete')}
+              className="rounded-lg p-2.5 transition-all duration-300"
+              style={{ color: theme.dangerColor }}
+              title={tc('actions.delete')}
               type="button"
             >
-              <TrashIcon className="h-4 w-4 relative z-10" />
-              <motion.div
-                className="absolute inset-0 bg-error rounded-lg opacity-0 group-hover/btn:opacity-100"
-                transition={{ duration: 0.2 }}
-              />
+              <Trash2 className="h-4 w-4" />
             </motion.button>
           </div>
         </motion.div>

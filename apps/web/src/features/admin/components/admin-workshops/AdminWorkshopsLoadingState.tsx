@@ -1,26 +1,32 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
+
 export function AdminWorkshopsLoadingState() {
+  const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
+
   return (
-    <div className="p-6">
-      <div className="animate-pulse space-y-6">
-        <div className="h-8 bg-[#E9ECEF] dark:bg-[#1E2329] rounded w-1/4" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, index) => (
-            <div
-              key={index}
-              className="h-24 bg-[#E9ECEF] dark:bg-[#1E2329] rounded-xl"
-            />
-          ))}
-        </div>
-        <div className="h-12 bg-[#E9ECEF] dark:bg-[#1E2329] rounded-xl" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, index) => (
-            <div
-              key={index}
-              className="h-64 bg-[#E9ECEF] dark:bg-[#1E2329] rounded-xl"
-            />
-          ))}
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8" style={{ backgroundColor: theme.panelBg }}>
+      <div className="mx-auto flex min-h-[60vh] max-w-7xl items-center justify-center">
+        <div
+          className="flex w-full max-w-sm flex-col items-center rounded-[28px] border p-8 text-center shadow-sm"
+          style={{
+            backgroundColor: theme.cardBg,
+            borderColor: theme.borderColor,
+          }}
+        >
+          <div
+            className="mb-5 h-12 w-12 animate-spin rounded-full border-4 border-transparent"
+            style={{
+              borderTopColor: theme.primaryColor,
+              borderRightColor: `${theme.primaryColor}40`,
+            }}
+          />
+          <p className="text-sm font-bold" style={{ color: theme.textColor }}>
+            {t('workshops.page.loading')}
+          </p>
         </div>
       </div>
     </div>

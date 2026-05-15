@@ -5,6 +5,14 @@ import {
   PauseCircleIcon,
   BoltIcon,
 } from '@heroicons/react/24/outline'
+import {
+  BadgeCheck,
+  Clock3,
+  PauseCircle,
+  ShieldAlert,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react'
 import type { ElementType } from 'react'
 
 import { SOFLIA_ADMIN_COLORS } from '../../constants/admin-color-tokens'
@@ -37,6 +45,25 @@ export interface AdminCompanyStatusInfo {
   color: string
   bgColor: string
   icon: ElementType
+}
+
+export interface AdminCompanyDisplayTheme {
+  primaryColor: string
+  successColor: string
+  warningColor: string
+  dangerColor: string
+  secondaryColor: string
+  mutedTextColor: string
+}
+
+export type AdminCompanyStatusKey = 'active' | 'pending' | 'trial' | 'paused' | 'expired'
+
+export interface AdminCompanyStatusDisplayConfig {
+  key: AdminCompanyStatusKey
+  color: string
+  bg: string
+  border: string
+  icon: LucideIcon
 }
 
 export function formatCompanyPlan(plan?: string | null): AdminCompanyPlanInfo {
@@ -99,6 +126,108 @@ export function getCompanyUsagePercent(company: Pick<AdminCompany, 'active_users
   }
 
   return Math.min(100, Math.round((company.active_users / company.max_users) * 100))
+}
+
+export function getAdminCompanyStatusKey(company: Pick<AdminCompany, 'is_active' | 'subscription_status'>): AdminCompanyStatusKey {
+  const normalizedStatus = company.subscription_status?.toLowerCase()
+
+  if (normalizedStatus === 'pending' && !company.is_active) {
+    return 'pending'
+  }
+
+  if (!company.is_active) {
+    return 'paused'
+  }
+
+  if (normalizedStatus === 'trial') {
+    return 'trial'
+  }
+
+  if (normalizedStatus === 'expired') {
+    return 'expired'
+  }
+
+  return 'active'
+}
+
+export function getAdminCompanyStatusDisplayConfig(
+  company: Pick<AdminCompany, 'is_active' | 'subscription_status'>,
+  theme: AdminCompanyDisplayTheme,
+): AdminCompanyStatusDisplayConfig {
+  const statusKey = getAdminCompanyStatusKey(company)
+
+  switch (statusKey) {
+    case 'pending':
+      return {
+        key: statusKey,
+        color: theme.warningColor,
+        bg: `${theme.warningColor}14`,
+        border: `${theme.warningColor}26`,
+        icon: Clock3,
+      }
+    case 'paused':
+      return {
+        key: statusKey,
+        color: theme.dangerColor,
+        bg: `${theme.dangerColor}14`,
+        border: `${theme.dangerColor}26`,
+        icon: PauseCircle,
+      }
+    case 'trial':
+      return {
+        key: statusKey,
+        color: theme.secondaryColor,
+        bg: `${theme.secondaryColor}14`,
+        border: `${theme.secondaryColor}26`,
+        icon: Zap,
+      }
+    case 'expired':
+      return {
+        key: statusKey,
+        color: theme.dangerColor,
+        bg: `${theme.dangerColor}14`,
+        border: `${theme.dangerColor}26`,
+        icon: ShieldAlert,
+      }
+    case 'active':
+    default:
+      return {
+        key: 'active',
+        color: theme.successColor,
+        bg: `${theme.successColor}14`,
+        border: `${theme.successColor}26`,
+        icon: BadgeCheck,
+      }
+  }
+}
+
+export function getAdminCompanyPlanKey(plan?: string | null) {
+  return plan?.toLowerCase() || 'none'
+}
+
+export function getAdminCompanyPlanColor(plan: string | null | undefined, theme: AdminCompanyDisplayTheme) {
+  switch (getAdminCompanyPlanKey(plan)) {
+    case 'team':
+      return theme.primaryColor
+    case 'business':
+      return theme.successColor
+    case 'enterprise':
+      return theme.secondaryColor
+    default:
+      return theme.mutedTextColor
+  }
+}
+
+export function getAdminCompanyUsageColor(usagePercent: number, theme: AdminCompanyDisplayTheme) {
+  if (usagePercent > 90) {
+    return theme.dangerColor
+  }
+
+  if (usagePercent > 70) {
+    return theme.warningColor
+  }
+
+  return theme.primaryColor
 }
 
 export function getAdminCompanyUserDisplayName(user?: AdminCompanyUserProfile): string {

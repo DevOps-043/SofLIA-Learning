@@ -1,21 +1,24 @@
 'use client'
 
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import {
-  ArrowPathIcon,
-  BuildingOffice2Icon,
-  CheckCircleIcon,
-  EnvelopeIcon,
-  EyeIcon,
-  PauseCircleIcon,
-  PencilSquareIcon,
-} from '@heroicons/react/24/outline'
-
+  Building2,
+  CheckCircle2,
+  Eye,
+  Mail,
+  PauseCircle,
+  Pencil,
+  RefreshCw,
+} from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 import type { AdminCompany } from '../../types/admin-companies.types'
 import {
-  adminCompaniesColors,
-  formatCompanyPlan,
-  getCompanyStatusInfo,
+  getAdminCompanyPlanColor,
+  getAdminCompanyPlanKey,
+  getAdminCompanyStatusDisplayConfig,
+  getAdminCompanyUsageColor,
   getCompanyUsagePercent,
   type AdminCompaniesThemeColors,
 } from '../../services/admin-companies'
@@ -39,243 +42,270 @@ export function AdminCompanyCard({
   isUpdating,
   themeColors,
 }: AdminCompanyCardProps) {
-  const statusInfo = getCompanyStatusInfo(company)
-  const planInfo = formatCompanyPlan(company.subscription_plan)
+  const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
   const usagePercent = getCompanyUsagePercent(company)
-  const StatusIcon = statusInfo.icon
+  const status = getAdminCompanyStatusDisplayConfig(company, theme)
+  const StatusIcon = status.icon
+  const normalizedPlan = getAdminCompanyPlanKey(company.subscription_plan)
+  const planColor = getAdminCompanyPlanColor(company.subscription_plan, theme)
+  const logoUrl = company.brand_logo_url || company.logo_url
+  const usageColor = getAdminCompanyUsageColor(usagePercent, theme)
+  const shouldShowActivate =
+    company.subscription_status?.toLowerCase() === 'pending' && !company.is_active && onActivate
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
+    <motion.article
+      initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5, scale: 1.01 }}
-      className="relative group overflow-hidden rounded-2xl border"
+      whileHover={{ y: -3 }}
+      className="group relative flex min-h-[360px] flex-col overflow-hidden rounded-[24px] border shadow-sm transition-shadow hover:shadow-xl"
       style={{
         backgroundColor: themeColors.cardBackground,
-        borderColor: `${themeColors.borderColor}20`,
+        borderColor: themeColors.borderColor,
+        boxShadow: theme.isDark
+          ? '0 18px 40px -24px rgba(0,0,0,0.75)'
+          : '0 16px 36px -28px rgba(15,23,42,0.18)',
       }}
     >
       <div
-        className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-        style={{ background: `linear-gradient(135deg, ${adminCompaniesColors.accent}05, transparent)` }}
-      />
-
-      <div className="relative z-10 p-6">
-        <div className="mb-4 flex items-start justify-between">
-          <div className="flex items-center gap-4">
-            <motion.div
-              className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl"
+        className="relative border-b px-6 py-5"
+        style={{
+          borderColor: themeColors.borderColor,
+          background: `linear-gradient(135deg, ${theme.inputBg}, ${theme.hoverBg})`,
+        }}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-4">
+            <div
+              className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border shadow-sm"
               style={{
-                backgroundColor: `${adminCompaniesColors.grayMedium}20`,
-                border: `1px solid ${adminCompaniesColors.grayMedium}30`,
+                backgroundColor: theme.cardBg,
+                borderColor: theme.borderColor,
+                color: theme.primaryColor,
               }}
-              whileHover={{ scale: 1.05 }}
             >
-              {company.brand_logo_url || company.logo_url ? (
-                <img
-                  src={company.brand_logo_url || company.logo_url || undefined}
+              {logoUrl ? (
+                <Image
+                  src={logoUrl}
                   alt={company.name}
-                  className="h-full w-full object-contain p-1"
-                  onError={(event) => {
-                    event.currentTarget.style.display = 'none'
-                  }}
+                  fill
+                  sizes="64px"
+                  className="object-contain p-2"
+                  unoptimized
                 />
               ) : (
-                <BuildingOffice2Icon className="h-7 w-7" style={{ color: adminCompaniesColors.grayMedium }} />
+                <Building2 className="h-8 w-8" />
               )}
-            </motion.div>
-            <div>
-              <h3 className="text-lg font-bold" style={{ color: themeColors.textPrimary }}>
+            </div>
+            <div className="min-w-0">
+              <h3 className="truncate text-lg font-extrabold" style={{ color: themeColors.textPrimary }} title={company.name}>
                 {company.name}
               </h3>
-              <p className="text-sm" style={{ color: themeColors.textSecondary }}>
-                {company.slug || 'Sin slug'}
+              <p className="mt-1 truncate text-sm font-semibold" style={{ color: themeColors.textSecondary }}>
+                {company.slug || t('companies.card.noSlug')}
               </p>
             </div>
           </div>
 
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold"
+          <span
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-extrabold"
             style={{
-              backgroundColor: statusInfo.bgColor,
-              color: statusInfo.color,
+              backgroundColor: status.bg,
+              borderColor: status.border,
+              color: status.color,
             }}
           >
             <StatusIcon className="h-3.5 w-3.5" />
-            {statusInfo.label}
-          </motion.div>
+            {t(`companies.status.${status.key}`)}
+          </span>
         </div>
+      </div>
 
-        <div className="mb-4 flex items-center gap-2">
+      <div className="flex flex-1 flex-col p-6">
+        <div className="mb-5 flex flex-wrap items-center gap-2">
           <span
-            className="rounded-lg px-3 py-1 text-xs font-medium"
+            className="rounded-xl border px-3 py-1.5 text-xs font-extrabold"
             style={{
-              backgroundColor: `${planInfo.color}20`,
-              color: planInfo.color,
+              backgroundColor: `${planColor}14`,
+              borderColor: `${planColor}26`,
+              color: planColor,
             }}
           >
-            Plan {planInfo.label}
+            {t('companies.card.plan', {
+              plan: t(`companies.plans.${normalizedPlan}`, {
+                defaultValue: company.subscription_plan || t('companies.plans.none'),
+              }),
+            })}
           </span>
-          {company.contact_email && (
+          {company.contact_email ? (
             <span
-              className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs"
+              className="flex min-w-0 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold"
               style={{
-                backgroundColor: `${adminCompaniesColors.grayMedium}10`,
-                color: adminCompaniesColors.grayMedium,
+                backgroundColor: theme.inputBg,
+                borderColor: theme.borderColor,
+                color: theme.subtextColor,
               }}
+              title={company.contact_email}
             >
-              <EnvelopeIcon className="h-3 w-3" />
-              {company.contact_email.split('@')[0]}...
+              <Mail className="h-3.5 w-3.5 shrink-0" />
+              <span className="max-w-[150px] truncate">{company.contact_email}</span>
             </span>
-          )}
+          ) : null}
         </div>
 
-        <div className="mb-4 grid grid-cols-3 gap-3">
-          <div className="rounded-xl p-3 text-center" style={{ backgroundColor: themeColors.inputBg }}>
-            <p className="text-lg font-bold" style={{ color: themeColors.textPrimary }}>
-              {company.active_users}
-            </p>
-            <p className="text-xs" style={{ color: themeColors.textSecondary }}>
-              Activos
-            </p>
-          </div>
-          <div className="rounded-xl p-3 text-center" style={{ backgroundColor: themeColors.inputBg }}>
-            <p className="text-lg font-bold" style={{ color: themeColors.textPrimary }}>
-              {company.total_users}
-            </p>
-            <p className="text-xs" style={{ color: themeColors.textSecondary }}>
-              Total
-            </p>
-          </div>
-          <div className="rounded-xl p-3 text-center" style={{ backgroundColor: themeColors.inputBg }}>
-            <p className="text-lg font-bold" style={{ color: adminCompaniesColors.accent }}>
-              {usagePercent}%
-            </p>
-            <p className="text-xs" style={{ color: themeColors.textSecondary }}>
-              Uso
-            </p>
-          </div>
+        <div className="mb-5 grid grid-cols-3 gap-3">
+          <Metric
+            label={t('companies.card.activeUsers')}
+            value={company.active_users}
+            color={themeColors.textPrimary}
+            themeColors={themeColors}
+          />
+          <Metric
+            label={t('companies.card.totalUsers')}
+            value={company.total_users}
+            color={themeColors.textPrimary}
+            themeColors={themeColors}
+          />
+          <Metric
+            label={t('companies.card.usage')}
+            value={`${usagePercent}%`}
+            color={usageColor}
+            themeColors={themeColors}
+          />
         </div>
 
-        <div className="mb-5">
-          <div className="mb-1.5 flex justify-between text-xs" style={{ color: adminCompaniesColors.grayMedium }}>
-            <span>Uso de licencias</span>
+        <div className="mb-6">
+          <div className="mb-2 flex justify-between gap-3 text-xs font-bold" style={{ color: themeColors.textSecondary }}>
+            <span>{t('companies.card.licenseUsage')}</span>
             <span>
-              {company.active_users} / {company.max_users || '∞'}
+              {company.active_users} / {company.max_users || t('companies.card.unlimited')}
             </span>
           </div>
-          <div
-            className="h-2 overflow-hidden rounded-full"
-            style={{ backgroundColor: `${adminCompaniesColors.grayMedium}20` }}
-          >
+          <div className="h-2 overflow-hidden rounded-full" style={{ backgroundColor: theme.hoverBg }}>
             <motion.div
               className="h-full rounded-full"
-              style={{
-                backgroundColor:
-                  usagePercent > 90
-                    ? adminCompaniesColors.error
-                    : usagePercent > 70
-                      ? adminCompaniesColors.warning
-                      : adminCompaniesColors.accent,
-              }}
+              style={{ backgroundColor: usageColor }}
               initial={{ width: 0 }}
               animate={{ width: `${usagePercent}%` }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: 0.8, delay: 0.15 }}
             />
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <motion.button
+        <div className="mt-auto flex items-center gap-2">
+          <button
+            type="button"
             onClick={(event) => {
               event.stopPropagation()
               onView()
             }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors"
+            className="flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl border px-4 text-xs font-extrabold uppercase tracking-wider transition-all"
             style={{
-              backgroundColor: `${adminCompaniesColors.grayMedium}15`,
-              color: 'white',
+              backgroundColor: theme.inputBg,
+              borderColor: theme.borderColor,
+              color: theme.textColor,
             }}
           >
-            <EyeIcon className="h-4 w-4" />
-            Ver
-          </motion.button>
+            <Eye className="h-4 w-4" />
+            {t('companies.actions.view')}
+          </button>
 
-          {company.subscription_status?.toLowerCase() === 'pending' && !company.is_active && onActivate ? (
-            <motion.button
+          {shouldShowActivate ? (
+            <button
+              type="button"
               onClick={(event) => {
                 event.stopPropagation()
-                onActivate()
+                onActivate?.()
               }}
               disabled={isUpdating}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50"
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl px-4 text-xs font-extrabold uppercase tracking-wider transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
               style={{
-                backgroundColor: `${adminCompaniesColors.success}20`,
-                color: adminCompaniesColors.success,
+                backgroundColor: `${theme.successColor}14`,
+                color: theme.successColor,
               }}
             >
-              {isUpdating ? (
-                <ArrowPathIcon className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <CheckCircleIcon className="h-4 w-4" />
-                  Activar
-                </>
-              )}
-            </motion.button>
+              {isUpdating ? <RefreshCw className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              {t('companies.actions.activate')}
+            </button>
           ) : (
             <>
-              <motion.button
+              <button
+                type="button"
                 onClick={(event) => {
                   event.stopPropagation()
                   onEdit()
                 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors"
+                className="flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl px-4 text-xs font-extrabold uppercase tracking-wider transition-all"
                 style={{
-                  backgroundColor: `${adminCompaniesColors.accent}20`,
-                  color: adminCompaniesColors.accent,
+                  backgroundColor: `${theme.primaryColor}14`,
+                  color: theme.primaryColor,
                 }}
               >
-                <PencilSquareIcon className="h-4 w-4" />
-                Editar
-              </motion.button>
+                <Pencil className="h-4 w-4" />
+                {t('companies.actions.edit')}
+              </button>
 
-              <motion.button
+              <button
+                type="button"
                 onClick={(event) => {
                   event.stopPropagation()
                   onToggle()
                 }}
                 disabled={isUpdating}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="rounded-xl px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50"
+                className="flex h-11 w-12 items-center justify-center rounded-2xl transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
                 style={{
                   backgroundColor: company.is_active
-                    ? `${adminCompaniesColors.warning}20`
-                    : `${adminCompaniesColors.success}20`,
-                  color: company.is_active ? adminCompaniesColors.warning : adminCompaniesColors.success,
+                    ? `${theme.warningColor}14`
+                    : `${theme.successColor}14`,
+                  color: company.is_active ? theme.warningColor : theme.successColor,
                 }}
+                aria-label={
+                  company.is_active
+                    ? t('companies.actions.pause')
+                    : t('companies.actions.activate')
+                }
+                title={
+                  company.is_active
+                    ? t('companies.actions.pause')
+                    : t('companies.actions.activate')
+                }
               >
                 {isUpdating ? (
-                  <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                  <RefreshCw className="h-4 w-4 animate-spin" />
                 ) : company.is_active ? (
-                  <PauseCircleIcon className="h-4 w-4" />
+                  <PauseCircle className="h-4 w-4" />
                 ) : (
-                  <CheckCircleIcon className="h-4 w-4" />
+                  <CheckCircle2 className="h-4 w-4" />
                 )}
-              </motion.button>
+              </button>
             </>
           )}
         </div>
       </div>
-    </motion.div>
+    </motion.article>
+  )
+}
+
+function Metric({
+  label,
+  value,
+  color,
+  themeColors,
+}: {
+  label: string
+  value: number | string
+  color: string
+  themeColors: AdminCompaniesThemeColors
+}) {
+  return (
+    <div className="rounded-2xl p-3 text-center" style={{ backgroundColor: themeColors.inputBg }}>
+      <p className="text-lg font-extrabold" style={{ color }}>
+        {value}
+      </p>
+      <p className="text-xs font-bold" style={{ color: themeColors.textSecondary }}>
+        {label}
+      </p>
+    </div>
   )
 }

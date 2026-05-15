@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest'
 
 import {
   formatCompanyPlan,
+  getAdminCompanyPlanColor,
+  getAdminCompanyPlanKey,
+  getAdminCompanyStatusDisplayConfig,
+  getAdminCompanyStatusKey,
+  getAdminCompanyUsageColor,
   getAdminCompanyUserDisplayName,
   getCompanyStatusInfo,
   getCompanyUsagePercent,
@@ -41,6 +46,15 @@ const baseCompany: AdminCompany = {
   members: [],
 }
 
+const displayTheme = {
+  primaryColor: '#0A2540',
+  successColor: '#10B981',
+  warningColor: '#F59E0B',
+  dangerColor: '#EF4444',
+  secondaryColor: '#8B5CF6',
+  mutedTextColor: '#6C757D',
+}
+
 describe('admin-companies-display.service', () => {
   it('formats known and unknown plans', () => {
     expect(formatCompanyPlan('business')).toEqual({ label: 'Business', color: '#00D4B3' })
@@ -51,6 +65,20 @@ describe('admin-companies-display.service', () => {
     expect(getCompanyStatusInfo({ ...baseCompany, subscription_status: 'trial' }).label).toBe('Trial')
     expect(getCompanyStatusInfo({ ...baseCompany, is_active: false, subscription_status: 'pending' }).label).toBe('Pendiente')
     expect(getCompanyUsagePercent({ active_users: 25, max_users: 20 })).toBe(100)
+  })
+
+  it('resolves token-based display config for migrated company UI', () => {
+    expect(getAdminCompanyStatusKey({ ...baseCompany, is_active: false, subscription_status: 'pending' })).toBe('pending')
+    expect(getAdminCompanyStatusDisplayConfig({ ...baseCompany, subscription_status: 'trial' }, displayTheme)).toMatchObject({
+      key: 'trial',
+      color: displayTheme.secondaryColor,
+      bg: `${displayTheme.secondaryColor}14`,
+      border: `${displayTheme.secondaryColor}26`,
+    })
+    expect(getAdminCompanyPlanKey('Enterprise')).toBe('enterprise')
+    expect(getAdminCompanyPlanColor('business', displayTheme)).toBe(displayTheme.successColor)
+    expect(getAdminCompanyUsageColor(95, displayTheme)).toBe(displayTheme.dangerColor)
+    expect(getAdminCompanyUsageColor(75, displayTheme)).toBe(displayTheme.warningColor)
   })
 
   it('builds readable user display names', () => {

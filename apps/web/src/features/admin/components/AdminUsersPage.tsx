@@ -1,76 +1,43 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { motion, AnimatePresence } from 'framer-motion'
-import type { Variants } from 'framer-motion'
-import { 
-  UsersIcon, 
-  PlusIcon, 
-  MagnifyingGlassIcon,
-  FunnelIcon,
-  ShieldCheckIcon,
-  AcademicCapIcon,
-  PencilIcon,
-  TrashIcon,
-  UserCircleIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  XMarkIcon,
-  CheckBadgeIcon
-} from '@heroicons/react/24/outline'
-import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid'
+import { motion } from 'framer-motion'
+import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useLanguage } from '@/core/providers/I18nProvider'
+import { useAdminPanelTheme } from '../hooks/useAdminPanelTheme'
 import { useAdminUsers } from '../hooks/useAdminUsers'
-import type { NewAdminUserData } from './AddUserModal'
 import type { AdminUser } from '../services/adminUsers.service'
-import { useThemeStore } from '@/core/stores/themeStore'
-import { formatDistanceToNow } from 'date-fns'
-import { es, enUS, pt } from 'date-fns/locale'
+import type { NewAdminUserData } from './AddUserModal'
+import {
+  AdminUserCard,
+  AdminUserListRow,
+  AdminUsersEmptyState,
+  AdminUsersFilterBar,
+  AdminUsersHero,
+  AdminUsersStatsGrid,
+  type AdminRoleFilter,
+  type AdminUsersViewMode,
+} from './admin-users'
+import { getAdminUserDisplayConfig } from './admin-users/service'
 
-const EditUserModal = dynamic(() => import('./EditUserModal').then(mod => ({ default: mod.EditUserModal })), {
-  ssr: false
-})
-const DeleteUserModal = dynamic(() => import('./DeleteUserModal').then(mod => ({ default: mod.DeleteUserModal })), {
-  ssr: false
-})
-const AddUserModal = dynamic(() => import('./AddUserModal').then(mod => ({ default: mod.AddUserModal })), {
-  ssr: false
-})
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05
-    }
-  }
-}
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    transition: {
-      duration: 0.4,
-      ease: [0.25, 0.46, 0.45, 0.94]
-    }
-  }
-}
-
-const getAdminUserDisplayName = (user: AdminUser) =>
-  user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
-
-const getAdminUserEmail = (user: AdminUser) => user.email ?? ''
-
-const getAdminUserRole = (user: AdminUser) => user.cargo_rol || 'Usuario'
+const EditUserModal = dynamic(
+  () => import('./EditUserModal').then((mod) => ({ default: mod.EditUserModal })),
+  { ssr: false },
+)
+const DeleteUserModal = dynamic(
+  () => import('./DeleteUserModal').then((mod) => ({ default: mod.DeleteUserModal })),
+  { ssr: false },
+)
+const AddUserModal = dynamic(
+  () => import('./AddUserModal').then((mod) => ({ default: mod.AddUserModal })),
+  { ssr: false },
+)
 
 const parseErrorResponse = async (response: Response): Promise<Record<string, unknown>> => {
   const data: unknown = await response.json().catch(() => ({}))
-  return data && typeof data === 'object' ? data as Record<string, unknown> : {}
+  return data && typeof data === 'object' ? (data as Record<string, unknown>) : {}
 }
 
 const getStringValue = (source: Record<string, unknown>, key: string) => {
@@ -104,97 +71,53 @@ const formatValidationErrors = (errors: unknown) => {
   return messages.length > 0 ? messages.join(', ') : null
 }
 
-const StatCard = ({ icon: Icon, label, value, color }: { icon: any, label: string, value: number, color: 'primary' | 'success' | 'accent' | 'warning' }) => {
-  const colors = {
-    primary: 'text-[#0A2540] dark:text-white',
-    success: 'text-[#10B981]',
-    accent: 'text-[#F59E0B]',
-    warning: 'text-[#00D4B3]'
-  }
-  return (
-    <div className="bg-white dark:bg-[#1E2329] p-6 rounded-2xl border border-[#E9ECEF] dark:border-white/5 shadow-sm flex items-center justify-between">
-      <div>
-        <p className="text-[#6C757D] dark:text-white/60 text-sm font-medium">{label}</p>
-        <p className={`text-2xl font-bold mt-1 ${colors[color]}`}>{value}</p>
-      </div>
-      <div className={`p-3 rounded-xl bg-gray-50 dark:bg-[#0A0D12]`}>
-        <Icon className="h-6 w-6 text-[#6C757D]" />
-      </div>
-    </div>
-  )
-}
+const hasInvalidDataMessage = (message: unknown) =>
+  message === 'Datos inválidos' || message === 'Datos invÃ¡lidos'
 
 export function AdminUsersPage() {
   const { users, stats, isLoading, error, refetch } = useAdminUsers()
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
-  const primaryAccent = isDark ? '#00D4B3' : '#0A2540'
-
+  const theme = useAdminPanelTheme()
   const { t } = useTranslation('admin')
   const { t: tc } = useTranslation('common')
   const { language } = useLanguage()
+
   const [searchTerm, setSearchTerm] = useState('')
-  const [roleFilter, setRoleFilter] = useState('all')
+  const [roleFilter, setRoleFilter] = useState<AdminRoleFilter>('all')
+  const [viewMode, setViewMode] = useState<AdminUsersViewMode>('cards')
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
   const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-  const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
-  const filteredUsers = users.filter(user => {
-    const searchQuery = searchTerm.toLowerCase()
-    const displayName = getAdminUserDisplayName(user)
-    const email = getAdminUserEmail(user)
-    const matchesSearch = displayName.toLowerCase().includes(searchQuery) ||
-                         email.toLowerCase().includes(searchQuery) ||
-                         user.username.toLowerCase().includes(searchQuery)
-    
-    const matchesRole = roleFilter === 'all' || getAdminUserRole(user) === roleFilter
-    
-    return matchesSearch && matchesRole
-  })
+  const filteredUsers = useMemo(() => {
+    const searchQuery = searchTerm.trim().toLowerCase()
 
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'Administrador':
-        return {
-          bg: isDark ? 'bg-[#00D4B3]/10' : 'bg-[#0A2540]/10',
-          text: isDark ? 'text-[#00D4B3]' : 'text-[#0A2540]',
-          border: isDark ? 'border-[#00D4B3]/20' : 'border-[#0A2540]/20',
-          icon: ShieldCheckIcon
-        }
-      case 'Instructor':
-        return {
-          bg: 'bg-[#F59E0B]/10 dark:bg-[#F59E0B]/20',
-          text: 'text-[#F59E0B]',
-          border: 'border-[#F59E0B]/20',
-          icon: AcademicCapIcon
-        }
-      case 'Usuario':
-        return {
-          bg: 'bg-[#10B981]/10 dark:bg-[#10B981]/20',
-          text: 'text-[#10B981]',
-          border: 'border-[#10B981]/20',
-          icon: UserCircleIcon
-        }
-      default:
-        return {
-          bg: 'bg-[#6C757D]/10 dark:bg-[#6C757D]/20',
-          text: 'text-[#6C757D]',
-          border: 'border-[#6C757D]/20',
-          icon: UserCircleIcon
-        }
+    return users.filter((user) => {
+      const { displayName, email, role } = getAdminUserDisplayConfig(user)
+      const matchesSearch =
+        !searchQuery ||
+        displayName.toLowerCase().includes(searchQuery) ||
+        email.toLowerCase().includes(searchQuery) ||
+        user.username.toLowerCase().includes(searchQuery)
+
+      const matchesRole = roleFilter === 'all' || role === roleFilter
+
+      return matchesSearch && matchesRole
+    })
+  }, [roleFilter, searchTerm, users])
+
+  const hasFilters = searchTerm.trim().length > 0 || roleFilter !== 'all'
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      await refetch()
+    } finally {
+      setIsRefreshing(false)
     }
   }
-
-  const dateLocalesMap = {
-    es,
-    en: enUS,
-    pt
-  }
-  const currentLocale = (dateLocalesMap[language as keyof typeof dateLocalesMap] || es) as any
 
   const handleEditUser = (user: AdminUser) => {
     setEditingUser(user)
@@ -204,6 +127,25 @@ export function AdminUsersPage() {
   const handleDeleteUser = (user: AdminUser) => {
     setDeletingUser(user)
     setIsDeleteModalOpen(true)
+  }
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false)
+    setEditingUser(null)
+  }
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false)
+    setDeletingUser(null)
+  }
+
+  const closeAddModal = () => {
+    setIsAddModalOpen(false)
+  }
+
+  const clearFilters = () => {
+    setSearchTerm('')
+    setRoleFilter('all')
   }
 
   const handleSaveUser = async (userData: Partial<AdminUser>) => {
@@ -219,100 +161,89 @@ export function AdminUsersPage() {
 
     if (!response.ok) {
       const errorData = await parseErrorResponse(response)
-      if (errorData?.message === 'Datos inválidos' && errorData?.errors) {
+      if (hasInvalidDataMessage(errorData.message) && errorData.errors) {
         const validationMessage = formatValidationErrors(errorData.errors)
         if (validationMessage) {
           throw new Error(validationMessage)
         }
       }
+
       throw new Error(
         getStringValue(errorData, 'error') ||
-        getStringValue(errorData, 'message') ||
-        t('users.page.errors.updateFailed')
+          getStringValue(errorData, 'message') ||
+          t('users.page.errors.updateFailed'),
       )
     }
 
-    refetch()
+    await refetch()
   }
 
   const handleConfirmDelete = async () => {
     if (!deletingUser) return
 
-    try {
-      const response = await fetch(`/api/admin/users/${deletingUser.id}`, {
-        method: 'DELETE',
-      })
+    const response = await fetch(`/api/admin/users/${deletingUser.id}`, {
+      method: 'DELETE',
+    })
 
-      if (!response.ok) {
-        const errorData = await parseErrorResponse(response)
-        throw new Error(getStringValue(errorData, 'error') || t('users.page.errors.deleteFailed'))
-      }
-
-      await refetch()
-      setIsDeleteModalOpen(false)
-      setDeletingUser(null)
-    } catch (error) {
-      setDeleteError(error instanceof Error ? error.message : t('users.page.errors.deleteFailed'))
+    if (!response.ok) {
+      const errorData = await parseErrorResponse(response)
+      throw new Error(getStringValue(errorData, 'error') || t('users.page.errors.deleteFailed'))
     }
-  }
 
-  const closeEditModal = () => {
-    setIsEditModalOpen(false)
-    setEditingUser(null)
-  }
-
-  const closeDeleteModal = () => {
-    setIsDeleteModalOpen(false)
-    setDeletingUser(null)
+    await refetch()
+    closeDeleteModal()
   }
 
   const handleSaveNewUser = async (userData: NewAdminUserData) => {
-    try {
-      const response = await fetch('/api/admin/users/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      })
+    const response = await fetch('/api/admin/users/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    })
 
-      if (!response.ok) {
-        const errorData = await parseErrorResponse(response)
-        if (errorData?.message === 'Datos inválidos' && errorData?.errors) {
-          const validationMessage = formatValidationErrors(errorData.errors)
-          if (validationMessage) {
-            throw new Error(validationMessage)
-          }
+    if (!response.ok) {
+      const errorData = await parseErrorResponse(response)
+      if (hasInvalidDataMessage(errorData.message) && errorData.errors) {
+        const validationMessage = formatValidationErrors(errorData.errors)
+        if (validationMessage) {
+          throw new Error(validationMessage)
         }
-        throw new Error(
-          getStringValue(errorData, 'error') ||
-          getStringValue(errorData, 'message') ||
-          t('users.page.errors.createFailed')
-        )
       }
 
-      refetch()
-      setIsAddModalOpen(false)
-    } catch (error) {
-      throw error
+      throw new Error(
+        getStringValue(errorData, 'error') ||
+          getStringValue(errorData, 'message') ||
+          t('users.page.errors.createFailed'),
+      )
     }
-  }
 
-  const closeAddModal = () => {
+    await refetch()
     setIsAddModalOpen(false)
   }
 
   if (isLoading) {
     return (
-      <div className="p-6 min-h-screen bg-white dark:bg-[#0F1419]">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-12 h-12 border-4 border-[#00D4B3]/20 border-t-[#00D4B3] rounded-full animate-spin" />
-              <p className="text-[#6C757D] dark:text-white/60 animate-pulse font-medium">
-                {t('users.page.loading')}
-              </p>
-            </div>
+      <div className="min-h-screen p-4 sm:p-6 lg:p-8" style={{ backgroundColor: theme.panelBg }}>
+        <div className="mx-auto flex min-h-[60vh] max-w-7xl items-center justify-center">
+          <div
+            className="flex w-full max-w-sm flex-col items-center rounded-[28px] border p-8 text-center shadow-sm"
+            style={{
+              backgroundColor: theme.cardBg,
+              borderColor: theme.borderColor,
+            }}
+          >
+            <div
+              className="mb-5 h-12 w-12 animate-spin rounded-full border-4 border-transparent"
+              style={{
+                borderTopColor: theme.primaryColor,
+                borderRightColor: `${theme.primaryColor}40`,
+              }}
+            />
+            <p className="text-sm font-bold" style={{ color: theme.textColor }}>
+              {t('users.page.loading')}
+            </p>
           </div>
         </div>
       </div>
@@ -321,35 +252,47 @@ export function AdminUsersPage() {
 
   if (error) {
     return (
-      <div className="p-6 min-h-screen bg-white dark:bg-[#0F1419]">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen p-4 sm:p-6 lg:p-8" style={{ backgroundColor: theme.panelBg }}>
+        <div className="mx-auto max-w-7xl">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-[#1E2329] border border-red-500/20 dark:border-red-500/30 rounded-2xl p-6 shadow-lg"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-[24px] border p-6 shadow-sm"
+            style={{
+              backgroundColor: theme.cardBg,
+              borderColor: `${theme.dangerColor}30`,
+            }}
           >
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
-                  <XMarkIcon className="h-5 w-5 text-red-500" />
-                </div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+              <div
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border"
+                style={{
+                  backgroundColor: `${theme.dangerColor}12`,
+                  borderColor: `${theme.dangerColor}24`,
+                  color: theme.dangerColor,
+                }}
+              >
+                <AlertTriangle className="h-6 w-6" />
               </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-2">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-lg font-extrabold" style={{ color: theme.textColor }}>
                   {t('users.page.errorLoading')}
                 </h3>
-                <p className="text-sm text-[#6C757D] dark:text-white/70 mb-4">
+                <p className="mt-2 text-sm font-medium" style={{ color: theme.subtextColor }}>
                   {error}
                 </p>
-                <motion.button
-                  onClick={refetch}
-                  whileHover={{ scale: 1.02, backgroundColor: isDark ? '#00BD9F' : '#0d2f4d' }}
-                  whileTap={{ scale: 0.98 }}
-                  className="px-4 py-2 text-white rounded-xl text-sm font-medium transition-colors duration-200"
-                  style={{ backgroundColor: primaryAccent }}
+                <button
+                  type="button"
+                  onClick={handleRefresh}
+                  className="mt-5 inline-flex h-11 items-center gap-2 rounded-2xl px-5 text-sm font-bold"
+                  style={{
+                    backgroundColor: theme.primaryColor,
+                    color: theme.onPrimaryColor,
+                  }}
                 >
+                  <RefreshCw className={`h-4 w-4${isRefreshing ? ' animate-spin' : ''}`} />
                   {t('users.page.retry')}
-                </motion.button>
+                </button>
               </div>
             </div>
           </motion.div>
@@ -359,291 +302,74 @@ export function AdminUsersPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 min-h-screen bg-[#F9FAFB] dark:bg-[#0F1419]">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="flex flex-col gap-8"
-        >
-         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 rounded-xl">
-                <UsersIcon className="h-6 w-6 text-[#00D4B3]" />
-              </div>
-              <h1 className="text-3xl font-bold text-[#0A2540] dark:text-white tracking-tight">
-                {t('users.page.title')}
-              </h1>
-            </div>
-            <p className="text-[#6C757D] dark:text-white/60 font-medium flex items-center gap-2 pl-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00D4B3]" />
-              {t(filteredUsers.length === 1 ? 'users.page.subtitle_one' : 'users.page.subtitle', { count: filteredUsers.length })}
-            </p>
-          </div>
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8" style={{ backgroundColor: theme.panelBg }}>
+      <div className="mx-auto max-w-7xl space-y-6">
+        <AdminUsersHero
+          filteredCount={filteredUsers.length}
+          isRefreshing={isRefreshing}
+          onAddClick={() => setIsAddModalOpen(true)}
+          onRefresh={handleRefresh}
+          t={t}
+        />
 
-          <motion.button
-            whileHover={{ scale: 1.02, translateY: -2 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-[#0A2540] hover:bg-[#0d2f4d] text-white rounded-2xl font-semibold transition-all shadow-xl shadow-[#0A2540]/20 border border-white/10"
-          >
-            <div className="p-1 bg-white/10 rounded-lg">
-              <PlusIcon className="h-4 w-4" />
-            </div>
-            {t('users.page.addUser')}
-          </motion.button>
-        </div>
+        <AdminUsersStatsGrid stats={stats} t={t} />
 
-          {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            icon={UsersIcon}
-            label={t('users.page.stats.total')}
-            value={stats?.totalUsers || 0}
-            color="primary"
-          />
-          <StatCard
-            icon={CheckBadgeIcon}
-            label={t('users.page.stats.verified')}
-            value={stats?.verifiedUsers || 0}
-            color="success"
-          />
-          <StatCard
-            icon={AcademicCapIcon}
-            label={t('users.page.stats.instructors')}
-            value={stats?.instructors || 0}
-            color="accent"
-          />
-          <StatCard
-            icon={ShieldCheckIcon}
-            label={t('users.page.stats.admins')}
-            value={stats?.administrators || 0}
-            color="warning"
-          />
-        </div>
+        <AdminUsersFilterBar
+          searchTerm={searchTerm}
+          roleFilter={roleFilter}
+          viewMode={viewMode}
+          onSearchChange={setSearchTerm}
+          onRoleFilterChange={setRoleFilter}
+          onViewModeChange={setViewMode}
+          t={t}
+        />
 
-          {/* Search and Filter Bar */}
-          <motion.div variants={itemVariants}>
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            <div className="relative w-full md:w-96 group">
-              <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#6C757D] group-focus-within:text-[#00D4B3] transition-colors" />
-              <input
-                type="text"
-                placeholder={t('users.page.searchPlaceholder')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/20 rounded-2xl text-[#0A2540] dark:text-white placeholder-[#6C757D] focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all shadow-sm"
+        {filteredUsers.length === 0 ? (
+          <AdminUsersEmptyState
+            hasFilters={hasFilters}
+            onClearFilters={clearFilters}
+            onAddClick={() => setIsAddModalOpen(true)}
+            t={t}
+          />
+        ) : viewMode === 'cards' ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {filteredUsers.map((user, index) => (
+              <AdminUserCard
+                key={user.id}
+                user={user}
+                index={index}
+                locale={language}
+                onEdit={() => handleEditUser(user)}
+                onDelete={() => handleDeleteUser(user)}
+                t={t}
+                tc={tc}
               />
-            </div>
-
-            <div className="flex items-center w-full md:w-auto">
-              <div className="flex items-center gap-1 p-1 bg-[#E9ECEF] dark:bg-[#0A0D12] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/20 overflow-x-auto no-scrollbar max-w-full">
-                {['all', 'Usuario', 'Instructor', 'Administrador', 'Business'].map((role) => (
-                  <button
-                    key={role}
-                    onClick={() => setRoleFilter(role as any)}
-                    className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
-                      roleFilter === role
-                        ? 'bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-[#00D4B3] shadow-sm'
-                        : 'text-[#6C757D] hover:text-[#0A2540] dark:hover:text-white'
-                    }`}
-                  >
-                    {role === 'all' ? t('users.page.filterRoleAll') : t(`users.roles.${role}`)}
-                  </button>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
-          </motion.div>
-
-          {/* Users Grid/List */}
-          <motion.div variants={itemVariants}>
-            {filteredUsers.length === 0 ? (
-            <div className="p-20 text-center">
-              <div className="w-20 h-20 bg-[#E9ECEF] dark:bg-[#0A0D12] rounded-full flex items-center justify-center mx-auto mb-6 border border-[#E9ECEF] dark:border-[#6C757D]/20">
-                <UsersIcon className="h-10 w-10 text-[#6C757D]" />
-              </div>
-              <h3 className="text-xl font-bold text-[#0A2540] dark:text-white mb-2">
-                {t('users.page.empty.title')}
-              </h3>
-              <p className="text-[#6C757D] dark:text-white/60">
-                {searchTerm || roleFilter !== 'all'
-                  ? t('users.page.empty.searchFilter')
-                  : t('users.page.empty.noUsers')}
-              </p>
-            </div>
-            ) : (
-              <div className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 shadow-sm overflow-hidden flex flex-col">
-                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-320px)] min-h-[300px]">
-                  <table className="min-w-full divide-y divide-[#E9ECEF] dark:divide-[#6C757D]/30">
-                  <thead className="bg-[#E9ECEF]/30 dark:bg-[#0A0D12]/50 border-b border-[#E9ECEF] dark:border-[#6C757D]/20">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-[#6C757D] uppercase tracking-wider">
-                        {t('users.page.table.user')}
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-[#6C757D] uppercase tracking-wider">
-                        {t('users.page.table.email')}
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-[#6C757D] uppercase tracking-wider">
-                        {t('users.page.table.role')}
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-[#6C757D] uppercase tracking-wider">
-                        {t('users.page.table.status')}
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-[#6C757D] uppercase tracking-wider">
-                        {t('users.page.table.lastAccess')}
-                      </th>
-                      <th className="px-6 py-4 text-right text-xs font-bold text-[#6C757D] uppercase tracking-wider">
-                        {t('users.page.table.actions')}
-                      </th>
-                    </tr>
-                  </thead>
-                    <tbody className="bg-white dark:bg-[#1E2329] divide-y divide-[#E9ECEF] dark:divide-[#6C757D]/30">
-                      <AnimatePresence>
-                        {filteredUsers.map((user, index) => {
-                          const displayName = getAdminUserDisplayName(user)
-                          const email = getAdminUserEmail(user)
-                          const role = getAdminUserRole(user)
-                          const roleBadge = getRoleBadge(role)
-                          const RoleIcon = roleBadge.icon
-                          
-                          return (
-                            <motion.tr
-                              key={user.id}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              exit={{ opacity: 0, x: 20 }}
-                              transition={{ delay: index * 0.02, duration: 0.3 }}
-                              className="hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A0D12] transition-colors duration-200 group"
-                            >
-                              <td className="px-4 py-5 whitespace-nowrap">
-                                <div className="flex items-center gap-3">
-                                  <div className="relative">
-                                    {user.profile_picture_url ? (
-                                      <motion.img
-                                        src={user.profile_picture_url}
-                                        alt={displayName}
-                                        className="h-10 w-10 rounded-full object-cover border-2 border-[#E9ECEF] dark:border-[#6C757D]/30"
-                                        whileHover={{ scale: 1.1 }}
-                                      />
-                                    ) : (
-                                      <motion.div
-                                        className="h-10 w-10 rounded-full bg-gradient-to-br from-[#0A2540] to-[#00D4B3] flex items-center justify-center text-white text-sm font-semibold border-2 border-[#E9ECEF] dark:border-[#6C757D]/30"
-                                        whileHover={{ scale: 1.1 }}
-                                      >
-                                        {displayName.charAt(0).toUpperCase()}
-                                      </motion.div>
-                                    )}
-                                  </div>
-                                  <div className="min-w-0 flex-1">
-                                    <div className="text-sm font-semibold text-[#0A2540] dark:text-white truncate max-w-[120px] sm:max-w-[150px] lg:max-w-[200px]" title={displayName}>
-                                      {displayName}
-                                    </div>
-                                    <div className="text-xs text-[#6C757D] dark:text-white/60 truncate max-w-[120px] sm:max-w-[150px] lg:max-w-[200px]" title={`@${user.username}`}>
-                                      @{user.username}
-                                    </div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-4 py-5 whitespace-nowrap">
-                                <div className="text-sm text-[#0A2540] dark:text-white truncate max-w-[150px] sm:max-w-[200px] lg:max-w-[250px]" title={email || undefined}>
-                                  {email}
-                                </div>
-                              </td>
-                              <td className="px-4 py-5 whitespace-nowrap">
-                                <motion.span
-                                  whileHover={{ scale: 1.05 }}
-                                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg border ${roleBadge.bg} ${roleBadge.text} ${roleBadge.border}`}
-                                >
-                                  <RoleIcon className="h-3.5 w-3.5" />
-                                  {t(`users.roles.${role}`)}
-                                </motion.span>
-                              </td>
-                              <td className="px-4 py-5 whitespace-nowrap">
-                                <motion.span
-                                  whileHover={{ scale: 1.05 }}
-                                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg ${
-                                    user.email_verified
-                                      ? 'bg-[#10B981]/10 dark:bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/20'
-                                      : 'bg-[#F59E0B]/10 dark:bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/20'
-                                  }`}
-                                >
-                                  {user.email_verified ? (
-                                    <CheckCircleIcon className="h-3.5 w-3.5" />
-                                  ) : (
-                                    <ClockIcon className="h-3.5 w-3.5" />
-                                  )}
-                                  {user.email_verified ? t('users.page.status.verified') : t('users.page.status.pending')}
-                                </motion.span>
-                              </td>
-                              <td className="px-4 py-5 whitespace-nowrap">
-                              <div className="flex flex-col">
-                                <span className="text-sm text-[#0A2540] dark:text-white/90 font-medium mb-0.5">
-                                  {user.updated_at
-                                    ? new Date(user.updated_at).toLocaleDateString(language === 'es' ? 'es-ES' : language === 'pt' ? 'pt-BR' : 'en-US', {
-                                        day: '2-digit',
-                                        month: 'short',
-                                        year: 'numeric'
-                                      })
-                                    : t('users.page.lastAccessNever')}
-                                </span>
-                                {user.updated_at && (
-                                  <span className="text-[10px] text-[#6C757D] dark:text-white/40 uppercase tracking-wider">
-                                    {formatDistanceToNow(new Date(user.updated_at), { addSuffix: true, locale: currentLocale })}
-                                  </span>
-                                )}
-                              </div>
-                              </td>
-                              <td className="px-4 py-5 whitespace-nowrap text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                  <motion.button
-                                    onClick={() => handleEditUser(user)}
-                                    whileHover={{ scale: 1.1, rotate: 5 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    className="p-2 rounded-lg text-[#00D4B3] hover:bg-[#00D4B3]/10 dark:hover:bg-[#00D4B3]/20 transition-colors duration-200"
-                                    title={tc('actions.edit')}
-                                  >
-                                    <PencilIcon className="h-4 w-4" />
-                                  </motion.button>
-                                  <motion.button
-                                    onClick={() => handleDeleteUser(user)}
-                                    whileHover={{ scale: 1.1, rotate: -5 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    className="p-2 rounded-lg text-red-500 hover:bg-red-500/10 dark:hover:bg-red-500/20 transition-colors duration-200"
-                                    title={tc('actions.delete')}
-                                  >
-                                    <TrashIcon className="h-4 w-4" />
-                                  </motion.button>
-                                </div>
-                              </td>
-                            </motion.tr>
-                          )
-                        })}
-                      </AnimatePresence>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </motion.div>
-        </motion.div>
+        ) : (
+          <div className="space-y-3">
+            {filteredUsers.map((user, index) => (
+              <AdminUserListRow
+                key={user.id}
+                user={user}
+                index={index}
+                locale={language}
+                onEdit={() => handleEditUser(user)}
+                onDelete={() => handleDeleteUser(user)}
+                t={t}
+                tc={tc}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Modals */}
       <EditUserModal
         user={editingUser}
         isOpen={isEditModalOpen}
         onClose={closeEditModal}
         onSave={handleSaveUser}
       />
-
-      {deleteError && (
-        <div className="fixed bottom-4 right-4 z-50 rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-400">
-          {deleteError}
-        </div>
-      )}
 
       <DeleteUserModal
         user={deletingUser}

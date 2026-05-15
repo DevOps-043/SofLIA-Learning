@@ -1,13 +1,11 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { BadgeCheck, BriefcaseBusiness, SlidersHorizontal } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-
-import {
-  adminCompaniesColors,
-  type AdminCompaniesThemeColors,
-} from '../../services/admin-companies'
+import { BusinessPanelSearchInput } from '@/features/business-panel/components/shared/BusinessPanelSearchInput'
+import { PremiumSelect } from '@/features/business-panel/components/PremiumSelect'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 
 interface AdminCompaniesFiltersProps {
   searchTerm: string
@@ -17,7 +15,6 @@ interface AdminCompaniesFiltersProps {
   onSearchChange: (value: string) => void
   onPlanChange: (value: string) => void
   onStatusChange: (value: string) => void
-  themeColors: AdminCompaniesThemeColors
 }
 
 export function AdminCompaniesFilters({
@@ -28,77 +25,74 @@ export function AdminCompaniesFilters({
   onSearchChange,
   onPlanChange,
   onStatusChange,
-  themeColors,
 }: AdminCompaniesFiltersProps) {
   const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
+
+  const planOptions = [
+    { value: 'all', label: t('companies.filters.allPlans') },
+    { value: 'team', label: t('companies.plans.team') },
+    { value: 'business', label: t('companies.plans.business') },
+    { value: 'enterprise', label: t('companies.plans.enterprise') },
+  ]
+
+  const statusOptions = [
+    { value: 'all', label: t('companies.filters.allStatuses') },
+    { value: 'active', label: t('companies.status.active') },
+    { value: 'pending', label: t('companies.status.pending') },
+    { value: 'trial', label: t('companies.status.trial') },
+    { value: 'paused', label: t('companies.status.paused') },
+    { value: 'expired', label: t('companies.status.expired') },
+  ]
+
   return (
     <motion.section
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
-      className="mb-8 rounded-2xl border p-5 transition-colors"
+      transition={{ delay: 0.15 }}
+      className="mb-6 rounded-[20px] border p-3 shadow-sm"
       style={{
-        backgroundColor: themeColors.cardBackground,
-        borderColor: `${themeColors.borderColor}30`,
+        backgroundColor: theme.cardBg,
+        borderColor: theme.borderColor,
       }}
     >
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-        <div className="relative flex-1">
-          <MagnifyingGlassIcon
-            className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2"
-            style={{ color: adminCompaniesColors.grayMedium }}
-          />
-          <input
-            type="text"
-            placeholder={t('searchPlaceholders.companies')}
-            value={searchTerm}
-            onChange={(event) => onSearchChange(event.target.value)}
-            className="w-full rounded-xl border py-3 pl-12 pr-4 focus:outline-none focus:ring-2"
-            style={{
-              borderColor: `${themeColors.borderColor}30`,
-              backgroundColor: themeColors.inputBg,
-              color: themeColors.textPrimary,
-            }}
-          />
-        </div>
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+        <BusinessPanelSearchInput
+          value={searchTerm}
+          onChange={onSearchChange}
+          placeholder={t('searchPlaceholders.companies')}
+          className="min-w-0 flex-1"
+        />
 
-        <div className="flex gap-3">
-          <select
+        <div className="grid gap-3 sm:grid-cols-2 xl:flex xl:flex-shrink-0">
+          <PremiumSelect
             value={planFilter}
-            onChange={(event) => onPlanChange(event.target.value)}
-            className="rounded-xl border px-4 py-3 focus:outline-none focus:ring-2"
-            style={{
-              borderColor: `${themeColors.borderColor}30`,
-              backgroundColor: themeColors.inputBg,
-              color: themeColors.textPrimary,
-            }}
-          >
-            <option value="all">Todos los planes</option>
-            <option value="team">Team</option>
-            <option value="business">Business</option>
-            <option value="enterprise">Enterprise</option>
-          </select>
-          <select
+            onValueChange={onPlanChange}
+            options={planOptions}
+            placeholder={t('companies.filters.allPlans')}
+            icon={<BriefcaseBusiness className="h-4 w-4" />}
+            className="w-full sm:min-w-[200px]"
+          />
+          <PremiumSelect
             value={statusFilter}
-            onChange={(event) => onStatusChange(event.target.value)}
-            className="rounded-xl border px-4 py-3 focus:outline-none focus:ring-2"
-            style={{
-              borderColor: `${themeColors.borderColor}30`,
-              backgroundColor: themeColors.inputBg,
-              color: themeColors.textPrimary,
-            }}
-          >
-            <option value="all">Todos los estados</option>
-            <option value="active">Activas</option>
-            <option value="pending">Pendientes</option>
-            <option value="trial">En trial</option>
-            <option value="paused">Pausadas</option>
-            <option value="expired">Expiradas</option>
-          </select>
+            onValueChange={onStatusChange}
+            options={statusOptions}
+            placeholder={t('companies.filters.allStatuses')}
+            icon={<SlidersHorizontal className="h-4 w-4" />}
+            className="w-full sm:min-w-[210px]"
+          />
         </div>
 
-        <div className="text-sm" style={{ color: themeColors.textSecondary }}>
-          {filteredCount} empresas
+        <div
+          className="flex h-[50px] items-center justify-center gap-2 rounded-2xl border px-4 text-sm font-bold xl:flex-shrink-0"
+          style={{
+            backgroundColor: theme.inputBg,
+            borderColor: theme.borderColor,
+            color: theme.subtextColor,
+          }}
+        >
+          <BadgeCheck className="h-4 w-4" style={{ color: theme.primaryColor }} />
+          {t('companies.filters.resultCount', { count: filteredCount })}
         </div>
       </div>
     </motion.section>

@@ -76,10 +76,16 @@
       },
       "searchPlaceholder": "Buscar por nome, e-mail ou nome de usuário...",
       "filterRoleAll": "Todos os cargos",
+      "noEmail": "Sem e-mail",
+      "view": {
+        "cards": "Visualização em cartões",
+        "list": "Visualização em lista"
+      },
       "empty": {
         "title": "Nenhum usuário encontrado",
         "searchFilter": "Tente ajustar os filtros de busca",
-        "noUsers": "Não há usuários registrados no sistema"
+        "noUsers": "Não há usuários registrados no sistema",
+        "clearFilters": "Limpar filtros"
       },
       "table": {
         "user": "Usuário",
@@ -190,7 +196,61 @@
     "page": {
       "title": "Gestão de Workshops",
       "description": "Gerenciar todos os workshops da plataforma",
-      "createButton": "Criar Workshop"
+      "createButton": "Criar Workshop",
+      "loading": "Carregando workshops..."
+    },
+    "addModal": {
+      "title": "Criar Novo Workshop",
+      "description": "Adicione um novo workshop à plataforma",
+      "tabs": {
+        "basic": "Básico",
+        "details": "Detalhes",
+        "media": "Mídia"
+      },
+      "titlePlaceholder": "Ex: Introdução à Inteligência Artificial",
+      "descriptionPlaceholder": "Descreva o conteúdo e os objetivos do workshop...",
+      "slugPlaceholder": "introducao-ia",
+      "activeTitle": "Workshop ativo",
+      "activeDescription": "O workshop ficará visível para os estudantes",
+      "creating": "Criando...",
+      "createButton": "Criar Workshop",
+      "errorCreate": "Erro ao criar workshop",
+      "validation": {
+        "titleRequired": "O título é obrigatório",
+        "descriptionRequired": "A descrição é obrigatória",
+        "slugRequired": "O slug é obrigatório",
+        "instructorRequired": "Você deve selecionar um instrutor",
+        "durationRequired": "A duração deve ser maior que 0"
+      }
+    },
+    "editModal": {
+      "title": "Editar Workshop",
+      "tabs": {
+        "basic": "Informação",
+        "status": "Status"
+      },
+      "activeTitle": "Workshop ativo",
+      "inactiveTitle": "Workshop inativo",
+      "activeDescription": "O workshop está visível para os estudantes",
+      "inactiveDescription": "O workshop está oculto",
+      "approvalStatusLabel": "Status de aprovação *",
+      "rejectionReasonLabel": "Motivo da rejeição *",
+      "rejectionReasonPlaceholder": "Explique por que este workshop está sendo rejeitado...",
+      "rejectionReasonHelp": "O motivo da rejeição é obrigatório quando o status é Rejeitado",
+      "approvedAt": "Aprovado em",
+      "approvedBy": "Por",
+      "saveError": "Erro ao atualizar workshop",
+      "approval": {
+        "pending": "Pendente",
+        "approved": "Aprovado",
+        "rejected": "Rejeitado"
+      },
+      "validation": {
+        "titleRequired": "O título é obrigatório",
+        "descriptionRequired": "A descrição é obrigatória",
+        "durationRequired": "A duração deve ser maior que 0",
+        "rejectionReasonRequired": "O motivo da rejeição é obrigatório quando o status é Rejeitado"
+      }
     },
     "stats": {
       "totalWorkshops": "Total Workshops",
@@ -380,7 +440,9 @@
     },
     "deleteModal": {
       "title": "Excluir Oficina",
-      "confirmText": "Tem certeza que deseja excluir esta oficina?"
+      "confirmText": "Tem certeza que deseja excluir esta oficina?",
+      "enrolledWarning": "Este workshop tem {{count}} estudante inscrito. As inscrições também serão excluídas.",
+      "enrolledWarning_plural": "Este workshop tem {{count}} estudantes inscritos. As inscrições também serão excluídas."
     },
     "pagination": {
       "total": "{{count}} oficinas encontradas",
@@ -547,6 +609,72 @@
     }
   },
   "companies": {
+    "page": {
+      "eyebrow": "Gestão B2B",
+      "title": "Administração de Empresas",
+      "subtitle": "Gerencie organizações, planos, usuários empresariais e status operacional com a mesma linguagem visual do painel Business.",
+      "loading": "Carregando empresas...",
+      "errorLoading": "Erro ao carregar empresas"
+    },
+    "actions": {
+      "refresh": "Atualizar",
+      "retry": "Tentar novamente",
+      "create": "Nova organização",
+      "view": "Ver",
+      "edit": "Editar",
+      "activate": "Ativar",
+      "pause": "Pausar"
+    },
+    "filters": {
+      "allPlans": "Todos os planos",
+      "allStatuses": "Todos os estados",
+      "resultCount": "{{count}} empresas"
+    },
+    "plans": {
+      "none": "Sem plano",
+      "team": "Team",
+      "business": "Business",
+      "enterprise": "Enterprise"
+    },
+    "status": {
+      "active": "Ativa",
+      "pending": "Pendente",
+      "trial": "Trial",
+      "paused": "Pausada",
+      "expired": "Expirada"
+    },
+    "card": {
+      "noSlug": "Sem slug",
+      "plan": "Plano {{plan}}",
+      "activeUsers": "Ativos",
+      "totalUsers": "Total",
+      "usage": "Uso",
+      "licenseUsage": "Uso de licenças",
+      "unlimited": "Ilimitado"
+    },
+    "modal": {
+      "admins": "Administradores",
+      "contactInfo": "Informações de contato",
+      "usersTitle": "Usuários ({{count}})",
+      "email": "E-mail",
+      "phone": "Telefone",
+      "website": "Site",
+      "invitedUsers": "Convidados",
+      "suspendedUsers": "Suspensos",
+      "maxUsers": "Máximo",
+      "editDetails": "Editar informações da empresa",
+      "unknownUser": "Usuário",
+      "noAdmins": "Sem administradores atribuídos",
+      "notDefined": "Não definido",
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin"
+      }
+    },
+    "empty": {
+      "title": "Nenhuma empresa encontrada",
+      "description": "Tente ajustar os filtros de busca"
+    },
     "stats": {
       "active": {
         "title": "Empresas Ativas",

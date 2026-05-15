@@ -15,9 +15,11 @@ import {
   AdminWorkshopsStatsGrid,
 } from './admin-workshops'
 import { useAdminWorkshopsPageLogic } from '../hooks'
+import { useAdminPanelTheme } from '../hooks/useAdminPanelTheme'
 
 export function AdminWorkshopsPage() {
   const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
   const {
     filteredWorkshops,
     pagination,
@@ -87,7 +89,14 @@ export function AdminWorkshopsPage() {
       )}
 
       {pagination.totalPages > 1 ? (
-        <div className="mt-6 flex flex-col items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-600 dark:border-white/10 dark:bg-gray-800 dark:text-gray-400 sm:flex-row">
+        <div
+          className="mt-6 flex flex-col items-center justify-between gap-3 rounded-2xl border p-4 text-sm shadow-sm sm:flex-row"
+          style={{
+            backgroundColor: theme.cardBg,
+            borderColor: theme.borderColor,
+            color: theme.subtextColor,
+          }}
+        >
           <span>
             {t('workshops.pagination.total', { count: pagination.total })}
           </span>
@@ -96,18 +105,31 @@ export function AdminWorkshopsPage() {
               type="button"
               onClick={() => setPage(Math.max(page - 1, 1))}
               disabled={page <= 1 || isLoading}
-              className="rounded-lg border border-gray-200 px-3 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:text-white dark:hover:bg-white/5"
+              className="rounded-xl border px-3 py-2 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              style={{
+                backgroundColor: theme.inputBg,
+                borderColor: theme.borderColor,
+                color: theme.textColor,
+              }}
             >
               {t('workshops.pagination.previous')}
             </button>
-            <span className="min-w-24 text-center font-medium text-gray-900 dark:text-white">
+            <span
+              className="min-w-24 text-center font-semibold"
+              style={{ color: theme.textColor }}
+            >
               {page} / {pagination.totalPages}
             </span>
             <button
               type="button"
               onClick={() => setPage(Math.min(page + 1, pagination.totalPages))}
               disabled={page >= pagination.totalPages || isLoading}
-              className="rounded-lg border border-gray-200 px-3 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:text-white dark:hover:bg-white/5"
+              className="rounded-xl border px-3 py-2 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              style={{
+                backgroundColor: theme.primaryColor,
+                borderColor: theme.primaryColor,
+                color: theme.onPrimaryColor,
+              }}
             >
               {t('workshops.pagination.next')}
             </button>

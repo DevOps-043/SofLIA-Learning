@@ -2,11 +2,7 @@
 
 import { motion } from 'framer-motion'
 import type { ElementType } from 'react'
-
-import {
-  adminCompaniesColors,
-  type AdminCompaniesThemeColors,
-} from '../../services/admin-companies'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 
 interface AdminCompaniesStatCardProps {
   title: string
@@ -15,7 +11,6 @@ interface AdminCompaniesStatCardProps {
   icon: ElementType
   color: string
   delay: number
-  themeColors: AdminCompaniesThemeColors
 }
 
 export function AdminCompaniesStatCard({
@@ -25,61 +20,63 @@ export function AdminCompaniesStatCard({
   icon: Icon,
   color,
   delay,
-  themeColors,
 }: AdminCompaniesStatCardProps) {
+  const theme = useAdminPanelTheme()
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay: delay * 0.1, duration: 0.5, type: 'spring', stiffness: 100 }}
-      whileHover={{ y: -5, scale: 1.02, transition: { duration: 0.2 } }}
-      className="relative group overflow-hidden rounded-2xl border p-6"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: delay * 0.05, duration: 0.4, ease: 'easeOut' }}
+      whileHover={{ y: -2 }}
+      className="group relative flex min-h-[96px] items-center justify-start overflow-hidden rounded-[16px] p-4 shadow-sm transition-all duration-300 hover:shadow-md"
       style={{
-        backgroundColor: themeColors.cardBackground,
-        borderColor: `${themeColors.borderColor}30`,
+        backgroundColor: theme.cardBg,
+        border: `1px solid ${theme.borderColor}`,
+        boxShadow: theme.isDark
+          ? '0 10px 30px -10px rgba(0,0,0,0.4)'
+          : '0 4px 20px -10px rgba(0,0,0,0.05)',
       }}
     >
-      <motion.div
-        className="absolute -top-20 -right-20 h-40 w-40 rounded-full blur-3xl opacity-0 transition-opacity duration-700 group-hover:opacity-30"
+      <div className="relative z-10 flex w-full items-center gap-4">
+        <div
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] transition-transform duration-500 group-hover:scale-[1.05]"
+          style={{
+            background: `linear-gradient(135deg, ${color}15, transparent)`,
+            border: `1px solid ${color}25`,
+            color,
+          }}
+        >
+          <Icon className="h-5 w-5" />
+        </div>
+
+        <div className="min-w-0 overflow-hidden">
+          <div className="mb-1 flex items-center gap-2">
+            <p className="truncate text-[10px] font-bold uppercase tracking-widest" style={{ color: theme.subtextColor }}>
+              {title}
+            </p>
+          </div>
+          <p className="truncate text-2xl font-extrabold leading-none tracking-tight" style={{ color: theme.textColor }}>
+            {typeof value === 'number' ? value.toLocaleString() : value}
+          </p>
+          <p className="mt-1 truncate text-xs font-medium" style={{ color: theme.mutedTextColor }}>
+            {subtitle}
+          </p>
+        </div>
+      </div>
+
+      <div
+        className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-20 blur-[40px] transition-all duration-700 ease-out group-hover:scale-110 group-hover:opacity-40"
         style={{ backgroundColor: color }}
       />
 
-      <div className="relative z-10">
-        <div className="mb-4 flex items-center justify-between">
-          <motion.div
-            className="rounded-xl p-3"
-            style={{ backgroundColor: `${color}20` }}
-            whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.5 } }}
-          >
-            <Icon className="h-6 w-6" style={{ color }} />
-          </motion.div>
-        </div>
-
-        <motion.h3
-          className="mb-1 text-3xl font-bold"
-          style={{ color: themeColors.textPrimary }}
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: delay * 0.1 + 0.2 }}
-        >
-          {value}
-        </motion.h3>
-
-        <p className="mb-1 font-medium" style={{ color: adminCompaniesColors.grayMedium }}>
-          {title}
-        </p>
-        <p className="text-xs" style={{ color: `${adminCompaniesColors.grayMedium}80` }}>
-          {subtitle}
-        </p>
-
-        <motion.div
-          className="absolute bottom-0 left-0 h-1"
-          style={{ background: `linear-gradient(to right, ${color}, ${adminCompaniesColors.primary})` }}
-          initial={{ width: 0 }}
-          animate={{ width: '30%' }}
-          transition={{ delay: delay * 0.1 + 0.4, duration: 0.8 }}
-        />
-      </div>
+      <motion.div
+        className="absolute bottom-0 left-0 h-[2px]"
+        style={{ background: color }}
+        initial={{ width: 0 }}
+        whileHover={{ width: '40%' }}
+        transition={{ duration: 0.4 }}
+      />
     </motion.div>
   )
 }

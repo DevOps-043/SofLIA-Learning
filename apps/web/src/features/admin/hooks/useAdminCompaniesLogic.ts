@@ -3,11 +3,9 @@
 import { useState, useMemo } from 'react'
 import { useAdminCompanies } from './useAdminCompanies'
 import type { AdminCompany } from '../types/admin-companies.types'
-import type { CreateCompanyData } from '../components/AdminCreateCompanyModal'
-import { useThemeStore } from '../../../core/stores/themeStore'
-import { useOrganizationStylesContext } from '../../business-panel/contexts/OrganizationStylesContext'
+import type { CreateCompanyData } from '../components/admin-create-company-modal'
+import { useAdminPanelTheme } from './useAdminPanelTheme'
 import {
-  adminCompaniesColors,
   filterAdminCompanies,
   type AdminCompaniesThemeColors,
 } from '../services/admin-companies'
@@ -23,18 +21,15 @@ export function useAdminCompaniesLogic() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
 
-  const { resolvedTheme } = useThemeStore()
-  const isLightTheme = resolvedTheme === 'light'
-  const { styles: orgStyles } = useOrganizationStylesContext()
-  const panelStyles = orgStyles?.panel
+  const theme = useAdminPanelTheme()
 
   const themeColors: AdminCompaniesThemeColors = {
-    background: isLightTheme ? (panelStyles?.background_value && panelStyles.background_value !== '#0F1419' ? panelStyles.background_value : '#F8FAFC') : adminCompaniesColors.bgPrimary,
-    cardBackground: isLightTheme ? (panelStyles?.card_background && panelStyles.card_background !== '#1E2329' ? panelStyles.card_background : '#FFFFFF') : adminCompaniesColors.bgSecondary,
-    textPrimary: isLightTheme ? '#1E293B' : 'white',
-    textSecondary: isLightTheme ? '#64748B' : adminCompaniesColors.grayMedium,
-    borderColor: isLightTheme ? '#E2E8F0' : adminCompaniesColors.grayMedium,
-    inputBg: isLightTheme ? '#F1F5F9' : adminCompaniesColors.bgTertiary,
+    background: theme.panelBg,
+    cardBackground: theme.cardBg,
+    textPrimary: theme.textColor,
+    textSecondary: theme.subtextColor,
+    borderColor: theme.borderColor,
+    inputBg: theme.inputBg,
   }
 
   const filteredCompanies = useMemo(() => {

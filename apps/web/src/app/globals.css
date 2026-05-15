@@ -1983,6 +1983,47 @@ select {
   .skeleton-dark {
     animation: none !important;
   }
+
+  /*
+     Decorative blur orbs (Tailwind `blur-2xl` / `blur-3xl` on absolutely
+     positioned divs) pin a full GPU composition layer in WebKit and get
+     repainted on every parent scroll event — the dominant cause of heat
+     reported on iPhone, iPad and MacBook landing/auth page visits.
+     Hide them entirely; the layout below them keeps its gradients and
+     remains visually rich without the GPU cost.
+  */
+  .absolute.blur-3xl,
+  .absolute.blur-2xl,
+  .fixed.blur-3xl,
+  .fixed.blur-2xl {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   APPLE-PLATFORM HEAT MITIGATION (Mac Safari)
+   The .is-apple-platform class is set by an inline script in
+   apps/web/src/app/layout.tsx before the first paint of <body>.
+   This block covers Macintosh Safari, which is `pointer: fine` and
+   therefore not matched by the touch-oriented media query above.
+   ============================================================ */
+html.is-apple-platform .absolute.blur-3xl,
+html.is-apple-platform .absolute.blur-2xl,
+html.is-apple-platform .fixed.blur-3xl,
+html.is-apple-platform .fixed.blur-2xl {
+  display: none !important;
+}
+
+html.is-apple-platform .animate-pulse-slow,
+html.is-apple-platform .animate-shimmer,
+html.is-apple-platform .animate-float,
+html.is-apple-platform .animate-glow {
+  animation: none !important;
+}
+
+html.is-apple-platform * {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 /* ============================================================
