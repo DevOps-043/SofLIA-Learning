@@ -115,3 +115,9 @@ Backup*.sql
 # Claude Code worktrees (temporary agent isolation dirs)
 .claude/worktrees/
 tmpclaude-*
+
+# FFmpeg static binaries — downloaded at Netlify build time when VIDEO_TRANSCODING_ENABLED=true.
+# Local paths go in apps/web/.env.local (FFMPEG_PATH / FFPROBE_PATH).
+# See apps/web/bin/README.md for setup instructions.
+apps/web/bin/ffmpeg
+apps/web/bin/ffprobe
