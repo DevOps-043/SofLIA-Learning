@@ -19,8 +19,51 @@ interface DispatchResult {
   playbackPath: string
 }
 
-function isTranscodingEnabled(): boolean {
+interface TriggerBackgroundInput {
+  jobId: string
+  sourcePath: string
+  sourceUrl: string
+  bucket: string
+  contentType: string
+  sizeBytes?: number | null
+}
+
+export function isTranscodingEnabled(): boolean {
   return process.env.VIDEO_TRANSCODING_ENABLED?.toLowerCase() === 'true'
+}
+
+/**
+ * Fire the background function for an already-existing job row.  Used by the
+ * bulk reprocess flow which inserts queued rows first and then drips
+ * background invocations to control concurrency.  Returns true when the
+ * BG function call was attempted, false when env vars are missing.
+ */
+export function triggerTranscodingBackground(input: TriggerBackgroundInput): boolean {
+  const netlifyUrl = process.env.NETLIFY_URL ?? process.env.URL
+  const secret = process.env.TRANSCODING_INTERNAL_SECRET
+  if (!netlifyUrl || !secret) {
+    console.warn('[transcoding-dispatcher] NETLIFY_URL or TRANSCODING_INTERNAL_SECRET not set')
+    return false
+  }
+  const bgFunctionUrl = `${netlifyUrl.replace(/\/$/, '')}/.netlify/functions/transcode-video-background`
+  fetch(bgFunctionUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${secret}`,
+    },
+    body: JSON.stringify({
+      jobId: input.jobId,
+      sourcePath: input.sourcePath,
+      sourceUrl: input.sourceUrl,
+      bucket: input.bucket,
+      contentType: input.contentType,
+      sizeBytes: input.sizeBytes ?? undefined,
+    }),
+  }).catch((err: unknown) => {
+    console.error('[transcoding-dispatcher] Failed to trigger background function:', err)
+  })
+  return true
 }
 
 /**
@@ -53,28 +96,13 @@ export async function dispatchTranscodingJob(input: DispatchInput): Promise<Disp
 
   const jobId: string = job.id
 
-  // 2. Fire background function — non-blocking, do not await
-  const netlifyUrl = process.env.NETLIFY_URL ?? process.env.URL
-  const secret = process.env.TRANSCODING_INTERNAL_SECRET
-
-  if (!netlifyUrl || !secret) {
-    console.warn('[transcoding-dispatcher] NETLIFY_URL or TRANSCODING_INTERNAL_SECRET not set — job queued but not dispatched')
-    return { status: 'queued', jobId, playbackUrl: sourceUrl, playbackPath: sourcePath }
-  }
-
-  const bgFunctionUrl = `${netlifyUrl.replace(/\/$/, '')}/.netlify/functions/transcode-video-background`
-
-  // Fire and forget — any network error is caught silently; the job stays
-  // in 'queued' state and can be manually retried later.
-  fetch(bgFunctionUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${secret}`,
-    },
-    body: JSON.stringify({ jobId, sourcePath, sourceUrl, bucket, contentType, sizeBytes }),
-  }).catch((err: unknown) => {
-    console.error('[transcoding-dispatcher] Failed to trigger background function:', err)
+  triggerTranscodingBackground({
+    jobId,
+    sourcePath,
+    sourceUrl,
+    bucket,
+    contentType,
+    sizeBytes: sizeBytes ?? null,
   })
 
   return { status: 'queued', jobId, playbackUrl: sourceUrl, playbackPath: sourcePath }
