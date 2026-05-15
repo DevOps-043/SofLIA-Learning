@@ -14,6 +14,7 @@ import {
     normalizeImportedActivityContent,
     normalizeImportedMaterialContent,
 } from './course-content'
+import { buildImportedActivityRow } from './course-import-activities'
 import { extractGeneratedCourseInstructorHint } from './generated-course-instructor'
 
 interface QuizQuestionLike {
@@ -44,9 +45,13 @@ interface CourseEngineMaterial {
 }
 
 interface CourseEngineActivity {
+    activity_config?: unknown
+    activity_schema_version?: number | null
     title: string
     type: string
     data?: unknown
+    estimated_time_minutes?: number | null
+    is_required?: boolean | null
 }
 
 interface CourseEngineLesson {
@@ -283,17 +288,22 @@ export async function applyPayloadToCourse(
             await supabase.from('lesson_activities').delete().eq('lesson_id', lessonId)
             const activities = lesson.activities ?? []
             if (activities.length > 0) {
-                const rows = activities.map((act, idx: number) => ({
-                    lesson_id: lessonId,
-                    activity_title: act.title,
-                    activity_type: act.type === 'lia_script' ? 'ai_chat' : act.type,
-                    activity_content:
-                        act.type === 'quiz'
-                            ? JSON.stringify(normalizeQuizData(act.data))
-                            : normalizeImportedActivityContent(act.type, act.data),
-                    activity_order_index: idx + 1,
-                    is_required: false,
-                }))
+                const rows = activities.map((act, idx: number) => {
+                    const row = buildImportedActivityRow({
+                        activity: act,
+                        index: idx,
+                        lessonId,
+                    })
+
+                    return {
+                        ...row,
+                        activity_type: act.type === 'quiz' ? 'quiz' : row.activity_type,
+                        activity_content:
+                            act.type === 'quiz'
+                                ? JSON.stringify(normalizeQuizData(act.data))
+                                : row.activity_content,
+                    }
+                })
                 const { error } = await supabase.from('lesson_activities').insert(rows)
                 if (error) throw new Error(`Activities insert failed: ${error.message}`)
             }
@@ -443,16 +453,26 @@ export function buildCoursePreviewFromPayload(staging: StagingCoursePreview) {
                                 ? normalizeQuizData(mat.data)
                                 : normalizeImportedMaterialContent(mat.data),
                     })),
-                    activities: (lesson.activities ?? []).map((act, actIdx: number) => ({
-                        activity_id: `staging-act-${modIdx}-${lesIdx}-${actIdx}`,
-                        activity_title: act.title,
-                        activity_type: act.type === 'lia_script' ? 'ai_chat' : act.type,
-                        activity_content:
-                            act.type === 'quiz'
-                                ? JSON.stringify(normalizeQuizData(act.data))
-                                : normalizeImportedActivityContent(act.type, act.data),
-                        activity_order_index: actIdx + 1,
-                    })),
+                    activities: (lesson.activities ?? []).map((act, actIdx: number) => {
+                        const activityRow = buildImportedActivityRow({
+                            activity: act,
+                            index: actIdx,
+                            lessonId: `staging-les-${modIdx}-${lesIdx}`,
+                        })
+
+                        return {
+                            activity_id: `staging-act-${modIdx}-${lesIdx}-${actIdx}`,
+                            activity_title: act.title,
+                            activity_type: activityRow.activity_type,
+                            activity_content:
+                                act.type === 'quiz'
+                                    ? JSON.stringify(normalizeQuizData(act.data))
+                                    : normalizeImportedActivityContent(act.type, act.data),
+                            activity_config: activityRow.activity_config,
+                            activity_schema_version: activityRow.activity_schema_version,
+                            activity_order_index: actIdx + 1,
+                        }
+                    }),
                 }
             }),
         })),

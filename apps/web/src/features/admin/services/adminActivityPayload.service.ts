@@ -5,6 +5,7 @@ import type {
 } from './adminActivities.service'
 import {
   activityConfigSchema,
+  normalizeActivityConfig,
   supportedExternalToolKeys,
 } from '@/features/courses/types/activity-config'
 
@@ -49,11 +50,25 @@ function normalizeActivityConfigValue(
     return null
   }
 
+  if (activityType === 'quiz' || activityType === 'reading') {
+    return null
+  }
+
+  const parsedConfig = normalizeActivityConfig(rawConfig)
   if (
-    activityType === 'quiz' ||
-    activityType === 'ai_chat' ||
-    activityType === 'reading'
+    activityType === 'ai_chat' &&
+    parsedConfig?.interactionType !== 'soflia_dialogue'
   ) {
+    if (
+      rawConfig &&
+      typeof rawConfig === 'object' &&
+      !Array.isArray(rawConfig) &&
+      (rawConfig as { interactionType?: unknown }).interactionType ===
+        'soflia_dialogue'
+    ) {
+      return activityConfigSchema.parse(rawConfig)
+    }
+
     return null
   }
 
@@ -81,6 +96,21 @@ function resolveToolKey(
   return explicitToolKey ?? null
 }
 
+function resolveRequiresSofliaValidation(
+  normalizedConfig: ReturnType<typeof normalizeActivityConfigValue>,
+  fallback: boolean | undefined,
+) {
+  if (!normalizedConfig) {
+    return fallback ?? false
+  }
+
+  if (normalizedConfig.interactionType === 'soflia_dialogue') {
+    return false
+  }
+
+  return normalizedConfig.validation.enabled ?? fallback ?? false
+}
+
 export function validateCreateActivityPayload(
   payload: unknown,
 ): CreateActivityData {
@@ -96,15 +126,20 @@ export function validateCreateActivityPayload(
     activity_type: parsed.activity_type,
     activity_content: parsed.activity_content,
     activity_config: activityConfig,
-    activity_schema_version: activityConfig ? 1 : parsed.activity_schema_version ?? 1,
+    activity_schema_version:
+      activityConfig?.interactionType === 'soflia_dialogue'
+        ? 2
+        : activityConfig
+          ? 1
+          : parsed.activity_schema_version ?? 1,
     ai_prompts: parsed.ai_prompts ?? undefined,
     external_tool_key: resolveToolKey(parsed.external_tool_key, activityConfig),
     is_required: parsed.is_required ?? false,
     estimated_time_minutes: parsed.estimated_time_minutes ?? 5,
-    requires_soflia_validation:
-      activityConfig?.validation.enabled ??
-      parsed.requires_soflia_validation ??
-      false,
+    requires_soflia_validation: resolveRequiresSofliaValidation(
+      activityConfig,
+      parsed.requires_soflia_validation,
+    ),
   }
 }
 
@@ -150,7 +185,9 @@ export function validateUpdateActivityPayload(
     if (parsed.activity_config !== undefined) {
       normalized.activity_config = activityConfig
       normalized.activity_schema_version = activityConfig
-        ? 1
+        ? activityConfig.interactionType === 'soflia_dialogue'
+          ? 2
+          : 1
         : parsed.activity_schema_version ?? 1
     } else if (parsed.activity_schema_version !== undefined) {
       normalized.activity_schema_version = parsed.activity_schema_version
@@ -171,9 +208,10 @@ export function validateUpdateActivityPayload(
       parsed.activity_config !== undefined
     ) {
       normalized.requires_soflia_validation =
-        activityConfig?.validation.enabled ??
-        parsed.requires_soflia_validation ??
-        false
+        resolveRequiresSofliaValidation(
+          activityConfig,
+          parsed.requires_soflia_validation,
+        )
     }
   }
 

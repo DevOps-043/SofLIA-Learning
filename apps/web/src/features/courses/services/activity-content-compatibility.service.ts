@@ -1,4 +1,7 @@
-import { normalizeContentForRenderer } from '@/lib/course-content'
+import {
+  deepParseJsonValue,
+  normalizeContentForRenderer,
+} from '@/lib/course-content'
 
 import {
   defaultActivityValidationConfig,
@@ -305,6 +308,14 @@ export function resolveActivityConfig({
 
   if (parsedConfig?.interactionType === 'soflia_dialogue') {
     return parsedConfig
+  }
+
+  const configFromContent = normalizeActivityConfig(
+    deepParseJsonValue(activityContent),
+  )
+
+  if (configFromContent?.interactionType === 'soflia_dialogue') {
+    return configFromContent
   }
 
   if (!isInteractiveLessonActivity(activityType)) {
