@@ -21,7 +21,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { access, chmod, constants as fsConstants, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { Handler, HandlerEvent } from "@netlify/functions";
@@ -153,10 +153,17 @@ function runProcess(
 
     child.stdout.on("data", append);
     child.stderr.on("data", append);
-    child.on("error", (err) => {
+    child.on("error", (err: NodeJS.ErrnoException) => {
       if (settled) return;
       settled = true;
       clearTimeout(timeout);
+      // ENOENT here means the binary path is wrong or the file lost its
+      // executable bit.  Surface the resolved path in the message so the
+      // failed-job row tells us exactly what to check next.
+      if (err.code === "ENOENT") {
+        reject(new Error(`Binary not found or not executable: ${command}`));
+        return;
+      }
       reject(err);
     });
     child.on("close", (code) => {
@@ -298,6 +305,105 @@ async function uploadHlsDirectory(
 }
 
 // ---------------------------------------------------------------------------
+// FFmpeg binary resolution
+// ---------------------------------------------------------------------------
+// Netlify's included_files copies the binary into the function bundle, but
+// the exact runtime path depends on bundler (esbuild vs zisi) and base
+// directory.  Rather than rely on a single hard-coded path, we probe a
+// list of likely locations and apply chmod +x as a defensive measure
+// since Netlify packaging has been known to lose the executable bit.
+let cachedFfmpegPath: string | null = null;
+
+async function isExecutable(filePath: string): Promise<boolean> {
+  try {
+    await access(filePath, fsConstants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await access(filePath, fsConstants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function resolveFfmpegPath(): Promise<string> {
+  if (cachedFfmpegPath) return cachedFfmpegPath;
+
+  const envPath = process.env.FFMPEG_PATH ?? null;
+  const candidates = [
+    envPath,
+    "/var/task/apps/web/bin/ffmpeg",
+    path.join(process.cwd(), "apps/web/bin/ffmpeg"),
+    path.join(__dirname, "apps/web/bin/ffmpeg"),
+    path.join(__dirname, "../apps/web/bin/ffmpeg"),
+    path.join(__dirname, "../../apps/web/bin/ffmpeg"),
+    path.join(__dirname, "../../../apps/web/bin/ffmpeg"),
+    "/var/task/bin/ffmpeg",
+    "/opt/build/repo/apps/web/bin/ffmpeg",
+  ].filter((c): c is string => Boolean(c));
+
+  const probes: Array<{ path: string; exists: boolean; executable: boolean }> = [];
+
+  for (const candidate of candidates) {
+    const exists = await fileExists(candidate);
+    if (!exists) {
+      probes.push({ path: candidate, exists: false, executable: false });
+      continue;
+    }
+    const executable = await isExecutable(candidate);
+    if (executable) {
+      console.log(`[transcode-bg] Resolved ffmpeg at: ${candidate}`);
+      cachedFfmpegPath = candidate;
+      return candidate;
+    }
+    // File exists but is not executable — try chmod and re-check.
+    try {
+      await chmod(candidate, 0o755);
+      if (await isExecutable(candidate)) {
+        console.log(`[transcode-bg] Resolved ffmpeg at: ${candidate} (chmod +x applied)`);
+        cachedFfmpegPath = candidate;
+        return candidate;
+      }
+    } catch {
+      // ignore chmod errors and keep probing
+    }
+    probes.push({ path: candidate, exists: true, executable: false });
+  }
+
+  // Last-resort diagnostics: list likely parent dirs to help debug.
+  const diagDirs = [
+    "/var/task",
+    "/var/task/apps",
+    "/var/task/apps/web",
+    "/var/task/apps/web/bin",
+    process.cwd(),
+    __dirname,
+  ];
+  const dirListings: Record<string, string[] | string> = {};
+  for (const dir of diagDirs) {
+    try {
+      const entries = await readdir(dir);
+      dirListings[dir] = entries.slice(0, 40);
+    } catch (err) {
+      dirListings[dir] = `error: ${err instanceof Error ? err.message : "unknown"}`;
+    }
+  }
+
+  console.error("[transcode-bg] Could not locate ffmpeg. Probes:", probes);
+  console.error("[transcode-bg] Directory listings:", dirListings);
+
+  throw new Error(
+    `ffmpeg binary not found in any candidate path. Tried: ${candidates.join(", ")}`,
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Supabase admin client
 // ---------------------------------------------------------------------------
 function createAdminClient() {
@@ -346,12 +452,14 @@ const handler: Handler = async (event: HandlerEvent) => {
     started_at: new Date().toISOString(),
   }).eq("id", jobId);
 
-  const ffmpegPath = getEnv("FFMPEG_PATH");
-
-  if (!ffmpegPath) {
+  let ffmpegPath: string;
+  try {
+    ffmpegPath = await resolveFfmpegPath();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Unknown";
     await supabase.from("video_transcoding_jobs").update({
       status: "failed",
-      error_message: "FFMPEG_PATH not configured",
+      error_message: `ffmpeg not found: ${msg}`,
       completed_at: new Date().toISOString(),
     }).eq("id", jobId);
     return { statusCode: 202, body: "" };
