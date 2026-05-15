@@ -1,5 +1,25 @@
 import type { AdminWorkshop } from '../../services/adminWorkshops.service'
-import type { AdminWorkshopFilters, WorkshopBadgeTone } from './types'
+import type { AdminWorkshopFilters } from './types'
+
+export interface AdminWorkshopDisplayTheme {
+  primaryColor: string
+  successColor: string
+  warningColor: string
+  dangerColor: string
+  secondaryColor: string
+  mutedTextColor: string
+  textColor: string
+  inputBg: string
+  borderColor: string
+}
+
+export interface AdminWorkshopBadgeConfig {
+  labelKey?: string
+  fallbackLabel: string
+  color: string
+  bg: string
+  border: string
+}
 
 export const ADMIN_WORKSHOP_CATEGORY_OPTIONS = [
   { value: 'all', label: 'Todas las categorias' },
@@ -49,90 +69,129 @@ export function filterAdminWorkshops(
   })
 }
 
-export function getWorkshopLevelTone(level: string): WorkshopBadgeTone {
+export function getAdminWorkshopLevelKey(level: string) {
   switch (level) {
-    case 'beginner':
     case 'Principiante':
+      return 'beginner'
+    case 'Intermedio':
+      return 'intermediate'
+    case 'Avanzado':
+      return 'advanced'
+    default:
+      return level || 'beginner'
+  }
+}
+
+export function getAdminWorkshopLevelConfig(
+  level: string,
+  theme: AdminWorkshopDisplayTheme,
+): AdminWorkshopBadgeConfig {
+  const levelKey = getAdminWorkshopLevelKey(level)
+
+  switch (levelKey) {
+    case 'beginner':
       return {
-        bg: 'bg-[#10B981]/10 dark:bg-[#10B981]/20',
-        text: 'text-[#10B981]',
-        border: 'border-[#10B981]/20',
+        labelKey: 'workshops.card.level.beginner',
+        fallbackLabel: 'Principiante',
+        color: theme.successColor,
+        bg: `${theme.successColor}14`,
+        border: `${theme.successColor}26`,
       }
     case 'intermediate':
-    case 'Intermedio':
       return {
-        bg: 'bg-[#F59E0B]/10 dark:bg-[#F59E0B]/20',
-        text: 'text-[#F59E0B]',
-        border: 'border-[#F59E0B]/20',
+        labelKey: 'workshops.card.level.intermediate',
+        fallbackLabel: 'Intermedio',
+        color: theme.warningColor,
+        bg: `${theme.warningColor}14`,
+        border: `${theme.warningColor}26`,
       }
     case 'advanced':
-    case 'Avanzado':
       return {
-        bg: 'bg-[#EF4444]/10 dark:bg-[#EF4444]/20',
-        text: 'text-[#EF4444]',
-        border: 'border-[#EF4444]/20',
+        labelKey: 'workshops.card.level.advanced',
+        fallbackLabel: 'Avanzado',
+        color: theme.dangerColor,
+        bg: `${theme.dangerColor}14`,
+        border: `${theme.dangerColor}26`,
       }
     default:
       return {
-        bg: 'bg-[#6C757D]/10 dark:bg-[#6C757D]/20',
-        text: 'text-[#6C757D]',
-        border: 'border-[#6C757D]/20',
+        fallbackLabel: level,
+        color: theme.mutedTextColor,
+        bg: theme.inputBg,
+        border: theme.borderColor,
       }
   }
 }
 
-export function getWorkshopCategoryTone(category: string): WorkshopBadgeTone {
+export function getAdminWorkshopCategoryConfig(
+  category: string,
+  theme: AdminWorkshopDisplayTheme,
+): AdminWorkshopBadgeConfig {
   switch (category) {
-    case 'Frontend':
-    case 'frontend':
-      return {
-        bg: 'bg-[#0A2540]/10 dark:bg-[#0A2540]/30',
-        text: 'text-[#0A2540] dark:text-[#00D4B3]',
-        border: 'border-[#0A2540]/20 dark:border-[#00D4B3]/30',
-      }
-    case 'Backend':
-    case 'backend':
-    case 'tecnologia':
-      return {
-        bg: 'bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20',
-        text: 'text-[#00D4B3]',
-        border: 'border-[#00D4B3]/20',
-      }
-    case 'Diseno':
-    case 'diseno':
-    case 'design':
-      return {
-        bg: 'bg-[#F59E0B]/10 dark:bg-[#F59E0B]/20',
-        text: 'text-[#F59E0B]',
-        border: 'border-[#F59E0B]/20',
-      }
     case 'ia':
     case 'Inteligencia Artificial':
       return {
-        bg: 'bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20',
-        text: 'text-[#00D4B3]',
-        border: 'border-[#00D4B3]/20',
+        fallbackLabel: category,
+        color: theme.primaryColor,
+        bg: `${theme.primaryColor}14`,
+        border: `${theme.primaryColor}26`,
+      }
+    case 'tecnologia':
+    case 'Frontend':
+    case 'frontend':
+    case 'Backend':
+    case 'backend':
+      return {
+        fallbackLabel: category,
+        color: theme.secondaryColor,
+        bg: `${theme.secondaryColor}14`,
+        border: `${theme.secondaryColor}26`,
+      }
+    case 'negocios':
+      return {
+        fallbackLabel: category,
+        color: theme.successColor,
+        bg: `${theme.successColor}14`,
+        border: `${theme.successColor}26`,
+      }
+    case 'diseno':
+    case 'Diseno':
+    case 'design':
+      return {
+        fallbackLabel: category,
+        color: theme.warningColor,
+        bg: `${theme.warningColor}14`,
+        border: `${theme.warningColor}26`,
       }
     default:
       return {
-        bg: 'bg-[#6C757D]/10 dark:bg-[#6C757D]/20',
-        text: 'text-[#6C757D]',
-        border: 'border-[#6C757D]/20',
+        fallbackLabel: category,
+        color: theme.mutedTextColor,
+        bg: theme.inputBg,
+        border: theme.borderColor,
       }
   }
 }
 
-export function getWorkshopLevelLabel(level: string): string {
-  switch (level) {
-    case 'beginner':
-      return 'Principiante'
-    case 'intermediate':
-      return 'Intermedio'
-    case 'advanced':
-      return 'Avanzado'
-    default:
-      return level
-  }
+export function getAdminWorkshopStatusConfig(
+  isActive: boolean,
+  theme: AdminWorkshopDisplayTheme,
+): AdminWorkshopBadgeConfig {
+  return isActive
+    ? {
+        labelKey: 'workshops.card.statusActive',
+        fallbackLabel: 'Activo',
+        color: theme.successColor,
+        bg: `${theme.successColor}14`,
+        border: `${theme.successColor}26`,
+      }
+    : {
+        labelKey: 'workshops.card.statusInactive',
+        fallbackLabel: 'Inactivo',
+        color: theme.mutedTextColor,
+        bg: theme.inputBg,
+        border: theme.borderColor,
+      }
 }
 
 export function formatWorkshopDuration(minutes: number): string {

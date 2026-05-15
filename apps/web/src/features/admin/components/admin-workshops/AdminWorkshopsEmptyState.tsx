@@ -1,8 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { BookOpen, SlidersHorizontal } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { BookOpenIcon } from '@heroicons/react/24/outline'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 
 interface AdminWorkshopsEmptyStateProps {
   hasActiveFilters: boolean
@@ -12,24 +13,37 @@ export function AdminWorkshopsEmptyState({
   hasActiveFilters,
 }: AdminWorkshopsEmptyStateProps) {
   const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
+  const Icon = hasActiveFilters ? SlidersHorizontal : BookOpen
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-12"
+      className="flex min-h-[320px] flex-col items-center justify-center rounded-[24px] border px-6 py-14 text-center shadow-sm"
+      style={{
+        backgroundColor: theme.cardBg,
+        borderColor: theme.borderColor,
+      }}
     >
-      <div className="flex flex-col items-center justify-center">
-        <BookOpenIcon className="h-16 w-16 text-[#6C757D] dark:text-white/30 mb-4" />
-        <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-2">
-          {t('workshops.empty.title')}
-        </h3>
-        <p className="text-sm text-[#6C757D] dark:text-white/60 text-center">
-          {hasActiveFilters
-            ? t('workshops.empty.filters')
-            : t('workshops.empty.noWorkshops')}
-        </p>
+      <div
+        className="mb-6 flex h-20 w-20 items-center justify-center rounded-[24px] border"
+        style={{
+          backgroundColor: theme.inputBg,
+          borderColor: theme.borderColor,
+          color: theme.primaryColor,
+        }}
+      >
+        <Icon className="h-9 w-9" />
       </div>
+      <h3 className="text-xl font-extrabold" style={{ color: theme.textColor }}>
+        {t('workshops.empty.title')}
+      </h3>
+      <p className="mt-2 max-w-md text-sm font-medium" style={{ color: theme.subtextColor }}>
+        {hasActiveFilters
+          ? t('workshops.empty.filters')
+          : t('workshops.empty.noWorkshops')}
+      </p>
     </motion.div>
   )
 }

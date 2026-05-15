@@ -76,10 +76,16 @@
       },
       "searchPlaceholder": "Search by name, email or username...",
       "filterRoleAll": "All roles",
+      "noEmail": "No email",
+      "view": {
+        "cards": "Card view",
+        "list": "List view"
+      },
       "empty": {
         "title": "No users found",
         "searchFilter": "Try adjusting the search filters",
-        "noUsers": "There are no users registered in the system"
+        "noUsers": "There are no users registered in the system",
+        "clearFilters": "Clear filters"
       },
       "table": {
         "user": "User",
@@ -190,7 +196,61 @@
     "page": {
       "title": "Workshops Management",
       "description": "Manage all workshops on the platform",
-      "createButton": "Create Workshop"
+      "createButton": "Create Workshop",
+      "loading": "Loading workshops..."
+    },
+    "addModal": {
+      "title": "Create New Workshop",
+      "description": "Add a new workshop to the platform",
+      "tabs": {
+        "basic": "Basic",
+        "details": "Details",
+        "media": "Media"
+      },
+      "titlePlaceholder": "Ex: Introduction to Artificial Intelligence",
+      "descriptionPlaceholder": "Describe the workshop content and goals...",
+      "slugPlaceholder": "introduction-ai",
+      "activeTitle": "Active workshop",
+      "activeDescription": "The workshop will be visible to students",
+      "creating": "Creating...",
+      "createButton": "Create Workshop",
+      "errorCreate": "Error creating workshop",
+      "validation": {
+        "titleRequired": "Title is required",
+        "descriptionRequired": "Description is required",
+        "slugRequired": "Slug is required",
+        "instructorRequired": "You must select an instructor",
+        "durationRequired": "Duration must be greater than 0"
+      }
+    },
+    "editModal": {
+      "title": "Edit Workshop",
+      "tabs": {
+        "basic": "Information",
+        "status": "Status"
+      },
+      "activeTitle": "Active workshop",
+      "inactiveTitle": "Inactive workshop",
+      "activeDescription": "The workshop is visible to students",
+      "inactiveDescription": "The workshop is hidden",
+      "approvalStatusLabel": "Approval status *",
+      "rejectionReasonLabel": "Rejection reason *",
+      "rejectionReasonPlaceholder": "Explain why this workshop is being rejected...",
+      "rejectionReasonHelp": "The rejection reason is required when the status is Rejected",
+      "approvedAt": "Approved at",
+      "approvedBy": "By",
+      "saveError": "Error updating workshop",
+      "approval": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "validation": {
+        "titleRequired": "Title is required",
+        "descriptionRequired": "Description is required",
+        "durationRequired": "Duration must be greater than 0",
+        "rejectionReasonRequired": "The rejection reason is required when the status is Rejected"
+      }
     },
     "stats": {
       "totalWorkshops": "Total Workshops",
@@ -382,7 +442,9 @@
     },
     "deleteModal": {
       "title": "Delete Workshop",
-      "confirmText": "Are you sure you want to delete this workshop?"
+      "confirmText": "Are you sure you want to delete this workshop?",
+      "enrolledWarning": "This workshop has {{count}} enrolled student. Enrollments will also be deleted.",
+      "enrolledWarning_plural": "This workshop has {{count}} enrolled students. Enrollments will also be deleted."
     },
     "pagination": {
       "total": "{{count}} workshops found",
@@ -549,6 +611,72 @@
     }
   },
   "companies": {
+    "page": {
+      "eyebrow": "B2B Management",
+      "title": "Company Administration",
+      "subtitle": "Manage organizations, plans, business users, and operational status with the same design language as the Business Panel.",
+      "loading": "Loading companies...",
+      "errorLoading": "Error loading companies"
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "retry": "Retry",
+      "create": "New organization",
+      "view": "View",
+      "edit": "Edit",
+      "activate": "Activate",
+      "pause": "Pause"
+    },
+    "filters": {
+      "allPlans": "All plans",
+      "allStatuses": "All statuses",
+      "resultCount": "{{count}} companies"
+    },
+    "plans": {
+      "none": "No plan",
+      "team": "Team",
+      "business": "Business",
+      "enterprise": "Enterprise"
+    },
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "trial": "Trial",
+      "paused": "Paused",
+      "expired": "Expired"
+    },
+    "card": {
+      "noSlug": "No slug",
+      "plan": "{{plan}} plan",
+      "activeUsers": "Active",
+      "totalUsers": "Total",
+      "usage": "Usage",
+      "licenseUsage": "License usage",
+      "unlimited": "Unlimited"
+    },
+    "modal": {
+      "admins": "Administrators",
+      "contactInfo": "Contact information",
+      "usersTitle": "Users ({{count}})",
+      "email": "Email",
+      "phone": "Phone",
+      "website": "Website",
+      "invitedUsers": "Invited",
+      "suspendedUsers": "Suspended",
+      "maxUsers": "Maximum",
+      "editDetails": "Edit company information",
+      "unknownUser": "User",
+      "noAdmins": "No administrators assigned",
+      "notDefined": "Not defined",
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin"
+      }
+    },
+    "empty": {
+      "title": "No companies found",
+      "description": "Try adjusting the search filters"
+    },
     "stats": {
       "active": {
         "title": "Active Companies",

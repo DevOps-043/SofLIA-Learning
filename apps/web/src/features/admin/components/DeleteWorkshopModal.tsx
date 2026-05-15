@@ -1,10 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { XMarkIcon, ExclamationTriangleIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { AnimatePresence, motion } from 'framer-motion'
+import { AlertTriangle, Clock, Layers3, Trash2, UserRound, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../hooks/useAdminPanelTheme'
 import { AdminWorkshop } from '../services/adminWorkshops.service'
+import {
+  formatWorkshopDuration,
+  getAdminWorkshopCategoryConfig,
+  getAdminWorkshopLevelConfig,
+  getAdminWorkshopStatusConfig,
+} from './admin-workshops/admin-workshops-display.service'
 
 interface DeleteWorkshopModalProps {
   isOpen: boolean
@@ -13,11 +20,17 @@ interface DeleteWorkshopModalProps {
   onConfirm: () => Promise<void>
 }
 
-export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: DeleteWorkshopModalProps) {
+export function DeleteWorkshopModal({
+  isOpen,
+  onClose,
+  workshop,
+  onConfirm,
+}: DeleteWorkshopModalProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const { t } = useTranslation('admin')
   const { t: tc } = useTranslation('common')
+  const theme = useAdminPanelTheme()
 
   useEffect(() => {
     if (isOpen) {
@@ -43,21 +56,76 @@ export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: De
 
   if (!isOpen || !workshop) return null
 
+  const categoryConfig = getAdminWorkshopCategoryConfig(workshop.category, theme)
+  const levelConfig = getAdminWorkshopLevelConfig(workshop.level, theme)
+  const statusConfig = getAdminWorkshopStatusConfig(workshop.is_active, theme)
+  const categoryLabel = tc(
+    `common.categories.${workshop.category}`,
+    workshop.category,
+  )
+  const levelLabel = levelConfig.labelKey
+    ? t(levelConfig.labelKey)
+    : levelConfig.fallbackLabel
+  const statusLabel = statusConfig.labelKey
+    ? t(statusConfig.labelKey)
+    : statusConfig.fallbackLabel
+  const details = [
+    {
+      label: t('workshops.editor.preview.stats.category'),
+      value: categoryLabel,
+      color: categoryConfig.color,
+      bg: categoryConfig.bg,
+      border: categoryConfig.border,
+      icon: Layers3,
+    },
+    {
+      label: t('workshops.editor.preview.stats.level'),
+      value: levelLabel,
+      color: levelConfig.color,
+      bg: levelConfig.bg,
+      border: levelConfig.border,
+      icon: Layers3,
+    },
+    {
+      label: t('workshops.editor.preview.stats.status'),
+      value: statusLabel,
+      color: statusConfig.color,
+      bg: statusConfig.bg,
+      border: statusConfig.border,
+      icon: AlertTriangle,
+    },
+    {
+      label: t('workshops.card.instructorLabel'),
+      value: workshop.instructor_name || t('workshops.card.noInstructor'),
+      color: theme.primaryColor,
+      bg: theme.actionSurface,
+      border: theme.heroBorderColor,
+      icon: UserRound,
+    },
+    {
+      label: t('workshops.editor.preview.stats.duration'),
+      value: formatWorkshopDuration(workshop.duration_total_minutes),
+      color: theme.subtextColor,
+      bg: theme.inputBg,
+      border: theme.borderColor,
+      icon: Clock,
+    },
+  ]
+
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 backdrop-blur-sm"
+            style={{ backgroundColor: theme.overlayBg }}
             onClick={onClose}
           />
 
-          {/* Modal */}
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-screen items-center justify-center p-4">
               <motion.div
@@ -65,21 +133,42 @@ export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: De
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="relative bg-white dark:bg-[#1E2329] rounded-2xl shadow-2xl max-w-md w-full border border-[#E9ECEF] dark:border-[#6C757D]/30 overflow-hidden"
-                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-lg overflow-hidden rounded-2xl border shadow-2xl"
+                style={{
+                  backgroundColor: theme.cardBg,
+                  borderColor: theme.borderColor,
+                }}
+                onClick={(event) => event.stopPropagation()}
               >
-                {/* Header */}
-                <div className="relative bg-gradient-to-r from-[#EF4444] to-[#EF4444]/80 dark:from-[#EF4444] dark:to-[#EF4444]/60 px-6 py-4 border-b border-[#EF4444]/20">
+                <div
+                  className="relative border-b px-6 py-4"
+                  style={{
+                    background: `linear-gradient(135deg, ${theme.dangerColor}, ${theme.dangerColor}D9)`,
+                    borderColor: `${theme.dangerColor}33`,
+                  }}
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                        <ExclamationTriangleIcon className="h-5 w-5 text-white" />
+                      <div
+                        className="flex h-10 w-10 items-center justify-center rounded-xl"
+                        style={{ backgroundColor: theme.inverseSurface }}
+                      >
+                        <AlertTriangle
+                          className="h-5 w-5"
+                          style={{ color: theme.inverseTextColor }}
+                        />
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-white">
+                        <h3
+                          className="text-lg font-bold"
+                          style={{ color: theme.inverseTextColor }}
+                        >
                           {t('workshops.deleteModal.title')}
                         </h3>
-                        <p className="text-xs text-white/70">
+                        <p
+                          className="text-xs"
+                          style={{ color: theme.inverseSubtextColor }}
+                        >
                           {t('generic.irreversible')}
                         </p>
                       </div>
@@ -88,40 +177,117 @@ export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: De
                       onClick={onClose}
                       whileHover={{ scale: 1.1, rotate: 90 }}
                       whileTap={{ scale: 0.9 }}
-                      className="p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors duration-200"
+                      className="rounded-lg p-2 transition-colors duration-200"
+                      style={{ color: theme.inverseSubtextColor }}
+                      type="button"
                     >
-                      <XMarkIcon className="h-5 w-5" />
+                      <X className="h-5 w-5" />
                     </motion.button>
                   </div>
                 </div>
 
-                {/* Content */}
                 <div className="p-6">
-                  <div className="flex items-start gap-4 mb-6">
-                    <div className="flex-shrink-0 p-3 bg-[#EF4444]/10 dark:bg-[#EF4444]/20 rounded-xl">
-                      <ExclamationTriangleIcon className="h-8 w-8 text-[#EF4444]" />
+                  <div className="mb-6 flex items-start gap-4">
+                    <div
+                      className="flex-shrink-0 rounded-xl p-3"
+                      style={{ backgroundColor: `${theme.dangerColor}14` }}
+                    >
+                      <AlertTriangle
+                        className="h-8 w-8"
+                        style={{ color: theme.dangerColor }}
+                      />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-2">
+                      <h3
+                        className="mb-2 text-lg font-semibold"
+                        style={{ color: theme.textColor }}
+                      >
                         {t('workshops.deleteModal.confirmText')}
                       </h3>
-                      <p className="text-sm text-[#6C757D] dark:text-white/60">
+                      <p
+                        className="text-sm"
+                        style={{ color: theme.subtextColor }}
+                      >
                         {t('generic.irreversible')}
                       </p>
                     </div>
                   </div>
-                  
-                  <div className="bg-[#E9ECEF]/50 dark:bg-[#0A0D12] rounded-xl p-4 mb-4 border border-[#E9ECEF] dark:border-[#6C757D]/30">
-                    <h4 className="font-semibold text-[#0A2540] dark:text-white mb-3">{workshop.title}</h4>
-                    <div className="text-sm text-[#6C757D] dark:text-white/60 space-y-2">
-                      <p>Categoría: <span className="text-[#0A2540] dark:text-white font-medium">{workshop.category}</span></p>
-                      <p>Nivel: <span className="text-[#0A2540] dark:text-white font-medium">{workshop.level}</span></p>
-                      <p>Estado: <span className="text-[#0A2540] dark:text-white font-medium capitalize">{workshop.is_active ? 'Activo' : 'Inactivo'}</span></p>
-                      <p>Instructor: <span className="text-[#0A2540] dark:text-white font-medium">{workshop.instructor_name || 'Sin instructor'}</span></p>
-                      {workshop.student_count > 0 && (
-                        <p>Estudiantes inscritos: <span className="text-[#0A2540] dark:text-white font-medium">{workshop.student_count}</span></p>
-                      )}
-                      <p>Duración: <span className="text-[#0A2540] dark:text-white font-medium">{workshop.duration_total_minutes} minutos</span></p>
+
+                  <div
+                    className="mb-4 rounded-2xl border p-4"
+                    style={{
+                      backgroundColor: theme.inputBg,
+                      borderColor: theme.borderColor,
+                    }}
+                  >
+                    <h4
+                      className="mb-3 font-semibold"
+                      style={{ color: theme.textColor }}
+                    >
+                      {workshop.title}
+                    </h4>
+                    <div className="grid gap-2 text-sm sm:grid-cols-2">
+                      {details.map((detail) => {
+                        const Icon = detail.icon
+
+                        return (
+                          <div
+                            key={detail.label}
+                            className="rounded-xl border px-3 py-2"
+                            style={{
+                              backgroundColor: detail.bg,
+                              borderColor: detail.border,
+                            }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Icon
+                                className="h-4 w-4"
+                                style={{ color: detail.color }}
+                              />
+                              <span
+                                className="text-[11px] font-bold uppercase tracking-[0.18em]"
+                                style={{ color: theme.mutedTextColor }}
+                              >
+                                {detail.label}
+                              </span>
+                            </div>
+                            <p
+                              className="mt-1 truncate font-semibold"
+                              style={{ color: theme.textColor }}
+                            >
+                              {detail.value}
+                            </p>
+                          </div>
+                        )
+                      })}
+                      {workshop.student_count > 0 ? (
+                        <div
+                          className="rounded-xl border px-3 py-2 sm:col-span-2"
+                          style={{
+                            backgroundColor: `${theme.warningColor}14`,
+                            borderColor: `${theme.warningColor}26`,
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle
+                              className="h-4 w-4"
+                              style={{ color: theme.warningColor }}
+                            />
+                            <span
+                              className="text-[11px] font-bold uppercase tracking-[0.18em]"
+                              style={{ color: theme.mutedTextColor }}
+                            >
+                              {t('workshops.card.studentsLabel')}
+                            </span>
+                          </div>
+                          <p
+                            className="mt-1 font-semibold"
+                            style={{ color: theme.textColor }}
+                          >
+                            {workshop.student_count}
+                          </p>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
 
@@ -129,31 +295,56 @@ export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: De
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-[#F59E0B]/10 dark:bg-[#F59E0B]/20 border border-[#F59E0B]/20 dark:border-[#F59E0B]/30 rounded-xl p-4 mb-4"
+                      className="mb-4 rounded-xl border p-4"
+                      style={{
+                        backgroundColor: `${theme.warningColor}14`,
+                        borderColor: `${theme.warningColor}26`,
+                      }}
                     >
-                      <p className="text-sm text-[#F59E0B] dark:text-[#F59E0B]">
-                        ⚠️ Este taller tiene {workshop.student_count} estudiante{workshop.student_count > 1 ? 's' : ''} inscrito{workshop.student_count > 1 ? 's' : ''}. 
-                        Las inscripciones también se eliminarán.
+                      <p
+                        className="text-sm font-medium"
+                        style={{ color: theme.warningColor }}
+                      >
+                        {t('workshops.deleteModal.enrolledWarning', {
+                          count: workshop.student_count,
+                        })}
                       </p>
                     </motion.div>
                   )}
 
                   {deleteError && (
-                    <div className="bg-[#EF4444]/10 dark:bg-[#EF4444]/20 border border-[#EF4444]/20 dark:border-[#EF4444]/30 rounded-xl p-4 mb-4">
-                      <p className="text-sm text-[#EF4444] dark:text-[#FCA5A5]">
+                    <div
+                      className="mb-4 rounded-xl border p-4"
+                      style={{
+                        backgroundColor: `${theme.dangerColor}14`,
+                        borderColor: `${theme.dangerColor}26`,
+                      }}
+                    >
+                      <p
+                        className="text-sm"
+                        style={{ color: theme.dangerColor }}
+                      >
                         {deleteError}
                       </p>
                     </div>
                   )}
 
-                  {/* Actions */}
-                  <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E9ECEF] dark:border-[#6C757D]/30">
+                  <div
+                    className="flex items-center justify-end gap-3 border-t pt-4"
+                    style={{ borderColor: theme.dividerColor }}
+                  >
                     <motion.button
                       onClick={onClose}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       disabled={isDeleting}
-                      className="px-6 py-2.5 text-[#6C757D] dark:text-white/70 bg-white dark:bg-[#1E2329] hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/30 rounded-xl text-sm font-medium transition-colors duration-200 border border-[#E9ECEF] dark:border-[#6C757D]/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="rounded-xl border px-6 py-2.5 text-sm font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+                      style={{
+                        backgroundColor: theme.inputBg,
+                        borderColor: theme.borderColor,
+                        color: theme.subtextColor,
+                      }}
+                      type="button"
                     >
                       {tc('actions.cancel')}
                     </motion.button>
@@ -162,16 +353,27 @@ export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: De
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       disabled={isDeleting}
-                      className="px-6 py-2.5 bg-[#EF4444] hover:bg-[#DC2626] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-colors duration-200 shadow-lg shadow-[#EF4444]/20 flex items-center gap-2"
+                      className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold shadow-lg transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+                      style={{
+                        backgroundColor: theme.dangerColor,
+                        color: theme.inverseTextColor,
+                      }}
+                      type="button"
                     >
                       {isDeleting ? (
                         <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          <div
+                            className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"
+                            style={{
+                              borderColor: theme.inverseBorderColor,
+                              borderTopColor: theme.inverseTextColor,
+                            }}
+                          />
                           <span>{tc('actions.deleting')}</span>
                         </>
                       ) : (
                         <>
-                          <TrashIcon className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                           <span>{tc('actions.delete')}</span>
                         </>
                       )}

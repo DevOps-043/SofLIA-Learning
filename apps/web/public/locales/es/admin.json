@@ -88,10 +88,16 @@
       },
       "searchPlaceholder": "Buscar por nombre, email o username...",
       "filterRoleAll": "Todos los roles",
+      "noEmail": "Sin email",
+      "view": {
+        "cards": "Vista de tarjetas",
+        "list": "Vista de lista"
+      },
       "empty": {
         "title": "No se encontraron usuarios",
         "searchFilter": "Intenta ajustar los filtros de búsqueda",
-        "noUsers": "No hay usuarios registrados en el sistema"
+        "noUsers": "No hay usuarios registrados en el sistema",
+        "clearFilters": "Limpiar filtros"
       },
       "table": {
         "user": "Usuario",
@@ -196,7 +202,61 @@
     "page": {
       "title": "Gestión de Talleres",
       "description": "Administra todos los talleres de la plataforma",
-      "createButton": "Crear Taller"
+      "createButton": "Crear Taller",
+      "loading": "Cargando talleres..."
+    },
+    "addModal": {
+      "title": "Crear Nuevo Taller",
+      "description": "Agrega un nuevo taller a la plataforma",
+      "tabs": {
+        "basic": "Básica",
+        "details": "Detalles",
+        "media": "Media"
+      },
+      "titlePlaceholder": "Ej: Introducción a la Inteligencia Artificial",
+      "descriptionPlaceholder": "Describe el contenido y objetivos del taller...",
+      "slugPlaceholder": "introduccion-ia",
+      "activeTitle": "Taller activo",
+      "activeDescription": "El taller será visible para los estudiantes",
+      "creating": "Creando...",
+      "createButton": "Crear Taller",
+      "errorCreate": "Error al crear el taller",
+      "validation": {
+        "titleRequired": "El título es obligatorio",
+        "descriptionRequired": "La descripción es obligatoria",
+        "slugRequired": "El slug es obligatorio",
+        "instructorRequired": "Debes seleccionar un instructor",
+        "durationRequired": "La duración debe ser mayor a 0"
+      }
+    },
+    "editModal": {
+      "title": "Editar Taller",
+      "tabs": {
+        "basic": "Información",
+        "status": "Estado"
+      },
+      "activeTitle": "Taller activo",
+      "inactiveTitle": "Taller inactivo",
+      "activeDescription": "El taller es visible para los estudiantes",
+      "inactiveDescription": "El taller está oculto",
+      "approvalStatusLabel": "Estado de aprobación *",
+      "rejectionReasonLabel": "Razón de rechazo *",
+      "rejectionReasonPlaceholder": "Explica por qué se rechaza este taller...",
+      "rejectionReasonHelp": "La razón de rechazo es obligatoria cuando el estado es Rechazado",
+      "approvedAt": "Aprobado el",
+      "approvedBy": "Por",
+      "saveError": "Error al actualizar el taller",
+      "approval": {
+        "pending": "Pendiente",
+        "approved": "Aprobado",
+        "rejected": "Rechazado"
+      },
+      "validation": {
+        "titleRequired": "El título es obligatorio",
+        "descriptionRequired": "La descripción es obligatoria",
+        "durationRequired": "La duración debe ser mayor a 0",
+        "rejectionReasonRequired": "La razón de rechazo es obligatoria cuando el estado es Rechazado"
+      }
     },
     "stats": {
       "totalWorkshops": "Total Talleres",
@@ -388,7 +448,9 @@
     },
     "deleteModal": {
       "title": "Eliminar Taller",
-      "confirmText": "¿Estás seguro de que deseas eliminar este taller?"
+      "confirmText": "¿Estás seguro de que deseas eliminar este taller?",
+      "enrolledWarning": "Este taller tiene {{count}} estudiante inscrito. Las inscripciones también se eliminarán.",
+      "enrolledWarning_plural": "Este taller tiene {{count}} estudiantes inscritos. Las inscripciones también se eliminarán."
     },
     "pagination": {
       "total": "{{count}} talleres encontrados",
@@ -551,6 +613,72 @@
     }
   },
   "companies": {
+    "page": {
+      "eyebrow": "Gestión B2B",
+      "title": "Administración de Empresas",
+      "subtitle": "Gestiona organizaciones, planes, usuarios empresariales y estado operativo con el mismo diseño del panel Business.",
+      "loading": "Cargando empresas...",
+      "errorLoading": "Error al cargar empresas"
+    },
+    "actions": {
+      "refresh": "Actualizar",
+      "retry": "Reintentar",
+      "create": "Nueva organización",
+      "view": "Ver",
+      "edit": "Editar",
+      "activate": "Activar",
+      "pause": "Pausar"
+    },
+    "filters": {
+      "allPlans": "Todos los planes",
+      "allStatuses": "Todos los estados",
+      "resultCount": "{{count}} empresas"
+    },
+    "plans": {
+      "none": "Sin plan",
+      "team": "Team",
+      "business": "Business",
+      "enterprise": "Enterprise"
+    },
+    "status": {
+      "active": "Activa",
+      "pending": "Pendiente",
+      "trial": "Trial",
+      "paused": "Pausada",
+      "expired": "Expirada"
+    },
+    "card": {
+      "noSlug": "Sin slug",
+      "plan": "Plan {{plan}}",
+      "activeUsers": "Activos",
+      "totalUsers": "Total",
+      "usage": "Uso",
+      "licenseUsage": "Uso de licencias",
+      "unlimited": "Ilimitado"
+    },
+    "modal": {
+      "admins": "Administradores",
+      "contactInfo": "Información de contacto",
+      "usersTitle": "Usuarios ({{count}})",
+      "email": "Email",
+      "phone": "Teléfono",
+      "website": "Sitio web",
+      "invitedUsers": "Invitados",
+      "suspendedUsers": "Suspendidos",
+      "maxUsers": "Máximo",
+      "editDetails": "Editar información de la empresa",
+      "unknownUser": "Usuario",
+      "noAdmins": "Sin administradores asignados",
+      "notDefined": "No definido",
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin"
+      }
+    },
+    "empty": {
+      "title": "No se encontraron empresas",
+      "description": "Intenta ajustar los filtros de búsqueda"
+    },
     "stats": {
       "active": {
         "title": "Empresas Activas",

@@ -1,19 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  XMarkIcon,
-  BookOpenIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ExclamationTriangleIcon,
-  TagIcon,
-  ClockIcon,
-  CurrencyDollarIcon,
-  ShieldCheckIcon,
-  CheckCircleIcon as CheckIcon
-} from '@heroicons/react/24/outline'
+import { useEffect, useState, type FormEvent } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  AlertTriangle,
+  BookOpen,
+  CheckCircle,
+  Clock,
+  DollarSign,
+  ShieldCheck,
+  Tag,
+  X,
+  XCircle,
+  type LucideIcon,
+} from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../hooks/useAdminPanelTheme'
 import { AdminWorkshop } from '../services/adminWorkshops.service'
 
 interface EditWorkshopModalProps {
@@ -24,7 +26,25 @@ interface EditWorkshopModalProps {
 
 type TabType = 'basic' | 'status'
 
-export function EditWorkshopModal({ workshop, onClose, onSave }: EditWorkshopModalProps) {
+const categoryOptions = ['ia', 'tecnologia', 'negocios', 'diseno', 'marketing']
+const levelOptions = ['beginner', 'intermediate', 'advanced']
+const tabs: { id: TabType; labelKey: string; icon: LucideIcon }[] = [
+  { id: 'basic', labelKey: 'workshops.editModal.tabs.basic', icon: BookOpen },
+  { id: 'status', labelKey: 'workshops.editModal.tabs.status', icon: ShieldCheck },
+]
+
+function normalizeWorkshopCategory(category?: string | null) {
+  return category === 'diseño' ? 'diseno' : category || 'ia'
+}
+
+export function EditWorkshopModal({
+  workshop,
+  onClose,
+  onSave,
+}: EditWorkshopModalProps) {
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
+  const theme = useAdminPanelTheme()
   const [formData, setFormData] = useState<Partial<AdminWorkshop>>({
     title: '',
     description: '',
@@ -34,48 +54,28 @@ export function EditWorkshopModal({ workshop, onClose, onSave }: EditWorkshopMod
     price: 0,
     is_active: true,
     approval_status: 'pending',
-    rejection_reason: ''
+    rejection_reason: '',
   })
-
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saveError, setSaveError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('basic')
-
-  const categories = [
-    { value: 'ia', label: 'Inteligencia Artificial' },
-    { value: 'tecnologia', label: 'Tecnología' },
-    { value: 'negocios', label: 'Negocios' },
-    { value: 'diseño', label: 'Diseño' },
-    { value: 'marketing', label: 'Marketing' }
-  ]
-
-  const levels = [
-    { value: 'beginner', label: 'Principiante' },
-    { value: 'intermediate', label: 'Intermedio' },
-    { value: 'advanced', label: 'Avanzado' }
-  ]
-
-  const approvalStatuses = [
-    { value: 'pending', label: 'Pendiente', icon: ExclamationTriangleIcon, color: '#F59E0B' },
-    { value: 'approved', label: 'Aprobado', icon: CheckCircleIcon, color: '#10B981' },
-    { value: 'rejected', label: 'Rechazado', icon: XCircleIcon, color: '#EF4444' }
-  ]
 
   useEffect(() => {
     if (workshop) {
       setFormData({
         title: workshop.title || '',
         description: workshop.description || '',
-        category: workshop.category || 'ia',
+        category: normalizeWorkshopCategory(workshop.category),
         level: workshop.level || 'beginner',
         duration_total_minutes: workshop.duration_total_minutes || 0,
         price: workshop.price || 0,
         is_active: workshop.is_active !== undefined ? workshop.is_active : true,
         approval_status: workshop.approval_status || 'pending',
-        rejection_reason: workshop.rejection_reason || ''
+        rejection_reason: workshop.rejection_reason || '',
       })
       setErrors({})
+      setSaveError(null)
       setActiveTab('basic')
     }
   }, [workshop])
@@ -84,33 +84,46 @@ export function EditWorkshopModal({ workshop, onClose, onSave }: EditWorkshopMod
     const newErrors: Record<string, string> = {}
 
     if (!formData.title || formData.title.trim() === '') {
-      newErrors.title = 'El título es obligatorio'
+      newErrors.title = t('workshops.editModal.validation.titleRequired')
     }
 
     if (!formData.description || formData.description.trim() === '') {
-      newErrors.description = 'La descripción es obligatoria'
+      newErrors.description = t(
+        'workshops.editModal.validation.descriptionRequired',
+      )
     }
 
-    if (!formData.duration_total_minutes || formData.duration_total_minutes <= 0) {
-      newErrors.duration_total_minutes = 'La duración debe ser mayor a 0'
+    if (
+      !formData.duration_total_minutes ||
+      formData.duration_total_minutes <= 0
+    ) {
+      newErrors.duration_total_minutes = t(
+        'workshops.editModal.validation.durationRequired',
+      )
     }
 
-    if (formData.approval_status === 'rejected' && (!formData.rejection_reason || formData.rejection_reason.trim() === '')) {
-      newErrors.rejection_reason = 'La razón de rechazo es obligatoria cuando el estado es "Rechazado"'
+    if (
+      formData.approval_status === 'rejected' &&
+      (!formData.rejection_reason || formData.rejection_reason.trim() === '')
+    ) {
+      newErrors.rejection_reason = t(
+        'workshops.editModal.validation.rejectionReasonRequired',
+      )
     }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault()
 
     if (!validateForm()) {
       return
     }
 
     setLoading(true)
+    setSaveError(null)
 
     try {
       const dataToSave = { ...formData }
@@ -120,20 +133,24 @@ export function EditWorkshopModal({ workshop, onClose, onSave }: EditWorkshopMod
 
       await onSave(dataToSave)
       onClose()
-    } catch (error) {
-      setSaveError('Error al actualizar el taller')
+    } catch {
+      setSaveError(t('workshops.editModal.saveError'))
     } finally {
       setLoading(false)
     }
   }
 
-  const handleInputChange = <K extends keyof AdminWorkshop>(field: K, value: AdminWorkshop[K]) => {
-    setFormData(prev => ({
+  const handleInputChange = <K extends keyof AdminWorkshop>(
+    field: K,
+    value: AdminWorkshop[K],
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }))
+
     if (errors[field]) {
-      setErrors(prev => {
+      setErrors((prev) => {
         const newErrors = { ...prev }
         delete newErrors[field]
         return newErrors
@@ -143,26 +160,53 @@ export function EditWorkshopModal({ workshop, onClose, onSave }: EditWorkshopMod
 
   if (!workshop) return null
 
-  const tabs: { id: TabType; label: string; icon: typeof BookOpenIcon }[] = [
-    { id: 'basic', label: 'Información', icon: BookOpenIcon },
-    { id: 'status', label: 'Estado', icon: ShieldCheckIcon }
-  ]
+  const fieldStyle = (hasError = false) => ({
+    backgroundColor: theme.inputBg,
+    borderColor: hasError ? theme.dangerColor : theme.borderColor,
+    color: theme.textColor,
+  })
+  const labelStyle = { color: theme.mutedTextColor }
+  const iconStyle = { color: theme.subtextColor }
+  const approvalStatuses = [
+    {
+      value: 'pending',
+      labelKey: 'workshops.editModal.approval.pending',
+      icon: AlertTriangle,
+      color: theme.warningColor,
+    },
+    {
+      value: 'approved',
+      labelKey: 'workshops.editModal.approval.approved',
+      icon: CheckCircle,
+      color: theme.successColor,
+    },
+    {
+      value: 'rejected',
+      labelKey: 'workshops.editModal.approval.rejected',
+      icon: XCircle,
+      color: theme.dangerColor,
+    },
+  ] as const
+  const currentApprovalStatus =
+    approvalStatuses.find(
+      (status) => status.value === formData.approval_status,
+    ) ?? approvalStatuses[0]
+  const ApprovalIcon = currentApprovalStatus.icon
 
   return (
     <AnimatePresence>
       {workshop && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 backdrop-blur-sm"
+            style={{ backgroundColor: theme.overlayBg }}
             onClick={onClose}
           />
 
-          {/* Modal */}
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-screen items-center justify-center p-4">
               <motion.div
@@ -170,21 +214,42 @@ export function EditWorkshopModal({ workshop, onClose, onSave }: EditWorkshopMod
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="relative bg-white dark:bg-[#1E2329] rounded-2xl shadow-2xl max-w-4xl w-full border border-[#E9ECEF] dark:border-[#6C757D]/30 max-h-[90vh] overflow-hidden flex flex-col"
-                onClick={(e) => e.stopPropagation()}
+                className="relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border shadow-2xl"
+                style={{
+                  backgroundColor: theme.cardBg,
+                  borderColor: theme.borderColor,
+                }}
+                onClick={(event) => event.stopPropagation()}
               >
-                {/* Header Compacto */}
-                <div className="relative bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 dark:from-[#0A2540] dark:to-[#0A2540]/80 px-6 py-4 border-b border-[#0A2540]/20">
+                <div
+                  className="relative border-b px-6 py-4"
+                  style={{
+                    background: theme.heroBackground,
+                    borderColor: theme.heroBorderColor,
+                  }}
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#00D4B3]/20 flex items-center justify-center">
-                        <BookOpenIcon className="h-5 w-5 text-[#00D4B3]" />
+                      <div
+                        className="flex h-10 w-10 items-center justify-center rounded-xl"
+                        style={{ backgroundColor: theme.inverseSurface }}
+                      >
+                        <BookOpen
+                          className="h-5 w-5"
+                          style={{ color: theme.accentColor }}
+                        />
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-white">
-                          Editar Taller
+                        <h3
+                          className="text-lg font-bold"
+                          style={{ color: theme.inverseTextColor }}
+                        >
+                          {t('workshops.editModal.title')}
                         </h3>
-                        <p className="text-xs text-white/70">
+                        <p
+                          className="text-xs"
+                          style={{ color: theme.inverseSubtextColor }}
+                        >
                           {workshop.title}
                         </p>
                       </div>
@@ -193,37 +258,53 @@ export function EditWorkshopModal({ workshop, onClose, onSave }: EditWorkshopMod
                       onClick={onClose}
                       whileHover={{ scale: 1.1, rotate: 90 }}
                       whileTap={{ scale: 0.9 }}
-                      className="p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors duration-200"
+                      className="rounded-lg p-2 transition-colors duration-200"
+                      style={{ color: theme.inverseSubtextColor }}
+                      type="button"
                     >
-                      <XMarkIcon className="h-5 w-5" />
+                      <X className="h-5 w-5" />
                     </motion.button>
                   </div>
                 </div>
 
-                {/* Tabs */}
-                <div className="flex items-center gap-1 px-6 py-3 bg-[#E9ECEF]/50 dark:bg-[#0A0D12] border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
+                <div
+                  className="flex items-center gap-1 border-b px-6 py-3"
+                  style={{
+                    backgroundColor: theme.inputBg,
+                    borderColor: theme.borderColor,
+                  }}
+                >
                   {tabs.map((tab) => {
                     const Icon = tab.icon
                     const isActive = activeTab === tab.id
+
                     return (
                       <motion.button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                          isActive
-                            ? 'text-[#00D4B3] bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20'
-                            : 'text-[#6C757D] dark:text-white/60 hover:text-[#0A2540] dark:hover:text-white hover:bg-[#E9ECEF] dark:hover:bg-[#1E2329]'
-                        }`}
+                        className="relative flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200"
+                        style={{
+                          backgroundColor: isActive
+                            ? theme.actionSurface
+                            : 'transparent',
+                          color: isActive ? theme.primaryColor : theme.subtextColor,
+                        }}
+                        type="button"
                       >
                         <Icon className="h-4 w-4" />
-                        <span>{tab.label}</span>
+                        <span>{t(tab.labelKey)}</span>
                         {isActive && (
                           <motion.div
-                            layoutId="activeTab"
-                            className="absolute inset-0 rounded-xl bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 -z-10"
-                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                            layoutId="edit-workshop-active-tab"
+                            className="absolute inset-0 -z-10 rounded-xl"
+                            style={{ backgroundColor: theme.actionSurface }}
+                            transition={{
+                              type: 'spring',
+                              stiffness: 500,
+                              damping: 30,
+                            }}
                           />
                         )}
                       </motion.button>
@@ -231,11 +312,9 @@ export function EditWorkshopModal({ workshop, onClose, onSave }: EditWorkshopMod
                   })}
                 </div>
 
-                {/* Form Content */}
                 <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
                   <div className="p-6">
                     <AnimatePresence mode="wait">
-                      {/* Tab: Información */}
                       {activeTab === 'basic' && (
                         <motion.div
                           key="basic"
@@ -246,125 +325,193 @@ export function EditWorkshopModal({ workshop, onClose, onSave }: EditWorkshopMod
                           className="space-y-4"
                         >
                           <div>
-                            <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                              Título *
+                            <label
+                              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide"
+                              style={labelStyle}
+                            >
+                              {t('workshops.editor.config.titleLabel')}
                             </label>
                             <input
                               type="text"
                               value={formData.title}
-                              onChange={(e) => handleInputChange('title', e.target.value)}
-                              className={`w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 transition-all duration-200 ${
-                                errors.title
-                                  ? 'border-red-500 focus:ring-red-500/40'
-                                  : 'border-[#E9ECEF] dark:border-[#6C757D]/30 focus:ring-[#00D4B3]/40 focus:border-transparent'
-                              }`}
-                              placeholder="Título del taller"
+                              onChange={(event) =>
+                                handleInputChange('title', event.target.value)
+                              }
+                              className="w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all duration-200"
+                              style={fieldStyle(Boolean(errors.title))}
+                              placeholder={t(
+                                'workshops.addModal.titlePlaceholder',
+                              )}
                             />
                             {errors.title && (
-                              <p className="mt-1 text-xs text-red-500 dark:text-red-400 flex items-center gap-1">
-                                <ExclamationTriangleIcon className="h-3 w-3" />
+                              <p
+                                className="mt-1 flex items-center gap-1 text-xs"
+                                style={{ color: theme.dangerColor }}
+                              >
+                                <AlertTriangle className="h-3 w-3" />
                                 {errors.title}
                               </p>
                             )}
                           </div>
 
                           <div>
-                            <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                              Descripción *
+                            <label
+                              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide"
+                              style={labelStyle}
+                            >
+                              {t('workshops.editor.config.descriptionLabel')}
                             </label>
                             <textarea
                               value={formData.description}
-                              onChange={(e) => handleInputChange('description', e.target.value)}
+                              onChange={(event) =>
+                                handleInputChange(
+                                  'description',
+                                  event.target.value,
+                                )
+                              }
                               rows={4}
-                              className={`w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 transition-all duration-200 resize-none ${
-                                errors.description
-                                  ? 'border-red-500 focus:ring-red-500/40'
-                                  : 'border-[#E9ECEF] dark:border-[#6C757D]/30 focus:ring-[#00D4B3]/40 focus:border-transparent'
-                              }`}
-                              placeholder="Descripción del taller"
+                              className="w-full resize-none rounded-xl border px-4 py-2.5 text-sm outline-none transition-all duration-200"
+                              style={fieldStyle(Boolean(errors.description))}
+                              placeholder={t(
+                                'workshops.addModal.descriptionPlaceholder',
+                              )}
                             />
                             {errors.description && (
-                              <p className="mt-1 text-xs text-red-500 dark:text-red-400 flex items-center gap-1">
-                                <ExclamationTriangleIcon className="h-3 w-3" />
+                              <p
+                                className="mt-1 flex items-center gap-1 text-xs"
+                                style={{ color: theme.dangerColor }}
+                              >
+                                <AlertTriangle className="h-3 w-3" />
                                 {errors.description}
                               </p>
                             )}
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
-                              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                                Categoría *
+                              <label
+                                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide"
+                                style={labelStyle}
+                              >
+                                {t('workshops.editor.config.categoryLabel')}
                               </label>
                               <select
                                 value={formData.category}
-                                onChange={(e) => handleInputChange('category', e.target.value)}
-                                className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+                                onChange={(event) =>
+                                  handleInputChange(
+                                    'category',
+                                    event.target.value,
+                                  )
+                                }
+                                className="w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all duration-200"
+                                style={fieldStyle()}
                               >
-                                {categories.map(cat => (
-                                  <option key={cat.value} value={cat.value}>{cat.label}</option>
+                                {categoryOptions.map((category) => (
+                                  <option key={category} value={category}>
+                                    {t(
+                                      `workshops.filters.categories.${category}`,
+                                    )}
+                                  </option>
                                 ))}
                               </select>
                             </div>
 
                             <div>
-                              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                                Nivel *
+                              <label
+                                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide"
+                                style={labelStyle}
+                              >
+                                {t('workshops.editor.config.levelLabel')}
                               </label>
                               <select
                                 value={formData.level}
-                                onChange={(e) => handleInputChange('level', e.target.value)}
-                                className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+                                onChange={(event) =>
+                                  handleInputChange('level', event.target.value)
+                                }
+                                className="w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all duration-200"
+                                style={fieldStyle()}
                               >
-                                {levels.map(level => (
-                                  <option key={level.value} value={level.value}>{level.label}</option>
+                                {levelOptions.map((level) => (
+                                  <option key={level} value={level}>
+                                    {t(`workshops.card.level.${level}`)}
+                                  </option>
                                 ))}
                               </select>
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
-                              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                                Duración (minutos) *
+                              <label
+                                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide"
+                                style={labelStyle}
+                              >
+                                {t('workshops.editor.config.durationLabel')}
                               </label>
-                              <input
-                                type="number"
-                                min="0"
-                                value={formData.duration_total_minutes}
-                                onChange={(e) => handleInputChange('duration_total_minutes', parseInt(e.target.value) || 0)}
-                                className={`w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 transition-all duration-200 ${
-                                  errors.duration_total_minutes
-                                    ? 'border-red-500 focus:ring-red-500/40'
-                                    : 'border-[#E9ECEF] dark:border-[#6C757D]/30 focus:ring-[#00D4B3]/40 focus:border-transparent'
-                                }`}
-                              />
+                              <div className="relative">
+                                <Clock
+                                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                                  style={iconStyle}
+                                />
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={formData.duration_total_minutes}
+                                  onChange={(event) =>
+                                    handleInputChange(
+                                      'duration_total_minutes',
+                                      parseInt(event.target.value, 10) || 0,
+                                    )
+                                  }
+                                  className="w-full rounded-xl border py-2.5 pl-10 pr-4 text-sm outline-none transition-all duration-200"
+                                  style={fieldStyle(
+                                    Boolean(errors.duration_total_minutes),
+                                  )}
+                                />
+                              </div>
                               {errors.duration_total_minutes && (
-                                <p className="mt-1 text-xs text-red-500 dark:text-red-400 flex items-center gap-1">
-                                  <ExclamationTriangleIcon className="h-3 w-3" />
+                                <p
+                                  className="mt-1 flex items-center gap-1 text-xs"
+                                  style={{ color: theme.dangerColor }}
+                                >
+                                  <AlertTriangle className="h-3 w-3" />
                                   {errors.duration_total_minutes}
                                 </p>
                               )}
                             </div>
 
                             <div>
-                              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                                Precio
+                              <label
+                                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide"
+                                style={labelStyle}
+                              >
+                                {t('workshops.editor.config.priceLabel')}
                               </label>
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={formData.price}
-                                onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
-                                className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
-                              />
+                              <div className="relative">
+                                <DollarSign
+                                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                                  style={iconStyle}
+                                />
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={formData.price}
+                                  onChange={(event) =>
+                                    handleInputChange(
+                                      'price',
+                                      parseFloat(event.target.value) || 0,
+                                    )
+                                  }
+                                  className="w-full rounded-xl border py-2.5 pl-10 pr-4 text-sm outline-none transition-all duration-200"
+                                  style={fieldStyle()}
+                                />
+                              </div>
                             </div>
                           </div>
                         </motion.div>
                       )}
 
-                      {/* Tab: Estado */}
                       {activeTab === 'status' && (
                         <motion.div
                           key="status"
@@ -376,153 +523,255 @@ export function EditWorkshopModal({ workshop, onClose, onSave }: EditWorkshopMod
                         >
                           <motion.div
                             whileHover={{ scale: 1.01 }}
-                            className="p-4 bg-[#E9ECEF]/50 dark:bg-[#0A0D12] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30"
+                            className="rounded-xl border p-4"
+                            style={{
+                              backgroundColor: theme.inputBg,
+                              borderColor: theme.borderColor,
+                            }}
                           >
-                            <label className="flex items-center gap-3 cursor-pointer">
+                            <label className="flex cursor-pointer items-center gap-3">
                               <div className="relative">
                                 <input
                                   type="checkbox"
-                                  checked={formData.is_active}
-                                  onChange={(e) => handleInputChange('is_active', e.target.checked)}
+                                  checked={Boolean(formData.is_active)}
+                                  onChange={(event) =>
+                                    handleInputChange(
+                                      'is_active',
+                                      event.target.checked,
+                                    )
+                                  }
                                   className="sr-only"
                                 />
                                 <motion.div
                                   animate={{
-                                    backgroundColor: formData.is_active ? '#00D4B3' : '#E9ECEF',
-                                    borderColor: formData.is_active ? '#00D4B3' : '#E9ECEF'
+                                    backgroundColor: formData.is_active
+                                      ? theme.accentColor
+                                      : theme.inputBg,
+                                    borderColor: formData.is_active
+                                      ? theme.accentColor
+                                      : theme.borderColor,
                                   }}
-                                  className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors duration-200"
+                                  className="flex h-5 w-5 items-center justify-center rounded border-2 transition-colors duration-200"
                                 >
                                   {formData.is_active && (
                                     <motion.div
                                       initial={{ scale: 0 }}
                                       animate={{ scale: 1 }}
-                                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                      transition={{
+                                        type: 'spring',
+                                        stiffness: 500,
+                                        damping: 30,
+                                      }}
                                     >
-                                      <CheckIcon className="h-4 w-4 text-white" />
+                                      <CheckCircle
+                                        className="h-4 w-4"
+                                        style={{ color: theme.onPrimaryColor }}
+                                      />
                                     </motion.div>
                                   )}
                                 </motion.div>
                               </div>
                               <div>
-                                <span className="text-sm font-medium text-[#0A2540] dark:text-white">
-                                  {formData.is_active ? 'Taller Activo' : 'Taller Inactivo'}
+                                <span
+                                  className="text-sm font-semibold"
+                                  style={{ color: theme.textColor }}
+                                >
+                                  {formData.is_active
+                                    ? t('workshops.editModal.activeTitle')
+                                    : t('workshops.editModal.inactiveTitle')}
                                 </span>
-                                <p className="text-xs text-[#6C757D] dark:text-white/60 mt-0.5">
-                                  {formData.is_active ? 'El taller es visible para los estudiantes' : 'El taller está oculto'}
+                                <p
+                                  className="mt-0.5 text-xs"
+                                  style={{ color: theme.subtextColor }}
+                                >
+                                  {formData.is_active
+                                    ? t('workshops.editModal.activeDescription')
+                                    : t(
+                                        'workshops.editModal.inactiveDescription',
+                                      )}
                                 </p>
                               </div>
                             </label>
                           </motion.div>
 
                           <div>
-                            <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                              Estado de Aprobación *
+                            <label
+                              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide"
+                              style={labelStyle}
+                            >
+                              {t('workshops.editModal.approvalStatusLabel')}
                             </label>
                             <select
                               value={formData.approval_status}
-                              onChange={(e) => handleInputChange('approval_status', e.target.value as 'pending' | 'approved' | 'rejected')}
-                              className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+                              onChange={(event) =>
+                                handleInputChange(
+                                  'approval_status',
+                                  event.target
+                                    .value as AdminWorkshop['approval_status'],
+                                )
+                              }
+                              className="w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all duration-200"
+                              style={fieldStyle()}
                             >
-                              {approvalStatuses.map(status => (
+                              {approvalStatuses.map((status) => (
                                 <option key={status.value} value={status.value}>
-                                  {status.label}
+                                  {t(status.labelKey)}
                                 </option>
                               ))}
                             </select>
                             <div className="mt-2 flex items-center gap-2">
-                              {approvalStatuses.map(status => {
-                                if (status.value === formData.approval_status) {
-                                  const Icon = status.icon
-                                  return (
-                                    <div key={status.value} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${status.value === 'pending' ? 'bg-[#F59E0B]/10 text-[#F59E0B]' : status.value === 'approved' ? 'bg-[#10B981]/10 text-[#10B981]' : 'bg-[#EF4444]/10 text-[#EF4444]'}`}>
-                                      <Icon className="w-4 h-4" />
-                                      <span className="text-xs font-medium">{status.label}</span>
-                                    </div>
-                                  )
-                                }
-                                return null
-                              })}
+                              <div
+                                className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5"
+                                style={{
+                                  backgroundColor: `${currentApprovalStatus.color}14`,
+                                  borderColor: `${currentApprovalStatus.color}26`,
+                                  color: currentApprovalStatus.color,
+                                }}
+                              >
+                                <ApprovalIcon className="h-4 w-4" />
+                                <span className="text-xs font-semibold">
+                                  {t(currentApprovalStatus.labelKey)}
+                                </span>
+                              </div>
                             </div>
                           </div>
 
                           {formData.approval_status === 'rejected' && (
                             <div>
-                              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                                Razón de Rechazo *
+                              <label
+                                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide"
+                                style={labelStyle}
+                              >
+                                {t('workshops.editModal.rejectionReasonLabel')}
                               </label>
                               <textarea
                                 value={formData.rejection_reason}
-                                onChange={(e) => handleInputChange('rejection_reason', e.target.value)}
+                                onChange={(event) =>
+                                  handleInputChange(
+                                    'rejection_reason',
+                                    event.target.value,
+                                  )
+                                }
                                 rows={3}
-                                className={`w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 transition-all duration-200 resize-none ${
-                                  errors.rejection_reason
-                                    ? 'border-red-500 focus:ring-red-500/40'
-                                    : 'border-[#E9ECEF] dark:border-[#6C757D]/30 focus:ring-[#00D4B3]/40 focus:border-transparent'
-                                }`}
-                                placeholder="Explica por qué se rechaza este taller..."
+                                className="w-full resize-none rounded-xl border px-4 py-2.5 text-sm outline-none transition-all duration-200"
+                                style={fieldStyle(
+                                  Boolean(errors.rejection_reason),
+                                )}
+                                placeholder={t(
+                                  'workshops.editModal.rejectionReasonPlaceholder',
+                                )}
                               />
                               {errors.rejection_reason ? (
-                                <p className="mt-1 text-xs text-red-500 dark:text-red-400 flex items-center gap-1">
-                                  <ExclamationTriangleIcon className="h-3 w-3" />
+                                <p
+                                  className="mt-1 flex items-center gap-1 text-xs"
+                                  style={{ color: theme.dangerColor }}
+                                >
+                                  <AlertTriangle className="h-3 w-3" />
                                   {errors.rejection_reason}
                                 </p>
                               ) : (
-                                <p className="mt-1 text-xs text-[#6C757D] dark:text-white/60">
-                                  La razón de rechazo es obligatoria cuando el estado es "Rechazado"
+                                <p
+                                  className="mt-1 text-xs"
+                                  style={{ color: theme.subtextColor }}
+                                >
+                                  {t('workshops.editModal.rejectionReasonHelp')}
                                 </p>
                               )}
                             </div>
                           )}
 
-                          {formData.approval_status === 'approved' && workshop.approved_at && (
-                            <div className="p-4 bg-[#10B981]/10 dark:bg-[#10B981]/20 border border-[#10B981]/20 dark:border-[#10B981]/30 rounded-xl">
-                              <p className="text-sm text-[#10B981] dark:text-[#10B981]">
-                                <strong>Aprobado el:</strong> {new Date(workshop.approved_at).toLocaleString('es-ES')}
-                              </p>
-                              {workshop.approved_by && (
-                                <p className="text-xs text-[#10B981]/80 dark:text-[#10B981] mt-1">
-                                  Por: {workshop.approved_by}
+                          {formData.approval_status === 'approved' &&
+                            workshop.approved_at && (
+                              <div
+                                className="rounded-xl border p-4"
+                                style={{
+                                  backgroundColor: `${theme.successColor}14`,
+                                  borderColor: `${theme.successColor}26`,
+                                }}
+                              >
+                                <p
+                                  className="text-sm"
+                                  style={{ color: theme.successColor }}
+                                >
+                                  <strong>
+                                    {t('workshops.editModal.approvedAt')}:
+                                  </strong>{' '}
+                                  {new Date(
+                                    workshop.approved_at,
+                                  ).toLocaleString()}
                                 </p>
-                              )}
-                            </div>
-                          )}
+                                {workshop.approved_by && (
+                                  <p
+                                    className="mt-1 text-xs"
+                                    style={{ color: theme.successColor }}
+                                  >
+                                    {t('workshops.editModal.approvedBy')}:{' '}
+                                    {workshop.approved_by}
+                                  </p>
+                                )}
+                              </div>
+                            )}
                         </motion.div>
                       )}
                     </AnimatePresence>
                   </div>
 
-                  {/* Footer */}
-                  <div className="px-6 py-4 bg-[#E9ECEF]/30 dark:bg-[#0A0D12] border-t border-[#E9ECEF] dark:border-[#6C757D]/30 flex items-center justify-end gap-3">
+                  <div
+                    className="flex items-center justify-end gap-3 border-t px-6 py-4"
+                    style={{
+                      backgroundColor: theme.inputBg,
+                      borderColor: theme.borderColor,
+                    }}
+                  >
                     {saveError && (
-                      <p className="mr-auto text-xs text-red-500">{saveError}</p>
+                      <p
+                        className="mr-auto text-xs"
+                        style={{ color: theme.dangerColor }}
+                      >
+                        {saveError}
+                      </p>
                     )}
                     <motion.button
                       type="button"
                       onClick={onClose}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="px-6 py-2.5 text-[#6C757D] dark:text-white/70 bg-white dark:bg-[#1E2329] hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/30 rounded-xl text-sm font-medium transition-colors duration-200 border border-[#E9ECEF] dark:border-[#6C757D]/30"
+                      className="rounded-xl border px-6 py-2.5 text-sm font-semibold transition-colors duration-200"
+                      style={{
+                        backgroundColor: theme.cardBg,
+                        borderColor: theme.borderColor,
+                        color: theme.subtextColor,
+                      }}
                       disabled={loading}
                     >
-                      Cancelar
+                      {tc('actions.cancel')}
                     </motion.button>
                     <motion.button
                       type="submit"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="px-6 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] text-white rounded-xl text-sm font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#0A2540]/20 flex items-center gap-2"
+                      className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold shadow-lg transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+                      style={{
+                        backgroundColor: theme.primaryColor,
+                        color: theme.onPrimaryColor,
+                      }}
                       disabled={loading}
                     >
                       {loading ? (
                         <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                          <span>Guardando...</span>
+                          <div
+                            className="h-4 w-4 animate-spin rounded-full border-2"
+                            style={{
+                              borderColor: theme.inverseBorderColor,
+                              borderTopColor: theme.onPrimaryColor,
+                            }}
+                          />
+                          <span>{tc('actions.saving')}</span>
                         </>
                       ) : (
                         <>
-                          <CheckCircleIcon className="h-4 w-4" />
-                          <span>Guardar Cambios</span>
+                          <CheckCircle className="h-4 w-4" />
+                          <span>{tc('actions.saveChanges')}</span>
                         </>
                       )}
                     </motion.button>

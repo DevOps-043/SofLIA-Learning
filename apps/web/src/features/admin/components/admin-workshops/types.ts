@@ -6,12 +6,6 @@ export interface AdminWorkshopFilters {
   status: string
 }
 
-export interface WorkshopBadgeTone {
-  bg: string
-  text: string
-  border: string
-}
-
 export interface AdminWorkshopsPageLogic {
   workshops: AdminWorkshop[]
   filteredWorkshops: AdminWorkshop[]

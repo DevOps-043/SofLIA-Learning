@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 import { ImageUploadCourse } from '../../../instructor/components/ImageUploadCourse'
 
 interface AddWorkshopMediaTabProps {
@@ -13,10 +15,16 @@ export function AddWorkshopMediaTab({
   disabled,
   onThumbnailChange,
 }: AddWorkshopMediaTabProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
+
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-white/70">
-        Imagen del Taller
+      <label
+        className="mb-1.5 block text-xs font-semibold uppercase tracking-wide"
+        style={{ color: theme.mutedTextColor }}
+      >
+        {t('workshops.editor.config.imageLabel')}
       </label>
       <ImageUploadCourse value={thumbnailUrl} onChange={onThumbnailChange} disabled={disabled} />
     </div>

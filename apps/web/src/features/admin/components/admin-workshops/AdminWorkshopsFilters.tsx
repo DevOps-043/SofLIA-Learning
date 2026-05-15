@@ -1,11 +1,11 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { Layers3, SlidersHorizontal } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import {
-  FunnelIcon,
-  MagnifyingGlassIcon,
-} from '@heroicons/react/24/outline'
+import { BusinessPanelSearchInput } from '@/features/business-panel/components/shared/BusinessPanelSearchInput'
+import { PremiumSelect } from '@/features/business-panel/components/PremiumSelect'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 import {
   ADMIN_WORKSHOP_CATEGORY_OPTIONS,
   ADMIN_WORKSHOP_STATUS_OPTIONS,
@@ -29,51 +29,55 @@ export function AdminWorkshopsFilters({
   onStatusChange,
 }: AdminWorkshopsFiltersProps) {
   const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
+
+  const categoryOptions = ADMIN_WORKSHOP_CATEGORY_OPTIONS.map((option) => ({
+    value: option.value,
+    label: t(`workshops.filters.categories.${option.value}`),
+  }))
+  const statusOptions = ADMIN_WORKSHOP_STATUS_OPTIONS.map((option) => ({
+    value: option.value,
+    label: t(`workshops.filters.status.${option.value}`),
+  }))
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
+    <motion.section
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-      className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-4 mb-6 shadow-sm"
+      transition={{ delay: 0.15 }}
+      className="mb-6 rounded-[20px] border p-3 shadow-sm"
+      style={{
+        backgroundColor: theme.cardBg,
+        borderColor: theme.borderColor,
+      }}
     >
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1 relative">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#6C757D] dark:text-white/60" />
-          <input
-            type="text"
-            placeholder={t('workshops.filters.searchPlaceholder')}
-            value={searchTerm}
-            onChange={(event) => onSearchChange(event.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        <BusinessPanelSearchInput
+          value={searchTerm}
+          onChange={onSearchChange}
+          placeholder={t('workshops.filters.searchPlaceholder')}
+          className="min-w-0 flex-1"
+        />
+
+        <div className="grid gap-3 sm:grid-cols-2 lg:flex lg:flex-shrink-0">
+          <PremiumSelect
+            value={filterCategory}
+            onValueChange={onCategoryChange}
+            options={categoryOptions}
+            placeholder={t('workshops.filters.categories.all')}
+            icon={<Layers3 className="h-4 w-4" />}
+            className="w-full sm:min-w-[220px]"
+          />
+          <PremiumSelect
+            value={filterStatus}
+            onValueChange={onStatusChange}
+            options={statusOptions}
+            placeholder={t('workshops.filters.status.all')}
+            icon={<SlidersHorizontal className="h-4 w-4" />}
+            className="w-full sm:min-w-[200px]"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <FunnelIcon className="h-5 w-5 text-[#6C757D] dark:text-white/60" />
-          <select
-            value={filterCategory}
-            onChange={(event) => onCategoryChange(event.target.value)}
-            className="px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 text-sm"
-          >
-            {ADMIN_WORKSHOP_CATEGORY_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {t(`workshops.filters.categories.${option.value}`)}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filterStatus}
-            onChange={(event) => onStatusChange(event.target.value)}
-            className="px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 text-sm"
-          >
-            {ADMIN_WORKSHOP_STATUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {t(`workshops.filters.status.${option.value}`)}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
-    </motion.div>
+    </motion.section>
   )
 }

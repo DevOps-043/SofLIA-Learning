@@ -1,25 +1,33 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Building2, Plus, RefreshCw, Sparkles } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
+import { Plus, RefreshCw, Sparkles, Users } from 'lucide-react'
+import type { TFunction } from 'i18next'
 import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 
-interface AdminCompaniesHeaderProps {
+interface AdminUsersHeroProps {
+  filteredCount: number
+  onAddClick: () => void
   onRefresh: () => void
-  onCreate: () => void
+  isRefreshing: boolean
+  t: TFunction<'admin'>
 }
 
-export function AdminCompaniesHeader({ onRefresh, onCreate }: AdminCompaniesHeaderProps) {
-  const { t } = useTranslation('admin')
+export function AdminUsersHero({
+  filteredCount,
+  isRefreshing,
+  onAddClick,
+  onRefresh,
+  t,
+}: AdminUsersHeroProps) {
   const theme = useAdminPanelTheme()
 
   return (
-    <motion.header
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="group relative mb-6 overflow-hidden rounded-3xl p-8"
+      className="group relative overflow-hidden rounded-3xl p-8"
       style={{
         background: theme.heroBackground,
         border: `1px solid ${theme.heroBorderColor}`,
@@ -48,15 +56,20 @@ export function AdminCompaniesHeader({ onRefresh, onCreate }: AdminCompaniesHead
               className="text-sm font-semibold uppercase tracking-wider"
               style={{ color: theme.accentColor }}
             >
-              {t('companies.page.eyebrow')}
+              {t('navigation.users')}
             </span>
           </div>
 
-          <h1 className="mb-2 text-3xl font-bold lg:text-4xl" style={{ color: theme.inverseTextColor }}>
-            {t('companies.page.title')}
+          <h1
+            className="mb-2 text-3xl font-bold lg:text-4xl"
+            style={{ color: theme.inverseTextColor }}
+          >
+            {t('users.page.title')}
           </h1>
-          <p className="max-w-2xl text-lg" style={{ color: theme.inverseSubtextColor }}>
-            {t('companies.page.subtitle')}
+          <p className="max-w-xl text-lg" style={{ color: theme.inverseSubtextColor }}>
+            {t(filteredCount === 1 ? 'users.page.subtitle_one' : 'users.page.subtitle', {
+              count: filteredCount,
+            })}
           </p>
         </div>
 
@@ -73,13 +86,13 @@ export function AdminCompaniesHeader({ onRefresh, onCreate }: AdminCompaniesHead
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >
-            <RefreshCw className="h-4 w-4" />
-            {t('companies.actions.refresh')}
+            <RefreshCw className={`h-4 w-4${isRefreshing ? ' animate-spin' : ''}`} />
+            {t('users.page.retry')}
           </motion.button>
 
           <motion.button
             type="button"
-            onClick={onCreate}
+            onClick={onAddClick}
             className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold transition-all"
             style={{
               backgroundColor: theme.primaryColor,
@@ -90,7 +103,7 @@ export function AdminCompaniesHeader({ onRefresh, onCreate }: AdminCompaniesHead
             whileTap={{ scale: 0.98 }}
           >
             <Plus className="h-5 w-5" strokeWidth={3} />
-            <span>{t('companies.actions.create')}</span>
+            <span>{t('users.page.addUser')}</span>
           </motion.button>
         </div>
       </div>
@@ -103,8 +116,8 @@ export function AdminCompaniesHeader({ onRefresh, onCreate }: AdminCompaniesHead
           color: theme.inverseTextColor,
         }}
       >
-        <Building2 className="h-10 w-10" />
+        <Users className="h-10 w-10" />
       </div>
-    </motion.header>
+    </motion.div>
   )
 }

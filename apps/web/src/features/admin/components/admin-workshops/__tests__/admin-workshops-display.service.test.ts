@@ -4,6 +4,10 @@ import {
   deleteAdminWorkshop,
   filterAdminWorkshops,
   formatWorkshopDuration,
+  getAdminWorkshopCategoryConfig,
+  getAdminWorkshopLevelConfig,
+  getAdminWorkshopLevelKey,
+  getAdminWorkshopStatusConfig,
   getWorkshopInstructorInitials,
 } from '../admin-workshops-display.service'
 
@@ -25,6 +29,18 @@ function createWorkshop(overrides: Partial<AdminWorkshop>): AdminWorkshop {
     updated_at: '2026-01-01T00:00:00.000Z',
     ...overrides,
   }
+}
+
+const displayTheme = {
+  primaryColor: 'primary-token',
+  successColor: 'success-token',
+  warningColor: 'warning-token',
+  dangerColor: 'danger-token',
+  secondaryColor: 'secondary-token',
+  mutedTextColor: 'muted-token',
+  textColor: 'text-token',
+  inputBg: 'input-token',
+  borderColor: 'border-token',
 }
 
 describe('admin-workshops-display.service', () => {
@@ -70,6 +86,23 @@ describe('admin-workshops-display.service', () => {
     expect(getWorkshopInstructorInitials('Ada')).toBe('AD')
     expect(getWorkshopInstructorInitials('Sin instructor')).toBe('SI')
     expect(getWorkshopInstructorInitials()).toBe('SI')
+  })
+
+  it('resolves token-based badge configs for the migrated workshop UI', () => {
+    expect(getAdminWorkshopLevelKey('Principiante')).toBe('beginner')
+    expect(getAdminWorkshopLevelConfig('advanced', displayTheme)).toMatchObject({
+      labelKey: 'workshops.card.level.advanced',
+      color: displayTheme.dangerColor,
+      bg: `${displayTheme.dangerColor}14`,
+    })
+    expect(getAdminWorkshopCategoryConfig('tecnologia', displayTheme)).toMatchObject({
+      color: displayTheme.secondaryColor,
+      border: `${displayTheme.secondaryColor}26`,
+    })
+    expect(getAdminWorkshopStatusConfig(true, displayTheme)).toMatchObject({
+      labelKey: 'workshops.card.statusActive',
+      color: displayTheme.successColor,
+    })
   })
 
   it('propagates backend delete errors with the api message', async () => {
