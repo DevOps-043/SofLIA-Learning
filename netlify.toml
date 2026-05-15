@@ -62,7 +62,11 @@
   # Directorio para funciones tradicionales de Netlify (opcional)
   directory = "netlify/functions"
   node_bundler = "esbuild"
-  included_files = ["apps/web/bin/**"]
+  # FFmpeg binaries (apps/web/bin/) NO se incluyen aquí.
+  # El SSR handler tiene un límite de 250 MB y los binarios de FFmpeg son ~160 MB;
+  # incluirlos hace que el bundle supere el límite. El transcoding adaptativo
+  # requiere una función separada o un servicio externo cuando se active en producción.
+  included_files = []
   # Paquetes excluidos del bundle de esbuild de Netlify Functions.
   # Para el SSR handler (___netlify-server-handler) el tamaño se controla
   # desde next.config.js → outputFileTracingExcludes.
