@@ -122,6 +122,10 @@ export const UserDropdown = React.memo(function UserDropdown({
     }
     return null
   }, [currentOrganization?.slug, isAdmin])
+  const profilePath = useMemo(
+    () => currentOrganization?.slug ? `/${currentOrganization.slug}/profile` : '/profile',
+    [currentOrganization?.slug],
+  )
 
   const handleThemeToggle = useCallback(() => {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
@@ -322,7 +326,7 @@ export const UserDropdown = React.memo(function UserDropdown({
                 <MenuItem
                   icon={User}
                   label={t('menu.profile')}
-                  onClick={() => handleNavigation('/profile')}
+                  onClick={() => handleNavigation(profilePath)}
                 />
 
                 {/* Theme Toggle */}

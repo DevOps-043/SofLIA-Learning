@@ -26,7 +26,6 @@ export class BusinessCourseDetailService {
   static async getCourseDetail(orgSlug: string, courseId: string): Promise<BusinessCourseDetail> {
     const response = await fetch(`/api/${orgSlug}/business/courses/${courseId}`, {
       credentials: 'include',
-      cache: 'no-store',
       headers: {
         'Content-Type': 'application/json'
       }

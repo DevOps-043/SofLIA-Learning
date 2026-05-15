@@ -175,6 +175,36 @@ async function uploadCourseVideoWithApiRoute(file: File): Promise<string> {
   return result.url;
 }
 
+async function requestCourseVideoAdaptiveProcessing({
+  contentType,
+  publicUrl,
+  size,
+  sourcePath,
+}: {
+  contentType: File['type'];
+  publicUrl: string;
+  size: number;
+  sourcePath: string;
+}): Promise<string> {
+  const response = await fetch('/api/admin/upload/course-videos/transcode', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contentType,
+      publicUrl,
+      size,
+      sourcePath,
+    }),
+  });
+
+  if (!response.ok) {
+    return publicUrl;
+  }
+
+  const result = await response.json() as { success?: boolean; url?: string };
+  return result.success && result.url ? result.url : publicUrl;
+}
+
 export async function uploadCourseVideo(
   file: File,
   onProgress: (progress: number) => void
@@ -218,6 +248,14 @@ export async function uploadCourseVideo(
     throw new Error('Error al obtener la URL pública del video');
   }
 
+  onProgress(85);
+  const playbackUrl = await requestCourseVideoAdaptiveProcessing({
+    contentType: file.type,
+    publicUrl: urlData.publicUrl,
+    size: file.size,
+    sourcePath: uploadData.path,
+  });
+
   onProgress(100);
-  return urlData.publicUrl;
+  return playbackUrl;
 }

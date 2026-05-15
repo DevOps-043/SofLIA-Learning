@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { SessionService } from '@/features/auth/services/session.service'
 import { logger } from '@/lib/utils/logger'
+import { cacheHeaders } from '@/lib/utils/cache-headers'
 
 interface RouteContext {
   params: Promise<{ orgSlug: string }>
@@ -82,6 +83,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       },
       // El rol del usuario en esta organización (owner/admin/member)
       userRole: membership.role
+    }, {
+      headers: cacheHeaders.privateMedium
     })
   } catch (error) {
     logger.error('Error in /api/[orgSlug]/organization:', error)

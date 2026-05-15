@@ -3,28 +3,39 @@
 import { useReducedMotion } from 'framer-motion'
 import { useDevicePerformanceMode } from './mobile-performance'
 
+const EASE_OUT = 'easeOut' as const
+
 /**
- * Returns whether heavy/infinite animations should be disabled.
- * Disables on mobile (<= 768px) and when prefers-reduced-motion is set.
+ * Central motion policy for operational UI.
  *
- * Usage:
- *   const { disableHeavy } = useMotionSafe()
- *   // Then: if (!disableHeavy) render the infinite animation
+ * Keep this hook backward compatible: existing consumers still receive
+ * disableHeavy, safeTransition and loopTransition, while panel/dashboard code
+ * can use the faster interface-specific helpers.
  */
 export function useMotionSafe() {
   const prefersReduced = useReducedMotion()
   const performanceMode = useDevicePerformanceMode()
   const disableHeavy = Boolean(prefersReduced) || performanceMode.disableHeavyEffects
+  const transitionSeconds = performanceMode.interfaceTransitionMs / 1000
+  const interfaceTransition = {
+    duration: transitionSeconds,
+    ease: EASE_OUT,
+  }
 
   return {
-    /** true on mobile or prefers-reduced-motion → skip infinite/heavy animations */
     disableHeavy,
-    /** Safe transition for entrance animations (fast on mobile) */
+    disablePageExitAnimations:
+      Boolean(prefersReduced) || performanceMode.disablePageExitAnimations,
+    interfaceMotionMode: performanceMode.interfaceMotionMode,
+    interfaceStaggerSeconds: performanceMode.interfaceStaggerMs / 1000,
+    interfaceTransition,
+    panelPresenceMode: performanceMode.disablePageExitAnimations
+      ? undefined
+      : ('sync' as const),
+    panelTransition: interfaceTransition,
     safeTransition: disableHeavy
-      ? { duration: 0.15, ease: 'easeOut' as const }
+      ? interfaceTransition
       : { type: 'spring' as const, stiffness: 300, damping: 25 },
-    /** For infinite loop transitions: undefined on desktop, {duration:0} on mobile */
-    loopTransition: (config: object) =>
-      disableHeavy ? { duration: 0 } : config,
+    loopTransition: (config: object) => (disableHeavy ? { duration: 0 } : config),
   }
 }

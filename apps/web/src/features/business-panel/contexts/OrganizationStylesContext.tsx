@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useRef, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { PRESET_THEMES, DEFAULT_THEME, getThemeStylesForMode } from '../config/preset-themes';
 import { useThemeStore } from '@/core/stores/themeStore';
@@ -8,6 +9,26 @@ import { useThemeStore } from '@/core/stores/themeStore';
 // Solo loguear en desarrollo
 const isDev = process.env.NODE_ENV === 'development';
 const log = isDev ? console.log : () => { };
+
+const NON_ORG_ROUTE_SEGMENTS = new Set([
+  'api',
+  'auth',
+  '_next',
+  'public',
+  'courses',
+  'profile',
+  'settings',
+  'communities',
+  'news',
+  'admin',
+  'instructor',
+  'business-panel',
+  'business-user',
+  'dashboard',
+  'certificates',
+  'study-planner',
+  'account-settings',
+]);
 
 export interface StyleConfig {
   background_type: 'image' | 'color' | 'gradient';
@@ -31,6 +52,24 @@ export interface OrganizationStyles {
   selectedTheme: string | null;
   // Indica si el tema actual soporta modo dual (claro/oscuro)
   supportsDualMode?: boolean;
+}
+
+function isOrgScopedPath(pathname: string | null): boolean {
+  const firstSegment = pathname?.split('/').filter(Boolean)[0];
+  return Boolean(firstSegment && !NON_ORG_ROUTE_SEGMENTS.has(firstSegment));
+}
+
+function getDefaultOrganizationStyles(): OrganizationStyles | null {
+  const defaultTheme = PRESET_THEMES[DEFAULT_THEME];
+  if (!defaultTheme) return null;
+
+  return {
+    panel: defaultTheme.panel,
+    userDashboard: defaultTheme.userDashboard,
+    login: defaultTheme.login,
+    selectedTheme: DEFAULT_THEME,
+    supportsDualMode: defaultTheme.supportsDualMode
+  };
 }
 
 interface OrganizationStylesContextType {
@@ -58,6 +97,7 @@ export function OrganizationStylesProvider(props: { children: ReactNode, orgSlug
 
 function OrganizationStylesProviderInner({ children, orgSlug }: { children: ReactNode, orgSlug?: string }) {
   const { user } = useAuth();
+  const pathname = usePathname();
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const [styles, setStyles] = useState<OrganizationStyles | null>(null);
   const [loading, setLoading] = useState(true);
@@ -123,37 +163,25 @@ function OrganizationStylesProviderInner({ children, orgSlug }: { children: Reac
   // Memoizar fetchStyles para evitar recreaciones
   // OPTIMIZADO: Carga instantánea desde cache, luego revalida en background
   const fetchStyles = useCallback(async () => {
+    if (!orgSlug && isOrgScopedPath(pathname)) {
+      setStyles(getDefaultOrganizationStyles());
+      setLoading(false);
+      return;
+    }
+
     // Si es Administrador sin organización, usar tema por defecto sin llamar a la API
     const normalizedRole = user?.cargo_rol?.toLowerCase().trim() || '';
     const isAdmin = normalizedRole === 'administrador';
 
     if (isAdmin && !user?.organization_id) {
-      const defaultTheme = PRESET_THEMES[DEFAULT_THEME];
-      if (defaultTheme) {
-        setStyles({
-          panel: defaultTheme.panel,
-          userDashboard: defaultTheme.userDashboard,
-          login: defaultTheme.login,
-          selectedTheme: DEFAULT_THEME,
-          supportsDualMode: defaultTheme.supportsDualMode
-        });
-      }
+      setStyles(getDefaultOrganizationStyles());
       setLoading(false);
       return;
     }
 
     if (!user?.organization_id) {
       // Aplicar tema por defecto cuando no hay organization_id
-      const defaultTheme = PRESET_THEMES[DEFAULT_THEME];
-      if (defaultTheme) {
-        setStyles({
-          panel: defaultTheme.panel,
-          userDashboard: defaultTheme.userDashboard,
-          login: defaultTheme.login,
-          selectedTheme: DEFAULT_THEME,
-          supportsDualMode: defaultTheme.supportsDualMode
-        });
-      }
+      setStyles(getDefaultOrganizationStyles());
       setLoading(false);
       return;
     }
@@ -202,15 +230,8 @@ function OrganizationStylesProviderInner({ children, orgSlug }: { children: Reac
 
       // Si los estilos están vacíos, usar tema por defecto
       if (!data.styles?.panel && !data.styles?.selectedTheme) {
-        const defaultTheme = PRESET_THEMES[DEFAULT_THEME];
-        if (defaultTheme) {
-          const defaultStyles: OrganizationStyles = {
-            panel: defaultTheme.panel,
-            userDashboard: defaultTheme.userDashboard,
-            login: defaultTheme.login,
-            selectedTheme: DEFAULT_THEME,
-            supportsDualMode: defaultTheme.supportsDualMode
-          };
+        const defaultStyles = getDefaultOrganizationStyles();
+        if (defaultStyles) {
           setStyles(defaultStyles);
           // Guardar en cache
           if (typeof window !== 'undefined') {
@@ -245,23 +266,12 @@ function OrganizationStylesProviderInner({ children, orgSlug }: { children: Reac
         setError(err instanceof Error ? err.message : 'Error al obtener estilos');
 
         // Sin cache, usar tema por defecto
-        const defaultTheme = PRESET_THEMES[DEFAULT_THEME];
-        if (defaultTheme) {
-          setStyles({
-            panel: defaultTheme.panel,
-            userDashboard: defaultTheme.userDashboard,
-            login: defaultTheme.login,
-            selectedTheme: DEFAULT_THEME,
-            supportsDualMode: defaultTheme.supportsDualMode
-          });
-        } else {
-          setStyles(null);
-        }
+        setStyles(getDefaultOrganizationStyles());
       }
     } finally {
       setLoading(false);
     }
-  }, [orgSlug, user?.organization_id, user?.cargo_rol]);
+  }, [orgSlug, pathname, user?.organization_id, user?.cargo_rol]);
 
   useEffect(() => {
     fetchStyles();

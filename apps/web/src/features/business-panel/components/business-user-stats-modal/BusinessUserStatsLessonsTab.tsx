@@ -51,7 +51,7 @@ function VideoBadge({ lesson, theme, t }: BadgeProps) {
         style={{ backgroundColor: `${theme.successColor}20`, color: theme.successColor }}
       >
         <Play className="w-2.5 h-2.5 fill-current" />
-        {t('users.stats.lessons.badges.video.watched')}
+        {t('users.modals.stats.lessons.badges.video.watched')}
       </span>
     )
   }
@@ -72,7 +72,7 @@ function VideoBadge({ lesson, theme, t }: BadgeProps) {
       style={{ backgroundColor: `${theme.textColor}10`, color: theme.textColor }}
     >
       <Play className="w-2.5 h-2.5" />
-      {t('users.stats.lessons.badges.video.notWatched')}
+      {t('users.modals.stats.lessons.badges.video.notWatched')}
     </span>
   )
 }
@@ -85,12 +85,12 @@ function ActivityBadge({ lesson, theme, t }: BadgeProps) {
         style={{ backgroundColor: `${theme.textColor}10`, color: theme.textColor }}
       >
         <MinusCircle className="w-2.5 h-2.5" />
-        {t('users.stats.lessons.badges.activity.empty')}
+        {t('users.modals.stats.lessons.badges.activity.empty')}
       </span>
     )
   }
 
-  const countLabel = t('users.stats.lessons.badges.activity.count', {
+  const countLabel = t('users.modals.stats.lessons.badges.activity.count', {
     completed: lesson.activities_completed,
     total: lesson.activities_total,
   })
@@ -124,7 +124,7 @@ function QuizBadge({ lesson, theme, t }: BadgeProps) {
         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest opacity-40"
         style={{ backgroundColor: `${theme.textColor}10`, color: theme.textColor }}
       >
-        {t('users.stats.lessons.badges.quiz.empty')}
+        {t('users.modals.stats.lessons.badges.quiz.empty')}
       </span>
     )
   }
@@ -136,8 +136,8 @@ function QuizBadge({ lesson, theme, t }: BadgeProps) {
       >
         <CheckCircle2 className="w-2.5 h-2.5" />
         {lesson.quiz_score !== null
-          ? t('users.stats.lessons.badges.quiz.passedScore', { score: lesson.quiz_score })
-          : t('users.stats.lessons.badges.quiz.passedNoScore')}
+          ? t('users.modals.stats.lessons.badges.quiz.passedScore', { score: lesson.quiz_score })
+          : t('users.modals.stats.lessons.badges.quiz.passedNoScore')}
       </span>
     )
   }
@@ -148,8 +148,8 @@ function QuizBadge({ lesson, theme, t }: BadgeProps) {
     >
       <XCircle className="w-2.5 h-2.5" />
       {lesson.quiz_score !== null
-        ? t('users.stats.lessons.badges.quiz.failedScore', { score: lesson.quiz_score })
-        : t('users.stats.lessons.badges.quiz.failedNoScore')}
+        ? t('users.modals.stats.lessons.badges.quiz.failedScore', { score: lesson.quiz_score })
+        : t('users.modals.stats.lessons.badges.quiz.failedNoScore')}
     </span>
   )
 }
@@ -162,7 +162,7 @@ function LiasBadge({ lesson, theme, t }: BadgeProps) {
         style={{ backgroundColor: `${theme.textColor}10`, color: theme.textColor }}
       >
         <MessageCircle className="w-2.5 h-2.5" />
-        {t('users.stats.lessons.badges.lia.empty')}
+        {t('users.modals.stats.lessons.badges.lia.empty')}
       </span>
     )
   }
@@ -172,7 +172,7 @@ function LiasBadge({ lesson, theme, t }: BadgeProps) {
       style={{ backgroundColor: `${theme.accentColor}20`, color: theme.accentColor }}
     >
       <MessageCircle className="w-2.5 h-2.5" />
-      {t('users.stats.lessons.badges.lia.count', { count: lesson.lia_conversations })}
+      {t('users.modals.stats.lessons.badges.lia.count', { count: lesson.lia_conversations })}
     </span>
   )
 }
@@ -185,14 +185,14 @@ function NotesBadge({ lesson, theme, t }: BadgeProps) {
         style={{ backgroundColor: `${theme.textColor}10`, color: theme.textColor }}
       >
         <StickyNote className="w-2.5 h-2.5" />
-        {t('users.stats.lessons.badges.notes.empty')}
+        {t('users.modals.stats.lessons.badges.notes.empty')}
       </span>
     )
   }
   const notesKey =
     lesson.notes_count === 1
-      ? 'users.stats.lessons.badges.notes.countSingular'
-      : 'users.stats.lessons.badges.notes.countPlural'
+      ? 'users.modals.stats.lessons.badges.notes.countSingular'
+      : 'users.modals.stats.lessons.badges.notes.countPlural'
   return (
     <span
       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest"
@@ -236,7 +236,7 @@ function LessonRow({ lesson, index, theme, t }: LessonRowProps) {
           style={{ color: theme.textColor }}
         >
           {lesson.lesson_order !== null ? `${lesson.lesson_order}. ` : ''}
-          {lesson.lesson_title ?? t('users.stats.lessons.untitledLesson')}
+          {lesson.lesson_title ?? t('users.modals.stats.lessons.untitledLesson')}
         </span>
       </div>
 
@@ -301,10 +301,10 @@ function CourseAccordion({ courseData, courseIndex, theme, t, defaultOpen }: Cou
 
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold truncate" style={{ color: theme.textColor }}>
-            {courseData.course_title ?? t('users.stats.lessons.untitledCourse')}
+            {courseData.course_title ?? t('users.modals.stats.lessons.untitledCourse')}
           </p>
           <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: theme.mutedTextColor }}>
-            {completedCount}/{totalCount} {t('users.stats.timeline.lessons')}
+            {completedCount}/{totalCount} {t('users.modals.stats.timeline.lessons')}
           </p>
         </div>
 
@@ -341,7 +341,7 @@ function CourseAccordion({ courseData, courseIndex, theme, t, defaultOpen }: Cou
                   className="text-center py-4 text-[10px] font-black uppercase tracking-widest opacity-40"
                   style={{ color: theme.textColor }}
                 >
-                  {t('users.stats.lessons.noLessons')}
+                  {t('users.modals.stats.lessons.noLessons')}
                 </p>
               ) : (
                 courseData.lessons.map((lesson, index) => (
@@ -375,7 +375,7 @@ export function BusinessUserStatsLessonsTab({
     return (
       <BusinessUserStatsEmptyState
         icon={BookOpen}
-        label={t('users.stats.lessons.empty')}
+        label={t('users.modals.stats.lessons.empty')}
         theme={theme}
       />
     )
@@ -388,7 +388,7 @@ export function BusinessUserStatsLessonsTab({
         style={{ color: theme.mutedTextColor }}
       >
         <BookOpen className="h-4 w-4" style={{ color: theme.primaryColor }} />
-        {t('users.stats.lessons.title')}
+        {t('users.modals.stats.lessons.title')}
       </h3>
 
       <div className="space-y-4">

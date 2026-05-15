@@ -3,15 +3,23 @@
 import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useDevicePerformanceMode } from '@/lib/utils/mobile-performance'
+import { resolvePrefetchRoutes } from './prefetch-manager.service'
 
 type WindowWithIdleCallback = Window & {
   cancelIdleCallback?: (handle: number) => void
   requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number
 }
 
+const FAST_PREFETCH_DELAY_MS = 1200
+const CONSERVATIVE_PREFETCH_DELAY_MS = 3500
+const IDLE_PREFETCH_TIMEOUT_MS = 5000
+
 /**
- * Gestor global de prefetching
- * Precarga rutas estratégicamente basándose en la navegación del usuario
+ * Global route prefetcher.
+ *
+ * It warms the most likely next routes after the current page is interactive.
+ * On constrained devices it still prefetches a small set, but waits longer and
+ * uses requestIdleCallback to avoid competing with initial render or video.
  */
 export function PrefetchManager() {
   const router = useRouter()
@@ -19,78 +27,42 @@ export function PrefetchManager() {
   const performanceMode = useDevicePerformanceMode()
 
   useEffect(() => {
-    if (performanceMode.deferPrefetch) {
+    const routesToPrefetch = resolvePrefetchRoutes(pathname || '/', {
+      conserveResources: performanceMode.deferPrefetch,
+    })
+
+    if (routesToPrefetch.length === 0) {
       return
     }
 
-    // Rutas críticas que siempre se precargan
-    const criticalRoutes = [
-      '/dashboard',
-      '/communities',
-    ]
-
-    // Mapa de rutas relacionadas por contexto
-    const relatedRoutes: Record<string, string[]> = {
-      '/': ['/dashboard', '/communities', '/my-courses', '/news'],
-      '/dashboard': ['/my-courses', '/communities', '/profile', '/statistics'],
-      '/communities': ['/dashboard', '/profile'],
-      '/my-courses': ['/dashboard', '/statistics'],
-      '/profile': ['/dashboard', '/my-courses'],
-      '/news': ['/dashboard', '/communities'],
-      '/statistics': ['/dashboard', '/statistics/results'],
-      '/questionnaire': ['/dashboard', '/statistics'],
-      '/auth': ['/dashboard', '/my-courses'],
-    }
-
-    // Encontrar rutas relacionadas con la página actual
-    let routesToPrefetch: string[] = []
-
-    // Buscar coincidencia exacta
-    if (relatedRoutes[pathname]) {
-      routesToPrefetch = relatedRoutes[pathname]
-    } else {
-      // Buscar por prefijo (para rutas dinámicas como /communities/[slug])
-      for (const [pattern, routes] of Object.entries(relatedRoutes)) {
-        if (pathname.startsWith(pattern + '/')) {
-          routesToPrefetch = routes
-          break
-        }
-      }
-    }
-
-    // Si no hay rutas relacionadas específicas, usar las críticas
-    if (routesToPrefetch.length === 0) {
-      routesToPrefetch = criticalRoutes
-    }
-
-    // Hacer prefetch después de 3 segundos para no interferir con la carga inicial
-    // Aumentado de 2s a 3s para dar más prioridad a contenido crítico
     let idleCallbackId: number | null = null
     const runPrefetch = () => {
-      routesToPrefetch.forEach(route => {
+      routesToPrefetch.forEach((route) => {
         try {
           router.prefetch(route)
-          if (process.env.NODE_ENV === 'development') {
-          }
-        } catch (error) {
-          if (process.env.NODE_ENV === 'development') {
-          }
+        } catch {
+          // Prefetch is opportunistic; failed prefetch must never block UX.
         }
       })
     }
 
-    const timer = window.setTimeout(() => {
-      const idleWindow = window as WindowWithIdleCallback
+    const timer = window.setTimeout(
+      () => {
+        const idleWindow = window as WindowWithIdleCallback
 
-      if (typeof idleWindow.requestIdleCallback === 'function') {
-        idleCallbackId = idleWindow.requestIdleCallback(runPrefetch, {
-          timeout: 5000,
-        })
-        return
-      }
+        if (typeof idleWindow.requestIdleCallback === 'function') {
+          idleCallbackId = idleWindow.requestIdleCallback(runPrefetch, {
+            timeout: IDLE_PREFETCH_TIMEOUT_MS,
+          })
+          return
+        }
 
-      runPrefetch()
-    }, 3000)
+        runPrefetch()
+      },
+      performanceMode.deferPrefetch
+        ? CONSERVATIVE_PREFETCH_DELAY_MS
+        : FAST_PREFETCH_DELAY_MS,
+    )
 
     return () => {
       window.clearTimeout(timer)
@@ -105,6 +77,5 @@ export function PrefetchManager() {
     }
   }, [pathname, performanceMode.deferPrefetch, router])
 
-  // Este componente no renderiza nada
   return null
 }

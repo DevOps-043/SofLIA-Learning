@@ -54,6 +54,23 @@ export const cacheHeaders = {
   },
 
   /**
+   * Private Short Cache (30 segundos)
+   * Para datos privados de lectura frecuente que toleran pequena latencia de frescura:
+   * dashboards, conteos y listas org-scoped ya protegidas por auth/RLS.
+   */
+  privateShort: {
+    'Cache-Control': 'private, max-age=30, stale-while-revalidate=60',
+  },
+
+  /**
+   * Private Medium Cache (2 minutos)
+   * Para datos privados de referencia que cambian poco durante una sesiÃ³n.
+   */
+  privateMedium: {
+    'Cache-Control': 'private, max-age=120, stale-while-revalidate=300',
+  },
+
+  /**
    * No Cache (sin cache público)
    * Para datos que necesitan revalidación constante pero pueden cachear localmente
    * - Sin cache compartido

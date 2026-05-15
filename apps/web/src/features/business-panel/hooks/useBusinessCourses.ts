@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
+import useSWR from 'swr'
 
 export interface BusinessCourse {
   id: string
@@ -30,90 +31,89 @@ export interface BusinessCoursesStats {
   byLevel: Record<string, number>
 }
 
+interface BusinessCoursesResponse {
+  success?: boolean
+  courses?: BusinessCourse[]
+  error?: string
+}
+
+const EMPTY_STATS: BusinessCoursesStats = {
+  total: 0,
+  byCategory: {},
+  byLevel: {},
+}
+
+function calculateBusinessCoursesStats(courses: BusinessCourse[]): BusinessCoursesStats {
+  const byCategory: Record<string, number> = {}
+  const byLevel: Record<string, number> = {}
+
+  for (const course of courses) {
+    const category = course.category || 'Sin categoria'
+    const level = course.level || 'Sin nivel'
+    byCategory[category] = (byCategory[category] || 0) + 1
+    byLevel[level] = (byLevel[level] || 0) + 1
+  }
+
+  return {
+    total: courses.length,
+    byCategory,
+    byLevel,
+  }
+}
+
+async function fetchBusinessCourses(url: string): Promise<BusinessCourse[]> {
+  const response = await fetch(url, {
+    credentials: 'include',
+  })
+  const payload = (await response.json().catch(() => null)) as BusinessCoursesResponse | null
+
+  if (!response.ok || !payload?.success) {
+    throw new Error(payload?.error || 'Error al obtener cursos')
+  }
+
+  return payload.courses || []
+}
+
 /**
- * Hook para obtener cursos disponibles para la organización.
+ * Hook para obtener cursos disponibles para la organizacion.
  *
- * IMPORTANTE: Este hook usa el orgSlug de la URL para asegurar
- * que se obtengan los datos de la organización correcta.
+ * Usa SWR para conservar datos previos entre navegaciones y evitar loaders
+ * completos cuando el usuario vuelve a una ruta ya visitada.
  */
 export function useBusinessCourses() {
   const params = useParams()
   const orgSlug = params?.orgSlug as string | undefined
+  const swrKey = orgSlug ? `/api/${orgSlug}/business/courses` : null
 
-  const [courses, setCourses] = useState<BusinessCourse[]>([])
-  const [stats, setStats] = useState<BusinessCoursesStats>({
-    total: 0,
-    byCategory: {},
-    byLevel: {}
+  const {
+    data: courses = [],
+    error,
+    isLoading,
+    isValidating,
+    mutate,
+  } = useSWR<BusinessCourse[]>(swrKey, fetchBusinessCourses, {
+    dedupingInterval: 60000,
+    errorRetryCount: 1,
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
   })
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  const fetchCourses = useCallback(async () => {
-    if (!orgSlug) {
-      setError('No se pudo determinar la organización')
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      setIsLoading(true)
-      setError(null)
-
-      // Usar la API org-scoped
-      const response = await fetch(`/api/${orgSlug}/business/courses`, {
-        credentials: 'include',
-        cache: 'no-store',
-      })
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-
-      if (data.success && data.courses) {
-        setCourses(data.courses)
-
-        // Calcular estadísticas
-        const byCategory: Record<string, number> = {}
-        const byLevel: Record<string, number> = {}
-
-        data.courses.forEach((course: BusinessCourse) => {
-          // Por categoría
-          const category = course.category || 'Sin categoría'
-          byCategory[category] = (byCategory[category] || 0) + 1
-
-          // Por nivel
-          const level = course.level || 'Sin nivel'
-          byLevel[level] = (byLevel[level] || 0) + 1
-        })
-
-        setStats({
-          total: data.courses.length,
-          byCategory,
-          byLevel
-        })
-      } else {
-        throw new Error(data.error || 'Error al obtener cursos')
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
-      setError(errorMessage)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [orgSlug])
-
-  useEffect(() => {
-    fetchCourses()
-  }, [fetchCourses])
+  const stats = useMemo(
+    () => courses.length > 0 ? calculateBusinessCoursesStats(courses) : EMPTY_STATS,
+    [courses],
+  )
 
   return {
     courses,
     stats,
-    isLoading,
-    error,
-    refetch: fetchCourses
+    isLoading: Boolean(swrKey) && isLoading && courses.length === 0,
+    isValidating,
+    error: !orgSlug
+      ? 'No se pudo determinar la organizacion'
+      : error instanceof Error
+        ? error.message
+        : null,
+    refetch: mutate,
   }
 }

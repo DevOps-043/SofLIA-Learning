@@ -1,6 +1,6 @@
 'use client'
 
-import Joyride from 'react-joyride'
+import { Joyride } from 'react-joyride'
 import { BusinessUserDashboardError } from './page-components/BusinessUserDashboardError'
 import { BusinessUserDashboardLoading } from './page-components/BusinessUserDashboardLoading'
 import { BusinessUserDashboardShell } from './page-components/BusinessUserDashboardShell'

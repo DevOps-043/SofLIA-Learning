@@ -29,7 +29,7 @@ import { JoinRequestListRow } from './components/JoinRequestListRow'
 import { UserListRow } from './components/UserListRow'
 import { UsersPageHeader } from './components/UsersPageHeader'
 import { UsersFilterBar } from './components/UsersFilterBar'
-import Joyride from 'react-joyride'
+import { Joyride } from 'react-joyride'
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
 import { getAdminUsersSteps, ADMIN_USERS_TOUR_ID } from '@/features/tours/config/business-panel/admin-users-steps'
 

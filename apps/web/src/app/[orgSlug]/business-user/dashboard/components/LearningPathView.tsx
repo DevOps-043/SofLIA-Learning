@@ -7,6 +7,7 @@ import { Award, Check, CheckCircle2, ChevronLeft, ChevronRight, Loader2, Lock, P
 
 import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../core/constants/tourTargets'
 import { OnboardingVideoPlayer } from '../../../../../features/tours/components/OnboardingVideoPlayer'
+import { useMotionSafe } from '../../../../../lib/utils/motion'
 import type {
   AssignedCourse,
   AssignedLearningPath,
@@ -617,6 +618,7 @@ export function LearningPathView({
   disableHeavyEffects = false,
   t,
 }: LearningPathViewProps) {
+  const { interfaceStaggerSeconds, interfaceTransition } = useMotionSafe()
   const [introByPath, setIntroByPath] = useState<Record<string, IntroVideoState>>({})
   const [hoverCard, setHoverCard] = useState<InfoHoverCardState | null>(null)
   const [visibleItemsByPath, setVisibleItemsByPath] = useState<Record<string, number>>({})
@@ -958,7 +960,10 @@ export function LearningPathView({
             id={pathIndex === 0 ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.learningPathSection : undefined}
             initial={disableHeavyEffects ? false : { opacity: 0, y: 12 }}
             animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
-            transition={disableHeavyEffects ? undefined : { delay: pathIndex * 0.05 }}
+            transition={disableHeavyEffects ? undefined : {
+              ...interfaceTransition,
+              delay: Math.min(pathIndex * interfaceStaggerSeconds, 0.08),
+            }}
           >
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
@@ -1121,7 +1126,10 @@ export function LearningPathView({
           key={STANDALONE_PATH_ID}
           initial={disableHeavyEffects ? false : { opacity: 0, y: 12 }}
           animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
-          transition={disableHeavyEffects ? undefined : { delay: learningPaths.length * 0.05 }}
+          transition={disableHeavyEffects ? undefined : {
+            ...interfaceTransition,
+            delay: Math.min(learningPaths.length * interfaceStaggerSeconds, 0.08),
+          }}
         >
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">

@@ -6,6 +6,7 @@ import {
   VIDEO_ASSET_CACHE_CONTROL,
   isStreamableVideoMimeType,
 } from '@/lib/media/video-upload-policy'
+import { processStoredVideoForAdaptiveStreaming } from '@/lib/media/server/adaptive-video-transcoding.server'
 
 // Configurar para permitir uploads grandes
 export const runtime = 'nodejs'
@@ -178,10 +179,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const adaptiveResult = await processStoredVideoForAdaptiveStreaming({
+      bucket: 'course-videos',
+      contentType: file.type,
+      publicUrl: urlData.publicUrl,
+      sizeBytes: file.size,
+      sourcePath: filePath,
+      supabase,
+    })
+
     return NextResponse.json({
       success: true,
-      url: urlData.publicUrl,
-      path: filePath,
+      adaptive: adaptiveResult,
+      url: adaptiveResult.playbackUrl,
+      path: adaptiveResult.playbackPath,
+      sourcePath: filePath,
+      sourceUrl: urlData.publicUrl,
       name: file.name,
       size: file.size,
       type: file.type

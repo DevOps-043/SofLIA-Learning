@@ -2,6 +2,7 @@ import type { ChangeEventHandler, DragEventHandler, RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Upload, X } from 'lucide-react';
 import { STREAMABLE_VIDEO_ACCEPT } from '@/lib/media/video-upload-policy';
+import { useVideoJsHlsPlayback } from '@/lib/media/useVideoJsHlsPlayback';
 
 interface DirectVideoUploadProps {
   selectedFile: File | null;
@@ -45,6 +46,7 @@ export function DirectVideoUpload({
   const { t } = useTranslation('admin');
   const { t: tc } = useTranslation('common');
   const hasPreview = Boolean(videoPreview);
+  useVideoJsHlsPlayback(videoRef, videoPreview ?? '', 'metadata');
 
   return (
     <div className="space-y-4">
@@ -56,6 +58,7 @@ export function DirectVideoUpload({
         <div className="relative group">
           <div className="relative bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-700">
             <video
+              key={videoPreview}
               ref={videoRef}
               src={videoPreview ?? undefined}
               className="w-full h-64 object-contain bg-black"

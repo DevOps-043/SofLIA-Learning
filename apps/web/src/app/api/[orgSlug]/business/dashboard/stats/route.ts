@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/utils/logger';
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
+import { cacheHeaders } from '@/lib/utils/cache-headers'
 
 interface OrganizationUserStatsRow {
   status: 'active' | 'invited' | string
@@ -206,9 +207,7 @@ export async function GET(
         certificateGrowth: '0%'
       }
     }, {
-      headers: {
-        'Cache-Control': 'private, no-cache, no-store, must-revalidate'
-      }
+      headers: cacheHeaders.privateShort
     })
   } catch (error) {
     logger.error('💥 Error in /api/[orgSlug]/business/dashboard/stats:', error)

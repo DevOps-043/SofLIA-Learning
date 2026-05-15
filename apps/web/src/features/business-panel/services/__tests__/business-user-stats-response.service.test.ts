@@ -199,6 +199,7 @@ describe('business-user-stats-response.service', () => {
           courses: { id: 'course-2', title: 'Curso B' },
         },
       ],
+      learningPathCourseOrder: new Map(),
     }
 
     const response = buildBusinessUserStatsResponse(data)
@@ -232,5 +233,72 @@ describe('business-user-stats-response.service', () => {
       lessons_total: 1,
     })
     expect(response.certificates[0].instructor_name).toBe('Laura Pérez')
+  })
+
+  it('orders courses by learning path sequence and leaves non-path courses last', () => {
+    const enrollment = (courseId: string, title: string) => ({
+      enrollment_id: `enr-${courseId}`,
+      enrollment_status: 'active',
+      overall_progress_percentage: 0,
+      enrolled_at: null,
+      started_at: null,
+      completed_at: null,
+      last_accessed_at: null,
+      course_id: courseId,
+      courses: { id: courseId, title },
+    })
+
+    const data: BusinessUserStatsQueryData = {
+      organizationUser: {
+        user_id: 'user-1',
+        organization_id: 'org-1',
+        joined_at: null,
+        role: 'member',
+        job_title: null,
+        users: {
+          id: 'user-1',
+          username: 'ana',
+          email: 'ana@example.com',
+          first_name: null,
+          last_name: null,
+          display_name: 'Ana',
+          profile_picture_url: null,
+        },
+      },
+      // Insertion order here is course-1, course-2, course-3.
+      enrollments: [
+        enrollment('course-1', 'Curso A'),
+        enrollment('course-2', 'Curso B'),
+        enrollment('course-3', 'Curso C'),
+      ],
+      lessonProgress: [],
+      lessons: [],
+      courseModules: [],
+      lessonCounts: [],
+      activityCompletions: [],
+      lessonNotes: [],
+      certificates: [],
+      instructors: [],
+      liaConversations: [],
+      liaMessages: [],
+      quizSubmissions: [],
+      assignments: [],
+      // course-2 has no learning-path entry → must end up last.
+      learningPathCourseOrder: new Map([
+        ['course-3', 0],
+        ['course-1', 1],
+      ]),
+    }
+
+    const response = buildBusinessUserStatsResponse(data)
+
+    expect(response.courses.map((course) => course.course_id)).toEqual([
+      'course-3',
+      'course-1',
+      'course-2',
+    ])
+    expect(
+      response.stats.courses_with_lessons.map((course) => course.course_id),
+    ).toEqual(['course-3', 'course-1', 'course-2'])
   })
 })

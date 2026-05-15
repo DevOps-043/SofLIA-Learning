@@ -57,7 +57,10 @@ export function buildBusinessUserStatsResponse(
   applyLessonProgressStats(courseStatsMap, data.lessonProgress, realLessonsByCourse)
   applyModuleStats(courseStatsMap, data.courseModules, data.lessonProgress, lessonInfoById)
 
-  const coursesData = Array.from(courseStatsMap.values())
+  const coursesData = sortCoursesByLearningPathOrder(
+    Array.from(courseStatsMap.values()),
+    data.learningPathCourseOrder,
+  )
   const totalCourses = coursesData.length
   const completedCourses = coursesData.filter(isCompletedCourseStats).length
   const inProgressCourses = coursesData.filter(isInProgressCourseStats).length
@@ -80,7 +83,10 @@ export function buildBusinessUserStatsResponse(
   )
   const timeByCourse = buildTimeByCourse(coursesData)
   const completedByMonth = buildCompletedByMonth(data.enrollments, data.assignments)
-  const coursesWithLessons = buildLessonDetailByCourse(data)
+  const coursesWithLessons = sortCoursesByLearningPathOrder(
+    buildLessonDetailByCourse(data),
+    data.learningPathCourseOrder,
+  )
 
   return {
     success: true,
@@ -154,6 +160,30 @@ export function buildBusinessUserStatsResponse(
       completed_at: assignment.completed_at,
     })),
   }
+}
+
+/**
+ * Orders courses by the user's learning-path sequence. Courses that belong to
+ * an assigned learning path come first, in (path, position) order; courses
+ * outside any learning path follow, keeping their original relative order
+ * (`Array.prototype.sort` is stable). Returns the input untouched when there
+ * is no learning-path ordering available.
+ */
+function sortCoursesByLearningPathOrder<T extends { course_id: string }>(
+  courses: T[],
+  courseOrder: Map<string, number>,
+): T[] {
+  if (courseOrder.size === 0) {
+    return courses
+  }
+
+  const FALLBACK_ORDER = Number.MAX_SAFE_INTEGER
+
+  return [...courses].sort(
+    (left, right) =>
+      (courseOrder.get(left.course_id) ?? FALLBACK_ORDER) -
+      (courseOrder.get(right.course_id) ?? FALLBACK_ORDER),
+  )
 }
 
 function getUserProfile(organizationUser: BusinessUserStatsOrganizationUserRecord) {

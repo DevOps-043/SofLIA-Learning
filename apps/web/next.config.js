@@ -20,17 +20,14 @@ const nextConfig = {
 
   // Configuración para el monorepo
   transpilePackages: ['@aprende-y-aplica/shared', '@aprende-y-aplica/ui'],
+  outputFileTracingRoot: path.resolve(__dirname, '../../'),
 
   experimental: {
     externalDir: true,
     // Optimizar importaciones de paquetes como lucide-react
     optimizePackageImports: ['lucide-react'],
-    // En Next 14 esta opcion sigue viviendo bajo `experimental`.
-    outputFileTracingRoot: path.resolve(__dirname, '../../'),
-    // En Next 14 esta opcion se llama `serverComponentsExternalPackages`
-    // (renombrada a `serverExternalPackages` en Next 15).
-    serverComponentsExternalPackages: ['exceljs', 'pdfmake'],
   },
+  serverExternalPackages: ['exceljs', 'pdfmake'],
 
   // Optimización de imágenes
   images: {

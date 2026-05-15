@@ -1,8 +1,9 @@
 'use client'
 import { motion } from 'framer-motion'
-import Link from 'next/link'
 import type { ComponentType } from 'react'
 import { ChartBarIcon } from '@heroicons/react/24/outline'
+import { useMotionSafe } from '@/lib/utils/motion'
+import { PrefetchLink } from '@/core/components/PrefetchLink'
 
 interface StatCardTheme {
   cardBg?: string
@@ -25,6 +26,7 @@ export interface StatCardProps {
 }
 
 export function StatCard({ title, value, delay, href, id, theme, gradientStyle, icon: Icon = ChartBarIcon }: StatCardProps) {
+  const { disableHeavy, interfaceStaggerSeconds, interfaceTransition } = useMotionSafe()
   const primaryColor = theme?.cardBg || 'var(--color-primary)'
   const accentColor = gradientStyle?.background ? String(gradientStyle.background).split(',')[1]?.trim() || 'var(--color-accent)' : 'var(--color-accent)'
   const actualAccentColor = accentColor.length === 7 || accentColor.length === 9 || accentColor.startsWith('#') ? accentColor : 'var(--color-accent)'
@@ -35,15 +37,16 @@ export function StatCard({ title, value, delay, href, id, theme, gradientStyle, 
     primaryColor === '#FFFFFF' ||
     primaryColor === '#ffffff'
   
-  const textColor = theme?.text || (isLightMode ? '#0F172A' : '#FFFFFF')
+  const textColor = theme?.text || (isLightMode ? 'var(--color-gray-900)' : 'var(--color-bg-light)')
   const iconColor = isLightMode ? 'var(--color-primary)' : actualAccentColor
+  const entranceDelay = disableHeavy ? 0 : Math.min(delay * interfaceStaggerSeconds, 0.08)
 
   const CardContent = (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: delay * 0.05, duration: 0.4, ease: 'easeOut' }}
-      whileHover={{ y: -2, transition: { duration: 0.2 } }}
+      transition={{ ...interfaceTransition, delay: entranceDelay }}
+      whileHover={disableHeavy ? undefined : { y: -2, transition: interfaceTransition }}
       className="group relative overflow-hidden rounded-[16px] p-4 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-start min-h-[90px]"
       id={id}
       style={{
@@ -90,6 +93,6 @@ export function StatCard({ title, value, delay, href, id, theme, gradientStyle, 
     </motion.div>
   )
 
-  if (href) return <Link href={href} className="block w-full">{CardContent}</Link>
+  if (href) return <PrefetchLink href={href} className="block w-full">{CardContent}</PrefetchLink>
   return CardContent
 }

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { AtSign, Briefcase, MapPin, Phone, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { USER_GENDER_VALUES } from '../../../../lib/schemas/user-demographics.schema'
+import { useMotionSafe } from '../../../../lib/utils/motion'
 import { PremiumDateInput, PremiumInput, PremiumSelect, PremiumTextarea } from './ProfilePremiumFields'
 import type { ProfileColorPalette, UpdateProfileRequest } from '../../types/profile.types'
 
@@ -15,6 +16,7 @@ interface ProfilePersonalTabProps {
 
 export function ProfilePersonalTab({ formData, handleInputChange, colors }: ProfilePersonalTabProps) {
   const { t } = useTranslation('common')
+  const { interfaceTransition } = useMotionSafe()
   const maxDateOfBirth = new Date().toISOString().slice(0, 10)
   const genderOptions = USER_GENDER_VALUES.map(gender => ({
     value: gender,
@@ -22,7 +24,7 @@ export function ProfilePersonalTab({ formData, handleInputChange, colors }: Prof
   }))
 
   return (
-    <motion.div key="personal" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-8">
+    <motion.div key="personal" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={interfaceTransition} className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <PremiumInput label={t('profile.personal.firstName')} value={formData.first_name || ''} onChange={value => handleInputChange('first_name', value)} icon={<User className="w-4 h-4" />} colors={colors} />
         <PremiumInput label={t('profile.personal.lastName')} value={formData.last_name || ''} onChange={value => handleInputChange('last_name', value)} icon={<User className="w-4 h-4" />} colors={colors} />

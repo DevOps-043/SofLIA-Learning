@@ -33,6 +33,7 @@
     "@typescript-eslint/parser": "^8.56.1",
     "concurrently": "^8.2.2",
     "eslint": "8.57.0",
+    "next": "^15.5.18",
     "prettier": "^3.2.5",
     "tsx": "^4.6.2",
     "typescript": "^5.3.3"
@@ -43,7 +44,12 @@
     "@types/react": "18.3.27",
     "@types/react-dom": "18.3.7",
     "eslint": "8.57.0",
-    "eslint-config-next": "14.2.15"
+    "eslint-config-next": "15.5.18",
+    "next": {
+      ".": "$next",
+      "postcss": "8.5.14"
+    },
+    "postcss": "8.5.14"
   },
   "engines": {
     "node": ">=22.0.0",
@@ -69,11 +75,10 @@
     "html2canvas": "^1.4.1",
     "leaflet": "^1.9.4",
     "motion": "^12.23.26",
-    "next-pwa": "^5.6.0",
     "openai": "^6.8.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-joyride": "^2.9.3",
+    "react-joyride": "^3.1.0",
     "react-leaflet": "^5.0.0",
     "react-qr-code": "^2.0.18",
     "recharts": "^3.5.0",

@@ -11,6 +11,7 @@ import {
   hasNativeVideoPlayableData,
   isNativeVideoWaitingForPlayableData,
 } from '@/lib/media';
+import { useVideoJsHlsPlayback } from '@/lib/media/useVideoJsHlsPlayback';
 
 interface OnboardingVideoPlayerProps {
   videos: string[];
@@ -40,6 +41,8 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
   const skipIntroLabel = t('onboarding.buttons.skipIntro');
   const retryLabel = t('actions.retry');
   const skipToContentLabel = t('media.introPlayer.skipToContent');
+  const currentVideoSrc = videos[currentVideoIndex] ?? '';
+  useVideoJsHlsPlayback(videoRef, currentVideoSrc, playbackPolicy.nativeVideoPreload);
 
   // Respect OS-level "reduce motion" preference — skip overlay fade animation
   const shouldReduceMotion = useReducedMotion();
@@ -301,8 +304,9 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
             for the active video on unconstrained desktop connections.
           */}
           <video
+            key={currentVideoSrc}
             ref={videoRef}
-            src={videos[currentVideoIndex]}
+            src={currentVideoSrc}
             preload={playbackPolicy.nativeVideoPreload}
             playsInline
             muted={isMuted}

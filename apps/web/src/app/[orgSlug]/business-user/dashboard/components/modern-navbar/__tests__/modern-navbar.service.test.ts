@@ -48,7 +48,9 @@ describe('modern-navbar.service', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/study-planner/status?orgSlug=board-ready',
-      expect.objectContaining({ cache: 'no-store' }),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Accept: 'application/json' }),
+      }),
     );
   });
 

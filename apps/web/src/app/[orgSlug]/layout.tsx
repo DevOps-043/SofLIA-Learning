@@ -48,22 +48,22 @@ export default async function OrganizationLayout({
     redirect(`/auth?redirect=/${orgSlug}/dashboard`);
   }
 
-  // Check if user is a platform administrator (cargo_rol = 'administrador')
-  const { data: userData } = await supabase
-    .from('users')
-    .select('cargo_rol')
-    .eq('id', authUser.id)
-    .single();
+  const [userResult, organizationResult] = await Promise.all([
+    supabase
+      .from('users')
+      .select('cargo_rol')
+      .eq('id', authUser.id)
+      .single(),
+    supabase
+      .from('organizations')
+      .select('id, name, slug, logo_url, brand_logo_url, brand_color_primary, subscription_plan, subscription_status')
+      .eq('slug', orgSlug)
+      .eq('is_active', true)
+      .single(),
+  ]);
 
-  const isPlatformAdmin = userData?.cargo_rol?.toLowerCase().trim() === 'administrador';
-
-  // Fetch organization by slug
-  const { data: organization, error: orgError } = await supabase
-    .from('organizations')
-    .select('id, name, slug, logo_url, brand_logo_url, brand_color_primary, subscription_plan, subscription_status')
-    .eq('slug', orgSlug)
-    .eq('is_active', true)
-    .single();
+  const isPlatformAdmin = userResult.data?.cargo_rol?.toLowerCase().trim() === 'administrador';
+  const { data: organization, error: orgError } = organizationResult;
 
   // Organization not found
   if (orgError || !organization) {

@@ -2,6 +2,12 @@ const MOBILE_PERFORMANCE_BREAKPOINT_PX = 768;
 const LOW_HARDWARE_CONCURRENCY = 4;
 const LOW_DEVICE_MEMORY_GB = 4;
 const SLOW_EFFECTIVE_TYPES = new Set(['slow-2g', '2g', '3g']);
+const FAST_INTERFACE_TRANSITION_MS = 140;
+const MINIMAL_INTERFACE_TRANSITION_MS = 80;
+const FAST_INTERFACE_STAGGER_MS = 20;
+const MINIMAL_INTERFACE_STAGGER_MS = 0;
+
+export type InterfaceMotionMode = 'fast' | 'minimal';
 
 export interface DevicePerformanceEnvironment {
   deviceMemory?: number;
@@ -20,7 +26,11 @@ export interface DevicePerformancePolicy {
   deferPrefetch: boolean;
   disableAutoplayAudio: boolean;
   disableHeavyEffects: boolean;
+  disablePageExitAnimations: boolean;
   disableSessionRecorder: boolean;
+  interfaceMotionMode: InterfaceMotionMode;
+  interfaceStaggerMs: number;
+  interfaceTransitionMs: number;
   isApplePlatform: boolean;
   isCoarsePointer: boolean;
   isConstrainedNetwork: boolean;
@@ -121,6 +131,15 @@ export function resolveDevicePerformancePolicy(
     prefersReducedMotion ||
     isLowHardwareConcurrency ||
     isLowDeviceMemory;
+  const interfaceMotionMode: InterfaceMotionMode = shouldConserve ? 'minimal' : 'fast';
+  const interfaceTransitionMs = prefersReducedMotion
+    ? 0
+    : interfaceMotionMode === 'minimal'
+      ? MINIMAL_INTERFACE_TRANSITION_MS
+      : FAST_INTERFACE_TRANSITION_MS;
+  const interfaceStaggerMs = interfaceMotionMode === 'minimal'
+    ? MINIMAL_INTERFACE_STAGGER_MS
+    : FAST_INTERFACE_STAGGER_MS;
 
   return {
     deferPrefetch: shouldConserve,
@@ -131,7 +150,11 @@ export function resolveDevicePerformancePolicy(
       isConstrainedNetwork ||
       prefersReducedMotion,
     disableHeavyEffects: shouldConserve,
+    disablePageExitAnimations: shouldConserve,
     disableSessionRecorder: shouldConserve,
+    interfaceMotionMode,
+    interfaceStaggerMs,
+    interfaceTransitionMs,
     isApplePlatform,
     isCoarsePointer,
     isConstrainedNetwork,

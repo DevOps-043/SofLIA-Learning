@@ -15,6 +15,7 @@ import { StatCard } from './dashboard/StatCard'
 import { QuickAction } from './dashboard/QuickAction'
 import { ActivityItem } from './dashboard/ActivityItem'
 import { useMinuteTicker } from '@/hooks/useMinuteTicker'
+import { useMotionSafe } from '@/lib/utils/motion'
 
 function renderMetricValue(metric: unknown): string | number {
   if (metric && typeof metric === 'object' && 'value' in metric) {
@@ -28,6 +29,7 @@ function renderMetricValue(metric: unknown): string | number {
 export function BusinessPanelDashboard() {
   const { t } = useTranslation('business')
   const [isStatsOpenMobile, setIsStatsOpenMobile] = useState(false)
+  const { interfaceTransition } = useMotionSafe()
 
   const {
     stats,
@@ -50,7 +52,7 @@ export function BusinessPanelDashboard() {
         id="tour-hero-section"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={interfaceTransition}
         className="relative overflow-hidden rounded-2xl md:rounded-3xl p-4 md:p-8 mb-4 md:mb-8 group"
       >
         <div className="absolute inset-0 z-0">
@@ -74,15 +76,15 @@ export function BusinessPanelDashboard() {
             </span>
           </div>
 
-          <motion.h1 className="text-xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 leading-tight" style={{ color: 'var(--color-bg-light)' }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+          <motion.h1 className="text-xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 leading-tight" style={{ color: 'var(--color-bg-light)' }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition}>
             <DashboardGreeting getGreeting={getGreeting} userName={getUserName()} />
           </motion.h1>
 
-          <motion.p className="text-xs md:text-base lg:text-lg max-w-xl line-clamp-2 md:line-clamp-none" style={{ color: 'var(--color-bg-light)', opacity: 0.7 }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
+          <motion.p className="text-xs md:text-base lg:text-lg max-w-xl line-clamp-2 md:line-clamp-none" style={{ color: 'var(--color-bg-light)', opacity: 0.7 }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition}>
             {t('dashboard.subtitle')}
           </motion.p>
 
-          <motion.div className="flex items-center gap-2 md:gap-6 mt-3 md:mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+          <motion.div className="flex items-center gap-2 md:gap-6 mt-3 md:mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={interfaceTransition}>
             <div className="flex items-center gap-1.5 md:gap-2 text-white/60 text-[10px] md:text-sm">
               <ClockIcon className="h-3 w-3 md:h-4 md:w-4" />
               <span style={{ color: 'var(--color-bg-light)' }} className="opacity-90">
@@ -98,7 +100,7 @@ export function BusinessPanelDashboard() {
         <div className="xl:col-span-3 space-y-8">
           {/* Stats Grid */}
           <section id="tour-stats-section">
-            <motion.div className="flex items-center justify-between mb-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <motion.div className="flex items-center justify-between mb-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
               <div>
                 <h2 className="text-xl font-bold" style={{ color: themeColors.text }}>{t('dashboard.generalStats')}</h2>
                 <p className="text-sm mt-1" style={{ color: themeColors.text, opacity: 0.7 }}>{t('dashboard.keyMetrics')}</p>
@@ -143,14 +145,14 @@ export function BusinessPanelDashboard() {
 
           {/* Activity Section */}
           <section id="tour-activity-section">
-            <motion.div className="flex items-center justify-between mb-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+            <motion.div className="flex items-center justify-between mb-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
               <div>
                 <h2 id="tour-activity-title" className="text-xl font-bold" style={{ color: themeColors.text }}>{t('dashboard.recentActivity.title')}</h2>
                 <p className="text-sm mt-1" style={{ color: themeColors.text, opacity: 0.7 }}>{t('dashboard.recentActivity.subtitle')}</p>
               </div>
             </motion.div>
 
-            <motion.div id="tour-activity-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="rounded-2xl border overflow-hidden" style={{ backgroundColor: themeColors.cardBg, borderColor: `${themeColors.borderColor}33` }}>
+            <motion.div id="tour-activity-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition} className="rounded-2xl border overflow-hidden" style={{ backgroundColor: themeColors.cardBg, borderColor: `${themeColors.borderColor}33` }}>
               {activitiesLoading ? (
                 <div className="p-6 space-y-4">
                   {[...Array(5)].map((_, i) => (
@@ -190,7 +192,7 @@ export function BusinessPanelDashboard() {
 
         {/* Sidebar - Quick Actions */}
         <div id="tour-quick-actions" className="xl:col-span-1">
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }} className="sticky top-24">
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition} className="sticky top-24">
             <div id="tour-quick-actions-list">
               <div className="mb-6">
                 <h2 className="text-lg font-bold" style={{ color: themeColors.text }}>{t('dashboard.quickActions.title')}</h2>

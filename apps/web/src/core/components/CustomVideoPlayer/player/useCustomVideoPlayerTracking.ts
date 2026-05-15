@@ -1,6 +1,14 @@
 import { useEffect, useRef, type RefObject } from 'react';
 import { useVideoTracking } from '../../../../features/video-tracking';
 
+/**
+ * Throttle del listener nativo `timeupdate` para tracking. El evento dispara
+ * varias veces por segundo; sin throttle cada disparo asigna closures y golpea
+ * el downstream (que de todos modos filtra a 3s/5s). 1s es seguro y elimina el
+ * churn por frame que contribuía al sobrecalentamiento en móviles.
+ */
+const TRACKING_TIMEUPDATE_THROTTLE_MS = 1000;
+
 interface UseCustomVideoPlayerTrackingInput {
   lessonId?: string;
   onTrackingError?: (error: Error) => void;
@@ -14,15 +22,20 @@ export function useCustomVideoPlayerTracking({
   trackingId,
   videoRef,
 }: UseCustomVideoPlayerTrackingInput): void {
-  const tracking = lessonId
-    ? useVideoTracking({
-        lessonId,
-        onError: onTrackingError,
-        trackingId,
-      })
-    : null;
+  // `useVideoTracking` se llama SIEMPRE (Rules of Hooks): llamarlo dentro de un
+  // ternario rompía el orden de hooks al cambiar `lessonId` (p. ej. navegar
+  // entre lecciones), reconstruyendo el subárbol de hooks y re-montando los
+  // listeners de video en cadena. Con `lessonId` vacío el hook existe pero el
+  // efecto de listeners de abajo no engancha nada (está protegido por
+  // `if (!videoElement || !lessonId) return;`).
+  const tracking = useVideoTracking({
+    lessonId: lessonId ?? '',
+    onError: onTrackingError,
+    trackingId,
+  });
 
   const trackingRef = useRef(tracking);
+  const lastTrackingTimeUpdateRef = useRef<number>(0);
 
   useEffect(() => {
     trackingRef.current = tracking;
@@ -68,6 +81,15 @@ export function useCustomVideoPlayerTracking({
     };
 
     const handleTimeUpdateEvent = () => {
+      const now = performance.now();
+      if (
+        now - lastTrackingTimeUpdateRef.current <
+        TRACKING_TIMEUPDATE_THROTTLE_MS
+      ) {
+        return;
+      }
+      lastTrackingTimeUpdateRef.current = now;
+
       trackingRef.current?.handleTimeUpdate(
         videoElement.currentTime,
         videoElement.duration,

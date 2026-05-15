@@ -76,22 +76,31 @@ const generateVideoUrl = (videoProvider: string, videoProviderId: string): strin
         // 🔧 OPTIMIZATION: Use cached Supabase client
         try {
           const supabase = getSupabaseClient();
+          const storagePath = filePath.startsWith('course-videos/')
+            ? filePath.slice('course-videos/'.length)
+            : filePath;
           const { data: urlData } = supabase.storage
             .from('course-videos')
-            .getPublicUrl(filePath);
+            .getPublicUrl(storagePath);
 
           if (urlData?.publicUrl) {
             url = urlData.publicUrl;
           } else {
             const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
             if (supabaseUrl) {
-              url = `${supabaseUrl}/storage/v1/object/public/course-videos/${filePath}`;
+              const publicPath = filePath.startsWith('course-videos/')
+                ? filePath
+                : `course-videos/${filePath}`;
+              url = `${supabaseUrl}/storage/v1/object/public/${publicPath}`;
             }
           }
         } catch {
           const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
           if (supabaseUrl) {
-            url = `${supabaseUrl}/storage/v1/object/public/course-videos/${filePath}`;
+            const publicPath = filePath.startsWith('course-videos/')
+              ? filePath
+              : `course-videos/${filePath}`;
+            url = `${supabaseUrl}/storage/v1/object/public/${publicPath}`;
           }
         }
       }

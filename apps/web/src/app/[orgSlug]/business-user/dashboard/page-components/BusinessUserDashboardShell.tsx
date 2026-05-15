@@ -11,6 +11,7 @@ import { TeamRequiredBanner } from '../../../../../features/business-panel/compo
 import type { StyleConfig } from '../../../../../features/business-panel/hooks/useOrganizationStyles'
 import { OnboardingVideoPlayer } from '../../../../../features/tours/components/OnboardingVideoPlayer'
 import { useMinuteTicker } from '../../../../../shared/hooks/useMinuteTicker'
+import { useMotionSafe } from '../../../../../lib/utils/motion'
 import { getBusinessUserDashboardGreeting } from '../services/business-user-dashboard.service'
 import type {
   AssignedCourse,
@@ -165,6 +166,7 @@ export function BusinessUserDashboardShell({
   t,
   disableHeavyEffects,
 }: BusinessUserDashboardShellProps) {
+  const { interfaceTransition } = useMotionSafe()
   const [courseView, setCourseView] = useState<'grid' | 'list'>('grid')
   const [visibleCourseCount, setVisibleCourseCount] = useState(
     disableHeavyEffects ? 6 : assignedCourses.length
@@ -354,7 +356,7 @@ export function BusinessUserDashboardShell({
             <motion.div
               initial={disableHeavyEffects ? false : { opacity: 0, y: -20 }}
               animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
-              transition={disableHeavyEffects ? undefined : { duration: 0.6 }}
+              transition={disableHeavyEffects ? undefined : interfaceTransition}
               className="relative overflow-hidden rounded-xl md:rounded-2xl px-4 pt-4 pb-7 md:px-6 md:pt-5 md:pb-8 lg:px-8 lg:pt-6 lg:pb-10 group"
             >
               <div
@@ -422,7 +424,7 @@ export function BusinessUserDashboardShell({
                   style={{ color: 'var(--color-bg-light)' }}
                   initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
                   animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
-                  transition={disableHeavyEffects ? undefined : { delay: 0.3 }}
+                  transition={disableHeavyEffects ? undefined : interfaceTransition}
                 >
                   <BusinessUserGreeting firstName={user?.first_name} t={t} />
                 </motion.h1>
@@ -432,7 +434,7 @@ export function BusinessUserDashboardShell({
                   style={{ color: 'rgb(255 255 255 / 80%)' }}
                   initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
                   animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
-                  transition={disableHeavyEffects ? undefined : { delay: 0.4 }}
+                  transition={disableHeavyEffects ? undefined : interfaceTransition}
                 >
                   {t('dashboard.subtitle')}
                 </motion.p>
@@ -462,7 +464,7 @@ export function BusinessUserDashboardShell({
               <motion.div
                 initial={disableHeavyEffects ? false : { opacity: 0, y: 10 }}
                 animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
-                transition={disableHeavyEffects ? undefined : { delay: 0.3 }}
+                transition={disableHeavyEffects ? undefined : interfaceTransition}
                 className="flex items-center justify-between mb-4 md:mb-6"
               >
                 <div className="flex items-center gap-3">
@@ -556,7 +558,7 @@ export function BusinessUserDashboardShell({
             <motion.div
               initial={disableHeavyEffects ? false : { opacity: 0, y: 10 }}
               animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
-              transition={disableHeavyEffects ? undefined : { delay: 0.4 }}
+              transition={disableHeavyEffects ? undefined : interfaceTransition}
               className="flex items-center justify-between mb-6"
             >
               <div className="flex items-center gap-3">
@@ -636,7 +638,7 @@ export function BusinessUserDashboardShell({
                 <motion.div
                   initial={disableHeavyEffects ? false : { scale: 0.8 }}
                   animate={disableHeavyEffects ? undefined : { scale: 1 }}
-                  transition={disableHeavyEffects ? undefined : { delay: 0.2, type: 'spring' }}
+                  transition={disableHeavyEffects ? undefined : interfaceTransition}
                   className="relative z-10"
                 >
                   <div
@@ -736,7 +738,7 @@ export function BusinessUserDashboardShell({
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            transition={interfaceTransition}
                             className="overflow-hidden"
                           >
                             <div className="grid grid-cols-1 gap-3 sm:gap-4 ml-4 md:ml-12 pb-4">

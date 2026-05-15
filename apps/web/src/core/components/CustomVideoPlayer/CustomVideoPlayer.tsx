@@ -7,6 +7,7 @@ import {
   type CustomVideoPlayerRef,
 } from './player/types';
 import { useCustomVideoPlayerState } from './player/useCustomVideoPlayerState';
+import { useVideoJsHlsPlayback } from '@/lib/media/useVideoJsHlsPlayback';
 
 export type { CustomVideoPlayerRef } from './player/types';
 
@@ -15,6 +16,7 @@ export const CustomVideoPlayer = forwardRef<
   CustomVideoPlayerProps
 >((props, ref) => {
   const controller = useCustomVideoPlayerState(props, ref);
+  useVideoJsHlsPlayback(controller.videoRef, controller.src, controller.preload);
 
   return (
     <div
@@ -24,6 +26,13 @@ export const CustomVideoPlayer = forwardRef<
       onMouseMove={controller.onRootMouseMove}
       ref={controller.containerRef}
     >
+      {/*
+        Sin `key={controller.src}`: el cambio de fuente ya se propaga por el
+        atributo `src` controlado y por el `useEffect([src])` de
+        useCustomVideoPlayerState (resetea estado). Forzar el remontaje del
+        <video> destruía/recreaba el decodificador en cada cambio de fuente,
+        sumando calor en móviles (iOS).
+      */}
       <video
         className="w-full h-full object-contain"
         onClick={() => {

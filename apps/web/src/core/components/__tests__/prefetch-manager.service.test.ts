@@ -1,0 +1,43 @@
+import { describe, expect, it } from 'vitest'
+import {
+  getOrgSlugFromPathname,
+  resolvePrefetchRoutes,
+} from '../prefetch-manager.service'
+
+describe('prefetch-manager.service', () => {
+  it('detects organization slugs without treating static routes as orgs', () => {
+    expect(getOrgSlugFromPathname('/acme/business-user/dashboard')).toBe('acme')
+    expect(getOrgSlugFromPathname('/admin/dashboard')).toBeNull()
+    expect(getOrgSlugFromPathname('/courses/intro-ai')).toBeNull()
+  })
+
+  it('prefetches org-scoped routes for business user dashboards', () => {
+    expect(resolvePrefetchRoutes('/acme/business-user/dashboard')).toEqual([
+      '/acme/business-user/analytics',
+      '/acme/business-panel/dashboard',
+      '/acme/profile',
+      '/certificates',
+    ])
+  })
+
+  it('prefetches business-panel routes and the user dashboard for panel switching', () => {
+    expect(resolvePrefetchRoutes('/acme/business-panel/dashboard')).toEqual([
+      '/acme/business-panel/courses',
+      '/acme/business-panel/users',
+      '/acme/business-user/dashboard',
+      '/acme/profile',
+    ])
+  })
+
+  it('limits prefetch on constrained devices', () => {
+    expect(
+      resolvePrefetchRoutes('/acme/business-panel/dashboard', {
+        conserveResources: true,
+      }),
+    ).toEqual([
+      '/acme/business-panel/courses',
+      '/acme/business-panel/users',
+      '/acme/business-user/dashboard',
+    ])
+  })
+})

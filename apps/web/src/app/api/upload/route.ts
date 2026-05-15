@@ -14,6 +14,7 @@ import {
   VIDEO_ASSET_CACHE_CONTROL,
   isStreamableVideoMimeType,
 } from '@/lib/media/video-upload-policy';
+import { processStoredVideoForAdaptiveStreaming } from '@/lib/media/server/adaptive-video-transcoding.server';
 
 export const runtime = 'nodejs';
 
@@ -122,11 +123,24 @@ export async function POST(request: NextRequest) {
     const { data: urlData } = supabase.storage
       .from(bucket)
       .getPublicUrl(filePath);
+    const adaptiveResult = bucket === 'intro-videos'
+      ? await processStoredVideoForAdaptiveStreaming({
+          bucket,
+          contentType: file.type,
+          publicUrl: urlData.publicUrl,
+          sizeBytes: file.size,
+          sourcePath: filePath,
+          supabase,
+        })
+      : null;
 
     return NextResponse.json({
       success: true,
-      url: urlData.publicUrl,
-      path: filePath,
+      adaptive: adaptiveResult,
+      url: adaptiveResult?.playbackUrl ?? urlData.publicUrl,
+      path: adaptiveResult?.playbackPath ?? filePath,
+      sourcePath: filePath,
+      sourceUrl: urlData.publicUrl,
       name: file.name,
       size: file.size,
       type: file.type,

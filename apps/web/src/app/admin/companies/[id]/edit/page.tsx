@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useEditCompanyLogic, type CompanyData, type CompanyMember } from '@/features/admin/hooks/useEditCompanyLogic'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useMotionSafe } from '@/lib/utils/motion'
 import { useTheme } from '../../../../../core/hooks/useTheme'
 import { CoursesSection as AdminCoursesSection } from '@/features/admin/components'
 import {
@@ -21,6 +22,7 @@ import { NotificationsSection } from './sections/NotificationsSection'
 import { CertificatesSection } from './sections/CertificatesSection'
 
 export default function EditCompanyPage() {
+    const { interfaceTransition } = useMotionSafe()
     const {
         router,
         companyId,
@@ -149,7 +151,7 @@ export default function EditCompanyPage() {
                                     <motion.div
                                         layoutId="activeTab"
                                         className="absolute left-0 w-1.5 h-8 bg-[#0A2540] dark:bg-[#00D4B3] rounded-r-full"
-                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                        transition={interfaceTransition}
                                     />
                                 )}
                                 <item.icon className={`h-5 w-5 transition-colors ${isActive ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-gray-400 dark:text-[#8899A6] group-hover:text-gray-900 dark:group-hover:text-white'}`} />
@@ -163,7 +165,7 @@ export default function EditCompanyPage() {
 
                 {/* Main Content */}
                 <div className="flex-1 min-w-0 p-4 md:p-6">
-                    <AnimatePresence mode="wait">
+                    <AnimatePresence initial={false}>
                         {renderSection()}
                     </AnimatePresence>
                 </div>

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import Joyride from 'react-joyride'
+import { Joyride } from 'react-joyride'
 import { useTranslation } from 'react-i18next'
 import { TourRestartButton } from '../../../../core/components/tours/TourRestartButton'
 import { useJoyrideMinitour } from '../../../tours/hooks/useJoyrideMinitour'
@@ -82,7 +82,7 @@ export function ProfilePageContent(logic: ProfilePageLogic) {
         <ProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} colors={colors} />
 
         <div className="px-6 lg:px-12 py-10">
-          <AnimatePresence mode="wait">
+          <AnimatePresence initial={false}>
             {activeTab === 'personal' ? (
               <div id={PROFILE_TOUR_TARGET_IDS.personalForm}>
                 <ProfilePersonalTab formData={formData} handleInputChange={handleInputChange} colors={colors} />

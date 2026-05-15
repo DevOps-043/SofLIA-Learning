@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '../../../../../../lib/auth/requireBusiness'
 import { logger } from '../../../../../../lib/logger'
 import { BusinessCourseDetailServerService } from '../../../../../../features/business-panel/services/business-course-detail.server.service'
+import { cacheHeaders } from '@/lib/utils/cache-headers'
 
 export async function GET(
   _request: NextRequest,
@@ -45,9 +46,7 @@ export async function GET(
       success: true,
       course
     }, {
-      headers: {
-        'Cache-Control': 'no-store, max-age=0',
-      }
+      headers: cacheHeaders.privateShort
     })
   } catch (error) {
     logger.error('Error in business course detail route', { error, route: '/api/[orgSlug]/business/courses/[id]' })

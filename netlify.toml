@@ -17,6 +17,12 @@
   # Habilitar plugin de Next.js
   NETLIFY_NEXT_PLUGIN_SKIP = "false"
 
+  # Rutas runtime para FFmpeg empaquetado en Netlify Functions.
+  # Activa VIDEO_TRANSCODING_ENABLED=true desde la UI de Netlify solo
+  # cuando apps/web/bin/ffmpeg y apps/web/bin/ffprobe existan y sean binarios Linux.
+  FFMPEG_PATH = "/var/task/apps/web/bin/ffmpeg"
+  FFPROBE_PATH = "/var/task/apps/web/bin/ffprobe"
+
 # Configuración para Next.js con serverless functions
 # Este plugin maneja automáticamente el build y deployment de Next.js
 [[plugins]]
@@ -56,6 +62,7 @@
   # Directorio para funciones tradicionales de Netlify (opcional)
   directory = "netlify/functions"
   node_bundler = "esbuild"
+  included_files = ["apps/web/bin/**"]
   # Excluir dependencias pesadas que solo se necesitan en el cliente
   # Estas librerías se importan dinámicamente solo en el cliente
   external_node_modules = ["sharp", "canvas", "html2canvas", "jspdf"]
@@ -78,4 +85,3 @@
 
 [context.deploy-preview]
   command = "bash scripts/netlify-build.sh"
-

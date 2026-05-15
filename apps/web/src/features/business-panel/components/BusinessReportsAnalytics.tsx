@@ -45,7 +45,7 @@ import businessPt from '../../../../public/locales/pt/business.json'
 import { useBusinessReportsAnalytics } from '../hooks/useBusinessReportsAnalytics'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 import { PremiumDatePicker } from './PremiumDatePicker'
-import Joyride from 'react-joyride'
+import { Joyride } from 'react-joyride'
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
 import { getAdminReportsSteps, ADMIN_REPORTS_TOUR_ID } from '@/features/tours/config/business-panel/admin-reports-steps'
 import type {

@@ -177,12 +177,13 @@ export function useLearnPageCourseData({
 
           const courseId = learnData.course.id || learnData.course.course_id
           if (courseId) {
-            try {
-              const metadataResponse = await fetch(
-                `/api/workshops/${courseId}/metadata`,
-              )
+            setWorkshopMetadata(null)
+            void fetch(`/api/workshops/${courseId}/metadata`)
+              .then(async (metadataResponse) => {
+                if (!metadataResponse.ok) {
+                  return
+                }
 
-              if (metadataResponse.ok) {
                 const metadataData =
                   (await metadataResponse.json()) as WorkshopMetadataResponse
 
@@ -195,13 +196,15 @@ export function useLearnPageCourseData({
                     }),
                   )
                 }
-              }
-            } catch (error) {
-              console.warn(
-                'No se pudieron cargar metadatos del taller para LIA:',
-                error,
-              )
-            }
+              })
+              .catch((error) => {
+                if (process.env.NODE_ENV === 'development') {
+                  console.warn(
+                    'No se pudieron cargar metadatos del taller para LIA:',
+                    error,
+                  )
+                }
+              })
           }
         }
 

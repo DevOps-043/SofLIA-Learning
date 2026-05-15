@@ -3,6 +3,7 @@ import { logger } from '../../../lib/utils/logger'
 import { createClient } from '../../../lib/supabase/server'
 import { fetchCompletionData } from './business-user-stats-completion.service'
 import { fetchEngagementData } from './business-user-stats-engagement.service'
+import { fetchLearningPathCourseOrder } from './business-user-stats-learning-path.service'
 
 type BusinessUserStatsSupabaseClient = Awaited<ReturnType<typeof createClient>>
 
@@ -218,6 +219,8 @@ export interface BusinessUserStatsQueryData {
   liaMessages: BusinessUserStatsLiaMessageRecord[]
   quizSubmissions: BusinessUserStatsQuizSubmissionRecord[]
   assignments: BusinessUserStatsAssignmentRecord[]
+  /** course_id → order index derived from the user's assigned learning paths. */
+  learningPathCourseOrder: Map<string, number>
 }
 
 export type BusinessUserStatsQueryResult =
@@ -284,16 +287,18 @@ export async function fetchBusinessUserStatsData(
   const organizationUser =
     organizationUserResult.data as unknown as BusinessUserStatsOrganizationUserRecord
 
-  // Run completion and engagement queries in parallel
-  const [completionData, engagementData] = await Promise.all([
+  // Run completion, engagement and learning-path-order queries in parallel
+  const [completionData, engagementData, learningPathCourseOrder] = await Promise.all([
     fetchCompletionData(supabase, organizationId, userId),
     fetchEngagementData(supabase, userId),
+    fetchLearningPathCourseOrder(supabase, organizationId, userId),
   ])
 
   return {
     status: 'ok',
     data: {
       organizationUser,
+      learningPathCourseOrder,
       enrollments: completionData.enrollments,
       lessonProgress: completionData.lessonProgress,
       lessons: completionData.lessons,

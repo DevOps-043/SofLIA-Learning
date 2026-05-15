@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import { cacheHeaders } from '@/lib/utils/cache-headers';
 
 export const dynamic = 'force-dynamic';
 
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest) {
                     success: true,
                     hasPlan: false,
                     planId: null
-                });
+                }, { headers: cacheHeaders.privateShort });
             }
         }
 
@@ -106,7 +107,7 @@ export async function GET(request: NextRequest) {
             success: true,
             hasPlan,
             planId: hasPlan ? plans[0].id : null
-        });
+        }, { headers: cacheHeaders.privateShort });
 
     } catch (error) {
         console.error('Error interno en status de study planner:', error);

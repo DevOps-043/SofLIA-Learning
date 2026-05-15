@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
+import useSWR from 'swr'
 import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useTranslation } from 'react-i18next'
@@ -73,6 +74,28 @@ interface DashboardActivitiesResponse {
   activities?: DashboardActivityApiRow[]
 }
 
+async function fetchDashboardStats(url: string): Promise<DashboardStats | null> {
+  const response = await fetch(url, { credentials: 'include' })
+  const data = (await response.json().catch(() => null)) as DashboardStatsResponse | null
+
+  if (!response.ok || !data?.success) {
+    throw new Error('Error al cargar estadisticas')
+  }
+
+  return data.stats ?? null
+}
+
+async function fetchDashboardActivities(url: string): Promise<DashboardActivityApiRow[]> {
+  const response = await fetch(url, { credentials: 'include' })
+  const data = (await response.json().catch(() => null)) as DashboardActivitiesResponse | null
+
+  if (!response.ok || !data?.success) {
+    throw new Error('Error al cargar actividades')
+  }
+
+  return data.activities ?? []
+}
+
 function parseChange(change: DashboardChange): number {
   if (typeof change === 'number') return change
   if (typeof change === 'string') {
@@ -96,14 +119,35 @@ export function useBusinessPanelDashboardLogic() {
   const { user } = useAuth()
   const params = useParams()
   const orgSlug = params?.orgSlug as string || 'org'
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [activities, setActivities] = useState<DashboardActivity[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [activitiesLoading, setActivitiesLoading] = useState(true)
   const { t, i18n } = useTranslation('business')
   const { effectiveStyles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
   const isDark = resolvedTheme === 'dark'
+  const statsUrl = orgSlug ? `/api/${orgSlug}/business/dashboard/stats` : null
+  const activitiesUrl = orgSlug ? `/api/${orgSlug}/business/dashboard/activity` : null
+
+  const {
+    data: stats = null,
+    error: statsError,
+    isLoading: statsLoading,
+  } = useSWR<DashboardStats | null>(statsUrl, fetchDashboardStats, {
+    dedupingInterval: 60000,
+    errorRetryCount: 1,
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+  })
+
+  const {
+    data: activityRows = [],
+    isLoading: activityRowsLoading,
+  } = useSWR<DashboardActivityApiRow[]>(activitiesUrl, fetchDashboardActivities, {
+    dedupingInterval: 30000,
+    errorRetryCount: 1,
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+  })
 
   const panelStyles = effectiveStyles?.panel
 
@@ -137,53 +181,21 @@ export function useBusinessPanelDashboardLogic() {
     return formatTimeAgo(dateString, i18n.language, t)
   }
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setIsLoading(true)
-        const response = await fetch(`/api/${orgSlug}/business/dashboard/stats`, { credentials: 'include' })
-        if (!response.ok) throw new Error('Error al cargar estadisticas')
-        const data = await response.json() as DashboardStatsResponse
-        if (data.success && data.stats) setStats(data.stats)
-      } catch (error) {
-        console.error('Error loading stats:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    fetchStats()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const fetchActivities = async () => {
-      try {
-        setActivitiesLoading(true)
-        const response = await fetch(`/api/${orgSlug}/business/dashboard/activity`, { credentials: 'include' })
-        if (!response.ok) throw new Error('Error al cargar actividades')
-        const data = await response.json() as DashboardActivitiesResponse
-        if (data.success && data.activities) {
-          setActivities(data.activities.map((activity) => ({
-            title: activity.action || t('dashboard.recentActivity.defaultTitle', { defaultValue: 'Actividad' }),
-            description: activity.action || t('dashboard.recentActivity.defaultDesc', { defaultValue: 'Sin descripcion' }),
-            user: activity.user || t('dashboard.recentActivity.defaultUser', { defaultValue: 'Usuario' }),
-            timestamp: activity.time || t('dashboard.recentActivity.defaultTime', { defaultValue: 'Hace un momento' }),
-            type: activity.icon === 'CheckCircle'
-              ? 'certificate'
-              : activity.icon === 'Users'
-                ? 'user'
-                : activity.icon === 'BookOpen'
-                  ? 'course'
-                  : 'progress',
-          })))
-        }
-      } catch (error) {
-        console.error('Error loading activities:', error)
-      } finally {
-        setActivitiesLoading(false)
-      }
-    }
-    fetchActivities()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const activities = useMemo<DashboardActivity[]>(() => (
+    activityRows.map((activity) => ({
+      title: activity.action || t('dashboard.recentActivity.defaultTitle', { defaultValue: 'Actividad' }),
+      description: activity.action || t('dashboard.recentActivity.defaultDesc', { defaultValue: 'Sin descripcion' }),
+      user: activity.user || t('dashboard.recentActivity.defaultUser', { defaultValue: 'Usuario' }),
+      timestamp: activity.time || t('dashboard.recentActivity.defaultTime', { defaultValue: 'Hace un momento' }),
+      type: activity.icon === 'CheckCircle'
+        ? 'certificate'
+        : activity.icon === 'Users'
+          ? 'user'
+          : activity.icon === 'BookOpen'
+            ? 'course'
+            : 'progress',
+    }))
+  ), [activityRows, t])
 
   const statsData = useMemo(() => stats ? [
     {
@@ -320,8 +332,9 @@ export function useBusinessPanelDashboardLogic() {
     orgSlug,
     stats,
     activities,
-    isLoading,
-    activitiesLoading,
+    isLoading: statsLoading && !stats,
+    activitiesLoading: activityRowsLoading && activityRows.length === 0,
+    error: statsError instanceof Error ? statsError.message : null,
     themeColors,
     statsData,
     quickActions,

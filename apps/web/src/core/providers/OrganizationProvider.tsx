@@ -128,10 +128,19 @@ interface OrganizationProviderProps {
   children: ReactNode;
 }
 
+type IdleWindow = Window & {
+  requestIdleCallback?: (
+    callback: IdleRequestCallback,
+    options?: IdleRequestOptions
+  ) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
 export function OrganizationProvider({ children }: OrganizationProviderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [shouldFetchOrganizations, setShouldFetchOrganizations] = useState(false);
 
   // Zustand store
   const {
@@ -148,15 +157,33 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
   // Track client-side mounting
   useEffect(() => {
     setMounted(true);
+    const idleWindow = window as IdleWindow;
+
+    if (idleWindow.requestIdleCallback) {
+      const idleHandle = idleWindow.requestIdleCallback(
+        () => setShouldFetchOrganizations(true),
+        { timeout: 1500 }
+      );
+
+      return () => idleWindow.cancelIdleCallback?.(idleHandle);
+    }
+
+    const timeoutId = window.setTimeout(
+      () => setShouldFetchOrganizations(true),
+      600
+    );
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
-  // Fetch organizations via SWR (only when mounted on client)
+  // Fetch the full organization list after idle. Org-scoped layouts already
+  // hydrate the active organization, so this avoids blocking route paint.
   const {
     data: fetchedOrganizations,
     isLoading,
     mutate,
   } = useSWR<Organization[] | null>(
-    mounted ? '/api/users/organizations' : null,
+    mounted && shouldFetchOrganizations ? '/api/users/organizations' : null,
     organizationsFetcher,
     {
       revalidateOnFocus: false,
@@ -171,8 +198,20 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
   // Sync SWR loading state into Zustand so consumers of useOrganization()
   // see accurate isLoading before the first fetch completes.
   useEffect(() => {
-    setStoreLoading(!mounted || isLoading);
-  }, [mounted, isLoading, setStoreLoading]);
+    const hasOrganizationSnapshot =
+      currentOrganization !== null || userOrganizations.length > 0;
+    setStoreLoading(
+      !mounted ||
+        (shouldFetchOrganizations && isLoading && !hasOrganizationSnapshot)
+    );
+  }, [
+    mounted,
+    isLoading,
+    shouldFetchOrganizations,
+    currentOrganization,
+    userOrganizations.length,
+    setStoreLoading,
+  ]);
 
   // Sync fetched organizations to store
   // Also handles empty array (user has no active orgs) to avoid stale data
@@ -258,7 +297,12 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
       organizations: userOrganizations,
       isB2B: currentOrganization !== null,
       canSwitch: userOrganizations.length > 1,
-      isLoading: !mounted || isLoading,
+      isLoading:
+        !mounted ||
+        (shouldFetchOrganizations &&
+          isLoading &&
+          currentOrganization === null &&
+          userOrganizations.length === 0),
       switchOrganization,
       isOrgAdmin:
         currentOrganization !== null &&
@@ -270,6 +314,7 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
       currentOrganization,
       userOrganizations,
       isLoading,
+      shouldFetchOrganizations,
       switchOrganization,
       refreshOrganizations,
     ]

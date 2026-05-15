@@ -22,20 +22,31 @@ export function PrefetchLink({
   prefetchStrategy = 'hover',
   children,
   href,
+  onFocus,
+  onMouseEnter,
   ...props 
 }: PrefetchLinkProps) {
   const router = useRouter()
   
-  const handleMouseEnter = useCallback(() => {
+  const handleMouseEnter = useCallback<NonNullable<PrefetchLinkProps['onMouseEnter']>>((event) => {
+    onMouseEnter?.(event)
     if (prefetchStrategy === 'hover' && typeof href === 'string') {
       router.prefetch(href)
     }
-  }, [prefetchStrategy, href, router])
+  }, [prefetchStrategy, href, onMouseEnter, router])
+
+  const handleFocus = useCallback<NonNullable<PrefetchLinkProps['onFocus']>>((event) => {
+    onFocus?.(event)
+    if (prefetchStrategy === 'hover' && typeof href === 'string') {
+      router.prefetch(href)
+    }
+  }, [prefetchStrategy, href, onFocus, router])
 
   return (
     <Link 
       href={href}
       onMouseEnter={handleMouseEnter}
+      onFocus={handleFocus}
       {...props}
     >
       {children}

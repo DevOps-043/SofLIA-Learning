@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import * as Select from '@radix-ui/react-select'
 import { motion } from 'framer-motion'
 import { Calendar, Check, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useMotionSafe } from '../../../../lib/utils/motion'
 import type { ProfileColorPalette } from '../../types/profile.types'
 
 const EMPTY_SELECT_VALUE = '__empty__'
@@ -94,10 +95,11 @@ interface PremiumInputProps {
 
 export function PremiumInput({ label, value, onChange, icon, type = 'text', placeholder, max, colors }: PremiumInputProps) {
   const [focused, setFocused] = useState(false)
+  const { interfaceTransition } = useMotionSafe()
   const hasValue = value.length > 0
 
   return (
-    <motion.div className="relative group" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    <motion.div className="relative group" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
       <motion.div
         className="absolute -inset-[1px] rounded-2xl opacity-0 transition-opacity duration-500"
         style={{ background: `linear-gradient(135deg, ${colors.accent}40, transparent 50%, ${colors.accent}20)` }}
@@ -167,6 +169,7 @@ interface PremiumDateInputProps {
 export function PremiumDateInput({ label, value, onChange, min = '1900-01-01', max, colors }: PremiumDateInputProps) {
   const [focused, setFocused] = useState(false)
   const [open, setOpen] = useState(false)
+  const { interfaceTransition } = useMotionSafe()
   const [displayValue, setDisplayValue] = useState(formatDateForDisplay(value))
   const selectedDate = useMemo(() => parseDateOnly(value), [value])
   const maxDate = useMemo(() => (max ? parseDateOnly(max) : null), [max])
@@ -231,7 +234,7 @@ export function PremiumDateInput({ label, value, onChange, min = '1900-01-01', m
   }
 
   return (
-    <motion.div ref={rootRef} className="relative group" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    <motion.div ref={rootRef} className="relative group" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
       <motion.div
         className="absolute -inset-[1px] rounded-2xl opacity-0 transition-opacity duration-500"
         style={{ background: `linear-gradient(135deg, ${colors.accent}40, transparent 50%, ${colors.accent}20)` }}
@@ -355,9 +358,10 @@ interface PremiumSelectProps {
 
 export function PremiumSelect({ label, value, onChange, options, placeholder, colors }: PremiumSelectProps) {
   const [open, setOpen] = useState(false)
+  const { interfaceTransition } = useMotionSafe()
 
   return (
-    <motion.div className="relative group" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    <motion.div className="relative group" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
       <motion.div
         className="absolute -inset-[1px] rounded-2xl opacity-0 transition-opacity duration-500"
         style={{ background: `linear-gradient(135deg, ${colors.accent}40, transparent 50%, ${colors.accent}20)` }}
@@ -440,11 +444,12 @@ export function PremiumTextarea({
   colors
 }: PremiumTextareaProps) {
   const [focused, setFocused] = useState(false)
+  const { interfaceTransition } = useMotionSafe()
   const charCount = value.length
   const isNearLimit = charCount > maxLength * 0.8
 
   return (
-    <motion.div className="relative group" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    <motion.div className="relative group" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
       <motion.div
         className="absolute -inset-[1px] rounded-2xl opacity-0 transition-opacity duration-500"
         style={{ background: `linear-gradient(135deg, ${colors.accent}40, transparent 50%, ${colors.accent}20)` }}
@@ -494,10 +499,11 @@ interface PremiumPasswordProps {
 
 export function PremiumPassword({ label, value, onChange, show, onToggle, error, colors }: PremiumPasswordProps) {
   const [focused, setFocused] = useState(false)
+  const { interfaceTransition } = useMotionSafe()
   const hasValue = value.length > 0
 
   return (
-    <motion.div className="relative group" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    <motion.div className="relative group" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
       <motion.div
         className="absolute -inset-[1px] rounded-2xl opacity-0 transition-opacity duration-500"
         style={{ background: `linear-gradient(135deg, ${(error ? colors.error : colors.accent)}40, transparent 50%, ${(error ? colors.error : colors.accent)}20)` }}

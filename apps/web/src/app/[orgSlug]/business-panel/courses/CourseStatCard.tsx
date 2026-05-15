@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { LucideIcon } from 'lucide-react'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
+import { useMotionSafe } from '@/lib/utils/motion'
 
 export interface CourseStatCardProps {
   title: string
@@ -14,14 +15,16 @@ export interface CourseStatCardProps {
 
 export function CourseStatCard({ title, value, icon: Icon, color, delay }: CourseStatCardProps) {
   const { isDark, textColor, subtextColor, cardBg, borderColor } = useBusinessPanelTheme()
+  const { disableHeavy, interfaceStaggerSeconds, interfaceTransition } = useMotionSafe()
   const iconColor = isDark ? color : textColor
+  const entranceDelay = disableHeavy ? 0 : Math.min(delay * interfaceStaggerSeconds, 0.08)
 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: delay * 0.05, duration: 0.4, ease: 'easeOut' }}
-      whileHover={{ y: -2, transition: { duration: 0.2 } }}
+      transition={{ ...interfaceTransition, delay: entranceDelay }}
+      whileHover={disableHeavy ? undefined : { y: -2, transition: interfaceTransition }}
       className="group relative overflow-hidden rounded-[16px] p-4 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-start min-h-[90px] border"
       style={{
         backgroundColor: cardBg,

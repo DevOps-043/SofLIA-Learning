@@ -13,16 +13,18 @@ import {
   List
 } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { PremiumSelect } from '@/features/business-panel/components/PremiumSelect'
 import { CourseStatCard } from './CourseStatCard'
 import { CourseCard } from './CourseCard'
 import { useCoursesPageLogic } from './useCoursesPageLogic'
-import Joyride from 'react-joyride'
+import { Joyride } from 'react-joyride'
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
 import { getAdminCoursesSteps, ADMIN_COURSES_TOUR_ID } from '@/features/tours/config/business-panel/admin-courses-steps'
+import { useMotionSafe } from '@/lib/utils/motion'
+import { PrefetchLink } from '@/core/components/PrefetchLink'
 
 export function CoursesPageContent() {
+  const { disableHeavy, interfaceStaggerSeconds, interfaceTransition } = useMotionSafe()
   const {
     t,
     isDark,
@@ -91,6 +93,7 @@ export function CoursesPageContent() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
+      transition={interfaceTransition}
       className="p-6 lg:p-8 min-h-screen"
     >
       {/* Hero Section */}
@@ -98,7 +101,7 @@ export function CoursesPageContent() {
         id="tour-courses-hero"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={interfaceTransition}
         className="relative overflow-hidden rounded-3xl p-8 mb-8 shadow-lg"
         style={{
           background: isDark
@@ -107,31 +110,30 @@ export function CoursesPageContent() {
           border: isDark ? '1px solid rgba(255,255,255,0.1)' : 'none'
         }}
       >
-        {/* Decorative Elements */}
-        <motion.div
-          className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-30"
-          style={{ backgroundColor: primaryColor }}
-          animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
-          transition={{ duration: 5, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute bottom-0 left-1/3 w-48 h-48 rounded-full blur-3xl opacity-20"
-          style={{ backgroundColor: accentColor }}
-          animate={{ scale: [1.2, 1, 1.2], opacity: [0.3, 0.1, 0.3] }}
-          transition={{ duration: 6, repeat: Infinity }}
-        />
+        {!disableHeavy && (
+          <>
+            <div
+              className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-20"
+              style={{ backgroundColor: primaryColor }}
+            />
+            <div
+              className="absolute bottom-0 left-1/3 w-48 h-48 rounded-full blur-3xl opacity-15"
+              style={{ backgroundColor: accentColor }}
+            />
+          </>
+        )}
 
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-3">
             <motion.div
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              animate={disableHeavy ? undefined : { rotate: [0, 360] }}
+              transition={disableHeavy ? undefined : { duration: 20, repeat: Infinity, ease: "linear" }}
             >
-              <Sparkles className="w-5 h-5" style={{ color: isDark ? accentColor : '#FFFFFF' }} />
+              <Sparkles className="w-5 h-5" style={{ color: isDark ? accentColor : 'var(--color-bg-light)' }} />
             </motion.div>
             <span
               className="text-sm font-semibold uppercase tracking-wider"
-              style={{ color: isDark ? accentColor : '#FFFFFF', opacity: 0.9 }}
+              style={{ color: isDark ? accentColor : 'var(--color-bg-light)', opacity: 0.9 }}
             >
               {t('courses.badge')}
             </span>
@@ -139,13 +141,13 @@ export function CoursesPageContent() {
 
           <h1
             className="text-3xl lg:text-4xl font-bold mb-3"
-            style={{ color: isDark ? textColor : '#FFFFFF' }}
+            style={{ color: isDark ? textColor : 'var(--color-bg-light)' }}
           >
             {t('courses.title')}
           </h1>
           <p
             className="text-base lg:text-lg max-w-2xl"
-            style={{ color: isDark ? `${textColor}99` : '#FFFFFF', opacity: 0.8 }}
+            style={{ color: isDark ? `${textColor}99` : 'var(--color-bg-light)', opacity: 0.8 }}
           >
             {t('courses.subtitle')}
           </p>
@@ -296,7 +298,7 @@ export function CoursesPageContent() {
           {viewMode === 'grid' ? (
             <div id="tour-courses-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
               {filteredCourses.map((course, index) => (
-                <Link
+                <PrefetchLink
                   key={course.id}
                   href={`/${orgSlug}/business-panel/courses/${course.id}`}
                   className="block h-full relative z-10"
@@ -305,21 +307,21 @@ export function CoursesPageContent() {
                     course={course}
                     index={index}
                   />
-                </Link>
+                </PrefetchLink>
               ))}
             </div>
           ) : (
             <div id="tour-courses-list" className="flex flex-col gap-3">
               {filteredCourses.map((course, index) => (
-                <Link
+                <PrefetchLink
                   key={course.id}
                   href={`/${orgSlug}/business-panel/courses/${course.id}`}
                   className="block relative z-10"
                 >
                   <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+                    transition={{ ...interfaceTransition, delay: disableHeavy ? 0 : Math.min(index * interfaceStaggerSeconds, 0.08) }}
                     className="flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all hover:translate-x-1 group"
                     style={{
                       backgroundColor: cardBg,
@@ -355,7 +357,7 @@ export function CoursesPageContent() {
                     </div>
                   </div>
                 </motion.div>
-              </Link>
+              </PrefetchLink>
               ))}
             </div>
           )}

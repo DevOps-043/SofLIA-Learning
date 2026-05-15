@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import Joyride from 'react-joyride'
+import { Joyride } from 'react-joyride'
 import { usePathname, useRouter } from 'next/navigation'
 
 import { LiaFloatingButton } from '@/core/components/LiaSidePanel/LiaFloatingButton'

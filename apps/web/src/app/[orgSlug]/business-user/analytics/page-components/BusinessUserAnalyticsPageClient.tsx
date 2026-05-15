@@ -33,7 +33,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import Joyride from 'react-joyride'
+import { Joyride } from 'react-joyride'
 import { useTranslation } from 'react-i18next'
 import { BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS } from '@/core/constants/tourTargets'
 import { cn } from '@/shared/utils/cn'

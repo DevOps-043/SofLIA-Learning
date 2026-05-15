@@ -12,11 +12,12 @@ import {
 import { type BusinessCourse } from '@/features/business-panel/hooks/useBusinessCourses'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { useTranslation } from 'react-i18next'
+import { useMotionSafe } from '@/lib/utils/motion'
 
 export interface CourseCardProps {
   course: BusinessCourse
   index: number
-  onClick: () => void
+  onClick?: () => void
 }
 
 type TranslateFn = (key: string) => string
@@ -56,6 +57,7 @@ function getLevelStyles(
 
 export function CourseCard({ course, index, onClick }: CourseCardProps) {
   const { t } = useTranslation('business')
+  const { disableHeavy, interfaceStaggerSeconds, interfaceTransition } = useMotionSafe()
   const {
     primaryColor,
     textColor,
@@ -66,13 +68,14 @@ export function CourseCard({ course, index, onClick }: CourseCardProps) {
     difficultyColors,
   } = useBusinessPanelTheme()
   const levelStyles = getLevelStyles(course.level, t, difficultyColors)
+  const entranceDelay = disableHeavy ? 0 : Math.min(index * interfaceStaggerSeconds, 0.08)
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.4 }}
-      whileHover={{ y: -4, scale: 1.01 }}
+      transition={{ ...interfaceTransition, delay: entranceDelay }}
+      whileHover={disableHeavy ? undefined : { y: -2, scale: 1.005 }}
       onClick={onClick}
       className="group cursor-pointer overflow-hidden rounded-[1.5rem] border transition-all duration-300 shadow-sm hover:shadow-xl relative"
       style={{ backgroundColor: cardBg, borderColor }}

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ChevronRight, Loader2, Shield, Users } from 'lucide-react';
-import Joyride from 'react-joyride';
+import { Joyride } from 'react-joyride';
 import { useTranslation } from 'react-i18next';
 import { TourRestartButton } from '@/core/components/tours/TourRestartButton';
 import { useOrganization } from '@/core/hooks/useOrganization';

@@ -46,9 +46,8 @@ export async function fetchStudyPlanStatus(
       ? `?orgSlug=${encodeURIComponent(organizationSlug)}`
       : '';
     const response = await fetchImpl(`/api/study-planner/status${query}`, {
-      cache: 'no-store',
       headers: {
-        Pragma: 'no-cache',
+        Accept: 'application/json',
       },
     });
 

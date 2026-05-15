@@ -3,6 +3,11 @@ set -e  # Exit on error
 
 echo "🚀 Starting Netlify build for Aprende y Aplica monorepo..."
 
+if [ -f "apps/web/bin/ffmpeg" ] || [ -f "apps/web/bin/ffprobe" ]; then
+  echo "🎞️ Preparing bundled FFmpeg binaries..."
+  chmod +x apps/web/bin/ffmpeg apps/web/bin/ffprobe 2>/dev/null || true
+fi
+
 # Ensure TypeScript is available for building packages
 # Netlify doesn't install devDependencies in production, so we need to install TypeScript
 echo "📦 Installing TypeScript for package builds..."
@@ -23,4 +28,3 @@ echo "🌐 Building Next.js web app..."
 npm run build --workspace=apps/web
 
 echo "✅ Build completed successfully!"
-

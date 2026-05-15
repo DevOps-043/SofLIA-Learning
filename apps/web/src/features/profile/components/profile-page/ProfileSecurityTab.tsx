@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertCircle, CheckCircle2, Lock, Mail, Shield } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useMotionSafe } from '../../../../lib/utils/motion'
 import { PremiumInput, PremiumPassword } from './ProfilePremiumFields'
 import type { ProfileColorPalette, UpdateProfileRequest } from '../../types/profile.types'
 
@@ -55,15 +56,17 @@ export function ProfileSecurityTab({
 }: ProfileSecurityTabProps) {
   const isPasswordSubmitDisabled = isChangingPassword || !currentPassword || !newPassword || !confirmPassword
   const { t } = useTranslation('common')
+  const { interfaceTransition } = useMotionSafe()
 
   return (
-    <motion.div key="security" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
+    <motion.div key="security" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={interfaceTransition} className="space-y-6">
       <AnimatePresence>
         {passwordChangeSuccess ? (
           <motion.div
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={interfaceTransition}
             className="p-4 rounded-2xl flex items-center gap-3"
             style={{ backgroundColor: `${colors.success}15`, border: `1px solid ${colors.success}30` }}
           >
@@ -82,6 +85,7 @@ export function ProfileSecurityTab({
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={interfaceTransition}
             className="p-4 rounded-2xl flex items-center gap-3"
             style={{ backgroundColor: `${colors.error}15`, border: `1px solid ${colors.error}30` }}
           >

@@ -4,7 +4,7 @@ import type React from 'react'
 import { Activity, BookOpen, Lock, MessageCircle, Play } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { AnimatePresence, motion } from 'framer-motion'
-import Joyride from 'react-joyride'
+import { Joyride } from 'react-joyride'
 import type { NotesModalProps } from '../../../../core/components/NotesModal'
 import { COURSE_LEARN_TOUR_TARGET_IDS } from '../../../../core/constants/tourTargets'
 import { CourseAccessGuard } from '../../../../features/courses/components/CourseAccessGuard'
@@ -64,7 +64,7 @@ interface CourseLearnPageShellProps {
 
 export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
   const videoPlayerContext = useVideoPlayerOptional()
-  const { disableHeavyEffects } = useMobilePerformanceMode()
+  const { disableHeavyEffects, interfaceTransitionMs } = useMobilePerformanceMode()
   const {
     slug,
     router,
@@ -508,13 +508,13 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                           : undefined,
                       }}
                     >
-                      <AnimatePresence mode="wait">
+                      <AnimatePresence initial={false}>
                         <motion.div
                           key={activeTab}
                           initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
                           animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
-                          exit={disableHeavyEffects ? undefined : { opacity: 0, y: -20 }}
-                          transition={disableHeavyEffects ? undefined : { duration: 0.3 }}
+                          exit={disableHeavyEffects ? undefined : { opacity: 0 }}
+                          transition={disableHeavyEffects ? undefined : { duration: interfaceTransitionMs / 1000 }}
                           className="h-auto p-3 md:p-6 flex flex-col gap-4"
                         >
                           {activeTab === 'video' && (

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Download, Mail, Plus, RefreshCw, Sparkles, Upload } from 'lucide-react'
 import type { TFunction } from 'i18next'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
+import { useMotionSafe } from '@/lib/utils/motion'
 
 interface UsersPageHeaderProps {
   t: TFunction
@@ -16,6 +17,7 @@ interface UsersPageHeaderProps {
 }
 
 export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInviteClick, onAddClick, onRefresh, isRefreshing }: UsersPageHeaderProps) {
+  const { disableHeavy, interfaceStaggerSeconds, interfaceTransition } = useMotionSafe()
   const {
     accentColor,
     primaryColor,
@@ -33,7 +35,7 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
       id="tour-users-hero"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
+      transition={interfaceTransition}
       className="relative overflow-hidden rounded-3xl p-8 group"
       style={{
         background: heroBackground,
@@ -51,19 +53,18 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
         />
       </div>
 
-      {/* Animated Particles */}
-      <motion.div
-        animate={{ y: [0, -10, 0], opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 3, repeat: Infinity }}
-        className="absolute top-10 right-20 w-2 h-2 rounded-full"
-        style={{ backgroundColor: accentColor }}
-      />
-      <motion.div
-        animate={{ y: [0, 10, 0], opacity: [0.3, 0.8, 0.3] }}
-        transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-        className="absolute bottom-10 right-40 w-3 h-3 rounded-full"
-        style={{ backgroundColor: accentColor }}
-      />
+      {!disableHeavy ? (
+        <>
+          <div
+            className="absolute top-10 right-20 w-2 h-2 rounded-full opacity-70"
+            style={{ backgroundColor: accentColor }}
+          />
+          <div
+            className="absolute bottom-10 right-40 w-3 h-3 rounded-full opacity-50"
+            style={{ backgroundColor: accentColor }}
+          />
+        </>
+      ) : null}
 
       {/* Content */}
       <div className="relative z-10">
@@ -71,8 +72,8 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
           <div>
             <div className="flex items-center gap-3 mb-3">
               <motion.div
-                animate={{ rotate: [0, 360] }}
-                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                animate={disableHeavy ? undefined : { rotate: [0, 360] }}
+                transition={disableHeavy ? undefined : { duration: 20, repeat: Infinity, ease: 'linear' }}
               >
                 <Sparkles className="w-6 h-6" style={{ color: accentColor }} />
               </motion.div>
@@ -85,7 +86,7 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
               className="text-3xl lg:text-4xl font-bold mb-2"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
+              transition={interfaceTransition}
               style={{ color: inverseTextColor }}
             >
               {t('users.title')}
@@ -95,7 +96,7 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
               className="text-lg max-w-xl"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={interfaceTransition}
               style={{ color: inverseSubtextColor }}
             >
               {t('users.subtitle')}
@@ -104,17 +105,20 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
 
           <div id="tour-users-actions" className="flex flex-wrap items-center justify-start gap-3 lg:justify-end">
             {[
-              { id: 'tour-users-refresh-button', icon: RefreshCw, label: t('users.buttons.refresh', 'Actualizar'), onClick: onRefresh ?? (() => {}), delay: 0.35, spin: isRefreshing },
-              { id: 'tour-users-template-button', icon: Download, label: t('users.buttons.template'), onClick: onDownloadTemplate, delay: 0.4 },
-              { id: 'tour-users-import-button', icon: Upload, label: t('users.buttons.import', 'Importar'), onClick: onImportClick, delay: 0.45 },
-              { id: 'tour-users-invite-button', icon: Mail, label: t('users.buttons.invite', 'Invitar'), onClick: onInviteClick, delay: 0.45 },
-            ].map(({ id, icon: Icon, label, onClick, delay, spin }) => (
+              { id: 'tour-users-refresh-button', icon: RefreshCw, label: t('users.buttons.refresh', 'Actualizar'), onClick: onRefresh ?? (() => {}), index: 0, spin: isRefreshing },
+              { id: 'tour-users-template-button', icon: Download, label: t('users.buttons.template'), onClick: onDownloadTemplate, index: 1 },
+              { id: 'tour-users-import-button', icon: Upload, label: t('users.buttons.import', 'Importar'), onClick: onImportClick, index: 2 },
+              { id: 'tour-users-invite-button', icon: Mail, label: t('users.buttons.invite', 'Invitar'), onClick: onInviteClick, index: 3 },
+            ].map(({ id, icon: Icon, label, onClick, index, spin }) => (
               <motion.button
                 id={id}
                 key={label}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay }}
+                transition={{
+                  ...interfaceTransition,
+                  delay: disableHeavy ? 0 : Math.min(index * interfaceStaggerSeconds, 0.08),
+                }}
                 onClick={onClick}
                 className="px-4 py-2.5 rounded-xl font-bold text-sm border transition-colors flex items-center gap-2"
                 style={{
@@ -122,8 +126,8 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
                   backgroundColor: inverseSurface,
                   color: inverseTextColor,
                 }}
-                whileHover={{ scale: 1.02, backgroundColor: inverseSurface }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={disableHeavy ? undefined : { scale: 1.01, backgroundColor: inverseSurface }}
+                whileTap={disableHeavy ? undefined : { scale: 0.99 }}
               >
                 <Icon className={`w-4 h-4${spin ? ' animate-spin' : ''}`} />
                 {label}
@@ -134,7 +138,10 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
               id="tour-users-add-button"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.55 }}
+              transition={{
+                ...interfaceTransition,
+                delay: disableHeavy ? 0 : Math.min(4 * interfaceStaggerSeconds, 0.08),
+              }}
               onClick={onAddClick}
               className="px-6 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2"
               style={{
@@ -142,8 +149,8 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
                 color: onPrimaryColor,
                 boxShadow: `0 8px 30px ${primaryColor}40`,
               }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={disableHeavy ? undefined : { scale: 1.02 }}
+              whileTap={disableHeavy ? undefined : { scale: 0.98 }}
             >
               <Plus className="w-5 h-5" style={{ color: onPrimaryColor }} strokeWidth={3} />
               <span>{t('users.buttons.add')}</span>

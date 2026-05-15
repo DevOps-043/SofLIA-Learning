@@ -107,19 +107,15 @@ export function normalizeDirectVideoProviderId(
     videoProvider !== 'direct' ||
     !videoProviderId.includes('supabase.co/storage/v1/object/public/')
   ) {
-    return truncateVideoProviderId(videoProviderId)
+    return videoProvider === 'direct' ? videoProviderId : truncateVideoProviderId(videoProviderId)
   }
 
   const publicIndex = videoProviderId.indexOf('/public/')
   if (publicIndex === -1) {
-    return truncateVideoProviderId(videoProviderId)
+    return videoProviderId
   }
 
-  const path = videoProviderId.substring(publicIndex + 8)
-  const normalizedPath =
-    path.length > 50 ? path.split('/').pop() || path : path
-
-  return truncateVideoProviderId(normalizedPath)
+  return videoProviderId.substring(publicIndex + 8)
 }
 
 function buildInstructorName(instructor: LessonInstructorRecord): string {

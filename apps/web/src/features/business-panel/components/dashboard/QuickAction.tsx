@@ -1,8 +1,9 @@
 'use client'
 import { motion } from 'framer-motion'
-import Link from 'next/link'
 import { useThemeStore } from '@/core/stores/themeStore'
 import { useOrganizationStylesContext } from '../../contexts/OrganizationStylesContext'
+import { useMotionSafe } from '@/lib/utils/motion'
+import { PrefetchLink } from '@/core/components/PrefetchLink'
 
 export interface QuickActionProps {
   title: string
@@ -17,20 +18,24 @@ export function QuickAction({ title, description, icon: Icon, href, color, delay
   const { resolvedTheme } = useThemeStore()
   const isLightMode = resolvedTheme === 'light'
   const { effectiveStyles } = useOrganizationStylesContext()
+  const { disableHeavy, interfaceStaggerSeconds, interfaceTransition } = useMotionSafe()
   
   const panelStyles = effectiveStyles?.panel
-  const textColor = isLightMode ? (panelStyles?.text_color || '#0F172A') : (panelStyles?.text_color || '#FFFFFF')
+  const textColor = isLightMode
+    ? (panelStyles?.text_color || 'var(--color-gray-900)')
+    : (panelStyles?.text_color || 'var(--color-bg-light)')
   const iconColor = color || 'var(--color-accent)'
+  const entranceDelay = disableHeavy ? 0 : Math.min(delay * interfaceStaggerSeconds, 0.08)
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: delay * 0.05 + 0.3, duration: 0.4, ease: 'easeOut' }}
-      whileHover={{ scale: 1.02 }}
+      transition={{ ...interfaceTransition, delay: entranceDelay }}
+      whileHover={disableHeavy ? undefined : { scale: 1.01 }}
       className="w-full"
     >
-      <Link href={href} className="block w-full">
+      <PrefetchLink href={href} className="block w-full">
         <div 
           className="group relative overflow-hidden rounded-[16px] p-4 transition-all duration-300 flex items-center gap-4 cursor-pointer shadow-sm hover:shadow-md"
           style={{
@@ -81,7 +86,7 @@ export function QuickAction({ title, description, icon: Icon, href, color, delay
             style={{ backgroundColor: iconColor }}
           />
         </div>
-      </Link>
+      </PrefetchLink>
     </motion.div>
   )
 }

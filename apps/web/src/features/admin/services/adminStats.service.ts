@@ -1,103 +1,129 @@
-import { createClient } from '../../../lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import type { AdminStats, AdminStatsWithChanges } from './admin-stats.types'
 
 export type { AdminStats, AdminStatsWithChanges } from './admin-stats.types'
+
+interface CountQueryResult {
+  count: number | null
+  error: unknown | null
+}
+
+interface ActiveSessionRow {
+  user_id: string | null
+}
+
+interface ActiveSessionsQueryResult {
+  data: ActiveSessionRow[] | null
+  error: unknown | null
+}
+
+function readCount(result: CountQueryResult): number {
+  if (result.error) {
+    throw result.error
+  }
+
+  return result.count ?? 0
+}
+
+function calculateGrowthPercentage(current: number, growth: number): number {
+  if (current === 0) return 0
+  if (growth === 0) return 0
+  if (current <= growth) return 100
+
+  const previous = current - growth
+  if (previous <= 0) return 0
+
+  const percentage = Math.round((growth / previous) * 100)
+  return Math.max(0, Math.min(1000, percentage))
+}
 
 export class AdminStatsService {
   static async getStats(): Promise<AdminStatsWithChanges> {
     try {
       const supabase = await createClient()
-      // 🚀 OPTIMIZACIÓN AVANZADA: Reducir 13 queries a 7 queries más eficientes
-      // - Usar solo head:true para counts (no traer datos)
-      // - Combinar queries de growth con totales cuando sea posible
 
       const thirtyDaysAgo = new Date()
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      const thirtyDaysAgoIso = thirtyDaysAgo.toISOString()
 
       const sevenDaysAgo = new Date()
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+      const sevenDaysAgoIso = sevenDaysAgo.toISOString()
 
       const [
-        usersResult,
-        coursesResult,
-        orgsResult,
-        aiAppsResult,
-        newsResult,
-        reelsResult,
-        favoritesResult,
+        usersTotalResult,
+        usersGrowthResult,
+        coursesTotalResult,
+        coursesGrowthResult,
+        orgsTotalResult,
+        orgsGrowthResult,
+        aiAppsTotalResult,
+        aiAppsGrowthResult,
+        newsTotalResult,
+        newsGrowthResult,
+        reelsTotalResult,
+        reelsGrowthResult,
+        favoritesTotalResult,
+        favoritesGrowthResult,
         activeUsersResult,
       ] = await Promise.all([
-        // 🚀 Estadísticas de users (total + growth en una query)
-        supabase.from('users').select('id, created_at', { count: 'exact', head: false }),
+        supabase.from('users').select('id', { count: 'exact', head: true }),
+        supabase.from('users').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgoIso),
 
-        // 🚀 Estadísticas de courses (total + growth en una query)
-        supabase.from('courses').select('id, created_at', { count: 'exact', head: false }).eq('is_active', true),
+        supabase.from('courses').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('courses').select('id', { count: 'exact', head: true }).eq('is_active', true).gte('created_at', thirtyDaysAgoIso),
 
-        // 🚀 Estadísticas de organizations (total + growth en una query)
-        supabase.from('organizations').select('id, created_at', { count: 'exact', head: false }).eq('is_active', true),
+        supabase.from('organizations').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('organizations').select('id', { count: 'exact', head: true }).eq('is_active', true).gte('created_at', thirtyDaysAgoIso),
 
-        // 🚀 Estadísticas de ai_apps (total + growth en una query)
-        supabase.from('ai_apps').select('app_id, created_at', { count: 'exact', head: false }),
+        supabase.from('ai_apps').select('app_id', { count: 'exact', head: true }),
+        supabase.from('ai_apps').select('app_id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgoIso),
 
-        // 🚀 Estadísticas de news (total + growth en una query)
-        supabase.from('news').select('id, created_at', { count: 'exact', head: false }),
+        supabase.from('news').select('id', { count: 'exact', head: true }),
+        supabase.from('news').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgoIso),
 
-        // 🚀 Estadísticas de reels (total + growth en una query)
-        supabase.from('reels').select('id, created_at', { count: 'exact', head: false }),
+        supabase.from('reels').select('id', { count: 'exact', head: true }),
+        supabase.from('reels').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgoIso),
 
-        // 🚀 Estadísticas de favorites (total + growth en una query)
-        supabase.from('user_favorites').select('id, created_at', { count: 'exact', head: false }),
+        supabase.from('user_favorites').select('id', { count: 'exact', head: true }),
+        supabase.from('user_favorites').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgoIso),
 
-        // 🚀 Engagement rate (solo user_id y issued_at)
-        supabase.from('user_session').select('user_id, issued_at', { head: false }).gte('issued_at', sevenDaysAgo.toISOString()).eq('revoked', false),
+        supabase.from('user_session').select('user_id', { head: false }).gte('issued_at', sevenDaysAgoIso).eq('revoked', false),
       ])
 
-      // 🚀 Calcular totales y growth en cliente (más rápido que queries separadas)
-      const totalUsers = usersResult.count || 0
-      const usersGrowth = usersResult.data?.filter((u: { created_at: string }) => new Date(u.created_at) >= thirtyDaysAgo).length || 0
+      const totalUsers = readCount(usersTotalResult as CountQueryResult)
+      const usersGrowth = readCount(usersGrowthResult as CountQueryResult)
+      const totalCourses = readCount(coursesTotalResult as CountQueryResult)
+      const coursesGrowth = readCount(coursesGrowthResult as CountQueryResult)
+      const totalOrgs = readCount(orgsTotalResult as CountQueryResult)
+      const orgsGrowth = readCount(orgsGrowthResult as CountQueryResult)
+      const totalAIApps = readCount(aiAppsTotalResult as CountQueryResult)
+      const aiAppsGrowth = readCount(aiAppsGrowthResult as CountQueryResult)
+      const totalNews = readCount(newsTotalResult as CountQueryResult)
+      const newsGrowth = readCount(newsGrowthResult as CountQueryResult)
+      const totalReels = readCount(reelsTotalResult as CountQueryResult)
+      const reelsGrowth = readCount(reelsGrowthResult as CountQueryResult)
+      const totalFavorites = readCount(favoritesTotalResult as CountQueryResult)
+      const favoritesGrowth = readCount(favoritesGrowthResult as CountQueryResult)
 
-      const totalCourses = coursesResult.count || 0
-      const coursesGrowth = coursesResult.data?.filter((c: { created_at: string }) => new Date(c.created_at) >= thirtyDaysAgo).length || 0
-
-      const totalOrgs = orgsResult.count || 0
-      const orgsGrowth = orgsResult.data?.filter((o: { created_at: string }) => new Date(o.created_at) >= thirtyDaysAgo).length || 0
-
-      const totalAIApps = aiAppsResult.count || 0
-      const aiAppsGrowth = aiAppsResult.data?.filter((a: { created_at: string }) => new Date(a.created_at) >= thirtyDaysAgo).length || 0
-
-      const totalNews = newsResult.count || 0
-      const newsGrowth = newsResult.data?.filter((n: { created_at: string }) => new Date(n.created_at) >= thirtyDaysAgo).length || 0
-
-      const totalReels = reelsResult.count || 0
-      const reelsGrowth = reelsResult.data?.filter((r: { created_at: string }) => new Date(r.created_at) >= thirtyDaysAgo).length || 0
-
-      const totalFavorites = favoritesResult.count || 0
-      const favoritesGrowth = favoritesResult.data?.filter((f: { created_at: string }) => new Date(f.created_at) >= thirtyDaysAgo).length || 0
-
-      const activeUsers = new Set(activeUsersResult.data?.map((session: { user_id: string }) => session.user_id)).size
-      const engagementRate = totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0
-
-      // Calcular porcentajes de crecimiento
-      const calculateGrowthPercentage = (current: number, growth: number): number => {
-        if (current === 0) return 0
-        if (growth === 0) return 0
-        if (current <= growth) return 100 // Si el crecimiento es igual o mayor al total actual
-        
-        const previous = current - growth
-        if (previous <= 0) return 0
-        
-        const percentage = Math.round((growth / previous) * 100)
-        return Math.max(0, Math.min(1000, percentage)) // Limitar entre 0 y 1000%
+      const activeSessions = activeUsersResult as ActiveSessionsQueryResult
+      if (activeSessions.error) {
+        throw activeSessions.error
       }
 
+      const activeUsers = new Set(
+        activeSessions.data?.map((session) => session.user_id).filter(Boolean)
+      ).size
+      const engagementRate = totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0
+
       const stats: AdminStatsWithChanges = {
-        totalUsers: totalUsers,
+        totalUsers,
         activeCourses: totalCourses,
         totalOrganizations: totalOrgs,
-        totalAIApps: totalAIApps,
-        totalNews: totalNews,
-        totalReels: totalReels,
-        engagementRate: engagementRate,
+        totalAIApps,
+        totalNews,
+        totalReels,
+        engagementRate,
         userGrowth: calculateGrowthPercentage(totalUsers, usersGrowth),
         courseGrowth: calculateGrowthPercentage(totalCourses, coursesGrowth),
         organizationGrowth: calculateGrowthPercentage(totalOrgs, orgsGrowth),
@@ -109,9 +135,7 @@ export class AdminStatsService {
 
       return stats
     } catch (error) {
-      
-      // Retornar valores por defecto en caso de error
-      const defaultStats = {
+      const defaultStats: AdminStatsWithChanges = {
         totalUsers: 0,
         activeCourses: 0,
         totalOrganizations: 0,
@@ -127,7 +151,7 @@ export class AdminStatsService {
         reelsGrowth: 0,
         engagementGrowth: 0
       }
-      
+
       return defaultStats
     }
   }

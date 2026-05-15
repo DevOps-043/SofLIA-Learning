@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
 import { useAuth } from '../../../../../features/auth/hooks/useAuth'
 import { useOrganizationStyles } from '../../../../../features/business-panel/hooks/useOrganizationStyles'
 import { getBackgroundStyle, generateCSSVariables } from '../../../../../features/business-panel/utils/styles'
@@ -44,11 +45,26 @@ interface DashboardResponse {
   learningPaths?: AssignedLearningPath[]
 }
 
+interface BusinessUserDashboardData {
+  assignedCourses: AssignedCourse[]
+  learningPaths: AssignedLearningPath[]
+  organization: Organization | null
+  orgRole: OrgRole
+  stats: DashboardStats
+}
+
 class ApiJsonResponseError extends Error {
   constructor(message: string, readonly shouldRedirectToAuth = false) {
     super(message)
     this.name = 'ApiJsonResponseError'
   }
+}
+
+const EMPTY_DASHBOARD_STATS: DashboardStats = {
+  total_assigned: 0,
+  in_progress: 0,
+  completed: 0,
+  certificates: 0,
 }
 
 /**
@@ -80,6 +96,63 @@ function sortCoursesByLearningPathPosition(
   return [...courses].sort((a, b) => getOrder(a.title) - getOrder(b.title))
 }
 
+async function fetchBusinessUserDashboardData(
+  orgSlug: string,
+): Promise<BusinessUserDashboardData> {
+  const [organizationResponse, dashboardResponse] = await Promise.all([
+    fetch(`/api/${orgSlug}/organization`, {
+      credentials: 'include',
+    }),
+    fetch(`/api/${orgSlug}/business-user/dashboard`, {
+      credentials: 'include',
+    }),
+  ])
+
+  let organization: Organization | null = null
+  let orgRole: OrgRole = null
+
+  if (organizationResponse.ok) {
+    const organizationData = await readApiJson<OrganizationResponse>(
+      organizationResponse,
+      'Error al cargar datos de la organizacion',
+    )
+    if (organizationData.success && organizationData.organization) {
+      organization = {
+        ...organizationData.organization,
+        slug: orgSlug,
+      }
+      orgRole = organizationData.userRole ?? null
+    }
+  }
+
+  const dashboardData = await readApiJson<DashboardResponse>(
+    dashboardResponse,
+    'Error al cargar datos del dashboard',
+  )
+
+  if (!dashboardResponse.ok) {
+    throw new Error(
+      dashboardData.error || `Error ${dashboardResponse.status}: Error al cargar datos del dashboard`,
+    )
+  }
+
+  if (dashboardData.success || (dashboardData.stats && dashboardData.courses)) {
+    const rawLearningPaths = dashboardData.learningPaths || []
+    return {
+      assignedCourses: sortCoursesByLearningPathPosition(
+        dashboardData.courses || [],
+        rawLearningPaths,
+      ),
+      learningPaths: rawLearningPaths,
+      organization,
+      orgRole,
+      stats: dashboardData.stats || EMPTY_DASHBOARD_STATS,
+    }
+  }
+
+  throw new Error(dashboardData.error || 'Error al obtener datos')
+}
+
 export function useBusinessUserDashboardPageLogic() {
   const router = useRouter()
   const params = useParams()
@@ -90,19 +163,37 @@ export function useBusinessUserDashboardPageLogic() {
   const { resolvedTheme } = useThemeStore()
   const { disableHeavyEffects, isMobileViewport } = useMobilePerformanceMode()
 
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [organization, setOrganization] = useState<Organization | null>(null)
-  const [orgRole, setOrgRole] = useState<OrgRole>(null)
-  const [stats, setStats] = useState<DashboardStats>({
-    total_assigned: 0,
-    in_progress: 0,
-    completed: 0,
-    certificates: 0,
-  })
-  const [assignedCourses, setAssignedCourses] = useState<AssignedCourse[]>([])
-  const [learningPaths, setLearningPaths] = useState<AssignedLearningPath[]>([])
   const [isMounted, setIsMounted] = useState(false)
+  const {
+    data: dashboardData,
+    error: dashboardError,
+    isLoading: isDashboardLoading,
+    mutate: mutateDashboardData,
+  } = useSWR<BusinessUserDashboardData>(
+    orgSlug ? `business-user-dashboard:${orgSlug}` : null,
+    () => fetchBusinessUserDashboardData(orgSlug as string),
+    {
+      dedupingInterval: 60000,
+      errorRetryCount: 1,
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+    },
+  )
+
+  const organization = dashboardData?.organization ?? null
+  const orgRole = dashboardData?.orgRole ?? null
+  const stats = dashboardData?.stats ?? EMPTY_DASHBOARD_STATS
+  const assignedCourses = dashboardData?.assignedCourses ?? []
+  const learningPaths = dashboardData?.learningPaths ?? []
+  const loading = Boolean(orgSlug) && isDashboardLoading && !dashboardData
+  const error = !orgSlug
+    ? 'No se pudo determinar la organizacion'
+    : dashboardError instanceof ApiJsonResponseError && dashboardError.shouldRedirectToAuth
+      ? null
+      : dashboardError instanceof Error
+        ? dashboardError.message
+        : null
 
   const userDashboardStyles = effectiveStyles?.userDashboard
   const backgroundStyle = getBackgroundStyle(userDashboardStyles ?? null)
@@ -138,109 +229,22 @@ export function useBusinessUserDashboardPageLogic() {
   const initials = useMemo(() => getBusinessUserInitials(user), [user])
 
   const loadDashboardData = useCallback(async () => {
-    if (!orgSlug) {
-      setError('No se pudo determinar la organizacion')
-      setLoading(false)
-      return
+    await mutateDashboardData()
+  }, [mutateDashboardData])
+
+  useEffect(() => {
+    if (dashboardError instanceof ApiJsonResponseError && dashboardError.shouldRedirectToAuth) {
+      router.push('/auth?error=session_expired')
     }
-
-    try {
-      setLoading(true)
-      setError(null)
-
-      const [organizationResponse, dashboardResponse] = await Promise.all([
-        fetch(`/api/${orgSlug}/organization`, {
-          credentials: 'include',
-          cache: 'no-store',
-        }),
-        fetch(`/api/${orgSlug}/business-user/dashboard`, {
-          credentials: 'include',
-          cache: 'no-store',
-        }),
-      ])
-
-      if (organizationResponse.ok) {
-        const organizationData = await readApiJson<OrganizationResponse>(
-          organizationResponse,
-          'Error al cargar datos de la organizacion',
-        )
-        if (organizationData.success && organizationData.organization) {
-          setOrganization({
-            ...organizationData.organization,
-            slug: orgSlug,
-          })
-          if (organizationData.userRole) {
-            setOrgRole(organizationData.userRole)
-          }
-        }
-      }
-
-      const dashboardData = await readApiJson<DashboardResponse>(
-        dashboardResponse,
-        'Error al cargar datos del dashboard',
-      )
-
-      if (!dashboardResponse.ok) {
-        throw new Error(
-          dashboardData.error || `Error ${dashboardResponse.status}: Error al cargar datos del dashboard`
-        )
-      }
-
-      if (dashboardData.success) {
-        setStats(
-          dashboardData.stats || {
-            total_assigned: 0,
-            in_progress: 0,
-            completed: 0,
-            certificates: 0,
-          }
-        )
-
-        // Sort courses by learning path position (LP courses first, then the rest)
-        const rawCourses = dashboardData.courses || []
-        const rawLearningPaths = dashboardData.learningPaths || []
-        setAssignedCourses(sortCoursesByLearningPathPosition(rawCourses, rawLearningPaths))
-        setLearningPaths(rawLearningPaths)
-        return
-      }
-
-      if (dashboardData.stats && dashboardData.courses) {
-        setStats(dashboardData.stats)
-        const fallbackLPs = dashboardData.learningPaths || []
-        setAssignedCourses(sortCoursesByLearningPathPosition(dashboardData.courses, fallbackLPs))
-        setLearningPaths(fallbackLPs)
-        return
-      }
-
-      throw new Error(dashboardData.error || 'Error al obtener datos')
-    } catch (loadError) {
-      if (loadError instanceof ApiJsonResponseError && loadError.shouldRedirectToAuth) {
-        router.push('/auth?error=session_expired')
-        return
-      }
-
-      setError(loadError instanceof Error ? loadError.message : 'Error desconocido')
-      setStats({
-        total_assigned: 0,
-        in_progress: 0,
-        completed: 0,
-        certificates: 0,
-      })
-      setAssignedCourses([])
-      setLearningPaths([])
-    } finally {
-      setLoading(false)
-    }
-  }, [orgSlug, router])
+  }, [dashboardError, router])
 
   useEffect(() => {
     if (orgSlug) {
       if (process.env.NODE_ENV === 'development' && typeof performance !== 'undefined') {
         performance.mark('business-user-dashboard:load-start')
       }
-      void loadDashboardData()
     }
-  }, [loadDashboardData, orgSlug])
+  }, [orgSlug])
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development' || loading || typeof performance === 'undefined') {
@@ -302,8 +306,8 @@ export function useBusinessUserDashboardPageLogic() {
   }, [logout, router])
 
   const handleProfileClick = useCallback(() => {
-    router.push('/profile')
-  }, [router])
+    router.push(orgSlug ? `/${orgSlug}/profile` : '/profile')
+  }, [orgSlug, router])
 
   const handleCertificatesClick = useCallback(() => {
     router.push('/certificates')

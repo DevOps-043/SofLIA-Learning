@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/utils/logger'
 import { requireBusinessUser } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
+import { cacheHeaders } from '@/lib/utils/cache-headers'
 import { loadBusinessUserLearningPaths } from '@/features/learning-paths/services/learning-path-dashboard.server'
 import { LearningPathDefaultsService } from '@/features/learning-paths/services/learning-path-defaults.server'
 import type { AssignedLearningPathDashboard } from '@/features/learning-paths/services/learning-path-dashboard.service'
@@ -410,9 +411,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       courses: courses,
       learningPaths
     }, {
-      headers: {
-        'Cache-Control': 'no-store, max-age=0'
-      }
+      headers: cacheHeaders.privateShort
     })
   } catch (error) {
     logger.error('💥 Error in /api/[orgSlug]/business-user/dashboard:', error)
