@@ -15,12 +15,12 @@ const BodySchema = z.object({
   bucket: z.string().min(1).max(64).default('course-videos'),
   folder: z.string().max(200).default('videos'),
   /** Max number of BG functions to invoke immediately.  The rest stay
-   *  queued and must be drained manually with /drain.  Defaults to 5 —
-   *  a balanced point: ~40% faster than concurrency=3 for bulk backfill
-   *  while staying well within Netlify Pro concurrency caps and below
-   *  the Supabase Storage rate-limit threshold (with retries as a
-   *  safety net for transient HTML proxy errors). */
-  concurrency: z.number().int().min(1).max(10).default(5),
+   *  queued and must be drained manually with /drain.  Defaults to 10 —
+   *  the upper bound of the safe range on Netlify Pro.  With ~8 min
+   *  per video this drains 85 legacy videos in ~70 min instead of
+   *  ~140 min at concurrency=5.  Supabase Storage rate limits are
+   *  absorbed by the 3-retry backoff in uploadHlsDirectory. */
+  concurrency: z.number().int().min(1).max(10).default(10),
 })
 
 interface StorageObject {

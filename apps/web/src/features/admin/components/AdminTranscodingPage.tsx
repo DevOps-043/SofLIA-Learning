@@ -186,7 +186,7 @@ export function AdminTranscodingPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ bucket: 'course-videos', folder: 'videos', concurrency: 5 }),
+        body: JSON.stringify({ bucket: 'course-videos', folder: 'videos', concurrency: 10 }),
       })
       const body = (await response.json()) as ScanResponse
       setScanResult(body)
@@ -214,7 +214,7 @@ export function AdminTranscodingPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ concurrency: 5 }),
+        body: JSON.stringify({ concurrency: 10 }),
       })
       const body = (await response.json()) as DrainResponse
       setDrainResult(body)
@@ -372,7 +372,7 @@ export function AdminTranscodingPage() {
           ) : (
             <ArrowPathIcon className="h-4 w-4" />
           )}
-          Procesar siguientes 5 en cola
+          Procesar siguientes 10 en cola
         </button>
         <button
           type="button"
