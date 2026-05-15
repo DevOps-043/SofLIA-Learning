@@ -32,7 +32,14 @@ import type { Handler, HandlerEvent } from "@netlify/functions";
 const HLS_MANIFEST_MIME_TYPE = "application/x-mpegURL";
 const HLS_SEGMENT_MIME_TYPE = "video/mp2t";
 const VIDEO_ASSET_CACHE_CONTROL = "31536000";
-const TRANSCODING_TIMEOUT_MS = 240_000;
+// Per-rendition ffmpeg timeout.  Previous value (4 min) was too tight for
+// 10-15 minute source videos and was the dominant cause of failed jobs.
+// Netlify Background Functions cap at 15 min total; we limit renditions to
+// 3 and keep individual timeouts below that ceiling.
+const TRANSCODING_TIMEOUT_MS = 600_000;
+// Max simultaneous upload retries when Supabase Storage returns a non-JSON
+// (HTML error page) response — typically a transient proxy issue.
+const UPLOAD_MAX_RETRIES = 2;
 
 // ---------------------------------------------------------------------------
 // Types
@@ -83,9 +90,17 @@ function even(n: number): number {
 
 function resolveRenditions(stream: VideoStreamInfo): HlsRendition[] {
   const eligible = DEFAULT_RENDITIONS.filter((r) => r.height <= stream.height);
-  if (eligible.length > 0) return eligible;
-  const h = even(stream.height);
-  return [{ bandwidth: 650_000, bufsize: "1000k", height: h, maxrate: "700k", name: `${h}p`, videoBitrate: "650k" }];
+  if (eligible.length === 0) {
+    const h = even(stream.height);
+    return [{ bandwidth: 650_000, bufsize: "1000k", height: h, maxrate: "700k", name: `${h}p`, videoBitrate: "650k" }];
+  }
+  // Cap at 3 renditions to stay comfortably under Netlify's 15-min BG cap.
+  // When the source is 720p+ we drop 360p (the 480p variant is a fine
+  // low-end fallback).  When source is 480p we keep both 360p and 480p.
+  if (eligible.length >= 4) {
+    return eligible.filter((r) => r.height !== 360);
+  }
+  return eligible;
 }
 
 function joinStoragePath(...parts: string[]): string {
@@ -221,7 +236,10 @@ async function transcodeRendition(
       "-map", "0:v:0", "-map", "0:a:0?",
       "-vf", `scale=-2:${rendition.height}`,
       "-c:v", "libx264",
-      "-preset", getEnv("VIDEO_TRANSCODING_FFMPEG_PRESET") ?? "veryfast",
+      // 'superfast' is ~2x faster than 'veryfast' with only a small bitrate
+      // penalty.  This change is the single biggest win against the
+      // 'Process timed out' failures dominating the failed-jobs list.
+      "-preset", getEnv("VIDEO_TRANSCODING_FFMPEG_PRESET") ?? "superfast",
       "-crf", getEnv("VIDEO_TRANSCODING_CRF") ?? "23",
       "-profile:v", "main",
       "-pix_fmt", "yuv420p",
@@ -295,12 +313,40 @@ async function uploadHlsDirectory(
     const rel = path.relative(outputRoot, filePath).split(path.sep).join("/");
     const dest = joinStoragePath(storageRoot, rel);
     const body = await readFile(filePath);
-    const { error } = await supabase.storage.from(bucket).upload(dest, body, {
-      cacheControl: VIDEO_ASSET_CACHE_CONTROL,
-      contentType: getContentType(filePath),
-      upsert: true,
-    });
-    if (error) throw new Error(`Upload failed for ${dest}: ${error.message}`);
+    const contentType = getContentType(filePath);
+
+    // Retry on transient errors (Supabase Storage occasionally returns an
+    // HTML proxy error page that the JS SDK fails to parse as JSON).
+    let lastError: string | null = null;
+    let succeeded = false;
+    for (let attempt = 0; attempt <= UPLOAD_MAX_RETRIES; attempt += 1) {
+      try {
+        const { error } = await supabase.storage.from(bucket).upload(dest, body, {
+          cacheControl: VIDEO_ASSET_CACHE_CONTROL,
+          contentType,
+          upsert: true,
+        });
+        if (!error) {
+          succeeded = true;
+          break;
+        }
+        lastError = error.message;
+      } catch (err) {
+        lastError = err instanceof Error ? err.message : String(err);
+      }
+      if (attempt < UPLOAD_MAX_RETRIES) {
+        // Exponential-ish backoff: 500ms, 1500ms.
+        const delayMs = 500 * (attempt + 1) * (attempt + 1);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+
+    if (!succeeded) {
+      const sizeKb = Math.round(body.length / 1024);
+      throw new Error(
+        `Upload failed for ${dest} (${sizeKb} KB, ${contentType}) after ${UPLOAD_MAX_RETRIES + 1} attempts: ${lastError ?? "unknown"}`,
+      );
+    }
   }
 }
 
@@ -488,10 +534,16 @@ const handler: Handler = async (event: HandlerEvent) => {
     console.log(`[transcode-bg] ${stream.width}x${stream.height} → ${renditions.map((r) => r.name).join(", ")}`);
 
     // Transcode each rendition sequentially (CPU-bound, avoid OOM)
+    const transcodeStartMs = Date.now();
     for (const rendition of renditions) {
+      const startedAt = Date.now();
       console.log(`[transcode-bg] Transcoding ${rendition.name}...`);
       await transcodeRendition(ffmpegPath, inputPath, outputRoot, rendition);
+      const elapsedSec = Math.round((Date.now() - startedAt) / 1000);
+      console.log(`[transcode-bg] ${rendition.name} done in ${elapsedSec}s`);
     }
+    const totalSec = Math.round((Date.now() - transcodeStartMs) / 1000);
+    console.log(`[transcode-bg] All renditions done in ${totalSec}s`);
 
     // Write master playlist and upload
     await writeMasterPlaylist(outputRoot, renditions, stream);
