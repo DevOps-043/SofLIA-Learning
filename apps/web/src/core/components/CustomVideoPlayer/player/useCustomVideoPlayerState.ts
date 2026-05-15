@@ -48,8 +48,8 @@ export function useCustomVideoPlayerState(
     title,
     trackingId,
   }: CustomVideoPlayerProps,
-  ref: ForwardedRef<CustomVideoPlayerRef>
-): CustomVideoPlayerController {
+  ref: ForwardedRef<CustomVideoPlayerRef>,
+): Omit<CustomVideoPlayerController, 'quality'> {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);

@@ -7,6 +7,7 @@ import type {
   TouchEvent,
 } from 'react';
 import type { NativeVideoPreload } from '@/lib/media';
+import type { HlsQualityController } from '@/lib/media/useVideoJsHlsPlayback';
 
 export interface CustomVideoPlayerProps {
   className?: string;
@@ -73,6 +74,7 @@ export interface CustomVideoPlayerController {
   playbackRate: number;
   playbackRates: number[];
   preload: NativeVideoPreload;
+  quality: HlsQualityController;
   progressBarRef: RefObject<HTMLDivElement>;
   setShowSettings: Dispatch<SetStateAction<boolean>>;
   setShowVolumeControl: Dispatch<SetStateAction<boolean>>;

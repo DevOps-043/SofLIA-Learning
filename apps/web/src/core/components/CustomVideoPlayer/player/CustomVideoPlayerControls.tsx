@@ -234,6 +234,60 @@ export function CustomVideoPlayerControls({
                           exit={{ opacity: 0, scale: 0.95, y: 10 }}
                           initial={{ opacity: 0, scale: 0.95, y: 10 }}
                         >
+                          {/*
+                            Quality selector: only rendered when:
+                            - the source is HLS (otherwise there is nothing to switch)
+                            - we are NOT on native HLS (Safari/iOS expose no API to
+                              force a specific rendition; we'd be lying to the user)
+                            - we successfully parsed >= 1 rendition from the master
+                          */}
+                          {controller.quality.isHls &&
+                            !controller.quality.isNativeHls &&
+                            controller.quality.availableRenditions.length > 0 && (
+                              <div className="p-2 border-b border-white/10">
+                                <div className="px-3 py-2 text-xs font-medium text-white/70 uppercase tracking-wider">
+                                  Calidad
+                                </div>
+                                <div className="space-y-1">
+                                  <button
+                                    className={`w-full text-left px-3 py-2 text-sm rounded-md transition-all duration-200 flex items-center justify-between ${
+                                      controller.quality.selectedHeight === null
+                                        ? 'bg-[#00D4B3]/20 text-[#00D4B3] font-medium'
+                                        : 'text-white/80 hover:bg-white/10'
+                                    }`}
+                                    onClick={() =>
+                                      controller.quality.setQualityLevel(null)
+                                    }
+                                  >
+                                    <span>Auto</span>
+                                    <span className="text-xs text-white/40">
+                                      adaptativo
+                                    </span>
+                                  </button>
+                                  {controller.quality.availableRenditions.map(
+                                    (rendition) => (
+                                      <button
+                                        key={rendition.height}
+                                        className={`w-full text-left px-3 py-2 text-sm rounded-md transition-all duration-200 ${
+                                          controller.quality.selectedHeight ===
+                                          rendition.height
+                                            ? 'bg-[#00D4B3]/20 text-[#00D4B3] font-medium'
+                                            : 'text-white/80 hover:bg-white/10'
+                                        }`}
+                                        onClick={() =>
+                                          controller.quality.setQualityLevel(
+                                            rendition.height,
+                                          )
+                                        }
+                                      >
+                                        {rendition.label}
+                                      </button>
+                                    ),
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
                           <div className="p-2 border-b border-white/10">
                             <div className="px-3 py-2 text-xs font-medium text-white/70 uppercase tracking-wider">
                               Velocidad de reproduccion

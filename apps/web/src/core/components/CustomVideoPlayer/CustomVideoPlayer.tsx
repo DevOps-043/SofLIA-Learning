@@ -15,8 +15,13 @@ export const CustomVideoPlayer = forwardRef<
   CustomVideoPlayerRef,
   CustomVideoPlayerProps
 >((props, ref) => {
-  const controller = useCustomVideoPlayerState(props, ref);
-  useVideoJsHlsPlayback(controller.videoRef, controller.src, controller.preload);
+  const baseController = useCustomVideoPlayerState(props, ref);
+  const quality = useVideoJsHlsPlayback(
+    baseController.videoRef,
+    baseController.src,
+    baseController.preload,
+  );
+  const controller = { ...baseController, quality };
 
   return (
     <div
