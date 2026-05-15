@@ -1,23 +1,28 @@
-# FFmpeg Binaries For Netlify
+# FFmpeg Binary For Netlify
 
-Place Linux x64 static binaries here when enabling adaptive video transcoding on Netlify:
+On Netlify the `apps/web/bin/ffmpeg` Linux x64 static binary is downloaded
+automatically by `scripts/netlify-build.sh` when `VIDEO_TRANSCODING_ENABLED=true`.
+It is not committed to git (would exceed Netlify's 250 MB function bundle limit).
 
-```text
-apps/web/bin/ffmpeg
-apps/web/bin/ffprobe
-```
+`ffprobe` is intentionally NOT bundled. Bundling both binaries pushed the
+background function past Netlify's 250 MB cap. Dimensions are read by parsing
+`ffmpeg -i` stderr inside `netlify/functions/transcode-video-background.ts`.
 
-Do not place Windows `.exe` binaries here for Netlify. Local Windows paths should be configured in `apps/web/.env.local` instead.
-
-After adding the Linux binaries, enable this environment variable in Netlify:
+## Required environment variables (Netlify UI)
 
 ```env
 VIDEO_TRANSCODING_ENABLED=true
+TRANSCODING_INTERNAL_SECRET=<random secret>
 ```
 
-`netlify.toml` already includes this directory in the function bundle and sets:
+`netlify.toml` already sets:
 
 ```env
 FFMPEG_PATH=/var/task/apps/web/bin/ffmpeg
-FFPROBE_PATH=/var/task/apps/web/bin/ffprobe
 ```
+
+## Local development (Windows / macOS)
+
+Install ffmpeg locally and set `FFMPEG_PATH` in `apps/web/.env.local`. Do NOT
+place Windows `.exe` binaries in this directory — they would be uploaded to
+Netlify and break the Linux runtime.

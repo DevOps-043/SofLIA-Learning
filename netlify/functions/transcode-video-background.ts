@@ -7,11 +7,14 @@
  *
  * Requires Netlify Pro plan or higher for background function support.
  *
+ * ffprobe is intentionally NOT bundled — bundling both binaries pushed the
+ * function past Netlify's 250 MB cap.  Dimensions are read by parsing
+ * `ffmpeg -i` stderr instead.
+ *
  * Environment variables needed at runtime:
  *   NEXT_PUBLIC_SUPABASE_URL        — Supabase project URL
  *   SUPABASE_SERVICE_ROLE_KEY       — bypasses RLS for job status updates
  *   FFMPEG_PATH                     — /var/task/apps/web/bin/ffmpeg
- *   FFPROBE_PATH                    — /var/task/apps/web/bin/ffprobe
  *   TRANSCODING_INTERNAL_SECRET     — shared secret to authenticate the caller
  */
 
@@ -115,7 +118,22 @@ function getContentType(filePath: string): string {
 // ---------------------------------------------------------------------------
 // Process runner
 // ---------------------------------------------------------------------------
-function runProcess(command: string, args: string[], timeoutMs: number): Promise<string> {
+interface RunProcessOptions {
+  /** When true, resolves with combined output regardless of exit code.
+   *  Needed for `ffmpeg -i` (no output spec) which prints stream info to
+   *  stderr and exits with code 1.  Defaults to false. */
+  acceptNonZeroExit?: boolean;
+  /** Max buffered output kept (tail kept on overflow).  Defaults to 12 KB. */
+  maxOutputBytes?: number;
+}
+
+function runProcess(
+  command: string,
+  args: string[],
+  timeoutMs: number,
+  options: RunProcessOptions = {},
+): Promise<string> {
+  const { acceptNonZeroExit = false, maxOutputBytes = 12_000 } = options;
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { shell: false, windowsHide: true });
     let output = "";
@@ -130,7 +148,7 @@ function runProcess(command: string, args: string[], timeoutMs: number): Promise
 
     const append = (chunk: Buffer) => {
       output += chunk.toString();
-      if (output.length > 12_000) output = output.slice(-12_000);
+      if (output.length > maxOutputBytes) output = output.slice(-maxOutputBytes);
     };
 
     child.stdout.on("data", append);
@@ -145,25 +163,37 @@ function runProcess(command: string, args: string[], timeoutMs: number): Promise
       if (settled) return;
       settled = true;
       clearTimeout(timeout);
-      if (code === 0) resolve(output);
+      if (code === 0 || acceptNonZeroExit) resolve(output);
       else reject(new Error(output || `Process exited with code ${code ?? "unknown"}`));
     });
   });
 }
 
 // ---------------------------------------------------------------------------
-// ffprobe
+// Video dimension probing — via ffmpeg stderr (ffprobe is not bundled)
 // ---------------------------------------------------------------------------
-async function probeVideo(ffprobePath: string, inputPath: string): Promise<VideoStreamInfo> {
+// `ffmpeg -hide_banner -i <input>` prints stream info to stderr and exits with
+// code 1 (no output spec was provided).  We parse the "WIDTHxHEIGHT" pattern
+// from the first video stream line.  Pattern reference:
+//   Stream #0:0(und): Video: h264 (Main) (avc1 / 0x31637661),
+//     yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], 5000 kb/s, 30 fps
+async function probeVideo(ffmpegPath: string, inputPath: string): Promise<VideoStreamInfo> {
   const output = await runProcess(
-    ffprobePath,
-    ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "json", inputPath],
+    ffmpegPath,
+    ["-hide_banner", "-i", inputPath],
     TRANSCODING_TIMEOUT_MS,
+    { acceptNonZeroExit: true, maxOutputBytes: 100_000 },
   );
-  const parsed = JSON.parse(output) as { streams?: Array<{ height?: number; width?: number }> };
-  const stream = parsed.streams?.[0];
-  if (!stream?.width || !stream.height) throw new Error("Video stream dimensions not found");
-  return { height: stream.height, width: stream.width };
+  const match = output.match(/Stream #\d+:\d+[^\n]*Video:[^\n]*?\s(\d{2,5})x(\d{2,5})\b/);
+  if (!match) {
+    throw new Error("Video stream dimensions not found in ffmpeg output");
+  }
+  const width = parseInt(match[1], 10);
+  const height = parseInt(match[2], 10);
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    throw new Error(`Invalid parsed dimensions: ${width}x${height}`);
+  }
+  return { width, height };
 }
 
 // ---------------------------------------------------------------------------
@@ -316,13 +346,12 @@ const handler: Handler = async (event: HandlerEvent) => {
     started_at: new Date().toISOString(),
   }).eq("id", jobId);
 
-  const ffmpegPath  = getEnv("FFMPEG_PATH");
-  const ffprobePath = getEnv("FFPROBE_PATH");
+  const ffmpegPath = getEnv("FFMPEG_PATH");
 
-  if (!ffmpegPath || !ffprobePath) {
+  if (!ffmpegPath) {
     await supabase.from("video_transcoding_jobs").update({
       status: "failed",
-      error_message: "FFMPEG_PATH / FFPROBE_PATH not configured",
+      error_message: "FFMPEG_PATH not configured",
       completed_at: new Date().toISOString(),
     }).eq("id", jobId);
     return { statusCode: 202, body: "" };
@@ -345,8 +374,8 @@ const handler: Handler = async (event: HandlerEvent) => {
     await writeFile(inputPath, Buffer.from(await blob.arrayBuffer()));
     console.log(`[transcode-bg] Downloaded source (${((sizeBytes ?? 0) / 1_048_576).toFixed(1)} MB)`);
 
-    // Probe dimensions
-    const stream = await probeVideo(ffprobePath, inputPath);
+    // Probe dimensions (uses ffmpeg stderr — ffprobe is not bundled)
+    const stream = await probeVideo(ffmpegPath, inputPath);
     const renditions = resolveRenditions(stream);
     console.log(`[transcode-bg] ${stream.width}x${stream.height} → ${renditions.map((r) => r.name).join(", ")}`);
 
