@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ACTIONS, CallBackProps, EVENTS, STATUS, type Step } from 'react-joyride';
 import {
@@ -280,8 +280,12 @@ export function useBusinessUserJoyride(
     console.log('[useBusinessUserJoyride] Video complete, preparing to start tour');
     setShowVideoIntro(false);
     setStepIndex(0);
-    
-    // We use a small timeout to let the DOM settle after the video modal closes
+
+    // Larger delay (700ms vs the old 300ms) so the hero banner's slide-in
+    // animation (motion.div with y: -20 → 0) completes before Joyride
+    // computes the spotlight rect.  Previously the spotlight was captured
+    // mid-animation and ended up pointing at "nothing" — the tooltip would
+    // appear briefly and then the overlay would persist with no highlight.
     setTimeout(() => {
       console.log('[useBusinessUserJoyride] Starting Joyride with', runnableSteps.length, 'steps');
       startTour().catch((err) =>
@@ -289,12 +293,41 @@ export function useBusinessUserJoyride(
       );
       prepareBusinessUserStep(steps[0], isMobile);
       setRun(true);
-    }, 300);
+    }, 700);
   }, [isMobile, runnableSteps.length, startTour, steps]);
+
+  const targetNotFoundRetryCount = useRef(0);
 
   const handleJoyrideCallback = useCallback(
     (data: CallBackProps) => {
       const { action, index, status, type } = data;
+
+      // Track consecutive TARGET_NOT_FOUND events.  If we hit the same step
+      // twice in a row without finding the target, give up and either
+      // advance past it or finish the tour — don't loop forever.
+      if (type === EVENTS.TARGET_NOT_FOUND) {
+        targetNotFoundRetryCount.current += 1;
+        console.warn(
+          '[useBusinessUserJoyride] TARGET_NOT_FOUND on step',
+          index,
+          '— retry',
+          targetNotFoundRetryCount.current,
+        );
+        if (targetNotFoundRetryCount.current > 2) {
+          targetNotFoundRetryCount.current = 0;
+          if (index >= runnableSteps.length - 1) {
+            setRun(false);
+            setIsTourFinishedInSession(true);
+            closeUserMenuIfOpen();
+            completeTour().catch((err) =>
+              console.error('[useBusinessUserJoyride] Complete failed (target not found)', err),
+            );
+            return;
+          }
+        }
+      } else if (type === EVENTS.STEP_AFTER) {
+        targetNotFoundRetryCount.current = 0;
+      }
 
       if (status === STATUS.FINISHED) {
         console.log('[useBusinessUserJoyride] Tour finished');
@@ -350,7 +383,7 @@ export function useBusinessUserJoyride(
         moveToStep(index + 1);
       }
     },
-    [completeTour, moveToStep, skipTour, steps.length],
+    [completeTour, moveToStep, runnableSteps.length, skipTour],
   );
 
   const resetTour = useCallback(() => {
@@ -373,6 +406,29 @@ export function useBusinessUserJoyride(
     setRestart(manualStartTour, t('tour.restart'));
     return () => setRestart(null);
   }, [manualStartTour, setRestart, t]);
+
+  // Safety net: if the tour is running but stays on the same step for more
+  // than 45 seconds, dismiss it instead of leaving the user trapped under
+  // the dark overlay.  Triggered by stuck states like a target element
+  // that's invisible or scrolled out of view — historically the tour
+  // could enter a state with overlay visible but no tooltip rendered.
+  useEffect(() => {
+    if (!run) return;
+    const watchdog = window.setTimeout(() => {
+      console.warn(
+        '[useBusinessUserJoyride] Watchdog: tour stuck on step',
+        stepIndex,
+        '— auto-dismissing',
+      );
+      setRun(false);
+      setIsTourFinishedInSession(true);
+      closeUserMenuIfOpen();
+      skipTour().catch((err) =>
+        console.error('[useBusinessUserJoyride] Watchdog skipTour failed', err),
+      );
+    }, 45_000);
+    return () => window.clearTimeout(watchdog);
+  }, [run, stepIndex, skipTour]);
 
   return {
     joyrideProps: {

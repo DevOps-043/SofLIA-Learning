@@ -948,7 +948,6 @@ export function LearningPathView({
       {learningPaths.map((learningPath, pathIndex) => {
         const intro = introByPath[learningPath.id] ?? getIntroFallback(Boolean(orgSlug))
         const hasTour = Boolean(intro.introVideoUrl)
-        const isTourDisabled = intro.loading || !hasTour
         const completedSummary = `${learningPath.completedItemsCount} ${t('dashboard.learningPaths.of', 'de')} ${learningPath.totalItemsCount} ${t('dashboard.learningPaths.completedCoursesSuffix', 'cursos completados')}`
         const visibleItemCount = visibleItemsByPath[learningPath.id] ?? Math.min(INITIAL_VISIBLE_PATH_ITEMS, learningPath.items.length)
         const visibleItems = learningPath.items.slice(0, visibleItemCount)
@@ -987,28 +986,37 @@ export function LearningPathView({
                 </p>
               </div>
 
-              <button
-                type="button"
-                id={pathIndex === 0 ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.learningPathIntroVideo : undefined}
-                disabled={isTourDisabled}
-                onClick={() => openTour(learningPath.id)}
-                className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-55"
-                style={{
-                  backgroundColor: isTourDisabled ? `${orgColors.textMuted}12` : orgColors.cardBg,
-                  borderColor: isTourDisabled ? orgColors.border : orgColors.iconColor,
-                  color: isTourDisabled ? orgColors.textMuted : orgColors.text,
-                }}
-                aria-label={
-                  hasTour
-                    ? t('dashboard.learningPaths.viewTour', 'Video introductorio')
-                    : t('dashboard.learningPaths.tourUnavailable', 'Video no disponible')
-                }
-              >
-                {intro.loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                {intro.loading
-                  ? t('dashboard.learningPaths.tourLoading', 'Cargando video')
-                  : t('dashboard.learningPaths.viewTour', 'Video introductorio')}
-              </button>
+              {/*
+                Render the intro-video button only when:
+                - we are still loading the intro state (so the user gets the
+                  spinner instead of an empty space that pops later), OR
+                - the organization actually has a video for this LP.
+                Otherwise omit it entirely — showing a disabled button reads
+                as "broken" to users.  Each organization uploads its own
+                video from Business Panel → Learning Paths → "Gestionar
+                videos"; when one is missing the button just shouldn't be
+                there.
+              */}
+              {(intro.loading || hasTour) ? (
+                <button
+                  type="button"
+                  id={pathIndex === 0 ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.learningPathIntroVideo : undefined}
+                  disabled={intro.loading}
+                  onClick={() => openTour(learningPath.id)}
+                  className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-55"
+                  style={{
+                    backgroundColor: intro.loading ? `${orgColors.textMuted}12` : orgColors.cardBg,
+                    borderColor: intro.loading ? orgColors.border : orgColors.iconColor,
+                    color: intro.loading ? orgColors.textMuted : orgColors.text,
+                  }}
+                  aria-label={t('dashboard.learningPaths.viewTour', 'Video introductorio')}
+                >
+                  {intro.loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                  {intro.loading
+                    ? t('dashboard.learningPaths.tourLoading', 'Cargando video')
+                    : t('dashboard.learningPaths.viewTour', 'Video introductorio')}
+                </button>
+              ) : null}
             </div>
 
             <div className="relative">
