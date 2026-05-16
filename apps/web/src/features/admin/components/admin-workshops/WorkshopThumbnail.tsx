@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { BookOpen } from 'lucide-react'
-import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 import { useMotionSafe } from '../../../../lib/utils/motion'
+import { WorkshopThumbnailFallback } from './WorkshopThumbnailFallback'
+import { WorkshopThumbnailShine } from './WorkshopThumbnailShine'
 
 interface WorkshopThumbnailProps {
   thumbnailUrl?: string
@@ -17,53 +17,10 @@ export function WorkshopThumbnail({
   title,
 }: WorkshopThumbnailProps) {
   const { disableHeavy } = useMotionSafe()
-  const theme = useAdminPanelTheme()
   const [imageError, setImageError] = useState(false)
 
   if (!thumbnailUrl || imageError) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="absolute inset-0 flex items-center justify-center"
-        style={{ background: theme.heroBackground }}
-      >
-        <div className="absolute inset-0 opacity-10">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `radial-gradient(circle at 2px 2px, ${theme.accentColor} 1px, transparent 0)`,
-              backgroundSize: '40px 40px',
-            }}
-          />
-        </div>
-        <motion.div
-          animate={disableHeavy ? {} : {
-            scale: [1, 1.15, 1],
-            rotate: [0, 10, -10, 0],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-          className="relative z-10"
-        >
-          <div
-            className="rounded-2xl border p-6 backdrop-blur-sm"
-            style={{
-              backgroundColor: theme.inverseSurface,
-              borderColor: theme.inverseBorderColor,
-            }}
-          >
-            <BookOpen
-              className="h-24 w-24"
-              style={{ color: theme.accentColor }}
-            />
-          </div>
-        </motion.div>
-      </motion.div>
-    )
+    return <WorkshopThumbnailFallback />
   }
 
   return (
@@ -90,22 +47,7 @@ export function WorkshopThumbnail({
             'linear-gradient(to top, rgba(0,0,0,0.2), transparent 60%)',
         }}
       />
-      {!disableHeavy && (
-        <motion.div
-          className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100"
-          style={{
-            background:
-              'linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent)',
-          }}
-          animate={{ x: ['-100%', '200%'] }}
-          transition={{
-            duration: 1.5,
-            repeat: Infinity,
-            repeatDelay: 2,
-            ease: 'easeInOut',
-          }}
-        />
-      )}
+      {!disableHeavy ? <WorkshopThumbnailShine /> : null}
     </div>
   )
 }

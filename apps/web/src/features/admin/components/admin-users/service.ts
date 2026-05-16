@@ -6,10 +6,11 @@ import {
   ShieldCheck,
   UserCircle,
   Users,
-  XCircle,
 } from 'lucide-react'
 import type { AdminUser } from '../../services/adminUsers.service'
 import type { AdminRoleConfig, AdminStatusConfig, AdminTheme, AdminUserDisplayConfig } from './types'
+export { formatAdminUserDate } from './admin-user-formatters'
+export { getAdminRemovedStatusConfig } from './admin-user-status'
 
 export function getAdminUserDisplayConfig(user: AdminUser): AdminUserDisplayConfig {
   const displayName =
@@ -95,27 +96,4 @@ export function getAdminStatusConfig(
     border: `${theme.warningColor}26`,
     icon: Clock,
   }
-}
-
-export function getAdminRemovedStatusConfig(theme: AdminTheme, label: string): AdminStatusConfig {
-  return {
-    label,
-    color: theme.dangerColor,
-    bg: `${theme.dangerColor}14`,
-    border: `${theme.dangerColor}26`,
-    icon: XCircle,
-  }
-}
-
-export function formatAdminUserDate(value: string | null | undefined, language: string) {
-  if (!value) return null
-
-  return new Date(value).toLocaleDateString(
-    language === 'es' ? 'es-ES' : language === 'pt' ? 'pt-BR' : 'en-US',
-    {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    },
-  )
 }

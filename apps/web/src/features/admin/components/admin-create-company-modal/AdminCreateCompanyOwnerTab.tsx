@@ -1,11 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import {
-  EnvelopeIcon,
-  SparklesIcon,
-  UserCircleIcon,
-} from '@heroicons/react/24/outline'
+import { AdminCreateCompanyOwnerCard } from './AdminCreateCompanyOwnerCard'
+import { AdminCreateCompanyOwnerIntro } from './AdminCreateCompanyOwnerIntro'
+import { AdminCreateCompanyOwnerNextSteps } from './AdminCreateCompanyOwnerNextSteps'
 import type { CreateCompanyData } from './types'
 
 interface AdminCreateCompanyOwnerTabProps {
@@ -25,88 +23,15 @@ export function AdminCreateCompanyOwnerTab({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="space-y-6 max-w-3xl"
+      className="max-w-3xl space-y-6"
     >
-      <div className="text-sm text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-white/5 pb-4 mb-6">
-        Ingresa los datos del propietario de la organización. Se le enviará una
-        invitación por correo electrónico para que configure su cuenta.
-      </div>
-
-      <div className="p-6 rounded-2xl bg-gradient-to-br from-accent/5 dark:from-accent/10 to-transparent border border-accent/20">
-        <div className="flex items-start gap-4 mb-6">
-          <div className="p-3 rounded-xl bg-accent/20">
-            <UserCircleIcon className="w-8 h-8" style={{ color: accentColor }} />
-          </div>
-          <div>
-            <h4 className="text-gray-900 dark:text-white font-bold text-lg">
-              Propietario de la Organización
-            </h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Tendrá control total sobre la organización
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-5">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2 ml-1">
-              Correo electrónico del propietario{' '}
-              <span className="text-red-400">*</span>
-            </label>
-            <div className="relative">
-              <EnvelopeIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-              <input
-                type="email"
-                value={formData.owner_email || ''}
-                onChange={(e) =>
-                  onFormDataChange((current) => ({
-                    ...current,
-                    owner_email: e.target.value,
-                  }))
-                }
-                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:border-accent/50 focus:ring-1 focus:ring-accent/30 outline-none transition-all"
-                placeholder="propietario@empresa.com"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2 ml-1">
-              Cargo / Posición{' '}
-              <span className="text-xs text-gray-500 dark:text-gray-600">(Opcional)</span>
-            </label>
-            <input
-              type="text"
-              value={formData.owner_position || ''}
-              onChange={(e) =>
-                onFormDataChange((current) => ({
-                  ...current,
-                  owner_position: e.target.value,
-                }))
-              }
-              className="w-full px-4 py-3.5 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:border-gray-300 dark:focus:border-white/20 outline-none transition-all"
-              placeholder="Ej: CEO, Director General, Gerente"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
-        <div className="flex items-start gap-3">
-          <SparklesIcon className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            <p className="mb-2">
-              <strong className="text-gray-900 dark:text-white">¿Qué sucederá después?</strong>
-            </p>
-            <ul className="space-y-1 text-xs">
-              <li>• Se creará la organización con la configuración especificada</li>
-              <li>• El propietario recibirá un email con un enlace para registrarse</li>
-              <li>• La invitación expira en 7 días</li>
-              <li>• Podrás ver el estado de la invitación en el panel de administración</li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      <AdminCreateCompanyOwnerIntro />
+      <AdminCreateCompanyOwnerCard
+        accentColor={accentColor}
+        formData={formData}
+        onFormDataChange={onFormDataChange}
+      />
+      <AdminCreateCompanyOwnerNextSteps />
     </motion.div>
   )
 }

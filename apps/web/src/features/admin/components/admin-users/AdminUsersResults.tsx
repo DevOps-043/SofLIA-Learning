@@ -1,0 +1,46 @@
+'use client'
+
+import type { TFunction } from 'i18next'
+import { AdminUserCard } from './AdminUserCard'
+import { AdminUserListRow } from './AdminUserListRow'
+import { AdminUsersEmptyState } from './AdminUsersEmptyState'
+import type { AdminUser } from '../../services/adminUsers.service'
+import type { AdminUsersViewMode } from './types'
+
+interface AdminUsersResultsProps {
+  users: AdminUser[]
+  hasFilters: boolean
+  viewMode: AdminUsersViewMode
+  locale: string
+  onAddClick: () => void
+  onClearFilters: () => void
+  onEditUser: (user: AdminUser) => void
+  onDeleteUser: (user: AdminUser) => void
+  t: TFunction<'admin'>
+  tc: TFunction<'common'>
+}
+
+export function AdminUsersResults(props: AdminUsersResultsProps) {
+  const { users, hasFilters, viewMode, locale, onAddClick, onClearFilters, onEditUser, onDeleteUser, t, tc } = props
+  if (users.length === 0) {
+    return <AdminUsersEmptyState hasFilters={hasFilters} onClearFilters={onClearFilters} onAddClick={onAddClick} t={t} />
+  }
+
+  if (viewMode === 'cards') {
+    return (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {users.map((user, index) => (
+          <AdminUserCard key={user.id} user={user} index={index} locale={locale} onEdit={() => onEditUser(user)} onDelete={() => onDeleteUser(user)} t={t} tc={tc} />
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {users.map((user, index) => (
+        <AdminUserListRow key={user.id} user={user} index={index} locale={locale} onEdit={() => onEditUser(user)} onDelete={() => onDeleteUser(user)} t={t} tc={tc} />
+      ))}
+    </div>
+  )
+}
