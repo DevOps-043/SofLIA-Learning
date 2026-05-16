@@ -1400,140 +1400,10 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
   // ============================================================================
   // ADMIN PANEL - NEWS
   // ============================================================================
-  '/admin/news': {
-    route: '/admin/news',
-    routePattern: '/admin/news',
-    pageType: 'admin_news',
-    components: [
-      {
-        name: 'AdminNewsPage',
-        path: 'apps/web/src/app/admin/news/page.tsx',
-        description: 'Gestión de artículos de noticias',
-        props: [],
-        commonErrors: [
-          'Artículos no cargan: Error en API',
-          'Editor no funciona: Error de inicialización'
-        ]
-      }
-    ],
-    apis: [
-      {
-        endpoint: '/api/admin/news',
-        method: 'GET',
-        description: 'Obtiene lista de artículos',
-        commonErrors: [
-          '403 Forbidden: Sin permisos'
-        ]
-      },
-      {
-        endpoint: '/api/admin/news',
-        method: 'POST',
-        description: 'Crea un nuevo artículo',
-        commonErrors: [
-          '400 Bad Request: Datos inválidos',
-          '500 Internal Error: Error guardando imagen'
-        ]
-      }
-    ],
-    userFlows: [
-      {
-        name: 'Crear nuevo artículo',
-        steps: [
-          '1. Click en "Nuevo Artículo"',
-          '2. Escribir título y contenido',
-          '3. Subir imagen de portada',
-          '4. Seleccionar categoría',
-          '5. Publicar o guardar como borrador'
-        ],
-        commonBreakpoints: [
-          'Paso 3: Error subiendo imagen',
-          'Paso 5: Error guardando'
-        ]
-      }
-    ],
-    commonIssues: [
-      {
-        description: 'Imagen no sube',
-        possibleCauses: [
-          'Formato no soportado',
-          'Archivo muy grande',
-          'Error en storage'
-        ],
-        solutions: [
-          'Usar formato JPG o PNG',
-          'Reducir tamaño a menos de 5MB',
-          'Verificar conexión a storage'
-        ]
-      }
-    ]
-  },
 
   // ============================================================================
   // ADMIN PANEL - COMMUNITIES
   // ============================================================================
-  '/admin/communities': {
-    route: '/admin/communities',
-    routePattern: '/admin/communities',
-    pageType: 'admin_communities',
-    components: [
-      {
-        name: 'AdminCommunitiesPage',
-        path: 'apps/web/src/app/admin/communities/page.tsx',
-        description: 'Gestión de comunidades de la plataforma',
-        props: [],
-        commonErrors: [
-          'Comunidades no cargan: Error en API',
-          'Estadísticas incorrectas: Datos no sincronizados'
-        ]
-      }
-    ],
-    apis: [
-      {
-        endpoint: '/api/admin/communities',
-        method: 'GET',
-        description: 'Obtiene lista de comunidades',
-        commonErrors: [
-          '403 Forbidden: Sin permisos'
-        ]
-      },
-      {
-        endpoint: '/api/admin/communities/[slug]',
-        method: 'PUT',
-        description: 'Actualiza configuración de comunidad',
-        commonErrors: [
-          '404 Not Found: Comunidad no existe'
-        ]
-      }
-    ],
-    userFlows: [
-      {
-        name: 'Moderar comunidad',
-        steps: [
-          '1. Seleccionar comunidad',
-          '2. Revisar publicaciones pendientes',
-          '3. Aprobar o rechazar contenido',
-          '4. Gestionar miembros si es necesario'
-        ],
-        commonBreakpoints: [
-          'Paso 2: Publicaciones no cargan',
-          'Paso 3: Error al moderar'
-        ]
-      }
-    ],
-    commonIssues: [
-      {
-        description: 'Contenido no se modera',
-        possibleCauses: [
-          'Error en proceso de moderación',
-          'Permisos insuficientes'
-        ],
-        solutions: [
-          'Verificar permisos de admin',
-          'Revisar logs de moderación'
-        ]
-      }
-    ]
-  },
 
   // ============================================================================
   // ADMIN PANEL - WORKSHOPS
@@ -1596,116 +1466,14 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
   // ============================================================================
   // ADMIN PANEL - SKILLS
   // ============================================================================
-  '/admin/skills': {
-    route: '/admin/skills',
-    routePattern: '/admin/skills',
-    pageType: 'admin_skills',
-    components: [
-      {
-        name: 'AdminSkillsPage',
-        path: 'apps/web/src/app/admin/skills/page.tsx',
-        description: 'Gestión del catálogo de habilidades',
-        props: [],
-        commonErrors: ['Habilidades no cargan: Error en API', 'Icono no sube: Error de storage']
-      }
-    ],
-    apis: [
-      {
-        endpoint: '/api/admin/skills',
-        method: 'GET',
-        description: 'Obtiene catálogo de habilidades',
-        commonErrors: ['403 Forbidden: Sin permisos']
-      },
-      {
-        endpoint: '/api/admin/skills',
-        method: 'POST',
-        description: 'Crea nueva habilidad',
-        commonErrors: ['400 Bad Request: Nombre duplicado']
-      }
-    ],
-    userFlows: [
-      {
-        name: 'Crear habilidad',
-        steps: ['1. Click en "Nueva Habilidad"', '2. Ingresar nombre y descripción', '3. Seleccionar categoría', '4. Subir icono', '5. Guardar'],
-        commonBreakpoints: ['Paso 4: Formato de icono no válido']
-      }
-    ],
-    commonIssues: []
-  },
 
   // ============================================================================
   // ADMIN PANEL - APPS (AI Directory)
   // ============================================================================
-  '/admin/apps': {
-    route: '/admin/apps',
-    routePattern: '/admin/apps',
-    pageType: 'admin_apps',
-    components: [
-      {
-        name: 'AdminAppsPage',
-        path: 'apps/web/src/app/admin/apps/page.tsx',
-        description: 'Gestión del directorio de aplicaciones de IA',
-        props: [],
-        commonErrors: ['Apps no cargan: Error en API', 'Imagen no sube: Error de storage']
-      }
-    ],
-    apis: [
-      {
-        endpoint: '/api/admin/apps',
-        method: 'GET',
-        description: 'Obtiene lista de aplicaciones de IA',
-        commonErrors: ['403 Forbidden: Sin permisos']
-      },
-      {
-        endpoint: '/api/admin/apps',
-        method: 'POST',
-        description: 'Agrega nueva aplicación al directorio',
-        commonErrors: ['400 Bad Request: URL duplicada']
-      }
-    ],
-    userFlows: [
-      {
-        name: 'Agregar app al directorio',
-        steps: ['1. Click en "Nueva App"', '2. Ingresar nombre, descripción, URL', '3. Seleccionar categoría', '4. Subir logo', '5. Guardar'],
-        commonBreakpoints: ['Paso 2: URL ya existe en el directorio']
-      }
-    ],
-    commonIssues: []
-  },
 
   // ============================================================================
   // ADMIN PANEL - PROMPTS
   // ============================================================================
-  '/admin/prompts': {
-    route: '/admin/prompts',
-    routePattern: '/admin/prompts',
-    pageType: 'admin_prompts',
-    components: [
-      {
-        name: 'AdminPromptsPage',
-        path: 'apps/web/src/app/admin/prompts/page.tsx',
-        description: 'Gestión del directorio de prompts',
-        props: [],
-        commonErrors: ['Prompts no cargan: Error en API', 'Filtros no funcionan']
-      }
-    ],
-    apis: [
-      {
-        endpoint: '/api/admin/prompts',
-        method: 'GET',
-        description: 'Obtiene lista de prompts',
-        commonErrors: ['403 Forbidden: Sin permisos']
-      }
-    ],
-    userFlows: [
-      {
-        name: 'Moderar prompt',
-        steps: ['1. Filtrar por estado "Pendiente"', '2. Revisar contenido del prompt', '3. Aprobar o rechazar', '4. Agregar notas si es necesario'],
-        commonBreakpoints: ['Paso 3: Error al cambiar estado']
-      }
-    ],
-    commonIssues: []
-  },
 
   // ============================================================================
   // ADMIN PANEL - STATISTICS
@@ -1778,36 +1546,6 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
   // ============================================================================
   // ADMIN PANEL - REELS
   // ============================================================================
-  '/admin/reels': {
-    route: '/admin/reels',
-    routePattern: '/admin/reels',
-    pageType: 'admin_reels',
-    components: [
-      {
-        name: 'AdminReelsPage',
-        path: 'apps/web/src/app/admin/reels/page.tsx',
-        description: 'Gestión de reels y videos cortos',
-        props: [],
-        commonErrors: ['Reels no cargan: Error en API', 'Video no reproduce: Formato no soportado']
-      }
-    ],
-    apis: [
-      {
-        endpoint: '/api/admin/reels',
-        method: 'GET',
-        description: 'Obtiene lista de reels',
-        commonErrors: ['403 Forbidden: Sin permisos']
-      }
-    ],
-    userFlows: [
-      {
-        name: 'Moderar reel',
-        steps: ['1. Filtrar por estado', '2. Ver preview del video', '3. Aprobar o rechazar', '4. Agregar razón si se rechaza'],
-        commonBreakpoints: ['Paso 2: Video no carga']
-      }
-    ],
-    commonIssues: []
-  },
 
   // ============================================================================
   // ADMIN PANEL - ACCESS REQUESTS
@@ -2306,111 +2044,10 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
   // ============================================================================
   // COMMUNITIES - HOME
   // ============================================================================
-  '/communities/[slug]': {
-    route: '/communities/[slug]',
-    routePattern: '/communities/{slug}',
-    pageType: 'community_home',
-    components: [
-      {
-        name: 'CommunityPage',
-        path: 'apps/web/src/app/communities/[slug]/page.tsx',
-        description: 'Página principal de una comunidad',
-        props: [],
-        commonErrors: [
-          'Comunidad no carga: Slug inválido',
-          'Posts no aparecen: Error de API',
-          'No tienes acceso: Comunidad privada'
-        ]
-      },
-      {
-        name: 'PostsList',
-        path: 'apps/web/src/features/communities/components/PostsList.tsx',
-        description: 'Lista de publicaciones de la comunidad',
-        props: ['communitySlug', 'onLoadMore'],
-        commonErrors: ['Posts no cargan', 'Infinite scroll falla']
-      },
-      {
-        name: 'CreatePostForm',
-        path: 'apps/web/src/features/communities/components/CreatePostForm.tsx',
-        description: 'Formulario para crear publicaciones',
-        props: ['communitySlug', 'onSuccess'],
-        commonErrors: ['Imagen no sube', 'Post no se crea']
-      }
-    ],
-    apis: [
-      {
-        endpoint: '/api/communities/[slug]',
-        method: 'GET',
-        description: 'Obtiene información de la comunidad',
-        commonErrors: ['404: Comunidad no existe', '403: Sin acceso']
-      },
-      {
-        endpoint: '/api/communities/[slug]/posts',
-        method: 'GET',
-        description: 'Obtiene posts de la comunidad',
-        commonErrors: ['403: Sin acceso']
-      },
-      {
-        endpoint: '/api/communities/[slug]/posts',
-        method: 'POST',
-        description: 'Crea nuevo post',
-        commonErrors: ['400: Contenido inválido', '403: Sin permisos para postear']
-      }
-    ],
-    userFlows: [
-      {
-        name: 'Crear publicación',
-        steps: ['1. Click en área de nuevo post', '2. Escribir contenido', '3. Agregar imagen (opcional)', '4. Publicar'],
-        commonBreakpoints: ['Paso 3: Imagen muy grande', 'Paso 4: Error de permisos']
-      },
-      {
-        name: 'Solicitar acceso a comunidad privada',
-        steps: ['1. Ver información de comunidad privada', '2. Click en "Solicitar Acceso"', '3. Esperar aprobación'],
-        commonBreakpoints: ['Paso 3: Solicitud rechazada']
-      }
-    ],
-    commonIssues: [
-      {
-        description: 'No puedo acceder a la comunidad',
-        possibleCauses: ['Comunidad privada', 'Solicitud pendiente', 'Solicitud rechazada'],
-        solutions: ['Solicitar acceso', 'Esperar aprobación', 'Contactar administrador']
-      }
-    ]
-  },
 
   // ============================================================================
   // NEWS - ARTICLE
   // ============================================================================
-  '/news/[slug]': {
-    route: '/news/[slug]',
-    routePattern: '/news/{slug}',
-    pageType: 'news_article',
-    components: [
-      {
-        name: 'NewsArticlePage',
-        path: 'apps/web/src/app/news/[slug]/page.tsx',
-        description: 'Página de artículo de noticias',
-        props: [],
-        commonErrors: ['Artículo no encontrado', 'Imágenes no cargan']
-      }
-    ],
-    apis: [
-      {
-        endpoint: '/api/news/[slug]',
-        method: 'GET',
-        description: 'Obtiene artículo por slug',
-        commonErrors: ['404: Artículo no encontrado']
-      }
-    ],
-    userFlows: [
-      {
-        name: 'Leer artículo',
-        steps: ['1. Abrir artículo', '2. Leer contenido', '3. Interactuar (like, compartir)'],
-        commonBreakpoints: []
-      }
-    ],
-    commonIssues: []
-  },
 
   // ============================================================================
   // DASHBOARD (MAIN)
