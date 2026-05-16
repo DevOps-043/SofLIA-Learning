@@ -1,85 +1,153 @@
-import { CheckIcon, UserGroupIcon, UserPlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Check, UserPlus, UserRound, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 import type { AdminCommunityAccessRequest } from '../../types/admin-community-detail.types'
-import { getAdminCommunityRequestStatusColor } from './shared'
+import {
+  formatCommunityDetailDate,
+  getCommunityDetailRequestStatusConfig,
+} from './shared'
 
 interface AdminCommunityRequestsTabProps {
   accessRequests: AdminCommunityAccessRequest[]
   isProcessing: string | null
-  onOpenInviteModal: () => void
   onApproveRequest: (requestId: string, requesterName: string) => void
+  onOpenInviteModal: () => void
   onRejectRequest: (requestId: string, requesterName: string) => void
 }
 
-function getRequesterName(request: AdminCommunityAccessRequest) {
+function getRequesterName(
+  request: AdminCommunityAccessRequest,
+  fallback: string,
+) {
   return (
     request.requester?.display_name ||
     `${request.requester?.first_name || ''} ${request.requester?.last_name || ''}`.trim() ||
     request.requester?.email ||
-    'Usuario desconocido'
+    fallback
   )
 }
 
 export function AdminCommunityRequestsTab({
   accessRequests,
   isProcessing,
-  onOpenInviteModal,
   onApproveRequest,
-  onRejectRequest
+  onOpenInviteModal,
+  onRejectRequest,
 }: AdminCommunityRequestsTabProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Solicitudes de Acceso</h3>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="text-lg font-bold" style={{ color: theme.textColor }}>
+          {t('communityDetail.requests.title')}
+        </h3>
         <button
+          className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold"
           onClick={onOpenInviteModal}
-          className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          style={{
+            backgroundColor: theme.primaryColor,
+            color: theme.onPrimaryColor,
+          }}
+          type="button"
         >
-          <UserPlusIcon className="h-4 w-4 mr-2" />
-          Invitar Usuario
+          <UserPlus className="h-4 w-4" />
+          {t('communityDetail.requests.inviteUser')}
         </button>
       </div>
 
       {accessRequests.length === 0 ? (
-        <div className="text-center py-8">
-          <UserPlusIcon className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">No hay solicitudes pendientes</p>
-          <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">Usa "Invitar Usuario" para agregar miembros directamente</p>
+        <div className="py-10 text-center">
+          <UserPlus
+            className="mx-auto mb-4 h-12 w-12"
+            style={{ color: theme.subtextColor }}
+          />
+          <p className="text-sm font-medium" style={{ color: theme.subtextColor }}>
+            {t('communityDetail.requests.empty')}
+          </p>
+          <p className="mt-2 text-xs" style={{ color: theme.mutedTextColor }}>
+            {t('communityDetail.requests.emptyDescription')}
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {accessRequests.map(request => {
-            const requesterName = getRequesterName(request)
+          {accessRequests.map((request) => {
+            const requesterName = getRequesterName(
+              request,
+              t('communityDetail.requests.userNotFound'),
+            )
+            const statusConfig = getCommunityDetailRequestStatusConfig(
+              request.status,
+              theme,
+            )
+            const isPending = request.status === 'pending'
 
             return (
-              <div key={request.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0">
+              <div
+                className="rounded-2xl border p-4"
+                key={request.id}
+                style={{
+                  backgroundColor: theme.inputBg,
+                  borderColor: theme.borderColor,
+                }}
+              >
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <div className="shrink-0">
                       {request.requester?.profile_picture_url ? (
                         <img
-                          src={request.requester.profile_picture_url}
                           alt={requesterName}
                           className="h-10 w-10 rounded-full object-cover"
+                          src={request.requester.profile_picture_url}
                         />
                       ) : (
-                        <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                          <UserGroupIcon className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+                        <div
+                          className="flex h-10 w-10 items-center justify-center rounded-full"
+                          style={{ backgroundColor: theme.actionSurface }}
+                        >
+                          <UserRound
+                            className="h-5 w-5"
+                            style={{ color: theme.primaryColor }}
+                          />
                         </div>
                       )}
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <p className="text-gray-900 dark:text-white font-medium">{requesterName}</p>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">{request.requester?.email}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold" style={{ color: theme.textColor }}>
+                        {requesterName}
+                      </p>
+                      <p className="text-sm" style={{ color: theme.subtextColor }}>
+                        {request.requester?.email}
+                      </p>
                       {request.note ? (
-                        <p className="text-gray-700 dark:text-gray-300 text-sm mt-2">{request.note}</p>
+                        <p
+                          className="mt-2 text-sm"
+                          style={{ color: theme.textColor }}
+                        >
+                          {request.note}
+                        </p>
                       ) : null}
-                      <div className="flex items-center flex-wrap gap-2 mt-2">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getAdminCommunityRequestStatusColor(request.status)}`}>
-                          {request.status}
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span
+                          className="inline-flex rounded-full border px-2 py-1 text-xs font-semibold"
+                          style={{
+                            backgroundColor: statusConfig.bg,
+                            borderColor: statusConfig.border,
+                            color: statusConfig.color,
+                          }}
+                        >
+                          {t(`communityDetail.requests.status.${request.status}`, {
+                            defaultValue: request.status,
+                          })}
                         </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-500">
-                          {new Date(request.created_at).toLocaleDateString()}
+                        <span
+                          className="text-xs"
+                          style={{ color: theme.subtextColor }}
+                        >
+                          {formatCommunityDetailDate(request.created_at) ||
+                            t('communityCard.noDate')}
                         </span>
                       </div>
                     </div>
@@ -87,27 +155,49 @@ export function AdminCommunityRequestsTab({
 
                   <div className="flex gap-2">
                     <button
+                      disabled={isProcessing === request.id || !isPending}
                       onClick={() => onApproveRequest(request.id, requesterName)}
-                      disabled={isProcessing === request.id || request.status !== 'pending'}
-                      className="p-2 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      title={request.status === 'pending' ? 'Aprobar solicitud' : 'Solicitud ya procesada'}
+                      style={{ color: theme.successColor }}
+                      title={
+                        isPending
+                          ? t('communityDetail.requests.approve')
+                          : t('communityDetail.requests.alreadyProcessed')
+                      }
+                      type="button"
                     >
                       {isProcessing === request.id ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 dark:border-green-400" />
+                        <span
+                          className="block h-4 w-4 animate-spin rounded-full border-2"
+                          style={{
+                            borderColor: `${theme.successColor}33`,
+                            borderTopColor: theme.successColor,
+                          }}
+                        />
                       ) : (
-                        <CheckIcon className="h-4 w-4" />
+                        <Check className="h-4 w-4" />
                       )}
                     </button>
                     <button
+                      disabled={isProcessing === request.id || !isPending}
                       onClick={() => onRejectRequest(request.id, requesterName)}
-                      disabled={isProcessing === request.id || request.status !== 'pending'}
-                      className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      title={request.status === 'pending' ? 'Rechazar solicitud' : 'Solicitud ya procesada'}
+                      style={{ color: theme.dangerColor }}
+                      title={
+                        isPending
+                          ? t('communityDetail.requests.reject')
+                          : t('communityDetail.requests.alreadyProcessed')
+                      }
+                      type="button"
                     >
                       {isProcessing === request.id ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 dark:border-red-400" />
+                        <span
+                          className="block h-4 w-4 animate-spin rounded-full border-2"
+                          style={{
+                            borderColor: `${theme.dangerColor}33`,
+                            borderTopColor: theme.dangerColor,
+                          }}
+                        />
                       ) : (
-                        <XMarkIcon className="h-4 w-4" />
+                        <X className="h-4 w-4" />
                       )}
                     </button>
                   </div>

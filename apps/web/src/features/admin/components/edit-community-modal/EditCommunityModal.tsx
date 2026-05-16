@@ -1,162 +1,242 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Edit3, Save, AlertCircle, Shield } from 'lucide-react'
-import { SOFLIA_ADMIN_COLORS } from '../../constants/admin-color-tokens'
+import { AnimatePresence, motion } from 'framer-motion'
+import { AlertCircle, Edit3, Save, Shield, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 import type { AdminCommunity } from '../../services/adminCommunities.service'
-import { useEditCommunityFormState } from './useEditCommunityFormState'
 import { CommunityFormSections } from './CommunityFormSections'
-
-const colors = SOFLIA_ADMIN_COLORS
+import { useEditCommunityFormState } from './useEditCommunityFormState'
 
 interface EditCommunityModalProps {
   community: AdminCommunity | null
   isOpen: boolean
   onClose: () => void
-  onSave: (communityData: ReturnType<typeof useEditCommunityFormState>['formData']) => Promise<void>
+  onSave: (
+    communityData: ReturnType<typeof useEditCommunityFormState>['formData'],
+  ) => Promise<void>
 }
 
-export function EditCommunityModal({ community, isOpen, onClose, onSave }: EditCommunityModalProps) {
-  const { formData, isLoading, error, handleChange, handleSubmit } = useEditCommunityFormState({
+export function EditCommunityModal({
+  community,
+  isOpen,
+  onClose,
+  onSave,
+}: EditCommunityModalProps) {
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
+  const theme = useAdminPanelTheme()
+  const {
+    formData,
+    errors,
+    isLoading,
+    error,
+    setFieldValue,
+    handleSubmit,
+  } = useEditCommunityFormState({
     community,
     onSave,
-    onClose
+    onClose,
   })
 
   if (!isOpen || !community) return null
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4">
-          {/* Backdrop */}
+      {isOpen && (
+        <>
           <motion.div
-            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            className="fixed inset-0 z-50 backdrop-blur-sm"
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
             onClick={onClose}
+            style={{ backgroundColor: theme.overlayBg }}
+            transition={{ duration: 0.2 }}
           />
 
-          {/* Modal */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: 'spring', duration: 0.5 }}
-            className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl"
-            style={{
-              background: `linear-gradient(145deg, ${colors.bgSecondary} 0%, ${colors.bgTertiary} 100%)`,
-              border: '1px solid rgba(255,255,255,0.1)'
-            }}
-          >
-            {/* Decorative glow */}
-            <div
-              className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl opacity-20 pointer-events-none"
-              style={{ background: colors.purple }}
-            />
-
-            {/* Header */}
-            <div className="relative p-6 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <motion.div
-                    initial={{ rotate: -180, scale: 0 }}
-                    animate={{ rotate: 0, scale: 1 }}
-                    transition={{ type: 'spring', delay: 0.1 }}
-                    className="p-3 rounded-2xl"
-                    style={{
-                      background: `linear-gradient(135deg, ${colors.purple} 0%, ${colors.primary} 100%)`,
-                      boxShadow: '0 10px 40px rgba(139, 92, 246, 0.3)'
-                    }}
-                  >
-                    <Edit3 className="w-6 h-6 text-white" />
-                  </motion.div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white">Editar Comunidad</h2>
-                    <p className="text-gray-400 text-sm mt-0.5">
-                      Modificando: <span className="text-white font-medium">{community.name}</span>
-                    </p>
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex min-h-screen items-center justify-center p-4">
+              <motion.div
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                className="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border shadow-2xl"
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                onClick={(event) => event.stopPropagation()}
+                style={{
+                  backgroundColor: theme.cardBg,
+                  borderColor: theme.borderColor,
+                }}
+                transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                <div
+                  className="relative border-b px-6 py-4"
+                  style={{
+                    background: theme.heroBackground,
+                    borderColor: theme.heroBorderColor,
+                  }}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="flex h-10 w-10 items-center justify-center rounded-xl"
+                        style={{ backgroundColor: theme.inverseSurface }}
+                      >
+                        <Edit3
+                          className="h-5 w-5"
+                          style={{ color: theme.accentColor }}
+                        />
+                      </div>
+                      <div>
+                        <h3
+                          className="text-lg font-bold"
+                          style={{ color: theme.inverseTextColor }}
+                        >
+                          {t('communities.editModal.title')}
+                        </h3>
+                        <p
+                          className="text-xs"
+                          style={{ color: theme.inverseSubtextColor }}
+                        >
+                          {t('communities.editModal.description', {
+                            name: community.name,
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <motion.button
+                      className="rounded-lg p-2 transition-colors duration-200"
+                      disabled={isLoading}
+                      onClick={onClose}
+                      style={{ color: theme.inverseSubtextColor }}
+                      type="button"
+                      whileHover={{ scale: 1.1, rotate: 90 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <X className="h-5 w-5" />
+                    </motion.button>
                   </div>
                 </div>
 
-                <motion.button
-                  whileHover={{ scale: 1.1, rotate: 90 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={onClose}
-                  className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </motion.button>
-              </div>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-8">
-              {/* Global Error */}
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center gap-3 p-4 rounded-xl"
-                  style={{
-                    background: `${colors.error}15`,
-                    border: `1px solid ${colors.error}30`
-                  }}
-                >
-                  <AlertCircle className="w-5 h-5" style={{ color: colors.error }} />
-                  <p className="text-sm" style={{ color: colors.error }}>{error}</p>
-                </motion.div>
-              )}
-
-              {/* Form Sections */}
-              <CommunityFormSections formData={formData} handleChange={handleChange} />
-
-              {/* Actions */}
-              <div className="flex justify-end gap-3 pt-6 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  type="button"
-                  onClick={onClose}
-                  disabled={isLoading}
-                  className="px-6 py-3 rounded-xl font-medium text-gray-300 bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
-                >
-                  Cancelar
-                </motion.button>
-
-                <motion.button
-                  whileHover={{ scale: 1.02, boxShadow: '0 10px 40px rgba(139, 92, 246, 0.3)' }}
-                  whileTap={{ scale: 0.98 }}
-                  type="submit"
-                  disabled={isLoading}
-                  className="px-8 py-3 rounded-xl font-semibold text-white flex items-center gap-2 disabled:opacity-50"
-                  style={{
-                    background: `linear-gradient(135deg, ${colors.purple} 0%, ${colors.primary} 100%)`,
-                    boxShadow: '0 5px 20px rgba(139, 92, 246, 0.2)'
-                  }}
-                >
-                  {isLoading ? (
-                    <>
+                <form className="flex-1 overflow-y-auto" onSubmit={handleSubmit}>
+                  <div className="space-y-5 p-6">
+                    {error ? (
                       <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                        className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                      />
-                      <span>Guardando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-5 h-5" />
-                      <span>Guardar Cambios</span>
-                    </>
-                  )}
-                </motion.button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      </div>
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-center gap-3 rounded-xl border p-4"
+                        initial={{ opacity: 0, y: -10 }}
+                        style={{
+                          backgroundColor: `${theme.dangerColor}14`,
+                          borderColor: `${theme.dangerColor}26`,
+                        }}
+                      >
+                        <AlertCircle
+                          className="h-5 w-5"
+                          style={{ color: theme.dangerColor }}
+                        />
+                        <p
+                          className="text-sm"
+                          style={{ color: theme.dangerColor }}
+                        >
+                          {error}
+                        </p>
+                      </motion.div>
+                    ) : null}
+
+                    <CommunityFormSections
+                      errors={errors}
+                      formData={formData}
+                      isDisabled={isLoading}
+                      onFieldChange={setFieldValue}
+                    />
+                  </div>
+
+                  <div
+                    className="flex flex-col gap-4 border-t px-6 py-4 lg:flex-row lg:items-center lg:justify-between"
+                    style={{
+                      backgroundColor: theme.inputBg,
+                      borderColor: theme.borderColor,
+                    }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="rounded-lg p-2"
+                        style={{ backgroundColor: theme.actionSurface }}
+                      >
+                        <Shield
+                          className="h-4 w-4"
+                          style={{ color: theme.primaryColor }}
+                        />
+                      </div>
+                      <div>
+                        <p
+                          className="text-xs font-semibold uppercase tracking-wide"
+                          style={{ color: theme.primaryColor }}
+                        >
+                          {t('communities.editModal.auditTitle')}
+                        </p>
+                        <p
+                          className="mt-1 text-xs leading-relaxed"
+                          style={{ color: theme.subtextColor }}
+                        >
+                          {t('communities.editModal.auditDescription')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3">
+                      <motion.button
+                        className="rounded-xl border px-6 py-2.5 text-sm font-semibold transition-colors duration-200"
+                        disabled={isLoading}
+                        onClick={onClose}
+                        style={{
+                          backgroundColor: theme.cardBg,
+                          borderColor: theme.borderColor,
+                          color: theme.subtextColor,
+                        }}
+                        type="button"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {tc('actions.cancel')}
+                      </motion.button>
+                      <motion.button
+                        className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold shadow-lg transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled={isLoading}
+                        style={{
+                          backgroundColor: theme.primaryColor,
+                          color: theme.onPrimaryColor,
+                        }}
+                        type="submit"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {isLoading ? (
+                          <>
+                            <span
+                              className="h-4 w-4 animate-spin rounded-full border-2"
+                              style={{
+                                borderColor: theme.inverseBorderColor,
+                                borderTopColor: theme.onPrimaryColor,
+                              }}
+                            />
+                            <span>{t('communities.editModal.saving')}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-4 w-4" />
+                            <span>{t('communities.editModal.saveButton')}</span>
+                          </>
+                        )}
+                      </motion.button>
+                    </div>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          </div>
+        </>
+      )}
     </AnimatePresence>
   )
 }

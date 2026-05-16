@@ -1,60 +1,92 @@
-import {
-  DocumentTextIcon,
-  FlagIcon,
-  UserGroupIcon,
-  UserPlusIcon,
-  VideoCameraIcon
-} from '@heroicons/react/24/outline'
+import { FileText, Flag, UserPlus, Users, Video, type LucideIcon } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 import type { AdminCommunityDetailTabId } from '../../types/admin-community-detail.types'
 
 interface AdminCommunityTabsProps {
   activeTab: AdminCommunityDetailTabId
-  setActiveTab: (tab: AdminCommunityDetailTabId) => void
   counts: {
-    posts: number
     members: number
+    posts: number
     requests: number
     videos: number
   }
+  setActiveTab: (tab: AdminCommunityDetailTabId) => void
 }
 
 const tabs: Array<{
-  id: AdminCommunityDetailTabId
-  label: string
-  icon: typeof DocumentTextIcon
   countKey?: keyof AdminCommunityTabsProps['counts']
+  icon: LucideIcon
+  id: AdminCommunityDetailTabId
+  labelKey: string
 }> = [
-  { id: 'posts', label: 'Posts', icon: DocumentTextIcon, countKey: 'posts' },
-  { id: 'members', label: 'Miembros', icon: UserGroupIcon, countKey: 'members' },
-  { id: 'requests', label: 'Solicitudes', icon: UserPlusIcon, countKey: 'requests' },
-  { id: 'videos', label: 'Videos', icon: VideoCameraIcon, countKey: 'videos' },
-  { id: 'reports', label: 'Reportes', icon: FlagIcon }
+  {
+    countKey: 'posts',
+    icon: FileText,
+    id: 'posts',
+    labelKey: 'communityDetail.tabs.posts',
+  },
+  {
+    countKey: 'members',
+    icon: Users,
+    id: 'members',
+    labelKey: 'communityDetail.tabs.members',
+  },
+  {
+    countKey: 'requests',
+    icon: UserPlus,
+    id: 'requests',
+    labelKey: 'communityDetail.tabs.requests',
+  },
+  {
+    countKey: 'videos',
+    icon: Video,
+    id: 'videos',
+    labelKey: 'communityDetail.tabs.videos',
+  },
+  {
+    icon: Flag,
+    id: 'reports',
+    labelKey: 'communityDetail.tabs.reports',
+  },
 ]
 
 export function AdminCommunityTabs({
   activeTab,
+  counts,
   setActiveTab,
-  counts
 }: AdminCommunityTabsProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
+
   return (
-    <div className="border-b border-gray-200 dark:border-gray-700">
-      <nav className="flex flex-wrap gap-x-6 px-6">
-        {tabs.map(tab => {
+    <div className="border-b" style={{ borderColor: theme.borderColor }}>
+      <nav className="flex flex-wrap gap-2 px-4 py-3 sm:px-6">
+        {tabs.map((tab) => {
+          const Icon = tab.icon
           const count = tab.countKey ? counts[tab.countKey] : 0
+          const isActive = activeTab === tab.id
 
           return (
             <button
+              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-colors"
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-              }`}
+              style={{
+                backgroundColor: isActive ? theme.actionSurface : 'transparent',
+                color: isActive ? theme.primaryColor : theme.subtextColor,
+              }}
+              type="button"
             >
-              <tab.icon className="h-5 w-5" />
-              <span>{tab.label}</span>
-              <span className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs">
+              <Icon className="h-4 w-4" />
+              <span>{t(tab.labelKey)}</span>
+              <span
+                className="rounded-full px-2 py-0.5 text-xs"
+                style={{
+                  backgroundColor: isActive ? theme.cardBg : theme.inputBg,
+                  color: isActive ? theme.primaryColor : theme.subtextColor,
+                }}
+              >
                 {count}
               </span>
             </button>

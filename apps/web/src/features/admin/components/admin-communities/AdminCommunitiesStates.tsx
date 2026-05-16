@@ -1,25 +1,38 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Users, Zap } from 'lucide-react'
-import { adminCommunitiesColors } from './shared'
+import { AlertTriangle, Plus, RefreshCw, Users } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 
 export function AdminCommunitiesLoadingState() {
+  const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
+
   return (
-    <div className="min-h-screen p-6 lg:p-8" style={{ background: adminCommunitiesColors.bgPrimary }}>
-      <div className="max-w-7xl mx-auto">
-        <div className="animate-pulse space-y-8">
-          <div className="h-32 rounded-3xl" style={{ background: adminCommunitiesColors.bgSecondary }} />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, index) => (
-              <div key={index} className="h-36 rounded-2xl" style={{ background: adminCommunitiesColors.bgSecondary }} />
-            ))}
-          </div>
-          <div className="h-16 rounded-2xl" style={{ background: adminCommunitiesColors.bgSecondary }} />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, index) => (
-              <div key={index} className="h-80 rounded-3xl" style={{ background: adminCommunitiesColors.bgSecondary }} />
-            ))}
+    <div
+      className="min-h-screen p-6 lg:p-8"
+      style={{ backgroundColor: theme.panelBg }}
+    >
+      <div className="mx-auto max-w-7xl space-y-8">
+        <div
+          className="flex min-h-[260px] items-center justify-center rounded-3xl border"
+          style={{
+            backgroundColor: theme.cardBg,
+            borderColor: theme.borderColor,
+          }}
+        >
+          <div className="text-center">
+            <div
+              className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-t-transparent"
+              style={{
+                borderColor: theme.borderColor,
+                borderTopColor: theme.primaryColor,
+              }}
+            />
+            <p className="font-semibold" style={{ color: theme.textColor }}>
+              {t('communities.page.loading')}
+            </p>
           </div>
         </div>
       </div>
@@ -32,28 +45,53 @@ interface AdminCommunitiesErrorStateProps {
   onRetry: () => void
 }
 
-export function AdminCommunitiesErrorState({ error, onRetry }: AdminCommunitiesErrorStateProps) {
+export function AdminCommunitiesErrorState({
+  error,
+  onRetry,
+}: AdminCommunitiesErrorStateProps) {
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
+  const theme = useAdminPanelTheme()
+
   return (
-    <div className="min-h-screen p-6 lg:p-8 flex items-center justify-center" style={{ background: adminCommunitiesColors.bgPrimary }}>
+    <div
+      className="flex min-h-screen items-center justify-center p-6 lg:p-8"
+      style={{ backgroundColor: theme.panelBg }}
+    >
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="text-center p-8 rounded-3xl max-w-md"
-        style={{ background: adminCommunitiesColors.bgSecondary }}
+        className="max-w-md rounded-3xl border p-8 text-center shadow-xl"
+        style={{
+          backgroundColor: theme.cardBg,
+          borderColor: theme.borderColor,
+        }}
       >
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ background: `${adminCommunitiesColors.error}20` }}>
-          <Zap className="w-8 h-8" style={{ color: adminCommunitiesColors.error }} />
-        </div>
-        <h3 className="text-xl font-bold text-white mb-2">Error al cargar</h3>
-        <p className="text-gray-400 mb-6">{error}</p>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onRetry}
-          className="px-6 py-3 rounded-xl font-semibold text-white"
-          style={{ background: `linear-gradient(135deg, ${adminCommunitiesColors.accent} 0%, ${adminCommunitiesColors.primary} 100%)` }}
+        <div
+          className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
+          style={{ backgroundColor: `${theme.dangerColor}14` }}
         >
-          Reintentar
+          <AlertTriangle className="h-8 w-8" style={{ color: theme.dangerColor }} />
+        </div>
+        <h3 className="mb-2 text-xl font-bold" style={{ color: theme.textColor }}>
+          {t('generic.errorLoading')}
+        </h3>
+        <p className="mb-6 text-sm" style={{ color: theme.subtextColor }}>
+          {error}
+        </p>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onRetry}
+          className="inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold"
+          style={{
+            backgroundColor: theme.primaryColor,
+            color: theme.onPrimaryColor,
+          }}
+          type="button"
+        >
+          <RefreshCw className="h-4 w-4" />
+          {tc('actions.retry')}
         </motion.button>
       </motion.div>
     </div>
@@ -64,22 +102,47 @@ interface AdminCommunitiesEmptyStateProps {
   onCreate: () => void
 }
 
-export function AdminCommunitiesEmptyState({ onCreate }: AdminCommunitiesEmptyStateProps) {
+export function AdminCommunitiesEmptyState({
+  onCreate,
+}: AdminCommunitiesEmptyStateProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
+
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
-      <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: `${adminCommunitiesColors.accent}10` }}>
-        <Users className="w-12 h-12" style={{ color: adminCommunitiesColors.accent }} />
-      </div>
-      <h3 className="text-xl font-semibold text-white mb-2">No se encontraron comunidades</h3>
-      <p className="text-gray-400 mb-6">Intenta ajustar los filtros o crear una nueva comunidad</p>
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={onCreate}
-        className="px-6 py-3 rounded-xl font-semibold text-white"
-        style={{ background: `linear-gradient(135deg, ${adminCommunitiesColors.accent} 0%, ${adminCommunitiesColors.primary} 100%)` }}
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-3xl border py-16 text-center"
+      style={{
+        backgroundColor: theme.cardBg,
+        borderColor: theme.borderColor,
+      }}
+    >
+      <div
+        className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl"
+        style={{ backgroundColor: theme.actionSurface }}
       >
-        Crear Comunidad
+        <Users className="h-10 w-10" style={{ color: theme.primaryColor }} />
+      </div>
+      <h3 className="mb-2 text-xl font-semibold" style={{ color: theme.textColor }}>
+        {t('communities.empty.title')}
+      </h3>
+      <p className="mb-6 text-sm" style={{ color: theme.subtextColor }}>
+        {t('communities.empty.description')}
+      </p>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={onCreate}
+        className="inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold"
+        style={{
+          backgroundColor: theme.primaryColor,
+          color: theme.onPrimaryColor,
+        }}
+        type="button"
+      >
+        <Plus className="h-4 w-4" />
+        {t('communities.page.createButton')}
       </motion.button>
     </motion.div>
   )

@@ -7,6 +7,7 @@
     "dashboard": "Painel",
     "users": "Usuários",
     "workshops": "Talleres",
+    "communities": "Comunidades",
     "learningPaths": "Rutas de aprendizagem",
     "liaAnalytics": "SofLIA Analytics",
     "userStats": "Estatísticas de Usuários",
@@ -483,13 +484,68 @@
   "news": {
     "deleteModal": {
       "title": "Excluir Notícia",
-      "confirmText": "Tem certeza que deseja excluir esta notícia?"
+      "confirmText": "Tem certeza que deseja excluir esta notícia?",
+      "status": "Status",
+      "language": "Idioma",
+      "createdAt": "Criada",
+      "views": "Visualizações"
     },
     "page": {
+      "title": "Gestão de Notícias",
+      "description": "Gerencie publicações, rascunhos e desempenho editorial com o design do painel Business.",
+      "createButton": "Nova notícia",
+      "loading": "Carregando notícias...",
+      "errorLoading": "Erro ao carregar notícias",
+      "retry": "Tentar novamente",
+      "listTitle": "Notícias ({{count}})",
       "searchPlaceholder": "Pesquisar notícias...",
       "tooltipView": "Ver detalhes",
       "tooltipEdit": "Editar",
       "tooltipDelete": "Excluir"
+    },
+    "filters": {
+      "status": {
+        "all": "Todos os status",
+        "published": "Publicadas",
+        "draft": "Rascunhos",
+        "archived": "Arquivadas"
+      }
+    },
+    "stats": {
+      "total": "Total Notícias",
+      "published": "Publicadas",
+      "drafts": "Rascunhos",
+      "views": "Total Visualizações"
+    },
+    "status": {
+      "published": "Publicada",
+      "draft": "Rascunho",
+      "archived": "Arquivada"
+    },
+    "card": {
+      "views": "{{count}} visualizações",
+      "comments": "{{count}} comentários"
+    },
+    "empty": {
+      "title": "Nenhuma notícia encontrada",
+      "description": "Ajuste a busca ou crie uma nova notícia."
+    },
+    "viewModal": {
+      "title": "Detalhes da notícia",
+      "intro": "Introdução",
+      "subtitle": "Subtítulo",
+      "sections": "Seções",
+      "tldr": "TLDR",
+      "statsTitle": "Estatísticas",
+      "views": "Visualizações",
+      "comments": "Comentários",
+      "language": "Idioma",
+      "publishedAt": "Data de publicação",
+      "notPublished": "Não publicada",
+      "technicalTitle": "Informações técnicas",
+      "createdAt": "Criada",
+      "updatedAt": "Atualizada",
+      "createdBy": "Criada por"
     }
   },
   "apps": {
@@ -523,9 +579,114 @@
     }
   },
   "communities": {
+    "page": {
+      "title": "Gestão de Comunidades",
+      "description": "Gerencie, modere e acompanhe comunidades com o mesmo design do painel Business.",
+      "createButton": "Criar Comunidade",
+      "loading": "Carregando comunidades..."
+    },
+    "filters": {
+      "categories": {
+        "all": "Todas as categorias",
+        "public": "Públicas",
+        "private": "Privadas",
+        "moderated": "Moderadas"
+      },
+      "status": {
+        "all": "Todos os status",
+        "active": "Ativas",
+        "inactive": "Inativas"
+      }
+    },
+    "view": {
+      "grid": "Visualização em cartões",
+      "list": "Visualização em lista"
+    },
+    "empty": {
+      "title": "Nenhuma comunidade encontrada",
+      "description": "Tente ajustar os filtros ou crie uma nova comunidade"
+    },
+    "createModal": {
+      "title": "Criar comunidade",
+      "description": "Defina identidade, acesso e relação com cursos com o mesmo design do painel Business.",
+      "auditTitle": "Proteção de dados e auditoria",
+      "auditDescription": "A criação fica registrada e o payload é normalizado antes de persistir.",
+      "createButton": "Criar comunidade",
+      "creating": "Criando...",
+      "errorFallback": "Erro ao criar comunidade"
+    },
+    "editModal": {
+      "title": "Editar comunidade",
+      "description": "Editando: {{name}}",
+      "auditTitle": "Controle de alterações",
+      "auditDescription": "A alteração fica registrada para rastreabilidade administrativa.",
+      "saveButton": "Salvar alterações",
+      "saving": "Salvando...",
+      "errorFallback": "Erro ao atualizar comunidade"
+    },
+    "form": {
+      "identityTitle": "Informações base",
+      "identityDescription": "Defina nome, descrição, slug público e imagem de referência.",
+      "accessTitle": "Privacidade e acesso",
+      "accessDescription": "Controle visibilidade, regras de entrada e vínculo acadêmico.",
+      "statusTitle": "Estado da comunidade",
+      "statusDescription": "Decida se a comunidade ficará visível para os usuários.",
+      "nameLabel": "Nome",
+      "namePlaceholder": "Comunidade de IA Aplicada",
+      "slugLabel": "Slug",
+      "slugPlaceholder": "comunidade-ia-aplicada",
+      "descriptionLabel": "Descrição",
+      "descriptionPlaceholder": "Descreva o objetivo, tom e valor da comunidade.",
+      "imageUrlLabel": "URL da imagem",
+      "imageUrlPlaceholder": "https://exemplo.com/comunidade.jpg",
+      "imagePreview": "Prévia",
+      "imagePreviewAlt": "Prévia da comunidade",
+      "visibilityLabel": "Visibilidade",
+      "accessTypeLabel": "Tipo de acesso",
+      "courseLabel": "Curso vinculado",
+      "coursePlaceholder": "Sem curso vinculado",
+      "courseWithInstructor": "{{title}} - {{instructor}}",
+      "loadingCourses": "Carregando cursos...",
+      "activeTitle": "Comunidade ativa",
+      "inactiveTitle": "Comunidade inativa",
+      "activeDescription": "Visível para membros e listas.",
+      "inactiveDescription": "Criada em estado oculto.",
+      "visibilityOptions": {
+        "public": "Pública - visível para todos",
+        "private": "Privada - somente membros"
+      },
+      "accessOptions": {
+        "open": "Aberto - qualquer pessoa pode entrar",
+        "moderated": "Moderado - requer aprovação",
+        "invite_only": "Somente convite"
+      },
+      "validation": {
+        "nameRequired": "O nome é obrigatório",
+        "descriptionRequired": "A descrição é obrigatória",
+        "slugRequired": "O slug é obrigatório",
+        "slugInvalid": "Apenas letras minúsculas, números e hífens"
+      }
+    },
     "deleteModal": {
       "title": "Excluir Comunidade",
-      "confirmText": "Tem certeza que deseja excluir esta comunidade?"
+      "confirmText": "Tem certeza que deseja excluir esta comunidade?",
+      "communityInfo": "Informações da comunidade",
+      "dataTitle": "Dados que serão excluídos",
+      "auditTitle": "Aviso de auditoria",
+      "auditDescription": "Esta exclusão será registrada no log de auditoria da plataforma.",
+      "fields": {
+        "name": "Nome",
+        "description": "Descrição",
+        "visibility": "Visibilidade",
+        "status": "Status"
+      },
+      "data": {
+        "members": "Membros",
+        "posts": "Posts",
+        "comments": "Comentários",
+        "videos": "Vídeos",
+        "requests": "Solicitações"
+      }
     },
     "stats": {
       "total": "Total Comunidades",
@@ -699,6 +860,26 @@
     }
   },
   "communityDetail": {
+    "page": {
+      "loading": "Carregando informações da comunidade...",
+      "errorTitle": "Erro",
+      "notFound": "Comunidade não encontrada",
+      "subtitle": "Administração da comunidade"
+    },
+    "tabs": {
+      "posts": "Posts",
+      "members": "Membros",
+      "requests": "Solicitações",
+      "videos": "Vídeos",
+      "reports": "Relatórios"
+    },
+    "overview": {
+      "comments": "Comentários",
+      "videos": "Vídeos",
+      "createdAt": "Criada: {{date}}",
+      "updatedAt": "Atualizada: {{date}}",
+      "creator": "por {{name}}"
+    },
     "members": {
       "empty": "Nenhum membro nesta comunidade",
       "userNotFound": "Usuário não encontrado",
@@ -720,7 +901,80 @@
       "showPost": "Mostrar post",
       "hidePost": "Ocultar post",
       "deletePost": "Excluir post",
-      "viewDetails": "Ver detalhes do post"
+      "viewDetails": "Ver detalhes do post",
+      "unknownUser": "Usuário desconhecido"
+    },
+    "requests": {
+      "title": "Solicitações de acesso",
+      "inviteUser": "Convidar usuário",
+      "empty": "Não há solicitações pendentes",
+      "emptyDescription": "Use convidar usuário para adicionar membros diretamente.",
+      "userNotFound": "Usuário desconhecido",
+      "approve": "Aprovar solicitação",
+      "reject": "Rejeitar solicitação",
+      "alreadyProcessed": "Solicitação já processada",
+      "status": {
+        "pending": "Pendente",
+        "approved": "Aprovada",
+        "rejected": "Rejeitada"
+      }
+    },
+    "reports": {
+      "title": "Relatórios de posts",
+      "emptyAll": "Não há relatórios nesta comunidade",
+      "emptyStatus": "Não há relatórios {{status}}",
+      "reportedPost": "Post reportado:",
+      "reportedBy": "Reportado por:",
+      "date": "Data:",
+      "reviewedBy": "Revisado por:",
+      "reviewDate": "Data da revisão:",
+      "details": "Detalhes:",
+      "resolutionNotes": "Notas de resolução:",
+      "noContent": "Sem conteúdo",
+      "unknownUser": "Usuário desconhecido",
+      "loadMore": "Carregar mais",
+      "statusFilter": {
+        "all": "Todos"
+      },
+      "status": {
+        "pending": "Pendente",
+        "reviewed": "Revisado",
+        "resolved": "Resolvido",
+        "ignored": "Ignorado"
+      },
+      "reasons": {
+        "spam": "Spam",
+        "inappropriate": "Conteúdo inapropriado",
+        "harassment": "Assédio ou bullying",
+        "misinformation": "Desinformação",
+        "violence": "Violência",
+        "other": "Outro"
+      },
+      "actions": {
+        "deletePost": "Excluir post",
+        "hidePost": "Ocultar post",
+        "ignore": "Ignorar"
+      },
+      "resolutionActions": {
+        "delete_post": "Post excluído",
+        "hide_post": "Post oculto",
+        "ignore_report": "Relatório ignorado",
+        "warn_user": "Usuário advertido",
+        "none": "Nenhuma ação registrada"
+      },
+      "notes": {
+        "deleted": "Post excluído por violar as normas",
+        "hidden": "Post oculto por violar as normas"
+      },
+      "errors": {
+        "loading": "Erro ao carregar relatórios",
+        "connection": "Erro de conexão",
+        "resolving": "Erro ao resolver o relatório"
+      }
+    },
+    "videos": {
+      "empty": "Não há vídeos nesta comunidade",
+      "noProvider": "Provedor não definido"
     }
   },
   "communityCard": {
@@ -732,6 +986,7 @@
     "membersLabel": "Membros",
     "postsLabel": "Posts",
     "noCreator": "Sem criador",
+    "noDate": "Sem data",
     "deactivate": "Desativar",
     "activate": "Ativar"
   },
@@ -780,6 +1035,7 @@
     "dashboard": "Dashboard",
     "users": "Usuários",
     "workshops": "Workshops",
+    "communities": "Comunidades",
     "learningPaths": "Rotas de aprendizagem",
     "liaAnalytics": "SofLIA Analytics",
     "userStats": "Estatísticas de Usuários",

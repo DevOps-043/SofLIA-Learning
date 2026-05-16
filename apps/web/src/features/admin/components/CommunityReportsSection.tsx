@@ -1,50 +1,78 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Flag, Eye, CheckCircle, XCircle, Clock, Filter, Loader2 } from 'lucide-react'
-import { PostReportsService, PostReport, ReportStatus, ResolutionAction } from '@/features/communities/services/postReports.service'
+import { useEffect, useState } from 'react'
+import { Clock, Eye, Filter, Flag, Loader2, XCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../hooks/useAdminPanelTheme'
+import {
+  PostReportsService,
+  type PostReport,
+  type ReportStatus,
+  type ResolutionAction,
+} from '@/features/communities/services/postReports.service'
 
 interface CommunityReportsSectionProps {
   communitySlug: string
 }
 
-const STATUS_OPTIONS: Array<{ value: ReportStatus | 'all'; label: string }> = [
-  { value: 'all', label: 'Todos' },
-  { value: 'pending', label: 'Pendientes' },
-  { value: 'reviewed', label: 'Revisados' },
-  { value: 'resolved', label: 'Resueltos' },
-  { value: 'ignored', label: 'Ignorados' },
+const statusOptions: Array<{ value: ReportStatus | 'all'; labelKey: string }> = [
+  { value: 'all', labelKey: 'communityDetail.reports.statusFilter.all' },
+  { value: 'pending', labelKey: 'communityDetail.reports.status.pending' },
+  { value: 'reviewed', labelKey: 'communityDetail.reports.status.reviewed' },
+  { value: 'resolved', labelKey: 'communityDetail.reports.status.resolved' },
+  { value: 'ignored', labelKey: 'communityDetail.reports.status.ignored' },
 ]
 
-const REASON_LABELS: Record<string, string> = {
-  spam: 'Spam',
-  inappropriate: 'Contenido inapropiado',
-  harassment: 'Acoso o bullying',
-  misinformation: 'Desinformación',
-  violence: 'Violencia',
-  other: 'Otro',
+const reasonLabelKeys: Record<string, string> = {
+  harassment: 'communityDetail.reports.reasons.harassment',
+  inappropriate: 'communityDetail.reports.reasons.inappropriate',
+  misinformation: 'communityDetail.reports.reasons.misinformation',
+  other: 'communityDetail.reports.reasons.other',
+  spam: 'communityDetail.reports.reasons.spam',
+  violence: 'communityDetail.reports.reasons.violence',
 }
 
-const STATUS_LABELS: Record<ReportStatus, string> = {
-  pending: 'Pendiente',
-  reviewed: 'Revisado',
-  resolved: 'Resuelto',
-  ignored: 'Ignorado',
+function getUserName(
+  user:
+    | {
+        email?: string | null
+        first_name?: string | null
+        last_name?: string | null
+        username?: string | null
+      }
+    | null
+    | undefined,
+  fallback: string,
+) {
+  if (!user) {
+    return fallback
+  }
+
+  return (
+    `${user.first_name || ''} ${user.last_name || ''}`.trim() ||
+    user.username ||
+    user.email ||
+    fallback
+  )
 }
 
-const STATUS_COLORS: Record<ReportStatus, string> = {
-  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-800',
-  reviewed: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-800',
-  resolved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-800',
-  ignored: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400 border-gray-800',
+function getPostPreview(content: string, fallback: string) {
+  if (!content) {
+    return fallback
+  }
+
+  return content.length > 100 ? `${content.substring(0, 100)}...` : content
 }
 
-export function CommunityReportsSection({ communitySlug }: CommunityReportsSectionProps) {
+export function CommunityReportsSection({
+  communitySlug,
+}: CommunityReportsSectionProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
   const [reports, setReports] = useState<PostReport[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedStatus, setSelectedStatus] = useState<ReportStatus | 'all'>('all')
-  const [selectedReport, setSelectedReport] = useState<PostReport | null>(null)
   const [isResolving, setIsResolving] = useState(false)
   const [pagination, setPagination] = useState({
     total: 0,
@@ -59,266 +87,396 @@ export function CommunityReportsSection({ communitySlug }: CommunityReportsSecti
 
     try {
       const result = await PostReportsService.getAdminReports(communitySlug, {
-        status: selectedStatus === 'all' ? undefined : selectedStatus,
         limit: pagination.limit,
         offset: pagination.offset,
+        status: selectedStatus === 'all' ? undefined : selectedStatus,
       })
 
       if (result.success) {
         setReports(result.reports)
         setPagination(result.pagination)
       } else {
-        setError('Error al cargar reportes')
+        setError(t('communityDetail.reports.errors.loading'))
       }
-    } catch (err) {
-      setError('Error de conexión')
+    } catch {
+      setError(t('communityDetail.reports.errors.connection'))
     } finally {
       setIsLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchReports()
+    void fetchReports()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStatus, communitySlug])
 
   const handleResolveReport = async (
     reportId: string,
     status: 'reviewed' | 'resolved' | 'ignored',
     resolutionAction?: ResolutionAction,
-    resolutionNotes?: string
+    resolutionNotes?: string,
   ) => {
     setIsResolving(true)
     try {
       const result = await PostReportsService.resolveReport(communitySlug, reportId, {
-        status,
         resolution_action: resolutionAction,
         resolution_notes: resolutionNotes,
+        status,
       })
 
       if (result.success) {
-        // Actualizar el reporte en la lista
         setReports((prev) =>
-          prev.map((r) => (r.id === reportId ? result.report! : r))
+          prev.map((report) => (report.id === reportId ? result.report! : report)),
         )
-        setSelectedReport(null)
       } else {
-        setError(result.error || 'Error al resolver el reporte')
+        setError(result.error || t('communityDetail.reports.errors.resolving'))
       }
-    } catch (err) {
-      setError('Error de conexión')
+    } catch {
+      setError(t('communityDetail.reports.errors.connection'))
     } finally {
       setIsResolving(false)
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('es-ES', {
-      year: 'numeric',
-      month: 'short',
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleString(undefined, {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      month: 'short',
+      year: 'numeric',
     })
-  }
 
-  const getPostPreview = (content: string) => {
-    if (!content) return 'Sin contenido'
-    return content.length > 100 ? content.substring(0, 100) + '...' : content
+  const getStatusConfig = (status: ReportStatus) => {
+    if (status === 'resolved') {
+      return {
+        bg: `${theme.successColor}14`,
+        border: `${theme.successColor}26`,
+        color: theme.successColor,
+      }
+    }
+
+    if (status === 'reviewed') {
+      return {
+        bg: `${theme.secondaryColor}14`,
+        border: `${theme.secondaryColor}26`,
+        color: theme.secondaryColor,
+      }
+    }
+
+    if (status === 'ignored') {
+      return {
+        bg: theme.inputBg,
+        border: theme.borderColor,
+        color: theme.subtextColor,
+      }
+    }
+
+    return {
+      bg: `${theme.warningColor}14`,
+      border: `${theme.warningColor}26`,
+      color: theme.warningColor,
+    }
   }
 
   if (isLoading && reports.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader2
+          className="h-8 w-8 animate-spin"
+          style={{ color: theme.primaryColor }}
+        />
       </div>
     )
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Reportes de Posts
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="text-lg font-bold" style={{ color: theme.textColor }}>
+          {t('communityDetail.reports.title')}
         </h3>
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+          <Filter className="h-4 w-4" style={{ color: theme.subtextColor }} />
           <select
+            className="rounded-xl border px-3 py-2 text-sm outline-none"
+            onChange={(event) =>
+              setSelectedStatus(event.target.value as ReportStatus | 'all')
+            }
+            style={{
+              backgroundColor: theme.inputBg,
+              borderColor: theme.borderColor,
+              color: theme.textColor,
+            }}
             value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value as ReportStatus | 'all')}
-            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            {STATUS_OPTIONS.map((option) => (
+            {statusOptions.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {t(option.labelKey)}
               </option>
             ))}
           </select>
         </div>
       </div>
 
-      {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+      {error ? (
+        <div
+          className="rounded-xl border p-4"
+          style={{
+            backgroundColor: `${theme.dangerColor}14`,
+            borderColor: `${theme.dangerColor}26`,
+          }}
+        >
+          <p className="text-sm" style={{ color: theme.dangerColor }}>
+            {error}
+          </p>
         </div>
-      )}
+      ) : null}
 
       {reports.length === 0 ? (
-        <div className="text-center py-12">
-          <Flag className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">
+        <div className="py-12 text-center">
+          <Flag
+            className="mx-auto mb-4 h-12 w-12"
+            style={{ color: theme.subtextColor }}
+          />
+          <p className="text-sm" style={{ color: theme.subtextColor }}>
             {selectedStatus === 'all'
-              ? 'No hay reportes en esta comunidad'
-              : `No hay reportes ${STATUS_LABELS[selectedStatus as ReportStatus].toLowerCase()}`}
+              ? t('communityDetail.reports.emptyAll')
+              : t('communityDetail.reports.emptyStatus', {
+                  status: t(`communityDetail.reports.status.${selectedStatus}`),
+                })}
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {reports.map((report) => (
-            <div
-              key={report.id}
-              className="bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${STATUS_COLORS[report.status]}`}
+          {reports.map((report) => {
+            const statusConfig = getStatusConfig(report.status)
+            const reporterName = getUserName(
+              report.reported_by,
+              t('communityDetail.reports.unknownUser'),
+            )
+            const reviewerName = getUserName(
+              report.reviewed_by,
+              t('communityDetail.reports.unknownUser'),
+            )
+
+            return (
+              <div
+                className="rounded-2xl border p-4 transition-shadow"
+                key={report.id}
+                style={{
+                  backgroundColor: theme.inputBg,
+                  borderColor: theme.borderColor,
+                }}
+              >
+                <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-3 flex flex-wrap items-center gap-2">
+                      <span
+                        className="inline-flex rounded-full border px-2 py-1 text-xs font-semibold"
+                        style={{
+                          backgroundColor: statusConfig.bg,
+                          borderColor: statusConfig.border,
+                          color: statusConfig.color,
+                        }}
+                      >
+                        {t(`communityDetail.reports.status.${report.status}`)}
+                      </span>
+                      <span className="text-xs" style={{ color: theme.subtextColor }}>
+                        {t(reasonLabelKeys[report.reason_category] || reasonLabelKeys.other)}
+                      </span>
+                    </div>
+
+                    {report.post ? (
+                      <div className="mb-3">
+                        <p
+                          className="mb-1 text-sm font-semibold"
+                          style={{ color: theme.textColor }}
+                        >
+                          {t('communityDetail.reports.reportedPost')}
+                        </p>
+                        <p
+                          className="text-sm italic"
+                          style={{ color: theme.subtextColor }}
+                        >
+                          "{getPostPreview(
+                            report.post.content || '',
+                            t('communityDetail.reports.noContent'),
+                          )}"
+                        </p>
+                      </div>
+                    ) : null}
+
+                    <div
+                      className="mb-3 grid grid-cols-1 gap-4 text-sm md:grid-cols-2 xl:grid-cols-4"
+                      style={{ color: theme.subtextColor }}
                     >
-                      {STATUS_LABELS[report.status]}
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {REASON_LABELS[report.reason_category] || report.reason_category}
-                    </span>
-                  </div>
-
-                  {report.post && (
-                    <div className="mb-3">
-                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-1">
-                        <strong>Post reportado:</strong>
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 italic">
-                        "{getPostPreview(report.post.content || '')}"
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
-                    <div>
-                      <span className="font-medium">Reportado por:</span>
-                      <p className="text-gray-900 dark:text-white">
-                        {report.reported_by?.first_name && report.reported_by?.last_name
-                          ? `${report.reported_by.first_name} ${report.reported_by.last_name}`
-                          : report.reported_by?.username || report.reported_by?.email || 'Usuario desconocido'}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="font-medium">Fecha:</span>
-                      <p className="text-gray-900 dark:text-white">
-                        {formatDate(report.created_at)}
-                      </p>
-                    </div>
-                    {report.reviewed_by && (
                       <div>
-                        <span className="font-medium">Revisado por:</span>
-                        <p className="text-gray-900 dark:text-white">
-                          {report.reviewed_by.first_name && report.reviewed_by.last_name
-                            ? `${report.reviewed_by.first_name} ${report.reviewed_by.last_name}`
-                            : report.reviewed_by.username || report.reviewed_by.email || 'Usuario desconocido'}
+                        <span className="font-semibold">
+                          {t('communityDetail.reports.reportedBy')}
+                        </span>
+                        <p style={{ color: theme.textColor }}>{reporterName}</p>
+                      </div>
+                      <div>
+                        <span className="font-semibold">
+                          {t('communityDetail.reports.date')}
+                        </span>
+                        <p style={{ color: theme.textColor }}>
+                          {formatDate(report.created_at)}
                         </p>
                       </div>
-                    )}
-                    {report.reviewed_at && (
-                      <div>
-                        <span className="font-medium">Fecha de revisión:</span>
-                        <p className="text-gray-900 dark:text-white">
-                          {formatDate(report.reviewed_at)}
+                      {report.reviewed_by ? (
+                        <div>
+                          <span className="font-semibold">
+                            {t('communityDetail.reports.reviewedBy')}
+                          </span>
+                          <p style={{ color: theme.textColor }}>{reviewerName}</p>
+                        </div>
+                      ) : null}
+                      {report.reviewed_at ? (
+                        <div>
+                          <span className="font-semibold">
+                            {t('communityDetail.reports.reviewDate')}
+                          </span>
+                          <p style={{ color: theme.textColor }}>
+                            {formatDate(report.reviewed_at)}
+                          </p>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {report.reason_details ? (
+                      <div className="mb-3">
+                        <p
+                          className="mb-1 text-sm font-semibold"
+                          style={{ color: theme.textColor }}
+                        >
+                          {t('communityDetail.reports.details')}
+                        </p>
+                        <p className="text-sm" style={{ color: theme.subtextColor }}>
+                          {report.reason_details}
                         </p>
                       </div>
-                    )}
+                    ) : null}
+
+                    {report.resolution_notes ? (
+                      <div className="mb-3">
+                        <p
+                          className="mb-1 text-sm font-semibold"
+                          style={{ color: theme.textColor }}
+                        >
+                          {t('communityDetail.reports.resolutionNotes')}
+                        </p>
+                        <p className="text-sm" style={{ color: theme.subtextColor }}>
+                          {report.resolution_notes}
+                        </p>
+                      </div>
+                    ) : null}
                   </div>
 
-                  {report.reason_details && (
-                    <div className="mb-3">
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Detalles:
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {report.reason_details}
-                      </p>
-                    </div>
-                  )}
-
-                  {report.resolution_notes && (
-                    <div className="mb-3">
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Notas de resolución:
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {report.resolution_notes}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-2 ml-4">
-                  {report.status === 'pending' && (
-                    <>
-                      <button
-                        onClick={() => handleResolveReport(report.id, 'resolved', 'delete_post', 'Post eliminado por violar las normas')}
-                        disabled={isResolving}
-                        className="px-3 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                      >
-                        <XCircle className="w-3 h-3" />
-                        Eliminar Post
-                      </button>
-                      <button
-                        onClick={() => handleResolveReport(report.id, 'resolved', 'hide_post', 'Post oculto por violar las normas')}
-                        disabled={isResolving}
-                        className="px-3 py-1.5 text-xs font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                      >
-                        <Eye className="w-3 h-3" />
-                        Ocultar Post
-                      </button>
-                      <button
-                        onClick={() => handleResolveReport(report.id, 'ignored', 'ignore_report')}
-                        disabled={isResolving}
-                        className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                      >
-                        <Clock className="w-3 h-3" />
-                        Ignorar
-                      </button>
-                    </>
-                  )}
-                  {report.status !== 'pending' && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {report.resolution_action === 'delete_post' && 'Post eliminado'}
-                      {report.resolution_action === 'hide_post' && 'Post oculto'}
-                      {report.resolution_action === 'ignore_report' && 'Reporte ignorado'}
-                      {report.resolution_action === 'warn_user' && 'Usuario advertido'}
-                    </span>
-                  )}
+                  <div className="flex flex-wrap gap-2 xl:ml-4 xl:flex-col">
+                    {report.status === 'pending' ? (
+                      <>
+                        <button
+                          className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                          disabled={isResolving}
+                          onClick={() =>
+                            handleResolveReport(
+                              report.id,
+                              'resolved',
+                              'delete_post',
+                              t('communityDetail.reports.notes.deleted'),
+                            )
+                          }
+                          style={{
+                            backgroundColor: theme.dangerColor,
+                            color: theme.inverseTextColor,
+                          }}
+                          type="button"
+                        >
+                          <XCircle className="h-3.5 w-3.5" />
+                          {t('communityDetail.reports.actions.deletePost')}
+                        </button>
+                        <button
+                          className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                          disabled={isResolving}
+                          onClick={() =>
+                            handleResolveReport(
+                              report.id,
+                              'resolved',
+                              'hide_post',
+                              t('communityDetail.reports.notes.hidden'),
+                            )
+                          }
+                          style={{
+                            backgroundColor: theme.warningColor,
+                            color: theme.inverseTextColor,
+                          }}
+                          type="button"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          {t('communityDetail.reports.actions.hidePost')}
+                        </button>
+                        <button
+                          className="flex items-center gap-1 rounded-xl border px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                          disabled={isResolving}
+                          onClick={() =>
+                            handleResolveReport(
+                              report.id,
+                              'ignored',
+                              'ignore_report',
+                            )
+                          }
+                          style={{
+                            backgroundColor: theme.cardBg,
+                            borderColor: theme.borderColor,
+                            color: theme.subtextColor,
+                          }}
+                          type="button"
+                        >
+                          <Clock className="h-3.5 w-3.5" />
+                          {t('communityDetail.reports.actions.ignore')}
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-xs" style={{ color: theme.subtextColor }}>
+                        {report.resolution_action
+                          ? t(
+                              `communityDetail.reports.resolutionActions.${report.resolution_action}`,
+                            )
+                          : t('communityDetail.reports.resolutionActions.none')}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
-      {pagination.hasMore && (
-        <div className="text-center pt-4">
+      {pagination.hasMore ? (
+        <div className="pt-4 text-center">
           <button
+            className="rounded-xl border px-4 py-2 text-sm font-semibold"
             onClick={() => {
-              setPagination((prev) => ({ ...prev, offset: prev.offset + prev.limit }))
-              fetchReports()
+              setPagination((prev) => ({
+                ...prev,
+                offset: prev.offset + prev.limit,
+              }))
+              void fetchReports()
             }}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
+            style={{
+              backgroundColor: theme.cardBg,
+              borderColor: theme.borderColor,
+              color: theme.subtextColor,
+            }}
+            type="button"
           >
-            Cargar más
+            {t('communityDetail.reports.loadMore')}
           </button>
         </div>
-      )}
+      ) : null}
     </div>
   )
 }
-
-

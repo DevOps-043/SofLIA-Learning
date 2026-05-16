@@ -1,75 +1,152 @@
 import {
-  CalendarIcon,
-  ChatBubbleLeftRightIcon,
-  ClockIcon,
-  DocumentTextIcon,
-  UserGroupIcon,
-  VideoCameraIcon
-} from '@heroicons/react/24/outline'
+  Calendar,
+  Clock,
+  FileText,
+  MessageCircle,
+  UserRound,
+  Users,
+  Video,
+} from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 import type { AdminCommunity } from '../../services/adminCommunities.service'
+import { formatCommunityDetailDate } from './shared'
 
 interface AdminCommunityOverviewProps {
   community: AdminCommunity
 }
 
-function formatCommunityDate(value?: string | null) {
-  if (!value) {
-    return 'N/A'
-  }
+export function AdminCommunityOverview({
+  community,
+}: AdminCommunityOverviewProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
+  const stats = [
+    {
+      icon: Users,
+      label: t('communityCard.membersLabel'),
+      value: community.member_count || 0,
+      color: theme.primaryColor,
+    },
+    {
+      icon: FileText,
+      label: t('communityCard.postsLabel'),
+      value: community.posts_count || 0,
+      color: theme.successColor,
+    },
+    {
+      icon: MessageCircle,
+      label: t('communityDetail.overview.comments'),
+      value: community.comments_count || 0,
+      color: theme.warningColor,
+    },
+    {
+      icon: Video,
+      label: t('communityDetail.overview.videos'),
+      value: community.videos_count || 0,
+      color: theme.secondaryColor,
+    },
+  ]
+  const createdAt = formatCommunityDetailDate(community.created_at)
+  const updatedAt = formatCommunityDetailDate(community.updated_at)
 
-  return new Date(value).toLocaleDateString()
-}
-
-export function AdminCommunityOverview({ community }: AdminCommunityOverviewProps) {
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-8">
-      <div className="flex items-start gap-6">
-        {community.image_url ? (
-          <div className="flex-shrink-0">
+    <div
+      className="mb-6 rounded-2xl border p-5 shadow-sm sm:p-6"
+      style={{
+        backgroundColor: theme.cardBg,
+        borderColor: theme.borderColor,
+      }}
+    >
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
+        <div
+          className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border"
+          style={{
+            backgroundColor: theme.inputBg,
+            borderColor: theme.borderColor,
+          }}
+        >
+          {community.image_url ? (
             <img
-              src={community.image_url}
               alt={community.name}
-              className="h-24 w-24 rounded-lg object-cover"
+              className="h-full w-full object-cover"
+              src={community.image_url}
             />
+          ) : (
+            <Users className="h-10 w-10" style={{ color: theme.subtextColor }} />
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold" style={{ color: theme.textColor }}>
+            {community.name}
+          </h2>
+          <p
+            className="mt-2 max-w-4xl text-sm leading-relaxed"
+            style={{ color: theme.subtextColor }}
+          >
+            {community.description}
+          </p>
+
+          <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {stats.map((stat) => (
+              <div
+                className="rounded-xl border p-3"
+                key={stat.label}
+                style={{
+                  backgroundColor: theme.inputBg,
+                  borderColor: theme.borderColor,
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex h-9 w-9 items-center justify-center rounded-xl"
+                    style={{ backgroundColor: `${stat.color}14` }}
+                  >
+                    <stat.icon className="h-4 w-4" style={{ color: stat.color }} />
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold" style={{ color: theme.textColor }}>
+                      {stat.value}
+                    </p>
+                    <p className="text-xs" style={{ color: theme.subtextColor }}>
+                      {stat.label}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        ) : null}
 
-        <div className="flex-1 min-w-0">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{community.name}</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">{community.description}</p>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-center space-x-2">
-              <UserGroupIcon className="h-5 w-5 text-blue-500 dark:text-blue-400" />
-              <span className="text-sm text-gray-700 dark:text-gray-300">{community.member_count} miembros</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <DocumentTextIcon className="h-5 w-5 text-green-500 dark:text-green-400" />
-              <span className="text-sm text-gray-700 dark:text-gray-300">{community.posts_count} posts</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <ChatBubbleLeftRightIcon className="h-5 w-5 text-yellow-500 dark:text-yellow-400" />
-              <span className="text-sm text-gray-700 dark:text-gray-300">{community.comments_count} comentarios</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <VideoCameraIcon className="h-5 w-5 text-purple-500 dark:text-purple-400" />
-              <span className="text-sm text-gray-700 dark:text-gray-300">{community.videos_count} videos</span>
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between text-sm text-gray-600 dark:text-gray-400">
+          <div
+            className="mt-5 flex flex-col gap-3 border-t pt-4 text-sm lg:flex-row lg:items-center lg:justify-between"
+            style={{ borderColor: theme.dividerColor, color: theme.subtextColor }}
+          >
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-              <div className="flex items-center space-x-1">
-                <CalendarIcon className="h-4 w-4" />
-                <span>Creada: {formatCommunityDate(community.created_at)}</span>
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>
+                  {t('communityDetail.overview.createdAt', {
+                    date: createdAt || t('communityCard.noDate'),
+                  })}
+                </span>
               </div>
-              <div className="flex items-center space-x-1">
-                <ClockIcon className="h-4 w-4" />
-                <span>Actualizada: {formatCommunityDate(community.updated_at)}</span>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span>
+                  {t('communityDetail.overview.updatedAt', {
+                    date: updatedAt || t('communityCard.noDate'),
+                  })}
+                </span>
               </div>
             </div>
-            <div className="text-gray-500 dark:text-gray-500">
-              por {community.creator_name || 'Creador desconocido'}
+            <div className="flex items-center gap-2">
+              <UserRound className="h-4 w-4" />
+              <span>
+                {t('communityDetail.overview.creator', {
+                  name: community.creator_name || t('communityCard.noCreator'),
+                })}
+              </span>
             </div>
           </div>
         </div>

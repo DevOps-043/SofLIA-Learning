@@ -1,21 +1,23 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronRight, Shield, Sparkles, X } from 'lucide-react'
-import { SOFLIA_ADMIN_COLORS } from '../constants/admin-color-tokens'
+import { AlertCircle, Plus, Shield, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../hooks/useAdminPanelTheme'
 import {
   AddCommunityModalFields,
   useAddCommunityModalForm,
 } from './add-community-modal'
 import type { AddCommunityModalProps } from './add-community-modal'
 
-const colors = SOFLIA_ADMIN_COLORS
-
 export function AddCommunityModal({
   isOpen,
   onClose,
   onSave,
 }: AddCommunityModalProps) {
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
+  const theme = useAdminPanelTheme()
   const {
     formData,
     errors,
@@ -37,120 +39,202 @@ export function AddCommunityModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm">
-        <div className="flex min-h-screen items-center justify-center p-4">
+      {isOpen && (
+        <>
           <motion.div
-            initial={{ opacity: 0, y: 24, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 24, scale: 0.98 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10"
-            style={{
-              background: `linear-gradient(180deg, ${colors.bgSecondary} 0%, ${colors.bgPrimary} 100%)`,
-            }}
-          >
-            <div className="border-b border-white/10 px-6 py-5">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div
-                    className="rounded-2xl p-3"
-                    style={{
-                      background: `linear-gradient(135deg, ${colors.accent} 0%, ${colors.primary} 100%)`,
-                    }}
-                  >
-                    <Sparkles className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-white">
-                      Crear comunidad
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-400">
-                      Define identidad, acceso y relacion con cursos desde un
-                      flujo tipado y validado.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  disabled={isSubmitting}
-                  className="rounded-xl border border-white/10 p-2 text-gray-400 transition hover:bg-white/10 hover:text-white"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-50 backdrop-blur-sm"
+            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            onClick={onClose}
+            style={{ backgroundColor: theme.overlayBg }}
+            transition={{ duration: 0.2 }}
+          />
 
-            <form onSubmit={handleSubmit} className="space-y-6 px-6 py-6">
-              {error ? (
-                <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                  {error}
-                </div>
-              ) : null}
-
-              <AddCommunityModalFields
-                formData={formData}
-                errors={errors}
-                courses={courses}
-                isLoadingCourses={isLoadingCourses}
-                isSubmitting={isSubmitting}
-                onFieldChange={setFieldValue}
-              />
-
-              <div
-                className="flex flex-col gap-4 border-t border-white/10 pt-5 lg:flex-row lg:items-center lg:justify-between"
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex min-h-screen items-center justify-center p-4">
+              <motion.div
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                className="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border shadow-2xl"
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                onClick={(event) => event.stopPropagation()}
+                style={{
+                  backgroundColor: theme.cardBg,
+                  borderColor: theme.borderColor,
+                }}
+                transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
               >
-                <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <div className="rounded-xl bg-[#00D4B3]/15 p-2">
-                    <Shield className="h-5 w-5 text-[#00D4B3]" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-[#00D4B3]">
-                      Proteccion de datos y auditoria
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      El alta queda registrada y el payload sale normalizado
-                      antes de persistirse.
-                    </p>
+                <div
+                  className="relative border-b px-6 py-4"
+                  style={{
+                    background: theme.heroBackground,
+                    borderColor: theme.heroBorderColor,
+                  }}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="flex h-10 w-10 items-center justify-center rounded-xl"
+                        style={{ backgroundColor: theme.inverseSurface }}
+                      >
+                        <Plus
+                          className="h-5 w-5"
+                          style={{ color: theme.accentColor }}
+                        />
+                      </div>
+                      <div>
+                        <h3
+                          className="text-lg font-bold"
+                          style={{ color: theme.inverseTextColor }}
+                        >
+                          {t('communities.createModal.title')}
+                        </h3>
+                        <p
+                          className="text-xs"
+                          style={{ color: theme.inverseSubtextColor }}
+                        >
+                          {t('communities.createModal.description')}
+                        </p>
+                      </div>
+                    </div>
+                    <motion.button
+                      className="rounded-lg p-2 transition-colors duration-200"
+                      disabled={isSubmitting}
+                      onClick={onClose}
+                      style={{ color: theme.inverseSubtextColor }}
+                      type="button"
+                      whileHover={{ scale: 1.1, rotate: 90 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <X className="h-5 w-5" />
+                    </motion.button>
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    disabled={isSubmitting}
-                    className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 font-medium text-gray-300 transition hover:bg-white/10 disabled:opacity-60"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="inline-flex items-center gap-2 rounded-xl px-6 py-3 font-semibold text-white transition disabled:opacity-60"
+                <form className="flex-1 overflow-y-auto" onSubmit={handleSubmit}>
+                  <div className="space-y-5 p-6">
+                    {error ? (
+                      <motion.div
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-center gap-3 rounded-xl border p-4"
+                        initial={{ opacity: 0, y: -10 }}
+                        style={{
+                          backgroundColor: `${theme.dangerColor}14`,
+                          borderColor: `${theme.dangerColor}26`,
+                        }}
+                      >
+                        <AlertCircle
+                          className="h-5 w-5"
+                          style={{ color: theme.dangerColor }}
+                        />
+                        <p
+                          className="text-sm"
+                          style={{ color: theme.dangerColor }}
+                        >
+                          {error}
+                        </p>
+                      </motion.div>
+                    ) : null}
+
+                    <AddCommunityModalFields
+                      courses={courses}
+                      errors={errors}
+                      formData={formData}
+                      isLoadingCourses={isLoadingCourses}
+                      isSubmitting={isSubmitting}
+                      onFieldChange={setFieldValue}
+                    />
+                  </div>
+
+                  <div
+                    className="flex flex-col gap-4 border-t px-6 py-4 lg:flex-row lg:items-center lg:justify-between"
                     style={{
-                      background: `linear-gradient(135deg, ${colors.accent} 0%, ${colors.primary} 100%)`,
-                      boxShadow: `0 10px 30px ${colors.accent}30`,
+                      backgroundColor: theme.inputBg,
+                      borderColor: theme.borderColor,
                     }}
                   >
-                    {isSubmitting ? (
-                      <>
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                        Creando...
-                      </>
-                    ) : (
-                      <>
-                        Crear comunidad
-                        <ChevronRight className="h-4 w-4" />
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      </div>
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="rounded-lg p-2"
+                        style={{ backgroundColor: theme.actionSurface }}
+                      >
+                        <Shield
+                          className="h-4 w-4"
+                          style={{ color: theme.primaryColor }}
+                        />
+                      </div>
+                      <div>
+                        <p
+                          className="text-xs font-semibold uppercase tracking-wide"
+                          style={{ color: theme.primaryColor }}
+                        >
+                          {t('communities.createModal.auditTitle')}
+                        </p>
+                        <p
+                          className="mt-1 text-xs leading-relaxed"
+                          style={{ color: theme.subtextColor }}
+                        >
+                          {t('communities.createModal.auditDescription')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3">
+                      <motion.button
+                        className="rounded-xl border px-6 py-2.5 text-sm font-semibold transition-colors duration-200"
+                        disabled={isSubmitting}
+                        onClick={onClose}
+                        style={{
+                          backgroundColor: theme.cardBg,
+                          borderColor: theme.borderColor,
+                          color: theme.subtextColor,
+                        }}
+                        type="button"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {tc('actions.cancel')}
+                      </motion.button>
+                      <motion.button
+                        className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold shadow-lg transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled={isSubmitting}
+                        style={{
+                          backgroundColor: theme.primaryColor,
+                          color: theme.onPrimaryColor,
+                        }}
+                        type="submit"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <span
+                              className="h-4 w-4 animate-spin rounded-full border-2"
+                              style={{
+                                borderColor: theme.inverseBorderColor,
+                                borderTopColor: theme.onPrimaryColor,
+                              }}
+                            />
+                            <span>{t('communities.createModal.creating')}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="h-4 w-4" />
+                            <span>
+                              {t('communities.createModal.createButton')}
+                            </span>
+                          </>
+                        )}
+                      </motion.button>
+                    </div>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          </div>
+        </>
+      )}
     </AnimatePresence>
   )
 }

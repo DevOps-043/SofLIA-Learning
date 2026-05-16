@@ -7,6 +7,7 @@
     "dashboard": "Dashboard",
     "users": "Users",
     "workshops": "Workshops",
+    "communities": "Communities",
     "learningPaths": "Learning Paths",
     "liaAnalytics": "SofLIA Analytics",
     "userStats": "User Statistics",
@@ -485,13 +486,68 @@
   "news": {
     "deleteModal": {
       "title": "Delete News",
-      "confirmText": "Are you sure you want to delete this news article?"
+      "confirmText": "Are you sure you want to delete this news article?",
+      "status": "Status",
+      "language": "Language",
+      "createdAt": "Created",
+      "views": "Views"
     },
     "page": {
+      "title": "News Management",
+      "description": "Manage publications, drafts and editorial performance with the Business panel design.",
+      "createButton": "New news item",
+      "loading": "Loading news...",
+      "errorLoading": "Error loading news",
+      "retry": "Retry",
+      "listTitle": "News ({{count}})",
       "searchPlaceholder": "Search news...",
       "tooltipView": "View details",
       "tooltipEdit": "Edit",
       "tooltipDelete": "Delete"
+    },
+    "filters": {
+      "status": {
+        "all": "All statuses",
+        "published": "Published",
+        "draft": "Drafts",
+        "archived": "Archived"
+      }
+    },
+    "stats": {
+      "total": "Total News",
+      "published": "Published",
+      "drafts": "Drafts",
+      "views": "Total Views"
+    },
+    "status": {
+      "published": "Published",
+      "draft": "Draft",
+      "archived": "Archived"
+    },
+    "card": {
+      "views": "{{count}} views",
+      "comments": "{{count}} comments"
+    },
+    "empty": {
+      "title": "No news found",
+      "description": "Adjust the search or create a new news item."
+    },
+    "viewModal": {
+      "title": "News details",
+      "intro": "Introduction",
+      "subtitle": "Subtitle",
+      "sections": "Sections",
+      "tldr": "TLDR",
+      "statsTitle": "Statistics",
+      "views": "Views",
+      "comments": "Comments",
+      "language": "Language",
+      "publishedAt": "Publication date",
+      "notPublished": "Not published",
+      "technicalTitle": "Technical information",
+      "createdAt": "Created",
+      "updatedAt": "Updated",
+      "createdBy": "Created by"
     }
   },
   "apps": {
@@ -525,9 +581,114 @@
     }
   },
   "communities": {
+    "page": {
+      "title": "Communities Management",
+      "description": "Manage, moderate and monitor communities with the same Business panel design.",
+      "createButton": "Create Community",
+      "loading": "Loading communities..."
+    },
+    "filters": {
+      "categories": {
+        "all": "All categories",
+        "public": "Public",
+        "private": "Private",
+        "moderated": "Moderated"
+      },
+      "status": {
+        "all": "All statuses",
+        "active": "Active",
+        "inactive": "Inactive"
+      }
+    },
+    "view": {
+      "grid": "Card view",
+      "list": "List view"
+    },
+    "empty": {
+      "title": "No communities found",
+      "description": "Try adjusting the filters or create a new community"
+    },
+    "createModal": {
+      "title": "Create community",
+      "description": "Define identity, access and course relationship with the same Business panel design.",
+      "auditTitle": "Data protection and audit",
+      "auditDescription": "The creation is logged and the payload is normalized before persistence.",
+      "createButton": "Create community",
+      "creating": "Creating...",
+      "errorFallback": "Error creating community"
+    },
+    "editModal": {
+      "title": "Edit community",
+      "description": "Editing: {{name}}",
+      "auditTitle": "Change control",
+      "auditDescription": "The update is logged for administrative traceability.",
+      "saveButton": "Save changes",
+      "saving": "Saving...",
+      "errorFallback": "Error updating community"
+    },
+    "form": {
+      "identityTitle": "Base information",
+      "identityDescription": "Define name, description, public slug and reference image.",
+      "accessTitle": "Privacy and access",
+      "accessDescription": "Control visibility, entry rules and academic linkage.",
+      "statusTitle": "Community status",
+      "statusDescription": "Decide whether the community is visible to users.",
+      "nameLabel": "Name",
+      "namePlaceholder": "Applied AI Community",
+      "slugLabel": "Slug",
+      "slugPlaceholder": "applied-ai-community",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Describe the community goal, tone and value.",
+      "imageUrlLabel": "Image URL",
+      "imageUrlPlaceholder": "https://example.com/community.jpg",
+      "imagePreview": "Preview",
+      "imagePreviewAlt": "Community preview",
+      "visibilityLabel": "Visibility",
+      "accessTypeLabel": "Access type",
+      "courseLabel": "Linked course",
+      "coursePlaceholder": "No linked course",
+      "courseWithInstructor": "{{title}} - {{instructor}}",
+      "loadingCourses": "Loading courses...",
+      "activeTitle": "Active community",
+      "inactiveTitle": "Inactive community",
+      "activeDescription": "Visible to members and listings.",
+      "inactiveDescription": "Created as hidden.",
+      "visibilityOptions": {
+        "public": "Public - visible to everyone",
+        "private": "Private - members only"
+      },
+      "accessOptions": {
+        "open": "Open - anyone can join",
+        "moderated": "Moderated - approval required",
+        "invite_only": "Invite only"
+      },
+      "validation": {
+        "nameRequired": "Name is required",
+        "descriptionRequired": "Description is required",
+        "slugRequired": "Slug is required",
+        "slugInvalid": "Only lowercase letters, numbers and hyphens"
+      }
+    },
     "deleteModal": {
       "title": "Delete Community",
-      "confirmText": "Are you sure you want to delete this community?"
+      "confirmText": "Are you sure you want to delete this community?",
+      "communityInfo": "Community information",
+      "dataTitle": "Data that will be deleted",
+      "auditTitle": "Audit notice",
+      "auditDescription": "This deletion will be recorded in the platform audit log.",
+      "fields": {
+        "name": "Name",
+        "description": "Description",
+        "visibility": "Visibility",
+        "status": "Status"
+      },
+      "data": {
+        "members": "Members",
+        "posts": "Posts",
+        "comments": "Comments",
+        "videos": "Videos",
+        "requests": "Requests"
+      }
     },
     "stats": {
       "total": "Total Communities",
@@ -701,6 +862,26 @@
     }
   },
   "communityDetail": {
+    "page": {
+      "loading": "Loading community information...",
+      "errorTitle": "Error",
+      "notFound": "Community not found",
+      "subtitle": "Community administration"
+    },
+    "tabs": {
+      "posts": "Posts",
+      "members": "Members",
+      "requests": "Requests",
+      "videos": "Videos",
+      "reports": "Reports"
+    },
+    "overview": {
+      "comments": "Comments",
+      "videos": "Videos",
+      "createdAt": "Created: {{date}}",
+      "updatedAt": "Updated: {{date}}",
+      "creator": "by {{name}}"
+    },
     "members": {
       "empty": "No members in this community",
       "userNotFound": "User not found",
@@ -722,7 +903,80 @@
       "showPost": "Show post",
       "hidePost": "Hide post",
       "deletePost": "Delete post",
-      "viewDetails": "View post details"
+      "viewDetails": "View post details",
+      "unknownUser": "Unknown user"
+    },
+    "requests": {
+      "title": "Access requests",
+      "inviteUser": "Invite user",
+      "empty": "No pending requests",
+      "emptyDescription": "Use invite user to add members directly.",
+      "userNotFound": "Unknown user",
+      "approve": "Approve request",
+      "reject": "Reject request",
+      "alreadyProcessed": "Request already processed",
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      }
+    },
+    "reports": {
+      "title": "Post reports",
+      "emptyAll": "No reports in this community",
+      "emptyStatus": "No {{status}} reports",
+      "reportedPost": "Reported post:",
+      "reportedBy": "Reported by:",
+      "date": "Date:",
+      "reviewedBy": "Reviewed by:",
+      "reviewDate": "Review date:",
+      "details": "Details:",
+      "resolutionNotes": "Resolution notes:",
+      "noContent": "No content",
+      "unknownUser": "Unknown user",
+      "loadMore": "Load more",
+      "statusFilter": {
+        "all": "All"
+      },
+      "status": {
+        "pending": "Pending",
+        "reviewed": "Reviewed",
+        "resolved": "Resolved",
+        "ignored": "Ignored"
+      },
+      "reasons": {
+        "spam": "Spam",
+        "inappropriate": "Inappropriate content",
+        "harassment": "Harassment or bullying",
+        "misinformation": "Misinformation",
+        "violence": "Violence",
+        "other": "Other"
+      },
+      "actions": {
+        "deletePost": "Delete post",
+        "hidePost": "Hide post",
+        "ignore": "Ignore"
+      },
+      "resolutionActions": {
+        "delete_post": "Post deleted",
+        "hide_post": "Post hidden",
+        "ignore_report": "Report ignored",
+        "warn_user": "User warned",
+        "none": "No action recorded"
+      },
+      "notes": {
+        "deleted": "Post deleted for violating the rules",
+        "hidden": "Post hidden for violating the rules"
+      },
+      "errors": {
+        "loading": "Error loading reports",
+        "connection": "Connection error",
+        "resolving": "Error resolving the report"
+      }
+    },
+    "videos": {
+      "empty": "No videos in this community",
+      "noProvider": "Provider not defined"
     }
   },
   "communityCard": {
@@ -734,6 +988,7 @@
     "membersLabel": "Members",
     "postsLabel": "Posts",
     "noCreator": "No creator",
+    "noDate": "No date",
     "deactivate": "Deactivate",
     "activate": "Activate"
   },
@@ -782,6 +1037,7 @@
     "dashboard": "Dashboard",
     "users": "Users",
     "workshops": "Workshops",
+    "communities": "Communities",
     "learningPaths": "Learning paths",
     "liaAnalytics": "SofLIA Analytics",
     "userStats": "User Statistics",

@@ -1,16 +1,22 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { AdminCommunity } from '../../services/adminCommunities.service'
+import {
+  buildCommunitySlug,
+  validateAddCommunityForm,
+} from '../add-community-modal'
+import type { AdminCommunityFormErrors } from '../admin-communities'
 
 export interface CommunityFormData {
-  access_type: string
+  access_type: 'open' | 'moderated' | 'invite_only'
   description: string
   image_url: string
   is_active: boolean
   name: string
   slug: string
-  visibility: string
+  visibility: 'public' | 'private'
 }
 
 interface UseEditCommunityFormStateProps {
@@ -19,7 +25,20 @@ interface UseEditCommunityFormStateProps {
   onClose: () => void
 }
 
+function normalizeVisibility(value?: string): CommunityFormData['visibility'] {
+  return value === 'private' ? 'private' : 'public'
+}
+
+function normalizeAccessType(value?: string): CommunityFormData['access_type'] {
+  if (value === 'moderated' || value === 'invite_only') {
+    return value
+  }
+
+  return 'open'
+}
+
 export function useEditCommunityFormState({ community, onSave, onClose }: UseEditCommunityFormStateProps) {
+  const { t } = useTranslation('admin')
   const [formData, setFormData] = useState<CommunityFormData>({
     name: '',
     description: '',
@@ -29,6 +48,7 @@ export function useEditCommunityFormState({ community, onSave, onClose }: UseEdi
     visibility: 'public',
     access_type: 'open'
   })
+  const [errors, setErrors] = useState<AdminCommunityFormErrors>({})
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -40,22 +60,45 @@ export function useEditCommunityFormState({ community, onSave, onClose }: UseEdi
         slug: community.slug || '',
         image_url: community.image_url || '',
         is_active: community.is_active,
-        visibility: community.visibility || 'public',
-        access_type: community.access_type || 'open'
+        visibility: normalizeVisibility(community.visibility),
+        access_type: normalizeAccessType(community.access_type)
       })
+      setErrors({})
+      setError(null)
     }
   }, [community])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target
-    setFormData(prev => ({
+  const setFieldValue = <K extends keyof CommunityFormData>(
+    field: K,
+    value: CommunityFormData[K],
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+      [field]: value,
+      ...(field === 'name' ? { slug: buildCommunitySlug(String(value)) } : {}),
+    }))
+
+    setErrors((prev) => ({
+      ...prev,
+      [field]: '',
     }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    const nextErrors = validateAddCommunityForm(formData, {
+      descriptionRequired: t('communities.form.validation.descriptionRequired'),
+      nameRequired: t('communities.form.validation.nameRequired'),
+      slugInvalid: t('communities.form.validation.slugInvalid'),
+      slugRequired: t('communities.form.validation.slugRequired'),
+    })
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors)
+      return
+    }
+
     setIsLoading(true)
     setError(null)
 
@@ -63,7 +106,7 @@ export function useEditCommunityFormState({ community, onSave, onClose }: UseEdi
       await onSave(formData)
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al actualizar comunidad')
+      setError(err instanceof Error ? err.message : t('communities.editModal.errorFallback'))
     } finally {
       setIsLoading(false)
     }
@@ -72,9 +115,10 @@ export function useEditCommunityFormState({ community, onSave, onClose }: UseEdi
   return {
     formData,
     setFormData,
+    errors,
     isLoading,
     error,
-    handleChange,
+    setFieldValue,
     handleSubmit
   }
 }

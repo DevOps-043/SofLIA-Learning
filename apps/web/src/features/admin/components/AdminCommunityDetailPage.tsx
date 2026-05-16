@@ -1,9 +1,8 @@
 'use client'
 
-import { ConfirmationModal } from './ConfirmationModal'
-import { CommunityReportsSection } from './CommunityReportsSection'
-import { InviteUserModal } from './InviteUserModal'
-import { PostDetailModal } from './PostDetailModal'
+import { AlertCircle, Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../hooks/useAdminPanelTheme'
 import { useAdminCommunityDetailPageLogic } from '../hooks/useAdminCommunityDetailPageLogic'
 import { AdminCommunityDetailHeader } from './admin-community-detail/AdminCommunityDetailHeader'
 import { AdminCommunityMembersTab } from './admin-community-detail/AdminCommunityMembersTab'
@@ -12,20 +11,37 @@ import { AdminCommunityPostsTab } from './admin-community-detail/AdminCommunityP
 import { AdminCommunityRequestsTab } from './admin-community-detail/AdminCommunityRequestsTab'
 import { AdminCommunityTabs } from './admin-community-detail/AdminCommunityTabs'
 import { AdminCommunityVideosTab } from './admin-community-detail/AdminCommunityVideosTab'
+import { CommunityReportsSection } from './CommunityReportsSection'
+import { ConfirmationModal } from './ConfirmationModal'
+import { InviteUserModal } from './InviteUserModal'
+import { PostDetailModal } from './PostDetailModal'
 
 interface AdminCommunityDetailPageProps {
   slug: string
 }
 
-export function AdminCommunityDetailPage({ slug }: AdminCommunityDetailPageProps) {
+export function AdminCommunityDetailPage({
+  slug,
+}: AdminCommunityDetailPageProps) {
   const logic = useAdminCommunityDetailPageLogic(slug)
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
+  const theme = useAdminPanelTheme()
 
   if (logic.isLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-800 flex items-center justify-center">
+      <div
+        className="flex min-h-screen items-center justify-center"
+        style={{ backgroundColor: theme.panelBg }}
+      >
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Cargando informacion de la comunidad...</p>
+          <Loader2
+            className="mx-auto mb-4 h-12 w-12 animate-spin"
+            style={{ color: theme.primaryColor }}
+          />
+          <p className="text-sm font-medium" style={{ color: theme.subtextColor }}>
+            {t('communityDetail.page.loading')}
+          </p>
         </div>
       </div>
     )
@@ -33,60 +49,91 @@ export function AdminCommunityDetailPage({ slug }: AdminCommunityDetailPageProps
 
   if (logic.error || !logic.community) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 max-w-md">
-            <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">Error</h2>
-            <p className="text-red-700 dark:text-red-300 mb-4">{logic.error || 'Comunidad no encontrada'}</p>
-            <button
-              onClick={() => logic.router.back()}
-              className="bg-gray-700 dark:bg-gray-600 hover:bg-gray-600 dark:hover:bg-gray-500 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              Volver
-            </button>
+      <div
+        className="flex min-h-screen items-center justify-center p-4"
+        style={{ backgroundColor: theme.panelBg }}
+      >
+        <div
+          className="w-full max-w-md rounded-2xl border p-6 text-center shadow-xl"
+          style={{
+            backgroundColor: theme.cardBg,
+            borderColor: theme.borderColor,
+          }}
+        >
+          <div
+            className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl"
+            style={{ backgroundColor: `${theme.dangerColor}14` }}
+          >
+            <AlertCircle className="h-6 w-6" style={{ color: theme.dangerColor }} />
           </div>
+          <h2 className="text-xl font-bold" style={{ color: theme.textColor }}>
+            {t('communityDetail.page.errorTitle')}
+          </h2>
+          <p className="mt-2 text-sm" style={{ color: theme.subtextColor }}>
+            {logic.error || t('communityDetail.page.notFound')}
+          </p>
+          <button
+            className="mt-5 rounded-xl px-5 py-2.5 text-sm font-semibold"
+            onClick={() => logic.router.back()}
+            style={{
+              backgroundColor: theme.primaryColor,
+              color: theme.onPrimaryColor,
+            }}
+            type="button"
+          >
+            {tc('actions.back')}
+          </button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-800">
-      <AdminCommunityDetailHeader community={logic.community} onBack={() => logic.router.back()} />
+    <div className="min-h-screen" style={{ backgroundColor: theme.panelBg }}>
+      <AdminCommunityDetailHeader
+        community={logic.community}
+        onBack={() => logic.router.back()}
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <AdminCommunityOverview community={logic.community} />
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
+        <div
+          className="mb-6 overflow-hidden rounded-2xl border"
+          style={{
+            backgroundColor: theme.cardBg,
+            borderColor: theme.borderColor,
+          }}
+        >
           <AdminCommunityTabs
             activeTab={logic.activeTab}
-            setActiveTab={logic.setActiveTab}
             counts={{
-              posts: logic.posts.length,
               members: logic.members.length,
+              posts: logic.posts.length,
               requests: logic.accessRequests.length,
-              videos: logic.videos.length
+              videos: logic.videos.length,
             }}
+            setActiveTab={logic.setActiveTab}
           />
 
-          <div className="p-6">
+          <div className="p-5 sm:p-6">
             {logic.activeTab === 'posts' ? (
               <AdminCommunityPostsTab
-                posts={logic.posts}
                 isProcessing={logic.isProcessing}
-                onViewPost={logic.handleViewPost}
                 onDeletePost={logic.handleDeletePost}
                 onHidePost={logic.handleHidePost}
                 onTogglePinPost={logic.handleTogglePinPost}
+                onViewPost={logic.handleViewPost}
+                posts={logic.posts}
               />
             ) : null}
 
             {logic.activeTab === 'members' ? (
               <AdminCommunityMembersTab
-                members={logic.members}
                 isProcessing={logic.isProcessing}
-                onToggleMemberRole={logic.handleToggleMemberRole}
+                members={logic.members}
                 onRemoveMember={logic.handleRemoveMember}
+                onToggleMemberRole={logic.handleToggleMemberRole}
               />
             ) : null}
 
@@ -94,37 +141,45 @@ export function AdminCommunityDetailPage({ slug }: AdminCommunityDetailPageProps
               <AdminCommunityRequestsTab
                 accessRequests={logic.accessRequests}
                 isProcessing={logic.isProcessing}
-                onOpenInviteModal={() => logic.setIsInviteUserModalOpen(true)}
                 onApproveRequest={logic.handleApproveRequest}
+                onOpenInviteModal={() => logic.setIsInviteUserModalOpen(true)}
                 onRejectRequest={logic.handleRejectRequest}
               />
             ) : null}
 
-            {logic.activeTab === 'videos' ? <AdminCommunityVideosTab videos={logic.videos} /> : null}
+            {logic.activeTab === 'videos' ? (
+              <AdminCommunityVideosTab videos={logic.videos} />
+            ) : null}
 
-            {logic.activeTab === 'reports' ? <CommunityReportsSection communitySlug={slug} /> : null}
+            {logic.activeTab === 'reports' ? (
+              <CommunityReportsSection communitySlug={slug} />
+            ) : null}
           </div>
         </div>
       </div>
 
       <ConfirmationModal
+        isLoading={logic.isProcessing !== null}
         isOpen={logic.confirmationModal.isOpen}
+        message={logic.confirmationModal.message}
         onClose={logic.closeConfirmation}
         onConfirm={logic.confirmationModal.onConfirm}
         title={logic.confirmationModal.title}
-        message={logic.confirmationModal.message}
         type={logic.confirmationModal.type}
-        isLoading={logic.isProcessing !== null}
       />
 
-      <PostDetailModal isOpen={logic.isPostDetailModalOpen} onClose={logic.closePostModals} post={logic.selectedPost} />
+      <PostDetailModal
+        isOpen={logic.isPostDetailModalOpen}
+        onClose={logic.closePostModals}
+        post={logic.selectedPost}
+      />
 
       <InviteUserModal
+        communityId={logic.community.id}
+        communityName={logic.community.name}
         isOpen={logic.isInviteUserModalOpen}
         onClose={() => logic.setIsInviteUserModalOpen(false)}
         onInvite={logic.handleInviteUser}
-        communityId={logic.community.id}
-        communityName={logic.community.name}
       />
     </div>
   )

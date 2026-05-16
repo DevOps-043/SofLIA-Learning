@@ -8,6 +8,13 @@ import {
 } from '../add-community-modal.service'
 
 describe('add-community-modal.service', () => {
+  const validationMessages = {
+    descriptionRequired: 'Description required',
+    nameRequired: 'Name required',
+    slugInvalid: 'Invalid slug',
+    slugRequired: 'Slug required',
+  }
+
   it('creates normalized slugs without accents or duplicate hyphens', () => {
     expect(buildCommunitySlug('Comunidad de Diseño Ágil')).toBe(
       'comunidad-de-diseno-agil',
@@ -16,15 +23,18 @@ describe('add-community-modal.service', () => {
   })
 
   it('validates required fields and slug format', () => {
-    const errors = validateAddCommunityForm({
-      ...createDefaultAddCommunityFormData(),
-      slug: 'Slug Invalido',
-    })
+    const errors = validateAddCommunityForm(
+      {
+        ...createDefaultAddCommunityFormData(),
+        slug: 'Slug Invalido',
+      },
+      validationMessages,
+    )
 
     expect(errors).toEqual({
-      name: 'El nombre es requerido',
-      description: 'La descripcion es requerida',
-      slug: 'Solo letras minusculas, numeros y guiones',
+      name: 'Name required',
+      description: 'Description required',
+      slug: 'Invalid slug',
     })
   })
 

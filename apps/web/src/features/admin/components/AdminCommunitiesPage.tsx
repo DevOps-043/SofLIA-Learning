@@ -1,8 +1,9 @@
 'use client'
 
-import { Activity, Crown, MessageCircle, Users } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { Activity, Crown, MessageCircle, Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../hooks/useAdminPanelTheme'
 import { useAdminCommunitiesPageLogic } from '../hooks/useAdminCommunitiesPageLogic'
 import { AddCommunityModal } from './AddCommunityModal'
 import { DeleteCommunityModal } from './DeleteCommunityModal'
@@ -15,11 +16,11 @@ import {
   AdminCommunitiesLoadingState,
   AdminCommunitiesStatCard,
   AdminCommunityCard,
-  adminCommunitiesColors,
 } from './admin-communities'
 
 export function AdminCommunitiesPage() {
   const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
   const logic = useAdminCommunitiesPageLogic()
 
   if (logic.isLoading) {
@@ -27,51 +28,63 @@ export function AdminCommunitiesPage() {
   }
 
   if (logic.error) {
-    return <AdminCommunitiesErrorState error={logic.error} onRetry={logic.refetch} />
+    return (
+      <AdminCommunitiesErrorState
+        error={logic.error}
+        onRetry={logic.refetch}
+      />
+    )
   }
+
+  const stats = [
+    {
+      title: t('communities.stats.total'),
+      value: logic.stats?.totalCommunities || 0,
+      icon: <Users className="h-full w-full" />,
+      iconColor: theme.primaryColor,
+    },
+    {
+      title: t('communities.stats.members'),
+      value: logic.stats?.totalMembers || 0,
+      icon: <Crown className="h-full w-full" />,
+      iconColor: theme.warningColor,
+    },
+    {
+      title: t('communities.stats.posts'),
+      value: logic.stats?.totalPosts || 0,
+      icon: <MessageCircle className="h-full w-full" />,
+      iconColor: theme.successColor,
+    },
+    {
+      title: t('communities.stats.active'),
+      value: logic.stats?.activeCommunities || 0,
+      icon: <Activity className="h-full w-full" />,
+      iconColor: theme.secondaryColor,
+    },
+  ]
 
   return (
     <>
-      <div className="min-h-screen p-6 lg:p-8" style={{ background: adminCommunitiesColors.bgPrimary }}>
-        <div className="max-w-7xl mx-auto space-y-8">
-          <AdminCommunitiesHeader onCreate={() => logic.setIsAddModalOpen(true)} />
+      <div
+        className="min-h-screen p-6 transition-colors duration-300 lg:p-8"
+        style={{ backgroundColor: theme.panelBg }}
+      >
+        <div className="mx-auto max-w-7xl">
+          <AdminCommunitiesHeader
+            onCreate={() => logic.setIsAddModalOpen(true)}
+          />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <AdminCommunitiesStatCard
-              title={t('communities.stats.total')}
-              value={logic.stats?.totalCommunities || 0}
-              Icon={Users}
-              iconColor={adminCommunitiesColors.accent}
-              gradientClassName="bg-gradient-to-br from-[#00D4B3]/20 to-transparent"
-              delay={0}
-              trend={12}
-            />
-            <AdminCommunitiesStatCard
-              title={t('communities.stats.members')}
-              value={logic.stats?.totalMembers || 0}
-              Icon={Crown}
-              iconColor={adminCommunitiesColors.warning}
-              gradientClassName="bg-gradient-to-br from-[#F59E0B]/20 to-transparent"
-              delay={1}
-              trend={8}
-            />
-            <AdminCommunitiesStatCard
-              title={t('communities.stats.posts')}
-              value={logic.stats?.totalPosts || 0}
-              Icon={MessageCircle}
-              iconColor={adminCommunitiesColors.success}
-              gradientClassName="bg-gradient-to-br from-[#10B981]/20 to-transparent"
-              delay={2}
-              trend={24}
-            />
-            <AdminCommunitiesStatCard
-              title={t('communities.stats.active')}
-              value={logic.stats?.activeCommunities || 0}
-              Icon={Activity}
-              iconColor="#8B5CF6"
-              gradientClassName="bg-gradient-to-br from-[#8B5CF6]/20 to-transparent"
-              delay={3}
-            />
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {stats.map((item, index) => (
+              <AdminCommunitiesStatCard
+                key={item.title}
+                title={item.title}
+                value={item.value}
+                icon={item.icon}
+                iconColor={item.iconColor}
+                delay={index}
+              />
+            ))}
           </div>
 
           <AdminCommunitiesFilters
@@ -85,18 +98,27 @@ export function AdminCommunitiesPage() {
             onViewModeChange={logic.setViewMode}
           />
 
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-500">
-              {t('communities.showing', { filtered: logic.filteredCommunities.length, total: logic.communities.length })}
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-sm" style={{ color: theme.subtextColor }}>
+              {t('communities.showing', {
+                filtered: logic.filteredCommunities.length,
+                total: logic.communities.length,
+              })}
             </p>
           </div>
 
           {logic.filteredCommunities.length === 0 ? (
-            <AdminCommunitiesEmptyState onCreate={() => logic.setIsAddModalOpen(true)} />
+            <AdminCommunitiesEmptyState
+              onCreate={() => logic.setIsAddModalOpen(true)}
+            />
           ) : (
             <motion.div
               layout
-              className={logic.viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' : 'flex flex-col gap-4'}
+              className={
+                logic.viewMode === 'grid'
+                  ? 'grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3'
+                  : 'flex flex-col gap-4'
+              }
             >
               <AnimatePresence mode="popLayout">
                 {logic.filteredCommunities.map((community, index) => (
@@ -104,10 +126,13 @@ export function AdminCommunitiesPage() {
                     key={community.id}
                     community={community}
                     index={index}
+                    viewMode={logic.viewMode}
                     onView={() => logic.handleViewCommunity(community)}
                     onEdit={() => logic.handleEditCommunity(community)}
                     onDelete={() => logic.handleDeleteCommunity(community)}
-                    onToggleVisibility={() => void logic.handleToggleVisibility(community)}
+                    onToggleVisibility={() =>
+                      void logic.handleToggleVisibility(community)
+                    }
                   />
                 ))}
               </AnimatePresence>

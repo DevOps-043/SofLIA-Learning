@@ -5,6 +5,18 @@ import type {
   AddCommunityFormErrors,
 } from './types'
 
+export interface CommunityValidationMessages {
+  descriptionRequired: string
+  nameRequired: string
+  slugInvalid: string
+  slugRequired: string
+}
+
+type CommunityValidationData = Pick<
+  AddCommunityFormData,
+  'description' | 'name' | 'slug'
+>
+
 export function createDefaultAddCommunityFormData(): AddCommunityFormData {
   return {
     name: '',
@@ -30,22 +42,23 @@ export function buildCommunitySlug(value: string): string {
 }
 
 export function validateAddCommunityForm(
-  formData: AddCommunityFormData,
+  formData: CommunityValidationData,
+  messages: CommunityValidationMessages,
 ): AddCommunityFormErrors {
   const errors: AddCommunityFormErrors = {}
 
   if (!formData.name.trim()) {
-    errors.name = 'El nombre es requerido'
+    errors.name = messages.nameRequired
   }
 
   if (!formData.description.trim()) {
-    errors.description = 'La descripcion es requerida'
+    errors.description = messages.descriptionRequired
   }
 
   if (!formData.slug.trim()) {
-    errors.slug = 'El slug es requerido'
+    errors.slug = messages.slugRequired
   } else if (!/^[a-z0-9-]+$/.test(formData.slug)) {
-    errors.slug = 'Solo letras minusculas, numeros y guiones'
+    errors.slug = messages.slugInvalid
   }
 
   return errors

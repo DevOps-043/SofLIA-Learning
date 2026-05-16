@@ -1,9 +1,16 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Filter, LayoutGrid, List, Search } from 'lucide-react'
+import { LayoutGrid, List, Lock, SlidersHorizontal } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { adminCommunitiesColors, type AdminCommunitiesViewMode } from './shared'
+import { PremiumSelect } from '@/features/business-panel/components/PremiumSelect'
+import { BusinessPanelSearchInput } from '@/features/business-panel/components/shared/BusinessPanelSearchInput'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
+import {
+  ADMIN_COMMUNITY_CATEGORY_OPTIONS,
+  ADMIN_COMMUNITY_STATUS_OPTIONS,
+} from './admin-communities-display.service'
+import type { AdminCommunitiesViewMode } from './shared'
 
 interface AdminCommunitiesFiltersProps {
   searchTerm: string
@@ -27,66 +34,88 @@ export function AdminCommunitiesFilters({
   onViewModeChange,
 }: AdminCommunitiesFiltersProps) {
   const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
+
+  const categoryOptions = ADMIN_COMMUNITY_CATEGORY_OPTIONS.map((option) => ({
+    value: option.value,
+    label: t(option.labelKey),
+  }))
+  const statusOptions = ADMIN_COMMUNITY_STATUS_OPTIONS.map((option) => ({
+    value: option.value,
+    label: t(option.labelKey),
+  }))
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
+    <motion.section
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4 }}
-      className="flex flex-col lg:flex-row gap-4 p-5 rounded-2xl"
-      style={{ background: adminCommunitiesColors.bgSecondary }}
+      transition={{ delay: 0.15 }}
+      className="mb-6 rounded-[20px] border p-3 shadow-sm"
+      style={{
+        backgroundColor: theme.cardBg,
+        borderColor: theme.borderColor,
+      }}
     >
-      <div className="flex-1 relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-        <input
-          type="text"
-          placeholder={t('searchPlaceholders.communities')}
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+        <BusinessPanelSearchInput
           value={searchTerm}
-          onChange={(event) => onSearchChange(event.target.value)}
-          className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-[#0F1419] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4B3] focus:ring-1 focus:ring-[#00D4B3] transition-all"
+          onChange={onSearchChange}
+          placeholder={t('searchPlaceholders.communities')}
+          className="min-w-0 flex-1"
         />
-      </div>
 
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 text-gray-500">
-          <Filter className="w-4 h-4" />
+        <div className="grid gap-3 sm:grid-cols-2 xl:flex xl:flex-shrink-0">
+          <PremiumSelect
+            value={filterCategory}
+            onValueChange={onCategoryChange}
+            options={categoryOptions}
+            placeholder={t('communities.filters.categories.all')}
+            icon={<Lock className="h-4 w-4" />}
+            className="w-full sm:min-w-[220px]"
+          />
+          <PremiumSelect
+            value={filterStatus}
+            onValueChange={onStatusChange}
+            options={statusOptions}
+            placeholder={t('communities.filters.status.all')}
+            icon={<SlidersHorizontal className="h-4 w-4" />}
+            className="w-full sm:min-w-[200px]"
+          />
         </div>
 
-        <select
-          value={filterCategory}
-          onChange={(event) => onCategoryChange(event.target.value)}
-          className="px-4 py-3.5 rounded-xl bg-[#0F1419] border border-white/10 text-white focus:outline-none focus:border-[#00D4B3] transition-all cursor-pointer"
+        <div
+          className="flex items-center gap-1 rounded-xl border p-1"
+          style={{
+            backgroundColor: theme.inputBg,
+            borderColor: theme.borderColor,
+          }}
         >
-          <option value="all">Todas las categorias</option>
-          <option value="Publica">Publicas</option>
-          <option value="Privada">Privadas</option>
-          <option value="Moderada">Moderadas</option>
-        </select>
+          {[
+            { value: 'grid' as const, icon: LayoutGrid, label: t('communities.view.grid') },
+            { value: 'list' as const, icon: List, label: t('communities.view.list') },
+          ].map((item) => {
+            const Icon = item.icon
+            const isActive = viewMode === item.value
 
-        <select
-          value={filterStatus}
-          onChange={(event) => onStatusChange(event.target.value)}
-          className="px-4 py-3.5 rounded-xl bg-[#0F1419] border border-white/10 text-white focus:outline-none focus:border-[#00D4B3] transition-all cursor-pointer"
-        >
-          <option value="all">Todos los estados</option>
-          <option value="active">Activas</option>
-          <option value="inactive">Inactivas</option>
-        </select>
-
-        <div className="flex items-center gap-1 p-1.5 rounded-xl" style={{ background: adminCommunitiesColors.bgTertiary }}>
-          <button
-            onClick={() => onViewModeChange('grid')}
-            className={`p-2.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-[#00D4B3] text-white' : 'text-gray-500 hover:text-white'}`}
-          >
-            <LayoutGrid className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onViewModeChange('list')}
-            className={`p-2.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-[#00D4B3] text-white' : 'text-gray-500 hover:text-white'}`}
-          >
-            <List className="w-4 h-4" />
-          </button>
+            return (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => onViewModeChange(item.value)}
+                aria-label={item.label}
+                title={item.label}
+                className="rounded-lg p-2.5 transition-all"
+                style={{
+                  backgroundColor: isActive ? theme.primaryColor : 'transparent',
+                  color: isActive ? theme.onPrimaryColor : theme.subtextColor,
+                }}
+              >
+                <Icon className="h-4 w-4" />
+              </button>
+            )
+          })}
         </div>
       </div>
-    </motion.div>
+    </motion.section>
   )
 }

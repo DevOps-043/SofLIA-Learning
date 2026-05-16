@@ -1,49 +1,120 @@
-export function getAdminCommunityCategoryColor(category: string) {
-  switch (category) {
-    case 'Publica':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-800'
-    case 'Privada':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-800'
-    case 'Moderada':
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-800'
-    default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400 border-gray-800'
+import type { AdminPanelThemeTokens } from '../../hooks/useAdminPanelTheme'
+
+export interface DetailBadgeConfig {
+  bg: string
+  border: string
+  color: string
+  labelKey?: string
+}
+
+export function getCommunityDetailCategoryConfig(
+  visibility: string,
+  accessType: string,
+  theme: AdminPanelThemeTokens,
+): DetailBadgeConfig {
+  if (visibility === 'private') {
+    return {
+      bg: `${theme.warningColor}14`,
+      border: `${theme.warningColor}26`,
+      color: theme.warningColor,
+      labelKey: 'communityCard.typePrivate',
+    }
+  }
+
+  if (accessType === 'moderated') {
+    return {
+      bg: `${theme.secondaryColor}14`,
+      border: `${theme.secondaryColor}26`,
+      color: theme.secondaryColor,
+      labelKey: 'communityCard.typeModerated',
+    }
+  }
+
+  return {
+    bg: `${theme.successColor}14`,
+    border: `${theme.successColor}26`,
+    color: theme.successColor,
+    labelKey: 'communityCard.typePublic',
   }
 }
 
-export function getAdminCommunityStatusColor(status: string) {
-  switch (status) {
-    case 'Activa':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-800'
-    case 'Inactiva':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-800'
-    default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400 border-gray-800'
+export function getCommunityDetailStatusConfig(
+  isActive: boolean,
+  theme: AdminPanelThemeTokens,
+): DetailBadgeConfig {
+  return isActive
+    ? {
+        bg: `${theme.successColor}14`,
+        border: `${theme.successColor}26`,
+        color: theme.successColor,
+        labelKey: 'communityCard.statusActive',
+      }
+    : {
+        bg: theme.inputBg,
+        border: theme.borderColor,
+        color: theme.subtextColor,
+        labelKey: 'communityCard.statusInactive',
+      }
+}
+
+export function getCommunityDetailRoleConfig(
+  role: string,
+  theme: AdminPanelThemeTokens,
+): DetailBadgeConfig {
+  if (role === 'admin') {
+    return {
+      bg: `${theme.primaryColor}14`,
+      border: `${theme.primaryColor}26`,
+      color: theme.primaryColor,
+    }
+  }
+
+  if (role === 'moderator') {
+    return {
+      bg: `${theme.secondaryColor}14`,
+      border: `${theme.secondaryColor}26`,
+      color: theme.secondaryColor,
+    }
+  }
+
+  return {
+    bg: theme.inputBg,
+    border: theme.borderColor,
+    color: theme.subtextColor,
   }
 }
 
-export function getAdminCommunityRoleColor(role: string) {
-  switch (role) {
-    case 'admin':
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 border-purple-800'
-    case 'moderator':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-800'
-    case 'member':
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400 border-gray-800'
-    default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400 border-gray-800'
+export function getCommunityDetailRequestStatusConfig(
+  status: string,
+  theme: AdminPanelThemeTokens,
+): DetailBadgeConfig {
+  if (status === 'approved') {
+    return {
+      bg: `${theme.successColor}14`,
+      border: `${theme.successColor}26`,
+      color: theme.successColor,
+    }
+  }
+
+  if (status === 'rejected') {
+    return {
+      bg: `${theme.dangerColor}14`,
+      border: `${theme.dangerColor}26`,
+      color: theme.dangerColor,
+    }
+  }
+
+  return {
+    bg: `${theme.warningColor}14`,
+    border: `${theme.warningColor}26`,
+    color: theme.warningColor,
   }
 }
 
-export function getAdminCommunityRequestStatusColor(status: string) {
-  switch (status) {
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-800'
-    case 'approved':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-800'
-    case 'rejected':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-800'
-    default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400 border-gray-800'
+export function formatCommunityDetailDate(value?: string | null) {
+  if (!value) {
+    return null
   }
+
+  return new Date(value).toLocaleDateString()
 }

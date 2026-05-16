@@ -1,93 +1,99 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ChevronRight, Plus, Sparkles } from 'lucide-react'
-import { adminCommunitiesColors } from './shared'
-import { useMotionSafe } from '../../../../lib/utils/motion'
+import { Plus, Sparkles, Users } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 
 interface AdminCommunitiesHeaderProps {
   onCreate: () => void
 }
 
-export function AdminCommunitiesHeader({ onCreate }: AdminCommunitiesHeaderProps) {
-  const { disableHeavy } = useMotionSafe()
+export function AdminCommunitiesHeader({
+  onCreate,
+}: AdminCommunitiesHeaderProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="relative overflow-hidden rounded-3xl p-8"
+    <motion.header
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="group relative mb-6 overflow-hidden rounded-3xl p-8"
       style={{
-        background: `linear-gradient(135deg, ${adminCommunitiesColors.primary} 0%, ${adminCommunitiesColors.bgSecondary} 100%)`,
-        border: `1px solid ${adminCommunitiesColors.accent}20`
+        background: theme.heroBackground,
+        border: `1px solid ${theme.heroBorderColor}`,
       }}
     >
-      {/* Background orbs — CSS keyframes instead of JS-driven framer-motion loops */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 opacity-10">
         <div
-          className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-10 animate-communities-orb-1"
-          style={{ background: adminCommunitiesColors.accent }}
-        />
-        <div
-          className="absolute bottom-0 left-0 w-64 h-64 rounded-full blur-3xl opacity-5 animate-communities-orb-2"
-          style={{ background: adminCommunitiesColors.accent }}
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, ${theme.inverseTextColor} 1px, transparent 0)`,
+            backgroundSize: '32px 32px',
+          }}
         />
       </div>
 
-      {/* Floating particles — desktop only, removed from mobile entirely */}
-      {!disableHeavy && [...Array(5)].map((_, index) => (
-        <motion.div
-          key={index}
-          animate={{ y: [0, -20, 0], opacity: [0.3, 0.8, 0.3], scale: [1, 1.2, 1] }}
-          transition={{ duration: 3 + index, repeat: Infinity, delay: index * 0.5 }}
-          className="absolute w-2 h-2 rounded-full"
-          style={{
-            background: adminCommunitiesColors.accent,
-            left: `${20 + index * 15}%`,
-            top: `${30 + (index % 3) * 20}%`
-          }}
-        />
-      ))}
-
-      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-3 mb-3">
-            {/* Rotating icon — static on mobile */}
-            {disableHeavy
-              ? <Sparkles className="w-6 h-6" style={{ color: adminCommunitiesColors.accent }} />
-              : (
-                <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}>
-                  <Sparkles className="w-6 h-6" style={{ color: adminCommunitiesColors.accent }} />
-                </motion.div>
-              )
-            }
-            <span className="text-sm font-medium tracking-widest uppercase" style={{ color: adminCommunitiesColors.accent }}>
-              Panel de Gestion
+      <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <div className="mb-3 flex items-center gap-3">
+            <motion.div
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+            >
+              <Sparkles className="h-6 w-6" style={{ color: theme.accentColor }} />
+            </motion.div>
+            <span
+              className="text-sm font-semibold uppercase tracking-wider"
+              style={{ color: theme.accentColor }}
+            >
+              {t('navigation.communities')}
             </span>
           </div>
 
-          <h1 className="text-4xl lg:text-5xl font-bold text-white mb-3">Comunidades</h1>
-          <p className="text-lg text-white/60 max-w-xl">
-            Administra, modera y haz crecer las comunidades de tu plataforma de aprendizaje.
+          <h1
+            className="mb-2 text-3xl font-bold lg:text-4xl"
+            style={{ color: theme.inverseTextColor }}
+          >
+            {t('communities.page.title')}
+          </h1>
+          <p
+            className="max-w-2xl text-lg"
+            style={{ color: theme.inverseSubtextColor }}
+          >
+            {t('communities.page.description')}
           </p>
         </div>
 
         <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          type="button"
           onClick={onCreate}
-          className="flex items-center gap-2 px-6 py-4 rounded-2xl font-semibold text-white shadow-lg self-start"
+          className="flex items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold transition-all"
           style={{
-            background: `linear-gradient(135deg, ${adminCommunitiesColors.accent} 0%, ${adminCommunitiesColors.primary} 100%)`,
-            boxShadow: `0 10px 40px ${adminCommunitiesColors.accent}30`
+            backgroundColor: theme.primaryColor,
+            boxShadow: `0 8px 30px ${theme.primaryColor}40`,
+            color: theme.onPrimaryColor,
           }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          <Plus className="w-5 h-5" />
-          <span>Crear Comunidad</span>
-          <ChevronRight className="w-4 h-4" />
+          <Plus className="h-5 w-5" strokeWidth={3} />
+          <span>{t('communities.page.createButton')}</span>
         </motion.button>
       </div>
-    </motion.div>
+
+      <div
+        className="pointer-events-none absolute bottom-6 right-8 hidden h-20 w-20 items-center justify-center rounded-[2rem] border opacity-20 lg:flex"
+        style={{
+          backgroundColor: theme.inverseSurface,
+          borderColor: theme.inverseBorderColor,
+          color: theme.inverseTextColor,
+        }}
+      >
+        <Users className="h-10 w-10" />
+      </div>
+    </motion.header>
   )
 }

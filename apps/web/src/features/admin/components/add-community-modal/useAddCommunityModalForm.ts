@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   buildAddCommunityPayload,
   buildCommunitySlug,
@@ -23,6 +24,7 @@ export function useAddCommunityModalForm({
   onClose,
   onSave,
 }: UseAddCommunityModalFormOptions) {
+  const { t } = useTranslation('admin')
   const [formData, setFormData] = useState<AddCommunityFormData>(
     createDefaultAddCommunityFormData(),
   )
@@ -78,7 +80,12 @@ export function useAddCommunityModalForm({
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const nextErrors = validateAddCommunityForm(formData)
+    const nextErrors = validateAddCommunityForm(formData, {
+      descriptionRequired: t('communities.form.validation.descriptionRequired'),
+      nameRequired: t('communities.form.validation.nameRequired'),
+      slugInvalid: t('communities.form.validation.slugInvalid'),
+      slugRequired: t('communities.form.validation.slugRequired'),
+    })
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors)
       return
@@ -94,7 +101,7 @@ export function useAddCommunityModalForm({
       setError(
         submissionError instanceof Error
           ? submissionError.message
-          : 'Error al crear comunidad',
+          : t('communities.createModal.errorFallback'),
       )
     } finally {
       setIsSubmitting(false)

@@ -1,55 +1,82 @@
-import { ArrowLeftIcon } from '@heroicons/react/24/outline'
+import { ArrowLeft } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 import type { AdminCommunity } from '../../services/adminCommunities.service'
-import { getAdminCommunityCategoryColor, getAdminCommunityStatusColor } from './shared'
+import {
+  getCommunityDetailCategoryConfig,
+  getCommunityDetailStatusConfig,
+} from './shared'
 
 interface AdminCommunityDetailHeaderProps {
   community: AdminCommunity
   onBack: () => void
 }
 
-function getCommunityCategoryLabel(community: AdminCommunity) {
-  if (community.visibility === 'private') {
-    return 'Privada'
-  }
-
-  if (community.access_type === 'moderated') {
-    return 'Moderada'
-  }
-
-  return 'Publica'
-}
-
 export function AdminCommunityDetailHeader({
   community,
-  onBack
+  onBack,
 }: AdminCommunityDetailHeaderProps) {
-  const categoryLabel = getCommunityCategoryLabel(community)
-  const statusLabel = community.is_active ? 'Activa' : 'Inactiva'
+  const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
+  const categoryConfig = getCommunityDetailCategoryConfig(
+    community.visibility,
+    community.access_type,
+    theme,
+  )
+  const statusConfig = getCommunityDetailStatusConfig(
+    community.is_active,
+    theme,
+  )
 
   return (
-    <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between py-6 gap-4">
-          <div className="flex items-center space-x-4 min-w-0">
+    <div
+      className="border-b"
+      style={{
+        background: theme.heroBackground,
+        borderColor: theme.heroBorderColor,
+      }}
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-4">
             <button
+              className="rounded-xl p-2 transition-colors"
               onClick={onBack}
-              className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              style={{
+                backgroundColor: theme.inverseSurface,
+                color: theme.inverseTextColor,
+              }}
+              type="button"
             >
-              <ArrowLeftIcon className="h-6 w-6" />
+              <ArrowLeft className="h-5 w-5" />
             </button>
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white truncate">{community.name}</h1>
-              <p className="text-gray-600 dark:text-gray-400">Administracion de comunidad</p>
+              <h1
+                className="truncate text-2xl font-bold"
+                style={{ color: theme.inverseTextColor }}
+              >
+                {community.name}
+              </h1>
+              <p className="text-sm" style={{ color: theme.inverseSubtextColor }}>
+                {t('communityDetail.page.subtitle')}
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center flex-wrap gap-3">
-            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full border ${getAdminCommunityCategoryColor(categoryLabel)}`}>
-              {categoryLabel}
-            </span>
-            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full border ${getAdminCommunityStatusColor(statusLabel)}`}>
-              {statusLabel}
-            </span>
+          <div className="flex flex-wrap items-center gap-2">
+            {[categoryConfig, statusConfig].map((config) => (
+              <span
+                className="inline-flex rounded-full border px-3 py-1 text-xs font-semibold"
+                key={config.labelKey}
+                style={{
+                  backgroundColor: config.bg,
+                  borderColor: config.border,
+                  color: config.color,
+                }}
+              >
+                {config.labelKey ? t(config.labelKey) : null}
+              </span>
+            ))}
           </div>
         </div>
       </div>

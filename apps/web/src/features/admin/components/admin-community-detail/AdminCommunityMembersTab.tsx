@@ -1,22 +1,28 @@
+import { Check, UserRound, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { CheckIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 import type { AdminCommunityMember } from '../../types/admin-community-detail.types'
-import { getAdminCommunityRoleColor, getAdminCommunityStatusColor } from './shared'
+import {
+  formatCommunityDetailDate,
+  getCommunityDetailRoleConfig,
+  getCommunityDetailStatusConfig,
+} from './shared'
 
 interface AdminCommunityMembersTabProps {
-  members: AdminCommunityMember[]
   isProcessing: string | null
-  onToggleMemberRole: (memberId: string, currentRole: string) => void
+  members: AdminCommunityMember[]
   onRemoveMember: (memberId: string, memberName: string) => void
+  onToggleMemberRole: (memberId: string, currentRole: string) => void
 }
 
 export function AdminCommunityMembersTab({
-  members,
   isProcessing,
+  members,
+  onRemoveMember,
   onToggleMemberRole,
-  onRemoveMember
 }: AdminCommunityMembersTabProps) {
   const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
 
   function getMemberName(member: AdminCommunityMember) {
     return (
@@ -30,70 +36,133 @@ export function AdminCommunityMembersTab({
 
   if (members.length === 0) {
     return (
-      <div className="text-center py-8">
-        <UserGroupIcon className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-        <p className="text-gray-600 dark:text-gray-400">{t('communityDetail.members.empty')}</p>
+      <div className="py-10 text-center">
+        <UserRound
+          className="mx-auto mb-4 h-12 w-12"
+          style={{ color: theme.subtextColor }}
+        />
+        <p className="text-sm" style={{ color: theme.subtextColor }}>
+          {t('communityDetail.members.empty')}
+        </p>
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {members.map(member => (
-        <div key={member.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex-shrink-0">
-              <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                <UserGroupIcon className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {members.map((member) => {
+        const memberName = getMemberName(member)
+        const roleConfig = getCommunityDetailRoleConfig(member.role, theme)
+        const statusConfig = getCommunityDetailStatusConfig(true, theme)
+
+        return (
+          <div
+            className="rounded-2xl border p-4"
+            key={member.id}
+            style={{
+              backgroundColor: theme.inputBg,
+              borderColor: theme.borderColor,
+            }}
+          >
+            <div className="flex items-start gap-3">
+              <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+                style={{ backgroundColor: theme.actionSurface }}
+              >
+                <UserRound
+                  className="h-5 w-5"
+                  style={{ color: theme.primaryColor }}
+                />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p
+                  className="truncate font-semibold"
+                  style={{ color: theme.textColor }}
+                >
+                  {memberName}
+                </p>
+                <p className="truncate text-sm" style={{ color: theme.subtextColor }}>
+                  {member.users?.email || `ID: ${member.id}`}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span
+                    className="inline-flex rounded-full border px-2 py-1 text-xs font-semibold"
+                    style={{
+                      backgroundColor: roleConfig.bg,
+                      borderColor: roleConfig.border,
+                      color: roleConfig.color,
+                    }}
+                  >
+                    {member.role}
+                  </span>
+                  <span
+                    className="inline-flex rounded-full border px-2 py-1 text-xs font-semibold"
+                    style={{
+                      backgroundColor: statusConfig.bg,
+                      borderColor: statusConfig.border,
+                      color: statusConfig.color,
+                    }}
+                  >
+                    {t('communityDetail.members.activeStatus')}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-1">
+                <button
+                  disabled={isProcessing === member.id}
+                  onClick={() => onToggleMemberRole(member.id, member.role)}
+                  style={{ color: theme.successColor }}
+                  title={
+                    member.role === 'admin'
+                      ? t('communityDetail.members.demoteToMember')
+                      : t('communityDetail.members.promoteToAdmin')
+                  }
+                  type="button"
+                >
+                  {isProcessing === member.id ? (
+                    <span
+                      className="block h-4 w-4 animate-spin rounded-full border-2"
+                      style={{
+                        borderColor: `${theme.successColor}33`,
+                        borderTopColor: theme.successColor,
+                      }}
+                    />
+                  ) : (
+                    <Check className="h-4 w-4" />
+                  )}
+                </button>
+                <button
+                  disabled={isProcessing === member.id}
+                  onClick={() => onRemoveMember(member.id, memberName)}
+                  style={{ color: theme.dangerColor }}
+                  title={t('communityDetail.members.removeFromCommunity')}
+                  type="button"
+                >
+                  {isProcessing === member.id ? (
+                    <span
+                      className="block h-4 w-4 animate-spin rounded-full border-2"
+                      style={{
+                        borderColor: `${theme.dangerColor}33`,
+                        borderTopColor: theme.dangerColor,
+                      }}
+                    />
+                  ) : (
+                    <X className="h-4 w-4" />
+                  )}
+                </button>
               </div>
             </div>
 
-            <div className="flex-1 min-w-0">
-              <p className="text-gray-900 dark:text-white font-medium truncate">{getMemberName(member)}</p>
-              <p className="text-gray-600 dark:text-gray-400 text-sm truncate">{member.users?.email || `ID: ${member.id}`}</p>
-              <div className="flex items-center flex-wrap gap-2 mt-1">
-                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getAdminCommunityRoleColor(member.role)}`}>
-                  {member.role}
-                </span>
-                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getAdminCommunityStatusColor('Activa')}`}>
-                  {t('communityDetail.members.activeStatus')}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex gap-1">
-              <button
-                onClick={() => onToggleMemberRole(member.id, member.role)}
-                disabled={isProcessing === member.id}
-                className="p-1 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title={member.role === 'admin' ? t('communityDetail.members.demoteToMember') : t('communityDetail.members.promoteToAdmin')}
-              >
-                {isProcessing === member.id ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 dark:border-green-400" />
-                ) : (
-                  <CheckIcon className="h-4 w-4" />
-                )}
-              </button>
-              <button
-                onClick={() => onRemoveMember(member.id, getMemberName(member))}
-                disabled={isProcessing === member.id}
-                className="p-1 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title={t('communityDetail.members.removeFromCommunity')}
-              >
-                {isProcessing === member.id ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 dark:border-red-400" />
-                ) : (
-                  <XMarkIcon className="h-4 w-4" />
-                )}
-              </button>
+            <div className="mt-3 text-xs" style={{ color: theme.subtextColor }}>
+              {t('communityDetail.members.joinedAt')}{' '}
+              {formatCommunityDetailDate(member.joined_at) ||
+                t('communityCard.noDate')}
             </div>
           </div>
-
-          <div className="mt-3 text-xs text-gray-500 dark:text-gray-500">
-            {t('communityDetail.members.joinedAt')} {member.joined_at ? new Date(member.joined_at).toLocaleDateString() : 'N/A'}
-          </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
