@@ -1,7 +1,0 @@
-export { AdminCommunityDetailHeader } from './AdminCommunityDetailHeader'
-export { AdminCommunityMembersTab } from './AdminCommunityMembersTab'
-export { AdminCommunityOverview } from './AdminCommunityOverview'
-export { AdminCommunityPostsTab } from './AdminCommunityPostsTab'
-export { AdminCommunityRequestsTab } from './AdminCommunityRequestsTab'
-export { AdminCommunityTabs } from './AdminCommunityTabs'
-export { AdminCommunityVideosTab } from './AdminCommunityVideosTab'
