@@ -178,6 +178,22 @@ export function AdminTranscodingPage() {
     }
   }, [fetchJobs])
 
+  // Auto-drain: as soon as the processing slots free up and there are still
+  // queued jobs, kick off the next batch automatically.  Avoids forcing the
+  // admin to manually click 'Procesar siguientes 10' every few minutes
+  // during a bulk backfill.  Guarded by isDraining so we don't fire
+  // duplicate requests while a drain call is in flight.
+  useEffect(() => {
+    if (!data?.summary) return
+    const { processing, queued } = data.summary
+    if (queued > 0 && processing < 10 && !isDraining) {
+      void triggerDrain()
+    }
+    // triggerDrain is stable enough for this guard (it only flips
+    // isDraining and refetches); excluded from deps on purpose.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.summary, isDraining])
+
   const triggerScan = async () => {
     setIsScanning(true)
     setScanResult(null)
@@ -393,10 +409,14 @@ export function AdminTranscodingPage() {
         >
           {scanResult.success ? (
             <p>
-              Encontrados <strong>{scanResult.totalFound}</strong> videos —{' '}
-              <strong>{scanResult.alreadyDone}</strong> ya completados,{' '}
-              <strong>{scanResult.queued}</strong> encolados,{' '}
+              Encontrados <strong>{scanResult.totalFound}</strong> videos únicos en el bucket —{' '}
+              <strong>{scanResult.alreadyDone}</strong> ya tienen HLS,{' '}
+              <strong>{scanResult.queued}</strong> nuevos encolados,{' '}
               <strong>{scanResult.invoked}</strong> disparados ahora.
+              <span className="block mt-1 text-xs opacity-80">
+                Nota: los contadores de arriba (Completado / Falló) cuentan filas de jobs,
+                no videos. Cada reprocesamiento de un video crea una fila nueva.
+              </span>
             </p>
           ) : (
             <p>Error: {scanResult.error}</p>

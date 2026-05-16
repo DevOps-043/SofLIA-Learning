@@ -2,6 +2,7 @@ import type { createClient as createSupabaseClient } from '@/lib/supabase/server
 import { ContentTranslationService } from '@/core/services/contentTranslation.service'
 import type { SupportedLanguage } from '@/core/i18n/i18n'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
+import { resolveHlsUrlsForSources } from '@/lib/media/server/hls-source-resolver.server'
 import {
   getLessonsTableNameForLanguage,
   mergeTranslationContexts,
@@ -325,6 +326,36 @@ export async function loadModulesWithProgress(
   })
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+
+  // Build the absolute MP4 URL for every direct-uploaded lesson, then
+  // batch-resolve to HLS variants in a single query.  We rewrite
+  // video_provider_id to point at the master.m3u8 when available so the
+  // CustomVideoPlayer picks up adaptive bitrate playback (with the
+  // YouTube-style quality selector) automatically.  Lessons without a
+  // completed transcoding job keep their original MP4.
+  function buildAbsoluteVideoUrl(lesson: LessonRow): string | null {
+    const raw = lesson.video_provider_id
+    if (!raw) return null
+    if (lesson.video_provider !== 'direct') return raw
+    if (raw.startsWith('http')) return raw
+    if (!supabaseUrl) return raw
+    return raw.includes('/')
+      ? `${supabaseUrl}/storage/v1/object/public/${raw}`
+      : `${supabaseUrl}/storage/v1/object/public/course-videos/videos/${raw}`
+  }
+
+  const sourceUrlByLessonId = new Map<string, string>()
+  for (const lesson of lessons) {
+    const absoluteUrl = buildAbsoluteVideoUrl(lesson)
+    if (absoluteUrl && lesson.video_provider === 'direct') {
+      sourceUrlByLessonId.set(lesson.lesson_id, absoluteUrl)
+    }
+  }
+  const hlsBySource = await resolveHlsUrlsForSources(
+    supabase,
+    Array.from(sourceUrlByLessonId.values()),
+  )
+
   const translatedModules = await ContentTranslationService.translateArray(
     'module',
     modules.map((module) => ({ ...module, id: module.module_id })),
@@ -354,18 +385,9 @@ export async function loadModulesWithProgress(
           translatedModule.module_description || module.module_description,
         module_order_index: module.module_order_index,
         lessons: lessonsToShow.map((lesson) => {
-          let videoUrl = lesson.video_provider_id
-
-          if (
-            lesson.video_provider === 'direct' &&
-            videoUrl &&
-            !videoUrl.startsWith('http') &&
-            supabaseUrl
-          ) {
-            videoUrl = videoUrl.includes('/')
-              ? `${supabaseUrl}/storage/v1/object/public/${videoUrl}`
-              : `${supabaseUrl}/storage/v1/object/public/course-videos/videos/${videoUrl}`
-          }
+          const sourceUrl = sourceUrlByLessonId.get(lesson.lesson_id)
+          const hlsUrl = sourceUrl ? hlsBySource.get(sourceUrl) : undefined
+          const videoUrl = hlsUrl ?? buildAbsoluteVideoUrl(lesson)
 
           const progress = progressMap.get(lesson.lesson_id)
           return {
