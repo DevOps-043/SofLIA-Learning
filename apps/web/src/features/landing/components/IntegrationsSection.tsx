@@ -4,10 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
-import { 
-  MessageSquare, 
-  Brain, 
-  Sparkles, 
+import {
+  MessageSquare,
+  Brain,
+  Sparkles,
   Globe,
   Lightbulb,
   HelpCircle,
@@ -17,6 +17,7 @@ import {
   MapPin,
   Send
 } from 'lucide-react';
+import { useMotionSafe } from '../../../lib/utils/motion';
 
 interface IntegrationsSectionProps {
   className?: string;
@@ -124,6 +125,52 @@ function TypewriterText({ text, onComplete, speed = 30 }: { text: string; onComp
         />
       )}
     </span>
+  );
+}
+
+// Static fallback: renders the entire conversation at once with no
+// typewriter, no typing indicator, no per-message timers.  Used on
+// Apple/WebKit and reduced-motion devices to avoid the per-frame
+// CPU cost of the animated version (typewriter advances every 25-40
+// ms via setTimeout, three infinite dot pulses, 25-second cycle).
+function StaticChat() {
+  return (
+    <div className="space-y-4 min-h-[280px]">
+      {chatConversation.map((msg, index) => {
+        const isUser = msg.type === 'user';
+        return (
+          <div
+            key={index}
+            className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
+          >
+            {!isUser && (
+              <div className="relative w-8 h-8 rounded-full overflow-hidden border border-[#00D4B3]/50 flex-shrink-0">
+                <Image
+                  src="/lia-avatar.webp"
+                  alt="LIA"
+                  fill
+                  className="object-cover object-top"
+                />
+              </div>
+            )}
+            <div
+              className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm ${
+                isUser
+                  ? 'bg-[#00D4B3] text-white rounded-br-md'
+                  : 'bg-white/10 text-white/90 rounded-bl-md'
+              }`}
+            >
+              {msg.message}
+            </div>
+            {isUser && (
+              <div className="w-8 h-8 rounded-full bg-[#00D4B3]/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-bold text-[#00D4B3]">TÚ</span>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -275,6 +322,7 @@ function AnimatedChat() {
 
 export function IntegrationsSection({ className = '' }: IntegrationsSectionProps) {
   const { t } = useTranslation('common');
+  const { disableHeavy } = useMotionSafe();
 
   return (
     <section 
@@ -380,9 +428,14 @@ export function IntegrationsSection({ className = '' }: IntegrationsSectionProps
               transition={{ delay: 0.5 }}
               className="relative p-6 bg-gradient-to-br from-[#0A2540] to-[#1a3a5c] rounded-2xl overflow-hidden"
             >
-              {/* Decorative */}
-              <div className="absolute top-0 right-0 w-40 h-40 bg-[#00D4B3]/20 rounded-full blur-3xl" />
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#8B5CF6]/10 rounded-full blur-2xl" />
+              {/* Decorative orbs — skipped on heat-sensitive devices (also
+                  covered by the global CSS hide rule for .absolute.blur-3xl). */}
+              {!disableHeavy && (
+                <>
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-[#00D4B3]/20 rounded-full blur-3xl" />
+                  <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#8B5CF6]/10 rounded-full blur-2xl" />
+                </>
+              )}
               
               {/* Chat Header */}
               <div className="relative flex items-center gap-3 mb-4 pb-4 border-b border-white/10">
@@ -405,9 +458,13 @@ export function IntegrationsSection({ className = '' }: IntegrationsSectionProps
                 </div>
               </div>
               
-              {/* Animated Chat Messages */}
+              {/* Chat preview.  Animated version on capable devices, static
+                  fallback on Apple/WebKit and reduced-motion: the animated
+                  flow runs setTimeout-based typewriters every 25-40 ms plus
+                  three infinite framer pulses, which dominated the heat
+                  reports from iPhone/iPad users on the landing. */}
               <div className="relative">
-                <AnimatedChat />
+                {disableHeavy ? <StaticChat /> : <AnimatedChat />}
               </div>
               
               {/* Fake Input */}

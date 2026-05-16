@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Montserrat } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '../core/components/ThemeProvider';
+import { MotionGuardProvider } from '../core/components/MotionGuardProvider';
 
 import { PrefetchManager } from '../core/components/PrefetchManager';
 import { SWRProvider } from '../core/providers/SWRProvider';
@@ -269,6 +270,7 @@ export default function RootLayout({
         <SWRProvider>
             <I18nProvider>
               <ThemeProvider>
+                <MotionGuardProvider>
                 <ShareModalProvider>
                   <NotificationProvider pollingInterval={60000}>
                     <OrganizationProvider>
@@ -294,6 +296,7 @@ export default function RootLayout({
                     </OrganizationProvider>
                   </NotificationProvider>
                 </ShareModalProvider>
+                </MotionGuardProvider>
               </ThemeProvider>
             </I18nProvider>
           </SWRProvider>
