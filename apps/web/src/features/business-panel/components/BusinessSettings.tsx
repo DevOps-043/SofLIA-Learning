@@ -10,7 +10,7 @@ import { LoginPersonalizadoSection } from './LoginPersonalizadoSection'
 import { OrganizationTab } from './OrganizationTab'
 import { useBusinessSettingsLogic } from './hooks/useBusinessSettingsLogic'
 import { useTranslation } from 'react-i18next'
-import { Joyride } from 'react-joyride'
+import Joyride from 'react-joyride'
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
 import { getAdminSettingsSteps, ADMIN_SETTINGS_TOUR_ID } from '@/features/tours/config/business-panel/admin-settings-steps'
 

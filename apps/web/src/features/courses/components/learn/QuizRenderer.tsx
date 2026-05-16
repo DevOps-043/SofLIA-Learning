@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle,
+  Eye,
   Loader2,
   RefreshCw,
   X,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   buildQuizFeedbackPrompt,
@@ -29,7 +31,7 @@ type QuizRendererProps = {
   slug?: string;
   materialId?: string;
   activityId?: string;
-  onTriggerLiaFeedback?: (prompt: string) => void;
+  onRequestQuizFeedback?: (prompt: string) => void;
   onQuizSubmitted?: () => void;
 };
 
@@ -79,6 +81,34 @@ function buildHydratedQuizState(
   };
 }
 
+function buildFailedQuizReviewPrompt(quizData: QuizQuestion[]): string | null {
+  if (quizData.length === 0) {
+    return null;
+  }
+
+  const promptLines = [
+    "[SYSTEM: COMPORTAMIENTO ESTRICTO OCULTO PARA EL USUARIO]",
+    "El usuario no alcanzo el puntaje requerido en este quiz.",
+    "",
+    "Preguntas del quiz para orientar el repaso:",
+    "",
+  ];
+
+  quizData.forEach((question, index) => {
+    promptLines.push(`${index + 1}. [Pregunta]: ${question.question}`);
+  });
+
+  promptLines.push(
+    "",
+    "Proporciona una retroalimentacion que invite al usuario a reflexionar sobre los conceptos del quiz basandose en lo que se vio en el video o el material de estudio.",
+    "NUNCA le des las respuestas correctas directamente.",
+    "Hazle preguntas o menciona conceptos clave que le ayuden a llegar a las respuestas correctas por si mismo.",
+    "Adicionalmente, indicale al usuario en que minuto aproximado del video o parte del material puede encontrar la informacion para repasar (utiliza la transcripcion que tienes en tu contexto).",
+  );
+
+  return promptLines.join("\n");
+}
+
 export function QuizRenderer({
   quizData,
   totalPoints,
@@ -87,9 +117,10 @@ export function QuizRenderer({
   slug,
   materialId,
   activityId,
-  onTriggerLiaFeedback,
+  onRequestQuizFeedback,
   onQuizSubmitted,
 }: QuizRendererProps) {
+  const { t } = useTranslation("learn");
   const organizationId = useCurrentOrganizationId();
   const normalizedQuizData = useMemo(
     () => normalizeQuizQuestions(quizData),
@@ -117,6 +148,16 @@ export function QuizRenderer({
     totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
   const passingThreshold = 80;
   const passed = percentage >= passingThreshold;
+  const feedbackPrompt = useMemo(() => {
+    if (!showResults || passed) {
+      return null;
+    }
+
+    return (
+      buildQuizFeedbackPrompt(normalizedQuizData, selectedAnswers) ||
+      buildFailedQuizReviewPrompt(normalizedQuizData)
+    );
+  }, [normalizedQuizData, passed, selectedAnswers, showResults]);
   const latestSubmissionKey = quizStatusItem?.latestSubmission
     ? `${quizStatusItem.latestSubmission.submissionId}:${quizStatusItem.latestSubmission.completedAt ?? ""}`
     : null;
@@ -174,7 +215,7 @@ export function QuizRenderer({
 
       if (
         results.correctCount < normalizedQuizData.length &&
-        onTriggerLiaFeedback
+        onRequestQuizFeedback
       ) {
         const prompt = buildQuizFeedbackPrompt(
           normalizedQuizData,
@@ -182,7 +223,7 @@ export function QuizRenderer({
         );
 
         if (prompt) {
-          onTriggerLiaFeedback(prompt);
+          onRequestQuizFeedback(prompt);
         }
       }
 
@@ -264,6 +305,19 @@ export function QuizRenderer({
         </div>
       )}
 
+      {showResults && !passed && feedbackPrompt && onRequestQuizFeedback && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => onRequestQuizFeedback(feedbackPrompt)}
+            className="inline-flex items-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/15 dark:bg-accent/10 dark:text-accent dark:hover:bg-accent/15"
+          >
+            <Eye className="h-3.5 w-3.5" />
+            {t("activities.quizFeedback.open")}
+          </button>
+        </div>
+      )}
+
       {!showResults && (
         <div className="flex justify-end pt-3 border-t border-white/5">
           <button
@@ -324,7 +378,16 @@ export function QuizRenderer({
             </p>
           </div>
 
-          <div className="flex justify-center mt-4">
+          <div className="flex flex-wrap justify-center gap-2 mt-4">
+            {feedbackPrompt && onRequestQuizFeedback && (
+              <button
+                onClick={() => onRequestQuizFeedback(feedbackPrompt)}
+                className="px-4 py-2 rounded-md text-xs font-medium bg-primary/10 hover:bg-primary/15 text-primary dark:bg-accent/10 dark:hover:bg-accent/15 dark:text-accent transition-colors flex items-center gap-2"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                {t("activities.quizFeedback.open")}
+              </button>
+            )}
             <button
               onClick={handleRetry}
               className="px-4 py-2 rounded-md text-xs font-medium bg-gray-200 hover:bg-gray-300 dark:bg-white/10 dark:hover:bg-white/15 text-gray-700 dark:text-white/70 transition-colors flex items-center gap-2"

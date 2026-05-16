@@ -18,6 +18,7 @@ import type { LiaImageAttachment } from '../../../core/reporting/report-problem.
 
 import { copyTextToClipboard } from '../../../lib/clipboard';
 import { convertNoteMarkdownToHtml } from '../../../core/components/NotesModal/shared/notes-markdown-to-html.service';
+import { useAutoResizingTextarea } from '../hooks/useAutoResizingTextarea';
 import { useLessonChatSuggestions } from '../hooks/useLessonChatSuggestions';
 import { ChatSuggestionsChips } from './CourseLia/chat-suggestions';
 import { normalizeLiaLinkUrl, type NormalizedLiaLink } from './CourseLia/lia-link.utils';
@@ -350,19 +351,7 @@ function CourseLiaPanelContent({
     },
   });
 
-  const resizeTextArea = useCallback(
-    (textarea: HTMLTextAreaElement | null, maxHeight = 128) => {
-      if (!textarea) {
-        return;
-      }
-
-      textarea.style.height = '0px';
-      const nextHeight = Math.min(Math.max(textarea.scrollHeight, 20), maxHeight);
-      textarea.style.height = `${nextHeight}px`;
-      textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
-    },
-    [],
-  );
+  const resizeTextArea = useAutoResizingTextarea();
 
   useEffect(() => {
     resizeTextArea(inputRef.current);
@@ -958,7 +947,7 @@ function CourseLiaPanelContent({
                  rows={1}
                  style={{ flex: 1, minHeight: '20px', maxHeight: '120px', resize: 'none', backgroundColor: 'transparent', border: 'none', outline: 'none', color: themeColors.textPrimary, fontSize: '14px', lineHeight: '20px', padding: 0, overflowY: 'hidden', display: 'block' }}
                  id="lia-course-chat-input"
-                 className="lia-input-reset lia-chat-input"
+                 className="lia-input-reset lia-chat-input lia-textarea-scrollbar"
                />
                <motion.button
                  type="button"

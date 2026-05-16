@@ -15,6 +15,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useAutoResizingTextarea } from "@/features/courses/hooks/useAutoResizingTextarea";
 import type { DialogueState } from "@/features/courses/types/dialogue-runtime";
 
 import type { LearnActivity } from "../types";
@@ -143,6 +144,8 @@ export function SofliaDialogueActivityRenderer({
   const [session, setSession] = useState<DialogueSession | null>(null);
   const mountedRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const draftInputRef = useRef<HTMLTextAreaElement>(null);
+  const resizeDraftTextarea = useAutoResizingTextarea({ minHeight: 24 });
 
   const endpointBase = useMemo(
     () =>
@@ -299,6 +302,10 @@ export function SofliaDialogueActivityRenderer({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [session?.messages.length, sending]);
+
+  useEffect(() => {
+    resizeDraftTextarea(draftInputRef.current, 128);
+  }, [draftMessage, resizeDraftTextarea]);
 
   const stateLabel = session?.state
     ? t(`activities.dialogue.states.${session.state}`, {
@@ -535,13 +542,14 @@ export function SofliaDialogueActivityRenderer({
           </button>
         )}
 
-        <div className="flex gap-2">
+        <div className="flex items-end gap-2 rounded-[22px] border border-gray-200 bg-white px-3 py-2 shadow-sm transition focus-within:border-primary dark:border-white/10 dark:bg-gray-900 dark:focus-within:border-accent">
           <textarea
+            ref={draftInputRef}
             value={draftMessage}
             onChange={(event) => setDraftMessage(event.target.value)}
             disabled={sending || isTerminal}
-            rows={2}
-            className="min-h-[56px] flex-1 resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-gray-900 dark:text-white dark:focus:border-accent"
+            rows={1}
+            className="lia-textarea-scrollbar min-h-6 max-h-32 flex-1 resize-none border-0 bg-transparent px-1 py-2 text-sm leading-6 text-gray-900 outline-none placeholder:text-gray-400 focus:ring-0 disabled:cursor-not-allowed disabled:opacity-60 dark:text-white dark:placeholder:text-white/40"
             placeholder={
               isTerminal
                 ? t("activities.dialogue.closedPlaceholder")
@@ -554,7 +562,7 @@ export function SofliaDialogueActivityRenderer({
               void sendMessage();
             }}
             disabled={!canSendMessage}
-            className="inline-flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-accent dark:text-primary"
+            className="mb-0.5 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 dark:bg-accent dark:text-primary dark:disabled:bg-white/10 dark:disabled:text-white/35"
             title={t("activities.dialogue.send")}
             aria-label={t("activities.dialogue.send")}
           >

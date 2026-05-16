@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Activity,
   BookOpen,
@@ -17,6 +17,7 @@ import { ActivityCard } from "./activities/ActivityCard";
 import { MaterialCard } from "./activities/MaterialCard";
 import { useActivitiesData } from "./activities/useActivitiesData";
 import { extractPromptList } from "./activities/utils";
+import { QuizFeedbackPanel, useQuizFeedback } from "./quiz-feedback";
 import type {
   GenerateRoleBasedPrompts,
   LearnActivity,
@@ -69,38 +70,21 @@ export function ActivitiesContent({
   const {
     setActivity,
     openLia,
-    isOpen: isLiaOpen,
-    liaChat,
     courseContext,
     isInteractionBlocked,
     closeLia,
   } =
     useLiaCourse();
-
-  const sendLiaMessage = useCallback(
-    async (message: string, isSystemMessage: boolean = false) => {
-      if (!liaChat?.sendMessage) {
-        return;
-      }
-
-      if (isInteractionBlocked) {
-        closeLia();
-        return;
-      }
-
-      if (!isLiaOpen) {
-        openLia();
-      }
-
-      await liaChat.sendMessage(
-        message,
-        courseContext || undefined,
-        undefined,
-        isSystemMessage
-      );
-    },
-    [closeLia, courseContext, isInteractionBlocked, isLiaOpen, liaChat, openLia]
-  );
+  const {
+    close: closeQuizFeedback,
+    content: quizFeedbackContent,
+    error: quizFeedbackError,
+    isLoading: isQuizFeedbackLoading,
+    isOpen: isQuizFeedbackOpen,
+    requestFeedback,
+  } = useQuizFeedback({ courseSlug: slug, lessonId: lesson.lesson_id });
+  const [lastQuizFeedbackPrompt, setLastQuizFeedbackPrompt] =
+    useState<string | null>(null);
 
   const {
     activities,
@@ -212,6 +196,34 @@ export function ActivitiesContent({
     [closeLia, isInteractionBlocked, openLia, setActivity]
   );
 
+  const handleRequestQuizFeedback = useCallback(
+    (
+      prompt: string,
+      source?: { activityId?: string | null; materialId?: string | null },
+    ) => {
+      setLastQuizFeedbackPrompt(prompt);
+      void requestFeedback({
+        activityId: source?.activityId,
+        materialId: source?.materialId,
+        prompt,
+        courseContext,
+      });
+    },
+    [courseContext, requestFeedback]
+  );
+
+  const handleRetryQuizFeedback = useCallback(() => {
+    if (!lastQuizFeedbackPrompt) {
+      return;
+    }
+
+    void requestFeedback({
+      force: true,
+      prompt: lastQuizFeedbackPrompt,
+      courseContext,
+    });
+  }, [courseContext, lastQuizFeedbackPrompt, requestFeedback]);
+
   const hasActivities = activities.length > 0;
   const hasMaterials = materials.length > 0;
   const hasContent = hasActivities || hasMaterials;
@@ -295,7 +307,8 @@ export function ActivitiesContent({
   }
 
   return (
-    <div className="space-y-6 pb-24 md:pb-6">
+    <>
+      <div className="space-y-6 pb-24 md:pb-6">
       <div className="pb-4 border-b border-gray-200 dark:border-white/5">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
@@ -338,7 +351,7 @@ export function ActivitiesContent({
                 onQuizSubmitted={refreshLessonContent}
                 onStartAiChat={handleStartAiChat}
                 onToggle={toggleActivityCollapse}
-                onTriggerLiaFeedback={(prompt) => sendLiaMessage(prompt, true)}
+                onRequestQuizFeedback={handleRequestQuizFeedback}
                 quizStatus={quizStatus}
                 slug={slug}
               />
@@ -370,7 +383,7 @@ export function ActivitiesContent({
                 material={material}
                 onQuizSubmitted={refreshLessonContent}
                 onToggle={toggleMaterialCollapse}
-                onTriggerLiaFeedback={(prompt) => sendLiaMessage(prompt, true)}
+                onRequestQuizFeedback={handleRequestQuizFeedback}
                 quizStatus={quizStatus}
                 slug={slug}
               />
@@ -452,6 +465,15 @@ export function ActivitiesContent({
           </button>
         )}
       </div>
-    </div>
+      </div>
+      <QuizFeedbackPanel
+        content={quizFeedbackContent}
+        error={quizFeedbackError}
+        isLoading={isQuizFeedbackLoading}
+        isOpen={isQuizFeedbackOpen}
+        onClose={closeQuizFeedback}
+        onRetry={lastQuizFeedbackPrompt ? handleRetryQuizFeedback : undefined}
+      />
+    </>
   );
 }

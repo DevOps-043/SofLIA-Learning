@@ -22,7 +22,7 @@ import { ConfirmationModal } from '@/features/admin/components/ConfirmationModal
 import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import { BusinessPanelSearchInput } from '../shared/BusinessPanelSearchInput'
 import { BusinessPanelStatCard } from '../shared/BusinessPanelStatCard'
-import { Joyride } from 'react-joyride'
+import Joyride from 'react-joyride'
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
 import { getAdminReviewsSteps, ADMIN_REVIEWS_TOUR_ID } from '@/features/tours/config/business-panel/admin-reviews-steps'
 

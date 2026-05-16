@@ -17,7 +17,7 @@ import { PremiumSelect } from '@/features/business-panel/components/PremiumSelec
 import { CourseStatCard } from './CourseStatCard'
 import { CourseCard } from './CourseCard'
 import { useCoursesPageLogic } from './useCoursesPageLogic'
-import { Joyride } from 'react-joyride'
+import Joyride from 'react-joyride'
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
 import { getAdminCoursesSteps, ADMIN_COURSES_TOUR_ID } from '@/features/tours/config/business-panel/admin-courses-steps'
 import { useMotionSafe } from '@/lib/utils/motion'

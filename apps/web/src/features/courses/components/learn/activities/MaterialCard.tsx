@@ -31,7 +31,10 @@ type MaterialCardProps = {
   material: LearnMaterial;
   onQuizSubmitted: () => void | Promise<void>;
   onToggle: (materialId: string) => void;
-  onTriggerLiaFeedback: (prompt: string) => void | Promise<void>;
+  onRequestQuizFeedback: (
+    prompt: string,
+    source?: { activityId?: string | null; materialId?: string | null },
+  ) => void | Promise<void>;
   quizStatus: LessonQuizStatus | null;
   slug: string;
 };
@@ -42,7 +45,7 @@ export function MaterialCard({
   material,
   onQuizSubmitted,
   onToggle,
-  onTriggerLiaFeedback,
+  onRequestQuizFeedback,
   quizStatus,
   slug,
 }: MaterialCardProps) {
@@ -140,8 +143,10 @@ export function MaterialCard({
                         lessonId={lessonId}
                         slug={slug}
                         materialId={material.material_id}
-                        onTriggerLiaFeedback={(prompt) => {
-                          void onTriggerLiaFeedback(prompt);
+                        onRequestQuizFeedback={(prompt) => {
+                          void onRequestQuizFeedback(prompt, {
+                            materialId: material.material_id,
+                          });
                         }}
                         onQuizSubmitted={() => {
                           void onQuizSubmitted();
