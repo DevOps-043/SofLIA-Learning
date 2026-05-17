@@ -13,3 +13,5 @@ export default function AdminLayoutPage({
 }) {
   return <AdminLayout>{children}</AdminLayout>
 }
+
+
