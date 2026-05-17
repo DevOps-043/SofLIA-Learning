@@ -40,6 +40,7 @@ apps/**/.next/static/
 
 # Webpack cache and hot reload - All variants
 **/webpack*.js
+!apps/web/next-config/webpack*.js
 *.webpack.hot-update.*
 **/*.webpack.hot-update.*
 **/*.hot-update.*
