@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { ActivitiesContent } from '../ActivitiesContent'
 
@@ -19,6 +19,20 @@ vi.mock('../../../context/LiaCourseContext', () => ({
     liaChat: null,
     isLiaChatLoading: false,
     courseContext: null,
+    isInteractionBlocked: false,
+    closeLia: vi.fn(),
+  }),
+}))
+
+vi.mock('../quiz-feedback', () => ({
+  QuizFeedbackPanel: () => null,
+  useQuizFeedback: () => ({
+    close: vi.fn(),
+    content: null,
+    error: null,
+    isLoading: false,
+    isOpen: false,
+    requestFeedback: vi.fn(),
   }),
 }))
 
@@ -56,6 +70,10 @@ vi.mock('../activities/MaterialCard', () => ({
   MaterialCard: () => <div>Material</div>,
 }))
 
+afterEach(() => {
+  cleanup()
+})
+
 describe('ActivitiesContent', () => {
   it('renders final course button on last lesson activities', () => {
     const onCompleteCourse = vi.fn()
@@ -73,7 +91,7 @@ describe('ActivitiesContent', () => {
       />,
     )
 
-    const button = screen.getByRole('button', { name: /finalizar curso/i })
+    const button = screen.getByRole('button', { name: /navigation.finishCourse/i })
     fireEvent.click(button)
 
     expect(button).toBeTruthy()

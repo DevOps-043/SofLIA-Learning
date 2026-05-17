@@ -23,7 +23,7 @@ import { BusinessAssignLearningPathModal } from './BusinessAssignLearningPathMod
 import { BusinessLearningPathDefaultModal } from './BusinessLearningPathDefaultModal'
 import { BusinessLearningPathVideosModal } from './BusinessLearningPathVideosModal'
 import { useBusinessLearningPathsPageLogic } from '../hooks/useBusinessLearningPathsPageLogic'
-import { Joyride } from 'react-joyride'
+import Joyride from 'react-joyride'
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
 import { getAdminPathsSteps, ADMIN_PATHS_TOUR_ID } from '@/features/tours/config/business-panel/admin-paths-steps'
 import type { BusinessUser } from '../services/businessUsers.service'

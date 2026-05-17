@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { Joyride } from 'react-joyride'
+import Joyride from 'react-joyride'
 import { useTranslation } from 'react-i18next'
 import { TourRestartButton } from '../../../../core/components/tours/TourRestartButton'
 import { useJoyrideMinitour } from '../../../tours/hooks/useJoyrideMinitour'

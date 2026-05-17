@@ -182,6 +182,15 @@
     "promptsAndExercises": "Prompts y ejercicios",
     "quizError": "Error: El quiz no tiene la estructura esperada",
     "aiCompletionError": "No fue posible completar la actividad con SofLIA.",
+    "quizFeedback": {
+      "title": "Retroalimentacion de SofLIA",
+      "subtitle": "Revision del quiz",
+      "loadingTitle": "SofLIA esta revisando tus respuestas",
+      "loadingDescription": "Estamos preparando una retroalimentacion breve y accionable.",
+      "open": "Ver retroalimentacion",
+      "retry": "Reintentar",
+      "close": "Cerrar retroalimentacion"
+    },
     "dialogue": {
       "title": "Conversacion guiada con SofLIA",
       "subtitle": "Responde con tus propias ideas. SofLIA evaluara evidencia, criterios y siguientes pasos dentro de esta actividad.",

@@ -182,6 +182,15 @@
     "promptsAndExercises": "Prompts and exercises",
     "quizError": "Error: Quiz does not have the expected structure",
     "aiCompletionError": "Could not complete the activity with SofLIA.",
+    "quizFeedback": {
+      "title": "SofLIA feedback",
+      "subtitle": "Quiz review",
+      "loadingTitle": "SofLIA is reviewing your answers",
+      "loadingDescription": "We are preparing brief, actionable feedback.",
+      "open": "View feedback",
+      "retry": "Try again",
+      "close": "Close feedback"
+    },
     "dialogue": {
       "title": "Guided conversation with SofLIA",
       "subtitle": "Answer with your own ideas. SofLIA will evaluate evidence, criteria, and next steps inside this activity.",

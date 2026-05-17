@@ -38,7 +38,10 @@ type ActivityCardProps = {
     onUserMessageCompleted: (conversationId?: string | null) => void | Promise<void>
   ) => void;
   onToggle: (activityId: string) => void;
-  onTriggerLiaFeedback: (prompt: string) => void | Promise<void>;
+  onRequestQuizFeedback: (
+    prompt: string,
+    source?: { activityId?: string | null; materialId?: string | null },
+  ) => void | Promise<void>;
   quizStatus: LessonQuizStatus | null;
   slug: string;
 };
@@ -103,7 +106,7 @@ export function ActivityCard({
   onQuizSubmitted,
   onStartAiChat,
   onToggle,
-  onTriggerLiaFeedback,
+  onRequestQuizFeedback,
   quizStatus,
   slug,
 }: ActivityCardProps) {
@@ -288,8 +291,10 @@ export function ActivityCard({
                     lessonId={lessonId}
                     slug={slug}
                     activityId={activity.activity_id}
-                    onTriggerLiaFeedback={(prompt) => {
-                      void onTriggerLiaFeedback(prompt);
+                    onRequestQuizFeedback={(prompt) => {
+                      void onRequestQuizFeedback(prompt, {
+                        activityId: activity.activity_id,
+                      });
                     }}
                     onQuizSubmitted={() => {
                       void onQuizSubmitted();

@@ -2028,6 +2028,110 @@ export type Database = {
           },
         ]
       }
+      quiz_feedback_cache: {
+        Row: {
+          activity_id: string | null
+          course_id: string
+          created_at: string
+          enrollment_id: string | null
+          feedback_content: string
+          feedback_id: string
+          lesson_id: string
+          material_id: string | null
+          metadata: Json
+          organization_id: string | null
+          prompt_hash: string
+          prompt_text: string
+          source_model: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_id?: string | null
+          course_id: string
+          created_at?: string
+          enrollment_id?: string | null
+          feedback_content: string
+          feedback_id?: string
+          lesson_id: string
+          material_id?: string | null
+          metadata?: Json
+          organization_id?: string | null
+          prompt_hash: string
+          prompt_text: string
+          source_model?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_id?: string | null
+          course_id?: string
+          created_at?: string
+          enrollment_id?: string | null
+          feedback_content?: string
+          feedback_id?: string
+          lesson_id?: string
+          material_id?: string | null
+          metadata?: Json
+          organization_id?: string | null
+          prompt_hash?: string
+          prompt_text?: string
+          source_model?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_feedback_cache_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_activities"
+            referencedColumns: ["activity_id"]
+          },
+          {
+            foreignKeyName: "quiz_feedback_cache_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_feedback_cache_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "user_course_enrollments"
+            referencedColumns: ["enrollment_id"]
+          },
+          {
+            foreignKeyName: "quiz_feedback_cache_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "course_lessons"
+            referencedColumns: ["lesson_id"]
+          },
+          {
+            foreignKeyName: "quiz_feedback_cache_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_materials"
+            referencedColumns: ["material_id"]
+          },
+          {
+            foreignKeyName: "quiz_feedback_cache_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_feedback_cache_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_materials: {
         Row: {
           content_data: Json | null
