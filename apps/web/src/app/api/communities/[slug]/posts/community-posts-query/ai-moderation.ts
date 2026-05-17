@@ -17,10 +17,10 @@ async function runAIModeration(
   userId: string,
 ) {
   try {
-    const { analyzeContentWithAI, logAIModerationAnalysis } =
-      await import('../../../../../lib/ai-moderation')
-    const { getUserWarningsCount, registerWarning } =
-      await import('../../../../../lib/moderation')
+    const { analyzeContentWithAI, logAIModerationAnalysis } = await import(
+      '@/lib/ai-moderation'
+    )
+    const { getUserWarningsCount, registerWarning } = await import('@/lib/moderation')
     const aiResult = await analyzeContentWithAI(content, {
       contentType: 'post',
       userId,

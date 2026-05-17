@@ -1,3 +1,4 @@
+/* ============================================================
    MOBILE / TOUCH PERFORMANCE OPTIMIZATIONS
    Reduce la carga de GPU en dispositivos táctiles para evitar jank
    y sobrecalentamiento (crítico en el ecosistema iOS: iPhone/iPad).
@@ -68,13 +69,3 @@
   }
 }
 
-/* ============================================================
-   APPLE-PLATFORM HEAT MITIGATION (Mac Safari)
-   The .is-apple-platform class is set by an inline script in
-   apps/web/src/app/layout.tsx before the first paint of <body>.
-   This block covers Macintosh Safari, which is `pointer: fine` and
-   therefore not matched by the touch-oriented media query above.
-   ============================================================ */
-html.is-apple-platform .absolute.blur-3xl,
-html.is-apple-platform .absolute.blur-2xl,
-html.is-apple-platform .fixed.blur-3xl,

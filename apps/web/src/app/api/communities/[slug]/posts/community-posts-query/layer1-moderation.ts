@@ -10,9 +10,7 @@ export async function runLayer1Moderation(
   content: string,
   userId: string,
 ): Promise<Layer1ModerationResult> {
-  const { containsForbiddenContent, registerWarning } = await import(
-    '../../../../../lib/moderation'
-  )
+  const { containsForbiddenContent, registerWarning } = await import('@/lib/moderation')
   const forbiddenCheck = await containsForbiddenContent(content, supabase)
 
   if (!forbiddenCheck.contains) return { blocked: false }

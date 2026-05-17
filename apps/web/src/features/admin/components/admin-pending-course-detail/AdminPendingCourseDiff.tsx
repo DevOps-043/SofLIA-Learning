@@ -8,7 +8,7 @@ import {
   PlusCircleIcon,
 } from '@heroicons/react/24/outline';
 import type { CourseDiff, DiffLesson, DiffModule, DiffStatus, FieldChange } from '../../../../lib/courseDiff';
-import { AdminPendingCourseLessonDetails } from './AdminPendingCourseLessonContent';
+import { PendingCourseLessonDetails } from './lesson-content/PendingCourseLessonDetails';
 import { getFieldLabel, truncateFieldValue } from './utils';
 
 const diffColors: Record<DiffStatus, { bg: string; text: string; border: string; label: string }> = {
@@ -106,7 +106,7 @@ function DiffLessonItem({ diffLesson }: { diffLesson: DiffLesson }) {
               ))}
             </div>
           )}
-          <AdminPendingCourseLessonDetails lesson={displayLesson} />
+          <PendingCourseLessonDetails lesson={displayLesson} />
         </div>
       )}
     </div>

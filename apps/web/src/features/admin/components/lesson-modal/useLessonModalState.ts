@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState, type FormEvent } from 'react';
 import type { TFunction } from 'i18next';
 import { canGenerateLessonAi, createLessonFormData, validateLessonForm } from './service';

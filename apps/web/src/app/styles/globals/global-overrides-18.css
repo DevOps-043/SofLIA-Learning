@@ -1,3 +1,6 @@
+/* Aplicar a TODAS las tarjetas del business panel - REGLA GLOBAL AMPLIA */
+.dark .business-panel-layout .bg-carbon-900:not(.sidebar):not(.header),
+.dark .business-panel-layout .bg-carbon-800:not(.sidebar):not(.header),
 .dark .business-panel-layout .from-carbon-700,
 .dark .business-panel-layout .to-carbon-800,
 .dark .business-panel-layout .bg-gradient-to-br {

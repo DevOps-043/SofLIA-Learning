@@ -2,7 +2,7 @@
 
 import { useTranslation } from 'react-i18next'
 import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
-import { ImageUploadCourse } from '../../../instructor/components/ImageUploadCourse'
+import { ImageUploadCourse } from '../ImageUploadCourse'
 
 interface AddWorkshopMediaTabProps {
   thumbnailUrl: string

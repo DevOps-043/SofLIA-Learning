@@ -75,6 +75,3 @@
   color: var(--org-text-color, #f8fafc);
 }
 
-/* Aplicar a TODAS las tarjetas del business panel - REGLA GLOBAL AMPLIA */
-.dark .business-panel-layout .bg-carbon-900:not(.sidebar):not(.header),
-.dark .business-panel-layout .bg-carbon-800:not(.sidebar):not(.header),
