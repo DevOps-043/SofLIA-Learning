@@ -1,45 +1,15 @@
 'use client';
 
-import type { Dispatch, SetStateAction } from 'react';
 import { useEffect, useState } from 'react';
-
-import type {
-  StudyApproach,
-  StudyPlannerMessage,
-} from '../types/planner-ui.types';
-import type { StudyPlannerStoredLessonDistribution } from '../types/planner-schedule.types';
-import { ensureLessonDistributionIdentity } from '../services/lesson-distribution.service';
-
-interface StudyPlannerSavedSession {
-  conversationHistory?: StudyPlannerMessage[];
-  currentStep?: number;
-  hasShownFinalSummary?: boolean;
-  savedLessonDistribution?: StudyPlannerStoredLessonDistribution[];
-  studyApproach?: StudyApproach | null;
-  targetDate?: string | null;
-  timestamp: string;
-}
-
-interface UseStudyPlannerSessionStorageParams {
-  conversationHistory: StudyPlannerMessage[];
-  currentStep: number;
-  currentUserId: string | null;
-  hasShownFinalSummary: boolean;
-  savedLessonDistribution: StudyPlannerStoredLessonDistribution[];
-  setConversationHistory: Dispatch<SetStateAction<StudyPlannerMessage[]>>;
-  setCurrentStep: Dispatch<SetStateAction<number>>;
-  setHasShownFinalSummary: Dispatch<SetStateAction<boolean>>;
-  setSavedLessonDistribution: Dispatch<SetStateAction<StudyPlannerStoredLessonDistribution[]>>;
-  setStudyApproach: Dispatch<SetStateAction<StudyApproach | null>>;
-  setTargetDate: Dispatch<SetStateAction<string | null>>;
-  showConversation: boolean;
-  studyApproach: StudyApproach | null;
-  targetDate: string | null;
-}
-
-function buildStorageKey(userId: string) {
-  return `lia_planner_session_v1_${userId}`;
-}
+import {
+  getSavedSessionDateLabel,
+  hasRestorablePlannerSession,
+  readPlannerSession,
+  removePlannerSession,
+  savePlannerSession,
+} from './study-planner-session-storage.service';
+import { restoreStudyPlannerSession } from './study-planner-session-restore.service';
+import type { UseStudyPlannerSessionStorageParams } from './useStudyPlannerSessionStorage.types';
 
 export function useStudyPlannerSessionStorage({
   conversationHistory,
@@ -61,41 +31,19 @@ export function useStudyPlannerSessionStorage({
   const [showResumePrompt, setShowResumePrompt] = useState(false);
 
   useEffect(() => {
-    if (!currentUserId || typeof window === 'undefined') {
+    const session = readPlannerSession(currentUserId);
+    if (!session || !hasRestorablePlannerSession(session)) {
       return;
     }
 
-    try {
-      const savedData = localStorage.getItem(buildStorageKey(currentUserId));
-      if (!savedData) {
-        return;
-      }
-
-      const session = JSON.parse(savedData) as StudyPlannerSavedSession;
-      const sessionTime = new Date(session.timestamp).getTime();
-      const isRecent = Date.now() - sessionTime < 24 * 60 * 60 * 1000;
-
-      if (isRecent && (session.conversationHistory?.length || session.savedLessonDistribution?.length)) {
-        setSavedSessionDate(
-          new Date(session.timestamp).toLocaleString('es-ES', {
-            day: 'numeric',
-            month: 'short',
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
-        );
-
-        if (showConversation) {
-          setShowResumePrompt(true);
-        }
-      }
-    } catch (error) {
-      console.error('Error leyendo sesion guardada:', error);
+    setSavedSessionDate(getSavedSessionDateLabel(session));
+    if (showConversation) {
+      setShowResumePrompt(true);
     }
   }, [currentUserId, showConversation]);
 
   useEffect(() => {
-    if (!currentUserId || !showConversation || showResumePrompt || typeof window === 'undefined') {
+    if (!currentUserId || !showConversation || showResumePrompt) {
       return;
     }
 
@@ -103,7 +51,7 @@ export function useStudyPlannerSessionStorage({
       return;
     }
 
-    const sessionData: StudyPlannerSavedSession = {
+    savePlannerSession(currentUserId, {
       timestamp: new Date().toISOString(),
       conversationHistory,
       savedLessonDistribution,
@@ -111,9 +59,7 @@ export function useStudyPlannerSessionStorage({
       studyApproach,
       targetDate,
       hasShownFinalSummary,
-    };
-
-    localStorage.setItem(buildStorageKey(currentUserId), JSON.stringify(sessionData));
+    });
   }, [
     conversationHistory,
     currentStep,
@@ -127,70 +73,28 @@ export function useStudyPlannerSessionStorage({
   ]);
 
   const handleResumeSession = () => {
-    if (!currentUserId || typeof window === 'undefined') {
-      setShowResumePrompt(false);
-      return;
+    const session = readPlannerSession(currentUserId);
+    if (session) {
+      restoreStudyPlannerSession({
+        session,
+        setConversationHistory,
+        setCurrentStep,
+        setHasShownFinalSummary,
+        setSavedLessonDistribution,
+        setStudyApproach,
+        setTargetDate,
+      });
     }
-
-    try {
-      const savedData = localStorage.getItem(buildStorageKey(currentUserId));
-      if (savedData) {
-        const session = JSON.parse(savedData) as StudyPlannerSavedSession;
-
-        if (session.conversationHistory) {
-          setConversationHistory(session.conversationHistory);
-        }
-        if (session.savedLessonDistribution) {
-          setSavedLessonDistribution(
-            session.savedLessonDistribution.map((distribution) =>
-              ensureLessonDistributionIdentity(distribution),
-            ),
-          );
-        }
-        if (session.currentStep) {
-          setCurrentStep(session.currentStep);
-        }
-        if (session.studyApproach) {
-          setStudyApproach(session.studyApproach);
-        }
-        if (session.targetDate) {
-          setTargetDate(session.targetDate);
-        }
-        if (session.hasShownFinalSummary) {
-          setHasShownFinalSummary(session.hasShownFinalSummary);
-        }
-
-        setConversationHistory((previousHistory) => [
-          ...previousHistory,
-          {
-            role: 'system',
-            content: '[SISTEMA] Sesion anterior restaurada exitosamente. Puedes continuar donde lo dejaste.',
-          },
-        ]);
-      }
-    } catch (error) {
-      console.error('Error restaurando sesion:', error);
-    }
-
     setShowResumePrompt(false);
   };
 
   const handleDiscardSession = () => {
-    if (currentUserId && typeof window !== 'undefined') {
-      localStorage.removeItem(buildStorageKey(currentUserId));
-    }
-
+    removePlannerSession(currentUserId);
     setShowResumePrompt(false);
   };
 
-  const clearStudyPlannerSessionStorage = () => {
-    if (currentUserId && typeof window !== 'undefined') {
-      localStorage.removeItem(buildStorageKey(currentUserId));
-    }
-  };
-
   return {
-    clearStudyPlannerSessionStorage,
+    clearStudyPlannerSessionStorage: () => removePlannerSession(currentUserId),
     handleDiscardSession,
     handleResumeSession,
     savedSessionDate,

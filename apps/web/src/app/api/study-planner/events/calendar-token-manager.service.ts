@@ -1,124 +1,58 @@
-/**
- * Calendar Token Manager Service
- *
- * Handles OAuth token refresh for Google and Microsoft calendar integrations.
- */
+import { createAdminClient } from './calendar-token-manager.client'
+import { getTokenRefreshConfig } from './calendar-token-manager.config'
+import type {
+  CalendarIntegrationRow,
+  TokenRefreshResponse,
+} from './calendar-token-manager.types'
 
-import { createClient as createServiceClient } from '@supabase/supabase-js';
+export type { CalendarIntegrationRow } from './calendar-token-manager.types'
 
-export interface CalendarIntegrationRow {
-  id: string;
-  access_token: string | null;
-  provider: 'google' | 'microsoft' | string;
-  refresh_token?: string | null;
-  expires_at?: string | null;
-  metadata?: { secondary_calendar_id?: string } | null;
-}
-
-interface TokenRefreshResponse {
-  access_token: string;
-  refresh_token?: string;
-  expires_in: number;
-}
-
-function createAdminClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Variables de Supabase no configuradas');
-  }
-
-  return createServiceClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  });
-}
-
-/**
- * Refresca el access token usando el refresh token de Google o Microsoft
- */
 export async function refreshAccessToken(
-  integration: CalendarIntegrationRow
+  integration: CalendarIntegrationRow,
 ): Promise<{ success: boolean; accessToken?: string }> {
-  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CALENDAR_CLIENT_ID ||
-                           process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_CLIENT_ID ||
-                           process.env.GOOGLE_CLIENT_ID ||
-                           process.env.GOOGLE_OAUTH_CLIENT_ID || '';
-  const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CALENDAR_CLIENT_SECRET ||
-                               process.env.GOOGLE_CLIENT_SECRET ||
-                               process.env.GOOGLE_OAUTH_CLIENT_SECRET || '';
-  const MICROSOFT_CLIENT_ID = process.env.MICROSOFT_CALENDAR_CLIENT_ID ||
-                              process.env.NEXT_PUBLIC_MICROSOFT_CALENDAR_CLIENT_ID ||
-                              process.env.MICROSOFT_CLIENT_ID ||
-                              process.env.MICROSOFT_OAUTH_CLIENT_ID || '';
-  const MICROSOFT_CLIENT_SECRET = process.env.MICROSOFT_CALENDAR_CLIENT_SECRET ||
-                                  process.env.MICROSOFT_CLIENT_SECRET ||
-                                  process.env.MICROSOFT_OAUTH_CLIENT_SECRET || '';
+  const refreshConfig = getTokenRefreshConfig(integration)
+
+  if (!refreshConfig) {
+    return { success: false }
+  }
 
   try {
-    if (integration.provider === 'google') {
-      const response = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          client_id: GOOGLE_CLIENT_ID,
-          client_secret: GOOGLE_CLIENT_SECRET,
-          refresh_token: integration.refresh_token,
-          grant_type: 'refresh_token',
-        }),
-      });
+    const response = await fetch(refreshConfig.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(refreshConfig.body),
+    })
 
-      if (!response.ok) {
-        return { success: false };
-      }
-
-      const tokens = await response.json() as TokenRefreshResponse;
-      const supabase = createAdminClient();
-      await supabase
-        .from('calendar_integrations')
-        .update({
-          access_token: tokens.access_token,
-          expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
-        })
-        .eq('id', integration.id);
-
-      return { success: true, accessToken: tokens.access_token };
-    } else if (integration.provider === 'microsoft') {
-      const response = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          client_id: MICROSOFT_CLIENT_ID,
-          client_secret: MICROSOFT_CLIENT_SECRET,
-          refresh_token: integration.refresh_token,
-          grant_type: 'refresh_token',
-        }),
-      });
-
-      if (!response.ok) {
-        return { success: false };
-      }
-
-      const tokens = await response.json() as TokenRefreshResponse;
-      const supabase = createAdminClient();
-      await supabase
-        .from('calendar_integrations')
-        .update({
-          access_token: tokens.access_token,
-          refresh_token: tokens.refresh_token || integration.refresh_token,
-          expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
-        })
-        .eq('id', integration.id);
-
-      return { success: true, accessToken: tokens.access_token };
+    if (!response.ok) {
+      return { success: false }
     }
 
-    return { success: false };
+    const tokens = await response.json() as TokenRefreshResponse
+    await persistRefreshedTokens(integration, tokens)
+
+    return { success: true, accessToken: tokens.access_token }
   } catch (error) {
-    console.error('Error en refreshAccessToken:', error);
-    return { success: false };
+    console.error('Error en refreshAccessToken:', error)
+    return { success: false }
   }
+}
+
+async function persistRefreshedTokens(
+  integration: CalendarIntegrationRow,
+  tokens: TokenRefreshResponse,
+): Promise<void> {
+  const supabase = createAdminClient()
+  const updates: Record<string, string | null> = {
+    access_token: tokens.access_token,
+    expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
+  }
+
+  if (integration.provider === 'microsoft') {
+    updates.refresh_token = tokens.refresh_token || integration.refresh_token || null
+  }
+
+  await supabase
+    .from('calendar_integrations')
+    .update(updates)
+    .eq('id', integration.id)
 }

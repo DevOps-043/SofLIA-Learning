@@ -84,6 +84,9 @@
   "lia": {
     "title": "SofLIA",
     "subtitle": "Sua tutora personalizada",
+    "openAssistant": "Abrir assistente SofLIA",
+    "copiedMessage": "Texto copiado",
+    "typing": "SofLIA está digitando...",
     "placeholder": "Digite sua mensagem aqui...",
     "send": "Enviar",
     "newConversation": "Nova conversa",

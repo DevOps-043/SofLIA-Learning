@@ -1,0 +1,80 @@
+   MOBILE / TOUCH PERFORMANCE OPTIMIZATIONS
+   Reduce la carga de GPU en dispositivos táctiles para evitar jank
+   y sobrecalentamiento (crítico en el ecosistema iOS: iPhone/iPad).
+
+   Cobertura ampliada respecto a la versión anterior:
+   - `max-width: 768px`            → teléfonos
+   - `pointer: coarse`             → TODO dispositivo táctil (incluye iPad,
+                                     sin depender del breakpoint de ancho)
+   - `prefers-reduced-motion`      → usuarios que piden menos movimiento
+   El escritorio con mouse/trackpad (`pointer: fine`) conserva el aspecto
+   original; estas reglas no le aplican.
+   ============================================================ */
+
+@media (max-width: 768px), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  /* Smooth scroll fuerza recálculo de layout en cada evento de scroll. */
+  html, body {
+    scroll-behavior: auto !important;
+  }
+
+  /*
+     `backdrop-filter` obliga a iOS/WebKit a recomponer en GPU de forma
+     continua (sobre todo al hacer scroll). Se desactiva por completo: los
+     elementos "glass" conservan su `background` rgba semi-opaco, así que la
+     legibilidad se mantiene sin el coste de composición. Esta regla universal
+     anula también las utilidades `backdrop-blur-*` de Tailwind.
+  */
+  *,
+  *::before,
+  *::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Regla con `!important` propio: necesita selector explícito para anularla. */
+  .leaflet-popup-content-wrapper {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /*
+     Animaciones decorativas infinitas (repintan/recomponen sin parar). Se
+     detienen y el elemento queda en su estado base —los skeletons siguen
+     visibles, solo sin el barrido—. No se tocan los spinners de carga
+     (`animate-spin`) porque son feedback funcional de UX.
+  */
+  .animate-pulse-slow,
+  .animate-shimmer,
+  .animate-float,
+  .animate-glow,
+  .skeleton,
+  .skeleton-dark {
+    animation: none !important;
+  }
+
+  /*
+     Decorative blur orbs (Tailwind `blur-2xl` / `blur-3xl` on absolutely
+     positioned divs) pin a full GPU composition layer in WebKit and get
+     repainted on every parent scroll event — the dominant cause of heat
+     reported on iPhone, iPad and MacBook landing/auth page visits.
+     Hide them entirely; the layout below them keeps its gradients and
+     remains visually rich without the GPU cost.
+  */
+  .absolute.blur-3xl,
+  .absolute.blur-2xl,
+  .fixed.blur-3xl,
+  .fixed.blur-2xl {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   APPLE-PLATFORM HEAT MITIGATION (Mac Safari)
+   The .is-apple-platform class is set by an inline script in
+   apps/web/src/app/layout.tsx before the first paint of <body>.
+   This block covers Macintosh Safari, which is `pointer: fine` and
+   therefore not matched by the touch-oriented media query above.
+   ============================================================ */
+html.is-apple-platform .absolute.blur-3xl,
+html.is-apple-platform .absolute.blur-2xl,
+html.is-apple-platform .fixed.blur-3xl,

@@ -648,13 +648,285 @@
   "lessonContent": {
     "transcript": "Transcript",
     "summary": "Summary",
-    "activities": "Activities"
+    "activities": "Activities",
+    "activitiesWithCount": "Activities ({{count}})",
+    "materialsWithCount": "Materials ({{count}})",
+    "invalidQuiz": "Invalid quiz data",
+    "invalidScript": "Invalid script data",
+    "passingScore": "Passing score: {{score}}%",
+    "questionCount": "{{count}} questions",
+    "explanation": "Explanation",
+    "conclusion": "Conclusion",
+    "raw": "Raw",
+    "noSummary": "No summary available.",
+    "noTranscript": "No transcript available.",
+    "noActivities": "No activities created.",
+    "noMaterials": "No additional materials.",
+    "moduleTitle": "Module {{order}}: {{title}}",
+    "durationProvider": "{{duration}} sec - {{provider}}"
   },
   "searchPlaceholders": {
     "users": "Search by name, email or username...",
     "reportes": "Search by title or description...",
     "companies": "Search by name, slug or email...",
     "accessRequests": "Search by user, email or community..."
+  },
+  "reportesPage": {
+    "title": "Report Management",
+    "subtitle": "Manage user issue reports, technical context, and operational follow-up.",
+    "loading": "Loading reports...",
+    "error": "Error loading reports.",
+    "retry": "Retry",
+    "noValue": "No data",
+    "hasImage": "With image",
+    "stats": {
+      "total": "Total",
+      "pending": "Pending",
+      "inProgress": "In progress",
+      "resolved": "Resolved"
+    },
+    "filters": {
+      "searchPlaceholder": "Search by title or description...",
+      "statusAll": "All statuses",
+      "categoryAll": "All categories",
+      "priorityAll": "All priorities",
+      "apply": "Filter",
+      "clear": "Clear"
+    },
+    "status": {
+      "pendiente": "Pending",
+      "en_revision": "In review",
+      "en_progreso": "In progress",
+      "resuelto": "Resolved",
+      "rechazado": "Rejected",
+      "duplicado": "Duplicate"
+    },
+    "category": {
+      "bug": "Bug",
+      "sugerencia": "Suggestion",
+      "contenido": "Content",
+      "performance": "Performance",
+      "ui-ux": "UI/UX",
+      "otro": "Other"
+    },
+    "priority": {
+      "critica": "Critical",
+      "alta": "High",
+      "media": "Medium",
+      "baja": "Low"
+    },
+    "actions": {
+      "view": "View report",
+      "edit": "Edit report",
+      "close": "Close",
+      "manage": "Manage report",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "saveChanges": "Save changes"
+    },
+    "empty": {
+      "title": "No reports found",
+      "subtitle": "Try adjusting the search filters."
+    },
+    "table": {
+      "title": "Title",
+      "user": "User"
+    },
+    "errors": {
+      "load_failed": "Reports could not be loaded.",
+      "update_failed": "The report could not be updated."
+    },
+    "viewModal": {
+      "status": "Status",
+      "priority": "Priority",
+      "category": "Category",
+      "reportedBy": "Reported by",
+      "createdDate": "Created",
+      "description": "Description",
+      "steps": "Steps to reproduce",
+      "expected": "Expected behavior",
+      "url": "URL",
+      "browser": "Browser",
+      "resolution": "Resolution",
+      "source": "Source",
+      "courseLesson": "Course / Lesson",
+      "unknownCourse": "Unidentified course",
+      "unknownLesson": "Unidentified lesson",
+      "irisSync": "IRIS sync",
+      "noExternalIssue": "No external issue linked",
+      "evidence": "Evidence",
+      "screenshotAlt": "Report screenshot",
+      "openImage": "Open original image",
+      "adminNotes": "Admin notes"
+    },
+    "editModal": {
+      "title": "Edit report",
+      "status": "Status",
+      "priority": "Priority",
+      "adminNotes": "Admin notes",
+      "notesPlaceholder": "Add internal notes about this report...",
+      "summary": "Report summary"
+    }
+  },
+  "liaAnalyticsPage": {
+    "title": "SofLIA Analytics Dashboard",
+    "subtitle": "Monitor usage, costs, and AI assistant performance across the platform.",
+    "lastUpdated": "Last updated: {{time}}",
+    "period": {
+      "day": "Today",
+      "week": "Last week",
+      "month": "Last month",
+      "year": "Last year"
+    },
+    "chart": {
+      "area": "Area",
+      "bar": "Bars"
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "exportCsv": "Export CSV"
+    },
+    "csv": {
+      "date": "Date",
+      "cost": "Cost (USD)",
+      "tokens": "Tokens",
+      "messages": "Messages"
+    },
+    "costInfo": {
+      "title": "Cost information",
+      "description": "Costs are calculated in real time using the official rates for the selected model per million tokens. The monthly projection is based on the daily average for the selected period."
+    },
+    "contextDistribution": {
+      "title": "Context distribution",
+      "subtitle": "{{conversations}} conversations - ${{cost}} total",
+      "empty": "No distribution data available",
+      "contexts": {
+        "course": "Courses",
+        "general": "General",
+        "workshop": "Workshops",
+        "prompts": "Prompts",
+        "community": "Communities",
+        "news": "News"
+      },
+      "tooltip": {
+        "conversations": "Conversations",
+        "cost": "Cost",
+        "tokens": "Tokens",
+        "percentage": "Percentage"
+      }
+    }
+  },
+  "userStats": {
+    "title": "User Statistics",
+    "subtitle": "Learning, engagement, and operational user detail metrics across the platform.",
+    "loading": "Loading user statistics...",
+    "errorTitle": "User statistics could not be loaded",
+    "emptyData": "There is not enough data to display this visualization yet.",
+    "emptyUsers": "No users matched the current filters.",
+    "lastLoginNever": "Never",
+    "tabs": {
+      "overview": "Overview",
+      "learning": "Learning",
+      "engagement": "Engagement",
+      "users": "User detail"
+    },
+    "metrics": {
+      "activeUsers30d": "Active users (30d)",
+      "completionRate": "Completion rate",
+      "studyHoursMonth": "Study hours (month)",
+      "certificatesMonth": "Certificates (month)",
+      "avgTimePerLesson": "Average time per lesson",
+      "quizPassRate": "Quiz pass rate",
+      "avgSessionsPerWeek": "Average sessions per user",
+      "activationRate": "Activation rate",
+      "weeklyReturn": "Weekly return",
+      "avgSatisfaction": "Average satisfaction",
+      "inactiveUsers30d": "No activity (30d)"
+    },
+    "charts": {
+      "usersByOrganization": "Users by organization",
+      "dailyActivity": "Daily activity (30d)",
+      "progressDistribution": "Progress distribution",
+      "roleDistribution": "Roles in organizations",
+      "topCoursesByTime": "Top courses by study time",
+      "sessionsPlannedVsCompleted": "Planned vs completed sessions",
+      "timeByContentType": "Time distribution by content",
+      "streakDistribution": "Streak distribution",
+      "newVsRecurring": "New vs returning",
+      "ratingDistribution": "Rating distribution",
+      "engagementByOrg": "Engagement by organization",
+      "usersByCountry": "Users by country"
+    },
+    "legend": {
+      "planned": "Planned",
+      "completed": "Completed",
+      "new": "New",
+      "recurring": "Returning"
+    },
+    "ratingLabel": "{{count}} star",
+    "ratingLabel_plural": "{{count}} stars",
+    "filters": {
+      "searchPlaceholder": "Search by name or email...",
+      "statusAll": "All statuses",
+      "statusActive": "Active (30d)",
+      "statusInactive": "Inactive (30d)"
+    },
+    "table": {
+      "user": "User",
+      "organization": "Organization",
+      "role": "Role",
+      "age": "Age",
+      "courses": "Courses",
+      "progress": "Progress",
+      "hours": "Hours",
+      "certificates": "Certificates",
+      "lastLogin": "Last login"
+    },
+    "pagination": {
+      "showing": "Showing {{start}}-{{end}} of {{total}}",
+      "pageOf": "Page {{page}} of {{totalPages}}"
+    },
+    "errors": {
+      "overview": "Error loading overview data.",
+      "learning": "Error loading learning data.",
+      "engagement": "Error loading engagement data.",
+      "users": "Error loading user detail."
+    },
+    "progressModal": {
+      "title": "Progress by course",
+      "enrolledCourses": "{{count}} enrolled course",
+      "enrolledCourses_plural": "{{count}} enrolled courses",
+      "na": "N/A",
+      "noCourses": "This user has no enrolled courses.",
+      "emptyLessons": "No lesson data available.",
+      "quizPassed": "OK",
+      "quizFailed": "Fail",
+      "status": {
+        "active": "In progress",
+        "completed": "Completed",
+        "paused": "Paused",
+        "cancelled": "Cancelled"
+      },
+      "levels": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      },
+      "sidebar": {
+        "courses": "Enrolled courses",
+        "progress": "Average progress",
+        "hours": "Study hours",
+        "certificates": "Certificates",
+        "lastLogin": "Last login"
+      },
+      "courseMeta": {
+        "enrolled": "Enrolled: {{date}}",
+        "completed": "Completed: {{date}}",
+        "hours": "{{value}}h studied",
+        "lessons": "{{completed}}/{{total}} lessons",
+        "certificate": "Certificate ({{date}})"
+      }
+    }
   },
   "learningPathsPage": {
     "badge": "Learning paths",

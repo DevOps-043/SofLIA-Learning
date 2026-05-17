@@ -1,0 +1,15 @@
+export type StudySessionsRelationships = [
+  { foreignKeyName: "study_sessions_lesson_id_fkey"; columns: ["lesson_id"]; isOneToOne: false; referencedRelation: "course_lessons"; referencedColumns: ["lesson_id"] },
+  { foreignKeyName: "study_sessions_lesson_id_fkey"; columns: ["lesson_id"]; isOneToOne: false; referencedRelation: "v_incomplete_lesson_times"; referencedColumns: ["lesson_id"] },
+  { foreignKeyName: "study_sessions_lesson_id_fkey"; columns: ["lesson_id"]; isOneToOne: false; referencedRelation: "v_lessons_by_session_type_compatibility"; referencedColumns: ["lesson_id"] },
+  { foreignKeyName: "study_sessions_organization_id_fkey"; columns: ["organization_id"]; isOneToOne: false; referencedRelation: "organizations"; referencedColumns: ["id"] },
+  { foreignKeyName: "study_sessions_organization_id_fkey"; columns: ["organization_id"]; isOneToOne: false; referencedRelation: "v_organization_stats"; referencedColumns: ["organization_id"] },
+  { foreignKeyName: "study_sessions_organization_id_fkey"; columns: ["organization_id"]; isOneToOne: false; referencedRelation: "v_organization_users_detailed"; referencedColumns: ["organization_id"] },
+  { foreignKeyName: "study_sessions_plan_id_fkey"; columns: ["plan_id"]; isOneToOne: false; referencedRelation: "study_plan_progress"; referencedColumns: ["plan_id"] },
+  { foreignKeyName: "study_sessions_plan_id_fkey"; columns: ["plan_id"]; isOneToOne: false; referencedRelation: "study_plans"; referencedColumns: ["id"] },
+  { foreignKeyName: "study_sessions_plan_id_fkey"; columns: ["plan_id"]; isOneToOne: false; referencedRelation: "v_ai_generated_plans"; referencedColumns: ["plan_id"] },
+  { foreignKeyName: "study_sessions_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "moderation_stats"; referencedColumns: ["user_id"] },
+  { foreignKeyName: "study_sessions_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "users"; referencedColumns: ["id"] },
+  { foreignKeyName: "study_sessions_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "v_organization_users_detailed"; referencedColumns: ["user_id"] },
+  { foreignKeyName: "study_sessions_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "v_user_security_summary"; referencedColumns: ["user_id"] },
+]

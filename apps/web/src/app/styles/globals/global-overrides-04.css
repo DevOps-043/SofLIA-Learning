@@ -1,0 +1,81 @@
+
+.lia-textarea-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 2px;
+}
+
+.lia-textarea-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7);
+}
+
+.dark .lia-textarea-scrollbar {
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+
+.dark .lia-textarea-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+.dark .lia-textarea-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
+
+/* Navbar styles */
+.dark .navbar-scrolled {
+  background: rgba(15, 20, 25, 0.8);
+  /* #0F1419 con opacidad */
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(108, 117, 125, 0.3);
+  /* #6C757D con opacidad */
+}
+
+.light .navbar-scrolled {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(233, 236, 239, 0.8);
+  /* #E9ECEF con opacidad */
+}
+
+.navbar-logo-text {
+  background: linear-gradient(135deg, #0A2540 0%, #0A2540 100%);
+  /* SOFLIA Deep Blue */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .navbar-logo-text {
+  background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+  /* Blanco en modo oscuro */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.navbar-mobile-button {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+.dark .navbar-mobile-button {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  backdrop-filter: blur(8px);
+}
+
+.navbar-mobile-menu {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark .navbar-mobile-menu {
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.logo-adaptive {
+  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.3));
+}

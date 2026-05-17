@@ -1,125 +1,57 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { AdminReporte, ReporteStats } from '../services/adminReportes.service'
+import { useCallback, useEffect, useState } from 'react'
+import type {
+  AdminReporte,
+  ReporteFilters,
+  ReporteStats,
+  ReporteUpdateData,
+} from '../services/adminReportes.service'
+import {
+  EMPTY_REPORTE_STATS,
+  fetchAdminReportes,
+  patchAdminReporte,
+} from './admin-reportes.api'
 
 export function useAdminReportes() {
   const [reportes, setReportes] = useState<AdminReporte[]>([])
-  const [stats, setStats] = useState<ReporteStats>({
-    total: 0,
-    pendientes: 0,
-    en_revision: 0,
-    en_progreso: 0,
-    resueltos: 0,
-    rechazados: 0,
-    porCategoria: {},
-    porPrioridad: {}
-  })
+  const [stats, setStats] = useState<ReporteStats>(EMPTY_REPORTE_STATS)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [filters, setFilters] = useState<{
-    estado?: string
-    categoria?: string
-    prioridad?: string
-    search?: string
-  }>({})
+  const [filters, setFilters] = useState<ReporteFilters>({})
 
-  const fetchReportes = async (customFilters?: typeof filters) => {
+  const fetchReportes = useCallback(async (activeFilters: ReporteFilters) => {
     try {
       setIsLoading(true)
       setError(null)
-      
-      const activeFilters = customFilters || filters
-      
-      // Construir query string
-      const params = new URLSearchParams()
-      if (activeFilters.estado) params.append('estado', activeFilters.estado)
-      if (activeFilters.categoria) params.append('categoria', activeFilters.categoria)
-      if (activeFilters.prioridad) params.append('prioridad', activeFilters.prioridad)
-      if (activeFilters.search) params.append('search', activeFilters.search)
-      
-      const queryString = params.toString()
-      const url = `/api/admin/reportes${queryString ? `?${queryString}` : ''}`
-      
-      const response = await fetch(url)
-      const data = await response.json()
-      
-      
-      if (data.success) {
-        setReportes(data.reportes || [])
-        setStats(data.stats || {
-          total: 0,
-          pendientes: 0,
-          en_revision: 0,
-          en_progreso: 0,
-          resueltos: 0,
-          rechazados: 0,
-          porCategoria: {},
-          porPrioridad: {}
-        })
-      } else {
-        setError(data.error || 'Error al cargar reportes')
-      }
+      const payload = await fetchAdminReportes(activeFilters)
+      setReportes(payload.reportes)
+      setStats(payload.stats)
     } catch (err) {
-      setError('Error de conexión al cargar reportes')
+      setError(err instanceof Error ? err.message : 'load_failed')
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
-  const updateReporte = async (
-    reporteId: string,
-    updates: {
-      estado?: AdminReporte['estado']
-      admin_asignado?: string
-      notas_admin?: string
-      prioridad?: AdminReporte['prioridad']
-    }
-  ) => {
-    try {
-      
-      const response = await fetch('/api/admin/reportes', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          id: reporteId,
-          ...updates
-        })
-      })
-      
-      const data = await response.json()
-      
-      if (!response.ok) {
-        const errorMessage = data.message || data.error || `Error al actualizar reporte (${response.status})`
-        throw new Error(errorMessage)
-      }
-      
-      if (data.success) {
-        await fetchReportes() // Recargar la lista
-        return { success: true, reporte: data.reporte }
-      } else {
-        const errorMessage = data.message || data.error || 'Error al actualizar reporte'
-        throw new Error(errorMessage)
-      }
-    } catch (err) {
-      throw err
-    }
+  const updateReporte = async (reporteId: string, updates: ReporteUpdateData) => {
+    await patchAdminReporte(reporteId, updates)
+    await fetchReportes(filters)
+    return { success: true }
   }
 
   const refetch = () => {
-    fetchReportes()
+    fetchReportes(filters)
   }
 
-  const applyFilters = (newFilters: typeof filters) => {
+  const applyFilters = (newFilters: ReporteFilters) => {
     setFilters(newFilters)
     fetchReportes(newFilters)
   }
 
   useEffect(() => {
-    fetchReportes()
-  }, [])
+    fetchReportes({})
+  }, [fetchReportes])
 
   return {
     reportes,
@@ -129,7 +61,6 @@ export function useAdminReportes() {
     filters,
     refetch,
     updateReporte,
-    applyFilters
+    applyFilters,
   }
 }
-

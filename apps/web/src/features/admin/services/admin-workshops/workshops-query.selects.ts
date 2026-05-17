@@ -1,0 +1,23 @@
+export const COURSE_WORKSHOP_SELECT = `
+  id,
+  title,
+  description,
+  category,
+  level,
+  duration_total_minutes,
+  instructor_id,
+  is_active,
+  thumbnail_url,
+  slug,
+  price,
+  average_rating,
+  student_count,
+  review_count,
+  learning_objectives,
+  approval_status,
+  approved_by,
+  approved_at,
+  rejection_reason,
+  created_at,
+  updated_at
+`

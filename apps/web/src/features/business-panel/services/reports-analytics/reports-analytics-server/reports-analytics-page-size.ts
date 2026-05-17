@@ -1,0 +1,1 @@
+export const REPORTS_ANALYTICS_PAGE_SIZE = 1000

@@ -1,0 +1,16 @@
+import type { LearnActivity, LessonQuizStatus } from '../../types';
+
+export type ActivityCardProps = {
+  activity: LearnActivity;
+  isCollapsed: boolean;
+  lessonId: string;
+  onQuizSubmitted: () => void | Promise<void>;
+  onStartAiChat: (
+    activity: LearnActivity,
+    onUserMessageCompleted: (conversationId?: string | null) => void | Promise<void>
+  ) => void;
+  onToggle: (activityId: string) => void;
+  onTriggerLiaFeedback: (prompt: string) => void | Promise<void>;
+  quizStatus: LessonQuizStatus | null;
+  slug: string;
+};

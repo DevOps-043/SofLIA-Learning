@@ -1,0 +1,26 @@
+import type { FallbackInsightsText } from '../types'
+
+export const enFallbackText: FallbackInsightsText = {
+  unavailable: 'AI feedback is not configured in this environment.',
+  progressMetric: 'Course progress',
+  aiMetric: 'SofLIA adoption',
+  planningMetric: 'Plan adherence',
+  nextStepsTitle: 'Next steps',
+  noCourseStrength: 'There is not enough course progress to highlight yet.',
+  noCourseOpportunity: 'There is not enough evidence to prioritize a course yet.',
+  recommendPlanning: 'Book short recurring sessions to keep weekly progress stable.',
+  recommendSoflia: 'Ask specific questions to SofLIA before and after each activity.',
+  recommendNotes: 'Turn your notes into a review checklist before quizzes or exams.',
+  nextStepCourse: 'Pick a lower-progress course and schedule the next session.',
+  nextStepQuestions: 'Ask questions with context, your own attempt, and a concrete doubt.',
+  nextStepReview: 'Review activities with pending feedback before moving forward.',
+  summary: (progress, quality) => `Automatic read: your average progress is ${progress}% and your overall quality is ${quality}%.`,
+  progressDetail: (completed, total) => `${completed} of ${total} courses completed.`,
+  aiDetail: (conversations, score) => `${conversations} conversations and ${score}% question quality.`,
+  planningDetail: (completed, planned) => `${completed} of ${planned} sessions completed.`,
+  strongCourse: (course, progress) => `${course} is your strongest course with ${progress}% progress.`,
+  weakCourse: (course, progress) => `${course} needs follow-up: it has ${progress}% progress.`,
+  activeDays: (days, streak) => `You connected ${days} days in the period; your best streak was ${streak} days.`,
+  notesOpportunity: (rate) => `Notes adoption is ${rate}%; documenting doubts would improve review quality.`,
+  activitiesOpportunity: (score) => `Average activity quality is ${score}%; review instructions and evidence before submitting.`,
+}

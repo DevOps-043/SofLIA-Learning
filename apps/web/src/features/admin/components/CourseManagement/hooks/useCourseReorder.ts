@@ -1,25 +1,15 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import type { AdminLesson, CreateLessonData, UpdateLessonData } from '../../../services/adminLessons.service'
-import type { AdminModule, CreateModuleData, UpdateModuleData } from '../../../services/adminModules.service'
-
-type ReorderModulesFn = (
-  courseId: string,
-  modules: Array<{ module_id: string; module_order_index: number }>
-) => Promise<void>
-
-type ReorderLessonsFn = (
-  moduleId: string,
-  lessons: Array<{ lesson_id: string; lesson_order_index: number }>,
-  courseId?: string
-) => Promise<void>
-
-type FetchLessonsFn = (
-  moduleId: string,
-  courseId?: string,
-  options?: { silent?: boolean }
-) => Promise<void>
+import type { AdminLesson } from '../../../services/adminLessons.service'
+import type { AdminModule } from '../../../services/adminModules.service'
+import { groupLessonsByModule, sortModulesByOrder } from './course-reorder.sorting'
+import type {
+  FetchLessonsFn,
+  OrderedLessonsByModule,
+  ReorderLessonsFn,
+  ReorderModulesFn,
+} from './course-reorder.types'
 
 export function useCourseReorder(
   courseId: string,
@@ -31,34 +21,19 @@ export function useCourseReorder(
   showFeedback: (type: 'success' | 'error', message: string) => void
 ) {
   const [orderedModules, setOrderedModules] = useState<AdminModule[]>([])
-  const [orderedLessons, setOrderedLessons] = useState<Record<string, AdminLesson[]>>({})
+  const [orderedLessons, setOrderedLessons] = useState<OrderedLessonsByModule>({})
   const reorderTimeoutRef = useRef<Record<string, NodeJS.Timeout>>({})
 
   useEffect(() => {
     if (modules.length > 0) {
-      const sorted = [...modules].sort(
-        (a, b) => (a.module_order_index || 0) - (b.module_order_index || 0)
-      )
-      setOrderedModules(sorted)
+      setOrderedModules(sortModulesByOrder(modules))
     } else {
       setOrderedModules([])
     }
   }, [modules])
 
   useEffect(() => {
-    const lessonsByModule: Record<string, AdminLesson[]> = {}
-    lessons.forEach(lesson => {
-      if (!lessonsByModule[lesson.module_id]) {
-        lessonsByModule[lesson.module_id] = []
-      }
-      lessonsByModule[lesson.module_id].push(lesson)
-    })
-    Object.keys(lessonsByModule).forEach(moduleId => {
-      lessonsByModule[moduleId].sort(
-        (a, b) => (a.lesson_order_index || 0) - (b.lesson_order_index || 0)
-      )
-    })
-    setOrderedLessons(lessonsByModule)
+    setOrderedLessons(groupLessonsByModule(lessons))
   }, [lessons])
 
   const handleModulesReorder = (newOrder: AdminModule[]) => {

@@ -1,0 +1,85 @@
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.4s ease-out;
+}
+
+/* Glass morphism enhancements */
+.glass-card {
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  contain: layout style paint;
+}
+
+.glass-card:hover {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+}
+
+/* Button enhancements - Nueva Paleta SOFLIA */
+.btn-primary {
+  @apply bg-[#0A2540] hover:bg-[#0d2f4d] text-white shadow-lg shadow-[#0A2540]/25 dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] dark:text-[#0A2540] dark:shadow-[#00D4B3]/25 rounded-xl py-3 px-6 font-medium transition-all duration-300;
+  /* Azul Profundo en claro / Aqua en oscuro */
+}
+
+.btn-secondary {
+  @apply bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border border-slate-600/50 rounded-xl py-3 px-6 font-medium transition-all duration-300;
+}
+
+.btn-success {
+  @apply bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg shadow-green-500/25 rounded-xl py-3 px-6 font-medium transition-all duration-300;
+}
+
+.btn-accent {
+  @apply bg-[#0A2540] hover:bg-[#0d2f4d] text-white shadow-lg shadow-[#0A2540]/25 dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] dark:text-[#0A2540] dark:shadow-[#00D4B3]/25 rounded-xl py-3 px-6 font-medium transition-all duration-300;
+  /* AcciÃ³n UI: Azul Profundo en claro / Aqua en oscuro */
+}
+
+/* Text gradients - Nueva Paleta SOFLIA */
+.text-gradient-blue {
+  background: linear-gradient(135deg, #0A2540 0%, #00D4B3 100%);
+  /* Azul Profundo a Aqua */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-purple {
+  background: linear-gradient(135deg, #0A2540 0%, #8b5cf6 100%);
+  /* Azul Profundo a Purple (compatibilidad) */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-green {
+  background: linear-gradient(135deg, #10B981 0%, #00D4B3 100%);
+  /* Verde Suave a Aqua */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-aqua {
+  background: linear-gradient(135deg, #00D4B3 0%, #00b89a 100%);
+  /* Aqua gradient */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

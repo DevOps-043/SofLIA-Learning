@@ -1,14 +1,12 @@
 import { NotFoundError } from '@/core/errors/app-error'
-import { logger } from '@/core/logging/logger'
 
 import {
   SupabaseNotificationRepository,
   type NotificationRepository,
 } from './notifications.repository'
-import { ConflictError } from './notifications.service.errors'
+import { ensureNoRecentDuplicateNotification } from './notifications.duplicates'
 import {
   buildNotificationInsertPayload,
-  getDuplicateNotificationWindow,
   normalizeNotificationFilters,
 } from './notifications.utils'
 import type {
@@ -23,29 +21,7 @@ export class NotificationService {
   ) {}
 
   async createNotification(input: CreateNotificationInput) {
-    const duplicateWindow = getDuplicateNotificationWindow(input.notificationType)
-
-    if (duplicateWindow) {
-      const sinceIso = new Date(
-        Date.now() - duplicateWindow * 60 * 1000,
-      ).toISOString()
-
-      const duplicateExists = await this.repository.findRecentDuplicate(
-        input.userId,
-        input.notificationType,
-        sinceIso,
-      )
-
-      if (duplicateExists) {
-        logger.info('Notificacion duplicada evitada', {
-          notificationType: input.notificationType,
-          userId: input.userId,
-          windowMinutes: duplicateWindow,
-        })
-        throw new ConflictError('Notificacion duplicada evitada')
-      }
-    }
-
+    await ensureNoRecentDuplicateNotification(this.repository, input)
     return this.repository.create(buildNotificationInsertPayload(input))
   }
 

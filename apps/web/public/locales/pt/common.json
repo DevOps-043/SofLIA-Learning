@@ -32,6 +32,7 @@
   "media": {
     "tapToPlay": "Toque para reproduzir",
     "videoPreview": "Previa do video",
+    "videoUnavailable": "Video indisponivel",
     "introPlayer": {
       "loadErrorTitle": "Não foi possível carregar o vídeo",
       "loadErrorDescription": "Verifique se o arquivo existe e se é um MP4 ou WebM otimizado para web.",
@@ -1128,6 +1129,22 @@
         "other": "Outros"
       }
     }
+  },
+  "courseSkillsSelector": {
+    "selectedTitle": "Skills do curso ({{count}})",
+    "addButton": "Adicionar skills",
+    "modalTitle": "Selecionar skills",
+    "modalSubtitle": "Escolha as skills aprendidas neste curso",
+    "searchPlaceholder": "Buscar skills...",
+    "allCategories": "Todas",
+    "loading": "Carregando skills...",
+    "noResults": "Nenhuma skill encontrada",
+    "allSelected": "Todas as skills ja foram selecionadas"
+  },
+  "datePicker": {
+    "placeholder": "Selecionar data",
+    "clear": "Limpar",
+    "today": "Hoje"
   },
   "actions": {
     "cancel": "Cancelar",

@@ -1,209 +1,98 @@
-import { NotificationService } from './notification.service'
-import { getNotificationPriority } from '../utils/notification-categories'
-import { logger } from '@/lib/logger'
 import type { NotificationMetadata } from './auto-notifications.shared'
+import { createSystemNotification } from './auto-notifications-system-create.service'
+import { buildProfileUpdatedNotification } from './auto-notifications-system-profile.service'
 
-/**
- * Notificaciones automáticas del sistema (autenticación y perfil).
- */
 export class SystemNotificationsService {
-  /**
-   * Mapeo de nombres de columnas a nombres amigables en español
-   */
-  private static readonly FIELD_DISPLAY_NAMES: Record<string, string> = {
-    username: 'Nombre de usuario',
-    email: 'Correo electrónico',
-    first_name: 'Nombre',
-    last_name: 'Apellido',
-    display_name: 'Nombre de visualización',
-    phone: 'Teléfono',
-    bio: 'Biografía',
-    location: 'Ubicación',
-    cargo_rol: 'Cargo',
-    type_rol: 'Cargo de la empresa',
-    profile_picture_url: 'Foto de perfil',
-    curriculum_url: 'Currículum',
-    linkedin_url: 'LinkedIn',
-    github_url: 'GitHub',
-    website_url: 'Sitio web',
-    country_code: 'País',
-    points: 'Puntos'
-  }
-
-  /**
-   * Obtiene el nombre amigable de un campo
-   */
-  private static getFieldDisplayName(fieldName: string): string {
-    return this.FIELD_DISPLAY_NAMES[fieldName] || fieldName
-  }
-
-  /**
-   * Crea una notificación del sistema para cambio de contraseña
-   */
   static async notifyPasswordChanged(userId: string, metadata?: NotificationMetadata): Promise<void> {
-    try {
-      await NotificationService.createNotification({
-        userId,
-        notificationType: 'system_password_changed',
-        title: 'notifications.types.system_password_changed.title',
-        message: 'notifications.types.system_password_changed.message',
-        isLocalized: true,
-        metadata: {
-          ...metadata,
-          timestamp: new Date().toISOString()
-        },
-        priority: getNotificationPriority('system_password_changed')
-      })
-      logger.info('✅ Notificación de cambio de contraseña creada', { userId })
-    } catch (error) {
-      logger.error('❌ Error creando notificación de cambio de contraseña:', error)
-    }
+    await createSystemNotification({
+      userId,
+      notificationType: 'system_password_changed',
+      metadata,
+      logSuccess: '✅ Notificación de cambio de contraseña creada',
+      logError: '❌ Error creando notificación de cambio de contraseña:',
+    })
   }
 
-  /**
-   * Crea una notificación del sistema para cambio de perfil
-   */
-  static async notifyProfileUpdated(userId: string, changes: string[], metadata?: NotificationMetadata): Promise<void> {
-    try {
-      const excludedFields = ['id', 'updated_at', 'created_at', 'last_login_at']
-      const displayableChanges = changes.filter(field => !excludedFields.includes(field))
+  static async notifyProfileUpdated(
+    userId: string,
+    changes: string[],
+    metadata?: NotificationMetadata,
+  ): Promise<void> {
+    const profileNotification = buildProfileUpdatedNotification(changes)
 
-      if (displayableChanges.length === 0) {
-        return
-      }
-
-      const friendlyNames = displayableChanges.map(field => this.getFieldDisplayName(field))
-
-      let changesText: string
-      if (friendlyNames.length === 1) {
-        changesText = `Se actualizó: ${friendlyNames[0]}`
-      } else if (friendlyNames.length === 2) {
-        changesText = `Se actualizaron: ${friendlyNames[0]} y ${friendlyNames[1]}`
-      } else {
-        const lastField = friendlyNames.pop()
-        changesText = `Se actualizaron: ${friendlyNames.join(', ')} y ${lastField}`
-      }
-
-      await NotificationService.createNotification({
-        userId,
-        notificationType: 'system_profile_updated',
-        title: 'Perfil actualizado',
-        message: changesText,
-        metadata: {
-          ...metadata,
-          changes: displayableChanges,
-          friendly_changes: friendlyNames,
-          timestamp: new Date().toISOString()
-        },
-        priority: getNotificationPriority('system_profile_updated')
-      })
-      logger.info('✅ Notificación de actualización de perfil creada', { userId, changes: displayableChanges })
-    } catch (error) {
-      logger.error('❌ Error creando notificación de actualización de perfil:', error)
+    if (!profileNotification) {
+      return
     }
+
+    await createSystemNotification({
+      userId,
+      notificationType: 'system_profile_updated',
+      title: 'Perfil actualizado',
+      message: profileNotification.message,
+      metadata: {
+        ...metadata,
+        changes: profileNotification.displayableChanges,
+        friendly_changes: profileNotification.friendlyNames,
+      },
+      logSuccess: '✅ Notificación de actualización de perfil creada',
+      logError: '❌ Error creando notificación de actualización de perfil:',
+      logContext: { changes: profileNotification.displayableChanges },
+    })
   }
 
-  /**
-   * Crea una notificación del sistema para inicio de sesión exitoso
-   */
-  static async notifyLoginSuccess(userId: string, ip?: string, userAgent?: string, metadata?: NotificationMetadata): Promise<void> {
-    try {
-      logger.info('🔔 notifyLoginSuccess llamado', { userId, ip })
-      const location = ip || 'Ubicación desconocida'
-
-      await NotificationService.createNotification({
-        userId,
-        notificationType: 'system_login_success',
-        title: 'notifications.types.system_login_success.title',
-        message: 'notifications.types.system_login_success.message',
-        isLocalized: true,
-        metadata: {
-          ...metadata,
-          location,
-          ip,
-          userAgent,
-          timestamp: new Date().toISOString()
-        },
-        priority: getNotificationPriority('system_login_success')
-      })
-      logger.info('✅ Notificación de inicio de sesión creada', { userId, ip })
-    } catch (error) {
-      logger.error('❌ Error creando notificación de inicio de sesión:', error)
-    }
+  static async notifyLoginSuccess(
+    userId: string,
+    ip?: string,
+    userAgent?: string,
+    metadata?: NotificationMetadata,
+  ): Promise<void> {
+    await createSystemNotification({
+      userId,
+      notificationType: 'system_login_success',
+      metadata: { ...metadata, location: ip || 'Ubicación desconocida', ip, userAgent },
+      logSuccess: '✅ Notificación de inicio de sesión creada',
+      logError: '❌ Error creando notificación de inicio de sesión:',
+      logContext: { ip },
+    })
   }
 
-  /**
-   * Crea una notificación del sistema para intento de inicio de sesión fallido
-   */
-  static async notifyLoginFailed(userId: string, ip?: string, userAgent?: string, metadata?: NotificationMetadata): Promise<void> {
-    try {
-      const location = ip || 'Ubicación desconocida'
-
-      await NotificationService.createNotification({
-        userId,
-        notificationType: 'system_login_failed',
-        title: 'notifications.types.system_login_failed.title',
-        message: 'notifications.types.system_login_failed.message',
-        isLocalized: true,
-        metadata: {
-          ...metadata,
-          location,
-          ip,
-          userAgent,
-          timestamp: new Date().toISOString()
-        },
-        priority: getNotificationPriority('system_login_failed')
-      })
-      logger.info('✅ Notificación de inicio de sesión fallido creada', { userId, ip })
-    } catch (error) {
-      logger.error('❌ Error creando notificación de inicio de sesión fallido:', error)
-    }
+  static async notifyLoginFailed(
+    userId: string,
+    ip?: string,
+    userAgent?: string,
+    metadata?: NotificationMetadata,
+  ): Promise<void> {
+    await createSystemNotification({
+      userId,
+      notificationType: 'system_login_failed',
+      metadata: { ...metadata, location: ip || 'Ubicación desconocida', ip, userAgent },
+      logSuccess: '✅ Notificación de inicio de sesión fallido creada',
+      logError: '❌ Error creando notificación de inicio de sesión fallido:',
+      logContext: { ip },
+    })
   }
 
-  /**
-   * Crea una notificación del sistema para verificación de email
-   */
   static async notifyEmailVerified(userId: string, metadata?: NotificationMetadata): Promise<void> {
-    try {
-      await NotificationService.createNotification({
-        userId,
-        notificationType: 'system_email_verified',
-        title: 'notifications.types.system_email_verified.title',
-        message: 'notifications.types.system_email_verified.message',
-        isLocalized: true,
-        metadata: {
-          ...metadata,
-          timestamp: new Date().toISOString()
-        },
-        priority: getNotificationPriority('system_email_verified')
-      })
-      logger.info('✅ Notificación de verificación de email creada', { userId })
-    } catch (error) {
-      logger.error('❌ Error creando notificación de verificación de email:', error)
-    }
+    await createSystemNotification({
+      userId,
+      notificationType: 'system_email_verified',
+      metadata,
+      logSuccess: '✅ Notificación de verificación de email creada',
+      logError: '❌ Error creando notificación de verificación de email:',
+    })
   }
 
-  /**
-   * Crea una notificación del sistema para alerta de seguridad
-   */
-  static async notifySecurityAlert(userId: string, message: string, metadata?: NotificationMetadata): Promise<void> {
-    try {
-      await NotificationService.createNotification({
-        userId,
-        notificationType: 'system_security_alert',
-        title: 'notifications.types.system_security_alert.title',
-        message: 'notifications.types.system_security_alert.message',
-        isLocalized: true,
-        metadata: {
-          ...metadata,
-          message,
-          timestamp: new Date().toISOString()
-        },
-        priority: getNotificationPriority('system_security_alert')
-      })
-      logger.info('✅ Notificación de alerta de seguridad creada', { userId })
-    } catch (error) {
-      logger.error('❌ Error creando notificación de alerta de seguridad:', error)
-    }
+  static async notifySecurityAlert(
+    userId: string,
+    message: string,
+    metadata?: NotificationMetadata,
+  ): Promise<void> {
+    await createSystemNotification({
+      userId,
+      notificationType: 'system_security_alert',
+      metadata: { ...metadata, message },
+      logSuccess: '✅ Notificación de alerta de seguridad creada',
+      logError: '❌ Error creando notificación de alerta de seguridad:',
+    })
   }
 }

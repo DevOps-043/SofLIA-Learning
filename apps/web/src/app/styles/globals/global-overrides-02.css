@@ -1,0 +1,100 @@
+
+/* Light mode variables */
+.light {
+  /* Nueva Paleta SOFLIA - Modo Claro (alineada con preset-themes.ts lightMode) */
+  --color-primary: #0A2540;
+  /* Azul Profundo - Tecnología + confianza */
+  --color-accent: #00D4B3;
+  /* Aqua/Verde Azulado - Aprendizaje + IA viva */
+  --color-bg-dark: #F8FAFC;
+  /* Fondo claro principal (slate-50) */
+  --color-bg-light: #FFFFFF;
+  /* Fondo de cards (blanco) */
+  --color-contrast: #1E293B;
+  /* Texto oscuro sobre fondo claro (slate-800) */
+
+  /* Colores Secundarios */
+  --color-success: #10B981;
+  /* Verde Suave */
+  --color-warning: #F59E0B;
+  /* Amarillo Ámbar Suave */
+  --color-error: #ef4444;
+  --color-secondary: #8b5cf6;
+
+  /* Variables específicas */
+  --color-lia: #009987;
+  /* LIA con más contraste en fondo claro */
+  --color-progress: #00D4B3;
+  --color-card-bg: #FFFFFF;
+
+  /* Escala de Grises - Invertida semánticamente para modo claro */
+  /* Los componentes usan gray-800/900/950 como fondos oscuros, que en light mode deben ser claros */
+  --color-gray-50: #0F1419;
+  /* Más oscuro (invertido) - para textos enfatizados */
+  --color-gray-100: #1E293B;
+  /* Oscuro (invertido) - para textos principales */
+  --color-gray-200: #E2E8F0;
+  /* Bordes claros */
+  --color-gray-300: #CBD5E1;
+  /* Bordes y divisores */
+  --color-gray-400: #94A3B8;
+  /* Texto placeholder/terciario */
+  --color-gray-500: #64748B;
+  /* Texto secundario */
+  --color-gray-600: #475569;
+  /* Texto medio */
+  --color-gray-700: #F1F5F9;
+  /* Fondos sutiles (invertido) */
+  --color-gray-800: #F8FAFC;
+  /* Fondos de cards (invertido) */
+  --color-gray-900: #FFFFFF;
+  /* Fondo principal (invertido) */
+  --color-gray-950: #FFFFFF;
+  /* Fondo de página (invertido) */
+}
+
+/* Dark mode variables (explicit) */
+.dark {
+  /* Nueva Paleta SOFLIA - Modo Oscuro */
+  --color-primary: #0A2540;
+  /* Azul Profundo - Tecnología + confianza */
+  --color-accent: #00D4B3;
+  /* Aqua/Verde Azulado - Aprendizaje + IA viva */
+  --color-bg-dark: #0F1419;
+  /* Fondo oscuro base - Gris azulado oscuro */
+  --color-bg-light: #FFFFFF;
+  /* Fondo de cards (blanco sobre oscuro) */
+  --color-contrast: #f8fafc;
+  /* Texto claro sobre fondo oscuro */
+
+  /* Colores Secundarios */
+  --color-success: #10B981;
+  /* Verde Suave */
+  --color-warning: #F59E0B;
+  /* Amarillo Ámbar Suave */
+  --color-error: #ef4444;
+  --color-secondary: #8b5cf6;
+
+  /* Variables específicas */
+  --color-lia: #00D4B3;
+  --color-progress: #00D4B3;
+  --color-card-bg: #FFFFFF;
+
+  /* Escala de Grises Neutros */
+  --color-gray-50: #f8fafc;
+  --color-gray-100: #f1f5f9;
+  --color-gray-200: #E9ECEF;
+  /* Light gray - Estructura */
+  --color-gray-300: #dee2e6;
+  --color-gray-400: #ced4da;
+  --color-gray-500: #6C757D;
+  /* Dark gray - Tipografía y bordes */
+  --color-gray-600: #495057;
+  --color-gray-700: #343a40;
+  --color-gray-800: #1E2329;
+  /* Gris oscuro con tinte azulado */
+  --color-gray-900: #0F1419;
+  /* Fondo oscuro principal */
+  --color-gray-950: #0A0D12;
+  /* Fondo más oscuro */
+}

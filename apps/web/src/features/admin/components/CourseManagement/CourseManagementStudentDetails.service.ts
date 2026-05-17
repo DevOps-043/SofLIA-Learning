@@ -30,10 +30,10 @@ export const DEFAULT_DAILY_STUDY_TIME: StudentDailyStudyTimePoint[] = [
 ]
 
 export const DEFAULT_PREFERRED_TIME_SLOTS: StudentPreferredTimeSlot[] = [
-  { periodo: 'Manana (6am-12pm)', porcentaje: 0, color: '#F59E0B' },
-  { periodo: 'Tarde (12pm-6pm)', porcentaje: 0, color: '#00D4B3' },
-  { periodo: 'Noche (6pm-12am)', porcentaje: 0, color: '#10B981' },
-  { periodo: 'Madrugada (12am-6am)', porcentaje: 0, color: '#6C757D' },
+  { periodo: 'Mañana (6am-12pm)', porcentaje: 0, color: 'var(--color-warning)' },
+  { periodo: 'Tarde (12pm-6pm)', porcentaje: 0, color: 'var(--color-accent)' },
+  { periodo: 'Noche (6pm-12am)', porcentaje: 0, color: 'var(--color-success)' },
+  { periodo: 'Madrugada (12am-6am)', porcentaje: 0, color: 'var(--color-gray-500)' },
 ]
 
 export const DEFAULT_ACTIVE_DAYS: StudentActiveDayPoint[] = [
@@ -55,10 +55,10 @@ export const DEFAULT_CONVERSATIONS_BY_WEEK: StudentConversationWeek[] = [
 ]
 
 export const DEFAULT_CONVERSATION_TOPICS: StudentConversationTopic[] = [
-  { tema: 'Dudas de Lecciones', count: 0, color: '#0A2540' },
-  { tema: 'Ayuda con Actividades', count: 0, color: '#00D4B3' },
-  { tema: 'Explicaciones Extra', count: 0, color: '#10B981' },
-  { tema: 'Motivacion', count: 0, color: '#F59E0B' },
+  { tema: 'Dudas de Lecciones', count: 0, color: 'var(--color-primary)' },
+  { tema: 'Ayuda con Actividades', count: 0, color: 'var(--color-accent)' },
+  { tema: 'Explicaciones Extra', count: 0, color: 'var(--color-success)' },
+  { tema: 'Motivación', count: 0, color: 'var(--color-warning)' },
 ]
 
 export function getCourseManagementEnrollmentStatusLabel(
@@ -83,11 +83,11 @@ export function getCourseManagementEnrollmentStatusTone(
 ): string {
   switch (status) {
     case 'completed':
-      return 'bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/30'
+      return 'bg-success/10 text-success border border-success/30'
     case 'active':
-      return 'bg-[#00D4B3]/10 text-[#00D4B3] border border-[#00D4B3]/30'
+      return 'bg-accent/10 text-accent border border-accent/30'
     default:
-      return 'bg-[#6C757D]/10 text-[#6C757D] border border-[#6C757D]/30'
+      return 'bg-gray-500/10 text-gray-500 border border-gray-500/30'
   }
 }
 
@@ -96,11 +96,11 @@ export function getCourseManagementEnrollmentStatusDotTone(
 ): string {
   switch (status) {
     case 'completed':
-      return 'bg-[#10B981]'
+      return 'bg-success'
     case 'active':
-      return 'bg-[#00D4B3] animate-pulse'
+      return 'bg-accent animate-pulse'
     default:
-      return 'bg-[#6C757D]'
+      return 'bg-gray-500'
   }
 }
 

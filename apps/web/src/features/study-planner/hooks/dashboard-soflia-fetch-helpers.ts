@@ -8,6 +8,7 @@ import {
   buildDashboardAssistantMessage,
   resolveDashboardPrimaryAction,
 } from './dashboard-soflia-chat-response.service';
+import { refreshSofLIAPlanAfterAction } from './dashboard-soflia-plan-refresh';
 import type { DashboardChatSuccessPayload } from './useDashboardSofLIAState.types';
 
 export function createSofLIANoPlanMessage(): DashboardMessage {
@@ -98,20 +99,4 @@ export async function loadSofLIAProactiveAnalysis({
       messages: [createSofLIAWelcomeMessage(plan)],
     }));
   }
-}
-
-function refreshSofLIAPlanAfterAction(
-  planQuery: string,
-  setState: Dispatch<SetStateAction<StudyPlannerDashboardState>>,
-) {
-  setTimeout(() => {
-    fetch(`/api/study-planner/dashboard/plan${planQuery}`)
-      .then(response => response.json())
-      .then(planData => {
-        if (planData.success && planData.data) {
-          setState(prev => ({ ...prev, activePlan: planData.data }));
-        }
-      })
-      .catch(err => console.error('Error recargando plan:', err));
-  }, 500);
 }

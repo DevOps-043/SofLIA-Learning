@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createRequest, createResponse } from './auth.fixtures'
 
 const jwtVerifyMock = vi.fn()
 
@@ -23,16 +24,6 @@ vi.mock('jsonwebtoken', () => ({
     verify: jwtVerifyMock,
   },
 }))
-
-function createRequest(authorization?: string): Request {
-  return {
-    headers: authorization ? { authorization } : {},
-  } as Request
-}
-
-function createResponse(): Response {
-  return {} as Response
-}
 
 async function loadAuthModule() {
   return import('../auth')

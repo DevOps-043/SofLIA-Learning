@@ -1,341 +1,42 @@
-/**
- * 📊 SofLIA-Learning — Lines of Code Counter
- * 
- * Counts all lines of code in the project, grouped by file extension.
- * Includes workspace breakdown: apps/web, apps/api, packages/shared, packages/ui
- * Excludes: node_modules, .git, .next, dist, build, lock files, etc.
- * 
- * Usage: node scripts/count-lines.js
- */
+#!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
+const { ROOT, WORKSPACES } = require('./count-lines/config')
+const { collectStats, summarizeStats } = require('./count-lines/file-stats')
+const { printGroupBreakdowns } = require('./count-lines/breakdown-report')
+const {
+  printExtensionTable,
+  printTopExtensions,
+} = require('./count-lines/extension-report')
+const { formatNumber, printSection } = require('./count-lines/report-utils')
+const { printWorkspaceReport } = require('./count-lines/workspace-report')
 
-// ── Config ──────────────────────────────────────────────────────────
-const ROOT = path.resolve(__dirname, '..');
-
-const EXCLUDED_DIRS = new Set([
-  'node_modules', '.git', '.next', 'dist', 'build', '.turbo',
-  '.cache', '.vercel', '.netlify', 'coverage', '.nyc_output',
-  '__pycache__', '.svn', '.hg', '.agent', '.claude',
-  'tmp', 'database-optimization', 'traducir',
-]);
-
-const EXCLUDED_FILES = new Set([
-  'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', 'deno.lock',
-  '.DS_Store', 'Thumbs.db', 'tsconfig.tsbuildinfo',
-  'debug_payload.json',
-]);
-
-const BINARY_EXTENSIONS = new Set([
-  '.png', '.jpg', '.jpeg', '.gif', '.ico', '.svg', '.webp', '.avif',
-  '.woff', '.woff2', '.ttf', '.eot', '.otf',
-  '.pdf', '.docx', '.xlsx', '.pptx', '.zip', '.gz', '.tar',
-  '.mp4', '.mp3', '.wav', '.ogg', '.webm',
-  '.exe', '.dll', '.so', '.dylib',
-]);
-
-// Workspace directories for breakdown
-const WORKSPACES = [
-  { name: 'apps/web',        path: path.join(ROOT, 'apps', 'web') },
-  { name: 'apps/api',        path: path.join(ROOT, 'apps', 'api') },
-  { name: 'packages/shared', path: path.join(ROOT, 'packages', 'shared') },
-  { name: 'packages/ui',     path: path.join(ROOT, 'packages', 'ui') },
-  { name: 'supabase',        path: path.join(ROOT, 'supabase') },
-  { name: 'scripts',         path: path.join(ROOT, 'scripts') },
-];
-
-// ── Helpers ─────────────────────────────────────────────────────────
-function countLines(filePath) {
-  try {
-    const content = fs.readFileSync(filePath, 'utf-8');
-    const lines = content.split('\n');
-    const total = lines.length;
-    const blank = lines.filter(l => l.trim() === '').length;
-    const code = total - blank;
-    return { total, blank, code };
-  } catch {
-    return { total: 0, blank: 0, code: 0 };
-  }
+function printSummary(totals, elapsedSeconds) {
+  printSection('Summary')
+  console.log(`  Root:               ${ROOT}`)
+  console.log(`  Files scanned:      ${formatNumber(totals.files)}`)
+  console.log(`  Total lines:        ${formatNumber(totals.total)}`)
+  console.log(`  Lines of code:      ${formatNumber(totals.code)}`)
+  console.log(`  Blank lines:        ${formatNumber(totals.blank)}`)
+  console.log(`  Scan time:          ${elapsedSeconds}s`)
 }
 
-function walk(dir, stats) {
-  let entries;
-  try {
-    entries = fs.readdirSync(dir, { withFileTypes: true });
-  } catch {
-    return;
-  }
-
-  for (const entry of entries) {
-    if (EXCLUDED_DIRS.has(entry.name)) continue;
-
-    const fullPath = path.join(dir, entry.name);
-
-    if (entry.isDirectory()) {
-      walk(fullPath, stats);
-    } else if (entry.isFile()) {
-      if (EXCLUDED_FILES.has(entry.name)) continue;
-
-      const ext = path.extname(entry.name).toLowerCase() || '(no ext)';
-      if (BINARY_EXTENSIONS.has(ext)) continue;
-
-      const { total, blank, code } = countLines(fullPath);
-
-      if (!stats[ext]) {
-        stats[ext] = { files: 0, total: 0, blank: 0, code: 0 };
-      }
-      stats[ext].files++;
-      stats[ext].total += total;
-      stats[ext].blank += blank;
-      stats[ext].code += code;
-    }
-  }
-}
-
-// ── Main ────────────────────────────────────────────────────────────
 function main() {
-  const stats = {};
-  const startTime = Date.now();
+  const startedAt = Date.now()
 
-  console.log('');
-  console.log('  ╔══════════════════════════════════════════════════════════════╗');
-  console.log('  ║     📊  SofLIA-Learning — Lines of Code Report              ║');
-  console.log('  ║     🎓  Plataforma Educativa Aprende y Aplica               ║');
-  console.log('  ╚══════════════════════════════════════════════════════════════╝');
-  console.log('');
-  console.log(`  📂 Root: ${ROOT}`);
-  console.log('  ⏳ Scanning...');
-  console.log('');
+  console.log('')
+  console.log('SofLIA-Learning - Lines of Code Report')
+  console.log('Scanning project files...')
 
-  walk(ROOT, stats);
+  const stats = collectStats(ROOT)
+  const totals = summarizeStats(stats)
+  const elapsedSeconds = ((Date.now() - startedAt) / 1000).toFixed(2)
 
-  const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-
-  // Sort by total lines descending
-  const sorted = Object.entries(stats).sort((a, b) => b[1].total - a[1].total);
-
-  // Grand totals
-  const grandTotal = { files: 0, total: 0, blank: 0, code: 0 };
-  for (const [, s] of sorted) {
-    grandTotal.files += s.files;
-    grandTotal.total += s.total;
-    grandTotal.blank += s.blank;
-    grandTotal.code += s.code;
-  }
-
-  // Column widths
-  const pad = (str, len, align = 'left') => {
-    const s = String(str);
-    return align === 'right' ? s.padStart(len) : s.padEnd(len);
-  };
-
-  const EXT_W = 14;
-  const NUM_W = 10;
-
-  const sep = `  ${'─'.repeat(EXT_W)}┼${'─'.repeat(NUM_W)}┼${'─'.repeat(NUM_W)}┼${'─'.repeat(NUM_W)}┼${'─'.repeat(NUM_W)}`;
-  const sepBold = `  ${'═'.repeat(EXT_W)}╪${'═'.repeat(NUM_W)}╪${'═'.repeat(NUM_W)}╪${'═'.repeat(NUM_W)}╪${'═'.repeat(NUM_W)}`;
-
-  // Header
-  console.log(`  ${pad('Extension', EXT_W)}│${pad('Files', NUM_W, 'right')}│${pad('Total', NUM_W, 'right')}│${pad('Code', NUM_W, 'right')}│${pad('Blank', NUM_W, 'right')}`);
-  console.log(sepBold);
-
-  // Highlight key extensions for this project
-  const highlight = new Set(['.tsx', '.ts', '.jsx', '.js', '.css', '.html', '.json', '.md', '.sql', '.mjs']);
-
-  for (const [ext, s] of sorted) {
-    const pct = ((s.total / grandTotal.total) * 100).toFixed(1);
-    const icon = highlight.has(ext) ? '▸' : ' ';
-    const label = `${icon} ${ext}`;
-    console.log(
-      `  ${pad(label, EXT_W)}│${pad(s.files.toLocaleString(), NUM_W, 'right')}│${pad(s.total.toLocaleString(), NUM_W, 'right')}│${pad(s.code.toLocaleString(), NUM_W, 'right')}│${pad(s.blank.toLocaleString(), NUM_W, 'right')}  (${pct}%)`
-    );
-  }
-
-  console.log(sepBold);
-  console.log(
-    `  ${pad('TOTAL', EXT_W)}│${pad(grandTotal.files.toLocaleString(), NUM_W, 'right')}│${pad(grandTotal.total.toLocaleString(), NUM_W, 'right')}│${pad(grandTotal.code.toLocaleString(), NUM_W, 'right')}│${pad(grandTotal.blank.toLocaleString(), NUM_W, 'right')}`
-  );
-
-  console.log('');
-
-  // ── Top 5 categories ──
-  console.log('  ┌──────────────────────────────────────────────────────────────┐');
-  console.log('  │  🏆 Top 5 Extensions by Lines of Code                       │');
-  console.log('  └──────────────────────────────────────────────────────────────┘');
-  console.log('');
-
-  const top5 = sorted.slice(0, 5);
-  const maxBar = 40;
-  const maxLines = top5[0]?.[1].total || 1;
-
-  for (const [ext, s] of top5) {
-    const barLen = Math.round((s.total / maxLines) * maxBar);
-    const bar = '█'.repeat(barLen) + '░'.repeat(maxBar - barLen);
-    const pct = ((s.total / grandTotal.total) * 100).toFixed(1);
-    console.log(`  ${pad(ext, 12)} ${bar} ${s.total.toLocaleString().padStart(8)} lines (${pct}%)`);
-  }
-
-  console.log('');
-
-  // ── Summary ──
-  console.log('  ┌──────────────────────────────────────────────────────────────┐');
-  console.log('  │  📋 Summary                                                 │');
-  console.log('  └──────────────────────────────────────────────────────────────┘');
-  console.log('');
-  console.log(`  📁 Total files scanned:    ${grandTotal.files.toLocaleString()}`);
-  console.log(`  📝 Total lines:            ${grandTotal.total.toLocaleString()}`);
-  console.log(`  💻 Lines of code:          ${grandTotal.code.toLocaleString()}`);
-  console.log(`  ⬜ Blank lines:            ${grandTotal.blank.toLocaleString()}`);
-  console.log(`  📊 File types found:       ${sorted.length}`);
-  console.log(`  ⏱️  Scan time:              ${elapsed}s`);
-  console.log('');
-
-  // ── TypeScript/React breakdown ──
-  const tsExtensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs'];
-  const tsStats = { files: 0, total: 0, code: 0, blank: 0 };
-  for (const ext of tsExtensions) {
-    if (stats[ext]) {
-      tsStats.files += stats[ext].files;
-      tsStats.total += stats[ext].total;
-      tsStats.code += stats[ext].code;
-      tsStats.blank += stats[ext].blank;
-    }
-  }
-
-  if (tsStats.files > 0) {
-    console.log('  ┌──────────────────────────────────────────────────────────────┐');
-    console.log('  │  ⚛️  TypeScript / React / Next.js Breakdown                  │');
-    console.log('  └──────────────────────────────────────────────────────────────┘');
-    console.log('');
-    for (const ext of tsExtensions) {
-      if (stats[ext]) {
-        const s = stats[ext];
-        console.log(`    ${pad(ext, 8)} → ${pad(s.files, 5, 'right')} files,  ${pad(s.total.toLocaleString(), 8, 'right')} lines  (${pad(s.code.toLocaleString(), 8, 'right')} code)`);
-      }
-    }
-    console.log(`    ${'─'.repeat(52)}`);
-    console.log(`    ${'Combined'} → ${pad(tsStats.files, 5, 'right')} files,  ${pad(tsStats.total.toLocaleString(), 8, 'right')} lines  (${pad(tsStats.code.toLocaleString(), 8, 'right')} code)`);
-    console.log('');
-  }
-
-  // ── Workspace breakdown (monorepo) ──
-  console.log('  ┌──────────────────────────────────────────────────────────────┐');
-  console.log('  │  📦 Monorepo Workspace Breakdown                            │');
-  console.log('  └──────────────────────────────────────────────────────────────┘');
-  console.log('');
-
-  const WS_NAME_W = 20;
-  const WS_NUM_W = 10;
-
-  const wsSepBold = `  ${'═'.repeat(WS_NAME_W)}╪${'═'.repeat(WS_NUM_W)}╪${'═'.repeat(WS_NUM_W)}╪${'═'.repeat(WS_NUM_W)}╪${'═'.repeat(WS_NUM_W)}`;
-
-  console.log(`  ${pad('Workspace', WS_NAME_W)}│${pad('Files', WS_NUM_W, 'right')}│${pad('Total', WS_NUM_W, 'right')}│${pad('Code', WS_NUM_W, 'right')}│${pad('Blank', WS_NUM_W, 'right')}`);
-  console.log(wsSepBold);
-
-  const wsResults = [];
-  let wsGrandTotal = { files: 0, total: 0, code: 0, blank: 0 };
-
-  for (const ws of WORKSPACES) {
-    const wsStats = {};
-    if (fs.existsSync(ws.path)) {
-      walk(ws.path, wsStats);
-    }
-
-    const wsTotals = { files: 0, total: 0, code: 0, blank: 0 };
-    for (const s of Object.values(wsStats)) {
-      wsTotals.files += s.files;
-      wsTotals.total += s.total;
-      wsTotals.code += s.code;
-      wsTotals.blank += s.blank;
-    }
-
-    wsResults.push({ name: ws.name, ...wsTotals });
-    wsGrandTotal.files += wsTotals.files;
-    wsGrandTotal.total += wsTotals.total;
-    wsGrandTotal.code += wsTotals.code;
-    wsGrandTotal.blank += wsTotals.blank;
-  }
-
-  // Sort workspaces by total lines descending
-  wsResults.sort((a, b) => b.total - a.total);
-
-  for (const ws of wsResults) {
-    const pct = wsGrandTotal.total > 0 ? ((ws.total / wsGrandTotal.total) * 100).toFixed(1) : '0.0';
-    console.log(
-      `  ${pad(ws.name, WS_NAME_W)}│${pad(ws.files.toLocaleString(), WS_NUM_W, 'right')}│${pad(ws.total.toLocaleString(), WS_NUM_W, 'right')}│${pad(ws.code.toLocaleString(), WS_NUM_W, 'right')}│${pad(ws.blank.toLocaleString(), WS_NUM_W, 'right')}  (${pct}%)`
-    );
-  }
-
-  console.log(wsSepBold);
-  console.log(
-    `  ${pad('WS TOTAL', WS_NAME_W)}│${pad(wsGrandTotal.files.toLocaleString(), WS_NUM_W, 'right')}│${pad(wsGrandTotal.total.toLocaleString(), WS_NUM_W, 'right')}│${pad(wsGrandTotal.code.toLocaleString(), WS_NUM_W, 'right')}│${pad(wsGrandTotal.blank.toLocaleString(), WS_NUM_W, 'right')}`
-  );
-
-  console.log('');
-
-  // ── Workspace visual bars ──
-  const maxWsLines = wsResults[0]?.total || 1;
-  for (const ws of wsResults) {
-    const barLen = Math.round((ws.total / maxWsLines) * maxBar);
-    const bar = '█'.repeat(barLen) + '░'.repeat(maxBar - barLen);
-    const pct = wsGrandTotal.total > 0 ? ((ws.total / wsGrandTotal.total) * 100).toFixed(1) : '0.0';
-    console.log(`  ${pad(ws.name, 18)} ${bar} ${ws.total.toLocaleString().padStart(8)} lines (${pct}%)`);
-  }
-
-  console.log('');
-
-  // ── Supabase / SQL breakdown ──
-  const sqlExtensions = ['.sql'];
-  const sqlStats = { files: 0, total: 0, code: 0, blank: 0 };
-  for (const ext of sqlExtensions) {
-    if (stats[ext]) {
-      sqlStats.files += stats[ext].files;
-      sqlStats.total += stats[ext].total;
-      sqlStats.code += stats[ext].code;
-      sqlStats.blank += stats[ext].blank;
-    }
-  }
-
-  if (sqlStats.files > 0) {
-    console.log('  ┌──────────────────────────────────────────────────────────────┐');
-    console.log('  │  🗄️  Supabase / SQL Breakdown                               │');
-    console.log('  └──────────────────────────────────────────────────────────────┘');
-    console.log('');
-    console.log(`    .sql     → ${pad(sqlStats.files, 5, 'right')} files,  ${pad(sqlStats.total.toLocaleString(), 8, 'right')} lines  (${pad(sqlStats.code.toLocaleString(), 8, 'right')} code)`);
-    console.log('');
-  }
-
-  // ── Styling breakdown ──
-  const styleExtensions = ['.css', '.scss', '.sass', '.less'];
-  const styleStats = { files: 0, total: 0, code: 0, blank: 0 };
-  for (const ext of styleExtensions) {
-    if (stats[ext]) {
-      styleStats.files += stats[ext].files;
-      styleStats.total += stats[ext].total;
-      styleStats.code += stats[ext].code;
-      styleStats.blank += stats[ext].blank;
-    }
-  }
-
-  if (styleStats.files > 0) {
-    console.log('  ┌──────────────────────────────────────────────────────────────┐');
-    console.log('  │  🎨 Styling Breakdown (CSS / Tailwind)                      │');
-    console.log('  └──────────────────────────────────────────────────────────────┘');
-    console.log('');
-    for (const ext of styleExtensions) {
-      if (stats[ext]) {
-        const s = stats[ext];
-        console.log(`    ${pad(ext, 8)} → ${pad(s.files, 5, 'right')} files,  ${pad(s.total.toLocaleString(), 8, 'right')} lines  (${pad(s.code.toLocaleString(), 8, 'right')} code)`);
-      }
-    }
-    console.log('');
-  }
-
-  console.log('  ─────────────────────────────────────────────────────────────────');
-  console.log('  🎓 SofLIA-Learning | Aprende y Aplica © 2026');
-  console.log('  ─────────────────────────────────────────────────────────────────');
-  console.log('');
+  printExtensionTable(stats, totals)
+  printTopExtensions(stats, totals)
+  printSummary(totals, elapsedSeconds)
+  printGroupBreakdowns(stats)
+  printWorkspaceReport(WORKSPACES)
+  console.log('')
 }
 
-main();
+main()

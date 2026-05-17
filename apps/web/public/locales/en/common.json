@@ -32,6 +32,7 @@
   "media": {
     "tapToPlay": "Tap to play",
     "videoPreview": "Video preview",
+    "videoUnavailable": "Video unavailable",
     "introPlayer": {
       "loadErrorTitle": "Could not load the video",
       "loadErrorDescription": "Check that the file exists and is an MP4 or WebM optimized for the web.",
@@ -1128,6 +1129,22 @@
         "other": "Others"
       }
     }
+  },
+  "courseSkillsSelector": {
+    "selectedTitle": "Course skills ({{count}})",
+    "addButton": "Add skills",
+    "modalTitle": "Select skills",
+    "modalSubtitle": "Choose the skills learned in this course",
+    "searchPlaceholder": "Search skills...",
+    "allCategories": "All",
+    "loading": "Loading skills...",
+    "noResults": "No skills found",
+    "allSelected": "All skills are already selected"
+  },
+  "datePicker": {
+    "placeholder": "Select date",
+    "clear": "Clear",
+    "today": "Today"
   },
   "actions": {
     "cancel": "Cancel",

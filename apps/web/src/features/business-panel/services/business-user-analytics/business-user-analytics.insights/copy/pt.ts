@@ -1,0 +1,26 @@
+import type { FallbackInsightsText } from '../types'
+
+export const ptFallbackText: FallbackInsightsText = {
+  unavailable: 'O feedback com IA nao esta configurado neste ambiente.',
+  progressMetric: 'Progresso do curso',
+  aiMetric: 'Adocao do SofLIA',
+  planningMetric: 'Cumprimento do plano',
+  nextStepsTitle: 'Proximos passos',
+  noCourseStrength: 'Ainda nao ha progresso suficiente em cursos para destacar.',
+  noCourseOpportunity: 'Ainda nao ha evidencia suficiente para priorizar um curso.',
+  recommendPlanning: 'Reserve sessoes curtas e recorrentes para manter o avanco semanal.',
+  recommendSoflia: 'Faca perguntas especificas ao SofLIA antes e depois de cada atividade.',
+  recommendNotes: 'Transforme suas notas em checklist de revisao antes de quizzes ou provas.',
+  nextStepCourse: 'Escolha um curso com menor progresso e agende a proxima sessao.',
+  nextStepQuestions: 'Faca perguntas com contexto, sua tentativa e uma duvida concreta.',
+  nextStepReview: 'Revise atividades com feedback pendente antes de avancar.',
+  summary: (progress, quality) => `Leitura automatica: seu progresso medio e ${progress}% e sua qualidade global e ${quality}%.`,
+  progressDetail: (completed, total) => `${completed} de ${total} cursos concluidos.`,
+  aiDetail: (conversations, score) => `${conversations} conversas e qualidade de perguntas ${score}%.`,
+  planningDetail: (completed, planned) => `${completed} de ${planned} sessoes concluidas.`,
+  strongCourse: (course, progress) => `${course} e seu curso mais forte com ${progress}% de progresso.`,
+  weakCourse: (course, progress) => `${course} precisa de acompanhamento: registra ${progress}% de progresso.`,
+  activeDays: (days, streak) => `Voce se conectou ${days} dias no periodo; sua melhor sequencia foi de ${streak} dias.`,
+  notesOpportunity: (rate) => `A adocao de notas esta em ${rate}%; documentar duvidas melhoraria a revisao.`,
+  activitiesOpportunity: (score) => `A qualidade media das atividades e ${score}%; revise instrucoes e evidencias antes de enviar.`,
+}

@@ -94,26 +94,4 @@ export interface LIAContextValue {
   actions: LIAContextActions;
 }
 
-export const initialLIAContextState: LIAContextState = {
-  userProfile: null,
-  courses: [],
-  allPendingLessons: [],
-  totalPendingLessons: 0,
-  calendar: {
-    isConnected: false,
-    provider: null,
-    wasSkipped: false,
-  },
-  preferences: {
-    approach: null,
-    targetDate: null,
-    preferredDays: [],
-    preferredTimes: [],
-  },
-  isLoading: false,
-  isReady: false,
-  error: null,
-  lastUpdated: null,
-};
-
-export const LIA_PANEL_WIDTH = 420;
+export { initialLIAContextState, LIA_PANEL_WIDTH } from './lia-context.defaults';

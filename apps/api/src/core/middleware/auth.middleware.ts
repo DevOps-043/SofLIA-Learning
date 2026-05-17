@@ -1,86 +1,26 @@
 import type { NextFunction, Request, Response } from 'express'
-import jwt, { type JwtPayload } from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
 
 import { UnauthorizedError, createError } from '@/core/errors/app-error'
-import { config } from '@/config/env'
 
-interface RawAuthMetadata {
-  organization_id?: string
-  organization_slug?: string
-  org_slug?: string
-  orgSlug?: string
-  role?: string
+import { buildAuthenticatedUser, verifyAccessToken } from './auth.claims'
+import type { RawSupabaseJwtPayload } from './auth.types'
+
+function readBearerToken(req: Request) {
+  const authHeader = req.headers.authorization
+
+  return authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length).trim()
+    : undefined
 }
 
-interface RawSupabaseJwtPayload extends JwtPayload {
-  sub?: string
-  email?: string
-  role?: string
-  app_metadata?: RawAuthMetadata
-  user_metadata?: RawAuthMetadata
-  organization_id?: string
-  organization_slug?: string
-  org_slug?: string
-  orgSlug?: string
-}
-
-export interface AuthenticatedRequestUser {
-  id: string
-  email: string
-  role: string
-  organizationId?: string
-  organizationSlug?: string
-}
-
-function extractClaimString(...values: Array<string | undefined>) {
-  return values.find((value) => typeof value === 'string' && value.trim().length > 0)
-}
-
-function buildAuthenticatedUser(
-  payload: RawSupabaseJwtPayload,
-): AuthenticatedRequestUser | null {
-  const appMetadata = payload.app_metadata ?? {}
-  const userMetadata = payload.user_metadata ?? {}
-
-  const id = extractClaimString(payload.sub)
-  const email = extractClaimString(payload.email)
-  const role = extractClaimString(
-    appMetadata.role,
-    userMetadata.role,
-    payload.role,
-  )
-  const organizationId = extractClaimString(
-    appMetadata.organization_id,
-    userMetadata.organization_id,
-    payload.organization_id,
-  )
-  const organizationSlug = extractClaimString(
-    appMetadata.organization_slug,
-    appMetadata.org_slug,
-    appMetadata.orgSlug,
-    userMetadata.organization_slug,
-    userMetadata.org_slug,
-    userMetadata.orgSlug,
-    payload.organization_slug,
-    payload.org_slug,
-    payload.orgSlug,
-  )
-
-  if (!id || !email || !role) {
-    return null
+function handleMissingToken(next: NextFunction, optional?: boolean) {
+  if (optional) {
+    next()
+    return
   }
 
-  return {
-    id,
-    email,
-    role,
-    ...(organizationId ? { organizationId } : {}),
-    ...(organizationSlug ? { organizationSlug } : {}),
-  }
-}
-
-function verifyAccessToken(token: string) {
-  return jwt.verify(token, config.SUPABASE_JWT_SECRET || config.JWT_SECRET)
+  next(new UnauthorizedError('Token de acceso requerido', 'MISSING_TOKEN'))
 }
 
 function authenticateInternal(
@@ -88,20 +28,8 @@ function authenticateInternal(
   next: NextFunction,
   options: { optional?: boolean } = {},
 ) {
-  const authHeader = req.headers.authorization
-  const token = authHeader?.startsWith('Bearer ')
-    ? authHeader.slice('Bearer '.length).trim()
-    : undefined
-
-  if (!token) {
-    if (options.optional) {
-      next()
-      return
-    }
-
-    next(new UnauthorizedError('Token de acceso requerido', 'MISSING_TOKEN'))
-    return
-  }
+  const token = readBearerToken(req)
+  if (!token) return handleMissingToken(next, options.optional)
 
   try {
     const decoded = verifyAccessToken(token)
@@ -118,23 +46,26 @@ function authenticateInternal(
     req.user = payload
     next()
   } catch (error) {
-    if (options.optional) {
-      next()
-      return
-    }
-
-    if (error instanceof jwt.TokenExpiredError) {
-      next(createError('Token expirado', 401, 'TOKEN_EXPIRED'))
-      return
-    }
-
-    if (error instanceof jwt.JsonWebTokenError) {
-      next(createError('Token invalido', 401, 'INVALID_TOKEN'))
-      return
-    }
-
-    next(error)
+    handleAuthError(error, next, options.optional)
   }
+}
+
+function handleAuthError(
+  error: unknown,
+  next: NextFunction,
+  optional?: boolean,
+) {
+  if (optional) return next()
+
+  if (error instanceof jwt.TokenExpiredError) {
+    return next(createError('Token expirado', 401, 'TOKEN_EXPIRED'))
+  }
+
+  if (error instanceof jwt.JsonWebTokenError) {
+    return next(createError('Token invalido', 401, 'INVALID_TOKEN'))
+  }
+
+  next(error)
 }
 
 export function authenticate(req: Request, _res: Response, next: NextFunction) {
@@ -144,3 +75,5 @@ export function authenticate(req: Request, _res: Response, next: NextFunction) {
 export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
   authenticateInternal(req, next, { optional: true })
 }
+
+export type { AuthenticatedRequestUser } from './auth.types'

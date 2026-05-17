@@ -1,0 +1,55 @@
+export const API_ENDPOINTS = {
+  AUTH: {
+    LOGIN: '/auth/login',
+    REGISTER: '/auth/register',
+    REFRESH: '/auth/refresh',
+    LOGOUT: '/auth/logout',
+    FORGOT_PASSWORD: '/auth/forgot-password',
+    RESET_PASSWORD: '/auth/reset-password',
+    VERIFY_EMAIL: '/auth/verify-email',
+  },
+  USERS: {
+    PROFILE: '/users/profile',
+    UPDATE_PROFILE: '/users/profile',
+    AVATAR: '/users/avatar',
+    PREFERENCES: '/users/preferences',
+  },
+  COURSES: {
+    LIST: '/courses',
+    DETAIL: '/courses/:id',
+    MODULES: '/courses/:id/modules',
+    PROGRESS: '/courses/:id/progress',
+    ENROLL: '/courses/:id/enroll',
+    UNENROLL: '/courses/:id/unenroll',
+  },
+  MODULES: {
+    DETAIL: '/modules/:id',
+    VIDEOS: '/modules/:id/videos',
+    PROGRESS: '/modules/:id/progress',
+    UNLOCK: '/modules/:id/unlock',
+  },
+  VIDEOS: {
+    DETAIL: '/videos/:id',
+    PROGRESS: '/videos/:id/progress',
+    UPDATE_PROGRESS: '/videos/:id/progress',
+  },
+  COMMUNITY: {
+    QUESTIONS: '/community/questions',
+    QUESTION_DETAIL: '/community/questions/:id',
+    ANSWERS: '/community/questions/:id/answers',
+    VOTES: '/community/questions/:id/votes',
+    SEARCH: '/community/search',
+  },
+  EVALUATIONS: {
+    LIST: '/evaluations',
+    DETAIL: '/evaluations/:id',
+    ATTEMPT: '/evaluations/:id/attempt',
+    RESULT: '/evaluations/:id/result',
+  },
+  ADMIN: {
+    USERS: '/admin/users',
+    COURSES: '/admin/courses',
+    ANALYTICS: '/admin/analytics',
+    REPORTS: '/admin/reports',
+  },
+} as const

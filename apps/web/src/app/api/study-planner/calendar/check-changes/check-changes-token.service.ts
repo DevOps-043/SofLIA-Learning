@@ -3,12 +3,7 @@ import type {
   CalendarIntegrationRow,
   TokenRefreshResponse,
 } from './check-changes.types';
-
-interface RefreshCredentials {
-  clientId: string;
-  clientSecret: string;
-  tokenUrl: string;
-}
+import { getRefreshCredentials } from './check-changes-token.credentials';
 
 export async function resolveCalendarAccessToken(
   integration: CalendarIntegrationRow,
@@ -66,40 +61,6 @@ async function refreshAccessToken(
     console.error('Error en refreshAccessToken:', error);
     return { success: false };
   }
-}
-
-function getRefreshCredentials(provider: string): RefreshCredentials | null {
-  if (provider === 'google') {
-    return {
-      clientId:
-        process.env.GOOGLE_CALENDAR_CLIENT_ID
-        || process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_CLIENT_ID
-        || process.env.GOOGLE_CLIENT_ID
-        || '',
-      clientSecret:
-        process.env.GOOGLE_CALENDAR_CLIENT_SECRET
-        || process.env.GOOGLE_CLIENT_SECRET
-        || '',
-      tokenUrl: 'https://oauth2.googleapis.com/token',
-    };
-  }
-
-  if (provider === 'microsoft') {
-    return {
-      clientId:
-        process.env.MICROSOFT_CALENDAR_CLIENT_ID
-        || process.env.NEXT_PUBLIC_MICROSOFT_CALENDAR_CLIENT_ID
-        || process.env.MICROSOFT_CLIENT_ID
-        || '',
-      clientSecret:
-        process.env.MICROSOFT_CALENDAR_CLIENT_SECRET
-        || process.env.MICROSOFT_CLIENT_SECRET
-        || '',
-      tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
-    };
-  }
-
-  return null;
 }
 
 async function persistRefreshedTokens(

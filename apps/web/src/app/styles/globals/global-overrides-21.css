@@ -1,0 +1,80 @@
+input[type="range"]::-webkit-slider-thumb {
+  background-color: var(--org-primary-button-color, #3b82f6);
+}
+
+input[type="range"]::-moz-range-thumb {
+  background-color: var(--org-primary-button-color, #3b82f6);
+}
+
+/* Estilos para select dropdown en modo oscuro - Notes Modal */
+.dark .notes-select {
+  background-color: rgb(30, 41, 59) !important;
+  color: rgb(255, 255, 255) !important;
+  border-color: rgb(71, 85, 105) !important;
+}
+
+.dark .notes-select option {
+  background-color: rgb(30, 41, 59) !important;
+  color: rgb(255, 255, 255) !important;
+}
+
+.dark .notes-select option:checked,
+.dark .notes-select option:focus,
+.dark .notes-select option:hover {
+  background-color: rgb(51, 65, 85) !important;
+  color: rgb(255, 255, 255) !important;
+}
+
+/* Estilos premium para combobox del panel de usuarios */
+select {
+  background-image: none !important;
+}
+
+/* Select options - Dark mode */
+.dark select option {
+  background-color: rgb(15, 23, 42) !important;
+  color: rgb(255, 255, 255) !important;
+  padding: 0.75rem 1rem !important;
+  font-family: var(--font-inter), sans-serif !important;
+}
+
+.dark select option:hover,
+.dark select option:focus,
+.dark select option:checked {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: rgb(255, 255, 255) !important;
+}
+
+/* Select options - Light mode */
+.light select option {
+  background-color: #FFFFFF !important;
+  color: #1E293B !important;
+  padding: 0.75rem 1rem !important;
+  font-family: var(--font-inter), sans-serif !important;
+}
+
+.light select option:hover,
+.light select option:focus,
+.light select option:checked {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  color: #0A2540 !important;
+}
+
+/* Mejorar el scrollbar del select en navegadores que lo soporten */
+.dark select::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dark select::-webkit-scrollbar-track {
+  background: rgb(15, 23, 42);
+  border-radius: 3px;
+}
+
+.dark select::-webkit-scrollbar-thumb {
+  background: rgb(51, 65, 85);
+  border-radius: 3px;
+}
+
+.dark select::-webkit-scrollbar-thumb:hover {
+  background: rgb(71, 85, 105);
+}

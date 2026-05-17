@@ -1,0 +1,84 @@
+
+.dark .facebook-stats-bar .reaction-count {
+  color: rgb(203, 213, 225);
+}
+
+.facebook-stats-bar .comment-count {
+  color: rgb(107, 114, 128);
+  transition: color 0.2s;
+  cursor: pointer;
+}
+
+.dark .facebook-stats-bar .comment-count {
+  color: rgb(148, 163, 184);
+}
+
+.facebook-stats-bar .comment-count:hover {
+  color: rgb(59, 130, 246);
+}
+
+.dark .facebook-stats-bar .comment-count:hover {
+  color: rgb(96, 165, 250);
+}
+
+/* Facebook-style action buttons */
+.facebook-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0.5rem 0;
+}
+
+.facebook-action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgb(107, 114, 128);
+  transition: color 0.2s;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.dark .facebook-action-button {
+  color: rgb(148, 163, 184);
+}
+
+.facebook-action-button:hover {
+  color: rgb(59, 130, 246);
+  background: rgba(249, 250, 251, 0.5);
+}
+
+.dark .facebook-action-button:hover {
+  color: rgb(96, 165, 250);
+  background: rgba(30, 41, 59, 0.3);
+}
+
+/* Enhanced media display */
+.community-media-container {
+  @apply relative overflow-hidden rounded-xl bg-slate-800/50 border border-slate-700/50;
+}
+
+.community-media-container img {
+  @apply transition-all duration-300 ease-out;
+}
+
+/* Theme Toggle Styles */
+.theme-toggle-button {
+  background: rgba(30, 41, 59, 0.95);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  color: var(--color-contrast);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.dark .theme-toggle-button {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(71, 85, 105, 0.5);
+  color: var(--color-contrast);
+}
+
+.light .theme-toggle-button {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: var(--color-contrast);
+}

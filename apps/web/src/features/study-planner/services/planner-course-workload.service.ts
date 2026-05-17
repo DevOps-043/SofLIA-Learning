@@ -1,42 +1,12 @@
 import { resolveStudyPlannerCourseId, resolveStudyPlannerCourseIds } from './study-planner-course-id.shared';
-
-interface StudyPlannerMyCourseRecord {
-  course_id?: string;
-  id?: string;
-  courses?: {
-    slug?: string | null;
-  } | null;
-  slug?: string | null;
-  enrollment_id?: string | null;
-}
-
-interface StudyPlannerMyCoursesPayload {
-  courses?: StudyPlannerMyCourseRecord[];
-}
-
-interface StudyPlannerModulesPayload {
-  modules?: Array<{
-    lessons?: Array<{
-      lesson_id?: string;
-      lessonId?: string;
-      lesson_title?: string;
-      lessonTitle?: string;
-      is_published?: boolean;
-    }>;
-  }>;
-}
-
-interface StudyPlannerProgressPayload {
-  completedLessonIds?: string[];
-}
-
-interface CalculateStudyPlannerCourseWorkloadInput {
-  selectedCourseIds: string[];
-}
-
-function normalizeCourseCollection(payload: StudyPlannerMyCourseRecord[] | StudyPlannerMyCoursesPayload): StudyPlannerMyCourseRecord[] {
-  return Array.isArray(payload) ? payload : payload.courses || [];
-}
+import { normalizeCourseCollection } from './planner-course-workload.helpers';
+import type {
+  CalculateStudyPlannerCourseWorkloadInput,
+  StudyPlannerModulesPayload,
+  StudyPlannerMyCourseRecord,
+  StudyPlannerMyCoursesPayload,
+  StudyPlannerProgressPayload,
+} from './planner-course-workload.types';
 
 async function fetchRemainingLessonsForCourse(
   courseId: string,

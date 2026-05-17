@@ -1,0 +1,42 @@
+import type { FeatureKey, SubscriptionPlan } from './types'
+
+export const FEATURE_NAMES: Record<FeatureKey, string> = {
+  panel_admin: 'Panel de administraciÃ³n',
+  course_messaging: 'AsignaciÃ³n de cursos con mensajerÃ­a',
+  custom_groups: 'Grupos de usuarios personalizados',
+  advanced_groups: 'AdministraciÃ³n avanzada de grupos',
+  corporate_branding: 'Branding corporativo',
+  basic_reports: 'Reportes bÃ¡sicos',
+  advanced_analytics: 'Analytics avanzados',
+  skills_info: 'InformaciÃ³n de habilidades',
+  course_analysis: 'AnÃ¡lisis de cursos',
+  custom_dashboard: 'Dashboard personalizado',
+  data_export: 'ExportaciÃ³n de datos',
+  full_catalog: 'Acceso a catÃ¡logo completo',
+  unlimited_certifications: 'Certificaciones ilimitadas',
+  custom_certificates: 'Certificados personalizados',
+  mobile_app: 'AplicaciÃ³n mÃ³vil',
+  offline_learning: 'Offline learning',
+  live_courses: 'Cursos en vivo',
+  automatic_notifications: 'Notificaciones automÃ¡ticas',
+  smart_reminders: 'Recordatorios inteligentes',
+  external_integrations: 'IntegraciÃ³n con sistemas externos',
+  enterprise_sso: 'SSO empresarial',
+  calendar_integration: 'IntegraciÃ³n con calendarios',
+  data_api: 'API de datos',
+  email_support: 'Soporte por email',
+  priority_support: 'Soporte prioritario',
+  dedicated_247_support: 'Soporte 24/7 dedicado',
+  customer_success_manager: 'Customer Success Manager',
+  custom_onboarding: 'Onboarding personalizado',
+  strategic_consulting: 'ConsultorÃ­a estratÃ©gica',
+  notification_email: 'Notificaciones por Email',
+  notification_push: 'Notificaciones Push',
+  notification_sms: 'Notificaciones por SMS',
+}
+
+export const PLAN_NAMES: Record<SubscriptionPlan, string> = {
+  team: 'Team',
+  business: 'Business',
+  enterprise: 'Enterprise',
+}

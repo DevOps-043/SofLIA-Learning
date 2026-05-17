@@ -9,6 +9,7 @@ import type {
   OrganizationInfo,
   WorkTeam,
 } from '../types/user-context.types';
+import { mapOrganizationInfo, mapWorkTeam } from './user-organization.mapper';
 
 export class UserOrganizationService {
   /**
@@ -53,17 +54,7 @@ export class UserOrganizationService {
       return null;
     }
 
-    return {
-      id: data.id,
-      name: data.name,
-      slug: data.slug ?? undefined,
-      logoUrl: data.logo_url ?? undefined,
-      // industry no existe en la tabla
-      industry: undefined,
-      // size no existe, usar max_users como referencia
-      size: data.max_users ? `${data.max_users} usuarios` : undefined,
-      plan: data.subscription_plan ?? undefined,
-    };
+    return mapOrganizationInfo(data);
   }
 
   /**
@@ -92,22 +83,6 @@ export class UserOrganizationService {
       return [];
     }
 
-    return data.map((item) => {
-      const team = item.work_teams as unknown as {
-        team_id: string;
-        name: string;
-        description?: string;
-        course_id?: string;
-      };
-
-      return {
-        teamId: team.team_id,
-        name: team.name,
-        description: team.description ?? undefined,
-        role: item.role as 'member' | 'leader' | 'co-leader',
-        status: item.status as 'active' | 'inactive',
-        courseId: team.course_id ?? undefined,
-      };
-    });
+    return data.map(mapWorkTeam);
   }
 }

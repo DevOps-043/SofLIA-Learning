@@ -1,63 +1,12 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useRef, useState } from "react";
-
-import { ContentTranslationService } from "../../../../../core/services/contentTranslation.service";
-import { useCurrentOrganizationId } from "../../../../../core/stores/organizationStore";
-import {
-  normalizeContentForRenderer,
-  normalizeLessonActivityRecord,
-  normalizeLessonMaterialRecord,
-} from "../../../../../lib/course-content";
-
-import { extractPromptList } from "./utils";
-import type {
-  GenerateRoleBasedPrompts,
-  LearnActivity,
-  LearnMaterial,
-  LessonQuizStatus,
-} from "../types";
-
-type UseActivitiesDataOptions = {
-  lessonId?: string;
-  slug: string;
-  selectedLang: string;
-  onPromptsChange?: (prompts: string[]) => void;
-  userRole?: string;
-  generateRoleBasedPrompts?: GenerateRoleBasedPrompts;
-  onLessonContentRefresh?: (
-    lessonId: string,
-    forceRefresh?: boolean
-  ) => void | Promise<void>;
-};
-
-type LoadLessonContentOptions = {
-  preserveVisibleContent?: boolean;
-};
-
-type TranslationLanguage = Parameters<
-  typeof ContentTranslationService.translateArray
->[3];
-
-function toActivityArray(payload: unknown): LearnActivity[] {
-  if (!Array.isArray(payload)) {
-    return [];
-  }
-
-  return payload.map((activity) =>
-    normalizeLessonActivityRecord(activity as LearnActivity)
-  );
-}
-
-function toMaterialArray(payload: unknown): LearnMaterial[] {
-  if (!Array.isArray(payload)) {
-    return [];
-  }
-
-  return payload.map((material) =>
-    normalizeLessonMaterialRecord(material as LearnMaterial)
-  );
-}
+import { useCallback } from 'react';
+import { useCurrentOrganizationId } from '../../../../../core/stores/organizationStore';
+import { useActivityCollapseState } from './useActivitiesData/useActivityCollapseState';
+import { useActivityPrompts } from './useActivitiesData/useActivityPrompts';
+import { useLessonContentState } from './useActivitiesData/useLessonContentState';
+import { useLessonFeedback } from './useActivitiesData/useLessonFeedback';
+import type { UseActivitiesDataOptions } from './useActivitiesData/types';
 
 export function useActivitiesData({
   lessonId,
@@ -69,383 +18,45 @@ export function useActivitiesData({
   onLessonContentRefresh,
 }: UseActivitiesDataOptions) {
   const organizationId = useCurrentOrganizationId();
-  const [activities, setActivities] = useState<LearnActivity[]>([]);
-  const [materials, setMaterials] = useState<LearnMaterial[]>([]);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [collapsedActivities, setCollapsedActivities] = useState<Set<string>>(
-    new Set()
-  );
-  const [collapsedMaterials, setCollapsedMaterials] = useState<Set<string>>(
-    new Set()
-  );
-  const [activitiesInitialized, setActivitiesInitialized] = useState(false);
-  const [materialsInitialized, setMaterialsInitialized] = useState(false);
-  const [quizStatus, setQuizStatus] = useState<LessonQuizStatus | null>(null);
-  const [lessonFeedback, setLessonFeedback] = useState<
-    "like" | "dislike" | null
-  >(null);
-  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const content = useLessonContentState({ lessonId, organizationId, selectedLang, slug });
+  const collapse = useActivityCollapseState({
+    activities: content.activities,
+    lessonId,
+    materials: content.materials,
+  });
+  const feedback = useLessonFeedback(lessonId, slug);
 
-  const generateRoleBasedPromptsRef = useRef(generateRoleBasedPrompts);
-  const onPromptsChangeRef = useRef(onPromptsChange);
-
-  useEffect(() => {
-    generateRoleBasedPromptsRef.current = generateRoleBasedPrompts;
-  }, [generateRoleBasedPrompts]);
-
-  useEffect(() => {
-    onPromptsChangeRef.current = onPromptsChange;
-  }, [onPromptsChange]);
-
-  useEffect(() => {
-    setActivitiesInitialized(false);
-    setMaterialsInitialized(false);
-    setCollapsedActivities(new Set());
-    setCollapsedMaterials(new Set());
-  }, [lessonId]);
-
-  useEffect(() => {
-    if (activities.length > 0 && !activitiesInitialized) {
-      setCollapsedActivities(new Set(activities.map((item) => item.activity_id)));
-      setActivitiesInitialized(true);
-    }
-  }, [activities, activitiesInitialized]);
-
-  useEffect(() => {
-    if (materials.length > 0 && !materialsInitialized) {
-      setCollapsedMaterials(new Set(materials.map((item) => item.material_id)));
-      setMaterialsInitialized(true);
-    }
-  }, [materials, materialsInitialized]);
-
-  const loadLessonContent = useCallback(
-    async ({ preserveVisibleContent = false }: LoadLessonContentOptions = {}) => {
-      if (!lessonId || !slug) {
-        setActivities([]);
-        setMaterials([]);
-        setQuizStatus(null);
-        setIsRefreshing(false);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        if (preserveVisibleContent) {
-          setIsRefreshing(true);
-        } else {
-          setLoading(true);
-        }
-        const quizStatusUrl = organizationId
-          ? `/api/courses/${slug}/lessons/${lessonId}/quiz/status?orgId=${encodeURIComponent(
-              organizationId
-            )}`
-          : `/api/courses/${slug}/lessons/${lessonId}/quiz/status`;
-
-        const [activitiesResponse, materialsResponse, quizStatusResponse] =
-          await Promise.all([
-            fetch(`/api/courses/${slug}/lessons/${lessonId}/activities`, {
-              credentials: "include",
-              cache: "no-store",
-            }),
-            fetch(`/api/courses/${slug}/lessons/${lessonId}/materials`, {
-              credentials: "include",
-              cache: "no-store",
-            }),
-            fetch(quizStatusUrl, {
-              credentials: "include",
-              cache: "no-store",
-            }),
-          ]);
-
-        if (activitiesResponse.ok) {
-          let activitiesData = await activitiesResponse.json();
-
-          if (
-            selectedLang !== "es" &&
-            Array.isArray(activitiesData) &&
-            activitiesData.length > 0
-          ) {
-            activitiesData = await ContentTranslationService.translateArray(
-              "activity",
-              activitiesData.map((activity) => ({
-                ...(activity as Record<string, unknown>),
-                id: (activity as { activity_id?: string }).activity_id,
-              })),
-              ["activity_title", "activity_description", "activity_content"],
-              selectedLang as TranslationLanguage
-            );
-          }
-
-          setActivities(toActivityArray(activitiesData));
-        } else if (!preserveVisibleContent) {
-          setActivities([]);
-        }
-
-        if (materialsResponse.ok) {
-          setMaterials(toMaterialArray(await materialsResponse.json()));
-        } else if (!preserveVisibleContent) {
-          setMaterials([]);
-        }
-
-        if (quizStatusResponse.ok) {
-          setQuizStatus((await quizStatusResponse.json()) as LessonQuizStatus);
-        } else if (!preserveVisibleContent) {
-          setQuizStatus(null);
-        }
-      } catch {
-        if (!preserveVisibleContent) {
-          setActivities([]);
-          setMaterials([]);
-          setQuizStatus(null);
-        }
-      } finally {
-        setIsRefreshing(false);
-        setLoading(false);
-      }
-    },
-    [lessonId, organizationId, selectedLang, slug]
-  );
-
-  useEffect(() => {
-    void loadLessonContent();
-  }, [loadLessonContent]);
-
-  useEffect(() => {
-    async function loadLessonFeedback() {
-      if (!lessonId || !slug) {
-        setLessonFeedback(null);
-        return;
-      }
-
-      try {
-        const response = await fetch(
-          `/api/courses/${slug}/lessons/${lessonId}/feedback`,
-          { credentials: "include" }
-        );
-
-        if (!response.ok) {
-          setLessonFeedback(null);
-          return;
-        }
-
-        const data = (await response.json()) as { feedback_type?: unknown };
-        setLessonFeedback(
-          data.feedback_type === "like" || data.feedback_type === "dislike"
-            ? data.feedback_type
-            : null
-        );
-      } catch {
-        setLessonFeedback(null);
-      }
-    }
-
-    void loadLessonFeedback();
-  }, [lessonId, slug]);
-
-  useEffect(() => {
-    let isMounted = true;
-    let timeoutId: number | null = null;
-
-    async function processPrompts() {
-      const promptSources = activities
-        .map((activity) => {
-          const prompts = extractPromptList(activity.ai_prompts);
-
-          if (prompts.length === 0) {
-            return null;
-          }
-
-          return {
-            prompts,
-            content: normalizeContentForRenderer(activity.activity_content),
-            title: activity.activity_title || "",
-          };
-        })
-        .filter(Boolean) as Array<{
-        prompts: string[];
-        content: string;
-        title: string;
-      }>;
-
-      if (promptSources.length === 0 || !onPromptsChangeRef.current) {
-        onPromptsChangeRef.current?.([]);
-        return;
-      }
-
-      const generatePrompts = generateRoleBasedPromptsRef.current;
-      const shouldAdaptPrompts = Boolean(userRole && generatePrompts);
-
-      let allPrompts: string[] = [];
-
-      if (shouldAdaptPrompts && generatePrompts) {
-        const originalPrompts = promptSources.map((source) => source.prompts);
-        const timeoutPromise = new Promise<string[][]>((resolve) => {
-          timeoutId = window.setTimeout(() => resolve(originalPrompts), 10000);
-        });
-
-        try {
-          const results = await Promise.race([
-            Promise.all(
-              promptSources.map((source) =>
-                generatePrompts(
-                  source.prompts,
-                  source.content,
-                  source.title,
-                  userRole
-                ).catch(() => source.prompts)
-              )
-            ),
-            timeoutPromise,
-          ]);
-
-          allPrompts = results.flat();
-        } catch {
-          allPrompts = originalPrompts.flat();
-        }
-      } else {
-        allPrompts = promptSources.flatMap((source) => source.prompts);
-      }
-
-      if (isMounted) {
-        onPromptsChangeRef.current?.(allPrompts);
-      }
-    }
-
-    void processPrompts();
-
-    return () => {
-      isMounted = false;
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, [activities, userRole]);
-
-  const toggleActivityCollapse = useCallback((activityId: string) => {
-    setCollapsedActivities((currentCollapsedActivities) => {
-      const nextCollapsedActivities = new Set(currentCollapsedActivities);
-
-      if (nextCollapsedActivities.has(activityId)) {
-        nextCollapsedActivities.delete(activityId);
-      } else {
-        nextCollapsedActivities.add(activityId);
-      }
-
-      return nextCollapsedActivities;
-    });
-  }, []);
-
-  const expandActivity = useCallback((activityId: string) => {
-    setCollapsedActivities((currentCollapsedActivities) => {
-      if (!currentCollapsedActivities.has(activityId)) {
-        return currentCollapsedActivities;
-      }
-
-      const nextCollapsedActivities = new Set(currentCollapsedActivities);
-      nextCollapsedActivities.delete(activityId);
-      return nextCollapsedActivities;
-    });
-  }, []);
-
-  const focusActivityOnly = useCallback(
-    (activityId: string, activityIds: string[]) => {
-      setCollapsedActivities(
-        new Set(activityIds.filter((itemId) => itemId !== activityId))
-      );
-      setCollapsedMaterials(
-        new Set(materials.map((material) => material.material_id))
-      );
-    },
-    [materials]
-  );
-
-  const toggleMaterialCollapse = useCallback((materialId: string) => {
-    setCollapsedMaterials((currentCollapsedMaterials) => {
-      const nextCollapsedMaterials = new Set(currentCollapsedMaterials);
-
-      if (nextCollapsedMaterials.has(materialId)) {
-        nextCollapsedMaterials.delete(materialId);
-      } else {
-        nextCollapsedMaterials.add(materialId);
-      }
-
-      return nextCollapsedMaterials;
-    });
-  }, []);
-
-  const focusMaterialOnly = useCallback(
-    (materialId: string, materialIds: string[]) => {
-      setCollapsedMaterials(
-        new Set(materialIds.filter((itemId) => itemId !== materialId))
-      );
-      setCollapsedActivities(
-        new Set(activities.map((activity) => activity.activity_id))
-      );
-    },
-    [activities]
-  );
+  useActivityPrompts({
+    activities: content.activities,
+    generateRoleBasedPrompts,
+    onPromptsChange,
+    userRole,
+  });
 
   const refreshLessonContent = useCallback(async () => {
-    await loadLessonContent({ preserveVisibleContent: true });
+    await content.loadLessonContent({ preserveVisibleContent: true });
 
     if (lessonId && onLessonContentRefresh) {
       await onLessonContentRefresh(lessonId, true);
     }
-  }, [lessonId, loadLessonContent, onLessonContentRefresh]);
-
-  const handleLessonFeedback = useCallback(
-    async (feedbackType: "like" | "dislike") => {
-      if (!lessonId || !slug || feedbackLoading) {
-        return;
-      }
-
-      setFeedbackLoading(true);
-
-      try {
-        const response = await fetch(
-          `/api/courses/${slug}/lessons/${lessonId}/feedback`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ feedback_type: feedbackType }),
-          }
-        );
-
-        if (!response.ok) {
-          return;
-        }
-
-        const data = (await response.json()) as { feedback_type?: unknown };
-        setLessonFeedback(
-          data.feedback_type === "like" || data.feedback_type === "dislike"
-            ? data.feedback_type
-            : null
-        );
-      } finally {
-        setFeedbackLoading(false);
-      }
-    },
-    [feedbackLoading, lessonId, slug]
-  );
+  }, [content, lessonId, onLessonContentRefresh]);
 
   return {
-    activities,
-    collapsedActivities,
-    collapsedMaterials,
-    feedbackLoading,
-    handleLessonFeedback,
-    isRefreshing,
-    lessonFeedback,
-    loading,
-    materials,
-    quizStatus,
+    activities: content.activities,
+    collapsedActivities: collapse.collapsedActivities,
+    collapsedMaterials: collapse.collapsedMaterials,
+    feedbackLoading: feedback.feedbackLoading,
+    handleLessonFeedback: feedback.handleLessonFeedback,
+    isRefreshing: content.isRefreshing,
+    lessonFeedback: feedback.lessonFeedback,
+    loading: content.loading,
+    materials: content.materials,
+    quizStatus: content.quizStatus,
     refreshLessonContent,
-    expandActivity,
-    focusActivityOnly,
-    focusMaterialOnly,
-    toggleActivityCollapse,
-    toggleMaterialCollapse,
+    expandActivity: collapse.expandActivity,
+    focusActivityOnly: collapse.focusActivityOnly,
+    focusMaterialOnly: collapse.focusMaterialOnly,
+    toggleActivityCollapse: collapse.toggleActivityCollapse,
+    toggleMaterialCollapse: collapse.toggleMaterialCollapse,
   };
 }

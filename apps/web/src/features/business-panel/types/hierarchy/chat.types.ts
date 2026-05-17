@@ -90,23 +90,8 @@ export interface MarkMessagesReadRequest {
   last_read_at?: string;
 }
 
-export interface HierarchyChatsResponse {
-  chats: HierarchyChat[];
-  error?: string;
-  success: boolean;
-}
-
-export interface HierarchyChatWithMessagesResponse {
-  chat: HierarchyChat;
-  error?: string;
-  has_more?: boolean;
-  messages: HierarchyChatMessage[];
-  participants: HierarchyChatParticipant[];
-  success: boolean;
-}
-
-export interface ChatMessageResponse {
-  error?: string;
-  message?: HierarchyChatMessage;
-  success: boolean;
-}
+export type {
+  ChatMessageResponse,
+  HierarchyChatsResponse,
+  HierarchyChatWithMessagesResponse,
+} from './chat.responses';

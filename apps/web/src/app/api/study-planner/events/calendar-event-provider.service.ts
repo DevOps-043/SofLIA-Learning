@@ -1,18 +1,9 @@
 import { CalendarIntegrationService } from '../../../../features/study-planner/services/calendar-integration.service';
-
-export interface ExternalCalendarEvent {
-  id: string;
-  summary?: string;
-  description?: string | null;
-  start?: { dateTime?: string; date?: string };
-  end?: { dateTime?: string; date?: string };
-  location?: string | null;
-  status?: string | null;
-}
-
-interface CreatedGoogleCalendarEvent {
-  id: string;
-}
+import type {
+  CalendarEventCreateInput,
+  CreatedGoogleCalendarEvent,
+  ExternalCalendarEvent,
+} from './calendar-event-provider.types';
 
 export async function getGoogleCalendarEvents(
   accessToken: string,
@@ -70,14 +61,7 @@ export async function getMicrosoftCalendarEvents(
 
 export async function createGoogleCalendarEvent(
   accessToken: string,
-  eventData: {
-    title: string;
-    description?: string;
-    start: string;
-    end: string;
-    location?: string;
-    isAllDay?: boolean;
-  },
+  eventData: CalendarEventCreateInput,
   calendarId: string | null = null,
 ): Promise<CreatedGoogleCalendarEvent> {
   const targetCalendarId = calendarId || 'primary';

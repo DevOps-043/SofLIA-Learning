@@ -76,6 +76,7 @@ export function BusinessUserStatsModal({
     chartColors: panelTheme.chartColors,
     successColor: panelTheme.successColor,
     warningColor: panelTheme.warningColor,
+    dangerColor: panelTheme.dangerColor,
   }
 
   const mutedText = theme.mutedTextColor

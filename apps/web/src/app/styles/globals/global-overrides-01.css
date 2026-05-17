@@ -1,0 +1,105 @@
+/* Scrollbars personalizados y sutiles */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.3);
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.5);
+}
+
+.scrollbar-thin-dark {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+}
+
+.scrollbar-thin-dark::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin-dark::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin-dark::-webkit-scrollbar-thumb {
+  background-color: rgba(75, 85, 99, 0.5);
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.scrollbar-thin-dark::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(75, 85, 99, 0.7);
+}
+
+:root {
+  /* Nueva Paleta SOFLIA - Colores Principales */
+  --color-primary: #0A2540;
+  /* Azul Profundo - Tecnología + confianza */
+  --color-accent: #00D4B3;
+  /* Aqua/Verde Azulado - Aprendizaje + IA viva */
+  --color-bg-dark: #0F1419;
+  /* Fondo oscuro base - Gris azulado oscuro */
+  --color-bg-light: #FFFFFF;
+  /* Fondo claro para cards */
+  --color-contrast: #f8fafc;
+
+  /* Colores Secundarios */
+  --color-success: #10B981;
+  /* Verde Suave - Logro y progreso */
+  --color-warning: #F59E0B;
+  /* Amarillo Ãmbar Suave - Alerta y foco */
+  --color-error: #ef4444;
+  --color-secondary: #8b5cf6;
+  /* Mantener para compatibilidad */
+
+  /* Variables específicas para LIA y Progreso */
+  --color-lia: #00D4B3;
+  /* Específico para elementos de LIA */
+  --color-progress: #00D4B3;
+  /* Barras de progreso */
+  --color-card-bg: #FFFFFF;
+  /* Fondo de cards principales */
+
+  /* Escala de Grises Neutros - Nueva base */
+  --color-gray-50: #f8fafc;
+  --color-gray-100: #f1f5f9;
+  --color-gray-200: #E9ECEF;
+  /* Light gray - Estructura */
+  --color-gray-300: #dee2e6;
+  --color-gray-400: #ced4da;
+  --color-gray-500: #6C757D;
+  /* Dark gray - Tipografía y bordes */
+  --color-gray-600: #495057;
+  --color-gray-700: #343a40;
+  --color-gray-800: #1E2329;
+  /* Gris oscuro con tinte azulado */
+  --color-gray-900: #0F1419;
+  /* Fondo oscuro principal */
+  --color-gray-950: #0A0D12;
+  /* Fondo más oscuro */
+}

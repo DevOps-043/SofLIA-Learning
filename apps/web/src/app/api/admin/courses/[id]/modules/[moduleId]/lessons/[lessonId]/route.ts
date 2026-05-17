@@ -1,114 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server'
+
 import { AdminLessonsService, UpdateLessonData } from '@/features/admin/services/adminLessons.service'
-import { requireAdmin } from '@/lib/auth/requireAdmin'
+import {
+  lessonRouteError,
+  lessonRouteSuccess,
+  resolveAdminLessonId,
+  type LessonRouteContext,
+} from './lesson-route.helpers'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string, moduleId: string, lessonId: string }> }
+  { params }: LessonRouteContext,
 ) {
   try {
-    const auth = await requireAdmin()
-    if (auth instanceof NextResponse) return auth
-    
-    const { lessonId } = await params
-
-    if (!lessonId) {
-      return NextResponse.json(
-        { error: 'Lesson ID es requerido' },
-        { status: 400 }
-      )
-    }
+    const lessonId = await resolveAdminLessonId(params)
+    if (lessonId instanceof NextResponse) return lessonId
 
     const lesson = await AdminLessonsService.getLessonById(lessonId)
 
     if (!lesson) {
-      return NextResponse.json(
-        { error: 'Lección no encontrada' },
-        { status: 404 }
-      )
+      return lessonRouteError('LecciÃ³n no encontrada', 404)
     }
 
-    return NextResponse.json({
-      success: true,
-      lesson
-    })
+    return lessonRouteSuccess({ lesson })
   } catch (error) {
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Error al obtener lección' 
-      },
-      { status: 500 }
-    )
+    return lessonRouteError('Error al obtener lecciÃ³n')
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string, moduleId: string, lessonId: string }> }
+  { params }: LessonRouteContext,
 ) {
   try {
-    const auth = await requireAdmin()
-    if (auth instanceof NextResponse) return auth
-    
-    const { lessonId } = await params
+    const lessonId = await resolveAdminLessonId(params)
+    if (lessonId instanceof NextResponse) return lessonId
+
     const body = await request.json() as UpdateLessonData
-
-    if (!lessonId) {
-      return NextResponse.json(
-        { error: 'Lesson ID es requerido' },
-        { status: 400 }
-      )
-    }
-
     const lesson = await AdminLessonsService.updateLesson(lessonId, body)
 
-    return NextResponse.json({
-      success: true,
-      lesson
-    })
+    return lessonRouteSuccess({ lesson })
   } catch (error) {
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Error al actualizar lección' 
-      },
-      { status: 500 }
-    )
+    return lessonRouteError('Error al actualizar lecciÃ³n')
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string, moduleId: string, lessonId: string }> }
+  { params }: LessonRouteContext,
 ) {
   try {
-    const auth = await requireAdmin()
-    if (auth instanceof NextResponse) return auth
-    
-    const { lessonId } = await params
-
-    if (!lessonId) {
-      return NextResponse.json(
-        { error: 'Lesson ID es requerido' },
-        { status: 400 }
-      )
-    }
+    const lessonId = await resolveAdminLessonId(params)
+    if (lessonId instanceof NextResponse) return lessonId
 
     await AdminLessonsService.deleteLesson(lessonId)
 
-    return NextResponse.json({
-      success: true,
-      message: 'Lección eliminada correctamente'
-    })
+    return lessonRouteSuccess({ message: 'LecciÃ³n eliminada correctamente' })
   } catch (error) {
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Error al eliminar lección' 
-      },
-      { status: 500 }
-    )
+    return lessonRouteError('Error al eliminar lecciÃ³n')
   }
 }
-

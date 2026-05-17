@@ -125,7 +125,7 @@ function buildDivider(): Content {
   return {
     canvas: [
       {
-        color: SOFLIA_ACCENT,
+        lineColor: SOFLIA_ACCENT,
         lineWidth: 1,
         type: 'line',
         x1: 0,

@@ -2,42 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { NotificationService } from '../notifications.service'
 import type { NotificationRepository } from '../notifications.repository'
-import type { Notification } from '../notifications.types'
-
-function createNotification(overrides: Partial<Notification> = {}): Notification {
-  return {
-    notification_id: 'notif-1',
-    user_id: 'user-1',
-    notification_type: 'system_login_success',
-    title: 'Inicio de sesion',
-    message: 'Acceso correcto',
-    metadata: {},
-    priority: 'medium',
-    status: 'unread',
-    channels_sent: [],
-    channels_pending: [],
-    read_at: null,
-    expires_at: null,
-    organization_id: null,
-    group_id: null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    ...overrides,
-  }
-}
-
-function createRepositoryMock(): NotificationRepository {
-  return {
-    create: vi.fn(),
-    findRecentDuplicate: vi.fn(),
-    findForUser: vi.fn(),
-    findByIdForUser: vi.fn(),
-    updateForUser: vi.fn(),
-    deleteForUser: vi.fn(),
-    getUnreadCount: vi.fn(),
-    markAllAsRead: vi.fn(),
-  }
-}
+import { createNotification, createRepositoryMock } from './notifications.fixtures'
 
 describe('NotificationService', () => {
   let repository: NotificationRepository
