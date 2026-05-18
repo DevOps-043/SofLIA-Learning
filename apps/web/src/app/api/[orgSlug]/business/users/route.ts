@@ -4,32 +4,16 @@ import { BusinessUsersServerService } from '@/features/business-panel/services/b
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { CreateBusinessUserRequest } from '@/features/business-panel/services/businessUsers.service'
 import { createClient } from '@/lib/supabase/server'
-
-const DEFAULT_PAGE_SIZE = 24
-const MAX_PAGE_SIZE = 100
+import {
+  buildPaginationMetadata,
+  parsePaginationParams,
+} from '@/lib/api/pagination'
 
 type UsersResource = 'users' | 'invitations' | 'links'
-
-function getPositiveInt(value: string | null, fallback: number, max = Number.MAX_SAFE_INTEGER) {
-  const parsed = Number(value)
-  if (!Number.isFinite(parsed) || parsed < 1) return fallback
-  return Math.min(Math.floor(parsed), max)
-}
 
 function getResource(value: string | null): UsersResource {
   if (value === 'invitations' || value === 'links') return value
   return 'users'
-}
-
-function buildPagination(page: number, pageSize: number, total: number) {
-  const totalPages = total > 0 ? Math.ceil(total / pageSize) : 0
-  return {
-    page,
-    pageSize,
-    total,
-    totalPages,
-    hasNextPage: page < totalPages,
-  }
 }
 
 export async function GET(
@@ -51,13 +35,13 @@ export async function GET(
 
     const { searchParams } = request.nextUrl
     const resource = getResource(searchParams.get('resource'))
-    const page = getPositiveInt(searchParams.get('page'), 1)
-    const pageSize = getPositiveInt(searchParams.get('pageSize'), DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
+    const { page, pageSize, rangeFrom, rangeTo } = parsePaginationParams(
+      searchParams,
+      { defaultPageSize: 24 },
+    )
     const search = searchParams.get('search')?.trim() || undefined
     const role = searchParams.get('role') || undefined
     const status = searchParams.get('status') || undefined
-    const rangeFrom = (page - 1) * pageSize
-    const rangeTo = rangeFrom + pageSize - 1
     const supabase = await createClient()
 
     const [
@@ -78,7 +62,7 @@ export async function GET(
           })
         : Promise.resolve({
             users: [],
-            pagination: buildPagination(page, pageSize, 0),
+            pagination: buildPaginationMetadata(page, pageSize, 0),
           }),
       BusinessUsersServerService.getOrganizationStats(auth.organizationId),
       supabase
@@ -125,7 +109,7 @@ export async function GET(
 
       if (error) throw error
       invitations = data || []
-      resourcePagination = buildPagination(page, pageSize, count || 0)
+      resourcePagination = buildPaginationMetadata(page, pageSize, count || 0)
     }
 
     if (resource === 'links') {
@@ -147,7 +131,7 @@ export async function GET(
 
       if (error) throw error
       inviteLinks = data || []
-      resourcePagination = buildPagination(page, pageSize, count || 0)
+      resourcePagination = buildPaginationMetadata(page, pageSize, count || 0)
     }
 
     return NextResponse.json({

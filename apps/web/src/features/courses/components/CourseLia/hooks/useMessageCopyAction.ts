@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 
 import { copyTextToClipboard } from '@/lib/clipboard';
@@ -15,7 +16,7 @@ export function useMessageCopyAction({
     const wasCopied = await copyTextToClipboard(content);
 
     if (!wasCopied) {
-      console.warn('No se pudo copiar el mensaje');
+      techDebtLogger.warn('No se pudo copiar el mensaje');
       return;
     }
 

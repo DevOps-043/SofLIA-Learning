@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 import {
   fetchActivities,
@@ -39,12 +40,12 @@ export async function loadSidebarData(
   ])
 
   if (activitiesResult.error) {
-    console.error('Error fetching activities:', activitiesResult.error)
+    techDebtLogger.error('Error fetching activities:', activitiesResult.error)
     return activitiesLoadErrorResponse()
   }
 
   if (materialsResult.error) {
-    console.error('Error fetching materials:', materialsResult.error)
+    techDebtLogger.error('Error fetching materials:', materialsResult.error)
     return materialsLoadErrorResponse()
   }
 

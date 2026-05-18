@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { CalendarEvent } from '../types/user-context.types';
 import type {
   MicrosoftCalendarEventRow,
@@ -6,6 +7,7 @@ import type {
   MicrosoftCreatedEventResponse,
   MicrosoftUserProfile,
 } from './calendar-microsoft.types';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 
 export class CalendarMicrosoftService {
   /**
@@ -13,21 +15,21 @@ export class CalendarMicrosoftService {
    */
   static async getMicrosoftUserEmail(accessToken: string): Promise<string | null> {
     try {
-      const response = await fetch('https://graph.microsoft.com/v1.0/me', {
+      const response = await fetchWithCircuitBreaker('microsoft-calendar', 'https://graph.microsoft.com/v1.0/me', {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
 
       if (!response.ok) {
-        console.error('Error obteniendo info de usuario de Microsoft:', await response.text());
+        techDebtLogger.error('Error obteniendo info de usuario de Microsoft:', await response.text());
         return null;
       }
 
       const data: MicrosoftUserProfile = await response.json();
       return data.mail || data.userPrincipalName || null;
     } catch (error) {
-      console.error('Error obteniendo email de Microsoft:', error);
+      techDebtLogger.error('Error obteniendo email de Microsoft:', error);
       return null;
     }
   }
@@ -43,7 +45,8 @@ export class CalendarMicrosoftService {
     color?: string;
   }>> {
     try {
-      const response = await fetch(
+      const response = await fetchWithCircuitBreaker(
+        'microsoft-calendar',
         'https://graph.microsoft.com/v1.0/me/calendars',
         {
           headers: {
@@ -53,7 +56,7 @@ export class CalendarMicrosoftService {
       );
 
       if (!response.ok) {
-        console.error('[Calendar] Error obteniendo lista de calendarios de Microsoft:', await response.text());
+        techDebtLogger.error('[Calendar] Error obteniendo lista de calendarios de Microsoft:', await response.text());
         return [];
       }
 
@@ -66,7 +69,7 @@ export class CalendarMicrosoftService {
         color: cal.hexColor,
       }));
     } catch (error) {
-      console.error('[Calendar] Error obteniendo lista de calendarios de Microsoft:', error);
+      techDebtLogger.error('[Calendar] Error obteniendo lista de calendarios de Microsoft:', error);
       return [];
     }
   }
@@ -106,7 +109,8 @@ export class CalendarMicrosoftService {
             $top: '100',
           });
 
-          const response = await fetch(
+          const response = await fetchWithCircuitBreaker(
+            'microsoft-calendar',
             `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(calId)}/calendarView?${params}`,
             {
               headers: {
@@ -116,7 +120,7 @@ export class CalendarMicrosoftService {
           );
 
           if (!response.ok) {
-            console.error(`[Calendar] Error obteniendo eventos de Microsoft calendario ${calId}:`, await response.text());
+            techDebtLogger.error(`[Calendar] Error obteniendo eventos de Microsoft calendario ${calId}:`, await response.text());
             continue;
           }
 
@@ -134,7 +138,8 @@ export class CalendarMicrosoftService {
         $top: '100',
       });
 
-      const response = await fetch(
+      const response = await fetchWithCircuitBreaker(
+        'microsoft-calendar',
         `https://graph.microsoft.com/v1.0/me/calendarview?${params}`,
         {
           headers: {
@@ -144,7 +149,7 @@ export class CalendarMicrosoftService {
       );
 
       if (!response.ok) {
-        console.error('Error obteniendo eventos de Microsoft:', await response.text());
+        techDebtLogger.error('Error obteniendo eventos de Microsoft:', await response.text());
         return [];
       }
 
@@ -152,7 +157,7 @@ export class CalendarMicrosoftService {
       return (data.value || []).map((event) => mapMicrosoftEvent(event));
 
     } catch (error) {
-      console.error('Error obteniendo eventos de Microsoft:', error);
+      techDebtLogger.error('Error obteniendo eventos de Microsoft:', error);
       return [];
     }
   }
@@ -172,7 +177,7 @@ export class CalendarMicrosoftService {
     }
   ): Promise<{ id: string } | null> {
     try {
-      const response = await fetch('https://graph.microsoft.com/v1.0/me/events', {
+      const response = await fetchWithCircuitBreaker('microsoft-calendar', 'https://graph.microsoft.com/v1.0/me/events', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -200,14 +205,14 @@ export class CalendarMicrosoftService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[Calendar] Error creando evento en Microsoft:', errorText);
+        techDebtLogger.error('[Calendar] Error creando evento en Microsoft:', errorText);
         return null;
       }
 
       const data: MicrosoftCreatedEventResponse = await response.json();
       return { id: data.id };
     } catch (error) {
-      console.error('[Calendar] Error creando evento en Microsoft:', error);
+      techDebtLogger.error('[Calendar] Error creando evento en Microsoft:', error);
       return null;
     }
   }
@@ -220,7 +225,7 @@ export class CalendarMicrosoftService {
     eventId: string
   ): Promise<boolean> {
     try {
-      const response = await fetch(`https://graph.microsoft.com/v1.0/me/events/${eventId}`, {
+      const response = await fetchWithCircuitBreaker('microsoft-calendar', `https://graph.microsoft.com/v1.0/me/events/${eventId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -229,13 +234,13 @@ export class CalendarMicrosoftService {
 
       if (!response.ok && response.status !== 404) {
         const errorText = await response.text();
-        console.error('[Calendar] Error eliminando evento de Microsoft:', errorText);
+        techDebtLogger.error('[Calendar] Error eliminando evento de Microsoft:', errorText);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('[Calendar] Error eliminando evento de Microsoft:', error);
+      techDebtLogger.error('[Calendar] Error eliminando evento de Microsoft:', error);
       return false;
     }
   }

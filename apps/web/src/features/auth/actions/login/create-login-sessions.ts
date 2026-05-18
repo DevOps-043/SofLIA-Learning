@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import {
   SECURE_COOKIE_OPTIONS,
   getCustomCookieOptions,
@@ -53,7 +54,7 @@ export async function createLoginSessions(input: {
 
     return null
   } catch (sessionError) {
-    console.error('[loginAction] Error critico creando sesion:', {
+    techDebtLogger.error('[loginAction] Error critico creando sesion:', {
       error: sessionError,
       message: getUnknownErrorMessage(sessionError, 'Error desconocido'),
       stack: getUnknownErrorStack(sessionError),

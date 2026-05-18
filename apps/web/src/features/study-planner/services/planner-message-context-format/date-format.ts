@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { MONTH_NAMES } from './constants'
 
 export function formatPlannerDisplayDate(dateStr: string, dayName: string): string {
@@ -14,7 +15,7 @@ export function formatPlannerDisplayDate(dateStr: string, dayName: string): stri
       }
     }
   } catch (error) {
-    console.error('Error formatting planner date:', error)
+    techDebtLogger.error('Error formatting planner date:', error)
   }
 
   return `${dayName} ${dateStr}`

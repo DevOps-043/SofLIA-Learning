@@ -14,6 +14,7 @@ import { RegisterStatusMessage } from './RegisterStatusMessage';
 import { RegisterSubmitButton } from './RegisterSubmitButton';
 import { RegisterTermsField } from './RegisterTermsField';
 import { useRegisterFormLogic } from './useRegisterFormLogic';
+import { HumanVerificationField } from '../HumanVerificationField';
 
 const LegalDocumentsModal = dynamic(
   () => import('../LegalDocumentsModal').then((mod) => ({ default: mod.LegalDocumentsModal })),
@@ -51,7 +52,7 @@ export function RegisterForm() {
               errors={errors}
               register={register}
               setValue={setValue}
-              selectedGender={logic.selectedGender}
+              selectedGender={logic.selectedGender ?? null}
               genderOptions={logic.genderOptions}
               maxDateOfBirth={logic.maxDateOfBirth}
             />
@@ -63,6 +64,7 @@ export function RegisterForm() {
               register={register}
               onOpenLegalModal={() => logic.setShowLegalModal(true)}
             />
+            <HumanVerificationField onTokenChange={logic.setCaptchaToken} />
             <RegisterSubmitButton t={logic.t} isPending={logic.isPending} />
           </form>
           <RegisterFooter t={logic.t} onLoginClick={() => logic.setActiveTab('login')} />

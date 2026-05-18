@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Utilidad para detectar colores dominantes de una imagen usando Canvas API
  */
@@ -218,7 +219,7 @@ export async function detectColorsFromImage(imageUrl: string): Promise<ColorPale
     }
 
     img.onerror = (error) => {
-      console.error('Error cargando imagen para detección de colores:', error)
+      techDebtLogger.error('Error cargando imagen para detección de colores:', error)
       reject(new Error('No se pudo cargar la imagen. Verifica que la URL sea válida, accesible y no tenga restricciones CORS.'))
     }
 

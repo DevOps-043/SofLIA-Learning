@@ -4,6 +4,8 @@ import { RefreshTokenService } from '@/lib/auth/refreshToken.service';
 
 import { SessionService } from '@/features/auth/services/session.service';
 
+import { apiError } from '@/lib/api/errors';
+
 import { logger } from '@/lib/utils/logger';
 
 import { applyAuthRateLimit } from '@/lib/auth/auth-rate-limit'
@@ -27,13 +29,7 @@ export async function GET(request: Request) {
     }
     
     if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No autenticado'
-        },
-        { status: 401 }
-      );
+      return apiError('UNAUTHENTICATED', 'No autenticado.', 401);
     }
     
     // Obtener sesiones activas
@@ -51,12 +47,6 @@ export async function GET(request: Request) {
     
   } catch (error) {
     logger.error('💥 API Sessions Error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Error al obtener sesiones'
-      },
-      { status: 500 }
-    );
+    return apiError('INTERNAL_SERVER_ERROR', 'Error al obtener sesiones.', 500);
   }
 }

@@ -18,7 +18,7 @@ export async function GET(request: Request) {
 
     const { data: structures, error } = await supabase
         .from('organization_structures')
-        .select('*')
+        .select(SELECT_COLUMNS.organization_structures)
         .eq('organization_id', organizationId)
         .order('is_default', { ascending: false })
         .order('name');

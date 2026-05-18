@@ -1,3 +1,5 @@
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
+
 export interface GoogleSessionPayloadInput {
   title: string
   start_time: string
@@ -29,7 +31,8 @@ export async function findGoogleEventBySessionIdentity(params: {
   )
 
   for (const calendarId of calendarsToTry) {
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar-dashboard-chat',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?privateExtendedProperty=${encodeURIComponent(`sofliaSessionId=${params.sessionId}`)}&singleEvents=true&maxResults=1`,
       {
         headers: {

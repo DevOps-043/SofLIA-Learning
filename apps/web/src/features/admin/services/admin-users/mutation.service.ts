@@ -26,7 +26,7 @@ export async function updateAdminUser(
   const adminSupabase = createAdminClient()
   const { data: oldData } = await adminSupabase
     .from('users')
-    .select('*')
+    .select(SELECT_COLUMNS.users)
     .eq('id', userId)
     .single()
 

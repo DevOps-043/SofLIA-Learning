@@ -5,10 +5,10 @@ export interface DropdownUserLike {
 }
 
 export interface DropdownUserProfileLike {
-  first_name?: string
-  last_name?: string
-  display_name?: string
-  profile_picture_url?: string
+  first_name?: string | null
+  last_name?: string | null
+  display_name?: string | null
+  profile_picture_url?: string | null
 }
 
 export function getUserDisplayName(

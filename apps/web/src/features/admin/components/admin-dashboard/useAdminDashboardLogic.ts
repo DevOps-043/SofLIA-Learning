@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -60,7 +61,7 @@ export function useAdminDashboardLogic() {
         }
       } catch (fetchError) {
         if (!cancelled) {
-          console.error('Error fetching activities:', fetchError)
+          techDebtLogger.error('Error fetching activities:', fetchError)
         }
       } finally {
         if (!cancelled) {

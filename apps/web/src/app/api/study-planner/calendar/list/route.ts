@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     const supabase = createAdminClient()
     let integrationQuery = supabase
       .from('calendar_integrations')
-      .select('*')
+      .select(SELECT_COLUMNS.calendar_integrations)
       .eq('user_id', user.id)
 
     if (requestedProvider) {

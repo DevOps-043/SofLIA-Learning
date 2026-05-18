@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
     // Construir query base para contar total (necesario para paginación)
     let countQuery = supabase
       .from('lia_conversations')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id);
 
     // Construir query base para obtener conversaciones
@@ -113,7 +114,7 @@ export async function GET(request: NextRequest) {
     const { data: conversations, error } = await query;
 
     if (error) {
-      console.error('Error obteniendo conversaciones:', error);
+      techDebtLogger.error('Error obteniendo conversaciones:', error);
       
       // Si el error es por columna no encontrada, intentar sin conversation_title
       if (error.message?.includes('conversation_title') || error.message?.includes('column') || error.code === '42703') {
@@ -149,7 +150,7 @@ export async function GET(request: NextRequest) {
         const { data: retryConversations, error: retryError } = await retryQuery;
 
         if (retryError) {
-          console.error('Error obteniendo conversaciones (sin conversation_title):', retryError);
+          techDebtLogger.error('Error obteniendo conversaciones (sin conversation_title):', retryError);
           return NextResponse.json(
             { error: 'Error obteniendo conversaciones' },
             { status: 500 }
@@ -216,7 +217,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Error en API de conversaciones:', error);
+    techDebtLogger.error('Error en API de conversaciones:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -262,7 +263,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-      console.error('Error updating conversation:', error);
+      techDebtLogger.error('Error updating conversation:', error);
       return NextResponse.json({ error: 'Error actualizando conversación' }, { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react';
 import {
   CheckCircleIcon,
@@ -56,7 +57,7 @@ export function ActivityPerformanceWidget({ period = 'month', isLoading: externa
           setStatusData(data.data.byStatus);
         }
       } catch (error) {
-        console.error('Error fetching activities:', error);
+        techDebtLogger.error('Error fetching activities:', error);
       } finally {
         setIsLoading(false);
       }

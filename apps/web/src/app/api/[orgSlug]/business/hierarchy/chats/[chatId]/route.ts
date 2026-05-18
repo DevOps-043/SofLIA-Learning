@@ -42,7 +42,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     const { data: chat, error: chatError } = await supabase
       .from('hierarchy_chats')
-      .select('*')
+      .select(SELECT_COLUMNS.hierarchy_chats)
       .eq('id', chatId)
       .eq('organization_id', auth.organizationId)
       .eq('is_active', true)
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     const { data: participant } = await supabase
       .from('hierarchy_chat_participants')
-      .select('*')
+      .select(SELECT_COLUMNS.hierarchy_chat_participants)
       .eq('chat_id', chatId)
       .eq('user_id', auth.userId)
       .eq('is_active', true)

@@ -3,6 +3,10 @@ import {
   buildOrganizationAiContextPromptSection,
   type ResolvedOrganizationAiContext,
 } from '@/lib/lia-context/services/organization-ai-context.service'
+import {
+  CIRCUIT_BREAKER_DEFAULTS,
+  executeWithCircuitBreaker,
+} from '@/lib/resilience/circuit-breaker'
 
 import {
   dialogueEvaluationResultSchema,
@@ -133,25 +137,32 @@ export async function evaluateDialogueTurn(input: {
   const openai = new OpenAI({ apiKey: openaiApiKey })
 
   try {
-    const completion = await openai.chat.completions.create({
-      max_tokens: 1800,
-      messages: [
-        {
-          role: 'system',
-          content:
-            'Eres un evaluador estricto de aprendizaje. Responde exclusivamente JSON valido.',
-        },
-        {
-          role: 'user',
-          content: buildEvaluatorPrompt(input),
-        },
-      ],
-      model: modelName,
-      response_format: { type: 'json_object' },
-      temperature: 0.15,
-    }, {
-      signal: AbortSignal.timeout(resolveDialogueEvaluationTimeoutMs()),
-    })
+    const completion = await executeWithCircuitBreaker(
+      'openai-dialogue-evaluator',
+      () => openai.chat.completions.create({
+        max_tokens: 1800,
+        messages: [
+          {
+            role: 'system',
+            content:
+              'Eres un evaluador estricto de aprendizaje. Responde exclusivamente JSON valido.',
+          },
+          {
+            role: 'user',
+            content: buildEvaluatorPrompt(input),
+          },
+        ],
+        model: modelName,
+        response_format: { type: 'json_object' },
+        temperature: 0.15,
+      }, {
+        signal: AbortSignal.timeout(resolveDialogueEvaluationTimeoutMs()),
+      }),
+      {
+        ...CIRCUIT_BREAKER_DEFAULTS.openai,
+        timeoutMs: resolveDialogueEvaluationTimeoutMs(),
+      },
+    )
     const responseText = completion.choices[0]?.message?.content || '{}'
     const parsed = JSON.parse(stripJsonFence(responseText))
 

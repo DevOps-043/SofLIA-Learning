@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
@@ -232,7 +233,7 @@ export async function GET(
       } : null
     })
   } catch (error) {
-    console.error('Error in GET /api/invite/[token]:', error)
+    techDebtLogger.error('Error in GET /api/invite/[token]:', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor', valid: false },
       { status: 500 }
@@ -272,7 +273,7 @@ export async function POST(
     const body = await request.json().catch(() => ({}))
     const { userId: clientUserId } = body
     if (clientUserId && clientUserId !== authenticatedUserId) {
-      console.error('[SECURITY] Invite userId mismatch — client:', clientUserId, 'session:', authenticatedUserId)
+      techDebtLogger.error('[SECURITY] Invite userId mismatch — client:', clientUserId, 'session:', authenticatedUserId)
       return NextResponse.json(
         { success: false, error: 'No autorizado.' },
         { status: 403 }
@@ -299,7 +300,7 @@ export async function POST(
       organizationSlug: result.organizationSlug || null
     })
   } catch (error) {
-    console.error('Error in POST /api/invite/[token]:', error)
+    techDebtLogger.error('Error in POST /api/invite/[token]:', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

@@ -49,7 +49,7 @@ export async function importUserRow(params: {
   const { data: newUser, error: userError } = await supabase
     .from('users')
     .insert(userInsertData)
-    .select()
+    .select('id')
     .single()
 
   if (userError) {
@@ -71,7 +71,7 @@ export async function importUserRow(params: {
     await supabase.from('users').delete().eq('id', newUser.id)
     return {
       success: false as const,
-      error: orgUserError.message || 'Error al agregar usuario a la organizaciÃ³n',
+      error: orgUserError.message || 'Error al agregar usuario a la organizacion',
     }
   }
 

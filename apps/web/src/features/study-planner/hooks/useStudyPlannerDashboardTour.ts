@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback } from 'react';
 import { CallBackProps, STATUS, ACTIONS, EVENTS } from 'react-joyride';
 import { useTourProgress } from '../../tours/hooks/useTourProgress';
@@ -25,7 +26,7 @@ export function useStudyPlannerDashboardTour() {
     // Small delay to ensure elements are rendered.
     const timer = setTimeout(() => {
       startTour().catch((err) =>
-        console.error('[useStudyPlannerDashboardTour] DB start failed', err),
+        techDebtLogger.error('[useStudyPlannerDashboardTour] DB start failed', err),
       );
       setRun(true);
     }, 1500);
@@ -75,7 +76,7 @@ export function useStudyPlannerDashboardTour() {
     setStepIndex(0);
     setIsFinishedInSession(false);
     startTour().catch((err) =>
-      console.error('[useStudyPlannerDashboardTour] DB restart failed', err),
+      techDebtLogger.error('[useStudyPlannerDashboardTour] DB restart failed', err),
     );
     setRun(true);
   }, [startTour]);

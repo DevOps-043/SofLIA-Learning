@@ -1,3 +1,5 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types'
 import { revalidatePath } from 'next/cache'
 import { SessionService } from '../../../auth/services/session.service'
 import {
@@ -42,19 +44,19 @@ export async function approveCourseReview(stagingId: string): Promise<boolean> {
     const effectiveAdminId = user?.id
 
     if (!effectiveAdminId) {
-        console.error('[APPROVE_ERROR] No admin identified')
+        techDebtLogger.error('[APPROVE_ERROR] No admin identified')
         return false
     }
 
     const supabase = createAdminSupabase()
     const { data: staging, error: stagingError } = await supabase
         .from('courses_staging')
-        .select('*')
+        .select(SELECT_COLUMNS.courses_staging)
         .eq('id', stagingId)
         .single()
 
     if (stagingError || !staging) {
-        console.error('[APPROVE_ERROR] Staging row not found:', stagingError)
+        techDebtLogger.error('[APPROVE_ERROR] Staging row not found:', stagingError)
         return false
     }
 
@@ -74,7 +76,7 @@ export async function approveCourseReview(stagingId: string): Promise<boolean> {
         revalidatePath('/admin/courses/pending')
         return true
     } catch (err: unknown) {
-        console.error('[APPROVE_ERROR]', err instanceof Error ? err.message : String(err))
+        techDebtLogger.error('[APPROVE_ERROR]', err instanceof Error ? err.message : String(err))
         return false
     }
 }

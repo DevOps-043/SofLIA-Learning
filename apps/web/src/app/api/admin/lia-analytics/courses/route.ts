@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API de LIA Analytics - Cursos
  * 
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
     const { data: rawData, error } = await query;
     
     if (error) {
-      console.error('Error fetching course analytics:', error);
+      techDebtLogger.error('Error fetching course analytics:', error);
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
     
@@ -171,7 +172,7 @@ export async function GET(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error('Error en LIA Analytics Courses:', error);
+    techDebtLogger.error('Error en LIA Analytics Courses:', error);
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

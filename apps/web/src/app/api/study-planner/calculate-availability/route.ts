@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '../../../../features/auth/services/session.service';
 import { UserContextService } from '../../../../features/study-planner/services/user-context.service';
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Calculate
       data: liaResponse,
     });
   } catch (error) {
-    console.error('Error calculando disponibilidad:', error);
+    techDebtLogger.error('Error calculando disponibilidad:', error);
     return NextResponse.json(
       {
         success: false,

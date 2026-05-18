@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -56,7 +57,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       .eq('user_id', userId)
 
     if (updateError) {
-      console.error('Error updating member role:', updateError)
+      techDebtLogger.error('Error updating member role:', updateError)
       return NextResponse.json(
         { success: false, error: 'Error al actualizar el usuario' },
         { status: 500 }
@@ -65,7 +66,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ success: true, message: 'Rol actualizado correctamente' })
   } catch (error) {
-    console.error('Error in PUT /api/admin/companies/[id]/members/[userId]:', error)
+    techDebtLogger.error('Error in PUT /api/admin/companies/[id]/members/[userId]:', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

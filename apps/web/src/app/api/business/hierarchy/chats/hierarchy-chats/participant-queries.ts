@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { logger } from '@/lib/utils/logger';
 import type {
   BusinessAuth,
@@ -35,7 +36,7 @@ export async function resolveChatParticipants({
     return data || [];
   } catch (error: unknown) {
     logger.error('Excepción al llamar funciones RPC de chat:', error);
-    console.error(error);
+    techDebtLogger.error(error);
     return [] as HierarchyChatRpcParticipant[];
   }
 }

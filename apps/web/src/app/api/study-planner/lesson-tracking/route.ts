@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API Endpoint: Lesson Tracking Active & Reconcile
  * 
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .single();
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
-      console.error('Error obteniendo tracking activo:', error);
+      techDebtLogger.error('Error obteniendo tracking activo:', error);
     }
 
     return NextResponse.json({
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     });
 
   } catch (error: unknown) {
-    console.error('Error en GET /api/study-planner/lesson-tracking:', error);
+    techDebtLogger.error('Error en GET /api/study-planner/lesson-tracking:', error);
     const message = error instanceof Error ? error.message : 'Error desconocido';
     return NextResponse.json({ 
       error: message,
@@ -110,13 +111,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Buscar trackings vencidos del usuario
     const { data: expiredTrackings, error } = await supabase
       .from('lesson_tracking')
-      .select('*')
+      .select(SELECT_COLUMNS.lesson_tracking)
       .eq('user_id', user.id)
       .eq('status', 'in_progress')
       .lte('next_analysis_at', now.toISOString());
 
     if (error) {
-      console.error('Error buscando trackings vencidos:', error);
+      techDebtLogger.error('Error buscando trackings vencidos:', error);
       return NextResponse.json({ 
         error: error.message,
         success: false
@@ -218,7 +219,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
   } catch (error: unknown) {
-    console.error('Error en POST /api/study-planner/lesson-tracking:', error);
+    techDebtLogger.error('Error en POST /api/study-planner/lesson-tracking:', error);
     const message = error instanceof Error ? error.message : 'Error desconocido';
     return NextResponse.json({ 
       error: message,

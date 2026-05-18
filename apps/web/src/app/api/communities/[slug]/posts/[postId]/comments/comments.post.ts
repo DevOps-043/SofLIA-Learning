@@ -51,7 +51,7 @@ export async function handlePostComment(
   };
   const { data: newComment, error: insertError } = await commentsTable(supabase)
     .insert(payload)
-    .select('*')
+    .select(SELECT_COLUMNS.community_comments)
     .single();
 
   if (insertError) {

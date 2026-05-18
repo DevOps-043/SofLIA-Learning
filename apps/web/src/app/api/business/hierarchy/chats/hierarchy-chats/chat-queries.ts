@@ -18,7 +18,7 @@ export async function listHierarchyChats({
 }: ListChatsParams & { auth: BusinessAuth; supabase: HierarchyChatSupabase }) {
   let baseQuery = supabase
     .from('hierarchy_chats')
-    .select('*')
+    .select(SELECT_COLUMNS.hierarchy_chats)
     .eq('organization_id', auth.organizationId)
     .eq('entity_type', entityType)
     .eq('entity_id', entityId)
@@ -45,7 +45,7 @@ export async function findExistingHierarchyChat({
 }: CreateChatParams & { auth: BusinessAuth; supabase: HierarchyChatSupabase }) {
   const { data } = await supabase
     .from('hierarchy_chats')
-    .select('*')
+    .select(SELECT_COLUMNS.hierarchy_chats)
     .eq('organization_id', auth.organizationId)
     .eq('entity_type', params.entity_type)
     .eq('entity_id', params.entity_id)

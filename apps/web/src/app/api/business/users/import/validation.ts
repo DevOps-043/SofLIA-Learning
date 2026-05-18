@@ -1,12 +1,28 @@
-import {
-  UserDemographicsSchema,
-} from '@/lib/schemas/user-demographics.schema'
+import { z } from 'zod'
+
+import { UserDemographicsSchema } from '@/lib/schemas/user-demographics.schema'
 import type { ParsedImportUserRow } from './types'
 
 const VALID_ORG_ROLES = ['owner', 'admin', 'member']
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-export function validateImportUserRow(userData: ParsedImportUserRow) {
+export type ImportOrgRole = (typeof VALID_ORG_ROLES)[number]
+
+export type ImportUserRowValidationResult =
+  | {
+      success: true
+      orgRole: ImportOrgRole
+      password: string
+      demographics: z.infer<typeof UserDemographicsSchema>
+    }
+  | {
+      success: false
+      error: string
+    }
+
+export function validateImportUserRow(
+  userData: ParsedImportUserRow,
+): ImportUserRowValidationResult {
   if (
     !userData.username ||
     !userData.email ||
@@ -21,12 +37,12 @@ export function validateImportUserRow(userData: ParsedImportUserRow) {
   }
 
   if (!EMAIL_REGEX.test(userData.email)) {
-    return fail('Email invÃ¡lido')
+    return fail('Email invalido')
   }
 
   const orgRole = (userData.org_role || 'member').toLowerCase()
   if (!VALID_ORG_ROLES.includes(orgRole)) {
-    return fail(`Rol invÃ¡lido. Debe ser: ${VALID_ORG_ROLES.join(', ')}`)
+    return fail(`Rol invalido. Debe ser: ${VALID_ORG_ROLES.join(', ')}`)
   }
 
   const demographicsResult = UserDemographicsSchema.safeParse({
@@ -44,17 +60,17 @@ export function validateImportUserRow(userData: ParsedImportUserRow) {
   const password = userData.password.trim()
   if (password === '****************') {
     return fail(
-      'La contraseÃ±a es un placeholder. Por favor ingrese una contraseÃ±a real.',
+      'La contrasena es un placeholder. Por favor ingrese una contrasena real.',
     )
   }
 
   if (password.length < 6) {
-    return fail('La contraseÃ±a debe tener al menos 6 caracteres')
+    return fail('La contrasena debe tener al menos 6 caracteres')
   }
 
   return {
     success: true as const,
-    orgRole: orgRole as 'owner' | 'admin' | 'member',
+    orgRole: orgRole as ImportOrgRole,
     password,
     demographics: demographicsResult.data,
   }

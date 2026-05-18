@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '../../../../../features/auth/services/session.service';
 import { createAdminClient, getLatestCalendarIntegration, getSyncedStudySessions, getUserPlanIds } from './check-changes-db.service';
@@ -45,7 +46,7 @@ export async function POST(
     );
 
     if (sessionsError) {
-      console.error('Error obteniendo sesiones:', sessionsError);
+      techDebtLogger.error('Error obteniendo sesiones:', sessionsError);
       return NextResponse.json(
         { success: false, error: 'Error obteniendo sesiones' },
         { status: 500 },
@@ -77,7 +78,7 @@ export async function POST(
       },
     });
   } catch (error: unknown) {
-    console.error('Error verificando cambios en calendario:', error);
+    techDebtLogger.error('Error verificando cambios en calendario:', error);
     return NextResponse.json(
       {
         success: false,

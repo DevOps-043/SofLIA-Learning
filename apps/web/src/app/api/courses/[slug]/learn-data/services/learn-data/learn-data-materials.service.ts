@@ -35,12 +35,12 @@ export async function loadLessonData(
   const [activitiesResult, materialsResult] = await Promise.all([
     supabase
       .from('lesson_activities')
-      .select('*')
+      .select(SELECT_COLUMNS.lesson_activities)
       .eq('lesson_id', resolvedLesson.baseLessonId)
       .order('activity_order_index', { ascending: true }),
     supabase
       .from('lesson_materials')
-      .select('*')
+      .select(SELECT_COLUMNS.lesson_materials)
       .eq('lesson_id', resolvedLesson.baseLessonId)
       .order('material_order_index', { ascending: true }),
   ])

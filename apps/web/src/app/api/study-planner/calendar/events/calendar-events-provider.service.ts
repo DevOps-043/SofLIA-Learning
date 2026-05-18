@@ -2,6 +2,7 @@ import {
   mapGoogleCalendarEvent,
   mapMicrosoftCalendarEvent,
 } from './calendar-events.utils'
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
 import type {
   ExternalCalendarEvent,
   GoogleCalendarEventsResponse,
@@ -16,7 +17,8 @@ async function getEventsFromGoogleCalendar(
   endDate: Date,
 ): Promise<ExternalCalendarEvent[]> {
   try {
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar-events',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?` +
         `timeMin=${startDate.toISOString()}&` +
         `timeMax=${endDate.toISOString()}&` +
@@ -51,7 +53,8 @@ export async function getGoogleCalendarEvents(
   selectedCalendarIds?: string[],
 ): Promise<ExternalCalendarEvent[]> {
   try {
-    const calendarsResponse = await fetch(
+    const calendarsResponse = await fetchWithCircuitBreaker(
+      'google-calendar-events',
       'https://www.googleapis.com/calendar/v3/users/me/calendarList',
       {
         headers: {
@@ -141,7 +144,8 @@ export async function getMicrosoftCalendarEvents(
           $top: '100',
         })
 
-        const response = await fetch(
+        const response = await fetchWithCircuitBreaker(
+          'microsoft-calendar-events',
           `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(calendarId)}/calendarView?${params}`,
           {
             headers: {
@@ -165,7 +169,8 @@ export async function getMicrosoftCalendarEvents(
       return allEvents
     }
 
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'microsoft-calendar-events',
       `https://graph.microsoft.com/v1.0/me/calendarview?` +
         `startDateTime=${startDate.toISOString()}&` +
         `endDateTime=${endDate.toISOString()}&` +

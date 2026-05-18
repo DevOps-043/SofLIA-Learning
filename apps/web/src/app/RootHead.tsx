@@ -8,6 +8,8 @@ import { applePlatformScript } from './head-scripts/apple-platform-script'
 import { chunkReloadScript } from './head-scripts/chunk-reload-script'
 import { themePrepaintScript } from './head-scripts/theme-prepaint-script'
 
+const agentPolicyJsonScript = JSON.stringify(AGENT_POLICY_JSON).replace(/</g, '\\u003c')
+
 export function RootHead() {
   return (
     <>
@@ -27,14 +29,14 @@ export function RootHead() {
       <meta name="apple-mobile-web-app-title" content="SofLIA" />
       <meta name="format-detection" content="telephone=no" />
       <meta name="mobile-web-app-capable" content="yes" />
-      <meta name="theme-color" content="#3b82f6" />
+      <meta name="theme-color" content="rgb(10, 37, 64)" />
       <meta name="x-soflia-agent-policy" content={AGENT_POLICY_META_CONTENT} />
       <meta name="x-soflia-agent-policy-version" content={AGENT_POLICY_VERSION} />
       <meta name="x-soflia-agent-policy-entrypoint" content={AGENT_POLICY_ENTRYPOINT} />
       <script
         id="soflia-agent-policy"
         type="application/json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(AGENT_POLICY_JSON) }}
+        dangerouslySetInnerHTML={{ __html: agentPolicyJsonScript }}
       />
       <link rel="apple-touch-startup-image" href="/icon-512x512.png" />
     </>

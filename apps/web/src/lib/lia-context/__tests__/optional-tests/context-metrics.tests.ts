@@ -1,8 +1,9 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { ContextMetricsService, getContextStats, recordContextUsage } from '../../services/context-metrics.service'
 import { createCounter } from './test-runner'
 
 export function testContextMetricsService() {
-  console.log('\nTEST: CONTEXT METRICS SERVICE\n')
+  techDebtLogger.log('\nTEST: CONTEXT METRICS SERVICE\n')
   const counter = createCounter()
   const instance = ContextMetricsService.getInstance()
 

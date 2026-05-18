@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     // Obtener templates de la organización
     const { data: templates, error: templatesError } = await supabase
       .from('certificate_templates')
-      .select('*')
+      .select(SELECT_COLUMNS.certificate_templates)
       .eq('organization_id', auth.organizationId)
       .eq('is_active', true)
       .order('is_default', { ascending: false })

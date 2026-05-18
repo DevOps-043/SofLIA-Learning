@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
@@ -82,7 +83,7 @@ export async function PATCH(
       .single();
 
     if (updateError) {
-      console.error('Error actualizando conversación:', updateError);
+      techDebtLogger.error('Error actualizando conversación:', updateError);
       
       // Si el error es por columna no encontrada
       if (updateError.message?.includes('conversation_title') || updateError.message?.includes('column') || updateError.code === '42703') {
@@ -120,7 +121,7 @@ export async function PATCH(
       conversation_title: finalTitle
     });
   } catch (error) {
-    console.error('Error en API de actualización:', error);
+    techDebtLogger.error('Error en API de actualización:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -177,7 +178,7 @@ export async function DELETE(
       .eq('conversation_id', conversationId);
 
     if (messagesError) {
-      console.error('Error eliminando mensajes:', messagesError);
+      techDebtLogger.error('Error eliminando mensajes:', messagesError);
       return NextResponse.json(
         { error: 'Error eliminando mensajes de la conversación' },
         { status: 500 }
@@ -191,7 +192,7 @@ export async function DELETE(
       .eq('conversation_id', conversationId);
 
     if (deleteError) {
-      console.error('Error eliminando conversación:', deleteError);
+      techDebtLogger.error('Error eliminando conversación:', deleteError);
       return NextResponse.json(
         { error: 'Error eliminando conversación' },
         { status: 500 }
@@ -203,7 +204,7 @@ export async function DELETE(
       message: 'Conversación eliminada correctamente'
     });
   } catch (error) {
-    console.error('Error en API de eliminación:', error);
+    techDebtLogger.error('Error en API de eliminación:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

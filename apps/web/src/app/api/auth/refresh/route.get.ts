@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import {
-  isRefreshTokenAuthError,
   RefreshTokenError,
 } from '@/lib/auth/refresh-token.errors';
 
+import { apiError } from '@/lib/api/errors';
 import { RefreshTokenService } from '@/lib/auth/refreshToken.service';
 
 import { applyAuthRateLimit } from '@/lib/auth/auth-rate-limit'
@@ -74,12 +74,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     logger.error('API Refresh GET Error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Error al obtener estado de sesion',
-      },
-      { status: 500 }
-    );
+    return apiError('INTERNAL_SERVER_ERROR', 'Error al obtener estado de sesión.', 500);
   }
 }

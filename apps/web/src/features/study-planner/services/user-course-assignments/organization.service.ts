@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../../lib/supabase/server'
 import type { B2BCourseAssignment } from '../../types/user-context.types'
 import {
@@ -42,7 +43,7 @@ export async function getB2BCourseAssignments(
     .neq('status', 'cancelled')
 
   if (error) {
-    console.error('Error obteniendo asignaciones de cursos B2B:', error)
+    techDebtLogger.error('Error obteniendo asignaciones de cursos B2B:', error)
     return []
   }
 
@@ -85,7 +86,7 @@ export async function getUpcomingDeadlines(
     .order('due_date', { ascending: true })
 
   if (error) {
-    console.error('Error obteniendo plazos proximos:', error)
+    techDebtLogger.error('Error obteniendo plazos proximos:', error)
     return []
   }
 

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { SessionService } from '@/features/auth/services/session.service'
 import { handleCalendarEventDelete } from './event-delete-route.handler'
@@ -18,7 +19,7 @@ export async function PUT(
     const body = await request.json()
     return handleCalendarEventUpdate(user.id, id, body)
   } catch (error: unknown) {
-    console.error('Error en PUT /api/study-planner/events/[id]:', error)
+    techDebtLogger.error('Error en PUT /api/study-planner/events/[id]:', error)
     return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 })
   }
 }
@@ -36,7 +37,7 @@ export async function DELETE(
     const { id } = await params
     return handleCalendarEventDelete(user.id, id)
   } catch (error: unknown) {
-    console.error('Error en DELETE /api/study-planner/events/[id]:', error)
+    techDebtLogger.error('Error en DELETE /api/study-planner/events/[id]:', error)
     return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 })
   }
 }

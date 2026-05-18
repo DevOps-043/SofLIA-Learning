@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react'
 import { BookOpen, Calendar, Users, CheckCircle, XCircle, Clock, X, Edit2, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -49,7 +50,7 @@ export function CourseAssignments({
       setAssignments(data)
     } catch (error: unknown) {
       setError(getErrorMessage(error, 'Error al cargar asignaciones'))
-      console.error('Error cargando asignaciones:', error)
+      techDebtLogger.error('Error cargando asignaciones:', error)
     } finally {
       setIsLoading(false)
     }

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchAvailableSkillsApi, fetchCourseSkillsApi } from "./skill-api";
 import type { CourseSkill, CourseSkillsSelectorProps, Skill } from "./types";
@@ -18,7 +19,7 @@ export function useCourseSkillsSelector({
       setIsLoading(true);
       setAvailableSkills(await fetchAvailableSkillsApi());
     } catch (error) {
-      console.error("Error fetching skills:", error);
+      techDebtLogger.error("Error fetching skills:", error);
     } finally {
       setIsLoading(false);
     }
@@ -31,7 +32,7 @@ export function useCourseSkillsSelector({
       const skills = await fetchCourseSkillsApi(courseId);
       if (skills.length) onSkillsChange(skills);
     } catch (error) {
-      console.error("Error fetching course skills:", error);
+      techDebtLogger.error("Error fetching course skills:", error);
     }
   }, [courseId, onSkillsChange]);
 

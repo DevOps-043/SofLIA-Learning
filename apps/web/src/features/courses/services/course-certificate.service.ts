@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 export interface GenerateCourseCertificateResponse {
@@ -63,7 +64,7 @@ export class CourseCertificateService {
         return;
       }
     } catch (navigationError) {
-      console.error("Error redirecting to certificate route:", navigationError);
+      techDebtLogger.error("Error redirecting to certificate route:", navigationError);
       CourseCertificateService.fallbackToBrowserNavigation(route);
       return;
     }

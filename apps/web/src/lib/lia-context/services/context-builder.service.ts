@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * ContextBuilderService
  * 
@@ -142,7 +143,7 @@ export class ContextBuilderService {
           }
         }
       } catch (error) {
-        console.error(`Error en provider ${provider.name}:`, error);
+        techDebtLogger.error(`Error en provider ${provider.name}:`, error);
         // Continuar con los demás providers
       }
     }

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createErrorContextClient } from './error-context.client'
 import { SIMILAR_BUG_SELECT } from './error-context.select'
 import { buildPageMatchFilter, emptyBugStats } from './error-context.utils'
@@ -7,7 +8,7 @@ async function safelyLoadBugs(loader: () => Promise<SimilarBug[]>): Promise<Simi
   try {
     return await loader()
   } catch (error) {
-    console.error('[ErrorContextService] Error loading bugs:', error)
+    techDebtLogger.error('[ErrorContextService] Error loading bugs:', error)
     return []
   }
 }

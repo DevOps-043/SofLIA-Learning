@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { clearCachedTranslation } from './translation-cache';
 import { createTranslationWriteClient } from './translation-client';
 import type { Json } from '@/lib/supabase/types';
@@ -23,7 +24,7 @@ export async function saveTranslation(
   supabaseClient?: TranslationSupabaseClient,
 ): Promise<boolean> {
   if (!translations || Object.keys(translations).length === 0) {
-    console.warn(
+    techDebtLogger.warn(
       `[ContentTranslationService] No translations to save for ${entityType}:${entityId}:${language}`,
     );
     return false;
@@ -31,7 +32,7 @@ export async function saveTranslation(
 
   const translationsSize = getTranslationPayloadSize(translations);
   if (translationsSize > MAX_TRANSLATION_SIZE_BYTES) {
-    console.warn(
+    techDebtLogger.warn(
       `[ContentTranslationService] Large translations payload (${(
         translationsSize /
         (1024 * 1024)
@@ -61,7 +62,7 @@ export async function saveTranslation(
       .select();
 
     if (error) {
-      console.error(
+      techDebtLogger.error(
         `[ContentTranslationService] Error saving ${entityType}:${entityId}:${language}:`,
         {
           code: error.code,
@@ -76,7 +77,7 @@ export async function saveTranslation(
     clearCachedTranslation(entityType, entityId, language);
     return true;
   } catch (error) {
-    console.error(
+    techDebtLogger.error(
       `[ContentTranslationService] Exception saving ${entityType}:${entityId}:${language}:`,
       error,
     );

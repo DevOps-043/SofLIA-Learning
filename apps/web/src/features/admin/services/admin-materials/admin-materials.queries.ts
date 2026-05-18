@@ -5,7 +5,7 @@ export async function getLessonMaterials(lessonId: string): Promise<AdminMateria
   const supabase = await createAdminMaterialsClient()
   const { data, error } = await supabase
     .from('lesson_materials')
-    .select('*')
+    .select(SELECT_COLUMNS.lesson_materials)
     .eq('lesson_id', lessonId)
     .order('material_order_index', { ascending: true })
 
@@ -19,7 +19,7 @@ export async function getMaterialById(materialId: string): Promise<AdminMaterial
   try {
     const { data, error } = await supabase
       .from('lesson_materials')
-      .select('*')
+      .select(SELECT_COLUMNS.lesson_materials)
       .eq('material_id', materialId)
       .single()
 

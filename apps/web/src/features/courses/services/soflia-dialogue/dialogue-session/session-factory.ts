@@ -80,7 +80,7 @@ async function insertDialogueSession(input: {
       state: 'START',
       user_id: input.context.userId,
     })
-    .select('*')
+    .select(SELECT_COLUMNS.soflia_dialogue_sessions)
     .single()
 
   if (error || !data) {

@@ -9,7 +9,7 @@ interface CacheEntry<T> {
 }
 
 export class ContextCacheService {
-  private static cache = new Map<string, CacheEntry<any>>();
+  private static cache = new Map<string, CacheEntry<unknown>>();
   
   /**
    * Obtiene un valor del caché o lo carga usando el loader si no existe o expiró
@@ -118,7 +118,6 @@ export class ContextCacheService {
     };
   }
 }
-
 
 
 

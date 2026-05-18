@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { BugReportDraftTokenPayload } from './types'
 import { extractToken, stripTokenMarkers, BUG_REPORT_DRAFT_REGEX } from './token-markers'
 
@@ -8,7 +9,7 @@ export function extractBugReportDraftToken(content: string): BugReportDraftToken
       BUG_REPORT_DRAFT_REGEX,
     )?.payload ?? null
   } catch (error) {
-    console.error('Error leyendo el borrador de reporte de SofLIA:', error)
+    techDebtLogger.error('Error leyendo el borrador de reporte de SofLIA:', error)
     return null
   }
 }

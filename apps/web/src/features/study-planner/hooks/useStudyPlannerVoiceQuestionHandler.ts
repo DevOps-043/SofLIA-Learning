@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback } from 'react';
 import {
   applyPlannerPreSendGuardrails,
@@ -55,7 +56,7 @@ export function useStudyPlannerVoiceQuestionHandler({
     }
 
     if (processingRef.current) {
-      console.warn('Otra pregunta esta en curso, ignorando la nueva.');
+      techDebtLogger.warn('Otra pregunta esta en curso, ignorando la nueva.');
       return;
     }
 
@@ -77,7 +78,7 @@ export function useStudyPlannerVoiceQuestionHandler({
         wasRecentQuestion
         && (lastText === trimmedQuestion || lastText.includes(trimmedQuestion) || trimmedQuestion.includes(lastText))
       ) {
-        console.warn('Pregunta similar ya procesada recientemente, ignorando.');
+        techDebtLogger.warn('Pregunta similar ya procesada recientemente, ignorando.');
         processingRef.current = false;
         setIsProcessing(false);
         return;
@@ -174,7 +175,7 @@ export function useStudyPlannerVoiceQuestionHandler({
         await speakText(buildStudyPlannerSpeechText(liaResponse));
       }
     } catch (error) {
-      console.error('Error procesando pregunta por voz:', error);
+      techDebtLogger.error('Error procesando pregunta por voz:', error);
       const errorMessage = 'Lo siento, tuve un problema procesando tu pregunta. Podrias intentarlo de nuevo?';
 
       try {

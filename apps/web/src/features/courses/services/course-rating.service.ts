@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type {
   CourseRatingSubmissionInput,
   RatingCheckResponse,
@@ -37,7 +38,7 @@ export class CourseRatingService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error("Error checking user rating:", error);
+      techDebtLogger.error("Error checking user rating:", error);
       throw error;
     }
   }
@@ -95,7 +96,7 @@ export class CourseRatingService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error("Error submitting rating:", error);
+      techDebtLogger.error("Error submitting rating:", error);
       throw error;
     }
   }

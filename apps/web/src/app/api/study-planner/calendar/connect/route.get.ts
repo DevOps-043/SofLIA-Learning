@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API Endpoint: Connect Calendar
  * 
@@ -81,7 +82,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
     
   } catch (error) {
-    console.error('Error en callback de calendario:', error);
+    techDebtLogger.error('Error en callback de calendario:', error);
     return NextResponse.redirect(
       new URL('/study-planner/create?calendar_error=server_error', request.url)
     );

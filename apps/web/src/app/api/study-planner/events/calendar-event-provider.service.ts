@@ -1,4 +1,6 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { CalendarIntegrationService } from '../../../../features/study-planner/services/calendar-integration.service';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 import type {
   CalendarEventCreateInput,
   CreatedGoogleCalendarEvent,
@@ -23,7 +25,7 @@ export async function getGoogleCalendarEvents(
       status: event.status,
     }));
   } catch (error) {
-    console.error('Error obteniendo eventos de Google Calendar:', error);
+    techDebtLogger.error('Error obteniendo eventos de Google Calendar:', error);
     return [];
   }
 }
@@ -34,7 +36,8 @@ export async function getMicrosoftCalendarEvents(
   endDate: Date,
 ): Promise<ExternalCalendarEvent[]> {
   try {
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'microsoft-calendar-events',
       `https://graph.microsoft.com/v1.0/me/calendarview?` +
       `startDateTime=${startDate.toISOString()}&` +
       `endDateTime=${endDate.toISOString()}&` +
@@ -54,7 +57,7 @@ export async function getMicrosoftCalendarEvents(
     const data = await response.json() as { value?: ExternalCalendarEvent[] };
     return data.value || [];
   } catch (error) {
-    console.error('Error obteniendo eventos de Microsoft Calendar:', error);
+    techDebtLogger.error('Error obteniendo eventos de Microsoft Calendar:', error);
     return [];
   }
 }
@@ -66,7 +69,8 @@ export async function createGoogleCalendarEvent(
 ): Promise<CreatedGoogleCalendarEvent> {
   const targetCalendarId = calendarId || 'primary';
 
-  const response = await fetch(
+  const response = await fetchWithCircuitBreaker(
+    'google-calendar-events',
     `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`,
     {
       method: 'POST',

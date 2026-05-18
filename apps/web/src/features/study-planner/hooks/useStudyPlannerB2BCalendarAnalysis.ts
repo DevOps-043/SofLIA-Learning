@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type {
   StudyApproach,
   StudyPlannerAssignedCourse,
@@ -94,7 +95,7 @@ async function resolveCourseAnalysis(
             completedLessons = completedLessonIds.length;
           }
         } catch (progressError) {
-          console.warn(
+          techDebtLogger.warn(
             `[B2B] Error obteniendo progreso del curso ${course.courseId}:`,
             progressError,
           );
@@ -132,7 +133,7 @@ async function resolveCourseAnalysis(
       }
     }
   } catch (metadataError) {
-    console.warn(`[B2B] Error obteniendo lecciones del curso ${course.courseId}:`, metadataError);
+    techDebtLogger.warn(`[B2B] Error obteniendo lecciones del curso ${course.courseId}:`, metadataError);
   }
 
   const pendingLessons = totalLessons - completedLessons;
@@ -224,7 +225,7 @@ export function useStudyPlannerB2BCalendarAnalysis(
 
       params.setSelectedCourseIds(originalSelectedCourseIds);
     } catch (error) {
-      console.error('[B2B] Error en analisis de calendario:', error);
+      techDebtLogger.error('[B2B] Error en analisis de calendario:', error);
       params.setIsProcessing(false);
 
       const organizationName = userProfile.organization?.name;

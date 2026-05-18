@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
@@ -59,7 +60,7 @@ export async function GET(
       rating: review || null,
     });
   } catch (error) {
-    console.error('Error in GET /api/courses/[slug]/rating:', error);
+    techDebtLogger.error('Error in GET /api/courses/[slug]/rating:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -158,7 +159,7 @@ export async function POST(
       .single();
 
     if (upsertError) {
-      console.error('Error upserting review:', upsertError);
+      techDebtLogger.error('Error upserting review:', upsertError);
       return NextResponse.json(
         { error: 'Error al guardar la calificación' },
         { status: 500 }
@@ -173,7 +174,7 @@ export async function POST(
       .eq('course_id', course.id);
 
     if (reviewsError) {
-      console.error('Error fetching reviews for average:', reviewsError);
+      techDebtLogger.error('Error fetching reviews for average:', reviewsError);
       // No fallar la operación si no podemos actualizar el promedio
     } else if (allReviews && allReviews.length > 0) {
       const averageRating = allReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / allReviews.length;
@@ -190,7 +191,7 @@ export async function POST(
         .eq('id', course.id);
 
       if (updateError) {
-        console.error('Error updating course rating stats:', updateError);
+        techDebtLogger.error('Error updating course rating stats:', updateError);
         // No fallar la operación si no podemos actualizar las estadísticas
       }
     }
@@ -201,7 +202,7 @@ export async function POST(
       message: 'Calificación guardada exitosamente',
     });
   } catch (error) {
-    console.error('Error in POST /api/courses/[slug]/rating:', error);
+    techDebtLogger.error('Error in POST /api/courses/[slug]/rating:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

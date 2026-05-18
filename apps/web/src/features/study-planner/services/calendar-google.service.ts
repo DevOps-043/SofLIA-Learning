@@ -9,6 +9,8 @@
  */
 
 import type { GoogleUserInfoResponse } from './calendar-google.types';
+import { logger } from '@/lib/logger';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 import {
   getFreeBusyInfo,
   getGoogleCalendarEvents,
@@ -41,17 +43,17 @@ export class CalendarGoogleService {
 
   static async getGoogleUserEmail(accessToken: string): Promise<string | null> {
     try {
-      const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      const response = await fetchWithCircuitBreaker('google-oauth', 'https://www.googleapis.com/oauth2/v2/userinfo', {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (!response.ok) {
-        console.error('Error obteniendo info de usuario de Google:', await response.text());
+        logger.warn('Error obteniendo info de usuario de Google', { status: response.status });
         return null;
       }
       const data: GoogleUserInfoResponse = await response.json();
       return data.email || null;
     } catch (error) {
-      console.error('Error obteniendo email de Google:', error);
+      logger.warn('Error obteniendo email de Google', { error });
       return null;
     }
   }

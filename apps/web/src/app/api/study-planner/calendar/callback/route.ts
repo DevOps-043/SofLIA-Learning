@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '../../../../../features/auth/services/session.service';
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service';
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     
     // Si hay un error de OAuth
     if (error) {
-      console.error('Error de OAuth:', error, errorDescription);
+      techDebtLogger.error('Error de OAuth:', error, errorDescription);
       
       // Verificar si viene de un popup
       let isPopup = false;
@@ -97,7 +98,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       }
       isPopup = stateData.usePopup === true;
     } catch (parseError) {
-      console.error('Error parseando state:', parseError, 'State recibido:', state);
+      techDebtLogger.error('Error parseando state:', parseError, 'State recibido:', state);
       
       // Si es popup, redirigir a la página de callback del cliente
       if (state && state.includes('usePopup')) {
@@ -169,7 +170,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
       
     } catch (connectionError) {
-      console.error('Error conectando calendario:', connectionError);
+      techDebtLogger.error('Error conectando calendario:', connectionError);
       
       // Parsear error para obtener mensaje descriptivo y tipo de error
       let errorMsg = 'Error desconocido al conectar el calendario';
@@ -233,7 +234,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
     
   } catch (error: unknown) {
-    console.error('Error en callback de calendario:', error);
+    techDebtLogger.error('Error en callback de calendario:', error);
     return NextResponse.redirect(
       new URL('/study-planner/create?calendar_error=server_error', request.url)
     );

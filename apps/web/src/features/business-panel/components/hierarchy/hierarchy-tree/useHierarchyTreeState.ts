@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect, useState } from 'react';
 import { DynamicHierarchyService } from '../../../services/dynamicHierarchy.service';
 import type { OrganizationNode, OrganizationStructure } from '../../../types/dynamicHierarchy.types';
@@ -34,7 +35,7 @@ export function useHierarchyTreeState(initialStructureId: string | undefined, t:
       }
     } catch (err) {
       setError(t('hierarchy.loadStructuresError'));
-      console.error(err);
+      techDebtLogger.error(err);
     }
   }, [t]);
 
@@ -47,7 +48,7 @@ export function useHierarchyTreeState(initialStructureId: string | undefined, t:
       setTreeRoots(buildTreeFromFlat(data));
     } catch (err) {
       setError(t('hierarchy.loadHierarchyError'));
-      console.error(err);
+      techDebtLogger.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -77,7 +78,7 @@ export function useHierarchyTreeState(initialStructureId: string | undefined, t:
       await loadNodes(selectedStructureId);
       setShowNodeModal(false);
     } catch (err) {
-      console.error(err);
+      techDebtLogger.error(err);
       setNodeActionError(t('hierarchy.saveNodeError'));
     }
   };

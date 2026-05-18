@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { CourseImportPayload } from './schemas'
 import type { CourseImportSupabaseClient } from './service-client'
 
@@ -50,14 +51,14 @@ async function clearExistingCourseModules(
 ) {
   const { count } = await supabase
     .from('course_modules')
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .eq('course_id', courseId)
 
   if (!count || count <= 0) {
     return
   }
 
-  console.info(
+  techDebtLogger.info(
     `[IMPORT API] Re-import detected for course "${courseId}". Clearing ${count} existing module(s) before re-inserting.`
   )
   const { error } = await supabase

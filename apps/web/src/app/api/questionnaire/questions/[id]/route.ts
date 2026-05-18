@@ -60,7 +60,7 @@ export async function GET(
     // Obtener la pregunta específica
     const { data: question, error: questionError } = await supabase
       .from('preguntas')
-      .select('*')
+      .select(SELECT_COLUMNS.preguntas)
       .eq('id', questionId)
       .single();
 

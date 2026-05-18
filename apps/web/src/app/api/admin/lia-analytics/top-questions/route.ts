@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API de LIA Analytics - Top Questions/Temas Frecuentes
  * 
@@ -119,7 +120,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching messages for top questions:', error);
+      techDebtLogger.error('Error fetching messages for top questions:', error);
       return NextResponse.json(
         { success: false, error: 'Error al obtener datos' },
         { status: 500 }
@@ -211,7 +212,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error en LIA Analytics Top Questions:', error);
+    techDebtLogger.error('Error en LIA Analytics Top Questions:', error);
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

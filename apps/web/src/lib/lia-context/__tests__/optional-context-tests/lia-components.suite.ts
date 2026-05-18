@@ -1,11 +1,10 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { LIA_DATA_ATTRIBUTES, liaComponent, liaDataTable, liaErrorBoundary, liaForm, liaMarker, liaModal } from '../../utils/lia-component'
 import { check } from './assertions'
 import { createResult } from './types'
 
 export function testLiaComponentUtilities() {
-  console.log('
-TEST: LIA COMPONENT UTILITIES
-')
+  techDebtLogger.log('\nTEST: LIA COMPONENT UTILITIES\n')
   const result = createResult()
   const basic = liaComponent({ name: 'TestComponent' })
   const withProps = liaComponent({ name: 'Card', props: { id: '123', isOpen: true }, state: 'active' })

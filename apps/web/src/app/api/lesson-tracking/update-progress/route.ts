@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '@/features/auth/services/session.service';
@@ -29,7 +30,7 @@ async function syncUserLessonProgress({
         .maybeSingle();
 
     if (progressLookupError) {
-        console.warn('[Update Progress] Unable to sync user_lesson_progress lookup:', progressLookupError);
+        techDebtLogger.warn('[Update Progress] Unable to sync user_lesson_progress lookup:', progressLookupError);
         return;
     }
 
@@ -64,7 +65,7 @@ async function syncUserLessonProgress({
         .eq('progress_id', progressRow.progress_id);
 
     if (progressUpdateError) {
-        console.warn('[Update Progress] Unable to sync user_lesson_progress:', progressUpdateError);
+        techDebtLogger.warn('[Update Progress] Unable to sync user_lesson_progress:', progressUpdateError);
     }
 }
 
@@ -130,7 +131,7 @@ export async function POST(request: NextRequest) {
                 .eq('user_id', user.id); // Seguridad: solo actualizar si es del usuario
 
             if (error) {
-                console.error('[Update Progress] Error updating tracking:', error);
+                techDebtLogger.error('[Update Progress] Error updating tracking:', error);
                 return NextResponse.json({
                     error: 'Failed to update tracking',
                     details: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -179,7 +180,7 @@ export async function POST(request: NextRequest) {
                 .eq('id', existingTracking.id);
 
             if (error) {
-                console.error('[Update Progress] Error updating existing tracking:', error);
+                techDebtLogger.error('[Update Progress] Error updating existing tracking:', error);
                 return NextResponse.json({
                     error: 'Failed to update existing tracking',
                     details: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -218,7 +219,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (insertError) {
-            console.error('[Update Progress] Error creating tracking:', insertError);
+            techDebtLogger.error('[Update Progress] Error creating tracking:', insertError);
             return NextResponse.json({
                 error: 'Failed to create tracking',
                 details: process.env.NODE_ENV === 'development' ? insertError.message : undefined
@@ -237,7 +238,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ success: true, trackingId: newTracking.id });
     } catch (error) {
-        console.error('[Update Progress] Unexpected error:', error);
+        techDebtLogger.error('[Update Progress] Unexpected error:', error);
         return NextResponse.json({
             error: 'Internal server error',
             details: process.env.NODE_ENV === 'development' ? String(error) : undefined

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { SessionService } from '../../../../../features/auth/services/session.service'
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service'
@@ -62,7 +63,7 @@ export async function POST(
       },
     })
   } catch (error) {
-    console.error('Error analizando calendario:', error)
+    techDebtLogger.error('Error analizando calendario:', error)
     return NextResponse.json(
       {
         success: false,

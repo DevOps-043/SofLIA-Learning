@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, useMemo, useState } from 'react'
 
 import { useLanguage } from '../providers/I18nProvider'
@@ -41,7 +42,7 @@ export function useTranslatedContent<T extends Record<string, unknown>>(
           setTranslatedData(translated)
         }
       } catch (error) {
-        console.error('Error translating content:', error)
+        techDebtLogger.error('Error translating content:', error)
         if (!isCancelled) {
           setTranslatedData(data)
         }

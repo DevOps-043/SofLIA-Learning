@@ -43,7 +43,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     // Obtener todas las regiones con sus zonas y equipos
     const { data: regions, error: regionsError } = await supabase
       .from('organization_regions')
-      .select('*')
+      .select(SELECT_COLUMNS.organization_regions)
       .eq('organization_id', auth.organizationId)
       .eq('is_active', true)
       .order('name', { ascending: true });
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     const { data: zones, error: zonesError } = await supabase
       .from('organization_zones')
-      .select('*')
+      .select(SELECT_COLUMNS.organization_zones)
       .eq('organization_id', auth.organizationId)
       .eq('is_active', true)
       .order('name', { ascending: true });
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     const { data: teams, error: teamsError } = await supabase
       .from('organization_teams')
-      .select('*')
+      .select(SELECT_COLUMNS.organization_teams)
       .eq('organization_id', auth.organizationId)
       .eq('is_active', true)
       .order('name', { ascending: true });

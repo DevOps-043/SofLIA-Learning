@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { buildDeadlinePrompt } from './deadline-prompt'
 import type {
@@ -59,7 +60,7 @@ export async function calculateDeadlineOptions(
       },
     }
   } catch (error) {
-    console.error('LIA Calculation failed (using math fallback):', error)
+    techDebtLogger.error('LIA Calculation failed (using math fallback):', error)
     return fallback
   }
 }

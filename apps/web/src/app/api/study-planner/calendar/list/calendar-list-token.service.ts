@@ -1,5 +1,7 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createAdminClient } from './calendar-list-admin-client'
 import { getRefreshConfig } from './calendar-list-token.config'
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
 import type {
   CalendarIntegrationRow,
   TokenRefreshResponse,
@@ -17,7 +19,7 @@ export async function refreshAccessToken(
       return { success: false }
     }
 
-    const response = await fetch(refreshConfig.url, {
+    const response = await fetchWithCircuitBreaker('calendar-list-token-refresh', refreshConfig.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams(refreshConfig.body),
@@ -35,7 +37,7 @@ export async function refreshAccessToken(
     await persistTokens(integration, tokens)
     return { success: true, accessToken: tokens.access_token }
   } catch (error) {
-    console.error('[Calendar List] Error refrescando token:', error)
+    techDebtLogger.error('[Calendar List] Error refrescando token:', error)
     return { success: false }
   }
 }

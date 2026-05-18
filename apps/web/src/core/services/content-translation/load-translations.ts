@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { normalizeTranslations } from './translation-validation';
 import { getCachedTranslations, setCachedTranslations } from './translation-cache';
 import { resolveReadClient } from './translation-client';
@@ -43,7 +44,7 @@ export async function loadTranslations(
     setCachedTranslations(entityType, entityId, language, translations);
     return translations;
   } catch (error) {
-    console.error(
+    techDebtLogger.error(
       `[ContentTranslationService] Error loading ${entityType}:${entityId}:`,
       error,
     );

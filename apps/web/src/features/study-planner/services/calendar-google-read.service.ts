@@ -1,4 +1,6 @@
 import type { CalendarEvent } from '../types/user-context.types';
+import { logger } from '@/lib/logger';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 import { CalendarDbService } from './calendar-db.service';
 import type {
   CalendarListEntry,
@@ -8,12 +10,13 @@ import type {
 
 export async function getGoogleCalendarList(accessToken: string): Promise<CalendarListEntry[]> {
   try {
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar',
       'https://www.googleapis.com/calendar/v3/users/me/calendarList',
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
     if (!response.ok) {
-      console.error('[Calendar] Error obteniendo lista de calendarios:', await response.text());
+      logger.warn('[Calendar] Error obteniendo lista de calendarios', { status: response.status });
       return [];
     }
     const data: GoogleCalendarListResponse = await response.json();
@@ -25,7 +28,7 @@ export async function getGoogleCalendarList(accessToken: string): Promise<Calend
       backgroundColor: cal.backgroundColor,
     }));
   } catch (error) {
-    console.error('[Calendar] Error obteniendo lista de calendarios:', error);
+    logger.warn('[Calendar] Error obteniendo lista de calendarios', { error });
     return [];
   }
 }
@@ -56,7 +59,7 @@ export async function getFreeBusyInfo(
     }
     if (idsToQuery.length === 0) return { calendars: {}, allBusySlots: [] };
 
-    const response = await fetch('https://www.googleapis.com/calendar/v3/freeBusy', {
+    const response = await fetchWithCircuitBreaker('google-calendar', 'https://www.googleapis.com/calendar/v3/freeBusy', {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -67,7 +70,7 @@ export async function getFreeBusyInfo(
     });
 
     if (!response.ok) {
-      console.error('[Calendar] Error obteniendo free/busy:', await response.text());
+      logger.warn('[Calendar] Error obteniendo free/busy', { status: response.status });
       return { calendars: {}, allBusySlots: [] };
     }
 
@@ -100,7 +103,7 @@ export async function getFreeBusyInfo(
 
     return { calendars, allBusySlots: mergedSlots };
   } catch (error) {
-    console.error('[Calendar] Error obteniendo free/busy:', error);
+    logger.warn('[Calendar] Error obteniendo free/busy', { error });
     return { calendars: {}, allBusySlots: [] };
   }
 }
@@ -119,12 +122,13 @@ async function getEventsFromSingleCalendar(
       orderBy: 'startTime',
       maxResults: '250',
     });
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params}`,
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
     if (!response.ok) {
-      console.error(`Error obteniendo eventos del calendario ${calendarId}:`, await response.text());
+      logger.warn('Error obteniendo eventos de Google Calendar', { calendarId, status: response.status });
       return [];
     }
     const data: GoogleCalendarEventsResponse = await response.json();
@@ -146,7 +150,7 @@ async function getEventsFromSingleCalendar(
       calendarId,
     }));
   } catch (error) {
-    console.error(`Error obteniendo eventos del calendario ${calendarId}:`, error);
+    logger.warn('Error obteniendo eventos de Google Calendar', { calendarId, error });
     return [];
   }
 }
@@ -158,13 +162,14 @@ export async function getGoogleCalendarEvents(
   selectedCalendarIds?: string[],
 ): Promise<CalendarEvent[]> {
   try {
-    const calendarsResponse = await fetch(
+    const calendarsResponse = await fetchWithCircuitBreaker(
+      'google-calendar',
       'https://www.googleapis.com/calendar/v3/users/me/calendarList',
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 
     if (!calendarsResponse.ok) {
-      console.error('Error obteniendo lista de calendarios:', await calendarsResponse.text());
+      logger.warn('Error obteniendo lista de calendarios de Google', { status: calendarsResponse.status });
       return getEventsFromSingleCalendar(accessToken, 'primary', startDate, endDate);
     }
 
@@ -185,7 +190,7 @@ export async function getGoogleCalendarEvents(
     allEvents.sort((a, b) => new Date(a.startTime ?? 0).getTime() - new Date(b.startTime ?? 0).getTime());
     return allEvents;
   } catch (error) {
-    console.error('Error obteniendo eventos de Google:', error);
+    logger.warn('Error obteniendo eventos de Google', { error });
     return [];
   }
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState } from 'react'
 import type { GeocodeResponse, ReverseGeocodeResponse } from './node-form.utils'
 import { getErrorMessage } from './node-form.utils'
@@ -69,7 +70,7 @@ export function useGeocoding(state: GeocodingState, setters: GeocodingSetters) {
         setGeocodeError('No se encontraron coordenadas para esta dirección')
       }
     } catch (e: unknown) {
-      console.error(e)
+      techDebtLogger.error(e)
       setGeocodeError('Error: ' + getErrorMessage(e, 'Intente nuevamente'))
     } finally {
       setIsGeocoding(false)
@@ -106,7 +107,7 @@ export function useGeocoding(state: GeocodingState, setters: GeocodingSetters) {
         setters.setStreet(data.display_name)
       }
     } catch (e: unknown) {
-      console.error(e)
+      techDebtLogger.error(e)
       setGeocodeError('Error al obtener dirección: ' + getErrorMessage(e, 'Intente nuevamente'))
     } finally {
       setIsGeocoding(false)

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import bcrypt from 'bcryptjs'
 import { fromLoose } from '../../../../lib/supabase/looseQuery'
 import type {
@@ -137,7 +138,7 @@ export async function createOrganizationUser(
 
       if (rollbackError) {
         // Log the orphaned user so it can be manually cleaned up
-        console.error('[createOrganizationUser] Rollback failed — orphaned user:', {
+        techDebtLogger.error('[createOrganizationUser] Rollback failed — orphaned user:', {
           userId: newUser.id,
           orgError: organizationUserError,
           rollbackError,

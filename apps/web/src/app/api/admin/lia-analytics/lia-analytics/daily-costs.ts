@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { applyProviderFilter } from './provider-filter'
 import type {
   DailyCostRow,
@@ -43,7 +44,7 @@ async function fetchDailyCosts(
     const { data, error } = await query
 
     if (error) {
-      console.error('[LIA Analytics] Error fetching daily costs:', error)
+      techDebtLogger.error('[LIA Analytics] Error fetching daily costs:', error)
       break
     }
 

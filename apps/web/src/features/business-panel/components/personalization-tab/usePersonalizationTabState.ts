@@ -84,11 +84,19 @@ export function usePersonalizationTabState({
     }
   }
   const handleToggleSSO = async (provider: 'google' | 'microsoft', value: boolean) => {
-    provider === 'google' ? setIsUpdatingGoogle(true) : setIsUpdatingMicrosoft(true)
+    if (provider === 'google') {
+      setIsUpdatingGoogle(true)
+    } else {
+      setIsUpdatingMicrosoft(true)
+    }
     try {
       await updateOrganization({ [`${provider}_login_enabled`]: value })
     } finally {
-      provider === 'google' ? setIsUpdatingGoogle(false) : setIsUpdatingMicrosoft(false)
+      if (provider === 'google') {
+        setIsUpdatingGoogle(false)
+      } else {
+        setIsUpdatingMicrosoft(false)
+      }
     }
   }
   const copyToClipboard = (text: string, type: 'login' | 'register') => {

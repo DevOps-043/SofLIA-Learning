@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API Endpoint: Lesson Tracking Complete
  * 
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .eq('id', tracking.id);
 
     if (updateError) {
-      console.error('Error completando lesson tracking:', updateError);
+      techDebtLogger.error('Error completando lesson tracking:', updateError);
       return NextResponse.json({ 
         error: `Error al completar: ${updateError.message}`,
         success: false
@@ -155,7 +156,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
   } catch (error: unknown) {
-    console.error('Error en POST /api/study-planner/lesson-tracking/complete:', error);
+    techDebtLogger.error('Error en POST /api/study-planner/lesson-tracking/complete:', error);
     return NextResponse.json({ 
       error: getErrorMessage(error, 'Error interno del servidor'),
       success: false

@@ -26,8 +26,14 @@ import {
   appendBugReportContext,
   buildCleanHistory,
 } from './chat-context.builder';
+import { buildCurrentTurnPrompt } from './prompt-current-turn.service';
 import { processAIResponse } from './chat-response.formatter';
 import { toInlineImagePart } from '@/core/reporting/report-problem.server';
+import {
+  CIRCUIT_BREAKER_DEFAULTS,
+  executeWithCircuitBreaker,
+} from '@/lib/resilience/circuit-breaker';
+import { logger } from '@/lib/logger';
 import {
   buildPendingBugReportPromptSection,
   detectBugReportConfirmationIntent,
@@ -142,7 +148,7 @@ export async function POST(request: NextRequest) {
     // Verify API Key
     const googleApiKey = process.env.GOOGLE_API_KEY;
     if (!googleApiKey) {
-      console.error('❌ GOOGLE_API_KEY no está configurada');
+      logger.error('GOOGLE_API_KEY no esta configurada');
       return NextResponse.json(
         { error: 'GOOGLE_API_KEY no está configurada' },
         { status: 500 }
@@ -289,15 +295,19 @@ export async function POST(request: NextRequest) {
     });
 
     const cleanHistory = buildCleanHistory(sanitizedMessages);
-    const messageWithContext = systemPrompt + '\n\n---\n\nUsuario: ' + lastMessage.content;
+    const messageWithContext = buildCurrentTurnPrompt(systemPrompt, lastMessage.content);
 
     const chatSession = model.startChat({
       history: cleanHistory,
       generationConfig: { maxOutputTokens: 8192, temperature: 0.7 },
     });
 
-    const result = await chatSession.sendMessage(
-      buildCurrentMessageParts(messageWithContext, lastMessage.attachments)
+    const result = await executeWithCircuitBreaker(
+      'gemini-lia-chat',
+      () => chatSession.sendMessage(
+        buildCurrentMessageParts(messageWithContext, lastMessage.attachments)
+      ),
+      CIRCUIT_BREAKER_DEFAULTS.gemini,
     );
     const finalContent = result.response.text();
 
@@ -336,12 +346,11 @@ export async function POST(request: NextRequest) {
     return buildAssistantResponse(securedClientContent, shouldStream);
 
   } catch (error) {
-    console.error('❌ LIA Chat API error:', error);
+    logger.error('LIA Chat API error', error);
 
     let errorMessage = 'Error interno del servidor';
     if (error instanceof Error) {
       errorMessage = error.message;
-      console.error('Error stack:', error.stack);
     }
 
     // Handle Rate Limit

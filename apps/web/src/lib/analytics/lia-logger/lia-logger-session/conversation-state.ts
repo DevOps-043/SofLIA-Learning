@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../supabase/server';
 import { conversationsTable, messagesTable, userFeedbackTable } from '../lia-logger-events';
 
@@ -25,7 +26,7 @@ export async function recoverLiaMessageSequence(conversationId: string) {
     .single();
 
   if (error && error.code !== 'PGRST116') {
-    console.error('[LiaLogger] Error recovering message sequence:', error);
+    techDebtLogger.error('[LiaLogger] Error recovering message sequence:', error);
   }
 
   return data?.message_sequence || 0;

@@ -4,7 +4,7 @@ import { InviteErrorMessage } from './InviteErrorMessage';
 import { InviteInfoNote } from './InviteInfoNote';
 import { InviteRoleSelector } from './InviteRoleSelector';
 import { InviteTextField } from './InviteTextField';
-import type { BusinessInviteTheme, InviteFormData, InviteRoleLabel, InviteStatus } from './types';
+import type { BusinessInviteTheme, BusinessInviteTranslator, InviteFormData, InviteRoleLabel, InviteStatus } from './types';
 
 interface InviteFormContentProps {
   error: string | null;
@@ -13,7 +13,7 @@ interface InviteFormContentProps {
   roleLabels: Record<InviteFormData['role'], InviteRoleLabel>;
   setFormData: React.Dispatch<React.SetStateAction<InviteFormData>>;
   status: InviteStatus;
-  t: (key: string, fallback?: string) => string;
+  t: BusinessInviteTranslator;
   theme: BusinessInviteTheme;
 }
 

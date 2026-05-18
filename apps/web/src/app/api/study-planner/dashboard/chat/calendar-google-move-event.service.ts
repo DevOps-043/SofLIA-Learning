@@ -1,4 +1,5 @@
 import { logger } from '../../../../../lib/utils/logger';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 
 export async function moveGoogleCalendarEvent(
   accessToken: string,
@@ -11,7 +12,8 @@ export async function moveGoogleCalendarEvent(
 ): Promise<boolean> {
   try {
     const targetCalendarId = calendarId || 'primary';
-    const getResponse = await fetch(
+    const getResponse = await fetchWithCircuitBreaker(
+      'google-calendar-dashboard-chat',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events/${eventId}`,
       {
         method: 'GET',
@@ -39,7 +41,8 @@ export async function moveGoogleCalendarEvent(
       },
     };
 
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar-dashboard-chat',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events/${eventId}`,
       {
         method: 'PUT',

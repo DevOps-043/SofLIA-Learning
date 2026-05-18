@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../../lib/supabase/server'
 import type { TeamCourseAssignment } from '../../types/user-context.types'
 import {
@@ -73,7 +74,7 @@ export async function getTeamCourseAssignments(
         .in('status', ['active'])
 
       if (error) {
-        console.error('Error obteniendo asignaciones jerarquicas:', error)
+        techDebtLogger.error('Error obteniendo asignaciones jerarquicas:', error)
         return []
       }
 
@@ -203,7 +204,7 @@ async function getLegacyTeamCourseAssignments(
     .neq('status', 'completed')
 
   if (error) {
-    console.error('Error obteniendo asignaciones de equipos legacy:', error)
+    techDebtLogger.error('Error obteniendo asignaciones de equipos legacy:', error)
     return []
   }
 

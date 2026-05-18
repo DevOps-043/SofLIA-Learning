@@ -26,7 +26,7 @@ export async function GET(
     // Obtener la comunidad por slug
     const { data: community, error: communityError } = await supabase
       .from('communities')
-      .select('*')
+      .select(SELECT_COLUMNS.communities)
       .eq('slug', slug)
       .eq('is_active', true)
       .single();

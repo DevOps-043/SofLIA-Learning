@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API Endpoint: Calendar Cleanup
  *
@@ -196,7 +197,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CleanupRe
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
         errors.push(`Error en ${event.id}: ${errorMsg}`);
-        console.error(`❌ [Cleanup] Error eliminando evento ${event.id}:`, error);
+        techDebtLogger.error(`❌ [Cleanup] Error eliminando evento ${event.id}:`, error);
       }
     }
 
@@ -212,7 +213,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CleanupRe
           : `Se eliminaron ${eventsDeleted} de ${orphanedEvents.length} eventos. ${errors.length} errores.`,
     });
   } catch (error) {
-    console.error('❌ [Cleanup] Error general:', error);
+    techDebtLogger.error('❌ [Cleanup] Error general:', error);
     return NextResponse.json(
       {
         success: false,

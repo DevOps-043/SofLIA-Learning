@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../supabase/server';
 import type { ActivityProgress, ActivityStatus, LooseWriteRow } from '../lia-logger-events';
 import { activityCompletionsTable } from '../lia-logger-events';
@@ -36,7 +37,7 @@ export async function incrementLiaActivityRedirections(completionId: string) {
     .eq('completion_id', completionId);
 
   if (error) {
-    console.error('[SofLIALogger] Error incrementing redirections:', error);
+    techDebtLogger.error('[SofLIALogger] Error incrementing redirections:', error);
   }
 }
 

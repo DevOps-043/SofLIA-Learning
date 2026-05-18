@@ -72,9 +72,21 @@ export function validateRequestOrigin(origin: string | undefined) {
     throw new Error('Origin header is required')
   }
 
-  if (origin && getAllowedOrigins().includes(origin)) {
+  if (origin && isOriginAllowed(origin, getAllowedOrigins())) {
     return true
   }
 
   throw new Error(`Origin ${origin} is not allowed by CORS`)
+}
+
+export function isOriginAllowed(origin: string, allowedOrigins: readonly string[]) {
+  return allowedOrigins.some((allowedOrigin) => {
+    if (!allowedOrigin.includes('*')) {
+      return origin === allowedOrigin
+    }
+
+    const escaped = allowedOrigin.replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+    const pattern = new RegExp(`^${escaped.replace('*', '[^.]+')}$`)
+    return pattern.test(origin)
+  })
 }

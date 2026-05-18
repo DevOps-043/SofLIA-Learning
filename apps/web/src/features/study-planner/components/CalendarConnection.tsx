@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -59,7 +60,7 @@ export function CalendarConnection({
         window.location.href = data.data.authUrl;
       }
     } catch (err) {
-      console.error('Error conectando calendario:', err);
+      techDebtLogger.error('Error conectando calendario:', err);
       setConnectingProvider(null);
     }
   };
@@ -76,7 +77,7 @@ export function CalendarConnection({
         onDisconnect?.();
       }
     } catch (err) {
-      console.error('Error desconectando calendario:', err);
+      techDebtLogger.error('Error desconectando calendario:', err);
     }
   };
 
@@ -89,7 +90,7 @@ export function CalendarConnection({
       window.history.replaceState({}, '', window.location.pathname);
     }
     if (calendarError) {
-      console.error('Error de calendario:', calendarError);
+      techDebtLogger.error('Error de calendario:', calendarError);
     }
   }, []);
 

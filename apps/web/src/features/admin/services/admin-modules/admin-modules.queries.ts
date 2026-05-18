@@ -30,7 +30,7 @@ export async function getModuleById(moduleId: string): Promise<AdminModule | nul
   try {
     const { data, error } = await supabase
       .from('course_modules')
-      .select('*')
+      .select(SELECT_COLUMNS.course_modules)
       .eq('module_id', moduleId)
       .single()
 

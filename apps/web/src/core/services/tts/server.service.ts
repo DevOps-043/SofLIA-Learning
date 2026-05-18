@@ -5,6 +5,7 @@ import {
   DEFAULT_TTS_OPTIMIZE_STREAMING_LATENCY,
   DEFAULT_TTS_OUTPUT_FORMAT,
 } from './shared';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 
 function getElevenLabsApiKey() {
   return process.env.ELEVENLABS_API_KEY || null;
@@ -30,7 +31,7 @@ export async function synthesizeSpeechWithElevenLabs(payload: TextToSpeechReques
     throw new Error('ELEVENLABS_NOT_CONFIGURED');
   }
 
-  return fetch(`https://api.elevenlabs.io/v1/text-to-speech/${getElevenLabsVoiceId(payload.voiceId)}`, {
+  return fetchWithCircuitBreaker(`elevenlabs-tts`, `https://api.elevenlabs.io/v1/text-to-speech/${getElevenLabsVoiceId(payload.voiceId)}`, {
     method: 'POST',
     headers: {
       Accept: 'audio/mpeg',

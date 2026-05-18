@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
@@ -21,7 +22,7 @@ export async function GET(
         // ... existing node fetch ...
         const { data: node, error: nodeError } = await supabase
             .from('organization_nodes')
-            .select('*') // Simplified for brevity in context match if needed, but keeping original structure best
+            .select(SELECT_COLUMNS.organization_nodes) // Simplified for brevity in context match if needed, but keeping original structure best
             // (Assuming keeping lines 21-36 same)
             .select(`
         *,
@@ -39,7 +40,7 @@ export async function GET(
             .single();
 
         if (nodeError || !node) {
-            console.error('Error fetching node:', nodeError);
+            techDebtLogger.error('Error fetching node:', nodeError);
             return NextResponse.json({ error: 'Node not found' }, { status: 404 });
         }
 
@@ -83,7 +84,7 @@ export async function GET(
             .order('created_at', { ascending: true });
 
         if (childrenError) {
-            console.error('Error fetching children:', childrenError);
+            techDebtLogger.error('Error fetching children:', childrenError);
         }
 
         const formattedChildren = children?.map(child => {
@@ -132,7 +133,7 @@ export async function GET(
         });
 
     } catch (error) {
-        console.error('Error in GET /nodes/[id]:', error);
+        techDebtLogger.error('Error in GET /nodes/[id]:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }

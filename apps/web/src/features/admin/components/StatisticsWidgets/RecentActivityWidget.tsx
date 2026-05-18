@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react'
 import { ClockIcon } from '@heroicons/react/24/outline'
 
@@ -37,7 +38,7 @@ export function RecentActivityWidget({ period = '24h' }: RecentActivityWidgetPro
         }
       } catch (err) {
         setError('Error al cargar actividad reciente')
-        console.error(err)
+        techDebtLogger.error(err)
       } finally {
         setIsLoading(false)
       }

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GoogleAIFileManager, FileState } from '@google/generative-ai/server';
@@ -5,6 +6,11 @@ import { writeFile, unlink } from 'fs/promises';
 import { join } from 'path';
 import os from 'os';
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import {
+  CIRCUIT_BREAKER_DEFAULTS,
+  executeWithCircuitBreaker,
+} from '@/lib/resilience/circuit-breaker'
+import { getSafeFetchSupabaseHosts, safeFetch } from '@/lib/security/safe-fetch';
 
 export const runtime = 'nodejs'; // Required for file system operations
 export const maxDuration = 300; // 5 minutes max for processing
@@ -39,7 +45,11 @@ export async function POST(req: NextRequest) {
     const filePath = join(tempDir, fileName);
 
     
-    const videoResponse = await fetch(videoUrl);
+    const videoResponse = await safeFetch(videoUrl, { cache: 'no-store' }, {
+      allowedHosts: getSafeFetchSupabaseHosts(),
+      provider: 'external-video-download',
+      requireHostAllowlist: true,
+    });
     if (!videoResponse.ok) {
       throw new Error(`Error al descargar video: ${videoResponse.statusText}`);
     }
@@ -105,10 +115,14 @@ export async function POST(req: NextRequest) {
       }
     `;
 
-    const result = await model.generateContent([
-      { fileData: { mimeType: file.mimeType, fileUri: file.uri } },
-      { text: prompt },
-    ]);
+    const result = await executeWithCircuitBreaker(
+      'gemini-process-video',
+      () => model.generateContent([
+        { fileData: { mimeType: file.mimeType, fileUri: file.uri } },
+        { text: prompt },
+      ]),
+      CIRCUIT_BREAKER_DEFAULTS.gemini,
+    );
 
     const responseText = result.response.text();
     const data = JSON.parse(responseText);
@@ -124,7 +138,7 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Error processing video:', error);
+    techDebtLogger.error('❌ Error processing video:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Error interno' },
       { status: 500 }

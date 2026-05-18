@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
@@ -84,7 +85,7 @@ export function useBusinessBulkInviteLinkModal({
       setCopied(true)
       window.setTimeout(() => setCopied(false), 2000)
     } catch (issue) {
-      console.error('Failed to copy:', issue)
+      techDebtLogger.error('Failed to copy:', issue)
     }
   }
 

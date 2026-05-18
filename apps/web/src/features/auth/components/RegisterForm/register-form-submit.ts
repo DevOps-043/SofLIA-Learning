@@ -1,6 +1,9 @@
 import type { RegisterFormData } from '../../types/auth.types';
 
-export function toRegisterActionFormData(data: RegisterFormData): FormData {
+export function toRegisterActionFormData(
+  data: RegisterFormData,
+  captchaToken = '',
+): FormData {
   const formData = new FormData();
 
   Object.entries(data).forEach(([key, value]) => {
@@ -11,6 +14,8 @@ export function toRegisterActionFormData(data: RegisterFormData): FormData {
 
     formData.append(key, value === null || value === undefined ? '' : String(value));
   });
+
+  formData.append('captchaToken', captchaToken);
 
   return formData;
 }

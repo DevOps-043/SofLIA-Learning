@@ -23,6 +23,7 @@ export const DETECTION_RULES: DetectionRule[] = [
       /\bdump\b.{0,40}\b(prompt|instructions?|policy)\b/i,
       /\bprint\b.{0,40}\b(system prompt|developer prompt)\b/i,
       /\bmuestrame\b.{0,40}\b(system prompt|hidden instructions|cookies|tokens|endpoints?)\b/i,
+      /\bmuestra\b.{0,40}\b(system prompt|prompt|instrucciones?|cookies|tokens|endpoints?)\b/i,
       /\brevela\b.{0,40}\b(prompt|instrucciones?|cookies|tokens|endpoints?)\b/i,
     ],
   },

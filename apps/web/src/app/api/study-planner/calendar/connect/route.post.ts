@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API Endpoint: Connect Calendar
  * 
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ConnectCa
     });
     
   } catch (error) {
-    console.error('Error iniciando conexión de calendario:', error);
+    techDebtLogger.error('Error iniciando conexión de calendario:', error);
     return NextResponse.json(
       { 
         success: false, 

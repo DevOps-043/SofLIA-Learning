@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import React, { useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -39,7 +40,7 @@ export function FinalCTASection() {
         setFormData({ name: '', email: '', company: '' });
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
+      techDebtLogger.error('Error submitting form:', error);
     } finally {
       setIsSubmitting(false);
     }

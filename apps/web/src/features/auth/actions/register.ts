@@ -1,9 +1,12 @@
 'use server'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../lib/supabase/server'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import crypto from 'crypto'
+import { requireHumanVerification } from '@/lib/security/bot-protection'
+import { recordSecurityEvent } from '@/lib/security/security-events'
 import {
   validateInvitationAction,
   findInvitationByEmailAction,
@@ -17,6 +20,8 @@ import {
   normalizeDateOfBirthForStorage,
   normalizeGenderForStorage,
 } from '../../../lib/schemas/user-demographics.schema'
+import { passwordSchema } from '../../../lib/validation/password-security'
+import { validatePasswordIsNotBreached } from './password-breach-check.server'
 
 const registerSchema = z.object({
   firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -26,11 +31,7 @@ const registerSchema = z.object({
     .regex(/^[a-zA-Z0-9_]+$/, 'El usuario solo puede contener letras, números y guiones bajos'),
   email: z.string().email('Email inválido'),
   confirmEmail: z.string().email('Email de confirmación inválido'),
-  password: z.string()
-    .min(8, 'La contraseña debe tener al menos 8 caracteres')
-    .regex(/[A-Z]/, 'Debe contener al menos una mayúscula')
-    .regex(/[a-z]/, 'Debe contener al menos una minúscula')
-    .regex(/[0-9]/, 'Debe contener al menos un número'),
+  password: passwordSchema,
   confirmPassword: z.string().min(1, 'Confirma la contraseña'),
   countryCode: z.string().min(1, 'Selecciona un país'),
   phoneNumber: z.string().min(1, 'El teléfono es requerido'),
@@ -50,6 +51,14 @@ const registerSchema = z.object({
 
 export async function registerAction(formData: FormData) {
   try {
+    const humanVerification = await requireHumanVerification(formData)
+    if (!humanVerification.ok) {
+      recordSecurityEvent('registration-failure', {
+        metadata: { reason: 'human_verification_failed' },
+      })
+      return { error: humanVerification.error || 'Verificacion humana requerida' }
+    }
+
     // Convertir FormData a objeto, manejando correctamente los tipos
     const rawData = Object.fromEntries(formData)
 
@@ -60,6 +69,11 @@ export async function registerAction(formData: FormData) {
     }
 
     const parsed = registerSchema.parse(formDataParsed)
+    const breachError = await validatePasswordIsNotBreached(parsed.password)
+
+    if (breachError) {
+      return { error: breachError }
+    }
 
     // Obtener contexto de organización si viene de registro personalizado
     const organizationId = formData.get('organizationId')?.toString()
@@ -218,7 +232,7 @@ export async function registerAction(formData: FormData) {
       .single()
 
     if (error) {
-      console.error('❌ [registerAction] Error creating user profile:', error)
+      techDebtLogger.error('❌ [registerAction] Error creating user profile:', error)
       // Limpiar cuenta de auth en caso de error
       // Nota: Esto requeriría service role key, por ahora solo logueamos
       return { error: 'Error al crear perfil de usuario' }
@@ -241,7 +255,7 @@ export async function registerAction(formData: FormData) {
           })
 
         if (orgUserError) {
-           console.error('❌ [registerAction] Error creating organization_users relation:', orgUserError)
+           techDebtLogger.error('❌ [registerAction] Error creating organization_users relation:', orgUserError)
            // Hacemos throw para que vaya al catch, pero no bloqueamos el registro exitoso del usuario
            throw orgUserError; 
         } else {
@@ -272,7 +286,7 @@ export async function registerAction(formData: FormData) {
         }
       } catch (orgUserError) {
         // No fallar el registro si hay error creando la relación
-        console.error('⚠️ [registerAction] Error no crítico vinculando a organización:', orgUserError)
+        techDebtLogger.error('⚠️ [registerAction] Error no crítico vinculando a organización:', orgUserError)
       }
     }
 
@@ -292,6 +306,12 @@ export async function registerAction(formData: FormData) {
         // El perfil se puede crear después cuando complete el cuestionario
       }
     }
+
+    recordSecurityEvent('registration-success', {
+      actorId: user.id,
+      actorRole: cargoRol,
+      orgId: organizationId || null,
+    })
 
     return {
       success: true,

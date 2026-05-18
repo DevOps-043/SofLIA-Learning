@@ -1,8 +1,9 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { PAGE_METADATA, getRegisteredRoutes, hasPageMetadata } from '../../config/page-metadata'
 import { createCounter } from './test-runner'
 
 export function testNewPageMetadata(options: { includeSpecificPages?: boolean } = {}) {
-  console.log('\nTEST: METADATA DE PAGINAS ADICIONALES\n')
+  techDebtLogger.log('\nTEST: METADATA DE PAGINAS ADICIONALES\n')
   const counter = createCounter()
   const routes = getRegisteredRoutes()
 
@@ -35,6 +36,6 @@ function logRouteDistribution(routes: string[]) {
     instructor: routes.filter((route) => route.includes('/instructor')).length,
   }
   const other = routes.length - Object.values(categories).reduce((total, count) => total + count, 0)
-  console.log('\nDistribucion de paginas:')
-  Object.entries({ ...categories, other }).forEach(([name, count]) => console.log(`   ${name}: ${count}`))
+  techDebtLogger.log('\nDistribucion de paginas:')
+  Object.entries({ ...categories, other }).forEach(([name, count]) => techDebtLogger.log(`   ${name}: ${count}`))
 }

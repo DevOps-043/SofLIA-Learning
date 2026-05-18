@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { AdminLessonsService } from '@/features/admin/services/adminLessons.service'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
@@ -34,7 +35,7 @@ export async function POST(
       message: 'Lecciones reordenadas correctamente'
     })
   } catch (error) {
-    console.error('Error in POST /api/admin/courses/[id]/modules/[moduleId]/lessons/reorder:', error)
+    techDebtLogger.error('Error in POST /api/admin/courses/[id]/modules/[moduleId]/lessons/reorder:', error)
     return NextResponse.json(
       { 
         success: false,

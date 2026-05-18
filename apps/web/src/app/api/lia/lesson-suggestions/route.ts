@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { SessionService } from '@/features/auth/services/session.service'
@@ -123,7 +124,7 @@ export async function POST(request: NextRequest) {
 
     const apiKey = process.env.GOOGLE_API_KEY
     if (!apiKey) {
-      console.error(
+      techDebtLogger.error(
         '[lesson-suggestions] GOOGLE_API_KEY missing; degrading gracefully',
       )
       return NextResponse.json(
@@ -163,7 +164,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(response)
     } catch (error) {
       if (error instanceof LessonSuggestionsGenerationError) {
-        console.warn('[lesson-suggestions] generation failed', {
+        techDebtLogger.warn('[lesson-suggestions] generation failed', {
           lessonId,
           language,
           message: error.message,
@@ -181,7 +182,7 @@ export async function POST(request: NextRequest) {
       throw error
     }
   } catch (error) {
-    console.error('[lesson-suggestions] unhandled error', error)
+    techDebtLogger.error('[lesson-suggestions] unhandled error', error)
     return jsonError('Error interno del servidor', 500)
   }
 }

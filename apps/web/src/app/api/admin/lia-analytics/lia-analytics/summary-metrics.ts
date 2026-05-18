@@ -10,7 +10,7 @@ export async function getSummaryMetrics(
 ) {
   const { count: totalConversations } = await supabase
     .from('lia_conversations')
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .gte('started_at', input.startDate.toISOString())
     .lte('started_at', input.nowISO)
 
@@ -31,7 +31,7 @@ export async function getSummaryMetrics(
 
   const { count: completedActivities } = await supabase
     .from('lia_activity_completions')
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .eq('status', 'completed')
     .gte('completed_at', input.startDate.toISOString())
     .lte('completed_at', input.nowISO)

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useCallback, useEffect } from 'react'
 import { getPendingCourses, approveCourse as approveCourseAction, rejectCourse as rejectCourseAction, deleteCourse as deleteCourseAction, AdminCourse } from '../actions/adminCourses.actions'
 
@@ -42,7 +43,7 @@ export function useAdminPendingCourses(): UseAdminPendingCoursesReturn {
             }
             return false
         } catch (err) {
-            console.error(err)
+            techDebtLogger.error(err)
             return false
         }
     }
@@ -56,7 +57,7 @@ export function useAdminPendingCourses(): UseAdminPendingCoursesReturn {
             }
             return false
         } catch (err) {
-            console.error(err)
+            techDebtLogger.error(err)
             return false
         }
     }
@@ -70,7 +71,7 @@ export function useAdminPendingCourses(): UseAdminPendingCoursesReturn {
             }
             return false
         } catch (err) {
-            console.error(err)
+            techDebtLogger.error(err)
             return false
         }
     }

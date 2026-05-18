@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { logger } from '@/lib/utils/logger'
+
+import {
+  enqueueBusinessUserImportJob,
+  shouldQueueBusinessUserImport,
+} from '@/app/api/business/users/import/import-queue'
+import { importBusinessUsersFromCsv } from '@/app/api/business/users/import/import.service'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
-import bcrypt from 'bcryptjs'
+import type { QueueEnqueueResult } from '@/lib/queue'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> }
+  { params }: { params: Promise<{ orgSlug: string }> },
 ) {
   try {
     const { orgSlug } = await params
@@ -21,35 +26,81 @@ export async function POST(
     const file = formData.get('file') as File
 
     if (!file || !file.name.endsWith('.csv')) {
-      return NextResponse.json({ success: false, error: 'Archivo CSV inválido' }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: 'Archivo CSV invalido' },
+        { status: 400 },
+      )
     }
 
     const fileContent = await file.text()
-    const lines = fileContent.split('\n').filter(line => line.trim())
-    
-    if (lines.length < 2) {
-      return NextResponse.json({ success: false, error: 'CSV vacío o sin encabezados' }, { status: 400 })
+    const forceAsync = formData.get('async') === 'true'
+    const importPayload = {
+      fileContent,
+      organizationId: auth.organizationId,
+      createdBy: auth.userId,
     }
 
-    // Lógica de parseo y creación de usuarios igual a la original
-    // pero garantizando que organization_id es SIEMPRE auth.organizationId
-    
-    const supabase = await createClient()
-    
-    // ... (Procesamiento de líneas, validación de emails, bcrypt hash, etc)
-    // Se mantiene la lógica del BusinessUsersServerService pero ejecutada aquí
-    // o llamando al servicio con el id validado.
+    if (shouldQueueBusinessUserImport({ fileContent, forceAsync })) {
+      let queueResult: QueueEnqueueResult
+      try {
+        queueResult = await enqueueBusinessUserImportJob(importPayload)
+      } catch (queueError) {
+        logger.error('Error queueing /api/[orgSlug]/business/users/import', queueError)
+        return NextResponse.json(
+          { success: false, error: 'No se pudo encolar la importacion' },
+          { status: 503 },
+        )
+      }
+
+      if (queueResult.queued) {
+        return NextResponse.json(
+          {
+            success: true,
+            queued: true,
+            jobId: queueResult.jobId,
+            jobStatusUrl: queueResult.jobId
+              ? `/api/${encodeURIComponent(orgSlug)}/business/users/import/jobs/${encodeURIComponent(queueResult.jobId)}`
+              : null,
+            messageId: queueResult.messageId,
+            deduplicated: queueResult.deduplicated ?? false,
+          },
+          { status: 202 },
+        )
+      }
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No se pudo encolar la importacion. Intenta nuevamente.',
+          queueReason: queueResult.reason,
+        },
+        { status: 503 },
+      )
+    }
+
+    const importResult = await importBusinessUsersFromCsv(importPayload)
+
+    if (!importResult.success) {
+      return NextResponse.json(
+        { success: false, error: importResult.error },
+        { status: 400 },
+      )
+    }
 
     return NextResponse.json({
       success: true,
       result: {
-        imported: 0, // Placeholder
-        errors: 0,
-        total: lines.length - 1
-      }
+        imported: importResult.result.success,
+        errors: importResult.result.errors.length,
+        total: importResult.result.total,
+        details: importResult.result.errors,
+      },
     })
   } catch (error) {
-    logger.error('💥 Error in /api/[orgSlug]/business/users/import:', error)
-    return NextResponse.json({ success: false, error: 'Error al importar' }, { status: 500 })
+    logger.error('Error in /api/[orgSlug]/business/users/import', error)
+    return NextResponse.json(
+      { success: false, error: 'Error al importar' },
+      { status: 500 },
+    )
   }
 }

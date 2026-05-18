@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Utilidad para manejar el guardado y restauración de credenciales
  * cuando el usuario marca "Recuérdame" en el formulario de login
@@ -22,7 +23,7 @@ export function saveCredentials(credentials: RememberedCredentials): void {
       JSON.stringify({ emailOrUsername: credentials.emailOrUsername })
     );
   } catch (error) {
-    console.error('Error al guardar credenciales:', error);
+    techDebtLogger.error('Error al guardar credenciales:', error);
   }
 }
 
@@ -50,7 +51,7 @@ export function getSavedCredentials(): RememberedCredentials | null {
 
     return sanitizedCredentials;
   } catch (error) {
-    console.error('Error al obtener credenciales guardadas:', error);
+    techDebtLogger.error('Error al obtener credenciales guardadas:', error);
     return null;
   }
 }
@@ -64,6 +65,6 @@ export function clearSavedCredentials(): void {
   try {
     localStorage.removeItem(REMEMBER_ME_KEY);
   } catch (error) {
-    console.error('Error al eliminar credenciales guardadas:', error);
+    techDebtLogger.error('Error al eliminar credenciales guardadas:', error);
   }
 }

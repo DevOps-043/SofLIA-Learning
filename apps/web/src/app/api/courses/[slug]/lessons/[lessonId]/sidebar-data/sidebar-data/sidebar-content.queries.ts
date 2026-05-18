@@ -7,7 +7,7 @@ import type {
 export function fetchActivities(supabase: SidebarSupabaseClient, lessonId: string) {
   return supabase
     .from('lesson_activities')
-    .select('*')
+    .select(SELECT_COLUMNS.lesson_activities)
     .eq('lesson_id', lessonId)
     .order('activity_order_index', { ascending: true })
     .returns<LessonActivityRow[]>()
@@ -16,7 +16,7 @@ export function fetchActivities(supabase: SidebarSupabaseClient, lessonId: strin
 export function fetchMaterials(supabase: SidebarSupabaseClient, lessonId: string) {
   return supabase
     .from('lesson_materials')
-    .select('*')
+    .select(SELECT_COLUMNS.lesson_materials)
     .eq('lesson_id', lessonId)
     .order('material_order_index', { ascending: true })
     .returns<LessonMaterialRow[]>()

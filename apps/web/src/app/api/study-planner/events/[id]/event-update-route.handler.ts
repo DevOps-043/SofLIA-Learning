@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 import {
   createAdminClient,
@@ -49,7 +50,7 @@ export async function handleCalendarEventUpdate(
           metadata?.secondary_calendar_id || null,
         )
       } catch (error) {
-        console.error('Error actualizando en Google Calendar:', error)
+        techDebtLogger.error('Error actualizando en Google Calendar:', error)
       }
     }
   }
@@ -72,7 +73,7 @@ export async function handleCalendarEventUpdate(
     .single()
 
   if (updateError) {
-    console.error('Error actualizando evento:', updateError)
+    techDebtLogger.error('Error actualizando evento:', updateError)
     return NextResponse.json(
       { error: 'Error al actualizar el evento' },
       { status: 500 },
@@ -156,7 +157,7 @@ async function updateExternalGoogleEvent(
 
     return NextResponse.json({ success: true, event: newEvent })
   } catch (error) {
-    console.error('Error actualizando evento de Google Calendar:', error)
+    techDebtLogger.error('Error actualizando evento de Google Calendar:', error)
     return NextResponse.json(
       { error: 'Error al actualizar el evento en Google Calendar' },
       { status: 500 },

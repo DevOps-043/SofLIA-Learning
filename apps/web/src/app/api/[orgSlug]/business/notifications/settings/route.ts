@@ -40,7 +40,7 @@ export async function GET(
     // Obtener configuraciones existentes
     const { data: settings, error: settingsError } = await supabase
       .from('notification_settings')
-      .select('*')
+      .select(SELECT_COLUMNS.notification_settings)
       .eq('organization_id', auth.organizationId)
 
     if (settingsError && settingsError.code !== 'PGRST116') {
@@ -78,7 +78,7 @@ export async function GET(
     // Obtener todas las configuraciones (existentes + nuevas)
     const { data: allSettings, error: fetchError } = await supabase
       .from('notification_settings')
-      .select('*')
+      .select(SELECT_COLUMNS.notification_settings)
       .eq('organization_id', auth.organizationId)
       .order('event_type', { ascending: true })
 

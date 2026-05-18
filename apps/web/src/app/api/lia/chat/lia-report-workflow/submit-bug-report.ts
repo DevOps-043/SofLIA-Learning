@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server'
 import {
   buildReportProblemMetadata,
@@ -35,7 +36,7 @@ export async function submitConfirmedBugReport(params: {
   const { error } = await supabase.from('reportes_problemas').insert(reportPayload)
 
   if (error) {
-    console.error('Error guardando el reporte confirmado de SofLIA:', error)
+    techDebtLogger.error('Error guardando el reporte confirmado de SofLIA:', error)
     return {
       bugReportSaved: false,
       clientContent: 'Hubo un problema tecnico al enviar tu reporte. El borrador sigue listo; puedes intentar confirmarlo de nuevo en unos segundos.',

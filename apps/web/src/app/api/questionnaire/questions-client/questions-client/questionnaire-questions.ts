@@ -22,7 +22,7 @@ export async function loadProfileQuestions(
 
   const { data, error } = await client
     .from('preguntas')
-    .select('*')
+    .select(SELECT_COLUMNS.preguntas)
     .eq('dificultad', userProfile.dificultad_id)
     .returns<QuestionRow[]>()
     .limit(500)

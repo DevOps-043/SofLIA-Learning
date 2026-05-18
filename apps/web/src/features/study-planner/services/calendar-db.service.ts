@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * CalendarDbService
  *
@@ -106,7 +107,7 @@ export class CalendarDbService {
     const { error } = await query;
 
     if (error) {
-      console.error('Error desconectando calendario:', error);
+      techDebtLogger.error('Error desconectando calendario:', error);
       return false;
     }
 
@@ -125,7 +126,7 @@ export class CalendarDbService {
       .eq('provider', 'google');
 
     if (error) {
-      console.error('[Calendar] Error guardando secondary_calendar_id:', error);
+      techDebtLogger.error('[Calendar] Error guardando secondary_calendar_id:', error);
     }
   }
 

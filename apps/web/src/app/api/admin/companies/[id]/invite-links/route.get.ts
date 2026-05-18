@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -23,12 +24,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const { data: links, error } = await supabase
       .from('bulk_invite_links')
-      .select('*')
+      .select(SELECT_COLUMNS.bulk_invite_links)
       .eq('organization_id', companyId)
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching bulk invite links:', error)
+      techDebtLogger.error('Error fetching bulk invite links:', error)
       return NextResponse.json(
         { success: false, error: 'Error al obtener enlaces de invitación' },
         { status: 500 }
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       links: links || []
     })
   } catch (error) {
-    console.error('Error in GET /api/admin/companies/[id]/invite-links:', error)
+    techDebtLogger.error('Error in GET /api/admin/companies/[id]/invite-links:', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

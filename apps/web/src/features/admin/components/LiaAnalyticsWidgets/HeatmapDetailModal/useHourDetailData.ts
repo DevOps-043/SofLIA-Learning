@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, useState } from 'react';
 import type { HourDetailData } from './types';
 
@@ -25,7 +26,7 @@ export function useHourDetailData({ dayOfWeek, hour, isOpen, period }: UseHourDe
         const result = await response.json();
         if (isMounted && result.success) setData(result.data);
       } catch (error) {
-        console.error('Error fetching hour detail:', error);
+        techDebtLogger.error('Error fetching hour detail:', error);
       } finally {
         if (isMounted) setIsLoading(false);
       }

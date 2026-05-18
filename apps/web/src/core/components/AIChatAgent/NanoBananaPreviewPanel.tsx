@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NanoBananaFooter } from './NanoBananaPreviewPanel/NanoBananaFooter';
@@ -33,7 +34,7 @@ export function NanoBananaPreviewPanel({
       onCopy();
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Error copying to clipboard:', error);
+      techDebtLogger.error('Error copying to clipboard:', error);
     }
   }, [jsonString, onCopy]);
 

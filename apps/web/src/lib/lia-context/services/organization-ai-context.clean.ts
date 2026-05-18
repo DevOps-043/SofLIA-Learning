@@ -3,7 +3,13 @@ export function cleanPromptValue(value: string | undefined, maxLength = 500) {
     return undefined
   }
 
-  const cleaned = value.replace(/[\u0000-\u001F\u007F]/g, ' ').trim()
+  const cleaned = Array.from(value)
+    .map((char) => {
+      const code = char.charCodeAt(0)
+      return code <= 0x1f || code === 0x7f ? ' ' : char
+    })
+    .join('')
+    .trim()
   return cleaned ? cleaned.slice(0, maxLength) : undefined
 }
 

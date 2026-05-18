@@ -1,13 +1,13 @@
 import type React from 'react';
 import { Shield } from 'lucide-react';
-import type { BusinessInviteTheme, InviteFormData, InviteRole, InviteRoleLabel } from './types';
+import type { BusinessInviteTheme, BusinessInviteTranslator, InviteFormData, InviteRole, InviteRoleLabel } from './types';
 
 interface InviteRoleSelectorProps {
   formData: InviteFormData;
   roleLabels: Record<InviteRole, InviteRoleLabel>;
   setFormData: React.Dispatch<React.SetStateAction<InviteFormData>>;
   status: string;
-  t: (key: string, fallback?: string) => string;
+  t: BusinessInviteTranslator;
   theme: BusinessInviteTheme;
 }
 

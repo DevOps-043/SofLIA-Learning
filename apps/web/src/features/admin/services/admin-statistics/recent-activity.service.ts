@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server'
 import { ADMIN_STATS_COLORS } from './constants'
 import { getTimeAgo } from './time-ago'
@@ -32,7 +33,7 @@ export async function getRecentActivity(
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, 10)
   } catch (error) {
-    console.error('Error getting recent activity:', error)
+    techDebtLogger.error('Error getting recent activity:', error)
     return []
   }
 }

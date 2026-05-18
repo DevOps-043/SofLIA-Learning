@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Tests para la Fase 4 - Expansión y Optimización
  * 
@@ -14,7 +15,7 @@ import { PageContextService } from '../services/page-context.service';
 import { ContextCacheService } from '../services/context-cache.service';
 import { PAGE_METADATA, getRegisteredRoutes } from '../config/page-metadata';
 
-console.log('\n🧪 === TESTS DE EXPANSIÓN DE LIA (FASE 4) ===\n');
+techDebtLogger.log('\n🧪 === TESTS DE EXPANSIÓN DE LIA (FASE 4) ===\n');
 
 let passed = 0;
 let failed = 0;
@@ -23,14 +24,14 @@ function test(name: string, fn: () => boolean) {
   try {
     const result = fn();
     if (result) {
-      console.log(`✅ PASS: ${name}`);
+      techDebtLogger.log(`✅ PASS: ${name}`);
       passed++;
     } else {
-      console.log(`❌ FAIL: ${name}`);
+      techDebtLogger.log(`❌ FAIL: ${name}`);
       failed++;
     }
   } catch (error) {
-    console.log(`❌ ERROR: ${name} - ${error}`);
+    techDebtLogger.log(`❌ ERROR: ${name} - ${error}`);
     failed++;
   }
 }
@@ -38,7 +39,7 @@ function test(name: string, fn: () => boolean) {
 // ============================================================================
 // Test 1: Nuevas páginas de Admin Panel
 // ============================================================================
-console.log('\n📋 Tests de páginas Admin Panel:\n');
+techDebtLogger.log('\n📋 Tests de páginas Admin Panel:\n');
 
 const adminPages = [
   '/admin/dashboard',
@@ -60,7 +61,7 @@ adminPages.forEach(page => {
 // ============================================================================
 // Test 2: Nuevas páginas de Business Panel
 // ============================================================================
-console.log('\n📋 Tests de páginas Business Panel:\n');
+techDebtLogger.log('\n📋 Tests de páginas Business Panel:\n');
 
 const businessPages = [
   '/acme/business-panel/dashboard',
@@ -82,18 +83,18 @@ businessPages.forEach(page => {
 // ============================================================================
 // Test 3: Total de páginas registradas
 // ============================================================================
-console.log('\n📋 Tests de cantidad de páginas:\n');
+techDebtLogger.log('\n📋 Tests de cantidad de páginas:\n');
 
 test('Hay al menos 18 páginas registradas', () => {
   const routes = getRegisteredRoutes();
-  console.log(`   → Total de páginas: ${routes.length}`);
+  techDebtLogger.log(`   → Total de páginas: ${routes.length}`);
   return routes.length >= 18;
 });
 
 test('Las páginas tienen componentes definidos', () => {
   for (const [route, metadata] of Object.entries(PAGE_METADATA)) {
     if (!metadata.components || metadata.components.length === 0) {
-      console.log(`   → ${route} no tiene componentes`);
+      techDebtLogger.log(`   → ${route} no tiene componentes`);
       return false;
     }
   }
@@ -105,7 +106,7 @@ test('Las páginas tienen APIs definidas', () => {
     const isStaticBusinessReportsSurface = route === '/[orgSlug]/business-panel/reports';
 
     if (!isStaticBusinessReportsSurface && (!metadata.apis || metadata.apis.length === 0)) {
-      console.log(`   → ${route} no tiene APIs`);
+      techDebtLogger.log(`   → ${route} no tiene APIs`);
       return false;
     }
   }
@@ -115,7 +116,7 @@ test('Las páginas tienen APIs definidas', () => {
 // ============================================================================
 // Test 4: Sistema de caché
 // ============================================================================
-console.log('\n📋 Tests de sistema de caché:\n');
+techDebtLogger.log('\n📋 Tests de sistema de caché:\n');
 
 test('ContextCacheService está disponible', () => {
   return typeof ContextCacheService.get === 'function' &&
@@ -172,7 +173,7 @@ test('Cache clear limpia todo', () => {
 // ============================================================================
 // Test 5: CourseContextProvider
 // ============================================================================
-console.log('\n📋 Tests de CourseContextProvider:\n');
+techDebtLogger.log('\n📋 Tests de CourseContextProvider:\n');
 
 test('CourseContextProvider se puede importar', async () => {
   try {
@@ -209,15 +210,15 @@ test('CourseContextProvider.shouldInclude funciona', async () => {
 // RESUMEN
 // ============================================================================
 
-console.log('\n📊 === RESUMEN DE TESTS FASE 4 ===\n');
-console.log(`✅ Tests pasados: ${passed}`);
-console.log(`❌ Tests fallidos: ${failed}`);
-console.log(`📈 Porcentaje de éxito: ${Math.round((passed / (passed + failed)) * 100)}%\n`);
+techDebtLogger.log('\n📊 === RESUMEN DE TESTS FASE 4 ===\n');
+techDebtLogger.log(`✅ Tests pasados: ${passed}`);
+techDebtLogger.log(`❌ Tests fallidos: ${failed}`);
+techDebtLogger.log(`📈 Porcentaje de éxito: ${Math.round((passed / (passed + failed)) * 100)}%\n`);
 
 if (failed === 0) {
-  console.log('🎉 ¡Todos los tests de Fase 4 pasaron!\n');
+  techDebtLogger.log('🎉 ¡Todos los tests de Fase 4 pasaron!\n');
 } else {
-  console.log('⚠️ Algunos tests fallaron. Revisar la implementación.\n');
+  techDebtLogger.log('⚠️ Algunos tests fallaron. Revisar la implementación.\n');
   process.exit(1);
 }
 
@@ -225,7 +226,7 @@ if (failed === 0) {
 // DEMO: Estadísticas de páginas
 // ============================================================================
 
-console.log('📄 === ESTADÍSTICAS DE PÁGINAS ===\n');
+techDebtLogger.log('📄 === ESTADÍSTICAS DE PÁGINAS ===\n');
 
 const routes = getRegisteredRoutes();
 const byCategory: Record<string, number> = {};
@@ -241,22 +242,22 @@ routes.forEach(route => {
   byCategory[category] = (byCategory[category] || 0) + 1;
 });
 
-console.log('Páginas por categoría:');
+techDebtLogger.log('Páginas por categoría:');
 Object.entries(byCategory).forEach(([category, count]) => {
-  console.log(`  - ${category}: ${count} páginas`);
+  techDebtLogger.log(`  - ${category}: ${count} páginas`);
 });
-console.log(`\nTotal: ${routes.length} páginas con metadata\n`);
+techDebtLogger.log(`\nTotal: ${routes.length} páginas con metadata\n`);
 
 // ============================================================================
 // DEMO: Cache stats
 // ============================================================================
 
-console.log('📊 === ESTADÍSTICAS DE CACHÉ ===\n');
+techDebtLogger.log('📊 === ESTADÍSTICAS DE CACHÉ ===\n');
 const cacheStats = ContextCacheService.getStats();
-console.log(`  - Entradas: ${cacheStats.entries}`);
-console.log(`  - Hits: ${cacheStats.hits}`);
-console.log(`  - Misses: ${cacheStats.misses}`);
-console.log(`  - Hit Rate: ${cacheStats.hitRate}%\n`);
+techDebtLogger.log(`  - Entradas: ${cacheStats.entries}`);
+techDebtLogger.log(`  - Hits: ${cacheStats.hits}`);
+techDebtLogger.log(`  - Misses: ${cacheStats.misses}`);
+techDebtLogger.log(`  - Hit Rate: ${cacheStats.hitRate}%\n`);
 
 
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 
 import { resolveBrowserDevicePerformancePolicy } from '../utils/device-performance-policy';
@@ -202,7 +203,7 @@ export function useVideoJsHlsPlayback(
       }
     } catch (error) {
       // VHS tech may not be ready yet — non-fatal.
-      console.warn('[useVideoJsHlsPlayback] setQualityLevel failed:', error);
+      techDebtLogger.warn('[useVideoJsHlsPlayback] setQualityLevel failed:', error);
     }
   }, []);
 

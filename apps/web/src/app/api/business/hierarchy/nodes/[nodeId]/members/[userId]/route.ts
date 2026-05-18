@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
@@ -76,7 +77,7 @@ export async function DELETE(
             .eq('user_id', userId);
 
         if (deleteError) {
-            console.error('Error removing user from node:', deleteError);
+            techDebtLogger.error('Error removing user from node:', deleteError);
             return NextResponse.json(
                 { success: false, error: 'Failed to remove user' },
                 { status: 500 }
@@ -89,7 +90,7 @@ export async function DELETE(
         });
 
     } catch (error: unknown) {
-        console.error('Error in DELETE /api/business/hierarchy/nodes/[nodeId]/members/[userId]:', error);
+        techDebtLogger.error('Error in DELETE /api/business/hierarchy/nodes/[nodeId]/members/[userId]:', error);
         return NextResponse.json(
             {
                 success: false,

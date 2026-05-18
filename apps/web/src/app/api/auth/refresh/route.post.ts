@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import {
   isRefreshTokenAuthError,
-  RefreshTokenError,
 } from '@/lib/auth/refresh-token.errors';
 
+import { apiError } from '@/lib/api/errors';
 import { RefreshTokenService } from '@/lib/auth/refreshToken.service';
 
 import { applyAuthRateLimit } from '@/lib/auth/auth-rate-limit'
@@ -42,27 +42,12 @@ export async function POST(request: NextRequest) {
     logger.error('API Refresh Error:', error);
 
     if (isRefreshTokenAuthError(error)) {
-      const response = NextResponse.json(
-        {
-          success: false,
-          error: 'Sesion expirada',
-          code: 'SESSION_EXPIRED',
-        },
-        { status: 401 }
-      );
+      const response = apiError('SESSION_EXPIRED', 'Sesión expirada.', 401);
 
       clearSessionCookies(response);
       return response;
     }
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Error al renovar token',
-        message:
-          error instanceof Error ? error.message : 'Error desconocido',
-      },
-      { status: 500 }
-    );
+    return apiError('INTERNAL_SERVER_ERROR', 'Error al renovar token.', 500);
   }
 }

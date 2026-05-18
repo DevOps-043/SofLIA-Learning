@@ -9,12 +9,40 @@ import { requestPasswordResetAction } from '../../actions/reset-password';
 import { getForgotPasswordSchema, type ForgotPasswordFormData } from './ForgotPasswordForm.schema';
 import { Mail, CheckCircle, XCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { TextInput } from '../TextInput';
+import { HumanVerificationField } from '../HumanVerificationField';
 import Link from 'next/link';
+
+function getPasswordResetError(
+  response: Awaited<ReturnType<typeof requestPasswordResetAction>>,
+) {
+  return (
+    typeof response === 'object' &&
+    response !== null &&
+    'error' in response &&
+    typeof response.error === 'string'
+  )
+    ? response.error
+    : null;
+}
+
+function getPasswordResetMessage(
+  response: Awaited<ReturnType<typeof requestPasswordResetAction>>,
+) {
+  return (
+    typeof response === 'object' &&
+    response !== null &&
+    'message' in response &&
+    typeof response.message === 'string'
+  )
+    ? response.message
+    : null;
+}
 
 export function ForgotPasswordForm() {
   const { t } = useTranslation('common');
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState('');
   const [result, setResult] = useState<{
     type: 'success' | 'error';
     message: string;
@@ -37,15 +65,17 @@ export function ForgotPasswordForm() {
     try {
       const formData = new FormData();
       formData.append('email', data.email);
+      formData.append('captchaToken', captchaToken);
 
       const response = await requestPasswordResetAction(formData);
+      const responseError = getPasswordResetError(response);
 
-      if (response.error) {
-        setResult({ type: 'error', message: response.error });
+      if (responseError) {
+        setResult({ type: 'error', message: responseError });
       } else {
         setResult({
           type: 'success',
-          message: response.message || t('auth.forgotPassword.success'),
+          message: getPasswordResetMessage(response) || t('auth.forgotPassword.success'),
         });
       }
     } catch (error) {
@@ -151,6 +181,8 @@ export function ForgotPasswordForm() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          <HumanVerificationField onTokenChange={setCaptchaToken} />
 
           <motion.button
             type="submit"

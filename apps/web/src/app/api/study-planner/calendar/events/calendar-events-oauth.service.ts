@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
 import type {
   CalendarIntegrationRecord,
   RefreshAccessTokenResult,
@@ -51,7 +52,7 @@ export async function refreshCalendarAccessToken(
         return { success: false }
       }
 
-      const response = await fetch('https://oauth2.googleapis.com/token', {
+      const response = await fetchWithCircuitBreaker('google-oauth-calendar-events', 'https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
@@ -92,7 +93,8 @@ export async function refreshCalendarAccessToken(
         return { success: false }
       }
 
-      const response = await fetch(
+      const response = await fetchWithCircuitBreaker(
+        'microsoft-oauth-calendar-events',
         'https://login.microsoftonline.com/common/oauth2/v2.0/token',
         {
           method: 'POST',

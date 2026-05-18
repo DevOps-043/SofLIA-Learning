@@ -47,7 +47,7 @@ export async function GET(
     // Obtener suscripciones activas del usuario (como respaldo o info adicional)
     const { data: userSubscriptions } = await supabase
       .from('subscriptions')
-      .select('*')
+      .select(SELECT_COLUMNS.subscriptions)
       .eq('user_id', auth.userId)
       .eq('subscription_status', 'active')
       .order('created_at', { ascending: false })

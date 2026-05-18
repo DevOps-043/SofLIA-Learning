@@ -1,6 +1,6 @@
 export { createUnexpectedBusinessAuthFailure, resolveBusinessAccess } from './access.service'
 export { createBusinessAuthErrorResponse } from './response'
-export { resolveOrganizationAccess } from './organization.service'
+export { requireOrgAccess, resolveOrganizationAccess } from './organization.service'
 export { resolveAuthenticatedUserId } from './session.service'
 export {
   isAllowedBusinessRole,

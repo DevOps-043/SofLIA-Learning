@@ -1,3 +1,5 @@
+import 'server-only'
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/client';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/types';
@@ -14,7 +16,7 @@ export function createTranslationWriteClient() {
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseServiceKey) {
-    console.error(
+    techDebtLogger.error(
       '[ContentTranslationService] Cannot create write client: missing env vars',
       {
         hasSupabaseUrl: Boolean(supabaseUrl),

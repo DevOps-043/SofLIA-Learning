@@ -12,7 +12,7 @@ export const chunkReloadScript = `
   }
 
   function attemptReload(reason) {
-    console.warn('Chunk loading failure detected, reloading page...', reason);
+    logger.warn('Chunk loading failure detected, reloading page...', reason);
     var attempts = parseInt(sessionStorage.getItem(reloadKey) || '0', 10);
     if (attempts < 2) {
       sessionStorage.setItem(reloadKey, String(attempts + 1));
@@ -23,7 +23,7 @@ export const chunkReloadScript = `
     }
 
     sessionStorage.removeItem(reloadKey);
-    console.error('Multiple automatic reload attempts failed. Please reload manually.');
+    logger.error('Multiple automatic reload attempts failed. Please reload manually.');
   }
 
   window.addEventListener('error', function(event) {

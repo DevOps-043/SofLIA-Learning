@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'
 
 export type AnalyzeCalendarAndSuggest = (
@@ -27,7 +28,7 @@ export function createPlannerRedirectScheduler(router: AppRouterInstance) {
           window.location.href = '/study-planner/dashboard'
         }
       } catch (redirectError) {
-        console.error('Error al redirigir:', redirectError)
+        techDebtLogger.error('Error al redirigir:', redirectError)
         if (typeof window !== 'undefined') {
           window.location.href = '/study-planner/dashboard'
         }

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Servicio orquestador para construir contexto de LIA
  * Agrupa fragmentos de múltiples providers y construye el prompt final
@@ -50,7 +51,7 @@ export class ContextBuilderService {
         return null;
       } catch (error) {
         const providerTime = Date.now() - providerStartTime;
-        console.error(`[ContextBuilder] Error en provider ${provider.name} (${providerTime}ms):`, error);
+        techDebtLogger.error(`[ContextBuilder] Error en provider ${provider.name} (${providerTime}ms):`, error);
         return null;
       }
     });

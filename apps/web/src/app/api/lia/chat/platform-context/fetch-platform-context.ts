@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server'
 import type { ResolvedOrganizationContext } from '../organization-context.service'
 import { applyAssignedCoursesContext } from './assigned-courses'
@@ -31,7 +32,7 @@ export async function fetchPlatformContext(params: {
 
     await applyAssignedCoursesContext(supabase, context, userId, organizationId)
   } catch (error) {
-    console.error('⚠️ Error fetching platform context:', error)
+    techDebtLogger.error('⚠️ Error fetching platform context:', error)
   }
 
   return context

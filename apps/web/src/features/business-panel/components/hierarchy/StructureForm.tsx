@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layout, X, Plus, Sparkles } from 'lucide-react';
@@ -34,7 +35,7 @@ export const StructureForm: React.FC<StructureFormModalProps> = ({ isOpen, onClo
             await onSave(name);
             onClose();
         } catch (error) {
-            console.error(error);
+            techDebtLogger.error(error);
             setSaveError(t('hierarchy.saveStructureError'));
         } finally {
             setLoading(false);

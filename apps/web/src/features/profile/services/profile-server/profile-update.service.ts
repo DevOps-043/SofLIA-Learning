@@ -11,6 +11,7 @@ import {
   resolveChangedProfileFields,
 } from '../profile.shared'
 import { mapProfileWithMembership } from './profile-row.mapper'
+import { PROFILE_USER_SELECT } from './profile-selects'
 import type { ProfileMembership } from './profile-server.types'
 import { notifyProfileUpdatedBestEffort } from './profile-update-notification.service'
 
@@ -21,7 +22,7 @@ export async function updateProfile(
 ): Promise<UserProfile> {
   const supabase = await createClient()
   const [oldProfileResult, oldMembership] = await Promise.all([
-    supabase.from('users').select('*').eq('id', userId).single(),
+    supabase.from('users').select(PROFILE_USER_SELECT).eq('id', userId).single(),
     resolveUserPrimaryMembership(supabase, userId, organizationId),
   ])
   const { data: oldData, error: oldDataError } = oldProfileResult
@@ -47,7 +48,7 @@ export async function updateProfile(
       .from('users')
       .update({ ...safeUpdates, updated_at: now })
       .eq('id', userId)
-      .select()
+      .select(PROFILE_USER_SELECT)
       .single()
 
     if (error) throw new Error(`Error al actualizar perfil: ${error.message}`)

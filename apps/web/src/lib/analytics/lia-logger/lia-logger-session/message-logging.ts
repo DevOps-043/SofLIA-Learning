@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../supabase/server';
 import type { LooseWriteRow, MessageMetadata, MessageRole } from '../lia-logger-events';
 import { conversationsTable, messagesTable } from '../lia-logger-events';
@@ -40,7 +41,7 @@ export async function logLiaMessage({
     return { conversationDeleted: true, messageId: '' };
   }
   if (error) {
-    console.error('[SofLIALogger] Error logging message:', error);
+    techDebtLogger.error('[SofLIALogger] Error logging message:', error);
     throw error;
   }
 

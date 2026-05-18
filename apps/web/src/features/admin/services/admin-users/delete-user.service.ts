@@ -16,7 +16,7 @@ export async function deleteAdminUser(
 
   const { data: userData } = await supabase
     .from('users')
-    .select('*')
+    .select(SELECT_COLUMNS.users)
     .eq('id', userId)
     .single()
 

@@ -1,11 +1,10 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { UserContextProvider } from '../../providers/user/UserContextProvider'
 import { check } from './assertions'
 import { createResult } from './types'
 
 export async function testUserContextProvider() {
-  console.log('
-TEST: USER CONTEXT PROVIDER
-')
+  techDebtLogger.log('\nTEST: USER CONTEXT PROVIDER\n')
   const result = createResult()
   const provider = new UserContextProvider()
 

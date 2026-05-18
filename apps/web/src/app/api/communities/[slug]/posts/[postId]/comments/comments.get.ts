@@ -21,7 +21,7 @@ export async function handleGetComments(
   const offset = (page - 1) * limit;
 
   const { data: comments, error } = await commentsTable(supabase)
-    .select('*')
+    .select(SELECT_COLUMNS.community_comments)
     .eq('post_id', postId)
     .eq('is_deleted', false)
     .is('parent_comment_id', null)
@@ -41,7 +41,7 @@ export async function handleGetComments(
   const commentsWithReplies = await Promise.all(
     topLevelComments.map(async (comment) => {
       const { data: replies } = await commentsTable(supabase)
-        .select('*')
+        .select(SELECT_COLUMNS.community_comments)
         .eq('parent_comment_id', comment.id)
         .eq('is_deleted', false)
         .order('created_at', { ascending: true });
@@ -58,7 +58,7 @@ export async function handleGetComments(
   );
 
   const { count: totalComments } = await commentsTable(supabase)
-    .select('*', { count: 'exact', head: true })
+    .select(SELECT_COLUMNS.community_comments, { count: 'exact', head: true })
     .eq('post_id', postId)
     .eq('is_deleted', false)
     .is('parent_comment_id', null);

@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface TourProgress {
@@ -53,11 +54,11 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
           setHasSeenTour(data.hasSeenTour);
           setTourProgress(data.tourProgress);
         } else {
-          console.error('[useTourProgress] GET failed:', await response.text());
+          techDebtLogger.error('[useTourProgress] GET failed:', await response.text());
           setHasSeenTour(true);
         }
       } catch (err) {
-        console.error('[useTourProgress] Error al verificar progreso del tour:', err);
+        techDebtLogger.error('[useTourProgress] Error al verificar progreso del tour:', err);
         setHasSeenTour(true);
       } finally {
         setIsLoading(false);
@@ -89,7 +90,7 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
       });
 
       if (!response.ok) {
-        console.error(
+        techDebtLogger.error(
           `[useTourProgress] POST action="${action}" failed:`,
           await response.text()
         );
@@ -111,7 +112,7 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
       const progress = await postTourAction('start', 0);
       if (progress) setTourProgress(progress);
     } catch (err) {
-      console.error('[useTourProgress] startTour error:', err);
+      techDebtLogger.error('[useTourProgress] startTour error:', err);
     }
   }, [postTourAction]);
 
@@ -128,7 +129,7 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
           const progress = await postTourAction('step', step);
           if (progress) setTourProgress(progress);
         } catch (err) {
-          console.error('[useTourProgress] updateStep error:', err);
+          techDebtLogger.error('[useTourProgress] updateStep error:', err);
         }
       }, STEP_DEBOUNCE_MS);
     },
@@ -149,7 +150,7 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
         setTourProgress(progress);
       }
     } catch (err) {
-      console.error('[useTourProgress] completeTour error:', err);
+      techDebtLogger.error('[useTourProgress] completeTour error:', err);
     }
   }, [postTourAction]);
 
@@ -167,7 +168,7 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
         setTourProgress(progress);
       }
     } catch (err) {
-      console.error('[useTourProgress] skipTour error:', err);
+      techDebtLogger.error('[useTourProgress] skipTour error:', err);
     }
   }, [postTourAction]);
 

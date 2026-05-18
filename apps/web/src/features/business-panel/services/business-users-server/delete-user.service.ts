@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { fromLoose } from '../../../../lib/supabase/looseQuery'
 import { createBusinessUsersAdminClient } from './client'
 import {
@@ -25,10 +26,10 @@ async function deleteFromTable(
       .eq(target.column ?? 'user_id', userId)
 
     if (error && !isIgnorableDeleteErrorCode(error.code)) {
-      console.warn(`Error eliminando de ${target.tableName}:`, error.message)
+      techDebtLogger.warn(`Error eliminando de ${target.tableName}:`, error.message)
     }
   } catch (error) {
-    console.warn(`Excepcion eliminando de ${target.tableName}:`, error)
+    techDebtLogger.warn(`Excepcion eliminando de ${target.tableName}:`, error)
   }
 }
 

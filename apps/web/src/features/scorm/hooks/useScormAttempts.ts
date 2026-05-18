@@ -28,7 +28,7 @@ export function useScormAttempts({ packageId, userId }: UseScormAttemptsOptions)
 
       let query = supabase
         .from('scorm_attempts')
-        .select('*')
+        .select(SELECT_COLUMNS.scorm_attempts)
         .eq('package_id', packageId)
         .order('attempt_number', { ascending: false });
 

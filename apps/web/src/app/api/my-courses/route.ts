@@ -2,15 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/utils/logger';
 import { SessionService } from '@/features/auth/services/session.service';
 import { PurchasedCoursesService } from '@/features/courses/services/purchased-courses.service';
-import { cacheGet, cacheSet } from '@/lib/cache/ttlCache';
+import { buildUserCacheKey, cache } from '@/lib/cache';
 
-const MY_COURSES_CACHE_TTL_MS = 15_000;
+const MY_COURSES_CACHE_TTL_SEC = 15;
 
 type MyCoursesApiResponse = Awaited<ReturnType<typeof PurchasedCoursesService.getUserPurchasedCourses>>;
 type MyCoursesStatsResponse = Awaited<ReturnType<typeof PurchasedCoursesService.getUserLearningStats>>;
 
 function myCoursesCacheKey(userId: string, statsOnly: boolean) {
-  return `api:my-courses:${statsOnly ? 'stats' : 'list'}:${userId}`;
+  return buildUserCacheKey({
+    userId,
+    resourceType: 'my-courses',
+    variant: statsOnly ? 'stats' : 'list',
+  });
 }
 
 /**
@@ -33,7 +37,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const statsOnly = searchParams.get('stats_only') === 'true';
     const cacheKey = myCoursesCacheKey(currentUser.id, statsOnly);
-    const cached = cacheGet<MyCoursesApiResponse | MyCoursesStatsResponse>(cacheKey);
+    const cached = await cache.get<MyCoursesApiResponse | MyCoursesStatsResponse>(cacheKey);
 
     if (cached) {
       return NextResponse.json(cached, {
@@ -46,7 +50,7 @@ export async function GET(request: NextRequest) {
     if (statsOnly) {
       // Retornar solo estadísticas
       const stats = await PurchasedCoursesService.getUserLearningStats(currentUser.id);
-      cacheSet(cacheKey, stats, MY_COURSES_CACHE_TTL_MS);
+      await cache.set(cacheKey, stats, MY_COURSES_CACHE_TTL_SEC);
       return NextResponse.json(stats, {
         headers: {
           // Cache privado de 60 segundos, permite stale de 30s adicionales
@@ -57,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     // Obtener cursos comprados
     const courses = await PurchasedCoursesService.getUserPurchasedCourses(currentUser.id);
-    cacheSet(cacheKey, courses, MY_COURSES_CACHE_TTL_MS);
+    await cache.set(cacheKey, courses, MY_COURSES_CACHE_TTL_SEC);
 
     return NextResponse.json(courses, {
       headers: {

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { withCacheHeaders, cacheHeaders } from '@/lib/utils/cache-headers'
@@ -72,7 +73,7 @@ export async function GET(
       cacheHeaders.static,
     )
   } catch (error) {
-    console.error('[summary/route] Error inesperado:', error)
+    techDebtLogger.error('[summary/route] Error inesperado:', error)
     return NextResponse.json(
       {
         error: 'Error interno del servidor',

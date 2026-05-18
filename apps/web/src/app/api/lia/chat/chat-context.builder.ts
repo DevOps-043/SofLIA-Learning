@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Chat Context Builder
  *
@@ -69,7 +70,7 @@ export async function buildFullContext(
         .limit(20);
 
       if (error) {
-        console.error('Error cargando cursos asignados:', error);
+        techDebtLogger.error('Error cargando cursos asignados:', error);
       } else if (assignedCourses && assignedCourses.length > 0) {
         fullContext.coursesWithContent = assignedCourses.map(
           (
@@ -90,7 +91,7 @@ export async function buildFullContext(
         fullContext.noCoursesAssigned = true;
       }
     } catch (err) {
-      console.error('Error en segunda carga de cursos:', err);
+      techDebtLogger.error('Error en segunda carga de cursos:', err);
     }
   }
 
@@ -118,7 +119,7 @@ export async function appendPersonalizationPrompt(
       return basePrompt + personalizationPrompt;
     }
   } catch (error) {
-    console.warn('Error cargando personalizacion de LIA:', error);
+    techDebtLogger.warn('Error cargando personalizacion de LIA:', error);
   }
   return basePrompt;
 }
@@ -152,7 +153,7 @@ export async function appendBugReportContext(
         return systemPrompt + '\n\n---\n\n' + bugContext;
       }
     } catch (error) {
-      console.warn('Error obteniendo contexto de bug:', error);
+      techDebtLogger.warn('Error obteniendo contexto de bug:', error);
     }
   }
 

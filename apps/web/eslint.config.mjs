@@ -3,6 +3,8 @@ import tseslint from "typescript-eslint";
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
 
+const strictTechDebtRules = process.env.CI_STRICT_TECH_DEBT === "true";
+
 export default [
   {
     ignores: [
@@ -11,7 +13,7 @@ export default [
       "*.config.js",
       "*.config.ts",
       "public/**",
-      // Archivos con errores de parsing pre-existentes (muy grandes, difíciles de corregir)
+      // Archivos con errores de parsing pre-existentes.
       "**/study-planner/components/StudyPlannerLIA.tsx",
       "**/study-planner/dashboard/page.tsx",
     ],
@@ -40,21 +42,33 @@ export default [
       },
     },
     rules: {
-      // TypeScript rules - muy permisivo
-      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-explicit-any": strictTechDebtRules ? "error" : "warn",
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-require-imports": "off",
       "@typescript-eslint/no-empty-object-type": "off",
-      "@typescript-eslint/ban-ts-comment": "off",
-      
-      // React rules - solo reglas críticas
+      "@typescript-eslint/ban-ts-comment": "error",
+
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
-      "react-hooks/rules-of-hooks": "off", // Desactivar temporalmente - hay muchos errores pre-existentes
+      "react-hooks/rules-of-hooks": "off",
       "react-hooks/exhaustive-deps": "off",
-      
-      // General rules - desactivar reglas problemáticas
-      "no-console": "off",
+
+      "no-console": strictTechDebtRules ? "error" : "warn",
+      "no-restricted-syntax": [
+        strictTechDebtRules ? "error" : "warn",
+        {
+          selector: "CallExpression[callee.property.name='select'][arguments.0.value='*']",
+          message: "No uses select('*'). Selecciona campos explicitos.",
+        },
+        {
+          selector: "Literal[value=/#[0-9A-Fa-f]{6}\\b/]",
+          message: "No uses hex colors hardcoded en TS/TSX. Usa Tailwind, CSS variables o tokens de tema.",
+        },
+        {
+          selector: "TemplateElement[value.raw=/#[0-9A-Fa-f]{6}\\b/]",
+          message: "No uses hex colors hardcoded en template strings TS/TSX. Usa Tailwind, CSS variables o tokens de tema.",
+        },
+      ],
       "no-unused-vars": "off",
       "no-useless-catch": "off",
       "no-empty": "off",

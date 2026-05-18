@@ -1,10 +1,12 @@
 import { deleteGoogleCalendarEvent, resolveSessionCalendarSync } from '../dashboard/chat/calendar.service'
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
 
 export async function deleteMicrosoftCalendarEvent(
   accessToken: string,
   microsoftEventId: string,
 ): Promise<{ success: boolean; notFound: boolean }> {
-  const response = await fetch(
+  const response = await fetchWithCircuitBreaker(
+    'microsoft-calendar-plan-delete',
     `https://graph.microsoft.com/v1.0/me/calendar/events/${encodeURIComponent(microsoftEventId)}`,
     {
       method: 'DELETE',

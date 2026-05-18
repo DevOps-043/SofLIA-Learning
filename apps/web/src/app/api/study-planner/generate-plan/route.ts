@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import type { Lesson, Preferences } from './generate-plan.types';
 import { generateDeterministicPlan } from './generate-plan-engine';
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ plan: result });
   } catch (error) {
-    console.error('Error generando plan:', error);
+    techDebtLogger.error('Error generando plan:', error);
     return NextResponse.json({ error: 'Error interno' }, { status: 500 });
   }
 }

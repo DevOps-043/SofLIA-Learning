@@ -6,12 +6,16 @@ import type { useUserDropdownLogic } from './useUserDropdownLogic'
 type UserDropdownLogic = ReturnType<typeof useUserDropdownLogic>
 
 export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
+  const businessPanelPath = logic.currentOrganization?.slug
+    ? `/${logic.currentOrganization.slug}/business-panel`
+    : null
+
   return (
     <div className="py-1.5 space-y-0.5">
       {logic.isAdmin && <MenuItem icon={ShieldCheck} label={logic.t('menu.adminPanel')} onClick={() => logic.handleNavigation('/admin/dashboard')} />}
       {logic.isInstructor && <MenuItem icon={GraduationCap} label={logic.t('menu.instructorPanel')} onClick={() => logic.handleNavigation('/instructor/dashboard')} />}
-      {logic.isOrgAdmin && logic.currentOrganization && (
-        <MenuItem icon={LayoutDashboard} label={logic.t('business:header.administratorRole')} onClick={() => logic.handleNavigation(`/${logic.currentOrganization.slug}/business-panel`)} />
+      {logic.isOrgAdmin && businessPanelPath && (
+        <MenuItem icon={LayoutDashboard} label={logic.t('business:header.administratorRole')} onClick={() => logic.handleNavigation(businessPanelPath)} />
       )}
       <MenuItem icon={LayoutDashboard} label={logic.t('menu.userPanel')} onClick={logic.handleUserDashboardNavigation} />
       {logic.isB2B && <MenuItem icon={Building2} label={logic.t('profileDropdown.organizations')} onClick={() => logic.handleNavigation('/auth/select-organization')} />}

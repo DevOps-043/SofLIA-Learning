@@ -1,5 +1,6 @@
 "use client";
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import {
   buildQuizFeedbackPrompt,
   calculateQuizResults,
@@ -83,7 +84,7 @@ export function useQuizSubmitHandler({
         });
       }
     } catch (error) {
-      console.error("Error procesando quiz:", error);
+      techDebtLogger.error("Error procesando quiz:", error);
       setSubmitError("Error al procesar el quiz");
     } finally {
       setIsSubmitting(false);

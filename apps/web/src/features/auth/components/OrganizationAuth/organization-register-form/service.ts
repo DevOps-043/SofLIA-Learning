@@ -31,6 +31,7 @@ export function buildOrganizationRegisterActionFormData(params: {
   organizationSlug: string
   invitationToken?: string | null
   bulkInviteToken?: string | null
+  captchaToken?: string
 }): FormData {
   const formData = new FormData()
 
@@ -50,6 +51,7 @@ export function buildOrganizationRegisterActionFormData(params: {
 
   formData.append('organizationId', params.organizationId)
   formData.append('organizationSlug', params.organizationSlug)
+  formData.append('captchaToken', params.captchaToken ?? '')
 
   if (params.invitationToken) {
     formData.append('invitationToken', params.invitationToken)

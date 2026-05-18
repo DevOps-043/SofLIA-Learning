@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../lib/supabase/server'
 
 export interface DashboardLayout {
@@ -28,13 +29,13 @@ export class AdminDashboardLayoutService {
       
       const { data: layout, error } = await supabase
         .from('admin_dashboard_layouts')
-        .select('*')
+        .select(SELECT_COLUMNS.admin_dashboard_layouts)
         .eq('user_id', userId)
         .eq('is_default', true)
         .maybeSingle()
       
       if (error && error.code !== 'PGRST116') {
-        console.error('Error getting layout:', error)
+        techDebtLogger.error('Error getting layout:', error)
         return null
       }
       
@@ -50,7 +51,7 @@ export class AdminDashboardLayoutService {
       // Retornar layout por defecto si no existe uno personalizado
       return this.getDefaultLayout()
     } catch (error) {
-      console.error('Error in getLayout:', error)
+      techDebtLogger.error('Error in getLayout:', error)
       return this.getDefaultLayout()
     }
   }
@@ -120,7 +121,7 @@ export class AdminDashboardLayoutService {
         }
       }
     } catch (error) {
-      console.error('Error saving layout:', error)
+      techDebtLogger.error('Error saving layout:', error)
       throw error
     }
   }
@@ -139,7 +140,7 @@ export class AdminDashboardLayoutService {
         .eq('user_id', userId)
         .eq('is_default', true)
     } catch (error) {
-      console.error('Error resetting layout:', error)
+      techDebtLogger.error('Error resetting layout:', error)
       throw error
     }
   }

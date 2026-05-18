@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '../../../lib/supabase/server';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 import type { Database } from '../../../lib/supabase/types';
 import {
   REPORT_PROBLEM_CATEGORIES,
@@ -266,7 +267,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('reportes_con_usuario')
-      .select('*', { count: 'exact' })
+      .select(SELECT_COLUMNS.reportes_con_usuario, { count: 'exact' })
       .order('created_at', { ascending: false });
 
     if (!isAdmin) {

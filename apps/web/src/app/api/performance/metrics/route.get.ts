@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 
 import { getServerClientPoolStats } from '@/lib/supabase/server'
 
@@ -6,7 +6,12 @@ import { getPoolStats } from '@/lib/supabase/pool'
 
 import { getDeduplicationStats } from '@/lib/supabase/request-deduplication'
 
+import { getCacheStats } from '@/lib/cache'
 import { getAllCacheStats } from '@/lib/cache/memory-cache'
+import { withApiObservability } from '@/lib/observability/api'
+import { isApmConfigured } from '@/lib/observability/apm'
+import { getMetricsSnapshot } from '@/lib/observability/metrics'
+import { CAPACITY_BUDGET } from '@/lib/performance/capacity-budget'
 
 /**
  * GET /api/performance/metrics
@@ -22,7 +27,7 @@ import { getAllCacheStats } from '@/lib/cache/memory-cache'
  * - Development: Consultar manualmente para validar optimizaciones
  * - Production: Integrar con dashboard de monitoreo
  */
-export async function GET() {
+async function getPerformanceMetrics(_request: NextRequest) {
   try {
     // ⚡ Obtener estadísticas de todos los sistemas de optimización
     const metrics = {
@@ -40,6 +45,15 @@ export async function GET() {
 
       // Caché en memoria
       memoryCache: getAllCacheStats(),
+      distributedCache: getCacheStats(),
+
+      // Presupuestos de capacidad operativos
+      capacityBudget: CAPACITY_BUDGET,
+
+      observability: {
+        apmConfigured: isApmConfigured(),
+        metrics: getMetricsSnapshot(),
+      },
 
       // Métricas agregadas
       summary: {
@@ -48,7 +62,8 @@ export async function GET() {
         overallHitRate: '0.00%',
         activeConnections: 0,
         cachedRequests: 0,
-        memoryCacheSizeMB: 0
+        memoryCacheSizeMB: '0.00',
+        distributedCacheHitRate: '0.00%'
       }
     }
 
@@ -70,7 +85,8 @@ export async function GET() {
         : '0.00%',
       activeConnections: metrics.serverClientPool.size + metrics.browserClientPool.connections,
       cachedRequests: metrics.requestDeduplication.size,
-      memoryCacheSizeMB: (metrics.memoryCache.total.currentSize / (1024 * 1024)).toFixed(2)
+      memoryCacheSizeMB: (metrics.memoryCache.total.currentSize / (1024 * 1024)).toFixed(2),
+      distributedCacheHitRate: `${metrics.distributedCache.hitRate.toFixed(2)}%`
     }
 
     return NextResponse.json(metrics)
@@ -84,3 +100,5 @@ export async function GET() {
     )
   }
 }
+
+export const GET = withApiObservability('performance.metrics', getPerformanceMetrics)

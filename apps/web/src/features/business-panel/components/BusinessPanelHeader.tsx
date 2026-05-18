@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Building2, Menu } from 'lucide-react'
@@ -23,7 +24,7 @@ interface BusinessPanelHeaderProps {
 
 export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
   if (!onMenuClick || typeof onMenuClick !== 'function') {
-    console.error('BusinessPanelHeader: onMenuClick debe ser una funcion')
+    techDebtLogger.error('BusinessPanelHeader: onMenuClick debe ser una funcion')
     return null
   }
 

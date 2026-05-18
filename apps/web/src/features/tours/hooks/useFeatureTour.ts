@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { CallBackProps, STATUS, ACTIONS, EVENTS, Step } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
@@ -170,13 +171,13 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
 
   const finishTour = useCallback(() => {
     stopTour();
-    dbCompleteTour().catch(err => console.error(`[useFeatureTour:${tourId}] Complete failed`, err));
+    dbCompleteTour().catch(err => techDebtLogger.error(`[useFeatureTour:${tourId}] Complete failed`, err));
     if (onComplete) onComplete();
   }, [dbCompleteTour, onComplete, stopTour, tourId]);
 
   const dismissTour = useCallback(() => {
     stopTour();
-    dbSkipTour().catch(err => console.error(`[useFeatureTour:${tourId}] Skip failed`, err));
+    dbSkipTour().catch(err => techDebtLogger.error(`[useFeatureTour:${tourId}] Skip failed`, err));
     if (onSkip) onSkip();
   }, [dbSkipTour, onSkip, stopTour, tourId]);
 
@@ -186,7 +187,7 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
     setRun(false);
 
     const start = () => {
-      dbStartTour().catch(err => console.error(`[useFeatureTour:${tourId}] Start failed`, err));
+      dbStartTour().catch(err => techDebtLogger.error(`[useFeatureTour:${tourId}] Start failed`, err));
       setRun(true);
     };
 

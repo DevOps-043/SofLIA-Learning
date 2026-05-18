@@ -9,7 +9,7 @@ import { normalizeSessionState } from './session-state'
 
 export async function getDialogueResult(client: unknown, sessionId: string) {
   const { data, error } = await dialogueResultsTable(client)
-    .select('*')
+    .select(SELECT_COLUMNS.soflia_dialogue_results)
     .eq('session_id', sessionId)
     .maybeSingle()
 

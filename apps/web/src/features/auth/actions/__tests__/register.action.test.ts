@@ -16,6 +16,10 @@ vi.mock('bcryptjs', () => ({
   hash: vi.fn().mockResolvedValue('hashed-password'),
 }))
 
+vi.mock('../password-breach-check.server', () => ({
+  validatePasswordIsNotBreached: vi.fn().mockResolvedValue(null),
+}))
+
 function createRegisterFormData(overrides: Record<string, string> = {}) {
   const formData = new FormData()
   const values = {
@@ -24,8 +28,8 @@ function createRegisterFormData(overrides: Record<string, string> = {}) {
     username: 'adalovelace',
     email: 'ada@example.com',
     confirmEmail: 'ada@example.com',
-    password: 'Password1',
-    confirmPassword: 'Password1',
+    password: 'Password1234!',
+    confirmPassword: 'Password1234!',
     countryCode: 'MX',
     phoneNumber: '5512345678',
     acceptTerms: 'true',

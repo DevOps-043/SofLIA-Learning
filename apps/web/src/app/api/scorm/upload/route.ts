@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { parseScormManifest, validateScormPackage } from '@/lib/scorm/parser';
+import { parseScormManifest, validateScormPackage, type ScormManifest } from '@/lib/scorm/parser';
 import { validatePackageSecurity } from '@/lib/scorm/validator';
+import type { Json } from '@/lib/supabase/types';
+import { validateAndPrepareUpload } from '@/lib/upload/validation.server';
 import JSZip from 'jszip';
 
 export async function POST(req: NextRequest) {
@@ -32,6 +34,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'File too large. Max 100MB' },
         { status: 400 }
+      );
+    }
+
+    const uploadValidation = await validateAndPrepareUpload(file, 'scorm-packages');
+    if (!uploadValidation.valid) {
+      return NextResponse.json(
+        { error: uploadValidation.error || 'Invalid SCORM package' },
+        { status: uploadValidation.antimalwareRequired ? 503 : 400 }
       );
     }
 
@@ -105,7 +115,7 @@ export async function POST(req: NextRequest) {
         title: manifest.title,
         description: manifest.description,
         version: manifest.version,
-        manifest_data: manifest,
+        manifest_data: scormManifestToJson(manifest),
         entry_point: manifest.entryPoint,
         storage_path: storagePath,
         file_size: file.size,
@@ -156,4 +166,35 @@ function getContentType(filename: string): string {
     swf: 'application/x-shockwave-flash',
   };
   return types[ext || ''] || 'application/octet-stream';
+}
+
+function scormManifestToJson(manifest: ScormManifest): Json {
+  return {
+    version: manifest.version,
+    title: manifest.title,
+    description: manifest.description ?? null,
+    entryPoint: manifest.entryPoint,
+    organizations: manifest.organizations.map((organization) => ({
+      identifier: organization.identifier,
+      title: organization.title,
+      items: organization.items.map(scormItemToJson),
+    })),
+    resources: manifest.resources.map((resource) => ({
+      identifier: resource.identifier,
+      type: resource.type,
+      href: resource.href ?? null,
+      files: resource.files,
+    })),
+  };
+}
+
+function scormItemToJson(
+  item: ScormManifest['organizations'][number]['items'][number],
+): Json {
+  return {
+    identifier: item.identifier,
+    title: item.title,
+    resourceId: item.resourceId ?? null,
+    children: item.children?.map(scormItemToJson) ?? [],
+  };
 }

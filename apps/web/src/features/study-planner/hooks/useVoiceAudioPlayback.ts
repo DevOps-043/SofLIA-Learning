@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useRef, useState } from 'react';
 import { isTTSAbortError, requestTTSAudio, speakWithWebSpeech } from '../../../core/services/tts';
 import {
@@ -114,7 +115,7 @@ export function useVoiceAudioPlayback(
       isSpeakingRef.current = false;
       setIsSpeaking(false);
     } catch (error) {
-      console.warn('Error deteniendo audio:', error);
+      techDebtLogger.warn('Error deteniendo audio:', error);
     }
   }, []);
 
@@ -138,7 +139,7 @@ export function useVoiceAudioPlayback(
       }
       await playAudioBlobWithAbort(audioBlob, controller);
     } catch (error) {
-      if (!isTTSAbortError(error)) console.error('Error en sintesis de voz con ElevenLabs:', error);
+      if (!isTTSAbortError(error)) techDebtLogger.error('Error en sintesis de voz con ElevenLabs:', error);
     } finally {
       if (ttsAbortRef.current === controller) ttsAbortRef.current = null;
       isSpeakingRef.current = false;

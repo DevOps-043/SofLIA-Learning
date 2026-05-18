@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useRef, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -8,7 +9,7 @@ import { useThemeStore } from '@/core/stores/themeStore';
 
 // Solo loguear en desarrollo
 const isDev = process.env.NODE_ENV === 'development';
-const log = isDev ? console.log : () => { };
+const log = isDev ? techDebtLogger.log : () => { };
 
 const NON_ORG_ROUTE_SEGMENTS = new Set([
   'api',
@@ -324,7 +325,7 @@ function OrganizationStylesProviderInner({ children, orgSlug }: { children: Reac
             JSON.stringify(data.styles)
           );
         } catch (e) {
-          console.error('Error guardando tema en localStorage:', e);
+          techDebtLogger.error('Error guardando tema en localStorage:', e);
         }
       }
 
@@ -372,7 +373,7 @@ function OrganizationStylesProviderInner({ children, orgSlug }: { children: Reac
             JSON.stringify(data.styles)
           );
         } catch (e) {
-          console.error('Error guardando tema en localStorage:', e);
+          techDebtLogger.error('Error guardando tema en localStorage:', e);
         }
       }
 

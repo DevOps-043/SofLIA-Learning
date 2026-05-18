@@ -1,3 +1,4 @@
+import 'server-only'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export type CourseImportSupabaseClient = ReturnType<typeof createServiceClient>

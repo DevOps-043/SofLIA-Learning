@@ -1,5 +1,6 @@
 import { createClient } from '../../../lib/supabase/server';
 import { escapeIlikePattern } from '../../../lib/supabase/ilike-escape';
+import { SELECT_COLUMNS } from '../../../lib/supabase/select-types';
 import type { Database } from '../../../lib/supabase/types';
 import {
   OAuthAccount,
@@ -84,7 +85,7 @@ export class OAuthService {
 
     const { data, error } = await supabase
       .from('oauth_accounts')
-      .select('*')
+      .select(SELECT_COLUMNS.oauth_accounts)
       .eq('provider', provider)
       .eq('provider_account_id', providerAccountId)
       .single();
@@ -107,7 +108,7 @@ export class OAuthService {
 
     const { data, error } = await supabase
       .from('oauth_accounts')
-      .select('*')
+      .select(SELECT_COLUMNS.oauth_accounts)
       .eq('user_id', userId);
 
     if (error) {

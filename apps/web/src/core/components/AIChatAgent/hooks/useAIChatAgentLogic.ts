@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
@@ -394,7 +395,7 @@ export function useAIChatAgentLogic({
         if (voice.isVoiceEnabled && assistantMsg.content) voice.speakText(assistantMsg.content);
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') console.error('Error en el chat:', error);
+      if (process.env.NODE_ENV === 'development') techDebtLogger.error('Error en el chat:', error);
       const errMsg: Message = { id: (Date.now() + 1).toString(), role: 'assistant', content: errorGeneric, timestamp: new Date() };
       if (isPromptMode) setPromptMessages(prev => [...prev, errMsg]); else setNormalMessages(prev => [...prev, errMsg]);
       if (voice.isVoiceEnabled && errMsg.content) voice.speakText(errMsg.content);

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { SessionService } from '../../../../../features/auth/services/session.service'
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
     const supabase = createAdminClient()
     const { data: integrations, error: integrationError } = await supabase
       .from('calendar_integrations')
-      .select('*')
+      .select(SELECT_COLUMNS.calendar_integrations)
       .eq('user_id', user.id)
       .order('updated_at', { ascending: false })
       .limit(1)
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
         : `Se insertaron ${insertedCount} de ${eventsToInsert.length} eventos. ${failedCount} fallaron.`,
     })
   } catch (error: unknown) {
-    console.error('[Insert Events] Error general:', error)
+    techDebtLogger.error('[Insert Events] Error general:', error)
     return NextResponse.json({
       error: getErrorMessage(error),
       success: false,
@@ -138,7 +139,7 @@ async function resolveCalendarId(
   if (calendarId) {
     await CalendarIntegrationService.saveSecondaryCalendarId(userId, calendarId)
   } else {
-    console.warn('[Insert Events] No se pudo crear calendario secundario, usando primario')
+    techDebtLogger.warn('[Insert Events] No se pudo crear calendario secundario, usando primario')
   }
 
   return calendarId
@@ -171,7 +172,7 @@ async function insertCalendarEvents(params: {
         await new Promise((resolve) => setTimeout(resolve, throttleMs))
       }
     } catch (error: unknown) {
-      console.error(`[Insert Events] Error insertando evento ${index + 1}:`, error)
+      techDebtLogger.error(`[Insert Events] Error insertando evento ${index + 1}:`, error)
       results.push({ success: false, error: getErrorMessage(error), index })
     }
   }

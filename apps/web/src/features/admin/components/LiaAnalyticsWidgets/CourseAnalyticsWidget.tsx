@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback } from 'react';
 import { 
   AcademicCapIcon, 
@@ -63,7 +64,7 @@ export function CourseAnalyticsWidget({ period }: CourseAnalyticsWidgetProps) {
         }
     } catch (err) {
         setError('Error al cargar datos de cursos');
-        console.error(err);
+        techDebtLogger.error(err);
     } finally {
         setIsLoading(false);
     }

@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, ExternalLink } from 'lucide-react';
@@ -16,7 +17,7 @@ export function DashboardButton() {
       const data = await response.json();
       router.push(data.destination || '/dashboard');
     } catch (error) {
-      console.error('Error redirigiendo al dashboard:', error);
+      techDebtLogger.error('Error redirigiendo al dashboard:', error);
       router.push('/dashboard');
     } finally {
       setIsLoading(false);

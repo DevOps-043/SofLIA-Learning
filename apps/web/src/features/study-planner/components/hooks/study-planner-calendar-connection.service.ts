@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { fetchStudyPlannerUserContext } from '../../services/planner-user-context-client.service';
 import {
   buildSkippedCalendarProfileInfo,
@@ -61,7 +62,7 @@ export function createDisconnectCalendarHandler(
         );
       }
     } catch (error) {
-      console.error('[disconnectCalendar] Error desconectando calendario:', error);
+      techDebtLogger.error('[disconnectCalendar] Error desconectando calendario:', error);
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -124,7 +125,7 @@ export function createSkipCalendarConnectionHandler(
         await params.speakText(audioMessage);
       }
     } catch (error) {
-      console.error('Error obteniendo perfil:', error);
+      techDebtLogger.error('Error obteniendo perfil:', error);
       const fallbackMessage =
         'Entendido. Cuentame: Que dias de la semana prefieres estudiar y en que horarios? (Por ejemplo: "Lunes a viernes por la noche")';
       params.setConversationHistory((previousHistory) => [

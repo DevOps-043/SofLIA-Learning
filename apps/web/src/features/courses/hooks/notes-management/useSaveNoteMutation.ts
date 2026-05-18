@@ -1,5 +1,6 @@
 "use client";
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback } from "react";
 import type {
   LearnEditableNote,
@@ -76,7 +77,7 @@ export function useSaveNoteMutation({
       return true;
     } catch (error) {
       if (process.env.NODE_ENV === "development") {
-        console.error("Error sincronizando guardado de nota:", error);
+        techDebtLogger.error("Error sincronizando guardado de nota:", error);
       }
       await loadCourseNotes(slug);
       await loadNotesStats(slug);

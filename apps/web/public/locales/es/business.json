@@ -1439,7 +1439,9 @@
     "errors": {
       "downloadTemplate": "Error al descargar la plantilla",
       "invalidFileType": "El archivo debe ser un CSV (.csv)",
-      "processFile": "Error al procesar el archivo"
+      "invalidResponse": "Respuesta inesperada del servidor",
+      "processFile": "Error al procesar el archivo",
+      "timeout": "La importacion sigue en proceso. Actualiza la lista en unos minutos"
     },
     "buttons": {
       "close": "Cerrar",

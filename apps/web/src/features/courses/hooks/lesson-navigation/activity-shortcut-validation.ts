@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { LearnLesson } from "../../components/learn/types";
 import type { OpenLessonOptions, PendingValidationRef, TrackUserAction } from "./lesson-navigation.types";
 import { trackActivityShortcutOpened } from "./activity-shortcut.helpers";
@@ -47,7 +48,7 @@ export async function runActivityShortcutValidation({
     }
 
     if ((error as { name?: string })?.name !== "AbortError" && process.env.NODE_ENV === "development") {
-      console.warn("Error en validacion de acceso a actividad (ignorado):", error);
+      techDebtLogger.warn("Error en validacion de acceso a actividad (ignorado):", error);
     }
   }
 }

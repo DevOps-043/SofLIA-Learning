@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../supabase/server';
 import type { ConversationMetadata } from '../lia-logger-events';
 import { conversationsTable, messagesTable } from '../lia-logger-events';
@@ -27,7 +28,7 @@ export async function startLiaConversation(
     .single();
 
   if (error) {
-    console.error('[SofLIALogger] Error starting conversation:', error);
+    techDebtLogger.error('[SofLIALogger] Error starting conversation:', error);
     throw error;
   }
 

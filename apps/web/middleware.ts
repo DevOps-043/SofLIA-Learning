@@ -27,9 +27,27 @@ import {
   ROLE_ROUTES
 } from './src/core/middleware/auth.middleware'
 import { applyRateLimit, RATE_LIMITS, addRateLimitHeaders, checkRateLimit } from './src/core/lib/rate-limit'
+import { rejectOversizedRequest } from './src/lib/api/request-size'
+import {
+  getOrCreateCorrelationId,
+  setCorrelationId,
+} from './src/lib/observability/correlation'
+
+function withCorrelationHeader<T extends NextResponse>(response: T, correlationId: string) {
+  setCorrelationId(response.headers, correlationId)
+  return response
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const correlationId = getOrCreateCorrelationId(request.headers)
+  setCorrelationId(request.headers, correlationId)
+
+  const oversizedRequestResponse = rejectOversizedRequest(request)
+  if (oversizedRequestResponse) {
+    return withCorrelationHeader(oversizedRequestResponse, correlationId)
+  }
+
   const trafficAssessment = assessAgentTraffic(request)
   const trustedAgentFromHeaders = validateTrustedAgentHeaders(request)
   const trustedAgentFromCookie = validateTrustedAgentCookie(request)
@@ -78,13 +96,13 @@ export async function middleware(request: NextRequest) {
   // 1. Rate limiting estricto para auth endpoints
   if (pathname.startsWith('/api/auth/login') || pathname.startsWith('/api/auth/register')) {
     const rateLimitResponse = await applyRateLimit(request, RATE_LIMITS.strict, 'auth');
-    if (rateLimitResponse) return rateLimitResponse;
+    if (rateLimitResponse) return withCorrelationHeader(rateLimitResponse, correlationId);
   }
   
   // 2. Rate limiting estricto para password reset
   if (pathname.startsWith('/api/auth/reset-password') || pathname.startsWith('/api/auth/forgot-password')) {
     const rateLimitResponse = await applyRateLimit(request, RATE_LIMITS.strict, 'password');
-    if (rateLimitResponse) return rateLimitResponse;
+    if (rateLimitResponse) return withCorrelationHeader(rateLimitResponse, correlationId);
   }
   
   // 3. Rate limiting para operaciones de creación
@@ -94,26 +112,26 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api/courses') && pathname.includes('create')
   )) {
     const rateLimitResponse = await applyRateLimit(request, RATE_LIMITS.create, 'create');
-    if (rateLimitResponse) return rateLimitResponse;
+    if (rateLimitResponse) return withCorrelationHeader(rateLimitResponse, correlationId);
   }
   
   // 4. Rate limiting para uploads
   if (pathname.startsWith('/api/upload') || pathname.includes('/upload')) {
     const rateLimitResponse = await applyRateLimit(request, RATE_LIMITS.upload, 'upload');
-    if (rateLimitResponse) return rateLimitResponse;
+    if (rateLimitResponse) return withCorrelationHeader(rateLimitResponse, correlationId);
   }
   
   // 5. Rate limiting para admin endpoints
   if (pathname.startsWith('/api/admin')) {
     const rateLimitResponse = await applyRateLimit(request, RATE_LIMITS.admin, 'admin');
-    if (rateLimitResponse) return rateLimitResponse;
+    if (rateLimitResponse) return withCorrelationHeader(rateLimitResponse, correlationId);
   }
   
   // 6. Rate limiting general para todos los API endpoints
   if (pathname.startsWith('/api/')) {
     const rateLimitResult = checkRateLimit(request, RATE_LIMITS.api, 'api');
     if (!rateLimitResult.success && rateLimitResult.response) {
-      return rateLimitResult.response;
+      return withCorrelationHeader(rateLimitResult.response, correlationId);
     }
     // Guardar info de rate limit para agregar headers después
     request.headers.set('X-Rate-Limit-Info', JSON.stringify({
@@ -178,13 +196,13 @@ export async function middleware(request: NextRequest) {
       reasons: trafficAssessment.reasons,
     })
 
-    return new NextResponse('Forbidden', {
+    return withCorrelationHeader(new NextResponse('Forbidden', {
       status: 403,
       headers: {
         'Cache-Control': 'private, no-store, max-age=0',
         'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet, noimageindex',
       },
-    })
+    }), correlationId)
   }
 
   if (
@@ -224,7 +242,7 @@ export async function middleware(request: NextRequest) {
       getVerificationChallengeCookieOptions(),
     )
 
-    return challengeResponse
+    return withCorrelationHeader(challengeResponse, correlationId)
   }
   
   // Para debugging: mostrar cookies
@@ -239,14 +257,17 @@ export async function middleware(request: NextRequest) {
     // Si no hay ningún tipo de sesión, redirigir a login
     if (!hasSession && !hasRefreshToken) {
       // console.log('� Redirigiendo a /auth - no hay sesión para ruta protegida');
-      return NextResponse.redirect(new URL('/auth?error=session_required', request.url));
+      return withCorrelationHeader(
+        NextResponse.redirect(new URL('/auth?error=session_required', request.url)),
+        correlationId,
+      );
     }
     
     // Si tiene refresh token pero no access token, intentar refrescar
     if (hasRefreshToken && !hasAccessToken) {
       // console.log('🔄 Intentando refrescar access token expirado');
       try {
-        const sessionInfo = await RefreshTokenService.refreshSession(request);
+        await RefreshTokenService.refreshSession();
         // console.log('✅ Access token refrescado exitosamente');
         
         // Crear nueva respuesta con cookies actualizadas
@@ -268,7 +289,7 @@ export async function middleware(request: NextRequest) {
         redirectResponse.cookies.delete('refresh_token');
         redirectResponse.cookies.delete('aprende-y-aplica-session');
         
-        return redirectResponse;
+        return withCorrelationHeader(redirectResponse, correlationId);
       }
     }
     
@@ -295,7 +316,7 @@ export async function middleware(request: NextRequest) {
     // Si la validación de rol devuelve una respuesta, significa que el acceso fue denegado
     if (roleValidationResponse) {
       // console.log('❌ Acceso denegado por validación de rol');
-      return roleValidationResponse;
+      return withCorrelationHeader(roleValidationResponse, correlationId);
     }
 
     // SECURITY: Verificar suspensión del usuario en rutas org-scoped.
@@ -336,7 +357,10 @@ export async function middleware(request: NextRequest) {
               .single();
 
             if (membership?.status === 'suspended') {
-              return NextResponse.redirect(new URL(`/${orgSlug}/suspended`, request.url));
+              return withCorrelationHeader(
+                NextResponse.redirect(new URL(`/${orgSlug}/suspended`, request.url)),
+                correlationId,
+              );
             }
           }
         }
@@ -354,7 +378,10 @@ export async function middleware(request: NextRequest) {
   const isSelectOrgRoute = pathname.startsWith('/auth/select-organization');
   if (isAuthRoute && !isSelectOrgRoute && hasSession) {
     // console.log('✅ Redirigiendo a /dashboard - usuario autenticado en ruta auth');
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return withCorrelationHeader(
+      NextResponse.redirect(new URL('/dashboard', request.url)),
+      correlationId,
+    );
   }
   
   // console.log('➡️ Continuando sin redirección');
@@ -370,7 +397,7 @@ export async function middleware(request: NextRequest) {
     }
   }
   
-  return response;
+  return withCorrelationHeader(response, correlationId);
 }
 
 export const config = {

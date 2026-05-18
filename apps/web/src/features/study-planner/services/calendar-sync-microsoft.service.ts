@@ -1,11 +1,13 @@
 import type { SyncResult, CalendarEventData } from './calendar-sync.types';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 
 export async function syncDeleteMicrosoftEvent(
   accessToken: string,
   eventId: string,
 ): Promise<SyncResult> {
   try {
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'microsoft-calendar-sync',
       `https://graph.microsoft.com/v1.0/me/calendar/events/${encodeURIComponent(eventId)}`,
       { method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` } },
     );
@@ -24,7 +26,7 @@ export async function syncCreateMicrosoftEvent(
   eventData: CalendarEventData,
 ): Promise<SyncResult> {
   try {
-    const response = await fetch('https://graph.microsoft.com/v1.0/me/events', {
+    const response = await fetchWithCircuitBreaker('microsoft-calendar-sync', 'https://graph.microsoft.com/v1.0/me/events', {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({

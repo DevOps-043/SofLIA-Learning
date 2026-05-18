@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSofLIAPersonalization } from '../../../hooks/useSofLIAPersonalization';
 import { getElevenLabsVoiceSettings, getWebSpeechVoiceSettings } from '../../../utils/tts-voice-settings';
@@ -145,7 +146,7 @@ export function useAIChatVoice(language: string, tCommon: (key: string) => strin
       if (ttsAbortRef.current === controller) ttsAbortRef.current = null;
     } catch (error: unknown) {
       if (!isTTSAbortError(error)) {
-        console.error('Error en sÃ­ntesis de voz con ElevenLabs:', error);
+        techDebtLogger.error('Error en sÃ­ntesis de voz con ElevenLabs:', error);
       }
       setIsSpeaking(false);
     }
@@ -167,7 +168,7 @@ export function useAIChatVoice(language: string, tCommon: (key: string) => strin
     recognition.interimResults = false;
 
     recognition.onerror = (event: SpeechErrorEvent) => {
-      console.warn('Speech recognition error:', event.error);
+      techDebtLogger.warn('Speech recognition error:', event.error);
       setIsRecording(false);
       if (event.error === 'not-allowed') {
         setVoiceError(tCommon('aiChat.voice.microphoneError'));
@@ -209,7 +210,7 @@ export function useAIChatVoice(language: string, tCommon: (key: string) => strin
         recognitionRef.current.start();
         setIsRecording(true);
       } catch (error: unknown) {
-        console.error('Error starting speech recognition:', error);
+        techDebtLogger.error('Error starting speech recognition:', error);
         setIsRecording(false);
         if (error instanceof Error && error.name === 'NotAllowedError') {
           setVoiceError(tCommon('aiChat.voice.microphoneError'));

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { DynamicHierarchyService } from '../../../services/dynamicHierarchy.service';
 import { findRootNode } from './hierarchy-node-actions';
 import type { BusinessTranslator } from './types';
@@ -18,7 +19,7 @@ export function useHierarchyTreeCommands(state: HierarchyTreeState, t: BusinessT
           state.loadNodes(state.selectedStructureId);
         }
       })
-      .catch(console.error);
+      .catch(techDebtLogger.error);
   };
 
   const saveStructure = async (name: string) => {
@@ -32,7 +33,7 @@ export function useHierarchyTreeCommands(state: HierarchyTreeState, t: BusinessT
       }
     } catch (err) {
       state.setNodeActionError(t('hierarchy.saveStructureError'));
-      console.error(err);
+      techDebtLogger.error(err);
     }
   };
 
@@ -51,7 +52,7 @@ export function useHierarchyTreeCommands(state: HierarchyTreeState, t: BusinessT
       state.setMemberModalNodeName(rootNode.name);
       state.setIsMemberModalOpen(true);
     } catch (err) {
-      console.error('Error finding root node', err);
+      techDebtLogger.error('Error finding root node', err);
       state.setNodeActionError(t('hierarchy.noRootNode'));
     }
   };

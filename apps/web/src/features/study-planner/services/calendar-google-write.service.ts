@@ -5,6 +5,8 @@ import type {
   GoogleEventUpdateInput,
   GoogleEventUpdatePayload,
 } from './calendar-google.types';
+import { logger } from '@/lib/logger';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 export { deleteGoogleEvent } from './calendar-google-delete.service';
 
 export async function createGoogleEvent(
@@ -14,7 +16,8 @@ export async function createGoogleEvent(
 ): Promise<GoogleCalendarWriteResult | null> {
   try {
     const targetCalendarId = calendarId || 'primary';
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`,
       {
         method: 'POST',
@@ -30,13 +33,13 @@ export async function createGoogleEvent(
       },
     );
     if (!response.ok) {
-      console.error('[Calendar] Error creando evento:', await response.text());
+      logger.warn('[Calendar] Error creando evento', { status: response.status });
       return null;
     }
     const data: GoogleCreatedEventResponse = await response.json();
     return { id: data.id, htmlLink: data.htmlLink };
   } catch (error) {
-    console.error('[Calendar] Error creando evento:', error);
+    logger.warn('[Calendar] Error creando evento', { error });
     return null;
   }
 }
@@ -56,7 +59,8 @@ export async function updateGoogleEvent(
     if (event.startTime && event.timezone) updateData.start = { dateTime: event.startTime, timeZone: event.timezone };
     if (event.endTime && event.timezone) updateData.end = { dateTime: event.endTime, timeZone: event.timezone };
 
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events/${eventId}`,
       {
         method: 'PATCH',
@@ -65,12 +69,12 @@ export async function updateGoogleEvent(
       },
     );
     if (!response.ok) {
-      console.error('[Calendar] Error actualizando evento:', await response.text());
+      logger.warn('[Calendar] Error actualizando evento', { status: response.status });
       return false;
     }
     return true;
   } catch (error) {
-    console.error('[Calendar] Error actualizando evento:', error);
+    logger.warn('[Calendar] Error actualizando evento', { error });
     return false;
   }
 }

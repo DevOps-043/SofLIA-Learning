@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -29,7 +30,7 @@ export async function GET() {
       .limit(100)
 
     if (error) {
-      console.error('Error fetching bulk invite links:', error)
+      techDebtLogger.error('Error fetching bulk invite links:', error)
       return NextResponse.json(
         { success: false, error: 'Error al obtener enlaces de invitación' },
         { status: 500 }
@@ -41,7 +42,7 @@ export async function GET() {
       links: links || []
     })
   } catch (error) {
-    console.error('Error in GET /api/business/invite-links:', error)
+    techDebtLogger.error('Error in GET /api/business/invite-links:', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

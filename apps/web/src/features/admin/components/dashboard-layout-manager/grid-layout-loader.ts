@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { ReactGridLayoutModule, ResponsiveLayoutComponent } from './types';
 
 let ResponsiveLayoutWithWidth: ResponsiveLayoutComponent | null = null;
@@ -19,7 +20,7 @@ export function getResponsiveLayoutWithWidth() {
       ResponsiveLayoutWithWidth = ReactGridLayout.WidthProvider(ResponsiveGridLayout);
     }
   } catch (error) {
-    console.error('Error loading react-grid-layout:', error);
+    techDebtLogger.error('Error loading react-grid-layout:', error);
   }
 
   return ResponsiveLayoutWithWidth;

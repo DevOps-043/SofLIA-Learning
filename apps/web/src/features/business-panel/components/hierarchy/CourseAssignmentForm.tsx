@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState } from 'react'
 import { X, Calendar, Clock, MessageSquare, BookOpen } from 'lucide-react'
 import { CourseSelectorModal } from './CourseSelectorModal'
@@ -100,7 +101,7 @@ export function CourseAssignmentForm({
       handleClose()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error al guardar la asignación')
-      console.error('Error en asignación:', err)
+      techDebtLogger.error('Error en asignación:', err)
     } finally {
       setIsSubmitting(false)
     }

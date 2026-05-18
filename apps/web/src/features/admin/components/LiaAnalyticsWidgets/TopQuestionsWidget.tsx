@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react';
 import { ChatBubbleLeftRightIcon, SparklesIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 
@@ -45,7 +46,7 @@ export function TopQuestionsWidget({ period = 'month', limit = 8, isLoading: ext
           setTopCategory(result.data.topCategory);
         }
       } catch (error) {
-        console.error('Error fetching top questions:', error);
+        techDebtLogger.error('Error fetching top questions:', error);
       } finally {
         setIsLoading(false);
       }

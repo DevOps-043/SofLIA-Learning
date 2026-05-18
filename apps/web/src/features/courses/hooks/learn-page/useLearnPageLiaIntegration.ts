@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback } from 'react'
 
 import type { CourseLessonContext } from '../../../../core/types/lia.types'
@@ -80,7 +81,7 @@ export function useLearnPageLiaIntegration({
       isSystemMessage: boolean = false,
     ) => {
       if (!liaChat?.sendMessage) {
-        console.warn('LIA Chat no inicializado')
+        techDebtLogger.warn('LIA Chat no inicializado')
         return
       }
       if (isLiaInteractionBlocked) {

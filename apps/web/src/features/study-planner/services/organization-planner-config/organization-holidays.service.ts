@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../../lib/supabase/server'
 import type { OrganizationHoliday } from './organization-planner-config.types'
 
@@ -63,11 +64,11 @@ export async function getOrganizationHolidays(
   ])
 
   if (fixedResult.error) {
-    console.error('[OrganizationPlannerConfigService] Error fetching fixed holidays:', fixedResult.error)
+    techDebtLogger.error('[OrganizationPlannerConfigService] Error fetching fixed holidays:', fixedResult.error)
   }
 
   if (recurringResult.error) {
-    console.error('[OrganizationPlannerConfigService] Error fetching recurring holidays:', recurringResult.error)
+    techDebtLogger.error('[OrganizationPlannerConfigService] Error fetching recurring holidays:', recurringResult.error)
   }
 
   const fixedHolidays = (fixedResult.data ?? []).map((holiday) => mapHoliday(holiday, holiday.holiday_date))

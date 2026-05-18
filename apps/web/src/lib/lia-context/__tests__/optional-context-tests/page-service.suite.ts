@@ -1,11 +1,10 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { PageContextService } from '../../services/page-context.service'
 import { check } from './assertions'
 import { createResult } from './types'
 
 export function testPageContextServiceNewPages() {
-  console.log('
-TEST: PAGE CONTEXT SERVICE
-')
+  techDebtLogger.log('\nTEST: PAGE CONTEXT SERVICE\n')
   const result = createResult()
   const cases = [
     { path: '/auth', expected: ['auth_login', 'Login'] },

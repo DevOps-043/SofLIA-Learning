@@ -1,4 +1,6 @@
 import type { GoogleCreatedEventResponse } from './calendar-google.types';
+import { logger } from '@/lib/logger';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 import { getGoogleCalendarList } from './calendar-google-read.service';
 
 export const PLATFORM_CALENDAR_NAME = 'SofLIA - Sesiones de Estudio';
@@ -10,7 +12,7 @@ export async function findPlatformCalendar(accessToken: string): Promise<string 
 
 export async function createPlatformCalendar(accessToken: string): Promise<string | null> {
   try {
-    const response = await fetch('https://www.googleapis.com/calendar/v3/calendars', {
+    const response = await fetchWithCircuitBreaker('google-calendar', 'https://www.googleapis.com/calendar/v3/calendars', {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -20,13 +22,13 @@ export async function createPlatformCalendar(accessToken: string): Promise<strin
       }),
     });
     if (!response.ok) {
-      console.error('[Calendar] Error creando calendario secundario:', await response.text());
+      logger.warn('[Calendar] Error creando calendario secundario', { status: response.status });
       return null;
     }
     const data: GoogleCreatedEventResponse = await response.json();
     return data.id;
   } catch (error) {
-    console.error('[Calendar] Error creando calendario secundario:', error);
+    logger.warn('[Calendar] Error creando calendario secundario', { error });
     return null;
   }
 }

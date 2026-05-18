@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '../../../../features/auth/services/session.service';
 import { UserContextService } from '../../../../features/study-planner/services/user-context.service';
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ValidateS
       data,
     });
   } catch (error) {
-    console.error('Error validando tiempos de sesiÃ³n:', error);
+    techDebtLogger.error('Error validando tiempos de sesiÃ³n:', error);
     return NextResponse.json(
       {
         success: false,

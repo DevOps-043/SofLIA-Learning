@@ -1,3 +1,5 @@
+import 'server-only'
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * SofLIAPersonalizationService
  * 
@@ -61,7 +63,7 @@ export class SofLIAPersonalizationService {
     const adminSupabase = createAdminClient();
 
     const { data, error } = await personalizationSettingsTable(adminSupabase)
-      .select('*')
+      .select(SELECT_COLUMNS.lia_personalization_settings)
       .eq('user_id', userId)
       .single();
 
@@ -70,7 +72,7 @@ export class SofLIAPersonalizationService {
       if (error.code === 'PGRST116') {
         return null;
       }
-      console.error('Error obteniendo configuración de personalización:', error);
+      techDebtLogger.error('Error obteniendo configuración de personalización:', error);
       throw new Error(`Error al obtener configuración: ${error.message}`);
     }
 
@@ -115,7 +117,7 @@ export class SofLIAPersonalizationService {
       .single();
 
     if (error) {
-      console.error('Error creando configuración por defecto:', error);
+      techDebtLogger.error('Error creando configuración por defecto:', error);
       throw new Error(`Error al crear configuración: ${error.message}`);
     }
 
@@ -174,14 +176,14 @@ export class SofLIAPersonalizationService {
           .single();
 
         if (createError) {
-          console.error('Error creando configuración:', createError);
+          techDebtLogger.error('Error creando configuración:', createError);
           throw new Error(`Error al crear configuración: ${createError.message}`);
         }
 
         return createdData as SofLIAPersonalizationSettings;
       }
 
-      console.error('Error actualizando configuración:', updateError);
+      techDebtLogger.error('Error actualizando configuración:', updateError);
       throw new Error(`Error al actualizar configuración: ${updateError.message}`);
     }
 
@@ -201,7 +203,7 @@ export class SofLIAPersonalizationService {
       .eq('user_id', userId);
 
     if (error) {
-      console.error('Error eliminando configuración:', error);
+      techDebtLogger.error('Error eliminando configuración:', error);
       throw new Error(`Error al eliminar configuración: ${error.message}`);
     }
   }
@@ -250,7 +252,7 @@ export class SofLIAPersonalizationService {
 
     // ðŸš¨ RESTRICCIONES CRÃTICAS SOBRE PERSONALIZACIÓN Y ALCANCE
     prompt += `\n## ðŸš¨ RESTRICCIONES CRÃTICAS - PERSONALIZACIÓN Y ALCANCE\n`;
-    prompt += `\nâš ï¸ IMPORTANTE: La personalización SOLO afecta el ESTILO y TONO de tus respuestas, NO el ALCANCE de lo que puedes responder.\n\n`;
+    prompt += `\nIMPORTANTE: La personalización SOLO afecta el ESTILO y TONO de tus respuestas, NO el ALCANCE de lo que puedes responder.\n\n`;
     prompt += `✅ LO QUE SÃ PUEDES HACER CON LA PERSONALIZACIÓN:\n`;
     prompt += `- Adaptar tu estilo de comunicación según las instrucciones personalizadas (ej: si dice "actúa como un nerd de comics", usa un tono entusiasta y conocimiento sobre comics SOLO cuando hables de contenido de la plataforma relacionado con ese tema)\n`;
     prompt += `- Usar terminología, ejemplos y referencias del tema de personalización cuando expliques contenido de la plataforma\n`;

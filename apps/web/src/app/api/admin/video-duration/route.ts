@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
 
 export async function POST(request: NextRequest) {
   // ✅ SEGURIDAD: Verificar autenticación y autorización de admin
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
         // Usar oEmbed API de Vimeo (no requiere API key)
         try {
           const oembedUrl = `https://vimeo.com/api/oembed.json?url=https://vimeo.com/${videoId}`
-          const response = await fetch(oembedUrl)
+          const response = await fetchWithCircuitBreaker('vimeo-oembed', oembedUrl)
           
           if (response.ok) {
             const data = await response.json()
@@ -74,4 +75,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

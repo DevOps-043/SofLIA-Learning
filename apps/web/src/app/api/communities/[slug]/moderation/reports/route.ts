@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
@@ -22,7 +23,7 @@ export async function GET(
     const user = await SessionService.getCurrentUser()
 
     if (!user) {
-      console.error('❌ User not authenticated')
+      techDebtLogger.error('❌ User not authenticated')
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
@@ -42,7 +43,7 @@ export async function GET(
       .single()
 
     if (communityError || !community) {
-      console.error('❌ Error fetching community:', communityError)
+      techDebtLogger.error('❌ Error fetching community:', communityError)
       return NextResponse.json(
         { error: 'Comunidad no encontrada' },
         { status: 404 }
@@ -53,7 +54,7 @@ export async function GET(
     const canModerate = await canModerateCommunity(user.id, community.id)
 
     if (!canModerate) {
-      console.error('❌ User does not have moderation permissions')
+      techDebtLogger.error('❌ User does not have moderation permissions')
       return NextResponse.json(
         { error: 'No tienes permisos para moderar esta comunidad' },
         { status: 403 }
@@ -64,7 +65,7 @@ export async function GET(
     // La validación de permisos ya se hizo arriba con canModerateCommunity
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!supabaseServiceKey) {
-      console.error('❌ SUPABASE_SERVICE_ROLE_KEY no está configurada')
+      techDebtLogger.error('❌ SUPABASE_SERVICE_ROLE_KEY no está configurada')
       return NextResponse.json(
         { 
           error: 'Error de configuración del servidor',
@@ -96,7 +97,7 @@ export async function GET(
 
     let query = adminSupabase
       .from('community_post_reports')
-      .select('*')
+      .select(SELECT_COLUMNS.community_post_reports)
       .eq('community_id', community.id)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
@@ -112,7 +113,7 @@ export async function GET(
     const { data: reports, error: reportsError } = await query
 
     if (reportsError) {
-      console.error('❌ Error fetching reports:', {
+      techDebtLogger.error('❌ Error fetching reports:', {
         error: reportsError,
         message: reportsError.message,
         code: reportsError.code,
@@ -207,7 +208,7 @@ export async function GET(
     const { count, error: countError } = await countQuery
 
     if (countError) {
-      console.error('❌ Error counting reports:', countError)
+      techDebtLogger.error('❌ Error counting reports:', countError)
     }
 
 

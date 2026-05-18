@@ -24,7 +24,7 @@ export async function POST(
         // 1. Fetch current node
         const { data: node } = await supabase
             .from('organization_nodes')
-            .select('*')
+            .select(SELECT_COLUMNS.organization_nodes)
             .eq('id', nodeId)
             .eq('organization_id', auth.organizationId)
             .single();
@@ -38,7 +38,7 @@ export async function POST(
         if (new_parent_id) {
             const { data: parent } = await supabase
                 .from('organization_nodes')
-                .select('*')
+                .select(SELECT_COLUMNS.organization_nodes)
                 .eq('id', new_parent_id)
                 .eq('organization_id', auth.organizationId)
                 .single();

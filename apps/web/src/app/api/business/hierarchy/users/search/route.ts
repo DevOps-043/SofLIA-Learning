@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
@@ -45,7 +46,7 @@ export async function GET(request: Request) {
         const { data: users, error } = await dbQuery.limit(20);
 
         if (error) {
-            console.error('[DEBUG] Error fetching users:', error);
+            techDebtLogger.error('[DEBUG] Error fetching users:', error);
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
@@ -59,7 +60,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ users: formattedUsers });
 
     } catch (error) {
-        console.error('Error in user search:', error);
+        techDebtLogger.error('Error in user search:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

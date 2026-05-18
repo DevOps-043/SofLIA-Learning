@@ -50,7 +50,7 @@ export async function GET(
         .limit(5),
       supabase
         .from('community_posts')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('community_id', community.id),
       supabase
         .from('community_members')

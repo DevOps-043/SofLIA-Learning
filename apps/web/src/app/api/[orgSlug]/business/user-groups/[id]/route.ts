@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types'
 import { logger } from '@/lib/utils/logger'
-
-interface UpdateUserGroupBody {
-  name?: string
-  description?: string
-  color?: string
-}
+import { userGroupUpdateSchema, type UserGroupUpdateBody } from './schema'
 
 interface UserGroupUpdatePayload {
   updated_at: string
   name?: string
   description?: string | null
-  color?: string
+  color?: string | null
 }
 
 /**
@@ -41,7 +38,7 @@ export async function GET(
     // Obtener el grupo asegurando pertenencia a la organización
     const { data: group, error: groupError } = await supabase
       .from('user_groups')
-      .select('*')
+      .select(SELECT_COLUMNS.user_groups)
       .eq('id', groupId)
       .eq('organization_id', auth.organizationId)
       .maybeSingle()
@@ -56,7 +53,7 @@ export async function GET(
     // Contar miembros
     const { count } = await supabase
       .from('user_group_members')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('group_id', groupId)
 
     return NextResponse.json({
@@ -79,8 +76,9 @@ export async function GET(
  * PUT /api/[orgSlug]/business/user-groups/[id]
  * Actualiza un grupo
  */
-export async function PUT(
-  request: NextRequest,
+async function handlePut(
+  _request: NextRequest,
+  body: UserGroupUpdateBody,
   { params }: { params: Promise<{ orgSlug: string; id: string }> }
 ) {
   try {
@@ -96,7 +94,6 @@ export async function PUT(
     }
 
     const supabase = await createClient()
-    const body: UpdateUserGroupBody = await request.json()
     const { name, description, color } = body
 
     // Verificar que el grupo exista y pertenezca a la organización
@@ -159,7 +156,7 @@ export async function PUT(
     // Contar miembros
     const { count } = await supabase
       .from('user_group_members')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('group_id', groupId)
 
     return NextResponse.json({
@@ -177,6 +174,8 @@ export async function PUT(
     }, { status: 500 })
   }
 }
+
+export const PUT = withZodBody(userGroupUpdateSchema, handlePut)
 
 /**
  * DELETE /api/[orgSlug]/business/user-groups/[id]

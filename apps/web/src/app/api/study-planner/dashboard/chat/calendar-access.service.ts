@@ -1,5 +1,7 @@
+import 'server-only'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { createAdminClient as createSharedAdminClient } from '@/lib/supabase/admin'
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
 import type { Database } from '../../../../../lib/supabase/types'
 import { logger } from '../../../../../lib/utils/logger'
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service'
@@ -107,7 +109,7 @@ export async function refreshAccessToken(
       const googleClientSecret =
         process.env.GOOGLE_CALENDAR_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET || ''
 
-      const response = await fetch('https://oauth2.googleapis.com/token', {
+      const response = await fetchWithCircuitBreaker('google-oauth-dashboard-chat', 'https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({

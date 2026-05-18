@@ -2,6 +2,7 @@ import { createClient } from '../../../../lib/supabase/server'
 import { resolveUserPrimaryMembership } from '../../../../lib/services/user-org-context.service'
 import type { UserProfile } from '../../types/profile.types'
 import { mapProfileWithMembership } from './profile-row.mapper'
+import { PROFILE_USER_SELECT } from './profile-selects'
 
 export async function getProfile(
   userId: string,
@@ -11,7 +12,7 @@ export async function getProfile(
   const [profileResult, membership] = await Promise.all([
     supabase
       .from('users')
-      .select('*')
+      .select(PROFILE_USER_SELECT)
       .eq('id', userId)
       .single(),
     resolveUserPrimaryMembership(supabase, userId, organizationId),

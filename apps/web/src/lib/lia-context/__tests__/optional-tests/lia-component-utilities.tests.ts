@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import {
   LIA_DATA_ATTRIBUTES,
   liaComponent,
@@ -10,7 +11,7 @@ import {
 import { createCounter } from './test-runner'
 
 export function testLiaComponentUtilities() {
-  console.log('\nTEST: LIA COMPONENT UTILITIES\n')
+  techDebtLogger.log('\nTEST: LIA COMPONENT UTILITIES\n')
   const counter = createCounter()
 
   const basic = liaComponent({ name: 'TestComponent' })

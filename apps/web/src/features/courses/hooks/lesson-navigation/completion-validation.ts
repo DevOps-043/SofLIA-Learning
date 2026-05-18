@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { LearnLesson } from "../../components/learn/types";
 import type { OpenLessonOptions, PendingValidationRef, TrackUserAction } from "./lesson-navigation.types";
 
@@ -41,7 +42,7 @@ export async function runCompletionValidation({
     }
 
     if ((error as { name?: string })?.name !== "AbortError" && process.env.NODE_ENV === "development") {
-      console.warn("Error en validacion de cambio de leccion (ignorado):", error);
+      techDebtLogger.warn("Error en validacion de cambio de leccion (ignorado):", error);
     }
   }
 }

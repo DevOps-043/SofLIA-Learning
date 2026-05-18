@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { LoginSupabaseClient, LoginUserRecord } from './types'
 import { handleNoBelongingRedirect } from './organization-helpers'
 
@@ -99,7 +100,7 @@ async function tryConsumeOrganizationInvitation(
     : await consumeBulkInvitationAction(bulkInviteToken as string, input.user.id)
 
   if (!consumeResult?.success) {
-    console.warn(
+    techDebtLogger.warn(
       '[loginAction] Fallo el consumo de invitacion:',
       consumeResult?.error
     )

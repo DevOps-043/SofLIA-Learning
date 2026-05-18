@@ -1,5 +1,12 @@
 import React from 'react'
 
+const SAFE_MARKDOWN_URL_PATTERN = /^(https?:\/\/|mailto:|\/(?!\/)|#)/i
+
+function sanitizeMarkdownUrl(value: string): string | null {
+  const trimmed = value.trim()
+  return SAFE_MARKDOWN_URL_PATTERN.test(trimmed) ? trimmed : null
+}
+
 export function parseMarkdownContent(
   text: string,
   onLinkClick: (url: string) => void,
@@ -8,7 +15,7 @@ export function parseMarkdownContent(
   let keyIndex = 0
   const processedText = text.replace(/^\*\s+/gm, '- ')
   const lines = processedText.split('\n')
-  const linkColor = isDarkMode ? '#00D4B3' : '#0A2540'
+  const linkColor = isDarkMode ? 'var(--color-accent)' : 'var(--color-primary)'
 
   const processInlineFormatting = (line: string): React.ReactNode[] => {
     const elements: React.ReactNode[] = []
@@ -24,7 +31,13 @@ export function parseMarkdownContent(
 
       if (match[1]) {
         const linkText = match[2]
-        const linkUrl = match[3]
+        const linkUrl = sanitizeMarkdownUrl(match[3])
+
+        if (!linkUrl) {
+          elements.push(linkText)
+          lastIndex = match.index + match[0].length
+          continue
+        }
 
         elements.push(
           <a

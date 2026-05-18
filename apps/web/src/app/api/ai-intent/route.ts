@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/utils/logger';
 import { SessionService } from '../../../features/auth/services/session.service';
 import { trackOpenAICall, calculateOpenAIMetadata } from '../../../lib/openai/usage-monitor';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 
 /**
  * Endpoint para detección avanzada de intenciones con OpenAI
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     // 4. Llamar a OpenAI para clasificar la intención
     const startTime = Date.now();
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetchWithCircuitBreaker('openai-ai-intent', 'https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -164,4 +165,3 @@ NO incluyas ningún texto adicional, SOLO el JSON.`,
     );
   }
 }
-

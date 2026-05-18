@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
@@ -56,7 +57,7 @@ export function useNodeDashboardState(nodeId: string) {
         setError(t('hierarchy.dashboard.errors.loadInfo'))
       }
     } catch (err) {
-      console.error(err)
+      techDebtLogger.error(err)
       setError(t('hierarchy.dashboard.errors.connection'))
     } finally {
       setLoading(false)
@@ -76,7 +77,7 @@ export function useNodeDashboardState(nodeId: string) {
       const result = await HierarchyService.getNodeMembers(nodeId, orgSlug)
       setMembers(result)
     } catch (error) {
-      console.error('Error fetching members:', error)
+      techDebtLogger.error('Error fetching members:', error)
     } finally {
       setLoadingMembers(false)
     }
@@ -99,7 +100,7 @@ export function useNodeDashboardState(nodeId: string) {
       fetchData()
       setShowEditModal(false)
     } catch (error) {
-      console.error('Error updating node:', error)
+      techDebtLogger.error('Error updating node:', error)
     }
   }
 
@@ -116,7 +117,7 @@ export function useNodeDashboardState(nodeId: string) {
       fetchMembers()
       fetchData()
     } catch (error) {
-      console.error('Error removing member:', error)
+      techDebtLogger.error('Error removing member:', error)
     }
   }
 

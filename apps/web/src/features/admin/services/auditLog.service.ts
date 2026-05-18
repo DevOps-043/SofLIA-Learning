@@ -1,3 +1,4 @@
+import 'server-only'
 import { createClient } from '../../../lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { fromLoose } from '../../../lib/supabase/looseQuery'
@@ -58,7 +59,7 @@ export class AuditLogService {
 
     let query = supabase
       .from('audit_logs')
-      .select('*')
+      .select(SELECT_COLUMNS.audit_logs)
       .order('created_at', { ascending: false })
       .limit(limit)
 

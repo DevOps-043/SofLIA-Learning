@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
       }
     )
   } catch (error) {
-    console.error('Error en LIA Analytics:', error)
+    techDebtLogger.error('Error en LIA Analytics:', error)
     return NextResponse.json(
       { error: 'Error interno del servidor', success: false },
       { status: 500 }

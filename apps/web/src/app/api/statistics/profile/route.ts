@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     // Buscar perfil del usuario
     const { data: profile, error: profileError } = await supabase
       .from('user_perfil')
-      .select('*')
+      .select(SELECT_COLUMNS.user_perfil)
       .eq('user_id', user.id)
       .single();
 

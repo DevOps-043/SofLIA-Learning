@@ -1,4 +1,5 @@
 import type { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 import type { HierarchyAutoAssignConfig } from './types'
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
@@ -31,7 +32,7 @@ export async function loadHierarchyAutoAssignConfig(
 
     return { enabled: true, defaultTeamId: defaultTeam?.id || null }
   } catch (configError) {
-    console.warn('[import] Could not load hierarchy config:', configError)
+    logger.warn('[import] Could not load hierarchy config', { error: configError })
     return { enabled: false, defaultTeamId: null }
   }
 }
@@ -51,6 +52,9 @@ export async function autoAssignUserToDefaultTeam(
       is_primary: true,
     })
   } catch (autoAssignError) {
-    console.warn(`[import] Auto-assign failed for user ${userId}:`, autoAssignError)
+    logger.warn('[import] Auto-assign failed for user', {
+      userId,
+      error: autoAssignError,
+    })
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 
 /**
  * POST /api/business/hierarchy/geocode
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     const nominatimUrl = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
 
-    const response = await fetch(nominatimUrl, {
+    const response = await fetchWithCircuitBreaker('nominatim-geocode', nominatimUrl, {
       headers: {
         'User-Agent': 'Aprende-y-Aplica/1.0 (contact@aprendeyapla.com)', // Requerido por Nominatim
         'Accept-Language': 'es,en',
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
       logger.info(`🔍 Geocoding request (fallback): ${query}`);
 
       const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`;
-      const fallbackRes = await fetch(fallbackUrl, {
+      const fallbackRes = await fetchWithCircuitBreaker('nominatim-geocode', fallbackUrl, {
         headers: {
           'User-Agent': 'Aprende-y-Aplica/1.0 (contact@aprendeyapla.com)',
           'Accept-Language': 'es,en',
@@ -181,7 +182,7 @@ export async function GET(request: NextRequest) {
 
     const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&addressdetails=1`;
 
-    const response = await fetch(url, {
+    const response = await fetchWithCircuitBreaker('nominatim-geocode', url, {
       headers: {
         'User-Agent': 'Aprende-y-Aplica/1.0 (contact@aprendeyapla.com)',
         'Accept-Language': 'es,en',

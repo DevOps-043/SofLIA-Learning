@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/client';
 import { normalizeTranslations } from './translation-validation';
 import { setCachedTranslations } from './translation-cache';
@@ -86,7 +87,7 @@ export async function translateArray<T extends Record<string, unknown>>(
       .in('entity_id', entityIds);
 
     if (error || !data) {
-      console.warn('[translateArray] No translations found or error:', error);
+      techDebtLogger.warn('[translateArray] No translations found or error:', error);
       return array;
     }
 
@@ -101,7 +102,7 @@ export async function translateArray<T extends Record<string, unknown>>(
       applyTranslations(item, fields, translationsMap.get(String(item.id))),
     );
   } catch (error) {
-    console.error('Error translating array:', error);
+    techDebtLogger.error('Error translating array:', error);
     return array;
   }
 }

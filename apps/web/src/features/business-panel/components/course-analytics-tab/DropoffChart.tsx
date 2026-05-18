@@ -1,19 +1,32 @@
-import { ResponsiveBar } from '@nivo/bar';
 import { AlertTriangle } from 'lucide-react';
 import type { CSSProperties } from 'react';
-import type { PartialTheme } from '@nivo/theming';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import type { BusinessPanelTheme, CourseAnalyticsColors } from './chart-theme';
 import type { DropoffAnalysis } from './types';
 
 interface DropoffChartProps {
+  chartTooltipStyle: CSSProperties;
   colors: CourseAnalyticsColors;
   dropoffAnalysis: DropoffAnalysis;
-  nivoTheme: PartialTheme;
   panelTheme: BusinessPanelTheme;
   surfaceStyle: CSSProperties;
 }
 
-export function DropoffChart({ colors, dropoffAnalysis, nivoTheme, panelTheme, surfaceStyle }: DropoffChartProps) {
+export function DropoffChart({
+  chartTooltipStyle,
+  colors,
+  dropoffAnalysis,
+  panelTheme,
+  surfaceStyle,
+}: DropoffChartProps) {
   const data = dropoffAnalysis.dropoff_points.map((item) => ({
     count: item.dropoff_count,
     lesson: item.lesson_title.substring(0, 30) + (item.lesson_title.length > 30 ? '...' : ''),
@@ -27,25 +40,33 @@ export function DropoffChart({ colors, dropoffAnalysis, nivoTheme, panelTheme, s
       </h3>
       <div className="h-80">
         {data.length > 0 ? (
-          <ResponsiveBar
-            data={data}
-            keys={['count']}
-            indexBy="lesson"
-            margin={{ top: 50, right: 50, bottom: 120, left: 60 }}
-            padding={0.3}
-            valueScale={{ type: 'linear' }}
-            indexScale={{ type: 'band', round: true }}
-            colors={colors.warning}
-            borderColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
-            axisTop={null}
-            axisRight={null}
-            axisBottom={{ tickSize: 5, tickPadding: 5, tickRotation: -45, legend: 'Lección', legendPosition: 'middle', legendOffset: 100 }}
-            axisLeft={{ tickSize: 5, tickPadding: 5, tickRotation: 0, legend: 'Usuarios', legendPosition: 'middle', legendOffset: -40 }}
-            labelSkipWidth={12}
-            labelSkipHeight={12}
-            labelTextColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
-            theme={nivoTheme}
-          />
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data} margin={{ top: 24, right: 24, bottom: 72, left: 8 }}>
+              <CartesianGrid stroke={panelTheme.dividerColor} strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                angle={-45}
+                dataKey="lesson"
+                height={88}
+                interval={0}
+                textAnchor="end"
+                tick={{ fill: panelTheme.subtextColor, fontSize: 11 }}
+                tickLine={{ stroke: panelTheme.dividerColor }}
+              />
+              <YAxis
+                allowDecimals={false}
+                tick={{ fill: panelTheme.subtextColor, fontSize: 11 }}
+                tickLine={{ stroke: panelTheme.dividerColor }}
+                width={44}
+              />
+              <Tooltip
+                contentStyle={chartTooltipStyle}
+                cursor={{ fill: panelTheme.hoverBg }}
+                formatter={(value) => [value, 'Usuarios']}
+                labelStyle={{ color: panelTheme.textColor }}
+              />
+              <Bar dataKey="count" fill={colors.warning} name="Usuarios" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         ) : (
           <div className="flex items-center justify-center h-full" style={{ color: panelTheme.subtextColor }}>
             No se identificaron puntos de abandono

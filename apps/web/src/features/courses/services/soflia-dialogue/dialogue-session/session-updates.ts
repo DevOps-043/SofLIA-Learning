@@ -38,7 +38,7 @@ export async function updateDialogueSessionAfterTurn(input: {
       updated_at: now,
     })
     .eq('session_id', input.session.session_id)
-    .select('*')
+    .select(SELECT_COLUMNS.soflia_dialogue_sessions)
     .single()
 
   if (error || !data) {

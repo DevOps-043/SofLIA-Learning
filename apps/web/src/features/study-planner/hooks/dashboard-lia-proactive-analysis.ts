@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { Dispatch, SetStateAction } from 'react';
 import type {
   ActiveStudyPlan,
@@ -27,7 +28,7 @@ export async function loadProactiveAnalysis(
     const chatData = await response.json() as DashboardChatSuccessPayload;
 
     if (!chatData.success || !chatData.response) {
-      console.warn('[SofLIA Dashboard] Respuesta sin exito:', chatData.error || 'Sin respuesta');
+      techDebtLogger.warn('[SofLIA Dashboard] Respuesta sin exito:', chatData.error || 'Sin respuesta');
       throw new Error(chatData.error || 'Sin respuesta del analisis');
     }
 
@@ -45,7 +46,7 @@ export async function loadProactiveAnalysis(
       refreshPlanAfterAction(setState);
     }
   } catch (chatError) {
-    console.error('[SofLIA Dashboard] Error obteniendo analisis proactivo:', chatError);
+    techDebtLogger.error('[SofLIA Dashboard] Error obteniendo analisis proactivo:', chatError);
     setState(prev => ({
       ...prev,
       messages: [createDashboardWelcomeMessage(plan)],
@@ -64,6 +65,6 @@ function refreshPlanAfterAction(
           setState(prev => ({ ...prev, activePlan: planData.data }));
         }
       })
-      .catch(err => console.error('Error recargando plan:', err));
+      .catch(err => techDebtLogger.error('Error recargando plan:', err));
   }, 500);
 }

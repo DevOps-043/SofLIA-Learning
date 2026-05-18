@@ -52,6 +52,9 @@ type RefreshTokenRow = Omit<
   is_revoked: boolean | null;
 };
 
+const REFRESH_TOKEN_SELECT =
+  'id, user_id, token_hash, expires_at, created_at, last_used_at, device_fingerprint, ip_address, user_agent, is_revoked, revoked_at, revoked_reason';
+
 function normalizeRefreshToken(row: RefreshTokenRow): RefreshToken {
   const createdAt = row.created_at ?? row.last_used_at ?? new Date().toISOString();
   const lastUsedAt = row.last_used_at ?? createdAt;
@@ -76,7 +79,7 @@ export class RefreshTokenService {
 
     const { data, error } = await supabase
       .from('refresh_tokens')
-      .select('*')
+      .select(REFRESH_TOKEN_SELECT)
       .eq('token_hash', hashRefreshToken(refreshToken))
       .eq('is_revoked', false)
       .gt('expires_at', new Date().toISOString())
@@ -229,7 +232,7 @@ export class RefreshTokenService {
 
     const { data, error } = await supabase
       .from('refresh_tokens')
-      .select('*')
+      .select(REFRESH_TOKEN_SELECT)
       .eq('user_id', userId)
       .eq('is_revoked', false)
       .gte('expires_at', new Date().toISOString())

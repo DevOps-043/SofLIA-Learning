@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/utils/logger';
 import { AdminWorkshopsService } from '@/features/admin/services/adminWorkshops.service'
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
       const supabase = await createClient();
       const { data: translations, error: translationError } = await supabase
         .from('content_translations')
-        .select('*')
+        .select(SELECT_COLUMNS.content_translations)
         .eq('entity_type', 'course')
         .eq('entity_id', newWorkshop.id);
 
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
         }
       });
     } catch (verifyError) {
-      console.error('[API /admin/workshops/create] Error verificando traducciones:', verifyError);
+      techDebtLogger.error('[API /admin/workshops/create] Error verificando traducciones:', verifyError);
       return NextResponse.json({
         success: true,
         workshop: newWorkshop,

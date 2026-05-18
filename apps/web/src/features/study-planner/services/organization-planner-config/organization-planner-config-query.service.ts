@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../../lib/supabase/server'
 import { cloneDefaultPlannerConfig } from './organization-planner-config.defaults'
 import { mapPlannerConfigRow } from './organization-planner-config.mapper'
@@ -25,7 +26,7 @@ export async function getOrganizationPlannerConfig(
     .maybeSingle()
 
   if (error) {
-    console.error(
+    techDebtLogger.error(
       `[OrganizationPlannerConfigService] Error fetching config for org ${organizationId}:`,
       error,
     )

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { IntentResult } from './types'
 
 export async function detectIntentWithAI(
@@ -17,7 +18,7 @@ export async function detectIntentWithAI(
 
     return await response.json() as IntentResult
   } catch (error) {
-    console.error('Error detectando intención con IA:', error)
+    techDebtLogger.error('Error detectando intención con IA:', error)
     return fallback(message)
   }
 }

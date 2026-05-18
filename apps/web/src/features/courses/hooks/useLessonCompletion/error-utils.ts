@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { getUnknownErrorMessage, getUnknownErrorName } from "./parsers";
 
 export function isAbortError(error: unknown, signal?: AbortSignal): boolean {
@@ -14,6 +15,6 @@ export function isNetworkError(error: unknown): boolean {
 
 export function warnInDevelopment(message: string, ...details: unknown[]): void {
   if (process.env.NODE_ENV === "development") {
-    console.warn(message, ...details);
+    techDebtLogger.warn(message, ...details);
   }
 }

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback } from 'react'
 import { ACTIONS, EVENTS, STATUS, type CallBackProps, type Step } from 'react-joyride'
 import { closeUserMenuIfOpen } from './target-utils'
@@ -25,14 +26,14 @@ export function useBusinessUserJoyrideCallback({
     setRun(false)
     setIsTourFinishedInSession(true)
     closeUserMenuIfOpen()
-    operation().catch((error) => console.error(`[useBusinessUserJoyride] ${label}`, error))
+    operation().catch((error) => techDebtLogger.error(`[useBusinessUserJoyride] ${label}`, error))
   }, [setIsTourFinishedInSession, setRun])
 
   return useCallback((data: CallBackProps) => {
     const { action, index, status, type } = data
     if (type === EVENTS.TARGET_NOT_FOUND) {
       targetNotFoundRetryCount.current += 1
-      console.warn('[useBusinessUserJoyride] TARGET_NOT_FOUND on step', index, '— retry', targetNotFoundRetryCount.current)
+      techDebtLogger.warn('[useBusinessUserJoyride] TARGET_NOT_FOUND on step', index, '— retry', targetNotFoundRetryCount.current)
       if (targetNotFoundRetryCount.current > 2) {
         targetNotFoundRetryCount.current = 0
         if (index >= runnableSteps.length - 1) {

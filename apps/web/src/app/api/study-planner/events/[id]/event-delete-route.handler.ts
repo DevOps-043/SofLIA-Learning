@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 import {
   createAdminClient,
@@ -26,7 +27,7 @@ export async function handleCalendarEventDelete(
     try {
       await deleteSyncedGoogleEvent(userId, existingEvent.google_event_id)
     } catch (error) {
-      console.error('Error eliminando de Google Calendar:', error)
+      techDebtLogger.error('Error eliminando de Google Calendar:', error)
     }
   }
 
@@ -37,7 +38,7 @@ export async function handleCalendarEventDelete(
     .eq('user_id', userId)
 
   if (deleteError) {
-    console.error('Error eliminando evento:', deleteError)
+    techDebtLogger.error('Error eliminando evento:', deleteError)
     return NextResponse.json(
       { error: 'Error al eliminar el evento' },
       { status: 500 },
@@ -53,7 +54,7 @@ async function deleteExternalGoogleEvent(userId: string, id: string): Promise<Ne
     return NextResponse.json({ success: true, message: 'Evento eliminado exitosamente' })
   } catch (error) {
     const errorMessage = getErrorMessage(error)
-    console.error('Error eliminando evento de Google Calendar:', error)
+    techDebtLogger.error('Error eliminando evento de Google Calendar:', error)
     if (errorMessage === 'NO_GOOGLE_INTEGRATION') {
       return NextResponse.json({ error: 'Evento no encontrado' }, { status: 404 })
     }

@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     // Verificar que la comunidad existe y es gratuita
     const { data: community, error: communityError } = await supabase
       .from('communities')
-      .select('*')
+      .select(SELECT_COLUMNS.communities)
       .eq('id', communityId)
       .eq('is_active', true)
       .single();

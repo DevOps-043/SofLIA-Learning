@@ -19,4 +19,5 @@ export interface LoggerOptions {
   context?: string;
   sanitize?: boolean;
   includeStackTrace?: boolean;
+  defaultMetadata?: LogMetadata;
 }

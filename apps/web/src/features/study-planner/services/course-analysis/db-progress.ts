@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../../lib/supabase/server'
 import type {
   CourseLessonCountRow,
@@ -43,7 +44,7 @@ export async function fetchUserCourseProgressRows(
     .in('course_id', courseIds)
 
   if (error || !data) {
-    console.error('Error obteniendo progreso de cursos:', error)
+    techDebtLogger.error('Error obteniendo progreso de cursos:', error)
     return []
   }
 
@@ -71,7 +72,7 @@ export async function fetchCourseLessonCountRows(
     .eq('is_published', true)
 
   if (error || !data) {
-    console.error('Error obteniendo conteo de lecciones por curso:', error)
+    techDebtLogger.error('Error obteniendo conteo de lecciones por curso:', error)
     return []
   }
 
@@ -87,7 +88,7 @@ export async function fetchCompletedLessonIds(userId: string): Promise<Set<strin
     .eq('is_completed', true)
 
   if (error || !data) {
-    console.error('Error obteniendo progreso de lecciones:', error)
+    techDebtLogger.error('Error obteniendo progreso de lecciones:', error)
     return new Set()
   }
 
@@ -100,7 +101,7 @@ export async function fetchUserStudyStreakRow(
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('user_streaks')
-    .select('*')
+    .select(SELECT_COLUMNS.user_streaks)
     .eq('user_id', userId)
     .single()
 

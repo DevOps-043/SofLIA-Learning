@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createAdminMaterialsClient } from './admin-materials.client'
 import { buildMaterialInsertData } from './admin-materials.data'
 import { updateModuleDurationFromLesson } from './admin-materials.duration'
@@ -7,7 +8,7 @@ async function getNextMaterialOrderIndex(lessonId: string) {
   const supabase = await createAdminMaterialsClient()
   const { count } = await supabase
     .from('lesson_materials')
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .eq('lesson_id', lessonId)
 
   return (count || 0) + 1
@@ -26,7 +27,7 @@ async function translateCreatedMaterial(material: AdminMaterial, userId?: string
       userId,
     )
   } catch (translationError) {
-    console.error('Error en traducción automática del material:', translationError)
+    techDebtLogger.error('Error en traducción automática del material:', translationError)
   }
 }
 

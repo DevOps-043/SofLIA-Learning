@@ -1,6 +1,9 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types'
+import { fromLoose } from '@/lib/supabase/looseQuery'
 
 interface StudentUserSummary {
   id: string
@@ -39,6 +42,47 @@ interface StudySessionRow {
   progress_made?: number | null
 }
 
+interface LiaMessageRow {
+  message_id: string
+  conversation_id: string
+  created_at: string
+  sender: string | null
+  role: string | null
+}
+
+interface LiaFeedbackRow {
+  feedback_id: string
+  conversation_id: string
+  rating: number | null
+  feedback_type: string | null
+}
+
+interface ModuleProgressRow {
+  course_modules?: {
+    module_id: string
+    module_title: string | null
+    module_order: number | null
+  } | null
+}
+
+interface CompletedActivityRow {
+  activity_id: string
+  completed_at: string | null
+  time_spent_seconds: number | null
+}
+
+interface LessonProgressRow {
+  lesson_id: string
+  completed_at: string | null
+  time_spent_seconds: number | null
+  time_spent_minutes: number | null
+}
+
+interface UserNoteRow {
+  note_id: string
+  created_at: string | null
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; userId: string }> | { id: string; userId: string } }
@@ -57,7 +101,7 @@ export async function GET(
 
     // Verificar que los parámetros estén presentes
     if (!courseId || !userId) {
-      console.error('[Student Details API] Missing parameters:', { courseId, userId })
+      techDebtLogger.error('[Student Details API] Missing parameters:', { courseId, userId })
       return NextResponse.json({ error: 'Parámetros faltantes', details: { courseId, userId } }, { status: 400 })
     }
 
@@ -66,10 +110,17 @@ export async function GET(
     // Intentar primero con user_course_enrollments (vista/tabla principal)
     let enrollment: StudentEnrollment | null = null
     
-    const { data: enrollmentData, error: enrollmentErr } = await supabase
-      .from('user_course_enrollments')
+    const { data: enrollmentData, error: enrollmentErr } = await fromLoose<StudentEnrollment>(
+      supabase,
+      'user_course_enrollments'
+    )
       .select(`
-        *,
+        enrollment_id,
+        overall_progress_percentage,
+        progress_percentage,
+        enrollment_status,
+        enrolled_at,
+        last_accessed_at,
         users:user_id (
           id,
           username,
@@ -84,8 +135,10 @@ export async function GET(
 
     if (enrollmentErr || !enrollmentData) {
       // Si falla, intentar con course_enrollments como fallback
-      const { data: enrollmentData2, error: enrollmentErr2 } = await supabase
-        .from('course_enrollments')
+      const { data: enrollmentData2, error: enrollmentErr2 } = await fromLoose<StudentEnrollment>(
+        supabase,
+        'course_enrollments'
+      )
         .select(`
           *,
           users:user_id (
@@ -101,7 +154,7 @@ export async function GET(
         .single()
       
       if (enrollmentErr2 || !enrollmentData2) {
-        console.error('[Student Details API] Enrollment not found:', { 
+        techDebtLogger.error('[Student Details API] Enrollment not found:', {
           courseId, 
           userId, 
           error1: enrollmentErr?.message, 
@@ -123,22 +176,28 @@ export async function GET(
     }
 
     // Obtener IDs de módulos y lecciones del curso primero
-    const { data: courseModules } = await supabase
-      .from('course_modules')
+    const { data: courseModules } = await fromLoose<{ module_id: string }>(
+      supabase,
+      'course_modules'
+    )
       .select('module_id')
       .eq('course_id', courseId)
     
     const moduleIds = courseModules?.map(m => m.module_id) || []
     
-    const { data: courseLessons } = await supabase
-      .from('course_lessons')
+    const { data: courseLessons } = await fromLoose<{ lesson_id: string }>(
+      supabase,
+      'course_lessons'
+    )
       .select('lesson_id')
       .in('module_id', moduleIds)
     
     const lessonIds = courseLessons?.map(l => l.lesson_id) || []
     
-    const { data: courseActivities } = await supabase
-      .from('lesson_activities')
+    const { data: courseActivities } = await fromLoose<{ activity_id: string }>(
+      supabase,
+      'lesson_activities'
+    )
       .select('activity_id')
       .in('lesson_id', lessonIds)
     
@@ -146,8 +205,10 @@ export async function GET(
 
     // 2. Estadísticas de LIA - TODAS las conversaciones del usuario (no solo del curso)
     // Incluye: chat general, chat de lecciones, chat de actividades, planificador de estudio
-    const { data: liaConversations, error: liaError } = await supabase
-      .from('lia_conversations')
+    const { data: liaConversations, error: liaError } = await fromLoose<LiaConversationRow>(
+      supabase,
+      'lia_conversations'
+    )
       .select('conversation_id, created_at, context_type, course_id, lesson_id, activity_id')
       .eq('user_id', userId)
       // No filtramos por course_id para incluir TODAS las interacciones con LIA
@@ -155,24 +216,21 @@ export async function GET(
     // 3. Estadísticas de LIA - Mensajes de TODAS las conversaciones
     const conversationIds = liaConversations?.map(c => c.conversation_id) || []
     const { data: liaMessages, error: messagesError } = conversationIds.length > 0
-      ? await supabase
-          .from('lia_messages')
+      ? await fromLoose<LiaMessageRow>(supabase, 'lia_messages')
           .select('message_id, conversation_id, created_at, sender, role')
           .in('conversation_id', conversationIds)
       : { data: [], error: null }
 
     // 4. Estadísticas de LIA - Feedback de TODAS las conversaciones
     const { data: liaFeedback, error: feedbackError } = conversationIds.length > 0
-      ? await supabase
-          .from('lia_user_feedback')
+      ? await fromLoose<LiaFeedbackRow>(supabase, 'lia_user_feedback')
           .select('feedback_id, conversation_id, rating, feedback_type')
           .in('conversation_id', conversationIds)
       : { data: [], error: null }
 
     // 5. Sesiones de Estudio - Incluye sesiones del curso y del planificador
-    let studySessionsQuery = supabase
-      .from('study_sessions')
-      .select('*')
+    let studySessionsQuery = fromLoose<StudySessionRow>(supabase, 'study_sessions')
+      .select(SELECT_COLUMNS.study_sessions)
       .eq('user_id', userId)
     
     // Construir la condición OR de manera segura
@@ -187,8 +245,7 @@ export async function GET(
 
     // 6. Actividades Completadas del curso
     const { data: completedActivities, error: activitiesError } = activityIds.length > 0
-      ? await supabase
-          .from('user_activity_progress')
+      ? await fromLoose<CompletedActivityRow>(supabase, 'user_activity_progress')
           .select('activity_id, completed_at, time_spent_seconds')
           .eq('user_id', userId)
           .eq('is_completed', true)
@@ -197,8 +254,7 @@ export async function GET(
 
     // 7. Progreso por Módulos del curso
     const { data: moduleProgress, error: moduleProgressError } = moduleIds.length > 0
-      ? await supabase
-          .from('user_module_progress')
+      ? await fromLoose<ModuleProgressRow>(supabase, 'user_module_progress')
           .select(`
             *,
             course_modules:module_id (
@@ -213,8 +269,7 @@ export async function GET(
 
     // 8. Lecciones vistas del curso
     const { data: lessonProgress, error: lessonProgressError } = lessonIds.length > 0 && enrollment?.enrollment_id
-      ? await supabase
-          .from('user_lesson_progress')
+      ? await fromLoose<LessonProgressRow>(supabase, 'user_lesson_progress')
           .select('lesson_id, completed_at, time_spent_seconds, time_spent_minutes')
           .eq('user_id', userId)
           .eq('enrollment_id', enrollment.enrollment_id)
@@ -223,8 +278,7 @@ export async function GET(
 
     // 9. Notas creadas del curso
     const { data: userNotes, error: notesError } = lessonIds.length > 0
-      ? await supabase
-          .from('user_lesson_notes')
+      ? await fromLoose<UserNoteRow>(supabase, 'user_lesson_notes')
           .select('note_id, created_at')
           .eq('user_id', userId)
           .in('lesson_id', lessonIds)
@@ -235,7 +289,7 @@ export async function GET(
     const totalMessages = liaMessages?.length || 0
     const userMessages = liaMessages?.filter(m => m.role === 'user' || m.sender === 'user').length || 0
     const liaMessagesCount = liaMessages?.filter(m => m.role === 'assistant' || m.sender === 'assistant').length || 0
-    const positiveFeedback = liaFeedback?.filter(f => f.rating >= 4).length || 0
+    const positiveFeedback = liaFeedback?.filter(f => (f.rating ?? 0) >= 4).length || 0
     const feedbackRate = totalConversations > 0 ? (positiveFeedback / totalConversations) * 100 : 0
 
 
@@ -380,7 +434,7 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('Error fetching student details:', error)
+    techDebtLogger.error('Error fetching student details:', error)
     return NextResponse.json(
       { error: 'Error al obtener detalles del estudiante' },
       { status: 500 }

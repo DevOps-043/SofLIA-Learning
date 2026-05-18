@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '../../../../lib/supabase/server';
 import { SessionService } from '../../../../features/auth/services/session.service';
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
       .single<ActivityCompletionIdRow>();
 
     if (error) {
-      console.error('Error starting activity:', error);
+      techDebtLogger.error('Error starting activity:', error);
       return NextResponse.json(
         { error: 'Error al iniciar actividad' },
         { status: 500 }
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
       totalSteps,
     });
   } catch (error) {
-    console.error('Error starting activity:', error);
+    techDebtLogger.error('Error starting activity:', error);
     return NextResponse.json(
       { error: 'Error al iniciar actividad' },
       { status: 500 }

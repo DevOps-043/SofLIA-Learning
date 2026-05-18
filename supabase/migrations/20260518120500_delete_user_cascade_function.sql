@@ -1,8 +1,12 @@
--- Función para eliminar usuario en cascada y todas sus referencias
--- Ejecuta este script en el Editor SQL de Supabase
--- IMPORTANTE: Esta función usa SECURITY DEFINER para bypass RLS
--- y DESHABILITA temporalmente triggers para poder eliminar certificados
--- ACTUALIZADO: 2026-04-04 — Solo referencia tablas existentes en la BD
+-- =============================================================================
+-- Migration: delete_user_cascade_function
+-- Purpose:   Normalize the legacy manual cascade-delete SQL into the timestamped
+--            Supabase migration stream.
+--
+-- SECURITY NOTE:
+-- This function uses SECURITY DEFINER and temporarily disables selected triggers.
+-- It must only be callable from controlled admin/server-only flows.
+-- =============================================================================
 
 DROP FUNCTION IF EXISTS delete_user_cascade(UUID);
 

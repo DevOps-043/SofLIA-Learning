@@ -104,7 +104,7 @@
       "countryPlaceholder": "País",
       "phonePlaceholder": "1234567890",
       "passwordLabel": "Senha",
-      "passwordPlaceholder": "Mínimo 8 caracteres",
+      "passwordPlaceholder": "Mínimo 12 caracteres",
       "confirmPasswordLabel": "Confirmar Senha",
       "confirmPasswordPlaceholder": "Repita sua senha",
       "acceptTerms": "Aceito os <0>termos e condições</0> e a <1>política de privacidade</1>",
@@ -127,7 +127,7 @@
         "phoneMax": "O número de telefone não pode exceder 15 dígitos",
         "onlyNumbers": "Apenas números são permitidos",
         "invalidEmail": "Insira un e-mail válido",
-        "passwordMin": "A senha deve ter pelo menos 8 caracteres",
+        "passwordMin": "A senha deve ter pelo menos 12 caracteres",
         "passwordUppercase": "Deve conter pelo menos uma letra maiúscula",
         "passwordLowercase": "Deve conter pelo menos uma letra minúscula",
         "passwordNumber": "Deve conter pelo menos um número",
@@ -156,7 +156,7 @@
       "title": "Nova Senha",
       "subtitle": "Crie uma senha segura para proteger sua conta.",
       "newPasswordLabel": "Nova senha",
-      "newPasswordPlaceholder": "Mínimo 8 caracteres",
+      "newPasswordPlaceholder": "Mínimo 12 caracteres",
       "confirmPasswordLabel": "Confirmar senha",
       "confirmPasswordPlaceholder": "Repita sua senha",
       "updating": "Atualizando...",
@@ -181,10 +181,11 @@
         "number": "Um número"
       },
       "validation": {
-        "passwordMin": "A senha deve ter pelo menos 8 caracteres",
+        "passwordMin": "A senha deve ter pelo menos 12 caracteres",
         "passwordUppercase": "Deve conter pelo menos uma letra maiúscula",
         "passwordLowercase": "Deve conter pelo menos uma letra minúscula",
         "passwordNumber": "Deve conter pelo menos um número",
+        "passwordSpecial": "Deve conter pelo menos um caractere especial",
         "passwordsDoNotMatch": "As senhas não coincidem"
       }
     },

@@ -3,6 +3,10 @@ import { buildGPTModerationUserPrompt } from './gpt-user-prompt'
 import { parseGPTAnalysis } from './gpt-analysis'
 import { GPT_MODERATION_SYSTEM_PROMPT } from './gpt-system-prompt'
 import {
+  CIRCUIT_BREAKER_DEFAULTS,
+  executeWithCircuitBreaker,
+} from '@/lib/resilience/circuit-breaker'
+import {
   createDisabledResult,
   createErrorResult,
   requiresHumanReview,
@@ -20,16 +24,20 @@ export async function analyzeContentWithGPT(
   }
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: OPENAI_MODEL,
-      messages: [
-        { role: 'system', content: GPT_MODERATION_SYSTEM_PROMPT },
-        { role: 'user', content: buildGPTModerationUserPrompt(content, context) },
-      ],
-      temperature: 0.1,
-      max_tokens: 400,
-      response_format: { type: 'json_object' },
-    })
+    const completion = await executeWithCircuitBreaker(
+      'openai-content-moderation',
+      () => openai.chat.completions.create({
+        model: OPENAI_MODEL,
+        messages: [
+          { role: 'system', content: GPT_MODERATION_SYSTEM_PROMPT },
+          { role: 'user', content: buildGPTModerationUserPrompt(content, context) },
+        ],
+        temperature: 0.1,
+        max_tokens: 400,
+        response_format: { type: 'json_object' },
+      }),
+      CIRCUIT_BREAKER_DEFAULTS.openai,
+    )
 
     const responseText = completion.choices[0]?.message?.content || '{}'
     return parseGPTAnalysis(

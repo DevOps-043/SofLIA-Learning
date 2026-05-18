@@ -1,5 +1,7 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
 
 interface DispatchInput {
   supabase: SupabaseClient
@@ -60,20 +62,20 @@ export async function triggerTranscodingBackground(
   const netlifyUrl =
     process.env.NETLIFY_URL ?? process.env.URL ?? process.env.DEPLOY_URL
   if (!netlifyUrl) {
-    console.warn('[transcoding-dispatcher] No site URL env var (NETLIFY_URL / URL / DEPLOY_URL)')
+    techDebtLogger.warn('[transcoding-dispatcher] No site URL env var (NETLIFY_URL / URL / DEPLOY_URL)')
     return { ok: false, jobId: input.jobId, reason: 'missing_url' }
   }
 
   const secret = process.env.TRANSCODING_INTERNAL_SECRET
   if (!secret) {
-    console.warn('[transcoding-dispatcher] TRANSCODING_INTERNAL_SECRET not configured')
+    techDebtLogger.warn('[transcoding-dispatcher] TRANSCODING_INTERNAL_SECRET not configured')
     return { ok: false, jobId: input.jobId, reason: 'missing_secret' }
   }
 
   const bgFunctionUrl = `${netlifyUrl.replace(/\/$/, '')}/.netlify/functions/transcode-video-background`
 
   try {
-    const response = await fetch(bgFunctionUrl, {
+    const response = await fetchWithCircuitBreaker('netlify-transcoding-dispatch', bgFunctionUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -95,7 +97,7 @@ export async function triggerTranscodingBackground(
     // Netlify BG functions always reply 202 Accepted on success.
     if (response.status !== 202) {
       const body = await response.text().catch(() => '')
-      console.error(
+      techDebtLogger.error(
         '[transcoding-dispatcher] BG function returned non-202:',
         response.status,
         body.slice(0, 500),
@@ -111,7 +113,7 @@ export async function triggerTranscodingBackground(
     return { ok: true, jobId: input.jobId }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
-    console.error('[transcoding-dispatcher] Fetch to BG function failed:', message)
+    techDebtLogger.error('[transcoding-dispatcher] Fetch to BG function failed:', message)
     return {
       ok: false,
       jobId: input.jobId,
@@ -145,7 +147,7 @@ export async function dispatchTranscodingJob(input: DispatchInput): Promise<Disp
 
   if (insertError || !job) {
     // Non-fatal: log and fall back to passthrough so the upload still succeeds
-    console.error('[transcoding-dispatcher] Failed to create job record:', insertError)
+    techDebtLogger.error('[transcoding-dispatcher] Failed to create job record:', insertError)
     return { status: 'disabled', playbackUrl: sourceUrl, playbackPath: sourcePath }
   }
 

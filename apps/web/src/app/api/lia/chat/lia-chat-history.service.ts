@@ -1,3 +1,5 @@
+import 'server-only'
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../lib/supabase/types';
 import type { ChatMessage, ChatRequest } from './platform-context.service';
@@ -50,7 +52,7 @@ export async function getLatestAssistantMessageContent(
       .maybeSingle();
 
     if (error) {
-      console.error(
+      techDebtLogger.error(
         'Error obteniendo el ultimo mensaje del asistente de SofLIA:',
         error
       );
@@ -59,7 +61,7 @@ export async function getLatestAssistantMessageContent(
 
     return data?.content ?? null;
   } catch (error) {
-    console.error(
+    techDebtLogger.error(
       'Error inicializando el acceso al historial de SofLIA:',
       error
     );
@@ -103,7 +105,7 @@ export async function persistConversationTurn({
       );
 
     if (upsertError) {
-      console.error('Error en upsert de conversacion de SofLIA:', upsertError);
+      techDebtLogger.error('Error en upsert de conversacion de SofLIA:', upsertError);
       return;
     }
 
@@ -116,7 +118,7 @@ export async function persistConversationTurn({
       .maybeSingle();
 
     if (sequenceError) {
-      console.error(
+      techDebtLogger.error(
         'Error obteniendo la secuencia de mensajes de SofLIA:',
         sequenceError
       );
@@ -135,7 +137,7 @@ export async function persistConversationTurn({
       });
 
     if (userMessageError) {
-      console.error(
+      techDebtLogger.error(
         'Error guardando el mensaje del usuario en SofLIA:',
         userMessageError
       );
@@ -154,12 +156,12 @@ export async function persistConversationTurn({
       });
 
     if (assistantMessageError) {
-      console.error(
+      techDebtLogger.error(
         'Error guardando el mensaje del asistente en SofLIA:',
         assistantMessageError
       );
     }
   } catch (error) {
-    console.error('Error persistiendo el turno de conversacion de SofLIA:', error);
+    techDebtLogger.error('Error persistiendo el turno de conversacion de SofLIA:', error);
   }
 }

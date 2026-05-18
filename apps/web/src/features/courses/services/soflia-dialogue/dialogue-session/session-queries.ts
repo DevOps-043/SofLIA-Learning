@@ -8,7 +8,7 @@ export async function getActiveDialogueSession(input: {
   context: CourseActivityContext
 }) {
   const { data, error } = await dialogueSessionsTable(input.client)
-    .select('*')
+    .select(SELECT_COLUMNS.soflia_dialogue_sessions)
     .eq('user_id', input.context.userId)
     .eq('activity_id', input.context.activity.activity_id)
     .eq('enrollment_id', input.context.enrollmentId)
@@ -34,7 +34,7 @@ export async function getLatestDialogueSession(input: {
   context: CourseActivityContext
 }) {
   const { data, error } = await dialogueSessionsTable(input.client)
-    .select('*')
+    .select(SELECT_COLUMNS.soflia_dialogue_sessions)
     .eq('user_id', input.context.userId)
     .eq('activity_id', input.context.activity.activity_id)
     .eq('enrollment_id', input.context.enrollmentId)

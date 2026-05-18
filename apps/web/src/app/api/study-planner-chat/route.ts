@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API Route exclusiva para el Planificador de Estudios - LIA
  * 
@@ -12,9 +13,9 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/ge
 
 // Logger simple
 const logger = {
-    info: (...args: unknown[]) => console.info('[STUDY-PLANNER-API]', ...args),
-    warn: (...args: unknown[]) => console.warn('[STUDY-PLANNER-API]', ...args),
-    error: (...args: unknown[]) => console.error('[STUDY-PLANNER-API]', ...args)
+    info: (...args: unknown[]) => techDebtLogger.info('[STUDY-PLANNER-API]', ...args),
+    warn: (...args: unknown[]) => techDebtLogger.warn('[STUDY-PLANNER-API]', ...args),
+    error: (...args: unknown[]) => techDebtLogger.error('[STUDY-PLANNER-API]', ...args)
 };
 
 // Inicializar cliente de Google Gemini

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * UserIdentityService
  *
@@ -27,7 +28,7 @@ export class UserIdentityService {
       .maybeSingle();
 
     if (error) {
-      console.error('❌ [getUserType] Error de Supabase:', {
+      techDebtLogger.error('❌ [getUserType] Error de Supabase:', {
         code: error.code,
         message: error.message,
         details: error.details,
@@ -66,7 +67,7 @@ export class UserIdentityService {
       .single();
 
     if (error) {
-      console.error('Error obteniendo información básica del usuario:', error);
+      techDebtLogger.error('Error obteniendo información básica del usuario:', error);
       throw new Error('No se pudo obtener la información del usuario');
     }
 
@@ -118,7 +119,7 @@ export class UserIdentityService {
         // No existe perfil, retornar null
         return null;
       }
-      console.error('Error obteniendo perfil del usuario:', error);
+      techDebtLogger.error('Error obteniendo perfil del usuario:', error);
       return null;
     }
 

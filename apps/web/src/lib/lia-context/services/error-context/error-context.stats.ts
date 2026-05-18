@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createErrorContextClient } from './error-context.client'
 import { buildPageMatchFilter, emptyBugStats } from './error-context.utils'
 import type { BugStatsForPage } from './error-context.types'
@@ -25,7 +26,7 @@ export async function getBugStatsForPage(currentPage: string): Promise<BugStatsF
       return stats
     }, emptyBugStats())
   } catch (error) {
-    console.error('[ErrorContextService] Exception getting bug stats:', error)
+    techDebtLogger.error('[ErrorContextService] Exception getting bug stats:', error)
     return emptyBugStats()
   }
 }

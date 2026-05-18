@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import React, { useEffect, useState, useMemo } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, ScaleControl } from 'react-leaflet'
 import { useTranslation } from 'react-i18next'
@@ -88,7 +89,7 @@ function FullscreenControl() {
           map.invalidateSize()
         }, 100)
       }).catch((err) => {
-        console.error('Error al entrar en pantalla completa:', err)
+        techDebtLogger.error('Error al entrar en pantalla completa:', err)
       })
     } else {
       document.exitFullscreen().then(() => {
@@ -98,7 +99,7 @@ function FullscreenControl() {
           map.invalidateSize()
         }, 100)
       }).catch((err) => {
-        console.error('Error al salir de pantalla completa:', err)
+        techDebtLogger.error('Error al salir de pantalla completa:', err)
       })
     }
   }

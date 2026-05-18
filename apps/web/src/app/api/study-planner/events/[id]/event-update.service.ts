@@ -1,3 +1,5 @@
+import 'server-only'
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Event Update Service
  *
@@ -6,6 +8,7 @@
  */
 
 import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 
 export interface CalendarIntegrationRow {
   id: string;
@@ -53,7 +56,7 @@ export async function refreshAccessToken(
 
   try {
     if (integration.provider === 'google') {
-      const response = await fetch('https://oauth2.googleapis.com/token', {
+      const response = await fetchWithCircuitBreaker('google-oauth-event-update', 'https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
@@ -66,7 +69,7 @@ export async function refreshAccessToken(
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Error refrescando token de Google:', errorText);
+        techDebtLogger.error('Error refrescando token de Google:', errorText);
         return { success: false };
       }
 
@@ -85,7 +88,7 @@ export async function refreshAccessToken(
 
     return { success: false };
   } catch (error) {
-    console.error('Error en refreshAccessToken:', error);
+    techDebtLogger.error('Error en refreshAccessToken:', error);
     return { success: false };
   }
 }
@@ -108,7 +111,8 @@ export async function updateGoogleCalendarEvent(
 ) {
   const targetCalendarId = calendarId || 'primary';
 
-  const response = await fetch(
+  const response = await fetchWithCircuitBreaker(
+    'google-calendar-event-update',
     `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events/${eventId}`,
     {
       method: 'PUT',
@@ -169,7 +173,8 @@ export async function deleteGoogleCalendarEvent(
   const cleanEventId = googleEventId.split('_')[0];
   const targetCalendarId = calendarId || 'primary';
 
-  const response = await fetch(
+  const response = await fetchWithCircuitBreaker(
+    'google-calendar-event-update',
     `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events/${encodeURIComponent(cleanEventId)}`,
     {
       method: 'DELETE',
@@ -204,7 +209,8 @@ export async function deleteGoogleCalendarEvent(
     }
 
     if (response.status === 404 && targetCalendarId !== 'primary') {
-      const fallbackResponse = await fetch(
+      const fallbackResponse = await fetchWithCircuitBreaker(
+        'google-calendar-event-update',
         `https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(cleanEventId)}`,
         {
           method: 'DELETE',
@@ -216,7 +222,7 @@ export async function deleteGoogleCalendarEvent(
       if (fallbackResponse.ok || fallbackResponse.status === 404) {
         return;
       }
-      console.error(`[Delete Event] Fallback en primary tambien fallo: ${fallbackResponse.status}`);
+      techDebtLogger.error(`[Delete Event] Fallback en primary tambien fallo: ${fallbackResponse.status}`);
       return;
     }
 
@@ -224,7 +230,7 @@ export async function deleteGoogleCalendarEvent(
       return;
     }
 
-    console.error(`Error eliminando evento de Google Calendar (${response.status}):`, errorMessage);
+    techDebtLogger.error(`Error eliminando evento de Google Calendar (${response.status}):`, errorMessage);
     throw new Error(errorMessage);
   }
 }

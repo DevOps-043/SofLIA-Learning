@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest) {
       .eq('is_published', true);
 
     if (modulesError) {
-      console.error(`   ❌ Error obteniendo módulos:`, modulesError);
+      techDebtLogger.error(`   ❌ Error obteniendo módulos:`, modulesError);
     }
 
     if (!courseModules || courseModules.length === 0) {
@@ -95,7 +96,7 @@ export async function GET(request: NextRequest) {
       .eq('is_published', true);
 
     if (lessonsError) {
-      console.error(`   ❌ Error obteniendo lecciones:`, lessonsError);
+      techDebtLogger.error(`   ❌ Error obteniendo lecciones:`, lessonsError);
     }
 
     if (!courseLessons || courseLessons.length === 0) {
@@ -126,7 +127,7 @@ export async function GET(request: NextRequest) {
         .in('lesson_id', lessonIds);
 
       if (progressError) {
-        console.error(`   ❌ Error en la consulta:`, progressError);
+        techDebtLogger.error(`   ❌ Error en la consulta:`, progressError);
       }
       if (data && data.length > 0) {
       }
@@ -134,7 +135,7 @@ export async function GET(request: NextRequest) {
       if (!progressError && data) {
         completedLessons = data;
       } else {
-        console.warn(`   ⚠️ Error obteniendo progreso con enrollment_id:`, progressError);
+        techDebtLogger.warn(`   ⚠️ Error obteniendo progreso con enrollment_id:`, progressError);
       }
     }
 
@@ -150,7 +151,7 @@ export async function GET(request: NextRequest) {
         .in('lesson_id', lessonIds);
 
       if (progressError) {
-        console.error(`   ❌ Error en consulta fallback:`, progressError);
+        techDebtLogger.error(`   ❌ Error en consulta fallback:`, progressError);
       }
       if (data && data.length > 0) {
       }
@@ -158,7 +159,7 @@ export async function GET(request: NextRequest) {
       if (!progressError && data) {
         completedLessons = data;
       } else {
-        console.error('   ❌ Error obteniendo progreso de lecciones:', progressError);
+        techDebtLogger.error('   ❌ Error obteniendo progreso de lecciones:', progressError);
         return NextResponse.json(
           { error: 'Error obteniendo progreso', completedLessonsCount: 0 },
           { status: 500 }

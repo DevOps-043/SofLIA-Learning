@@ -6,7 +6,7 @@ export async function getLessonActivities(lessonId: string): Promise<AdminActivi
   const supabase = await createAdminActivitiesClient()
   const { data, error } = await supabase
     .from('lesson_activities')
-    .select('*')
+    .select(SELECT_COLUMNS.lesson_activities)
     .eq('lesson_id', lessonId)
     .order('activity_order_index', { ascending: true })
 
@@ -24,7 +24,7 @@ export async function getActivityById(activityId: string): Promise<AdminActivity
   try {
     const { data, error } = await supabase
       .from('lesson_activities')
-      .select('*')
+      .select(SELECT_COLUMNS.lesson_activities)
       .eq('activity_id', activityId)
       .single()
 

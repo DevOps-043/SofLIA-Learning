@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { buildCompletionDetailsText } from "./details-text";
 import { rollbackLessonCompletion } from "./lesson-state";
 import type {
@@ -66,7 +67,7 @@ export function handleProgressFailure({
     response.status !== 401 &&
     process.env.NODE_ENV === "development"
   ) {
-    console.warn(
+    techDebtLogger.warn(
       "Error guardando progreso de lección:",
       response.status,
       response.statusText

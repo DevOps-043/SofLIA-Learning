@@ -5,10 +5,11 @@ export const getResetPasswordSchema = (t: TFunction) => z
   .object({
     newPassword: z
       .string()
-      .min(8, t('auth.resetPassword.validation.passwordMin'))
+      .min(12, t('auth.resetPassword.validation.passwordMin'))
       .regex(/[A-Z]/, t('auth.resetPassword.validation.passwordUppercase'))
       .regex(/[a-z]/, t('auth.resetPassword.validation.passwordLowercase'))
-      .regex(/[0-9]/, t('auth.resetPassword.validation.passwordNumber')),
+      .regex(/[0-9]/, t('auth.resetPassword.validation.passwordNumber'))
+      .regex(/[^a-zA-Z0-9]/, t('auth.resetPassword.validation.passwordSpecial')),
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {

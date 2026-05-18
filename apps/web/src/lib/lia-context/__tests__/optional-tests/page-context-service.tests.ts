@@ -1,8 +1,9 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { PageContextService } from '../../services/page-context.service'
 import { createCounter } from './test-runner'
 
 export function testPageContextServiceNewPages() {
-  console.log('\nTEST: PAGE CONTEXT SERVICE - NUEVAS PAGINAS\n')
+  techDebtLogger.log('\nTEST: PAGE CONTEXT SERVICE - NUEVAS PAGINAS\n')
   const counter = createCounter()
 
   const pageCases = [

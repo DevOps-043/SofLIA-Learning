@@ -58,7 +58,7 @@ export function useBusinessImportUsersModal({
       setImportResult(result)
       if (result.imported > 0) onImportComplete()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al importar usuarios')
+      setError(resolveImportErrorMessage(err, t))
     } finally {
       setIsImporting(false)
     }
@@ -95,4 +95,25 @@ export function useBusinessImportUsersModal({
     selectedFile,
     setError,
   }
+}
+
+function resolveImportErrorMessage(
+  error: unknown,
+  t: (key: string) => string,
+): string {
+  const code = error instanceof Error ? error.message : 'processFile'
+
+  if (code === 'invalidResponse') {
+    return t('importUsers.errors.invalidResponse')
+  }
+
+  if (code === 'processFile') {
+    return t('importUsers.errors.processFile')
+  }
+
+  if (code === 'timeout') {
+    return t('importUsers.errors.timeout')
+  }
+
+  return code
 }

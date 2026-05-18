@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -38,7 +39,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     if (member.role === 'owner') {
       const { count } = await supabase
         .from('organization_users')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('organization_id', companyId)
         .eq('role', 'owner')
 
@@ -58,7 +59,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       .eq('user_id', userId)
 
     if (deleteError) {
-      console.error('Error deleting member:', deleteError)
+      techDebtLogger.error('Error deleting member:', deleteError)
       return NextResponse.json(
         { success: false, error: 'Error al eliminar el usuario' },
         { status: 500 }
@@ -67,7 +68,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ success: true, message: 'Usuario eliminado correctamente' })
   } catch (error) {
-    console.error('Error in DELETE /api/admin/companies/[id]/members/[userId]:', error)
+    techDebtLogger.error('Error in DELETE /api/admin/companies/[id]/members/[userId]:', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

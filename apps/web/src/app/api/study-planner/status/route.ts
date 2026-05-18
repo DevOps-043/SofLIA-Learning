@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
                 .maybeSingle();
 
             if (membershipError) {
-                console.error('Error verificando organización del planificador:', membershipError);
+                techDebtLogger.error('Error verificando organización del planificador:', membershipError);
                 return NextResponse.json(
                     { success: false, error: 'Error al verificar organización' },
                     { status: 500 }
@@ -93,7 +94,7 @@ export async function GET(request: NextRequest) {
             .limit(1);
 
         if (error) {
-            console.error('Error verificando estado del plan de estudio:', error);
+            techDebtLogger.error('Error verificando estado del plan de estudio:', error);
             // Si el error es por RLS (PGRST301 o similar), podría ser útil loguearlo
             return NextResponse.json(
                 { success: false, error: 'Error al verificar estado del plan' },
@@ -110,7 +111,7 @@ export async function GET(request: NextRequest) {
         }, { headers: cacheHeaders.privateShort });
 
     } catch (error) {
-        console.error('Error interno en status de study planner:', error);
+        techDebtLogger.error('Error interno en status de study planner:', error);
         return NextResponse.json(
             { success: false, error: 'Error interno del servidor' },
             { status: 500 }

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createAdminSupabase } from '../../../../lib/courseImport'
 import { mapStagingRowToAdminCourse } from './pending-course.mapper'
 import type { AdminCourse, StagingRow } from './staging.types'
@@ -30,7 +31,7 @@ export async function getPendingCoursesAction(): Promise<AdminCourse[]> {
         .order('submitted_at', { ascending: false })
 
     if (error) {
-        console.error('Error fetching staging courses:', error)
+        techDebtLogger.error('Error fetching staging courses:', error)
         throw new Error(error.message)
     }
 

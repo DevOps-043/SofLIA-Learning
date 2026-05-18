@@ -6,9 +6,9 @@ export async function applyPlatformCounts(
   context: PlatformContext,
 ): Promise<void> {
   const [{ count: coursesCount }, { count: usersCount }, { count: orgsCount }] = await Promise.all([
-    supabase.from('courses').select('*', { count: 'exact', head: true }).eq('is_active', true),
-    supabase.from('users').select('*', { count: 'exact', head: true }),
-    supabase.from('organizations').select('*', { count: 'exact', head: true }),
+    supabase.from('courses').select('id', { count: 'exact', head: true }).eq('is_active', true),
+    supabase.from('users').select('id', { count: 'exact', head: true }),
+    supabase.from('organizations').select('id', { count: 'exact', head: true }),
   ])
 
   context.totalCourses = coursesCount || 0

@@ -1438,7 +1438,9 @@
     "errors": {
       "downloadTemplate": "Error downloading template",
       "invalidFileType": "File must be a CSV (.csv)",
-      "processFile": "Error processing file"
+      "invalidResponse": "Unexpected server response",
+      "processFile": "Error processing file",
+      "timeout": "The import is still running. Refresh the user list in a few minutes"
     },
     "buttons": {
       "close": "Close",

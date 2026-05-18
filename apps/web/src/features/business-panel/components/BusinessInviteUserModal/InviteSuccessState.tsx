@@ -1,10 +1,10 @@
 import { motion } from 'framer-motion';
 import { CheckCircle } from 'lucide-react';
-import type { BusinessInviteTheme } from './types';
+import type { BusinessInviteTheme, BusinessInviteTranslator } from './types';
 
 interface InviteSuccessStateProps {
   message: string | null;
-  t: (key: string, fallback?: string) => string;
+  t: BusinessInviteTranslator;
   theme: BusinessInviteTheme;
 }
 

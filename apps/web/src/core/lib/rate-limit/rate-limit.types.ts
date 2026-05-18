@@ -9,6 +9,7 @@ export interface RateLimitEntry {
 export interface RateLimitConfig {
   maxRequests: number
   windowMs: number
+  burst?: number
   message?: string
 }
 

@@ -1,3 +1,6 @@
+import { logger } from '@/lib/logger';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
+
 function normalizeEventId(eventId: string): string {
   return eventId.split('_')[0];
 }
@@ -10,7 +13,8 @@ export async function deleteGoogleEvent(
   try {
     const cleanEventId = normalizeEventId(eventId);
     const targetCalendarId = calendarId || 'primary';
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events/${encodeURIComponent(cleanEventId)}`,
       { method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` } },
     );
@@ -18,7 +22,8 @@ export async function deleteGoogleEvent(
     if (response.ok) return true;
 
     if (response.status === 404 && targetCalendarId !== 'primary') {
-      const fallback = await fetch(
+      const fallback = await fetchWithCircuitBreaker(
+        'google-calendar',
         `https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(cleanEventId)}`,
         { method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` } },
       );
@@ -27,10 +32,10 @@ export async function deleteGoogleEvent(
 
     if (response.status === 404) return true;
 
-    console.error('[Calendar] Error eliminando evento:', await response.text());
+    logger.warn('[Calendar] Error eliminando evento', { status: response.status });
     return false;
   } catch (error) {
-    console.error('[Calendar] Error eliminando evento:', error);
+    logger.warn('[Calendar] Error eliminando evento', { error });
     return false;
   }
 }

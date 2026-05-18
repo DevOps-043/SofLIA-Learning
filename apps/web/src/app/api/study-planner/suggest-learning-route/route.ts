@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API Endpoint: Suggest Learning Route using LIA
  * 
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SuggestLe
     });
     
   } catch (error) {
-    console.error('Error sugiriendo ruta de aprendizaje:', error);
+    techDebtLogger.error('Error sugiriendo ruta de aprendizaje:', error);
     return NextResponse.json(
       { 
         success: false, 

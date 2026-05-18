@@ -23,8 +23,8 @@ interface TouchData {
  * @example
  * ```tsx
  * const swipeRef = useSwipe({
- *   onSwipeLeft: () => console.log('Swipe izquierda'),
- *   onSwipeRight: () => console.log('Swipe derecha'),
+ *   onSwipeLeft: () => logger.log('Swipe izquierda'),
+ *   onSwipeRight: () => logger.log('Swipe derecha'),
  *   enabled: isMobile
  * });
  * 

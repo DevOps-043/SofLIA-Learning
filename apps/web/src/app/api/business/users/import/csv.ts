@@ -4,7 +4,7 @@ const REQUIRED_FIELDS = ['username', 'email', 'job_title']
 const HEADER_ALIASES: Record<string, string[]> = {
   job_title: ['job_title', 'cargo', 'puesto', 'rol', 'role'],
   date_of_birth: ['date_of_birth', 'fecha_nacimiento', 'birth_date', 'dob'],
-  gender: ['gender', 'genero', 'gÃ©nero'],
+  gender: ['gender', 'genero'],
 }
 
 export function parseCSVLine(line: string): string[] {
@@ -49,7 +49,7 @@ export function parseImportCsvContent(fileContent: string) {
 
   if (missingFields.includes('job_title')) {
     return {
-      error: 'Falta la columna requerida: "job_title" (tambiÃ©n se permiten: "cargo", "puesto", "rol")',
+      error: 'Falta la columna requerida: "job_title" (tambien se permiten: "cargo", "puesto", "rol")',
     }
   }
 
@@ -75,7 +75,7 @@ export function buildUserDataFromCsvLine(
 }
 
 function normalizeHeaders(rawHeaders: string[]) {
-  const headers = rawHeaders.map((header) => header.toLowerCase().trim())
+  const headers = rawHeaders.map(normalizeHeader)
 
   for (const [normalizedHeader, aliases] of Object.entries(HEADER_ALIASES)) {
     const index = headers.findIndex((header) => aliases.includes(header))
@@ -83,4 +83,12 @@ function normalizeHeaders(rawHeaders: string[]) {
   }
 
   return headers
+}
+
+function normalizeHeader(header: string) {
+  return header
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
 }

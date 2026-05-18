@@ -69,7 +69,7 @@ export async function GET() {
 
     // 5. Verificar que se guardó
     const { data: checkData, error: checkError } = await liaConversations
-      .select('*')
+      .select(SELECT_COLUMNS.lia_conversations)
       .eq('conversation_id', conversationId)
       .single();
 

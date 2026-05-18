@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createAdminMaterialsClient } from './admin-materials.client'
 
 function sumEstimatedMinutes(rows: Array<{ estimated_time_minutes?: number | null }> | null) {
@@ -22,7 +23,7 @@ export async function updateModuleDurationFromLesson(lessonId: string): Promise<
       await AdminLessonsService.updateModuleDuration(lessonRow.module_id)
     }
   } catch (error) {
-    console.error('Error updating module duration from lesson:', error)
+    techDebtLogger.error('Error updating module duration from lesson:', error)
   }
 }
 
@@ -46,6 +47,6 @@ export async function recalculateLessonDuration(lessonId: string): Promise<void>
       .update({ total_duration_minutes: totalDurationMinutes, updated_at: new Date().toISOString() })
       .eq('lesson_id', lessonId)
   } catch (error) {
-    console.error('Error recalculating lesson duration:', error)
+    techDebtLogger.error('Error recalculating lesson duration:', error)
   }
 }

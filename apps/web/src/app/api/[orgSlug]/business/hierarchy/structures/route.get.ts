@@ -31,7 +31,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     const { data: structures, error } = await supabase
       .from('organization_structures')
-      .select('*')
+      .select(SELECT_COLUMNS.organization_structures)
       .eq('organization_id', auth.organizationId)
       .order('is_active', { ascending: false })
       .order('name', { ascending: true });

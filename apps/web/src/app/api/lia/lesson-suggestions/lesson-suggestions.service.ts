@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import {
   GoogleGenerativeAI,
   HarmBlockThreshold,
@@ -66,7 +67,7 @@ function parseGeminiPayload(raw: string): ParsedGeminiPayload {
   try {
     return JSON.parse(jsonString) as ParsedGeminiPayload
   } catch (error) {
-    console.warn(
+    techDebtLogger.warn(
       '[lesson-suggestions] failed to parse Gemini JSON',
       { rawLength: raw.length, rawPreview: raw.slice(0, 300) },
     )
@@ -202,7 +203,7 @@ export async function generateLessonSuggestions(
   const usage = result.response.usageMetadata
 
   if (finishReason && finishReason !== 'STOP') {
-    console.warn('[lesson-suggestions] Gemini finished with non-STOP reason', {
+    techDebtLogger.warn('[lesson-suggestions] Gemini finished with non-STOP reason', {
       finishReason,
       rawLength: rawText.length,
       usage,

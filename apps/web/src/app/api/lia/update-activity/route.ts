@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '../../../../lib/supabase/server';
 import { SessionService } from '../../../../features/auth/services/session.service';
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id);
 
     if (error) {
-      console.error('Error updating activity progress:', error);
+      techDebtLogger.error('Error updating activity progress:', error);
       return NextResponse.json(
         { error: 'Error al actualizar progreso de actividad' },
         { status: 500 }
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
       updated: true
     });
   } catch (error) {
-    console.error('Error updating activity progress:', error);
+    techDebtLogger.error('Error updating activity progress:', error);
     return NextResponse.json(
       { error: 'Error al actualizar progreso de actividad' },
       { status: 500 }

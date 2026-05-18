@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Chat Response Formatter
  *
@@ -61,7 +62,7 @@ export async function processAIResponse(
   }
 
   if (body.conversationId && !isValidUUID(body.conversationId)) {
-    console.warn(
+    techDebtLogger.warn(
       `conversationId invalido recibido (no es UUID): "${body.conversationId}" - se omite la persistencia del historial`
     );
   }

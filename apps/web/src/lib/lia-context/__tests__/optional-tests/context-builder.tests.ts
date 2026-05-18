@@ -1,8 +1,9 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { ContextBuilderService } from '../../services/context-builder.service'
 import { createCounter } from './test-runner'
 
 export async function testContextBuilderWithNewProviders() {
-  console.log('\nTEST: CONTEXT BUILDER CON NUEVOS PROVIDERS\n')
+  techDebtLogger.log('\nTEST: CONTEXT BUILDER CON NUEVOS PROVIDERS\n')
   const counter = createCounter()
   const builder = new ContextBuilderService({ enableMetrics: false })
   const stats = builder.getStats()

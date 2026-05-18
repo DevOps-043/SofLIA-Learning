@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { hasFeature, getRequiredPlan, getFeatureMessage, getFeatureName, getAllowedNotificationChannels, type SubscriptionPlan, type FeatureKey } from '@/lib/subscription/subscriptionFeatures'
@@ -190,7 +191,7 @@ export function useSubscriptionFeatures(): UseSubscriptionFeaturesReturn {
       const data = await response.json()
 
       if (!response.ok || !data.success) {
-        console.error('Error from API:', data)
+        techDebtLogger.error('Error from API:', data)
         return {
           success: false,
           error: data.error || `Error al cambiar el plan (${response.status})`
@@ -202,7 +203,7 @@ export function useSubscriptionFeatures(): UseSubscriptionFeaturesReturn {
 
       return { success: true }
     } catch (error) {
-      console.error('Network error changing plan:', error)
+      techDebtLogger.error('Network error changing plan:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Error de conexión al cambiar el plan. Verifica tu conexión a internet.'

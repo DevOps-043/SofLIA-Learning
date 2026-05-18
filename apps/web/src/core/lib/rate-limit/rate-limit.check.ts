@@ -18,28 +18,29 @@ export function checkRateLimit(
     rateLimitStore.set(identifier, entry)
   }
 
+  const effectiveLimit = config.maxRequests + (config.burst ?? 0)
   const windowStart = now - config.windowMs
   entry.requests = entry.requests.filter((timestamp) => timestamp > windowStart)
   entry.requests.push(now)
   entry.count = entry.requests.length
 
-  const remaining = Math.max(0, config.maxRequests - entry.count)
+  const remaining = Math.max(0, effectiveLimit - entry.count)
   const reset = new Date(entry.resetTime)
   const retryAfter = Math.ceil((entry.resetTime - now) / 1000)
   const headers = createRateLimitHeaders(
-    config.maxRequests,
+    effectiveLimit,
     remaining,
     reset,
     retryAfter,
   )
 
-  if (entry.count > config.maxRequests) {
+  if (entry.count > effectiveLimit) {
     const response = NextResponse.json(
       {
         success: false,
         error: config.message || 'Too many requests',
         retryAfter: reset.toISOString(),
-        limit: config.maxRequests,
+        limit: effectiveLimit,
         remaining: 0,
       },
       { status: 429, headers },
@@ -47,14 +48,14 @@ export function checkRateLimit(
 
     return {
       success: false,
-      limit: config.maxRequests,
+      limit: effectiveLimit,
       remaining: 0,
       reset,
       response,
     }
   }
 
-  return { success: true, limit: config.maxRequests, remaining, reset }
+  return { success: true, limit: effectiveLimit, remaining, reset }
 }
 
 export async function applyRateLimit(

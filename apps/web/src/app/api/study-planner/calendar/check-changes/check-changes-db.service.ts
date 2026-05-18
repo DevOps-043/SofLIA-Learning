@@ -1,3 +1,4 @@
+import 'server-only'
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import type {
   CalendarIntegrationRow,
@@ -57,7 +58,7 @@ export async function getLatestCalendarIntegration(
 ): Promise<CalendarIntegrationRow | null> {
   const { data: integrations, error } = await supabase
     .from('calendar_integrations')
-    .select('*')
+    .select(SELECT_COLUMNS.calendar_integrations)
     .eq('user_id', userId)
     .order('updated_at', { ascending: false })
     .limit(1);

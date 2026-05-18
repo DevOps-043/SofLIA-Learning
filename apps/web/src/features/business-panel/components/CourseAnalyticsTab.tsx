@@ -16,7 +16,7 @@ import { useCourseAnalytics } from './course-analytics-tab/useCourseAnalytics';
 
 export function CourseAnalyticsTab({ courseId, orgSlug, refreshKey = 0 }: CourseAnalyticsTabProps) {
   const panelTheme = useBusinessPanelTheme();
-  const { colors, nivoTheme, surfaceStyle } = useCourseAnalyticsChartTheme(panelTheme);
+  const { chartTooltipStyle, colors, surfaceStyle } = useCourseAnalyticsChartTheme(panelTheme);
   const { analyticsData, error, fetchAnalytics, isLoading } = useCourseAnalytics({
     courseId,
     orgSlug,
@@ -42,9 +42,9 @@ export function CourseAnalyticsTab({ courseId, orgSlug, refreshKey = 0 }: Course
         stats={analyticsData.stats}
       />
       <CourseAnalyticsCharts
+        chartTooltipStyle={chartTooltipStyle}
         colors={colors}
         dropoffAnalysis={analyticsData.dropoff_analysis}
-        nivoTheme={nivoTheme}
         panelTheme={panelTheme}
         progressDistribution={analyticsData.progress_distribution}
         surfaceStyle={surfaceStyle}

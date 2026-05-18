@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API de LIA Analytics - Top Usuarios
  * 
@@ -220,7 +221,7 @@ export async function GET(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error('Error en LIA Analytics Top Users:', error);
+    techDebtLogger.error('Error en LIA Analytics Top Users:', error);
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

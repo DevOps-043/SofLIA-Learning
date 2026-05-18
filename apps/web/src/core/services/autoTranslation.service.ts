@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Servicio de traducción automática usando OpenAI
  * Traduce contenido educativo de español a inglés y portugués
@@ -5,6 +6,7 @@
 
 import { SupportedLanguage } from '../i18n/i18n';
 import { trackOpenAICall, calculateOpenAIMetadata } from '../../lib/openai/usage-monitor';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 
 type TargetLanguage = SupportedLanguage; // 'es' | 'en' | 'pt'
 type SourceLanguage = 'es' | 'en' | 'pt';
@@ -27,8 +29,8 @@ export class AutoTranslationService {
     const isConfigured = !!this.OPENAI_API_KEY;
 
     if (!isConfigured) {
-      console.error('[AutoTranslationService] ❌ OPENAI_API_KEY no está configurada en las variables de entorno');
-      console.error('[AutoTranslationService] Variables de entorno disponibles:', {
+      techDebtLogger.error('[AutoTranslationService] ❌ OPENAI_API_KEY no está configurada en las variables de entorno');
+      techDebtLogger.error('[AutoTranslationService] Variables de entorno disponibles:', {
         hasOpenAIKey: !!process.env.OPENAI_API_KEY,
         hasOpenAIModel: !!process.env.OPENAI_MODEL,
         nodeEnv: process.env.NODE_ENV
@@ -57,8 +59,8 @@ export class AutoTranslationService {
     // Obtener idioma de origen (debe ser proporcionado explícitamente)
     const sourceLanguage = options.sourceLanguage;
     if (!sourceLanguage) {
-      console.error(`[AutoTranslationService] ❌ sourceLanguage no proporcionado en options. Options:`, options);
-      console.warn(`[AutoTranslationService] ⚠️ Asumiendo español por defecto, pero esto puede causar traducciones incorrectas`);
+      techDebtLogger.error(`[AutoTranslationService] ❌ sourceLanguage no proporcionado en options. Options:`, options);
+      techDebtLogger.warn(`[AutoTranslationService] ⚠️ Asumiendo español por defecto, pero esto puede causar traducciones incorrectas`);
     }
     
     const finalSourceLanguage = sourceLanguage || 'es';
@@ -68,7 +70,7 @@ export class AutoTranslationService {
     }
 
     if (!this.isConfigured()) {
-      console.warn('[AutoTranslationService] ⚠️ OPENAI_API_KEY no configurada, retornando texto original sin traducir');
+      techDebtLogger.warn('[AutoTranslationService] ⚠️ OPENAI_API_KEY no configurada, retornando texto original sin traducir');
       return text;
     }
 
@@ -106,7 +108,7 @@ Traducción:`;
     try {
       
       const startTime = Date.now();
-      const response = await fetch(this.OPENAI_BASE_URL, {
+      const response = await fetchWithCircuitBreaker('openai-auto-translation', this.OPENAI_BASE_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +134,7 @@ Traducción:`;
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = `OpenAI API error: ${response.status} - ${JSON.stringify(errorData)}`;
-        console.error(`[AutoTranslationService] ❌ ${errorMessage}`);
+        techDebtLogger.error(`[AutoTranslationService] ❌ ${errorMessage}`);
         throw new Error(errorMessage);
       }
 
@@ -153,15 +155,15 @@ Traducción:`;
       const translatedText = data.choices[0]?.message?.content?.trim() || text;
 
       if (translatedText === text) {
-        console.warn(`[AutoTranslationService] ⚠️ La traducción retornada es igual al texto original (posible error silencioso)`);
+        techDebtLogger.warn(`[AutoTranslationService] ⚠️ La traducción retornada es igual al texto original (posible error silencioso)`);
       } else {
       }
       
       return translatedText;
     } catch (error) {
-      console.error(`[AutoTranslationService] ❌ Error traduciendo texto a ${targetLanguage}:`, error);
+      techDebtLogger.error(`[AutoTranslationService] ❌ Error traduciendo texto a ${targetLanguage}:`, error);
       if (error instanceof Error) {
-        console.error(`[AutoTranslationService] Stack trace:`, error.stack);
+        techDebtLogger.error(`[AutoTranslationService] Stack trace:`, error.stack);
       }
       // Retornar texto original en caso de error
       return text;

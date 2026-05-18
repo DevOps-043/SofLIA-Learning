@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ACTIONS, type CallBackProps, EVENTS, STATUS, type Step } from 'react-joyride';
@@ -46,7 +47,7 @@ export function useJoyrideMinitour({
     setStepIndex(0);
     setIsFinishedInSession(false);
     startTour().catch((error) =>
-      console.error(`[useJoyrideMinitour:${tourId}] start failed`, error),
+      techDebtLogger.error(`[useJoyrideMinitour:${tourId}] start failed`, error),
     );
     setRun(true);
   }, [startTour, tourId]);
@@ -96,7 +97,7 @@ export function useJoyrideMinitour({
       if (status === STATUS.FINISHED) {
         stopTour();
         completeTour().catch((error) =>
-          console.error(`[useJoyrideMinitour:${tourId}] complete failed`, error),
+          techDebtLogger.error(`[useJoyrideMinitour:${tourId}] complete failed`, error),
         );
         return;
       }
@@ -104,7 +105,7 @@ export function useJoyrideMinitour({
       if (status === STATUS.SKIPPED || action === ACTIONS.SKIP || action === ACTIONS.CLOSE) {
         stopTour();
         skipTour().catch((error) =>
-          console.error(`[useJoyrideMinitour:${tourId}] skip failed`, error),
+          techDebtLogger.error(`[useJoyrideMinitour:${tourId}] skip failed`, error),
         );
         return;
       }
@@ -115,7 +116,7 @@ export function useJoyrideMinitour({
         if (nextIndex >= steps.length) {
           stopTour();
           completeTour().catch((error) =>
-            console.error(`[useJoyrideMinitour:${tourId}] complete failed`, error),
+            techDebtLogger.error(`[useJoyrideMinitour:${tourId}] complete failed`, error),
           );
           return;
         }

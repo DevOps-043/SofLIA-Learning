@@ -12,6 +12,7 @@
     "userStats": "Estatísticas de Usuários",
     "companies": "Empresas",
     "reports": "Relatórios",
+    "security": "Segurança",
     "reviews": "Revisões"
   },
   "dashboard": {
@@ -1069,5 +1070,48 @@
     "noUserAssignments": "Nenhuma atribuição individual registrada.",
     "confirmRevokeOrg": "Revogar o acesso a este curso para TODA a organização?",
     "confirmRevokeUser": "Revogar esta atribuição individual?"
+  },
+  "security": {
+    "eyebrow": "Segurança",
+    "title": "Auditoria de segurança",
+    "subtitle": "Monitore eventos sensíveis, negações, alertas e atividade recente de segurança.",
+    "refresh": "Atualizar",
+    "alertsTitle": "Alertas ativos",
+    "eventsTitle": "Eventos recentes",
+    "empty": "Não há eventos de segurança recentes.",
+    "alertDescription": "{{observed}} eventos para {{group}} em {{window}} min. Limite: {{threshold}}.",
+    "summary": {
+      "success": "Bem-sucedidos",
+      "denied": "Negados",
+      "error": "Erros",
+      "alerts": "Alertas"
+    },
+    "result": {
+      "success": "Sucesso",
+      "denied": "Negado",
+      "error": "Erro"
+    },
+    "severity": {
+      "medium": "Média",
+      "high": "Alta",
+      "critical": "Crítica"
+    },
+    "alertCodes": {
+      "login_failure_burst": "Rajada de falhas de login",
+      "access_denied_burst": "Rajada de acessos negados",
+      "csp_violation_spike": "Pico de violações CSP",
+      "ssrf_probe_burst": "Tentativas SSRF bloqueadas",
+      "upload_rejection_burst": "Rejeições de upload elevadas"
+    },
+    "table": {
+      "time": "Hora",
+      "action": "Ação",
+      "result": "Resultado",
+      "actor": "Ator",
+      "resource": "Recurso"
+    },
+    "errors": {
+      "loadFailed": "Não foi possível carregar a auditoria de segurança."
+    }
   }
 }

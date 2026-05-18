@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../../lib/supabase/server'
 import { organizationUsersTable } from './tables'
 import type { OrganizationUserHierarchyRow } from './types'
@@ -34,7 +35,7 @@ export async function loadActiveOrganizationMemberships(
     .eq('status', 'active')
 
   if (error) {
-    console.error('Error obteniendo membresias activas de organizaciones:', error)
+    techDebtLogger.error('Error obteniendo membresias activas de organizaciones:', error)
     return []
   }
 

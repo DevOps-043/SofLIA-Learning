@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { cacheHeaders, withCacheHeaders } from '@/lib/utils/cache-headers'
 import { buildCompletedActivityIds } from './sidebar-data/sidebar-completion'
@@ -48,7 +49,7 @@ export async function GET(
 
     return withCacheHeaders(NextResponse.json(response), cacheHeaders.dynamic)
   } catch (error) {
-    console.error('Error in sidebar-data API:', error)
+    techDebtLogger.error('Error in sidebar-data API:', error)
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
   }
 }

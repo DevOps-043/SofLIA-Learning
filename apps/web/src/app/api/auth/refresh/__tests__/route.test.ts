@@ -66,7 +66,10 @@ describe('/api/auth/refresh route', () => {
     const setCookieHeader = response.headers.get('set-cookie') || '';
 
     expect(response.status).toBe(401);
-    expect(payload.code).toBe('SESSION_EXPIRED');
+    expect(payload).toMatchObject({
+      error: 'SESSION_EXPIRED',
+      message: 'Sesión expirada.',
+    });
     expect(setCookieHeader).toContain('access_token=');
     expect(setCookieHeader).toContain('refresh_token=');
   });
@@ -94,6 +97,67 @@ describe('/api/auth/refresh route', () => {
       refreshExpiresAt: refreshExpiresAt.toISOString(),
       success: true,
       userId: 'user-1',
+    });
+  });
+
+  it('returns unauthenticated state on GET when no session cookies exist', async () => {
+    const response = await GET(createRequest('GET'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({
+      authenticated: false,
+      message: 'No hay sesion activa',
+      success: false,
+    });
+  });
+
+  it('clears cookies on GET when the refresh token is invalid', async () => {
+    refreshSessionMock.mockRejectedValue(
+      new RefreshTokenError('INVALID_REFRESH_TOKEN')
+    );
+
+    const response = await GET(
+      createRequest('GET', 'access_token=a; refresh_token=b')
+    );
+    const payload = await response.json();
+    const setCookieHeader = response.headers.get('set-cookie') || '';
+
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({
+      authenticated: false,
+      message: 'Sesion invalida o expirada',
+      success: false,
+    });
+    expect(setCookieHeader).toContain('access_token=');
+    expect(setCookieHeader).toContain('refresh_token=');
+  });
+
+  it('returns an error envelope on GET unexpected failures', async () => {
+    refreshSessionMock.mockRejectedValue(new Error('database down'));
+
+    const response = await GET(
+      createRequest('GET', 'access_token=a; refresh_token=b')
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(payload).toEqual({
+      error: 'INTERNAL_SERVER_ERROR',
+      message: 'Error al obtener estado de sesión.',
+    });
+  });
+
+  it('returns an error envelope on POST unexpected failures', async () => {
+    refreshSessionMock.mockRejectedValue(new Error('database down'));
+
+    const response = await POST(createRequest('POST', 'refresh_token=token'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(payload).toEqual({
+      error: 'INTERNAL_SERVER_ERROR',
+      message: 'Error al renovar token.',
     });
   });
 });

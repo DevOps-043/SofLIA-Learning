@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import {
   USER_NULL_UPDATE_TABLES,
   USER_SIMPLE_DELETE_TABLES,
@@ -17,7 +18,7 @@ async function deleteFromTable(
     .eq(column as never, userId)
 
   if (error && !MISSING_TABLE_ERROR_CODES.has(error.code)) {
-    console.warn(`Error eliminando de ${tableName}:`, error.message)
+    techDebtLogger.warn(`Error eliminando de ${tableName}:`, error.message)
   }
 }
 
@@ -33,7 +34,7 @@ async function updateTableReferenceToNull(
     .eq(column as never, userId)
 
   if (error && !MISSING_TABLE_ERROR_CODES.has(error.code)) {
-    console.warn(`Error actualizando ${tableName}.${column}:`, error.message)
+    techDebtLogger.warn(`Error actualizando ${tableName}.${column}:`, error.message)
   }
 }
 

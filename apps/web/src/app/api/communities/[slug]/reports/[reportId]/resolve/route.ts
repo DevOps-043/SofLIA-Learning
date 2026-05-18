@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
@@ -31,7 +32,7 @@ export async function PATCH(
     const user = await SessionService.getCurrentUser()
 
     if (!user) {
-      console.error('❌ User not authenticated')
+      techDebtLogger.error('❌ User not authenticated')
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
@@ -41,7 +42,7 @@ export async function PATCH(
     const validationResult = resolveSchema.safeParse(body)
 
     if (!validationResult.success) {
-      console.error('❌ Validation error:', validationResult.error.errors)
+      techDebtLogger.error('❌ Validation error:', validationResult.error.errors)
       return NextResponse.json(
         { error: 'Datos inválidos', details: validationResult.error.errors },
         { status: 400 }
@@ -53,7 +54,7 @@ export async function PATCH(
     // Usar cliente admin para bypass RLS
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!supabaseServiceKey) {
-      console.error('❌ SUPABASE_SERVICE_ROLE_KEY no está configurada')
+      techDebtLogger.error('❌ SUPABASE_SERVICE_ROLE_KEY no está configurada')
       return NextResponse.json(
         { 
           error: 'Error de configuración del servidor',
@@ -77,12 +78,12 @@ export async function PATCH(
     // Obtener el reporte
     const { data: report, error: reportError } = await adminSupabase
       .from('community_post_reports')
-      .select('*')
+      .select(SELECT_COLUMNS.community_post_reports)
       .eq('id', reportId)
       .single()
 
     if (reportError || !report) {
-      console.error('❌ Error fetching report:', reportError)
+      techDebtLogger.error('❌ Error fetching report:', reportError)
       return NextResponse.json(
         { error: 'Reporte no encontrado' },
         { status: 404 }
@@ -97,7 +98,7 @@ export async function PATCH(
       .single()
 
     if (communityError || !community) {
-      console.error('❌ Error fetching community:', communityError)
+      techDebtLogger.error('❌ Error fetching community:', communityError)
       return NextResponse.json(
         { error: 'Comunidad no encontrada' },
         { status: 404 }
@@ -106,7 +107,7 @@ export async function PATCH(
 
     // Verificar que el slug coincida
     if (community.slug !== slug) {
-      console.error('❌ Slug mismatch:', { expected: slug, actual: community.slug })
+      techDebtLogger.error('❌ Slug mismatch:', { expected: slug, actual: community.slug })
       return NextResponse.json(
         { error: 'El reporte no pertenece a esta comunidad' },
         { status: 400 }
@@ -123,7 +124,7 @@ export async function PATCH(
         .single()
       
       if (postError) {
-        console.error('❌ Error fetching post:', postError)
+        techDebtLogger.error('❌ Error fetching post:', postError)
       } else {
         post = postData
 
@@ -160,7 +161,7 @@ export async function PATCH(
         .eq('id', post.id)
 
       if (deleteError) {
-        console.error('❌ Error deleting post:', deleteError)
+        techDebtLogger.error('❌ Error deleting post:', deleteError)
         return NextResponse.json(
           { error: 'Error al eliminar el post', details: deleteError.message },
           { status: 500 }
@@ -176,7 +177,7 @@ export async function PATCH(
         .eq('id', post.id)
 
       if (hideError) {
-        console.error('❌ Error hiding post:', hideError)
+        techDebtLogger.error('❌ Error hiding post:', hideError)
         return NextResponse.json(
           { error: 'Error al ocultar el post', details: hideError.message },
           { status: 500 }
@@ -204,11 +205,11 @@ export async function PATCH(
       .from('community_post_reports')
       .update(updateData)
       .eq('id', reportId)
-      .select('*')
+      .select(SELECT_COLUMNS.community_post_reports)
       .single()
 
     if (updateError) {
-      console.error('❌ Error updating report:', {
+      techDebtLogger.error('❌ Error updating report:', {
         error: updateError,
         code: updateError.code,
         message: updateError.message,

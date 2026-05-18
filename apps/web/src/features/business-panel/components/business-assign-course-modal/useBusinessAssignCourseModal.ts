@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, useState } from 'react'
 import type { TFunction } from 'i18next'
 import { useBusinessUsers } from '../../hooks/useBusinessUsers'
@@ -95,7 +96,7 @@ export function useBusinessAssignCourseModal({
           }
         }
       } catch (fetchError) {
-        console.error('Error fetching assigned users:', fetchError)
+        techDebtLogger.error('Error fetching assigned users:', fetchError)
       }
     }
 
@@ -264,7 +265,7 @@ IMPORTANTE: Tu respuesta debe ser EXCLUSIVAMENTE un objeto JSON válido con este
       setDueDate(suggestedDate)
       setSuggestionReason(parsed.reason || null)
     } catch (suggestError) {
-      console.error('Error obteniendo sugerencia de LIA:', suggestError)
+      techDebtLogger.error('Error obteniendo sugerencia de LIA:', suggestError)
     } finally {
       setIsSuggesting(false)
     }

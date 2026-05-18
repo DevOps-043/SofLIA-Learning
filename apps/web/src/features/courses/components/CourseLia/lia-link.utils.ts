@@ -9,10 +9,17 @@ const BLOCKED_URL_SCHEMES = new Set([
   "vbscript:",
 ]);
 
+function hasControlCharacter(value: string): boolean {
+  return Array.from(value).some((char) => {
+    const code = char.charCodeAt(0);
+    return code <= 0x1f || code === 0x7f;
+  });
+}
+
 export function normalizeLiaLinkUrl(rawUrl: string): NormalizedLiaLink | null {
   const trimmedUrl = rawUrl.trim();
 
-  if (!trimmedUrl || /[\u0000-\u001F\u007F]/.test(trimmedUrl)) {
+  if (!trimmedUrl || hasControlCharacter(trimmedUrl)) {
     return null;
   }
 

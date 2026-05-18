@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { createAdminSupabase } from './admin-client'
 import { buildActivityRows, buildMaterialRows } from './lesson-rows'
 import type { CourseEngineActivity, CourseEngineMaterial } from './types'
@@ -40,7 +41,7 @@ export async function cleanupObsoleteLessons(
     query = query.not('lesson_id', 'in', `(${validLessonIds.join(',')})`)
   }
   const { error } = await query
-  if (error) console.error(`Failed to cleanup obsolete lessons: ${error.message}`)
+  if (error) techDebtLogger.error(`Failed to cleanup obsolete lessons: ${error.message}`)
 }
 
 export async function cleanupObsoleteModules(
@@ -53,5 +54,5 @@ export async function cleanupObsoleteModules(
     query = query.not('module_id', 'in', `(${validModuleIds.join(',')})`)
   }
   const { error } = await query
-  if (error) console.error(`Failed to cleanup obsolete modules: ${error.message}`)
+  if (error) techDebtLogger.error(`Failed to cleanup obsolete modules: ${error.message}`)
 }

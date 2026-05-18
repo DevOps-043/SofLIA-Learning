@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '../../../../../lib/supabase/server';
 import { formatApiError, logError } from '@/core/utils/api-errors';
@@ -69,7 +70,7 @@ export async function GET(
         // Si falla el join, intentar obtener miembros por community_id directamente
         const { data: membersData2, error: membersError2 } = await supabase
           .from('community_members')
-          .select('*')
+          .select(SELECT_COLUMNS.community_members)
           .eq('community_id', community.id)
           .eq('is_active', true);
 
@@ -147,7 +148,7 @@ export async function GET(
         .neq('community_id', community.id);
 
       if (membershipError) {
-        console.error('Error checking user memberships:', membershipError);
+        techDebtLogger.error('Error checking user memberships:', membershipError);
       }
 
       // Crear un Set de user_ids que tienen otras comunidades (búsqueda O(1))

@@ -1439,7 +1439,9 @@
     "errors": {
       "downloadTemplate": "Erro ao baixar modelo",
       "invalidFileType": "O arquivo deve ser um CSV (.csv)",
-      "processFile": "Erro ao processar arquivo"
+      "invalidResponse": "Resposta inesperada do servidor",
+      "processFile": "Erro ao processar arquivo",
+      "timeout": "A importacao ainda esta em andamento. Atualize a lista de usuarios em alguns minutos"
     },
     "buttons": {
       "close": "Fechar",

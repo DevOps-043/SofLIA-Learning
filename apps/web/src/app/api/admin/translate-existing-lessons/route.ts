@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(buildTranslationResponse(context))
   } catch (error) {
-    console.error('[translate-existing-lessons] Error:', error)
+    techDebtLogger.error('[translate-existing-lessons] Error:', error)
     return NextResponse.json(
       {
         success: false,

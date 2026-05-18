@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import type { SofLIAMessage } from '../types/lia.types';
@@ -263,7 +264,7 @@ export function useLiaGeneralChat(
           }),
         });
       } catch (closeError) {
-        console.error(
+        techDebtLogger.error(
           '[SofLIA Analytics] Error cerrando conversación:',
           closeError
         );

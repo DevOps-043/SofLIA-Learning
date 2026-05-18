@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import {
   enrichLessonWithInstructorName,
   fetchInstructorNameMap,
@@ -25,7 +26,7 @@ export async function translateCreatedLesson(
       userId,
     )
   } catch (translationError) {
-    console.error('Error en traducción automática de la lección:', translationError)
+    techDebtLogger.error('Error en traducción automática de la lección:', translationError)
   }
 }
 

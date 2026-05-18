@@ -1,26 +1,30 @@
-import { ResponsivePie } from '@nivo/pie';
 import { BarChart3 } from 'lucide-react';
 import type { CSSProperties } from 'react';
-import type { PartialTheme } from '@nivo/theming';
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import type { BusinessPanelTheme, CourseAnalyticsColors } from './chart-theme';
 import type { ProgressDistributionItem } from './types';
 
 interface ProgressDistributionChartProps {
+  chartTooltipStyle: CSSProperties;
   colors: CourseAnalyticsColors;
   items: ProgressDistributionItem[];
-  nivoTheme: PartialTheme;
   panelTheme: BusinessPanelTheme;
   surfaceStyle: CSSProperties;
 }
 
 export function ProgressDistributionChart({
+  chartTooltipStyle,
   colors,
   items,
-  nivoTheme,
   panelTheme,
   surfaceStyle,
 }: ProgressDistributionChartProps) {
-  const data = items.map((item) => ({ id: item.range, label: item.range, value: item.count }));
+  const palette = [colors.success, colors.warning, colors.brand, colors.accent, colors.action];
+  const data = items.map((item, index) => ({
+    fill: palette[index % palette.length],
+    name: item.range,
+    value: item.count,
+  }));
   const hasData = data.length > 0 && data.some((distribution) => distribution.value > 0);
 
   return (
@@ -31,24 +35,31 @@ export function ProgressDistributionChart({
       </h3>
       <div className="h-80">
         {hasData ? (
-          <ResponsivePie
-            data={data}
-            margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
-            innerRadius={0.5}
-            padAngle={0.7}
-            cornerRadius={3}
-            activeOuterRadiusOffset={8}
-            colors={[colors.success, colors.warning, colors.brand, colors.accent, colors.action]}
-            borderWidth={1}
-            borderColor={{ from: 'color', modifiers: [['darker', 0.2]] }}
-            arcLinkLabelsSkipAngle={10}
-            arcLinkLabelsTextColor={panelTheme.subtextColor}
-            arcLinkLabelsThickness={2}
-            arcLinkLabelsColor={{ from: 'color' }}
-            arcLabelsSkipAngle={10}
-            arcLabelsTextColor={{ from: 'color', modifiers: [['darker', 2]] }}
-            theme={nivoTheme}
-          />
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart margin={{ top: 24, right: 24, bottom: 24, left: 24 }}>
+              <Pie
+                cx="50%"
+                cy="50%"
+                data={data}
+                dataKey="value"
+                innerRadius="50%"
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                labelLine={false}
+                nameKey="name"
+                outerRadius="80%"
+                paddingAngle={2}
+              >
+                {data.map((entry) => (
+                  <Cell key={entry.name} fill={entry.fill} stroke={panelTheme.cardBg} strokeWidth={1} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={chartTooltipStyle}
+                formatter={(value) => [value, 'Usuarios']}
+                labelStyle={{ color: panelTheme.textColor }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
         ) : (
           <div className="flex items-center justify-center h-full" style={{ color: panelTheme.subtextColor }}>
             No hay datos de progreso disponibles

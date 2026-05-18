@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useRef, useEffect } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -24,7 +25,7 @@ interface VideoTrackingOptions {
  * const tracking = useVideoTracking({
  *   lessonId: 'lesson-123',
  *   trackingId: 'tracking-456',
- *   onError: (error) => console.error('Tracking error:', error)
+ *   onError: (error) => logger.error('Tracking error:', error)
  * });
  * 
  * // En el video element
@@ -42,7 +43,7 @@ export function useVideoTracking({
     useEffect(() => {
 
         if (!lessonId) {
-            console.warn('[useVideoTracking] ⚠️ No lessonId provided - tracking will NOT work');
+            techDebtLogger.warn('[useVideoTracking] ⚠️ No lessonId provided - tracking will NOT work');
         } else {
         }
     }, [lessonId, trackingId]);
@@ -90,7 +91,7 @@ export function useVideoTracking({
 
             lastProgressUpdate.current = currentTime;
         } catch (error) {
-            console.error('[VideoTracking] Error updating progress:', error);
+            techDebtLogger.error('[VideoTracking] Error updating progress:', error);
             onError?.(error as Error);
         }
     };

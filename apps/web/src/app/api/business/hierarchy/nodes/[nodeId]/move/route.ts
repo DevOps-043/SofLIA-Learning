@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { NextRequest, NextResponse } from 'next/server';
@@ -17,7 +18,7 @@ export async function POST(
         // 1. Fetch current node
         const { data: node } = await supabase
             .from('organization_nodes')
-            .select('*')
+            .select(SELECT_COLUMNS.organization_nodes)
             .eq('id', nodeId)
             .eq('organization_id', auth.organizationId)
             .single();
@@ -31,7 +32,7 @@ export async function POST(
         if (new_parent_id) {
             const { data: parent } = await supabase
                 .from('organization_nodes')
-                .select('*')
+                .select(SELECT_COLUMNS.organization_nodes)
                 .eq('id', new_parent_id)
                 .eq('organization_id', auth.organizationId)
                 .single();
@@ -87,7 +88,7 @@ export async function POST(
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error("Error in move:", error);
+        techDebtLogger.error("Error in move:", error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

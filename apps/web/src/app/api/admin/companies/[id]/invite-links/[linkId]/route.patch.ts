@@ -3,6 +3,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { logger } from '@/lib/logger'
+import { withZodBody } from '@/lib/api/with-validation'
+import {
+  inviteLinkPatchSchema,
+  type InviteLinkPatchBody,
+  type InviteLinkUpdateData,
+} from './schema'
 
 interface RouteParams {
   params: Promise<{
@@ -11,20 +18,23 @@ interface RouteParams {
   }>
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
+async function handlePatch(
+  request: NextRequest,
+  body: InviteLinkPatchBody,
+  { params }: RouteParams
+) {
   try {
     const auth = await requireAdmin()
     if (auth instanceof NextResponse) return auth
 
     const { id: companyId, linkId } = await params
-    const body = await request.json()
     const { action, name, maxUses, expiresAt } = body
 
     const supabase = await createClient()
 
     const { data: existingLink, error: fetchError } = await supabase
       .from('bulk_invite_links')
-      .select('*')
+      .select(SELECT_COLUMNS.bulk_invite_links)
       .eq('id', linkId)
       .eq('organization_id', companyId)
       .single()
@@ -36,7 +46,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    let updateData: Record<string, any> = {}
+    const updateData: InviteLinkUpdateData = {}
 
     if (action === 'pause') {
       if (existingLink.status !== 'active') {
@@ -99,7 +109,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .single()
 
     if (updateError) {
-      console.error('Error updating bulk invite link:', updateError)
+      logger.error('Error updating bulk invite link', updateError, {
+        companyId,
+        linkId,
+      })
       return NextResponse.json(
         { success: false, error: 'Error al actualizar el enlace' },
         { status: 500 }
@@ -111,10 +124,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       link
     })
   } catch (error) {
-    console.error('Error in PATCH /api/admin/companies/[id]/invite-links/[linkId]:', error)
+    logger.error('Error in PATCH /api/admin/companies/[id]/invite-links/[linkId]', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }
     )
   }
 }
+
+export const PATCH = withZodBody(inviteLinkPatchSchema, handlePatch)

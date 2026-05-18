@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { calculateCompleteness } from './PromptPreviewPanel/completeness';
@@ -36,7 +37,7 @@ export function PromptPreviewPanel({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Error copiando al portapapeles:', error);
+      techDebtLogger.error('Error copiando al portapapeles:', error);
     }
   }, [draft.content]);
 
@@ -57,7 +58,7 @@ export function PromptPreviewPanel({
     try {
       await onSave(isEditing ? editedDraft : draft);
     } catch (error) {
-      console.error('Error guardando prompt:', error);
+      techDebtLogger.error('Error guardando prompt:', error);
     }
   }, [draft, editedDraft, isEditing, onSave]);
 

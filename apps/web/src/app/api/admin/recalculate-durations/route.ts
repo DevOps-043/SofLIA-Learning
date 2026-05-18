@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
@@ -38,7 +39,7 @@ export async function POST() {
       elapsedMs: elapsedTime,
     })
   } catch (error) {
-    console.error('[API] Error recalculating durations:', error)
+    techDebtLogger.error('[API] Error recalculating durations:', error)
     return NextResponse.json(
       {
         success: false,

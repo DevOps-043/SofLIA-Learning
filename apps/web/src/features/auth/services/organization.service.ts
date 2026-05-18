@@ -3,6 +3,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export interface Organization {
   id: string;
@@ -38,7 +39,7 @@ export async function getOrganizationBySlug(slug: string): Promise<Organization 
 
     const { data, error } = await supabase
       .from('organizations')
-      .select('*')
+      .select(SELECT_COLUMNS.organizations)
       .ilike('slug', slug.trim())
       .single();
 
@@ -63,7 +64,7 @@ export async function getOrganizationById(id: string): Promise<Organization | nu
 
     const { data, error } = await supabase
       .from('organizations')
-      .select('*')
+      .select(SELECT_COLUMNS.organizations)
       .eq('id', id)
       .single();
 
@@ -98,4 +99,3 @@ export async function isOrganizationSlugAvailable(slug: string): Promise<boolean
     return false;
   }
 }
-

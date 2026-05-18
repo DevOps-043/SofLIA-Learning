@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SCORMUploader, useScormPackage, ScormPackage } from '@/features/scorm';
@@ -40,7 +41,7 @@ export function CourseScormSection({ courseId, organizationId }: CourseScormSect
         refetch();
       }
     } catch (error) {
-      console.error('Error deleting package:', error);
+      techDebtLogger.error('Error deleting package:', error);
     } finally {
       setDeleting(null);
     }

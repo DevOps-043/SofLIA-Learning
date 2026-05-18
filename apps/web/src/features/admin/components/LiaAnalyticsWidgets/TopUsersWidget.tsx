@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react';
 import { UserCircleIcon, TrophyIcon, UsersIcon } from '@heroicons/react/24/outline';
 
@@ -49,7 +50,7 @@ export function TopUsersWidget({ period = 'month', limit = 10, isLoading: extern
           setUsers(data.data.users);
         }
       } catch (error) {
-        console.error('Error fetching top users:', error);
+        techDebtLogger.error('Error fetching top users:', error);
       } finally {
         setIsLoading(false);
       }

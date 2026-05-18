@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Utilidades para obtener metadatos de talleres dinámicamente desde la BD
  * 
@@ -44,7 +45,7 @@ export async function getWorkshopMetadata(workshopId: string): Promise<WorkshopM
       .single();
 
     if (workshopError || !workshop) {
-      console.error('Error obteniendo taller:', workshopError);
+      techDebtLogger.error('Error obteniendo taller:', workshopError);
       return null;
     }
 
@@ -62,7 +63,7 @@ export async function getWorkshopMetadata(workshopId: string): Promise<WorkshopM
       .order('module_order_index', { ascending: true });
 
     if (modulesError) {
-      console.error('Error obteniendo módulos:', modulesError);
+      techDebtLogger.error('Error obteniendo módulos:', modulesError);
       return {
         workshopId: workshop.id,
         workshopSlug: workshop.slug || '',
@@ -101,7 +102,7 @@ export async function getWorkshopMetadata(workshopId: string): Promise<WorkshopM
       .order('lesson_order_index', { ascending: true });
 
     if (lessonsError) {
-      console.error('Error obteniendo lecciones:', lessonsError);
+      techDebtLogger.error('Error obteniendo lecciones:', lessonsError);
       // Retornar módulos sin lecciones en caso de error
       return {
         workshopId: workshop.id,
@@ -156,7 +157,7 @@ export async function getWorkshopMetadata(workshopId: string): Promise<WorkshopM
       modules
     };
   } catch (error) {
-    console.error('Error inesperado obteniendo metadatos del taller:', error);
+    techDebtLogger.error('Error inesperado obteniendo metadatos del taller:', error);
     return null;
   }
 }
@@ -179,14 +180,14 @@ export async function getWorkshopMetadataBySlug(workshopSlug: string): Promise<W
       .single();
 
     if (workshopError || !workshop) {
-      console.error('Error obteniendo taller por slug:', workshopError);
+      techDebtLogger.error('Error obteniendo taller por slug:', workshopError);
       return null;
     }
 
     // Luego usar la función principal con el ID
     return await getWorkshopMetadata(workshop.id);
   } catch (error) {
-    console.error('Error inesperado obteniendo metadatos del taller por slug:', error);
+    techDebtLogger.error('Error inesperado obteniendo metadatos del taller por slug:', error);
     return null;
   }
 }

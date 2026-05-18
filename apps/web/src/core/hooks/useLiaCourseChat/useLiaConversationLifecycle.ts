@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect } from 'react';
 import type { MutableRefObject } from 'react';
 import type { SofLIAMessage } from '../../types/lia.types';
@@ -44,7 +45,7 @@ export function useLiaConversationLifecycle({
       try {
         await endLiaConversation(conversationIdRef.current, true);
       } catch (closeError) {
-        console.error('[SofLIA Analytics] Error cerrando conversación:', closeError);
+        techDebtLogger.error('[SofLIA Analytics] Error cerrando conversación:', closeError);
       }
       conversationIdRef.current = null;
     }

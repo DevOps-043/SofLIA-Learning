@@ -1,6 +1,7 @@
 "use client";
 
 import { normalizeContentForRenderer } from "@/lib/course-content";
+import { sanitizeRichHtml } from "@/lib/security/sanitize-html";
 
 type FormattedContentItem = {
   content: string;
@@ -136,11 +137,13 @@ export function FormattedContentRenderer({
   }
 
   if (/<[a-z][\s\S]*>/i.test(readingContent)) {
+    const sanitizedReadingContent = sanitizeRichHtml(readingContent);
+
     return (
       <div className="rounded-xl border border-[#E9ECEF] bg-white p-8 shadow-sm dark:border-white/10 dark:bg-[#10161D]">
         <article
           className="prose prose-slate max-w-none overflow-x-auto text-[#0A2540] dark:prose-invert dark:text-white [&_table]:my-6 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-gray-200 [&_td]:p-3 dark:[&_td]:border-white/10 [&_th]:border [&_th]:border-gray-300 [&_th]:bg-gray-100 [&_th]:p-3 [&_th]:text-left dark:[&_th]:border-white/20 dark:[&_th]:bg-white/10"
-          dangerouslySetInnerHTML={{ __html: readingContent }}
+          dangerouslySetInnerHTML={{ __html: sanitizedReadingContent }}
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
         />
       </div>

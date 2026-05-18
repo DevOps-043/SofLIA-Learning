@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { CallBackProps, STATUS, ACTIONS, EVENTS } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
@@ -33,13 +34,13 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
 
   const finishTour = useCallback(() => {
     stopTour();
-    completeTour().catch(err => console.error('[useBusinessPanelJoyride] Complete failed', err));
+    completeTour().catch(err => techDebtLogger.error('[useBusinessPanelJoyride] Complete failed', err));
   }, [completeTour, stopTour]);
 
   const dismissTour = useCallback((reason: 'skip' | 'close') => {
     stopTour();
     const label = reason === 'close' ? 'Close' : 'Skip';
-    skipTour().catch(err => console.error(`[useBusinessPanelJoyride] ${label} failed`, err));
+    skipTour().catch(err => techDebtLogger.error(`[useBusinessPanelJoyride] ${label} failed`, err));
   }, [skipTour, stopTour]);
 
   // Auto-start tour when conditions are met
@@ -68,7 +69,7 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
     setShowVideoIntro(false);
     setStepIndex(0);
     setIsFinishedInSession(false);
-    startTour().catch(err => console.error('[useBusinessPanelJoyride] DB start failed', err));
+    startTour().catch(err => techDebtLogger.error('[useBusinessPanelJoyride] DB start failed', err));
     setRun(true);
   }, [startTour]);
 

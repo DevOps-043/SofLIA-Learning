@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
@@ -167,7 +168,7 @@ export async function POST(request: NextRequest) {
         })
 
     } catch (error) {
-        console.error('Error recalculating durations:', error)
+        techDebtLogger.error('Error recalculating durations:', error)
         return NextResponse.json({
             success: false,
             error: error instanceof Error ? error.message : 'Error desconocido'

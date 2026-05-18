@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
       .order('joined_at', { ascending: true });
 
     if (membershipError) {
-      console.error('Error fetching organizations:', membershipError);
+      techDebtLogger.error('Error fetching organizations:', membershipError);
       return NextResponse.json(
         { success: false, error: 'Error al obtener organizaciones' },
         { status: 500 }

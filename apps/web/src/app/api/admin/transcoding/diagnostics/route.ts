@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { isTranscodingEnabled } from '@/lib/media/server/transcoding-dispatcher.server'
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
 
 export const runtime = 'nodejs'
 
@@ -31,11 +32,10 @@ export async function GET() {
   if (netlifyUrl) {
     const probeUrl = `${netlifyUrl.replace(/\/$/, '')}/.netlify/functions/transcode-video-background`
     try {
-      const response = await fetch(probeUrl, {
+      const response = await fetchWithCircuitBreaker('netlify-transcoding-probe', probeUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
-        signal: AbortSignal.timeout(10_000),
       })
       probeStatus = response.status
       // 401 (no/bad bearer) or 400 (bad body) both prove the function is

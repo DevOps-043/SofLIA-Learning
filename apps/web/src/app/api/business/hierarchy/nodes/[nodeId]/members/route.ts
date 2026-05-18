@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
@@ -55,7 +56,7 @@ export async function GET(
             .order('created_at', { ascending: false });
 
         if (membersError) {
-            console.error('Error fetching node members:', membersError);
+            techDebtLogger.error('Error fetching node members:', membersError);
             return NextResponse.json(
                 { success: false, error: 'Failed to fetch members' },
                 { status: 500 }
@@ -67,7 +68,7 @@ export async function GET(
             members
         });
     } catch (error) {
-        console.error('Error in GET /api/business/hierarchy/nodes/[nodeId]/members:', error);
+        techDebtLogger.error('Error in GET /api/business/hierarchy/nodes/[nodeId]/members:', error);
         return NextResponse.json(
             { success: false, error: 'Internal server error' },
             { status: 500 }
@@ -204,7 +205,7 @@ export async function POST(
                 .eq('id', nodeId);
 
             if (updateNodeError) {
-                console.error('Error updating node manager from member assignment:', updateNodeError);
+                techDebtLogger.error('Error updating node manager from member assignment:', updateNodeError);
                 // We keep the member assignment but log the error
             }
         }
@@ -215,7 +216,7 @@ export async function POST(
         });
 
     } catch (error: unknown) {
-        console.error('Error in POST /api/business/hierarchy/nodes/[nodeId]/members:', error);
+        techDebtLogger.error('Error in POST /api/business/hierarchy/nodes/[nodeId]/members:', error);
         return NextResponse.json(
             {
                 success: false,

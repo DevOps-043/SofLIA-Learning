@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { LearnLesson } from "../../components/learn/types";
 import type { PendingValidationRef } from "./types";
 import { isAbortError } from "./browser";
@@ -42,7 +43,7 @@ export async function completePreviousLesson({
     }
 
     if (!isAbortError(error) && process.env.NODE_ENV === "development") {
-      console.warn(logMessage, error);
+      techDebtLogger.warn(logMessage, error);
     }
 
     return false;

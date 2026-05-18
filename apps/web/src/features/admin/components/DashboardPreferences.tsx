@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react'
 import { Settings, X } from 'lucide-react'
 
@@ -46,7 +47,7 @@ export function DashboardPreferences({ onPreferencesChange }: DashboardPreferenc
         })
       }
     } catch (error) {
-      console.error('Error fetching preferences:', error)
+      techDebtLogger.error('Error fetching preferences:', error)
     } finally {
       setIsLoading(false)
     }
@@ -71,7 +72,7 @@ export function DashboardPreferences({ onPreferencesChange }: DashboardPreferenc
         setIsOpen(false)
       }
     } catch (error) {
-      console.error('Error saving preferences:', error)
+      techDebtLogger.error('Error saving preferences:', error)
     } finally {
       setIsSaving(false)
     }

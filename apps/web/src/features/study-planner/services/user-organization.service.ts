@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * UserOrganizationService
  *
@@ -27,7 +28,7 @@ export class UserOrganizationService {
       .maybeSingle();
 
     if (orgUserError) {
-      console.error('❌ [getUserOrganization] Error buscando en organization_users:', orgUserError);
+      techDebtLogger.error('❌ [getUserOrganization] Error buscando en organization_users:', orgUserError);
       return null;
     }
 
@@ -50,7 +51,7 @@ export class UserOrganizationService {
       .single();
 
     if (error) {
-      console.error('Error obteniendo organización:', error);
+      techDebtLogger.error('Error obteniendo organización:', error);
       return null;
     }
 
@@ -79,7 +80,7 @@ export class UserOrganizationService {
       .eq('status', 'active');
 
     if (error) {
-      console.error('Error obteniendo equipos de trabajo:', error);
+      techDebtLogger.error('Error obteniendo equipos de trabajo:', error);
       return [];
     }
 

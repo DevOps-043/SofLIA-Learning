@@ -1,4 +1,5 @@
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useCallback, useEffect } from 'react'
 import { getStagingDetails, approveCourse as approveCourseAction, rejectCourse as rejectCourseAction, deleteCourse as deleteCourseAction, reconsiderCourse as reconsiderCourseAction } from '../actions/adminCourses.actions'
 
@@ -35,7 +36,7 @@ export function useAdminCourseDetail(courseId: string) {
             }
             return false
         } catch (err) {
-            console.error(err)
+            techDebtLogger.error(err)
             return false
         }
     }
@@ -49,7 +50,7 @@ export function useAdminCourseDetail(courseId: string) {
             }
             return false
         } catch (err) {
-            console.error(err)
+            techDebtLogger.error(err)
             return false
         }
     }
@@ -63,7 +64,7 @@ export function useAdminCourseDetail(courseId: string) {
             }
             return false
         } catch (err) {
-            console.error(err)
+            techDebtLogger.error(err)
             return false
         }
     }
@@ -77,7 +78,7 @@ export function useAdminCourseDetail(courseId: string) {
             }
             return false
         } catch (err) {
-            console.error(err)
+            techDebtLogger.error(err)
             return false
         }
     }

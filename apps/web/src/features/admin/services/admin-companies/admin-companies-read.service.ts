@@ -165,11 +165,11 @@ export async function getAdminCompanyById(id: string): Promise<AdminCompany | nu
     buildUsersMap(supabase, userIds),
     supabase
       .from('user_invitations')
-      .select('*')
+      .select(SELECT_COLUMNS.user_invitations)
       .eq('organization_id', id)
       .eq('status', 'pending'),
     fromLoose<Record<string, unknown>>(supabase, 'bulk_invite_links')
-      .select('*')
+      .select(SELECT_COLUMNS.bulk_invite_links)
       .eq('organization_id', id),
   ])
 

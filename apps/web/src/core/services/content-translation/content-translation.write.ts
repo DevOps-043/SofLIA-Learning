@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import {
   deleteCachedContentTranslations,
   getContentTranslationCacheKey,
@@ -29,7 +30,7 @@ function warnIfTranslationPayloadIsLarge(
   }
 
   const payloadSizeMb = (payloadSize / (1024 * 1024)).toFixed(2);
-  console.warn(
+  techDebtLogger.warn(
     `[ContentTranslationService] Large translations (${payloadSizeMb}MB) for ${entityType}:${entityId}:${language}`
   );
 }
@@ -44,7 +45,7 @@ export async function saveContentTranslation(
 ): Promise<boolean> {
   try {
     if (!hasTranslations(translations)) {
-      console.warn(
+      techDebtLogger.warn(
         `[ContentTranslationService] No translations to save for ${entityType}:${entityId}:${language}`
       );
       return false;
@@ -74,7 +75,7 @@ export async function saveContentTranslation(
       .select();
 
     if (error) {
-      console.error(
+      techDebtLogger.error(
         `[ContentTranslationService] Error saving translation for ${entityType}:${entityId}:${language}:`,
         error
       );
@@ -84,7 +85,7 @@ export async function saveContentTranslation(
     deleteCachedContentTranslations(getContentTranslationCacheKey(entityType, entityId, language));
     return true;
   } catch (error) {
-    console.error(
+    techDebtLogger.error(
       `[ContentTranslationService] Exception saving translation for ${entityType}:${entityId}:${language}:`,
       error
     );

@@ -1,7 +1,12 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { SessionService } from '@/features/auth/services/session.service';
 import { CalendarIntegrationService } from '@/features/study-planner/services/calendar-integration.service';
+
+type MicrosoftCalendarDeleteCapable = typeof CalendarIntegrationService & {
+    deleteMicrosoftEvent?: (accessToken: string, eventId: string) => Promise<boolean>;
+};
 
 function getErrorMessage(error: unknown, fallback: string): string {
     return error instanceof Error && error.message ? error.message : fallback;
@@ -48,7 +53,7 @@ export async function POST(request: NextRequest) {
             .not('external_event_id', 'is', null);
 
         if (error) {
-            console.error('Error obteniendo sesiones:', error);
+            techDebtLogger.error('Error obteniendo sesiones:', error);
             return NextResponse.json({ success: false, error: 'Error obteniendo sesiones' }, { status: 500 });
         }
 
@@ -73,11 +78,14 @@ export async function POST(request: NextRequest) {
                 if (provider === 'google') {
                     success = await CalendarIntegrationService.deleteGoogleEvent(accessToken, session.external_event_id, calendarId);
                 } else if (provider === 'microsoft') {
-                    // @ts-ignore - Método recién agregado
-                    success = await CalendarIntegrationService.deleteMicrosoftEvent(accessToken, session.external_event_id);
+                    const microsoftCalendarService =
+                        CalendarIntegrationService as MicrosoftCalendarDeleteCapable;
+                    success = microsoftCalendarService.deleteMicrosoftEvent
+                        ? await microsoftCalendarService.deleteMicrosoftEvent(accessToken, session.external_event_id)
+                        : false;
                 }
             } catch (err) {
-                console.error(`Error borrando evento ${session.external_event_id}:`, err);
+                techDebtLogger.error(`Error borrando evento ${session.external_event_id}:`, err);
                 success = false;
             }
             return success;
@@ -90,7 +98,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, deletedCount });
 
     } catch (error: unknown) {
-        console.error('Error en delete-plan-events:', error);
+        techDebtLogger.error('Error en delete-plan-events:', error);
         return NextResponse.json({ success: false, error: getErrorMessage(error, 'Error interno') }, { status: 500 });
     }
 }

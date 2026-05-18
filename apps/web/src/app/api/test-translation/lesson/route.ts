@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { translateLessonOnCreate } from '../../../../core/services/courseTranslation.service'
 import { LanguageDetectionService } from '../../../../core/services/languageDetection.service'
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
     // PASO 2: Verificar traducciones existentes
     const { data: existingTranslations, error: translationsError } = await supabase
       .from('content_translations')
-      .select('*')
+      .select(SELECT_COLUMNS.content_translations)
       .eq('entity_type', 'lesson')
       .eq('entity_id', lessonId)
 
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
     // PASO 4: Verificar traducciones después de traducir
     const { data: translationsAfter, error: translationsAfterError } = await supabase
       .from('content_translations')
-      .select('*')
+      .select(SELECT_COLUMNS.content_translations)
       .eq('entity_type', 'lesson')
       .eq('entity_id', lessonId)
 
@@ -159,7 +160,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('[TEST-LESSON-TRANSLATION] ❌ Error en prueba:', error)
+    techDebtLogger.error('[TEST-LESSON-TRANSLATION] ❌ Error en prueba:', error)
     return NextResponse.json(
       {
         success: false,

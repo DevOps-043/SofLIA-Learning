@@ -1,4 +1,5 @@
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service'
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
 import { resolveStudySessionTitle } from '../../study-session-title.utils'
 import type { StudySessionRecord, SyncSessionEventResult } from './sync-sessions.types'
 import {
@@ -85,7 +86,8 @@ export async function createGoogleStudySessionEvent(
   const event = buildGoogleEventPayload(session, timezone)
   const targetCalendarId = calendarId || 'primary'
 
-  const response = await fetch(
+  const response = await fetchWithCircuitBreaker(
+    'google-calendar-sync-sessions',
     `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`,
     {
       method: 'POST',
@@ -110,7 +112,8 @@ export async function createGoogleStudySessionEvent(
     await CalendarIntegrationService.getOrCreatePlatformCalendar(accessToken)
 
   if (recreatedCalendarId) {
-    const retryResponse = await fetch(
+    const retryResponse = await fetchWithCircuitBreaker(
+      'google-calendar-sync-sessions',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(recreatedCalendarId)}/events`,
       {
         method: 'POST',
@@ -131,7 +134,8 @@ export async function createGoogleStudySessionEvent(
     }
   }
 
-  const fallbackResponse = await fetch(
+  const fallbackResponse = await fetchWithCircuitBreaker(
+    'google-calendar-sync-sessions',
     'https://www.googleapis.com/calendar/v3/calendars/primary/events',
     {
       method: 'POST',
@@ -160,7 +164,8 @@ export async function createMicrosoftStudySessionEvent(
     return { eventId: null }
   }
 
-  const response = await fetch(
+  const response = await fetchWithCircuitBreaker(
+    'microsoft-calendar-sync-sessions',
     'https://graph.microsoft.com/v1.0/me/calendar/events',
     {
       method: 'POST',

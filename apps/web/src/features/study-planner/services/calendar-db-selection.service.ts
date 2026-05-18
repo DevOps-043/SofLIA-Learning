@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { CalendarIntegrationMetadata } from '../types/user-context.types';
 
@@ -41,7 +42,7 @@ export async function getSelectedCalendarIds(
     const metadata = data.metadata as CalendarIntegrationMetadata;
     return metadata.selected_calendar_ids || null;
   } catch (error) {
-    console.error('[Calendar] Error obteniendo calendarios seleccionados:', error);
+    techDebtLogger.error('[Calendar] Error obteniendo calendarios seleccionados:', error);
     return null;
   }
 }

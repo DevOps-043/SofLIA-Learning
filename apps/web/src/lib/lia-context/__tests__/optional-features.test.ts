@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { testContextBuilderWithNewProviders } from './optional-context-tests/context-builder.suite'
 import { testContextMetricsService } from './optional-context-tests/metrics.suite'
 import { testLiaComponentUtilities } from './optional-context-tests/lia-components.suite'
@@ -13,4 +14,4 @@ void runSuites('TESTS DE FUNCIONALIDADES OPCIONALES DE LIA', [
   { name: 'metrics', run: testContextMetricsService },
   { name: 'utilities', run: testLiaComponentUtilities },
   { name: 'builder', run: testContextBuilderWithNewProviders },
-]).catch(console.error)
+]).catch(techDebtLogger.error)

@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, useState } from 'react'
 
 import { TeamRequiredBanner } from '@/features/business-panel/components/hierarchy/TeamRequiredBanner'
@@ -38,7 +39,7 @@ export function BusinessUserDashboardShell(props: BusinessUserDashboardShellProp
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return
 
-    console.debug('[business-user-dashboard] initial cards', {
+    techDebtLogger.debug('[business-user-dashboard] initial cards', {
       disableHeavyEffects: props.disableHeavyEffects,
       renderedCards: displayedCourses.length,
       totalCourses: props.assignedCourses.length,

@@ -1,28 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { withZodBody } from '@/lib/api/with-validation'
 
 import { createClient } from '@/lib/supabase/server'
 
 import { logger } from '@/lib/utils/logger'
-
-interface UserGroupSummary {
-  id: string
-  organization_id: string
-  name: string
-  description: string | null
-  color: string | null
-  created_by: string | null
-  created_at: string
-  updated_at: string
-}
+import {
+  DEFAULT_USER_GROUP_COLOR,
+  userGroupCreateSchema,
+  type UserGroupCreateBody,
+} from './schema'
 
 /**
  * POST /api/[orgSlug]/business/user-groups
  * Crea un nuevo grupo de usuarios
  */
-export async function POST(
-  request: NextRequest,
+async function handlePost(
+  _request: NextRequest,
+  body: UserGroupCreateBody,
   { params }: { params: Promise<{ orgSlug: string }> }
 ) {
   try {
@@ -38,7 +34,6 @@ export async function POST(
     }
 
     const supabase = await createClient()
-    const body = await request.json()
     const { name, description, color } = body
 
     if (!name || name.trim() === '') {
@@ -70,7 +65,7 @@ export async function POST(
         organization_id: auth.organizationId,
         name: name.trim(),
         description: description?.trim() || null,
-        color: color || '#3b82f6',
+        color: color || DEFAULT_USER_GROUP_COLOR,
         created_by: auth.userId
       })
       .select()
@@ -99,3 +94,5 @@ export async function POST(
     }, { status: 500 })
   }
 }
+
+export const POST = withZodBody(userGroupCreateSchema, handlePost)

@@ -1,0 +1,54 @@
+name: Web Critical Quality
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/src/lib/api/**'
+      - 'apps/web/src/app/api/auth/**'
+      - 'apps/web/src/lib/security/**'
+      - 'supabase/migrations/**'
+      - 'apps/web/package.json'
+      - 'package-lock.json'
+      - '.github/workflows/web-critical-quality.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/web/src/lib/api/**'
+      - 'apps/web/src/app/api/auth/**'
+      - 'apps/web/src/lib/security/**'
+      - 'supabase/migrations/**'
+      - 'apps/web/package.json'
+      - 'package-lock.json'
+      - '.github/workflows/web-critical-quality.yml'
+
+jobs:
+  critical-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Critical coverage guard
+        run: npm run test:coverage:critical --workspace=apps/web
+
+      - name: Critical lint guard
+        working-directory: apps/web
+        env:
+          CI_STRICT_TECH_DEBT: 'true'
+        run: >
+          npx eslint
+          src/lib/api/errors.ts
+          src/lib/api/with-validation.ts
+          src/lib/api/with-auth.ts
+          src/app/api/auth/dashboard-destination/route.ts
+          src/app/api/auth/refresh/route.get.ts
+          src/app/api/auth/refresh/route.post.ts
+          src/lib/security/__tests__/rls-migrations.test.ts
+          --quiet

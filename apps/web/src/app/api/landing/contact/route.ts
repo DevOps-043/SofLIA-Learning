@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import nodemailer from 'nodemailer';
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (dbError) {
-      console.error('Error saving contact:', dbError);
+      techDebtLogger.error('Error saving contact:', dbError);
       // Continuar con el envío de correo aunque falle la base de datos
     }
 
@@ -190,7 +191,7 @@ export async function POST(request: NextRequest) {
 
 
     } catch (emailError) {
-      console.error('Error sending email:', emailError);
+      techDebtLogger.error('Error sending email:', emailError);
       // No retornar error al usuario, ya que el registro se guardó
     }
 
@@ -201,7 +202,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error processing contact form:', error);
+    techDebtLogger.error('Error processing contact form:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

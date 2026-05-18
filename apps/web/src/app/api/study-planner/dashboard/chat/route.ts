@@ -6,6 +6,7 @@ import {
   withRouteRateLimitHeaders,
 } from '@/app/api/_lib/ai-route-rate-limit'
 import { SessionService } from '@/features/auth/services/session.service'
+import { recordSecurityEvent } from '@/lib/security/security-events'
 import { logger } from '@/lib/utils/logger'
 import { SofLIALogger } from '@/lib/analytics/lia-logger/lia-logger-session'
 import { getPlanContext } from './context.service'
@@ -19,6 +20,7 @@ import {
 } from './chat-actions.service'
 import { parseDashboardChatRequest } from './chat-request.service'
 import { sendDashboardChatMessage } from './gemini-chat.service'
+import { evaluateStudyPlannerPromptGuardrails } from './security-guardrails.service'
 
 function withRateLimitHeaders(
   response: NextResponse,
@@ -74,6 +76,37 @@ export async function POST(
       isProactiveInit,
     } = parsedRequest.data!
     const traceId = randomUUID()
+    const promptGuardrails = evaluateStudyPlannerPromptGuardrails(message)
+
+    if (promptGuardrails.blocked) {
+      recordSecurityEvent('prompt-injection-blocked', {
+        pathname: request.nextUrl.pathname,
+        method: request.method,
+        userAgent: request.headers.get('user-agent') || undefined,
+        ip:
+          request.headers.get('cf-connecting-ip') ||
+          request.headers.get('x-forwarded-for') ||
+          undefined,
+        reasons: promptGuardrails.assessment.reasons,
+        metadata: {
+          score: promptGuardrails.assessment.score,
+          categories: promptGuardrails.assessment.categories,
+        },
+      })
+
+      return withRateLimitHeaders(
+        NextResponse.json({
+          success: true,
+          response: promptGuardrails.refusalMessage,
+          action: null,
+          actions: [],
+          needsConfirmation: false,
+          traceId,
+        }),
+        rateLimit,
+      )
+    }
+
     const liaLogger = new SofLIALogger(user.id)
     let conversationId: string | undefined
 

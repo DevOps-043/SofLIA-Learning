@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, useState } from 'react'
 import type { StatsData } from './types'
 
@@ -14,7 +15,7 @@ export function useCompanyStats(companyId: string) {
         const data = await response.json()
         if (data.success) setStats(data.stats)
       } catch (error) {
-        console.error('Error fetching stats:', error)
+        techDebtLogger.error('Error fetching stats:', error)
       } finally {
         setLoading(false)
       }

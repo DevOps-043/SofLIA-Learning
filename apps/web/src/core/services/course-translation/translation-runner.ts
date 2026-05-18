@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { AutoTranslationService } from '../autoTranslation.service';
 import { ContentTranslationService } from '../contentTranslation.service';
 import { LanguageDetectionService } from '../languageDetection.service';
@@ -19,14 +20,14 @@ export async function translateAndSaveEntity({
   requireOpenAiKey,
 }: TranslationEntityConfig): Promise<TranslationResult> {
   if (requireOpenAiKey && !process.env.OPENAI_API_KEY) {
-    console.error('[CourseTranslation] OPENAI_API_KEY no esta configurada.');
+    techDebtLogger.error('[CourseTranslation] OPENAI_API_KEY no esta configurada.');
     return createFailedTranslationResult('OPENAI_API_KEY no esta configurada en las variables de entorno');
   }
 
   const supabase = supabaseClient || await createClient();
 
   if (!supabase) {
-    console.error('[CourseTranslation] No se pudo crear u obtener cliente de Supabase');
+    techDebtLogger.error('[CourseTranslation] No se pudo crear u obtener cliente de Supabase');
     return createFailedTranslationResult('Error al crear cliente de Supabase');
   }
 
@@ -58,12 +59,12 @@ export async function translateAndSaveEntity({
         translatedLanguages.push(language);
       } else {
         errors[language] = `Error al guardar traduccion a ${language}`;
-        console.error(`[CourseTranslation] Error al guardar ${entityType} ${entityId} a ${language}`);
+        techDebtLogger.error(`[CourseTranslation] Error al guardar ${entityType} ${entityId} a ${language}`);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       errors[language] = errorMessage;
-      console.error(`[CourseTranslation] Error traduciendo ${entityType} ${entityId} a ${language}:`, error);
+      techDebtLogger.error(`[CourseTranslation] Error traduciendo ${entityType} ${entityId} a ${language}:`, error);
     }
   }
 

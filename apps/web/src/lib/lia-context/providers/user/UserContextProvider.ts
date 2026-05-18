@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * UserContextProvider
  * 
@@ -74,7 +75,7 @@ export class UserContextProvider extends BaseContextProvider {
         tokens: this.estimateTokens(userContext)
       };
     } catch (error) {
-      console.error('[UserContextProvider] Error obteniendo contexto:', error);
+      techDebtLogger.error('[UserContextProvider] Error obteniendo contexto:', error);
       return null;
     }
   }

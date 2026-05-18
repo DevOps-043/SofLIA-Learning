@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { StudyPlannerCourseOption } from '../types/planner-ui.types';
 import { resolveStudyPlannerCourseId, resolveStudyPlannerCourseIds } from './study-planner-course-id.shared';
 
@@ -140,7 +141,7 @@ async function fetchCourseMetrics(
         .filter(title => title.trim() !== ''),
     };
   } catch (error) {
-    console.error(`Error obteniendo informacion del curso ${courseId}:`, error);
+    techDebtLogger.error(`Error obteniendo informacion del curso ${courseId}:`, error);
     return {
       courseId,
       courseTitle: fallbackTitle,
@@ -226,7 +227,7 @@ export async function calculateStudyPlannerWeeklyGoals(
       coursesInfo,
     };
   } catch (error) {
-    console.error('Error calculando metas semanales:', error);
+    techDebtLogger.error('Error calculando metas semanales:', error);
     return null;
   }
 }

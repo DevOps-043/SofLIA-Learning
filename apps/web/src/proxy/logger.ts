@@ -1,9 +1,14 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 const isDevelopment = process.env.NODE_ENV === 'development'
 
 export const proxyLogger = {
-  log: (...args: unknown[]) => { if (isDevelopment) console.log(...args) },
-  error: (...args: unknown[]) => console.error(...args),
-  warn: (...args: unknown[]) => { if (isDevelopment) console.warn(...args) },
+  log: (message?: unknown, ...args: unknown[]) => {
+    if (isDevelopment) techDebtLogger.log(message, ...args)
+  },
+  error: (message: unknown, ...args: unknown[]) => techDebtLogger.error(message, ...args),
+  warn: (message: unknown, ...args: unknown[]) => {
+    if (isDevelopment) techDebtLogger.warn(message, ...args)
+  },
 }
 
 export type ProxyLogger = typeof proxyLogger

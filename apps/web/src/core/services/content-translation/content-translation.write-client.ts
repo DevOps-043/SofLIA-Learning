@@ -1,3 +1,5 @@
+import 'server-only'
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/types';
 import type { ContentTranslationClient } from './content-translation.types';
@@ -12,8 +14,8 @@ function getTranslationServiceEnv(): TranslationServiceEnv | null {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !serviceKey) {
-    console.error('[ContentTranslationService] Missing Supabase service environment');
-    console.error('[ContentTranslationService] Required environment state:', {
+    techDebtLogger.error('[ContentTranslationService] Missing Supabase service environment');
+    techDebtLogger.error('[ContentTranslationService] Required environment state:', {
       hasServiceKey: Boolean(serviceKey),
       hasSupabaseUrl: Boolean(supabaseUrl),
     });

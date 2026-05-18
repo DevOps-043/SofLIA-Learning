@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server'
 import { normalizeCourseInfo } from './pending-lessons.utils'
 import type {
@@ -116,7 +117,7 @@ export async function loadUserCourseSources(params: {
       .neq('status', 'completed')
 
     if (orgAssignmentsError) {
-      console.error('Error obteniendo org_assignments:', orgAssignmentsError)
+      techDebtLogger.error('Error obteniendo org_assignments:', orgAssignmentsError)
     } else {
       for (const assignment of (orgAssignments as CourseAssignmentRow[] | null) || []) {
         if (!isAssignmentStillActive(assignment.due_date, today)) {
@@ -153,7 +154,7 @@ export async function loadUserCourseSources(params: {
         .eq('status', 'active')
 
       if (hierarchyError) {
-        console.error('Error obteniendo hierarchy_assignments:', hierarchyError)
+        techDebtLogger.error('Error obteniendo hierarchy_assignments:', hierarchyError)
       } else {
         for (const assignment of (hierarchyAssignments as CourseAssignmentRow[] | null) || []) {
           if (!isAssignmentStillActive(assignment.due_date, today)) {
@@ -186,7 +187,7 @@ export async function loadUserCourseSources(params: {
     .eq('enrollment_status', 'active')
 
   if (enrollmentsError) {
-    console.error('Error obteniendo enrollments:', enrollmentsError)
+    techDebtLogger.error('Error obteniendo enrollments:', enrollmentsError)
   } else {
     for (const enrollment of (enrollments as EnrollmentRow[] | null) || []) {
       pushUniqueCourseSource({

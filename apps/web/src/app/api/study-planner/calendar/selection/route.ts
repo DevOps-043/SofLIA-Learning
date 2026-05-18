@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '../../../../../features/auth/services/session.service';
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service';
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('[Calendar Selection] Error GET:', error);
+    techDebtLogger.error('[Calendar Selection] Error GET:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('[Calendar Selection] Error POST:', error);
+    techDebtLogger.error('[Calendar Selection] Error POST:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

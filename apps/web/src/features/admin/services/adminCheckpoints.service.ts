@@ -32,7 +32,7 @@ export class AdminCheckpointsService {
     try {
       const { data, error } = await supabase
         .from('lesson_checkpoints')
-        .select('*')
+        .select(SELECT_COLUMNS.lesson_checkpoints)
         .eq('lesson_id', lessonId)
         .order('checkpoint_order_index', { ascending: true })
 
@@ -52,7 +52,7 @@ export class AdminCheckpointsService {
     try {
       const { data, error } = await supabase
         .from('lesson_checkpoints')
-        .select('*')
+        .select(SELECT_COLUMNS.lesson_checkpoints)
         .eq('checkpoint_id', checkpointId)
         .single()
 
@@ -73,7 +73,7 @@ export class AdminCheckpointsService {
       // Obtener el próximo order_index
       const { count } = await supabase
         .from('lesson_checkpoints')
-        .select('*', { count: 'exact', head: true })
+        .select(SELECT_COLUMNS.lesson_checkpoints, { count: 'exact', head: true })
         .eq('lesson_id', lessonId)
 
       const nextOrderIndex = (count || 0) + 1

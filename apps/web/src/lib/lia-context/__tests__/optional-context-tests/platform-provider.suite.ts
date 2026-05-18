@@ -1,11 +1,10 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { PlatformContextProvider } from '../../providers/platform/PlatformContextProvider'
 import { check } from './assertions'
 import { createResult } from './types'
 
 export async function testPlatformContextProvider() {
-  console.log('
-TEST: PLATFORM CONTEXT PROVIDER
-')
+  techDebtLogger.log('\nTEST: PLATFORM CONTEXT PROVIDER\n')
   const result = createResult()
   const provider = new PlatformContextProvider()
 

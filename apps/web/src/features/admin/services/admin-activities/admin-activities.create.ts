@@ -7,7 +7,7 @@ async function getNextActivityOrderIndex(lessonId: string) {
   const supabase = await createAdminActivitiesClient()
   const { count } = await supabase
     .from('lesson_activities')
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .eq('lesson_id', lessonId)
 
   return (count || 0) + 1

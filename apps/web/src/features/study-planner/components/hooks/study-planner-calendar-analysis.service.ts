@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { calculateStudyPlannerTotalLessonsNeeded } from '../../services/planner-course-workload.service';
 import { buildStudyPlannerAudioSummary, buildStudyPlannerCalendarRecommendationMessage, buildStudyPlannerLessonDistribution } from '../../services/planner-calendar-recommendation.service';
 import { resolveStudyPlannerPendingLessonsForRecommendations } from '../../services/planner-pending-lessons.service';
@@ -58,7 +59,7 @@ export function createAnalyzeCalendarAndSuggestHandler(
       });
 
     if (params.isProcessing) {
-      console.warn(
+      techDebtLogger.warn(
         '[analyzeCalendarAndSuggest] Se llamo mientras estaba procesando. Continuando para recuperar el flujo.',
       );
     }
@@ -227,7 +228,7 @@ export function createAnalyzeCalendarAndSuggestHandler(
         );
       }
     } catch (error) {
-      console.error('Error analizando calendario:', error);
+      techDebtLogger.error('Error analizando calendario:', error);
 
       const errorMessage = buildCalendarAnalysisErrorMessage(provider);
       params.setConversationHistory((previousHistory) => [

@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { CourseSkill } from '../../../../../courses/components/CourseSkillsSelector'
@@ -60,7 +61,7 @@ export function useCourseConfig(
         throw new Error(data?.error || 'Error al guardar skills')
       }
     } catch (err) {
-      console.error('Error saving skills:', err)
+      techDebtLogger.error('Error saving skills:', err)
       throw err
     } finally {
       setSavingSkills(false)

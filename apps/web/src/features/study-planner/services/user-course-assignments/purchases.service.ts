@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../../lib/supabase/server'
 import type { B2CCoursePurchase } from '../../types/user-context.types'
 import { COURSE_INFO_SELECT } from '../course-query.shared'
@@ -29,7 +30,7 @@ export async function getB2CCoursePurchases(
     .eq('access_status', 'active')
 
   if (error) {
-    console.error('Error obteniendo compras de cursos B2C:', error)
+    techDebtLogger.error('Error obteniendo compras de cursos B2C:', error)
     return []
   }
 

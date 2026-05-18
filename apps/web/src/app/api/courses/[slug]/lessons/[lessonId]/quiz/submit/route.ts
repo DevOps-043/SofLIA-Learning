@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
@@ -293,7 +294,7 @@ export async function POST(
           .single()
 
         if (error) {
-          console.error('Error actualizando submission:', error)
+          techDebtLogger.error('Error actualizando submission:', error)
           return NextResponse.json(
             { error: 'Error al actualizar respuestas del quiz' },
             { status: 500 },
@@ -325,7 +326,7 @@ export async function POST(
         .single()
 
       if (error) {
-        console.error('Error creando submission:', error)
+        techDebtLogger.error('Error creando submission:', error)
         return NextResponse.json(
           { error: 'Error al guardar respuestas del quiz' },
           { status: 500 },
@@ -381,7 +382,7 @@ export async function POST(
           .eq('progress_id', existingProgress.progress_id)
 
         if (progressUpdateError) {
-          console.error('Error actualizando progreso del quiz:', progressUpdateError)
+          techDebtLogger.error('Error actualizando progreso del quiz:', progressUpdateError)
           return NextResponse.json(
             { error: 'Error al actualizar el progreso del quiz' },
             { status: 500 },
@@ -403,7 +404,7 @@ export async function POST(
           })
 
         if (progressInsertError) {
-          console.error('Error creando progreso del quiz:', progressInsertError)
+          techDebtLogger.error('Error creando progreso del quiz:', progressInsertError)
           return NextResponse.json(
             { error: 'Error al guardar el progreso del quiz' },
             { status: 500 },
@@ -445,7 +446,7 @@ export async function POST(
       },
     })
   } catch (error) {
-    console.error(
+    techDebtLogger.error(
       'Error en POST /api/courses/[slug]/lessons/[lessonId]/quiz/submit:',
       error,
     )

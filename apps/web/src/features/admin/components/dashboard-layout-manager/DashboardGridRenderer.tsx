@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type React from 'react';
 import { Settings } from 'lucide-react';
 import { DashboardGridStyles } from './DashboardGridStyles';
@@ -67,7 +68,7 @@ function renderGridChild(
 ) {
   const child = childrenMap.get(widget.id);
   if (!child) {
-    console.warn(`Widget ${widget.id} no tiene child correspondiente.`);
+    techDebtLogger.warn(`Widget ${widget.id} no tiene child correspondiente.`);
     return null;
   }
 

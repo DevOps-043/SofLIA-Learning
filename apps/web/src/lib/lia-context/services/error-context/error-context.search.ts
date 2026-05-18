@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createErrorContextClient } from './error-context.client'
 import { SIMILAR_BUG_SELECT } from './error-context.select'
 import type { SimilarBug } from './error-context.types'
@@ -26,7 +27,7 @@ export async function searchBugsByKeywords(
 
     return data || []
   } catch (error) {
-    console.error('[ErrorContextService] Exception searching bugs:', error)
+    techDebtLogger.error('[ErrorContextService] Exception searching bugs:', error)
     return []
   }
 }

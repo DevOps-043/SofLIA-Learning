@@ -1,5 +1,5 @@
 export const PASSWORD_REQUIREMENTS = {
-  minLength: 8,
+  minLength: 12,
   maxLength: 128,
   requireLowercase: true,
   requireUppercase: true,

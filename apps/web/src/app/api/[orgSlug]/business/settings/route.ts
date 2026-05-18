@@ -37,7 +37,7 @@ export async function GET(
     // Obtener datos de la organización
     const { data: organization, error } = await supabase
       .from('organizations')
-      .select('*')
+      .select(SELECT_COLUMNS.organizations)
       .eq('slug', orgSlug)
       .single()
 
@@ -59,7 +59,7 @@ export async function GET(
     // Obtener datos de suscripción
     const { data: subscription } = await supabase
       .from('organization_subscriptions')
-      .select('*')
+      .select(SELECT_COLUMNS.organization_subscriptions)
       .eq('organization_id', organization.id)
       .eq('status', 'active')
       .order('created_at', { ascending: false })

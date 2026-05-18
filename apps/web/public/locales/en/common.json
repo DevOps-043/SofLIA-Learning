@@ -104,7 +104,7 @@
       "countryPlaceholder": "Country",
       "phonePlaceholder": "1234567890",
       "passwordLabel": "Password",
-      "passwordPlaceholder": "Minimum 8 characters",
+      "passwordPlaceholder": "Minimum 12 characters",
       "confirmPasswordLabel": "Confirm Password",
       "confirmPasswordPlaceholder": "Repeat your password",
       "acceptTerms": "I accept the <0>terms and conditions</0> and the <1>privacy policy</1>",
@@ -127,7 +127,7 @@
         "phoneMax": "Phone number cannot exceed 15 digits",
         "onlyNumbers": "Only numbers are allowed",
         "invalidEmail": "Enter a valid email",
-        "passwordMin": "Password must be at least 8 characters",
+        "passwordMin": "Password must be at least 12 characters",
         "passwordUppercase": "Must contain at least one uppercase letter",
         "passwordLowercase": "Must contain at least one lowercase letter",
         "passwordNumber": "Must contain at least one number",
@@ -156,7 +156,7 @@
       "title": "New Password",
       "subtitle": "Create a secure password to protect your account.",
       "newPasswordLabel": "New password",
-      "newPasswordPlaceholder": "Minimum 8 characters",
+      "newPasswordPlaceholder": "Minimum 12 characters",
       "confirmPasswordLabel": "Confirm password",
       "confirmPasswordPlaceholder": "Repeat your password",
       "updating": "Updating...",
@@ -181,10 +181,11 @@
         "number": "A number"
       },
       "validation": {
-        "passwordMin": "Password must be at least 8 characters",
+        "passwordMin": "Password must be at least 12 characters",
         "passwordUppercase": "Must contain at least one uppercase letter",
         "passwordLowercase": "Must contain at least one lowercase letter",
         "passwordNumber": "Must contain at least one number",
+        "passwordSpecial": "Must contain at least one special character",
         "passwordsDoNotMatch": "Passwords do not match"
       }
     },

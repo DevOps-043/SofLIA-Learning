@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import * as React from 'react';
 import Link from 'next/link';
 
@@ -13,7 +14,7 @@ export default function Error({
   reset: () => void;
 }) {
   React.useEffect(() => {
-    console.error('Application error:', error);
+    techDebtLogger.error('Application error:', error);
   }, [error]);
 
   return (

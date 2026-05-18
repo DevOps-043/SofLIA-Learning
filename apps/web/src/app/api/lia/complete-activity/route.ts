@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '../../../../lib/supabase/admin';
 import { SessionService } from '../../../../features/auth/services/session.service';
@@ -61,7 +62,7 @@ async function hasUserMessageInConversation(input: {
     .maybeSingle();
 
   if (conversationError) {
-    console.error('Error validating LIA conversation ownership:', conversationError);
+    techDebtLogger.error('Error validating LIA conversation ownership:', conversationError);
     return false;
   }
 
@@ -76,7 +77,7 @@ async function hasUserMessageInConversation(input: {
     .eq('role', 'user');
 
   if (error) {
-    console.error('Error validating LIA user message:', error);
+    techDebtLogger.error('Error validating LIA user message:', error);
     return false;
   }
 
@@ -156,7 +157,7 @@ export async function POST(request: NextRequest) {
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('Error completing activity:', error);
+        techDebtLogger.error('Error completing activity:', error);
         return NextResponse.json(
           { error: 'Error al completar actividad' },
           { status: 500 }
@@ -203,7 +204,7 @@ export async function POST(request: NextRequest) {
         .order('started_at', { ascending: true });
 
     if (completionLookupError) {
-      console.error('Error counting activity attempts:', completionLookupError);
+      techDebtLogger.error('Error counting activity attempts:', completionLookupError);
       return NextResponse.json(
         { error: 'Error al validar intentos de actividad' },
         { status: 500 }
@@ -252,7 +253,7 @@ export async function POST(request: NextRequest) {
       .single<Pick<ActivityCompletionRecord, 'completion_id'>>();
 
     if (error) {
-      console.error('Error creating completed activity:', error);
+      techDebtLogger.error('Error creating completed activity:', error);
 
       if (error.message?.includes('limite de 3 intentos')) {
         return NextResponse.json(
@@ -273,7 +274,7 @@ export async function POST(request: NextRequest) {
       completed: true,
     });
   } catch (error) {
-    console.error('Error completing activity:', error);
+    techDebtLogger.error('Error completing activity:', error);
     return NextResponse.json(
       { error: 'Error al completar actividad' },
       { status: 500 }

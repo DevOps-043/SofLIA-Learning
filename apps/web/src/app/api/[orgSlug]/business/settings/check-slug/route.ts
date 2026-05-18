@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
@@ -42,7 +43,7 @@ export async function GET(
       .maybeSingle()
 
     if (error) {
-      console.error('Error checking slug:', error)
+      techDebtLogger.error('Error checking slug:', error)
       return NextResponse.json({ success: false, error: 'Error al verificar' }, { status: 500 })
     }
 
@@ -53,7 +54,7 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('Error in GET /api/[orgSlug]/business/settings/check-slug:', error)
+    techDebtLogger.error('Error in GET /api/[orgSlug]/business/settings/check-slug:', error)
     return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 })
   }
 }

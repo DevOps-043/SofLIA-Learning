@@ -69,7 +69,7 @@ export async function GET(
       (groups || []).map(async (group: UserGroupSummary) => {
         const { count } = await supabase
           .from('user_group_members')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('group_id', group.id)
 
         return {

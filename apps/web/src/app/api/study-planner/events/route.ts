@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API Endpoint: Manage Calendar Events
  *
@@ -56,19 +57,19 @@ export async function GET(request: NextRequest) {
 
     const { data: events, error } = await supabase
       .from('user_calendar_events')
-      .select('*')
+      .select(SELECT_COLUMNS.user_calendar_events)
       .eq('user_id', user.id)
       .gte('start_time', startDateParam)
       .lte('end_time', endDateParam)
       .order('start_time', { ascending: true });
 
     if (error) {
-      console.error('Error obteniendo eventos:', error);
+      techDebtLogger.error('Error obteniendo eventos:', error);
 
       if (error.code === 'PGRST205' ||
           error.message?.includes('Could not find the table') ||
           error.message?.includes('schema cache')) {
-        console.warn('⚠️ Tabla user_calendar_events no disponible en PostgREST. Retornando array vacío.');
+        techDebtLogger.warn('⚠️ Tabla user_calendar_events no disponible en PostgREST. Retornando array vacío.');
         return NextResponse.json({
           events: [],
           warning: 'La tabla user_calendar_events aún no está disponible en PostgREST. Si acabas de ejecutar la migración, espera 1-2 minutos y recarga la página.'
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
 
       const { data: updatedEvents } = await supabase
         .from('user_calendar_events')
-        .select('*')
+        .select(SELECT_COLUMNS.user_calendar_events)
         .eq('user_id', user.id)
         .gte('start_time', startDateParam)
         .lte('end_time', endDateParam)
@@ -100,7 +101,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ events: events || [] });
   } catch (error: unknown) {
-    console.error('Error en GET /api/study-planner/events:', error);
+    techDebtLogger.error('Error en GET /api/study-planner/events:', error);
     return NextResponse.json(
       { error: getErrorMessage(error) },
       { status: 500 }
@@ -165,7 +166,7 @@ export async function POST(request: NextRequest) {
         googleEventId = googleEvent.id;
         provider = 'google';
       } catch (error) {
-        console.error('Error creando evento en Google Calendar:', error);
+        techDebtLogger.error('Error creando evento en Google Calendar:', error);
       }
     }
 
@@ -188,7 +189,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creando evento:', error);
+      techDebtLogger.error('Error creando evento:', error);
 
       if (error.code === 'PGRST205' ||
           error.message?.includes('Could not find the table') ||
@@ -210,7 +211,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, event });
   } catch (error: unknown) {
-    console.error('Error en POST /api/study-planner/events:', error);
+    techDebtLogger.error('Error en POST /api/study-planner/events:', error);
     return NextResponse.json(
       { error: getErrorMessage(error) },
       { status: 500 }

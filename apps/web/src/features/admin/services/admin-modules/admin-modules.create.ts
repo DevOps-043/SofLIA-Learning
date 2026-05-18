@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createAdminModulesClient } from './admin-modules.client'
 import type { AdminModule, CreateModuleData } from './admin-modules.types'
 
@@ -34,7 +35,7 @@ async function translateCreatedModule(module: AdminModule, userId?: string) {
       userId,
     )
   } catch (translationError) {
-    console.error('Error en traducción automática del módulo:', translationError)
+    techDebtLogger.error('Error en traducción automática del módulo:', translationError)
   }
 }
 

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { StudyPlannerSavedSession } from './useStudyPlannerSessionStorage.types';
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
@@ -19,7 +20,7 @@ export function readPlannerSession(userId: string | null) {
     const savedData = localStorage.getItem(buildStorageKey(userId));
     return savedData ? (JSON.parse(savedData) as StudyPlannerSavedSession) : null;
   } catch (error) {
-    console.error('Error leyendo sesion guardada:', error);
+    techDebtLogger.error('Error leyendo sesion guardada:', error);
     return null;
   }
 }

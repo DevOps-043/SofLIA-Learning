@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createChildrenMap, mergeLayoutIntoWidgets, widgetsToLayout } from './layout-mappers';
@@ -45,7 +46,7 @@ export function useDashboardLayoutManager({
       const data = await response.json();
       if (data.success) setIsEditMode(false);
     } catch (error) {
-      console.error('Error saving layout:', error);
+      techDebtLogger.error('Error saving layout:', error);
     } finally {
       setIsSaving(false);
     }
@@ -57,7 +58,7 @@ export function useDashboardLayoutManager({
       await fetch('/api/admin/dashboard/layout', { method: 'DELETE' });
       window.location.reload();
     } catch (error) {
-      console.error('Error resetting layout:', error);
+      techDebtLogger.error('Error resetting layout:', error);
     }
   }, []);
 

@@ -16,6 +16,8 @@
  * streams (e.g. it's a media playlist, not a master).
  */
 
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
+
 export interface HlsRendition {
   bandwidth: number
   height: number
@@ -45,7 +47,10 @@ export async function fetchHlsRenditions(
 ): Promise<HlsRendition[] | null> {
   let response: Response
   try {
-    response = await fetch(masterUrl, { signal, credentials: 'omit' })
+    response = await fetchWithCircuitBreaker('hls-master-playlist', masterUrl, {
+      signal,
+      credentials: 'omit',
+    })
   } catch {
     return null
   }

@@ -1,5 +1,6 @@
 "use client";
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useState } from "react";
 
 import { CourseCertificateService } from "../services/course-certificate.service";
@@ -80,7 +81,7 @@ export function useCourseCompletionFlow({
       hasExistingRating = true;
       setHasUserRated(true);
     } catch (error) {
-      console.error("Error checking rating:", error);
+      techDebtLogger.error("Error checking rating:", error);
       setIsRatingModalOpen(true);
       return;
     }
@@ -89,7 +90,7 @@ export function useCourseCompletionFlow({
       const certificateRoute = await resolveCertificateRoute();
       onCertificateReady(certificateRoute);
     } catch (error) {
-      console.error("Error generating certificate:", error);
+      techDebtLogger.error("Error generating certificate:", error);
 
       if (!hasExistingRating) {
         setIsRatingModalOpen(true);

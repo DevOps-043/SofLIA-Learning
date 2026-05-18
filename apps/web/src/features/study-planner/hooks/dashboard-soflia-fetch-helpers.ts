@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { Dispatch, SetStateAction } from 'react';
 import type {
   ActiveStudyPlan,
@@ -75,7 +76,7 @@ export async function loadSofLIAProactiveAnalysis({
 
     const chatData = await chatResponse.json() as DashboardChatSuccessPayload;
     if (!chatData.success || !chatData.response) {
-      console.warn('[SofLIA Dashboard] Respuesta sin exito:', chatData.error || 'Sin respuesta');
+      techDebtLogger.warn('[SofLIA Dashboard] Respuesta sin exito:', chatData.error || 'Sin respuesta');
       throw new Error(chatData.error || 'Sin respuesta del analisis');
     }
 
@@ -93,7 +94,7 @@ export async function loadSofLIAProactiveAnalysis({
       refreshSofLIAPlanAfterAction(planQuery, setState);
     }
   } catch (chatError) {
-    console.error('[SofLIA Dashboard] Error obteniendo analisis proactivo:', chatError);
+    techDebtLogger.error('[SofLIA Dashboard] Error obteniendo analisis proactivo:', chatError);
     setState(prev => ({
       ...prev,
       messages: [createSofLIAWelcomeMessage(plan)],

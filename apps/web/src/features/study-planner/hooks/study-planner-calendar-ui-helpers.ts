@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { StudyApproach, StudyPlannerAssignedCourse, StudyPlannerCalendarProvider, StudyPlannerUserContext } from '../types/planner-ui.types';
 import { generateStudyPlannerPrompt } from '../prompts/study-planner.prompt';
 
@@ -37,7 +38,7 @@ export async function resolveConnectedCalendarFromServer(): Promise<CalendarProv
     const data = await response.json();
     if (data.isConnected && data.provider) return data.provider as CalendarProvider;
   } catch (error) {
-    console.error('Error verificando estado del calendario:', error);
+    techDebtLogger.error('Error verificando estado del calendario:', error);
   }
   return null;
 }

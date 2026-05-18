@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { isAbortError, isNetworkError, warnInDevelopment } from "./error-utils";
 import { getUnknownErrorMessage, parseQuizStatusApiResponse } from "./parsers";
 import type { LearnTranslate, QuizStatusResult } from "./types";
@@ -70,7 +71,7 @@ export async function checkLessonQuizStatus({
     }
 
     if (process.env.NODE_ENV === "development") {
-      console.error("Error verificando estado de quizzes:", error);
+      techDebtLogger.error("Error verificando estado de quizzes:", error);
     }
     return { canComplete: true };
   }

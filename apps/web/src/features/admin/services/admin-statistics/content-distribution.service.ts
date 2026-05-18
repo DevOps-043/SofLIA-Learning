@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server'
 import { ADMIN_STATS_COLORS } from './constants'
 import type { ContentDistribution } from './types'
@@ -33,7 +34,7 @@ export async function getContentDistribution(): Promise<ContentDistribution[]> {
       buildDistributionItem('Apps de IA', counts.aiApps, total, ADMIN_STATS_COLORS.aiApps),
     ].filter((item) => item.count > 0)
   } catch (error) {
-    console.error('Error getting content distribution:', error)
+    techDebtLogger.error('Error getting content distribution:', error)
     return []
   }
 }

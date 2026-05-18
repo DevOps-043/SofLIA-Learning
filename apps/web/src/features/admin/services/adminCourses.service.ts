@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../lib/supabase/server'
 
 interface CourseInstructor {
@@ -254,7 +255,7 @@ export class AdminCoursesService {
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Error fetching pending courses:', error)
+        techDebtLogger.error('Error fetching pending courses:', error)
         return []
       }
 
@@ -273,7 +274,7 @@ export class AdminCoursesService {
         }
       })
     } catch (error) {
-      console.error('Error in AdminCoursesService.getPendingCourses:', error)
+      techDebtLogger.error('Error in AdminCoursesService.getPendingCourses:', error)
       return []
     }
   }
@@ -294,7 +295,7 @@ export class AdminCoursesService {
       .eq('id', courseId)
 
     if (courseError) {
-      console.error('Error approving course:', courseError)
+      techDebtLogger.error('Error approving course:', courseError)
       return false
     }
 
@@ -361,7 +362,7 @@ export class AdminCoursesService {
       .single()
 
     if (error) {
-      console.error('Error fetching course details:', error)
+      techDebtLogger.error('Error fetching course details:', error)
       return null
     }
 

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server'
 import { ADMIN_STATS_MONTH_NAMES } from './constants'
 import type { MonthlyGrowthData } from './types'
@@ -35,7 +36,7 @@ export async function getMonthlyGrowth(
       a.year !== b.year ? a.year - b.year : a.monthNumber - b.monthNumber,
     )
   } catch (error) {
-    console.error('Error getting monthly growth:', error)
+    techDebtLogger.error('Error getting monthly growth:', error)
     return []
   }
 }

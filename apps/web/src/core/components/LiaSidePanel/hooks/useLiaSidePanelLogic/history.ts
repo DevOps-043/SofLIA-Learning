@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect, useState } from 'react';
 import type React from 'react';
 import type { LiaConversationItem, LiaConversationToDelete } from '../../types';
@@ -25,7 +26,7 @@ export function useLiaSidePanelHistory(loadConversation: (conversationId: string
       setTotalConversations(pageData.totalConversations);
       setHasMore(pageData.hasMore);
     } catch (error) {
-      console.error('Error fetching history:', error);
+      techDebtLogger.error('Error fetching history:', error);
     } finally {
       setIsHistoryLoading(false);
     }
@@ -57,7 +58,7 @@ export function useLiaSidePanelHistory(loadConversation: (conversationId: string
       ));
       setEditingConversationId(null);
     } catch (error) {
-      console.error('Error saving title', error);
+      techDebtLogger.error('Error saving title', error);
     }
   };
   const handleDeleteClick = (conversation: LiaConversationItem, event: React.MouseEvent) => {
@@ -78,7 +79,7 @@ export function useLiaSidePanelHistory(loadConversation: (conversationId: string
       else setHistoryList((list) => list.filter((conversation) => conversation.conversation_id !== conversationToDelete.id));
       if (currentConversationId === conversationToDelete.id) clearHistory();
     } catch (error) {
-      console.error('Error eliminando conversacion:', error);
+      techDebtLogger.error('Error eliminando conversacion:', error);
       setDeleteError('Error al eliminar conversacion');
     } finally {
       setDeletingConversationId(null); setConversationToDelete(null);

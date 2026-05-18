@@ -43,6 +43,7 @@ export function useOrganizationRegisterForm({
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [captchaToken, setCaptchaToken] = useState('')
   const registerSchema = React.useMemo(() => getRegisterSchema(t), [t])
 
   const form = useForm<RegisterFormData>({
@@ -92,6 +93,7 @@ export function useOrganizationRegisterForm({
             organizationSlug,
             invitationToken,
             bulkInviteToken,
+            captchaToken,
           }),
         )
 
@@ -121,6 +123,7 @@ export function useOrganizationRegisterForm({
     palette,
     selectedCountryCode,
     setError,
+    setCaptchaToken,
     setShowLegalModal,
     showLegalModal,
     success,

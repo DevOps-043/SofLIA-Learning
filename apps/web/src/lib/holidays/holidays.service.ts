@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { HOLIDAYS_BY_COUNTRY } from './holidays.config';
 import {
   cleanOldHolidayCache,
@@ -29,7 +30,7 @@ export class HolidayService {
     const holidaySet = countryHolidays ? buildHolidayDateSet(countryHolidays, year) : new Set<string>();
 
     if (!countryHolidays) {
-      console.warn(`No hay festivos configurados para el pais: ${normalizedCountry}`);
+      techDebtLogger.warn(`No hay festivos configurados para el pais: ${normalizedCountry}`);
     }
 
     setCachedHolidayDates(cacheKey, holidaySet);

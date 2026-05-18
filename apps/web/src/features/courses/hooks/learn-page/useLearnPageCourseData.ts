@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect } from 'react'
 import { dedupedFetch } from '../../../../lib/supabase/request-deduplication'
 import type { CourseLessonContext } from '../../../../core/types/lia.types'
@@ -199,7 +200,7 @@ export function useLearnPageCourseData({
               })
               .catch((error) => {
                 if (process.env.NODE_ENV === 'development') {
-                  console.warn(
+                  techDebtLogger.warn(
                     'No se pudieron cargar metadatos del taller para LIA:',
                     error,
                   )
@@ -344,7 +345,7 @@ export function useLearnPageCourseData({
         process.env.NODE_ENV === 'development' &&
         transcriptResult.reason?.name !== 'AbortError'
       ) {
-        console.warn(
+        techDebtLogger.warn(
           'Error loading transcript for lesson content:',
           transcriptResult.reason,
         )
@@ -356,7 +357,7 @@ export function useLearnPageCourseData({
         process.env.NODE_ENV === 'development' &&
         summaryResult.reason?.name !== 'AbortError'
       ) {
-        console.warn(
+        techDebtLogger.warn(
           'Error loading summary for lesson content:',
           summaryResult.reason,
         )
@@ -373,7 +374,7 @@ export function useLearnPageCourseData({
         }
 
         if (process.env.NODE_ENV === 'development') {
-          console.warn('Error loading lesson support content:', error)
+          techDebtLogger.warn('Error loading lesson support content:', error)
         }
 
         setIsLiaTranscriptLoading(false)

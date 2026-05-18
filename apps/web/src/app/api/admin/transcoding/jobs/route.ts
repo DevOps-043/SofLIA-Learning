@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { parseOffsetPaginationParams } from '@/lib/api/pagination'
 
 export const runtime = 'nodejs'
 
@@ -34,14 +35,14 @@ export async function GET(request: NextRequest) {
 
   const url = new URL(request.url)
   const statusParam = url.searchParams.get('status')
-  const limitParam = url.searchParams.get('limit')
-  const offsetParam = url.searchParams.get('offset')
 
   const status: JobStatus | null = statusParam && VALID_STATUSES.includes(statusParam as JobStatus)
     ? (statusParam as JobStatus)
     : null
-  const limit = Math.min(Math.max(parseInt(limitParam ?? '100', 10) || 100, 1), 200)
-  const offset = Math.max(parseInt(offsetParam ?? '0', 10) || 0, 0)
+  const { limit, offset, rangeFrom, rangeTo } = parseOffsetPaginationParams(
+    url.searchParams,
+    { defaultLimit: 100 },
+  )
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
       { count: 'exact' },
     )
     .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1)
+    .range(rangeFrom, rangeTo)
 
   if (status) {
     query = query.eq('status', status)

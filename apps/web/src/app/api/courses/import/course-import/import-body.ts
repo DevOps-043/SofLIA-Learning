@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 
 export async function readCourseImportBody(
@@ -9,7 +10,7 @@ export async function readCourseImportBody(
   try {
     return { body: await request.json(), success: true }
   } catch (error) {
-    console.error('[IMPORT API] JSON Parse Error:', error)
+    techDebtLogger.error('[IMPORT API] JSON Parse Error:', error)
     return {
       response: NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 }),
       success: false,

@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next';
 import type { BusinessPanelThemeTokens } from '../../hooks/useBusinessPanelTheme';
 
 export interface BusinessInviteUserModalProps {
@@ -23,3 +24,4 @@ export interface InviteRoleLabel {
 }
 
 export type BusinessInviteTheme = BusinessPanelThemeTokens;
+export type BusinessInviteTranslator = TFunction<'business'>;

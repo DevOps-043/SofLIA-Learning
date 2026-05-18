@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
@@ -54,7 +55,7 @@ export async function GET() {
       .eq('organization_id', auth.organizationId)
 
     if (error) {
-      console.error('Error fetching organization users for template:', error)
+      techDebtLogger.error('Error fetching organization users for template:', error)
       return NextResponse.json(
         {
           success: false,
@@ -130,7 +131,7 @@ export async function GET() {
       },
     })
   } catch (error) {
-    console.error('Error in users template route:', error)
+    techDebtLogger.error('Error in users template route:', error)
     return NextResponse.json(
       {
         success: false,

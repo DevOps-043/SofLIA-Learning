@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
@@ -36,7 +37,7 @@ export async function handleDeadlineSuggestionsRequest({
     )
 
     if (error || !course) {
-      console.error('Error fetching course data:', error)
+      techDebtLogger.error('Error fetching course data:', error)
       return NextResponse.json(
         { error: 'Curso no encontrado', details: error },
         { status: 404 },
@@ -65,7 +66,7 @@ export async function handleDeadlineSuggestionsRequest({
       source: 'lia_smart_calc_v2',
     })
   } catch (error) {
-    console.error('Error calculating suggestions:', error)
+    techDebtLogger.error('Error calculating suggestions:', error)
     return NextResponse.json(
       { error: 'Error interno de calculo' },
       { status: 500 },

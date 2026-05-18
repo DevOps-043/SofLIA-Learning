@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import {
   ReactNode,
   createContext,
@@ -114,7 +115,7 @@ const organizationsFetcher = async (
     }));
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('OrganizationProvider fetcher error:', error);
+      techDebtLogger.warn('OrganizationProvider fetcher error:', error);
     }
     return null;
   }

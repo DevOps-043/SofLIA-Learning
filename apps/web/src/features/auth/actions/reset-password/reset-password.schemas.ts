@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { passwordSchema } from '@/lib/validation/password-security';
 
 export const requestResetSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -6,12 +7,7 @@ export const requestResetSchema = z.object({
 
 export const resetPasswordSchema = z.object({
   token: z.string().min(1, 'Token requerido'),
-  newPassword: z
-    .string()
-    .min(8, 'La contraseña debe tener al menos 8 caracteres')
-    .regex(/[A-Z]/, 'Debe contener al menos una mayúscula')
-    .regex(/[a-z]/, 'Debe contener al menos una minúscula')
-    .regex(/[0-9]/, 'Debe contener al menos un número'),
+  newPassword: passwordSchema,
 });
 
 export function parsePasswordResetRequest(formData: FormData | { email: string }): string {

@@ -40,7 +40,7 @@ export async function GET() {
     // Obtener suscripciones activas del usuario (business user) - ordenadas por fecha de creación descendente
     const { data: userSubscriptions, error: subsError } = await supabase
       .from('subscriptions')
-      .select('*')
+      .select(SELECT_COLUMNS.subscriptions)
       .eq('user_id', auth.userId)
       .eq('subscription_status', 'active')
       .order('created_at', { ascending: false })

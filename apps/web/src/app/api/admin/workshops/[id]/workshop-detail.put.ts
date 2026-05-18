@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { AdminWorkshopsService } from '@/features/admin/services/adminWorkshops.service'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
@@ -36,7 +37,7 @@ export async function PUT(
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.error('Validation error:', error.errors)
+      techDebtLogger.error('Validation error:', error.errors)
       return NextResponse.json({
         success: false,
         message: 'Datos invÃ¡lidos',
@@ -47,7 +48,7 @@ export async function PUT(
       }, { status: 400 })
     }
 
-    console.error('Error in PUT /api/admin/workshops/[id]:', error)
+    techDebtLogger.error('Error in PUT /api/admin/workshops/[id]:', error)
     return NextResponse.json(
       {
         success: false,

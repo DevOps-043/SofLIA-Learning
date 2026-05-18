@@ -7,7 +7,7 @@ import {
 
 export async function getDialogueTurns(client: unknown, sessionId: string) {
   const { data, error } = await dialogueTurnsTable(client)
-    .select('*')
+    .select(SELECT_COLUMNS.soflia_dialogue_turns)
     .eq('session_id', sessionId)
     .order('turn_number', { ascending: true })
 
@@ -29,7 +29,7 @@ export async function findTurnByClientTurnId(input: {
   sessionId: string
 }) {
   const { data, error } = await dialogueTurnsTable(input.client)
-    .select('*')
+    .select(SELECT_COLUMNS.soflia_dialogue_turns)
     .eq('session_id', input.sessionId)
     .eq('client_turn_id', input.clientTurnId)
     .maybeSingle()
@@ -69,7 +69,7 @@ export async function insertDialogueTurn(input: {
       state_before: input.stateBefore ?? input.session.state,
       turn_number: nextTurnNumber,
     })
-    .select('*')
+    .select(SELECT_COLUMNS.soflia_dialogue_turns)
     .single()
 
   if (error || !data) {

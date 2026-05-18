@@ -6,7 +6,7 @@ import { dialogueEvaluationsTable } from '../dialogue-tables'
 
 export async function getDialogueEvaluations(client: unknown, sessionId: string) {
   const { data, error } = await dialogueEvaluationsTable(client)
-    .select('*')
+    .select(SELECT_COLUMNS.soflia_dialogue_evaluations)
     .eq('session_id', sessionId)
     .order('created_at', { ascending: false })
 
@@ -46,7 +46,7 @@ export async function insertDialogueEvaluation(input: {
       session_id: input.sessionId,
       turn_id: input.turnId,
     })
-    .select('*')
+    .select(SELECT_COLUMNS.soflia_dialogue_evaluations)
     .single()
 
   if (error || !data) {

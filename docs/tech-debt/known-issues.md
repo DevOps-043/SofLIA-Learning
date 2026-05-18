@@ -1,0 +1,7 @@
+# Known Tech Debt Issues
+
+| ID | Archivo:linea | Tipo (TS/ESLint) | Mensaje | Razon de excepcion | Fecha de fix prevista |
+|---|---|---|---|---|---|
+| TD-001 | `docs/tech-debt/typecheck-baseline.txt` | TS | `npm run type-check --workspace=apps/web` still times out without diagnostics and can leave child `tsc` processes alive. P3 slices: `app/api/admin`, `app/api/business`, `app/api/[orgSlug]`, `app/api/courses`, `app/api/study-planner`, `features/admin`, and `features/courses` still exceeded 75 s; `features/business-panel` and `features/study-planner` emitted concrete TS errors after ~45 s. The first `features/business-panel` tranche removed UserDropdown, translator, and missing `SELECT_COLUMNS` blockers; remaining blockers are Joyride typing, hierarchy contract drift, and business-users/stats contract drift. | Tarea 1.3 requiere baseline completo antes de activar `ignoreBuildErrors: false`; `core`, `lib`, `shared` ya completan, pero `app` y `features` siguen siendo hotspots. | TBD |
+| TD-002 | `npm run lint --workspace=apps/web` | ESLint | 0 errors, 4232 warnings in the latest run. | `ignoreDuringBuilds: false` is unblocked from an ESLint exit-code perspective, but warnings still represent phase 1/2 debt (`any`, `console.*`, hex colors). | TBD |
+| TD-003 | `apps/web/src/app/api/**/*.ts` | API validation | Rutas mutadoras sin `withZodBody`; quedan 207 `await request.json()` en `app/api`. | Tarea 1.4 debe migrarse incrementalmente por dominios; invite-link PATCH/POST y user-groups POST/PUT business/orgSlug ya usan schemas compartidos. | TBD |

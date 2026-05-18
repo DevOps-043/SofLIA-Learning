@@ -1,0 +1,6 @@
+Contact: mailto:security@soflia.com
+Policy: https://soflia.com/security
+Preferred-Languages: es, en
+Canonical: https://soflia.com/.well-known/security.txt
+Hiring: https://soflia.com/careers
+Expires: 2027-05-18T00:00:00Z

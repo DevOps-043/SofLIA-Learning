@@ -11,11 +11,11 @@ export async function getWorkshopStats(): Promise<WorkshopStats> {
   ] = await Promise.all([
     supabase
       .from('courses')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .or('approval_status.eq.approved,approval_status.is.null'),
     supabase
       .from('courses')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('is_active', true)
       .or('approval_status.eq.approved,approval_status.is.null'),
     supabase

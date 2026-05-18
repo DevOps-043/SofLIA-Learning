@@ -1,4 +1,5 @@
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react'
 import { Search, X, UserPlus, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -53,7 +54,7 @@ export function MemberAssignmentModal({
         const results = await HierarchyService.getAvailableUsersForNode(nodeId, searchQuery, role === 'leader', orgSlug)
         setUsers(results)
       } catch (err) {
-        console.error(err)
+        techDebtLogger.error(err)
         setError(t('hierarchy.memberModal.errorSearch'))
       } finally {
         setSearching(false)
@@ -82,7 +83,7 @@ export function MemberAssignmentModal({
         setError(result.error || t('hierarchy.memberModal.errorAssign'))
       }
     } catch (err) {
-      console.error(err)
+      techDebtLogger.error(err)
       setError(t('hierarchy.errorConnection'))
     } finally {
       setLoading(false)

@@ -19,7 +19,7 @@ export async function GET(
 
     const { data, error } = await supabase
       .from('scorm_packages')
-      .select('*')
+      .select(SELECT_COLUMNS.scorm_packages)
       .eq('id', id)
       .single();
 

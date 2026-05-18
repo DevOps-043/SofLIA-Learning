@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { useReducedMotion } from 'framer-motion';
@@ -43,7 +44,7 @@ export function useOnboardingVideoPlayer({ onComplete, videos }: Pick<Onboarding
       videoRef.current?.load();
     }
     if (playbackPolicy.allowAutoplay && videoRef.current && !hasError && currentVideoIndex > 0) {
-      videoRef.current.play().then(() => { setIsPlaying(true); setShowControls(true); }).catch((err) => console.error('[OnboardingVideoPlayer] autoplay error:', err));
+      videoRef.current.play().then(() => { setIsPlaying(true); setShowControls(true); }).catch((err) => techDebtLogger.error('[OnboardingVideoPlayer] autoplay error:', err));
     } else if (currentVideoIndex > 0) setIsPlaying(false);
   }, [clearBufferingTimeout, currentVideoIndex, hasError, playbackPolicy.allowAutoplay, setShowControls, videos]);
 
@@ -106,7 +107,7 @@ export function useOnboardingVideoPlayer({ onComplete, videos }: Pick<Onboarding
     const el = videoRef.current;
     if (!el) return;
     if (isPlaying) { el.pause(); clearBufferingTimeout(); setIsBuffering(false); setIsPlaying(false); }
-    else { el.play().catch((err) => console.error('[OnboardingVideoPlayer] play error:', err)); setShowControls(true); }
+    else { el.play().catch((err) => techDebtLogger.error('[OnboardingVideoPlayer] play error:', err)); setShowControls(true); }
   }, [clearBufferingTimeout, isPlaying, setShowControls]);
 
   const toggleMute = useCallback(() => {

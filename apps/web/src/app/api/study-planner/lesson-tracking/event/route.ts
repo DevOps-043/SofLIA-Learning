@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API Endpoint: Lesson Tracking Event
  * 
@@ -139,7 +140,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .eq('id', trackingId);
 
     if (updateError) {
-      console.error('Error actualizando lesson tracking:', updateError);
+      techDebtLogger.error('Error actualizando lesson tracking:', updateError);
       return NextResponse.json({ 
         error: `Error al registrar evento: ${updateError.message}`,
         success: false
@@ -153,7 +154,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
   } catch (error: unknown) {
-    console.error('Error en POST /api/study-planner/lesson-tracking/event:', error);
+    techDebtLogger.error('Error en POST /api/study-planner/lesson-tracking/event:', error);
     const message = error instanceof Error ? error.message : 'Error interno del servidor';
     return NextResponse.json({ 
       error: message,

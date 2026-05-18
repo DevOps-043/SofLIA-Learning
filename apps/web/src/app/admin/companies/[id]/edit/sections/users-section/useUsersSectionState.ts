@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useMemo, useState } from 'react'
 import type { CompanyMember } from '@/features/admin/hooks/useEditCompanyLogic'
 import type { UsersModalConfig, UsersSectionProps, CompanyUsersSubTab } from './types'
@@ -37,7 +38,7 @@ export function useUsersSectionState({ company, onUpdate }: UsersSectionProps) {
         result.success ? 'Invitación reenviada con éxito' : result.error || 'No se pudo reenviar la invitación',
       )
     } catch (error) {
-      console.error('Error resending invitation:', error)
+      techDebtLogger.error('Error resending invitation:', error)
       showModal('error', 'Error de conexión', 'Hubo un problema al intentar reenviar la invitación')
     } finally {
       setResendingId(null)
@@ -59,7 +60,7 @@ export function useUsersSectionState({ company, onUpdate }: UsersSectionProps) {
         result.success ? 'Invitación eliminada correctamente' : result.error || 'No se pudo eliminar la invitación',
       )
     } catch (error) {
-      console.error('Error revoking invitation:', error)
+      techDebtLogger.error('Error revoking invitation:', error)
       showModal('error', 'Error de conexión', 'Hubo un problema al intentar eliminar la invitación')
     } finally {
       setRevokingId(null)

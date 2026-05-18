@@ -82,7 +82,7 @@ describe('sanitizeSlug', () => {
 
   it('removes emojis', () => {
     const result = sanitizeSlug('Comunidad 😀');
-    expect(result).not.toMatch(/[^\x00-\x7F]/);
+    expect(Array.from(result).every((char) => char.charCodeAt(0) <= 0x7f)).toBe(true);
   });
 
   it('handles single word', () => {

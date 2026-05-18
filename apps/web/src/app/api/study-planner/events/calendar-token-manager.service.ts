@@ -1,5 +1,7 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createAdminClient } from './calendar-token-manager.client'
 import { getTokenRefreshConfig } from './calendar-token-manager.config'
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
 import type {
   CalendarIntegrationRow,
   TokenRefreshResponse,
@@ -17,7 +19,7 @@ export async function refreshAccessToken(
   }
 
   try {
-    const response = await fetch(refreshConfig.url, {
+    const response = await fetchWithCircuitBreaker('calendar-token-refresh', refreshConfig.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams(refreshConfig.body),
@@ -32,7 +34,7 @@ export async function refreshAccessToken(
 
     return { success: true, accessToken: tokens.access_token }
   } catch (error) {
-    console.error('Error en refreshAccessToken:', error)
+    techDebtLogger.error('Error en refreshAccessToken:', error)
     return { success: false }
   }
 }

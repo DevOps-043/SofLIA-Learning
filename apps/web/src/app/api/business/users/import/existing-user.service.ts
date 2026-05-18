@@ -25,14 +25,14 @@ export async function getExistingUserImportError(
 
   if (existingOrgUser) {
     return {
-      error: `Este usuario ya es miembro de tu organizaciÃ³n (Rol: ${existingOrgUser.role}).`,
+      error: `Este usuario ya es miembro de tu organizacion (Rol: ${existingOrgUser.role}).`,
       data: { ...userData, existing_role: existingOrgUser.role },
     }
   }
 
   return {
     error:
-      'Este correo ya estÃ¡ registrado en la plataforma pero NO en tu organizaciÃ³n. Por favor utiliza la opciÃ³n "Invitar" para agregarlo a tu equipo.',
+      'Este correo ya esta registrado en la plataforma pero NO en tu organizacion. Por favor utiliza la opcion "Invitar" para agregarlo a tu equipo.',
     data: userData,
   }
 }

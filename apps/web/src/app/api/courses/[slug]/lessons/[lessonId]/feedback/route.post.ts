@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 
 import { createClient } from '@/lib/supabase/server';
@@ -130,7 +131,7 @@ export async function POST(
     });
 
     if (insertError) {
-      console.error('[FEEDBACK API] Error al insertar feedback:', insertError);
+      techDebtLogger.error('[FEEDBACK API] Error al insertar feedback:', insertError);
       return NextResponse.json(
         { error: 'Error al guardar feedback', details: insertError.message },
         { status: 500 }

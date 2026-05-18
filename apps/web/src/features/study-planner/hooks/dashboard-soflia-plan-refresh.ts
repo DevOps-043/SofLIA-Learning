@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { Dispatch, SetStateAction } from 'react';
 import type { StudyPlannerDashboardState } from './useStudyPlannerDashboardSofLIA';
 
@@ -13,6 +14,6 @@ export function refreshSofLIAPlanAfterAction(
           setState(prev => ({ ...prev, activePlan: planData.data }));
         }
       })
-      .catch(err => console.error('Error recargando plan:', err));
+      .catch(err => techDebtLogger.error('Error recargando plan:', err));
   }, 500);
 }

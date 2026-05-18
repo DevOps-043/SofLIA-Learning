@@ -39,6 +39,7 @@ export function useRegisterFormLogic() {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState('');
   const registerSchema = React.useMemo(() => getRegisterSchema(t), [t]);
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -58,7 +59,7 @@ export function useRegisterFormLogic() {
     setSuccess(null);
     startTransition(async () => {
       try {
-        const result = await registerAction(toRegisterActionFormData(data));
+        const result = await registerAction(toRegisterActionFormData(data, captchaToken));
         if (result?.error) setError(result.error);
         else if (result?.success) setSuccess(result.message || t('auth.register.success'));
       } catch {
@@ -84,6 +85,7 @@ export function useRegisterFormLogic() {
     error,
     setError,
     success,
+    setCaptchaToken,
     setActiveTab,
     countryOptions: buildCountryOptions(),
     genderOptions: buildGenderOptions(t),

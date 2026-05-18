@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * UserPreferencesService
  *
@@ -71,7 +72,7 @@ export class UserPreferencesService {
       if (error.code === 'PGRST116') {
         return null;
       }
-      console.error('Error obteniendo preferencias de estudio:', error);
+      techDebtLogger.error('Error obteniendo preferencias de estudio:', error);
       return null;
     }
 
@@ -110,7 +111,7 @@ export class UserPreferencesService {
       if (error.code === 'PGRST116') {
         return null;
       }
-      console.error('Error obteniendo integracion de calendario:', error);
+      techDebtLogger.error('Error obteniendo integracion de calendario:', error);
       return null;
     }
 

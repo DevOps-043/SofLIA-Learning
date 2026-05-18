@@ -1,8 +1,9 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { PlatformContextProvider } from '../../providers/platform/PlatformContextProvider'
 import { createCounter } from './test-runner'
 
 export async function testPlatformContextProvider() {
-  console.log('\nTEST: PLATFORM CONTEXT PROVIDER\n')
+  techDebtLogger.log('\nTEST: PLATFORM CONTEXT PROVIDER\n')
   const counter = createCounter()
   const provider = new PlatformContextProvider()
 

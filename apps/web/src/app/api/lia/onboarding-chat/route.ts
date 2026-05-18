@@ -1,9 +1,11 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API Route: SofLIA Onboarding Chat
  * Endpoint para conversación por voz durante el onboarding
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 
 interface OnboardingChatRequest {
   question: string;
@@ -64,7 +66,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, response: aiData.response });
 
   } catch (error) {
-    console.error('❌ Error en onboarding-chat:', error);
+    techDebtLogger.error('❌ Error en onboarding-chat:', error);
     return NextResponse.json(
       { 
         error: 'Error procesando la solicitud',
@@ -126,7 +128,7 @@ async function callLIA(
     const apiKey = process.env.OPENAI_API_KEY;
     
     if (!apiKey) {
-      console.warn('⚠️ OPENAI_API_KEY no configurada, usando respuesta simulada');
+      techDebtLogger.warn('⚠️ OPENAI_API_KEY no configurada, usando respuesta simulada');
       return generateMockResponse();
     }
 
@@ -143,7 +145,7 @@ async function callLIA(
       },
     ];
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetchWithCircuitBreaker('openai-onboarding-chat', 'https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -165,7 +167,7 @@ async function callLIA(
     return data.choices[0]?.message?.content || 'Lo siento, no pude generar una respuesta.';
 
   } catch (error) {
-    console.error('❌ Error llamando a OpenAI:', error);
+    techDebtLogger.error('❌ Error llamando a OpenAI:', error);
     return generateMockResponse();
   }
 }

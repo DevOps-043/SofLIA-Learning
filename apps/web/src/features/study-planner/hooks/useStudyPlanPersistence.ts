@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { Dispatch, SetStateAction } from 'react';
 import type {
   StudyApproach,
@@ -121,7 +122,7 @@ export function useStudyPlanPersistence(params: UseStudyPlanPersistenceParams) {
             'Perfecto. He guardado tu plan de estudios con todas las sesiones programadas. Puedes comenzar a estudiar cuando lo desees.',
           )
           .catch((audioError) => {
-            console.error('Error reproduciendo audio:', audioError);
+            techDebtLogger.error('Error reproduciendo audio:', audioError);
           });
       }
     } catch (error) {

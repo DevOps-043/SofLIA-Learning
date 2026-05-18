@@ -51,5 +51,5 @@ const GRID_LAYOUT_CSS = `
 `;
 
 export function DashboardGridStyles() {
-  return <style dangerouslySetInnerHTML={{ __html: GRID_LAYOUT_CSS }} />;
+  return <style>{GRID_LAYOUT_CSS}</style>;
 }

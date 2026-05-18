@@ -1,4 +1,5 @@
 import type { SyncResult, CalendarEventData, CalendarEventUpdateData } from './calendar-sync.types';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 
 function cleanEventId(eventId: string): string {
   return eventId.split('_')[0];
@@ -11,7 +12,8 @@ export async function syncDeleteGoogleEvent(
 ): Promise<SyncResult> {
   try {
     const targetCalendarId = calendarId || 'primary';
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events/${encodeURIComponent(cleanEventId(eventId))}`,
       { method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` } },
     );
@@ -35,7 +37,8 @@ export async function syncCreateGoogleEvent(
 ): Promise<SyncResult> {
   try {
     const targetCalendarId = calendarId || 'primary';
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`,
       {
         method: 'POST',
@@ -77,7 +80,8 @@ export async function syncUpdateGoogleEvent(
     if (eventData.startTime && eventData.timezone) updateBody.start = { dateTime: eventData.startTime, timeZone: eventData.timezone };
     if (eventData.endTime && eventData.timezone) updateBody.end = { dateTime: eventData.endTime, timeZone: eventData.timezone };
 
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events/${encodeURIComponent(cleanEventId(eventId))}`,
       {
         method: 'PATCH',

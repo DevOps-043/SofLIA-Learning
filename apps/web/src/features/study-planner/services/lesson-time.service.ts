@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Lesson Time Service
  * Calculates and fetches lesson time estimates for the planner.
@@ -38,7 +39,7 @@ export class LessonTimeService {
       .single();
 
     if (courseError || !course) {
-      console.error('Error fetching course:', courseError);
+      techDebtLogger.error('Error fetching course:', courseError);
       return null;
     }
 

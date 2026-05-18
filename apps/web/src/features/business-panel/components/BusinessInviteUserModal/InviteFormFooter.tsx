@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
 import { Send } from 'lucide-react';
-import type { BusinessInviteTheme, InviteStatus } from './types';
+import type { BusinessInviteTheme, BusinessInviteTranslator, InviteStatus } from './types';
 
 interface InviteFormFooterProps {
   onClose: () => void;
   status: InviteStatus;
-  t: (key: string, fallback?: string) => string;
+  t: BusinessInviteTranslator;
   theme: BusinessInviteTheme;
 }
 

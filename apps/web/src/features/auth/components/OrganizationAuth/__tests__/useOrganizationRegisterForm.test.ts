@@ -105,8 +105,8 @@ describe('useOrganizationRegisterForm', () => {
         phoneNumber: '5512345678',
         email: 'invite@test.com',
         confirmEmail: 'invite@test.com',
-        password: 'Secret123',
-        confirmPassword: 'Secret123',
+        password: 'Secret12345!',
+        confirmPassword: 'Secret12345!',
         acceptTerms: true,
       });
     });

@@ -28,7 +28,7 @@ export async function executeRecoverMissedSession(
 
   const { data: originalSession, error: getError } = await supabase
     .from('study_sessions')
-    .select('*')
+    .select(SELECT_COLUMNS.study_sessions)
     .eq('id', sessionId)
     .single()
 

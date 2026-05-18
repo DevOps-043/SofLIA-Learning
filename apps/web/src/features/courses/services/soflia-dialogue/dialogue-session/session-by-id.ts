@@ -8,7 +8,7 @@ export async function getDialogueSessionById(input: {
   sessionId: string
 }) {
   const { data, error } = await dialogueSessionsTable(input.client)
-    .select('*')
+    .select(SELECT_COLUMNS.soflia_dialogue_sessions)
     .eq('session_id', input.sessionId)
     .eq('user_id', input.context.userId)
     .eq('activity_id', input.context.activity.activity_id)

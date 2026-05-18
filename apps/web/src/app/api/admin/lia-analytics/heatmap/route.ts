@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API de LIA Analytics - Heatmap de Actividad
  * 
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest) {
       .lte('created_at', endDate.toISOString());
 
     if (error) {
-      console.error('Error fetching heatmap data:', error);
+      techDebtLogger.error('Error fetching heatmap data:', error);
       return NextResponse.json(
         { success: false, error: 'Error al obtener datos' },
         { status: 500 }
@@ -135,7 +136,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error en LIA Analytics Heatmap:', error);
+    techDebtLogger.error('Error en LIA Analytics Heatmap:', error);
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

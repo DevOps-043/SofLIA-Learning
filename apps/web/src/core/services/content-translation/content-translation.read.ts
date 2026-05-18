@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/client';
 import {
   getCachedContentTranslations,
@@ -48,7 +49,7 @@ export async function loadContentTranslations(
     setCachedContentTranslations(cacheKey, translations);
     return translations;
   } catch (error) {
-    console.error(
+    techDebtLogger.error(
       `[ContentTranslationService] Error loading translations for ${entityType}:${entityId}:`,
       error
     );

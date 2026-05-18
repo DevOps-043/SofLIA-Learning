@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = No rows returned
-      console.error('Error checking slug:', error)
+      techDebtLogger.error('Error checking slug:', error)
       return NextResponse.json(
         { success: false, error: 'Error al verificar disponibilidad' },
         { status: 500 }
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error en GET /api/business/settings/check-slug:', error)
+    techDebtLogger.error('Error en GET /api/business/settings/check-slug:', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

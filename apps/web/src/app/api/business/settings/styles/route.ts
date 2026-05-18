@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (orgError || !organization) {
-      console.error('❌ [API] Error obteniendo organización:', orgError);
+      techDebtLogger.error('❌ [API] Error obteniendo organización:', orgError);
       return NextResponse.json(
         { success: false, error: 'Error al obtener estilos' },
         { status: 500 }
@@ -93,7 +94,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error: unknown) {
-    console.error('❌ [API] Error en GET /api/business/settings/styles:', error);
+    techDebtLogger.error('❌ [API] Error en GET /api/business/settings/styles:', error);
     return NextResponse.json(
       { success: false, error: 'Error al obtener estilos' },
       { status: 500 }

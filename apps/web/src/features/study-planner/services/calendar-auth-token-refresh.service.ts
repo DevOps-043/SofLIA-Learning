@@ -4,6 +4,8 @@ import {
   MICROSOFT_CLIENT_ID,
   MICROSOFT_CLIENT_SECRET,
 } from './calendar-auth.config';
+import { logger } from '@/lib/logger';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 import { CalendarDbService } from './calendar-db.service';
 
 export async function refreshCalendarTokenIfNeeded(userId: string): Promise<string | null> {
@@ -21,7 +23,7 @@ export async function refreshCalendarTokenIfNeeded(userId: string): Promise<stri
   }
 
   if (!integration.refresh_token) {
-    console.error('No hay refresh token disponible');
+    logger.warn('No hay refresh token disponible');
     return null;
   }
 
@@ -45,14 +47,14 @@ export async function refreshCalendarTokenIfNeeded(userId: string): Promise<stri
       };
 
   try {
-    const response = await fetch(tokenUrl, {
+    const response = await fetchWithCircuitBreaker('calendar-oauth', tokenUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams(bodyParams),
     });
 
     if (!response.ok) {
-      console.error('Error refrescando token:', await response.text());
+      logger.warn('Error refrescando token', { status: response.status, provider: integration.provider });
       return null;
     }
 
@@ -71,7 +73,7 @@ export async function refreshCalendarTokenIfNeeded(userId: string): Promise<stri
 
     return tokens.access_token;
   } catch (error) {
-    console.error('Error refrescando token:', error);
+    logger.warn('Error refrescando token', { provider: integration.provider, error });
     return null;
   }
 }

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { revalidatePath } from 'next/cache'
 import { SessionService } from '../../../auth/services/session.service'
 import { createAdminSupabase } from '../../../../lib/courseImport'
@@ -22,7 +23,7 @@ export async function rejectCourseAction(stagingId: string, reason: string): Pro
         .eq('id', stagingId)
 
     if (error) {
-        console.error('Error rejecting course:', error)
+        techDebtLogger.error('Error rejecting course:', error)
         return false
     }
 
@@ -35,7 +36,7 @@ export async function deleteCourseAction(stagingId: string): Promise<boolean> {
     const { error } = await supabase.from('courses_staging').delete().eq('id', stagingId)
 
     if (error) {
-        console.error('Error deleting staging course:', error)
+        techDebtLogger.error('Error deleting staging course:', error)
         return false
     }
 
@@ -52,7 +53,7 @@ export async function reconsiderCourseAction(stagingId: string): Promise<boolean
         .eq('id', stagingId)
 
     if (error) {
-        console.error('Error reconsidering course:', error)
+        techDebtLogger.error('Error reconsidering course:', error)
         return false
     }
 

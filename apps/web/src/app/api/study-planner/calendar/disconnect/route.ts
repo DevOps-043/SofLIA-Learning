@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API Endpoint: Disconnect Calendar
  * 
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Disconnec
     });
     
   } catch (error) {
-    console.error('Error desconectando calendario:', error);
+    techDebtLogger.error('Error desconectando calendario:', error);
     return NextResponse.json(
       { 
         success: false, 

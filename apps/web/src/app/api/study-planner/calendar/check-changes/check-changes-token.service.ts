@@ -1,9 +1,11 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createAdminClient } from './check-changes-db.service';
 import type {
   CalendarIntegrationRow,
   TokenRefreshResponse,
 } from './check-changes.types';
 import { getRefreshCredentials } from './check-changes-token.credentials';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 
 export async function resolveCalendarAccessToken(
   integration: CalendarIntegrationRow,
@@ -35,7 +37,7 @@ async function refreshAccessToken(
   }
 
   try {
-    const response = await fetch(credentials.tokenUrl, {
+    const response = await fetchWithCircuitBreaker('calendar-check-changes-token-refresh', credentials.tokenUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
@@ -58,7 +60,7 @@ async function refreshAccessToken(
     await persistRefreshedTokens(integration, tokens);
     return { success: true, accessToken: tokens.access_token };
   } catch (error) {
-    console.error('Error en refreshAccessToken:', error);
+    techDebtLogger.error('Error en refreshAccessToken:', error);
     return { success: false };
   }
 }

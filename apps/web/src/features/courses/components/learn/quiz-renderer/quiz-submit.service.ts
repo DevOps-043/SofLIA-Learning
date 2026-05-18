@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { SubmitQuizResultsParams } from "./quiz-renderer.types";
 
 export async function submitQuizResults({
@@ -30,7 +31,7 @@ export async function submitQuizResults({
     const result = (await response.json()) as { error?: string; message?: string };
 
     if (!response.ok) {
-      console.error("Error guardando quiz:", result.error);
+      techDebtLogger.error("Error guardando quiz:", result.error);
       setSubmitError(result.error || "Error al guardar las respuestas");
       return;
     }
@@ -41,7 +42,7 @@ export async function submitQuizResults({
 
     onQuizSubmitted?.();
   } catch (error) {
-    console.error("Error al enviar quiz:", error);
+    techDebtLogger.error("Error al enviar quiz:", error);
     setSubmitError("Error al guardar las respuestas");
   }
 }

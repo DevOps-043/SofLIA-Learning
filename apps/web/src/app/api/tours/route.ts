@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { SessionService } from '../../../features/auth/services/session.service';
@@ -74,13 +75,13 @@ export async function GET(request: NextRequest) {
     const supabase = getAdminClient();
     const { data, error } = await supabase
       .from('user_tour_progress')
-      .select('*')
+      .select(SELECT_COLUMNS.user_tour_progress)
       .eq('user_id', user.id)
       .eq('tour_id', tourId)
       .maybeSingle();
 
     if (error) {
-      console.error('[GET /api/tours] DB error:', error);
+      techDebtLogger.error('[GET /api/tours] DB error:', error);
       if (isMissingTourProgressInfrastructureError(error)) {
         return NextResponse.json({ success: true, hasSeenTour: true, tourProgress: null });
       }
@@ -99,7 +100,7 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (err) {
-    console.error('[GET /api/tours] Unexpected error:', err);
+    techDebtLogger.error('[GET /api/tours] Unexpected error:', err);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -145,7 +146,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (existingError) {
-      console.error('[POST /api/tours] Read DB error:', existingError);
+      techDebtLogger.error('[POST /api/tours] Read DB error:', existingError);
       if (isMissingTourProgressInfrastructureError(existingError)) {
         return NextResponse.json({ success: true, tourProgress: null });
       }
@@ -200,7 +201,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (result.error) {
-      console.error('[POST /api/tours] DB error:', result.error);
+      techDebtLogger.error('[POST /api/tours] DB error:', result.error);
       if (isMissingTourProgressInfrastructureError(result.error)) {
         return NextResponse.json({ success: true, tourProgress: null });
       }
@@ -209,7 +210,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, tourProgress: result.data });
   } catch (err) {
-    console.error('[POST /api/tours] Unexpected error:', err);
+    techDebtLogger.error('[POST /api/tours] Unexpected error:', err);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

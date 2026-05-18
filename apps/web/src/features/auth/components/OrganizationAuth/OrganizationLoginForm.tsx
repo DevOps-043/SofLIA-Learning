@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
 import { SocialLoginButtons } from '../SocialLoginButtons/SocialLoginButtons'
+import { HumanVerificationField } from '../HumanVerificationField'
 import { useOrganizationAuthStyles } from './useOrganizationAuthStyles'
 import {
   formatRedirectCountdownMessage,
@@ -78,6 +79,7 @@ export function OrganizationLoginForm(props: OrganizationLoginFormProps) {
           rememberMe={watch('rememberMe')}
           router={router}
         />
+        <HumanVerificationField onTokenChange={login.setCaptchaToken} />
         <OrganizationLoginSubmitButton isPending={login.isPending} palette={palette} />
       </form>
       {(props.googleLoginEnabled || props.microsoftLoginEnabled) && (

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createAdminClient } from '@/lib/supabase/admin';
 import type {
   CalendarIntegration,
@@ -119,7 +120,7 @@ function handleCalendarIntegrationError(error: { code?: string; message?: string
     return;
   }
 
-  console.error(`Error ${context}:`, error);
+  techDebtLogger.error(`Error ${context}:`, error);
 
   if (error.code === '42501' || error.message?.includes('row-level security')) {
     throw new Error('RLS_ERROR: No tienes permisos para modificar integraciones de calendario. Verifica las politicas RLS de la tabla calendar_integrations en Supabase.');

@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTourRestart } from '../../../core/contexts/TourRestartContext'
@@ -52,7 +53,7 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
     setShowVideoIntro(false)
     setStepIndex(0)
     setTimeout(() => {
-      tourProgress.startTour().catch((error) => console.error('[useBusinessUserJoyride] DB start failed', error))
+      tourProgress.startTour().catch((error) => techDebtLogger.error('[useBusinessUserJoyride] DB start failed', error))
       prepareBusinessUserStep(steps[0], isMobile)
       setRun(true)
     }, 700)
@@ -85,7 +86,7 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
     if (!run) return
     const watchdog = window.setTimeout(() => {
       setRun(false); setIsTourFinishedInSession(true); closeUserMenuIfOpen()
-      tourProgress.skipTour().catch((error) => console.error('[useBusinessUserJoyride] Watchdog skipTour failed', error))
+      tourProgress.skipTour().catch((error) => techDebtLogger.error('[useBusinessUserJoyride] Watchdog skipTour failed', error))
     }, 45_000)
     return () => window.clearTimeout(watchdog)
   }, [run, stepIndex, tourProgress])

@@ -30,7 +30,7 @@ export async function GET(
     // Obtener layout por defecto de la organización
     const { data: layout, error: layoutError } = await supabase
       .from('dashboard_layouts')
-      .select('*')
+      .select(SELECT_COLUMNS.dashboard_layouts)
       .eq('organization_id', auth.organizationId)
       .eq('is_default', true)
       .maybeSingle()

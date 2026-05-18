@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type {
   CalendarEvent,
   SofLIAAvailabilityAnalysis,
@@ -115,7 +116,7 @@ export async function callLIAForAvailabilityAnalysis(
 
     return generateDefaultAvailability(profileData)
   } catch (error) {
-    console.error('Error llamando a LIA:', error)
+    techDebtLogger.error('Error llamando a LIA:', error)
     return generateDefaultAvailability(profileData)
   }
 }

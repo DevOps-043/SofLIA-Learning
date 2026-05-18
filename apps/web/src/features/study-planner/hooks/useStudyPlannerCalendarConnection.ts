@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useState } from 'react';
 
 interface UseStudyPlannerCalendarConnectionResult {
@@ -53,7 +54,7 @@ export function useStudyPlannerCalendarConnection(
         // Keep planner usable if selection lookup fails.
       }
     } catch (connectionError) {
-      console.error('Error verificando conexión:', connectionError);
+      techDebtLogger.error('Error verificando conexión:', connectionError);
     }
   }, []);
 
@@ -172,7 +173,7 @@ export function useStudyPlannerCalendarConnection(
           }
         }, 500);
       } catch (connectionError) {
-        console.error('Error conectando calendario:', connectionError);
+        techDebtLogger.error('Error conectando calendario:', connectionError);
         setCalendarError('Error al conectar el calendario');
         setIsConnecting(false);
         setConnectingProvider(null);
@@ -198,7 +199,7 @@ export function useStudyPlannerCalendarConnection(
         setCalendarError('Error al desconectar el calendario');
       }
     } catch (err) {
-      console.error('Error desconectando calendario:', err);
+      techDebtLogger.error('Error desconectando calendario:', err);
       setCalendarError('Error al desconectar el calendario');
     }
   }, [connectedProvider]);

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * useLIAData Hook
  * 
@@ -100,7 +101,7 @@ export function useLIAData() {
       });
 
     } catch (error) {
-      console.error('❌ [useLIAData] Error cargando lecciones:', error);
+      techDebtLogger.error('❌ [useLIAData] Error cargando lecciones:', error);
       setState(prev => ({
         ...prev,
         isLoading: false,

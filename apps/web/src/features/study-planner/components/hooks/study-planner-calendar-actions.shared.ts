@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { calculateStudyPlannerEstimatedAvailability } from '../../services/planner-calendar-analysis.service';
 import type { StudyPlannerUserContextApiData } from '../../services/planner-user-context-client.service';
 import type { StudyPlannerMessage } from '../../types/planner-ui.types';
@@ -125,13 +126,13 @@ export async function fetchStudyPlannerCalendarEvents({
       };
     }
 
-    console.error('Error en respuesta de eventos:', eventsResponse.status, errorPayload.error);
+    techDebtLogger.error('Error en respuesta de eventos:', eventsResponse.status, errorPayload.error);
     return {
       events: [],
       shouldAbort: false,
     };
   } catch (error) {
-    console.error('Error obteniendo eventos:', error);
+    techDebtLogger.error('Error obteniendo eventos:', error);
     return {
       events: [],
       shouldAbort: false,

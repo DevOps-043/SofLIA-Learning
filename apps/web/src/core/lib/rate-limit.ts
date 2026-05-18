@@ -5,6 +5,9 @@ export {
   checkRateLimit,
 } from './rate-limit/rate-limit.check'
 export {
+  checkDistributedRateLimit,
+} from './rate-limit/rate-limit.distributed'
+export {
   clearAllRateLimits,
   clearRateLimit,
   getRateLimitStats,

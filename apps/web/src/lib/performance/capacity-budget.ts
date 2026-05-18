@@ -1,0 +1,15 @@
+export const CAPACITY_BUDGET = {
+  sustainedRequestsPerSecond: 1000,
+  peakRequestsPerSecond: 3000,
+  postgresActiveConnectionsMax: 200,
+  nextMemoryMbPerInstanceMax: 1024,
+  nextMinimumInstances: 4,
+  readLatencyP50MsMax: 120,
+  readLatencyP95MsMax: 500,
+  readLatencyP99MsMax: 1200,
+  writeLatencyP95MsMax: 800,
+  serverErrorRateMax: 0.001,
+  monthlyAvailabilityMin: 0.999,
+  apiResponsePayloadKbMax: 100,
+  ciBuildMinutesMax: 8,
+} as const

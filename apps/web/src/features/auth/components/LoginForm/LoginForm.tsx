@@ -14,6 +14,7 @@ import { ToastNotification } from '../../../../core/components/ToastNotification
 import { TextInput } from '../TextInput';
 import { PasswordInput } from '../PasswordInput';
 import { SocialLoginButtons } from '../SocialLoginButtons';
+import { HumanVerificationField } from '../HumanVerificationField';
 import Link from 'next/link';
 import { useAuthTab } from '../AuthTabs/AuthTabContext';
 import { clearAuthUserCache } from '../../../../lib/auth/user-auth-cache';
@@ -41,11 +42,36 @@ function isSuccessfulLoginResult(
   );
 }
 
+function getLoginResultError(
+  result: Awaited<ReturnType<typeof loginAction>> | null | undefined
+) {
+  return (
+    typeof result === 'object' &&
+    result !== null &&
+    'error' in result &&
+    typeof result.error === 'string'
+  )
+    ? result.error
+    : null;
+}
+
+function getObjectErrorMessage(error: unknown) {
+  return (
+    error &&
+    typeof error === 'object' &&
+    'message' in error &&
+    typeof error.message === 'string'
+  )
+    ? error.message
+    : null;
+}
+
 export function LoginForm() {
   const { t } = useTranslation('common');
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState('');
   const submitInFlightRef = useRef(false);
   const { setActiveTab } = useAuthTab();
 
@@ -111,16 +137,13 @@ export function LoginForm() {
       formData.append('emailOrUsername', data.emailOrUsername);
       formData.append('password', data.password);
       formData.append('rememberMe', data.rememberMe.toString());
+      formData.append('captchaToken', captchaToken);
 
       const result = await loginAction(formData);
 
-      if (result && 'debugCode' in result && result.debugCode) {
-        // eslint-disable-next-line no-console
-        console.warn('[loginAction] failure code:', result.debugCode);
-      }
-
-      if (result?.error) {
-        setError(result.error);
+      const resultError = getLoginResultError(result);
+      if (resultError) {
+        setError(resultError);
         finishPending();
         return;
       } else if (isSuccessfulLoginResult(result)) {
@@ -146,14 +169,12 @@ export function LoginForm() {
         }
 
         // También puede ser un error de redirección de otra forma
-        if (error.message && error.message.includes('NEXT_REDIRECT')) {
+        const message = getObjectErrorMessage(error);
+        if (message?.includes('NEXT_REDIRECT')) {
           submitInFlightRef.current = false;
           throw error;
         }
       }
-
-      // Solo mostrar error si NO es una redirección
-      console.error('❌ Error inesperado en login:', error);
 
       // Proporcionar mensaje de error más específico
       let errorMessage = t('auth.login.errors.unexpected');
@@ -301,6 +322,8 @@ export function LoginForm() {
                 {t('auth.login.forgotPassword')}
               </Link>
             </motion.div>
+
+            <HumanVerificationField onTokenChange={setCaptchaToken} />
 
             {/* Botón de Login */}
             <motion.button

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
@@ -54,7 +55,7 @@ export async function GET(
       .order('message_sequence', { ascending: true });
 
     if (error) {
-      console.error('Error obteniendo mensajes:', error);
+      techDebtLogger.error('Error obteniendo mensajes:', error);
       return NextResponse.json(
         { error: 'Error obteniendo mensajes' },
         { status: 500 }
@@ -72,7 +73,7 @@ export async function GET(
 
     return NextResponse.json({ messages: formattedMessages });
   } catch (error) {
-    console.error('Error en API de mensajes:', error);
+    techDebtLogger.error('Error en API de mensajes:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

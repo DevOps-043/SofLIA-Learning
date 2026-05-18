@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * GET /api/workshops/[id]/metadata
  * 
@@ -37,7 +38,7 @@ export async function GET(
       metadata
     });
   } catch (error) {
-    console.error('Error obteniendo metadatos del taller:', error);
+    techDebtLogger.error('Error obteniendo metadatos del taller:', error);
     return NextResponse.json(
       { 
         error: 'Error interno del servidor',

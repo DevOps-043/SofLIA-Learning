@@ -19,6 +19,7 @@ import {
   revokeUserSessions,
 } from './reset-password.db';
 import { validatePasswordResetTokenState } from './reset-password.validation';
+import { validatePasswordIsNotBreached } from '../password-breach-check.server';
 
 export async function resetPasswordAction(
   formData: FormData | { token: string; newPassword: string }
@@ -32,6 +33,12 @@ export async function resetPasswordAction(
     }
 
     const { newPassword, token } = parsePasswordResetPayload(formData);
+    const breachError = await validatePasswordIsNotBreached(newPassword);
+
+    if (breachError) {
+      return { error: breachError };
+    }
+
     recordResetAttempt(clientIP);
 
     const supabase = await createClient();

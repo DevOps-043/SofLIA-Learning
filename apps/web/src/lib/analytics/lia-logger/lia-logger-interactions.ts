@@ -3,6 +3,7 @@
  */
 
 import { createClient } from '../../supabase/server';
+import { SELECT_COLUMNS } from '../../supabase/select-types';
 import type { LiaMessageRow } from './lia-logger-events';
 import {
   conversationsTable,
@@ -24,7 +25,7 @@ export async function getUserConversationStats(userId: string) {
   const supabase = await createClient();
 
   const { data, error } = await conversationAnalyticsTable(supabase)
-    .select('*')
+    .select(SELECT_COLUMNS.lia_conversation_analytics)
     .eq('user_id', userId)
     .order('started_at', { ascending: false });
 
@@ -42,7 +43,7 @@ export async function getActivityPerformance(activityId: string) {
   const supabase = await createClient();
 
   const { data, error } = await activityPerformanceTable(supabase)
-    .select('*')
+    .select(SELECT_COLUMNS.lia_activity_performance)
     .eq('activity_id', activityId)
     .single();
 
@@ -60,7 +61,7 @@ export async function getCommonQuestionsForLesson(lessonId: string, limit: numbe
   const supabase = await createClient();
 
   const { data, error } = await commonQuestionsTable(supabase)
-    .select('*')
+    .select(SELECT_COLUMNS.lia_common_questions)
     .eq('lesson_id', lessonId)
     .order('times_asked', { ascending: false })
     .limit(limit);
@@ -80,19 +81,19 @@ export async function getLiaGlobalMetrics(startDate: Date, endDate: Date) {
 
   // Total de conversaciones
   const { count: totalConversations } = await conversationsTable(supabase)
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .gte('started_at', startDate.toISOString())
     .lte('started_at', endDate.toISOString());
 
   // Total de mensajes
   const { count: totalMessages } = await messagesTable(supabase)
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .gte('created_at', startDate.toISOString())
     .lte('created_at', endDate.toISOString());
 
   // Actividades completadas
   const { count: completedActivities } = await activityCompletionsTable(supabase)
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .eq('status', 'completed')
     .gte('completed_at', startDate.toISOString())
     .lte('completed_at', endDate.toISOString());

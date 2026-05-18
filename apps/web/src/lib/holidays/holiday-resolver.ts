@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { formatHolidayDate } from './holiday-date-utils';
 import type { CountryHolidays, Holiday } from './holidays.config';
 
@@ -13,7 +14,7 @@ export function resolveHolidayDate(holiday: Holiday, year: number): string | nul
   try {
     return formatHolidayDate(holiday.calculator(year));
   } catch (error) {
-    console.error(`Error calculando festivo variable "${holiday.name}" para ${year}:`, error);
+    techDebtLogger.error(`Error calculando festivo variable "${holiday.name}" para ${year}:`, error);
     return null;
   }
 }

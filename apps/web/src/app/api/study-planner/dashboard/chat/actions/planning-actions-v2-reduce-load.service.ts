@@ -9,6 +9,8 @@ import { validateStrictLessonOrder } from './lesson-order-guardrails.service'
 import { validatePlacementAgainstCalendarRules } from './scheduling-guardrails.service'
 import { hasTimezoneOffset, withTimezoneOffset } from './planning-actions-v2-timezone.service'
 
+const RESIZABLE_SESSION_SELECT = 'id, start_time'
+
 export async function executeReduceSessionLoadV2(
   userId: string,
   planId: string,
@@ -69,7 +71,7 @@ export async function executeReduceSessionLoadV2(
     if (reduceAction === 'resize' && newData?.durationMinutes) {
       const { data: session } = await supabase
         .from('study_sessions')
-        .select('*')
+        .select(RESIZABLE_SESSION_SELECT)
         .eq('id', sessionId)
         .single()
 

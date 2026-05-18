@@ -89,7 +89,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     let baseQuery = supabase
       .from('hierarchy_chats')
-      .select('*')
+      .select(SELECT_COLUMNS.hierarchy_chats)
       .eq('organization_id', auth.organizationId)
       .eq('entity_type', entityType)
       .eq('entity_id', entityId)
@@ -180,7 +180,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     // Intentar obtener chat existente
     const { data: existingChat } = await supabase
       .from('hierarchy_chats')
-      .select('*')
+      .select(SELECT_COLUMNS.hierarchy_chats)
       .eq('organization_id', auth.organizationId)
       .eq('entity_type', entity_type)
       .eq('entity_id', entity_id)

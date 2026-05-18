@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { resolveOrganizationAccess } from '../business-auth/organization.service'
+import {
+  requireOrgAccess,
+  resolveOrganizationAccess,
+} from '../business-auth/organization.service'
 
 function createQueryBuilder(config: {
   singleResult?: { data: unknown; error: { message: string } | null }
@@ -120,6 +123,36 @@ describe('resolveOrganizationAccess', () => {
         organizationSlug: 'enterprise',
         organizationRole: 'member',
         isOrgAdmin: false,
+      },
+    })
+  })
+
+  it('denies cross-tenant access when the user is not an active member', async () => {
+    const { client } = createSupabaseStub({
+      organizations: {
+        data: { id: 'org-b', slug: 'org-b' },
+        error: null,
+      },
+      membership: {
+        data: null,
+        error: { message: 'not found' },
+      },
+    })
+
+    const result = await requireOrgAccess({
+      supabase: client,
+      userId: 'user-from-org-a',
+      organizationId: 'org-b',
+      isPlatformAdmin: false,
+      adminFallbackRole: 'member',
+      logger,
+    })
+
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        status: 403,
+        message: 'No tienes acceso a esta organizacion.',
       },
     })
   })

@@ -1,3 +1,5 @@
+import 'server-only'
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * SofLIAPersonalizationService
  * 
@@ -49,7 +51,7 @@ export class SofLIAPersonalizationService {
     const adminSupabase = createAdminClient();
 
     const { data, error } = await personalizationSettingsTable(adminSupabase)
-      .select('*')
+      .select(SELECT_COLUMNS.lia_personalization_settings)
       .eq('user_id', userId)
       .single();
 
@@ -57,7 +59,7 @@ export class SofLIAPersonalizationService {
       if (error.code === 'PGRST116') {
         return null;
       }
-      console.error('Error obteniendo configuración de personalización:', error);
+      techDebtLogger.error('Error obteniendo configuración de personalización:', error);
       throw new Error(`Error al obtener configuración: ${error.message}`);
     }
 
@@ -98,7 +100,7 @@ export class SofLIAPersonalizationService {
       .single();
 
     if (error) {
-      console.error('Error creando configuración por defecto:', error);
+      techDebtLogger.error('Error creando configuración por defecto:', error);
       throw new Error(`Error al crear configuración: ${error.message}`);
     }
 

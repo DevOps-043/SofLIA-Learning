@@ -1,0 +1,82 @@
+name: Weekly load tests
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: 'k6 scenario file without .js'
+        required: false
+        default: 'mixed'
+
+jobs:
+  k6:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      LOAD_BASE_URL: ${{ secrets.LOAD_BASE_URL }}
+      LOAD_TEST_EMAIL: ${{ secrets.LOAD_TEST_EMAIL }}
+      LOAD_TEST_PASSWORD: ${{ secrets.LOAD_TEST_PASSWORD }}
+      LOAD_COURSE_SLUG: ${{ secrets.LOAD_COURSE_SLUG }}
+      LOAD_TEST_SUPABASE_URL: ${{ secrets.LOAD_TEST_SUPABASE_URL }}
+      LOAD_TEST_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.LOAD_TEST_SUPABASE_SERVICE_ROLE_KEY }}
+      LOAD_DB_METRICS_RPC: ${{ secrets.LOAD_DB_METRICS_RPC || 'load_test_connection_snapshot' }}
+      LOAD_DB_CONNECTION_BUDGET: ${{ secrets.LOAD_DB_CONNECTION_BUDGET || '200' }}
+      LOAD_POOL_REQUIRE_SNAPSHOT: 'true'
+      SUPABASE_DB_URL_POOLED: ${{ secrets.SUPABASE_DB_URL_POOLED }}
+      SUPABASE_DB_URL_DIRECT: ${{ secrets.SUPABASE_DB_URL_DIRECT }}
+      SCENARIO: ${{ github.event.inputs.scenario || 'mixed' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run k6 scenario
+        run: |
+          mkdir -p load-test-results
+          docker run --rm \
+            -e LOAD_BASE_URL \
+            -e LOAD_TEST_EMAIL \
+            -e LOAD_TEST_PASSWORD \
+            -e LOAD_COURSE_SLUG \
+            -v "${GITHUB_WORKSPACE}:/workspace" \
+            -w /workspace \
+            grafana/k6:latest run \
+            --summary-export "load-test-results/k6-${SCENARIO}-${GITHUB_RUN_ID}.json" \
+            "tests/load/${SCENARIO}.js"
+
+      - name: Setup Node for load-test guards
+        if: always()
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install guard dependencies
+        if: always()
+        run: npm ci
+
+      - name: Collect DB and app metrics snapshot
+        if: always()
+        run: |
+          export LOAD_RUN_ID="ci-${GITHUB_RUN_ID}"
+          npm run load:metrics -- post-k6
+
+      - name: Verify Supavisor pool topology and pressure
+        if: always()
+        run: |
+          export LOAD_RUN_ID="ci-${GITHUB_RUN_ID}"
+          npm run load:pool-check
+
+      - name: Generate load dashboard
+        if: always()
+        run: |
+          node scripts/generate-load-test-dashboard.mjs load-test-results load-test-results/dashboard.md
+          cat load-test-results/dashboard.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload k6 summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-summary-${{ env.SCENARIO }}-${{ github.run_id }}
+          path: load-test-results/*

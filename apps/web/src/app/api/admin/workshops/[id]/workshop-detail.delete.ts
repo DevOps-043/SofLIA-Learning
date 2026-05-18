@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { AdminWorkshopsService } from '@/features/admin/services/adminWorkshops.service'
 import { WorkshopDeletionError } from '@/features/admin/services/admin-workshops/workshop-deletion.service'
@@ -30,7 +31,7 @@ export async function DELETE(
     })
   } catch (error) {
     if (error instanceof WorkshopDeletionError) {
-      console.error('Error controlado al eliminar taller:', error)
+      techDebtLogger.error('Error controlado al eliminar taller:', error)
       return NextResponse.json(
         {
           success: false,
@@ -40,7 +41,7 @@ export async function DELETE(
       )
     }
 
-    console.error('Error inesperado en DELETE /api/admin/workshops/[id]:', error)
+    techDebtLogger.error('Error inesperado en DELETE /api/admin/workshops/[id]:', error)
     return NextResponse.json(
       {
         success: false,

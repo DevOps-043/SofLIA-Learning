@@ -56,6 +56,19 @@ function isSuccessfulLoginResult(
   )
 }
 
+function getLoginResultError(
+  result: Awaited<ReturnType<typeof loginAction>> | null | undefined,
+) {
+  return (
+    typeof result === 'object' &&
+    result !== null &&
+    'error' in result &&
+    typeof result.error === 'string'
+  )
+    ? result.error
+    : null
+}
+
 export function useOrganizationLoginForm({
   organizationId,
   organizationSlug,
@@ -71,6 +84,7 @@ export function useOrganizationLoginForm({
   const [showPassword, setShowPassword] = useState(false)
   const [isPending, setIsPending] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
+  const [captchaToken, setCaptchaToken] = useState('')
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const loginSchema = React.useMemo(() => getLoginSchema(t), [t])
   const redirectUrlRef = useRef<string | null>(null)
@@ -198,10 +212,12 @@ export function useOrganizationLoginForm({
           organizationSlug,
           invitationToken,
           bulkInviteToken,
+          captchaToken,
         }),
       )
 
-      if (result?.error) {
+      const resultError = getLoginResultError(result)
+      if (resultError) {
         if (hasRedirectInfo(result)) {
           redirectUrlRef.current = result.redirectTo
 
@@ -211,7 +227,7 @@ export function useOrganizationLoginForm({
           }
 
           let countdown = 5
-          setError(result.error)
+          setError(resultError)
           setRedirectInfo({
             to: result.redirectTo,
             message: result.redirectMessage,
@@ -246,7 +262,7 @@ export function useOrganizationLoginForm({
           return
         }
 
-        setError(result.error)
+        setError(resultError)
         finishPending()
         return
       }
@@ -279,6 +295,7 @@ export function useOrganizationLoginForm({
     onSubmit,
     redirectInfo,
     setFocusedField,
+    setCaptchaToken,
     setShowPassword,
     showPassword,
   }

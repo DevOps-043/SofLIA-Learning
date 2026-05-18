@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import type { QueueEnqueueResult } from '@/lib/queue'
 import { logger } from '@/lib/utils/logger'
 import { importBusinessUsersFromCsv } from './import.service'
+import {
+  enqueueBusinessUserImportJob,
+  shouldQueueBusinessUserImport,
+} from './import-queue'
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     if (!auth.organizationId) {
       return NextResponse.json(
-        { success: false, error: 'No tienes una organizaciÃ³n asignada' },
+        { success: false, error: 'No tienes una organizacion asignada' },
         { status: 403 },
       )
     }
@@ -20,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     if (!file) {
       return NextResponse.json(
-        { success: false, error: 'No se proporcionÃ³ ningÃºn archivo' },
+        { success: false, error: 'No se proporciono ningun archivo' },
         { status: 400 },
       )
     }
@@ -32,11 +37,52 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const importResult = await importBusinessUsersFromCsv({
-      fileContent: await file.text(),
+    const fileContent = await file.text()
+    const forceAsync = formData.get('async') === 'true'
+    const importPayload = {
+      fileContent,
       organizationId: auth.organizationId,
       createdBy: auth.userId,
-    })
+    }
+
+    if (shouldQueueBusinessUserImport({ fileContent, forceAsync })) {
+      let queueResult: QueueEnqueueResult
+      try {
+        queueResult = await enqueueBusinessUserImportJob(importPayload)
+      } catch (queueError) {
+        logger.error('Error queueing /api/business/users/import', queueError)
+        return NextResponse.json(
+          { success: false, error: 'No se pudo encolar la importacion' },
+          { status: 503 },
+        )
+      }
+      if (queueResult.queued) {
+        return NextResponse.json(
+          {
+            success: true,
+            queued: true,
+            jobId: queueResult.jobId,
+            jobStatusUrl: queueResult.jobId
+              ? `/api/business/users/import/jobs/${encodeURIComponent(queueResult.jobId)}`
+              : null,
+            messageId: queueResult.messageId,
+            deduplicated: queueResult.deduplicated ?? false,
+          },
+          { status: 202 },
+        )
+      }
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No se pudo encolar la importacion. Intenta nuevamente.',
+          queueReason: queueResult.reason,
+        },
+        { status: 503 },
+      )
+    }
+
+    const importResult = await importBusinessUsersFromCsv(importPayload)
 
     if (!importResult.success) {
       return NextResponse.json(

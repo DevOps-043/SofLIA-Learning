@@ -22,7 +22,7 @@ export async function GET(_request: NextRequest) {
 
     const { data: userProfile, error: profileError } = await supabase
       .from('user_perfil')
-      .select('*')
+      .select(SELECT_COLUMNS.user_perfil)
       .eq('user_id', user.id)
       .single();
     if (profileError || !userProfile) {
@@ -46,7 +46,7 @@ export async function GET(_request: NextRequest) {
 
     const { data: adoptionData, error: adoptionError } = await supabase
       .from('adopcion_genai')
-      .select('*')
+      .select(SELECT_COLUMNS.adopcion_genai)
       .order('indice_aipi', { ascending: false });
     if (adoptionError) logger.warn('Error al obtener datos de adopción:', adoptionError);
 

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '@/features/auth/services/session.service';
@@ -44,7 +45,7 @@ export async function GET(
             .maybeSingle();
 
         if (error) {
-            console.error('[Resume API] Error fetching tracking:', error);
+            techDebtLogger.error('[Resume API] Error fetching tracking:', error);
             return NextResponse.json({ error: 'Database error' }, { status: 500 });
         }
 
@@ -72,7 +73,7 @@ export async function GET(
             status: tracking.status
         });
     } catch (error) {
-        console.error('[Resume API] Unexpected error:', error);
+        techDebtLogger.error('[Resume API] Unexpected error:', error);
         return NextResponse.json({
             error: 'Internal server error',
             details: process.env.NODE_ENV === 'development' ? String(error) : undefined

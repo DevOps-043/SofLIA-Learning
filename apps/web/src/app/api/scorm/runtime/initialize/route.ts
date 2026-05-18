@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     // Obtener paquete
     const { data: package_, error: packageError } = await supabase
       .from('scorm_packages')
-      .select('*')
+      .select(SELECT_COLUMNS.scorm_packages)
       .eq('id', packageId)
       .eq('status', 'active')
       .single();
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     // Buscar attempt existente o crear nuevo
     const { data: existingAttempt } = await supabase
       .from('scorm_attempts')
-      .select('*')
+      .select(SELECT_COLUMNS.scorm_attempts)
       .eq('user_id', user.id)
       .eq('package_id', packageId)
       .order('attempt_number', { ascending: false })

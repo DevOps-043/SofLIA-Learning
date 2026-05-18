@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 
 import { validateCourseImportApiKey } from './course-import/api-key'
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
 
     const validation = CourseImportPayloadSchema.safeParse(bodyResult.body)
     if (!validation.success) {
-      console.error('[IMPORT API] Validation Error:', validation.error.format())
+      techDebtLogger.error('[IMPORT API] Validation Error:', validation.error.format())
       return NextResponse.json(
         { details: validation.error.format(), error: 'Validation Error' },
         { status: 400 }
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
         success: true,
       })
     } catch (insertError: unknown) {
-      console.error('[IMPORT API] Error inserting modules/lessons:', insertError)
+      techDebtLogger.error('[IMPORT API] Error inserting modules/lessons:', insertError)
       await rollbackImportedCourse(supabase, course.id)
 
       return NextResponse.json(
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
       )
     }
   } catch (error: unknown) {
-    console.error('[IMPORT API] Unexpected error:', error)
+    techDebtLogger.error('[IMPORT API] Unexpected error:', error)
     return NextResponse.json(
       {
         details: error instanceof Error ? error.message : String(error),

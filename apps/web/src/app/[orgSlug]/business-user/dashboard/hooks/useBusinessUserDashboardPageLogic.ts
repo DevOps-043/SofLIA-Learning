@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
@@ -261,7 +262,7 @@ export function useBusinessUserDashboardPageLogic() {
     const measures = performance.getEntriesByName('business-user-dashboard:load-duration')
     const lastMeasure = measures[measures.length - 1]
 
-    console.debug('[business-user-dashboard] load complete', {
+    techDebtLogger.debug('[business-user-dashboard] load complete', {
       assignedCourses: assignedCourses.length,
       disableHeavyEffects,
       isMobileViewport,

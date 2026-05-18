@@ -23,7 +23,7 @@ export async function persistDialogueResult(input: {
   })
 
   const existing = await dialogueResultsTable(input.client)
-    .select('*')
+    .select(SELECT_COLUMNS.soflia_dialogue_results)
     .eq('session_id', input.session.session_id)
     .maybeSingle()
 
