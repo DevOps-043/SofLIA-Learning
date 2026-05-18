@@ -32,10 +32,7 @@ El objeto de contenido del quiz debe seguir esta estructura. Se prefiere el uso 
       "id": "q-1715000000001",
       "question": "React fue creado por Google.",
       "questionType": "true_false",
-      "options": [
-        "Verdadero",
-        "Falso"
-      ],
+      "options": ["Verdadero", "Falso"],
       "correctAnswer": "Falso",
       "explanation": "React fue creado y es mantenido por Meta (Facebook).",
       "points": 5
@@ -47,15 +44,15 @@ El objeto de contenido del quiz debe seguir esta estructura. Se prefiere el uso 
 
 ### Propiedades Clave del Item (Pregunta)
 
-| Propiedad | Tipo | Descripción |
-| :--- | :--- | :--- |
-| `id` | `string` | Identificador único (opcional en generación, recomendado). |
-| `question` | `string` | El texto de la pregunta. |
-| `questionType` | `string` | `multiple_choice`, `true_false`, o `short_answer`. |
-| `options` | `string[]` | Array de opciones de respuesta. Para `true_false`, debe ser `["Verdadero", "Falso"]`. |
-| `correctAnswer` | `string` | **IMPORTANTE**: La respuesta correcta exacta (debe coincidir textualmente con una de las opciones). Usar `camelCase`. |
-| `explanation` | `string` | (Opcional) Texto explicativo que se muestra tras responder. |
-| `points` | `number` | Puntos otorgados por la pregunta. |
+| Propiedad       | Tipo       | Descripción                                                                                                           |
+| :-------------- | :--------- | :-------------------------------------------------------------------------------------------------------------------- |
+| `id`            | `string`   | Identificador único (opcional en generación, recomendado).                                                            |
+| `question`      | `string`   | El texto de la pregunta.                                                                                              |
+| `questionType`  | `string`   | `multiple_choice`, `true_false`, o `short_answer`.                                                                    |
+| `options`       | `string[]` | Array de opciones de respuesta. Para `true_false`, debe ser `["Verdadero", "Falso"]`.                                 |
+| `correctAnswer` | `string`   | **IMPORTANTE**: La respuesta correcta exacta (debe coincidir textualmente con una de las opciones). Usar `camelCase`. |
+| `explanation`   | `string`   | (Opcional) Texto explicativo que se muestra tras responder.                                                           |
+| `points`        | `number`   | Puntos otorgados por la pregunta.                                                                                     |
 
 > **Nota de Compatibilidad**: El sistema soporta `correct_answer` (snake_case) por razones históricas, pero se **recomienda encarecidamente** usar `correctAnswer` (camelCase) para consistencia con el editor interno.
 
@@ -93,11 +90,11 @@ Para actividades de tipo `lia_script` o `ai_chat`. Estas definen simulaciones de
 
 ### Propiedades Clave de Escena
 
-| Propiedad | Tipo | Descripción |
-| :--- | :--- | :--- |
-| `character` | `string` | Nombre del personaje. Generalmente "Lia" o "Usuario" (u otro rol específico). |
-| `message` | `string` | El contenido del diálogo. |
-| `emotion` | `string` | (Opcional) Etiqueta de emoción para contexto visual/tono (ej. `neutral`, `happy`, `concerned`, `serious`). |
+| Propiedad   | Tipo     | Descripción                                                                                                |
+| :---------- | :------- | :--------------------------------------------------------------------------------------------------------- |
+| `character` | `string` | Nombre del personaje. Generalmente "Lia" o "Usuario" (u otro rol específico).                              |
+| `message`   | `string` | El contenido del diálogo.                                                                                  |
+| `emotion`   | `string` | (Opcional) Etiqueta de emoción para contexto visual/tono (ej. `neutral`, `happy`, `concerned`, `serious`). |
 
 ---
 
