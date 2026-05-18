@@ -1,4 +1,5 @@
 import { createClient } from '../../../lib/supabase/server';
+import { escapeIlikePattern } from '../../../lib/supabase/ilike-escape';
 import type { Database } from '../../../lib/supabase/types';
 import {
   OAuthAccount,
@@ -145,11 +146,14 @@ export class OAuthService {
   ): Promise<OAuthUserRecord | null> {
     const supabase = await createClient();
     const normalizedEmail = email.trim();
+    if (!normalizedEmail) {
+      return null;
+    }
 
     const { data, error } = await supabase
       .from('users')
       .select('id, email, username, first_name, last_name, email_verified, cargo_rol')
-      .ilike('email', normalizedEmail)
+      .ilike('email', escapeIlikePattern(normalizedEmail))
       .limit(10);
 
     if (error) {

@@ -1,3 +1,5 @@
+import { escapeIlikePattern } from '@/lib/supabase/ilike-escape'
+
 import type {
   CreateInvitationInput,
   InvitationRecord,
@@ -39,12 +41,17 @@ export function createInvitationCreateMethods(
       email: string,
       organizationId: string
     ): Promise<InvitationRecord | null> {
+      const normalized = email.trim()
+      if (!normalized) {
+        return null
+      }
+
       const { data } = await userInvitationsTable(supabase)
         .select('id, email, token, role, status, expires_at, organization_id, metadata, created_at')
         .eq('organization_id', organizationId)
         .eq('status', 'pending')
-        .ilike('email', email)
-        .single()
+        .ilike('email', escapeIlikePattern(normalized))
+        .maybeSingle()
 
       return data ? toInvitationRecord(data) : null
     },

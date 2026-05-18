@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { emailService } from '../../services/email.service';
 import { logger } from '../../../../lib/logger';
+import { escapeIlikePattern } from '../../../../lib/supabase/ilike-escape';
 import type { PasswordResetUser } from './reset-password.types';
 
 export const PASSWORD_RESET_SUCCESS_MESSAGE =
@@ -10,14 +11,27 @@ export async function findPasswordResetUser(
   supabase: Awaited<ReturnType<typeof import('../../../../lib/supabase/server').createClient>>,
   email: string
 ): Promise<PasswordResetUser | null> {
+  const normalized = email.trim();
+  if (!normalized) {
+    return null;
+  }
+
   const { data: user, error } = await supabase
     .from('users')
     .select('id, email, username, first_name')
-    .ilike('email', email)
-    .single();
+    .ilike('email', escapeIlikePattern(normalized))
+    .maybeSingle();
 
-  if (error || !user) {
-    logger.error('User not found or DB error during password reset request', { email, error });
+  if (error) {
+    logger.error('DB error during password reset lookup', {
+      code: error.code,
+      message: error.message,
+    });
+    return null;
+  }
+
+  if (!user) {
+    logger.info('No user matched password reset email');
     return null;
   }
 

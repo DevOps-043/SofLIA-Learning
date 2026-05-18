@@ -1,3 +1,5 @@
+import { escapeIlikePattern } from '@/lib/supabase/ilike-escape'
+
 import type {
   InvitationRecord,
   InvitationRepository,
@@ -76,7 +78,7 @@ export function createInvitationDetailMethods(
         ? await query.eq('token', tokenOrEmail).single()
         : await query
             .eq('organization_id', organizationId)
-            .ilike('email', tokenOrEmail)
+            .ilike('email', escapeIlikePattern(tokenOrEmail.trim()))
             .single()
 
       return data ? toInvitationRecord(data) : null

@@ -1,4 +1,5 @@
 import { logger } from '@/lib/logger';
+import { escapeIlikePattern } from '@/lib/supabase/ilike-escape';
 
 import type { ResolvedOAuthInvitationContext } from '../oauth-flow.types';
 import {
@@ -25,10 +26,15 @@ export async function resolveEmailInvitationContext({
     return { error: NOT_INVITED_MESSAGE };
   }
 
+  const normalizedEmail = email.trim();
+  if (!normalizedEmail) {
+    return { error: NOT_INVITED_MESSAGE };
+  }
+
   const { data: invitation } = await supabase
     .from('user_invitations')
     .select('id, role, expires_at, metadata')
-    .ilike('email', email.trim())
+    .ilike('email', escapeIlikePattern(normalizedEmail))
     .eq('organization_id', organizationId)
     .eq('status', 'pending')
     .maybeSingle();

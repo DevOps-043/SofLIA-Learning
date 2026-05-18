@@ -1,19 +1,52 @@
 import bcrypt from 'bcryptjs'
 import { headers } from 'next/headers'
 
+import { logger } from '@/lib/logger'
+import { escapeIlikePattern } from '@/lib/supabase/ilike-escape'
+
 import type { LoginSupabaseClient, LoginUserRecord } from './types'
+
+const LOGIN_USER_COLUMNS =
+  'id, username, email, password_hash, email_verified, cargo_rol, is_banned, ban_reason'
 
 export async function findLoginUser(
   supabase: LoginSupabaseClient,
   emailOrUsername: string
 ): Promise<LoginUserRecord | null> {
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('id, username, email, password_hash, email_verified, cargo_rol, is_banned, ban_reason')
-    .or(`username.ilike.${emailOrUsername},email.ilike.${emailOrUsername}`)
-    .maybeSingle<LoginUserRecord>()
+  const normalized = emailOrUsername.trim()
+  if (!normalized) {
+    return null
+  }
 
-  return error || !user ? null : user
+  const pattern = escapeIlikePattern(normalized)
+
+  const [byUsername, byEmail] = await Promise.all([
+    supabase
+      .from('users')
+      .select(LOGIN_USER_COLUMNS)
+      .ilike('username', pattern)
+      .maybeSingle<LoginUserRecord>(),
+    supabase
+      .from('users')
+      .select(LOGIN_USER_COLUMNS)
+      .ilike('email', pattern)
+      .maybeSingle<LoginUserRecord>(),
+  ])
+
+  if (byUsername.error) {
+    logger.error('Login lookup by username failed', {
+      code: byUsername.error.code,
+      message: byUsername.error.message,
+    })
+  }
+  if (byEmail.error) {
+    logger.error('Login lookup by email failed', {
+      code: byEmail.error.code,
+      message: byEmail.error.message,
+    })
+  }
+
+  return byUsername.data ?? byEmail.data ?? null
 }
 
 export async function validateLoginPassword(

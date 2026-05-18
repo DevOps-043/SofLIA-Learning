@@ -1,3 +1,5 @@
+import { escapeIlikePattern } from '@/lib/supabase/ilike-escape';
+
 import type { ResolvedOAuthInvitationContext } from '../oauth-flow.types';
 import {
   getMetadataPosition,
@@ -15,10 +17,15 @@ export async function findPendingInvitationForGlobalLogin(
   supabase: SupabaseServerClient,
   email: string
 ): Promise<ResolvedOAuthInvitationContext> {
+  const normalized = email.trim();
+  if (!normalized) {
+    return { orgContext: {} };
+  }
+
   const { data: invitations } = await supabase
     .from('user_invitations')
     .select('organization_id, role, metadata, organizations(slug), expires_at, id')
-    .ilike('email', email.trim())
+    .ilike('email', escapeIlikePattern(normalized))
     .eq('status', 'pending')
     .order('created_at', { ascending: false })
     .limit(1);

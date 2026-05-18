@@ -1,3 +1,5 @@
+import { escapeIlikePattern } from '@/lib/supabase/ilike-escape';
+
 import type { SupabaseServerClient } from '../oauth-flow.types';
 import type { ExistingOrganizationMembershipRow } from './types';
 
@@ -34,7 +36,7 @@ export async function consumeInvitation(
 
   query = isToken
     ? query.eq('token', tokenOrEmail)
-    : query.ilike('email', tokenOrEmail.trim());
+    : query.ilike('email', escapeIlikePattern(tokenOrEmail.trim()));
 
   await query;
 }
