@@ -114,6 +114,11 @@ export function LoginForm() {
 
       const result = await loginAction(formData);
 
+      if (result && 'debugCode' in result && result.debugCode) {
+        // eslint-disable-next-line no-console
+        console.warn('[loginAction] failure code:', result.debugCode);
+      }
+
       if (result?.error) {
         setError(result.error);
         finishPending();
