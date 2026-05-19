@@ -70,6 +70,39 @@ function scrollStepTargetIntoView(
   });
 }
 
+// Joyride falls back to its beacon UI when a step target cannot be
+// queried at mount time, even if `disableBeacon: true` is set per step.
+// In production the layout sometimes settles slower than in dev, so we
+// poll briefly before launching to guarantee the first target exists.
+const TARGET_POLL_INTERVAL_MS = 80;
+const TARGET_POLL_TIMEOUT_MS = 1500;
+
+function waitForTargetInDom(target: string): Promise<boolean> {
+  if (typeof document === 'undefined') {
+    return Promise.resolve(false);
+  }
+
+  if (document.querySelector(target)) {
+    return Promise.resolve(true);
+  }
+
+  return new Promise((resolve) => {
+    const start = Date.now();
+    const intervalId = window.setInterval(() => {
+      if (document.querySelector(target)) {
+        window.clearInterval(intervalId);
+        resolve(true);
+        return;
+      }
+
+      if (Date.now() - start >= TARGET_POLL_TIMEOUT_MS) {
+        window.clearInterval(intervalId);
+        resolve(false);
+      }
+    }, TARGET_POLL_INTERVAL_MS);
+  });
+}
+
 export function useCourseLearnJoyride({
   courseSlug,
   courseTitle,
@@ -165,6 +198,23 @@ export function useCourseLearnJoyride({
     setIsTourActive(true);
     await prepareStep(COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome);
 
+    // Abort early if the first step target never appears in the DOM.
+    // Without this guard, Joyride silently falls back to its beacon UI,
+    // which is exactly the "black dot" symptom observed in production.
+    const welcomeStep = steps[COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome];
+    const welcomeTarget = welcomeStep?.target;
+    if (typeof welcomeTarget === 'string') {
+      const targetReady = await waitForTargetInDom(welcomeTarget);
+      if (!targetReady) {
+        console.warn(
+          '[useCourseLearnJoyride] welcome target missing in DOM, aborting tour:',
+          welcomeTarget,
+        );
+        setIsTourActive(false);
+        return;
+      }
+    }
+
     setRun(false);
     setStepIndex(COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome);
     void startTour();
@@ -172,7 +222,7 @@ export function useCourseLearnJoyride({
     window.setTimeout(() => {
       setRun(true);
     }, TOUR_RESTART_DELAY_MS);
-  }, [prepareStep, startTour]);
+  }, [prepareStep, startTour, steps]);
 
   useEffect(() => {
     if (!enabled || mobilePerformanceMode || isLoading || !shouldShowTour) {

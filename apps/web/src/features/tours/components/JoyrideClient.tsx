@@ -1,7 +1,7 @@
 'use client'
 
-import { isValidElement } from 'react'
-import type { ComponentType } from 'react'
+import { Component, isValidElement } from 'react'
+import type { ComponentType, ErrorInfo, ReactNode } from 'react'
 import dynamic from 'next/dynamic'
 import type { Props as JoyrideProps, Step } from 'react-joyride'
 
@@ -44,19 +44,64 @@ function resolveJoyrideModule(moduleValue: unknown): ComponentType<JoyrideProps>
   )
 }
 
+// Canonical next/dynamic pattern: native ESM import() so webpack/SWC
+// produce a stable chunk in production builds. Using require() inside a
+// Promise.resolve wrapper was returning a different CommonJS interop shape
+// in production than in development, which caused step props (notably
+// disableBeacon) to be silently dropped by the resolved component.
 const DynamicJoyride = dynamic<JoyrideProps>(
-  () => Promise.resolve(resolveJoyrideModule(require('react-joyride'))),
+  () => import('react-joyride').then((mod) => resolveJoyrideModule(mod)),
   {
     loading: () => null,
     ssr: false,
   },
 )
 
+type JoyrideErrorBoundaryProps = {
+  children: ReactNode
+}
+
+type JoyrideErrorBoundaryState = {
+  hasError: boolean
+}
+
+// Joyride mounts a portal to document.body. A render error inside the
+// portal can leave the page covered by a transparent overlay (`<body>`
+// scroll-locked, pointer-events absorbed by joyride's spotlight). The
+// boundary contains the failure to the tour subtree so the rest of the
+// page stays interactive. The error is reported to the server-side
+// console — surface it in your Netlify function logs if it triggers.
+class JoyrideErrorBoundary extends Component<
+  JoyrideErrorBoundaryProps,
+  JoyrideErrorBoundaryState
+> {
+  state: JoyrideErrorBoundaryState = { hasError: false }
+
+  static getDerivedStateFromError(): JoyrideErrorBoundaryState {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo): void {
+    console.error('[JoyrideClient] render failure suppressed:', error, info)
+  }
+
+  render(): ReactNode {
+    if (this.state.hasError) {
+      return null
+    }
+    return this.props.children
+  }
+}
+
 export function JoyrideClient(props: JoyrideProps) {
   const steps = normalizeJoyrideSteps(props.steps)
   const run = Boolean(props.run && steps.length > 0)
 
-  return <DynamicJoyride {...props} run={run} steps={steps} />
+  return (
+    <JoyrideErrorBoundary>
+      <DynamicJoyride {...props} run={run} steps={steps} />
+    </JoyrideErrorBoundary>
+  )
 }
 
 export function isRenderableJoyrideIcon(icon: unknown): boolean {

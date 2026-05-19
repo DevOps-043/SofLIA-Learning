@@ -40,7 +40,14 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
   // Debounce timer ref for updateStep — cleared on unmount
   const stepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Verify whether the user has already seen this tour (called once on mount)
+  // Verify whether the user has already seen this tour (called once on mount).
+  // Degradation policy:
+  // - 200 OK → trust the server-reported state
+  // - 503 (infrastructure_unavailable) → suppress the tour silently, no error
+  //   noise. The table is missing; running the tour would only generate more
+  //   write failures.
+  // - any other non-2xx or network error → suppress the tour AND log, since
+  //   it indicates a real fault that ops should see.
   useEffect(() => {
     const checkTourProgress = async () => {
       try {
@@ -52,6 +59,8 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
           const data = await response.json();
           setHasSeenTour(data.hasSeenTour);
           setTourProgress(data.tourProgress);
+        } else if (response.status === 503) {
+          setHasSeenTour(true);
         } else {
           console.error('[useTourProgress] GET failed:', await response.text());
           setHasSeenTour(true);
@@ -89,10 +98,15 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
       });
 
       if (!response.ok) {
-        console.error(
-          `[useTourProgress] POST action="${action}" failed:`,
-          await response.text()
-        );
+        // 503 means tour-progress infrastructure isn't ready in this env
+        // (e.g. migration not applied). It's expected, not an incident, so
+        // we swallow it without log spam.
+        if (response.status !== 503) {
+          console.error(
+            `[useTourProgress] POST action="${action}" failed:`,
+            await response.text()
+          );
+        }
         return null;
       }
 

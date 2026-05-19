@@ -82,7 +82,19 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('[GET /api/tours] DB error:', error);
       if (isMissingTourProgressInfrastructureError(error)) {
-        return NextResponse.json({ success: true, hasSeenTour: true, tourProgress: null });
+        // Don't claim the user has seen the tour just because the table is
+        // missing — that masks infrastructure problems. Return 503 with an
+        // explicit reason so the client can degrade gracefully without
+        // pretending writes succeeded.
+        return NextResponse.json(
+          {
+            success: false,
+            reason: 'infrastructure_unavailable',
+            hasSeenTour: false,
+            tourProgress: null,
+          },
+          { status: 503 },
+        );
       }
       return NextResponse.json({ error: 'Error al verificar tour' }, { status: 500 });
     }
@@ -147,7 +159,10 @@ export async function POST(request: NextRequest) {
     if (existingError) {
       console.error('[POST /api/tours] Read DB error:', existingError);
       if (isMissingTourProgressInfrastructureError(existingError)) {
-        return NextResponse.json({ success: true, tourProgress: null });
+        return NextResponse.json(
+          { success: false, reason: 'infrastructure_unavailable', tourProgress: null },
+          { status: 503 },
+        );
       }
       return NextResponse.json({ error: 'Error al guardar progreso' }, { status: 500 });
     }
@@ -202,7 +217,10 @@ export async function POST(request: NextRequest) {
     if (result.error) {
       console.error('[POST /api/tours] DB error:', result.error);
       if (isMissingTourProgressInfrastructureError(result.error)) {
-        return NextResponse.json({ success: true, tourProgress: null });
+        return NextResponse.json(
+          { success: false, reason: 'infrastructure_unavailable', tourProgress: null },
+          { status: 503 },
+        );
       }
       return NextResponse.json({ error: 'Error al guardar progreso' }, { status: 500 });
     }
