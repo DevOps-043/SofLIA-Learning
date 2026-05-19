@@ -2,10 +2,22 @@ import { NextResponse, NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import {
+  updateZoneSchema,
+  type UpdateZoneBody,
+} from '@/app/api/business/hierarchy/_schemas';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string; zoneId: string }>;
 }
+
+const parseLatLng = (value: number | string | null | undefined) => {
+  if (value === null || value === undefined || value === '') return null;
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  return Number.isNaN(num) ? null : num;
+};
 
 /**
  * GET /api/[orgSlug]/business/hierarchy/zones/[zoneId]
@@ -64,27 +76,28 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
  * PUT /api/[orgSlug]/business/hierarchy/zones/[zoneId]
  * Actualiza una zona
  */
-export async function PUT(request: NextRequest, { params }: RouteContext) {
+async function handlePut(
+  _request: NextRequest,
+  body: UpdateZoneBody,
+  { params }: RouteContext,
+) {
   try {
     const { orgSlug, zoneId } = await params;
     const auth = await requireBusiness({ organizationSlug: orgSlug });
     if (auth instanceof NextResponse) return auth;
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
-      );
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403);
     }
 
     if (auth.organizationRole !== 'owner' && auth.organizationRole !== 'admin') {
-      return NextResponse.json(
-        { success: false, error: 'Solo el propietario o administrador puede modificar zonas' },
-        { status: 403 }
+      return apiError(
+        'FORBIDDEN',
+        'Solo el propietario o administrador puede modificar zonas',
+        403,
       );
     }
 
-    const body = await request.json();
     const supabase = await createClient();
 
     // Verificar que la zona existe
@@ -96,10 +109,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       .single();
 
     if (fetchError || !existingZone) {
-      return NextResponse.json(
-        { success: false, error: 'Zona no encontrada' },
-        { status: 404 }
-      );
+      return apiError('ZONE_NOT_FOUND', 'Zona no encontrada', 404);
     }
 
     // Si se cambia el nombre, verificar unicidad en la región
@@ -113,9 +123,10 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
         .neq('id', zoneId);
 
       if (duplicateCount && duplicateCount > 0) {
-        return NextResponse.json(
-          { success: false, error: 'Ya existe una zona con ese nombre en esta región' },
-          { status: 400 }
+        return apiError(
+          'DUPLICATE_NAME',
+          'Ya existe una zona con ese nombre en esta región',
+          400,
         );
       }
     }
@@ -135,23 +146,8 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     if (body.country !== undefined) updateData.country = body.country?.trim() || null;
     if (body.postal_code !== undefined) updateData.postal_code = body.postal_code?.trim() || null;
     
-    // Procesar coordenadas
-    if (body.latitude !== undefined) {
-      if (body.latitude === null || body.latitude === '' || body.latitude === undefined) {
-        updateData.latitude = null;
-      } else {
-        const latNum = typeof body.latitude === 'string' ? parseFloat(body.latitude) : body.latitude;
-        updateData.latitude = !isNaN(latNum) ? latNum : null;
-      }
-    }
-    if (body.longitude !== undefined) {
-      if (body.longitude === null || body.longitude === '' || body.longitude === undefined) {
-        updateData.longitude = null;
-      } else {
-        const lngNum = typeof body.longitude === 'string' ? parseFloat(body.longitude) : body.longitude;
-        updateData.longitude = !isNaN(lngNum) ? lngNum : null;
-      }
-    }
+    if (body.latitude !== undefined) updateData.latitude = parseLatLng(body.latitude);
+    if (body.longitude !== undefined) updateData.longitude = parseLatLng(body.longitude);
     
     // Campos de contacto
     if (body.phone !== undefined) updateData.phone = body.phone?.trim() || null;
@@ -161,10 +157,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     if (body.manager_id !== undefined) updateData.manager_id = body.manager_id || null;
 
     if (Object.keys(updateData).length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'No hay datos para actualizar' },
-        { status: 400 }
-      );
+      return apiError('NO_CHANGES', 'No hay datos para actualizar', 400);
     }
 
     const { data: zone, error } = await supabase
@@ -183,10 +176,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 
     if (error) {
       logger.error('Error actualizando zona:', error);
-      return NextResponse.json(
-        { success: false, error: 'Error al actualizar la zona' },
-        { status: 500 }
-      );
+      return apiError('UPDATE_ZONE_FAILED', 'Error al actualizar la zona', 500);
     }
 
     return NextResponse.json({
@@ -195,12 +185,11 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     });
   } catch (error) {
     logger.error('Error en PUT /api/[orgSlug]/business/hierarchy/zones/[zoneId]:', error);
-    return NextResponse.json(
-      { success: false, error: 'Error al actualizar la zona' },
-      { status: 500 }
-    );
+    return apiError('UPDATE_ZONE_FAILED', 'Error al actualizar la zona', 500);
   }
 }
+
+export const PUT = withZodBody(updateZoneSchema, handlePut);
 
 /**
  * DELETE /api/[orgSlug]/business/hierarchy/zones/[zoneId]

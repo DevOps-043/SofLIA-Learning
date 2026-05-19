@@ -1,7 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { createRegionSchema, type CreateRegionBody } from '../_schemas';
 
 /**
  * GET /api/business/hierarchy/regions
@@ -118,38 +121,25 @@ export async function GET(request: Request) {
  * POST /api/business/hierarchy/regions
  * Crea una nueva región
  */
-export async function POST(request: Request) {
+async function handlePost(_request: NextRequest, body: CreateRegionBody) {
   try {
     const auth = await requireBusiness();
     if (auth instanceof NextResponse) return auth;
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
-      );
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403);
     }
 
-    // Solo owner o admin puede crear regiones
     if (auth.organizationRole !== 'owner' && auth.organizationRole !== 'admin') {
-      return NextResponse.json(
-        { success: false, error: 'Solo el propietario o administrador puede crear regiones' },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-
-    if (!body.name || typeof body.name !== 'string' || body.name.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'El nombre de la región es requerido' },
-        { status: 400 }
+      return apiError(
+        'FORBIDDEN',
+        'Solo el propietario o administrador puede crear regiones',
+        403,
       );
     }
 
     const supabase = await createClient();
 
-    // Verificar nombre único
     const { count: existingCount } = await supabase
       .from('organization_regions')
       .select('id', { count: 'exact', head: true })
@@ -157,11 +147,15 @@ export async function POST(request: Request) {
       .ilike('name', body.name.trim());
 
     if (existingCount && existingCount > 0) {
-      return NextResponse.json(
-        { success: false, error: 'Ya existe una región con ese nombre' },
-        { status: 400 }
-      );
+      return apiError('DUPLICATE_NAME', 'Ya existe una región con ese nombre', 400);
     }
+
+    const parseLatLng = (value: number | string | null | undefined) =>
+      value === null || value === undefined || value === ''
+        ? null
+        : typeof value === 'number'
+          ? value
+          : parseFloat(value);
 
     const { data: region, error } = await supabase
       .from('organization_regions')
@@ -170,44 +164,34 @@ export async function POST(request: Request) {
         name: body.name.trim(),
         description: body.description?.trim() || null,
         code: body.code?.trim() || null,
-        // Ubicación
         address: body.address?.trim() || null,
         city: body.city?.trim() || null,
         state: body.state?.trim() || null,
         country: body.country?.trim() || 'México',
         postal_code: body.postal_code?.trim() || null,
-        latitude: body.latitude !== null && body.latitude !== undefined && body.latitude !== '' ? parseFloat(body.latitude) : null,
-        longitude: body.longitude !== null && body.longitude !== undefined && body.longitude !== '' ? parseFloat(body.longitude) : null,
-        // Contacto
+        latitude: parseLatLng(body.latitude),
+        longitude: parseLatLng(body.longitude),
         phone: body.phone?.trim() || null,
         email: body.email?.trim() || null,
-        // Gerente
         manager_id: body.manager_id || null,
         metadata: body.metadata || {},
-        created_by: auth.userId
+        created_by: auth.userId,
       })
       .select(`*, manager:users!organization_regions_manager_id_fkey(id, display_name, first_name, last_name, email, profile_picture_url)`)
       .single();
 
     if (error) {
       logger.error('Error creando región:', error);
-      return NextResponse.json(
-        { success: false, error: 'Error al crear la región' },
-        { status: 500 }
-      );
+      return apiError('CREATE_REGION_FAILED', 'Error al crear la región', 500);
     }
 
     logger.info('Región creada:', { regionId: region.id, name: region.name });
 
-    return NextResponse.json({
-      success: true,
-      region
-    });
+    return NextResponse.json({ success: true, region });
   } catch (error) {
     logger.error('Error en POST /api/business/hierarchy/regions:', error);
-    return NextResponse.json(
-      { success: false, error: 'Error al crear la región' },
-      { status: 500 }
-    );
+    return apiError('CREATE_REGION_FAILED', 'Error al crear la región', 500);
   }
 }
+
+export const POST = withZodBody(createRegionSchema, handlePost);

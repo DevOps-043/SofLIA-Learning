@@ -15,7 +15,8 @@ export async function readTranslationRequest(
 ): Promise<TranslationRequestOptions> {
   let raw: unknown = {}
   try {
-    raw = await request.json()
+    const rawBody = await request.text()
+    raw = rawBody.trim() ? JSON.parse(rawBody) : {}
   } catch {
     raw = {}
   }

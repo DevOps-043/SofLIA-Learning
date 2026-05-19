@@ -1,10 +1,11 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback } from 'react';
-import { CallBackProps, STATUS, Step, ACTIONS, EVENTS } from 'react-joyride';
+import { STATUS, ACTIONS, EVENTS } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
 import { studyPlannerJoyrideSteps } from '../config/study-planner-joyride-config';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourRestart } from '@/core/contexts/TourRestartContext';
+import type { SofliaJoyrideEvent as CallBackProps } from '../types/joyride';
 
 export const useStudyPlannerJoyride = () => {
   const [run, setRun] = useState(false);

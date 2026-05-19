@@ -2,11 +2,12 @@
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { CallBackProps, STATUS, ACTIONS, EVENTS, Step } from 'react-joyride';
+import { STATUS, ACTIONS, EVENTS } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourRestart } from '@/core/contexts/TourRestartContext';
 import { useTranslation } from 'react-i18next';
+import type { SofliaJoyrideEvent as CallBackProps, SofliaJoyrideStep as Step } from '../types/joyride';
 
 interface UseFeatureTourOptions {
   tourId: string;
@@ -104,7 +105,7 @@ function getTargetElement(target: Step['target']): HTMLElement | null {
 function syncSpotlightToTarget(target: Step['target']): boolean {
   const el = getTargetElement(target);
   const spotlight = document.querySelector<HTMLElement>(
-    '.react-joyride__spotlight[data-test-id="spotlight"]',
+    '.react-joyride__spotlight[data-testid="spotlight"]',
   );
 
   if (!el || !spotlight) {

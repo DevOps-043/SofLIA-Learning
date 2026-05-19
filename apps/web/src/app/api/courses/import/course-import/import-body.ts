@@ -1,5 +1,9 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
+import { apiError } from '@/lib/api/errors'
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
+
+const courseImportBodySchema = z.record(z.unknown())
 
 export async function readCourseImportBody(
   request: Request
@@ -8,11 +12,22 @@ export async function readCourseImportBody(
   | { response: NextResponse; success: false }
 > {
   try {
-    return { body: await request.json(), success: true }
+    const rawBody = await request.text()
+    const parsedJson = rawBody.trim() ? JSON.parse(rawBody) : {}
+    const parsedBody = courseImportBodySchema.safeParse(parsedJson)
+
+    if (!parsedBody.success) {
+      return {
+        response: apiError('INVALID_JSON', 'Invalid JSON body', 400),
+        success: false,
+      }
+    }
+
+    return { body: parsedBody.data, success: true }
   } catch (error) {
     techDebtLogger.error('[IMPORT API] JSON Parse Error:', error)
     return {
-      response: NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 }),
+      response: apiError('INVALID_JSON', 'Invalid JSON body', 400),
       success: false,
     }
   }

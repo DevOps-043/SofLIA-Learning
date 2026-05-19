@@ -1,97 +1,100 @@
 import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from 'next/server';
 
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
-
-import { NextResponse } from 'next/server';
-
 import type { BusinessAuth } from '@/lib/auth/requireBusiness';
+
+import { createNodeSchema, type CreateNodeBody } from '../_schemas';
 import type {
-    CreateNodeRequest,
-    OrganizationNodeInsert,
-    ParentNodeRow,
-    StructureOrganizationRow,
+  OrganizationNodeInsert,
+  ParentNodeRow,
+  StructureOrganizationRow,
 } from './route.post.types';
 
-export async function POST(request: Request) {
-    // Auth Check
-    const auth = await requireBusiness();
-    if (auth instanceof NextResponse) return auth;
+async function handlePost(_request: NextRequest, body: CreateNodeBody) {
+  const auth = await requireBusiness();
+  if (auth instanceof NextResponse) return auth;
 
-    const { organizationId } = auth as BusinessAuth;
+  const { organizationId } = auth as BusinessAuth;
+  if (!organizationId) {
+    return apiError('NO_ORGANIZATION', 'Organization ID required', 403);
+  }
 
-    if (!organizationId) {
-        return NextResponse.json({ error: 'Organization ID required' }, { status: 403 });
-    }
+  const supabase = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
 
-    const body: CreateNodeRequest = await request.json();
-    const supabase = createServiceClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
+  let path = '';
+  let depth = 0;
+
+  const { data: structure } = await supabase
+    .from('organization_structures')
+    .select('organization_id')
+    .eq('id', body.structure_id)
+    .single<StructureOrganizationRow>();
+
+  if (!structure) {
+    return apiError('STRUCTURE_NOT_FOUND', 'Structure not found', 404);
+  }
+
+  if (structure.organization_id !== organizationId) {
+    return apiError(
+      'UNAUTHORIZED_STRUCTURE',
+      'Unauthorized access to this structure',
+      403,
     );
+  }
 
-    if (!body.structure_id || !body.name || !body.type) {
-        return NextResponse.json({ error: 'structure_id, name y type son requeridos' }, { status: 400 });
+  if (body.parent_id) {
+    const { data: parent } = await supabase
+      .from('organization_nodes')
+      .select('path, depth')
+      .eq('id', body.parent_id)
+      .single<ParentNodeRow>();
+    if (!parent) {
+      return apiError('PARENT_NOT_FOUND', 'Parent not found', 404);
     }
 
-    // Logic to calculate path and depth
-    let path = '';
-    let depth = 0;
+    const slug = body.name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/\s+/g, '_')
+      .replace(/[^a-z0-9_]/g, '');
 
-    // 1. Get Organization ID from structure and VERIFY it matches auth context
-    const { data: structure } = await supabase
-        .from('organization_structures')
-        .select('organization_id')
-        .eq('id', body.structure_id)
-        .single<StructureOrganizationRow>();
+    path = `${parent.path}.${slug}`;
+    depth = parent.depth + 1;
+  } else {
+    path = 'root';
+    depth = 0;
+  }
 
-    if (!structure) return NextResponse.json({ error: 'Structure not found' }, { status: 404 });
+  const insertData: OrganizationNodeInsert = {
+    structure_id: body.structure_id,
+    parent_id: body.parent_id || null,
+    name: body.name,
+    type: body.type,
+    position: body.position ?? null,
+    manager_id: body.manager_id ?? null,
+    properties: body.properties ?? body.metadata ?? {},
+    organization_id: organizationId,
+    path,
+    depth,
+  };
 
-    // Security check: Ensure structure belongs to the user's organization
-    if (structure.organization_id !== organizationId) {
-        return NextResponse.json({ error: 'Unauthorized access to this structure' }, { status: 403 });
-    }
+  const { data, error } = await supabase
+    .from('organization_nodes')
+    .insert(insertData)
+    .select()
+    .single();
 
-    // 2. Calculate Path
-    if (body.parent_id) {
-        const { data: parent } = await supabase
-            .from('organization_nodes')
-            .select('path, depth')
-            .eq('id', body.parent_id)
-            .single<ParentNodeRow>();
-        if (!parent) return NextResponse.json({ error: 'Parent not found' }, { status: 404 });
-
-        // Sanitize slug
-        const slug = body.name.toLowerCase()
-            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accents
-            .replace(/\s+/g, '_')
-            .replace(/[^a-z0-9_]/g, '');
-
-        path = `${parent.path}.${slug}`;
-        depth = parent.depth + 1;
-    } else {
-        path = 'root';
-        depth = 0;
-    }
-
-    const insertData: OrganizationNodeInsert = {
-        structure_id: body.structure_id,
-        parent_id: body.parent_id || null,
-        name: body.name,
-        type: body.type,
-        position: body.position ?? null,
-        manager_id: body.manager_id ?? null,
-        properties: body.properties ?? body.metadata ?? {},
-        organization_id: organizationId,
-        path,
-        depth
-    };
-
-    const { data, error } = await supabase
-        .from('organization_nodes')
-        .insert(insertData)
-        .select()
-        .single();
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ data });
+  if (error) {
+    return apiError('CREATE_NODE_FAILED', error.message, 500);
+  }
+  return NextResponse.json({ data });
 }
+
+export const POST = withZodBody(createNodeSchema, handlePost);

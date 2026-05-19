@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
+import { ZodError } from 'zod'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import {
@@ -13,29 +15,19 @@ import type {
   ReportsAnalyticsFilters,
   ReportsAnalyticsLocale,
 } from '@/features/business-panel/types/reports-analytics.types'
+import {
+  reportsAnalyticsInsightsSchema,
+  type ReportsAnalyticsInsightsBody,
+} from '../../_schemas'
 
-const optionalFilterSchema = z.string().trim().min(1).max(160).optional()
+type RouteContext = {
+  params: Promise<{ orgSlug: string }>
+}
 
-const analyticsInsightsSchema = z.object({
-  from: z.string().optional(),
-  to: z.string().optional(),
-  granularity: z.enum(['day', 'month', 'year']).optional(),
-  courseId: optionalFilterSchema,
-  gender: optionalFilterSchema,
-  ageBand: optionalFilterSchema,
-  jobTitle: optionalFilterSchema,
-  role: optionalFilterSchema,
-  status: optionalFilterSchema,
-  regionId: optionalFilterSchema,
-  zoneId: optionalFilterSchema,
-  teamId: optionalFilterSchema,
-  locale: z.enum(['es', 'en', 'pt']).optional(),
-  format: z.enum(['json', 'pdf']).optional(),
-})
-
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> },
+async function handlePost(
+  _request: NextRequest,
+  body: ReportsAnalyticsInsightsBody,
+  { params }: RouteContext,
 ) {
   try {
     const { orgSlug } = await params
@@ -43,10 +35,8 @@ export async function POST(
     if (auth instanceof NextResponse) return auth
     if (!auth.organizationId) return forbiddenResponse()
 
-    const body = await request.json()
-    const parsed = analyticsInsightsSchema.parse(body)
-    const filters = normalizeFilters(parsed)
-    const locale: ReportsAnalyticsLocale = parsed.locale || 'es'
+    const filters = normalizeFilters(body)
+    const locale: ReportsAnalyticsLocale = body.locale || 'es'
     const supabase = await createClient()
     const dataset = await fetchReportsAnalyticsDataset(supabase, auth.organizationId, filters)
     const insights = await generateReportsAnalyticsInsights({
@@ -55,10 +45,10 @@ export async function POST(
       requestedByUserId: auth.userId,
     })
 
-    if (parsed.format === 'pdf') {
+    if (body.format === 'pdf') {
       const pdf = await generateReportsAnalyticsInsightsPdf({ dataset, insights, locale })
-      const body = pdf.buffer.slice(pdf.byteOffset, pdf.byteOffset + pdf.byteLength) as ArrayBuffer
-      return new NextResponse(body, {
+      const responseBody = pdf.buffer.slice(pdf.byteOffset, pdf.byteOffset + pdf.byteLength) as ArrayBuffer
+      return new NextResponse(responseBody, {
         status: 200,
         headers: {
           'Content-Type': 'application/pdf',
@@ -80,23 +70,19 @@ export async function POST(
       },
     )
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { success: false, error: 'Filtros de analytics invalidos' },
-        { status: 400 },
-      )
+    if (error instanceof ZodError) {
+      return apiError('VALIDATION_ERROR', 'Filtros de analytics invalidos', 400)
     }
 
-    logger.error('Reports analytics insights failed')
-    return NextResponse.json(
-      { success: false, error: 'Error al generar analisis IA' },
-      { status: 500 },
-    )
+    logger.error('Reports analytics insights failed', error)
+    return apiError('REPORT_INSIGHTS_FAILED', 'Error al generar analisis IA', 500)
   }
 }
 
+export const POST = withZodBody(reportsAnalyticsInsightsSchema, handlePost)
+
 function normalizeFilters(
-  input: z.infer<typeof analyticsInsightsSchema>,
+  input: ReportsAnalyticsInsightsBody,
 ): ReportsAnalyticsFilters {
   const now = new Date()
   const defaultFrom = new Date(now)
@@ -124,7 +110,7 @@ function normalizeFilters(
 function normalizeDate(value: string | undefined, fallback: Date, endOfDay: boolean): string {
   const date = value ? new Date(value) : new Date(fallback)
   if (Number.isNaN(date.getTime())) {
-    throw new z.ZodError([])
+    throw new ZodError([])
   }
 
   if (endOfDay) {
@@ -137,8 +123,5 @@ function normalizeDate(value: string | undefined, fallback: Date, endOfDay: bool
 }
 
 function forbiddenResponse(): NextResponse {
-  return NextResponse.json(
-    { success: false, error: 'No tienes una organizacion asignada' },
-    { status: 403 },
-  )
+  return apiError('NO_ORGANIZATION', 'No tienes una organizacion asignada', 403)
 }

@@ -6,7 +6,7 @@ import { HierarchyTree } from '@/features/business-panel/components/hierarchy/Hi
 import { HierarchySettings } from '@/features/business-panel/components/hierarchy/HierarchySettings';
 import { Network, Settings, LayoutGrid, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Joyride } from 'react-joyride';
+import { SofliaJoyride as Joyride } from '@/features/tours/components/SofliaJoyride';
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour';
 import { getAdminHierarchySteps, ADMIN_HIERARCHY_TOUR_ID } from '@/features/tours/config/business-panel/admin-hierarchy-steps';
 

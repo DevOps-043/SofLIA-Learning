@@ -1,103 +1,120 @@
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { NoteService } from '@/features/courses/services/note.service'
-
-import { CourseService } from '@/features/courses/services/course.service'
-
+import {
+  noteUpdateSchema,
+  type NoteUpdateBody,
+} from '@/app/api/courses/_schemas'
 import { SessionService } from '@/features/auth/services/session.service'
+import { CourseService } from '@/features/courses/services/course.service'
+import { NoteService } from '@/features/courses/services/note.service'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core'
 
-import { GoogleGenerativeAI } from '@google/generative-ai'
+async function generateNoteTitle(noteContent: string): Promise<string> {
+  try {
+    const googleApiKey = process.env.GOOGLE_API_KEY
+    const geminiModel = process.env.GEMINI_MODEL || 'gemini-1.5-flash'
 
-/**
- * PUT /api/courses/[slug]/lessons/[lessonId]/notes/[noteId]
- * Actualiza una nota existente
- */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string; lessonId: string; noteId: string }> }
+    if (!googleApiKey) {
+      return 'Nota de estudio'
+    }
+
+    const genAI = new GoogleGenerativeAI(googleApiKey)
+    const model = genAI.getGenerativeModel({ model: geminiModel })
+    const plainContent = noteContent.replace(/<[^>]*>?/gm, '').substring(0, 1500)
+
+    const prompt = `Eres un asistente experto en educacion que genera titulos cortos, profesionales y descriptivos para notas de estudio.
+
+Contenido de la nota: "${plainContent}"
+
+Instrucciones:
+1. El titulo debe ser muy corto (maximo 5 palabras).
+2. Debe capturar la esencia principal del contenido.
+3. Evita palabras genericas como "Nota sobre" o "Resumen de".
+4. Responde UNICAMENTE con el texto del titulo, sin comillas, sin puntos finales y sin explicaciones.
+5. Idioma: Espanol.`
+
+    const result = await model.generateContent(prompt)
+    const response = await result.response
+    const generatedTitle = response.text().trim().replace(/^["']|["']$/g, '').replace(/\.$/, '')
+
+    return generatedTitle && !generatedTitle.toLowerCase().includes('error')
+      ? generatedTitle
+      : 'Nota de estudio'
+  } catch {
+    return 'Nota de estudio'
+  }
+}
+
+async function handlePut(
+  _request: NextRequest,
+  body: NoteUpdateBody,
+  {
+    params,
+  }: { params: Promise<{ slug: string; lessonId: string; noteId: string }> },
 ) {
   try {
     const { slug, lessonId, noteId } = await params
 
-    // Obtener usuario autenticado usando el sistema de sesiones personalizado
     const currentUser = await SessionService.getCurrentUser()
-
     if (!currentUser) {
-      return NextResponse.json(
-        { error: 'No autenticado' },
-        { status: 401 }
-      )
+      return apiError('UNAUTHENTICATED', 'No autenticado.', 401)
     }
 
-    // Verificar que el curso existe (opcional, para validación)
     const course = await CourseService.getCourseBySlug(slug, currentUser.id)
-    
     if (!course) {
-      return NextResponse.json(
-        { error: 'Curso no encontrado' },
-        { status: 404 }
+      return apiError('COURSE_NOT_FOUND', 'Curso no encontrado.', 404)
+    }
+
+    const noteContent =
+      body.note_content === undefined || body.note_content === null
+        ? undefined
+        : sanitizeHtml(body.note_content, {
+            level: 'rich',
+            maxLength: 50_000,
+          }).trim()
+
+    if (body.note_content !== undefined && body.note_content !== null && !noteContent) {
+      return apiError(
+        'VALIDATION_ERROR',
+        'El contenido de la nota es requerido y no puede estar vacio.',
+        422,
       )
     }
 
-    const body = await request.json()
-    let { note_title, note_content, note_tags } = body
+    let noteTitle =
+      body.note_title === undefined || body.note_title === null
+        ? undefined
+        : body.note_title.trim()
 
-    // 🤖 GENERACIÓN DE TÍTULO POR IA: Si el título está vacío, generarlo automáticamente
-    if (note_title !== undefined && (typeof note_title !== 'string' || note_title.trim().length === 0)) {
-      try {
-        let contentForAi = note_content;
-        
-        // Si no hay contenido en el body, intentar obtenerlo de la nota existente
-        if (!contentForAi) {
-          const notes = await NoteService.getNotesByLesson(currentUser.id, lessonId);
-          const existingNote = notes.find(n => n.note_id === noteId);
-          contentForAi = existingNote?.note_content;
-        }
-        
-        const googleApiKey = process.env.GOOGLE_API_KEY;
-        const geminiModel = process.env.GEMINI_MODEL || "gemini-1.5-flash";
-        
-        if (googleApiKey && contentForAi) {
-          const genAI = new GoogleGenerativeAI(googleApiKey);
-          const model = genAI.getGenerativeModel({ model: geminiModel });
-          
-          const prompt = `Eres un asistente experto en educación que genera títulos cortos, profesionales y descriptivos para notas de estudio.
-          
-          Contenido de la nota: "${contentForAi.replace(/<[^>]*>?/gm, '').substring(0, 1500)}"
-          
-          Instrucciones:
-          1. El título debe ser muy corto (máximo 5 palabras).
-          2. Debe capturar la esencia principal del contenido.
-          3. Evita palabras genéricas como "Nota sobre" o "Resumen de".
-          4. Responde ÚNICAMENTE con el texto del título, sin comillas, sin puntos finales y sin explicaciones.
-          5. Idioma: Español.`;
-          
-          const result = await model.generateContent(prompt);
-          const response = await result.response;
-          const generatedTitle = response.text().trim().replace(/^["']|["']$/g, '').replace(/\.$/, '');
-          
-          if (generatedTitle && generatedTitle.length > 0 && !generatedTitle.toLowerCase().includes("error")) {
-            note_title = generatedTitle;
-          }
-        }
-      } catch (aiError) {
+    if (body.note_title !== undefined && !noteTitle) {
+      let contentForAi = noteContent
+
+      if (!contentForAi) {
+        const notes = await NoteService.getNotesByLesson(currentUser.id, lessonId)
+        const existingNote = notes.find((note) => note.note_id === noteId)
+        contentForAi = existingNote?.note_content
+      }
+
+      if (contentForAi) {
+        noteTitle = await generateNoteTitle(contentForAi)
       }
     }
 
     const note = await NoteService.updateNote(currentUser.id, noteId, {
-      note_title: note_title?.trim(),
-      note_content: note_content?.trim(),
-      note_tags
+      note_title: noteTitle,
+      note_content: noteContent,
+      note_tags: body.note_tags,
     })
 
     return NextResponse.json(note)
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Error interno del servidor',
-        message: error instanceof Error ? error.message : 'Error desconocido'
-      },
-      { status: 500 }
-    )
+    return apiError('INTERNAL_ERROR', 'Error interno del servidor.', 500, {
+      details: error instanceof Error ? error.message : 'Error desconocido',
+    })
   }
 }
+
+export const PUT = withZodBody(noteUpdateSchema, handlePut)

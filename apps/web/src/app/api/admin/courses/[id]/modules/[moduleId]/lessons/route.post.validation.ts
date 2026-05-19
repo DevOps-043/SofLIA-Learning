@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import type { CreateLessonData } from '@/features/admin/services/adminLessons.service'
+import { apiError } from '@/lib/api/errors'
+
+const createLessonBodySchema = z.record(z.unknown())
 
 export function validateLessonRouteParams(
   moduleId: string,
@@ -26,8 +30,21 @@ export async function parseCreateLessonBody(
   request: NextRequest,
 ): Promise<CreateLessonData | NextResponse> {
   try {
-    return await request.json() as CreateLessonData
-  } catch (parseError) {
+    const rawBody = await request.text()
+    const parsedJson = rawBody.trim() ? JSON.parse(rawBody) : {}
+    const parsedBody = createLessonBodySchema.safeParse(parsedJson)
+
+    if (!parsedBody.success) {
+      return apiError(
+        'VALIDATION_ERROR',
+        'El cuerpo de la peticion no cumple el contrato esperado.',
+        422,
+        { details: parsedBody.error.flatten() },
+      )
+    }
+
+    return parsedBody.data as CreateLessonData
+  } catch {
     return NextResponse.json(
       {
         success: false,

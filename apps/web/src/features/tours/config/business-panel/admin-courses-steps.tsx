@@ -1,4 +1,4 @@
-import { Step } from 'react-joyride';
+import type { SofliaJoyrideStep as Step } from '@/features/tours/types/joyride';
 import { TFunction } from 'i18next';
 import { BookOpen, BarChart3, Filter, LayoutGrid } from 'lucide-react';
 

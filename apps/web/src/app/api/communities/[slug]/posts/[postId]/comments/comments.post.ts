@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
+  createCommunityCommentSchema,
+  type CreateCommunityCommentBody,
+} from '@/app/api/communities/_schemas';
+import { apiError } from '@/lib/api/errors';
+import { sanitizeComment } from '@/lib/sanitize/html-sanitizer.shortcuts';
+import {
   commentsTable,
   communitiesTable,
   createCommunityRouteClient,
@@ -11,18 +17,20 @@ import { buildCommentUser } from './comments.users';
 import type { CommunityCommentInsertRow } from './comments.types';
 
 export async function handlePostComment(
-  request: NextRequest,
+  _request: NextRequest,
+  body: CreateCommunityCommentBody,
   params: Promise<{ slug: string; postId: string }>,
 ) {
   const supabase = await createCommunityRouteClient();
   const user = await getCurrentCommunityUser();
 
   if (!user) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    return apiError('UNAUTHORIZED', 'No autorizado', 401);
   }
 
   const { postId, slug } = await params;
-  const { content, parent_comment_id } = await request.json();
+  const { parent_comment_id } = body;
+  const content = sanitizeComment(body.content).trim();
   const validationError = validateCommentContent(content);
   if (validationError) return validationError;
 
@@ -39,14 +47,14 @@ export async function handlePostComment(
     .single();
 
   if (communityError || !community) {
-    return NextResponse.json({ error: 'Comunidad no encontrada' }, { status: 404 });
+    return apiError('COMMUNITY_NOT_FOUND', 'Comunidad no encontrada', 404);
   }
 
   const payload: CommunityCommentInsertRow = {
     post_id: postId,
     community_id: community.id,
     user_id: user.id,
-    content: content.trim(),
+    content,
     parent_comment_id: parent_comment_id || null,
   };
   const { data: newComment, error: insertError } = await commentsTable(supabase)
@@ -55,7 +63,7 @@ export async function handlePostComment(
     .single();
 
   if (insertError) {
-    return NextResponse.json({ error: 'Error al crear comentario' }, { status: 500 });
+    return apiError('CREATE_COMMENT_FAILED', 'Error al crear comentario', 500);
   }
 
   await supabase.rpc('increment_comment_count', { post_id: postId });
@@ -64,7 +72,7 @@ export async function handlePostComment(
     postId,
     commentId: newComment.id,
     currentUserId: user.id,
-    content: content.trim(),
+    content,
     communityId: community.id,
   });
   scheduleAiCommentModeration({
@@ -83,17 +91,16 @@ export async function handlePostComment(
 }
 
 function validateCommentContent(content: string) {
-  if (!content || content.trim().length === 0) {
-    return NextResponse.json(
-      { error: 'El contenido del comentario es requerido' },
-      { status: 400 },
+  const parsed = createCommunityCommentSchema.shape.content.safeParse(content);
+
+  if (!parsed.success) {
+    return apiError(
+      'INVALID_COMMENT_CONTENT',
+      'El contenido del comentario es requerido',
+      400,
+      { details: parsed.error.flatten() },
     );
   }
-  if (content.trim().length > 1000) {
-    return NextResponse.json(
-      { error: 'El comentario es demasiado largo' },
-      { status: 400 },
-    );
-  }
+
   return null;
 }

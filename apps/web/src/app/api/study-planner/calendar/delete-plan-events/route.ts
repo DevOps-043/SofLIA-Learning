@@ -1,104 +1,120 @@
+import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { NextRequest, NextResponse } from 'next/server'
+
+import { CalendarIntegrationService } from '@/features/study-planner/services/calendar-integration.service'
+import { SessionService } from '@/features/auth/services/session.service'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient as createServiceClient } from '@supabase/supabase-js';
-import { SessionService } from '@/features/auth/services/session.service';
-import { CalendarIntegrationService } from '@/features/study-planner/services/calendar-integration.service';
+
+import { deletePlanEventsSchema, type DeletePlanEventsBody } from '../../_schemas'
 
 type MicrosoftCalendarDeleteCapable = typeof CalendarIntegrationService & {
-    deleteMicrosoftEvent?: (accessToken: string, eventId: string) => Promise<boolean>;
-};
+  deleteMicrosoftEvent?: (accessToken: string, eventId: string) => Promise<boolean>
+}
 
 function getErrorMessage(error: unknown, fallback: string): string {
-    return error instanceof Error && error.message ? error.message : fallback;
+  return error instanceof Error && error.message ? error.message : fallback
 }
 
-// Función helper para crear cliente con service role key (bypass RLS)
 function createAdminClient() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-        throw new Error('SUPABASE_SERVICE_ROLE_KEY no está configurada');
-    }
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY no esta configurada')
+  }
 
-    return createServiceClient(supabaseUrl, supabaseServiceKey, {
-        auth: {
-            autoRefreshToken: false,
-            persistSession: false
-        }
-    });
+  return createServiceClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  })
 }
 
-export async function POST(request: NextRequest) {
-    try {
-        // 1. Verificar autenticación
-        const user = await SessionService.getCurrentUser();
-        if (!user) {
-            return NextResponse.json({ success: false, error: 'No autenticado' }, { status: 401 });
-        }
-
-        const body = await request.json();
-        const { planId } = body;
-
-        if (!planId) {
-            return NextResponse.json({ success: false, error: 'planId es requerido' }, { status: 400 });
-        }
-
-        // 2. Obtener sesiones del plan que tengan evento externo
-        const supabase = createAdminClient();
-        const { data: sessions, error } = await supabase
-            .from('study_sessions')
-            .select('id, external_event_id')
-            .eq('plan_id', planId)
-            .not('external_event_id', 'is', null);
-
-        if (error) {
-            techDebtLogger.error('Error obteniendo sesiones:', error);
-            return NextResponse.json({ success: false, error: 'Error obteniendo sesiones' }, { status: 500 });
-        }
-
-        if (!sessions || sessions.length === 0) {
-            return NextResponse.json({ success: true, deletedCount: 0, message: 'No hay eventos para eliminar' });
-        }
-
-        // 3. Obtener credenciales del calendario
-        const { accessToken, provider, calendarId } = await CalendarIntegrationService.getCalendarIdForUser(user.id);
-
-        if (!accessToken || !provider) {
-            return NextResponse.json({ success: true, deletedCount: 0, warning: 'No hay conexión activa con calendario' });
-        }
-
-        // 4. Eliminar eventos
-        // Usa Promise.allSettled para asegurar que intentamos borrar todos aunque falle alguno
-        const deletionPromises = sessions.map(async (session) => {
-            if (!session.external_event_id) return false;
-
-            let success = false;
-            try {
-                if (provider === 'google') {
-                    success = await CalendarIntegrationService.deleteGoogleEvent(accessToken, session.external_event_id, calendarId);
-                } else if (provider === 'microsoft') {
-                    const microsoftCalendarService =
-                        CalendarIntegrationService as MicrosoftCalendarDeleteCapable;
-                    success = microsoftCalendarService.deleteMicrosoftEvent
-                        ? await microsoftCalendarService.deleteMicrosoftEvent(accessToken, session.external_event_id)
-                        : false;
-                }
-            } catch (err) {
-                techDebtLogger.error(`Error borrando evento ${session.external_event_id}:`, err);
-                success = false;
-            }
-            return success;
-        });
-
-        const results = await Promise.all(deletionPromises);
-        const deletedCount = results.filter(r => r).length;
-
-
-        return NextResponse.json({ success: true, deletedCount });
-
-    } catch (error: unknown) {
-        techDebtLogger.error('Error en delete-plan-events:', error);
-        return NextResponse.json({ success: false, error: getErrorMessage(error, 'Error interno') }, { status: 500 });
+async function handlePost(
+  _request: NextRequest,
+  body: DeletePlanEventsBody,
+) {
+  try {
+    const user = await SessionService.getCurrentUser()
+    if (!user) {
+      return apiError('UNAUTHENTICATED', 'No autenticado', 401)
     }
+
+    const supabase = createAdminClient()
+    const { data: sessions, error } = await supabase
+      .from('study_sessions')
+      .select('id, external_event_id')
+      .eq('plan_id', body.planId)
+      .not('external_event_id', 'is', null)
+
+    if (error) {
+      techDebtLogger.error('Error obteniendo sesiones:', error)
+      return apiError('FETCH_SESSIONS_FAILED', 'Error obteniendo sesiones', 500)
+    }
+
+    if (!sessions || sessions.length === 0) {
+      return NextResponse.json({
+        success: true,
+        deletedCount: 0,
+        message: 'No hay eventos para eliminar',
+      })
+    }
+
+    const { accessToken, provider, calendarId } =
+      await CalendarIntegrationService.getCalendarIdForUser(user.id)
+
+    if (!accessToken || !provider) {
+      return NextResponse.json({
+        success: true,
+        deletedCount: 0,
+        warning: 'No hay conexion activa con calendario',
+      })
+    }
+
+    const deletionPromises = sessions.map(async (session) => {
+      if (!session.external_event_id) return false
+
+      try {
+        if (provider === 'google') {
+          return CalendarIntegrationService.deleteGoogleEvent(
+            accessToken,
+            session.external_event_id,
+            calendarId,
+          )
+        }
+
+        if (provider === 'microsoft') {
+          const microsoftCalendarService =
+            CalendarIntegrationService as MicrosoftCalendarDeleteCapable
+          return microsoftCalendarService.deleteMicrosoftEvent
+            ? microsoftCalendarService.deleteMicrosoftEvent(
+                accessToken,
+                session.external_event_id,
+              )
+            : false
+        }
+      } catch (error) {
+        techDebtLogger.error(`Error borrando evento ${session.external_event_id}:`, error)
+      }
+
+      return false
+    })
+
+    const results = await Promise.all(deletionPromises)
+    const deletedCount = results.filter(Boolean).length
+
+    return NextResponse.json({ success: true, deletedCount })
+  } catch (error: unknown) {
+    techDebtLogger.error('Error en delete-plan-events:', error)
+    return apiError(
+      'DELETE_PLAN_EVENTS_FAILED',
+      getErrorMessage(error, 'Error interno'),
+      500,
+    )
+  }
 }
+
+export const POST = withZodBody(deletePlanEventsSchema, handlePost)

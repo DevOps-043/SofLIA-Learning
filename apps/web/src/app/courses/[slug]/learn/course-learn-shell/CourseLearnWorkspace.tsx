@@ -1,6 +1,6 @@
 'use client'
 
-import { Joyride } from 'react-joyride'
+import { SofliaJoyride as Joyride } from '@/features/tours/components/SofliaJoyride'
 import { COURSE_LEARN_TOUR_TARGET_IDS } from '@/core/constants/tourTargets'
 import { CourseAccessGuard } from '@/features/courses/components/CourseAccessGuard'
 import { LearnPageHeader, LearnPageMobileNav } from '@/features/courses/components/learn'

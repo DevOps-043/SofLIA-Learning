@@ -1,30 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { SessionService } from '../../../../features/auth/services/session.service'
+import { deletePlanSchema, type DeletePlanBody } from '../_schemas'
 import { deleteStudyPlanForUser } from './plan-delete.server.service'
 import type { DeletePlanResponse } from './plan-delete.types'
 
-export async function DELETE(
+async function handleDelete(
   request: NextRequest,
-): Promise<NextResponse<DeletePlanResponse>> {
+  body: DeletePlanBody,
+): Promise<NextResponse<DeletePlanResponse> | Response> {
   try {
     const user = await SessionService.getCurrentUser()
 
     if (!user) {
-      return NextResponse.json({ success: false, error: 'No autenticado' }, { status: 401 })
+      return apiError('UNAUTHENTICATED', 'No autenticado', 401)
     }
 
     const requestedPlanId =
       request.nextUrl.searchParams.get('planId')
-      || ((await request.json().catch(() => ({}))) as { planId?: string }).planId
+      || body.planId
       || null
 
     if (!requestedPlanId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'planId es requerido para eliminar un plan',
-        },
-        { status: 400 },
+      return apiError(
+        'PLAN_ID_REQUIRED',
+        'planId es requerido para eliminar un plan',
+        400,
       )
     }
 
@@ -34,13 +36,7 @@ export async function DELETE(
     })
 
     if (result.status === 'not_found') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: result.error,
-        },
-        { status: 404 },
-      )
+      return apiError('PLAN_NOT_FOUND', result.error, 404)
     }
 
     if (result.status === 'error') {
@@ -70,12 +66,14 @@ export async function DELETE(
       calendarEventsNotFound: result.calendarEventsNotFound,
     })
   } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Error interno del servidor',
-      },
-      { status: 500 },
+    return apiError(
+      'DELETE_PLAN_FAILED',
+      error instanceof Error ? error.message : 'Error interno del servidor',
+      500,
     )
   }
 }
+
+export const DELETE = withZodBody(deletePlanSchema, handleDelete, {
+  emptyBodyFallback: {},
+})

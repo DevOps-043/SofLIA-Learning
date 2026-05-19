@@ -1,14 +1,10 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { createClient } from '../../../../lib/supabase/server';
 import { SessionService } from '../../../../features/auth/services/session.service';
-
-interface StartActivityRequest {
-  conversationId?: string | null
-  activityId?: string | null
-  activityType?: string
-  totalSteps?: number
-}
+import { startActivitySchema, type StartActivityBody } from '../_schemas';
 
 interface ActivityCompletionInsert {
   conversation_id: string | null
@@ -31,16 +27,17 @@ interface ActivityCompletionIdRow {
  * 
  * Inicia el tracking de una actividad interactiva con LIA
  */
-export async function POST(request: NextRequest) {
+async function handlePost(
+  _request: NextRequest,
+  body: StartActivityBody,
+  _context: unknown,
+) {
   try {
     // ✅ Usar SessionService para autenticación
     const user = await SessionService.getCurrentUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return apiError('UNAUTHORIZED', 'No autorizado', 401);
     }
 
     // Obtener datos del body
@@ -49,14 +46,7 @@ export async function POST(request: NextRequest) {
       activityId,
       activityType,
       totalSteps = 1,
-    }: StartActivityRequest = await request.json();
-
-    if (!activityType) {
-      return NextResponse.json(
-        { error: 'activityType es requerido' },
-        { status: 400 }
-      );
-    }
+    } = body;
 
     const supabase = await createClient();
 
@@ -81,9 +71,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       techDebtLogger.error('Error starting activity:', error);
-      return NextResponse.json(
-        { error: 'Error al iniciar actividad' },
-        { status: 500 }
+      return apiError(
+        'ACTIVITY_START_FAILED',
+        'Error al iniciar actividad',
+        500,
       );
     }
 
@@ -95,9 +86,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     techDebtLogger.error('Error starting activity:', error);
-    return NextResponse.json(
-      { error: 'Error al iniciar actividad' },
-      { status: 500 }
+    return apiError(
+      'ACTIVITY_START_FAILED',
+      'Error al iniciar actividad',
+      500,
     );
   }
 }
+
+export const POST = withZodBody(startActivitySchema, handlePost);

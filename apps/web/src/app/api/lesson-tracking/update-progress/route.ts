@@ -2,6 +2,12 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import {
+    updateLessonProgressSchema,
+    type UpdateLessonProgressBody,
+} from './schema';
 
 async function syncUserLessonProgress({
     checkpoint,
@@ -87,31 +93,22 @@ async function syncUserLessonProgress({
  * 
  * @returns { success: boolean, trackingId?: string, error?: string }
  */
-export async function POST(request: NextRequest) {
+async function handlePost(
+    _request: NextRequest,
+    body: UpdateLessonProgressBody,
+) {
     try {
         // Use SessionService to get user (matches app's custom auth system)
         const user = await SessionService.getCurrentUser();
 
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return apiError('UNAUTHORIZED', 'Unauthorized', 401);
         }
 
         // Create Supabase client for database operations
         const supabase = await createClient();
 
-        const body = await request.json();
         const { lessonId, trackingId, checkpoint, maxReached, totalDuration, playbackRate } = body;
-
-        // Validaciones
-        if (!lessonId) {
-            return NextResponse.json({ error: 'lessonId is required' }, { status: 400 });
-        }
-
-        if (typeof checkpoint !== 'number' || typeof maxReached !== 'number' || typeof totalDuration !== 'number') {
-            return NextResponse.json({
-                error: 'checkpoint, maxReached, and totalDuration must be numbers'
-            }, { status: 400 });
-        }
 
         const now = new Date().toISOString();
 
@@ -132,10 +129,7 @@ export async function POST(request: NextRequest) {
 
             if (error) {
                 techDebtLogger.error('[Update Progress] Error updating tracking:', error);
-                return NextResponse.json({
-                    error: 'Failed to update tracking',
-                    details: process.env.NODE_ENV === 'development' ? error.message : undefined
-                }, { status: 500 });
+                return apiError('TRACKING_UPDATE_FAILED', 'Failed to update tracking', 500);
             }
 
             await syncUserLessonProgress({
@@ -181,10 +175,11 @@ export async function POST(request: NextRequest) {
 
             if (error) {
                 techDebtLogger.error('[Update Progress] Error updating existing tracking:', error);
-                return NextResponse.json({
-                    error: 'Failed to update existing tracking',
-                    details: process.env.NODE_ENV === 'development' ? error.message : undefined
-                }, { status: 500 });
+                return apiError(
+                    'EXISTING_TRACKING_UPDATE_FAILED',
+                    'Failed to update existing tracking',
+                    500,
+                );
             }
 
             await syncUserLessonProgress({
@@ -220,10 +215,7 @@ export async function POST(request: NextRequest) {
 
         if (insertError) {
             techDebtLogger.error('[Update Progress] Error creating tracking:', insertError);
-            return NextResponse.json({
-                error: 'Failed to create tracking',
-                details: process.env.NODE_ENV === 'development' ? insertError.message : undefined
-            }, { status: 500 });
+            return apiError('TRACKING_CREATE_FAILED', 'Failed to create tracking', 500);
         }
 
         await syncUserLessonProgress({
@@ -239,9 +231,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, trackingId: newTracking.id });
     } catch (error) {
         techDebtLogger.error('[Update Progress] Unexpected error:', error);
-        return NextResponse.json({
-            error: 'Internal server error',
-            details: process.env.NODE_ENV === 'development' ? String(error) : undefined
-        }, { status: 500 });
+        return apiError('TRACKING_INTERNAL_ERROR', 'Internal server error', 500);
     }
 }
+
+export const POST = withZodBody(updateLessonProgressSchema, handlePost);

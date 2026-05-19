@@ -5,13 +5,17 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 
 import { logger } from '@/lib/utils/logger'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { userGroupMemberUpdateSchema, type UserGroupMemberUpdateBody } from './schema'
 
 /**
  * PUT /api/business/user-groups/[id]/members/[memberId]
  * Actualiza el rol de un miembro del grupo
  */
-export async function PUT(
-  request: NextRequest,
+async function handlePut(
+  _request: NextRequest,
+  body: UserGroupMemberUpdateBody,
   { params }: { params: Promise<{ id: string; memberId: string }> }
 ) {
   try {
@@ -21,22 +25,11 @@ export async function PUT(
     const { id: groupId, memberId } = await params
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Usuario no pertenece a ninguna organización'
-      }, { status: 400 })
+      return apiError('NO_ORGANIZATION', 'Usuario no pertenece a ninguna organización', 400)
     }
 
     const supabase = await createClient()
-    const body = await request.json()
     const { role } = body
-
-    if (!role || (role !== 'leader' && role !== 'member')) {
-      return NextResponse.json({
-        success: false,
-        error: 'role debe ser "leader" o "member"'
-      }, { status: 400 })
-    }
 
     // Verificar que el grupo exista y pertenezca a la organización
     const { data: group } = await supabase
@@ -47,10 +40,7 @@ export async function PUT(
       .single()
 
     if (!group) {
-      return NextResponse.json({
-        success: false,
-        error: 'Grupo no encontrado'
-      }, { status: 404 })
+      return apiError('GROUP_NOT_FOUND', 'Grupo no encontrado', 404)
     }
 
     // Verificar que el miembro exista
@@ -62,10 +52,7 @@ export async function PUT(
       .single()
 
     if (!member) {
-      return NextResponse.json({
-        success: false,
-        error: 'Miembro no encontrado'
-      }, { status: 404 })
+      return apiError('MEMBER_NOT_FOUND', 'Miembro no encontrado', 404)
     }
 
     // Actualizar el rol
@@ -95,10 +82,7 @@ export async function PUT(
 
     if (updateError || !updatedMember) {
       logger.error('Error updating member role:', updateError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al actualizar el rol'
-      }, { status: 500 })
+      return apiError('UPDATE_MEMBER_ROLE_FAILED', 'Error al actualizar el rol', 500)
     }
 
     return NextResponse.json({
@@ -107,9 +91,8 @@ export async function PUT(
     })
   } catch (error) {
     logger.error('💥 Error in /api/business/user-groups/[id]/members/[memberId] PUT:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Error interno del servidor'
-    }, { status: 500 })
+    return apiError('UPDATE_MEMBER_ROLE_FAILED', 'Error interno del servidor', 500)
   }
 }
+
+export const PUT = withZodBody(userGroupMemberUpdateSchema, handlePut)

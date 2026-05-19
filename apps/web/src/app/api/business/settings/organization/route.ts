@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { organizationUpdateSchema, type OrganizationUpdateBody } from './schema'
 
 interface OrganizationUpdatePayload {
   updated_at: string
@@ -27,10 +30,7 @@ export async function GET() {
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'No tienes una organización asignada'
-      }, { status: 403 })
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403)
     }
 
     const supabase = await createClient()
@@ -70,20 +70,23 @@ export async function GET() {
   }
 }
 
+export const PUT = withZodBody(organizationUpdateSchema, handlePut)
+
 /**
  * PUT /api/business/settings/organization
  * Actualiza los datos de la organización
  */
-export async function PUT(request: NextRequest) {
+async function handlePut(
+  _request: NextRequest,
+  body: OrganizationUpdateBody,
+  _context: unknown,
+) {
   try {
     const auth = await requireBusiness()
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'No tienes una organización asignada'
-      }, { status: 403 })
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403)
     }
 
     // Verificar que el usuario tenga permisos de owner o admin
@@ -96,20 +99,13 @@ export async function PUT(request: NextRequest) {
       .single()
 
     if (orgUserError || !orgUser) {
-      return NextResponse.json({
-        success: false,
-        error: 'No tienes permisos para actualizar la organización'
-      }, { status: 403 })
+      return apiError('FORBIDDEN', 'No tienes permisos para actualizar la organización', 403)
     }
 
     if (orgUser.role !== 'owner' && orgUser.role !== 'admin') {
-      return NextResponse.json({
-        success: false,
-        error: 'Solo los administradores pueden actualizar la organización'
-      }, { status: 403 })
+      return apiError('FORBIDDEN', 'Solo los administradores pueden actualizar la organización', 403)
     }
 
-    const body = await request.json()
     const {
       name,
       description,
@@ -118,15 +114,14 @@ export async function PUT(request: NextRequest) {
       website_url,
       logo_url,
       max_users,
-      slug
+      slug,
+      google_login_enabled,
+      microsoft_login_enabled,
     } = body
 
     // Validar campos requeridos
     if (name && name.trim().length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'El nombre de la organización es requerido'
-      }, { status: 400 })
+      return apiError('ORGANIZATION_NAME_REQUIRED', 'El nombre de la organización es requerido', 400)
     }
 
     // Validar y verificar slug si se proporciona
@@ -135,17 +130,15 @@ export async function PUT(request: NextRequest) {
       
       // Validar formato
       if (!/^[a-z0-9-]+$/.test(slugValue)) {
-        return NextResponse.json({
-          success: false,
-          error: 'El slug solo puede contener letras minúsculas, números y guiones'
-        }, { status: 400 })
+        return apiError(
+          'INVALID_ORGANIZATION_SLUG',
+          'El slug solo puede contener letras minúsculas, números y guiones',
+          400,
+        )
       }
 
       if (slugValue.length < 3 || slugValue.length > 50) {
-        return NextResponse.json({
-          success: false,
-          error: 'El slug debe tener entre 3 y 50 caracteres'
-        }, { status: 400 })
+        return apiError('INVALID_ORGANIZATION_SLUG', 'El slug debe tener entre 3 y 50 caracteres', 400)
       }
 
       // Verificar que no esté siendo usado por otra organización
@@ -157,10 +150,11 @@ export async function PUT(request: NextRequest) {
         .single()
 
       if (existingOrg) {
-        return NextResponse.json({
-          success: false,
-          error: 'Este identificador ya está en uso por otra organización'
-        }, { status: 400 })
+        return apiError(
+          'ORGANIZATION_SLUG_TAKEN',
+          'Este identificador ya está en uso por otra organización',
+          400,
+        )
       }
     }
 
@@ -177,18 +171,15 @@ export async function PUT(request: NextRequest) {
     if (logo_url !== undefined) updateData.logo_url = logo_url?.trim() || null
     if (slug !== undefined) updateData.slug = slug?.trim().toLowerCase() || null
     if (max_users !== undefined) {
-      const maxUsersNum = parseInt(max_users)
+      const maxUsersNum = typeof max_users === 'number' ? max_users : parseInt(max_users, 10)
       if (isNaN(maxUsersNum) || maxUsersNum < 1) {
-        return NextResponse.json({
-          success: false,
-          error: 'El número máximo de usuarios debe ser mayor a 0'
-        }, { status: 400 })
+        return apiError('INVALID_MAX_USERS', 'El número máximo de usuarios debe ser mayor a 0', 400)
       }
       updateData.max_users = maxUsersNum
     }
 
-    if (body.google_login_enabled !== undefined) updateData.google_login_enabled = body.google_login_enabled
-    if (body.microsoft_login_enabled !== undefined) updateData.microsoft_login_enabled = body.microsoft_login_enabled
+    if (google_login_enabled !== undefined) updateData.google_login_enabled = google_login_enabled
+    if (microsoft_login_enabled !== undefined) updateData.microsoft_login_enabled = microsoft_login_enabled
 
     const { data: updatedOrganization, error: updateError } = await supabase
       .from('organizations')
@@ -199,10 +190,7 @@ export async function PUT(request: NextRequest) {
 
     if (updateError) {
       logger.error('Error updating organization:', updateError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al actualizar la organización'
-      }, { status: 500 })
+      return apiError('UPDATE_ORGANIZATION_FAILED', 'Error al actualizar la organización', 500)
     }
 
     return NextResponse.json({
@@ -211,9 +199,6 @@ export async function PUT(request: NextRequest) {
     })
   } catch (error) {
     logger.error('💥 Error in PUT /api/business/settings/organization:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Error al actualizar la organización'
-    }, { status: 500 })
+    return apiError('UPDATE_ORGANIZATION_FAILED', 'Error al actualizar la organización', 500)
   }
 }

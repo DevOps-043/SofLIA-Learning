@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { createClient } from '@/lib/supabase/server';
 
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 
 import { logger } from '@/lib/utils/logger';
+import {
+  createStructureSchema,
+  type CreateStructureBody,
+} from '@/app/api/business/hierarchy/_schemas';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string }>;
@@ -14,20 +20,20 @@ interface RouteContext {
  * POST /api/[orgSlug]/business/hierarchy/structures
  * Crea una nueva estructura jerárquica
  */
-export async function POST(request: NextRequest, { params }: RouteContext) {
+async function handlePost(
+  _request: NextRequest,
+  body: CreateStructureBody,
+  { params }: RouteContext,
+) {
   try {
     const { orgSlug } = await params;
     const auth = await requireBusiness({ organizationSlug: orgSlug });
     if (auth instanceof NextResponse) return auth;
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
-      );
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403);
     }
 
-    const body = await request.json();
     const supabase = await createClient();
 
     const { data: structure, error } = await supabase
@@ -42,10 +48,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     if (error) {
       logger.error('Error creando estructura:', error);
-      return NextResponse.json(
-        { success: false, error: 'Error al crear estructura' },
-        { status: 500 }
-      );
+      return apiError('CREATE_STRUCTURE_FAILED', 'Error al crear estructura', 500);
     }
 
     return NextResponse.json({
@@ -54,9 +57,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     });
   } catch (error) {
     logger.error('Error en POST /api/[orgSlug]/business/hierarchy/structures:', error);
-    return NextResponse.json(
-      { success: false, error: 'Error al crear estructura' },
-      { status: 500 }
-    );
+    return apiError('CREATE_STRUCTURE_FAILED', 'Error al crear estructura', 500);
   }
 }
+
+export const POST = withZodBody(createStructureSchema, handlePost);

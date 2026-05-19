@@ -1,8 +1,8 @@
 export interface CommunityPostRequestBody {
-  title?: string
+  title?: string | null
   content?: string
-  attachment_url?: string
-  attachment_type?: string
+  attachment_url?: string | null
+  attachment_type?: string | null
   attachment_data?: Record<string, unknown> | string | null
 }
 

@@ -3,6 +3,9 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import { DESIGN_HEX_COLOR } from '@/core/theme/color-tokens'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { brandingUpdateSchema, type BrandingUpdateBody } from './schema'
 
 interface OrganizationBrandingRow {
   id?: string
@@ -38,10 +41,7 @@ export async function GET() {
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Usuario no pertenece a ninguna organización'
-      }, { status: 400 })
+      return apiError('NO_ORGANIZATION', 'Usuario no pertenece a ninguna organización', 400)
     }
 
     const supabase = await createClient()
@@ -105,57 +105,47 @@ export async function GET() {
   }
 }
 
+export const PUT = withZodBody(brandingUpdateSchema, handlePut)
+
 /**
  * PUT /api/business/settings/branding
  * Actualiza la configuración de branding de la organización
  */
-export async function PUT(request: NextRequest) {
+async function handlePut(
+  _request: NextRequest,
+  body: BrandingUpdateBody,
+  _context: unknown,
+) {
   try {
     const auth = await requireBusiness()
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Usuario no pertenece a ninguna organización'
-      }, { status: 400 })
+      return apiError('NO_ORGANIZATION', 'Usuario no pertenece a ninguna organización', 400)
     }
 
     const supabase = await createClient()
-    const body = await request.json()
     const { logo_url, favicon_url, banner_url, color_primary, color_secondary, color_accent, font_family } = body
 
     // Validar colores hexadecimales si se proporcionan
     const colorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
     
     if (color_primary && !colorRegex.test(color_primary)) {
-      return NextResponse.json({
-        success: false,
-        error: 'El color primario debe ser un valor hexadecimal válido'
-      }, { status: 400 })
+      return apiError('INVALID_PRIMARY_COLOR', 'El color primario debe ser un valor hexadecimal válido', 400)
     }
 
     if (color_secondary && !colorRegex.test(color_secondary)) {
-      return NextResponse.json({
-        success: false,
-        error: 'El color secundario debe ser un valor hexadecimal válido'
-      }, { status: 400 })
+      return apiError('INVALID_SECONDARY_COLOR', 'El color secundario debe ser un valor hexadecimal válido', 400)
     }
 
     if (color_accent && !colorRegex.test(color_accent)) {
-      return NextResponse.json({
-        success: false,
-        error: 'El color de acento debe ser un valor hexadecimal válido'
-      }, { status: 400 })
+      return apiError('INVALID_ACCENT_COLOR', 'El color de acento debe ser un valor hexadecimal válido', 400)
     }
 
     // Validar fuente (permitir fuentes comunes de Google Fonts o web-safe)
     const validFonts = ['Inter', 'Montserrat', 'Roboto', 'Open Sans', 'Lato', 'Poppins', 'Raleway', 'Source Sans Pro', 'Arial', 'Helvetica', 'Times New Roman', 'Georgia']
     if (font_family && !validFonts.includes(font_family) && !font_family.match(/^[a-zA-Z\s]+$/)) {
-      return NextResponse.json({
-        success: false,
-        error: 'La fuente debe ser una fuente válida'
-      }, { status: 400 })
+      return apiError('INVALID_FONT_FAMILY', 'La fuente debe ser una fuente válida', 400)
     }
 
     // Preparar datos de actualización
@@ -208,10 +198,7 @@ export async function PUT(request: NextRequest) {
 
     if (updateError || !updatedOrg) {
       logger.error('Error updating branding:', updateError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al actualizar configuración de branding'
-      }, { status: 500 })
+      return apiError('UPDATE_BRANDING_FAILED', 'Error al actualizar configuración de branding', 500)
     }
 
     return NextResponse.json({
@@ -228,9 +215,6 @@ export async function PUT(request: NextRequest) {
     })
   } catch (error) {
     logger.error('💥 Error in /api/business/settings/branding PUT:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Error interno del servidor'
-    }, { status: 500 })
+    return apiError('UPDATE_BRANDING_FAILED', 'Error interno del servidor', 500)
   }
 }

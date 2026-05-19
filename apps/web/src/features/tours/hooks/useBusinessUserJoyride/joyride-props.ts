@@ -1,5 +1,5 @@
-import type { CallBackProps, Step } from 'react-joyride'
 import { JoyrideTooltip } from '../../components/JoyrideTooltip'
+import type { SofliaJoyrideEvent as CallBackProps, SofliaJoyrideStep as Step } from '../../types/joyride'
 
 type Translate = (key: string) => string
 

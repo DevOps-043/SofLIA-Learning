@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import { useMemo } from 'react'
-import { Joyride } from 'react-joyride'
+import { SofliaJoyride as Joyride } from '@/features/tours/components/SofliaJoyride'
 import { useTranslation } from 'react-i18next'
 import { getAdminReportsSteps, ADMIN_REPORTS_TOUR_ID } from '@/features/tours/config/business-panel/admin-reports-steps'
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'

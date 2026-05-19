@@ -6,12 +6,11 @@ import {
   EVENTS,
   LIFECYCLE,
   STATUS,
-  type CallBackProps,
-  type Step,
 } from 'react-joyride';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useFeatureTour } from '../useFeatureTour';
+import type { SofliaJoyrideEvent as CallBackProps, SofliaJoyrideStep as Step } from '../../types/joyride';
 
 const completeTour = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
 const skipTour = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);

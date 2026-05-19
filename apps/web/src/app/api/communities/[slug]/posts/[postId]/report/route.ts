@@ -1,55 +1,39 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-// API Route: POST /api/communities/[slug]/posts/[postId]/report
 import { NextRequest, NextResponse } from 'next/server'
+import {
+  reportCommunityPostSchema,
+  type ReportCommunityPostBody,
+} from '@/app/api/communities/_schemas'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { SessionService } from '@/features/auth/services/session.service'
-import { logger } from '@/lib/logger'
-import { z } from 'zod'
 import type { Database } from '@/lib/supabase/types'
 
-// Schema de validación para el reporte
-const reportSchema = z.object({
-  reason_category: z.enum(['spam', 'inappropriate', 'harassment', 'misinformation', 'violence', 'other']),
-  reason_details: z.string().optional().nullable(),
-})
+type RouteContext = { params: Promise<{ slug: string; postId: string }> }
 
 /**
  * POST /api/communities/[slug]/posts/[postId]/report
  * Crea un reporte para un post
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string; postId: string }> }
+async function handlePost(
+  _request: NextRequest,
+  body: ReportCommunityPostBody,
+  { params }: RouteContext,
 ) {
   try {
-
     const supabase = await createClient()
     const { slug, postId } = await params
-
     const user = await SessionService.getCurrentUser()
 
     if (!user) {
-      techDebtLogger.error('❌ User not authenticated')
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+      techDebtLogger.error('User not authenticated')
+      return apiError('UNAUTHORIZED', 'No autorizado', 401)
     }
 
-    // Validar body
-    const body = await request.json()
+    const { reason_category, reason_details } = body
 
-    const validationResult = reportSchema.safeParse(body)
-
-    if (!validationResult.success) {
-      techDebtLogger.error('❌ Validation error:', validationResult.error.errors)
-      return NextResponse.json(
-        { error: 'Datos inválidos', details: validationResult.error.errors },
-        { status: 400 }
-      )
-    }
-
-    const { reason_category, reason_details } = validationResult.data
-
-    // Obtener el post
     const { data: post, error: postError } = await supabase
       .from('community_posts')
       .select('id, community_id, user_id')
@@ -57,15 +41,12 @@ export async function POST(
       .single()
 
     if (postError || !post) {
-      techDebtLogger.error('❌ Error fetching post:', postError)
-      return NextResponse.json({ 
-        error: 'Post no encontrado',
-        details: postError?.message,
-        code: postError?.code
-      }, { status: 404 })
+      techDebtLogger.error('Error fetching post:', postError)
+      return apiError('POST_NOT_FOUND', 'Post no encontrado', 404, {
+        details: { code: postError?.code, message: postError?.message },
+      })
     }
 
-    // Verificar que el post pertenece a la comunidad correcta
     const { data: community, error: communityError } = await supabase
       .from('communities')
       .select('id, slug')
@@ -74,52 +55,43 @@ export async function POST(
       .single()
 
     if (communityError || !community) {
-      techDebtLogger.error('❌ Error fetching community or post does not belong to community:', communityError)
-      return NextResponse.json({ 
-        error: 'Post no encontrado en esta comunidad',
-        details: communityError?.message,
-        code: communityError?.code
-      }, { status: 404 })
-    }
-
-    // Validar que el usuario no sea el autor del post
-    if (post.user_id === user.id) {
-      return NextResponse.json(
-        { error: 'No puedes reportar tu propio post' },
-        { status: 400 }
+      techDebtLogger.error(
+        'Error fetching community or post does not belong to community:',
+        communityError,
+      )
+      return apiError(
+        'POST_NOT_IN_COMMUNITY',
+        'Post no encontrado en esta comunidad',
+        404,
+        { details: { code: communityError?.code, message: communityError?.message } },
       )
     }
 
-    // Verificar que la tabla existe primero
+    if (post.user_id === user.id) {
+      return apiError('SELF_REPORT_FORBIDDEN', 'No puedes reportar tu propio post', 400)
+    }
+
     const { error: tableCheckError } = await supabase
       .from('community_post_reports')
       .select('id')
       .limit(1)
 
     if (tableCheckError) {
-      techDebtLogger.error('❌ Table check error:', {
+      techDebtLogger.error('Table check error:', {
         code: tableCheckError.code,
         message: tableCheckError.message,
         details: tableCheckError.details,
-        hint: tableCheckError.hint
+        hint: tableCheckError.hint,
       })
       if (tableCheckError.code === '42P01' || tableCheckError.message?.includes('does not exist')) {
-        return NextResponse.json(
-          { 
-            error: 'La tabla de reportes no existe. Por favor ejecuta el script SQL de migración.',
-            details: 'Ejecuta el script: scripts/supabase/create-community-post-reports-table.sql',
-            code: 'TABLE_NOT_FOUND',
-            supabaseError: {
-              code: tableCheckError.code,
-              message: tableCheckError.message
-            }
-          },
-          { status: 500 }
+        return apiError(
+          'TABLE_NOT_FOUND',
+          'La tabla de reportes no existe. Por favor ejecuta el script SQL de migración.',
+          500,
         )
       }
     }
 
-    // Validar que el usuario no haya reportado este post anteriormente
     const { data: existingReport, error: existingReportError } = await supabase
       .from('community_post_reports')
       .select('id')
@@ -128,57 +100,44 @@ export async function POST(
       .maybeSingle()
 
     if (existingReportError && existingReportError.code !== 'PGRST116') {
-      techDebtLogger.error('❌ Error checking existing report:', {
+      techDebtLogger.error('Error checking existing report:', {
         error: existingReportError,
         code: existingReportError.code,
         message: existingReportError.message,
         details: existingReportError.details,
-        hint: existingReportError.hint
+        hint: existingReportError.hint,
       })
-      return NextResponse.json(
-        { 
-          error: 'Error al verificar reportes existentes',
-          details: existingReportError.message || 'Error desconocido',
-          code: existingReportError.code,
-          supabaseError: {
-            code: existingReportError.code,
-            message: existingReportError.message,
-            hint: existingReportError.hint
-          }
-        },
-        { status: 500 }
+      return apiError(
+        'CHECK_EXISTING_REPORT_FAILED',
+        'Error al verificar reportes existentes',
+        500,
       )
     }
 
     if (existingReport) {
-
-      return NextResponse.json(
-        { error: 'Ya has reportado este post anteriormente' },
-        { status: 400 }
+      return apiError(
+        'POST_ALREADY_REPORTED',
+        'Ya has reportado este post anteriormente',
+        400,
       )
     }
 
-    // Crear el reporte
     const reportData = {
       post_id: postId,
       community_id: post.community_id,
       reported_by_user_id: user.id,
       reason_category,
       reason_details: reason_details?.trim() || null,
-      status: 'pending'
+      status: 'pending' as const,
     }
 
-    // Usar cliente admin para bypass RLS ya que el proyecto usa autenticación personalizada
-    // La validación de permisos ya se hizo arriba (usuario autenticado, no propio post, etc.)
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!supabaseServiceKey) {
-      techDebtLogger.error('❌ SUPABASE_SERVICE_ROLE_KEY no está configurada')
-      return NextResponse.json(
-        { 
-          error: 'Error de configuración del servidor',
-          details: 'Service role key no configurada'
-        },
-        { status: 500 }
+      techDebtLogger.error('SUPABASE_SERVICE_ROLE_KEY no está configurada')
+      return apiError(
+        'SERVER_CONFIGURATION_ERROR',
+        'Error de configuración del servidor',
+        500,
       )
     }
 
@@ -188,9 +147,9 @@ export async function POST(
       {
         auth: {
           autoRefreshToken: false,
-          persistSession: false
-        }
-      }
+          persistSession: false,
+        },
+      },
     )
 
     const { data: report, error: reportError } = await adminSupabase
@@ -200,69 +159,46 @@ export async function POST(
       .single()
 
     if (reportError) {
-      techDebtLogger.error('❌ Error creating report:', {
+      techDebtLogger.error('Error creating report:', {
         error: reportError,
         code: reportError.code,
         message: reportError.message,
         details: reportError.details,
         hint: reportError.hint,
-        reportData
+        reportData,
       })
-      
-      // Si es un error de foreign key, dar un mensaje más específico
+
       if (reportError.code === '23503') {
-        return NextResponse.json(
-          { 
-            error: 'Error de integridad referencial',
-            details: reportError.message || 'El post, comunidad o usuario no existe',
-            code: reportError.code,
-            hint: reportError.hint,
-            supabaseError: {
+        return apiError(
+          'REFERENTIAL_INTEGRITY_ERROR',
+          'Error de integridad referencial',
+          400,
+          {
+            details: {
               code: reportError.code,
               message: reportError.message,
-              hint: reportError.hint
-            }
+              hint: reportError.hint,
+            },
           },
-          { status: 400 }
         )
       }
-      
-      return NextResponse.json(
-        { 
-          error: 'Error al crear el reporte',
-          details: reportError.message || 'Error desconocido',
-          code: reportError.code,
-          hint: reportError.hint,
-          supabaseError: {
-            code: reportError.code,
-            message: reportError.message,
-            details: reportError.details,
-            hint: reportError.hint
-          }
-        },
-        { status: 500 }
-      )
+
+      return apiError('CREATE_REPORT_FAILED', 'Error al crear el reporte', 500)
     }
 
     return NextResponse.json({
       success: true,
       report,
-      message: 'Reporte enviado exitosamente'
+      message: 'Reporte enviado exitosamente',
     })
   } catch (error) {
-    techDebtLogger.error('❌ Error in POST report API:', {
+    techDebtLogger.error('Error in POST report API:', {
       error,
       message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
+      stack: error instanceof Error ? error.stack : undefined,
     })
-    return NextResponse.json(
-      { 
-        error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido',
-        stack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined
-      },
-      { status: 500 }
-    )
+    return apiError('CREATE_REPORT_FAILED', 'Error interno del servidor', 500)
   }
 }
 
+export const POST = withZodBody(reportCommunityPostSchema, handlePost)

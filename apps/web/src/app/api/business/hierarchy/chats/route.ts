@@ -1,5 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
+import { withZodBody } from '@/lib/api/with-validation';
 import { logger } from '@/lib/utils/logger';
 import { addChatParticipants, createHierarchyChat, findExistingHierarchyChat, listHierarchyChats } from './hierarchy-chats/chat-queries';
 import { hierarchyEntityExists } from './hierarchy-chats/entity-queries';
@@ -7,7 +9,10 @@ import { createServiceClient } from './hierarchy-chats/service-client';
 import { getErrorDetails, jsonError, missingChatTablesError } from './hierarchy-chats/responses';
 import { parseCreateChatBody, parseListChatsParams } from './hierarchy-chats/validation';
 
-export async function GET(request: Request) {
+const chatBodySchema = z.record(z.unknown());
+type ChatBodyShape = z.infer<typeof chatBodySchema>;
+
+export async function GET(request: NextRequest) {
   try {
     const auth = await requireBusiness();
     if (auth instanceof NextResponse) return auth;
@@ -41,7 +46,7 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+async function handlePost(_request: NextRequest, rawBody: ChatBodyShape) {
   try {
     const auth = await requireBusiness();
     if (auth instanceof NextResponse) return auth;
@@ -49,7 +54,7 @@ export async function POST(request: Request) {
       return jsonError('No tienes una organización asignada', 403);
     }
 
-    const parsedBody = parseCreateChatBody(await request.json());
+    const parsedBody = parseCreateChatBody(rawBody);
     if ('error' in parsedBody) return parsedBody.error;
 
     const supabase = createServiceClient();
@@ -84,3 +89,5 @@ export async function POST(request: Request) {
     return jsonError('Error al crear el chat', 500, errorDetails.message);
   }
 }
+
+export const POST = withZodBody(chatBodySchema, handlePost);

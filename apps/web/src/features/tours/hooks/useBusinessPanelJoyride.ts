@@ -2,12 +2,13 @@
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { CallBackProps, STATUS, ACTIONS, EVENTS } from 'react-joyride';
+import { STATUS, ACTIONS, EVENTS } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
 import { getBusinessPanelJoyrideSteps, BUSINESS_PANEL_TOUR_ID } from '../config/business-panel-joyride-steps';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourRestart } from '@/core/contexts/TourRestartContext';
 import { useTranslation } from 'react-i18next';
+import type { SofliaJoyrideEvent as CallBackProps } from '../types/joyride';
 
 interface UseBusinessPanelJoyrideOptions {
   enabled?: boolean;

@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { setSessionValue } from '@/lib/scorm/session-cache';
-import { sanitizeCMIValue, validateCMIKey } from '@/lib/scorm/sanitize';
 
-export async function POST(req: NextRequest) {
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { sanitizeCMIValue, validateCMIKey } from '@/lib/scorm/sanitize';
+import { setSessionValue } from '@/lib/scorm/session-cache';
+import { createClient } from '@/lib/supabase/server';
+
+import { scormSetValueSchema, type ScormSetValueBody } from '../_schemas';
+
+async function handlePost(_request: NextRequest, body: ScormSetValueBody) {
   try {
     const supabase = await createClient();
     const {
@@ -11,24 +16,14 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: '401' }, { status: 401 });
+      return apiError('UNAUTHENTICATED', 'Unauthorized', 401);
     }
 
-    const { attemptId, key, value } = await req.json();
+    const { attemptId, key, value } = body;
 
-    if (!attemptId || !key || value === undefined) {
-      return NextResponse.json(
-        { error: 'attemptId, key and value are required' },
-        { status: 400 }
-      );
-    }
-
-    // Validar que el key es un CMI key válido
+    // Validar que el key es un CMI key valido
     if (!validateCMIKey(key)) {
-      return NextResponse.json(
-        { error: 'Invalid CMI key' },
-        { status: 400 }
-      );
+      return apiError('INVALID_CMI_KEY', 'Invalid CMI key', 400);
     }
 
     // Validar que el attempt pertenece al usuario
@@ -40,18 +35,17 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (!attempt) {
-      return NextResponse.json({ error: '404' }, { status: 404 });
+      return apiError('SCORM_ATTEMPT_NOT_FOUND', 'Not found', 404);
     }
 
-    // Sanitizar y guardar en cache de sesión
+    // Sanitizar y guardar en cache de sesion
     const sanitizedValue = sanitizeCMIValue(key, String(value));
     setSessionValue(attemptId, key, sanitizedValue);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to set value' },
-      { status: 500 }
-    );
+    return apiError('SCORM_SET_VALUE_FAILED', 'Failed to set value', 500);
   }
 }
+
+export const POST = withZodBody(scormSetValueSchema, handlePost);

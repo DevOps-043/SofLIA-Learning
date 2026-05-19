@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { markQueueJobFailed } from '@/lib/queue/job-store.server'
 import { logger } from '@/lib/utils/logger'
+import {
+  queueFailurePayloadSchema,
+  type QueueFailurePayload,
+} from './schema'
 
 export const runtime = 'nodejs'
 
-export async function POST(request: NextRequest) {
-  const authResponse = validateQueueAuthorization(request)
-  if (authResponse) return authResponse
-
-  const payload = await request.json().catch(() => null)
+async function handlePost(
+  request: NextRequest,
+  payload: QueueFailurePayload,
+) {
   const jobId = extractJobId(payload)
   if (jobId) {
     await markQueueJobFailed({
@@ -31,6 +36,19 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ success: true })
 }
 
+const validatedPost = withZodBody(
+  queueFailurePayloadSchema,
+  handlePost,
+  { emptyBodyFallback: null },
+)
+
+export async function POST(request: NextRequest) {
+  const authResponse = validateQueueAuthorization(request)
+  if (authResponse) return authResponse
+
+  return validatedPost(request, undefined)
+}
+
 function extractJobId(payload: unknown): string | undefined {
   if (!payload || typeof payload !== 'object') return undefined
   const record = payload as Record<string, unknown>
@@ -40,18 +58,16 @@ function extractJobId(payload: unknown): string | undefined {
 function validateQueueAuthorization(request: NextRequest): NextResponse | null {
   const expectedSecret = process.env.QUEUE_INTERNAL_SECRET
   if (!expectedSecret) {
-    return NextResponse.json(
-      { success: false, error: 'QUEUE_INTERNAL_SECRET_NOT_CONFIGURED' },
-      { status: 500 },
+    return apiError(
+      'QUEUE_INTERNAL_SECRET_NOT_CONFIGURED',
+      'QUEUE_INTERNAL_SECRET_NOT_CONFIGURED',
+      500,
     )
   }
 
   const authorization = request.headers.get('authorization')
   if (authorization !== `Bearer ${expectedSecret}`) {
-    return NextResponse.json(
-      { success: false, error: 'UNAUTHORIZED_QUEUE_REQUEST' },
-      { status: 401 },
-    )
+    return apiError('UNAUTHORIZED_QUEUE_REQUEST', 'UNAUTHORIZED_QUEUE_REQUEST', 401)
   }
 
   return null

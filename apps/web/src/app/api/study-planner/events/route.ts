@@ -7,8 +7,15 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { SessionService } from '../../../../features/auth/services/session.service';
 import { CalendarIntegrationService } from '../../../../features/study-planner/services/calendar-integration.service';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+import {
+  calendarEventMutationSchema,
+  type CalendarEventMutationBody,
+} from '../_schemas';
 import {
   createAdminClient,
   syncDeletedEvents,
@@ -16,16 +23,6 @@ import {
   createGoogleCalendarEvent,
   type CalendarIntegrationMetadata,
 } from './calendar-event-sync.service';
-
-interface CreateCalendarEventBody {
-  title: string;
-  description?: string;
-  start: string;
-  end: string;
-  location?: string;
-  isAllDay?: boolean;
-  color?: string;
-}
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Error interno del servidor';
@@ -39,7 +36,7 @@ export async function GET(request: NextRequest) {
   try {
     const user = await SessionService.getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+      return apiError('UNAUTHENTICATED', 'No autorizado', 401);
     }
 
     const { searchParams } = new URL(request.url);
@@ -113,22 +110,17 @@ export async function GET(request: NextRequest) {
  * POST /api/study-planner/events
  * Crea un evento personalizado
  */
-export async function POST(request: NextRequest) {
+async function handlePost(
+  _request: NextRequest,
+  body: CalendarEventMutationBody,
+) {
   try {
     const user = await SessionService.getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+      return apiError('UNAUTHENTICATED', 'No autorizado', 401);
     }
 
-    const body = await request.json() as CreateCalendarEventBody;
     const { title, description, start, end, location, isAllDay, color } = body;
-
-    if (!title || !start || !end) {
-      return NextResponse.json(
-        { error: 'Faltan campos requeridos: title, start, end' },
-        { status: 400 }
-      );
-    }
 
     const supabase = createAdminClient();
 
@@ -218,3 +210,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withZodBody(calendarEventMutationSchema, handlePost);

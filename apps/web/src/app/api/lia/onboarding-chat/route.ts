@@ -5,32 +5,25 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
+import {
+  onboardingChatSchema,
+  type OnboardingChatBody,
+} from '../_schemas';
 
-interface OnboardingChatRequest {
-  question: string;
-  context: {
-    isOnboarding: boolean;
-    currentStep: number;
-    totalSteps: number;
-    conversationHistory: Array<{ role: string; content: string }>;
-  };
-  userName?: string;
-  pageContext?: Record<string, unknown>;
-}
-
-export async function POST(request: NextRequest) {
+async function handlePost(
+  request: NextRequest,
+  body: OnboardingChatBody,
+  _context: unknown,
+) {
   try {
-    const body: OnboardingChatRequest = await request.json();
-    
     const { question, context, userName, pageContext } = body;
 
     // Validaciones
     if (!question || !question.trim()) {
-      return NextResponse.json(
-        { error: 'La pregunta es requerida' },
-        { status: 400 }
-      );
+      return apiError('QUESTION_REQUIRED', 'La pregunta es requerida', 400);
     }
 
     // En lugar de llamar directamente a OpenAI desde aquí, delegamos en el endpoint
@@ -67,22 +60,22 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     techDebtLogger.error('❌ Error en onboarding-chat:', error);
-    return NextResponse.json(
-      { 
-        error: 'Error procesando la solicitud',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
+    return apiError(
+      'ONBOARDING_CHAT_ERROR',
+      'Error procesando la solicitud',
+      500,
     );
   }
 }
+
+export const POST = withZodBody(onboardingChatSchema, handlePost);
 
 /**
  * Construye un prompt específico para el onboarding
  */
 function buildOnboardingPrompt(
   userQuestion: string,
-  context: OnboardingChatRequest['context']
+  context: OnboardingChatBody['context']
 ): string {
   return `Eres SofLIA, la asistente virtual de la plataforma SofLIA. Estás guiando a un nuevo usuario en su proceso de onboarding.
 

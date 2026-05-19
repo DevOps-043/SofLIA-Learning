@@ -1,6 +1,6 @@
 'use client'
 
-import { Joyride } from 'react-joyride'
+import { SofliaJoyride as Joyride } from '@/features/tours/components/SofliaJoyride'
 import { BusinessUserDashboardError } from './page-components/BusinessUserDashboardError'
 import { BusinessUserDashboardLoading } from './page-components/BusinessUserDashboardLoading'
 import { BusinessUserDashboardShell } from './page-components/BusinessUserDashboardShell'

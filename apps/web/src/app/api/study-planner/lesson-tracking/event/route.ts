@@ -11,9 +11,15 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { SessionService } from '../../../../../features/auth/services/session.service';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../../lib/supabase/types';
+import {
+  lessonTrackingEventSchema,
+  type LessonTrackingEventBody,
+} from '../../_schemas';
 
 // Crear cliente admin
 function createAdminClient() {
@@ -32,34 +38,19 @@ function createAdminClient() {
   });
 }
 
-type EventType = 'video_ended' | 'lia_message' | 'activity';
-
-interface EventRequest {
-  trackingId: string;
-  eventType: EventType;
-}
-
-export async function POST(request: NextRequest): Promise<NextResponse> {
+async function handlePost(
+  _request: NextRequest,
+  body: LessonTrackingEventBody,
+): Promise<NextResponse | Response> {
   try {
     // Verificar autenticación
     const user = await SessionService.getCurrentUser();
     
     if (!user) {
-      return NextResponse.json({ 
-        error: 'No autorizado',
-        success: false
-      }, { status: 401 });
+      return apiError('UNAUTHENTICATED', 'No autorizado', 401);
     }
 
-    const body: EventRequest = await request.json();
     const { trackingId, eventType } = body;
-
-    if (!trackingId || !eventType) {
-      return NextResponse.json({ 
-        error: 'trackingId y eventType son requeridos',
-        success: false
-      }, { status: 400 });
-    }
 
     const supabase = createAdminClient();
     const now = new Date();
@@ -73,10 +64,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .single();
 
     if (trackingError || !tracking) {
-      return NextResponse.json({ 
-        error: 'Tracking no encontrado',
-        success: false
-      }, { status: 404 });
+      return apiError('TRACKING_NOT_FOUND', 'Tracking no encontrado', 404);
     }
 
     if (tracking.status !== 'in_progress') {
@@ -141,10 +129,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (updateError) {
       techDebtLogger.error('Error actualizando lesson tracking:', updateError);
-      return NextResponse.json({ 
-        error: `Error al registrar evento: ${updateError.message}`,
-        success: false
-      }, { status: 500 });
+      return apiError(
+        'LESSON_TRACKING_EVENT_FAILED',
+        `Error al registrar evento: ${updateError.message}`,
+        500,
+      );
     }
 
     return NextResponse.json({
@@ -156,9 +145,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } catch (error: unknown) {
     techDebtLogger.error('Error en POST /api/study-planner/lesson-tracking/event:', error);
     const message = error instanceof Error ? error.message : 'Error interno del servidor';
-    return NextResponse.json({ 
-      error: message,
-      success: false
-    }, { status: 500 });
+    return apiError('LESSON_TRACKING_EVENT_FAILED', message, 500);
   }
 }
+
+export const POST = withZodBody(lessonTrackingEventSchema, handlePost);

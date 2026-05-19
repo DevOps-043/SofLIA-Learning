@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import {
   INTRO_VIDEO_MAX_SIZE_BYTES,
-  STREAMABLE_VIDEO_MIME_TYPES,
   isStreamableVideoExtension,
 } from '@/lib/media/video-upload-policy'
 import { logger } from '@/lib/utils/logger'
+import {
+  introVideoUploadUrlSchema,
+  type IntroVideoUploadUrlBody,
+} from '../_schemas'
 
 interface RouteParams {
   params: Promise<{ orgSlug: string }>
@@ -16,51 +20,38 @@ interface RouteParams {
 
 const BUCKET = 'intro-videos'
 
-const BodySchema = z.object({
-  fileName: z.string().min(1),
-  contentType: z.enum(STREAMABLE_VIDEO_MIME_TYPES),
-  fileSize: z.number().int().positive().optional(),
-  folder: z.string().max(120).optional(),
-})
-
 /**
  * Genera una signed upload URL para subir un video introductorio directamente
- * desde el browser al bucket de Supabase, evitando el límite de payload de
- * las funciones serverless.
- *
- * Flujo:
- *   1. Cliente llama POST aquí → recibe { signedUrl, path, token, publicUrl }
- *   2. Cliente hace PUT signedUrl con el binario del archivo (Content-Type: video/*)
- *   3. Cliente guarda publicUrl via PUT /intro-videos/learning-path/[id] o /course/[id]
+ * desde el browser al bucket de Supabase.
  */
-export async function POST(request: NextRequest, { params }: RouteParams) {
+async function handlePost(
+  _request: NextRequest,
+  body: IntroVideoUploadUrlBody,
+  { params }: RouteParams,
+) {
   try {
     const { orgSlug } = await params
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
     if (!auth.organizationId) {
-      return NextResponse.json({ success: false, error: 'Organización no encontrada' }, { status: 403 })
+      return apiError('NO_ORGANIZATION', 'Organizacion no encontrada', 403)
     }
 
-    const body = await request.json()
-    const parsed = BodySchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json({ success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }, { status: 400 })
-    }
+    const { fileName, fileSize, folder } = body
 
-    const { fileName, fileSize, folder } = parsed.data
-
-    // Validar extensión del archivo
     const ext = fileName.split('.').pop()?.toLowerCase() ?? ''
     if (!isStreamableVideoExtension(ext)) {
-      return NextResponse.json({ success: false, error: `Extensión no permitida: .${ext}` }, { status: 400 })
+      return apiError('INVALID_VIDEO_EXTENSION', `Extension no permitida: .${ext}`, 400)
     }
 
     if (fileSize && fileSize > INTRO_VIDEO_MAX_SIZE_BYTES) {
-      return NextResponse.json({ success: false, error: 'El video introductorio es demasiado grande. Máximo 100MB' }, { status: 400 })
+      return apiError(
+        'INTRO_VIDEO_TOO_LARGE',
+        'El video introductorio es demasiado grande. Maximo 100MB',
+        400,
+      )
     }
 
-    // Generar path único: org/{orgSlug}/{folder?}/{timestamp}-{random}.{ext}
     const timestamp = Date.now()
     const random = Math.random().toString(36).slice(2, 8)
     const safeFolder = folder?.replace(/[^a-zA-Z0-9/_-]/g, '') || 'general'
@@ -76,10 +67,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (error || !data) {
       logger.error('Error creating signed upload URL:', error)
-      return NextResponse.json({ success: false, error: 'No se pudo generar la URL de subida' }, { status: 500 })
+      return apiError('CREATE_UPLOAD_URL_FAILED', 'No se pudo generar la URL de subida', 500)
     }
 
-    // URL pública una vez completado el upload
     const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(storagePath)
 
     return NextResponse.json({
@@ -88,10 +78,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       token: data.token,
       path: storagePath,
       publicUrl: urlData.publicUrl,
-      // El cliente usará esta URL para registrar el video tras completar el upload
     })
   } catch (error) {
     logger.error('POST upload-url error:', error)
-    return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 })
+    return apiError('CREATE_UPLOAD_URL_FAILED', 'Error interno', 500)
   }
 }
+
+export const POST = withZodBody(introVideoUploadUrlSchema, handlePost)

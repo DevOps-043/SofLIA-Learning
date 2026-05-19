@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
+import {
+  changePlanSchema,
+  type ChangePlanBody,
+} from '../../../_schemas'
 
 interface ChangePlanUpdatePayload {
   subscription_plan: string
@@ -12,13 +18,18 @@ interface ChangePlanUpdatePayload {
   updated_at: string
 }
 
+type RouteContext = {
+  params: Promise<{ orgSlug: string }>
+}
+
 /**
  * POST /api/[orgSlug]/business/settings/subscription/change-plan
- * Cambia el plan de suscripción de la organización activa
+ * Cambia el plan de suscripcion de la organizacion activa
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> }
+async function handlePost(
+  _request: NextRequest,
+  body: ChangePlanBody,
+  { params }: RouteContext,
 ) {
   try {
     const { orgSlug } = await params
@@ -26,33 +37,22 @@ export async function POST(
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 403 })
+      return apiError('NO_ORGANIZATION', 'No autorizado', 403)
     }
 
-    const body = await request.json()
-    const { planId, billingCycle }: { planId: string; billingCycle: 'monthly' | 'yearly' } = body
+    const { planId, billingCycle } = body
 
-    if (!planId || !billingCycle) {
-      return NextResponse.json({ success: false, error: 'planId y billingCycle son requeridos' }, { status: 400 })
-    }
-
-    const validPlans = ['team', 'business', 'enterprise']
-    if (!validPlans.includes(planId.toLowerCase())) {
-      return NextResponse.json({ success: false, error: 'Plan inválido' }, { status: 400 })
-    }
-
-    if (planId.toLowerCase() === 'enterprise') {
-      return NextResponse.json({
-        success: false,
-        error: 'Para el plan Enterprise, por favor contacta con nuestro equipo de ventas.',
-        requiresSalesContact: true
-      }, { status: 400 })
+    if (planId === 'enterprise') {
+      return apiError(
+        'ENTERPRISE_REQUIRES_SALES',
+        'Para el plan Enterprise, por favor contacta con nuestro equipo de ventas.',
+        400,
+      )
     }
 
     const supabase = await createClient()
 
-    // Obtener datos actuales
-    const { data: currentOrg, error: orgError } = await supabase
+    const { error: orgError } = await supabase
       .from('organizations')
       .select('subscription_plan, subscription_status, subscription_start_date, subscription_end_date, max_users')
       .eq('id', auth.organizationId)
@@ -60,27 +60,25 @@ export async function POST(
 
     if (orgError) {
       logger.error('Error fetching org:', orgError)
-      return NextResponse.json({ success: false, error: 'Error al obtener datos' }, { status: 500 })
+      return apiError('FETCH_ORGANIZATION_FAILED', 'Error al obtener datos', 500)
     }
 
-    // Calcular nuevas fechas
     const now = new Date()
     const startDate = now
-    let endDate = new Date()
+    const endDate = new Date()
     if (billingCycle === 'monthly') endDate.setMonth(endDate.getMonth() + 1)
     else endDate.setFullYear(endDate.getFullYear() + 1)
 
     const maxUsersByPlan: Record<string, number> = { team: 10, business: 50, enterprise: 999999 }
-    const newMaxUsers = maxUsersByPlan[planId.toLowerCase()] || 10
+    const newMaxUsers = maxUsersByPlan[planId] || 10
 
-    // Preparar actualización
     const updateData: ChangePlanUpdatePayload = {
-      subscription_plan: planId.toLowerCase(),
+      subscription_plan: planId,
       subscription_start_date: startDate.toISOString(),
       subscription_end_date: endDate.toISOString(),
       billing_cycle: billingCycle,
       max_users: newMaxUsers,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     }
 
     const { data: updatedOrg, error: updateError } = await supabase
@@ -92,7 +90,7 @@ export async function POST(
 
     if (updateError || !updatedOrg) {
       logger.error('Error updating plan:', updateError)
-      return NextResponse.json({ success: false, error: 'Error al actualizar el plan' }, { status: 500 })
+      return apiError('UPDATE_PLAN_FAILED', 'Error al actualizar el plan', 500)
     }
 
     logger.info('Plan changed successfully', { orgSlug, planId, billingCycle })
@@ -102,15 +100,17 @@ export async function POST(
       message: 'Plan actualizado exitosamente',
       organization: updatedOrg,
       subscription: {
-        plan: planId.toLowerCase(),
+        plan: planId,
         billing_cycle: billingCycle,
         start_date: startDate.toISOString(),
         end_date: endDate.toISOString(),
-        max_users: newMaxUsers
-      }
+        max_users: newMaxUsers,
+      },
     })
   } catch (error) {
-    logger.error('💥 Error in POST /api/[orgSlug]/business/settings/subscription/change-plan:', error)
-    return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 })
+    logger.error('Error in POST /api/[orgSlug]/business/settings/subscription/change-plan:', error)
+    return apiError('CHANGE_PLAN_FAILED', 'Error interno', 500)
   }
 }
+
+export const POST = withZodBody(changePlanSchema, handlePost)

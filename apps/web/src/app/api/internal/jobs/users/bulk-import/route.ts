@@ -1,26 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 
 import { importBusinessUsersFromCsv } from '@/app/api/business/users/import/import.service'
 import { downloadBusinessUserImportPayload } from '@/app/api/business/users/import/payload-storage.server'
+import { apiError } from '@/lib/api/errors'
 import {
   markQueueJobFailed,
   markQueueJobProcessing,
   markQueueJobSucceeded,
 } from '@/lib/queue/job-store.server'
 import { logger } from '@/lib/utils/logger'
-
-const QueueEnvelopeSchema = z.object({
-  dedupKey: z.string().min(1),
-  enqueuedAt: z.string().min(1),
-  jobId: z.string().min(1),
-  jobName: z.literal('users.bulk-import'),
-  payload: z.object({
-    createdBy: z.string().min(1),
-    filePath: z.string().min(1),
-    organizationId: z.string().min(1),
-  }),
-})
+import { queueEnvelopeSchema, type QueueEnvelopeBody } from './schema'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -29,10 +18,7 @@ export async function POST(request: NextRequest) {
   const authResponse = validateQueueAuthorization(request)
   if (authResponse) return authResponse
 
-  const parsed = QueueEnvelopeSchema.safeParse(
-    await request.json().catch(() => null),
-  )
-
+  const parsed = await readQueueEnvelope(request)
   if (!parsed.success) {
     return nonRetryableQueueError('INVALID_QUEUE_PAYLOAD', 400)
   }
@@ -83,41 +69,50 @@ export async function POST(request: NextRequest) {
       dedupKey: parsed.data.dedupKey,
       jobId: parsed.data.jobId,
     })
-    return NextResponse.json(
-      { success: false, error: 'QUEUE_JOB_FAILED' },
-      { status: 500 },
-    )
+    return apiError('QUEUE_JOB_FAILED', 'QUEUE_JOB_FAILED', 500)
+  }
+}
+
+async function readQueueEnvelope(
+  request: NextRequest,
+): Promise<
+  | { data: QueueEnvelopeBody; success: true }
+  | { success: false }
+> {
+  try {
+    const rawBody = await request.text()
+    const parsedJson = rawBody.trim() ? JSON.parse(rawBody) : null
+    const parsed = queueEnvelopeSchema.safeParse(parsedJson)
+    if (!parsed.success) return { success: false }
+    return { data: parsed.data, success: true }
+  } catch {
+    return { success: false }
   }
 }
 
 function validateQueueAuthorization(request: NextRequest): NextResponse | null {
   const expectedSecret = process.env.QUEUE_INTERNAL_SECRET
   if (!expectedSecret) {
-    return NextResponse.json(
-      { success: false, error: 'QUEUE_INTERNAL_SECRET_NOT_CONFIGURED' },
-      { status: 500 },
+    return apiError(
+      'QUEUE_INTERNAL_SECRET_NOT_CONFIGURED',
+      'QUEUE_INTERNAL_SECRET_NOT_CONFIGURED',
+      500,
     )
   }
 
   const authorization = request.headers.get('authorization')
   if (authorization !== `Bearer ${expectedSecret}`) {
-    return NextResponse.json(
-      { success: false, error: 'UNAUTHORIZED_QUEUE_REQUEST' },
-      { status: 401 },
-    )
+    return apiError('UNAUTHORIZED_QUEUE_REQUEST', 'UNAUTHORIZED_QUEUE_REQUEST', 401)
   }
 
   return null
 }
 
 function nonRetryableQueueError(error: string, statusCode: number): NextResponse {
-  return NextResponse.json(
-    { success: false, error, statusCode },
-    {
-      status: 489,
-      headers: {
-        'Upstash-NonRetryable-Error': 'true',
-      },
+  return apiError(error, error, 489, {
+    details: { statusCode },
+    headers: {
+      'Upstash-NonRetryable-Error': 'true',
     },
-  )
+  })
 }

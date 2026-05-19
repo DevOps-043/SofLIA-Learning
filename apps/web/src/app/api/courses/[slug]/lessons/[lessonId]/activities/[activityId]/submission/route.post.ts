@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { SessionService } from '@/features/auth/services/session.service'
-
 import {
-  activitySubmissionRequestSchema,
-} from '@/features/courses/types/activity-config'
-
+  courseActivitySubmissionSchema,
+  type CourseActivitySubmissionBody,
+} from '@/app/api/courses/_schemas'
+import { SessionService } from '@/features/auth/services/session.service'
 import {
   CourseActivityError,
-  getActivitySubmissionDetail,
   resolveCourseActivityContext,
   saveActivitySubmission,
 } from '@/features/courses/services/activity-submission.server.service'
-
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 type RouteParams = {
@@ -21,26 +21,31 @@ type RouteParams = {
   activityId: string
 }
 
-export async function POST(
-  request: NextRequest,
+function sanitizeActivitySubmissionBody(
+  body: CourseActivitySubmissionBody,
+): CourseActivitySubmissionBody {
+  if (body.responseText === undefined || body.responseText === null) {
+    return body
+  }
+
+  return {
+    ...body,
+    responseText: sanitizeHtml(body.responseText, {
+      level: 'rich',
+      maxLength: 20_000,
+    }),
+  }
+}
+
+async function handlePost(
+  _request: NextRequest,
+  body: CourseActivitySubmissionBody,
   { params }: { params: Promise<RouteParams> },
 ) {
   try {
     const currentUser = await SessionService.getCurrentUser()
     if (!currentUser) {
-      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
-    }
-
-    const body = await request.json().catch(() => null)
-    const parsedRequest = activitySubmissionRequestSchema.safeParse(body)
-    if (!parsedRequest.success) {
-      return NextResponse.json(
-        {
-          error: 'Payload invalido para guardar la actividad',
-          details: parsedRequest.error.flatten(),
-        },
-        { status: 400 },
-      )
+      return apiError('UNAUTHENTICATED', 'No autenticado.', 401)
     }
 
     const { slug, lessonId, activityId } = await params
@@ -55,7 +60,7 @@ export async function POST(
     const submission = await saveActivitySubmission(
       supabase,
       context,
-      parsedRequest.data,
+      sanitizeActivitySubmissionBody(body),
     )
 
     return NextResponse.json({
@@ -65,13 +70,13 @@ export async function POST(
     const isCourseActivityError = error instanceof CourseActivityError
     const status = isCourseActivityError ? error.status : 500
 
-    return NextResponse.json(
-      {
-        code: isCourseActivityError ? error.code : undefined,
-        error: isCourseActivityError ? error.message : 'Error interno del servidor',
-        details: isCourseActivityError ? error.details : undefined,
-      },
-      { status },
+    return apiError(
+      isCourseActivityError ? error.code : 'INTERNAL_ERROR',
+      isCourseActivityError ? error.message : 'Error interno del servidor.',
+      status,
+      { details: isCourseActivityError ? error.details : undefined },
     )
   }
 }
+
+export const POST = withZodBody(courseActivitySubmissionSchema, handlePost)

@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
 import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
+import { geocodeSchema, type GeocodeBody } from '@/app/api/business/hierarchy/_schemas';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string }>;
@@ -19,14 +22,17 @@ interface RouteContext {
  *   postal_code?: string
  * }
  */
-export async function POST(request: NextRequest, { params }: RouteContext) {
+async function handlePost(
+  request: NextRequest,
+  body: GeocodeBody,
+  { params }: RouteContext,
+) {
   try {
     const { orgSlug } = await params;
     // Verificar autenticación business con orgSlug
     const auth = await requireBusiness({ organizationSlug: orgSlug });
     if (auth instanceof NextResponse) return auth;
 
-    const body = await request.json();
     const { address, city, state, country, postal_code } = body;
 
     // Construir query structured para Nominatim (es más preciso)
@@ -46,9 +52,10 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     const hasStructuredParams = address || city || state || country || postal_code;
 
     if (!hasStructuredParams) {
-      return NextResponse.json(
-        { success: false, error: 'Debes proporcionar al menos un campo de ubicación (calle, ciudad, estado, etc.)' },
-        { status: 400 }
+      return apiError(
+        'MISSING_LOCATION_FIELDS',
+        'Debes proporcionar al menos un campo de ubicación (calle, ciudad, estado, etc.)',
+        400,
       );
     }
 
@@ -66,9 +73,10 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     if (!response.ok) {
       logger.error(`❌ Nominatim API error (structured): ${response.status} ${response.statusText}`);
-      return NextResponse.json(
-        { success: false, error: 'Error al conectar con el servicio de geocodificación' },
-        { status: 500 }
+      return apiError(
+        'GEOCODING_SERVICE_FAILED',
+        'Error al conectar con el servicio de geocodificación',
+        500,
       );
     }
 
@@ -106,9 +114,10 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
       if (!fallbackRes.ok) {
         logger.error(`❌ Nominatim API error (fallback): ${fallbackRes.status} ${fallbackRes.statusText}`);
-        return NextResponse.json(
-          { success: false, error: 'Error al conectar con el servicio de geocodificación (fallback)' },
-          { status: 500 }
+        return apiError(
+          'GEOCODING_SERVICE_FAILED',
+          'Error al conectar con el servicio de geocodificación (fallback)',
+          500,
         );
       }
 
@@ -155,15 +164,17 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
   } catch (error) {
     logger.error('❌ Error en geocoding:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Error desconocido al buscar coordenadas'
-      },
-      { status: 500 }
+    return apiError(
+      'GEOCODING_FAILED',
+      error instanceof Error
+        ? error.message
+        : 'Error desconocido al buscar coordenadas',
+      500,
     );
   }
 }
+
+export const POST = withZodBody(geocodeSchema, handlePost);
 
 /**
  * GET /api/[orgSlug]/business/hierarchy/geocode
@@ -182,7 +193,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     const lon = searchParams.get('lon');
 
     if (!lat || !lon) {
-      return NextResponse.json({ error: 'Missing coordinates' }, { status: 400 });
+      return apiError('MISSING_COORDINATES', 'Missing coordinates', 400);
     }
 
     const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&addressdetails=1`;
@@ -198,7 +209,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     if (!response.ok) {
       const errText = await response.text();
       logger.error(`❌ Reverse Geocoding API error: ${response.status} ${errText}`);
-      return NextResponse.json({ error: 'External API Error' }, { status: response.status });
+      return apiError('EXTERNAL_API_ERROR', 'External API Error', response.status);
     }
 
     const data = await response.json();
@@ -207,6 +218,6 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   } catch (error: unknown) {
     logger.error('❌ Reverse Geocoding Error:', error);
     const message = error instanceof Error ? error.message : 'Error fetching location';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('REVERSE_GEOCODING_FAILED', message, 500);
   }
 }

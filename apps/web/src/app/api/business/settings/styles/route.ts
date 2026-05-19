@@ -2,8 +2,16 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
-import { PRESET_THEMES, getThemeById, generateBrandingTheme, getThemeStylesForMode } from '@/features/business-panel/config/preset-themes';
+import { getThemeById, generateBrandingTheme } from '@/features/business-panel/config/preset-themes';
 import { DESIGN_HEX_COLOR } from '@/core/theme/color-tokens'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import {
+  businessStylesUpdateSchema,
+  businessThemeApplySchema,
+  type BusinessStylesUpdateBody,
+  type BusinessThemeApplyBody,
+} from './schema'
 
 interface ThemeStyleInput {
   background_type: 'image' | 'color' | 'gradient';
@@ -33,7 +41,7 @@ export async function GET(request: NextRequest) {
       return auth;
     }
 
-    const { userId, organizationId } = auth;
+    const { organizationId } = auth;
 
     const supabase = await createClient();
 
@@ -103,67 +111,24 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest) {
+export const POST = withZodBody(businessThemeApplySchema, handlePost)
+
+async function handlePut(
+  _request: NextRequest,
+  body: BusinessStylesUpdateBody,
+  _context: unknown,
+) {
   try {
     const auth = await requireBusiness();
     if (auth instanceof NextResponse) return auth;
 
-    const { userId, organizationId } = auth;
+    const { organizationId } = auth;
     const supabase = await createClient();
 
-    const body = await request.json();
     const { panel, userDashboard, login } = body;
 
-    // Validar estructura de estilos
-    const validateStyle = (style: unknown): style is ThemeStyleInput => {
-      if (!style || typeof style !== 'object') return false;
-
-      const requiredFields = ['background_type', 'background_value', 'primary_button_color', 'secondary_button_color', 'accent_color'];
-      for (const field of requiredFields) {
-        if (!style[field] || typeof style[field] !== 'string') {
-          return false;
-        }
-      }
-
-      // Validar formato de color hex
-      const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-      if (!hexColorRegex.test(style.primary_button_color)) return false;
-      if (!hexColorRegex.test(style.secondary_button_color)) return false;
-      if (!hexColorRegex.test(style.accent_color)) return false;
-
-      // Validar background_type
-      if (!['image', 'color', 'gradient'].includes(style.background_type)) return false;
-
-      return true;
-    };
-
-    // Validar estilos si se proporcionan
-    if (panel && !validateStyle(panel)) {
-      return NextResponse.json(
-        { success: false, error: 'Estilos del panel inválidos' },
-        { status: 400 }
-      );
-    }
-
-    if (userDashboard && !validateStyle(userDashboard)) {
-      return NextResponse.json(
-        { success: false, error: 'Estilos del dashboard de usuario inválidos' },
-        { status: 400 }
-      );
-    }
-
-    if (login && !validateStyle(login)) {
-      return NextResponse.json(
-        { success: false, error: 'Estilos del login inválidos' },
-        { status: 400 }
-      );
-    }
-
     if (!organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'Organización no encontrada' },
-        { status: 404 }
-      );
+      return apiError('NO_ORGANIZATION', 'Organización no encontrada', 404);
     }
 
     // Construir objeto de actualización
@@ -181,10 +146,7 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (updateError || !updatedOrg) {
-      return NextResponse.json(
-        { success: false, error: 'Error al actualizar estilos' },
-        { status: 500 }
-      );
+      return apiError('UPDATE_STYLES_FAILED', 'Error al actualizar estilos', 500);
     }
 
     // Obtener si el tema soporta modo dual
@@ -207,36 +169,28 @@ export async function PUT(request: NextRequest) {
       }
     });
   } catch (error: unknown) {
-    return NextResponse.json(
-      { success: false, error: 'Error al actualizar estilos' },
-      { status: 500 }
-    );
+    return apiError('UPDATE_STYLES_FAILED', 'Error al actualizar estilos', 500);
   }
 }
 
-export async function POST(request: NextRequest) {
+export const PUT = withZodBody(businessStylesUpdateSchema, handlePut)
+
+async function handlePost(
+  _request: NextRequest,
+  body: BusinessThemeApplyBody,
+  _context: unknown,
+) {
   try {
     const auth = await requireBusiness();
     if (auth instanceof NextResponse) return auth;
 
-    const { userId, organizationId } = auth;
+    const { organizationId } = auth;
     const supabase = await createClient();
 
-    const body = await request.json();
     const { themeId } = body;
 
-    if (!themeId || typeof themeId !== 'string') {
-      return NextResponse.json(
-        { success: false, error: 'ID de tema requerido' },
-        { status: 400 }
-      );
-    }
-
     if (!organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'Organización no encontrada' },
-        { status: 404 }
-      );
+      return apiError('NO_ORGANIZATION', 'Organización no encontrada', 404);
     }
 
     // Obtener tema predefinido o generar tema de branding
@@ -251,9 +205,10 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (orgError || !orgData) {
-        return NextResponse.json(
-          { success: false, error: 'No se pudieron obtener los colores de branding' },
-          { status: 500 }
+        return apiError(
+          'BRANDING_COLORS_NOT_FOUND',
+          'No se pudieron obtener los colores de branding',
+          500,
         );
       }
 
@@ -267,10 +222,7 @@ export async function POST(request: NextRequest) {
       // Obtener tema predefinido
       theme = getThemeById(themeId);
       if (!theme) {
-        return NextResponse.json(
-          { success: false, error: 'Tema no encontrado' },
-          { status: 404 }
-        );
+        return apiError('THEME_NOT_FOUND', 'Tema no encontrado', 404);
       }
     }
 
@@ -288,10 +240,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (updateError || !updatedOrg) {
-      return NextResponse.json(
-        { success: false, error: 'Error al aplicar tema' },
-        { status: 500 }
-      );
+      return apiError('APPLY_THEME_FAILED', 'Error al aplicar tema', 500);
     }
 
     return NextResponse.json({
@@ -305,9 +254,6 @@ export async function POST(request: NextRequest) {
       }
     });
   } catch (error: unknown) {
-    return NextResponse.json(
-      { success: false, error: 'Error al aplicar tema' },
-      { status: 500 }
-    );
+    return apiError('APPLY_THEME_FAILED', 'Error al aplicar tema', 500);
   }
 }

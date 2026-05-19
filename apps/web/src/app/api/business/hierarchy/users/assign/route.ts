@@ -1,76 +1,54 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
+
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
+import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/utils/logger';
 
-/**
- * POST /api/business/hierarchy/users/assign
- * Asigna un usuario a un equipo
- */
-export async function POST(request: Request) {
+import {
+  assignUsersSchema,
+  type AssignUsersBody,
+} from '../../_schemas';
+
+async function handlePost(_request: NextRequest, body: AssignUsersBody) {
   try {
     const auth = await requireBusiness();
     if (auth instanceof NextResponse) return auth;
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
+      return apiError(
+        'NO_ORGANIZATION',
+        'No tienes una organización asignada',
+        403,
       );
     }
 
-    // Verificar permisos (owner, admin pueden asignar)
     if (auth.organizationRole !== 'owner' && auth.organizationRole !== 'admin') {
-      return NextResponse.json(
-        { success: false, error: 'No tienes permisos para asignar usuarios' },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-
-    if (!body.user_id) {
-      return NextResponse.json(
-        { success: false, error: 'El ID del usuario es requerido' },
-        { status: 400 }
-      );
-    }
-
-    if (!body.team_id) {
-      return NextResponse.json(
-        { success: false, error: 'El ID del equipo es requerido' },
-        { status: 400 }
+      return apiError(
+        'FORBIDDEN',
+        'No tienes permisos para asignar usuarios',
+        403,
       );
     }
 
     const supabase = await createClient();
 
-    // Verificar que el equipo existe y pertenece a la organización
     const { data: team, error: teamError } = await supabase
       .from('organization_teams')
-      .select(`
-        id,
-        name,
-        max_members,
-        zone_id,
-        zone:organization_zones!zone_id (
-          id,
-          region_id
-        )
-      `)
+      .select(
+        `id, name, max_members, zone_id,
+         zone:organization_zones!zone_id (id, region_id)`,
+      )
       .eq('id', body.team_id)
       .eq('organization_id', auth.organizationId)
       .eq('is_active', true)
       .single();
 
     if (teamError || !team) {
-      return NextResponse.json(
-        { success: false, error: 'Equipo no encontrado' },
-        { status: 404 }
-      );
+      return apiError('TEAM_NOT_FOUND', 'Equipo no encontrado', 404);
     }
 
-    // Verificar que el usuario pertenece a la organización
     const { data: orgUser, error: userError } = await supabase
       .from('organization_users')
       .select('id, user_id, role, team_id')
@@ -80,21 +58,21 @@ export async function POST(request: Request) {
       .single();
 
     if (userError || !orgUser) {
-      return NextResponse.json(
-        { success: false, error: 'Usuario no encontrado en la organización' },
-        { status: 404 }
+      return apiError(
+        'USER_NOT_IN_ORG',
+        'Usuario no encontrado en la organización',
+        404,
       );
     }
 
-    // No se puede asignar al owner a un equipo
     if (orgUser.role === 'owner') {
-      return NextResponse.json(
-        { success: false, error: 'El propietario no puede ser asignado a un equipo' },
-        { status: 400 }
+      return apiError(
+        'CANNOT_ASSIGN_OWNER',
+        'El propietario no puede ser asignado a un equipo',
+        400,
       );
     }
 
-    // Verificar límite de miembros del equipo
     if (team.max_members) {
       const { count: currentMembers } = await supabase
         .from('organization_users')
@@ -102,86 +80,69 @@ export async function POST(request: Request) {
         .eq('team_id', body.team_id)
         .eq('status', 'active');
 
-      // Si el usuario ya está en el equipo, no contarlo como nuevo
       const isAlreadyInTeam = orgUser.team_id === body.team_id;
-
-      if (!isAlreadyInTeam && currentMembers && currentMembers >= team.max_members) {
-        return NextResponse.json(
-          { success: false, error: `El equipo ha alcanzado su límite de ${team.max_members} miembros` },
-          { status: 400 }
+      if (
+        !isAlreadyInTeam &&
+        currentMembers &&
+        currentMembers >= team.max_members
+      ) {
+        return apiError(
+          'TEAM_FULL',
+          `El equipo ha alcanzado su límite de ${team.max_members} miembros`,
+          400,
         );
       }
     }
 
-    // Obtener region_id de la zona
     const zone = team.zone as { id: string; region_id: string } | null;
     const zoneId = team.zone_id;
     const regionId = zone?.region_id;
 
-    // Preparar actualización
     const updateData: Record<string, unknown> = {
       team_id: body.team_id,
       zone_id: zoneId,
       region_id: regionId,
-      hierarchy_scope: 'team'
+      hierarchy_scope: 'team',
     };
 
-    // Si se especifica un rol de equipo, actualizarlo
-    if (body.role && ['team_leader', 'member'].includes(body.role)) {
+    if (body.role) {
       updateData.role = body.role;
     }
 
-    // Actualizar el usuario
     const { data: updatedUser, error: updateError } = await supabase
       .from('organization_users')
       .update(updateData)
       .eq('id', orgUser.id)
-      .select(`
-        id,
-        user_id,
-        role,
-        status,
-        team_id,
-        zone_id,
-        region_id,
-        hierarchy_scope,
-        job_title,
-        users!inner (
-          id,
-          username,
-          email,
-          display_name,
-          first_name,
-          last_name,
-          profile_picture_url
-        )
-      `)
+      .select(
+        `id, user_id, role, status, team_id, zone_id, region_id, hierarchy_scope, job_title,
+         users!inner (id, username, email, display_name, first_name, last_name, profile_picture_url)`,
+      )
       .single();
 
     if (updateError) {
       logger.error('Error asignando usuario a equipo:', updateError);
-      return NextResponse.json(
-        { success: false, error: 'Error al asignar usuario' },
-        { status: 500 }
+      return apiError(
+        'ASSIGN_USER_FAILED',
+        'Error al asignar usuario',
+        500,
       );
     }
 
     logger.info('Usuario asignado a equipo:', {
       userId: body.user_id,
       teamId: body.team_id,
-      teamName: team.name
+      teamName: team.name,
     });
 
     return NextResponse.json({
       success: true,
       user: updatedUser,
-      message: `Usuario asignado al equipo "${team.name}"`
+      message: `Usuario asignado al equipo "${team.name}"`,
     });
   } catch (error) {
     logger.error('Error en POST /api/business/hierarchy/users/assign:', error);
-    return NextResponse.json(
-      { success: false, error: 'Error al asignar usuario' },
-      { status: 500 }
-    );
+    return apiError('ASSIGN_USER_FAILED', 'Error al asignar usuario', 500);
   }
 }
+
+export const POST = withZodBody(assignUsersSchema, handlePost);

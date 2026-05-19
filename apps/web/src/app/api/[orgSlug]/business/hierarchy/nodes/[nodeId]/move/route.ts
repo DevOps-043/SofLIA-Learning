@@ -1,6 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import {
+    moveNodeSchema,
+    type MoveNodeBody,
+} from '@/app/api/business/hierarchy/_schemas';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string; nodeId: string }>;
@@ -9,8 +15,9 @@ interface RouteContext {
 /**
  * POST /api/[orgSlug]/business/hierarchy/nodes/[nodeId]/move
  */
-export async function POST(
-    request: NextRequest,
+async function handlePost(
+    _request: NextRequest,
+    body: MoveNodeBody,
     { params }: RouteContext
 ) {
     try {
@@ -18,18 +25,22 @@ export async function POST(
         const auth = await requireBusiness({ organizationSlug: orgSlug });
         if (auth instanceof NextResponse) return auth;
 
+        if (!auth.organizationId) {
+            return apiError('NO_ORGANIZATION', 'Organization ID required', 403);
+        }
+
         const supabase = await createClient();
-        const { new_parent_id } = await request.json();
+        const new_parent_id = body.new_parent_id ?? null;
 
         // 1. Fetch current node
         const { data: node } = await supabase
             .from('organization_nodes')
-            .select(SELECT_COLUMNS.organization_nodes)
+            .select('id, name, path, depth')
             .eq('id', nodeId)
             .eq('organization_id', auth.organizationId)
             .single();
 
-        if (!node) return NextResponse.json({ error: 'Node not found' }, { status: 404 });
+        if (!node) return apiError('NODE_NOT_FOUND', 'Node not found', 404);
 
         // 2. Fetch new parent
         let newPath = 'root';
@@ -38,15 +49,19 @@ export async function POST(
         if (new_parent_id) {
             const { data: parent } = await supabase
                 .from('organization_nodes')
-                .select(SELECT_COLUMNS.organization_nodes)
+                .select('id, name, path, depth')
                 .eq('id', new_parent_id)
                 .eq('organization_id', auth.organizationId)
                 .single();
 
-            if (!parent) return NextResponse.json({ error: 'Parent not found' }, { status: 404 });
+            if (!parent) return apiError('PARENT_NOT_FOUND', 'Parent not found', 404);
 
             if (parent.path.startsWith(node.path)) {
-                return NextResponse.json({ error: 'Cannot move node into its own descendant' }, { status: 400 });
+                return apiError(
+                    'CIRCULAR_MOVE',
+                    'Cannot move node into its own descendant',
+                    400,
+                );
             }
 
             const slug = node.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
@@ -73,7 +88,7 @@ export async function POST(
             })
             .eq('id', nodeId);
 
-        if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+        if (updateError) return apiError('MOVE_NODE_FAILED', updateError.message, 500);
 
         if (descendants && descendants.length > 0) {
             for (const desc of descendants) {
@@ -88,7 +103,9 @@ export async function POST(
         }
 
         return NextResponse.json({ success: true });
-    } catch (error) {
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    } catch {
+        return apiError('INTERNAL_ERROR', 'Internal Server Error', 500);
     }
 }
+
+export const POST = withZodBody(moveNodeSchema, handlePost);

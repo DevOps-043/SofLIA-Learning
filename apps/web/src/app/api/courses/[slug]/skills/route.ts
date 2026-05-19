@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+import {
+  courseSkillsSchema,
+  type CourseSkillsBody,
+} from '@/app/api/courses/_schemas'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
+
 import { getOptionalCourseSkillUser, authorizeCourseSkillEdit } from './auth'
 import { resolveCourseByIdentifier } from './course-resolver'
 import { formatCourseSkillResponse } from './skill-formatters'
 import { addUserSkillLevels, fetchCourseSkills } from './skill-queries'
 import { replaceCourseSkills } from './skill-updates'
-import type { CourseSkillInput, CourseSkillRow } from './types'
+import type { CourseSkillRow } from './types'
 
 export async function GET(
   _request: NextRequest,
@@ -50,8 +58,9 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
+async function handlePost(
+  _request: NextRequest,
+  body: CourseSkillsBody,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
@@ -66,18 +75,10 @@ export async function POST(
     )
     if ('response' in authorization) return authorization.response
 
-    const { skills } = await request.json()
-    if (!Array.isArray(skills)) {
-      return NextResponse.json(
-        { success: false, error: 'Skills debe ser un array' },
-        { status: 400 },
-      )
-    }
-
     const updateError = await replaceCourseSkills(
       supabase,
       resolvedCourse.course.id,
-      skills as CourseSkillInput[],
+      body.skills,
     )
     if (updateError) return updateError
 
@@ -87,9 +88,8 @@ export async function POST(
     })
   } catch (error) {
     logger.error('Error in /api/courses/[slug]/skills POST:', error)
-    return NextResponse.json(
-      { success: false, error: 'Error interno del servidor' },
-      { status: 500 },
-    )
+    return apiError('INTERNAL_ERROR', 'Error interno del servidor.', 500)
   }
 }
+
+export const POST = withZodBody(courseSkillsSchema, handlePost)

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { SessionService } from '@/features/auth/services/session.service'
 import {
   createTrustedAgentCookie,
@@ -10,26 +12,18 @@ import {
 } from '@/lib/security/trusted-agent-auth'
 import { recordSecurityEvent } from '@/lib/security/security-events'
 
+import { agentHandshakeSchema, type AgentHandshakeBody } from '../_schemas'
+
 export const dynamic = 'force-dynamic'
 
 const ALLOWED_METHODS = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
-
-interface AgentHandshakePayload {
-  agentId?: string
-  pathname?: string
-  method?: string
-}
-
-async function readPayload(request: NextRequest) {
-  try {
-    return (await request.json()) as AgentHandshakePayload
-  } catch {
-    return null
-  }
+const RESPONSE_HEADERS = {
+  'Cache-Control': 'private, no-store, max-age=0',
+  'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet, noimageindex',
 }
 
 function sanitizePathname(pathname?: string) {
-  if (!pathname || typeof pathname !== 'string') {
+  if (!pathname) {
     return null
   }
 
@@ -40,23 +34,13 @@ function sanitizePathname(pathname?: string) {
   return pathname
 }
 
-export async function POST(request: NextRequest) {
-  const responseHeaders = {
-    'Cache-Control': 'private, no-store, max-age=0',
-    'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet, noimageindex',
-  }
+async function handlePost(request: NextRequest, payload: AgentHandshakeBody) {
   const user = await SessionService.getCurrentUser()
 
   if (!user) {
-    return NextResponse.json(
-      {
-        error: 'Unauthorized',
-      },
-      {
-        status: 401,
-        headers: responseHeaders,
-      },
-    )
+    return apiError('UNAUTHENTICATED', 'Unauthorized', 401, {
+      headers: RESPONSE_HEADERS,
+    })
   }
 
   if (!validateTrustedAgentBootstrap(request)) {
@@ -75,33 +59,20 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(
-      {
-        error: 'Forbidden',
-      },
-      {
-        status: 403,
-        headers: responseHeaders,
-      },
-    )
+    return apiError('FORBIDDEN', 'Forbidden', 403, {
+      headers: RESPONSE_HEADERS,
+    })
   }
 
-  const payload = await readPayload(request)
-  const pathname = sanitizePathname(payload?.pathname)
-  const agentId = payload?.agentId?.trim()
+  const pathname = sanitizePathname(payload.pathname)
+  const agentId = payload.agentId?.trim()
   const method =
-    typeof payload?.method === 'string' ? payload.method.toUpperCase() : 'GET'
+    typeof payload.method === 'string' ? payload.method.toUpperCase() : 'GET'
 
   if (!pathname || !agentId || !ALLOWED_METHODS.has(method)) {
-    return NextResponse.json(
-      {
-        error: 'Invalid request',
-      },
-      {
-        status: 400,
-        headers: responseHeaders,
-      },
-    )
+    return apiError('INVALID_REQUEST', 'Invalid request', 400, {
+      headers: RESPONSE_HEADERS,
+    })
   }
 
   if (!isAllowedTrustedAgentId(agentId)) {
@@ -122,15 +93,9 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(
-      {
-        error: 'Forbidden',
-      },
-      {
-        status: 403,
-        headers: responseHeaders,
-      },
-    )
+    return apiError('FORBIDDEN', 'Forbidden', 403, {
+      headers: RESPONSE_HEADERS,
+    })
   }
 
   const signedHeaders = createTrustedAgentHeaders({
@@ -171,7 +136,7 @@ export async function POST(request: NextRequest) {
       headers: signedHeaders,
     },
     {
-      headers: responseHeaders,
+      headers: RESPONSE_HEADERS,
     },
   )
 
@@ -183,3 +148,7 @@ export async function POST(request: NextRequest) {
 
   return response
 }
+
+export const POST = withZodBody(agentHandshakeSchema, handlePost, {
+  emptyBodyFallback: {},
+})

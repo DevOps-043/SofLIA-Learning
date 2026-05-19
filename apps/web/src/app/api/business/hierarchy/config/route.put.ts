@@ -1,57 +1,57 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-import { createClient } from '@/lib/supabase/server';
-
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
-
+import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/utils/logger';
 
-/**
- * PUT /api/business/hierarchy/config
- * Actualiza la configuración de jerarquía
- */
-export async function PUT(request: Request) {
+import {
+  updateHierarchyConfigSchema,
+  type UpdateHierarchyConfigBody,
+} from '../_schemas';
+
+async function handlePut(
+  _request: NextRequest,
+  body: UpdateHierarchyConfigBody,
+) {
   try {
     const auth = await requireBusiness();
     if (auth instanceof NextResponse) return auth;
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
+      return apiError(
+        'NO_ORGANIZATION',
+        'No tienes una organización asignada',
+        403,
       );
     }
 
-    // Solo el owner o admin puede modificar la configuración
     if (auth.organizationRole !== 'owner' && auth.organizationRole !== 'admin') {
-      return NextResponse.json(
-        { success: false, error: 'Solo el propietario o administrador puede modificar la configuración' },
-        { status: 403 }
+      return apiError(
+        'FORBIDDEN',
+        'Solo el propietario o administrador puede modificar la configuración',
+        403,
       );
     }
 
-    const body = await request.json();
     const supabase = await createClient();
-
-    // Preparar los datos a actualizar
     const updateData: Record<string, unknown> = {};
 
     if (typeof body.hierarchy_enabled === 'boolean') {
       updateData.hierarchy_enabled = body.hierarchy_enabled;
     }
 
-    // Actualizar hierarchy_config con las opciones adicionales
-    const configFields = ['labels', 'auto_assign_new_users', 'require_team_assignment'];
+    const configFields = ['labels', 'auto_assign_new_users', 'require_team_assignment'] as const;
     const configUpdate: Record<string, unknown> = {};
-
     for (const field of configFields) {
-      if (body[field] !== undefined) {
-        configUpdate[field] = body[field];
+      const value = (body as Record<string, unknown>)[field];
+      if (value !== undefined) {
+        configUpdate[field] = value;
       }
     }
 
     if (Object.keys(configUpdate).length > 0) {
-      // Obtener config actual para hacer merge
       const { data: currentOrg } = await supabase
         .from('organizations')
         .select('hierarchy_config')
@@ -59,16 +59,13 @@ export async function PUT(request: Request) {
         .single();
 
       updateData.hierarchy_config = {
-        ...(currentOrg?.hierarchy_config as object || {}),
-        ...configUpdate
+        ...((currentOrg?.hierarchy_config as object) || {}),
+        ...configUpdate,
       };
     }
 
     if (Object.keys(updateData).length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'No hay datos para actualizar' },
-        { status: 400 }
-      );
+      return apiError('NO_CHANGES', 'No hay datos para actualizar', 400);
     }
 
     const { data: org, error } = await supabase
@@ -80,9 +77,10 @@ export async function PUT(request: Request) {
 
     if (error) {
       logger.error('Error actualizando config de jerarquía:', error);
-      return NextResponse.json(
-        { success: false, error: 'Error al actualizar configuración' },
-        { status: 500 }
+      return apiError(
+        'UPDATE_CONFIG_FAILED',
+        'Error al actualizar configuración',
+        500,
       );
     }
 
@@ -90,14 +88,17 @@ export async function PUT(request: Request) {
       success: true,
       config: {
         hierarchy_enabled: org.hierarchy_enabled ?? false,
-        ...(org.hierarchy_config as object || {})
-      }
+        ...((org.hierarchy_config as object) || {}),
+      },
     });
   } catch (error) {
     logger.error('Error en PUT /api/business/hierarchy/config:', error);
-    return NextResponse.json(
-      { success: false, error: 'Error al actualizar configuración' },
-      { status: 500 }
+    return apiError(
+      'UPDATE_CONFIG_FAILED',
+      'Error al actualizar configuración',
+      500,
     );
   }
 }
+
+export const PUT = withZodBody(updateHierarchyConfigSchema, handlePut);

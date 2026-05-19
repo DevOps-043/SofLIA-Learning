@@ -10,6 +10,8 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { SessionService } from '../../../../features/auth/services/session.service';
 import { UserContextService } from '../../../../features/study-planner/services/user-context.service';
 import { CourseAnalysisService } from '../../../../features/study-planner/services/course-analysis.service';
@@ -18,13 +20,10 @@ import type {
   CourseInfo 
 } from '../../../../features/study-planner/types/user-context.types';
 import { generateLearningRouteSuggestions } from './suggest-learning-route.service';
-
-interface SuggestLearningRouteRequest {
-  includeUnpurchasedCourses?: boolean;
-  focusArea?: string;
-  targetSkills?: string[];
-  maxCourses?: number;
-}
+import {
+  suggestLearningRouteSchema,
+  type SuggestLearningRouteBody,
+} from '../_schemas';
 
 interface SuggestLearningRouteResponse {
   success: boolean;
@@ -36,19 +35,17 @@ interface SuggestLearningRouteResponse {
   error?: string;
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse<SuggestLearningRouteResponse>> {
+async function handlePost(
+  _request: NextRequest,
+  body: SuggestLearningRouteBody,
+): Promise<NextResponse<SuggestLearningRouteResponse> | Response> {
   try {
     // Verificar autenticación
     const user = await SessionService.getCurrentUser();
     
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'No autenticado' },
-        { status: 401 }
-      );
+      return apiError('UNAUTHENTICATED', 'No autenticado', 401);
     }
-    
-    const body: SuggestLearningRouteRequest = await request.json();
     
     // Obtener contexto del usuario
     const userContext = await UserContextService.getFullUserContext(user.id);
@@ -122,15 +119,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<SuggestLe
     
   } catch (error) {
     techDebtLogger.error('Error sugiriendo ruta de aprendizaje:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Error interno del servidor' 
-      },
-      { status: 500 }
-    );
+    return apiError('SUGGEST_LEARNING_ROUTE_FAILED', 'Error interno del servidor', 500);
   }
 }
+
+export const POST = withZodBody(suggestLearningRouteSchema, handlePost);
 
 /**
  * Genera sugerencias de rutas de aprendizaje usando LIA

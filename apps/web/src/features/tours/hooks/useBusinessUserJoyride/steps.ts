@@ -1,4 +1,4 @@
-import type { Step } from 'react-joyride'
+import type { SofliaJoyrideStep as Step } from '@/features/tours/types/joyride'
 import * as businessUserJoyrideConfig from '../../config/business-user-joyride-steps'
 import {
   closeUserMenuIfOpen,

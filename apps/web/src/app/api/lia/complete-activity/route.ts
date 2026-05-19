@@ -1,19 +1,16 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { createAdminClient } from '../../../../lib/supabase/admin';
 import { SessionService } from '../../../../features/auth/services/session.service';
 import { resolveActivityCompletionAttempt } from './activity-completion-attempts.service';
+import {
+  completeActivitySchema,
+  type CompleteActivityBody,
+} from '../_schemas';
 
 type CompletionStatus = 'completed';
-
-interface CompleteActivityRequest {
-  completionId?: string;
-  conversationId?: string | null;
-  activityType?: string;
-  generatedOutput?: unknown;
-  requireUserMessage?: boolean;
-  timeSpentSeconds?: number;
-}
 
 interface ActivityCompletionRecord {
   activity_id?: string;
@@ -90,16 +87,17 @@ async function hasUserMessageInConversation(input: {
  * Marca una actividad como completada y guarda el output generado
  * Puede recibir completionId (para actualizar) o crear una nueva actividad completada directamente
  */
-export async function POST(request: NextRequest) {
+async function handlePost(
+  _request: NextRequest,
+  body: CompleteActivityBody,
+  _context: unknown,
+) {
   try {
     // ✅ Usar SessionService para autenticación
     const user = await SessionService.getCurrentUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return apiError('UNAUTHORIZED', 'No autorizado', 401);
     }
 
     // Obtener datos del body
@@ -110,7 +108,7 @@ export async function POST(request: NextRequest) {
       generatedOutput,
       requireUserMessage = false,
       timeSpentSeconds 
-    }: CompleteActivityRequest = await request.json();
+    } = body;
 
     // Cliente con service-role: la auth del proyecto es legacy session (no Supabase Auth),
     // por lo que el cliente anon no expone auth.uid() y RLS bloquea las escrituras.
@@ -128,10 +126,7 @@ export async function POST(request: NextRequest) {
         .single<ActivityCompletionRecord>();
 
       if (fetchError || !activity) {
-        return NextResponse.json(
-          { error: 'Actividad no encontrada' },
-          { status: 404 }
-        );
+        return apiError('ACTIVITY_NOT_FOUND', 'Actividad no encontrada', 404);
       }
 
       let timeToComplete = timeSpentSeconds;
@@ -158,9 +153,10 @@ export async function POST(request: NextRequest) {
 
       if (error) {
         techDebtLogger.error('Error completing activity:', error);
-        return NextResponse.json(
-          { error: 'Error al completar actividad' },
-          { status: 500 }
+        return apiError(
+          'ACTIVITY_COMPLETION_FAILED',
+          'Error al completar actividad',
+          500,
         );
       }
 
@@ -173,9 +169,10 @@ export async function POST(request: NextRequest) {
 
     // Si no hay completionId, crear una nueva actividad completada directamente
     if (!activityType) {
-      return NextResponse.json(
-        { error: 'activityType o completionId es requerido' },
-        { status: 400 }
+      return apiError(
+        'ACTIVITY_TYPE_REQUIRED',
+        'activityType o completionId es requerido',
+        400,
       );
     }
 
@@ -188,9 +185,10 @@ export async function POST(request: NextRequest) {
       });
 
       if (!hasUserMessage) {
-        return NextResponse.json(
-          { error: 'La actividad requiere al menos un mensaje real del usuario' },
-          { status: 409 }
+        return apiError(
+          'ACTIVITY_USER_MESSAGE_REQUIRED',
+          'La actividad requiere al menos un mensaje real del usuario',
+          409,
         );
       }
     }
@@ -205,9 +203,10 @@ export async function POST(request: NextRequest) {
 
     if (completionLookupError) {
       techDebtLogger.error('Error counting activity attempts:', completionLookupError);
-      return NextResponse.json(
-        { error: 'Error al validar intentos de actividad' },
-        { status: 500 }
+      return apiError(
+        'ACTIVITY_ATTEMPTS_VALIDATION_FAILED',
+        'Error al validar intentos de actividad',
+        500,
       );
     }
 
@@ -223,9 +222,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (attemptDecision.kind === 'limit_reached') {
-      return NextResponse.json(
-        { error: 'Se alcanzo el limite de 3 intentos para esta actividad' },
-        { status: 409 }
+      return apiError(
+        'ACTIVITY_ATTEMPT_LIMIT_REACHED',
+        'Se alcanzo el limite de 3 intentos para esta actividad',
+        409,
       );
     }
 
@@ -256,15 +256,17 @@ export async function POST(request: NextRequest) {
       techDebtLogger.error('Error creating completed activity:', error);
 
       if (error.message?.includes('limite de 3 intentos')) {
-        return NextResponse.json(
-          { error: 'Se alcanzo el limite de 3 intentos para esta actividad' },
-          { status: 409 }
+        return apiError(
+          'ACTIVITY_ATTEMPT_LIMIT_REACHED',
+          'Se alcanzo el limite de 3 intentos para esta actividad',
+          409,
         );
       }
 
-      return NextResponse.json(
-        { error: 'Error al registrar actividad completada' },
-        { status: 500 }
+      return apiError(
+        'ACTIVITY_COMPLETION_REGISTRATION_FAILED',
+        'Error al registrar actividad completada',
+        500,
       );
     }
 
@@ -275,9 +277,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     techDebtLogger.error('Error completing activity:', error);
-    return NextResponse.json(
-      { error: 'Error al completar actividad' },
-      { status: 500 }
+    return apiError(
+      'ACTIVITY_COMPLETION_FAILED',
+      'Error al completar actividad',
+      500,
     );
   }
 }
+
+export const POST = withZodBody(completeActivitySchema, handlePost);

@@ -1,7 +1,8 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback } from 'react'
-import { ACTIONS, EVENTS, STATUS, type CallBackProps, type Step } from 'react-joyride'
+import { ACTIONS, EVENTS, STATUS } from 'react-joyride'
 import { closeUserMenuIfOpen } from './target-utils'
+import type { SofliaJoyrideEvent as CallBackProps, SofliaJoyrideStep as Step } from '../../types/joyride'
 
 interface UseBusinessUserJoyrideCallbackParams {
   completeTour: () => Promise<void>

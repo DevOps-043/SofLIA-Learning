@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { getThemeById, generateBrandingTheme } from '@/features/business-panel/config/preset-themes'
 import { DESIGN_HEX_COLOR } from '@/core/theme/color-tokens'
+import {
+  applyThemeSchema,
+  stylesUpdateSchema,
+  type ApplyThemeBody,
+  type StylesUpdateBody,
+} from '../_schemas'
 
 interface RouteContext {
   params: Promise<{ orgSlug: string }>
@@ -18,11 +26,11 @@ function getBusinessAuthScope(orgSlugOrId: string) {
 
 /**
  * GET /api/[orgSlug]/business/styles
- * Obtiene los estilos de la organización especificada
+ * Obtiene los estilos de la organizacion especificada
  */
 export async function GET(
   request: NextRequest,
-  context: RouteContext
+  context: RouteContext,
 ) {
   try {
     const { orgSlug } = await context.params
@@ -30,7 +38,7 @@ export async function GET(
     if (!orgSlug) {
       return NextResponse.json({
         success: false,
-        error: 'Slug de organización requerido'
+        error: 'Slug de organizacion requerido',
       }, { status: 400 })
     }
 
@@ -39,7 +47,6 @@ export async function GET(
 
     const supabase = await createClient()
 
-    // Obtener estilos de la organización
     const { data: organization, error: orgError } = await supabase
       .from('organizations')
       .select('panel_styles, user_dashboard_styles, login_styles, selected_theme')
@@ -49,11 +56,10 @@ export async function GET(
     if (orgError || !organization) {
       return NextResponse.json({
         success: false,
-        error: 'Error al obtener estilos'
+        error: 'Error al obtener estilos',
       }, { status: 500 })
     }
 
-    // Si hay un tema seleccionado pero no hay estilos guardados, aplicar el tema preset
     let panelStyles = organization.panel_styles
     let userDashboardStyles = organization.user_dashboard_styles
     let loginStyles = organization.login_styles
@@ -67,7 +73,6 @@ export async function GET(
       }
     }
 
-    // Obtener si el tema soporta modo dual
     let supportsDualMode = false
     if (organization.selected_theme) {
       const theme = getThemeById(organization.selected_theme)
@@ -83,92 +88,47 @@ export async function GET(
         userDashboard: userDashboardStyles || null,
         login: loginStyles || null,
         selectedTheme: organization.selected_theme || null,
-        supportsDualMode
-      }
+        supportsDualMode,
+      },
     })
   } catch (error) {
     return NextResponse.json({
       success: false,
-      error: 'Error al obtener estilos'
+      error: 'Error al obtener estilos',
     }, { status: 500 })
   }
 }
 
 /**
  * PUT /api/[orgSlug]/business/styles
- * Actualiza los estilos de la organización
+ * Actualiza los estilos de la organizacion
  */
-export async function PUT(
-  request: NextRequest,
-  context: RouteContext
+async function handlePut(
+  _request: NextRequest,
+  body: StylesUpdateBody,
+  context: RouteContext,
 ) {
   try {
     const { orgSlug } = await context.params
 
     if (!orgSlug) {
-      return NextResponse.json({
-        success: false,
-        error: 'Slug de organización requerido'
-      }, { status: 400 })
+      return apiError('ORG_SLUG_REQUIRED', 'Slug de organizacion requerido', 400)
     }
 
     const auth = await requireBusiness(getBusinessAuthScope(orgSlug))
     if (auth instanceof NextResponse) return auth
 
     if (!auth.isOrgAdmin) {
-      return NextResponse.json({
-        success: false,
-        error: 'Solo los administradores pueden actualizar los estilos'
-      }, { status: 403 })
+      return apiError(
+        'FORBIDDEN',
+        'Solo los administradores pueden actualizar los estilos',
+        403,
+      )
     }
 
     const supabase = await createClient()
-    const body = await request.json()
     const { panel, userDashboard, login } = body
 
-    // Validar estructura de estilos
-    const validateStyle = (style: Record<string, unknown>): boolean => {
-      if (!style || typeof style !== 'object') return false
-
-      const requiredFields = ['background_type', 'background_value', 'primary_button_color', 'secondary_button_color', 'accent_color']
-      for (const field of requiredFields) {
-        if (!style[field] || typeof style[field] !== 'string') {
-          return false
-        }
-      }
-
-      const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
-      if (!hexColorRegex.test(style.primary_button_color as string)) return false
-      if (!hexColorRegex.test(style.secondary_button_color as string)) return false
-      if (!hexColorRegex.test(style.accent_color as string)) return false
-
-      if (!['image', 'color', 'gradient'].includes(style.background_type as string)) return false
-
-      return true
-    }
-
-    if (panel && !validateStyle(panel)) {
-      return NextResponse.json({
-        success: false,
-        error: 'Estilos del panel inválidos'
-      }, { status: 400 })
-    }
-
-    if (userDashboard && !validateStyle(userDashboard)) {
-      return NextResponse.json({
-        success: false,
-        error: 'Estilos del dashboard de usuario inválidos'
-      }, { status: 400 })
-    }
-
-    if (login && !validateStyle(login)) {
-      return NextResponse.json({
-        success: false,
-        error: 'Estilos del login inválidos'
-      }, { status: 400 })
-    }
-
-    // Construir objeto de actualización
     const updateData: Record<string, unknown> = {}
     if (panel !== undefined) updateData.panel_styles = panel
     if (userDashboard !== undefined) updateData.user_dashboard_styles = userDashboard
@@ -182,10 +142,7 @@ export async function PUT(
       .single()
 
     if (updateError || !updatedOrg) {
-      return NextResponse.json({
-        success: false,
-        error: 'Error al actualizar estilos'
-      }, { status: 500 })
+      return apiError('UPDATE_STYLES_FAILED', 'Error al actualizar estilos', 500)
     }
 
     let supportsDualMode = false
@@ -203,57 +160,45 @@ export async function PUT(
         userDashboard: updatedOrg.user_dashboard_styles || null,
         login: updatedOrg.login_styles || null,
         selectedTheme: updatedOrg.selected_theme || null,
-        supportsDualMode
-      }
+        supportsDualMode,
+      },
     })
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: 'Error al actualizar estilos'
-    }, { status: 500 })
+    return apiError('UPDATE_STYLES_FAILED', 'Error al actualizar estilos', 500)
   }
 }
 
+export const PUT = withZodBody(stylesUpdateSchema, handlePut)
+
 /**
  * POST /api/[orgSlug]/business/styles
- * Aplica un tema predefinido a la organización
+ * Aplica un tema predefinido a la organizacion
  */
-export async function POST(
-  request: NextRequest,
-  context: RouteContext
+async function handlePost(
+  _request: NextRequest,
+  body: ApplyThemeBody,
+  context: RouteContext,
 ) {
   try {
     const { orgSlug } = await context.params
 
     if (!orgSlug) {
-      return NextResponse.json({
-        success: false,
-        error: 'Slug de organización requerido'
-      }, { status: 400 })
+      return apiError('ORG_SLUG_REQUIRED', 'Slug de organizacion requerido', 400)
     }
 
     const auth = await requireBusiness(getBusinessAuthScope(orgSlug))
     if (auth instanceof NextResponse) return auth
 
     if (!auth.isOrgAdmin) {
-      return NextResponse.json({
-        success: false,
-        error: 'Solo los administradores pueden aplicar temas'
-      }, { status: 403 })
+      return apiError(
+        'FORBIDDEN',
+        'Solo los administradores pueden aplicar temas',
+        403,
+      )
     }
 
     const supabase = await createClient()
-    const body = await request.json()
     const { themeId } = body
-
-    if (!themeId || typeof themeId !== 'string') {
-      return NextResponse.json({
-        success: false,
-        error: 'ID de tema requerido'
-      }, { status: 400 })
-    }
-
-    // Obtener tema predefinido o generar tema de branding
     let theme
 
     if (themeId === 'branding-personalizado') {
@@ -264,24 +209,22 @@ export async function POST(
         .single()
 
       if (orgError || !orgData) {
-        return NextResponse.json({
-          success: false,
-          error: 'No se pudieron obtener los colores de branding'
-        }, { status: 500 })
+        return apiError(
+          'BRANDING_COLORS_NOT_FOUND',
+          'No se pudieron obtener los colores de branding',
+          500,
+        )
       }
 
       theme = generateBrandingTheme({
         color_primary: orgData.brand_color_primary || DESIGN_HEX_COLOR.info,
         color_secondary: orgData.brand_color_secondary || DESIGN_HEX_COLOR.success,
-        color_accent: orgData.brand_color_accent || DESIGN_HEX_COLOR.secondary
+        color_accent: orgData.brand_color_accent || DESIGN_HEX_COLOR.secondary,
       })
     } else {
       theme = getThemeById(themeId)
       if (!theme) {
-        return NextResponse.json({
-          success: false,
-          error: 'Tema no encontrado'
-        }, { status: 404 })
+        return apiError('THEME_NOT_FOUND', 'Tema no encontrado', 404)
       }
     }
 
@@ -291,17 +234,14 @@ export async function POST(
         panel_styles: theme.panel,
         user_dashboard_styles: theme.userDashboard,
         login_styles: theme.login,
-        selected_theme: themeId
+        selected_theme: themeId,
       })
       .eq('id', auth.organizationId)
       .select('panel_styles, user_dashboard_styles, login_styles, selected_theme')
       .single()
 
     if (updateError || !updatedOrg) {
-      return NextResponse.json({
-        success: false,
-        error: 'Error al aplicar tema'
-      }, { status: 500 })
+      return apiError('APPLY_THEME_FAILED', 'Error al aplicar tema', 500)
     }
 
     return NextResponse.json({
@@ -311,13 +251,12 @@ export async function POST(
         userDashboard: updatedOrg.user_dashboard_styles || null,
         login: updatedOrg.login_styles || null,
         selectedTheme: updatedOrg.selected_theme || null,
-        supportsDualMode: theme.supportsDualMode || false
-      }
+        supportsDualMode: theme.supportsDualMode || false,
+      },
     })
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: 'Error al aplicar tema'
-    }, { status: 500 })
+    return apiError('APPLY_THEME_FAILED', 'Error al aplicar tema', 500)
   }
 }
+
+export const POST = withZodBody(applyThemeSchema, handlePost)

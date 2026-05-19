@@ -1,7 +1,13 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import {
+  conversationsPatchSchema,
+  type ConversationsPatchBody,
+} from '../_schemas';
 
 interface LiaConversationRow {
   conversation_id: string;
@@ -225,19 +231,18 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PATCH(request: NextRequest) {
+async function handlePatch(
+  _request: NextRequest,
+  body: ConversationsPatchBody,
+  _context: unknown,
+) {
   try {
     const user = await SessionService.getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+      return apiError('UNAUTHENTICATED', 'No autenticado', 401);
     }
 
-    const body = await request.json();
     const { conversationId, title } = body;
-
-    if (!conversationId || !title) {
-        return NextResponse.json({ error: 'Faltan datos' }, { status: 400 });
-    }
 
     const supabase = await createClient();
     
@@ -250,7 +255,7 @@ export async function PATCH(request: NextRequest) {
         .single();
         
     if (!conversation) {
-        return NextResponse.json({ error: 'Conversación no encontrada' }, { status: 404 });
+        return apiError('CONVERSATION_NOT_FOUND', 'Conversación no encontrada', 404);
     }
 
     // Actualizar
@@ -264,6 +269,12 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
       techDebtLogger.error('Error updating conversation:', error);
-      return NextResponse.json({ error: 'Error actualizando conversación' }, { status: 500 });
+      return apiError(
+        'CONVERSATION_UPDATE_FAILED',
+        'Error actualizando conversación',
+        500,
+      );
   }
 }
+
+export const PATCH = withZodBody(conversationsPatchSchema, handlePatch);

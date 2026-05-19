@@ -1,18 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 
 import { createClient } from '@/lib/supabase/server'
 
 import { logger } from '@/lib/utils/logger'
+import {
+  organizationProfileUpdateSchema,
+  type OrganizationProfileUpdateBody,
+} from '../../_schemas'
+
+type RouteContext = {
+  params: Promise<{ orgSlug: string }>
+}
 
 /**
  * PUT /api/[orgSlug]/business/settings/organization
- * Actualiza los datos de la organización activa
+ * Actualiza los datos de la organizacion activa
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> }
+async function handlePut(
+  _request: NextRequest,
+  body: OrganizationProfileUpdateBody,
+  { params }: RouteContext,
 ) {
   try {
     const { orgSlug } = await params
@@ -20,15 +31,11 @@ export async function PUT(
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'No tienes una organización asignada'
-      }, { status: 403 })
+      return apiError('NO_ORGANIZATION', 'No tienes una organizacion asignada', 403)
     }
 
     const supabase = await createClient()
-    
-    // Verificar permisos de admin/owner
+
     const { data: orgUser, error: orgUserError } = await supabase
       .from('organization_users')
       .select('role')
@@ -37,20 +44,21 @@ export async function PUT(
       .single()
 
     if (orgUserError || !orgUser) {
-      return NextResponse.json({
-        success: false,
-        error: 'No tienes permisos para actualizar la organización'
-      }, { status: 403 })
+      return apiError(
+        'FORBIDDEN',
+        'No tienes permisos para actualizar la organizacion',
+        403,
+      )
     }
 
     if (orgUser.role !== 'owner' && orgUser.role !== 'admin') {
-      return NextResponse.json({
-        success: false,
-        error: 'Solo los administradores pueden actualizar la organización'
-      }, { status: 403 })
+      return apiError(
+        'FORBIDDEN',
+        'Solo los administradores pueden actualizar la organizacion',
+        403,
+      )
     }
 
-    const body = await request.json()
     const {
       name,
       description,
@@ -59,17 +67,16 @@ export async function PUT(
       website_url,
       logo_url,
       max_users,
-      slug: newSlug
+      slug: newSlug,
     } = body
 
-    // Preparar actualizaciones
     const updateData: Record<string, unknown> = {
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     }
 
     if (name !== undefined) {
       if (name.trim().length === 0) {
-        return NextResponse.json({ success: false, error: 'El nombre es requerido' }, { status: 400 })
+        return apiError('ORGANIZATION_NAME_REQUIRED', 'El nombre es requerido', 400)
       }
       updateData.name = name.trim()
     }
@@ -79,16 +86,14 @@ export async function PUT(
     if (contact_phone !== undefined) updateData.contact_phone = contact_phone?.trim() || null
     if (website_url !== undefined) updateData.website_url = website_url?.trim() || null
     if (logo_url !== undefined) updateData.logo_url = logo_url?.trim() || null
-    
-    // Si se intenta cambiar el slug
+
     if (newSlug !== undefined && newSlug !== null && newSlug.trim() !== '' && newSlug !== orgSlug) {
       const slugValue = newSlug.trim().toLowerCase()
-      
+
       if (!/^[a-z0-9-]+$/.test(slugValue)) {
-        return NextResponse.json({ success: false, error: 'Formato de slug inválido' }, { status: 400 })
+        return apiError('INVALID_ORGANIZATION_SLUG', 'Formato de slug invalido', 400)
       }
 
-      // Verificar disponibilidad
       const { data: existingOrg } = await supabase
         .from('organizations')
         .select('id')
@@ -97,15 +102,19 @@ export async function PUT(
         .single()
 
       if (existingOrg) {
-        return NextResponse.json({ success: false, error: 'Este identificador ya está en uso' }, { status: 400 })
+        return apiError(
+          'ORGANIZATION_SLUG_TAKEN',
+          'Este identificador ya esta en uso',
+          400,
+        )
       }
       updateData.slug = slugValue
     }
 
     if (max_users !== undefined) {
-      const maxUsersNum = parseInt(max_users)
-      if (isNaN(maxUsersNum) || maxUsersNum < 1) {
-        return NextResponse.json({ success: false, error: 'Número de usuarios inválido' }, { status: 400 })
+      const maxUsersNum = parseInt(String(max_users), 10)
+      if (Number.isNaN(maxUsersNum) || maxUsersNum < 1) {
+        return apiError('INVALID_MAX_USERS', 'Numero de usuarios invalido', 400)
       }
       updateData.max_users = maxUsersNum
     }
@@ -122,15 +131,17 @@ export async function PUT(
 
     if (updateError) {
       logger.error('Error updating organization:', updateError)
-      return NextResponse.json({ success: false, error: 'Error al actualizar' }, { status: 500 })
+      return apiError('UPDATE_ORGANIZATION_FAILED', 'Error al actualizar', 500)
     }
 
     return NextResponse.json({
       success: true,
-      organization: updatedOrganization
+      organization: updatedOrganization,
     })
   } catch (error) {
-    logger.error('💥 Error in PUT /api/[orgSlug]/business/settings/organization:', error)
-    return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 })
+    logger.error('Error in PUT /api/[orgSlug]/business/settings/organization:', error)
+    return apiError('UPDATE_ORGANIZATION_FAILED', 'Error interno', 500)
   }
 }
+
+export const PUT = withZodBody(organizationProfileUpdateSchema, handlePut)

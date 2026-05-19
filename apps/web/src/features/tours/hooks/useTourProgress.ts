@@ -45,7 +45,8 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
   useEffect(() => {
     const checkTourProgress = async () => {
       try {
-        const response = await fetch(`/api/tours?tourId=${tourId}`, {
+        const response = await fetch(`/api/tours?tourId=${encodeURIComponent(tourId)}`, {
+          cache: 'no-store',
           credentials: 'include',
         });
 

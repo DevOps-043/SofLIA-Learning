@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Step } from 'react-joyride';
+import type { SofliaJoyrideStep as Step } from '@/features/tours/types/joyride';
 import { ArrowRightCircle, Building2, Hash, ShieldCheck, Users } from 'lucide-react';
 
 import { getSelectOrganizationTourTargetSelector } from '../../../core/constants/tourTargets';

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Step } from 'react-joyride';
+import type { SofliaJoyrideStep as Step } from '@/features/tours/types/joyride';
 import { BarChart3, Camera, Lock, SlidersHorizontal, User, UserRound } from 'lucide-react';
 
 import { getProfileTourTargetSelector } from '../../../core/constants/tourTargets';

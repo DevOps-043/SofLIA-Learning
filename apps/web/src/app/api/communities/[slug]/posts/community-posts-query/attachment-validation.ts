@@ -1,7 +1,7 @@
 import { logger } from '@/lib/utils/logger'
 
 export function validateAttachmentType(
-  attachment_type: string | undefined,
+  attachment_type: string | null | undefined,
 ): string | null | undefined {
   const validAttachmentTypes = ['image', 'video', 'document', 'link', 'poll']
 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AI_CHAT_RATE_LIMIT, applyRouteRateLimit, withRouteRateLimitHeaders } from '@/app/api/_lib/ai-route-rate-limit'
 import { SessionService } from '@/features/auth/services/session.service'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import {
   buildSanitizedContextExcerpt,
   sanitizeContextPayload,
@@ -22,43 +24,22 @@ import { persistAiChatHistory } from './services/chat-history.service'
 import { resolveChatUserContext } from './services/chat-user-context.service'
 import { generateAiChatResponse } from './services/openai-request.service'
 import { normalizeAiChatRequest, resolveRequestLanguage, type AiChatRequestBody } from './services/request-normalization.service'
+import { aiChatRequestSchema } from './services/request-normalization.schema'
 
-export async function POST(request: NextRequest) {
-  const rateLimit = applyRouteRateLimit(request, AI_CHAT_RATE_LIMIT, 'openai')
-  if (!rateLimit.success) return rateLimit.response
-
-  const withHeaders = (response: NextResponse) =>
-    withRouteRateLimitHeaders(response, rateLimit)
-
+async function handlePost(
+  request: NextRequest,
+  requestBody: AiChatRequestBody,
+) {
   try {
     const supabase = await createClient()
     const user = await SessionService.getCurrentUser()
 
-    let requestBody: AiChatRequestBody
-    try {
-      requestBody = (await request.json()) as AiChatRequestBody
-    } catch (error) {
-      return withHeaders(
-        NextResponse.json(
-          {
-            error: 'Error al parsear el body del request',
-            message: error instanceof Error ? error.message : 'Error desconocido',
-          },
-          { status: 400 },
-        ),
-      )
-    }
-
     const normalizedRequest = normalizeAiChatRequest(requestBody)
     if (normalizedRequest.error) {
-      return withHeaders(
-        NextResponse.json(
-          {
-            error: normalizedRequest.error.error,
-            message: normalizedRequest.error.message,
-          },
-          { status: normalizedRequest.error.status },
-        ),
+      return apiError(
+        'AI_CHAT_INVALID_PAYLOAD',
+        normalizedRequest.error.message ?? normalizedRequest.error.error,
+        normalizedRequest.error.status,
       )
     }
 
@@ -124,12 +105,10 @@ export async function POST(request: NextRequest) {
         categories: securityAssessment.categories,
       })
 
-      return withHeaders(
-        NextResponse.json({
-          response: buildSecurityRefusalMessage(securityAssessment),
-          conversationId: existingConversationId || null,
-        }),
-      )
+      return NextResponse.json({
+        response: buildSecurityRefusalMessage(securityAssessment),
+        conversationId: existingConversationId || null,
+      })
     }
 
     const userContext = await resolveChatUserContext({
@@ -224,34 +203,25 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    return withHeaders(
-      NextResponse.json({
-        response: securedResponse,
-        conversationId: await resolveAiChatConversationId(
-          analyticsPromise,
-          existingConversationId || null,
-        ),
-      }),
-    )
+    return NextResponse.json({
+      response: securedResponse,
+      conversationId: await resolveAiChatConversationId(
+        analyticsPromise,
+        existingConversationId || null,
+      ),
+    })
   } catch (error) {
     logger.error('Error en API de chat:', error)
-    return withHeaders(
-      NextResponse.json(
-        {
-          error: 'Error interno del servidor',
-          message:
-            process.env.NODE_ENV === 'development' && error instanceof Error
-              ? error.message
-              : undefined,
-          details:
-            process.env.NODE_ENV === 'development' &&
-            error instanceof Error &&
-            'cause' in error
-              ? error.cause
-              : undefined,
-        },
-        { status: 500 },
-      ),
-    )
+    return apiError('AI_CHAT_INTERNAL_ERROR', 'Error interno del servidor', 500)
   }
+}
+
+const validatedPost = withZodBody(aiChatRequestSchema, handlePost)
+
+export async function POST(request: NextRequest) {
+  const rateLimit = applyRouteRateLimit(request, AI_CHAT_RATE_LIMIT, 'openai')
+  if (!rateLimit.success) return rateLimit.response
+
+  const response = await validatedPost(request, undefined)
+  return withRouteRateLimitHeaders(response as NextResponse, rateLimit)
 }

@@ -1,107 +1,109 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { SessionService } from '@/features/auth/services/session.service';
+import { NextRequest, NextResponse } from 'next/server'
 
-/**
- * PUT /api/courses/[slug]/questions/[questionId]/responses/[responseId]
- * Actualiza una respuesta
- */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string; questionId: string; responseId: string }> }
+import {
+  responseUpdateSchema,
+  type ResponseUpdateBody,
+} from '@/app/api/courses/_schemas'
+import { SessionService } from '@/features/auth/services/session.service'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core'
+import { createClient } from '@/lib/supabase/server'
+
+type RouteContext = {
+  params: Promise<{ slug: string; questionId: string; responseId: string }>
+}
+
+async function handlePut(
+  _request: NextRequest,
+  body: ResponseUpdateBody,
+  { params }: RouteContext,
 ) {
   try {
-    const { slug, questionId, responseId } = await params;
-    const supabase = await createClient();
+    const { slug, questionId, responseId } = await params
+    const supabase = await createClient()
 
-    // Obtener usuario actual
-    const user = await SessionService.getCurrentUser();
+    const user = await SessionService.getCurrentUser()
     if (!user) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return apiError('UNAUTHENTICATED', 'No autorizado.', 401)
     }
 
-    // Obtener el curso por slug
     const { data: course, error: courseError } = await supabase
       .from('courses')
       .select('id, instructor_id')
       .eq('slug', slug)
-      .single();
+      .single()
 
     if (courseError || !course) {
-      return NextResponse.json(
-        { error: 'Curso no encontrado' },
-        { status: 404 }
-      );
+      return apiError('COURSE_NOT_FOUND', 'Curso no encontrado.', 404)
     }
 
-    // Verificar que la respuesta existe
     const { data: response, error: responseError } = await supabase
       .from('course_question_responses')
       .select('user_id, question_id, course_id')
       .eq('id', responseId)
       .eq('question_id', questionId)
       .eq('course_id', course.id)
-      .single();
+      .single()
 
     if (responseError || !response) {
-      return NextResponse.json(
-        { error: 'Respuesta no encontrada' },
-        { status: 404 }
-      );
+      return apiError('RESPONSE_NOT_FOUND', 'Respuesta no encontrada.', 404)
     }
 
-    // Verificar permisos: solo el autor o instructor pueden editar
-    const isInstructor = course.instructor_id === user.id;
-    const isAuthor = response.user_id === user.id;
+    const isInstructor = course.instructor_id === user.id
+    const isAuthor = response.user_id === user.id
 
     if (!isAuthor && !isInstructor) {
-      return NextResponse.json(
-        { error: 'No tienes permisos para editar esta respuesta' },
-        { status: 403 }
-      );
+      return apiError(
+        'RESPONSE_EDIT_FORBIDDEN',
+        'No tienes permisos para editar esta respuesta.',
+        403,
+      )
     }
 
-    // Obtener datos del body
-    const body = await request.json();
-    const { content, is_approved_answer } = body;
+    const { content, is_approved_answer } = body
+    const updateData: Record<string, unknown> = {}
 
-    // Preparar datos de actualización
-    const updateData: Record<string, unknown> = {};
-    if (content !== undefined) updateData.content = content.trim();
-    // Solo el autor de la pregunta puede aprobar respuestas
+    if (content !== undefined) {
+      const sanitizedContent = sanitizeHtml(content, {
+        level: 'rich',
+        maxLength: 50_000,
+      }).trim()
+
+      if (!sanitizedContent) {
+        return apiError('VALIDATION_ERROR', 'El contenido de la respuesta es requerido.', 422)
+      }
+
+      updateData.content = sanitizedContent
+    }
+
     if (is_approved_answer !== undefined) {
       const { data: question } = await supabase
         .from('course_questions')
         .select('user_id')
         .eq('id', questionId)
-        .single();
+        .single()
 
       if (question?.user_id === user.id) {
-        // Si se aprueba esta respuesta, desaprobar las demás
         if (is_approved_answer) {
           await supabase
             .from('course_question_responses')
             .update({ is_approved_answer: false })
             .eq('question_id', questionId)
-            .neq('id', responseId);
+            .neq('id', responseId)
         }
-        updateData.is_approved_answer = is_approved_answer;
-        // Marcar la pregunta como resuelta si se aprueba una respuesta
+        updateData.is_approved_answer = is_approved_answer
         if (is_approved_answer) {
           await supabase
             .from('course_questions')
             .update({ is_resolved: true })
-            .eq('id', questionId);
+            .eq('id', questionId)
         }
       }
     }
-    updateData.is_edited = true;
-    updateData.edited_at = new Date().toISOString();
+    updateData.is_edited = true
+    updateData.edited_at = new Date().toISOString()
 
-    // Actualizar la respuesta
     const { data: updatedResponse, error: updateError } = await supabase
       .from('course_question_responses')
       .update(updateData)
@@ -117,110 +119,77 @@ export async function PUT(
           profile_picture_url
         )
       `)
-      .single();
+      .single()
 
     if (updateError) {
-      return NextResponse.json(
-        { error: 'Error al actualizar respuesta' },
-        { status: 500 }
-      );
+      return apiError('RESPONSE_UPDATE_FAILED', 'Error al actualizar respuesta.', 500)
     }
 
-    return NextResponse.json(updatedResponse);
+    return NextResponse.json(updatedResponse)
   } catch (error) {
-    return NextResponse.json(
-      { 
-        error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido'
-      },
-      { status: 500 }
-    );
+    return apiError('INTERNAL_ERROR', 'Error interno del servidor.', 500, {
+      details: error instanceof Error ? error.message : 'Error desconocido',
+    })
   }
 }
 
-/**
- * DELETE /api/courses/[slug]/questions/[questionId]/responses/[responseId]
- * Elimina una respuesta (soft delete)
- */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string; questionId: string; responseId: string }> }
-) {
-  try {
-    const { slug, questionId, responseId } = await params;
-    const supabase = await createClient();
+export const PUT = withZodBody(responseUpdateSchema, handlePut)
 
-    // Obtener usuario actual
-    const user = await SessionService.getCurrentUser();
+export async function DELETE(_request: NextRequest, { params }: RouteContext) {
+  try {
+    const { slug, questionId, responseId } = await params
+    const supabase = await createClient()
+
+    const user = await SessionService.getCurrentUser()
     if (!user) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return apiError('UNAUTHENTICATED', 'No autorizado.', 401)
     }
 
-    // Obtener el curso por slug
     const { data: course, error: courseError } = await supabase
       .from('courses')
       .select('id, instructor_id')
       .eq('slug', slug)
-      .single();
+      .single()
 
     if (courseError || !course) {
-      return NextResponse.json(
-        { error: 'Curso no encontrado' },
-        { status: 404 }
-      );
+      return apiError('COURSE_NOT_FOUND', 'Curso no encontrado.', 404)
     }
 
-    // Verificar que la respuesta existe
     const { data: response, error: responseError } = await supabase
       .from('course_question_responses')
       .select('user_id, question_id, course_id')
       .eq('id', responseId)
       .eq('question_id', questionId)
-      .single();
+      .single()
 
     if (responseError || !response) {
-      return NextResponse.json(
-        { error: 'Respuesta no encontrada' },
-        { status: 404 }
-      );
+      return apiError('RESPONSE_NOT_FOUND', 'Respuesta no encontrada.', 404)
     }
 
-    // Verificar permisos: solo el autor o instructor pueden eliminar
-    const isInstructor = course.instructor_id === user.id;
-    const isAuthor = response.user_id === user.id;
+    const isInstructor = course.instructor_id === user.id
+    const isAuthor = response.user_id === user.id
 
     if (!isAuthor && !isInstructor) {
-      return NextResponse.json(
-        { error: 'No tienes permisos para eliminar esta respuesta' },
-        { status: 403 }
-      );
+      return apiError(
+        'RESPONSE_DELETE_FORBIDDEN',
+        'No tienes permisos para eliminar esta respuesta.',
+        403,
+      )
     }
 
-    // Soft delete: marcar como eliminada
     const { error: deleteError } = await supabase
       .from('course_question_responses')
       .update({ is_deleted: true })
-      .eq('id', responseId);
+      .eq('id', responseId)
 
     if (deleteError) {
-      return NextResponse.json(
-        { error: 'Error al eliminar respuesta' },
-        { status: 500 }
-      );
+      return apiError('RESPONSE_DELETE_FAILED', 'Error al eliminar respuesta.', 500)
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true })
   } catch (error) {
-    return NextResponse.json(
-      { 
-        error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido'
-      },
-      { status: 500 }
-    );
+    return apiError('INTERNAL_ERROR', 'Error interno del servidor.', 500, {
+      details: error instanceof Error ? error.message : 'Error desconocido',
+    })
   }
 }
-

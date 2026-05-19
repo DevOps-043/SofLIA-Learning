@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { Joyride } from 'react-joyride'
+import { SofliaJoyride as Joyride } from '@/features/tours/components/SofliaJoyride'
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
 import { ADMIN_PATHS_TOUR_ID, getAdminPathsSteps } from '@/features/tours/config/business-panel/admin-paths-steps'
 import { useBusinessLearningPathsPageLogic } from '../hooks/useBusinessLearningPathsPageLogic'

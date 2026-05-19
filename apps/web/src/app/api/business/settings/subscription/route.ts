@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { subscriptionUpdateSchema, type SubscriptionUpdateBody } from './schema'
 
 /**
  * GET /api/business/settings/subscription
@@ -13,10 +16,7 @@ export async function GET() {
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'No tienes una organización asignada'
-      }, { status: 403 })
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403)
     }
 
     const supabase = await createClient()
@@ -92,24 +92,26 @@ export async function GET() {
   }
 }
 
+export const PUT = withZodBody(subscriptionUpdateSchema, handlePut)
+
 /**
  * PUT /api/business/settings/subscription
  * Actualiza el plan de suscripción de la organización
  */
-export async function PUT(request: NextRequest) {
+async function handlePut(
+  _request: NextRequest,
+  body: SubscriptionUpdateBody,
+  _context: unknown,
+) {
   try {
     const auth = await requireBusiness()
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'No tienes una organización asignada'
-      }, { status: 403 })
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403)
     }
 
-    const body = await request.json()
-    const { planId, billingCycle }: { planId?: string; billingCycle?: 'monthly' | 'yearly' } = body
+    const { planId, billingCycle } = body
 
     const supabase = await createClient()
     const organizationId = auth.organizationId
@@ -123,14 +125,11 @@ export async function PUT(request: NextRequest) {
 
     if (orgError || !currentOrg) {
       logger.error('Error fetching organization:', orgError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al obtener datos de la organización'
-      }, { status: 500 })
+      return apiError('FETCH_ORGANIZATION_FAILED', 'Error al obtener datos de la organización', 500)
     }
 
     // Preparar datos de actualización
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString()
     }
 
@@ -138,10 +137,11 @@ export async function PUT(request: NextRequest) {
       // Validar que el plan existe
       const validPlans = ['team', 'business', 'enterprise']
       if (!validPlans.includes(planId.toLowerCase())) {
-        return NextResponse.json({
-          success: false,
-          error: 'Plan inválido. Los planes válidos son: team, business, enterprise'
-        }, { status: 400 })
+        return apiError(
+          'INVALID_PLAN',
+          'Plan inválido. Los planes válidos son: team, business, enterprise',
+          400,
+        )
       }
 
       updateData.subscription_plan = planId.toLowerCase()
@@ -159,10 +159,11 @@ export async function PUT(request: NextRequest) {
     if (billingCycle) {
       // Validar que el ciclo de facturación es válido
       if (!['monthly', 'yearly'].includes(billingCycle.toLowerCase())) {
-        return NextResponse.json({
-          success: false,
-          error: 'Ciclo de facturación inválido. Los valores válidos son: monthly, yearly'
-        }, { status: 400 })
+        return apiError(
+          'INVALID_BILLING_CYCLE',
+          'Ciclo de facturación inválido. Los valores válidos son: monthly, yearly',
+          400,
+        )
       }
 
       updateData.billing_cycle = billingCycle.toLowerCase()
@@ -207,10 +208,7 @@ export async function PUT(request: NextRequest) {
 
     if (updateError || !updatedOrg) {
       logger.error('Error updating organization subscription:', updateError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al actualizar el plan de suscripción'
-      }, { status: 500 })
+      return apiError('UPDATE_SUBSCRIPTION_FAILED', 'Error al actualizar el plan de suscripción', 500)
     }
 
     logger.info('Subscription plan updated successfully', {
@@ -232,10 +230,6 @@ export async function PUT(request: NextRequest) {
     })
   } catch (error) {
     logger.error('💥 Error in PUT /api/business/settings/subscription:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Error al actualizar el plan de suscripción'
-    }, { status: 500 })
+    return apiError('UPDATE_SUBSCRIPTION_FAILED', 'Error al actualizar el plan de suscripción', 500)
   }
 }
-

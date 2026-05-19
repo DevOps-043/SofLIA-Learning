@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { DESIGN_HEX_COLOR } from '@/core/theme/color-tokens'
 
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 
 import { createClient } from '@/lib/supabase/server'
 
 import { logger } from '@/lib/utils/logger'
+import {
+  brandingUpdateSchema,
+  type BrandingUpdateBody,
+} from '../_schemas'
 
 interface RouteContext {
   params: Promise<{ orgSlug: string }>
@@ -13,65 +19,36 @@ interface RouteContext {
 
 /**
  * PUT /api/[orgSlug]/business/branding
- * Actualiza la configuración de branding de la organización
+ * Actualiza la configuracion de branding de la organizacion
  */
-export async function PUT(
-  request: NextRequest,
-  context: RouteContext
+async function handlePut(
+  _request: NextRequest,
+  body: BrandingUpdateBody,
+  context: RouteContext,
 ) {
   try {
     const { orgSlug } = await context.params
 
     if (!orgSlug) {
-      return NextResponse.json({
-        success: false,
-        error: 'Slug de organización requerido'
-      }, { status: 400 })
+      return apiError('ORG_SLUG_REQUIRED', 'Slug de organizacion requerido', 400)
     }
 
-    // Verificar autenticación y acceso a esta organización específica
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
 
-    // Verificar que el usuario sea owner o admin
     if (!auth.isOrgAdmin) {
-      return NextResponse.json({
-        success: false,
-        error: 'Solo los administradores pueden actualizar el branding'
-      }, { status: 403 })
+      return apiError(
+        'FORBIDDEN',
+        'Solo los administradores pueden actualizar el branding',
+        403,
+      )
     }
 
     const supabase = await createClient()
-    const body = await request.json()
     const { logo_url, favicon_url, banner_url, color_primary, color_secondary, color_accent, font_family } = body
 
-    // Validar colores hexadecimales si se proporcionan
-    const colorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
-
-    if (color_primary && !colorRegex.test(color_primary)) {
-      return NextResponse.json({
-        success: false,
-        error: 'El color primario debe ser un valor hexadecimal válido'
-      }, { status: 400 })
-    }
-
-    if (color_secondary && !colorRegex.test(color_secondary)) {
-      return NextResponse.json({
-        success: false,
-        error: 'El color secundario debe ser un valor hexadecimal válido'
-      }, { status: 400 })
-    }
-
-    if (color_accent && !colorRegex.test(color_accent)) {
-      return NextResponse.json({
-        success: false,
-        error: 'El color de acento debe ser un valor hexadecimal válido'
-      }, { status: 400 })
-    }
-
-    // Preparar datos de actualización
     const updateData: Record<string, unknown> = {
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     }
 
     if (logo_url !== undefined) updateData.brand_logo_url = logo_url || null
@@ -82,7 +59,6 @@ export async function PUT(
     if (color_accent !== undefined) updateData.brand_color_accent = color_accent || DESIGN_HEX_COLOR.secondary
     if (font_family !== undefined) updateData.brand_font_family = font_family || 'Inter'
 
-    // Actualizar organización
     const { data: updatedOrg, error: updateError } = await supabase
       .from('organizations')
       .update(updateData)
@@ -92,10 +68,11 @@ export async function PUT(
 
     if (updateError || !updatedOrg) {
       logger.error('Error updating branding:', updateError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al actualizar configuración de branding'
-      }, { status: 500 })
+      return apiError(
+        'UPDATE_BRANDING_FAILED',
+        'Error al actualizar configuracion de branding',
+        500,
+      )
     }
 
     return NextResponse.json({
@@ -107,14 +84,13 @@ export async function PUT(
         color_primary: updatedOrg.brand_color_primary || DESIGN_HEX_COLOR.info,
         color_secondary: updatedOrg.brand_color_secondary || DESIGN_HEX_COLOR.success,
         color_accent: updatedOrg.brand_color_accent || DESIGN_HEX_COLOR.secondary,
-        font_family: updatedOrg.brand_font_family || 'Inter'
-      }
+        font_family: updatedOrg.brand_font_family || 'Inter',
+      },
     })
   } catch (error) {
-    logger.error('💥 Error in PUT /api/[orgSlug]/business/branding:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Error interno del servidor'
-    }, { status: 500 })
+    logger.error('Error in PUT /api/[orgSlug]/business/branding:', error)
+    return apiError('UPDATE_BRANDING_FAILED', 'Error interno del servidor', 500)
   }
 }
+
+export const PUT = withZodBody(brandingUpdateSchema, handlePut)

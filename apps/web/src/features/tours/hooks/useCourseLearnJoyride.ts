@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ACTIONS, CallBackProps, EVENTS, STATUS } from 'react-joyride';
+import { ACTIONS, EVENTS, STATUS } from 'react-joyride';
 
 import type { LearnTab } from '../../courses/components/learn/types';
 import { useTourRestart } from '../../../core/contexts/TourRestartContext';
@@ -14,6 +14,7 @@ import {
 } from '../config/course-learn-joyride-steps';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourProgress } from './useTourProgress';
+import type { SofliaJoyrideEvent as CallBackProps, SofliaJoyrideStep } from '../types/joyride';
 
 const TOUR_START_DELAY_MS = 1500;
 const TOUR_RESTART_DELAY_MS = 120;
@@ -48,7 +49,7 @@ function waitForLayoutSync(): Promise<void> {
 
 function scrollStepTargetIntoView(
   nextStepIndex: number,
-  stepTarget: string | HTMLElement,
+  stepTarget: SofliaJoyrideStep['target'],
 ): void {
   if (
     !SCROLLABLE_STEP_INDEXES.has(nextStepIndex) ||

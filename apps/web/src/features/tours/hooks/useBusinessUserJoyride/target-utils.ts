@@ -1,4 +1,4 @@
-import type { Step } from 'react-joyride'
+import type { SofliaJoyrideStep as Step } from '@/features/tours/types/joyride'
 import { getBusinessUserDashboardTourTargetSelector } from '../../../../core/constants/tourTargets'
 
 export function queryTourTarget(selector: string): HTMLElement | null {

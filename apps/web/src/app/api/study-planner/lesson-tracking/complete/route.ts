@@ -8,9 +8,15 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { SessionService } from '../../../../../features/auth/services/session.service';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../../lib/supabase/types';
+import {
+  lessonTrackingCompleteSchema,
+  type LessonTrackingCompleteBody,
+} from '../../_schemas';
 
 // Crear cliente admin
 function createAdminClient() {
@@ -29,46 +35,23 @@ function createAdminClient() {
   });
 }
 
-type EndTrigger = 'quiz_submitted' | 'context_changed' | 'manual';
-
-interface CompleteRequest {
-  trackingId?: string;
-  lessonId?: string;
-  endTrigger: EndTrigger;
-}
-
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+async function handlePost(
+  _request: NextRequest,
+  body: LessonTrackingCompleteBody,
+): Promise<NextResponse | Response> {
   try {
     // Verificar autenticación
     const user = await SessionService.getCurrentUser();
     
     if (!user) {
-      return NextResponse.json({ 
-        error: 'No autorizado',
-        success: false
-      }, { status: 401 });
+      return apiError('UNAUTHENTICATED', 'No autorizado', 401);
     }
 
-    const body: CompleteRequest = await request.json();
     const { trackingId, lessonId, endTrigger } = body;
-
-    if (!endTrigger) {
-      return NextResponse.json({ 
-        error: 'endTrigger es requerido',
-        success: false
-      }, { status: 400 });
-    }
-
-    if (!trackingId && !lessonId) {
-      return NextResponse.json({ 
-        error: 'trackingId o lessonId es requerido',
-        success: false
-      }, { status: 400 });
-    }
 
     const supabase = createAdminClient();
     const now = new Date();
@@ -111,10 +94,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (updateError) {
       techDebtLogger.error('Error completando lesson tracking:', updateError);
-      return NextResponse.json({ 
-        error: `Error al completar: ${updateError.message}`,
-        success: false
-      }, { status: 500 });
+      return apiError(
+        'COMPLETE_LESSON_TRACKING_FAILED',
+        `Error al completar: ${updateError.message}`,
+        500,
+      );
     }
 
     // Si hay session_id, verificar si cerrar la sesión
@@ -157,9 +141,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   } catch (error: unknown) {
     techDebtLogger.error('Error en POST /api/study-planner/lesson-tracking/complete:', error);
-    return NextResponse.json({ 
-      error: getErrorMessage(error, 'Error interno del servidor'),
-      success: false
-    }, { status: 500 });
+    return apiError(
+      'COMPLETE_LESSON_TRACKING_FAILED',
+      getErrorMessage(error, 'Error interno del servidor'),
+      500,
+    );
   }
 }
+
+export const POST = withZodBody(lessonTrackingCompleteSchema, handlePost);

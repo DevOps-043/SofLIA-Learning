@@ -4,9 +4,14 @@ import type {
 } from '../../../../features/study-planner/types/user-context.types'
 import type { SessionMetricsPayload } from '../dashboard/chat/calendar.service'
 
+export type SavePlanSessionInput = Pick<
+  StudySession,
+  'title' | 'startTime' | 'endTime'
+> & Partial<Omit<StudySession, 'title' | 'startTime' | 'endTime'>>
+
 export interface SavePlanRequest {
   config: StudyPlanConfig
-  sessions: StudySession[]
+  sessions: SavePlanSessionInput[]
 }
 
 export interface SavePlanResponse {

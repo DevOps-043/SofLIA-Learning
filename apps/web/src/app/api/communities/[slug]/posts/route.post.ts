@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import {
+  createCommunityPostSchema,
+  type CreateCommunityPostBody,
+} from '@/app/api/communities/_schemas';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { sanitizePost } from '@/lib/sanitize/html-sanitizer.shortcuts';
 import { createClient } from '@/lib/supabase/server';
-
 import { logger } from '@/lib/utils/logger';
 
 import {
-  CommunityPostRequestBody,
-  checkGetAccess,
-  fetchPaginatedPosts,
   getCommunityBySlug,
   insertCommunityPost,
   resolveMembership,
@@ -17,9 +20,12 @@ import {
   validateAttachmentType,
 } from './community-posts-query.service';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+type RouteContext = { params: Promise<{ slug: string }> };
+
+async function handlePost(
+  _request: NextRequest,
+  body: CreateCommunityPostBody,
+  { params }: RouteContext,
 ) {
   try {
     const supabase = await createClient();
@@ -29,39 +35,33 @@ export async function POST(
     const user = await SessionService.getCurrentUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+      return apiError('UNAUTHORIZED', 'No autorizado', 401);
     }
 
-    let requestBody: CommunityPostRequestBody;
-    try {
-      requestBody = await request.json();
-    } catch (jsonError) {
-      logger.error('❌ Error parsing request body:', jsonError);
-      return NextResponse.json(
-        { error: 'Error al procesar los datos del post', details: 'El cuerpo de la petición no es un JSON válido' },
-        { status: 400 }
-      );
+    const { content, attachment_type, attachment_data } = body;
+    const sanitizedContent = sanitizePost(content).trim();
+    const requestBody: CreateCommunityPostBody = {
+      ...body,
+      content: sanitizedContent,
+    };
+
+    if (sanitizedContent.length === 0) {
+      return apiError('CONTENT_REQUIRED', 'El contenido es requerido', 400);
     }
 
-    const { content, attachment_type, attachment_data } = requestBody;
-
-    if (!content || content.trim().length === 0) {
-      return NextResponse.json({ error: 'El contenido es requerido' }, { status: 400 });
-    }
-
-    const layer1 = await runLayer1Moderation(supabase, content, user.id);
+    const layer1 = await runLayer1Moderation(supabase, sanitizedContent, user.id);
     if (layer1.blocked) {
       return NextResponse.json(layer1.body, { status: layer1.status });
     }
 
     const { community, error: communityError } = await getCommunityBySlug(supabase, slug);
     if (communityError || !community) {
-      return NextResponse.json({ error: 'Comunidad no encontrada' }, { status: 404 });
+      return apiError('COMMUNITY_NOT_FOUND', 'Comunidad no encontrada', 404);
     }
 
     const membership = await resolveMembership(supabase, community.id, user.id, user.email, slug);
     if (!membership) {
-      return NextResponse.json({ error: 'Debes ser miembro para crear posts' }, { status: 403 });
+      return apiError('COMMUNITY_MEMBERSHIP_REQUIRED', 'Debes ser miembro para crear posts', 403);
     }
 
     const validatedAttachmentType = validateAttachmentType(attachment_type);
@@ -74,33 +74,23 @@ export async function POST(
         { slug, userId: user.id, userEmail: user.email, body: requestBody },
         community.id,
         validatedAttachmentType,
-        validatedAttachmentData
+        validatedAttachmentData,
       );
     } catch (err) {
       const e = err as Error & { code?: string };
-      return NextResponse.json(
-        { error: 'Error al crear el post', details: e.message, code: e.code },
-        { status: 500 }
-      );
+      logger.error('Error creating post:', { message: e.message, code: e.code });
+      return apiError('CREATE_POST_FAILED', 'Error al crear el post', 500);
     }
 
-    logger.log('✅ Post created successfully:', newPost.id);
+    logger.log('Post created successfully:', newPost.id);
 
-    scheduleAIModeration(supabase, newPost.id as string, content, user.id);
+    scheduleAIModeration(supabase, newPost.id as string, sanitizedContent, user.id);
 
     return NextResponse.json({ post: newPost, success: true, aiModerationPending: true });
-
   } catch (error) {
-    logger.error('❌ Error in create post API:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-    const errorDetails =
-      error instanceof Error && process.env.NODE_ENV === 'development'
-        ? { stack: error.stack }
-        : undefined;
-
-    return NextResponse.json(
-      { error: 'Error al crear el post', details: errorMessage, ...errorDetails },
-      { status: 500 }
-    );
+    logger.error('Error in create post API:', error);
+    return apiError('CREATE_POST_FAILED', 'Error al crear el post', 500);
   }
 }
+
+export const POST = withZodBody(createCommunityPostSchema, handlePost);

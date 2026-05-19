@@ -1,47 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { createClient } from '@/lib/supabase/server';
-
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 
 import { logger } from '@/lib/utils/logger';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import {
+  createNodeSchema,
+  type CreateNodeBody,
+} from '@/app/api/business/hierarchy/_schemas';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string }>;
-}
-
-interface CreateNodeRequest {
-  structure_id: string;
-  parent_id?: string | null;
-  name: string;
-  type: string;
-  position?: number | null;
-  manager_id?: string | null;
-  properties?: Record<string, unknown> | null;
-  metadata?: Record<string, unknown> | null;
 }
 
 /**
  * POST /api/[orgSlug]/business/hierarchy/nodes
  * Crea un nuevo nodo en la jerarquía dinámica
  */
-export async function POST(request: NextRequest, { params }: RouteContext) {
+async function handlePost(
+  _request: NextRequest,
+  body: CreateNodeBody,
+  { params }: RouteContext,
+) {
   try {
     const { orgSlug } = await params;
     const auth = await requireBusiness({ organizationSlug: orgSlug });
     if (auth instanceof NextResponse) return auth;
 
-    const body = (await request.json()) as CreateNodeRequest;
+    if (!auth.organizationId) {
+      return apiError('NO_ORGANIZATION', 'Organization ID required', 403);
+    }
+
     const supabase = createServiceClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
-
-    if (!body.structure_id || !body.name || !body.type) {
-      return NextResponse.json({ error: 'structure_id, name y type son requeridos' }, { status: 400 });
-    }
 
     // 1. Verificar que la estructura pertenece a la organización
     const { data: structure } = await supabase
@@ -51,11 +47,15 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       .single();
 
     if (!structure) {
-      return NextResponse.json({ error: 'Structure not found' }, { status: 404 });
+      return apiError('STRUCTURE_NOT_FOUND', 'Structure not found', 404);
     }
 
     if (structure.organization_id !== auth.organizationId) {
-      return NextResponse.json({ error: 'Unauthorized access to this structure' }, { status: 403 });
+      return apiError(
+        'UNAUTHORIZED_STRUCTURE',
+        'Unauthorized access to this structure',
+        403,
+      );
     }
 
     // 2. Calcular Path y Depth
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         .eq('organization_id', auth.organizationId)
         .single();
       
-      if (!parent) return NextResponse.json({ error: 'Parent not found' }, { status: 404 });
+      if (!parent) return apiError('PARENT_NOT_FOUND', 'Parent not found', 404);
 
       const slug = body.name.toLowerCase()
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -103,15 +103,14 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     if (error) {
       logger.error('Error creando nodo:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return apiError('CREATE_NODE_FAILED', error.message, 500);
     }
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
     logger.error('Error en POST /api/[orgSlug]/business/hierarchy/nodes:', error);
-    return NextResponse.json(
-      { success: false, error: 'Error al crear nodo' },
-      { status: 500 }
-    );
+    return apiError('CREATE_NODE_FAILED', 'Error al crear nodo', 500);
   }
 }
+
+export const POST = withZodBody(createNodeSchema, handlePost);

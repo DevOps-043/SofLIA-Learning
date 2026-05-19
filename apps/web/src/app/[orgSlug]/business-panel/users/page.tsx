@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Joyride } from 'react-joyride'
+import { SofliaJoyride as Joyride } from '@/features/tours/components/SofliaJoyride'
 import { useTranslation } from 'react-i18next'
 
 import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'

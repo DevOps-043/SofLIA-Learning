@@ -5,6 +5,12 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 
 import { logger } from '@/lib/utils/logger';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import {
+  chatMessageEditSchema,
+  type ChatMessageEditBody,
+} from '@/app/api/business/hierarchy/_schemas';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string; chatId: string; messageId: string }>;
@@ -24,28 +30,21 @@ function createServiceClient() {
 /**
  * PUT /api/[orgSlug]/business/hierarchy/chats/[chatId]/messages/[messageId]
  */
-export async function PUT(request: NextRequest, { params }: RouteContext) {
+async function handlePut(
+  _request: NextRequest,
+  body: ChatMessageEditBody,
+  { params }: RouteContext,
+) {
   try {
     const { orgSlug, chatId, messageId } = await params;
     const auth = await requireBusiness({ organizationSlug: orgSlug });
     if (auth instanceof NextResponse) return auth;
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
-      );
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403);
     }
 
-    const body = await request.json();
     const { content } = body;
-
-    if (!content || typeof content !== 'string' || content.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'El contenido del mensaje es requerido' },
-        { status: 400 }
-      );
-    }
 
     const supabase = createServiceClient();
 
@@ -57,16 +56,14 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       .single();
 
     if (!existingMessage) {
-      return NextResponse.json(
-        { success: false, error: 'Mensaje no encontrado' },
-        { status: 404 }
-      );
+      return apiError('MESSAGE_NOT_FOUND', 'Mensaje no encontrado', 404);
     }
 
     if (existingMessage.sender_id !== auth.userId) {
-      return NextResponse.json(
-        { success: false, error: 'Solo puedes editar tus propios mensajes' },
-        { status: 403 }
+      return apiError(
+        'FORBIDDEN',
+        'Solo puedes editar tus propios mensajes',
+        403,
       );
     }
 
@@ -93,10 +90,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       .single();
 
     if (updateError || !updatedMessage) {
-      return NextResponse.json(
-        { success: false, error: 'Error al actualizar el mensaje' },
-        { status: 500 }
-      );
+      return apiError('UPDATE_MESSAGE_FAILED', 'Error al actualizar el mensaje', 500);
     }
 
     return NextResponse.json({
@@ -105,9 +99,8 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     });
   } catch (error) {
     logger.error('Error en PUT chat message:', error);
-    return NextResponse.json(
-      { success: false, error: 'Error al actualizar el mensaje' },
-      { status: 500 }
-    );
+    return apiError('UPDATE_MESSAGE_FAILED', 'Error al actualizar el mensaje', 500);
   }
 }
+
+export const PUT = withZodBody(chatMessageEditSchema, handlePut);

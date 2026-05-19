@@ -3,11 +3,12 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ACTIONS, type CallBackProps, EVENTS, STATUS, type Step } from 'react-joyride';
+import { ACTIONS, EVENTS, STATUS } from 'react-joyride';
 
 import { useTourRestart } from '../../../core/contexts/TourRestartContext';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourProgress } from './useTourProgress';
+import type { SofliaJoyrideEvent as CallBackProps, SofliaJoyrideStep as Step } from '../types/joyride';
 
 interface UseJoyrideMinitourOptions {
   enabled?: boolean;

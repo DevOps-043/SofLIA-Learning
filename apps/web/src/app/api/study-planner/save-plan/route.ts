@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { SessionService } from '../../../../features/auth/services/session.service'
 import { UserContextService } from '../../../../features/study-planner/services/user-context.service'
 import {
@@ -26,29 +28,29 @@ import {
 } from './save-plan-conflicts.service'
 import type {
   CreatedStudySessionRow,
-  SavePlanRequest,
   SavePlanResponse,
 } from './save-plan.types'
 import {
   resolvePlanOrganization,
   validateSavePlanRequest,
 } from './save-plan-validation.service'
+import { savePlanSchema, type SavePlanBody } from '../_schemas'
 
-export async function POST(
-  request: NextRequest,
-): Promise<NextResponse<SavePlanResponse>> {
+async function handlePost(
+  _request: NextRequest,
+  body: SavePlanBody,
+): Promise<NextResponse<SavePlanResponse> | Response> {
   try {
     const user = await SessionService.getCurrentUser()
 
     if (!user) {
-      return NextResponse.json({ success: false, error: 'No autenticado' }, { status: 401 })
+      return apiError('UNAUTHENTICATED', 'No autenticado', 401)
     }
 
-    const body = (await request.json()) as SavePlanRequest
     const validationError = validateSavePlanRequest(body)
 
     if (validationError) {
-      return NextResponse.json({ success: false, error: validationError }, { status: 400 })
+      return apiError('SAVE_PLAN_VALIDATION_FAILED', validationError, 400)
     }
 
     const supabase = createAdminClient()
@@ -215,12 +217,12 @@ export async function POST(
       },
     })
   } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Error interno del servidor',
-      },
-      { status: 500 },
+    return apiError(
+      'SAVE_PLAN_FAILED',
+      error instanceof Error ? error.message : 'Error interno del servidor',
+      500,
     )
   }
 }
+
+export const POST = withZodBody(savePlanSchema, handlePost)

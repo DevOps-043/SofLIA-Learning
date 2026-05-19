@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
+import { ZodError } from 'zod'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import {
@@ -16,39 +18,22 @@ import { generateReportsAnalyticsReportBlueprint } from '@/features/business-pan
 import type {
   ReportsAnalyticsFilters,
 } from '@/features/business-panel/types/reports-analytics.types'
+import {
+  reportsAnalyticsExportSchema,
+  reportsAnalyticsQuerySchema,
+  type ReportsAnalyticsExportBody,
+  type ReportsAnalyticsQueryBody,
+} from '../_schemas'
 
 export const runtime = 'nodejs'
 
-const optionalFilterSchema = z
-  .string()
-  .trim()
-  .min(1)
-  .max(160)
-  .optional()
-
-const analyticsQuerySchema = z.object({
-  from: z.string().optional(),
-  to: z.string().optional(),
-  granularity: z.enum(['day', 'month', 'year']).optional(),
-  courseId: optionalFilterSchema,
-  gender: optionalFilterSchema,
-  ageBand: optionalFilterSchema,
-  jobTitle: optionalFilterSchema,
-  role: optionalFilterSchema,
-  status: optionalFilterSchema,
-  regionId: optionalFilterSchema,
-  zoneId: optionalFilterSchema,
-  teamId: optionalFilterSchema,
-})
-
-const analyticsExportSchema = analyticsQuerySchema.extend({
-  format: z.enum(['csv_zip', 'xlsx', 'pdf']),
-  locale: z.enum(['es', 'en', 'pt']).optional(),
-})
+type RouteContext = {
+  params: Promise<{ orgSlug: string }>
+}
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> },
+  { params }: RouteContext,
 ) {
   try {
     const { orgSlug } = await params
@@ -75,9 +60,10 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> },
+async function handlePost(
+  _request: NextRequest,
+  body: ReportsAnalyticsExportBody,
+  { params }: RouteContext,
 ) {
   try {
     const { orgSlug } = await params
@@ -85,25 +71,23 @@ export async function POST(
     if (auth instanceof NextResponse) return auth
     if (!auth.organizationId) return forbiddenResponse()
 
-    const body = await request.json()
-    const parsed = analyticsExportSchema.parse(body)
-    const filters = normalizeFilters(parsed)
+    const filters = normalizeFilters(body)
     const supabase = await createClient()
     const dataset = await fetchReportsAnalyticsDataset(supabase, auth.organizationId, filters)
-    const locale = parsed.locale || 'es'
+    const locale = body.locale || 'es'
     const blueprint = await generateReportsAnalyticsReportBlueprint({
       dataset,
       locale,
-      format: parsed.format,
+      format: body.format,
       requestedByUserId: auth.userId,
     })
 
-    if (parsed.format === 'pdf') {
+    if (body.format === 'pdf') {
       const file = await generateReportsAnalyticsPdf(dataset, locale, blueprint)
       return buildFileResponse(file, buildReportsAnalyticsFilename('pdf', dataset), 'application/pdf')
     }
 
-    if (parsed.format === 'xlsx') {
+    if (body.format === 'xlsx') {
       const file = await generateReportsAnalyticsWorkbook(dataset, locale, blueprint)
       return buildFileResponse(
         file,
@@ -115,23 +99,19 @@ export async function POST(
     const file = await generateReportsAnalyticsZip(dataset, locale, blueprint)
     return buildFileResponse(file, buildReportsAnalyticsFilename('zip', dataset), 'application/zip')
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { success: false, error: 'Filtros de analytics invalidos' },
-        { status: 400 },
-      )
+    if (error instanceof ZodError) {
+      return apiError('VALIDATION_ERROR', 'Filtros de analytics invalidos', 400)
     }
 
     logger.error('Reports analytics export failed', error)
-    return NextResponse.json(
-      { success: false, error: 'Error al generar reporte' },
-      { status: 500 },
-    )
+    return apiError('REPORT_EXPORT_FAILED', 'Error al generar reporte', 500)
   }
 }
 
+export const POST = withZodBody(reportsAnalyticsExportSchema, handlePost)
+
 function parseFiltersFromSearchParams(searchParams: URLSearchParams): ReportsAnalyticsFilters {
-  const parsed = analyticsQuerySchema.parse({
+  const parsed = reportsAnalyticsQuerySchema.parse({
     from: searchParams.get('from') || undefined,
     to: searchParams.get('to') || undefined,
     granularity: searchParams.get('granularity') || undefined,
@@ -150,7 +130,7 @@ function parseFiltersFromSearchParams(searchParams: URLSearchParams): ReportsAna
 }
 
 function normalizeFilters(
-  input: z.infer<typeof analyticsQuerySchema>,
+  input: ReportsAnalyticsQueryBody,
 ): ReportsAnalyticsFilters {
   const now = new Date()
   const defaultFrom = new Date(now)
@@ -178,7 +158,7 @@ function normalizeFilters(
 function normalizeDate(value: string | undefined, fallback: Date, endOfDay: boolean): string {
   const date = value ? new Date(value) : new Date(fallback)
   if (Number.isNaN(date.getTime())) {
-    throw new z.ZodError([])
+    throw new ZodError([])
   }
 
   if (endOfDay) {
@@ -206,8 +186,5 @@ function buildFileResponse(
 }
 
 function forbiddenResponse(): NextResponse {
-  return NextResponse.json(
-    { success: false, error: 'No tienes una organizacion asignada' },
-    { status: 403 },
-  )
+  return apiError('NO_ORGANIZATION', 'No tienes una organizacion asignada', 403)
 }

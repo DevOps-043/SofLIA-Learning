@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import {
+  assignUsersSchema,
+  type AssignUsersBody,
+} from '@/app/api/business/hierarchy/_schemas';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string }>;
@@ -11,40 +17,26 @@ interface RouteContext {
  * POST /api/[orgSlug]/business/hierarchy/users/assign
  * Asigna un usuario a un equipo
  */
-export async function POST(request: NextRequest, { params }: RouteContext) {
+async function handlePost(
+  _request: NextRequest,
+  body: AssignUsersBody,
+  { params }: RouteContext,
+) {
   try {
     const { orgSlug } = await params;
     const auth = await requireBusiness({ organizationSlug: orgSlug });
     if (auth instanceof NextResponse) return auth;
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
-      );
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403);
     }
 
     // Verificar permisos (owner, admin pueden asignar)
     if (auth.organizationRole !== 'owner' && auth.organizationRole !== 'admin') {
-      return NextResponse.json(
-        { success: false, error: 'No tienes permisos para asignar usuarios' },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-
-    if (!body.user_id) {
-      return NextResponse.json(
-        { success: false, error: 'El ID del usuario es requerido' },
-        { status: 400 }
-      );
-    }
-
-    if (!body.team_id) {
-      return NextResponse.json(
-        { success: false, error: 'El ID del equipo es requerido' },
-        { status: 400 }
+      return apiError(
+        'FORBIDDEN',
+        'No tienes permisos para asignar usuarios',
+        403,
       );
     }
 
@@ -69,10 +61,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       .single();
 
     if (teamError || !team) {
-      return NextResponse.json(
-        { success: false, error: 'Equipo no encontrado' },
-        { status: 404 }
-      );
+      return apiError('TEAM_NOT_FOUND', 'Equipo no encontrado', 404);
     }
 
     // Verificar que el usuario pertenece a la organización
@@ -85,17 +74,19 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       .single();
 
     if (userError || !orgUser) {
-      return NextResponse.json(
-        { success: false, error: 'Usuario no encontrado en la organización' },
-        { status: 404 }
+      return apiError(
+        'USER_NOT_IN_ORG',
+        'Usuario no encontrado en la organización',
+        404,
       );
     }
 
     // No se puede asignar al owner a un equipo
     if (orgUser.role === 'owner') {
-      return NextResponse.json(
-        { success: false, error: 'El propietario no puede ser asignado a un equipo' },
-        { status: 400 }
+      return apiError(
+        'CANNOT_ASSIGN_OWNER',
+        'El propietario no puede ser asignado a un equipo',
+        400,
       );
     }
 
@@ -110,9 +101,10 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       const isAlreadyInTeam = orgUser.team_id === body.team_id;
 
       if (!isAlreadyInTeam && currentMembers && currentMembers >= team.max_members) {
-        return NextResponse.json(
-          { success: false, error: `El equipo ha alcanzado su límite de ${team.max_members} miembros` },
-          { status: 400 }
+        return apiError(
+          'TEAM_FULL',
+          `El equipo ha alcanzado su límite de ${team.max_members} miembros`,
+          400,
         );
       }
     }
@@ -162,10 +154,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     if (updateError) {
       logger.error('Error asignando usuario a equipo:', updateError);
-      return NextResponse.json(
-        { success: false, error: 'Error al asignar usuario' },
-        { status: 500 }
-      );
+      return apiError('ASSIGN_USER_FAILED', 'Error al asignar usuario', 500);
     }
 
     return NextResponse.json({
@@ -175,9 +164,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     });
   } catch (error) {
     logger.error('Error en POST /api/[orgSlug]/business/hierarchy/users/assign:', error);
-    return NextResponse.json(
-      { success: false, error: 'Error al asignar usuario' },
-      { status: 500 }
-    );
+    return apiError('ASSIGN_USER_FAILED', 'Error al asignar usuario', 500);
   }
 }
+
+export const POST = withZodBody(assignUsersSchema, handlePost);

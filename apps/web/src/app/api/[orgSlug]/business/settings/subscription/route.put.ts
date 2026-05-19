@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 
 import { createClient } from '@/lib/supabase/server'
 
 import { logger } from '@/lib/utils/logger'
+import {
+  subscriptionUpdateSchema,
+  type SubscriptionUpdateBody,
+} from '../../_schemas'
 
 interface SubscriptionUpdatePayload {
   updated_at: string
@@ -13,13 +19,18 @@ interface SubscriptionUpdatePayload {
   max_users?: number
 }
 
+type RouteContext = {
+  params: Promise<{ orgSlug: string }>
+}
+
 /**
  * PUT /api/[orgSlug]/business/settings/subscription
- * Actualiza el plan de suscripción de la organización activa
+ * Actualiza el plan de suscripcion de la organizacion activa
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> }
+async function handlePut(
+  _request: NextRequest,
+  body: SubscriptionUpdateBody,
+  { params }: RouteContext,
 ) {
   try {
     const { orgSlug } = await params
@@ -27,35 +38,25 @@ export async function PUT(
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 403 })
+      return apiError('NO_ORGANIZATION', 'No autorizado', 403)
     }
 
-    const body = await request.json()
-    const { planId, billingCycle }: { planId?: string; billingCycle?: 'monthly' | 'yearly' } = body
-
+    const { planId, billingCycle } = body
     const supabase = await createClient()
 
-    // Preparar actualización
     const updateData: SubscriptionUpdatePayload = {
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     }
 
     if (planId) {
-      const validPlans = ['team', 'business', 'enterprise']
-      if (!validPlans.includes(planId.toLowerCase())) {
-        return NextResponse.json({ success: false, error: 'Plan inválido' }, { status: 400 })
-      }
-      updateData.subscription_plan = planId.toLowerCase()
-      
+      updateData.subscription_plan = planId
+
       const maxUsersByPlan: Record<string, number> = { team: 10, business: 50, enterprise: 999999 }
-      updateData.max_users = maxUsersByPlan[planId.toLowerCase()] || 10
+      updateData.max_users = maxUsersByPlan[planId] || 10
     }
 
     if (billingCycle) {
-      if (!['monthly', 'yearly'].includes(billingCycle.toLowerCase())) {
-        return NextResponse.json({ success: false, error: 'Ciclo inválido' }, { status: 400 })
-      }
-      updateData.billing_cycle = billingCycle.toLowerCase()
+      updateData.billing_cycle = billingCycle
     }
 
     const { data: updatedOrg, error: updateError } = await supabase
@@ -67,7 +68,7 @@ export async function PUT(
 
     if (updateError || !updatedOrg) {
       logger.error('Error updating subscription:', updateError)
-      return NextResponse.json({ success: false, error: 'Error al actualizar plan' }, { status: 500 })
+      return apiError('UPDATE_SUBSCRIPTION_FAILED', 'Error al actualizar plan', 500)
     }
 
     return NextResponse.json({
@@ -79,11 +80,13 @@ export async function PUT(
         billing_cycle: updatedOrg.billing_cycle || 'yearly',
         start_date: updatedOrg.subscription_start_date,
         end_date: updatedOrg.subscription_end_date,
-        max_users: updatedOrg.max_users || 10
-      }
+        max_users: updatedOrg.max_users || 10,
+      },
     })
   } catch (error) {
-    logger.error('💥 Error in PUT /api/[orgSlug]/business/settings/subscription:', error)
-    return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 })
+    logger.error('Error in PUT /api/[orgSlug]/business/settings/subscription:', error)
+    return apiError('UPDATE_SUBSCRIPTION_FAILED', 'Error interno', 500)
   }
 }
+
+export const PUT = withZodBody(subscriptionUpdateSchema, handlePut)

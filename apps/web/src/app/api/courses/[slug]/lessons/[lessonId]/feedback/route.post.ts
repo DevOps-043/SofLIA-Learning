@@ -1,25 +1,27 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
 
-import { createClient } from '@/lib/supabase/server';
+import {
+  lessonFeedbackSchema,
+  type LessonFeedbackBody,
+} from '@/app/api/courses/_schemas'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { createClient } from '@/lib/supabase/server'
 
-import { SessionService } from '@/features/auth/services/session.service';
-
-const VALID_FEEDBACK = ['like', 'dislike'] as const;
-
-type FeedbackType = (typeof VALID_FEEDBACK)[number];
+import { SessionService } from '@/features/auth/services/session.service'
 
 async function getCourseBySlug(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  slug: string
+  slug: string,
 ) {
-  return supabase.from('courses').select('id').eq('slug', slug).single();
+  return supabase.from('courses').select('id').eq('slug', slug).single()
 }
 
 async function validateLesson(
   supabase: Awaited<ReturnType<typeof createClient>>,
   lessonId: string,
-  courseId: string
+  courseId: string,
 ) {
   return supabase
     .from('course_lessons')
@@ -32,64 +34,51 @@ async function validateLesson(
     `)
     .eq('lesson_id', lessonId)
     .eq('course_modules.course_id', courseId)
-    .single();
+    .single()
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string; lessonId: string }> }
+async function handlePost(
+  _request: NextRequest,
+  body: LessonFeedbackBody,
+  { params }: { params: Promise<{ slug: string; lessonId: string }> },
 ) {
   try {
-    const { slug, lessonId } = await params;
+    const { slug, lessonId } = await params
 
-    const supabase = await createClient();
+    const supabase = await createClient()
 
-    const user = await SessionService.getCurrentUser();
+    const user = await SessionService.getCurrentUser()
     if (!user) {
-
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+      return apiError('UNAUTHENTICATED', 'No autorizado.', 401)
     }
 
-    const courseResult = await getCourseBySlug(supabase, slug);
+    const courseResult = await getCourseBySlug(supabase, slug)
 
     if (courseResult.error || !courseResult.data) {
-
-      return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
+      return apiError('COURSE_NOT_FOUND', 'Curso no encontrado.', 404)
     }
 
     const lessonResult = await validateLesson(
       supabase,
       lessonId,
-      courseResult.data.id
-    );
+      courseResult.data.id,
+    )
 
     if (lessonResult.error || !lessonResult.data) {
-
-      return NextResponse.json({ error: 'Lección no encontrada' }, { status: 404 });
+      return apiError('LESSON_NOT_FOUND', 'Leccion no encontrada.', 404)
     }
 
-    const body = await request.json();
-    const { feedback_type }: { feedback_type?: FeedbackType } = body;
-
-    if (!feedback_type || !VALID_FEEDBACK.includes(feedback_type)) {
-      return NextResponse.json(
-        { error: 'feedback_type inválido' },
-        { status: 400 }
-      );
-    }
+    const { feedback_type } = body
 
     const { data: existingFeedback, error: existingError } = await supabase
       .from('lesson_feedback')
       .select('id, feedback_type')
       .eq('lesson_id', lessonId)
       .eq('user_id', user.id)
-      .single();
+      .single()
 
     if (existingError && existingError.code !== 'PGRST116') {
-      return NextResponse.json(
-        { error: 'Error al verificar feedback' },
-        { status: 500 }
-      );
+      return apiError('FEEDBACK_LOOKUP_FAILED', 'Error al verificar feedback.', 500)
     }
 
     if (existingFeedback) {
@@ -97,55 +86,43 @@ export async function POST(
         const { error: deleteError } = await supabase
           .from('lesson_feedback')
           .delete()
-          .eq('id', existingFeedback.id);
+          .eq('id', existingFeedback.id)
 
         if (deleteError) {
-          return NextResponse.json(
-            { error: 'Error al eliminar feedback' },
-            { status: 500 }
-          );
+          return apiError('FEEDBACK_DELETE_FAILED', 'Error al eliminar feedback.', 500)
         }
 
-        return NextResponse.json({ feedback_type: null, action: 'removed' });
+        return NextResponse.json({ feedback_type: null, action: 'removed' })
       }
 
       const { error: updateError } = await supabase
         .from('lesson_feedback')
         .update({ feedback_type, updated_at: new Date().toISOString() })
-        .eq('id', existingFeedback.id);
+        .eq('id', existingFeedback.id)
 
       if (updateError) {
-        return NextResponse.json(
-          { error: 'Error al actualizar feedback' },
-          { status: 500 }
-        );
+        return apiError('FEEDBACK_UPDATE_FAILED', 'Error al actualizar feedback.', 500)
       }
 
-      return NextResponse.json({ feedback_type, action: 'updated' });
+      return NextResponse.json({ feedback_type, action: 'updated' })
     }
 
     const { error: insertError } = await supabase.from('lesson_feedback').insert({
       lesson_id: lessonId,
       user_id: user.id,
       feedback_type,
-    });
+    })
 
     if (insertError) {
-      techDebtLogger.error('[FEEDBACK API] Error al insertar feedback:', insertError);
-      return NextResponse.json(
-        { error: 'Error al guardar feedback', details: insertError.message },
-        { status: 500 }
-      );
+      techDebtLogger.error('[FEEDBACK API] Error al insertar feedback:', insertError)
+      return apiError('FEEDBACK_SAVE_FAILED', 'Error al guardar feedback.', 500)
     }
 
-    return NextResponse.json({ feedback_type, action: 'created' });
+    return NextResponse.json({ feedback_type, action: 'created' })
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido',
-      },
-      { status: 500 }
-    );
+    techDebtLogger.error('Error in POST /api/courses/[slug]/lessons/[lessonId]/feedback:', error)
+    return apiError('INTERNAL_ERROR', 'Error interno del servidor.', 500)
   }
 }
+
+export const POST = withZodBody(lessonFeedbackSchema, handlePost)

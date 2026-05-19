@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import {
+  chatReadSchema,
+  type ChatReadBody,
+} from '@/app/api/business/hierarchy/_schemas';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string; chatId: string }>;
@@ -21,20 +27,20 @@ function createServiceClient() {
 /**
  * POST /api/[orgSlug]/business/hierarchy/chats/[chatId]/read
  */
-export async function POST(request: NextRequest, { params }: RouteContext) {
+async function handlePost(
+  _request: NextRequest,
+  body: ChatReadBody,
+  { params }: RouteContext,
+) {
   try {
     const { orgSlug, chatId } = await params;
     const auth = await requireBusiness({ organizationSlug: orgSlug });
     if (auth instanceof NextResponse) return auth;
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
-      );
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403);
     }
 
-    const body = await request.json();
     const { last_read_at } = body;
 
     const supabase = createServiceClient();
@@ -48,10 +54,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       .single();
 
     if (!participant) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes acceso a este chat' },
-        { status: 403 }
-      );
+      return apiError('CHAT_FORBIDDEN', 'No tienes acceso a este chat', 403);
     }
 
     const readAt = last_read_at || new Date().toISOString();
@@ -65,9 +68,10 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       .eq('id', participant.id);
 
     if (updateError) {
-      return NextResponse.json(
-        { success: false, error: 'Error al marcar mensajes como leídos' },
-        { status: 500 }
+      return apiError(
+        'MARK_READ_FAILED',
+        'Error al marcar mensajes como leídos',
+        500,
       );
     }
 
@@ -77,9 +81,12 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     });
   } catch (error) {
     logger.error('Error en POST chat read:', error);
-    return NextResponse.json(
-      { success: false, error: 'Error al marcar mensajes como leídos' },
-      { status: 500 }
+    return apiError(
+      'MARK_READ_FAILED',
+      'Error al marcar mensajes como leídos',
+      500,
     );
   }
 }
+
+export const POST = withZodBody(chatReadSchema, handlePost);

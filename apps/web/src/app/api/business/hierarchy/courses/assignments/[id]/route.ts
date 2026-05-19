@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
+import {
+  updateCourseAssignmentSchema,
+  type UpdateCourseAssignmentBody,
+} from '../../../_schemas'
 
 interface HierarchyEntityInfo {
   id: string
@@ -177,8 +183,9 @@ export async function GET(
  * PUT /api/business/hierarchy/courses/assignments/[id]
  * Actualiza una asignación jerárquica (solo campos editables, no cambia la entidad)
  */
-export async function PUT(
-  request: NextRequest,
+async function handlePut(
+  _request: NextRequest,
+  body: UpdateCourseAssignmentBody,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -186,15 +193,10 @@ export async function PUT(
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'No tienes una organización asignada'
-      }, { status: 403 })
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403)
     }
 
-    const body = await request.json()
     const { due_date, start_date, approach, message, status } = body
-
     const supabase = await createClient()
 
     // Verificar que la asignación existe y pertenece a la organización
@@ -206,36 +208,16 @@ export async function PUT(
       .single()
 
     if (checkError || !existingAssignment) {
-      return NextResponse.json({
-        success: false,
-        error: 'Asignación no encontrada'
-      }, { status: 404 })
+      return apiError('ASSIGNMENT_NOT_FOUND', 'Asignación no encontrada', 404)
     }
 
-    // Preparar datos de actualización
     const updateData: HierarchyAssignmentUpdateData = {}
-
     if (due_date !== undefined) updateData.due_date = due_date || null
     if (start_date !== undefined) updateData.start_date = start_date || null
-    if (approach !== undefined) {
-      if (approach && !['fast', 'balanced', 'long', 'custom'].includes(approach)) {
-        return NextResponse.json({
-          success: false,
-          error: 'Enfoque inválido. Debe ser: fast, balanced, long o custom'
-        }, { status: 400 })
-      }
-      updateData.approach = approach || null
-    }
-    if (message !== undefined) updateData.message = message && message.trim() ? message.trim() : null
-    if (status !== undefined) {
-      if (!['active', 'completed', 'cancelled'].includes(status)) {
-        return NextResponse.json({
-          success: false,
-          error: 'Estado inválido. Debe ser: active, completed o cancelled'
-        }, { status: 400 })
-      }
-      updateData.status = status
-    }
+    if (approach !== undefined) updateData.approach = approach || null
+    if (message !== undefined)
+      updateData.message = message && message.trim() ? message.trim() : null
+    if (status !== undefined) updateData.status = status
 
     // Actualizar asignación
     const { data: updatedAssignment, error: updateError } = await supabase
@@ -247,24 +229,24 @@ export async function PUT(
 
     if (updateError) {
       logger.error('Error actualizando asignación:', updateError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al actualizar la asignación'
-      }, { status: 500 })
+      return apiError(
+        'UPDATE_ASSIGNMENT_FAILED',
+        'Error al actualizar la asignación',
+        500,
+      )
     }
 
-    return NextResponse.json({
-      success: true,
-      data: updatedAssignment
-    })
+    return NextResponse.json({ success: true, data: updatedAssignment })
   } catch (error: unknown) {
-    logger.error('Error inesperado en PUT /api/business/hierarchy/courses/assignments/[id]:', error)
-    return NextResponse.json({
-      success: false,
-      error: getErrorMessage(error)
-    }, { status: 500 })
+    logger.error(
+      'Error inesperado en PUT /api/business/hierarchy/courses/assignments/[id]:',
+      error,
+    )
+    return apiError('UPDATE_ASSIGNMENT_FAILED', getErrorMessage(error), 500)
   }
 }
+
+export const PUT = withZodBody(updateCourseAssignmentSchema, handlePut)
 
 /**
  * DELETE /api/business/hierarchy/courses/assignments/[id]

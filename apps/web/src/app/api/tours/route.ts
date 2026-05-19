@@ -4,6 +4,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { SessionService } from '../../../features/auth/services/session.service';
 import { apiError } from '@/lib/api/errors';
 import { withZodBody } from '@/lib/api/with-validation';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 import type { Database } from '../../../lib/supabase/types';
 import { tourProgressSchema, type TourProgressBody } from './schema';
 
@@ -56,10 +57,9 @@ function isMissingTourProgressInfrastructureError(error: unknown) {
 
 // ---------------------------------------------------------------------------
 // GET /api/tours?tourId=<id>
-// Verifica si el usuario ya vio un tour específico.
-// Cache privado de 60 s: el estado del tour cambia raramente y un usuario
-// autenticado no comparte caché con otros. Esto evita hits a la DB en cada
-// render/montaje del hook useTourProgress.
+// Verifica si el usuario ya vio un tour especifico.
+// No cacheamos: el estado puede cambiar inmediatamente por POST complete/skip.
+// Cachear un "no visto" haria que el tour reaparezca al navegar rapido.
 // ---------------------------------------------------------------------------
 export async function GET(request: NextRequest) {
   try {
@@ -91,14 +91,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Error al verificar tour' }, { status: 500 });
     }
 
+    const hasSeenTour = Boolean(data?.completed_at || data?.skipped_at);
+
     return NextResponse.json(
-      { success: true, hasSeenTour: !!data, tourProgress: data ?? null },
+      { success: true, hasSeenTour, tourProgress: data ?? null },
       {
         headers: {
-          // Private cache: browser can cache this for 60 s, CDN must not.
-          // After 60 s the browser revalidates. Reduces DB calls on fast
-          // navigations where the user hasn't completed the tour yet.
-          'Cache-Control': 'private, max-age=60, stale-while-revalidate=30',
+          'Cache-Control': 'no-store',
         },
       }
     );

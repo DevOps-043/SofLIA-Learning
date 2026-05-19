@@ -1,7 +1,15 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import {
+  conversationTitlePatchSchema,
+  type ConversationTitlePatchBody,
+} from '../../_schemas';
+
+type RouteContext = { params: Promise<{ conversationId: string }> };
 
 /**
  * PATCH /api/lia/conversations/[conversationId]
@@ -9,36 +17,19 @@ import { SessionService } from '@/features/auth/services/session.service';
  * 
  * Body: { conversation_title: string }
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ conversationId: string }> }
+async function handlePatch(
+  _request: NextRequest,
+  body: ConversationTitlePatchBody,
+  { params }: RouteContext,
 ) {
   try {
     const user = await SessionService.getCurrentUser();
     if (!user) {
-      return NextResponse.json(
-        { error: 'No autenticado' },
-        { status: 401 }
-      );
+      return apiError('UNAUTHENTICATED', 'No autenticado', 401);
     }
 
     const { conversationId } = await params;
-    const { conversation_title } = await request.json();
-
-    if (typeof conversation_title !== 'string' && conversation_title !== null) {
-      return NextResponse.json(
-        { error: 'conversation_title debe ser una cadena de texto o null' },
-        { status: 400 }
-      );
-    }
-
-    // Validar longitud máxima
-    if (conversation_title && conversation_title.length > 255) {
-      return NextResponse.json(
-        { error: 'El título no puede exceder 255 caracteres' },
-        { status: 400 }
-      );
-    }
+    const { conversation_title } = body;
 
     const supabase = await createClient();
 
@@ -50,17 +41,11 @@ export async function PATCH(
       .single();
 
     if (convError || !conversation) {
-      return NextResponse.json(
-        { error: 'Conversación no encontrada' },
-        { status: 404 }
-      );
+      return apiError('CONVERSATION_NOT_FOUND', 'Conversación no encontrada', 404);
     }
 
     if (conversation.user_id !== user.id) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 403 }
-      );
+      return apiError('UNAUTHORIZED', 'No autorizado', 403);
     }
 
     // Actualizar el título
@@ -87,15 +72,17 @@ export async function PATCH(
       
       // Si el error es por columna no encontrada
       if (updateError.message?.includes('conversation_title') || updateError.message?.includes('column') || updateError.code === '42703') {
-        return NextResponse.json(
-          { error: 'La columna conversation_title no existe aún. Ejecuta la migración SQL primero.' },
-          { status: 400 }
+        return apiError(
+          'CONVERSATION_TITLE_COLUMN_MISSING',
+          'La columna conversation_title no existe aún. Ejecuta la migración SQL primero.',
+          400,
         );
       }
       
-      return NextResponse.json(
-        { error: 'Error actualizando conversación' },
-        { status: 500 }
+      return apiError(
+        'CONVERSATION_UPDATE_FAILED',
+        'Error actualizando conversación',
+        500,
       );
     }
 
@@ -122,12 +109,15 @@ export async function PATCH(
     });
   } catch (error) {
     techDebtLogger.error('Error en API de actualización:', error);
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
+    return apiError(
+      'CONVERSATION_UPDATE_FAILED',
+      'Error interno del servidor',
+      500,
     );
   }
 }
+
+export const PATCH = withZodBody(conversationTitlePatchSchema, handlePatch);
 
 /**
  * DELETE /api/lia/conversations/[conversationId]
@@ -211,4 +201,3 @@ export async function DELETE(
     );
   }
 }
-

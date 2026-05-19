@@ -2,12 +2,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/utils/logger'
 import { BusinessUsersServerService } from '@/features/business-panel/services/businessUsers.server.service'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { CreateBusinessUserRequest } from '@/features/business-panel/services/businessUsers.service'
 import { createClient } from '@/lib/supabase/server'
 import {
   buildPaginationMetadata,
   parsePaginationParams,
 } from '@/lib/api/pagination'
+import {
+  createBusinessUserSchema,
+  type CreateBusinessUserBody,
+} from '../_schemas'
+
+type RouteContext = {
+  params: Promise<{ orgSlug: string }>
+}
 
 type UsersResource = 'users' | 'invitations' | 'links'
 
@@ -18,7 +28,7 @@ function getResource(value: string | null): UsersResource {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> }
+  { params }: RouteContext,
 ) {
   try {
     const { orgSlug } = await params
@@ -28,8 +38,8 @@ export async function GET(
 
     if (!auth.organizationId) {
       return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
+        { success: false, error: 'No tienes una organizacion asignada' },
+        { status: 403 },
       )
     }
 
@@ -82,7 +92,7 @@ export async function GET(
         .from('organizations')
         .select('id, name, logo_url, brand_logo_url')
         .eq('id', auth.organizationId)
-        .single()
+        .single(),
     ])
 
     let invitations: unknown[] = []
@@ -150,12 +160,12 @@ export async function GET(
       organization: {
         id: auth.organizationId,
         name: orgInfo?.name || '',
-        logo_url: orgInfo?.brand_logo_url || orgInfo?.logo_url || null
-      }
+        logo_url: orgInfo?.brand_logo_url || orgInfo?.logo_url || null,
+      },
     }, {
       headers: {
-        'Cache-Control': 'private, no-cache, no-store, must-revalidate'
-      }
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+      },
     })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
@@ -164,15 +174,16 @@ export async function GET(
       stack: error instanceof Error ? error.stack : undefined,
     })
     return NextResponse.json(
-      { success: false, error: 'Error al obtener usuarios de la organización' },
-      { status: 500 }
+      { success: false, error: 'Error al obtener usuarios de la organizacion' },
+      { status: 500 },
     )
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> }
+async function handlePost(
+  _request: NextRequest,
+  body: CreateBusinessUserBody,
+  { params }: RouteContext,
 ) {
   try {
     const { orgSlug } = await params
@@ -181,39 +192,32 @@ export async function POST(
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
-      )
+      return apiError('NO_ORGANIZATION', 'No tienes una organizacion asignada', 403)
     }
 
-    // SECURITY: Solo owner y admin de la organización pueden crear/invitar usuarios.
-    // Un miembro (member) no tiene permisos de gestión sobre otros usuarios.
     if (!auth.isOrgAdmin) {
-      logger.warn('Member attempted to create user — access denied', {
+      logger.warn('Member attempted to create user - access denied', {
         userId: auth.userId,
         orgSlug,
-        organizationRole: auth.organizationRole
+        organizationRole: auth.organizationRole,
       })
-      return NextResponse.json(
-        { success: false, error: 'No tienes permisos para gestionar usuarios en esta organización.' },
-        { status: 403 }
+      return apiError(
+        'FORBIDDEN',
+        'No tienes permisos para gestionar usuarios en esta organizacion.',
+        403,
       )
     }
 
-    const body = await request.json()
-
-    // SECURITY: Restringir los roles que se pueden asignar según el rol del solicitante.
-    // Un admin no puede crear owners; solo el owner puede asignar el rol de owner.
-    const requestedRole: string = body.org_role || 'member'
+    const requestedRole = body.org_role || 'member'
     const allowedRoles = auth.organizationRole === 'owner'
       ? ['member', 'admin', 'owner']
       : ['member', 'admin']
 
     if (!allowedRoles.includes(requestedRole)) {
-      return NextResponse.json(
-        { success: false, error: `No tienes permisos para asignar el rol '${requestedRole}'.` },
-        { status: 403 }
+      return apiError(
+        'FORBIDDEN_ROLE_ASSIGNMENT',
+        `No tienes permisos para asignar el rol '${requestedRole}'.`,
+        403,
       )
     }
 
@@ -221,28 +225,31 @@ export async function POST(
       username: body.username,
       email: body.email,
       password: body.password,
-      first_name: body.first_name,
-      last_name: body.last_name,
-      display_name: body.display_name,
+      first_name: body.first_name || undefined,
+      last_name: body.last_name || undefined,
+      display_name: body.display_name || undefined,
       date_of_birth: body.date_of_birth,
       gender: body.gender,
       job_title: body.job_title,
       org_role: requestedRole,
-      send_invitation: body.send_invitation !== undefined ? body.send_invitation : !body.password
+      send_invitation: body.send_invitation !== undefined ? body.send_invitation : !body.password,
     }
 
     const newUser = await BusinessUsersServerService.createOrganizationUser(
       auth.organizationId,
       userData,
-      auth.userId
+      auth.userId,
     )
 
     return NextResponse.json({ success: true, user: newUser })
   } catch (error) {
-    logger.error('💥 Error in /api/[orgSlug]/business/users POST:', error)
-    return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Error al crear usuario' },
-      { status: 500 }
+    logger.error('Error in /api/[orgSlug]/business/users POST:', error)
+    return apiError(
+      'CREATE_BUSINESS_USER_FAILED',
+      error instanceof Error ? error.message : 'Error al crear usuario',
+      500,
     )
   }
 }
+
+export const POST = withZodBody(createBusinessUserSchema, handlePost)

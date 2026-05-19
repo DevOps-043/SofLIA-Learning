@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
+import { withZodBody } from '@/lib/api/with-validation'
 import { SessionService } from '../../../../../features/auth/services/session.service'
-import type { ActionRequest, ActionResponse } from './dashboard-action.types'
+import { dashboardActionSchema, type DashboardActionBody } from '../../_schemas'
 import {
   createDashboardActionAdminClient,
   ensureAuthorizedPlan,
@@ -11,14 +12,13 @@ import {
   buildActionSuccessResponse,
 } from './dashboard-action-response.service'
 
-export async function POST(request: NextRequest) {
+async function handlePost(_request: NextRequest, body: DashboardActionBody) {
   try {
     const user = await SessionService.getCurrentUser()
     if (!user) {
       return buildActionErrorResponse('No autenticado', 401)
     }
 
-    const body = (await request.json()) as Partial<ActionRequest> & { data?: unknown }
     const { action, planId } = body
 
     if (!action || !planId) {
@@ -58,3 +58,5 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export const POST = withZodBody(dashboardActionSchema, handlePost)

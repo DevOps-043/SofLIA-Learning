@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Joyride } from 'react-joyride';
+import { SofliaJoyride as Joyride } from '@/features/tours/components/SofliaJoyride';
 import { StudyPlannerCalendar } from '../../../features/study-planner/components/StudyPlannerCalendar';
 import {
   StudyPlannerDashboardAssistant,

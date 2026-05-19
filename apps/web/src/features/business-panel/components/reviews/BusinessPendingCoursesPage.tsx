@@ -1,6 +1,6 @@
 'use client'
 
-import { Joyride } from 'react-joyride'
+import { SofliaJoyride as Joyride } from '@/features/tours/components/SofliaJoyride'
 import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import { ReviewConfirmationModals } from './BusinessPendingCoursesPage/ReviewConfirmationModals'
 import { ReviewEmptyState } from './BusinessPendingCoursesPage/ReviewEmptyState'

@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import {
+  courseDialogueMessageSchema,
+  type CourseDialogueMessageBody,
+} from '@/app/api/courses/_schemas'
 import { SessionService } from '@/features/auth/services/session.service'
 import { resolveCourseActivityContext } from '@/features/courses/services/activity-submission.server.service'
-import { processDialogueMessage } from '@/features/courses/services/soflia-dialogue/dialogue-runtime.service'
 import { DialogueRuntimeError } from '@/features/courses/services/soflia-dialogue/dialogue-runtime.errors'
-import { dialogueMessageRequestSchema } from '@/features/courses/types/dialogue-runtime'
+import { processDialogueMessage } from '@/features/courses/services/soflia-dialogue/dialogue-runtime.service'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
@@ -14,26 +19,15 @@ type RouteParams = {
   slug: string
 }
 
-export async function POST(
-  request: NextRequest,
+async function handlePost(
+  _request: NextRequest,
+  body: CourseDialogueMessageBody,
   { params }: { params: Promise<RouteParams> },
 ) {
   try {
     const currentUser = await SessionService.getCurrentUser()
     if (!currentUser) {
-      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
-    }
-
-    const body = await request.json().catch(() => ({}))
-    const parsedRequest = dialogueMessageRequestSchema.safeParse(body)
-    if (!parsedRequest.success) {
-      return NextResponse.json(
-        {
-          error: 'Payload invalido para el dialogo SofLIA',
-          details: parsedRequest.error.flatten(),
-        },
-        { status: 400 },
-      )
+      return apiError('UNAUTHENTICATED', 'No autenticado.', 401)
     }
 
     const { activityId, lessonId, slug } = await params
@@ -49,25 +43,24 @@ export async function POST(
     const adminClient = createAdminClient()
     const result = await processDialogueMessage({
       client: adminClient,
-      clientTurnId: parsedRequest.data.clientTurnId,
+      clientTurnId: body.clientTurnId,
       context,
-      message: parsedRequest.data.message,
-      sessionId: parsedRequest.data.sessionId,
+      message: body.message,
+      sessionId: body.sessionId,
     })
 
     return NextResponse.json(result)
   } catch (error) {
-    const status = error instanceof DialogueRuntimeError ? error.status : 500
+    const isRuntimeError = error instanceof DialogueRuntimeError
+    const status = isRuntimeError ? error.status : 500
 
-    return NextResponse.json(
-      {
-        code: error instanceof DialogueRuntimeError ? error.code : undefined,
-        error:
-          error instanceof Error ? error.message : 'Error interno del servidor',
-        details:
-          error instanceof DialogueRuntimeError ? error.details : undefined,
-      },
-      { status },
+    return apiError(
+      isRuntimeError ? error.code : 'INTERNAL_ERROR',
+      error instanceof Error ? error.message : 'Error interno del servidor.',
+      status,
+      { details: isRuntimeError ? error.details : undefined },
     )
   }
 }
+
+export const POST = withZodBody(courseDialogueMessageSchema, handlePost)
