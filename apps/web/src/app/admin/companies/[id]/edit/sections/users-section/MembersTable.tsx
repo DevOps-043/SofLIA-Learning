@@ -18,7 +18,7 @@ export function MembersTable({ members, onDelete, onEdit }: MembersTableProps) {
           <th className="pb-3 text-right font-medium">Acciones</th>
         </tr>
       </thead>
-      <tbody className="divide-y" style={{ borderColor: `${colors.grayMedium}10` }}>
+      <tbody className="divide-y" style={{ borderColor: `color-mix(in srgb, ${colors.grayMedium} 6.3%, transparent)` }}>
         {members.map((member) => (
           <MembersTableRow key={member.id} member={member} onDelete={onDelete} onEdit={onEdit} />
         ))}
@@ -43,7 +43,7 @@ function MembersTableRow({
     <tr className="group">
       <td className="py-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full" style={{ backgroundColor: `${colors.accent}20` }}>
+          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full" style={{ backgroundColor: `color-mix(in srgb, ${colors.accent} 12.5%, transparent)` }}>
             {member.user?.profile_picture_url ? (
               <img src={member.user.profile_picture_url} alt="" className="h-full w-full object-cover" />
             ) : (
@@ -81,7 +81,7 @@ function MembersTableRow({
 
 function UsersBadge({ color, label }: { color: string; label: string }) {
   return (
-    <span className="rounded-lg px-2.5 py-1 text-xs font-medium" style={{ backgroundColor: `${color}20`, color }}>
+    <span className="rounded-lg px-2.5 py-1 text-xs font-medium" style={{ backgroundColor: `color-mix(in srgb, ${color} 12.5%, transparent)`, color }}>
       {label}
     </span>
   )

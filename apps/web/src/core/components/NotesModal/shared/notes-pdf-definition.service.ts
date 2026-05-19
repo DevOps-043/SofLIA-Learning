@@ -24,11 +24,11 @@ export interface BuildNotePdfDefinitionOptions {
 }
 
 const PAGE_MARGINS: [number, number, number, number] = [56, 56, 56, 64];
-const SOFLIA_PRIMARY = '#0A2540';
-const SOFLIA_ACCENT = '#00D4B3';
-const SOFLIA_TEXT = '#1F2937';
-const SOFLIA_MUTED = '#6B7280';
-const SOFLIA_LIGHT_BORDER = '#E5E7EB';
+const SOFLIA_PRIMARY = 'var(--color-primary)';
+const SOFLIA_ACCENT = 'var(--color-accent)';
+const SOFLIA_TEXT = 'var(--color-legacy-1f2937)';
+const SOFLIA_MUTED = 'var(--color-legacy-6b7280)';
+const SOFLIA_LIGHT_BORDER = 'var(--color-legacy-e5e7eb)';
 
 function formatGeneratedAt(generatedAt: Date, locale: string): string {
   return generatedAt.toLocaleDateString(locale, {
@@ -43,7 +43,7 @@ function formatGeneratedAt(generatedAt: Date, locale: string): string {
 function buildInlineText(run: NotePdfInlineRun): ContentText {
   return {
     bold: run.bold,
-    color: run.link ? '#2563EB' : SOFLIA_TEXT,
+    color: run.link ? 'var(--color-legacy-2563eb)' : SOFLIA_TEXT,
     decoration: run.decoration || (run.link ? 'underline' : undefined),
     italics: run.italics,
     link: run.link,
@@ -99,7 +99,7 @@ function buildTagsSection(tags: string[], labels: NotePdfLabels): Content[] {
   }
 
   const tagPills: Content[] = tags.map((tag) => ({
-    background: '#D8FBF5',
+    background: 'var(--color-legacy-d8fbf5)',
     color: SOFLIA_PRIMARY,
     fontSize: 9,
     margin: [0, 0, 6, 0] as [number, number, number, number],

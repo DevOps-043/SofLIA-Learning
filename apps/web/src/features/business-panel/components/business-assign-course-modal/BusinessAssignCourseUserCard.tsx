@@ -38,7 +38,7 @@ export function BusinessAssignCourseUserCard({ index, modal, theme, user }: Busi
       title={isLockedAssigned && sourceLabel ? `No se puede remover aquí: ${sourceLabel}` : undefined}
       className={`group relative p-4 rounded-[1.8rem] text-left transition-all border flex items-center gap-4 ${isSelected || isPendingRemoval ? 'scale-[1.02] shadow-xl' : !isLockedAssigned ? 'hover:border-white/20' : ''}`}
       style={{
-        backgroundColor: isPendingRemoval ? `${theme.dangerColor}12` : isSelected ? `${theme.primaryColor}15` : theme.inputBg,
+        backgroundColor: isPendingRemoval ? `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)` : isSelected ? `color-mix(in srgb, ${theme.primaryColor} 8.2%, transparent)` : theme.inputBg,
         borderColor: isPendingRemoval ? theme.dangerColor : isSelected ? theme.primaryColor : theme.borderColor,
         cursor: isLockedAssigned ? 'not-allowed' : 'pointer',
         opacity: isLockedAssigned ? 0.45 : 1,
@@ -69,9 +69,9 @@ function UserAvatar({ displayName, isPendingRemoval, isSelected, theme, user }: 
 }
 
 function UserAssignmentBadge({ isAlreadyAssigned, isDirect, isPendingRemoval, sourceLabel, theme }: { isAlreadyAssigned: boolean; isDirect: boolean; isPendingRemoval: boolean; sourceLabel: string | null; theme: BusinessAssignCourseTheme }) {
-  if (isPendingRemoval) return <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-lg" style={{ backgroundColor: `${theme.dangerColor}18` }}><X className="w-3 h-3" style={{ color: theme.dangerColor }} /><span className="text-[8px] font-bold uppercase tracking-widest" style={{ color: theme.dangerColor }}>Quitar</span></div>;
+  if (isPendingRemoval) return <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-lg" style={{ backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 9.4%, transparent)` }}><X className="w-3 h-3" style={{ color: theme.dangerColor }} /><span className="text-[8px] font-bold uppercase tracking-widest" style={{ color: theme.dangerColor }}>Quitar</span></div>;
   if (!isAlreadyAssigned) return null;
-  return <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-1 rounded-lg" style={{ backgroundColor: isDirect ? `${theme.dangerColor}10` : `${theme.accentColor}15` }}><UserCheck className="w-3 h-3" style={{ color: isDirect ? theme.dangerColor : theme.accentColor }} /><span className="text-[8px] font-bold uppercase tracking-widest max-w-[120px] truncate" style={{ color: isDirect ? theme.dangerColor : theme.accentColor }}>{isDirect ? 'Click para quitar' : sourceLabel ?? 'Asignado'}</span></div>;
+  return <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-1 rounded-lg" style={{ backgroundColor: isDirect ? `color-mix(in srgb, ${theme.dangerColor} 6.3%, transparent)` : `color-mix(in srgb, ${theme.accentColor} 8.2%, transparent)` }}><UserCheck className="w-3 h-3" style={{ color: isDirect ? theme.dangerColor : theme.accentColor }} /><span className="text-[8px] font-bold uppercase tracking-widest max-w-[120px] truncate" style={{ color: isDirect ? theme.dangerColor : theme.accentColor }}>{isDirect ? 'Click para quitar' : sourceLabel ?? 'Asignado'}</span></div>;
 }
 
 function getSourceLabel(sourceInfo?: AssignedUserSourceInfo) {

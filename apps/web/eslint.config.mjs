@@ -55,17 +55,17 @@ export default [
 
       "no-console": strictTechDebtRules ? "error" : "warn",
       "no-restricted-syntax": [
-        strictTechDebtRules ? "error" : "warn",
+        "error",
         {
           selector: "CallExpression[callee.property.name='select'][arguments.0.value='*']",
           message: "No uses select('*'). Selecciona campos explicitos.",
         },
         {
-          selector: "Literal[value=/#[0-9A-Fa-f]{6}\\b/]",
+          selector: "Literal[value=/#[0-9A-Fa-f]{3,8}/]",
           message: "No uses hex colors hardcoded en TS/TSX. Usa Tailwind, CSS variables o tokens de tema.",
         },
         {
-          selector: "TemplateElement[value.raw=/#[0-9A-Fa-f]{6}\\b/]",
+          selector: "TemplateElement[value.raw=/#[0-9A-Fa-f]{3,8}/]",
           message: "No uses hex colors hardcoded en template strings TS/TSX. Usa Tailwind, CSS variables o tokens de tema.",
         },
       ],

@@ -15,7 +15,7 @@ export function UsersStatsCards({ company }: { company: CompanyData }) {
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
       {stats.map((stat, index) => (
-        <div key={stat.label} className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-white/5 dark:bg-[#0F1419]">
+        <div key={stat.label} className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-white/5 dark:bg-carbon-900">
           <p className={`text-2xl font-bold ${stat.color || ''}`} style={styleColors[index] ? { color: styleColors[index] } : undefined}>
             {stat.value}
           </p>

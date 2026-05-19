@@ -47,7 +47,7 @@ export function FeatureCard({
       </Link>
       {index < 3 && (
         <motion.div
-          className="hidden lg:block absolute left-1/2 -translate-x-1/2 w-0.5 h-16 bg-gradient-to-b from-[#00D4B3]/30 to-transparent"
+          className="hidden lg:block absolute left-1/2 -translate-x-1/2 w-0.5 h-16 bg-gradient-to-b from-accent/30 to-transparent"
           initial={{ height: 0 }}
           transition={{ delay: index * 0.2 + 0.8, duration: 0.6 }}
           viewport={{ once: true }}

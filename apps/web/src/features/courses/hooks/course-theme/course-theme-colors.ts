@@ -51,7 +51,7 @@ function resolvePrimaryBackground(
   const bgPrimary = backgroundValue || (isLightMode ? LIGHT_BG_PRIMARY : DEFAULT_BG_PRIMARY);
   const normalized = bgPrimary.toLowerCase();
 
-  if (isLightMode && (normalized === "#0f1419" || normalized === "#000000")) {
+  if (isLightMode && (normalized === "var(--color-bg-dark)" || normalized === "var(--color-black)")) {
     return LIGHT_BG_PRIMARY;
   }
 

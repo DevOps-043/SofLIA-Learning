@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { DESIGN_HEX_COLOR } from '@/core/theme/color-tokens'
 
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 
@@ -55,9 +56,9 @@ export async function GET(
         logo_url: organization.brand_logo_url || organization.logo_url || null,
         favicon_url: organization.brand_favicon_url || null,
         banner_url: organization.brand_banner_url || null,
-        color_primary: organization.brand_color_primary || '#3b82f6',
-        color_secondary: organization.brand_color_secondary || '#10b981',
-        color_accent: organization.brand_color_accent || '#8b5cf6',
+        color_primary: organization.brand_color_primary || DESIGN_HEX_COLOR.info,
+        color_secondary: organization.brand_color_secondary || DESIGN_HEX_COLOR.success,
+        color_accent: organization.brand_color_accent || DESIGN_HEX_COLOR.secondary,
         font_family: organization.brand_font_family || 'Inter'
       }
     })

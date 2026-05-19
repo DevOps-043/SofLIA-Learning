@@ -30,7 +30,7 @@ export function BusinessLearningPathAssignmentRow({ assignment, index, language,
         onClick={() => void logic.handleRevokeAssignment(assignment.id)}
         disabled={logic.revokingAssignmentId === assignment.id}
         className="inline-flex items-center gap-2 self-start rounded-xl border px-4 py-2 text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-40 md:self-auto"
-        style={{ backgroundColor: `${dangerColor}0d`, borderColor: `${dangerColor}25`, color: dangerColor }}
+        style={{ backgroundColor: `color-mix(in srgb, ${dangerColor} 5.1%, transparent)`, borderColor: `color-mix(in srgb, ${dangerColor} 14.5%, transparent)`, color: dangerColor }}
       >
         <Trash2 className="h-3.5 w-3.5" />
         {logic.revokingAssignmentId === assignment.id ? 'Revocando…' : 'Revocar'}

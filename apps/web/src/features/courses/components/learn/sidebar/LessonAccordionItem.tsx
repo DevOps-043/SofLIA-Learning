@@ -62,16 +62,16 @@ export function LessonAccordionItem({
           }}
           className={`group relative flex flex-1 items-center gap-3 overflow-hidden rounded-r-lg border-l-2 px-3 py-2 transition-all duration-200 ${
             isActive
-              ? "border-blue-600 bg-blue-50 dark:border-[#00D4B3] dark:bg-[#00D4B3]/10"
+              ? "border-blue-600 bg-blue-50 dark:border-accent dark:bg-accent/10"
               : "border-transparent hover:bg-gray-50 dark:hover:bg-white/5"
           }`}
         >
           <div
             className={`flex flex-shrink-0 items-center justify-center ${
               isCompleted
-                ? "text-blue-700 dark:text-[#00D4B3]"
+                ? "text-blue-700 dark:text-accent"
                 : isActive
-                  ? "text-blue-700 dark:text-[#00D4B3]"
+                  ? "text-blue-700 dark:text-accent"
                   : "text-gray-400 group-hover:text-gray-600 dark:text-white/20 dark:group-hover:text-white/40"
             }`}
           >
@@ -80,7 +80,7 @@ export function LessonAccordionItem({
             ) : (
               <div
                 className={`h-1.5 w-1.5 rounded-full ${
-                  isActive ? "animate-pulse bg-blue-600 dark:bg-[#00D4B3]" : "bg-current"
+                  isActive ? "animate-pulse bg-blue-600 dark:bg-accent" : "bg-current"
                 }`}
               />
             )}
@@ -99,7 +99,7 @@ export function LessonAccordionItem({
             </p>
 
             {isActive && (
-              <span className="mt-1 block text-[10px] font-medium text-blue-700/80 dark:text-[#00D4B3]/80">
+              <span className="mt-1 block text-[10px] font-medium text-blue-700/80 dark:text-accent/80">
                 En curso • {formatLessonDuration(lesson.duration_seconds)}
               </span>
             )}
@@ -111,13 +111,13 @@ export function LessonAccordionItem({
             event.stopPropagation();
             void onToggleExpanded(lesson.lesson_id);
           }}
-          className="flex-shrink-0 rounded-md p-2 transition-colors hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30"
+          className="flex-shrink-0 rounded-md p-2 transition-colors hover:bg-gray-200/50 dark:hover:bg-primary/30"
           title={isExpanded ? collapseLabel : expandLabel}
         >
           {isExpanded ? (
-            <ChevronUp className="h-4 w-4 text-[#6C757D] dark:text-white/60" />
+            <ChevronUp className="h-4 w-4 text-gray-500 dark:text-white/60" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-[#6C757D] dark:text-white/60" />
+            <ChevronDown className="h-4 w-4 text-gray-500 dark:text-white/60" />
           )}
         </button>
       </div>

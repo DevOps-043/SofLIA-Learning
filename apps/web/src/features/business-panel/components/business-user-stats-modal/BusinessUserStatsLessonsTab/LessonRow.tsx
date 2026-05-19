@@ -15,7 +15,7 @@ export function LessonRow({ lesson, index, theme, t }: LessonRowProps) {
   const statusDot = {
     completed: theme.successColor,
     in_progress: theme.warningColor,
-    not_started: `${theme.textColor}30`
+    not_started: `color-mix(in srgb, ${theme.textColor} 18.8%, transparent)`
   }[lesson.status];
 
   return (
@@ -26,8 +26,8 @@ export function LessonRow({ lesson, index, theme, t }: LessonRowProps) {
       className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 rounded-2xl border transition-colors"
       style={{
         backgroundColor: lesson.status === 'completed'
-          ? `${theme.successColor}08`
-          : `${theme.textColor}04`,
+          ? `color-mix(in srgb, ${theme.successColor} 3.1%, transparent)`
+          : `color-mix(in srgb, ${theme.textColor} 1.6%, transparent)`,
         borderColor: theme.modalBorder
       }}
     >

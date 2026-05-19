@@ -53,7 +53,7 @@ export function EmbeddedLiaModeDropdown({
               left: `${position.left}px`,
               width: `${position.width}px`,
               backgroundColor: colors.cardBg,
-              border: `1px solid ${colors.primary}30`,
+              border: `1px solid color-mix(in srgb, ${colors.primary} 18.8%, transparent)`,
             }}
             className="rounded-xl shadow-2xl overflow-hidden z-[60]"
           >
@@ -68,12 +68,12 @@ export function EmbeddedLiaModeDropdown({
                     onClose();
                   }}
                   className="w-full text-left px-3 py-3 text-xs transition-colors flex items-start gap-3"
-                  style={{ backgroundColor: isActive ? `${colors.primary}15` : 'transparent' }}
+                  style={{ backgroundColor: isActive ? `color-mix(in srgb, ${colors.primary} 8.2%, transparent)` : 'transparent' }}
                 >
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <div
                       className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0"
-                      style={{ boxShadow: `0 0 0 2px ${colors.accent}50` }}
+                      style={{ boxShadow: `0 0 0 2px color-mix(in srgb, ${colors.accent} 31.4%, transparent)` }}
                     >
                       <img src={assistantAvatar} alt={assistantName} className="w-full h-full object-cover" />
                     </div>
@@ -81,7 +81,7 @@ export function EmbeddedLiaModeDropdown({
                       <div className="font-semibold mb-0.5" style={{ color: colors.text }}>
                         {mode.name}
                       </div>
-                      <div className="text-[10px] leading-tight" style={{ color: `${colors.text}70` }}>
+                      <div className="text-[10px] leading-tight" style={{ color: `color-mix(in srgb, ${colors.text} 43.9%, transparent)` }}>
                         {mode.description}
                       </div>
                     </div>

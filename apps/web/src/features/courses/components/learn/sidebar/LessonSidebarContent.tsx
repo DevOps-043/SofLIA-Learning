@@ -39,9 +39,9 @@ function QuizStatusBadge({
   }
 
   return (
-    <div className="mt-2 border-t border-[#E9ECEF]/50 pt-2 dark:border-[#6C757D]/30">
+    <div className="mt-2 border-t border-gray-200/50 pt-2 dark:border-gray-500/30">
       {quizInfo.isPassed ? (
-        <div className="flex items-center gap-1.5 text-xs text-blue-700 dark:text-[#00D4B3]">
+        <div className="flex items-center gap-1.5 text-xs text-blue-700 dark:text-accent">
           <CheckCircle className="h-3.5 w-3.5" />
           <span className="font-medium">Aprobado ({quizInfo.percentage}%)</span>
         </div>
@@ -69,17 +69,17 @@ function LoadingSkeleton() {
       transition={{ duration: 0.2 }}
       className="overflow-hidden"
     >
-      <div className="ml-9 mt-3 space-y-2.5 border-l-2 border-blue-200 pl-4 dark:border-[#00D4B3]/40">
+      <div className="ml-9 mt-3 space-y-2.5 border-l-2 border-blue-200 pl-4 dark:border-accent/40">
         {[1, 2].map((itemIndex) => (
           <div
             key={itemIndex}
-            className="animate-pulse rounded-xl border border-[#E9ECEF] bg-white p-3 dark:border-[#6C757D]/30 dark:bg-[#1E2329]"
+            className="animate-pulse rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-500/30 dark:bg-carbon-800"
           >
             <div className="flex items-start gap-3">
-              <div className="h-8 w-8 flex-shrink-0 rounded-lg bg-[#E9ECEF] dark:bg-[#1E2329]" />
+              <div className="h-8 w-8 flex-shrink-0 rounded-lg bg-gray-200 dark:bg-carbon-800" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 w-3/4 rounded bg-[#E9ECEF] dark:bg-[#1E2329]" />
-                <div className="h-3 w-1/4 rounded bg-[#E9ECEF] dark:bg-[#1E2329]" />
+                <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-carbon-800" />
+                <div className="h-3 w-1/4 rounded bg-gray-200 dark:bg-carbon-800" />
               </div>
             </div>
           </div>
@@ -113,7 +113,7 @@ export function LessonSidebarContent({
           transition={{ duration: 0.2 }}
           className="overflow-hidden"
         >
-          <div className="ml-9 mt-3 space-y-2.5 border-l-2 border-blue-200 pl-4 dark:border-[#00D4B3]/40">
+          <div className="ml-9 mt-3 space-y-2.5 border-l-2 border-blue-200 pl-4 dark:border-accent/40">
             {activities.length > 0 && (
               <div className="space-y-2">
                 {activities.map((activity) => {
@@ -129,14 +129,14 @@ export function LessonSidebarContent({
                       onClick={() => {
                         void onSelectActivity(activity.activity_id);
                       }}
-                      className="group relative w-full rounded-2xl p-3 text-left transition-all duration-200 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 dark:hover:bg-white/5 dark:focus-visible:ring-[#00D4B3]"
+                      className="group relative w-full rounded-2xl p-3 text-left transition-all duration-200 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 dark:hover:bg-white/5 dark:focus-visible:ring-accent"
                     >
                       <div className="flex items-start gap-4">
-                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-gray-100 shadow-sm transition-colors group-hover:border-gray-300 dark:border-white/10 dark:bg-[#0F1419] dark:group-hover:border-white/20">
+                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-gray-100 shadow-sm transition-colors group-hover:border-gray-300 dark:border-white/10 dark:bg-carbon-900 dark:group-hover:border-white/20">
                           {isQuiz ? (
-                            <FileText className="h-5 w-5 text-blue-700 dark:text-[#00D4B3]" />
+                            <FileText className="h-5 w-5 text-blue-700 dark:text-accent" />
                           ) : (
-                            <ActivityIcon className="h-5 w-5 text-blue-700 dark:text-[#00D4B3]" />
+                            <ActivityIcon className="h-5 w-5 text-blue-700 dark:text-accent" />
                           )}
                         </div>
 
@@ -146,7 +146,7 @@ export function LessonSidebarContent({
                           </p>
 
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700 dark:border-[#00D4B3]/30 dark:bg-[#0F1419] dark:text-[#00D4B3]">
+                            <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700 dark:border-accent/30 dark:bg-carbon-900 dark:text-accent">
                               {activity.activity_type}
                             </span>
 
@@ -182,14 +182,14 @@ export function LessonSidebarContent({
                       onClick={() => {
                         void onSelectMaterial(material.material_id);
                       }}
-                      className="group relative w-full rounded-2xl p-3 text-left transition-all duration-200 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 dark:hover:bg-white/5 dark:focus-visible:ring-[#00D4B3]"
+                      className="group relative w-full rounded-2xl p-3 text-left transition-all duration-200 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 dark:hover:bg-white/5 dark:focus-visible:ring-accent"
                     >
                       <div className="flex items-start gap-4">
-                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-gray-100 shadow-sm transition-colors group-hover:border-gray-300 dark:border-white/10 dark:bg-[#0F1419] dark:group-hover:border-white/20">
+                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-gray-100 shadow-sm transition-colors group-hover:border-gray-300 dark:border-white/10 dark:bg-carbon-900 dark:group-hover:border-white/20">
                           {isReading ? (
-                            <BookOpen className="h-5 w-5 text-blue-700 dark:text-[#00D4B3]" />
+                            <BookOpen className="h-5 w-5 text-blue-700 dark:text-accent" />
                           ) : (
-                            <FileText className="h-5 w-5 text-blue-700 dark:text-[#00D4B3]" />
+                            <FileText className="h-5 w-5 text-blue-700 dark:text-accent" />
                           )}
                         </div>
 
@@ -205,7 +205,7 @@ export function LessonSidebarContent({
                               </span>
                             )}
 
-                            <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700 dark:border-[#00D4B3]/30 dark:bg-[#0F1419] dark:text-[#00D4B3]">
+                            <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700 dark:border-accent/30 dark:bg-carbon-900 dark:text-accent">
                               {material.material_type}
                             </span>
                           </div>

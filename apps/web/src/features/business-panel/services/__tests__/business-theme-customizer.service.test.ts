@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { DESIGN_HEX_COLOR } from '@/core/theme/color-tokens';
 import {
   buildGradientCss,
   getBusinessThemeIcon,
@@ -14,24 +15,26 @@ describe('business-theme-customizer.service', () => {
     const style = getDefaultBusinessStyle();
 
     expect(style.background_type).toBe('gradient');
-    expect(style.primary_button_color).toBe('#3b82f6');
+    expect(style.primary_button_color).toBe(DESIGN_HEX_COLOR.info);
     expect(style.sidebar_opacity).toBe(1);
   });
 
   it('parses and rebuilds gradient styles', () => {
-    const parsed = parseGradientStyleValue('linear-gradient(120deg, #111111 0%, #222222 100%)');
+    const parsed = parseGradientStyleValue(
+      `linear-gradient(120deg, ${DESIGN_HEX_COLOR.black} 0%, ${DESIGN_HEX_COLOR.gray800} 100%)`
+    );
 
     expect(parsed).toEqual({
       angle: 120,
-      colors: ['#111111', '#222222'],
+      colors: [DESIGN_HEX_COLOR.black, DESIGN_HEX_COLOR.gray800],
     });
-    expect(buildGradientCss(['#111111', '#222222'], 120)).toBe(
-      'linear-gradient(120deg, #111111 0%, #222222 100%)'
+    expect(buildGradientCss([DESIGN_HEX_COLOR.black, DESIGN_HEX_COLOR.gray800], 120)).toBe(
+      `linear-gradient(120deg, ${DESIGN_HEX_COLOR.black} 0%, ${DESIGN_HEX_COLOR.gray800} 100%)`
     );
   });
 
   it('validates colors and theme matches', () => {
-    expect(isValidHexColor('#abc123')).toBe(true);
+    expect(isValidHexColor(DESIGN_HEX_COLOR.info)).toBe(true);
     expect(isValidHexColor('abc123')).toBe(false);
     expect(matchesBusinessTheme('SOFLIA-claro', 'SOFLIA')).toBe(true);
     expect(matchesBusinessTheme('premium-dorado', 'SOFLIA')).toBe(false);
@@ -44,8 +47,8 @@ describe('business-theme-customizer.service', () => {
         id: 'branding-personalizado',
         name: 'Branding',
         description: 'desc',
-        panel: { background_value: 'linear-gradient(0deg, #000, #fff)' } as never,
+        panel: { background_value: `linear-gradient(0deg, ${DESIGN_HEX_COLOR.black}, ${DESIGN_HEX_COLOR.bgLight})` } as never,
       } as never)
-    ).toContain('#fbbf24');
+    ).toContain(DESIGN_HEX_COLOR.amber400);
   });
 });

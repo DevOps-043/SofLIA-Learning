@@ -24,7 +24,7 @@ export function OrganizationBrandingCards({ form, theme }: OrganizationSectionPr
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           className="w-full relative h-32 rounded-xl overflow-hidden mb-4 border-2 border-dashed flex items-center justify-center"
-          style={{ borderColor: `${theme.actionColor}33`, backgroundColor: theme.inputBg }}
+          style={{ borderColor: `color-mix(in srgb, ${theme.actionColor} 20%, transparent)`, backgroundColor: theme.inputBg }}
         >
           {form.formData.banner_url ? (
             <img src={form.formData.banner_url} alt="Vista previa del banner" className="w-full h-full object-cover" />
@@ -51,7 +51,7 @@ export function OrganizationBrandingCards({ form, theme }: OrganizationSectionPr
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-dashed flex items-center justify-center"
-            style={{ borderColor: `${theme.secondaryColor}33`, backgroundColor: theme.inputBg }}
+            style={{ borderColor: `color-mix(in srgb, ${theme.secondaryColor} 20%, transparent)`, backgroundColor: theme.inputBg }}
           >
             {form.formData.icon_url ? <img src={form.formData.icon_url} alt="Vista previa del icono" className="w-full h-full object-contain p-2" /> : <Upload className="w-6 h-6" style={{ color: theme.mutedTextColor }} />}
           </motion.button>

@@ -6,11 +6,11 @@ export function VideoErrorState(props: {
   videoProviderId: string;
 }) {
   return (
-    <div className="flex items-center justify-center h-64 bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30">
+    <div className="flex items-center justify-center h-64 bg-white dark:bg-carbon-800 rounded-xl border border-gray-200 dark:border-gray-500/30">
       <div className="text-center">
         <div className="text-red-500 mb-2">!</div>
-        <p className="text-[#0A2540] dark:text-white mb-2">{props.error}</p>
-        <p className="text-sm text-[#6C757D] dark:text-white/60">
+        <p className="text-primary dark:text-white mb-2">{props.error}</p>
+        <p className="text-sm text-gray-500 dark:text-white/60">
           Proveedor: {props.videoProvider} | ID: {props.videoProviderId}
         </p>
       </div>

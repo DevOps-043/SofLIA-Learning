@@ -56,13 +56,13 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
-      className="group relative overflow-hidden rounded-2xl border border-[#E9ECEF] bg-white shadow-sm transition-all duration-300 hover:shadow-xl dark:border-[#6C757D]/30 dark:bg-[#1E2329]"
+      className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-xl dark:border-gray-500/30 dark:bg-carbon-800"
     >
       <div
         className={`h-1 ${
           module.is_published
-            ? 'bg-gradient-to-r from-[#10B981] to-[#00D4B3]'
-            : 'bg-gradient-to-r from-[#6C757D] to-[#6C757D]/50'
+            ? 'bg-gradient-to-r from-success to-accent'
+            : 'bg-gradient-to-r from-gray-500 to-gray-500/50'
         }`}
       />
 
@@ -70,26 +70,26 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
         <div className="flex flex-col gap-4">
           <div className="flex min-w-0 items-start gap-3">
             <div className="flex shrink-0 items-center gap-1">
-              <div className="cursor-grab rounded p-1 transition-colors hover:bg-[#E9ECEF] active:cursor-grabbing dark:hover:bg-[#0A0D12]">
-                <GripVertical className="h-4 w-4 text-[#6C757D]/40" />
+              <div className="cursor-grab rounded p-1 transition-colors hover:bg-gray-200 active:cursor-grabbing dark:hover:bg-carbon-950">
+                <GripVertical className="h-4 w-4 text-gray-500/40" />
               </div>
               <motion.button
                 onClick={() => toggleModule(module.module_id)}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="flex-shrink-0 rounded-lg p-1.5 transition-colors hover:bg-[#E9ECEF] dark:hover:bg-[#0A0D12]"
+                className="flex-shrink-0 rounded-lg p-1.5 transition-colors hover:bg-gray-200 dark:hover:bg-carbon-950"
               >
                 <motion.div
                   animate={{ rotate: isExpanded ? 180 : 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <ChevronDown className="h-5 w-5 text-[#6C757D] dark:text-white/60" />
+                  <ChevronDown className="h-5 w-5 text-gray-500 dark:text-white/60" />
                 </motion.div>
               </motion.button>
             </div>
 
             <div className="min-w-0 flex-1">
-              <h3 className="line-clamp-2 text-lg font-bold text-[#0A2540] dark:text-white">
+              <h3 className="line-clamp-2 text-lg font-bold text-primary dark:text-white">
                 {module.module_title}
               </h3>
 
@@ -98,8 +98,8 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
                   whileHover={{ scale: 1.05 }}
                   className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ${
                     module.is_published
-                      ? 'border border-[#10B981]/20 bg-[#10B981]/10 text-[#10B981] dark:bg-[#10B981]/20'
-                      : 'border border-[#6C757D]/20 bg-[#6C757D]/10 text-[#6C757D] dark:bg-[#6C757D]/20'
+                      ? 'border border-success/20 bg-success/10 text-success dark:bg-success/20'
+                      : 'border border-gray-500/20 bg-gray-500/10 text-gray-500 dark:bg-gray-500/20'
                   }`}
                 >
                   {module.is_published ? (
@@ -114,25 +114,25 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
                     </>
                   )}
                 </motion.span>
-                <span className="inline-flex items-center gap-1 rounded-lg bg-[#E9ECEF]/50 px-2.5 py-1 text-xs text-[#6C757D] dark:bg-[#0A0D12] dark:text-white/60">
+                <span className="inline-flex items-center gap-1 rounded-lg bg-gray-200/50 px-2.5 py-1 text-xs text-gray-500 dark:bg-carbon-950 dark:text-white/60">
                   <Clock className="h-3 w-3" />
                   {formatDuration(module.module_duration_minutes || 0)}
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-lg bg-[#E9ECEF]/50 px-2.5 py-1 text-xs text-[#6C757D] dark:bg-[#0A0D12] dark:text-white/60">
+                <span className="inline-flex items-center gap-1 rounded-lg bg-gray-200/50 px-2.5 py-1 text-xs text-gray-500 dark:bg-carbon-950 dark:text-white/60">
                   <Book className="h-3 w-3" />
                   {ta('courseManagement.lessonCount', { count: moduleLessons.length })}
                 </span>
               </div>
 
               {module.module_description && (
-                <p className="mt-3 line-clamp-3 text-sm text-[#6C757D] dark:text-white/60">
+                <p className="mt-3 line-clamp-3 text-sm text-gray-500 dark:text-white/60">
                   {module.module_description}
                 </p>
               )}
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 border-t border-[#E9ECEF] pt-4 dark:border-[#6C757D]/30">
+          <div className="flex flex-wrap items-center gap-2 border-t border-gray-200 pt-4 dark:border-gray-500/30">
             <motion.button
               onClick={() => {
                 setEditingModuleId(module.module_id)
@@ -141,7 +141,7 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
               }}
               whileHover={{ scale: 1.05, y: -1 }}
               whileTap={{ scale: 0.95 }}
-              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[#00D4B3]/20 bg-[#00D4B3]/10 px-2.5 py-2 text-xs font-medium text-[#00D4B3] transition-all duration-200 hover:bg-[#00D4B3]/20 dark:border-[#00D4B3]/30 dark:bg-[#00D4B3]/20 dark:hover:bg-[#00D4B3]/30 sm:min-w-[180px] sm:flex-1"
+              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-accent/20 bg-accent/10 px-2.5 py-2 text-xs font-medium text-accent transition-all duration-200 hover:bg-accent/20 dark:border-accent/30 dark:bg-accent/20 dark:hover:bg-accent/30 sm:min-w-[180px] sm:flex-1"
               title={ta('courseManagement.addLesson')}
             >
               <Plus className="h-3 w-3" />
@@ -154,7 +154,7 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
               }}
               whileHover={{ scale: 1.05, y: -1 }}
               whileTap={{ scale: 0.95 }}
-              className="flex h-9 w-9 items-center justify-center rounded-md border border-[#E9ECEF] bg-[#E9ECEF] text-[#0A2540] transition-all duration-200 hover:bg-[#0A2540]/5 dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white/80 dark:hover:bg-[#0A2540]/20"
+              className="flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-gray-200 text-primary transition-all duration-200 hover:bg-primary/5 dark:border-gray-500/30 dark:bg-carbon-950 dark:text-white/80 dark:hover:bg-primary/20"
               title={t('actions.edit')}
             >
               <Pencil className="h-3.5 w-3.5" />
@@ -190,17 +190,17 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >
-            <div className="mt-4 border-t border-[#E9ECEF] px-4 pb-4 pt-0 dark:border-[#6C757D]/30 sm:px-5 sm:pb-5">
+            <div className="mt-4 border-t border-gray-200 px-4 pb-4 pt-0 dark:border-gray-500/30 sm:px-5 sm:pb-5">
               {moduleLessons.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="rounded-xl border-2 border-dashed border-[#E9ECEF] bg-[#E9ECEF]/30 py-8 text-center dark:border-[#6C757D]/30 dark:bg-[#0A0D12]"
+                  className="rounded-xl border-2 border-dashed border-gray-200 bg-gray-200/30 py-8 text-center dark:border-gray-500/30 dark:bg-carbon-950"
                 >
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#00D4B3]/20 to-[#0A2540]/20 dark:from-[#00D4B3]/30 dark:to-[#0A2540]/30">
-                    <Plus className="h-6 w-6 text-[#00D4B3]" />
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-accent/20 to-primary/20 dark:from-accent/30 dark:to-primary/30">
+                    <Plus className="h-6 w-6 text-accent" />
                   </div>
-                  <p className="mb-3 text-sm text-[#6C757D] dark:text-white/60">
+                  <p className="mb-3 text-sm text-gray-500 dark:text-white/60">
                     No hay lecciones en este modulo
                   </p>
                   <motion.button
@@ -211,7 +211,7 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
                     }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="inline-flex items-center gap-2 text-sm font-medium text-[#00D4B3] transition-colors hover:text-[#00D4B3]/80"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-accent transition-colors hover:text-accent/80"
                   >
                     <Plus className="h-4 w-4" />
                     <span>Agrega tu primera leccion</span>

@@ -97,8 +97,8 @@ function VideoSlot({ title, videoUrl, isUploading, isDeleting, onUpload, onDelet
                 disabled={isUploading || isDeleting}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-40"
                 style={{
-                  backgroundColor: `${theme.dangerColor}0f`,
-                  borderColor: `${theme.dangerColor}25`,
+                  backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 5.9%, transparent)`,
+                  borderColor: `color-mix(in srgb, ${theme.dangerColor} 14.5%, transparent)`,
                   color: theme.dangerColor,
                 }}
               >
@@ -228,8 +228,8 @@ export function BusinessLearningPathVideosModal({
                   <div
                     className="flex items-center justify-between gap-3 px-8 py-3 text-[10px] font-black uppercase tracking-widest border-b"
                     style={{
-                      backgroundColor: error ? `${theme.dangerColor}10` : `${theme.successColor}10`,
-                      borderColor: error ? `${theme.dangerColor}20` : `${theme.successColor}20`,
+                      backgroundColor: error ? `color-mix(in srgb, ${theme.dangerColor} 6.3%, transparent)` : `color-mix(in srgb, ${theme.successColor} 6.3%, transparent)`,
+                      borderColor: error ? `color-mix(in srgb, ${theme.dangerColor} 12.5%, transparent)` : `color-mix(in srgb, ${theme.successColor} 12.5%, transparent)`,
                     }}
                   >
                     <span className="flex items-center gap-2" style={{ color: error ? theme.dangerColor : theme.successColor }}>

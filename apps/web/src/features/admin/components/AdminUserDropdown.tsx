@@ -125,7 +125,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
         whileTap={{ scale: 0.95 }}
       >
         <div className="relative">
-          <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-[#00D4B3]/30 hover:ring-[#00D4B3]/60 transition-all duration-300">
+          <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-accent/30 hover:ring-accent/60 transition-all duration-300">
             {user.profile_picture_url && !avatarError ? (
               <img
                 src={user.profile_picture_url}
@@ -134,12 +134,12 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                 onError={handleAvatarError}
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-[#0A2540] to-[#00D4B3] flex items-center justify-center">
+              <div className="w-full h-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
                 <span className="text-white text-xs font-semibold">{getInitials()}</span>
               </div>
             )}
           </div>
-          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-[#10B981] rounded-full border-2 border-white dark:border-[#0F1419]" />
+          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success rounded-full border-2 border-white dark:border-carbon-900" />
         </div>
       </motion.button>
 
@@ -160,13 +160,13 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.95 }}
               transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-              className="absolute right-0 top-full mt-2 w-[260px] rounded-2xl border backdrop-blur-xl shadow-xl z-50 overflow-hidden bg-white dark:bg-[#1E2329] border-gray-200 dark:border-[#334155]"
+              className="absolute right-0 top-full mt-2 w-[260px] rounded-2xl border backdrop-blur-xl shadow-xl z-50 overflow-hidden bg-white dark:bg-carbon-800 border-gray-200 dark:border-slate-700"
             >
               {/* Header - User Info */}
-              <div className="p-4 border-b border-gray-200 dark:border-[#334155] bg-gray-50/70 dark:bg-[#0A0D12]/30">
+              <div className="p-4 border-b border-gray-200 dark:border-slate-700 bg-gray-50/70 dark:bg-carbon-950/30">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-[#00D4B3]/40 flex items-center justify-center"
-                    style={{ background: `linear-gradient(135deg, #0A2540, #00D4B3)` }}
+                  <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-accent/40 flex items-center justify-center"
+                    style={{ background: `linear-gradient(135deg, var(--color-primary), var(--color-accent))` }}
                   >
                     {user.profile_picture_url && !avatarError ? (
                       <img src={user.profile_picture_url} alt={getDisplayName()} className="w-full h-full rounded-full object-cover" onError={handleAvatarError} />
@@ -250,7 +250,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                               key={option.value}
                               onClick={() => { setTheme(option.value) }}
                               className="w-full flex items-center gap-3 px-10 py-2 text-xs transition-colors"
-                              style={{ color: isActive ? '#00D4B3' : (resolvedTheme === 'light' ? '#334155' : 'rgba(255,255,255,0.8)') }}
+                              style={{ color: isActive ? 'var(--color-accent)' : (resolvedTheme === 'light' ? 'var(--color-legacy-334155)' : 'rgba(255,255,255,0.8)') }}
                               onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hoverBackground }}
                               onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
                             >
@@ -295,7 +295,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                               key={opt.value}
                               onClick={() => { setLanguage(opt.value) }}
                               className="w-full flex items-center gap-3 px-10 py-2 text-xs transition-colors"
-                              style={{ color: isActive ? '#00D4B3' : (resolvedTheme === 'light' ? '#334155' : 'rgba(255,255,255,0.8)') }}
+                              style={{ color: isActive ? 'var(--color-accent)' : (resolvedTheme === 'light' ? 'var(--color-legacy-334155)' : 'rgba(255,255,255,0.8)') }}
                               onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hoverBackground }}
                               onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
                             >
@@ -310,7 +310,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                   </AnimatePresence>
                 </div>
 
-                <div className="-mx-2 my-1 border-t border-gray-200 dark:border-[#334155]" />
+                <div className="-mx-2 my-1 border-t border-gray-200 dark:border-slate-700" />
 
                 {/* Cerrar sesión */}
                 <motion.button

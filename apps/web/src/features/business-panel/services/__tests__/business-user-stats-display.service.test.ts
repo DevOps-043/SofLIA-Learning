@@ -59,16 +59,16 @@ describe('business-user-stats-display.service', () => {
     expect(getBusinessUserStatsRoleTranslationKey('admin')).toBe('users.roles.admin')
     expect(getBusinessUserStatsRoleTranslationKey('member')).toBe('users.roles.member')
     expect(getBusinessUserStatsCourseProgressColor({ status: 'completed', progress: 100 })).toBe(
-      '#10B981',
+      'var(--color-success)',
     )
     expect(getBusinessUserStatsCourseProgressColor({ status: 'active', progress: 60 })).toBe(
-      '#3B82F6',
+      'var(--color-info)',
     )
     expect(getBusinessUserStatsCourseProgressColor({ status: 'active', progress: 15 })).toBe(
-      '#F59E0B',
+      'var(--color-warning)',
     )
     expect(getBusinessUserStatsCourseProgressColor({ status: 'pending', progress: 0 })).toBe(
-      '#6B7280',
+      'var(--color-legacy-6b7280)',
     )
   })
 

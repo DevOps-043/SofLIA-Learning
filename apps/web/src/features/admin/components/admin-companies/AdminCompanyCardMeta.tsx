@@ -16,7 +16,7 @@ export function AdminCompanyCardMeta(props: AdminCompanyCardMetaProps) {
   const theme = useAdminPanelTheme()
   return (
     <div className="mb-5 flex flex-wrap items-center gap-2">
-      <span className="rounded-xl border px-3 py-1.5 text-xs font-extrabold" style={{ backgroundColor: `${props.planColor}14`, borderColor: `${props.planColor}26`, color: props.planColor }}>
+      <span className="rounded-xl border px-3 py-1.5 text-xs font-extrabold" style={{ backgroundColor: `color-mix(in srgb, ${props.planColor} 7.8%, transparent)`, borderColor: `color-mix(in srgb, ${props.planColor} 14.9%, transparent)`, color: props.planColor }}>
         {t('companies.card.plan', { plan: t(`companies.plans.${props.normalizedPlan}`, { defaultValue: props.subscriptionPlan || t('companies.plans.none') }) })}
       </span>
       {props.contactEmail ? (

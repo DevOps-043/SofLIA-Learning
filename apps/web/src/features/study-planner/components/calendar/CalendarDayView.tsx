@@ -6,7 +6,7 @@ import {
 import type { CalendarDayViewProps } from './types'
 
 function getEventColor(event: { color?: string; source?: string; provider?: string }): string {
-  return event.color || (event.source === 'study_session' ? '#8E24AA' : event.provider === 'google' ? '#0066CC' : event.provider === 'microsoft' ? '#0078D4' : '#0066CC')
+  return event.color || (event.source === 'study_session' ? 'var(--color-legacy-8e24aa)' : event.provider === 'google' ? 'var(--color-legacy-0066cc)' : event.provider === 'microsoft' ? 'var(--color-legacy-0078d4)' : 'var(--color-legacy-0066cc)')
 }
 
 export function CalendarDayView({
@@ -21,19 +21,19 @@ export function CalendarDayView({
   const dayLayouts = getEventLayoutsForDay(currentDate)
 
   return (
-    <div className="flex-1 flex flex-col border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg overflow-hidden bg-white dark:bg-[#1E2329]">
-      <div className="flex border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
-        <div className="w-16 border-r border-[#E9ECEF] dark:border-[#6C757D]/30 flex-shrink-0"></div>
+    <div className="flex-1 flex flex-col border border-gray-200 dark:border-gray-500/30 rounded-lg overflow-hidden bg-white dark:bg-carbon-800">
+      <div className="flex border-b border-gray-200 dark:border-gray-500/30">
+        <div className="w-16 border-r border-gray-200 dark:border-gray-500/30 flex-shrink-0"></div>
         <div className="flex-1 px-4 py-3">
           <div>
-            <div className="text-xs font-medium text-[#6C757D] dark:text-gray-400 uppercase tracking-wider mb-1">
+            <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
               {formatCalendarLabel(currentDate, 'EEEE')}
             </div>
             <div className="flex items-center gap-2">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium ${isToday ? 'bg-[#0A2540] text-white' : 'text-[#0A2540] dark:text-white'}`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium ${isToday ? 'bg-primary text-white' : 'text-primary dark:text-white'}`}>
                 {formatCalendarLabel(currentDate, 'd')}
               </div>
-              <span className="text-sm text-[#6C757D] dark:text-gray-400">{formatCalendarLabel(currentDate, 'MMMM yyyy')}</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">{formatCalendarLabel(currentDate, 'MMMM yyyy')}</span>
             </div>
           </div>
         </div>
@@ -41,19 +41,19 @@ export function CalendarDayView({
 
       <div className="flex-1 overflow-y-auto">
         <div className="flex">
-          <div className="w-16 border-r border-[#E9ECEF] dark:border-[#6C757D]/30 flex-shrink-0">
+          <div className="w-16 border-r border-gray-200 dark:border-gray-500/30 flex-shrink-0">
             {hours.map((hour) => (
-              <div key={hour} className="h-16 border-b border-[#E9ECEF] dark:border-[#6C757D]/30 px-1.5 flex items-start justify-end pt-1">
-                <span className="text-xs text-[#6C757D] dark:text-gray-400">
+              <div key={hour} className="h-16 border-b border-gray-200 dark:border-gray-500/30 px-1.5 flex items-start justify-end pt-1">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   {hour.toString().padStart(2, '0')}:00
                 </span>
               </div>
             ))}
           </div>
 
-          <div className={`flex-1 relative ${isToday ? 'bg-[#0A2540]/10 dark:bg-[#0A2540]/20' : ''}`}>
+          <div className={`flex-1 relative ${isToday ? 'bg-primary/10 dark:bg-primary/20' : ''}`}>
             {hours.map((hour) => (
-              <div key={hour} className="h-16 border-b border-[#E9ECEF] dark:border-[#6C757D]/30 relative hover:bg-[#E9ECEF]/30 dark:hover:bg-[#0A2540]/10 transition-colors" />
+              <div key={hour} className="h-16 border-b border-gray-200 dark:border-gray-500/30 relative hover:bg-gray-200/30 dark:hover:bg-primary/10 transition-colors" />
             ))}
 
             {dayLayouts.map((layout) => {

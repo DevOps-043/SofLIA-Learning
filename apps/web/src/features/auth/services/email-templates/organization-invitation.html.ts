@@ -44,8 +44,8 @@ export function buildOrganizationInvitationHtml(
           <div style="text-align: center; margin: 40px 0;">
             <a href="${viewModel.safeRegisterUrl}" class="button">Configurar mi cuenta</a>
           </div>
-          <div style="height: 1px; background-color: #eee; margin: 40px 0;"></div>
-          <p style="color: #888; font-size: 13px; text-align: center;">
+          <div style="height: 1px; background-color: rgb(238, 238, 238); margin: 40px 0;"></div>
+          <p style="color: rgb(136, 136, 136); font-size: 13px; text-align: center;">
             Si el botón no funciona, copia y pega el siguiente enlace:
           </p>
           <div class="link-box">${viewModel.safeRegisterUrl}</div>
@@ -53,7 +53,7 @@ export function buildOrganizationInvitationHtml(
             <p style="font-size: 14px; font-weight: 700; text-transform: uppercase;">
               Detalles de la invitación
             </p>
-            <ul style="color: #666; font-size: 14px;">
+            <ul style="color: rgb(102, 102, 102); font-size: 14px;">
               <li>Válida durante 7 días.</li>
               <li>Acceso exclusivo para tu correo electrónico.</li>
               <li>Plataforma segura impulsada por IA.</li>
@@ -61,12 +61,12 @@ export function buildOrganizationInvitationHtml(
           </div>
         </div>
         <div class="footer">
-          <p style="color: #888; font-size: 12px;">Enviado a través de</p>
+          <p style="color: rgb(136, 136, 136); font-size: 12px;">Enviado a través de</p>
           <img src="${viewModel.safeSofliaLogoUrl}" alt="SofLIA" style="height: 32px;" />
-          <p style="color: #888; font-size: 12px;">
+          <p style="color: rgb(136, 136, 136); font-size: 12px;">
             Este es un mensaje automático. Por favor, no respondas a este correo.
           </p>
-          <p style="color: #aaa; font-size: 11px;">
+          <p style="color: rgb(170, 170, 170); font-size: 11px;">
             &copy; ${viewModel.year} SofLIA. Todos los derechos reservados.
           </p>
         </div>

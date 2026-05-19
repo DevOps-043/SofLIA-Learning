@@ -26,9 +26,9 @@ export function useTeamMembersModalLogic({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const theme = {
-    primaryColor: panelStyles?.primary_button_color || (isDark ? '#8B5CF6' : '#6366F1'),
-    accentColor: panelStyles?.accent_color || '#10B981',
-    cardBackground: isDark ? (panelStyles?.card_background || '#1E2329') : '#FFFFFF',
+    primaryColor: panelStyles?.primary_button_color || (isDark ? 'var(--color-secondary)' : 'var(--color-legacy-6366f1)'),
+    accentColor: panelStyles?.accent_color || 'var(--color-success)',
+    cardBackground: isDark ? (panelStyles?.card_background || 'var(--color-gray-800)') : 'var(--color-bg-light)',
   }
 
   useEffect(() => {

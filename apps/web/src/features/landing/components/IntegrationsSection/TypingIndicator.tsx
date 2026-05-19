@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 export function TypingIndicator() {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex gap-3 items-center">
-      <div className="relative w-8 h-8 rounded-full overflow-hidden border border-[#00D4B3]/50 flex-shrink-0">
+      <div className="relative w-8 h-8 rounded-full overflow-hidden border border-accent/50 flex-shrink-0">
         <Image src="/lia-avatar.webp" alt="SofLIA" fill className="object-cover object-top" />
       </div>
       <div className="bg-white/10 px-4 py-3 rounded-2xl rounded-bl-md">

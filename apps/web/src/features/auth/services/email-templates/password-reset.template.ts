@@ -30,7 +30,7 @@ export function buildPasswordResetEmailContent(
           <div style="text-align: center; margin: 30px 0;">
             <a href="${safeResetUrl}" class="button">Restablecer mi contraseÃ±a</a>
           </div>
-          <p style="text-align: center; color: #666; font-size: 14px;">
+          <p style="text-align: center; color: rgb(102, 102, 102); font-size: 14px;">
             O copia y pega este enlace en tu navegador:
           </p>
           <div class="link-box">${safeResetUrl}</div>

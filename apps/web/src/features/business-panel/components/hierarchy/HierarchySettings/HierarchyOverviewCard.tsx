@@ -29,16 +29,16 @@ export function HierarchyOverviewCard({
   const { t } = useTranslation('business')
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 dark:border-white/5 dark:bg-[#1E2329]">
+    <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 dark:border-white/5 dark:bg-carbon-800">
       <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 rounded-bl-full bg-gradient-to-bl from-blue-500/5 to-transparent dark:from-blue-500/10" />
       <div className="relative">
         <div className="mb-6 flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#00D4B3] to-[#00D4B3] shadow-lg shadow-[#00D4B3]/20">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-accent shadow-lg shadow-accent/20">
               <Building2 className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-black leading-none tracking-tight text-[#0A2540] dark:text-white">
+              <h2 className="text-xl font-black leading-none tracking-tight text-primary dark:text-white">
                 {t('hierarchy.title')}
               </h2>
               <p className="mt-0.5 text-sm text-neutral-500 dark:text-white/40">

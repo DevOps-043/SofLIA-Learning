@@ -127,7 +127,7 @@ export function renderTextWithLinks(
             }
           },
           className:
-            'text-[#00D4B3] dark:text-[#00D4B3] hover:text-[#00b89a] dark:hover:text-[#00b89a] underline font-medium transition-colors',
+            'text-accent dark:text-accent hover:text-accent dark:hover:text-accent underline font-medium transition-colors',
           ...(!isRelative && { target: '_blank', rel: 'noopener noreferrer' }),
         },
         linkText

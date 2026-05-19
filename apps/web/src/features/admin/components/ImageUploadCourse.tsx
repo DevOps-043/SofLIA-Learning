@@ -12,11 +12,11 @@ interface ImageUploadCourseProps {
   className?: string
 }
 
-export function ImageUploadCourse({ 
-  value, 
-  onChange, 
+export function ImageUploadCourse({
+  value,
+  onChange,
   disabled = false,
-  className = '' 
+  className = ''
 }: ImageUploadCourseProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -71,7 +71,7 @@ export function ImageUploadCourse({
 
       setUploadProgress(100)
       onChange(result.url)
-      
+
       setTimeout(() => {
         setIsUploading(false)
         setUploadProgress(0)
@@ -87,7 +87,7 @@ export function ImageUploadCourse({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setDragActive(false)
-    
+
     const files = Array.from(e.dataTransfer.files)
     if (files.length > 0) {
       handleFileSelect(files[0])
@@ -149,11 +149,11 @@ export function ImageUploadCourse({
             onDragLeave={handleDragLeave}
             className={`
               relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200
-              ${disabled || isUploading 
-                ? 'border-[#6C757D]/30 bg-[#E9ECEF]/30 dark:bg-[#0A0D12] cursor-not-allowed' 
+              ${disabled || isUploading
+                ? 'border-gray-500/30 bg-gray-200/30 dark:bg-carbon-950 cursor-not-allowed'
                 : dragActive
-                ? 'border-[#00D4B3] bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 cursor-pointer scale-[1.02]'
-                : 'border-[#E9ECEF] dark:border-[#6C757D]/30 bg-white dark:bg-[#0A0D12] hover:border-[#00D4B3]/50 hover:bg-[#00D4B3]/5 dark:hover:bg-[#00D4B3]/10 cursor-pointer'
+                ? 'border-accent bg-accent/10 dark:bg-accent/20 cursor-pointer scale-[1.02]'
+                : 'border-gray-200 dark:border-gray-500/30 bg-white dark:bg-carbon-950 hover:border-accent/50 hover:bg-accent/5 dark:hover:bg-accent/10 cursor-pointer'
               }
             `}
           >
@@ -167,21 +167,21 @@ export function ImageUploadCourse({
                   animate={{ rotate: 360 }}
                   transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                 >
-                  <CloudArrowUpIcon className="mx-auto h-12 w-12 text-[#00D4B3]" />
+                  <CloudArrowUpIcon className="mx-auto h-12 w-12 text-accent" />
                 </motion.div>
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-[#0A2540] dark:text-white">
+                  <p className="text-sm font-medium text-primary dark:text-white">
                     Subiendo imagen...
                   </p>
-                  <div className="w-full bg-[#E9ECEF] dark:bg-[#1E2329] rounded-full h-2 overflow-hidden">
-                    <motion.div 
+                  <div className="w-full bg-gray-200 dark:bg-carbon-800 rounded-full h-2 overflow-hidden">
+                    <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${uploadProgress}%` }}
                       transition={{ duration: 0.3 }}
-                      className="bg-gradient-to-r from-[#00D4B3] to-[#10B981] h-2 rounded-full"
+                      className="bg-gradient-to-r from-accent to-success h-2 rounded-full"
                     />
                   </div>
-                  <p className="text-xs text-[#6C757D] dark:text-white/60">{uploadProgress}%</p>
+                  <p className="text-xs text-gray-500 dark:text-white/60">{uploadProgress}%</p>
                 </div>
               </motion.div>
             ) : (
@@ -191,18 +191,18 @@ export function ImageUploadCourse({
                 className="space-y-4"
               >
                 <div className="flex justify-center">
-                  <div className="w-16 h-16 rounded-xl bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 flex items-center justify-center">
-                    <ImageIcon className="h-8 w-8 text-[#00D4B3]" />
+                  <div className="w-16 h-16 rounded-xl bg-accent/10 dark:bg-accent/20 flex items-center justify-center">
+                    <ImageIcon className="h-8 w-8 text-accent" />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-[#0A2540] dark:text-white">
+                  <p className="text-sm font-semibold text-primary dark:text-white">
                     {dragActive ? 'Suelta la imagen aquí' : 'Hacer clic para subir imagen'}
                   </p>
-                  <p className="text-xs text-[#6C757D] dark:text-white/60">
+                  <p className="text-xs text-gray-500 dark:text-white/60">
                     o arrastra y suelta
                   </p>
-                  <p className="text-xs text-[#6C757D] dark:text-white/50 mt-2">
+                  <p className="text-xs text-gray-500 dark:text-white/50 mt-2">
                     PNG, JPEG, JPG, GIF (máximo 8MB)
                   </p>
                 </div>
@@ -217,7 +217,7 @@ export function ImageUploadCourse({
             exit={{ opacity: 0, scale: 0.95 }}
             className="relative group"
           >
-            <div className="relative overflow-hidden rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30">
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-500/30">
               <img
                 src={value}
                 alt="Preview del curso"
@@ -225,25 +225,25 @@ export function ImageUploadCourse({
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
             </div>
-            
+
             <motion.button
               type="button"
               onClick={handleRemove}
               disabled={disabled || isUploading}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              className="absolute top-3 right-3 p-2 bg-red-500 hover:bg-red-600 disabled:bg-[#6C757D] text-white rounded-lg shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute top-3 right-3 p-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-500 text-white rounded-lg shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <XMarkIcon className="h-4 w-4" />
             </motion.button>
-            
+
             <motion.button
               type="button"
               onClick={handleClick}
               disabled={disabled || isUploading}
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              className="absolute bottom-3 right-3 px-4 py-2 bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 hover:from-[#0d2f4d] hover:to-[#0A2540] disabled:from-[#6C757D] disabled:to-[#6C757D] text-white text-sm font-medium rounded-lg shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="absolute bottom-3 right-3 px-4 py-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary hover:to-primary disabled:from-gray-500 disabled:to-gray-500 text-white text-sm font-medium rounded-lg shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <Upload className="h-4 w-4" />
               Cambiar imagen

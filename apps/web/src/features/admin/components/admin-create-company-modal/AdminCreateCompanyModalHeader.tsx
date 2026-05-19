@@ -15,7 +15,7 @@ export function AdminCreateCompanyModalHeader({
     <div className="flex items-center justify-between border-b border-gray-200 px-8 py-6 dark:border-white/5">
       <div>
         <div className="mb-1 flex items-center gap-3">
-          <div className="rounded-lg p-2" style={{ backgroundColor: `${accentColor}20` }}>
+          <div className="rounded-lg p-2" style={{ backgroundColor: `color-mix(in srgb, ${accentColor} 12.5%, transparent)` }}>
             <PlusIcon className="h-5 w-5" style={{ color: accentColor }} />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">

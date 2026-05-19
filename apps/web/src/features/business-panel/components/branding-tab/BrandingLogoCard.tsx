@@ -34,7 +34,7 @@ export function BrandingLogoCard({
         <div
           className="absolute -top-16 -right-16 w-32 h-32 rounded-full blur-2xl"
           style={{
-            background: `radial-gradient(circle, ${theme.actionColor}24 0%, transparent 70%)`,
+            background: `radial-gradient(circle, color-mix(in srgb, ${theme.actionColor} 14.1%, transparent) 0%, transparent 70%)`,
           }}
         />
       </div>
@@ -121,7 +121,7 @@ export function BrandingLogoCard({
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           className="border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all duration-300"
-          style={{ borderColor: `${theme.actionColor}33` }}
+          style={{ borderColor: `color-mix(in srgb, ${theme.actionColor} 20%, transparent)` }}
         >
           <Upload className="w-6 h-6 mx-auto mb-2" style={{ color: theme.actionColor }} />
           <p className="text-sm font-medium" style={{ color: theme.textColor }}>

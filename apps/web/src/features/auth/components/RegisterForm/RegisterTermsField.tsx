@@ -26,7 +26,7 @@ export function RegisterTermsField({
       key={key}
       type="button"
       onClick={onOpenLegalModal}
-      className="text-[#00D4B3] hover:text-[#00D4B3]/80 dark:text-[#00D4B3] dark:hover:text-[#00D4B3]/70 font-medium transition-colors"
+      className="text-accent hover:text-accent/80 dark:text-accent dark:hover:text-accent/70 font-medium transition-colors"
     />
   );
 
@@ -38,8 +38,8 @@ export function RegisterTermsField({
           <motion.div
             className={`relative w-5 h-5 rounded-lg border-2 transition-all duration-200 flex-shrink-0 mt-0.5 ${
               acceptTerms
-                ? 'bg-[#00D4B3] border-[#00D4B3]'
-                : 'bg-white dark:bg-[#1E2329] border-[#6C757D] dark:border-[#6C757D]/50'
+                ? 'bg-accent border-accent'
+                : 'bg-white dark:bg-carbon-800 border-gray-500 dark:border-gray-500/50'
             }`}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -52,7 +52,7 @@ export function RegisterTermsField({
               )}
             </AnimatePresence>
           </motion.div>
-          <span className="text-xs sm:text-sm text-[#0A2540] dark:text-white/80 leading-relaxed">
+          <span className="text-xs sm:text-sm text-primary dark:text-white/80 leading-relaxed">
             <Trans
               i18nKey="auth.register.acceptTerms"
               t={t}

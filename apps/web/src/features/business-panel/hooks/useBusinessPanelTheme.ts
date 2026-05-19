@@ -12,7 +12,7 @@ import { useOrganizationStylesContext } from '../contexts/OrganizationStylesCont
  *
  * Jerarquía de prioridad:
  *   1. Colores de la organización (OrganizationStylesContext) — modo claro
- *   2. Paleta del design system (#00D4B3, #0A2540, etc.) — modo oscuro y fallbacks
+ *   2. Paleta del design system (var(--color-accent), var(--color-primary), etc.) — modo oscuro y fallbacks
  */
 export interface BusinessPanelThemeTokens {
   // ─── Identidad ───────────────────────────────────────────────────
@@ -101,18 +101,18 @@ export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
   const isDark = resolvedTheme === 'dark'
 
   return useMemo<BusinessPanelThemeTokens>(() => {
-    // En modo oscuro el color primario de acción siempre es el acento (#00D4B3)
+    // En modo oscuro el color primario de acción siempre es el acento (var(--color-accent))
     // para mantener contraste sobre fondos oscuros, independiente de la org.
-    const brandColor = panelStyles?.primary_button_color ?? '#0A2540'
-    const actionColor = isDark ? '#00D4B3' : brandColor
-    const onActionColor = isDark ? '#04130F' : '#FFFFFF'
+    const brandColor = panelStyles?.primary_button_color ?? 'var(--color-primary)'
+    const actionColor = isDark ? 'var(--color-accent)' : brandColor
+    const onActionColor = isDark ? 'var(--color-legacy-04130f)' : 'var(--color-bg-light)'
     const actionSurface = isDark ? 'rgba(0,212,179,0.12)' : 'rgba(10,37,64,0.08)'
 
     // Acciones, iconos y textos destacados de UI siguen el modo:
     // claro = azul profundo, oscuro = aqua.
     const accentColor = actionColor
 
-    const secondaryColor = panelStyles?.secondary_button_color ?? '#8B5CF6'
+    const secondaryColor = panelStyles?.secondary_button_color ?? 'var(--color-secondary)'
 
     return {
       isDark,
@@ -127,20 +127,20 @@ export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
 
       // Texto
       textColor: isDark
-        ? (panelStyles?.text_color ?? '#FFFFFF')
-        : '#0F172A',
-      subtextColor: isDark ? '#858E9B' : '#475569',
+        ? (panelStyles?.text_color ?? 'var(--color-bg-light)')
+        : 'var(--color-legacy-0f172a)',
+      subtextColor: isDark ? 'var(--color-legacy-858e9b)' : 'var(--color-gray-600)',
       mutedTextColor: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.5)',
-      inverseTextColor: '#FFFFFF',
+      inverseTextColor: 'var(--color-bg-light)',
       inverseSubtextColor: 'rgba(255,255,255,0.82)',
       inverseMutedTextColor: 'rgba(255,255,255,0.62)',
 
       // Superficies
       cardBg: isDark
         ? (panelStyles?.card_background ?? 'rgba(30, 35, 41, 0.6)')
-        : '#FFFFFF',
-      inputBg: isDark ? 'rgba(255,255,255,0.03)' : '#F8FAFC',
-      panelBg: isDark ? '#0b0e14' : '#FFFFFF',
+        : 'var(--color-bg-light)',
+      inputBg: isDark ? 'rgba(255,255,255,0.03)' : 'var(--color-gray-50)',
+      panelBg: isDark ? 'var(--color-legacy-0b0e14)' : 'var(--color-bg-light)',
       hoverBg: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.05)',
       overlayBg: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(15,23,42,0.45)',
       inverseSurface: 'rgba(255,255,255,0.08)',
@@ -158,9 +158,9 @@ export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
 
       // Roles
       roleColors: {
-        owner: { text: '#A855F7', bg: 'rgba(168,85,247,0.12)' },
+        owner: { text: 'var(--color-legacy-a855f7)', bg: 'rgba(168,85,247,0.12)' },
         admin: {
-          text: isDark ? '#60A5FA' : brandColor,
+          text: isDark ? 'var(--color-legacy-60a5fa)' : brandColor,
           bg: isDark ? 'rgba(96, 165, 250, 0.16)' : 'rgba(10,37,64,0.1)',
         },
         member: {
@@ -171,25 +171,25 @@ export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
 
       // Estatus
       statusColors: {
-        active: '#10B981',
-        invited: '#F59E0B',
-        suspended: '#EF4444',
-        removed: '#6B7280',
+        active: 'var(--color-success)',
+        invited: 'var(--color-warning)',
+        suspended: 'var(--color-error)',
+        removed: 'var(--color-legacy-6b7280)',
       },
 
       // Semánticos (invariantes de tema)
-      chartColors: ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EF4444', '#06B6D4'],
+      chartColors: ['var(--color-success)', 'var(--color-info)', 'var(--color-warning)', 'var(--color-secondary)', 'var(--color-error)', 'var(--color-legacy-06b6d4)'],
 
       difficultyColors: {
-        beginner: '#22C55E',
-        intermediate: '#EAB308',
-        advanced: '#EF4444',
-        default: '#3B82F6',
+        beginner: 'var(--color-legacy-22c55e)',
+        intermediate: 'var(--color-legacy-eab308)',
+        advanced: 'var(--color-error)',
+        default: 'var(--color-info)',
       },
 
-      successColor: '#10B981',
-      dangerColor: '#EF4444',
-      warningColor: '#F59E0B',
+      successColor: 'var(--color-success)',
+      dangerColor: 'var(--color-error)',
+      warningColor: 'var(--color-warning)',
     }
   }, [isDark, panelStyles])
 }

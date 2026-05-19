@@ -38,7 +38,7 @@ export default function VerificationPage(props: VerificationPageProps) {
   )
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(20,184,166,0.18),_transparent_38%),_linear-gradient(180deg,_#07111b_0%,_#0b1220_42%,_#050912_100%)] text-white">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(20,184,166,0.18),_transparent_38%),_linear-gradient(180deg,_var(--color-legacy-050b14)_0%,_var(--color-legacy-09111f)_42%,_var(--color-bg-dark)_100%)] text-white">
       {challenge ? (
         <HumanVerificationChallenge
           minHoldMs={challenge.minHoldMs}
@@ -46,7 +46,7 @@ export default function VerificationPage(props: VerificationPageProps) {
         />
       ) : (
         <div className="mx-auto flex min-h-[60vh] w-full max-w-2xl flex-col items-center justify-center px-6 py-20 text-center">
-          <div className="w-full rounded-[28px] border border-white/10 bg-[#0f1728]/90 p-8 shadow-[0_28px_90px_rgba(0,0,0,0.45)] backdrop-blur">
+          <div className="w-full rounded-[28px] border border-white/10 bg-slate-900/90 p-8 shadow-[0_28px_90px_rgba(0,0,0,0.45)] backdrop-blur">
             <h1 className="text-3xl font-bold text-white md:text-4xl">
               El reto expiró
             </h1>
@@ -55,7 +55,7 @@ export default function VerificationPage(props: VerificationPageProps) {
             </p>
             <Link
               href={returnTo}
-              className="mt-8 inline-flex rounded-2xl border border-[#34d399]/30 bg-[#0f766e]/20 px-6 py-4 text-base font-semibold text-[#34d399] transition hover:border-[#34d399]/50 hover:bg-[#0f766e]/30"
+              className="mt-8 inline-flex rounded-2xl border border-success/30 bg-teal-700/20 px-6 py-4 text-base font-semibold text-success transition hover:border-success/50 hover:bg-teal-700/30"
             >
               Reintentar navegación
             </Link>

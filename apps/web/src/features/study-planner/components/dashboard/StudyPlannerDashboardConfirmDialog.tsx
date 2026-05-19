@@ -39,25 +39,25 @@ export function StudyPlannerDashboardConfirmDialog({
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', damping: 20, stiffness: 300 }}
             onClick={(event) => event.stopPropagation()}
-            className="bg-white dark:bg-[#1E2329] rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-[#E9ECEF] dark:border-[#6C757D]/30"
+            className="bg-white dark:bg-carbon-800 rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-200 dark:border-gray-500/30"
           >
-            <div className="px-5 py-4 border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
-              <h3 className="text-base font-semibold text-[#0A2540] dark:text-white">
+            <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-500/30">
+              <h3 className="text-base font-semibold text-primary dark:text-white">
                 Confirmar accion
               </h3>
             </div>
 
             <div className="px-5 py-4">
-              <p className="text-sm text-[#6C757D] dark:text-gray-400">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {message}
               </p>
             </div>
 
-            <div className="px-5 py-4 border-t border-[#E9ECEF] dark:border-[#6C757D]/30 flex items-center justify-end gap-3">
+            <div className="px-5 py-4 border-t border-gray-200 dark:border-gray-500/30 flex items-center justify-end gap-3">
               <button
                 onClick={onCancel}
                 disabled={isDeletingPlan || isRecreatingPlan}
-                className="px-5 py-2 text-xs font-semibold text-[#6C757D] dark:text-gray-400 hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-5 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-primary/20 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancelar
               </button>

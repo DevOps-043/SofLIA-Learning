@@ -17,22 +17,22 @@ describe('admin-dashboard service', () => {
   it('builds light theme colors with organization overrides', () => {
     expect(
       buildAdminDashboardThemeColors(true, {
-        background_value: '#FAFAFA',
-        card_background: '#FFFFFF',
+        background_value: 'var(--color-legacy-fafafa)',
+        card_background: 'var(--color-bg-light)',
       })
     ).toEqual({
-      accent: '#00D4B3',
-      background: '#FAFAFA',
-      borderColor: '#E2E8F0',
-      cardBackground: '#FFFFFF',
-      inputBg: '#F1F5F9',
+      accent: 'var(--color-accent)',
+      background: 'var(--color-legacy-fafafa)',
+      borderColor: 'var(--color-gray-200)',
+      cardBackground: 'var(--color-bg-light)',
+      inputBg: 'var(--color-gray-100)',
       inverseSubtext: 'rgba(255,255,255,0.72)',
-      inverseText: '#FFFFFF',
+      inverseText: 'var(--color-bg-light)',
       isLightMode: true,
-      primary: '#0A2540',
-      secondary: '#3B82F6',
-      textPrimary: '#0F172A',
-      textSecondary: '#64748B',
+      primary: 'var(--color-primary)',
+      secondary: 'var(--color-info)',
+      textPrimary: 'var(--color-legacy-0f172a)',
+      textSecondary: 'var(--color-gray-500)',
     })
   })
 

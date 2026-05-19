@@ -18,5 +18,5 @@ export function ViewModeToggle({ setViewMode, t, theme, viewMode }: ViewModeTogg
 }
 
 function ViewModeButton({ active, icon, label, onClick, theme }: { active: boolean; icon: ReactElement; label: string; onClick: () => void; theme: UsersFilterBarTheme }) {
-  return <button onClick={onClick} className="p-3.5 transition-all" style={{ backgroundColor: active ? `${theme.primaryColor}30` : 'transparent' }} title={label}>{icon && <span className="block [&>svg]:h-5 [&>svg]:w-5" style={{ color: active ? theme.primaryColor : theme.mutedTextColor }}>{icon}</span>}</button>
+  return <button onClick={onClick} className="p-3.5 transition-all" style={{ backgroundColor: active ? `color-mix(in srgb, ${theme.primaryColor} 18.8%, transparent)` : 'transparent' }} title={label}>{icon && <span className="block [&>svg]:h-5 [&>svg]:w-5" style={{ color: active ? theme.primaryColor : theme.mutedTextColor }}>{icon}</span>}</button>
 }

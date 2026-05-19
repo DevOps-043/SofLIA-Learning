@@ -83,7 +83,7 @@ export function BrandingTab() {
             className="relative overflow-hidden px-8 py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
             style={{
               backgroundColor: theme.actionColor,
-              boxShadow: `0 8px 30px ${theme.actionColor}33`,
+              boxShadow: `0 8px 30px color-mix(in srgb, ${theme.actionColor} 20%, transparent)`,
               color: theme.onActionColor,
             }}
           >

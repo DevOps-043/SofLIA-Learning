@@ -5,7 +5,7 @@ import { useMotionSafe } from '../../../lib/utils/motion';
 export function LiaLandingCta() {
   const { disableHeavy } = useMotionSafe();
   return (
-    <section className="py-32 relative bg-gradient-to-br from-[#0A2540] via-[#0A2540] to-[#00D4B3]">
+    <section className="py-32 relative bg-gradient-to-br from-primary via-primary to-accent">
       <div className="container mx-auto px-4">
         <motion.div
           className="text-center max-w-4xl mx-auto"
@@ -30,7 +30,7 @@ export function LiaLandingCta() {
           </p>
           <Link href="/auth">
             <motion.button
-              className="px-12 py-5 bg-white text-[#0A2540] rounded-xl font-bold text-lg shadow-2xl"
+              className="px-12 py-5 bg-white text-primary rounded-xl font-bold text-lg shadow-2xl"
               style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}

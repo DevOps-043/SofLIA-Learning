@@ -19,8 +19,8 @@ export function BusinessUserStatsSidebar({
       className="w-64 lg:w-72 p-4 lg:p-6 flex flex-col border-r shrink-0 overflow-y-auto"
       style={{
         background: theme.isDark
-          ? `linear-gradient(135deg, ${theme.primaryColor}20, ${theme.primaryColor}10)`
-          : `linear-gradient(135deg, ${theme.primaryColor}15, ${theme.primaryColor}05)`,
+          ? `linear-gradient(135deg, color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent), color-mix(in srgb, ${theme.primaryColor} 6.3%, transparent))`
+          : `linear-gradient(135deg, color-mix(in srgb, ${theme.primaryColor} 8.2%, transparent), color-mix(in srgb, ${theme.primaryColor} 2%, transparent))`,
         borderColor: theme.modalBorder,
         scrollbarWidth: 'thin',
         scrollbarColor: 'rgba(128,128,128,0.2) transparent',
@@ -30,7 +30,7 @@ export function BusinessUserStatsSidebar({
         {user.profile_picture_url ? (
           <div
             className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 mb-4"
-            style={{ borderColor: `${theme.primaryColor}40` }}
+            style={{ borderColor: `color-mix(in srgb, ${theme.primaryColor} 25.1%, transparent)` }}
           >
             <Image
               src={user.profile_picture_url}
@@ -44,8 +44,8 @@ export function BusinessUserStatsSidebar({
           <div
             className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold mb-4"
             style={{
-              background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.primaryColor}DD)`,
-              color: '#ffffff',
+              background: `linear-gradient(135deg, ${theme.primaryColor}, color-mix(in srgb, ${theme.primaryColor} 86.7%, transparent))`,
+              color: 'var(--color-bg-light)',
             }}
           >
             {initials}
@@ -65,12 +65,12 @@ export function BusinessUserStatsSidebar({
           className="mt-3 px-3 py-1.5 rounded-full text-xs font-medium border"
           style={{
             backgroundColor: theme.isDark
-              ? `${theme.primaryColor}30`
-              : `${theme.primaryColor}20`,
-            color: theme.isDark ? '#FFFFFF' : theme.primaryColor,
+              ? `color-mix(in srgb, ${theme.primaryColor} 18.8%, transparent)`
+              : `color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent)`,
+            color: theme.isDark ? 'var(--color-bg-light)' : theme.primaryColor,
             borderColor: theme.isDark
-              ? `${theme.primaryColor}50`
-              : `${theme.primaryColor}30`,
+              ? `color-mix(in srgb, ${theme.primaryColor} 31.4%, transparent)`
+              : `color-mix(in srgb, ${theme.primaryColor} 18.8%, transparent)`,
           }}
         >
           {t(getBusinessUserStatsRoleTranslationKey(user.org_role))}

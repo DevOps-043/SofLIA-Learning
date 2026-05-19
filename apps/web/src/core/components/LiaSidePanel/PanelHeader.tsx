@@ -74,7 +74,7 @@ export function PanelHeader({
               right: '-2px',
               width: '14px',
               height: '14px',
-              backgroundColor: '#22c55e',
+              backgroundColor: 'var(--color-legacy-22c55e)',
               borderRadius: '50%',
               border: `2px solid ${themeColors.panelBg}`,
             }}
@@ -107,7 +107,7 @@ export function PanelHeader({
             width: '32px',
             height: '32px',
             borderRadius: '8px',
-            backgroundColor: showHistory ? (isLightTheme ? '#e2e8f0' : 'rgba(255,255,255,0.1)') : 'transparent',
+            backgroundColor: showHistory ? (isLightTheme ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.1)') : 'transparent',
             border: 'none',
             cursor: 'pointer',
             display: 'flex',
@@ -115,10 +115,10 @@ export function PanelHeader({
             justifyContent: 'center',
             transition: 'background-color 0.2s',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isLightTheme ? '#E2E8F0' : '#1e2a35')}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isLightTheme ? 'var(--color-gray-200)' : 'var(--color-legacy-1e2a35)')}
           onMouseLeave={(e) =>
             (e.currentTarget.style.backgroundColor = showHistory
-              ? isLightTheme ? '#e2e8f0' : 'rgba(255,255,255,0.1)'
+              ? isLightTheme ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.1)'
               : 'transparent')
           }
         >
@@ -134,7 +134,7 @@ export function PanelHeader({
               width: '32px',
               height: '32px',
               borderRadius: '8px',
-              backgroundColor: isOptionsMenuOpen ? (isLightTheme ? '#e2e8f0' : 'rgba(255,255,255,0.1)') : 'transparent',
+              backgroundColor: isOptionsMenuOpen ? (isLightTheme ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.1)') : 'transparent',
               border: 'none',
               cursor: 'pointer',
               display: 'flex',
@@ -144,7 +144,7 @@ export function PanelHeader({
             }}
             onMouseEnter={(e) => {
               if (!isOptionsMenuOpen) {
-                e.currentTarget.style.backgroundColor = isLightTheme ? '#E2E8F0' : '#1e2a35';
+                e.currentTarget.style.backgroundColor = isLightTheme ? 'var(--color-gray-200)' : 'var(--color-legacy-1e2a35)';
               }
             }}
             onMouseLeave={(e) => {
@@ -167,7 +167,7 @@ export function PanelHeader({
                 right: 0,
                 top: '100%',
                 marginTop: '8px',
-                backgroundColor: isLightTheme ? '#FFFFFF' : '#1E2329',
+                backgroundColor: isLightTheme ? 'var(--color-bg-light)' : 'var(--color-gray-800)',
                 border: `1px solid ${isLightTheme ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)'}`,
                 borderRadius: '12px',
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
@@ -194,7 +194,7 @@ export function PanelHeader({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
-                    color: isLightTheme ? '#0A2540' : '#FFFFFF',
+                    color: isLightTheme ? 'var(--color-primary)' : 'var(--color-bg-light)',
                     fontSize: '14px',
                     transition: 'all 0.15s',
                   }}
@@ -205,7 +205,7 @@ export function PanelHeader({
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
-                  <Settings style={{ width: '16px', height: '16px' }} color={isLightTheme ? '#6C757D' : '#9CA3AF'} />
+                  <Settings style={{ width: '16px', height: '16px' }} color={isLightTheme ? 'var(--color-gray-500)' : 'var(--color-legacy-9ca3af)'} />
                   <span>Personalización</span>
                 </button>
 
@@ -225,7 +225,7 @@ export function PanelHeader({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
-                    color: isLightTheme ? '#ef4444' : '#f87171',
+                    color: isLightTheme ? 'var(--color-error)' : 'var(--color-legacy-f87171)',
                     fontSize: '14px',
                     opacity: messages.length > 0 ? 1 : 0.5,
                     transition: 'all 0.15s',
@@ -241,7 +241,7 @@ export function PanelHeader({
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
-                  <Trash2 style={{ width: '16px', height: '16px' }} color={isLightTheme ? '#ef4444' : '#f87171'} />
+                  <Trash2 style={{ width: '16px', height: '16px' }} color={isLightTheme ? 'var(--color-error)' : 'var(--color-legacy-f87171)'} />
                   <span>{t('lia.chat.cleanHistory')}</span>
                 </button>
               </div>
@@ -264,7 +264,7 @@ export function PanelHeader({
             justifyContent: 'center',
             transition: 'background-color 0.2s',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isLightTheme ? '#E2E8F0' : '#1e2a35')}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isLightTheme ? 'var(--color-gray-200)' : 'var(--color-legacy-1e2a35)')}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
           <X style={{ width: '18px', height: '18px' }} color={themeColors.textSecondary} />

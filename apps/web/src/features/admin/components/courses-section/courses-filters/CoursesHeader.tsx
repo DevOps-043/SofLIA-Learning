@@ -81,7 +81,7 @@ function HeaderAction({ children, icon, onClick, solid = false }: { children: Re
       onClick={onClick}
       className="px-6 py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border shadow-lg"
       style={{
-        backgroundColor: solid ? colors.accent : `${colors.accent}10`,
+        backgroundColor: solid ? colors.accent : `color-mix(in srgb, ${colors.accent} 6.3%, transparent)`,
         borderColor: colors.accent,
         color: solid ? colors.primary : colors.accent,
       }}

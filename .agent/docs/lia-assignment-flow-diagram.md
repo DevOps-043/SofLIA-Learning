@@ -61,17 +61,17 @@ flowchart TD
     Success --> CloseModal[Cerrar modales]
     CloseModal --> End([Fin])
 
-    style Start fill:#8B5CF6,stroke:#7C3AED,color:#fff
-    style End fill:#10B981,stroke:#059669,color:#fff
-    style OpenModal fill:#3B82F6,stroke:#2563EB,color:#fff
-    style Step1 fill:#3B82F6,stroke:#2563EB,color:#fff
-    style Step2 fill:#3B82F6,stroke:#2563EB,color:#fff
-    style Step3 fill:#3B82F6,stroke:#2563EB,color:#fff
-    style APICall fill:#F59E0B,stroke:#D97706,color:#fff
-    style CalcSuggestions fill:#F59E0B,stroke:#D97706,color:#fff
-    style AssignCourse fill:#EF4444,stroke:#DC2626,color:#fff
-    style Success fill:#10B981,stroke:#059669,color:#fff
-    style ShowError fill:#EF4444,stroke:#DC2626,color:#fff
+    style Start fill:rgb(139 92 246),stroke:rgb(124 58 237),color:white
+    style End fill:rgb(16 185 129),stroke:rgb(5 150 105),color:white
+    style OpenModal fill:rgb(59 130 246),stroke:rgb(37 99 235),color:white
+    style Step1 fill:rgb(59 130 246),stroke:rgb(37 99 235),color:white
+    style Step2 fill:rgb(59 130 246),stroke:rgb(37 99 235),color:white
+    style Step3 fill:rgb(59 130 246),stroke:rgb(37 99 235),color:white
+    style APICall fill:rgb(245 158 11),stroke:rgb(217 119 6),color:white
+    style CalcSuggestions fill:rgb(245 158 11),stroke:rgb(217 119 6),color:white
+    style AssignCourse fill:rgb(239 68 68),stroke:rgb(220 38 38),color:white
+    style Success fill:rgb(16 185 129),stroke:rgb(5 150 105),color:white
+    style ShowError fill:rgb(239 68 68),stroke:rgb(220 38 38),color:white
 ```
 
 ## Descripción de Componentes

@@ -8,8 +8,8 @@ export function BusinessLearningPathsFeedback({ logic }: { logic: BusinessLearni
         <div
           className="flex items-center justify-between gap-4 rounded-[1.5rem] border px-6 py-3.5 text-sm font-semibold"
           style={{
-            backgroundColor: logic.feedback.type === 'success' ? `${successColor}12` : `${dangerColor}12`,
-            borderColor: logic.feedback.type === 'success' ? `${successColor}28` : `${dangerColor}28`,
+            backgroundColor: logic.feedback.type === 'success' ? `color-mix(in srgb, ${successColor} 7.1%, transparent)` : `color-mix(in srgb, ${dangerColor} 7.1%, transparent)`,
+            borderColor: logic.feedback.type === 'success' ? `color-mix(in srgb, ${successColor} 15.7%, transparent)` : `color-mix(in srgb, ${dangerColor} 15.7%, transparent)`,
             color: logic.feedback.type === 'success' ? successColor : dangerColor,
           }}
         >
@@ -18,7 +18,7 @@ export function BusinessLearningPathsFeedback({ logic }: { logic: BusinessLearni
         </div>
       )}
       {logic.error && (
-        <div className="rounded-[1.5rem] border px-6 py-3.5 text-sm font-medium" style={{ backgroundColor: `${dangerColor}12`, borderColor: `${dangerColor}28`, color: dangerColor }}>
+        <div className="rounded-[1.5rem] border px-6 py-3.5 text-sm font-medium" style={{ backgroundColor: `color-mix(in srgb, ${dangerColor} 7.1%, transparent)`, borderColor: `color-mix(in srgb, ${dangerColor} 15.7%, transparent)`, color: dangerColor }}>
           {logic.error}
         </div>
       )}

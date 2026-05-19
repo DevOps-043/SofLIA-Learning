@@ -21,7 +21,7 @@ export const SKILL_LEVEL_INFO: Record<SkillLevel, SkillLevelInfo> = {
   green: {
     name: 'green',
     displayName: 'Verde',
-    color: '#22c55e',
+    color: 'var(--color-legacy-22c55e)',
     coursesRequired: 1,
     description: 'Primer curso completado',
     nextLevel: 'bronze'
@@ -29,7 +29,7 @@ export const SKILL_LEVEL_INFO: Record<SkillLevel, SkillLevelInfo> = {
   bronze: {
     name: 'bronze',
     displayName: 'Bronce',
-    color: '#cd7f32',
+    color: 'var(--color-legacy-cd7f32)',
     coursesRequired: 2,
     description: 'Segundo curso completado',
     nextLevel: 'silver'
@@ -37,7 +37,7 @@ export const SKILL_LEVEL_INFO: Record<SkillLevel, SkillLevelInfo> = {
   silver: {
     name: 'silver',
     displayName: 'Plata',
-    color: '#c0c0c0',
+    color: 'var(--color-legacy-c0c0c0)',
     coursesRequired: 3,
     description: 'Tercer curso completado',
     nextLevel: 'gold'
@@ -45,7 +45,7 @@ export const SKILL_LEVEL_INFO: Record<SkillLevel, SkillLevelInfo> = {
   gold: {
     name: 'gold',
     displayName: 'Oro',
-    color: '#ffd700',
+    color: 'var(--color-legacy-ffd700)',
     coursesRequired: 4,
     description: 'Cuarto curso completado',
     nextLevel: 'diamond'
@@ -53,7 +53,7 @@ export const SKILL_LEVEL_INFO: Record<SkillLevel, SkillLevelInfo> = {
   diamond: {
     name: 'diamond',
     displayName: 'Diamante',
-    color: '#b9f2ff',
+    color: 'var(--color-legacy-b9f2ff)',
     coursesRequired: 5,
     description: 'Dominio completo - 5+ cursos completados',
     nextLevel: undefined

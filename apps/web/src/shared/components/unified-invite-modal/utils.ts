@@ -109,28 +109,28 @@ export function buildInviteStatusConfig(
     case 'active':
       return {
         bgColor: 'rgba(34, 197, 94, 0.1)',
-        color: '#22C55E',
+        color: 'var(--color-legacy-22c55e)',
         icon: CheckCircle,
         label: t('users.modals.manageLinks.status.active', 'Activo'),
       };
     case 'paused':
       return {
         bgColor: 'rgba(245, 158, 11, 0.1)',
-        color: '#F59E0B',
+        color: 'var(--color-warning)',
         icon: Pause,
         label: t('users.modals.manageLinks.status.paused', 'Pausado'),
       };
     case 'expired':
       return {
         bgColor: 'rgba(239, 68, 68, 0.1)',
-        color: '#EF4444',
+        color: 'var(--color-error)',
         icon: Clock,
         label: t('users.modals.manageLinks.status.expired', 'Expirado'),
       };
     case 'exhausted':
       return {
         bgColor: 'rgba(107, 114, 128, 0.1)',
-        color: '#6B7280',
+        color: 'var(--color-legacy-6b7280)',
         icon: XCircle,
         label: t('users.modals.manageLinks.status.exhausted', 'Agotado'),
       };

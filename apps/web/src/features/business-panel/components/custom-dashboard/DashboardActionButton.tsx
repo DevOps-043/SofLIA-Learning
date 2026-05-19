@@ -16,7 +16,7 @@ export function DashboardActionButton({
 }: DashboardActionButtonProps) {
   const theme = useBusinessPanelTheme()
   const styles = variant === 'primary'
-    ? { backgroundColor: theme.actionColor, color: theme.onActionColor, borderColor: `${theme.actionColor}33` }
+    ? { backgroundColor: theme.actionColor, color: theme.onActionColor, borderColor: `color-mix(in srgb, ${theme.actionColor} 20%, transparent)` }
     : variant === 'ghost'
       ? { backgroundColor: 'transparent', color: theme.subtextColor, borderColor: theme.borderColor }
       : { backgroundColor: theme.inputBg, color: theme.textColor, borderColor: theme.borderColor }

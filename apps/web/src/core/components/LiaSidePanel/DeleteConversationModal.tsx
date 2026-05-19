@@ -64,7 +64,7 @@ export function DeleteConversationModal({
           <p style={{ color: themeColors.textSecondary, fontSize: '14px', margin: 0, lineHeight: '1.5' }}>
             ¿Estás seguro de que quieres eliminar la conversación "{conversationToDelete.title}"?
           </p>
-          <p style={{ color: '#ef4444', fontSize: '13px', margin: '8px 0 0 0', fontWeight: 500 }}>
+          <p style={{ color: 'var(--color-error)', fontSize: '13px', margin: '8px 0 0 0', fontWeight: 500 }}>
             Esta acción no se puede deshacer.
           </p>
         </div>
@@ -99,7 +99,7 @@ export function DeleteConversationModal({
               padding: '10px 20px',
               borderRadius: '8px',
               border: 'none',
-              background: isDeleting ? themeColors.textSecondary : '#ef4444',
+              background: isDeleting ? themeColors.textSecondary : 'var(--color-error)',
               color: 'white',
               cursor: isDeleting ? 'wait' : 'pointer',
               fontSize: '14px',
@@ -108,10 +108,10 @@ export function DeleteConversationModal({
               opacity: isDeleting ? 0.7 : 1,
             }}
             onMouseEnter={(e) => {
-              if (!isDeleting) e.currentTarget.style.backgroundColor = '#dc2626';
+              if (!isDeleting) e.currentTarget.style.backgroundColor = 'var(--color-legacy-dc2626)';
             }}
             onMouseLeave={(e) => {
-              if (!isDeleting) e.currentTarget.style.backgroundColor = '#ef4444';
+              if (!isDeleting) e.currentTarget.style.backgroundColor = 'var(--color-error)';
             }}
           >
             {isDeleting ? 'Eliminando...' : 'Eliminar'}

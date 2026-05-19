@@ -23,7 +23,7 @@ export function UsersSubTabs({
           onClick={() => onChange(tab.id)}
           className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
             activeSubTab === tab.id
-              ? 'bg-[#0A2540]/10 text-[#0A2540] dark:bg-[#00D4B3]/10 dark:text-[#00D4B3]'
+              ? 'bg-primary/10 text-primary dark:bg-accent/10 dark:text-accent'
               : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
           }`}
         >

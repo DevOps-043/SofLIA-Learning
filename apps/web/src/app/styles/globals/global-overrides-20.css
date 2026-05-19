@@ -1,15 +1,15 @@
 
 .light .business-panel-layout textarea {
   background-color: rgba(var(--org-card-background-rgb, 255, 255, 255), var(--org-card-opacity, 1)) !important;
-  color: var(--org-text-color, #1E293B) !important;
-  border-color: var(--org-border-color, #E2E8F0) !important;
+  color: var(--org-text-color, var(--color-legacy-1e293b)) !important;
+  border-color: var(--org-border-color, var(--color-gray-200)) !important;
 }
 
 .light .business-panel-content input::placeholder,
 .light .business-panel-content textarea::placeholder,
 .light .business-panel-layout input::placeholder,
 .light .business-panel-layout textarea::placeholder {
-  color: #94A3B8 !important;
+  color: var(--color-gray-400) !important;
   opacity: 0.7;
 }
 
@@ -17,64 +17,64 @@
 .light .business-panel-layout [class~="text-white"],
 .light .business-panel-layout .text-carbon-200,
 .light .business-panel-layout .text-carbon-300 {
-  color: var(--org-text-color, #1E293B) !important;
+  color: var(--org-text-color, var(--color-legacy-1e293b)) !important;
 }
 
 .light .business-panel-layout .text-carbon-400 {
-  color: var(--org-text-color, #64748B) !important;
+  color: var(--org-text-color, var(--color-gray-500)) !important;
   opacity: 0.9;
 }
 
 /* Estilos para inputs de auth (login/register) - Respetan el tema */
 .dark .auth-input {
   background-color: rgba(var(--org-card-background-rgb, 30, 41, 59), 0.8) !important;
-  color: var(--org-text-color, #ffffff) !important;
-  border-color: var(--org-border-color, #334155) !important;
+  color: var(--org-text-color, var(--color-bg-light)) !important;
+  border-color: var(--org-border-color, var(--color-legacy-334155)) !important;
 }
 
 .light .auth-input {
-  background-color: #ffffff !important;
-  color: #1f2937 !important;
-  border-color: #d1d5db !important;
+  background-color: var(--color-bg-light) !important;
+  color: var(--color-legacy-1f2937) !important;
+  border-color: var(--color-legacy-d1d5db) !important;
 }
 
 .dark .auth-input::placeholder {
-  color: var(--org-text-color, #94a3b8) !important;
+  color: var(--org-text-color, var(--color-gray-400)) !important;
   opacity: 0.6;
 }
 
 .light .auth-input::placeholder {
-  color: #9ca3af !important;
+  color: var(--color-legacy-9ca3af) !important;
   opacity: 0.7;
 }
 
 .dark .auth-input:focus {
-  border-color: var(--org-primary-button-color, #3b82f6) !important;
+  border-color: var(--org-primary-button-color, var(--color-info)) !important;
   box-shadow: 0 0 0 3px rgba(var(--org-primary-button-color), 0.1);
 }
 
 .light .auth-input:focus {
-  border-color: #3b82f6 !important;
+  border-color: var(--color-info) !important;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* Labels de auth */
 .dark .auth-label {
-  color: var(--org-text-color, #e2e8f0) !important;
+  color: var(--org-text-color, var(--color-gray-200)) !important;
 }
 
 .light .auth-label {
-  color: #374151 !important;
+  color: var(--color-legacy-374151) !important;
 }
 
 /* Focus personalizado para iconos de inputs */
 .group:focus-within .group-focus-within-custom {
-  color: var(--org-primary-button-color, #3b82f6) !important;
+  color: var(--org-primary-button-color, var(--color-info)) !important;
 }
 
 /* Ring de focus personalizado */
 .focus\:ring-2:focus {
-  --tw-ring-color: var(--org-primary-button-color, #3b82f6);
+  --tw-ring-color: var(--org-primary-button-color, var(--color-info));
 }
 
 /* Accent color personalizado para sliders */

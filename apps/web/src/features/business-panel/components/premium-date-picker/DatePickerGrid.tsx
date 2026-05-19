@@ -52,8 +52,8 @@ function DatePickerDayButton({
         if (!isDayDisabled && !isDaySelected && !isDayToday) event.currentTarget.style.backgroundColor = 'transparent'
       }}
       style={{
-        backgroundColor: isDaySelected ? theme.primaryColor : isDayToday ? `${theme.primaryColor}20` : 'transparent',
-        boxShadow: isDaySelected ? `0 4px 15px ${theme.primaryColor}40` : 'none',
+        backgroundColor: isDaySelected ? theme.primaryColor : isDayToday ? `color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent)` : 'transparent',
+        boxShadow: isDaySelected ? `0 4px 15px color-mix(in srgb, ${theme.primaryColor} 25.1%, transparent)` : 'none',
         color: isDaySelected ? theme.onPrimaryColor : isDayToday ? theme.primaryColor : theme.textColor,
       }}
       type="button"

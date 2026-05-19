@@ -50,7 +50,7 @@ export function ConfirmationModal({
           icon: ExclamationTriangleIcon,
           iconColor: 'text-yellow-600 dark:text-yellow-400',
           iconBg: 'bg-yellow-100 dark:bg-yellow-900/30',
-          confirmBg: 'bg-[#00D4B3] hover:bg-[#00D4B3]/80 focus:ring-[#00D4B3]', // Usar color de SofLIA por defecto
+          confirmBg: 'bg-accent hover:bg-accent/80 focus:ring-accent', // Usar color de SofLIA por defecto
           borderColor: 'border-yellow-200 dark:border-yellow-800'
         }
     }

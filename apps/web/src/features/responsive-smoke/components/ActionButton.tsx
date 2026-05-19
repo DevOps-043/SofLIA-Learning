@@ -15,8 +15,8 @@ export function ActionButton({
 }: ActionButtonProps) {
   const className =
     emphasis === 'primary'
-      ? 'bg-[#0A2540] text-white shadow-[0_12px_32px_rgba(10,37,64,0.24)]'
-      : 'border border-[#DCE7F3] bg-[#F8FAFC] text-[#0A2540] dark:border-white/10 dark:bg-white/5 dark:text-white'
+      ? 'bg-primary text-white shadow-[0_12px_32px_rgba(10,37,64,0.24)]'
+      : 'border border-[var(--color-legacy-dce7f3)] bg-slate-50 text-primary dark:border-white/10 dark:bg-white/5 dark:text-white'
 
   return (
     <button

@@ -62,7 +62,7 @@ export function BusinessUserDashboardShell(props: BusinessUserDashboardShellProp
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `radial-gradient(ellipse at 50% 0%, ${props.orgColors.primary}08 0%, transparent 50%)`,
+            background: `radial-gradient(ellipse at 50% 0%, color-mix(in srgb, ${props.orgColors.primary} 3.1%, transparent) 0%, transparent 50%)`,
           }}
         />
         <div className="mx-auto w-full max-w-[1920px] px-4 py-8 sm:px-6 lg:px-12 xl:px-16 2xl:px-20">

@@ -9,8 +9,8 @@ export const UI_MOBILE_APP_TEMPLATE: NanoBananaSchema = {
   scene: {
     id: 'scene_mobile_app', description: 'Aplicación móvil con navegación estándar',
     environment: {
-      lighting: 'ambient', background: '#121212', mood: 'professional',
-      colorScheme: 'dark', primaryColor: '#6366F1', secondaryColor: '#1E1E2E', accentColor: '#22D3EE',
+      lighting: 'ambient', background: 'var(--color-legacy-121212)', mood: 'professional',
+      colorScheme: 'dark', primaryColor: 'var(--color-legacy-6366f1)', secondaryColor: 'var(--color-legacy-1e1e2e)', accentColor: 'var(--color-legacy-22d3ee)',
     },
     dimensions: { width: '375px', height: '812px' },
   },
@@ -22,18 +22,18 @@ export const UI_MOBILE_APP_TEMPLATE: NanoBananaSchema = {
     {
       id: 'nav_header', type: 'component', name: 'Header', position: 'top', emphasis: 'primary',
       properties: {
-        height: '56px', backgroundColor: '#1E1E2E', actions: ['back', 'menu'],
-        title: { text: 'App Title', fontSize: '18px', fontWeight: '600', color: '#FFFFFF' },
+        height: '56px', backgroundColor: 'var(--color-legacy-1e1e2e)', actions: ['back', 'menu'],
+        title: { text: 'App Title', fontSize: '18px', fontWeight: '600', color: 'var(--color-bg-light)' },
       },
     },
     {
       id: 'content_main', type: 'container', name: 'Main Content Area', position: 'center', emphasis: 'primary',
-      properties: { flex: 1, padding: '16px', backgroundColor: '#121212', scrollable: true }, children: [],
+      properties: { flex: 1, padding: '16px', backgroundColor: 'var(--color-legacy-121212)', scrollable: true }, children: [],
     },
     {
       id: 'nav_bottom', type: 'component', name: 'Bottom Navigation', position: 'bottom', emphasis: 'primary',
       properties: {
-        height: '56px', backgroundColor: '#1E1E2E',
+        height: '56px', backgroundColor: 'var(--color-legacy-1e1e2e)',
         items: [
           { id: 'nav_home', icon: 'home', label: 'Inicio', active: true },
           { id: 'nav_search', icon: 'search', label: 'Buscar', active: false },

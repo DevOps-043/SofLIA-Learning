@@ -9,9 +9,9 @@ export function buildDarkControlsCss(colors: CourseThemeColors): string {
     }
     ::placeholder { color: rgba(255,255,255,0.4) !important; }
 
-    .bg-\\[\\#0A2540\\], .bg-slate-900, .bg-blue-600 {
+    .bg-\\[\\var(--color-primary)\\], .bg-slate-900, .bg-blue-600 {
       background-color: ${colors.accent} !important;
-      color: #0A2540 !important;
+      color: var(--color-primary) !important;
     }
 
     .bg-gray-100, .bg-slate-100, .bg-gray-200, .bg-slate-200, .bg-gray-300, .bg-slate-300 {
@@ -44,7 +44,7 @@ export function buildDarkControlsCss(colors: CourseThemeColors): string {
     div.absolute.z-50.bg-white,
     [role="menu"].bg-white,
     [role="dialog"].bg-white {
-      background-color: #1E2329 !important;
+      background-color: var(--color-gray-800) !important;
       color: white !important;
       border: 1px solid rgba(255,255,255,0.1) !important;
     }

@@ -37,7 +37,7 @@ export function StudyPlannerIntroStepContent({
             <div
               className={`h-1 rounded-full transition-all sm:h-1.5 ${
                 index === currentStep
-                  ? 'w-6 bg-gradient-to-r from-[#00D4B3] via-[#00D4B3] to-[#00b89a] shadow-lg shadow-[#00D4B3]/50 sm:w-8 md:w-10 animate-pulse'
+                  ? 'w-6 bg-gradient-to-r from-accent via-accent to-accent shadow-lg shadow-accent/50 sm:w-8 md:w-10 animate-pulse'
                   : index < currentStep
                     ? 'w-4 bg-gradient-to-r from-green-500 to-emerald-500 sm:w-5 md:w-6'
                     : 'w-4 bg-gray-300 dark:bg-gray-600 sm:w-5 md:w-6'
@@ -53,7 +53,7 @@ export function StudyPlannerIntroStepContent({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.4 }}
-          className="bg-gradient-to-r from-[#0A2540] via-[#0A2540] to-[#00D4B3] bg-clip-text px-2 text-lg font-bold leading-tight text-transparent dark:from-[#0A2540] dark:via-[#0A2540] dark:to-[#00D4B3] sm:text-xl md:text-2xl"
+          className="bg-gradient-to-r from-primary via-primary to-accent bg-clip-text px-2 text-lg font-bold leading-tight text-transparent dark:from-primary dark:via-primary dark:to-accent sm:text-xl md:text-2xl"
         >
           {step.title}
         </motion.h2>

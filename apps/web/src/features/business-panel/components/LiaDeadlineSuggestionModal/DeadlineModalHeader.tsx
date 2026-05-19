@@ -24,7 +24,7 @@ export function DeadlineModalHeader({
           animate={{ rotate: [0, 360] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
           className="flex h-10 w-10 items-center justify-center rounded-xl"
-          style={{ backgroundColor: `${theme.primaryColor}20` }}
+          style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent)` }}
         >
           <Sparkles className="h-5 w-5" style={{ color: theme.primaryColor }} />
         </motion.div>

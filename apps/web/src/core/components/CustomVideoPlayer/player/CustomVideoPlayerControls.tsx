@@ -27,19 +27,19 @@ export function CustomVideoPlayerControls({
     <>
       {controller.isLoading && (
         <div
-          className="absolute inset-0 flex items-center justify-center bg-[#0F1419]/80 backdrop-blur-sm z-30"
+          className="absolute inset-0 flex items-center justify-center bg-carbon-900/80 backdrop-blur-sm z-30"
           data-video-loading-indicator="true"
         >
-          <div className="w-12 h-12 border-4 border-[#00D4B3]/20 border-t-[#00D4B3] rounded-full animate-spin" />
+          <div className="w-12 h-12 border-4 border-accent/20 border-t-accent rounded-full animate-spin" />
         </div>
       )}
 
       {controller.isBuffering && controller.isPlaying && (
         <div
-          className="absolute inset-0 flex items-center justify-center bg-[#0F1419]/50 z-20"
+          className="absolute inset-0 flex items-center justify-center bg-carbon-900/50 z-20"
           data-video-buffering-indicator="true"
         >
-          <div className="w-12 h-12 border-4 border-[#00D4B3]/20 border-t-[#00D4B3] rounded-full animate-spin" />
+          <div className="w-12 h-12 border-4 border-accent/20 border-t-accent rounded-full animate-spin" />
         </div>
       )}
 
@@ -117,7 +117,7 @@ export function CustomVideoPlayerControls({
                 style={{ userSelect: 'none' }}
               >
                 <motion.div
-                  className="h-full bg-gradient-to-r from-[#00D4B3] to-[#00b89a] rounded-full relative"
+                  className="h-full bg-gradient-to-r from-accent to-accent rounded-full relative"
                   initial={false}
                   style={{
                     width: `${
@@ -198,7 +198,7 @@ export function CustomVideoPlayerControls({
                             style={{ userSelect: 'none' }}
                           >
                             <motion.div
-                              className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#00D4B3] to-[#00b89a] rounded-full"
+                              className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-accent to-accent rounded-full"
                               initial={false}
                               style={{
                                 height: `${(controller.isMuted ? 0 : controller.volume) * 100}%`,
@@ -252,7 +252,7 @@ export function CustomVideoPlayerControls({
                                   <button
                                     className={`w-full text-left px-3 py-2 text-sm rounded-md transition-all duration-200 flex items-center justify-between ${
                                       controller.quality.selectedHeight === null
-                                        ? 'bg-[#00D4B3]/20 text-[#00D4B3] font-medium'
+                                        ? 'bg-accent/20 text-accent font-medium'
                                         : 'text-white/80 hover:bg-white/10'
                                     }`}
                                     onClick={() =>
@@ -271,7 +271,7 @@ export function CustomVideoPlayerControls({
                                         className={`w-full text-left px-3 py-2 text-sm rounded-md transition-all duration-200 ${
                                           controller.quality.selectedHeight ===
                                           rendition.height
-                                            ? 'bg-[#00D4B3]/20 text-[#00D4B3] font-medium'
+                                            ? 'bg-accent/20 text-accent font-medium'
                                             : 'text-white/80 hover:bg-white/10'
                                         }`}
                                         onClick={() =>
@@ -297,7 +297,7 @@ export function CustomVideoPlayerControls({
                                 <button
                                   className={`w-full text-left px-3 py-2 text-sm rounded-md transition-all duration-200 ${
                                     controller.playbackRate === rate
-                                      ? 'bg-[#00D4B3]/20 text-[#00D4B3] font-medium'
+                                      ? 'bg-accent/20 text-accent font-medium'
                                       : 'text-white/80 hover:bg-white/10'
                                   }`}
                                   key={rate}

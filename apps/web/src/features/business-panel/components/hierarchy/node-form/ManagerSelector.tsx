@@ -38,13 +38,13 @@ export function ManagerSelector({
           className="flex items-center justify-between rounded-xl border p-3"
           style={{
             backgroundColor: theme.actionSurface,
-            borderColor: `${theme.actionColor}22`,
+            borderColor: `color-mix(in srgb, ${theme.actionColor} 13.3%, transparent)`,
           }}
         >
           <div className="flex items-center gap-3">
             <div
               className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full"
-              style={{ backgroundColor: `${theme.actionColor}20` }}
+              style={{ backgroundColor: `color-mix(in srgb, ${theme.actionColor} 12.5%, transparent)` }}
             >
               {selectedManager.profile_picture_url ? (
                 <img src={selectedManager.profile_picture_url} className="h-full w-full object-cover" alt="" />
@@ -69,7 +69,7 @@ export function ManagerSelector({
             className="rounded-full p-1 transition-colors"
             style={{ color: theme.actionColor }}
             onMouseEnter={event => {
-              event.currentTarget.style.backgroundColor = `${theme.actionColor}14`
+              event.currentTarget.style.backgroundColor = `color-mix(in srgb, ${theme.actionColor} 7.8%, transparent)`
             }}
             onMouseLeave={event => {
               event.currentTarget.style.backgroundColor = 'transparent'

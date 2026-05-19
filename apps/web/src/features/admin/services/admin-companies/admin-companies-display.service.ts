@@ -80,7 +80,7 @@ export function getCompanyStatusInfo(company: AdminCompany): AdminCompanyStatusI
     return {
       label: 'Pendiente',
       color: adminCompaniesColors.pending,
-      bgColor: `${adminCompaniesColors.pending}20`,
+      bgColor: `color-mix(in srgb, ${adminCompaniesColors.pending} 12.5%, transparent)`,
       icon: ArrowPathIcon,
     }
   }
@@ -89,7 +89,7 @@ export function getCompanyStatusInfo(company: AdminCompany): AdminCompanyStatusI
     return {
       label: 'Pausada',
       color: adminCompaniesColors.warning,
-      bgColor: `${adminCompaniesColors.warning}20`,
+      bgColor: `color-mix(in srgb, ${adminCompaniesColors.warning} 12.5%, transparent)`,
       icon: PauseCircleIcon,
     }
   }
@@ -98,7 +98,7 @@ export function getCompanyStatusInfo(company: AdminCompany): AdminCompanyStatusI
     return {
       label: 'Trial',
       color: adminCompaniesColors.purple,
-      bgColor: `${adminCompaniesColors.purple}20`,
+      bgColor: `color-mix(in srgb, ${adminCompaniesColors.purple} 12.5%, transparent)`,
       icon: BoltIcon,
     }
   }
@@ -107,7 +107,7 @@ export function getCompanyStatusInfo(company: AdminCompany): AdminCompanyStatusI
     return {
       label: 'Expirada',
       color: adminCompaniesColors.error,
-      bgColor: `${adminCompaniesColors.error}20`,
+      bgColor: `color-mix(in srgb, ${adminCompaniesColors.error} 12.5%, transparent)`,
       icon: ExclamationTriangleIcon,
     }
   }
@@ -115,7 +115,7 @@ export function getCompanyStatusInfo(company: AdminCompany): AdminCompanyStatusI
   return {
     label: 'Activa',
     color: adminCompaniesColors.success,
-    bgColor: `${adminCompaniesColors.success}20`,
+    bgColor: `color-mix(in srgb, ${adminCompaniesColors.success} 12.5%, transparent)`,
     icon: CheckCircleIcon,
   }
 }
@@ -161,32 +161,32 @@ export function getAdminCompanyStatusDisplayConfig(
       return {
         key: statusKey,
         color: theme.warningColor,
-        bg: `${theme.warningColor}14`,
-        border: `${theme.warningColor}26`,
+        bg: `color-mix(in srgb, ${theme.warningColor} 7.8%, transparent)`,
+        border: `color-mix(in srgb, ${theme.warningColor} 14.9%, transparent)`,
         icon: Clock3,
       }
     case 'paused':
       return {
         key: statusKey,
         color: theme.dangerColor,
-        bg: `${theme.dangerColor}14`,
-        border: `${theme.dangerColor}26`,
+        bg: `color-mix(in srgb, ${theme.dangerColor} 7.8%, transparent)`,
+        border: `color-mix(in srgb, ${theme.dangerColor} 14.9%, transparent)`,
         icon: PauseCircle,
       }
     case 'trial':
       return {
         key: statusKey,
         color: theme.secondaryColor,
-        bg: `${theme.secondaryColor}14`,
-        border: `${theme.secondaryColor}26`,
+        bg: `color-mix(in srgb, ${theme.secondaryColor} 7.8%, transparent)`,
+        border: `color-mix(in srgb, ${theme.secondaryColor} 14.9%, transparent)`,
         icon: Zap,
       }
     case 'expired':
       return {
         key: statusKey,
         color: theme.dangerColor,
-        bg: `${theme.dangerColor}14`,
-        border: `${theme.dangerColor}26`,
+        bg: `color-mix(in srgb, ${theme.dangerColor} 7.8%, transparent)`,
+        border: `color-mix(in srgb, ${theme.dangerColor} 14.9%, transparent)`,
         icon: ShieldAlert,
       }
     case 'active':
@@ -194,8 +194,8 @@ export function getAdminCompanyStatusDisplayConfig(
       return {
         key: 'active',
         color: theme.successColor,
-        bg: `${theme.successColor}14`,
-        border: `${theme.successColor}26`,
+        bg: `color-mix(in srgb, ${theme.successColor} 7.8%, transparent)`,
+        border: `color-mix(in srgb, ${theme.successColor} 14.9%, transparent)`,
         icon: BadgeCheck,
       }
   }

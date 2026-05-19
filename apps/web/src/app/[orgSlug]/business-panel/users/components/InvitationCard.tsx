@@ -93,7 +93,7 @@ function InvitationCard({ invitation, index, onResend, onRevoke }: InvitationCar
             className="col-span-2 flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 shadow-md hover:shadow-lg active:scale-95"
             style={{
               backgroundColor: theme.accentColor,
-              color: theme.isDark ? '#000000' : '#FFFFFF',
+              color: theme.isDark ? 'var(--color-black)' : 'var(--color-bg-light)',
             }}
           >
             <RefreshCw className="w-3.5 h-3.5" />

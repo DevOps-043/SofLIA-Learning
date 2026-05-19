@@ -24,13 +24,13 @@ export function InlinePromptPreviewPanel({ logic, tCommon }: InlinePromptPreview
           className="fixed right-6 z-[100000] w-96 max-w-[calc(100vw-3rem)]"
           style={{ bottom: logic.promptBottomPosition, height: logic.calculateMaxHeight, maxHeight: logic.calculateMaxHeight }}
         >
-          <div className="rounded-3xl shadow-2xl overflow-hidden border border-gray-200 dark:border-[#0A2540]/30 flex flex-col bg-white dark:bg-[#1E2329] h-full">
+          <div className="rounded-3xl shadow-2xl overflow-hidden border border-gray-200 dark:border-primary/30 flex flex-col bg-white dark:bg-carbon-800 h-full">
             <PromptPreviewHeader logic={logic} title={tCommon('aiChat.promptMode.viewGenerated')} />
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-[#0a0a0a] min-h-0 overscroll-contain" style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-neutral-950 min-h-0 overscroll-contain" style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}>
               <PromptInfoCard icon={<Target className="w-4 h-4 text-purple-600 dark:text-purple-400" />} label={tCommon('aiChat.promptMode.titleLabel')} value={logic.generatedPrompt!.title} />
               <div className="bg-white dark:bg-slate-800/50 rounded-xl p-4 border border-gray-200 dark:border-slate-600/30">
                 <h4 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-[#00D4B3]" />
+                  <MessageSquare className="w-4 h-4 text-accent" />
                   <span className="text-sm">{tCommon('aiChat.promptMode.contentLabel')}</span>
                 </h4>
                 <div className="text-gray-700 dark:text-slate-300 text-sm prose prose-sm max-w-none">
@@ -46,7 +46,7 @@ export function InlinePromptPreviewPanel({ logic, tCommon }: InlinePromptPreview
                 onClick={logic.handleDownloadPrompt}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full bg-gradient-to-r from-[#0A2540] to-[#0A2540] hover:from-[#0d2f4d] hover:to-[#0d2f4d] text-white py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+                className="w-full bg-gradient-to-r from-primary to-primary hover:from-primary hover:to-primary text-white py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm"
               >
                 <Download className="w-4 h-4" />
                 {tCommon('aiChat.promptMode.download')}

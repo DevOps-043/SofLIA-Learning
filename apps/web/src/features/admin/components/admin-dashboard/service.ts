@@ -11,16 +11,16 @@ import type {
   AdminDashboardThemeColors,
 } from './types'
 
-const DEFAULT_LIGHT_BACKGROUND = '#F8FAFC'
-const DEFAULT_LIGHT_CARD = '#FFFFFF'
-const DEFAULT_DARK_BACKGROUND = '#0F1419'
-const DEFAULT_DARK_CARD = '#1E2329'
-const DEFAULT_PRIMARY = '#0A2540'
-const DEFAULT_ACCENT = '#00D4B3'
-const DEFAULT_SECONDARY = '#3B82F6'
-const DEFAULT_SUCCESS = '#10B981'
-const DEFAULT_WARNING = '#F59E0B'
-const DEFAULT_PURPLE = '#8B5CF6'
+const DEFAULT_LIGHT_BACKGROUND = 'var(--color-gray-50)'
+const DEFAULT_LIGHT_CARD = 'var(--color-bg-light)'
+const DEFAULT_DARK_BACKGROUND = 'var(--color-bg-dark)'
+const DEFAULT_DARK_CARD = 'var(--color-gray-800)'
+const DEFAULT_PRIMARY = 'var(--color-primary)'
+const DEFAULT_ACCENT = 'var(--color-accent)'
+const DEFAULT_SECONDARY = 'var(--color-info)'
+const DEFAULT_SUCCESS = 'var(--color-success)'
+const DEFAULT_WARNING = 'var(--color-warning)'
+const DEFAULT_PURPLE = 'var(--color-secondary)'
 
 export function buildAdminDashboardThemeColors(
   isLightTheme: boolean,
@@ -38,21 +38,21 @@ export function buildAdminDashboardThemeColors(
         ? panelStyles.background_value
         : DEFAULT_LIGHT_BACKGROUND
       : DEFAULT_DARK_BACKGROUND,
-    borderColor: isLightTheme ? '#E2E8F0' : 'rgba(255,255,255,0.06)',
+    borderColor: isLightTheme ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.06)',
     cardBackground: isLightTheme
       ? panelStyles?.card_background &&
         panelStyles.card_background !== DEFAULT_DARK_CARD
         ? panelStyles.card_background
         : DEFAULT_LIGHT_CARD
       : DEFAULT_DARK_CARD,
-    inputBg: isLightTheme ? '#F1F5F9' : DEFAULT_DARK_CARD,
+    inputBg: isLightTheme ? 'var(--color-gray-100)' : DEFAULT_DARK_CARD,
     inverseSubtext: 'rgba(255,255,255,0.72)',
-    inverseText: '#FFFFFF',
+    inverseText: 'var(--color-bg-light)',
     isLightMode: isLightTheme,
     primary,
     secondary,
-    textPrimary: isLightTheme ? '#0F172A' : '#FFFFFF',
-    textSecondary: isLightTheme ? '#64748B' : '#858E9B',
+    textPrimary: isLightTheme ? 'var(--color-legacy-0f172a)' : 'var(--color-bg-light)',
+    textSecondary: isLightTheme ? 'var(--color-gray-500)' : 'var(--color-legacy-858e9b)',
   }
 }
 

@@ -43,8 +43,8 @@ export function BusinessCourseDetailTabs({
             onClick={() => setActiveTab(tab.id)}
             className="group relative flex flex-1 items-center justify-center px-2 py-4 transition-all duration-300"
             style={{
-              color: isActive ? accentColor : (isDark ? 'rgba(255,255,255,0.5)' : `${textColor}60`),
-              backgroundColor: isActive ? `${accentColor}10` : 'transparent',
+              color: isActive ? accentColor : (isDark ? 'rgba(255,255,255,0.5)' : `color-mix(in srgb, ${textColor} 37.6%, transparent)`),
+              backgroundColor: isActive ? `color-mix(in srgb, ${accentColor} 6.3%, transparent)` : 'transparent',
             }}
           >
             <Icon className="h-5 w-5 flex-shrink-0" />

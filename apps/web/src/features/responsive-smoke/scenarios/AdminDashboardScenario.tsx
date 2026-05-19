@@ -38,7 +38,7 @@ export function AdminDashboardScenario() {
           columns={smokeWorkshopColumns}
           keyExtractor={(item) => item.id}
           tableMinWidthClassName="min-w-[780px]"
-          tableWrapperClassName="rounded-2xl border border-[#E3ECF5]"
+          tableWrapperClassName="rounded-2xl border border-[var(--color-legacy-e3ecf5)]"
         />
       </Surface>
     </ScenarioCanvas>

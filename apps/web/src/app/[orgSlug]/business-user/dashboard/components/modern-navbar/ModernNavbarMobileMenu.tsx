@@ -91,7 +91,7 @@ export function ModernNavbarMobileMenu({
             <div
               className="flex items-center gap-3 p-3 rounded-xl mb-3"
               style={{
-                background: `linear-gradient(135deg, ${colors.primary}15, ${colors.accent}10)`,
+                background: `linear-gradient(135deg, color-mix(in srgb, ${colors.primary} 8.2%, transparent), color-mix(in srgb, ${colors.accent} 6.3%, transparent))`,
                 border: `1px solid ${colors.border}`,
               }}
             >
@@ -122,7 +122,7 @@ export function ModernNavbarMobileMenu({
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
                 whileTap={disableHeavyEffects ? undefined : { scale: 0.98 }}
                 style={{
-                  backgroundColor: `${colors.primary}10`,
+                  backgroundColor: `color-mix(in srgb, ${colors.primary} 6.3%, transparent)`,
                   border: `1px solid ${colors.border}`,
                 }}
               >
@@ -150,7 +150,7 @@ export function ModernNavbarMobileMenu({
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
                 whileTap={disableHeavyEffects ? undefined : { scale: 0.98 }}
                 style={{
-                  backgroundColor: `${colors.primary}10`,
+                  backgroundColor: `color-mix(in srgb, ${colors.primary} 6.3%, transparent)`,
                   border: `1px solid ${colors.border}`,
                 }}
               >
@@ -173,9 +173,9 @@ export function ModernNavbarMobileMenu({
                 onClick={() => { onCertificatesClick(); onClose(); }}
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
                 whileTap={disableHeavyEffects ? undefined : { scale: 0.98 }}
-                style={{ backgroundColor: `${colors.primary}10`, border: `1px solid ${colors.border}` }}
+                style={{ backgroundColor: `color-mix(in srgb, ${colors.primary} 6.3%, transparent)`, border: `1px solid ${colors.border}` }}
               >
-                <div className="p-2 rounded-xl flex-shrink-0" style={{ backgroundColor: `${colors.accent}20` }}>
+                <div className="p-2 rounded-xl flex-shrink-0" style={{ backgroundColor: `color-mix(in srgb, ${colors.accent} 12.5%, transparent)` }}>
                   <Award className="h-4 w-4" style={{ color: colors.accent }} />
                 </div>
                 <div className="text-left flex-1 min-w-0">
@@ -195,9 +195,9 @@ export function ModernNavbarMobileMenu({
                 onClick={() => { onAnalyticsClick(); onClose(); }}
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
                 whileTap={disableHeavyEffects ? undefined : { scale: 0.98 }}
-                style={{ backgroundColor: `${colors.primary}10`, border: `1px solid ${colors.border}` }}
+                style={{ backgroundColor: `color-mix(in srgb, ${colors.primary} 6.3%, transparent)`, border: `1px solid ${colors.border}` }}
               >
-                <div className="p-2 rounded-xl flex-shrink-0" style={{ backgroundColor: `${colors.accent}20` }}>
+                <div className="p-2 rounded-xl flex-shrink-0" style={{ backgroundColor: `color-mix(in srgb, ${colors.accent} 12.5%, transparent)` }}>
                   <BarChart2 className="h-4 w-4" style={{ color: colors.accent }} />
                 </div>
                 <div className="text-left flex-1 min-w-0">
@@ -214,11 +214,11 @@ export function ModernNavbarMobileMenu({
               className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
               whileTap={disableHeavyEffects ? undefined : { scale: 0.98 }}
               style={{
-                backgroundColor: `${colors.primary}10`,
+                backgroundColor: `color-mix(in srgb, ${colors.primary} 6.3%, transparent)`,
                 border: `1px solid ${colors.border}`,
               }}
             >
-              <div className="p-2 rounded-xl flex-shrink-0" style={{ backgroundColor: `${colors.accent}20` }}>
+              <div className="p-2 rounded-xl flex-shrink-0" style={{ backgroundColor: `color-mix(in srgb, ${colors.accent} 12.5%, transparent)` }}>
                 <User className="h-4 w-4" style={{ color: colors.accent }} />
               </div>
               <div className="text-left flex-1 min-w-0">
@@ -243,8 +243,8 @@ export function ModernNavbarMobileMenu({
                     onClick={() => setLanguage(option.value)}
                     className="relative overflow-hidden rounded-xl py-2 text-sm font-medium transition-colors border"
                     style={{
-                      backgroundColor: language === option.value ? `${colors.accent}15` : 'transparent',
-                      borderColor: language === option.value ? `${colors.accent}30` : colors.border,
+                      backgroundColor: language === option.value ? `color-mix(in srgb, ${colors.accent} 8.2%, transparent)` : 'transparent',
+                      borderColor: language === option.value ? `color-mix(in srgb, ${colors.accent} 18.8%, transparent)` : colors.border,
                       color: language === option.value ? colors.accent : colors.text,
                       opacity: language === option.value ? 1 : 0.7,
                     }}
@@ -276,8 +276,8 @@ export function ModernNavbarMobileMenu({
                       onClick={() => setTheme(option.value)}
                       className="relative overflow-hidden rounded-xl py-2 text-sm font-medium transition-colors border flex items-center justify-center gap-1.5"
                       style={{
-                        backgroundColor: theme === option.value ? `${colors.accent}15` : 'transparent',
-                        borderColor: theme === option.value ? `${colors.accent}30` : colors.border,
+                        backgroundColor: theme === option.value ? `color-mix(in srgb, ${colors.accent} 8.2%, transparent)` : 'transparent',
+                        borderColor: theme === option.value ? `color-mix(in srgb, ${colors.accent} 18.8%, transparent)` : colors.border,
                         color: theme === option.value ? colors.accent : colors.text,
                         opacity: theme === option.value ? 1 : 0.7,
                       }}

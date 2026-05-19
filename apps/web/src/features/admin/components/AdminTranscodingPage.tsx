@@ -36,7 +36,7 @@ export function AdminTranscodingPage() {
         onReprocessJob={state.reprocessJob}
         onStatusFilterChange={state.setStatusFilter}
       />
-      <p className="mt-4 text-xs text-[#6C757D] dark:text-white/50">
+      <p className="mt-4 text-xs text-gray-500 dark:text-white/50">
         La tabla se refresca automaticamente cada 5 segundos.
       </p>
     </div>

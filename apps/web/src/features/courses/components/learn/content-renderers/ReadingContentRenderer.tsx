@@ -43,7 +43,7 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
         type="button"
         onClick={() => setFontSizeIndex((currentIndex) => Math.max(0, currentIndex - 1))}
         disabled={fontSizeIndex === 0}
-        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:border-[#0A2540]/30 hover:text-[#0A2540] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 dark:hover:text-[#00D4B3]"
+        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 dark:hover:text-accent"
         aria-label={t("reading.decreaseFontSize")}
         title={t("reading.decreaseFontSize")}
       >
@@ -60,7 +60,7 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
           )
         }
         disabled={fontSizeIndex === READING_FONT_SIZES.length - 1}
-        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:border-[#0A2540]/30 hover:text-[#0A2540] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 dark:hover:text-[#00D4B3]"
+        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 dark:hover:text-accent"
         aria-label={t("reading.increaseFontSize")}
         title={t("reading.increaseFontSize")}
       >

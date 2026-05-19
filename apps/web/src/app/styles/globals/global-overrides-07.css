@@ -1,6 +1,6 @@
 
 .gradient-text-blue {
-  background: linear-gradient(135deg, #0A2540 0%, #00D4B3 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   /* Azul Profundo a Aqua */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -66,13 +66,13 @@
 
 /* Loading skeleton */
 .skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, var(--color-legacy-f0f0f0) 25%, var(--color-legacy-e0e0e0) 50%, var(--color-legacy-f0f0f0) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
 .skeleton-dark {
-  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background: linear-gradient(90deg, var(--color-legacy-374151) 25%, var(--color-legacy-4b5563) 50%, var(--color-legacy-374151) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }

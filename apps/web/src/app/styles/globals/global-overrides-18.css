@@ -29,13 +29,13 @@
 .dark .business-panel-layout h3,
 .dark .business-panel-layout h4,
 .dark .business-panel-layout label {
-  color: var(--org-text-color, #f8fafc);
+  color: var(--org-text-color, var(--color-gray-50));
 }
 
 /* Textos de placeholder y secundarios */
 .dark .business-panel-content .text-carbon-300,
 .dark .business-panel-content .text-carbon-400 {
-  color: var(--org-text-color, #94a3b8) !important;
+  color: var(--org-text-color, var(--color-gray-400)) !important;
   opacity: 0.7;
 }
 
@@ -43,28 +43,28 @@
 .dark .business-panel-content input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
 .dark .business-panel-content textarea,
 .dark .business-panel-content select {
-  color: var(--org-text-color, #ffffff) !important;
+  color: var(--org-text-color, var(--color-bg-light)) !important;
 }
 
 /* Selects y dropdowns - Fondo personalizado */
 .dark .business-panel-layout select,
 .dark .business-panel-layout option {
   background-color: rgba(var(--org-card-background-rgb, 30, 41, 59), var(--org-card-opacity, 1)) !important;
-  color: var(--org-text-color, #ffffff) !important;
-  border-color: var(--org-border-color, #334155) !important;
+  color: var(--org-text-color, var(--color-bg-light)) !important;
+  border-color: var(--org-border-color, var(--color-legacy-334155)) !important;
 }
 
 /* Inputs de búsqueda y texto */
 .dark .business-panel-layout input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]) {
   background-color: rgba(var(--org-card-background-rgb, 30, 41, 59), var(--org-card-opacity, 1)) !important;
-  color: var(--org-text-color, #ffffff) !important;
-  border-color: var(--org-border-color, #334155) !important;
+  color: var(--org-text-color, var(--color-bg-light)) !important;
+  border-color: var(--org-border-color, var(--color-legacy-334155)) !important;
 }
 
 .dark .business-panel-layout textarea {
   background-color: rgba(var(--org-card-background-rgb, 30, 41, 59), var(--org-card-opacity, 1)) !important;
-  color: var(--org-text-color, #ffffff) !important;
-  border-color: var(--org-border-color, #334155) !important;
+  color: var(--org-text-color, var(--color-bg-light)) !important;
+  border-color: var(--org-border-color, var(--color-legacy-334155)) !important;
 }
 
 /* Placeholder text */
@@ -72,7 +72,7 @@
 .dark .business-panel-content textarea::placeholder,
 .dark .business-panel-layout input::placeholder,
 .dark .business-panel-layout textarea::placeholder {
-  color: var(--org-text-color, #94a3b8) !important;
+  color: var(--org-text-color, var(--color-gray-400)) !important;
   opacity: 0.5;
 }
 
@@ -80,5 +80,5 @@
 .dark .business-panel-layout [class~="text-white"],
 .dark .business-panel-layout .text-carbon-200,
 .dark .business-panel-layout .text-carbon-300 {
-  color: var(--org-text-color, #f8fafc) !important;
+  color: var(--org-text-color, var(--color-gray-50)) !important;
 }

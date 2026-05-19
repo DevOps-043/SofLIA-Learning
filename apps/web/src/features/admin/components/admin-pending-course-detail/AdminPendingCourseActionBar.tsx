@@ -21,7 +21,7 @@ export function AdminPendingCourseActionBar({
   onReconsider,
 }: AdminPendingCourseActionBarProps) {
   return (
-    <div className="flex gap-4 justify-end sticky bottom-6 bg-white/80 dark:bg-[#0A0D12]/90 backdrop-blur-md p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl z-20">
+    <div className="flex gap-4 justify-end sticky bottom-6 bg-white/80 dark:bg-carbon-950/90 backdrop-blur-md p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl z-20">
       {isRejected ? (
         <>
           <button

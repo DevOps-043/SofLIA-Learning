@@ -30,7 +30,7 @@ export function InviteLinksTable({
           <th className="pb-3 text-right font-medium">Acciones</th>
         </tr>
       </thead>
-      <tbody className="divide-y" style={{ borderColor: `${colors.grayMedium}10` }}>
+      <tbody className="divide-y" style={{ borderColor: `color-mix(in srgb, ${colors.grayMedium} 6.3%, transparent)` }}>
         {links.map((link) => (
           <tr key={link.id} className="group">
             <td className="py-3">

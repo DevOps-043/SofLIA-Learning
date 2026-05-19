@@ -77,7 +77,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0A2540] to-[#00D4B3] flex items-center justify-center mb-4"
+            className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-4"
           >
             <MessageCircle className="w-6 h-6 text-white" />
           </motion.div>
@@ -95,7 +95,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0A2540] to-[#0A2540]/80 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
             <MessageCircle className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -111,7 +111,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setShowCreateForm(true)}
-          className="px-4 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] text-white dark:text-[#0A1724] text-sm font-medium rounded-xl transition-colors flex items-center gap-2"
+          className="px-4 py-2.5 bg-primary hover:bg-primary dark:bg-accent dark:hover:bg-accent text-white dark:text-[var(--color-legacy-0a1724)] text-sm font-medium rounded-xl transition-colors flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           Nueva pregunta
@@ -128,7 +128,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
           onKeyDown={handleSearchKeyDown}
-          className="w-full pl-11 pr-10 py-3 bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white text-sm placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-[#0A2540]/40 dark:focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#0A2540]/15 dark:focus:ring-[#00D4B3]/20 transition-colors shadow-sm dark:shadow-none"
+          className="w-full pl-11 pr-10 py-3 bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white text-sm placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-primary/40 dark:focus:border-accent/50 focus:ring-1 focus:ring-primary/15 dark:focus:ring-accent/20 transition-colors shadow-sm dark:shadow-none"
         />
         {searchQuery && (
           <button
@@ -150,7 +150,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200 }}
-            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0A2540] to-[#00D4B3]/50 flex items-center justify-center mb-5"
+            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent/50 flex items-center justify-center mb-5"
           >
             <MessageCircle className="w-8 h-8 text-white" />
           </motion.div>
@@ -167,7 +167,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowCreateForm(true)}
-              className="px-5 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] text-white dark:text-[#0A1724] text-sm font-medium rounded-xl transition-colors flex items-center gap-2"
+              className="px-5 py-2.5 bg-primary hover:bg-primary dark:bg-accent dark:hover:bg-accent text-white dark:text-[var(--color-legacy-0a1724)] text-sm font-medium rounded-xl transition-colors flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Hacer primera pregunta
@@ -187,7 +187,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
             >
               <div className="p-4">
                 <div className="flex items-start gap-3">
-                  <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-gradient-to-br from-[#0A2540] to-[#0A2540]/80 flex items-center justify-center flex-shrink-0 text-white">
+                  <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center flex-shrink-0 text-white">
                     {question.user?.profile_picture_url ? (
                       <Image
                         src={question.user.profile_picture_url}
@@ -244,7 +244,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
                       </p>
                       {question.content.length > 150 &&
                         selectedQuestionId !== question.id && (
-                          <button className="text-[#0A2540] text-xs mt-1 font-medium hover:underline">
+                          <button className="text-primary text-xs mt-1 font-medium hover:underline">
                             Ver más
                           </button>
                         )}
@@ -277,7 +277,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
                     </button>
                     <button
                       onClick={() => toggleQuestionSelection(question.id)}
-                      className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#0A2540] transition-colors"
+                      className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-primary transition-colors"
                     >
                       <MessageSquare className="w-3.5 h-3.5" />
                       <span>{question.response_count}</span>

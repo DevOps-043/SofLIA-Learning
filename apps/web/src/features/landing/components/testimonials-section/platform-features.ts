@@ -9,8 +9,8 @@ export const platformFeatures: PlatformFeature[] = [
     description:
       'Mantente actualizado con las ultimas tendencias y noticias del mundo de la IA.',
     link: '/news',
-    color: '#00D4B3',
-    gradient: 'from-[#00D4B3] to-[#00D4B3]/80',
+    color: 'var(--color-accent)',
+    gradient: 'from-accent to-accent/80',
   },
   {
     id: 'reels',
@@ -19,8 +19,8 @@ export const platformFeatures: PlatformFeature[] = [
     description:
       'Contenido en video corto para aprender de forma rapida y entretenida.',
     link: '/reels',
-    color: '#10B981',
-    gradient: 'from-[#10B981] to-[#10B981]/80',
+    color: 'var(--color-success)',
+    gradient: 'from-success to-success/80',
   },
   {
     id: 'communities',
@@ -29,8 +29,8 @@ export const platformFeatures: PlatformFeature[] = [
     description:
       'Conecta con otros estudiantes y profesionales en comunidades especializadas.',
     link: '/communities',
-    color: '#0A2540',
-    gradient: 'from-[#0A2540] to-[#0A2540]/80',
+    color: 'var(--color-primary)',
+    gradient: 'from-primary to-primary/80',
   },
   {
     id: 'study-planner',
@@ -39,7 +39,7 @@ export const platformFeatures: PlatformFeature[] = [
     description:
       'Organiza tu tiempo y optimiza tu aprendizaje con un planificador inteligente.',
     link: '/study-planner',
-    color: '#F59E0B',
-    gradient: 'from-[#F59E0B] to-[#F59E0B]/80',
+    color: 'var(--color-warning)',
+    gradient: 'from-warning to-warning/80',
   },
 ]

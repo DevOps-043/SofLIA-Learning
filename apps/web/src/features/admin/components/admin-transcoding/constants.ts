@@ -13,10 +13,10 @@ export const STATUS_META: Record<
   TranscodingJobStatus,
   { label: string; tone: string; bg: string; border: string }
 > = {
-  queued: { label: 'En cola', tone: 'text-[#6C757D]', bg: 'bg-[#E9ECEF]/60 dark:bg-white/5', border: 'border-[#E9ECEF] dark:border-white/10' },
-  processing: { label: 'Procesando', tone: 'text-[#0A2540] dark:text-[#00D4B3]', bg: 'bg-[#00D4B3]/10', border: 'border-[#00D4B3]/40' },
-  completed: { label: 'Completado', tone: 'text-[#10B981]', bg: 'bg-[#10B981]/10', border: 'border-[#10B981]/40' },
-  failed: { label: 'Fallo', tone: 'text-[#ef4444]', bg: 'bg-[#ef4444]/10', border: 'border-[#ef4444]/40' },
-  skipped: { label: 'Omitido', tone: 'text-[#6C757D]', bg: 'bg-[#6C757D]/10', border: 'border-[#6C757D]/30' },
-  disabled: { label: 'Desactivado', tone: 'text-[#6C757D]', bg: 'bg-[#6C757D]/10', border: 'border-[#6C757D]/30' },
+  queued: { label: 'En cola', tone: 'text-gray-500', bg: 'bg-gray-200/60 dark:bg-white/5', border: 'border-gray-200 dark:border-white/10' },
+  processing: { label: 'Procesando', tone: 'text-primary dark:text-accent', bg: 'bg-accent/10', border: 'border-accent/40' },
+  completed: { label: 'Completado', tone: 'text-success', bg: 'bg-success/10', border: 'border-success/40' },
+  failed: { label: 'Fallo', tone: 'text-error', bg: 'bg-error/10', border: 'border-error/40' },
+  skipped: { label: 'Omitido', tone: 'text-gray-500', bg: 'bg-gray-500/10', border: 'border-gray-500/30' },
+  disabled: { label: 'Desactivado', tone: 'text-gray-500', bg: 'bg-gray-500/10', border: 'border-gray-500/30' },
 }

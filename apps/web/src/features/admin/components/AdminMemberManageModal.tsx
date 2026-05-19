@@ -121,7 +121,7 @@ export function AdminMemberManageModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-lg overflow-hidden rounded-2xl shadow-2xl border bg-white dark:bg-[#1A1F2E] border-gray-100 dark:border-white/10"
+          className="relative w-full max-w-lg overflow-hidden rounded-2xl shadow-2xl border bg-white dark:bg-carbon-800 border-gray-100 dark:border-white/10"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -135,7 +135,7 @@ export function AdminMemberManageModal({
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                     {mode === 'edit' ? t('users.manageModal.editTitle') : t('users.manageModal.deleteTitle')}
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-[#8899A6]">
+                  <p className="text-sm text-gray-500 dark:text-muted">
                     {member.user?.email || member.email}
                   </p>
                 </div>
@@ -144,7 +144,7 @@ export function AdminMemberManageModal({
                 onClick={onClose}
                 className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
               >
-                <X className="w-5 h-5 text-gray-400 dark:text-[#8899A6]" />
+                <X className="w-5 h-5 text-gray-400 dark:text-muted" />
               </button>
             </div>
           </div>
@@ -174,12 +174,12 @@ export function AdminMemberManageModal({
                       className={`p-4 rounded-xl border text-left transition-all relative overflow-hidden group ${
                         selectedRole === role
                           ? 'bg-accent/10 border-accent shadow-sm'
-                          : 'bg-gray-50 dark:bg-[#0F1419] border-gray-100 dark:border-white/10 hover:border-accent/40 dark:hover:border-accent/40'
+                          : 'bg-gray-50 dark:bg-carbon-900 border-gray-100 dark:border-white/10 hover:border-accent/40 dark:hover:border-accent/40'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-3">
-                          <Shield className={`w-5 h-5 ${selectedRole === role ? 'text-accent' : 'text-gray-400 dark:text-[#8899A6]'}`} />
+                          <Shield className={`w-5 h-5 ${selectedRole === role ? 'text-accent' : 'text-gray-400 dark:text-muted'}`} />
                           <span className={`font-bold ${selectedRole === role ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-white/80'}`}>
                             {roleLabels[role].label}
                           </span>
@@ -188,7 +188,7 @@ export function AdminMemberManageModal({
                           <CheckCircle2 className="w-5 h-5 text-accent" />
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-[#8899A6] ml-8">{roleLabels[role].desc}</p>
+                      <p className="text-xs text-gray-500 dark:text-muted ml-8">{roleLabels[role].desc}</p>
                     </button>
                   ))}
                 </div>
@@ -208,7 +208,7 @@ export function AdminMemberManageModal({
           <div className="p-6 bg-gray-50/50 dark:bg-white/5 border-t border-gray-100 dark:border-white/10 flex justify-end gap-3">
             <button
               onClick={onClose}
-              className="px-6 py-2 rounded-xl text-sm font-bold text-gray-500 dark:text-[#8899A6] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              className="px-6 py-2 rounded-xl text-sm font-bold text-gray-500 dark:text-muted hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
               {tc('actions.cancel')}
             </button>

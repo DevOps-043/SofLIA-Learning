@@ -128,7 +128,7 @@ export function JoyrideTooltip({
       {...resolvedTooltipProps}
       className={joinClassNames(
         resolvedTooltipProps.className,
-        'joyride-tooltip-container relative flex flex-col overflow-hidden border-0 bg-white dark:bg-[#1E2329] text-gray-900 dark:text-white z-[1000001] pointer-events-auto',
+        'joyride-tooltip-container relative flex flex-col overflow-hidden border-0 bg-white dark:bg-carbon-800 text-gray-900 dark:text-white z-[1000001] pointer-events-auto',
         compactViewport ? 'rounded-[20px] max-h-[80vh]' : 'rounded-2xl max-h-[85vh]',
         resolveTooltipWidthClass(step.data, compactViewport)
       )}
@@ -144,7 +144,7 @@ export function JoyrideTooltip({
     >
       {/* Background decoration */}
       <div
-        className="absolute top-0 right-0 w-32 h-32 opacity-10 rounded-bl-full pointer-events-none bg-[#00D4B3]"
+        className="absolute top-0 right-0 w-32 h-32 opacity-10 rounded-bl-full pointer-events-none bg-accent"
       />
 
       {/* Header */}
@@ -157,11 +157,11 @@ export function JoyrideTooltip({
         <div className="flex items-center gap-3">
           <div
             className={joinClassNames(
-              'flex items-center justify-center rounded-xl text-xl shrink-0 bg-[#00D4B3]/20 dark:bg-[#00D4B3]/20 border border-[#00D4B3]/30',
+              'flex items-center justify-center rounded-xl text-xl shrink-0 bg-accent/20 dark:bg-accent/20 border border-accent/30',
               compactViewport ? 'w-9 h-9' : 'w-10 h-10',
             )}
           >
-            {step.data?.icon || <Sparkles className="w-5 h-5 text-[#00D4B3]" />}
+            {step.data?.icon || <Sparkles className="w-5 h-5 text-accent" />}
           </div>
           <h3
             className={joinClassNames(
@@ -234,10 +234,10 @@ export function JoyrideTooltip({
               type="button"
               className={joinClassNames(
                 resolvedPrimaryProps.className,
-                'flex items-center justify-center rounded-lg font-bold transition-all hover:brightness-110 bg-[#0A2540] text-white cursor-pointer',
+                'flex items-center justify-center rounded-lg font-bold transition-all hover:brightness-110 bg-primary text-white cursor-pointer',
                 compactViewport
-                  ? 'px-3 py-2 text-[13px] shadow-md shadow-[#0A2540]/25'
-                  : 'px-4 py-2 text-sm shadow-lg shadow-[#0A2540]/40',
+                  ? 'px-3 py-2 text-[13px] shadow-md shadow-primary/25'
+                  : 'px-4 py-2 text-sm shadow-lg shadow-primary/40',
               )}
             >
               {isLastStep ? (

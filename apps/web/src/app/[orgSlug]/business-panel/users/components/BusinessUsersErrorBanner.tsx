@@ -25,8 +25,8 @@ export function BusinessUsersErrorBanner({
       animate={{ opacity: 1, y: 0 }}
       className="rounded-2xl border p-4"
       style={{
-        backgroundColor: `${theme.warningColor}10`,
-        borderColor: `${theme.warningColor}25`,
+        backgroundColor: `color-mix(in srgb, ${theme.warningColor} 6.3%, transparent)`,
+        borderColor: `color-mix(in srgb, ${theme.warningColor} 14.5%, transparent)`,
       }}
     >
       <div className="flex items-center gap-3">

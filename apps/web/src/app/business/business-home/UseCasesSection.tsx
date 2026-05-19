@@ -25,13 +25,13 @@ export function BusinessUseCasesSection() {
                 <Link href={useCase.link}>
                   <div className="bg-glass border border-glass-light rounded-2xl p-8 h-full hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-primary/10">
                     <div className="flex justify-center mb-6">
-                      <div className="w-16 h-16 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#00D4B3' }}>
+                      <div className="w-16 h-16 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--color-accent)' }}>
                         <IconComponent className="w-8 h-8 text-white" strokeWidth={2.5} />
                       </div>
                     </div>
-                    <h3 className="text-xl font-bold mb-3 text-[#0A2540] dark:text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>{useCase.title}</h3>
-                    <p className="text-[#6C757D] dark:text-white/70 text-sm mb-4" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>{useCase.description}</p>
-                    <div className="flex items-center text-[#00D4B3] text-sm font-medium group-hover:gap-2 transition-all" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+                    <h3 className="text-xl font-bold mb-3 text-primary dark:text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>{useCase.title}</h3>
+                    <p className="text-gray-500 dark:text-white/70 text-sm mb-4" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>{useCase.description}</p>
+                    <div className="flex items-center text-accent text-sm font-medium group-hover:gap-2 transition-all" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
                       Ver más <ArrowRight className="w-4 h-4" />
                     </div>
                   </div>

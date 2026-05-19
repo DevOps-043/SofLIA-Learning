@@ -18,11 +18,11 @@ export function ExternalToolActivityRenderer({
   return (
     <div className="space-y-4">
       {promptTemplate && (
-        <div className="rounded-xl border border-[#F3D98B] bg-[#FFF7DA] px-4 py-3 dark:border-[#8A6D1F]/50 dark:bg-[#2B2410]">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#8A6D1F] dark:text-[#F3D98B]">
+        <div className="rounded-xl border border-[var(--color-legacy-f3d98b)] bg-[var(--color-legacy-fff7da)] px-4 py-3 dark:border-[color-mix(in_srgb,var(--color-legacy-8a6d1f)_50%,transparent)] dark:bg-[var(--color-legacy-2b2410)]">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-legacy-8a6d1f)] dark:text-[var(--color-legacy-f3d98b)]">
             Prompt sugerido
           </p>
-          <p className="text-sm leading-relaxed text-[#5B4A18] dark:text-[#F7E7A8]">
+          <p className="text-sm leading-relaxed text-[var(--color-legacy-5b4a18)] dark:text-[var(--color-legacy-f7e7a8)]">
             {promptTemplate}
           </p>
         </div>
@@ -36,7 +36,7 @@ export function ExternalToolActivityRenderer({
           value={responseValue}
           onChange={(event) => onResponseChange(event.target.value)}
           rows={8}
-          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm leading-relaxed text-gray-800 outline-none transition focus:border-[#0A2540]/30 focus:ring-2 focus:ring-[#0A2540]/10 dark:border-white/10 dark:bg-[#10161D] dark:text-white dark:focus:border-[#00D4B3]/40 dark:focus:ring-[#00D4B3]/20"
+          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm leading-relaxed text-gray-800 outline-none transition focus:border-primary/30 focus:ring-2 focus:ring-primary/10 dark:border-white/10 dark:bg-[var(--color-legacy-10161d)] dark:text-white dark:focus:border-accent/40 dark:focus:ring-accent/20"
           placeholder="Pega aqui el resultado que obtuviste en la herramienta externa y cualquier conclusion importante."
         />
       </div>
@@ -49,7 +49,7 @@ export function ExternalToolActivityRenderer({
           value={evidenceValue}
           onChange={(event) => onEvidenceChange(event.target.value)}
           rows={4}
-          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm leading-relaxed text-gray-800 outline-none transition focus:border-[#0A2540]/30 focus:ring-2 focus:ring-[#0A2540]/10 dark:border-white/10 dark:bg-[#10161D] dark:text-white dark:focus:border-[#00D4B3]/40 dark:focus:ring-[#00D4B3]/20"
+          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm leading-relaxed text-gray-800 outline-none transition focus:border-primary/30 focus:ring-2 focus:ring-primary/10 dark:border-white/10 dark:bg-[var(--color-legacy-10161d)] dark:text-white dark:focus:border-accent/40 dark:focus:ring-accent/20"
           placeholder={
             evidencePlaceholder ||
             "Opcional: pega enlaces, prompts finales o notas de apoyo."

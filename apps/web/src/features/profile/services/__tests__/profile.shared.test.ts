@@ -52,13 +52,13 @@ describe('profile.shared', () => {
   it('forces readable light-mode colors when dashboard styles are white', () => {
     expect(
       resolveProfileColors({
-        card_background: '#FFFFFF',
-        sidebar_background: '#0F1419',
-        text_color: '#FFFFFF'
+        card_background: 'var(--color-bg-light)',
+        sidebar_background: 'var(--color-bg-dark)',
+        text_color: 'var(--color-bg-light)'
       })
     ).toMatchObject({
-      bgPrimary: '#F1F5F9',
-      text: '#0F172A'
+      bgPrimary: 'var(--color-gray-100)',
+      text: 'var(--color-legacy-0f172a)'
     })
   })
 })

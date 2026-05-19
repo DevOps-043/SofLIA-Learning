@@ -47,7 +47,7 @@ export function OrganizationRegisterActions({
                   type="button"
                   onClick={onOpenLegalModal}
                   className="font-semibold hover:underline transition-all"
-                  style={{ color: '#60a5fa' }}
+                  style={{ color: 'var(--color-legacy-60a5fa)' }}
                 />
               ),
               privacy: (
@@ -55,7 +55,7 @@ export function OrganizationRegisterActions({
                   type="button"
                   onClick={onOpenLegalModal}
                   className="font-semibold hover:underline transition-all"
-                  style={{ color: '#60a5fa' }}
+                  style={{ color: 'var(--color-legacy-60a5fa)' }}
                 />
               ),
             }}
@@ -79,11 +79,11 @@ export function OrganizationRegisterActions({
           className="w-full rounded-xl py-3 font-semibold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           style={{
             backgroundColor: palette.primaryColor,
-            boxShadow: `0 4px 20px -4px ${palette.primaryColor}50`,
+            boxShadow: `0 4px 20px -4px color-mix(in srgb, ${palette.primaryColor} 31.4%, transparent)`,
           }}
           whileHover={{
             scale: 1.02,
-            boxShadow: `0 8px 30px -4px ${palette.primaryColor}60`,
+            boxShadow: `0 8px 30px -4px color-mix(in srgb, ${palette.primaryColor} 37.6%, transparent)`,
           }}
           whileTap={{ scale: 0.98 }}
         >

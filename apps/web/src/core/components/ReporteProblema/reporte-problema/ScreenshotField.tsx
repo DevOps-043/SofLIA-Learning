@@ -16,7 +16,7 @@ function ScreenshotPreview({ form }: { form: ProblemReportFormController }) {
     <div className="relative">
       <img
         alt="Screenshot preview"
-        className="max-h-64 w-full rounded-xl border border-[#E9ECEF] object-contain dark:border-[#6C757D]/30"
+        className="max-h-64 w-full rounded-xl border border-gray-200 object-contain dark:border-gray-500/30"
         src={form.screenshotPreview || undefined}
       />
       <button
@@ -42,14 +42,14 @@ function ScreenshotUpload({ form }: { form: ProblemReportFormController }) {
         type="file"
       />
       <label
-        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#E9ECEF] bg-white px-4 py-3 text-[#6C757D] transition-colors hover:border-[#00D4B3] hover:text-[#00D4B3] dark:border-[#6C757D]/30 dark:bg-[#1E2329] dark:text-[#6C757D] dark:hover:border-[#00D4B3] dark:hover:text-[#00D4B3]"
+        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 bg-white px-4 py-3 text-gray-500 transition-colors hover:border-accent hover:text-accent dark:border-gray-500/30 dark:bg-carbon-800 dark:text-gray-500 dark:hover:border-accent dark:hover:text-accent"
         htmlFor="screenshot-upload"
         style={fontStyle}
       >
         <Upload className="h-5 w-5" />
         Subir Imagen
       </label>
-      <p className="mt-2 text-center text-xs text-[#6C757D] dark:text-[#6C757D]" style={fontStyle}>
+      <p className="mt-2 text-center text-xs text-gray-500 dark:text-gray-500" style={fontStyle}>
         Maximo 10MB. Formatos: JPG, PNG, GIF
       </p>
     </div>

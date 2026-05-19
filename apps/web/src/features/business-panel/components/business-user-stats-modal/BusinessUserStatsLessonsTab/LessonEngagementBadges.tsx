@@ -6,7 +6,7 @@ import type { LessonBadgeProps } from './types';
 export function LiasBadge({ lesson, theme, t }: LessonBadgeProps) {
   if (lesson.lia_conversations === 0) {
     return (
-      <Badge color={theme.textColor} bg={`${theme.textColor}10`} dimmed>
+      <Badge color={theme.textColor} bg={`color-mix(in srgb, ${theme.textColor} 6.3%, transparent)`} dimmed>
         <MessageCircle className="w-2.5 h-2.5" />
         {t('users.modals.stats.lessons.badges.lia.empty')}
       </Badge>
@@ -14,7 +14,7 @@ export function LiasBadge({ lesson, theme, t }: LessonBadgeProps) {
   }
 
   return (
-    <Badge color={theme.accentColor} bg={`${theme.accentColor}20`}>
+    <Badge color={theme.accentColor} bg={`color-mix(in srgb, ${theme.accentColor} 12.5%, transparent)`}>
       <MessageCircle className="w-2.5 h-2.5" />
       {t('users.modals.stats.lessons.badges.lia.count', { count: lesson.lia_conversations })}
     </Badge>
@@ -24,7 +24,7 @@ export function LiasBadge({ lesson, theme, t }: LessonBadgeProps) {
 export function NotesBadge({ lesson, theme, t }: LessonBadgeProps) {
   if (lesson.notes_count === 0) {
     return (
-      <Badge color={theme.textColor} bg={`${theme.textColor}10`} dimmed>
+      <Badge color={theme.textColor} bg={`color-mix(in srgb, ${theme.textColor} 6.3%, transparent)`} dimmed>
         <StickyNote className="w-2.5 h-2.5" />
         {t('users.modals.stats.lessons.badges.notes.empty')}
       </Badge>
@@ -37,7 +37,7 @@ export function NotesBadge({ lesson, theme, t }: LessonBadgeProps) {
       : 'users.modals.stats.lessons.badges.notes.countPlural';
 
   return (
-    <Badge color={theme.primaryColor} bg={`${theme.primaryColor}20`}>
+    <Badge color={theme.primaryColor} bg={`color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent)`}>
       <StickyNote className="w-2.5 h-2.5" />
       {t(notesKey, { count: lesson.notes_count })}
     </Badge>
@@ -50,7 +50,7 @@ export function TimeSpentBadge({ lesson, theme }: LessonBadgeProps) {
   }
 
   return (
-    <Badge color={theme.textColor} bg={`${theme.textColor}10`} dimmed={false} className="opacity-50">
+    <Badge color={theme.textColor} bg={`color-mix(in srgb, ${theme.textColor} 6.3%, transparent)`} dimmed={false} className="opacity-50">
       <Clock className="w-2.5 h-2.5" />
       {fmtMinutes(lesson.time_spent_minutes)}
     </Badge>

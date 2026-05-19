@@ -38,7 +38,7 @@ export function BusinessCourseContentTab({
         </div>
 
         {course.modules.length === 0 ? (
-          <div className="text-center py-12 rounded-2xl border" style={{ backgroundColor: `${primaryColor}08`, borderColor }}>
+          <div className="text-center py-12 rounded-2xl border" style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 3.1%, transparent)`, borderColor }}>
             <BookOpen className="w-16 h-16 mx-auto mb-4" style={{ color: mutedTextColor }} />
             <p style={{ color: mutedTextColor }}>Este curso aun no tiene contenido disponible</p>
           </div>
@@ -58,7 +58,7 @@ export function BusinessCourseContentTab({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: moduleIndex * 0.05 }}
                   className="rounded-xl border overflow-hidden"
-                  style={{ backgroundColor: isExpanded ? `${primaryColor}08` : 'transparent', borderColor }}
+                  style={{ backgroundColor: isExpanded ? `color-mix(in srgb, ${primaryColor} 3.1%, transparent)` : 'transparent', borderColor }}
                 >
                   <button
                     onClick={() => toggleModule(module.module_id)}
@@ -68,7 +68,7 @@ export function BusinessCourseContentTab({
                       <div
                         className="w-10 h-10 rounded-xl flex items-center justify-center font-bold"
                         style={{
-                          backgroundColor: isExpanded ? primaryColor : `${primaryColor}18`,
+                          backgroundColor: isExpanded ? primaryColor : `color-mix(in srgb, ${primaryColor} 9.4%, transparent)`,
                           color: isExpanded ? onPrimaryColor : primaryColor
                         }}
                       >
@@ -96,7 +96,7 @@ export function BusinessCourseContentTab({
                         <div className="px-5 pb-4 space-y-2">
                           {module.lessons.map((lesson, lessonIndex) => (
                             <div key={lesson.lesson_id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors">
-                              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
+                              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 12.5%, transparent)` }}>
                                 <Play className="w-4 h-4" style={{ color: onPrimaryColor, strokeWidth: 3 }} />
                               </div>
                               <div className="flex-1 min-w-0">

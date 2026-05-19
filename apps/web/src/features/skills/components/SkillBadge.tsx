@@ -61,8 +61,8 @@ export function SkillBadge({
           <div
             className="w-full h-full flex items-center justify-center rounded-lg border-2"
             style={{
-              backgroundColor: levelInfo?.color || '#6b7280',
-              borderColor: levelInfo?.color || '#6b7280',
+              backgroundColor: levelInfo?.color || 'var(--color-legacy-6b7280)',
+              borderColor: levelInfo?.color || 'var(--color-legacy-6b7280)',
               opacity: 0.8
             }}
           >

@@ -97,8 +97,8 @@ export function HumanVerificationChallenge(
 
   return (
     <div className="mx-auto flex min-h-[60vh] w-full max-w-2xl flex-col items-center justify-center px-6 py-20 text-center">
-      <div className="w-full rounded-[28px] border border-white/10 bg-[#0f1728]/90 p-8 shadow-[0_28px_90px_rgba(0,0,0,0.45)] backdrop-blur">
-        <span className="inline-flex rounded-full border border-[#22c55e]/30 bg-[#22c55e]/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-[#34d399]">
+      <div className="w-full rounded-[28px] border border-white/10 bg-slate-900/90 p-8 shadow-[0_28px_90px_rgba(0,0,0,0.45)] backdrop-blur">
+        <span className="inline-flex rounded-full border border-success/30 bg-success/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-success">
           Proteccion activa
         </span>
         <h1 className="mt-6 text-3xl font-bold text-white md:text-4xl">
@@ -118,8 +118,8 @@ export function HumanVerificationChallenge(
           disabled={verifying}
           className={`mt-8 w-full rounded-2xl border px-6 py-5 text-lg font-semibold transition ${
             pressing
-              ? 'border-[#34d399] bg-[#0f766e] text-white shadow-[0_0_0_6px_rgba(52,211,153,0.14)]'
-              : 'border-white/15 bg-[#111827] text-white hover:border-[#34d399]/50 hover:bg-[#162033]'
+              ? 'border-success bg-teal-700 text-white shadow-[0_0_0_6px_rgba(52,211,153,0.14)]'
+              : 'border-white/15 bg-gray-900 text-white hover:border-success/50 hover:bg-slate-800'
           } ${verifying ? 'cursor-wait opacity-80' : ''}`}
         >
           {verifying

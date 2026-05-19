@@ -636,9 +636,12 @@ const scormData = await parseSCORMPackage(file);
 
 ```css
 /* Colores primarios */
---primary-600: #1f5af6 --neutral-900: #0a1633 --accent-orange: #ff7a45
-  /* Espaciado */ --radius-base: 0.75rem --shadow-base: 0 2px 8px
-  rgba(10, 22, 51, 0.08);
+--primary-600: var(--color-primary);
+--neutral-900: var(--color-bg-dark);
+--accent: var(--color-accent);
+/* Espaciado */
+--radius-base: 0.75rem;
+--shadow-base: 0 2px 8px rgb(var(--color-primary-rgb) / 0.08);
 ```
 
 ### Componentes UI
@@ -1396,7 +1399,7 @@ El proyecto incluye **78 documentos técnicos** en el directorio `docs/`:
 
 #### 🎨 Rediseño de Headers del Business Panel
 
-- ✅ **Reports Header**: Nuevo diseño premium con imagen de fondo (`teams-header.png`), fondo azul oscuro (`#0A2540`), gradiente superpuesto y textos en blanco
+- ✅ **Reports Header**: Nuevo diseño premium con imagen de fondo (`teams-header.png`), fondo azul oscuro basado en `var(--color-primary)`, gradiente superpuesto y textos en blanco
 - ✅ **Analytics Header**: Mismo estilo visual que Reports, con imagen de fondo y tema oscuro consistente
 - ✅ **Settings Header**: Rediseño completo con imagen de fondo, eliminando animaciones complejas por un diseño más limpio
 - ✅ **Business User Dashboard Hero**: Actualizado con imagen de fondo y esquema de colores oscuros premium
@@ -1414,7 +1417,7 @@ El proyecto incluye **78 documentos técnicos** en el directorio `docs/`:
 
 - ✅ **BusinessSettings.tsx**: Tarjetas, formularios y tabs ahora soportan correctamente modo claro y oscuro
 - ✅ **BusinessAnalytics.tsx**: KPIs de equipos, gráficos de progreso y tarjetas de equipos con soporte dual de temas
-- ✅ Gradientes y colores de botones actualizados a `#0A2540` → `#1e3a5f` para consistencia de marca
+- ✅ Gradientes y colores de botones actualizados a tokens primarios para consistencia de marca
 - ✅ Inputs y labels con clases `dark:` para adaptarse automáticamente al tema
 - ✅ Mejora de legibilidad de texto en modo oscuro
 
@@ -1425,13 +1428,13 @@ El proyecto incluye **78 documentos técnicos** en el directorio `docs/`:
 
 #### 🔐 Mejoras de Autenticación Organizacional
 
-- ✅ **OrganizationAuthLayout.tsx**: Color del nombre de organización cambiado de azul a blanco (`#FFFFFF`) para mejor legibilidad en fondos oscuros
+- ✅ **OrganizationAuthLayout.tsx**: Color del nombre de organización cambiado de azul a blanco mediante token de tema para mejor legibilidad en fondos oscuros
 - ✅ Switches de SSO (Google/Microsoft) actualizados con nuevos gradientes y soporte para modo claro
 
 #### 🛠️ Mejoras Técnicas
 
 - ✅ Importación de `next/image` en componentes que usan `teams-header.png`
-- ✅ Estilos inline con colores hexadecimales explícitos para evitar problemas de herencia de temas
+- ✅ Estilos inline migrados a tokens de tema para evitar problemas de herencia
 - ✅ Grid patterns sutiles (`radial-gradient`) añadidos a los headers premium
 - ✅ Corrección de recarga continua en página de Business Settings
 - ✅ Corrección de visualización de actividades en página de aprendizaje de cursos

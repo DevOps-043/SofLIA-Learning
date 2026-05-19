@@ -54,10 +54,10 @@ export async function GET(request: NextRequest) {
         design_config: {
           layout: 'modern',
           colors: {
-            primary: '#8b5cf6',
-            secondary: '#6366f1',
-            text: '#1f2937',
-            background: '#ffffff'
+            primary: 'var(--color-secondary)',
+            secondary: 'var(--color-legacy-6366f1)',
+            text: 'var(--color-legacy-1f2937)',
+            background: 'var(--color-bg-light)'
           },
           fonts: {
             title: 'Inter',

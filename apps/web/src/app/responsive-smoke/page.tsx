@@ -7,16 +7,16 @@ import {
 
 export default function ResponsiveSmokeIndexPage() {
   return (
-    <main className="min-h-screen bg-[#F4F8FC] px-4 py-10 dark:bg-[#050B14] sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl rounded-[32px] border border-[#DCE7F3] bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#09111F] sm:p-8">
+    <main className="min-h-screen bg-[var(--color-legacy-f4f8fc)] px-4 py-10 dark:bg-[var(--color-legacy-050b14)] sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl rounded-[32px] border border-[var(--color-legacy-dce7f3)] bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[var(--color-legacy-09111f)] sm:p-8">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#637489] dark:text-white/55">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-legacy-637489)] dark:text-white/55">
             Responsive Smoke
           </p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#0A2540] dark:text-white">
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-primary dark:text-white">
             Escenarios de validacion manual
           </h1>
-          <p className="mt-3 text-sm leading-6 text-[#526174] dark:text-white/65">
+          <p className="mt-3 text-sm leading-6 text-[var(--color-legacy-526174)] dark:text-white/65">
             Harness interno para revisar layouts responsive y ejecutar la suite
             Playwright sin depender de autenticacion real.
           </p>
@@ -27,7 +27,7 @@ export default function ResponsiveSmokeIndexPage() {
             <Link
               key={scenario}
               href={`/responsive-smoke/${scenario}`}
-              className="rounded-[24px] border border-[#DCE7F3] bg-[#F8FAFC] px-5 py-4 text-sm font-semibold text-[#0A2540] transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/5 dark:text-white"
+              className="rounded-[24px] border border-[var(--color-legacy-dce7f3)] bg-slate-50 px-5 py-4 text-sm font-semibold text-primary transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/5 dark:text-white"
             >
               {responsiveSmokeScenarioLabels[scenario]}
             </Link>

@@ -25,7 +25,7 @@ export function IntroVideoButton({
       onClick={onClick}
       className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-55"
       style={{
-        backgroundColor: intro.loading ? `${orgColors.textMuted}12` : orgColors.cardBg,
+        backgroundColor: intro.loading ? `color-mix(in srgb, ${orgColors.textMuted} 7.1%, transparent)` : orgColors.cardBg,
         borderColor: intro.loading ? orgColors.border : orgColors.iconColor,
         color: intro.loading ? orgColors.textMuted : orgColors.text,
       }}

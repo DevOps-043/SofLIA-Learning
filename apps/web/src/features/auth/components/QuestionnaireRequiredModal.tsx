@@ -29,7 +29,7 @@ export function QuestionnaireRequiredModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-[#0F1419]/80 backdrop-blur-sm"
+          className="absolute inset-0 bg-carbon-900/80 backdrop-blur-sm"
           onClick={onCancel}
         />
 
@@ -38,7 +38,7 @@ export function QuestionnaireRequiredModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative bg-white dark:bg-[#1E2329] backdrop-blur-sm rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8 z-10 border border-gray-200 dark:border-[#0A2540]/30"
+          className="relative bg-white dark:bg-carbon-800 backdrop-blur-sm rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8 z-10 border border-gray-200 dark:border-primary/30"
         >
           {/* Close button */}
           <button

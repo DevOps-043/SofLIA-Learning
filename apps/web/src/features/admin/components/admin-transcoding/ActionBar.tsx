@@ -15,7 +15,7 @@ export function ActionBar({ isScanning, isDraining, onScan, onDrain, onRefresh }
         type="button"
         onClick={onScan}
         disabled={isScanning}
-        className="inline-flex items-center gap-2 rounded-xl bg-[#0A2540] hover:bg-[#0A2540]/90 text-white px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-xl bg-primary hover:bg-primary/90 text-white px-4 py-2 text-sm font-medium transition disabled:opacity-50"
       >
         {isScanning ? <ArrowPathIcon className="h-4 w-4 animate-spin" /> : <PlayCircleIcon className="h-4 w-4" />}
         Escanear y encolar pendientes
@@ -24,7 +24,7 @@ export function ActionBar({ isScanning, isDraining, onScan, onDrain, onRefresh }
         type="button"
         onClick={onDrain}
         disabled={isDraining}
-        className="inline-flex items-center gap-2 rounded-xl border border-[#0A2540] text-[#0A2540] dark:border-white/20 dark:text-white px-4 py-2 text-sm font-medium transition disabled:opacity-50 hover:bg-[#0A2540]/5 dark:hover:bg-white/5"
+        className="inline-flex items-center gap-2 rounded-xl border border-primary text-primary dark:border-white/20 dark:text-white px-4 py-2 text-sm font-medium transition disabled:opacity-50 hover:bg-primary/5 dark:hover:bg-white/5"
       >
         <ArrowPathIcon className={`h-4 w-4 ${isDraining ? 'animate-spin' : ''}`} />
         Procesar siguientes 10 en cola
@@ -32,7 +32,7 @@ export function ActionBar({ isScanning, isDraining, onScan, onDrain, onRefresh }
       <button
         type="button"
         onClick={() => onRefresh()}
-        className="ml-auto text-xs text-[#6C757D] dark:text-white/60 hover:text-[#0A2540] dark:hover:text-white"
+        className="ml-auto text-xs text-gray-500 dark:text-white/60 hover:text-primary dark:hover:text-white"
       >
         Refrescar ahora
       </button>

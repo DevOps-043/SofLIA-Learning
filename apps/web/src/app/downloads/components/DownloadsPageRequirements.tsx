@@ -14,7 +14,7 @@ export function DownloadsPageRequirements() {
         <h2 className="text-3xl font-bold dark:text-white mb-4">
           Requisitos del Sistema
         </h2>
-        <p className="text-[#0A2540]/60 dark:text-white/60">
+        <p className="text-primary/60 dark:text-white/60">
           Asegurate de que tu equipo cumple con lo necesario para la mejor
           experiencia.
         </p>
@@ -56,13 +56,13 @@ export function DownloadsPageRequirements() {
                     </span>
                   </div>
                 </td>
-                <td className="py-6 pr-8 text-[#0A2540]/60 dark:text-white/60">
+                <td className="py-6 pr-8 text-primary/60 dark:text-white/60">
                   {requirement.min}
                 </td>
-                <td className="py-6 pr-8 text-[#0A2540]/60 dark:text-white/60">
+                <td className="py-6 pr-8 text-primary/60 dark:text-white/60">
                   {requirement.ram}
                 </td>
-                <td className="py-6 text-[#0A2540]/60 dark:text-white/60">
+                <td className="py-6 text-primary/60 dark:text-white/60">
                   {requirement.disk}
                 </td>
               </tr>

@@ -37,15 +37,16 @@ export function useAdminUnifiedInviteModalLogic({
     accentColor,
     borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
     headerGradient: isDark
-      ? `linear-gradient(135deg, ${primaryColor}40, ${accentColor}20)`
-      : `linear-gradient(135deg, ${primaryColor}10, ${accentColor}05)`,
+      ? `linear-gradient(135deg, color-mix(in srgb, ${primaryColor} 25.1%, transparent), color-mix(in srgb, ${accentColor} 12.5%, transparent))`
+      : `linear-gradient(135deg, color-mix(in srgb, ${primaryColor} 6.3%, transparent), color-mix(in srgb, ${accentColor} 2%, transparent))`,
     inputBg: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
     isDark,
     menuBg: isDark ? SOFLIA_ADMIN_COLORS.surfaceDark : SOFLIA_ADMIN_COLORS.white,
     mutedText: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(15,23,42,0.6)',
+    onPrimaryColor: SOFLIA_ADMIN_COLORS.white,
     primaryColor,
     surfaceColor: isDark ? SOFLIA_ADMIN_COLORS.surfaceDark : SOFLIA_ADMIN_COLORS.white,
-    textColor: isDark ? SOFLIA_ADMIN_COLORS.white : '#0F172A',
+    textColor: isDark ? SOFLIA_ADMIN_COLORS.white : 'var(--color-legacy-0f172a)',
   };
 
   const controller = useUnifiedInviteModalCore({

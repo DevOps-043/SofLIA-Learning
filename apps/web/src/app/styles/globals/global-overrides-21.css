@@ -1,9 +1,9 @@
 input[type="range"]::-webkit-slider-thumb {
-  background-color: var(--org-primary-button-color, #3b82f6);
+  background-color: var(--org-primary-button-color, var(--color-info));
 }
 
 input[type="range"]::-moz-range-thumb {
-  background-color: var(--org-primary-button-color, #3b82f6);
+  background-color: var(--org-primary-button-color, var(--color-info));
 }
 
 /* Estilos para select dropdown en modo oscuro - Notes Modal */
@@ -47,8 +47,8 @@ select {
 
 /* Select options - Light mode */
 .light select option {
-  background-color: #FFFFFF !important;
-  color: #1E293B !important;
+  background-color: var(--color-bg-light) !important;
+  color: var(--color-legacy-1e293b) !important;
   padding: 0.75rem 1rem !important;
   font-family: var(--font-inter), sans-serif !important;
 }
@@ -57,7 +57,7 @@ select {
 .light select option:focus,
 .light select option:checked {
   background-color: rgba(59, 130, 246, 0.1) !important;
-  color: #0A2540 !important;
+  color: var(--color-primary) !important;
 }
 
 /* Mejorar el scrollbar del select en navegadores que lo soporten */

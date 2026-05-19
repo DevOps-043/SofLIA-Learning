@@ -22,7 +22,7 @@ interface PricingWithAnnual extends PricingTier {
 export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) {
   const [isAnnual, setIsAnnual] = useState(true);
   const { disableHeavy } = useMotionSafe();
-  
+
   // Calcular precios anuales (20% descuento)
   const tiersWithAnnual: PricingWithAnnual[] = tiers.map(tier => {
     if (tier.price === 'Personalizado') {
@@ -37,7 +37,7 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
   });
 
   return (
-    <section className="py-12 relative overflow-hidden bg-white dark:bg-[#0F1419]">
+    <section className="py-12 relative overflow-hidden bg-white dark:bg-carbon-900">
       <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
         <motion.div
@@ -48,40 +48,40 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
           variants={staggerContainer}
         >
           <motion.h2
-            className="text-3xl lg:text-4xl font-bold mb-4 text-[#0A2540] dark:text-white"
+            className="text-3xl lg:text-4xl font-bold mb-4 text-primary dark:text-white"
             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
             variants={slideUp}
           >
             {title}
           </motion.h2>
           <motion.p
-            className="text-lg max-w-3xl mx-auto mb-8 text-[#6C757D] dark:text-white/70"
+            className="text-lg max-w-3xl mx-auto mb-8 text-gray-500 dark:text-white/70"
             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
             variants={fadeIn}
           >
             {subtitle}
           </motion.p>
-          
+
           {/* Billing Toggle */}
           <motion.div
             variants={fadeIn}
             className="flex items-center justify-center gap-4 mb-8"
           >
-            <span 
-              className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-[#0A2540] dark:text-white' : 'text-[#6C757D] dark:text-white/70'}`} 
+            <span
+              className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-primary dark:text-white' : 'text-gray-500 dark:text-white/70'}`}
               style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
             >
               Mensual
             </span>
             <motion.button
               onClick={() => setIsAnnual(!isAnnual)}
-              className="relative w-14 h-8 bg-[#E9ECEF] dark:bg-[#1E2329] rounded-full p-1 cursor-pointer transition-colors"
+              className="relative w-14 h-8 bg-gray-200 dark:bg-carbon-800 rounded-full p-1 cursor-pointer transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <motion.div
                 className="w-6 h-6 rounded-full absolute shadow-md"
-                style={{ backgroundColor: '#00D4B3' }}
+                style={{ backgroundColor: 'var(--color-accent)' }}
                 animate={{
                   x: isAnnual ? 24 : 0
                 }}
@@ -93,28 +93,28 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                 >
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg" 
-                    style={{ backgroundColor: '#00D4B3' }}
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
+                    style={{ backgroundColor: 'var(--color-accent)' }}
                   >
-                    <span 
-                      className="text-xs font-bold text-white px-1" 
+                    <span
+                      className="text-xs font-bold text-white px-1"
                       style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
                     >
                       20%
                     </span>
                   </div>
-                  <span 
-                    className="text-xs font-semibold whitespace-nowrap" 
-                    style={{ color: '#00D4B3', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
+                  <span
+                    className="text-xs font-semibold whitespace-nowrap"
+                    style={{ color: 'var(--color-accent)', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
                   >
                     OFF
                   </span>
                 </motion.div>
               )}
             </motion.button>
-            <span 
-              className={`text-sm font-medium transition-colors ${isAnnual ? 'text-[#0A2540] dark:text-white' : 'text-[#6C757D] dark:text-white/70'}`} 
+            <span
+              className={`text-sm font-medium transition-colors ${isAnnual ? 'text-primary dark:text-white' : 'text-gray-500 dark:text-white/70'}`}
               style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
             >
               Anual
@@ -133,7 +133,7 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
           {tiersWithAnnual.map((tier, index) => {
             const isPopular = tier.isPopular;
             const isEnterprise = tier.id === 'enterprise';
-            
+
             return (
               <motion.div
                 key={tier.id}
@@ -144,14 +144,14 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
               >
                 {/* Badge Más Popular */}
                 {isPopular && (
-                  <motion.div 
+                  <motion.div
                     className="absolute -top-4 left-1/2 -translate-x-1/2 z-30"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
-                    <div 
+                    <div
                       className="px-4 py-1.5 rounded-full shadow-lg text-white text-xs font-semibold flex items-center gap-1.5"
-                      style={{ backgroundColor: '#00D4B3', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
+                      style={{ backgroundColor: 'var(--color-accent)', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
                     >
                       <Sparkles className="w-3 h-3" />
                       Más Popular
@@ -163,11 +163,11 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                 <div
                   className={`h-full relative rounded-2xl transition-all duration-300 flex flex-col overflow-hidden ${
                     isPopular
-                      ? 'bg-white dark:bg-[#1E2329] border-2 shadow-2xl'
-                      : 'bg-white dark:bg-[#1E2329]/95 border shadow-lg hover:shadow-xl'
+                      ? 'bg-white dark:bg-carbon-800 border-2 shadow-2xl'
+                      : 'bg-white dark:bg-carbon-800/95 border shadow-lg hover:shadow-xl'
                   }`}
                   style={{
-                    borderColor: isPopular ? '#00D4B3' : '#E9ECEF',
+                    borderColor: isPopular ? 'var(--color-accent)' : 'var(--color-gray-200)',
                     ...(isPopular && {
                       boxShadow: '0 20px 60px -12px rgba(0, 212, 179, 0.25)'
                     })
@@ -175,9 +175,9 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                 >
                   {/* Top Accent Bar for Popular Plan */}
                   {isPopular && (
-                    <div 
+                    <div
                       className="h-1.5 w-full"
-                      style={{ backgroundColor: '#00D4B3' }}
+                      style={{ backgroundColor: 'var(--color-accent)' }}
                     />
                   )}
 
@@ -186,8 +186,8 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                     {/* Plan Header */}
                     <div className="mb-8">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 
-                          className="text-2xl font-bold text-[#0A2540] dark:text-white"
+                        <h3
+                          className="text-2xl font-bold text-primary dark:text-white"
                           style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
                         >
                           {tier.name}
@@ -195,7 +195,7 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                         {isPopular && (
                           <motion.div
                             className="px-2.5 py-1 rounded-md text-[10px] font-bold text-white uppercase tracking-wide"
-                            style={{ backgroundColor: '#0A2540', fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
+                            style={{ backgroundColor: 'var(--color-primary)', fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
                             animate={disableHeavy ? {} : { scale: [1, 1.05, 1] }}
                             transition={{ duration: 2, repeat: Infinity }}
                           >
@@ -203,8 +203,8 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                           </motion.div>
                         )}
                       </div>
-                      <p 
-                        className="text-sm text-[#6C757D] dark:text-white/70 mb-6"
+                      <p
+                        className="text-sm text-gray-500 dark:text-white/70 mb-6"
                         style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                       >
                         {tier.description}
@@ -215,7 +215,7 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                         <div className="flex items-baseline gap-2">
                           <motion.span
                             key={isAnnual ? 'annual' : 'monthly'}
-                            className={`font-bold text-[#0A2540] dark:text-white ${
+                            className={`font-bold text-primary dark:text-white ${
                               isEnterprise ? 'text-3xl lg:text-4xl' : 'text-4xl lg:text-5xl'
                             }`}
                             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
@@ -226,8 +226,8 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                             {isAnnual && tier.annualPrice ? tier.annualPrice : tier.price}
                           </motion.span>
                           {!isEnterprise && tier.period && (
-                            <span 
-                              className="text-lg text-[#6C757D] dark:text-white/70"
+                            <span
+                              className="text-lg text-gray-500 dark:text-white/70"
                               style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                             >
                               {isAnnual ? '/año' : '/mes'}
@@ -235,12 +235,12 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                           )}
                         </div>
                         {!isEnterprise && tier.price !== 'Personalizado' && (
-                          <div 
-                            className="text-xs mt-2 text-[#6C757D] dark:text-white/60"
+                          <div
+                            className="text-xs mt-2 text-gray-500 dark:text-white/60"
                             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                           >
-                            {isAnnual 
-                              ? `$${Math.round(parseFloat(tier.price.replace(/[^0-9.]/g, '')) * 12 * 0.8 / 12)}/mes facturado anualmente` 
+                            {isAnnual
+                              ? `$${Math.round(parseFloat(tier.price.replace(/[^0-9.]/g, '')) * 12 * 0.8 / 12)}/mes facturado anualmente`
                               : ''
                             }
                           </div>
@@ -260,14 +260,14 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                             viewport={{ once: true }}
                             transition={{ delay: idx * 0.03 }}
                           >
-                            <div 
+                            <div
                               className="flex-shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center"
-                              style={{ backgroundColor: '#00D4B3' }}
+                              style={{ backgroundColor: 'var(--color-accent)' }}
                             >
                               <Check className="w-3 h-3 text-white" strokeWidth={3} />
                             </div>
-                            <span 
-                              className="text-sm text-[#0A2540] dark:text-white/90 leading-relaxed"
+                            <span
+                              className="text-sm text-primary dark:text-white/90 leading-relaxed"
                               style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                             >
                               {feature}
@@ -288,33 +288,33 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                         {isPopular && (
                           <motion.div
                             className="absolute -inset-1 rounded-xl opacity-75 blur-xl"
-                            style={{ backgroundColor: '#00D4B3' }}
+                            style={{ backgroundColor: 'var(--color-accent)' }}
                             animate={disableHeavy ? {} : { opacity: [0.5, 0.75, 0.5], scale: [1, 1.05, 1] }}
                             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                           />
                         )}
-                        
+
                         {/* Button Container */}
                         <motion.button
                           className={`w-full group relative overflow-hidden rounded-xl py-4 px-6 font-semibold text-base transition-all duration-300 ${
                             isPopular
-                              ? 'bg-[#0A2540] text-white'
-                              : 'bg-white dark:bg-[#1E2329] border-2 text-[#0A2540] dark:text-white'
+                              ? 'bg-primary text-white'
+                              : 'bg-white dark:bg-carbon-800 border-2 text-primary dark:text-white'
                           }`}
                           style={{
-                            borderColor: isPopular ? 'transparent' : '#00D4B3',
+                            borderColor: isPopular ? 'transparent' : 'var(--color-accent)',
                             fontFamily: 'Inter, sans-serif',
                             fontWeight: 600,
-                            boxShadow: isPopular 
-                              ? '0 10px 40px -10px rgba(0, 212, 179, 0.4)' 
+                            boxShadow: isPopular
+                              ? '0 10px 40px -10px rgba(0, 212, 179, 0.4)'
                               : '0 4px 12px rgba(0, 0, 0, 0.1)'
                           }}
                           whileHover={{
                             boxShadow: isPopular
                               ? '0 15px 50px -10px rgba(0, 212, 179, 0.6)'
                               : '0 8px 20px rgba(0, 212, 179, 0.2)',
-                            backgroundColor: isPopular ? '#0d2f4d' : undefined,
-                            borderColor: isPopular ? undefined : '#00D4B3',
+                            backgroundColor: isPopular ? 'var(--color-primary-hover)' : undefined,
+                            borderColor: isPopular ? undefined : 'var(--color-accent)',
                           }}
                         >
                           {/* Shimmer Effect for Popular Plan — desktop only */}
@@ -341,7 +341,7 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                           {isPopular && (
                             <motion.div
                               className="absolute inset-0 rounded-xl border-2"
-                              style={{ borderColor: '#00D4B3' }}
+                              style={{ borderColor: 'var(--color-accent)' }}
                               animate={disableHeavy ? {} : { opacity: [0.3, 0.6, 0.3], scale: [1, 1.02, 1] }}
                               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                             />

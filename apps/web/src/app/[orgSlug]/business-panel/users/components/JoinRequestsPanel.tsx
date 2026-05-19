@@ -29,8 +29,8 @@ export function JoinRequestsPanel({ logic, theme }: JoinRequestsPanelProps) {
         key="error-requests"
         className="rounded-3xl border p-6"
         style={{
-          backgroundColor: `${theme.dangerColor}10`,
-          borderColor: `${theme.dangerColor}20`,
+          backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 6.3%, transparent)`,
+          borderColor: `color-mix(in srgb, ${theme.dangerColor} 12.5%, transparent)`,
           color: theme.dangerColor,
         }}
       >

@@ -11,8 +11,8 @@ export function EmbedVideoFrame(props: {
   return (
     <div className="relative w-full h-full">
       {props.isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[#0F1419] dark:bg-[#0F1419] rounded-xl">
-          <Loader2 className="w-8 h-8 animate-spin text-[#00D4B3]" />
+        <div className="absolute inset-0 flex items-center justify-center bg-carbon-900 dark:bg-carbon-900 rounded-xl">
+          <Loader2 className="w-8 h-8 animate-spin text-accent" />
         </div>
       )}
 

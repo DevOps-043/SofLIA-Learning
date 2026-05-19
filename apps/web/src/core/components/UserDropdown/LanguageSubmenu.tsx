@@ -30,7 +30,7 @@ export function LanguageSubmenu({
       <MenuItem
         icon={Globe}
         label={isMounted ? t('menu.languages.title') : '...'}
-        rightElement={<div className="flex items-center gap-1"><span className="text-xs text-[#8B95A5]">{language.toUpperCase()}</span><ChevronRight className={`w-3.5 h-3.5 text-[#8B95A5] transition-transform ${activeSubmenu === 'language' ? 'rotate-90' : ''}`} /></div>}
+        rightElement={<div className="flex items-center gap-1"><span className="text-xs text-[var(--color-legacy-8b95a5)]">{language.toUpperCase()}</span><ChevronRight className={`w-3.5 h-3.5 text-[var(--color-legacy-8b95a5)] transition-transform ${activeSubmenu === 'language' ? 'rotate-90' : ''}`} /></div>}
         onClick={() => setActiveSubmenu(activeSubmenu === 'language' ? null : 'language')}
       />
       <AnimatePresence>
@@ -43,7 +43,7 @@ export function LanguageSubmenu({
                   <button
                     key={option.value}
                     onClick={() => { setLanguage(option.value); setActiveSubmenu(null) }}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all ${isActive ? 'bg-[#00D4B3]/15 text-[#00D4B3]' : 'text-[#8B95A5] hover:bg-white/5 hover:text-white'}`}
+                    className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all ${isActive ? 'bg-accent/15 text-accent' : 'text-[var(--color-legacy-8b95a5)] hover:bg-white/5 hover:text-white'}`}
                   >
                     <span className="flex items-center gap-2"><span>{option.flag}</span><span>{isMounted ? t(`menu.languages.${option.value}`) : '...'}</span></span>
                     {isActive && <Check className="w-3 h-3 ml-auto" />}

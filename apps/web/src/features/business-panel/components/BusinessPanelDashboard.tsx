@@ -57,7 +57,7 @@ export function BusinessPanelDashboard() {
       >
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 mix-blend-multiply opacity-80 z-10" style={{ backgroundColor: themeColors.primary }} />
-          <div className="absolute inset-0 z-10" style={{ background: `linear-gradient(to right, ${themeColors.primary}, ${themeColors.primary}99, transparent)` }} />
+          <div className="absolute inset-0 z-10" style={{ background: `linear-gradient(to right, ${themeColors.primary}, color-mix(in srgb, ${themeColors.primary} 60%, transparent), transparent)` }} />
           <Image
             src="/images/dashboard-header.webp"
             alt="Business Dashboard Background"
@@ -108,7 +108,7 @@ export function BusinessPanelDashboard() {
               <button 
                 onClick={() => setIsStatsOpenMobile(!isStatsOpenMobile)}
                 className="md:hidden flex items-center justify-center p-2 rounded-full transition-colors"
-                style={{ backgroundColor: `${themeColors.primary}15`, color: themeColors.primary }}
+                style={{ backgroundColor: `color-mix(in srgb, ${themeColors.primary} 8.2%, transparent)`, color: themeColors.primary }}
                 aria-label="Toggle statistics"
               >
                 {isStatsOpenMobile ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
@@ -152,15 +152,15 @@ export function BusinessPanelDashboard() {
               </div>
             </motion.div>
 
-            <motion.div id="tour-activity-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition} className="rounded-2xl border overflow-hidden" style={{ backgroundColor: themeColors.cardBg, borderColor: `${themeColors.borderColor}33` }}>
+            <motion.div id="tour-activity-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition} className="rounded-2xl border overflow-hidden" style={{ backgroundColor: themeColors.cardBg, borderColor: `color-mix(in srgb, ${themeColors.borderColor} 20%, transparent)` }}>
               {activitiesLoading ? (
                 <div className="p-6 space-y-4">
                   {[...Array(5)].map((_, i) => (
                     <div key={i} className="flex gap-4 animate-pulse">
-                      <div className="w-2 h-2 mt-2 rounded-full" style={{ backgroundColor: `${themeColors.borderColor}4D` }} />
+                      <div className="w-2 h-2 mt-2 rounded-full" style={{ backgroundColor: `color-mix(in srgb, ${themeColors.borderColor} 30.2%, transparent)` }} />
                       <div className="flex-1 space-y-2">
-                        <div className="h-4 rounded w-3/4" style={{ backgroundColor: `${themeColors.borderColor}33` }} />
-                        <div className="h-3 rounded w-1/2" style={{ backgroundColor: `${themeColors.borderColor}33` }} />
+                        <div className="h-4 rounded w-3/4" style={{ backgroundColor: `color-mix(in srgb, ${themeColors.borderColor} 20%, transparent)` }} />
+                        <div className="h-3 rounded w-1/2" style={{ backgroundColor: `color-mix(in srgb, ${themeColors.borderColor} 20%, transparent)` }} />
                       </div>
                     </div>
                   ))}
@@ -173,7 +173,7 @@ export function BusinessPanelDashboard() {
               ) : (
                 <div className="flex flex-col">
                   {activities.map((activity, index) => (
-                    <div key={index} style={{ borderBottom: index < activities.length - 1 ? `1px solid ${themeColors.borderColor}1A` : 'none' }}>
+                    <div key={index} style={{ borderBottom: index < activities.length - 1 ? `1px solid color-mix(in srgb, ${themeColors.borderColor} 10.2%, transparent)` : 'none' }}>
                       <ActivityItem
                         title={activity.title || t('dashboard.recentActivity.defaultTitle', { defaultValue: 'Actividad' })}
                         description={activity.description || t('dashboard.recentActivity.defaultDesc', { defaultValue: 'Sin descripción' })}

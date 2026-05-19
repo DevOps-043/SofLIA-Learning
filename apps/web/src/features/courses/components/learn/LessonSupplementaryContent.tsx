@@ -52,7 +52,7 @@ function SupplementarySection({
   title,
 }: SupplementarySectionProps) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#E9ECEF] bg-gray-50/80 shadow-sm transition-colors dark:border-white/10 dark:bg-white/[0.03]">
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80 shadow-sm transition-colors dark:border-white/10 dark:bg-white/[0.03]">
       <button
         type="button"
         onClick={onToggle}
@@ -61,26 +61,26 @@ function SupplementarySection({
         className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition-colors hover:bg-white/60 dark:hover:bg-white/[0.05] md:px-5"
       >
         <div className="flex min-w-0 items-start gap-3">
-          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0A2540]/10 text-[#0A2540] dark:bg-[#00D4B3]/10 dark:text-[#00D4B3]">
+          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:bg-accent/10 dark:text-accent">
             <Icon className="h-4 w-4" />
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-semibold text-[#0A2540] dark:text-white md:text-base">
+              <span className="text-sm font-semibold text-primary dark:text-white md:text-base">
                 {title}
               </span>
-              <span className="rounded-full border border-[#0A2540]/10 bg-white px-2.5 py-0.5 text-[11px] font-medium text-[#44556B] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/60">
+              <span className="rounded-full border border-primary/10 bg-white px-2.5 py-0.5 text-[11px] font-medium text-[var(--color-legacy-44556b)] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/60">
                 {badge}
               </span>
             </div>
-            <p className="mt-1 text-sm text-[#6C757D] dark:text-white/50">
+            <p className="mt-1 text-sm text-gray-500 dark:text-white/50">
               {description}
             </p>
           </div>
         </div>
 
         <ChevronDown
-          className={`h-5 w-5 shrink-0 text-[#6C757D] transition-transform duration-200 dark:text-white/50 ${
+          className={`h-5 w-5 shrink-0 text-gray-500 transition-transform duration-200 dark:text-white/50 ${
             isOpen ? "rotate-180" : ""
           }`}
         />
@@ -97,7 +97,7 @@ function SupplementarySection({
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="overflow-hidden"
           >
-            <div className="border-t border-[#E9ECEF] px-4 py-4 dark:border-white/10 md:px-5 md:py-5">
+            <div className="border-t border-gray-200 px-4 py-4 dark:border-white/10 md:px-5 md:py-5">
               {children}
             </div>
           </motion.div>
@@ -152,7 +152,7 @@ export function LessonSupplementaryContent({
   };
 
   return (
-    <div className="space-y-3 border-t border-[#E9ECEF] pt-5 dark:border-[#6C757D]/30">
+    <div className="space-y-3 border-t border-gray-200 pt-5 dark:border-gray-500/30">
       <SupplementarySection
         id="lesson-transcript-panel"
         title={t("tabs.transcript")}

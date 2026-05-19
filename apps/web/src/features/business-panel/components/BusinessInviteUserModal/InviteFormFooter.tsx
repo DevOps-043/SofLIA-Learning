@@ -29,13 +29,13 @@ export function InviteFormFooter({ onClose, status, t, theme }: InviteFormFooter
         className="px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 disabled:opacity-70"
         style={{
           backgroundColor: theme.primaryColor,
-          boxShadow: `0 4px 15px ${theme.primaryColor}40`,
+          boxShadow: `0 4px 15px color-mix(in srgb, ${theme.primaryColor} 25.1%, transparent)`,
           color: theme.onPrimaryColor
         }}
       >
         {status === 'loading' ? (
           <>
-            <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: `${theme.onPrimaryColor}4D`, borderTopColor: theme.onPrimaryColor }} />
+            <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: `color-mix(in srgb, ${theme.onPrimaryColor} 30.2%, transparent)`, borderTopColor: theme.onPrimaryColor }} />
             <span>{t('users.buttons.sending', 'Enviando...')}</span>
           </>
         ) : (

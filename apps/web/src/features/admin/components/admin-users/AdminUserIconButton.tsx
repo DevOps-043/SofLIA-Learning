@@ -18,7 +18,7 @@ export function AdminUserIconButton({
 }: AdminUserIconButtonProps) {
   const theme = useAdminPanelTheme()
   return (
-    <button type="button" onClick={onClick} className="inline-flex h-10 w-10 items-center justify-center rounded-xl border transition-colors" style={{ backgroundColor: danger ? `${theme.dangerColor}12` : theme.inputBg, borderColor: danger ? `${theme.dangerColor}30` : theme.borderColor, color: danger ? theme.dangerColor : theme.textColor }} aria-label={label} title={label}>
+    <button type="button" onClick={onClick} className="inline-flex h-10 w-10 items-center justify-center rounded-xl border transition-colors" style={{ backgroundColor: danger ? `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)` : theme.inputBg, borderColor: danger ? `color-mix(in srgb, ${theme.dangerColor} 18.8%, transparent)` : theme.borderColor, color: danger ? theme.dangerColor : theme.textColor }} aria-label={label} title={label}>
       <Icon className="h-4 w-4" />
     </button>
   )

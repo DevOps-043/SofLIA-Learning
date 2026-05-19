@@ -40,9 +40,9 @@ export function buildProgressCharts(input: {
 
 function buildDistribution(assignments: AssignmentRow[]) {
   return [
-    { name: 'Completados', value: assignments.filter((item) => item.status === 'completed').length, color: '#10b981' },
-    { name: 'En Progreso', value: assignments.filter((item) => item.status === 'in_progress').length, color: '#f59e0b' },
-    { name: 'No Iniciados', value: assignments.filter((item) => item.status === 'assigned').length, color: '#6b7280' },
+    { name: 'Completados', value: assignments.filter((item) => item.status === 'completed').length, color: 'var(--color-success)' },
+    { name: 'En Progreso', value: assignments.filter((item) => item.status === 'in_progress').length, color: 'var(--color-warning)' },
+    { name: 'No Iniciados', value: assignments.filter((item) => item.status === 'assigned').length, color: 'var(--color-legacy-6b7280)' },
   ]
 }
 

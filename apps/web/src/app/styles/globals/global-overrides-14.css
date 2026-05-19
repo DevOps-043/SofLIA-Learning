@@ -29,12 +29,12 @@
 
 /* Attachment type styles */
 .attachment-link {
-  @apply bg-gradient-to-r from-[#0A2540]/30 to-[#00D4B3]/30 border border-[#0A2540]/30;
+  @apply bg-gradient-to-r from-primary/30 to-accent/30 border border-primary/30;
   /* Azul Profundo a Aqua */
 }
 
 .attachment-link:hover {
-  @apply from-[#0A2540]/40 to-[#00D4B3]/40 border-[#0A2540]/50;
+  @apply from-primary/40 to-accent/40 border-primary/50;
 }
 
 .attachment-document {
@@ -46,7 +46,7 @@
 }
 
 .attachment-link-icon {
-  @apply bg-[#0A2540]/20 text-[#00D4B3] border border-[#0A2540]/30;
+  @apply bg-primary/20 text-accent border border-primary/30;
   /* Azul Profundo con texto Aqua */
 }
 
@@ -59,7 +59,7 @@
 }
 
 .community-post-avatar {
-  @apply w-10 h-10 rounded-full bg-gradient-to-br from-[#0A2540] to-[#00D4B3] flex items-center justify-center overflow-hidden;
+  @apply w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center overflow-hidden;
   /* Azul Profundo a Aqua */
 }
 

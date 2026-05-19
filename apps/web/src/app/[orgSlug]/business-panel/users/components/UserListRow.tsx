@@ -41,7 +41,7 @@ function UserListRow({ user, index, onEdit, onDelete, onStats, onResend }: UserL
     switch (role) {
       case 'owner': return { label: t('users.roles.owner'), color: roleColors.owner.text, bg: roleColors.owner.bg }
       case 'admin': return { label: t('users.roles.admin'), color: roleColors.admin.text, bg: roleColors.admin.bg }
-      default:      return { label: t('users.roles.member'), color: theme.successColor,   bg: `${theme.successColor}25` }
+      default:      return { label: t('users.roles.member'), color: theme.successColor,   bg: `color-mix(in srgb, ${theme.successColor} 14.5%, transparent)` }
     }
   }
 
@@ -75,7 +75,7 @@ function UserListRow({ user, index, onEdit, onDelete, onStats, onResend }: UserL
       ) : (
         <div
           className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0"
-          style={{ backgroundColor: `${theme.primaryColor}30`, color: theme.isDark ? '#FFFFFF' : theme.primaryColor }}
+          style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 18.8%, transparent)`, color: theme.isDark ? 'var(--color-bg-light)' : theme.primaryColor }}
         >
           {displayName.charAt(0).toUpperCase()}
         </div>
@@ -129,7 +129,7 @@ function UserListRow({ user, index, onEdit, onDelete, onStats, onResend }: UserL
           </span>
           <span
             className="px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1"
-            style={{ backgroundColor: `${statusConfig.color}20`, color: statusConfig.color }}
+            style={{ backgroundColor: `color-mix(in srgb, ${statusConfig.color} 12.5%, transparent)`, color: statusConfig.color }}
           >
             <StatusIcon className="w-3 h-3" />
             {statusConfig.label}

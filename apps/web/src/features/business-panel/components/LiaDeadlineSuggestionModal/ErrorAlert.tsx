@@ -16,8 +16,8 @@ export function ErrorAlert({ error, theme }: ErrorAlertProps) {
       exit={{ opacity: 0, y: -10 }}
       className="mb-4 rounded-xl border p-4 text-sm"
       style={{
-        backgroundColor: `${theme.dangerColor}10`,
-        borderColor: `${theme.dangerColor}30`,
+        backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 6.3%, transparent)`,
+        borderColor: `color-mix(in srgb, ${theme.dangerColor} 18.8%, transparent)`,
         color: theme.dangerColor,
       }}
     >

@@ -41,7 +41,7 @@ export const SidebarSurface = forwardRef<HTMLDivElement, SidebarSurfaceProps>(
         onHoverEnd={onHoverEnd}
         onDoubleClick={onDoubleClick}
       >
-        <div className="absolute inset-0 pointer-events-none opacity-20" style={{ background: `radial-gradient(circle at 100% 0%, ${theme.primaryColor}40 0%, transparent 20%), radial-gradient(circle at 0% 100%, ${theme.accentColor}40 0%, transparent 20%)` }} />
+        <div className="absolute inset-0 pointer-events-none opacity-20" style={{ background: `radial-gradient(circle at 100% 0%, color-mix(in srgb, ${theme.primaryColor} 25.1%, transparent) 0%, transparent 20%), radial-gradient(circle at 0% 100%, color-mix(in srgb, ${theme.accentColor} 25.1%, transparent) 0%, transparent 20%)` }} />
         {children}
       </motion.div>
     )

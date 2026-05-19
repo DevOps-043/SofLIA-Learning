@@ -179,7 +179,7 @@ export function PanelStatCard({
   title,
   value,
 }: PanelStatCardProps) {
-  const surfaceBorder = theme.isLightMode ? '#E2E8F0' : 'rgba(255, 255, 255, 0.04)'
+  const surfaceBorder = theme.isLightMode ? 'var(--color-gray-200)' : 'rgba(255, 255, 255, 0.04)'
   const card = (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -261,7 +261,7 @@ export function PanelQuickAction({
   theme,
   title,
 }: PanelQuickActionProps) {
-  const surfaceBorder = theme.isLightMode ? '#E2E8F0' : 'rgba(255, 255, 255, 0.04)'
+  const surfaceBorder = theme.isLightMode ? 'var(--color-gray-200)' : 'rgba(255, 255, 255, 0.04)'
 
   return (
     <motion.div

@@ -8,7 +8,7 @@ export const PHOTO_PRODUCT_TEMPLATE: NanoBananaSchema = {
   },
   scene: {
     id: 'scene_product_photo', description: 'Fotografía de producto en estudio',
-    environment: { lighting: 'studio-three-point', background: '#FFFFFF', mood: 'clean-professional' },
+    environment: { lighting: 'studio-three-point', background: 'var(--color-bg-light)', mood: 'clean-professional' },
   },
   entities: [
     {
@@ -17,15 +17,15 @@ export const PHOTO_PRODUCT_TEMPLATE: NanoBananaSchema = {
     },
     {
       id: 'light_key', type: 'light', name: 'Key Light', position: 'top-right', emphasis: 'background',
-      properties: { type: 'softbox', intensity: 1.0, color: '#FFFFFF', angle: 45, distance: 'medium' },
+      properties: { type: 'softbox', intensity: 1.0, color: 'var(--color-bg-light)', angle: 45, distance: 'medium' },
     },
     {
       id: 'light_fill', type: 'light', name: 'Fill Light', position: 'left', emphasis: 'background',
-      properties: { type: 'reflector', intensity: 0.5, color: '#FFFFFF', angle: -30 },
+      properties: { type: 'reflector', intensity: 0.5, color: 'var(--color-bg-light)', angle: -30 },
     },
     {
       id: 'light_rim', type: 'light', name: 'Rim Light', position: 'top-left', emphasis: 'background',
-      properties: { type: 'strip', intensity: 0.7, color: '#FFFFFF', angle: 135 },
+      properties: { type: 'strip', intensity: 0.7, color: 'var(--color-bg-light)', angle: 135 },
     },
   ],
   constraints: {

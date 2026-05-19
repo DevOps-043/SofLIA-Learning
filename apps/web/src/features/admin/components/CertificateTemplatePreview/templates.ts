@@ -6,9 +6,9 @@ export const certificateTemplates: CertificateTemplate[] = [
     name: 'Plantilla Clásica',
     description: 'Diseño profesional con bordes decorativos y elementos ornamentales elegantes',
     preview: {
-      primaryColor: '#1e3a8a',
-      secondaryColor: '#60a5fa',
-      accentColor: '#d4af37',
+      primaryColor: 'var(--color-legacy-1e3a8a)',
+      secondaryColor: 'var(--color-legacy-60a5fa)',
+      accentColor: 'var(--color-legacy-d4af37)',
       style: 'default',
     },
   },

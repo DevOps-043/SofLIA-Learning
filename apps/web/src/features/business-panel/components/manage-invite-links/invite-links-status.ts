@@ -8,13 +8,13 @@ export function getInviteLinkStatusConfig(
 ) {
   switch (status) {
     case 'active':
-      return { label: t('users.modals.manageLinks.status.active', 'Activo'), color: '#22C55E', bgColor: 'rgba(34, 197, 94, 0.1)', icon: CheckCircle }
+      return { label: t('users.modals.manageLinks.status.active', 'Activo'), color: 'var(--color-legacy-22c55e)', bgColor: 'rgba(34, 197, 94, 0.1)', icon: CheckCircle }
     case 'paused':
-      return { label: t('users.modals.manageLinks.status.paused', 'Pausado'), color: '#F59E0B', bgColor: 'rgba(245, 158, 11, 0.1)', icon: Pause }
+      return { label: t('users.modals.manageLinks.status.paused', 'Pausado'), color: 'var(--color-warning)', bgColor: 'rgba(245, 158, 11, 0.1)', icon: Pause }
     case 'expired':
-      return { label: t('users.modals.manageLinks.status.expired', 'Expirado'), color: '#EF4444', bgColor: 'rgba(239, 68, 68, 0.1)', icon: Clock }
+      return { label: t('users.modals.manageLinks.status.expired', 'Expirado'), color: 'var(--color-error)', bgColor: 'rgba(239, 68, 68, 0.1)', icon: Clock }
     case 'exhausted':
-      return { label: t('users.modals.manageLinks.status.exhausted', 'Agotado'), color: '#6B7280', bgColor: 'rgba(107, 114, 128, 0.1)', icon: XCircle }
+      return { label: t('users.modals.manageLinks.status.exhausted', 'Agotado'), color: 'var(--color-legacy-6b7280)', bgColor: 'rgba(107, 114, 128, 0.1)', icon: XCircle }
     default:
       return { label: status, color: fallback.color, bgColor: fallback.bgColor, icon: AlertCircle }
   }

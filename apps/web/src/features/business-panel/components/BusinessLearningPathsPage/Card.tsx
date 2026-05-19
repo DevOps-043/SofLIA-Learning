@@ -18,7 +18,7 @@ export function BusinessLearningPathCard({ path, index, logic, t, onOpenVideos }
     <motion.article key={path.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }} className="flex flex-col overflow-hidden rounded-[2rem] border" style={{ backgroundColor: inputBg, borderColor }}>
       <div className="p-6 pb-4 border-b" style={{ borderColor }}>
         <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl" style={{ background: `linear-gradient(135deg, ${primaryColor}20, ${accentColor}20)`, color: primaryColor }}>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${primaryColor} 12.5%, transparent), color-mix(in srgb, ${accentColor} 12.5%, transparent))`, color: primaryColor }}>
             <Layers className="h-5 w-5" strokeWidth={2.5} />
           </div>
           <div className="px-2.5 py-1 rounded-xl border text-[9px] font-black uppercase tracking-wider" style={{ backgroundColor: panelBg, borderColor, color: mutedTextColor }}>
@@ -26,7 +26,7 @@ export function BusinessLearningPathCard({ path, index, logic, t, onOpenVideos }
           </div>
         </div>
         {defaultRulesCount > 0 ? (
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1 text-[9px] font-black uppercase tracking-wider" style={{ backgroundColor: `${accentColor}14`, borderColor: `${accentColor}35`, color: accentColor }}>
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1 text-[9px] font-black uppercase tracking-wider" style={{ backgroundColor: `color-mix(in srgb, ${accentColor} 7.8%, transparent)`, borderColor: `color-mix(in srgb, ${accentColor} 20.8%, transparent)`, color: accentColor }}>
             <Sparkles className="h-3 w-3" />{t('learningPathsPage.defaults.badge', { count: defaultRulesCount })}
           </div>
         ) : null}
@@ -38,7 +38,7 @@ export function BusinessLearningPathCard({ path, index, logic, t, onOpenVideos }
           <p className="text-[9px] font-black uppercase tracking-widest mb-3" style={{ color: mutedTextColor }}>Contenido</p>
           {path.items.slice(0, 3).map((item) => (
             <div key={item.id} className="flex items-center gap-2.5 rounded-2xl border px-4 py-2.5" style={{ backgroundColor: panelBg, borderColor }}>
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg text-[9px] font-black" style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}>{item.position}</span>
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg text-[9px] font-black" style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 12.5%, transparent)`, color: primaryColor }}>{item.position}</span>
               <p className="truncate text-xs font-medium" style={{ color: textColor }}>{item.course?.title ?? 'Taller sin título'}</p>
               {item.position === 1 ? null : <Lock className="ml-auto h-3 w-3 shrink-0 opacity-30" style={{ color: textColor }} />}
             </div>

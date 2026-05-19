@@ -19,7 +19,7 @@ export function DashboardWidgetCard({ isEditMode, onRemoveWidget, widgetId }: Da
       {isEditMode && (
         <div className="mb-3 flex items-center justify-between">
           <span className="text-sm font-medium" style={{ color: theme.subtextColor }}>{widgetLabel}</span>
-          <button type="button" onClick={() => onRemoveWidget(widgetId)} className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors" style={{ backgroundColor: `${theme.dangerColor}12`, color: theme.dangerColor }}>
+          <button type="button" onClick={() => onRemoveWidget(widgetId)} className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors" style={{ backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`, color: theme.dangerColor }}>
             <X className="h-4 w-4" />
           </button>
         </div>

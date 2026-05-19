@@ -2,7 +2,7 @@ import type { CourseThemeColors } from "./course-theme-types";
 
 export function buildCourseThemeLightCss(colors: CourseThemeColors): string {
   return `
-    .bg-\\[\\#0F1419\\], .bg-gray-900, .bg-slate-900 {
+    .bg-\\[\\var(--color-bg-dark)\\], .bg-gray-900, .bg-slate-900 {
       background-color: ${colors.bgSecondary} !important;
     }
 
@@ -14,7 +14,7 @@ export function buildCourseThemeLightCss(colors: CourseThemeColors): string {
       color: ${colors.text} !important;
     }
 
-    .bg-\\[\\#0A2540\\] {
+    .bg-\\[\\var(--color-primary)\\] {
       background-color: ${colors.primary} !important;
       color: white !important;
     }

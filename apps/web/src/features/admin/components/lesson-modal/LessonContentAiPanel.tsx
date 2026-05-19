@@ -23,8 +23,8 @@ export function LessonContentAiPanel({ formData, generatingAI, onGenerateAI, t }
             <SparklesIcon className="h-5 w-5" />
           </div>
           <div>
-            <h4 className="font-semibold text-[#0A2540] dark:text-white">{t('workshops.editor.lessons.aiTitle')}</h4>
-            <p className="text-xs text-[#6C757D] dark:text-white/70">{t('workshops.editor.lessons.aiDescription')}</p>
+            <h4 className="font-semibold text-primary dark:text-white">{t('workshops.editor.lessons.aiTitle')}</h4>
+            <p className="text-xs text-gray-500 dark:text-white/70">{t('workshops.editor.lessons.aiDescription')}</p>
           </div>
         </div>
         <motion.button

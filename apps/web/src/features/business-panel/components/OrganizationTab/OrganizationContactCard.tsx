@@ -44,7 +44,7 @@ function CopyButton({ copied, onClick, theme }: { copied: boolean; onClick: () =
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
       className="px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg"
-      style={{ backgroundColor: copied ? theme.successColor : theme.actionColor, color: theme.onActionColor, boxShadow: `0 6px 18px ${copied ? theme.successColor : theme.actionColor}33` }}
+      style={{ backgroundColor: copied ? theme.successColor : theme.actionColor, color: theme.onActionColor, boxShadow: `0 6px 18px color-mix(in srgb, ${copied ? theme.successColor : theme.actionColor} 20%, transparent)` }}
     >
       <Icon className="w-4 h-4" />
       <span className="hidden sm:inline">{copied ? 'Copiado' : 'Copiar'}</span>

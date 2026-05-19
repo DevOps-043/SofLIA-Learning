@@ -27,7 +27,7 @@ export function CourseTileMedia({
     <div
       className="relative aspect-video overflow-hidden rounded-md border"
       style={{
-        backgroundColor: `${orgColors.textMuted}14`,
+        backgroundColor: `color-mix(in srgb, ${orgColors.textMuted} 7.8%, transparent)`,
         borderColor: orgColors.border,
       }}
     >

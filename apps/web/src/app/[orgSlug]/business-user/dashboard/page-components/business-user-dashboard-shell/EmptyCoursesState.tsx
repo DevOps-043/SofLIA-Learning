@@ -28,7 +28,7 @@ export function EmptyCoursesState({
     >
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: `radial-gradient(circle at 50% 50%, ${orgColors.primary}15, transparent 60%)` }}
+        style={{ background: `radial-gradient(circle at 50% 50%, color-mix(in srgb, ${orgColors.primary} 8.2%, transparent), transparent 60%)` }}
       />
       <motion.div
         initial={disableHeavyEffects ? false : { scale: 0.8 }}
@@ -39,8 +39,8 @@ export function EmptyCoursesState({
         <div
           className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border"
           style={{
-            backgroundColor: `${orgColors.iconColor}15`,
-            borderColor: `${orgColors.iconColor}30`,
+            backgroundColor: `color-mix(in srgb, ${orgColors.iconColor} 8.2%, transparent)`,
+            borderColor: `color-mix(in srgb, ${orgColors.iconColor} 18.8%, transparent)`,
           }}
         >
           <BookOpen className="h-10 w-10" style={{ color: orgColors.iconColor }} />
@@ -54,8 +54,8 @@ export function EmptyCoursesState({
             'Tu organizacion te asignara cursos proximamente. Mientras tanto, explora lo que tenemos preparado para ti.',
           )}
         </p>
-        <Sparkles className="absolute right-6 top-6 h-5 w-5" style={{ color: `${orgColors.iconColor}50` }} />
-        <GraduationCap className="absolute bottom-8 left-8 h-6 w-6" style={{ color: `${orgColors.iconColor}50` }} />
+        <Sparkles className="absolute right-6 top-6 h-5 w-5" style={{ color: `color-mix(in srgb, ${orgColors.iconColor} 31.4%, transparent)` }} />
+        <GraduationCap className="absolute bottom-8 left-8 h-6 w-6" style={{ color: `color-mix(in srgb, ${orgColors.iconColor} 31.4%, transparent)` }} />
       </motion.div>
       {!disableHeavyEffects ? <EmptyCoursesBorder orgColors={orgColors} /> : null}
     </motion.div>
@@ -69,9 +69,9 @@ function EmptyCoursesBorder({
     <div
       className="absolute inset-0 rounded-2xl pointer-events-none"
       style={{
-        background: `linear-gradient(135deg, ${orgColors.primary}30, transparent, ${orgColors.accent}15)`,
+        background: `linear-gradient(135deg, color-mix(in srgb, ${orgColors.primary} 18.8%, transparent), transparent, color-mix(in srgb, ${orgColors.accent} 8.2%, transparent))`,
         padding: '1px',
-        mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+        mask: 'linear-gradient(var(--color-bg-light) 0 0) content-box, linear-gradient(var(--color-bg-light) 0 0)',
         maskComposite: 'exclude',
         WebkitMaskComposite: 'xor',
       }}

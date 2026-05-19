@@ -19,8 +19,8 @@ export function ManagementTabStrip() {
           type="button"
           className={`min-w-[148px] rounded-2xl px-4 py-3 text-sm font-semibold transition ${
             index === 0
-              ? 'bg-[#0A2540] text-white'
-              : 'border border-[#DCE7F3] bg-white text-[#526174] dark:border-white/10 dark:bg-white/5 dark:text-white/70'
+              ? 'bg-primary text-white'
+              : 'border border-[var(--color-legacy-dce7f3)] bg-white text-[var(--color-legacy-526174)] dark:border-white/10 dark:bg-white/5 dark:text-white/70'
           }`}
         >
           {tab}

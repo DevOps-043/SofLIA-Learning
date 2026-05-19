@@ -12,7 +12,7 @@ export function PreviewBadge({ label, loading, orgColors }: PreviewBadgeProps) {
     <div
       className="mb-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold"
       style={{
-        backgroundColor: `${orgColors.iconColor}18`,
+        backgroundColor: `color-mix(in srgb, ${orgColors.iconColor} 9.4%, transparent)`,
         color: orgColors.iconColor,
       }}
     >

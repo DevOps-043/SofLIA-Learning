@@ -1,3 +1,3 @@
-export const fieldLabelClass = 'block text-sm font-medium text-[#0A2540] dark:text-white mb-2';
-export const fieldClass = 'w-full px-4 py-2.5 rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-[#6C757D] focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-[#00D4B3] transition-all';
+export const fieldLabelClass = 'block text-sm font-medium text-primary dark:text-white mb-2';
+export const fieldClass = 'w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-500/30 bg-white dark:bg-carbon-800 text-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all';
 export const fontStyle = { fontFamily: 'Inter, sans-serif' };

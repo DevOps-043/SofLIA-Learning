@@ -15,7 +15,7 @@ export function RolesSection() {
   const { t } = useTranslation('business')
 
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-white/5 dark:bg-[#1E2329]">
+    <div className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-white/5 dark:bg-carbon-800">
       <div className="mb-5 flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/20">
           <Shield className="h-5 w-5 text-white" />

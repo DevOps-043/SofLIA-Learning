@@ -33,10 +33,10 @@ const TREND_DATA = [
 const FALLBACK_STATUS_DATA = [{ mes: 'Nov', completados: 0, enProgreso: 0, noIniciados: 0 }]
 
 const TOOLTIP_STYLE = {
-  backgroundColor: '#1E2329',
-  border: '1px solid #6C757D',
+  backgroundColor: 'var(--color-gray-800)',
+  border: '1px solid var(--color-gray-500)',
   borderRadius: '8px',
-  color: '#fff',
+  color: 'var(--color-bg-light)',
 }
 
 export function CourseStatsChartSections() {
@@ -45,21 +45,21 @@ export function CourseStatsChartSections() {
   } = useCourseManagementContext()
 
   const progressData = [
-    { name: '0-25%', value: userStats?.not_started ?? 0, fill: '#F59E0B' },
+    { name: '0-25%', value: userStats?.not_started ?? 0, fill: 'var(--color-warning)' },
     {
       name: '26-50%',
       value: Math.floor((userStats?.in_progress ?? 0) * 0.3),
-      fill: '#00D4B3',
+      fill: 'var(--color-accent)',
     },
     {
       name: '51-75%',
       value: Math.floor((userStats?.in_progress ?? 0) * 0.4),
-      fill: '#10B981',
+      fill: 'var(--color-success)',
     },
     {
       name: '76-100%',
       value: (userStats?.completed ?? 0) + Math.floor((userStats?.in_progress ?? 0) * 0.3),
-      fill: '#0A2540',
+      fill: 'var(--color-primary)',
     },
   ]
 
@@ -70,17 +70,17 @@ export function CourseStatsChartSections() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
-          className="rounded-2xl border border-[#E9ECEF] bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg dark:border-[#6C757D]/30 dark:bg-[#1E2329]"
+          className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg dark:border-gray-500/30 dark:bg-carbon-800"
         >
           <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-[#00D4B3] to-[#10B981]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-success">
               <TrendingUp className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-[#0A2540] dark:text-white">
+              <h3 className="text-lg font-bold text-primary dark:text-white">
                 Distribucion de Progreso
               </h3>
-              <p className="text-xs text-[#6C757D] dark:text-white/60">
+              <p className="text-xs text-gray-500 dark:text-white/60">
                 Estado actual de los estudiantes
               </p>
             </div>
@@ -95,7 +95,7 @@ export function CourseStatsChartSections() {
                   labelLine={false}
                   label={({ name, percent }) => `${name}: ${(((percent || 0) * 100)).toFixed(0)}%`}
                   outerRadius={80}
-                  fill="#8884d8"
+                  fill="var(--color-legacy-8884d8)"
                   dataKey="value"
                 >
                   {progressData.map((entry, index) => (
@@ -113,17 +113,17 @@ export function CourseStatsChartSections() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
-          className="rounded-2xl border border-[#E9ECEF] bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg dark:border-[#6C757D]/30 dark:bg-[#1E2329]"
+          className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg dark:border-gray-500/30 dark:bg-carbon-800"
         >
           <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-[#0A2540] to-[#00D4B3]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
               <LineChartIcon className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-[#0A2540] dark:text-white">
+              <h3 className="text-lg font-bold text-primary dark:text-white">
                 Tendencia de Inscripciones
               </h3>
-              <p className="text-xs text-[#6C757D] dark:text-white/60">Ultimos 7 dias</p>
+              <p className="text-xs text-gray-500 dark:text-white/60">Ultimos 7 dias</p>
             </div>
           </div>
           <div className="h-64">
@@ -131,22 +131,22 @@ export function CourseStatsChartSections() {
               <AreaChart data={TREND_DATA}>
                 <defs>
                   <linearGradient id="colorInscripciones" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0A2540" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#0A2540" stopOpacity={0.1} />
+                    <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0.1} />
                   </linearGradient>
                   <linearGradient id="colorActivos" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00D4B3" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#00D4B3" stopOpacity={0.1} />
+                    <stop offset="5%" stopColor="var(--color-accent)" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="var(--color-accent)" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E9ECEF" opacity={0.3} />
-                <XAxis dataKey="dia" stroke="#6C757D" tick={{ fill: '#6C757D', fontSize: 12 }} />
-                <YAxis stroke="#6C757D" tick={{ fill: '#6C757D', fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-gray-200)" opacity={0.3} />
+                <XAxis dataKey="dia" stroke="var(--color-gray-500)" tick={{ fill: 'var(--color-gray-500)', fontSize: 12 }} />
+                <YAxis stroke="var(--color-gray-500)" tick={{ fill: 'var(--color-gray-500)', fontSize: 12 }} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
                 <Area
                   type="monotone"
                   dataKey="inscripciones"
-                  stroke="#0A2540"
+                  stroke="var(--color-primary)"
                   fillOpacity={1}
                   fill="url(#colorInscripciones)"
                   strokeWidth={2}
@@ -154,7 +154,7 @@ export function CourseStatsChartSections() {
                 <Area
                   type="monotone"
                   dataKey="activos"
-                  stroke="#00D4B3"
+                  stroke="var(--color-accent)"
                   fillOpacity={1}
                   fill="url(#colorActivos)"
                   strokeWidth={2}
@@ -169,17 +169,17 @@ export function CourseStatsChartSections() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
-        className="rounded-2xl border border-[#E9ECEF] bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg dark:border-[#6C757D]/30 dark:bg-[#1E2329]"
+        className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg dark:border-gray-500/30 dark:bg-carbon-800"
       >
         <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-[#F59E0B] to-[#10B981]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-warning to-success">
             <Target className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-[#0A2540] dark:text-white">
+            <h3 className="text-lg font-bold text-primary dark:text-white">
               Estado de Estudiantes
             </h3>
-            <p className="text-xs text-[#6C757D] dark:text-white/60">
+            <p className="text-xs text-gray-500 dark:text-white/60">
               Evolucion del progreso en el tiempo
             </p>
           </div>
@@ -187,35 +187,35 @@ export function CourseStatsChartSections() {
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData?.student_status_by_month || FALLBACK_STATUS_DATA}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E9ECEF" opacity={0.3} />
-              <XAxis dataKey="mes" stroke="#6C757D" tick={{ fill: '#6C757D', fontSize: 12 }} />
-              <YAxis stroke="#6C757D" tick={{ fill: '#6C757D', fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-gray-200)" opacity={0.3} />
+              <XAxis dataKey="mes" stroke="var(--color-gray-500)" tick={{ fill: 'var(--color-gray-500)', fontSize: 12 }} />
+              <YAxis stroke="var(--color-gray-500)" tick={{ fill: 'var(--color-gray-500)', fontSize: 12 }} />
               <Tooltip contentStyle={TOOLTIP_STYLE} />
               <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px' }} />
               <Line
                 type="monotone"
                 dataKey="completados"
-                stroke="#10B981"
+                stroke="var(--color-success)"
                 strokeWidth={3}
-                dot={{ fill: '#10B981', r: 5 }}
+                dot={{ fill: 'var(--color-success)', r: 5 }}
                 activeDot={{ r: 7 }}
                 name="Completados"
               />
               <Line
                 type="monotone"
                 dataKey="enProgreso"
-                stroke="#00D4B3"
+                stroke="var(--color-accent)"
                 strokeWidth={3}
-                dot={{ fill: '#00D4B3', r: 5 }}
+                dot={{ fill: 'var(--color-accent)', r: 5 }}
                 activeDot={{ r: 7 }}
                 name="En Progreso"
               />
               <Line
                 type="monotone"
                 dataKey="noIniciados"
-                stroke="#F59E0B"
+                stroke="var(--color-warning)"
                 strokeWidth={3}
-                dot={{ fill: '#F59E0B', r: 5 }}
+                dot={{ fill: 'var(--color-warning)', r: 5 }}
                 activeDot={{ r: 7 }}
                 name="No Iniciados"
               />

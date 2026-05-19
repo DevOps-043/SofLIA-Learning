@@ -63,7 +63,7 @@ function SidebarNavigationLink({
         className={`group relative flex items-center px-3 py-3 rounded-xl transition-all duration-300 ease-out ${!expanded ? 'justify-center' : 'justify-start gap-3'}`}
         style={{
           backgroundColor: isActive ? theme.primaryColor : 'transparent',
-          boxShadow: isActive ? `0 4px 20px -5px ${theme.primaryColor}60` : 'none',
+          boxShadow: isActive ? `0 4px 20px -5px color-mix(in srgb, ${theme.primaryColor} 37.6%, transparent)` : 'none',
           color: isActive ? theme.onPrimaryColor : theme.textColor,
           opacity: isActive ? 1 : 0.78,
         }}

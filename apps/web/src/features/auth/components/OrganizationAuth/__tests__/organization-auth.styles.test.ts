@@ -8,14 +8,14 @@ describe('organization-auth.styles', () => {
   it('genera paleta consistente para tema oscuro', () => {
     const palette = buildOrganizationAuthPalette(
       {
-        primary_button_color: '#112233',
-        card_background: '#1a1a2e',
-        text_color: '#ffffff',
+        primary_button_color: 'var(--color-legacy-112233)',
+        card_background: 'var(--color-legacy-1a1a2e)',
+        text_color: 'var(--color-bg-light)',
       },
       true,
     )
 
-    expect(palette.primaryColor).toBe('#112233')
+    expect(palette.primaryColor).toBe('var(--color-legacy-112233)')
     expect(palette.inputBgColor).toContain('rgba(')
     expect(palette.isDark).toBe(true)
   })

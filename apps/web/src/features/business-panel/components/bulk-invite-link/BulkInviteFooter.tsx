@@ -36,7 +36,7 @@ export function BulkInviteFooter({ status, onClose }: BulkInviteFooterProps) {
         style={{
           backgroundColor: theme.primaryColor,
           color: theme.onPrimaryColor,
-          boxShadow: `0 4px 15px ${theme.primaryColor}40`,
+          boxShadow: `0 4px 15px color-mix(in srgb, ${theme.primaryColor} 25.1%, transparent)`,
         }}
       >
         {isLoading ? (

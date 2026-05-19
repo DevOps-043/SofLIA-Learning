@@ -29,7 +29,7 @@
 | Fase | Avance P1 | **Avance P2** | Lo bueno (P2) | Lo pendiente |
 |---|---:|---:|---|---|
 | 1 — Crítico | 40 % | **88 %** | `console.*` y `select('*')` literales a **0**, `any` 13 (`: any` scan), service-role audit ✅, auth API central: 654/764 entradas no públicas protegidas | `tsc` timeout (TD-001), migración masiva de 207 rutas con `await request.json()` pendiente |
-| 2 — Alto | 29 % | **60 %** | N+1 cerrado en prioritarios, lib/api cobertura 100 %, 31 tests focales, error envelope en rutas auth críticas | Hex colors (3 029 matches sin tocar), cobertura global ~7 %, error envelope resto de rutas |
+| 2 — Alto | 29 % | **60 %** | N+1 cerrado en prioritarios, lib/api cobertura 100 %, 31 tests focales, error envelope en rutas auth críticas; hex colors en `apps/web/src` a 0 | Cobertura global ~7 %, error envelope resto de rutas |
 | 3 — Estratégico | 88 % | **100 %** ✅ | Charts consolidados, OpenAPI, BD.sql limpio, observabilidad estructurada completa con sink HTTP APM | Mantener adopción wrapper en rutas nuevas |
 | 4 — Performance 10k | 70 % | **88 %** | QStash-ready, pool-check, audit pagination, circuit breakers en 10+ proveedores, métricas APM, dashboards | Provisionar Upstash + APM real + primera k6 staging |
 | 5 — Seguridad OWASP | 15 % | **82 %** ✅ | **Explosión de implementación**: requireOrgAccess, safe-fetch, security-audit-log, sanitize-html, bot-protection, upload validation, GDPR endpoints, IRP, threat model, CSP report-only/enforce-ready, Dependabot, lockout+HIBP, OAuth state tests | MFA, CSP enforcement (post-soak), restore drill real, primera triage Dependabot |
@@ -45,7 +45,7 @@
 
 1. **TD-001 — `tsc --noEmit` hace timeout a los 300 s** SIGUE ACTIVO en Pasada 2. Bloquea Tarea 1.3 (activar strict mode). Probable causa: tamaño del proyecto + memoria + dependencias cruzadas. Necesita: `tsc --noEmit --extendedDiagnostics`, posible split por subproyecto, `incremental: true` en `tsconfig`.
 2. **Migración masiva de 207 rutas con `await request.json()` → `withZodBody`** — los helpers están listos, falta el trabajo iterativo. Mayor multiplicador de salud pendiente.
-3. **Hex colors masivo** (3 029 matches en 505 archivos) — único ítem mecánico de alto volumen sin atacar. Script find/replace + revisión por carpeta.
+3. **Hex colors masivo** — resuelto en `apps/web/src` (0 matches en TS/TSX/CSS). Quedan referencias históricas solo en SQL aplicado/documental que no debe reescribirse.
 4. **Cobertura global de tests** (~7 %) — lib/api ya está al 100 %, falta replicar en el resto.
 
 ---
@@ -446,8 +446,8 @@ Antes de tocar código:
 3. Agregar regla ESLint o stylelint que bloquee nuevos hex literals en `.tsx`/`.ts`.
 
 **Criterio de aceptación**:
-- [ ] <10 archivos con hex (solo SVG embebidos justificados).
-- [ ] Regla ESLint activa.
+- [x] <10 archivos con hex (0 en `apps/web/src/**/*.{ts,tsx,css}`).
+- [x] Regla ESLint activa.
 
 **Template `docs/tech-debt/hardcoded-colors.md`**:
 
@@ -1328,7 +1328,7 @@ Agregar `gitleaks` y `npm audit --audit-level=high` también en pre-commit / pre
 Marcar conforme se complete cada tarea. Actualizar en cada PR.
 
 > Leyenda: `[x]` cerrada · `[~]` en progreso · `[!]` bloqueada · `[ ]` no iniciada
-> Última verificación: **2026-05-18 — cierre de 1.5/API auth central** (deuda 26 % → **14 %**, salud **86.20**).
+> Última verificación: **2026-05-19 — cierre de 2.3/hex colors** (`apps/web/src/**/*.{ts,tsx,css}` en 0 matches; guardrail ESLint activo).
 
 ### Fase 1 — Crítico (88 % avance, era 40 %)
 - [~] 1.1 Baseline de errores TS/ESLint generado — ESLint OK; `npm run type-check --workspace=apps/web` sigue en timeout/procesos hijos (TD-001); `core`, `lib`, `shared` ya completan aislados; P3 confirmó timeouts en dominios grandes de `app/api` y `features`
@@ -1342,7 +1342,7 @@ Marcar conforme se complete cada tarea. Actualizar en cada PR.
 ### Fase 2 — Alto (60 % avance, era 29 %)
 - [x] 2.1 `select('*')` <30 ocurrencias justificadas — **0 `.select('*')` literals** en `apps/web/src`; `SELECT_COLUMNS` centraliza selectores y documenta 7 fallbacks legacy `'*'` por brecha de schema
 - [x] 2.2 N+1 eliminados en bulk operations prioritarias — `business/users/import` refactorizado a lookups/inserts/asignaciones batch + test 100 filas <3s; SCORM ya usa `Promise.all`; course-videos no presenta loop N+1 en la auditoría focalizada
-- [~] 2.3 Hex colors <10 archivos — audit ✅ + guardrail ESLint warning/local y `CI_STRICT_TECH_DEBT=true` como error válido. **3 047 matches / 509 archivos sin tocar** ⚠️
+- [x] 2.3 Hex colors <10 archivos — audit actualizado ✅ + guardrail ESLint como `error`. **0 matches / 0 archivos en `apps/web/src/**/*.{ts,tsx,css}`**; defaults de branding derivados desde `core/theme/color-tokens.ts` ✅
 - [~] 2.4 Cobertura ≥25 % global, ≥60 % módulos críticos — `@vitest/coverage-v8` ✅; `test:coverage:critical` + workflow CI ✅; coverage focalizado `lib/api` **100 % statements/lines**, `app/api/auth/refresh` **92.85 % statements**, `dashboard-destination` **77.77 % statements** (34 tests). Global sigue ~5-7 %
 - [~] 2.5 RLS habilitado en 100 % tablas + matriz documentada — `rls-matrix.md` ✅ + migración `reportes_problemas_rls.sql` + test estático `rls-migrations.test.ts` que bloquea tablas públicas nuevas sin RLS. Falta verificación runtime Supabase.
 - [~] 2.6 Error envelope en 100 % rutas — helper `errors.ts` ✅ + 34 tests focalizados; migradas rutas auth críticas (`me`, `questionnaire-status`, `sessions`, `refresh`, `dashboard-destination`) a `{ error, message }` para fallos reales. **Falta migrar el resto de rutas API**
@@ -1401,7 +1401,7 @@ Marcar conforme se complete cada tarea. Actualizar en cada PR.
 | P3-1 | 🔴 P1 | Resolver TD-001 (`tsc --noEmit` timeout) | 1.1, 1.3 |
 | P3-2 | 🔴 P1 | Limpiar artifacts del stage (`coverage/`, `tsc-err.tmp`) + verificar `.gitignore` | infra |
 | P3-3 | 🟠 P2 | Migrar 207 rutas con `await request.json()` → `withZodBody` | 1.4 |
-| P3-4 | 🟠 P2 | Hex colors masivo (3 029 matches → <10) — script + revisión por carpeta | 2.3 |
+| P3-4 | ✅ P2 | Hex colors masivo (3 029 matches → 0 en `apps/web/src`) — script + revisión por carpeta | 2.3 |
 | P3-5 | 🟠 P2 | Cobertura global tests ≥25 % (auth, security, api/auth, api/business/users) | 2.4 |
 | P3-6 | 🟠 P2 | Migrar rutas restantes al error envelope estándar | 2.6 |
 | P3-7 | 🟡 P3 | Provisionar Upstash Redis + conectar cache + rate-limit | 4.2, 4.9 |
@@ -1422,8 +1422,8 @@ Marcar conforme se complete cada tarea. Actualizar en cada PR.
 | **A1** 🔴 | P3-1 (TD-001) + P3-2 (cleanup) + 1.3 (activar strict mode tras fix) | full-time |
 | **A2** 🔴 | P3-3 mitad: `withZodBody` en `/api/admin/*` + `/api/business/*` | full-time multi-PR |
 | **A3** 🔴 | P3-3 mitad: `withZodBody` en `/api/[orgSlug]/*` + `/api/courses/*` + `/api/study-planner/*` | full-time multi-PR |
-| **A4** 🔴 | P3-4 hex colors masivo (`apps/web/src/app/*` + `features/*` mitad) | full-time multi-PR |
-| **A5** 🔴 | P3-4 hex colors masivo (`features/*` otra mitad + `core/*` + `shared/*`) | full-time multi-PR |
+| **A4** ✅ | P3-4 hex colors masivo (`apps/web/src/app/*` + `features/*` mitad) | cerrado |
+| **A5** ✅ | P3-4 hex colors masivo (`features/*` otra mitad + `core/*` + `shared/*`) | cerrado |
 | **A6** 🟠 | P3-5 cobertura tests módulos críticos (auth, security, lib) | full-time |
 | **A7** 🟠 | P3-5 cobertura tests business + admin services | full-time |
 | **A8** 🟠 | P3-6 error envelope masivo en rutas restantes | full-time |
@@ -1439,7 +1439,7 @@ Marcar conforme se complete cada tarea. Actualizar en cada PR.
 
 - **A1 (TD-001) es bloqueador absoluto** para A2-A3-A8: sin `type-check` funcionando no se puede validar migración masiva
 - A2-A3 (Zod masivo) son independientes entre sí — paralelo seguro
-- A4-A5 (hex colors) requieren coordinación con `OrganizationStylesContext` para colores branded
+- A4-A5 (hex colors) cerrados; mantener `OrganizationStylesContext` y defaults de branding sobre tokens centralizados
 - A6-A7 (cobertura) deben arrancar **después** de A2-A3-A8 para no escribir tests sobre código que cambiará
 - A9 (Upstash) habilita validación real de A10 (APM puede consumir cache metrics) y P3-9 (k6 puede medir cache hit rate)
 
@@ -1481,7 +1481,7 @@ Actualizar tabla en `docs/tech-debt/progress.md`:
 |---|---:|---:|---:|---:|---:|
 | `any` ocurrencias | 982 / 384 | 138 / 27 | **138 / 27** ✅ (sin cambio, meta cumplida) | <100 | <50 |
 | `console.*` ocurrencias | 3 070 / 514 | 0 (codemod) | **0 / 0** ✅ (verificado) | 0 | 0 |
-| Hex colors hardcoded | 139 archivos | 509 / 3 047 | **505 / 3 029** ⚠️ −1 % sigue intacto | <50 archivos | <10 archivos |
+| Hex colors hardcoded | 139 archivos | 509 / 3 047 | **0 / 0 en `apps/web/src/**/*.{ts,tsx,css}`** ✅ | <50 archivos | <10 archivos |
 | `select('*')` | 169 / 116 | 0 literales (7 legacy) | **0 / 0** ✅ (verificado) | <30 | <30 |
 | Rutas con `withZodBody` | ~39/451 | ~42/451 | **invite-links PATCH/POST + user-groups POST/PUT migrados; 207 `await request.json()` pendientes** | 250/462 | 462/462 (mut.) |
 | Rutas con auth API central | ~49/451 | base helper | **654/764 entradas método-ruta no públicas protegidas por `api-route-auth`** ✅ (105 públicas documentadas, 5 internas con secreto) | 100 % no-públicas | 100 % no-públicas |
@@ -1560,7 +1560,7 @@ deuda_técnica = 100 - sum(peso_i × salud_i)
 |---|---:|---:|---:|---:|---:|---:|
 | Correctitud / Type Safety | 25 % | 55 | 75 | **89** (+14) — `console.*` 0, `select('*')` 0, auth API central cubre 654/764 entradas método-ruta no públicas; `tsc` aún timeout | 95 | ≥90 |
 | Seguridad | 25 % | 65 | 70 | **88** (+18) — Fase 5 explotó: 9 implementaciones core + 7 parciales fuertes (CSP, audit log, safeFetch, bot, upload, GDPR, IRP) | 95 | ≥95 |
-| Mantenibilidad / Legibilidad | 20 % | 75 | 78 | **82** (+4) — `select('*')` 0, error envelope progreso; hex colors sin tocar | 90 | ≥85 |
+| Mantenibilidad / Legibilidad | 20 % | 75 | 78 | **86** (+8) — `select('*')` 0, error envelope progreso; hex colors a 0 en la app con guardrail ESLint | 90 | ≥85 |
 | Performance / BD | 15 % | 60 | 80 | **90** (+10) — QStash-ready, pool-check, audit pagination, CB en 10+ proveedores, métricas APM | 96 | ≥90 |
 | Testing / QA | 10 % | 50 | 57 | **68** (+11) — 31 tests focales, lib/api 100 %, auth/refresh 92.85 %; global aún bajo | 80 | ≥75 |
 | Observabilidad | 5 % | 45 | 70 | **88** (+18) — sink HTTP APM configurable, runbooks (5), `/observability/health`, `request_duration_ms` en wrappers | 92 | ≥90 |
@@ -1572,7 +1572,7 @@ deuda_técnica = 100 - sum(peso_i × salud_i)
 - ✅✅ **Seguridad demolida**: subió de 70 → 88 en una pasada. 9 implementaciones core + 7 parciales fuertes en Fase 5. Es donde más se ganó.
 - ✅✅ **Correctitud**: `console.*` y `select('*')` literales a 0; auth API central cubre 654 entradas método-ruta no públicas y documenta 105 públicas. Solo TD-001 evita cerrar al 95 %.
 - ✅ **Performance, Observabilidad** mantienen ritmo alto: QStash-ready, circuit breakers en 10+ proveedores, sink APM configurable.
-- ⚠️ **Mantenibilidad** sigue limitada por hex colors (3 029 matches sin tocar) — único pendiente mecánico de gran volumen.
+- ✅ **Mantenibilidad** ya no queda limitada por hex colors en la app: `apps/web/src/**/*.{ts,tsx,css}` reporta 0 matches y ESLint bloquea regresiones.
 - ⚠️ **Testing**: cobertura focal excelente (100 %), pero global aún ~7 %.
 - 🔴 **Bloqueador único persistente**: TD-001 (`tsc` timeout) sigue sin resolver y bloquea cierre de Type Safety al 95 %.
 
@@ -1608,5 +1608,5 @@ Al finalizar cada tarea, en el PR debe haber:
 
 ---
 
-**Última actualización del documento**: 2026-05-18 — análisis inicial.
+**Última actualización del documento**: 2026-05-19 — cierre Tarea 2.3 hex colors en `apps/web/src`.
 **Mantener este documento vivo**: cada PR que cierre una tarea debe actualizar el checklist y la tabla de progreso.

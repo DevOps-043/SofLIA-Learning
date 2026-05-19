@@ -28,14 +28,14 @@ export function ProfileHero({
   const { t } = useTranslation('common')
   return (
     <div id={PROFILE_TOUR_TARGET_IDS.hero} className="relative overflow-hidden">
-      <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${colors.accent}10 0%, transparent 100%)` }} />
-      <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-[120px]" style={{ backgroundColor: `${colors.accent}20` }} />
-      <div className="absolute top-0 right-1/4 w-96 h-96 rounded-full blur-[120px]" style={{ backgroundColor: `${colors.primary}20` }} />
+      <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, color-mix(in srgb, ${colors.accent} 6.3%, transparent) 0%, transparent 100%)` }} />
+      <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-[120px]" style={{ backgroundColor: `color-mix(in srgb, ${colors.accent} 12.5%, transparent)` }} />
+      <div className="absolute top-0 right-1/4 w-96 h-96 rounded-full blur-[120px]" style={{ backgroundColor: `color-mix(in srgb, ${colors.primary} 12.5%, transparent)` }} />
 
       <div className="relative px-6 lg:px-12 py-12">
         <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
           <motion.div id={PROFILE_TOUR_TARGET_IDS.avatar} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative group">
-            <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-3xl p-1" style={{ background: `linear-gradient(135deg, ${colors.accent}30, ${colors.primary}30)` }}>
+            <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-3xl p-1" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${colors.accent} 18.8%, transparent), color-mix(in srgb, ${colors.primary} 18.8%, transparent))` }}>
               <div className="w-full h-full rounded-[22px] overflow-hidden flex items-center justify-center relative" style={{ backgroundColor: colors.bgSecondary }}>
                 {profile.profile_picture_url && !imageError ? (
                   <img
@@ -67,7 +67,7 @@ export function ProfileHero({
             <motion.label
               htmlFor="avatar-upload"
               className="absolute -bottom-2 -right-2 w-12 h-12 rounded-2xl flex items-center justify-center cursor-pointer transition-transform hover:scale-110 active:scale-95 z-10"
-              style={{ backgroundColor: colors.accent, boxShadow: `0 10px 30px ${colors.accent}40` }}
+              style={{ backgroundColor: colors.accent, boxShadow: `0 10px 30px color-mix(in srgb, ${colors.accent} 25.1%, transparent)` }}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >

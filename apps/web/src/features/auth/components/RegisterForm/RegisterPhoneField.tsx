@@ -26,7 +26,7 @@ export function RegisterPhoneField({
 }: RegisterPhoneFieldProps) {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45, duration: 0.4 }}>
-      <label className="block text-sm font-medium mb-2 text-[#0A2540] dark:text-white/90">
+      <label className="block text-sm font-medium mb-2 text-primary dark:text-white/90">
         {t('auth.register.phoneLabel')}
       </label>
       <div className="flex gap-2">

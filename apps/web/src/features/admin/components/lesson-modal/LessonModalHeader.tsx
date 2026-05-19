@@ -10,11 +10,11 @@ interface LessonModalHeaderProps {
 
 export function LessonModalHeader({ isEditing, onClose, t }: LessonModalHeaderProps) {
   return (
-    <div className="relative border-b border-[#0A2540]/20 bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 px-4 py-4 dark:from-[#0A2540] dark:to-[#0A2540]/80 sm:px-6">
+    <div className="relative border-b border-primary/20 bg-gradient-to-r from-primary to-primary/90 px-4 py-4 dark:from-primary dark:to-primary/80 sm:px-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#00D4B3]/20 flex items-center justify-center">
-            <AcademicCapIcon className="h-5 w-5 text-[#00D4B3]" />
+          <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
+            <AcademicCapIcon className="h-5 w-5 text-accent" />
           </div>
           <div>
             <h3 className="text-lg font-bold text-white">

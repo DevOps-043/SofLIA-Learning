@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
 
-import { z } from 'zod';
+import { SessionService } from '@/features/auth/services/session.service'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { createClient } from '@/lib/supabase/server'
 
-import { createClient } from '../../../lib/supabase/server';
-
-import { SessionService } from '../../../features/auth/services/session.service';
+import { accountSettingsSchema, type AccountSettingsBody } from './schema'
 
 interface AccountSettingsUpdateData {
   profile_visibility?: string
@@ -17,91 +18,60 @@ interface AccountSettingsUpdateData {
   notification_community_updates?: boolean
 }
 
-const AccountSettingsSchema = z.object({
-  privacy: z.object({
-    profileVisibility: z.enum(['public', 'private', 'friends']).optional(),
-    showEmail: z.boolean().optional(),
-    showActivity: z.boolean().optional(),
-  }).optional(),
-  notifications: z.object({
-    email: z.boolean().optional(),
-    push: z.boolean().optional(),
-    marketing: z.boolean().optional(),
-    courseUpdates: z.boolean().optional(),
-    communityUpdates: z.boolean().optional(),
-  }).optional(),
-});
+async function handlePost(_request: NextRequest, body: AccountSettingsBody) {
+  const user = await SessionService.getCurrentUser()
+  if (!user) {
+    return apiError('UNAUTHORIZED', 'No autorizado', 401)
+  }
 
-export async function POST(request: NextRequest) {
+  const privacy = body.privacy ?? {}
+  const notifications = body.notifications ?? {}
+
+  const updateData: AccountSettingsUpdateData = {}
+  if (privacy.profileVisibility !== undefined)
+    updateData.profile_visibility = privacy.profileVisibility
+  if (privacy.showEmail !== undefined)
+    updateData.show_email = privacy.showEmail
+  if (privacy.showActivity !== undefined)
+    updateData.show_activity = privacy.showActivity
+  if (notifications.email !== undefined)
+    updateData.notification_email = notifications.email
+  if (notifications.push !== undefined)
+    updateData.notification_push = notifications.push
+  if (notifications.marketing !== undefined)
+    updateData.notification_marketing = notifications.marketing
+  if (notifications.courseUpdates !== undefined)
+    updateData.notification_course_updates = notifications.courseUpdates
+  if (notifications.communityUpdates !== undefined)
+    updateData.notification_community_updates = notifications.communityUpdates
+
   try {
-    const user = await SessionService.getCurrentUser();
-    
-    if (!user) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-    }
-
-    const rawBody = await request.json();
-    const parsed = AccountSettingsSchema.safeParse(rawBody);
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Datos inválidos', details: parsed.error.format() },
-        { status: 400 }
-      );
-    }
-    const { privacy, notifications } = parsed.data;
-
-    const supabase = await createClient();
-    
-    // Actualizar configuración en la base de datos
-    const updateData: AccountSettingsUpdateData = {};
-    
-    if (privacy.profileVisibility !== undefined) {
-      updateData.profile_visibility = privacy.profileVisibility;
-    }
-    if (privacy.showEmail !== undefined) {
-      updateData.show_email = privacy.showEmail;
-    }
-    if (privacy.showActivity !== undefined) {
-      updateData.show_activity = privacy.showActivity;
-    }
-    
-    if (notifications.email !== undefined) {
-      updateData.notification_email = notifications.email;
-    }
-    if (notifications.push !== undefined) {
-      updateData.notification_push = notifications.push;
-    }
-    if (notifications.marketing !== undefined) {
-      updateData.notification_marketing = notifications.marketing;
-    }
-    if (notifications.courseUpdates !== undefined) {
-      updateData.notification_course_updates = notifications.courseUpdates;
-    }
-    if (notifications.communityUpdates !== undefined) {
-      updateData.notification_community_updates = notifications.communityUpdates;
-    }
-
+    const supabase = await createClient()
     const { error } = await supabase
       .from('users')
       .update(updateData)
-      .eq('id', user.id);
+      .eq('id', user.id)
 
     if (error) {
-      return NextResponse.json(
-        { error: 'Error al guardar la configuración' },
-        { status: 500 }
-      );
+      return apiError(
+        'SAVE_SETTINGS_FAILED',
+        'Error al guardar la configuración',
+        500,
+      )
     }
 
     return NextResponse.json({
       message: 'Configuración guardada exitosamente',
       privacy,
       notifications,
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Error al guardar la configuración' },
-      { status: 500 }
-    );
+    })
+  } catch {
+    return apiError(
+      'SAVE_SETTINGS_FAILED',
+      'Error al guardar la configuración',
+      500,
+    )
   }
 }
+
+export const POST = withZodBody(accountSettingsSchema, handlePost)

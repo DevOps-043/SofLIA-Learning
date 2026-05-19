@@ -43,7 +43,7 @@ function PrimaryFooterButton({ children, disabled, enabled = true, onClick }: { 
       onClick={() => void onClick()}
       disabled={disabled}
       className="px-5 py-2.5 rounded-xl text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-      style={{ background: enabled ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` : theme.inputBg, color: enabled ? theme.onPrimaryColor : theme.mutedTextColor, boxShadow: enabled ? `0 4px 15px ${theme.primaryColor}40` : 'none' }}
+      style={{ background: enabled ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` : theme.inputBg, color: enabled ? theme.onPrimaryColor : theme.mutedTextColor, boxShadow: enabled ? `0 4px 15px color-mix(in srgb, ${theme.primaryColor} 25.1%, transparent)` : 'none' }}
     >
       {children}
     </motion.button>

@@ -150,7 +150,7 @@ export function AdminDashboardActivitySection({
         initial={{ opacity: 0, y: 20 }}
         style={{
           backgroundColor: themeColors.cardBackground,
-          borderColor: themeColors.isLightMode ? '#E2E8F0' : 'rgba(255,255,255,0.04)',
+          borderColor: themeColors.isLightMode ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.04)',
         }}
         transition={{ delay: 0.7 }}
       >
@@ -193,7 +193,7 @@ export function AdminDashboardActivitySection({
                 style={{
                   borderBottom:
                     index < activities.length - 1
-                      ? `1px solid ${themeColors.isLightMode ? '#E2E8F0' : 'rgba(255,255,255,0.04)'}`
+                      ? `1px solid ${themeColors.isLightMode ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.04)'}`
                       : 'none',
                 }}
               >

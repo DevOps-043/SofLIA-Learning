@@ -118,7 +118,7 @@ export function ImageAdjustmentModal({
                   containerStyle: {
                     width: '100%',
                     height: '100%',
-                    backgroundColor: '#1e293b',
+                    backgroundColor: 'var(--color-legacy-1e293b)',
                   },
                 }}
               />

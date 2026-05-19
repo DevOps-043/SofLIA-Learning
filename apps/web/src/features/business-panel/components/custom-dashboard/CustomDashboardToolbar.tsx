@@ -46,7 +46,7 @@ export function CustomDashboardToolbar(props: CustomDashboardToolbarProps) {
 
 function ToolbarNotice({ color, icon, text }: { color: string; icon?: ReactNode; text: string }) {
   return (
-    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 rounded-lg border px-4 py-2" style={{ backgroundColor: `${color}12`, borderColor: `${color}33`, color }}>
+    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 rounded-lg border px-4 py-2" style={{ backgroundColor: `color-mix(in srgb, ${color} 7.1%, transparent)`, borderColor: `color-mix(in srgb, ${color} 20%, transparent)`, color }}>
       {icon}
       <span>{text}</span>
     </motion.div>
@@ -62,7 +62,7 @@ function EditModeActions({ isSaving, onReset, onSave, t, tc }: Pick<CustomDashbo
         {t('dashboard.restoreLayout')}
       </DashboardActionButton>
       <DashboardActionButton variant="primary" onClick={() => void onSave()} disabled={isSaving}>
-        {isSaving ? <><div className="h-4 w-4 animate-spin rounded-full border-2" style={{ borderColor: `${theme.onActionColor}4D`, borderTopColor: theme.onActionColor }} />{tc('actions.saving')}</> : <><Save className="h-4 w-4" />{tc('actions.saveChanges')}</>}
+        {isSaving ? <><div className="h-4 w-4 animate-spin rounded-full border-2" style={{ borderColor: `color-mix(in srgb, ${theme.onActionColor} 30.2%, transparent)`, borderTopColor: theme.onActionColor }} />{tc('actions.saving')}</> : <><Save className="h-4 w-4" />{tc('actions.saveChanges')}</>}
       </DashboardActionButton>
     </>
   )

@@ -23,11 +23,11 @@ function SchedulePreviewLegend() {
   return (
     <div className="flex items-center gap-3 border-t border-gray-200 px-3 py-1.5 dark:border-white/10">
       <div className="flex items-center gap-1">
-        <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: '#8E24AA' }} />
+        <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-legacy-8e24aa)' }} />
         <span className="text-[10px] text-gray-500 dark:text-gray-400">Plan de estudio</span>
       </div>
       <div className="flex items-center gap-1">
-        <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: '#0066CC' }} />
+        <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-legacy-0066cc)' }} />
         <span className="text-[10px] text-gray-500 dark:text-gray-400">Calendario</span>
       </div>
     </div>
@@ -54,7 +54,7 @@ function SchedulePreviewReopenTab({ onClick }: ReopenTabProps) {
       aria-label="Abrir vista previa del calendario"
       title="Ver calendario"
     >
-      <CalendarDays size={14} className="mx-auto text-[#8E24AA]" />
+      <CalendarDays size={14} className="mx-auto text-[var(--color-legacy-8e24aa)]" />
     </motion.button>
   );
 }

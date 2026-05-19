@@ -38,7 +38,7 @@ function AlertMessage({
       initial={{ opacity: 0, y: -20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       className="rounded-2xl p-5 flex items-center gap-4 border"
-      style={{ backgroundColor: `${color}14`, borderColor: `${color}33` }}
+      style={{ backgroundColor: `color-mix(in srgb, ${color} 7.8%, transparent)`, borderColor: `color-mix(in srgb, ${color} 20%, transparent)` }}
     >
       <Icon className="w-6 h-6" style={{ color }} />
       <p className="font-medium" style={{ color }}>{message}</p>

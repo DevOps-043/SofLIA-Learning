@@ -7,7 +7,7 @@ export function CustomDashboardLoading() {
     <div className="flex items-center justify-center py-20">
       <div
         className="h-16 w-16 animate-spin rounded-full border-4"
-        style={{ borderColor: `${theme.actionColor}33`, borderTopColor: theme.actionColor }}
+        style={{ borderColor: `color-mix(in srgb, ${theme.actionColor} 20%, transparent)`, borderTopColor: theme.actionColor }}
       />
     </div>
   )

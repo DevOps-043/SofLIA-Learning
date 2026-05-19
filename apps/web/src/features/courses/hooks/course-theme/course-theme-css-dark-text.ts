@@ -7,11 +7,11 @@ export function buildDarkTextCss(colors: CourseThemeColors): string {
       border-color: rgba(255,255,255,0.08) !important;
     }
 
-    .text-\\[\\#0A2540\\], .text-\\[\\#1E2329\\] {
+    .text-\\[\\var(--color-primary)\\], .text-\\[\\var(--color-gray-800)\\] {
       color: white !important;
     }
 
-    .text-\\[\\#6C757D\\] {
+    .text-\\[\\var(--color-gray-500)\\] {
       color: rgba(255,255,255,0.6) !important;
     }
 
@@ -31,7 +31,7 @@ export function buildDarkTextCss(colors: CourseThemeColors): string {
       color: white !important;
     }
 
-    .border-gray-200, .border-slate-200, .border-[#E9ECEF] {
+    .border-gray-200, .border-slate-200, .border-gray-200 {
       border-color: rgba(255,255,255,0.1) !important;
     }
   `;

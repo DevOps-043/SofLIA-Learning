@@ -66,7 +66,7 @@ export function BusinessUserStatsActivityTab({
                               transition={{ duration: 1.2, delay: 0.3 + index * 0.1 }}
                               className="absolute inset-y-0 left-0 rounded-2xl flex items-center justify-end px-4"
                               style={{
-                                 background: `linear-gradient(90deg, ${theme.primaryColor}20, ${theme.primaryColor}80)`,
+                                 background: `linear-gradient(90deg, color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent), color-mix(in srgb, ${theme.primaryColor} 50.2%, transparent))`,
                                  minWidth: '60px',
                               }}
                            >
@@ -116,7 +116,7 @@ function ActivitySummaryCard({ icon: Icon, value, label, color, theme }: any) {
            style={{ backgroundColor: theme.cardBg, borderColor: theme.modalBorder }}>
          <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.02] rounded-bl-full border-l border-b border-white/[0.05]" />
          <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6 shadow-xl transform group-hover:rotate-12 transition-transform duration-500" 
-              style={{ backgroundColor: `${color}15` }}>
+              style={{ backgroundColor: `color-mix(in srgb, ${color} 8.2%, transparent)` }}>
             <Icon className="w-6 h-6" style={{ color }} />
          </div>
          <div className="text-4xl font-black tracking-tight mb-1" style={{ color: theme.textColor }}>{value}</div>

@@ -16,5 +16,5 @@ export const NAV_ITEMS = [
   { id: 'stats', label: 'Estadísticas', icon: ChartBarIcon, color: colors.success },
   { id: 'customization', label: 'Personalización', icon: PaintBrushIcon, color: colors.pink },
   { id: 'notifications', label: 'Notificaciones', icon: BellIcon, color: colors.warning },
-  { id: 'certificates', label: 'Certificados', icon: DocumentTextIcon, color: '#06B6D4' },
+  { id: 'certificates', label: 'Certificados', icon: DocumentTextIcon, color: 'var(--color-legacy-06b6d4)' },
 ]

@@ -153,7 +153,7 @@ export function useJoyrideMinitour({
       styles: {
         options: {
           zIndex: 999999,
-          arrowColor: '#1E2329',
+          arrowColor: 'var(--color-gray-800)',
         },
         spotlight: {
           borderRadius: 16,

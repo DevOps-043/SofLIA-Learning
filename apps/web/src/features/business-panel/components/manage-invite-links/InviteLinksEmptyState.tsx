@@ -16,7 +16,7 @@ export function InviteLinksEmptyState({ onCreateNew }: { onCreateNew: () => void
       </div>
       <h4 className="text-lg font-semibold mb-2" style={{ color: theme.textColor }}>{t('users.modals.manageLinks.empty.title', 'No hay enlaces')}</h4>
       <p className="mb-6" style={{ color: theme.mutedText }}>{t('users.modals.manageLinks.empty.subtitle', 'Crea tu primer enlace de invitacion masiva')}</p>
-      <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onCreateNew} className="px-5 py-2.5 rounded-xl text-sm font-medium text-white inline-flex items-center gap-2" style={{ backgroundColor: theme.primaryColor, boxShadow: `0 4px 15px ${theme.primaryColor}40`, color: '#FFFFFF' }}>
+      <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onCreateNew} className="px-5 py-2.5 rounded-xl text-sm font-medium text-white inline-flex items-center gap-2" style={{ backgroundColor: theme.primaryColor, boxShadow: `0 4px 15px color-mix(in srgb, ${theme.primaryColor} 25.1%, transparent)`, color: 'var(--color-bg-light)' }}>
         <Plus className="w-4 h-4" />
         {t('users.buttons.createLink', 'Crear Enlace')}
       </motion.button>

@@ -31,8 +31,8 @@ export function DashboardStatsHeader({
         <div
           className="flex-shrink-0 rounded-xl border p-2"
           style={{
-            background: `linear-gradient(135deg, ${orgColors.iconColor}25, ${orgColors.iconColor}08)`,
-            borderColor: `${orgColors.iconColor}30`,
+            background: `linear-gradient(135deg, color-mix(in srgb, ${orgColors.iconColor} 14.5%, transparent), color-mix(in srgb, ${orgColors.iconColor} 3.1%, transparent))`,
+            borderColor: `color-mix(in srgb, ${orgColors.iconColor} 18.8%, transparent)`,
           }}
         >
           <TrendingUp className="h-5 w-5" style={{ color: orgColors.iconColor }} />
@@ -49,7 +49,7 @@ export function DashboardStatsHeader({
       <button
         onClick={onToggle}
         className="ml-2 flex flex-shrink-0 items-center justify-center rounded-full p-2 transition-colors md:hidden"
-        style={{ backgroundColor: `${orgColors.iconColor}15`, color: orgColors.iconColor }}
+        style={{ backgroundColor: `color-mix(in srgb, ${orgColors.iconColor} 8.2%, transparent)`, color: orgColors.iconColor }}
         aria-label={t('dashboard.stats.toggle', 'Alternar estadisticas')}
       >
         {isOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}

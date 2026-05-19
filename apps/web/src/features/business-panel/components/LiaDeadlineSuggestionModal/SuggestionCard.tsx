@@ -51,7 +51,7 @@ export function SuggestionCard({
             <h4 className="text-lg font-bold" style={{ color: theme.textColor }}>
               {t(`liaSuggestion.approaches.${suggestion.approach}.title`)}
             </h4>
-            <span className="rounded-full px-3 py-1 text-xs font-medium" style={{ backgroundColor: `${config.color}20`, color: config.color }}>
+            <span className="rounded-full px-3 py-1 text-xs font-medium" style={{ backgroundColor: `color-mix(in srgb, ${config.color} 12.5%, transparent)`, color: config.color }}>
               {suggestion.estimated_completion_rate} {t('liaSuggestion.details.completedRate')}
             </span>
           </div>

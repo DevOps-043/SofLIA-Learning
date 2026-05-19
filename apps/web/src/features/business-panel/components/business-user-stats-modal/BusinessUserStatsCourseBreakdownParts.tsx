@@ -54,7 +54,7 @@ export function BreakdownRow({
     >
       <div
         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl"
-        style={{ backgroundColor: `${color}18` }}
+        style={{ backgroundColor: `color-mix(in srgb, ${color} 9.4%, transparent)` }}
       >
         <Icon className="h-5 w-5" style={{ color }} />
       </div>
@@ -68,7 +68,7 @@ export function BreakdownRow({
         {helper ? (
           <div
             className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-widest"
-            style={{ color: `${theme.textColor}66` }}
+            style={{ color: `color-mix(in srgb, ${theme.textColor} 40%, transparent)` }}
           >
             {helper}
           </div>
@@ -94,8 +94,8 @@ export function StatusPill({
     <span
       className="inline-flex items-center gap-2 rounded-2xl border px-3 py-1.5 text-[9px] font-black uppercase tracking-widest"
       style={{
-        backgroundColor: `${color}12`,
-        borderColor: `${color}26`,
+        backgroundColor: `color-mix(in srgb, ${color} 7.1%, transparent)`,
+        borderColor: `color-mix(in srgb, ${color} 14.9%, transparent)`,
         color,
       }}
     >

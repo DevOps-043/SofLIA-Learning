@@ -19,10 +19,10 @@ export function OverviewTab() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <UserStatsMetricCard label={t('userStats.metrics.activeUsers30d')} value={data?.activeUsers30d ?? 0} icon={Users} accentColor="#3B82F6" />
-        <UserStatsMetricCard label={t('userStats.metrics.completionRate')} value={`${data?.completionRate ?? 0}%`} icon={CheckCircle} accentColor="#10B981" />
-        <UserStatsMetricCard label={t('userStats.metrics.studyHoursMonth')} value={data?.studyHoursMonth ?? 0} icon={Clock} accentColor="#8B5CF6" />
-        <UserStatsMetricCard label={t('userStats.metrics.certificatesMonth')} value={data?.certificatesMonth ?? 0} icon={Award} accentColor="#F59E0B" />
+        <UserStatsMetricCard label={t('userStats.metrics.activeUsers30d')} value={data?.activeUsers30d ?? 0} icon={Users} accentColor="var(--color-info)" />
+        <UserStatsMetricCard label={t('userStats.metrics.completionRate')} value={`${data?.completionRate ?? 0}%`} icon={CheckCircle} accentColor="var(--color-success)" />
+        <UserStatsMetricCard label={t('userStats.metrics.studyHoursMonth')} value={data?.studyHoursMonth ?? 0} icon={Clock} accentColor="var(--color-secondary)" />
+        <UserStatsMetricCard label={t('userStats.metrics.certificatesMonth')} value={data?.certificatesMonth ?? 0} icon={Award} accentColor="var(--color-warning)" />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

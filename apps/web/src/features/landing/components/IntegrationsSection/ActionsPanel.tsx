@@ -12,7 +12,7 @@ interface ActionsPanelProps {
 export function ActionsPanel({ disableHeavy, t }: ActionsPanelProps) {
   return (
     <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.2 }}>
-      <h3 className="text-xl font-bold text-[#0A2540] dark:text-white mb-6">
+      <h3 className="text-xl font-bold text-primary dark:text-white mb-6">
         {t('landing.liaSection.actionsTitle', 'SofLIA puede ayudarte a:')}
       </h3>
       <ActionsList t={t} />

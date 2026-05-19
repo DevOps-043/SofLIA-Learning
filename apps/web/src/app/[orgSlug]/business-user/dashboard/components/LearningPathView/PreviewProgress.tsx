@@ -15,7 +15,7 @@ export function PreviewProgress({ progress, orgColors }: PreviewProgressProps) {
       ) : null}
       <div
         className="h-1.5 flex-1 overflow-hidden rounded-full"
-        style={{ backgroundColor: `${orgColors.textMuted}24` }}
+        style={{ backgroundColor: `color-mix(in srgb, ${orgColors.textMuted} 14.1%, transparent)` }}
       >
         <div
           className="h-full rounded-full"

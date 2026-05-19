@@ -12,7 +12,7 @@ export function ActivityMessages(props: {
   return (
     <>
       {(props.error || props.feedbackMessage) && (
-        <div className={`rounded-xl border px-4 py-3 text-sm ${props.error ? "border-red-200 bg-red-50 text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300" : "border-[#B6E5DB] bg-[#F1FBF8] text-[#0F6A57] dark:border-[#00D4B3]/20 dark:bg-[#08201B] dark:text-[#9DE9D5]"}`}>
+        <div className={`rounded-xl border px-4 py-3 text-sm ${props.error ? "border-red-200 bg-red-50 text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300" : "border-[var(--color-legacy-b6e5db)] bg-[var(--color-legacy-f1fbf8)] text-[var(--color-legacy-0f6a57)] dark:border-accent/20 dark:bg-[var(--color-legacy-08201b)] dark:text-[var(--color-legacy-9de9d5)]"}`}>
           {props.error || props.feedbackMessage}
         </div>
       )}

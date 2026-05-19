@@ -101,7 +101,7 @@ export function JoinRequestCard({
           <div
             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider"
             style={{
-              backgroundColor: `${theme.actionColor}14`,
+              backgroundColor: `color-mix(in srgb, ${theme.actionColor} 7.8%, transparent)`,
               color: theme.actionColor,
             }}
           >
@@ -162,8 +162,8 @@ export function JoinRequestCard({
             disabled={isReviewing}
             className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-colors disabled:opacity-60"
             style={{
-              backgroundColor: `${theme.dangerColor}10`,
-              border: `1px solid ${theme.dangerColor}20`,
+              backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 6.3%, transparent)`,
+              border: `1px solid color-mix(in srgb, ${theme.dangerColor} 12.5%, transparent)`,
               color: theme.dangerColor,
             }}
           >

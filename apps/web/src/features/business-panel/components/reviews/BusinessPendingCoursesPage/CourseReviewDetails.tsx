@@ -48,7 +48,7 @@ export function CourseReviewDetails({
           onClick={() => onApprove(course.id)}
           backgroundColor={panelTheme.actionColor}
           color={panelTheme.onActionColor}
-          borderColor={`${panelTheme.actionColor}22`}
+          borderColor={`color-mix(in srgb, ${panelTheme.actionColor} 13.3%, transparent)`}
         />
         <ActionButton
           label={labels.viewAction}
@@ -64,9 +64,9 @@ export function CourseReviewDetails({
         label={labels.dangerAction}
         icon={activeTab === 'pending' ? <AlertTriangle className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
         onClick={() => (activeTab === 'pending' ? onReject(course.id) : onDelete(course.id))}
-        backgroundColor={`${panelTheme.dangerColor}12`}
+        backgroundColor={`color-mix(in srgb, ${panelTheme.dangerColor} 7.1%, transparent)`}
         color={panelTheme.dangerColor}
-        borderColor={`${panelTheme.dangerColor}24`}
+        borderColor={`color-mix(in srgb, ${panelTheme.dangerColor} 14.1%, transparent)`}
       />
     </div>
   )

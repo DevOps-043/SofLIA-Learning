@@ -10,30 +10,30 @@ interface ModulesGridProps {
 export function ModulesGrid({ modules, accent = 'admin' }: ModulesGridProps) {
   const actionTone =
     accent === 'admin'
-      ? 'bg-[#0A2540] text-white'
-      : 'bg-[#00D4B3] text-[#06231E]'
+      ? 'bg-primary text-white'
+      : 'bg-accent text-[var(--color-legacy-06231e)]'
 
   return (
     <div className="space-y-4" data-testid="responsive-smoke-module-list">
       {modules.map((module) => (
         <article
           key={module.id}
-          className="rounded-[26px] border border-[#DCE7F3] bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 sm:p-6"
+          className="rounded-[26px] border border-[var(--color-legacy-dce7f3)] bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 sm:p-6"
         >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0 space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex rounded-full bg-[#00D4B3]/12 px-3 py-1 text-xs font-semibold text-[#0A7F6D]">
+                <span className="inline-flex rounded-full bg-accent/[0.12] px-3 py-1 text-xs font-semibold text-[var(--color-legacy-0a7f6d)]">
                   {module.status}
                 </span>
-                <span className="inline-flex rounded-full bg-[#EEF4FB] px-3 py-1 text-xs font-medium text-[#526174] dark:bg-white/10 dark:text-white/60">
+                <span className="inline-flex rounded-full bg-[var(--color-legacy-eef4fb)] px-3 py-1 text-xs font-medium text-[var(--color-legacy-526174)] dark:bg-white/10 dark:text-white/60">
                   {module.duration}
                 </span>
-                <span className="inline-flex rounded-full bg-[#EEF4FB] px-3 py-1 text-xs font-medium text-[#526174] dark:bg-white/10 dark:text-white/60">
+                <span className="inline-flex rounded-full bg-[var(--color-legacy-eef4fb)] px-3 py-1 text-xs font-medium text-[var(--color-legacy-526174)] dark:bg-white/10 dark:text-white/60">
                   {module.lessons} lecciones
                 </span>
               </div>
-              <h3 className="max-w-3xl text-xl font-semibold leading-tight text-[#0A2540] dark:text-white">
+              <h3 className="max-w-3xl text-xl font-semibold leading-tight text-primary dark:text-white">
                 {module.title}
               </h3>
             </div>
@@ -46,7 +46,7 @@ export function ModulesGrid({ modules, accent = 'admin' }: ModulesGridProps) {
               </button>
               <button
                 type="button"
-                className="rounded-2xl border border-[#DCE7F3] bg-[#F8FAFC] px-4 py-3 text-sm font-semibold text-[#0A2540] dark:border-white/10 dark:bg-white/5 dark:text-white"
+                className="rounded-2xl border border-[var(--color-legacy-dce7f3)] bg-slate-50 px-4 py-3 text-sm font-semibold text-primary dark:border-white/10 dark:bg-white/5 dark:text-white"
               >
                 Editar modulo
               </button>

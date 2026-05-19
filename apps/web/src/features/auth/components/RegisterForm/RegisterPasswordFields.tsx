@@ -15,7 +15,7 @@ export function RegisterPasswordFields({ t, errors, register }: RegisterPassword
   return (
     <div className="grid grid-cols-2 gap-3">
       <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5, duration: 0.4 }}>
-        <label className="block text-sm font-medium mb-2 text-[#0A2540] dark:text-white/90">
+        <label className="block text-sm font-medium mb-2 text-primary dark:text-white/90">
           {t('auth.register.passwordLabel')}
         </label>
         <PasswordInput
@@ -26,7 +26,7 @@ export function RegisterPasswordFields({ t, errors, register }: RegisterPassword
         />
       </motion.div>
       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.55, duration: 0.4 }}>
-        <label className="block text-sm font-medium mb-2 text-[#0A2540] dark:text-white/90">
+        <label className="block text-sm font-medium mb-2 text-primary dark:text-white/90">
           {t('auth.register.confirmPasswordLabel')}
         </label>
         <PasswordInput

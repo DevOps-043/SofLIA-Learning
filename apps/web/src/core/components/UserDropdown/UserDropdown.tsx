@@ -32,7 +32,7 @@ export const UserDropdown = React.memo(function UserDropdown({
             onImageError={() => logic.setImageError(true)}
             primaryColor={logic.primaryColor}
           />
-          <div className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-[#10B981] rounded-full border-2 border-white dark:border-[#0F1419] shadow-sm" />
+          <div className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-success rounded-full border-2 border-white dark:border-carbon-900 shadow-sm" />
         </div>
       </motion.button>
       <UserDropdownPortal logic={logic} />

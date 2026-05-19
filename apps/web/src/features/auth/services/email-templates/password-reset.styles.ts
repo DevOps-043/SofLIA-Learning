@@ -2,14 +2,14 @@ export const passwordResetEmailStyles = `
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
-    color: #333;
+    color: rgb(51, 51, 51);
     max-width: 600px;
     margin: 0 auto;
     padding: 20px;
-    background-color: #f4f4f4;
+    background-color: rgb(244, 244, 244);
   }
   .container {
-    background-color: #ffffff;
+    background-color: rgb(255, 255, 255);
     padding: 40px;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -19,19 +19,19 @@ export const passwordResetEmailStyles = `
     margin-bottom: 30px;
   }
   .logo {
-    color: #44E5FF;
+    color: rgb(68, 229, 255);
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 10px;
   }
   h1 {
-    color: #333;
+    color: rgb(51, 51, 51);
     font-size: 24px;
     margin: 0;
   }
   .button {
     display: inline-block;
-    background: linear-gradient(135deg, #44E5FF, #0077A6);
+    background: linear-gradient(135deg, rgb(68, 229, 255), rgb(0, 119, 166));
     color: white !important;
     padding: 15px 35px;
     text-decoration: none;
@@ -41,24 +41,24 @@ export const passwordResetEmailStyles = `
     font-size: 16px;
   }
   .warning {
-    background-color: #fff3cd;
-    border: 1px solid #ffeaa7;
+    background-color: rgb(255, 243, 205);
+    border: 1px solid rgb(255, 234, 167);
     border-radius: 5px;
     padding: 15px;
     margin: 20px 0;
-    color: #856404;
+    color: rgb(133, 100, 4);
   }
   .footer {
     text-align: center;
     margin-top: 30px;
     padding-top: 20px;
-    border-top: 1px solid #eee;
-    color: #666;
+    border-top: 1px solid rgb(238, 238, 238);
+    color: rgb(102, 102, 102);
     font-size: 14px;
   }
   .link-box {
-    background: #f8f9fa;
-    border: 2px dashed #44E5FF;
+    background: rgb(248, 249, 250);
+    border: 2px dashed rgb(68, 229, 255);
     padding: 15px;
     border-radius: 8px;
     text-align: center;
@@ -66,6 +66,6 @@ export const passwordResetEmailStyles = `
     font-size: 12px;
     margin: 20px 0;
     word-break: break-all;
-    color: #0077A6;
+    color: rgb(0, 119, 166);
   }
 `;

@@ -75,7 +75,7 @@ export function Navbar() {
               {/* Efecto visual cuando está activado */}
               {isActivated && (
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-[#0A2540] to-[#00D4B3] rounded-xl opacity-50" /* Azul Profundo a Aqua */
+                  className="absolute inset-0 bg-gradient-to-r from-primary to-accent rounded-xl opacity-50" /* Azul Profundo a Aqua */
                   initial={{ opacity: 0 }}
                   animate={{ opacity: [0, 0.5, 0] }}
                   transition={{ duration: 0.6 }}
@@ -83,7 +83,7 @@ export function Navbar() {
               )}
             </motion.div>
             <span
-              className="font-bold text-xl hidden sm:block text-[#0A2540] dark:text-white uppercase tracking-tight"
+              className="font-bold text-xl hidden sm:block text-primary dark:text-white uppercase tracking-tight"
               style={{
                 fontFamily: 'Inter, sans-serif',
                 fontWeight: 800,
@@ -91,7 +91,7 @@ export function Navbar() {
               }}
             >
               SofLIA
-              <span className="ml-2 px-1.5 py-0.5 text-xs font-bold text-white bg-[#00D4B3] rounded-md tracking-wide uppercase">
+              <span className="ml-2 px-1.5 py-0.5 text-xs font-bold text-white bg-accent rounded-md tracking-wide uppercase">
                 Learning
               </span>
             </span>

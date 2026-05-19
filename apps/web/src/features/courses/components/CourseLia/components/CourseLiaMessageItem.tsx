@@ -47,7 +47,7 @@ export function CourseLiaMessageItem({
           onClick={() => onStartEditing(message)}
           title={t('lia.editMessage')}
           aria-label={t('lia.editMessage')}
-          style={{ width: '26px', height: '26px', borderRadius: '50%', background: isLightTheme ? '#F1F5F9' : 'rgba(255,255,255,0.08)', border: `1px solid ${isLightTheme ? '#CBD5E1' : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: isLightTheme ? '#475569' : 'rgba(255,255,255,0.75)', flexShrink: 0 }}
+          style={{ width: '26px', height: '26px', borderRadius: '50%', background: isLightTheme ? 'var(--color-gray-100)' : 'rgba(255,255,255,0.08)', border: `1px solid ${isLightTheme ? 'var(--color-gray-300)' : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: isLightTheme ? 'var(--color-gray-600)' : 'rgba(255,255,255,0.75)', flexShrink: 0 }}
         >
           <Pencil style={{ width: '13px', height: '13px' }} />
         </button>

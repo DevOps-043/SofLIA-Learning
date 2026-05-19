@@ -30,25 +30,25 @@ export const DIAGRAM_ARCHITECTURE_TEMPLATE: NanoBananaSchema = {
   },
   scene: {
     id: 'scene_architecture', description: 'Diagrama de arquitectura de sistema',
-    environment: { lighting: 'flat', background: '#F8FAFC', mood: 'technical' },
+    environment: { lighting: 'flat', background: 'var(--color-gray-50)', mood: 'technical' },
   },
   entities: [
     layer({
-      id: 'layer_frontend', name: 'Frontend Layer', label: 'Frontend', backgroundColor: '#DBEAFE',
-      borderColor: '#3B82F6', position: 'top',
+      id: 'layer_frontend', name: 'Frontend Layer', label: 'Frontend', backgroundColor: 'var(--color-legacy-dbeafe)',
+      borderColor: 'var(--color-info)', position: 'top',
       children: [
         component('comp_web_app', 'Web App', 'browser', 'React/Next.js', 'left'),
         component('comp_mobile_app', 'Mobile App', 'smartphone', 'React Native', 'right'),
       ],
     }),
     layer({
-      id: 'layer_backend', name: 'Backend Layer', label: 'Backend', backgroundColor: '#DCFCE7',
-      borderColor: '#22C55E', position: 'center',
+      id: 'layer_backend', name: 'Backend Layer', label: 'Backend', backgroundColor: 'var(--color-legacy-dcfce7)',
+      borderColor: 'var(--color-legacy-22c55e)', position: 'center',
       children: [component('comp_api', 'API Server', 'server', 'Node.js/Express', 'center')],
     }),
     layer({
-      id: 'layer_data', name: 'Data Layer', label: 'Data', backgroundColor: '#FEF3C7',
-      borderColor: '#F59E0B', position: 'bottom',
+      id: 'layer_data', name: 'Data Layer', label: 'Data', backgroundColor: 'var(--color-legacy-fef3c7)',
+      borderColor: 'var(--color-warning)', position: 'bottom',
       children: [
         component('comp_database', 'Database', 'database', 'PostgreSQL', 'left'),
         component('comp_cache', 'Cache', 'zap', 'Redis', 'right', 'secondary'),

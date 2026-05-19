@@ -10,10 +10,10 @@ export function RegisterFormHeader({ t }: { t: Translate }) {
       transition={{ delay: 0.1, duration: 0.4 }}
       className="text-center mb-5"
     >
-      <h1 className="text-2xl sm:text-3xl font-bold text-[#0A2540] dark:text-white mb-1">
+      <h1 className="text-2xl sm:text-3xl font-bold text-primary dark:text-white mb-1">
         {t('auth.register.title')}
       </h1>
-      <p className="text-xs sm:text-sm text-[#6C757D] dark:text-white/60">
+      <p className="text-xs sm:text-sm text-gray-500 dark:text-white/60">
         {t('auth.register.subtitle')}
       </p>
     </motion.div>

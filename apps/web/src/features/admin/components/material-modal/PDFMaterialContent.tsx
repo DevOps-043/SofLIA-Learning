@@ -32,54 +32,54 @@ function ReadingContentEditor({ value, onChange }: ReadingContentEditorProps) {
 
   return (
     <div className="space-y-3">
-      <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+      <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">
         Contenido de Lectura
       </label>
       <div className="relative">
         <textarea
           rows={10} value={localValue} onChange={handleChange}
-          className="w-full px-4 py-3 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 resize-none font-mono text-sm leading-relaxed"
+          className="w-full px-4 py-3 bg-white dark:bg-carbon-950 border border-gray-200 dark:border-gray-500/30 rounded-xl text-primary dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-accent/40 focus:border-transparent transition-all duration-200 resize-none font-mono text-sm leading-relaxed"
           placeholder="Pega o escribe el contenido de la lectura aquí. El tiempo estimado se calculará automáticamente..."
         />
       </div>
       <motion.div
         initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
-        className="flex flex-wrap items-center gap-4 p-3 bg-gradient-to-r from-[#00D4B3]/10 to-[#0A2540]/10 dark:from-[#00D4B3]/20 dark:to-[#0A2540]/20 rounded-xl border border-[#00D4B3]/20"
+        className="flex flex-wrap items-center gap-4 p-3 bg-gradient-to-r from-accent/10 to-primary/10 dark:from-accent/20 dark:to-primary/20 rounded-xl border border-accent/20"
       >
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#00D4B3]/20 flex items-center justify-center">
-            <Type className="w-4 h-4 text-[#00D4B3]" />
+          <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
+            <Type className="w-4 h-4 text-accent" />
           </div>
           <div>
-            <p className="text-xs text-[#6C757D] dark:text-white/60">Palabras</p>
-            <p className="text-sm font-bold text-[#0A2540] dark:text-white">{readingInfo.wordCount.toLocaleString()}</p>
+            <p className="text-xs text-gray-500 dark:text-white/60">Palabras</p>
+            <p className="text-sm font-bold text-primary dark:text-white">{readingInfo.wordCount.toLocaleString()}</p>
           </div>
         </div>
-        <div className="w-px h-8 bg-[#E9ECEF] dark:bg-[#6C757D]/30" />
+        <div className="w-px h-8 bg-gray-200 dark:bg-gray-500/30" />
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#00D4B3]/20 flex items-center justify-center">
-            <Clock className="w-4 h-4 text-[#00D4B3]" />
+          <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
+            <Clock className="w-4 h-4 text-accent" />
           </div>
           <div>
-            <p className="text-xs text-[#6C757D] dark:text-white/60">Tiempo Estimado</p>
-            <p className="text-sm font-bold text-[#0A2540] dark:text-white">{readingInfo.formattedTime}</p>
+            <p className="text-xs text-gray-500 dark:text-white/60">Tiempo Estimado</p>
+            <p className="text-sm font-bold text-primary dark:text-white">{readingInfo.formattedTime}</p>
           </div>
         </div>
-        <div className="w-px h-8 bg-[#E9ECEF] dark:bg-[#6C757D]/30" />
+        <div className="w-px h-8 bg-gray-200 dark:bg-gray-500/30" />
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#00D4B3]/20 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-[#00D4B3]" />
+          <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-accent" />
           </div>
           <div>
-            <p className="text-xs text-[#6C757D] dark:text-white/60">Velocidad</p>
-            <p className="text-xs font-medium text-[#0A2540] dark:text-white/80">
+            <p className="text-xs text-gray-500 dark:text-white/60">Velocidad</p>
+            <p className="text-xs font-medium text-primary dark:text-white/80">
               {READING_SPEEDS.slow.wordsPerMinute} ppm (lectura reflexiva)
             </p>
           </div>
         </div>
       </motion.div>
-      <p className="text-xs text-[#6C757D] dark:text-white/50 flex items-start gap-1.5">
-        <Sparkles className="w-3.5 h-3.5 text-[#00D4B3] mt-0.5 flex-shrink-0" />
+      <p className="text-xs text-gray-500 dark:text-white/50 flex items-start gap-1.5">
+        <Sparkles className="w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0" />
         <span>
           El tiempo se calcula automáticamente usando una velocidad de lectura reflexiva (180 palabras/min),
           ideal para contenido educativo que requiere comprensión profunda.
@@ -110,16 +110,16 @@ export function PDFMaterialContent({ formData, setFormData, setAutoCalculatedTim
 
       {formData.material_type === 'link' && (
         <div className="group">
-          <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+          <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">
             URL del Enlace *
           </label>
           <div className="relative">
-            <LinkIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
+            <LinkIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-white/60 group-focus-within:text-accent transition-colors" />
             <input
               type="url" required={formData.material_type === 'link'}
               value={formData.external_url}
               onChange={(e) => setFormData(prev => ({ ...prev, external_url: e.target.value }))}
-              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-carbon-950 border border-gray-200 dark:border-gray-500/30 rounded-xl text-primary dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-accent/40 focus:border-transparent transition-all duration-200"
               placeholder="https://ejemplo.com/recurso"
             />
           </div>
@@ -138,13 +138,13 @@ export function PDFMaterialContent({ formData, setFormData, setAutoCalculatedTim
 
       {formData.material_type === 'exercise' && (
         <div>
-          <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+          <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">
             Instrucciones del Ejercicio
           </label>
           <textarea
             rows={8} value={formData.material_description}
             onChange={(e) => setFormData(prev => ({ ...prev, material_description: e.target.value }))}
-            className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 resize-none"
+            className="w-full px-4 py-2.5 bg-white dark:bg-carbon-950 border border-gray-200 dark:border-gray-500/30 rounded-xl text-primary dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-accent/40 focus:border-transparent transition-all duration-200 resize-none"
             placeholder="Describe las instrucciones del ejercicio..."
           />
         </div>

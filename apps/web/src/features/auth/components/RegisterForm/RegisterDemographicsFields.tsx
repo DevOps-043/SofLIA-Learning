@@ -29,7 +29,7 @@ export function RegisterDemographicsFields({
 }: RegisterDemographicsFieldsProps) {
   return (
     <div className="space-y-3">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-[#6C757D] dark:text-white/60">{t('demographics.sectionTitle')}</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-white/60">{t('demographics.sectionTitle')}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.48, duration: 0.4 }}>
           <TextInput

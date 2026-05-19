@@ -21,10 +21,10 @@ export function PremiumPassword({
 
   return (
     <motion.div className="relative group" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
-      <motion.div className="absolute -inset-[1px] rounded-2xl opacity-0 transition-opacity duration-500" style={{ background: `linear-gradient(135deg, ${focusColor}40, transparent 50%, ${focusColor}20)` }} animate={{ opacity: focused ? 1 : 0 }} />
-      <div className="relative rounded-2xl overflow-hidden transition-all duration-300 ease-out" style={{ boxShadow: focused ? `0 0 30px ${colors.accent}26` : 'none' }}>
-        <div className="absolute inset-0 transition-all duration-300" style={{ backgroundColor: focused ? colors.bgSecondary : `${colors.bgSecondary}cc` }} />
-        <div className="absolute inset-0 rounded-2xl border-2 transition-all duration-300" style={{ borderColor: error ? `${colors.error}60` : focused ? `${colors.accent}80` : colors.border }} />
+      <motion.div className="absolute -inset-[1px] rounded-2xl opacity-0 transition-opacity duration-500" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${focusColor} 25.1%, transparent), transparent 50%, color-mix(in srgb, ${focusColor} 12.5%, transparent))` }} animate={{ opacity: focused ? 1 : 0 }} />
+      <div className="relative rounded-2xl overflow-hidden transition-all duration-300 ease-out" style={{ boxShadow: focused ? `0 0 30px color-mix(in srgb, ${colors.accent} 14.9%, transparent)` : 'none' }}>
+        <div className="absolute inset-0 transition-all duration-300" style={{ backgroundColor: focused ? colors.bgSecondary : `color-mix(in srgb, ${colors.bgSecondary} 80%, transparent)` }} />
+        <div className="absolute inset-0 rounded-2xl border-2 transition-all duration-300" style={{ borderColor: error ? `color-mix(in srgb, ${colors.error} 37.6%, transparent)` : focused ? `color-mix(in srgb, ${colors.accent} 50.2%, transparent)` : colors.border }} />
         <div className="relative flex items-center">
           <div className="relative flex-1 py-5 px-4">
             <motion.label

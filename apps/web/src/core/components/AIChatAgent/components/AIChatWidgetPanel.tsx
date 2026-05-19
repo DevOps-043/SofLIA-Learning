@@ -34,7 +34,7 @@ export function AIChatWidgetPanel({
           className="fixed right-6 z-[99999] w-96 max-w-[calc(100vw-3rem)]"
           style={{ bottom: logic.chatBottomPosition, height: logic.calculateMaxHeight, maxHeight: logic.calculateMaxHeight }}
         >
-          <div className="rounded-3xl shadow-2xl overflow-hidden border border-gray-200 dark:border-[#0A2540]/30 flex flex-col bg-white dark:bg-[#1E2329] h-full">
+          <div className="rounded-3xl shadow-2xl overflow-hidden border border-gray-200 dark:border-primary/30 flex flex-col bg-white dark:bg-carbon-800 h-full">
             <ChatHeader
               assistantName={assistantName} assistantAvatar={assistantAvatar} theme={logic.theme}
               modeMenuRef={logic.modeMenuRef} optionsMenuRef={logic.optionsMenuRef}

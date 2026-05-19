@@ -42,8 +42,8 @@ export function BusinessThemeCustomizerThemes({
           <div
             className="rounded-lg border p-2"
             style={{
-              backgroundColor: `${theme.warningColor}12`,
-              borderColor: `${theme.warningColor}33`,
+              backgroundColor: `color-mix(in srgb, ${theme.warningColor} 7.1%, transparent)`,
+              borderColor: `color-mix(in srgb, ${theme.warningColor} 20%, transparent)`,
             }}
           >
             <Sparkles className="h-4 w-4" style={{ color: theme.warningColor }} />
@@ -63,7 +63,7 @@ export function BusinessThemeCustomizerThemes({
             style={{
               backgroundColor: theme.actionSurface,
               color: theme.actionColor,
-              borderColor: `${theme.actionColor}33`,
+              borderColor: `color-mix(in srgb, ${theme.actionColor} 20%, transparent)`,
             }}
           >
             Tema activo

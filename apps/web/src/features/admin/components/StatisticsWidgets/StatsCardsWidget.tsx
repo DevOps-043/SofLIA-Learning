@@ -46,7 +46,7 @@ export function StatsCardsWidget() {
           change: `${dbStats.courseGrowth >= 0 ? '+' : ''}${dbStats.courseGrowth}%`,
           changeType: dbStats.courseGrowth >= 0 ? 'increase' : 'decrease',
           icon: BookOpenIcon,
-          gradient: 'from-[#10B981] to-[#059669]',
+          gradient: 'from-success to-emerald-600',
           shadow: 'shadow-emerald-500/20'
         },
         {
@@ -113,7 +113,7 @@ export function StatsCardsWidget() {
            whileHover={{ y: -5 }}
            className="relative group"
         >
-          <div className="h-full bg-white dark:bg-[#1E2329] rounded-2xl border border-[#E9ECEF] dark:border-white/5 p-6 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative">
+          <div className="h-full bg-white dark:bg-carbon-800 rounded-2xl border border-gray-200 dark:border-white/5 p-6 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative">
              {/* Hover Glow */}
              <div className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 bg-gradient-to-br ${stat.gradient}`} />
              
@@ -139,10 +139,10 @@ export function StatsCardsWidget() {
                   </div>
                 </div>
 
-                <p className="text-sm font-semibold uppercase tracking-wider text-[#6C757D] dark:text-white/60 mb-1">
+                <p className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-white/60 mb-1">
                   {stat.title}
                 </p>
-                <p className="text-3xl font-black text-[#0A2540] dark:text-white">
+                <p className="text-3xl font-black text-primary dark:text-white">
                   {stat.value}
                 </p>
              </div>

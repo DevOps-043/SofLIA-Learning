@@ -24,17 +24,17 @@ export function JobsTable({
   return (
     <>
       <StatusFilter statusFilter={statusFilter} onStatusFilterChange={onStatusFilterChange} />
-      <div className="rounded-xl border border-[#E9ECEF] dark:border-white/10 overflow-hidden">
+      <div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-[#F8FAFC] dark:bg-white/5 text-[#6C757D] dark:text-white/60 text-xs uppercase tracking-wide">
+            <thead className="bg-slate-50 dark:bg-white/5 text-gray-500 dark:text-white/60 text-xs uppercase tracking-wide">
               <tr>
                 {['Video', 'Estado', 'Tamaño', 'Duracion', 'Creado', 'Acciones'].map(header => (
                   <th key={header} className="px-4 py-3 text-left font-semibold">{header}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E9ECEF] dark:divide-white/10">
+            <tbody className="divide-y divide-gray-200 dark:divide-white/10">
               <JobsTableBody data={data} error={error} isLoading={isLoading} onReprocessJob={onReprocessJob} />
             </tbody>
           </table>
@@ -47,9 +47,9 @@ export function JobsTable({
 function StatusFilter({ statusFilter, onStatusFilterChange }: Pick<JobsTableProps, 'statusFilter' | 'onStatusFilterChange'>) {
   return (
     <div className="flex flex-wrap items-center gap-2 mb-4">
-      <span className="text-xs uppercase font-semibold text-[#6C757D] dark:text-white/60">Filtrar:</span>
+      <span className="text-xs uppercase font-semibold text-gray-500 dark:text-white/60">Filtrar:</span>
       {(['all', ...Object.keys(STATUS_META)] as Array<TranscodingJobStatus | 'all'>).map(key => (
-        <button key={key} type="button" onClick={() => onStatusFilterChange(key)} className={`text-xs px-3 py-1 rounded-full border transition ${statusFilter === key ? 'bg-[#0A2540] text-white border-[#0A2540]' : 'border-[#E9ECEF] dark:border-white/10 text-[#6C757D] dark:text-white/70 hover:border-[#0A2540]/40'}`}>
+        <button key={key} type="button" onClick={() => onStatusFilterChange(key)} className={`text-xs px-3 py-1 rounded-full border transition ${statusFilter === key ? 'bg-primary text-white border-primary' : 'border-gray-200 dark:border-white/10 text-gray-500 dark:text-white/70 hover:border-primary/40'}`}>
           {key === 'all' ? 'Todos' : STATUS_META[key].label}
         </button>
       ))}
@@ -67,7 +67,7 @@ function JobsTableBody({ data, error, isLoading, onReprocessJob }: Omit<JobsTabl
 function TableMessage({ children, tone = 'muted' }: { children: ReactNode; tone?: 'muted' | 'error' }) {
   return (
     <tr>
-      <td colSpan={6} className={`px-4 py-8 text-center ${tone === 'error' ? 'text-[#ef4444]' : 'text-[#6C757D] dark:text-white/60'}`}>
+      <td colSpan={6} className={`px-4 py-8 text-center ${tone === 'error' ? 'text-error' : 'text-gray-500 dark:text-white/60'}`}>
         {children}
       </td>
     </tr>

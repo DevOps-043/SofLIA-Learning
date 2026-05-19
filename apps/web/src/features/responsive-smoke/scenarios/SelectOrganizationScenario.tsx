@@ -17,27 +17,27 @@ export function SelectOrganizationScenario() {
           <button
             key={org.id}
             type="button"
-            className="flex min-h-[200px] w-full flex-col justify-between rounded-[28px] border border-[#DCE7F3] bg-white p-6 text-left shadow-sm transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-[#0C1628]"
+            className="flex min-h-[200px] w-full flex-col justify-between rounded-[28px] border border-[var(--color-legacy-dce7f3)] bg-white p-6 text-left shadow-sm transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-[var(--color-legacy-0c1628)]"
           >
             <div className="space-y-4">
               <div className="flex items-start justify-between gap-3">
-                <div className="flex h-14 w-14 items-center justify-center rounded-[20px] bg-[#EEF4FB] text-[#0A2540] dark:bg-white/10 dark:text-white">
+                <div className="flex h-14 w-14 items-center justify-center rounded-[20px] bg-[var(--color-legacy-eef4fb)] text-primary dark:bg-white/10 dark:text-white">
                   <Building2 className="h-7 w-7" />
                 </div>
-                <span className="inline-flex rounded-full bg-[#EEF4FB] px-3 py-1 text-xs font-semibold text-[#0A2540] dark:bg-white/10 dark:text-white/70">
+                <span className="inline-flex rounded-full bg-[var(--color-legacy-eef4fb)] px-3 py-1 text-xs font-semibold text-primary dark:bg-white/10 dark:text-white/70">
                   {org.role}
                 </span>
               </div>
               <div>
-                <h2 className="text-xl font-semibold leading-tight text-[#0A2540] dark:text-white">
+                <h2 className="text-xl font-semibold leading-tight text-primary dark:text-white">
                   {org.name}
                 </h2>
-                <p className="mt-2 break-all text-sm text-[#637489] dark:text-white/60">
+                <p className="mt-2 break-all text-sm text-[var(--color-legacy-637489)] dark:text-white/60">
                   /{org.slug}
                 </p>
               </div>
             </div>
-            <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#0A2540] dark:text-white">
+            <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary dark:text-white">
               Continuar
               <CheckCircle2 className="h-4 w-4" />
             </div>

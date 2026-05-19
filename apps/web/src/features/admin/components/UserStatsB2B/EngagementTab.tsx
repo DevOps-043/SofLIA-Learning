@@ -20,10 +20,10 @@ export function EngagementTab() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <UserStatsMetricCard label={t('userStats.metrics.activationRate')} value={`${data?.activationRate ?? 0}%`} icon={UserCheck} accentColor="#3B82F6" />
-        <UserStatsMetricCard label={t('userStats.metrics.weeklyReturn')} value={`${data?.weeklyReturn ?? 0}%`} icon={RefreshCw} accentColor="#10B981" />
-        <UserStatsMetricCard label={t('userStats.metrics.avgSatisfaction')} value={`${data?.avgSatisfaction ?? 0}/5`} icon={Star} accentColor="#F59E0B" />
-        <UserStatsMetricCard label={t('userStats.metrics.inactiveUsers30d')} value={data?.inactiveUsers30d ?? 0} icon={UserX} accentColor="#EF4444" />
+        <UserStatsMetricCard label={t('userStats.metrics.activationRate')} value={`${data?.activationRate ?? 0}%`} icon={UserCheck} accentColor="var(--color-info)" />
+        <UserStatsMetricCard label={t('userStats.metrics.weeklyReturn')} value={`${data?.weeklyReturn ?? 0}%`} icon={RefreshCw} accentColor="var(--color-success)" />
+        <UserStatsMetricCard label={t('userStats.metrics.avgSatisfaction')} value={`${data?.avgSatisfaction ?? 0}/5`} icon={Star} accentColor="var(--color-warning)" />
+        <UserStatsMetricCard label={t('userStats.metrics.inactiveUsers30d')} value={data?.inactiveUsers30d ?? 0} icon={UserX} accentColor="var(--color-error)" />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

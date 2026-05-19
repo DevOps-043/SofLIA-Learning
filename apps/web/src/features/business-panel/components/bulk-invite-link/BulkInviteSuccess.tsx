@@ -38,7 +38,7 @@ export function BulkInviteSuccess({
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
           className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
-          style={{ backgroundColor: `${theme.accentColor}20` }}
+          style={{ backgroundColor: `color-mix(in srgb, ${theme.accentColor} 12.5%, transparent)` }}
         >
           <CheckCircle className="w-10 h-10" style={{ color: theme.accentColor }} />
         </motion.div>
@@ -61,7 +61,7 @@ export function BulkInviteSuccess({
             onClick={onCopy}
             className="p-2 rounded-lg transition-colors flex-shrink-0"
             style={{
-              backgroundColor: copied ? `${theme.accentColor}20` : theme.inputBg,
+              backgroundColor: copied ? `color-mix(in srgb, ${theme.accentColor} 12.5%, transparent)` : theme.inputBg,
               color: copied ? theme.accentColor : theme.textColor,
             }}
           >

@@ -38,17 +38,17 @@ export const PROFILE_IMAGE_ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/pn
 export const PROFILE_UPLOAD_MAX_SIZE_BYTES = 10 * 1024 * 1024
 
 export const DEFAULT_PROFILE_COLORS: ProfileColorPalette = {
-  primary: '#0A2540',
-  accent: '#00D4B3',
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  bgPrimary: '#0F1419',
-  bgSecondary: '#1E2329',
-  bgTertiary: '#0A0D12',
-  grayLight: '#E9ECEF',
-  grayMedium: '#6C757D',
-  text: '#FFFFFF',
+  primary: 'var(--color-primary)',
+  accent: 'var(--color-accent)',
+  success: 'var(--color-success)',
+  warning: 'var(--color-warning)',
+  error: 'var(--color-error)',
+  bgPrimary: 'var(--color-bg-dark)',
+  bgSecondary: 'var(--color-gray-800)',
+  bgTertiary: 'var(--color-gray-950)',
+  grayLight: 'var(--color-gray-200)',
+  grayMedium: 'var(--color-gray-500)',
+  text: 'var(--color-bg-light)',
   textSecondary: 'rgba(255, 255, 255, 0.5)',
   border: 'rgba(255, 255, 255, 0.06)'
 }
@@ -239,21 +239,21 @@ export function resolveProfileColors(
   const cardBackground = userDashboardStyles?.card_background || DEFAULT_PROFILE_COLORS.bgSecondary
   const normalizedCardBackground = cardBackground.toLowerCase()
   const isLightMode =
-    normalizedCardBackground === '#ffffff' ||
-    normalizedCardBackground === '#f8fafc' ||
+    normalizedCardBackground === 'var(--color-bg-light)' ||
+    normalizedCardBackground === 'var(--color-gray-50)' ||
     normalizedCardBackground.includes('255, 255, 255')
 
-  let bgPrimary = userDashboardStyles?.sidebar_background || (isLightMode ? '#F1F5F9' : DEFAULT_PROFILE_COLORS.bgPrimary)
-  let text = userDashboardStyles?.text_color || (isLightMode ? '#0F172A' : DEFAULT_PROFILE_COLORS.text)
-  const border = userDashboardStyles?.border_color || (isLightMode ? '#E2E8F0' : DEFAULT_PROFILE_COLORS.border)
+  let bgPrimary = userDashboardStyles?.sidebar_background || (isLightMode ? 'var(--color-gray-100)' : DEFAULT_PROFILE_COLORS.bgPrimary)
+  let text = userDashboardStyles?.text_color || (isLightMode ? 'var(--color-legacy-0f172a)' : DEFAULT_PROFILE_COLORS.text)
+  const border = userDashboardStyles?.border_color || (isLightMode ? 'var(--color-gray-200)' : DEFAULT_PROFILE_COLORS.border)
 
   if (isLightMode) {
-    if (bgPrimary.toLowerCase() === '#0f1419' || bgPrimary.toLowerCase() === '#000000') {
-      bgPrimary = '#F1F5F9'
+    if (bgPrimary.toLowerCase() === 'var(--color-bg-dark)' || bgPrimary.toLowerCase() === 'var(--color-black)') {
+      bgPrimary = 'var(--color-gray-100)'
     }
 
-    if (text.toLowerCase() === '#ffffff' || text.toLowerCase() === '#fff') {
-      text = '#0F172A'
+    if (text.toLowerCase() === 'var(--color-bg-light)' || text.toLowerCase() === 'var(--color-bg-light)') {
+      text = 'var(--color-legacy-0f172a)'
     }
   }
 
@@ -264,7 +264,7 @@ export function resolveProfileColors(
     bgPrimary,
     bgSecondary: cardBackground,
     text,
-    textSecondary: isLightMode ? '#64748B' : DEFAULT_PROFILE_COLORS.textSecondary,
+    textSecondary: isLightMode ? 'var(--color-gray-500)' : DEFAULT_PROFILE_COLORS.textSecondary,
     border
   }
 }

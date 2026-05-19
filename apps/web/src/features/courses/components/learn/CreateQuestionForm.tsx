@@ -123,7 +123,7 @@ export function CreateQuestionForm({
               placeholder="Describe tu duda o comentario en detalle..."
               required
               rows={6}
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#0A2540]/40 dark:focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#0A2540]/15 dark:focus:ring-[#00D4B3]/20 transition-all resize-none leading-relaxed"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-primary/40 dark:focus:border-accent/50 focus:ring-1 focus:ring-primary/15 dark:focus:ring-accent/20 transition-all resize-none leading-relaxed"
             />
           </div>
 
@@ -142,7 +142,7 @@ export function CreateQuestionForm({
             <button
               type="submit"
               disabled={isSubmitting || !content.trim()}
-              className="px-6 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] text-white dark:text-[#0A1724] rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-[#0A2540]/20 dark:hover:shadow-[#00D4B3]/20 text-sm font-semibold flex items-center justify-center gap-2"
+              className="px-6 py-2.5 bg-primary hover:bg-primary dark:bg-accent dark:hover:bg-accent text-white dark:text-[var(--color-legacy-0a1724)] rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-primary/20 dark:hover:shadow-accent/20 text-sm font-semibold flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>

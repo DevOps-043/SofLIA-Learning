@@ -57,13 +57,13 @@ export function CourseCard3D({
   const { resolvedTheme } = useThemeStore()
   const isSystemLight = resolvedTheme === 'light'
 
-  const primaryColor = styles?.primary_button_color || '#0A2540'
-  const accentColor = styles?.accent_color || '#00D4B3'
-  
+  const primaryColor = styles?.primary_button_color || 'var(--color-primary)'
+  const accentColor = styles?.accent_color || 'var(--color-accent)'
+
   // Defaults adaptativos basados en el tema del sistema
-  const defaultCardBg = isSystemLight ? '#FFFFFF' : '#1E2329'
-  const defaultText = isSystemLight ? '#0F172A' : '#FFFFFF'
-  const defaultBorder = isSystemLight ? '#E2E8F0' : '#334155'
+  const defaultCardBg = isSystemLight ? 'var(--color-bg-light)' : 'var(--color-gray-800)'
+  const defaultText = isSystemLight ? 'var(--color-legacy-0f172a)' : 'var(--color-bg-light)'
+  const defaultBorder = isSystemLight ? 'var(--color-gray-200)' : 'var(--color-legacy-334155)'
 
   const cardBackground = styles?.card_background || defaultCardBg
   const textColor = styles?.text_color || defaultText
@@ -71,8 +71,8 @@ export function CourseCard3D({
   const cardOpacity = styles?.card_opacity ?? 0.95
 
   // Determinar si estamos en modo claro basándonos en el color de fondo
-  const isLightMode = cardBackground.toLowerCase() === '#ffffff' || 
-                      cardBackground.toLowerCase() === '#f8fafc' ||
+  const isLightMode = cardBackground.toLowerCase() === 'var(--color-bg-light)' ||
+                      cardBackground.toLowerCase() === 'var(--color-gray-50)' ||
                       cardBackground.startsWith('rgb(255') ||
                       cardBackground.startsWith('rgba(255')
 
@@ -139,7 +139,7 @@ export function CourseCard3D({
         {/* Path position badge */}
         <div
           className="flex min-h-16 items-center justify-center text-xs font-bold"
-          style={{ color: isLockedInPath ? (isLightMode ? '#94A3B8' : '#6B7280') : accentColor }}
+          style={{ color: isLockedInPath ? (isLightMode ? 'var(--color-gray-400)' : 'var(--color-legacy-6b7280)') : accentColor }}
         >
           {isLockedInPath ? <Lock className="w-3.5 h-3.5" /> : learningPathPosition !== undefined ? `#${learningPathPosition}` : null}
         </div>
@@ -147,7 +147,7 @@ export function CourseCard3D({
         {/* Thumbnail — small square, fixed 64×64 */}
         <div
           className="relative shrink-0 overflow-hidden"
-          style={{ width: 64, minWidth: 64, height: 64, backgroundColor: isLightMode ? '#F1F5F9' : '#0F172A' }}
+          style={{ width: 64, minWidth: 64, height: 64, backgroundColor: isLightMode ? 'var(--color-gray-100)' : 'var(--color-legacy-0f172a)' }}
         >
           <Image
             src={course.thumbnail || '/images/course-placeholder.png'}
@@ -166,7 +166,7 @@ export function CourseCard3D({
           >
             {course.title}
           </h3>
-          <p className="text-[11px] mt-0.5 truncate" style={{ color: isLightMode ? '#64748B' : '#9CA3AF' }}>
+          <p className="text-[11px] mt-0.5 truncate" style={{ color: isLightMode ? 'var(--color-gray-500)' : 'var(--color-legacy-9ca3af)' }}>
             {course.instructor}
           </p>
           <div className="mt-2 flex items-center gap-2 md:hidden">
@@ -199,7 +199,7 @@ export function CourseCard3D({
           </span>
           <div
             className="h-1.5 w-20 rounded-full overflow-hidden"
-            style={{ backgroundColor: isLightMode ? '#E2E8F0' : 'rgba(255,255,255,0.1)' }}
+            style={{ backgroundColor: isLightMode ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.1)' }}
           >
             <div
               className="h-full rounded-full transition-all duration-700"
@@ -207,7 +207,7 @@ export function CourseCard3D({
             />
           </div>
           {course.due_date && (
-            <span className="text-[9px] mt-0.5" style={{ color: isLightMode ? '#94A3B8' : '#6B7280' }}>
+            <span className="text-[9px] mt-0.5" style={{ color: isLightMode ? 'var(--color-gray-400)' : 'var(--color-legacy-6b7280)' }}>
               {formatDate(course.due_date, i18n.language, { day: 'numeric', month: 'short' })}
             </span>
           )}
@@ -219,7 +219,7 @@ export function CourseCard3D({
             <button
               onClick={(e) => { e.stopPropagation(); onCertificateClick() }}
               className="p-2 rounded-full transition-all duration-200 hover:scale-110"
-              style={{ color: '#F59E0B', backgroundColor: isLightMode ? '#FEF3C7' : 'rgba(245,158,11,0.15)' }}
+              style={{ color: 'var(--color-warning)', backgroundColor: isLightMode ? 'var(--color-legacy-fef3c7)' : 'rgba(245,158,11,0.15)' }}
             >
               <Award className="w-4 h-4" />
             </button>
@@ -244,7 +244,7 @@ export function CourseCard3D({
       {/* Thumbnail */}
       <div
         className="relative aspect-video w-full overflow-hidden"
-        style={{ backgroundColor: isLightMode ? '#F8FAFC' : '#0F172A' }}
+        style={{ backgroundColor: isLightMode ? 'var(--color-gray-50)' : 'var(--color-legacy-0f172a)' }}
       >
         <Image
           src={course.thumbnail || '/images/course-placeholder.png'}
@@ -284,7 +284,7 @@ export function CourseCard3D({
         >
           {course.title}
         </h3>
-        <p className="text-[10px] mb-1 line-clamp-1" style={{ color: isLightMode ? '#64748B' : '#9CA3AF' }}>
+        <p className="text-[10px] mb-1 line-clamp-1" style={{ color: isLightMode ? 'var(--color-gray-500)' : 'var(--color-legacy-9ca3af)' }}>
           {course.instructor}
         </p>
         {learningPathTitle && (
@@ -297,14 +297,14 @@ export function CourseCard3D({
 
         <div className="mt-auto pt-3">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: isLightMode ? '#94A3B8' : '#858E9B' }}>
+            <span className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: isLightMode ? 'var(--color-gray-400)' : 'var(--color-legacy-858e9b)' }}>
               {t('dashboard.courses.progress', 'Progreso')}
             </span>
             <span className="text-[10px] font-bold" style={{ color: accentColor }}>
               {course.progress}%
             </span>
           </div>
-          <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ backgroundColor: isLightMode ? '#F1F5F9' : 'rgba(255,255,255,0.08)' }}>
+          <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ backgroundColor: isLightMode ? 'var(--color-gray-100)' : 'rgba(255,255,255,0.08)' }}>
             <div
               className={`h-full rounded-full ${disableHeavyEffects ? '' : 'transition-all duration-700 ease-out'}`}
               style={{ width: `${course.progress}%`, background: `linear-gradient(90deg, ${primaryColor}, ${accentColor})` }}
@@ -312,7 +312,7 @@ export function CourseCard3D({
           </div>
           <div className="h-[14px] mt-2">
             {course.due_date && (
-              <p className="text-[9px] font-medium" style={{ color: isLightMode ? '#94A3B8' : '#858E9B' }}>
+              <p className="text-[9px] font-medium" style={{ color: isLightMode ? 'var(--color-gray-400)' : 'var(--color-legacy-858e9b)' }}>
                 {t('dashboard.courses.dueDatePrefix', 'Vence:')} {formatShortDate(course.due_date, i18n.language)}
               </p>
             )}

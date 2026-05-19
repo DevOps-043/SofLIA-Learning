@@ -65,7 +65,7 @@ export function CourseContentTree({
           className="flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-white/40"
           style={{ fontFamily: "Inter, sans-serif" }}
         >
-          <Layers className="h-3 w-3 shrink-0 text-[#0A2540] dark:text-[#00D4B3]" />
+          <Layers className="h-3 w-3 shrink-0 text-primary dark:text-accent" />
           <span className="truncate">{t("leftPanel.content")}</span>
         </h3>
 
@@ -76,16 +76,16 @@ export function CourseContentTree({
               onClick={onClosePanel}
               aria-label={t("leftPanel.closePanel")}
               title={t("leftPanel.closePanel")}
-              className="flex items-center justify-center rounded-lg p-1.5 transition-colors hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30"
+              className="flex items-center justify-center rounded-lg p-1.5 transition-colors hover:bg-gray-200/50 dark:hover:bg-primary/30"
             >
-              <PanelLeftClose className="h-4 w-4 text-[#6C757D] dark:text-white/70" strokeWidth={2} />
+              <PanelLeftClose className="h-4 w-4 text-gray-500 dark:text-white/70" strokeWidth={2} />
             </button>
           ) : null}
 
           <button
             type="button"
             onClick={onToggleCollapsed}
-            className="rounded-lg p-1.5 transition-colors hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30"
+            className="rounded-lg p-1.5 transition-colors hover:bg-gray-200/50 dark:hover:bg-primary/30"
             aria-label={
               isCollapsed
                 ? t("leftPanel.expandContent")
@@ -98,9 +98,9 @@ export function CourseContentTree({
             }
           >
             {isCollapsed ? (
-              <ChevronDown className="h-4 w-4 text-[#6C757D] dark:text-white/70" />
+              <ChevronDown className="h-4 w-4 text-gray-500 dark:text-white/70" />
             ) : (
-              <ChevronUp className="h-4 w-4 text-[#6C757D] dark:text-white/70" />
+              <ChevronUp className="h-4 w-4 text-gray-500 dark:text-white/70" />
             )}
           </button>
         </div>

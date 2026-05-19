@@ -17,7 +17,7 @@ export function CourseAnalyticsLoadingState({ panelTheme }: LoadingStateProps) {
       <div
         className="w-16 h-16 border-4 rounded-full animate-spin"
         style={{
-          borderColor: `${panelTheme.actionColor}30`,
+          borderColor: `color-mix(in srgb, ${panelTheme.actionColor} 18.8%, transparent)`,
           borderTopColor: panelTheme.actionColor,
         }}
       />

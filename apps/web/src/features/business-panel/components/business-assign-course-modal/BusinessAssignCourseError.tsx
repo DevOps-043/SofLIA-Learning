@@ -16,7 +16,7 @@ export function BusinessAssignCourseError({ modal, theme }: BusinessAssignCourse
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
           className="p-4 rounded-xl border flex items-center gap-3"
-          style={{ backgroundColor: `${theme.dangerColor}10`, borderColor: `${theme.dangerColor}20` }}
+          style={{ backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 6.3%, transparent)`, borderColor: `color-mix(in srgb, ${theme.dangerColor} 12.5%, transparent)` }}
         >
           <AlertCircle className="w-5 h-5 shrink-0" style={{ color: theme.dangerColor }} />
           <span className="text-[10px] font-black uppercase flex-1" style={{ color: theme.dangerColor }}>{modal.error}</span>

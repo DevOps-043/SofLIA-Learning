@@ -21,7 +21,7 @@ function buildFieldInput({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         rows={3}
-        className="min-h-[88px] w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none transition focus:border-[#0A2540]/30 focus:ring-2 focus:ring-[#0A2540]/10 dark:border-white/10 dark:bg-[#10161D] dark:text-white dark:focus:border-[#00D4B3]/40 dark:focus:ring-[#00D4B3]/20"
+        className="min-h-[88px] w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none transition focus:border-primary/30 focus:ring-2 focus:ring-primary/10 dark:border-white/10 dark:bg-[var(--color-legacy-10161d)] dark:text-white dark:focus:border-accent/40 dark:focus:ring-accent/20"
         placeholder={field.placeholder || "Escribe tu respuesta"}
       />
     );
@@ -31,7 +31,7 @@ function buildFieldInput({
     <input
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      className="inline-flex min-w-[180px] rounded-lg border-b-2 border-[#0A2540]/25 bg-transparent px-2 py-1 text-sm text-gray-900 outline-none transition focus:border-[#0A2540] dark:border-[#00D4B3]/30 dark:text-white dark:focus:border-[#00D4B3]"
+      className="inline-flex min-w-[180px] rounded-lg border-b-2 border-primary/25 bg-transparent px-2 py-1 text-sm text-gray-900 outline-none transition focus:border-primary dark:border-accent/30 dark:text-white dark:focus:border-accent"
       placeholder={field.placeholder || "Respuesta"}
     />
   );
@@ -63,7 +63,7 @@ export function InlineAnswersActivityRenderer({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-3 rounded-xl border border-gray-200 bg-white px-4 py-4 dark:border-white/10 dark:bg-[#10161D]">
+      <div className="space-y-3 rounded-xl border border-gray-200 bg-white px-4 py-4 dark:border-white/10 dark:bg-[var(--color-legacy-10161d)]">
         {lines.length > 0 ? (
           lines.map((line, lineIndex) => {
             const matches = Array.from(line.matchAll(inlineBlankPattern));
@@ -142,7 +142,7 @@ export function InlineAnswersActivityRenderer({
           value={evidenceValue}
           onChange={(event) => onEvidenceChange(event.target.value)}
           rows={4}
-          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm leading-relaxed text-gray-800 outline-none transition focus:border-[#0A2540]/30 focus:ring-2 focus:ring-[#0A2540]/10 dark:border-white/10 dark:bg-[#10161D] dark:text-white dark:focus:border-[#00D4B3]/40 dark:focus:ring-[#00D4B3]/20"
+          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm leading-relaxed text-gray-800 outline-none transition focus:border-primary/30 focus:ring-2 focus:ring-primary/10 dark:border-white/10 dark:bg-[var(--color-legacy-10161d)] dark:text-white dark:focus:border-accent/40 dark:focus:ring-accent/20"
           placeholder={
             evidencePlaceholder ||
             "Opcional: pega notas o evidencia complementaria."

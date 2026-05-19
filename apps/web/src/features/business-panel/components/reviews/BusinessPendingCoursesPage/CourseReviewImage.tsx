@@ -15,24 +15,24 @@ export function CourseReviewImage({ course, labels }: CourseReviewImageProps) {
     course.approval_status === 'rejected'
       ? {
           color: panelTheme.dangerColor,
-          background: `${panelTheme.dangerColor}18`,
-          border: `${panelTheme.dangerColor}32`,
+          background: `color-mix(in srgb, ${panelTheme.dangerColor} 9.4%, transparent)`,
+          border: `color-mix(in srgb, ${panelTheme.dangerColor} 19.6%, transparent)`,
         }
       : {
           color: panelTheme.warningColor,
-          background: `${panelTheme.warningColor}18`,
-          border: `${panelTheme.warningColor}32`,
+          background: `color-mix(in srgb, ${panelTheme.warningColor} 9.4%, transparent)`,
+          border: `color-mix(in srgb, ${panelTheme.warningColor} 19.6%, transparent)`,
         }
   const typeTone = course.is_update
     ? {
         color: panelTheme.brandColor,
-        background: `${panelTheme.brandColor}18`,
-        border: `${panelTheme.brandColor}32`,
+        background: `color-mix(in srgb, ${panelTheme.brandColor} 9.4%, transparent)`,
+        border: `color-mix(in srgb, ${panelTheme.brandColor} 19.6%, transparent)`,
       }
     : {
         color: panelTheme.successColor,
-        background: `${panelTheme.successColor}18`,
-        border: `${panelTheme.successColor}32`,
+        background: `color-mix(in srgb, ${panelTheme.successColor} 9.4%, transparent)`,
+        border: `color-mix(in srgb, ${panelTheme.successColor} 19.6%, transparent)`,
       }
 
   return (

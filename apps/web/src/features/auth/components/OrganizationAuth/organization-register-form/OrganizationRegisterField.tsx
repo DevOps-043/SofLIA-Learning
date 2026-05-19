@@ -41,7 +41,7 @@ export function OrganizationRegisterField({
             {Icon ? (
               <Icon
                 className="w-4 h-4 flex-shrink-0 mr-3 transition-colors duration-200"
-                style={{ color: `${palette.textColor}50` }}
+                style={{ color: `color-mix(in srgb, ${palette.textColor} 31.4%, transparent)` }}
               />
             ) : null}
             <input
@@ -64,7 +64,7 @@ export function OrganizationRegisterField({
       </div>
       {error ? <p className="auth-error">{error}</p> : null}
       {helperText ? (
-        <p className="text-xs mt-1" style={{ color: `${palette.textColor}60` }}>
+        <p className="text-xs mt-1" style={{ color: `color-mix(in srgb, ${palette.textColor} 37.6%, transparent)` }}>
           {helperText}
         </p>
       ) : null}

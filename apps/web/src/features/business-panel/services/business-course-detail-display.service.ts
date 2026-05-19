@@ -32,14 +32,14 @@ export function getBusinessCourseLevelStyles(level: string | null, primaryColor:
   switch (level?.toLowerCase()) {
     case 'beginner':
     case 'principiante':
-      return { bg: `${accentColor}20`, color: accentColor, text: 'Principiante' }
+      return { bg: `color-mix(in srgb, ${accentColor} 12.5%, transparent)`, color: accentColor, text: 'Principiante' }
     case 'intermediate':
     case 'intermedio':
-      return { bg: 'rgba(234, 179, 8, 0.2)', color: '#EAB308', text: 'Intermedio' }
+      return { bg: 'rgba(234, 179, 8, 0.2)', color: 'var(--color-legacy-eab308)', text: 'Intermedio' }
     case 'advanced':
     case 'avanzado':
-      return { bg: 'rgba(239, 68, 68, 0.2)', color: '#EF4444', text: 'Avanzado' }
+      return { bg: 'rgba(239, 68, 68, 0.2)', color: 'var(--color-error)', text: 'Avanzado' }
     default:
-      return { bg: `${primaryColor}20`, color: primaryColor, text: level || 'N/A' }
+      return { bg: `color-mix(in srgb, ${primaryColor} 12.5%, transparent)`, color: primaryColor, text: level || 'N/A' }
   }
 }

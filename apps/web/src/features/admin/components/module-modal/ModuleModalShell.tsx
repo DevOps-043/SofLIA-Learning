@@ -18,7 +18,7 @@ export function ModuleModalShell({ children, onClose }: ModuleModalShellProps) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 30 }}
               transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94], type: 'spring', stiffness: 300, damping: 30 }}
-              className="relative flex h-[100dvh] w-full flex-col overflow-hidden rounded-none border border-[#E9ECEF] bg-white shadow-2xl dark:border-[#6C757D]/30 dark:bg-[#1E2329] sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-2xl"
+              className="relative flex h-[100dvh] w-full flex-col overflow-hidden rounded-none border border-gray-200 bg-white shadow-2xl dark:border-gray-500/30 dark:bg-carbon-800 sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-2xl"
               onClick={(event) => event.stopPropagation()}
             >
               {children}

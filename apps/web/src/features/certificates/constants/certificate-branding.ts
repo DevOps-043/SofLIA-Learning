@@ -6,12 +6,12 @@ export const SOFLIA_PLATFORM_BRAND: CertificatePlatformBrand = {
 }
 
 export const DEFAULT_CERTIFICATE_VISUAL_TOKENS: CertificateVisualTokens = {
-  primaryColor: '#0A2540',
-  accentColor: '#00D4B3',
-  borderColor: '#D6E3F1',
-  backgroundColor: '#F7FBFF',
-  textColor: '#0F172A',
-  mutedColor: '#475569',
+  primaryColor: 'var(--color-primary)',
+  accentColor: 'var(--color-accent)',
+  borderColor: 'var(--color-legacy-d6e3f1)',
+  backgroundColor: 'var(--color-legacy-f7fbff)',
+  textColor: 'var(--color-legacy-0f172a)',
+  mutedColor: 'var(--color-gray-600)',
 }
 
 export const CERTIFICATE_RENDER_WIDTH_PX = 1200

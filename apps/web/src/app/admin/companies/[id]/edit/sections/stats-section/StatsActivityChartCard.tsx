@@ -23,7 +23,7 @@ export function StatsActivityChartCard({
                 <stop offset="95%" stopColor={colors.blue} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-legacy-ffffff05)" vertical={false} />
             <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: colors.grayMedium, fontSize: 10, fontWeight: 'bold' }} />
             <YAxis axisLine={false} tickLine={false} tick={{ fill: colors.grayMedium, fontSize: 10, fontWeight: 'bold' }} />
             <Tooltip contentStyle={createStatsTooltipStyle(isDark)} itemStyle={{ color: colors.accent, fontWeight: 'bold' }} />

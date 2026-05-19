@@ -8,7 +8,7 @@ export function ReviewLoadingState() {
       <div
         className="w-14 h-14 rounded-full border-4 animate-spin"
         style={{
-          borderColor: `${panelTheme.actionColor}22`,
+          borderColor: `color-mix(in srgb, ${panelTheme.actionColor} 13.3%, transparent)`,
           borderTopColor: panelTheme.actionColor,
         }}
       />

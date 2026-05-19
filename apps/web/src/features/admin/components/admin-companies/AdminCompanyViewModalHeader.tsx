@@ -49,17 +49,17 @@ export function AdminCompanyViewModalHeader(props: AdminCompanyViewModalHeaderPr
             <p className="mt-1 text-sm font-semibold" style={{ color: props.themeColors.textSecondary }}>/ {props.company.slug || t('companies.card.noSlug')}</p>
             {props.company.description ? <p className="mt-3 max-w-2xl text-sm leading-relaxed" style={{ color: props.themeColors.textSecondary }}>{props.company.description}</p> : null}
           </div>
-          <button type="button" onClick={props.onEdit} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl px-5 text-sm font-bold" style={{ backgroundColor: `${theme.primaryColor}14`, color: theme.primaryColor }}>
+          <button type="button" onClick={props.onEdit} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl px-5 text-sm font-bold" style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 7.8%, transparent)`, color: theme.primaryColor }}>
             <Pencil className="h-4 w-4" />
             {t('companies.actions.edit')}
           </button>
         </div>
         <div className="mt-5 flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-extrabold" style={{ backgroundColor: props.status.bg, borderColor: `${props.status.color}26`, color: props.status.color }}>
+          <span className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-extrabold" style={{ backgroundColor: props.status.bg, borderColor: `color-mix(in srgb, ${props.status.color} 14.9%, transparent)`, color: props.status.color }}>
             <StatusIcon className="h-3.5 w-3.5" />
             {t(`companies.status.${props.status.key}`)}
           </span>
-          <span className="rounded-xl border px-3 py-1.5 text-xs font-extrabold" style={{ backgroundColor: `${props.planColor}14`, borderColor: `${props.planColor}26`, color: props.planColor }}>
+          <span className="rounded-xl border px-3 py-1.5 text-xs font-extrabold" style={{ backgroundColor: `color-mix(in srgb, ${props.planColor} 7.8%, transparent)`, borderColor: `color-mix(in srgb, ${props.planColor} 14.9%, transparent)`, color: props.planColor }}>
             {t('companies.card.plan', { plan: t(`companies.plans.${props.normalizedPlan}`, { defaultValue: props.company.subscription_plan || t('companies.plans.none') }) })}
           </span>
         </div>

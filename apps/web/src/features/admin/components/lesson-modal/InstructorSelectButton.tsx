@@ -17,7 +17,7 @@ export function InstructorSelectButton({
   onToggle,
   selectedInstructor,
 }: InstructorSelectButtonProps) {
-  const iconClassName = isOpen ? 'text-[#00D4B3]' : 'text-[#6C757D] dark:text-white/60';
+  const iconClassName = isOpen ? 'text-accent' : 'text-gray-500 dark:text-white/60';
 
   return (
     <motion.button
@@ -26,7 +26,7 @@ export function InstructorSelectButton({
       onClick={onToggle}
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.99 }}
-      className={`w-full pl-10 pr-10 py-2.5 bg-white dark:bg-[#0A0D12] border rounded-xl text-[#0A2540] dark:text-white transition-all duration-200 flex items-center justify-between ${isOpen ? 'border-[#00D4B3] ring-2 ring-[#00D4B3]/40' : 'border-[#E9ECEF] dark:border-[#6C757D]/30 hover:border-[#00D4B3]/50'}`}
+      className={`w-full pl-10 pr-10 py-2.5 bg-white dark:bg-carbon-950 border rounded-xl text-primary dark:text-white transition-all duration-200 flex items-center justify-between ${isOpen ? 'border-accent ring-2 ring-accent/40' : 'border-gray-200 dark:border-gray-500/30 hover:border-accent/50'}`}
     >
       <div className="flex items-center gap-2.5">
         <UserCircleIcon className={`h-4 w-4 transition-colors ${iconClassName}`} />

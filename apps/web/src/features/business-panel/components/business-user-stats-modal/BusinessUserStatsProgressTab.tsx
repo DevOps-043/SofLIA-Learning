@@ -54,10 +54,10 @@ export function BusinessUserStatsProgressTab({
                   className="w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold border"
                   style={{
                     backgroundColor: theme.isDark
-                      ? `${progressColor}30`
-                      : `${progressColor}20`,
+                      ? `color-mix(in srgb, ${progressColor} 18.8%, transparent)`
+                      : `color-mix(in srgb, ${progressColor} 12.5%, transparent)`,
                     color: progressColor,
-                    borderColor: theme.isDark ? `${progressColor}50` : `${progressColor}30`,
+                    borderColor: theme.isDark ? `color-mix(in srgb, ${progressColor} 31.4%, transparent)` : `color-mix(in srgb, ${progressColor} 18.8%, transparent)`,
                   }}
                 >
                   {course.progress}%
@@ -89,7 +89,7 @@ export function BusinessUserStatsProgressTab({
                       <div
                         className="w-8 h-8 rounded-full flex items-center justify-center"
                         style={{
-                          backgroundColor: `${theme.successColor}20`,
+                          backgroundColor: `color-mix(in srgb, ${theme.successColor} 12.5%, transparent)`,
                         }}
                       >
                         <CheckCircle
@@ -103,7 +103,7 @@ export function BusinessUserStatsProgressTab({
                   <div
                     className="relative h-3 rounded-full overflow-hidden mb-4"
                     style={{
-                      backgroundColor: `${theme.textColor}15`,
+                      backgroundColor: `color-mix(in srgb, ${theme.textColor} 8.2%, transparent)`,
                     }}
                   >
                     <motion.div
@@ -112,8 +112,8 @@ export function BusinessUserStatsProgressTab({
                       transition={{ duration: 1, delay: index * 0.15 }}
                       className="absolute inset-y-0 left-0 rounded-full"
                       style={{
-                        background: `linear-gradient(90deg, ${progressColor}, ${progressColor}CC)`,
-                        boxShadow: `0 0 15px ${progressColor}50`,
+                        background: `linear-gradient(90deg, ${progressColor}, color-mix(in srgb, ${progressColor} 80%, transparent))`,
+                        boxShadow: `0 0 15px color-mix(in srgb, ${progressColor} 31.4%, transparent)`,
                       }}
                     />
                   </div>

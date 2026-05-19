@@ -2,7 +2,10 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { SessionService } from '../../../features/auth/services/session.service';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import type { Database } from '../../../lib/supabase/types';
+import { tourProgressSchema, type TourProgressBody } from './schema';
 
 // ---------------------------------------------------------------------------
 // Singleton admin client
@@ -110,31 +113,14 @@ export async function GET(request: NextRequest) {
 // Registra progreso: start | step | complete | skip
 // No cacheamos: es escritura y necesita ser inmediata.
 // ---------------------------------------------------------------------------
-export async function POST(request: NextRequest) {
+async function handlePost(_request: NextRequest, body: TourProgressBody) {
   try {
     const user = await SessionService.getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+      return apiError('UNAUTHORIZED', 'No autorizado', 401);
     }
 
-    const body = await request.json();
-    const { tourId, action, stepReached } = body as {
-      tourId?: string;
-      action?: string;
-      stepReached?: number;
-    };
-
-    if (!tourId || !action) {
-      return NextResponse.json(
-        { error: 'tourId y action son requeridos' },
-        { status: 400 }
-      );
-    }
-
-    if (!VALID_ACTIONS.has(action)) {
-      return NextResponse.json({ error: 'Acción inválida' }, { status: 400 });
-    }
-
+    const { tourId, action, stepReached } = body;
     const supabase = getAdminClient();
 
     // Single read to check existence — we only SELECT id + step_reached
@@ -211,6 +197,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, tourProgress: result.data });
   } catch (err) {
     techDebtLogger.error('[POST /api/tours] Unexpected error:', err);
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+    return apiError('TOUR_PROGRESS_FAILED', 'Error interno del servidor', 500);
   }
 }
+
+export const POST = withZodBody(tourProgressSchema, handlePost);

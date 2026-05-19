@@ -39,7 +39,7 @@ export function BusinessCourseReviewsTab({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               className="p-5 rounded-xl border"
-              style={{ backgroundColor: `${primaryColor}05`, borderColor }}
+              style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 2%, transparent)`, borderColor }}
             >
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold flex-shrink-0" style={{ backgroundColor: primaryColor, color: onPrimaryColor }}>
@@ -49,7 +49,7 @@ export function BusinessCourseReviewsTab({
                   <div className="flex items-center gap-2 mb-2">
                     <h4 className="font-semibold" style={{ color: textColor }}>{review.user.name}</h4>
                     {review.is_verified ? (
-                      <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: `${successColor}20`, color: successColor }}>
+                      <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: `color-mix(in srgb, ${successColor} 12.5%, transparent)`, color: successColor }}>
                         Verificado
                       </span>
                     ) : null}

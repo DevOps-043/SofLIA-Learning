@@ -54,7 +54,7 @@ export function UserBehaviorToggleItem({
         aria-checked={item.value}
         disabled={isBusy}
         onClick={onToggle}
-        className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00D4B3] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-offset-[#1E2329] ${item.value ? 'bg-[#00D4B3]' : 'bg-neutral-300 dark:bg-white/15'}`}
+        className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-offset-carbon-800 ${item.value ? 'bg-accent' : 'bg-neutral-300 dark:bg-white/15'}`}
       >
         <span className={`pointer-events-none ml-1 mt-1 inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition-transform duration-300 ease-in-out ${item.value ? 'translate-x-5' : 'translate-x-0'}`} />
       </button>

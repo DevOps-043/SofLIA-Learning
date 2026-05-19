@@ -13,10 +13,10 @@ import type {
   SchedulePreviewWeekRange,
 } from '../schedule-preview.types';
 
-const STUDY_SESSION_COLOR = '#8E24AA';
-const EXTERNAL_GOOGLE_COLOR = '#0066CC';
-const EXTERNAL_MICROSOFT_COLOR = '#0078D4';
-const EXTERNAL_DEFAULT_COLOR = '#4A90D9';
+const STUDY_SESSION_COLOR = 'var(--color-legacy-8e24aa)';
+const EXTERNAL_GOOGLE_COLOR = 'var(--color-legacy-0066cc)';
+const EXTERNAL_MICROSOFT_COLOR = 'var(--color-legacy-0078d4)';
+const EXTERNAL_DEFAULT_COLOR = 'var(--color-legacy-4a90d9)';
 const VISIBLE_HOUR_START = 6;
 const VISIBLE_HOUR_END = 23;
 

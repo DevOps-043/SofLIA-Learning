@@ -28,9 +28,9 @@ export function CourseStatsTab() {
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-            className="mb-4 h-16 w-16 rounded-full border-4 border-[#00D4B3]/20 border-t-[#00D4B3]"
+            className="mb-4 h-16 w-16 rounded-full border-4 border-accent/20 border-t-accent"
           />
-          <p className="text-sm font-medium text-[#6C757D] dark:text-white/60">
+          <p className="text-sm font-medium text-gray-500 dark:text-white/60">
             {t('workshops.editor.stats.loading')}
           </p>
         </div>

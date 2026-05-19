@@ -25,7 +25,7 @@ export const CustomVideoPlayer = forwardRef<
 
   return (
     <div
-      className={`relative w-full bg-[#0F1419] dark:bg-[#0F1419] rounded-xl overflow-hidden group ${controller.className}`}
+      className={`relative w-full bg-carbon-900 dark:bg-carbon-900 rounded-xl overflow-hidden group ${controller.className}`}
       onMouseEnter={controller.onRootMouseEnter}
       onMouseLeave={controller.onRootMouseLeave}
       onMouseMove={controller.onRootMouseMove}

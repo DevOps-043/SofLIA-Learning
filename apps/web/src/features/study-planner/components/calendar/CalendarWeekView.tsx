@@ -6,7 +6,7 @@ import {
 import type { CalendarWeekViewProps } from './types'
 
 function getEventColor(event: { color?: string; source?: string; provider?: string }): string {
-  return event.color || (event.source === 'study_session' ? '#8E24AA' : event.provider === 'google' ? '#0066CC' : event.provider === 'microsoft' ? '#0078D4' : '#0066CC')
+  return event.color || (event.source === 'study_session' ? 'var(--color-legacy-8e24aa)' : event.provider === 'google' ? 'var(--color-legacy-0066cc)' : event.provider === 'microsoft' ? 'var(--color-legacy-0078d4)' : 'var(--color-legacy-0066cc)')
 }
 
 export function CalendarWeekView({
@@ -18,21 +18,21 @@ export function CalendarWeekView({
   setIsEventModalOpen,
 }: CalendarWeekViewProps) {
   return (
-    <div className="flex-1 flex flex-col border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg overflow-hidden bg-white dark:bg-[#1E2329] w-full max-w-full">
+    <div className="flex-1 flex flex-col border border-gray-200 dark:border-gray-500/30 rounded-lg overflow-hidden bg-white dark:bg-carbon-800 w-full max-w-full">
       <div className="flex-1 flex flex-col overflow-x-auto touch-pan-x w-full">
         <div className="flex-1 flex flex-col min-w-[800px]">
-          <div className="flex border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
-            <div className="w-16 border-r border-[#E9ECEF] dark:border-[#6C757D]/30 flex-shrink-0"></div>
+          <div className="flex border-b border-gray-200 dark:border-gray-500/30">
+            <div className="w-16 border-r border-gray-200 dark:border-gray-500/30 flex-shrink-0"></div>
             <div className="flex flex-1">
               {weekDays.map((dayDate, index) => {
                 const isToday = isSameCalendarDay(dayDate, today)
                 return (
-                  <div key={index} className="flex-1 px-3 py-3 border-r border-[#E9ECEF] dark:border-[#6C757D]/30 last:border-r-0">
+                  <div key={index} className="flex-1 px-3 py-3 border-r border-gray-200 dark:border-gray-500/30 last:border-r-0">
                     <div className="text-center">
-                      <div className="text-xs font-medium text-[#6C757D] dark:text-gray-400 uppercase tracking-wider mb-1">
+                      <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
                         {formatCalendarLabel(dayDate, 'EEE')}
                       </div>
-                      <div className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center text-sm font-medium ${isToday ? 'bg-[#0A2540] text-white' : 'text-[#0A2540] dark:text-white'}`}>
+                      <div className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center text-sm font-medium ${isToday ? 'bg-primary text-white' : 'text-primary dark:text-white'}`}>
                         {formatCalendarLabel(dayDate, 'd')}
                       </div>
                     </div>
@@ -44,10 +44,10 @@ export function CalendarWeekView({
 
           <div className="flex-1 overflow-y-auto">
             <div className="flex">
-              <div className="w-16 border-r border-[#E9ECEF] dark:border-[#6C757D]/30 flex-shrink-0">
+              <div className="w-16 border-r border-gray-200 dark:border-gray-500/30 flex-shrink-0">
                 {hours.map((hour) => (
-                  <div key={hour} className="h-16 border-b border-[#E9ECEF] dark:border-[#6C757D]/30 px-1.5 flex items-start justify-end pt-1">
-                    <span className="text-xs text-[#6C757D] dark:text-gray-400">
+                  <div key={hour} className="h-16 border-b border-gray-200 dark:border-gray-500/30 px-1.5 flex items-start justify-end pt-1">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                       {hour.toString().padStart(2, '0')}:00
                     </span>
                   </div>
@@ -62,10 +62,10 @@ export function CalendarWeekView({
                   return (
                     <div
                       key={dayIndex}
-                      className={`flex-1 border-r border-[#E9ECEF] dark:border-[#6C757D]/30 last:border-r-0 relative ${isToday ? 'bg-[#0A2540]/10 dark:bg-[#0A2540]/20' : ''}`}
+                      className={`flex-1 border-r border-gray-200 dark:border-gray-500/30 last:border-r-0 relative ${isToday ? 'bg-primary/10 dark:bg-primary/20' : ''}`}
                     >
                       {hours.map((hour) => (
-                        <div key={hour} className="h-16 border-b border-[#E9ECEF] dark:border-[#6C757D]/30 relative hover:bg-[#E9ECEF]/30 dark:hover:bg-[#0A2540]/10 transition-colors" />
+                        <div key={hour} className="h-16 border-b border-gray-200 dark:border-gray-500/30 relative hover:bg-gray-200/30 dark:hover:bg-primary/10 transition-colors" />
                       ))}
 
                       {dayLayouts.map((layout) => {

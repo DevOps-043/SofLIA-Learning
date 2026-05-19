@@ -4,7 +4,7 @@ import type { BrandingColorField } from './types'
 import { AdminCompanyBrandingColorCard } from './AdminCompanyBrandingColorCard'
 
 interface AdminCompanyBrandingColorPaletteProps<T extends string> {
-  fields: BrandingColorField<T>[]
+  fields: readonly BrandingColorField<T>[]
   values: Record<T, string>
   onChange: (key: T, value: string) => void
   dark?: boolean

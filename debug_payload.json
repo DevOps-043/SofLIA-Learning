@@ -1322,7 +1322,7 @@
                     "character": "Lia"
                   },
                   {
-                    "message": "Ahora, refina tu prompt anterior. Asígnale a la IA el rol de 'Community Manager experto en marcas de café' y dale un ejemplo de un post que te guste. Por ejemplo: '☕ ¡Nuevos horizontes! Nuestro blend de Etiopía ya está aquí. Notas afrutadas, aroma que enamora. #CaféDeEspecialidad'. Luego, pídele que cree el post para el café colombiano.",
+                    "message": "Ahora, refina tu prompt anterior. Asígnale a la IA el rol de 'Community Manager experto en marcas de café' y dale un ejemplo de un post que te guste. Por ejemplo: '☕ ¡Nuevos horizontes! Nuestro blend de Etiopía ya está aquí. Notas afrutadas, aroma que enamora. var(--color-legacy-ccaaff)éDeEspecialidad'. Luego, pídele que cree el post para el café colombiano.",
                     "character": "Usuario"
                   },
                   {

@@ -276,7 +276,7 @@ export function LoginForm() {
         className="w-full"
       >
         {/* Tarjeta principal con bordes redondeados */}
-        <div className="bg-white dark:bg-[#1E2329] rounded-2xl shadow-xl dark:shadow-2xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-8 sm:p-10">
+        <div className="bg-white dark:bg-carbon-800 rounded-2xl shadow-xl dark:shadow-2xl border border-gray-200 dark:border-gray-500/30 p-8 sm:p-10">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -284,10 +284,10 @@ export function LoginForm() {
             transition={{ delay: 0.1, duration: 0.4 }}
             className="text-center mb-8"
           >
-            <h1 className="text-3xl sm:text-4xl font-bold text-[#0A2540] dark:text-white mb-2">
+            <h1 className="text-3xl sm:text-4xl font-bold text-primary dark:text-white mb-2">
               {t('auth.login.title')}
             </h1>
-            <p className="text-sm sm:text-base text-[#6C757D] dark:text-white/60">
+            <p className="text-sm sm:text-base text-gray-500 dark:text-white/60">
               {t('auth.login.subtitle')}
             </p>
           </motion.div>
@@ -362,8 +362,8 @@ export function LoginForm() {
                 />
                 <motion.div
                   className={`relative w-5 h-5 rounded-lg border-2 transition-all duration-200 ${rememberMe
-                    ? 'bg-[#00D4B3] border-[#00D4B3]'
-                    : 'bg-white dark:bg-[#1E2329] border-[#6C757D] dark:border-[#6C757D]/50'
+                    ? 'bg-accent border-accent'
+                    : 'bg-white dark:bg-carbon-800 border-gray-500 dark:border-gray-500/50'
                     }`}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
@@ -390,7 +390,7 @@ export function LoginForm() {
                     )}
                   </AnimatePresence>
                 </motion.div>
-                <span className="ml-2.5 text-sm font-medium text-[#0A2540] dark:text-white/80 group-hover:text-[#00D4B3] transition-colors">
+                <span className="ml-2.5 text-sm font-medium text-primary dark:text-white/80 group-hover:text-accent transition-colors">
                   {t('auth.login.rememberMe')}
                 </span>
               </label>
@@ -398,7 +398,7 @@ export function LoginForm() {
               {/* Olvidaste tu contraseña */}
               <Link
                 href="/auth/forgot-password"
-                className="text-sm font-medium text-[#00D4B3] hover:text-[#00D4B3]/80 dark:text-[#00D4B3] dark:hover:text-[#00D4B3]/70 transition-colors"
+                className="text-sm font-medium text-accent hover:text-accent/80 dark:text-accent dark:hover:text-accent/70 transition-colors"
               >
                 {t('auth.login.forgotPassword')}
               </Link>
@@ -416,7 +416,7 @@ export function LoginForm() {
               transition={{ delay: 0.5, duration: 0.4 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full bg-[#0A2540] dark:bg-[#0A2540] hover:bg-[#0d2f4d] dark:hover:bg-[#0d2f4d] text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-primary dark:bg-primary hover:bg-primary dark:hover:bg-primary text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isPending ? (
                 <>
@@ -449,12 +449,12 @@ export function LoginForm() {
             transition={{ delay: 0.7, duration: 0.4 }}
             className="mt-6 text-center"
           >
-            <p className="text-sm text-[#6C757D] dark:text-white/60">
+            <p className="text-sm text-gray-500 dark:text-white/60">
               {t('auth.login.noAccount')}{' '}
               <button
                 type="button"
                 onClick={() => setActiveTab('register')}
-                className="font-semibold text-[#00D4B3] hover:text-[#00D4B3]/80 dark:text-[#00D4B3] dark:hover:text-[#00D4B3]/70 transition-colors"
+                className="font-semibold text-accent hover:text-accent/80 dark:text-accent dark:hover:text-accent/70 transition-colors"
               >
                 {t('auth.login.registerHere')}
               </button>

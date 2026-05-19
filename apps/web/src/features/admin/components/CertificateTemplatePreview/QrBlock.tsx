@@ -20,7 +20,7 @@ export function CertificateQrBlock({ certificateHash, primaryColor }: Certificat
           size={110}
           style={{ height: 'auto', maxWidth: '100%', width: '100%' }}
           fgColor={primaryColor}
-          bgColor="#ffffff"
+          bgColor="var(--color-bg-light)"
         />
       </div>
     </div>

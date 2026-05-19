@@ -20,9 +20,9 @@ export function LearningTab() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <UserStatsMetricCard label={t('userStats.metrics.avgTimePerLesson')} value={`${data?.avgTimePerLesson ?? 0} min`} icon={Clock} accentColor="#3B82F6" />
-        <UserStatsMetricCard label={t('userStats.metrics.quizPassRate')} value={`${data?.quizPassRate ?? 0}%`} icon={CheckCircle} accentColor="#10B981" />
-        <UserStatsMetricCard label={t('userStats.metrics.avgSessionsPerWeek')} value={data?.avgSessionsPerWeek ?? 0} icon={Calendar} accentColor="#8B5CF6" />
+        <UserStatsMetricCard label={t('userStats.metrics.avgTimePerLesson')} value={`${data?.avgTimePerLesson ?? 0} min`} icon={Clock} accentColor="var(--color-info)" />
+        <UserStatsMetricCard label={t('userStats.metrics.quizPassRate')} value={`${data?.quizPassRate ?? 0}%`} icon={CheckCircle} accentColor="var(--color-success)" />
+        <UserStatsMetricCard label={t('userStats.metrics.avgSessionsPerWeek')} value={data?.avgSessionsPerWeek ?? 0} icon={Calendar} accentColor="var(--color-secondary)" />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

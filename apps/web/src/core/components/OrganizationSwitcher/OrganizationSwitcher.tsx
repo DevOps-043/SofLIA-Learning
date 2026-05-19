@@ -100,7 +100,7 @@ export function OrganizationSwitcher({
     }
 
     // Fallback: colored icon with first letter
-    const bgColor = org.brandColorPrimary || '#3b82f6';
+    const bgColor = org.brandColorPrimary || 'var(--color-info)';
     return (
       <div
         className={cn(
@@ -160,7 +160,7 @@ export function OrganizationSwitcher({
         <Select.Trigger
           className={cn(
             'flex items-center gap-2 px-3 py-2 rounded-lg',
-            'bg-white dark:bg-[#1E2329]',
+            'bg-white dark:bg-carbon-800',
             'border border-gray-200 dark:border-gray-700',
             'hover:border-primary/50 dark:hover:border-primary/50',
             'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary',
@@ -204,7 +204,7 @@ export function OrganizationSwitcher({
       <Select.Trigger
         className={cn(
           'flex items-center gap-3 px-4 py-2.5 rounded-xl w-full max-w-[280px]',
-          'bg-white dark:bg-[#1E2329]',
+          'bg-white dark:bg-carbon-800',
           'border border-gray-200 dark:border-gray-700',
           'hover:border-primary/50 dark:hover:border-primary/50',
           'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary',
@@ -258,7 +258,7 @@ function renderDropdown(
     <Select.Portal>
       <Select.Content
         className={cn(
-          'bg-white dark:bg-[#1E2329]',
+          'bg-white dark:bg-carbon-800',
           'rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700',
           'z-50 min-w-[var(--radix-select-trigger-width)] max-h-[300px]',
           'overflow-hidden'

@@ -32,7 +32,7 @@ export function PremiumDatePickerButton({
       style={{
         backgroundColor: theme.inputBg,
         borderColor: isOpen ? theme.primaryColor : theme.borderColor,
-        boxShadow: isOpen ? `0 0 0 3px ${theme.primaryColor}20` : 'none',
+        boxShadow: isOpen ? `0 0 0 3px color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent)` : 'none',
       }}
       type="button"
       whileTap={{ scale: 0.98 }}

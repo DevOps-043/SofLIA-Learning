@@ -52,7 +52,7 @@ export function InfoHoverCard({
         type="button"
         onClick={onClose}
         className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full md:hidden"
-        style={{ backgroundColor: `${orgColors.textMuted}20`, color: orgColors.text }}
+        style={{ backgroundColor: `color-mix(in srgb, ${orgColors.textMuted} 12.5%, transparent)`, color: orgColors.text }}
         aria-label={t('actions.close', 'Cerrar')}
       >
         <X className="h-4 w-4" />

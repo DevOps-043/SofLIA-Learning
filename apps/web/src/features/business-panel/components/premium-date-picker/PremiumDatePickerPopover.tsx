@@ -31,7 +31,7 @@ export function PremiumDatePickerPopover(props: PremiumDatePickerPopoverProps) {
       style={{
         backgroundColor: props.theme.panelBg,
         borderColor: props.theme.borderColor,
-        boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px ${props.theme.primaryColor}20`,
+        boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px color-mix(in srgb, ${props.theme.primaryColor} 12.5%, transparent)`,
       }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
     >

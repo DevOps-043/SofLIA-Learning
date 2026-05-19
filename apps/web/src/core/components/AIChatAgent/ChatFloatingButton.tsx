@@ -99,10 +99,10 @@ export function ChatFloatingButton({
           }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          className="relative w-16 h-16 rounded-full bg-gradient-to-r from-[#00D4B3] via-[#00D4B3] to-[#00b89a] shadow-2xl hover:shadow-[#00D4B3]/50 transition-all cursor-pointer border-2 border-[#00D4B3]"
+          className="relative w-16 h-16 rounded-full bg-gradient-to-r from-accent via-accent to-accent shadow-2xl hover:shadow-accent/50 transition-all cursor-pointer border-2 border-accent"
         >
           <motion.div
-            className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00D4B3] via-[#00D4B3] to-[#00b89a]"
+            className="absolute inset-0 rounded-full bg-gradient-to-r from-accent via-accent to-accent"
             animate={disableHeavy ? {} : { scale: [1, 1.2, 1], opacity: [0.7, 0, 0.7] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           />

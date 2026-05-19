@@ -17,13 +17,13 @@ export function ImportUsersDropZone({ state }: { state: ImportUsersModalState })
       onDrop={state.handleDrop}
       onClick={() => state.fileInputRef.current?.click()}
       className="relative rounded-xl cursor-pointer transition-all duration-200 p-8"
-      style={{ border: `2px dashed ${state.isDragging ? theme.primaryColor : theme.borderColor}`, backgroundColor: state.isDragging ? `${theme.primaryColor}10` : theme.inputBg }}
+      style={{ border: `2px dashed ${state.isDragging ? theme.primaryColor : theme.borderColor}`, backgroundColor: state.isDragging ? `color-mix(in srgb, ${theme.primaryColor} 6.3%, transparent)` : theme.inputBg }}
     >
       <input ref={state.fileInputRef} type="file" accept=".csv" onChange={state.handleFileInputChange} className="hidden" disabled={state.isImporting} />
       <div className="text-center">
         {state.isImporting ? (
           <div className="space-y-4">
-            <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="w-12 h-12 mx-auto rounded-full border-[3px] border-t-transparent" style={{ borderColor: `${theme.primaryColor}30`, borderTopColor: theme.primaryColor }} />
+            <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="w-12 h-12 mx-auto rounded-full border-[3px] border-t-transparent" style={{ borderColor: `color-mix(in srgb, ${theme.primaryColor} 18.8%, transparent)`, borderTopColor: theme.primaryColor }} />
             <div>
               <p className="font-medium" style={{ color: theme.textColor }}>{t('users.modals.import.loading.title')}</p>
               <p className="text-sm mt-1" style={{ color: theme.mutedTextColor }}>{t('users.modals.import.loading.subtitle')}</p>
@@ -31,7 +31,7 @@ export function ImportUsersDropZone({ state }: { state: ImportUsersModalState })
           </div>
         ) : (
           <>
-            <div className="w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `${theme.primaryColor}15` }}>
+            <div className="w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 8.2%, transparent)` }}>
               <Upload className="w-7 h-7" style={{ color: theme.primaryColor }} />
             </div>
             <p className="font-medium mb-1" style={{ color: theme.textColor }}>{state.isDragging ? t('users.modals.import.dragDrop.drop') : t('users.modals.import.dragDrop.drag')}</p>

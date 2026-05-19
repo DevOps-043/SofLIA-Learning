@@ -23,8 +23,8 @@ export function BrandingFeedbackMessages({
           animate={{ opacity: 1, x: 0 }}
           className="rounded-xl p-4 flex items-center gap-3"
           style={{
-            backgroundColor: `${theme.successColor}14`,
-            border: `1px solid ${theme.successColor}33`,
+            backgroundColor: `color-mix(in srgb, ${theme.successColor} 7.8%, transparent)`,
+            border: `1px solid color-mix(in srgb, ${theme.successColor} 20%, transparent)`,
           }}
         >
           <CheckCircle
@@ -43,8 +43,8 @@ export function BrandingFeedbackMessages({
           animate={{ opacity: 1, x: 0 }}
           className="rounded-xl p-4 flex items-center gap-3"
           style={{
-            backgroundColor: `${theme.dangerColor}14`,
-            border: `1px solid ${theme.dangerColor}33`,
+            backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 7.8%, transparent)`,
+            border: `1px solid color-mix(in srgb, ${theme.dangerColor} 20%, transparent)`,
           }}
         >
           <AlertCircle

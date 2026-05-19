@@ -13,7 +13,7 @@ function CertificatesSection({ company }: { company: CompanyData }) {
                 title="Plantillas de Certificados"
                 description="Diseña las plantillas para los certificados"
                 icon={DocumentTextIcon}
-                iconColor="#06B6D4"
+                iconColor="var(--color-legacy-06b6d4)"
                 actions={
                     <motion.button
                         whileHover={{ scale: 1.02 }}

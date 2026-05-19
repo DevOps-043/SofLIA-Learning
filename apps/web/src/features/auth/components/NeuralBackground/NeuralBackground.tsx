@@ -42,10 +42,10 @@ export function NeuralBackground() {
       },
       particles: {
         color: {
-          value: '#0066CC',
+          value: 'var(--color-legacy-0066cc)',
         },
         links: {
-          color: '#0066CC',
+          color: 'var(--color-legacy-0066cc)',
           distance: 150,
           enable: true,
           opacity: 0.3,

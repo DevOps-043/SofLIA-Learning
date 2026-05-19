@@ -485,10 +485,10 @@ function groupByContextType(conversations: LiaConversationRow[]) {
   })
 
   return [
-    { tema: 'Dudas de Lecciones', count: topics.lesson, color: '#0A2540' },
-    { tema: 'Ayuda con Actividades', count: topics.activity, color: '#00D4B3' },
-    { tema: 'Explicaciones Extra', count: topics.general, color: '#10B981' },
-    { tema: 'Motivación', count: topics.motivation, color: '#F59E0B' }
+    { tema: 'Dudas de Lecciones', count: topics.lesson, color: 'var(--color-primary)' },
+    { tema: 'Ayuda con Actividades', count: topics.activity, color: 'var(--color-accent)' },
+    { tema: 'Explicaciones Extra', count: topics.general, color: 'var(--color-success)' },
+    { tema: 'Motivación', count: topics.motivation, color: 'var(--color-warning)' }
   ]
 }
 
@@ -510,10 +510,10 @@ function calculatePreferredTimeSlots(sessions: StudySessionRow[]) {
 
   const total = sessions.length || 1
   return [
-    { periodo: 'Mañana (6am-12pm)', porcentaje: Math.round((slots.morning / total) * 100), color: '#F59E0B' },
-    { periodo: 'Tarde (12pm-6pm)', porcentaje: Math.round((slots.afternoon / total) * 100), color: '#00D4B3' },
-    { periodo: 'Noche (6pm-12am)', porcentaje: Math.round((slots.evening / total) * 100), color: '#10B981' },
-    { periodo: 'Madrugada (12am-6am)', porcentaje: Math.round((slots.night / total) * 100), color: '#6C757D' }
+    { periodo: 'Mañana (6am-12pm)', porcentaje: Math.round((slots.morning / total) * 100), color: 'var(--color-warning)' },
+    { periodo: 'Tarde (12pm-6pm)', porcentaje: Math.round((slots.afternoon / total) * 100), color: 'var(--color-accent)' },
+    { periodo: 'Noche (6pm-12am)', porcentaje: Math.round((slots.evening / total) * 100), color: 'var(--color-success)' },
+    { periodo: 'Madrugada (12am-6am)', porcentaje: Math.round((slots.night / total) * 100), color: 'var(--color-gray-500)' }
   ]
 }
 

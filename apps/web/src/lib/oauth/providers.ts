@@ -15,14 +15,14 @@ export const OAUTH_PROVIDERS: Record<OAuthProvider, OAuthProviderConfig> = {
     name: 'google',
     displayName: 'Google',
     icon: 'google',
-    color: '#4285F4',
+    color: 'var(--color-legacy-4285f4)',
     getAuthUrl: getGoogleAuthUrl,
   },
   github: {
     name: 'github',
     displayName: 'GitHub',
     icon: 'github',
-    color: '#24292e',
+    color: 'var(--color-legacy-24292e)',
     getAuthUrl: () => {
       throw new Error('GitHub OAuth no implementado aún');
     },
@@ -31,7 +31,7 @@ export const OAUTH_PROVIDERS: Record<OAuthProvider, OAuthProviderConfig> = {
     name: 'facebook',
     displayName: 'Facebook',
     icon: 'facebook',
-    color: '#1877F2',
+    color: 'var(--color-legacy-1877f2)',
     getAuthUrl: () => {
       throw new Error('Facebook OAuth no implementado aún');
     },
@@ -40,7 +40,7 @@ export const OAUTH_PROVIDERS: Record<OAuthProvider, OAuthProviderConfig> = {
     name: 'microsoft',
     displayName: 'Microsoft',
     icon: 'microsoft',
-    color: '#0078D4',
+    color: 'var(--color-legacy-0078d4)',
     getAuthUrl: (state) => getMicrosoftAuthUrl(state || ''),
   },
 };

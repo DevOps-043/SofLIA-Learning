@@ -15,26 +15,26 @@ export function ModuleModalFields({ formData, setFormData, t }: ModuleModalField
   return (
     <>
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="group">
-        <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-2 uppercase tracking-wide">{t('workshops.editor.modules.moduleTitleLabel')}</label>
+        <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-2 uppercase tracking-wide">{t('workshops.editor.modules.moduleTitleLabel')}</label>
         <div className="relative">
-          <BookOpenIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] group-focus-within:text-[#00D4B3] transition-colors pointer-events-none" />
+          <BookOpenIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 group-focus-within:text-accent transition-colors pointer-events-none" />
           <input
             type="text"
             required
             value={formData.module_title}
             onChange={(event) => setFormData((current) => ({ ...current, module_title: event.target.value }))}
-            className="w-full pl-10 pr-4 py-3 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-[#00D4B3]/50 transition-all duration-200"
+            className="w-full pl-10 pr-4 py-3 bg-white dark:bg-carbon-950 border border-gray-200 dark:border-gray-500/30 rounded-xl text-primary dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-accent/40 focus:border-accent/50 transition-all duration-200"
             placeholder={t('workshops.editor.modules.moduleTitlePlaceholder')}
           />
         </div>
       </motion.div>
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-        <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-2 uppercase tracking-wide">{t('workshops.editor.modules.moduleDescriptionLabel')}</label>
+        <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-2 uppercase tracking-wide">{t('workshops.editor.modules.moduleDescriptionLabel')}</label>
         <textarea
           rows={4}
           value={formData.module_description}
           onChange={(event) => setFormData((current) => ({ ...current, module_description: event.target.value }))}
-          className="w-full px-4 py-3 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-[#00D4B3]/50 transition-all duration-200 resize-none"
+          className="w-full px-4 py-3 bg-white dark:bg-carbon-950 border border-gray-200 dark:border-gray-500/30 rounded-xl text-primary dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-accent/40 focus:border-accent/50 transition-all duration-200 resize-none"
           placeholder={t('workshops.editor.modules.moduleDescriptionPlaceholder')}
         />
       </motion.div>

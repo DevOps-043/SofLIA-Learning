@@ -248,7 +248,7 @@ export function AdminCreateCompanyGeneralSections({
 
           <div className="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#4285F4' }} />
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-legacy-4285f4)' }} />
               <span className="text-sm text-gray-900 dark:text-white">Google SSO</span>
             </div>
             <button
@@ -273,7 +273,7 @@ export function AdminCreateCompanyGeneralSections({
 
           <div className="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00a6f0' }} />
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-legacy-00a6f0)' }} />
               <span className="text-sm text-gray-900 dark:text-white">Microsoft SSO</span>
             </div>
             <button

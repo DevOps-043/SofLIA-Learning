@@ -20,7 +20,7 @@ export function InviteSuccessState({ message, t, theme }: InviteSuccessStateProp
         animate={{ scale: 1 }}
         transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
         className="w-20 h-20 rounded-full flex items-center justify-center mb-4"
-        style={{ backgroundColor: `${theme.accentColor}20` }}
+        style={{ backgroundColor: `color-mix(in srgb, ${theme.accentColor} 12.5%, transparent)` }}
       >
         <CheckCircle className="w-10 h-10" style={{ color: theme.accentColor }} />
       </motion.div>

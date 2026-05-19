@@ -20,7 +20,7 @@ export function TeamMembersModal(props: TeamMembersModalProps) {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white dark:bg-[#1E2329] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl"
+        className="bg-white dark:bg-carbon-800 rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl"
         style={{ backgroundColor: logic.theme.cardBackground }}
       >
         <TeamMembersHeader onClose={onClose} teamName={teamName} />

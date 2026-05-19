@@ -29,7 +29,7 @@ export function BusinessAssignCourseFooter({ modal, t, theme }: BusinessAssignCo
           style={{ backgroundColor: removalOnly ? theme.dangerColor : theme.primaryColor, color: theme.onPrimaryColor }}
         >
           {modal.isAssigning ? (
-            <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: `${theme.onPrimaryColor}4D`, borderTopColor: theme.onPrimaryColor }} />
+            <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: `color-mix(in srgb, ${theme.onPrimaryColor} 30.2%, transparent)`, borderTopColor: theme.onPrimaryColor }} />
           ) : (
             <>
               <span className="font-black">{getConfirmLabel(modal, t)}</span>

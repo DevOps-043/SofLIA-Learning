@@ -31,7 +31,7 @@ export function CourseAccordion({
         className="w-full flex items-center gap-4 p-4 text-left transition-colors hover:opacity-90"
         style={{ backgroundColor: theme.cardBg }}
       >
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${theme.primaryColor}15` }}>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 8.2%, transparent)` }}>
           <Layers className="w-5 h-5" style={{ color: theme.primaryColor }} />
         </div>
         <div className="flex-1 min-w-0">
@@ -42,7 +42,7 @@ export function CourseAccordion({
             {completedCount}/{totalCount} {t('users.modals.stats.timeline.lessons')}
           </p>
         </div>
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform" style={{ backgroundColor: `${theme.textColor}08`, transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform" style={{ backgroundColor: `color-mix(in srgb, ${theme.textColor} 3.1%, transparent)`, transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
           <ChevronDown className="w-4 h-4" style={{ color: theme.mutedTextColor }} />
         </div>
       </button>

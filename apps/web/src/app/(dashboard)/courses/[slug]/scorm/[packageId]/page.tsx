@@ -19,7 +19,7 @@ import { PWAPrompt } from '@/core/components/PWAPrompt';
 
 export default function HomePage() {
   return (
-    <main className="bg-white dark:bg-[#0F1419] transition-colors duration-300">
+    <main className="bg-white dark:bg-carbon-900 transition-colors duration-300">
       {/* Header - Navigation B2B */}
       <LandingHeader />
 

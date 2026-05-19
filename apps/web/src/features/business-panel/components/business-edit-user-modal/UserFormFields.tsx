@@ -42,18 +42,18 @@ export function UserFormFields({
     owner: { label: t('users.roles.owner'), desc: t('users.modals.add.roleDesc.owner') },
   }
   const statusLabels: Record<string, { label: string; color: string }> = {
-    active: { label: t('users.status.active'), color: '#10B981' },
-    invited: { label: t('users.status.invited'), color: '#F59E0B' },
-    suspended: { label: t('users.status.suspended'), color: '#EF4444' },
-    removed: { label: t('users.status.removed'), color: '#6B7280' },
+    active: { label: t('users.status.active'), color: 'var(--color-success)' },
+    invited: { label: t('users.status.invited'), color: 'var(--color-warning)' },
+    suspended: { label: t('users.status.suspended'), color: 'var(--color-error)' },
+    removed: { label: t('users.status.removed'), color: 'var(--color-legacy-6b7280)' },
   }
 
   const inputClass = `w-full px-4 py-3 rounded-2xl border transition-all duration-200 outline-none font-medium text-sm ${
-    isDark 
-      ? 'bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-white/20 focus:bg-white/10' 
-      : 'bg-slate-50 border-slate-200 text-[#0f172a] placeholder:text-slate-400 focus:border-slate-300 focus:bg-white'
+    isDark
+      ? 'bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-white/20 focus:bg-white/10'
+      : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:bg-white'
   }`
-  
+
   const labelClass = `block text-[11px] font-black uppercase tracking-widest mb-2 ${isDark ? 'text-white/30' : 'text-slate-400'}`
   const iconContainerClass = `absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center ${isDark ? 'text-white/20' : 'text-slate-400'}`
 
@@ -192,20 +192,20 @@ export function UserFormFields({
                {(['member', 'admin', 'owner'] as const).map(role => (
                  <button key={role} type="button" onClick={() => onRoleChange(role)}
                    className={`p-4 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group ${
-                     formData.org_role === role 
-                       ? 'border-transparent shadow-xl' 
+                     formData.org_role === role
+                       ? 'border-transparent shadow-xl'
                        : isDark ? 'border-white/5 bg-white/5 hover:border-white/10' : 'border-slate-100 bg-slate-50 hover:border-slate-200'
                    }`}
-                   style={formData.org_role === role ? { 
+                   style={formData.org_role === role ? {
                      background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
-                     boxShadow: `0 10px 20px ${primaryColor}20` 
+                     boxShadow: `0 10px 20px color-mix(in srgb, ${primaryColor} 12.5%, transparent)`
                    } : {}}
                  >
                    <div className="flex flex-col gap-2 relative z-10">
                      <div className={`p-2 rounded-xl w-fit ${formData.org_role === role ? 'bg-white/20' : 'bg-white/5 dark:bg-white/10'}`}>
                         <Shield className={`w-4 h-4 ${formData.org_role === role ? 'text-white' : isDark ? 'text-white/40' : 'text-slate-400'}`} />
                      </div>
-                     <span className={`text-xs font-black uppercase tracking-widest ${formData.org_role === role ? 'text-white' : isDark ? 'text-white/70' : 'text-[#0f172a]'}`}>
+                     <span className={`text-xs font-black uppercase tracking-widest ${formData.org_role === role ? 'text-white' : isDark ? 'text-white/70' : 'text-slate-900'}`}>
                        {roleLabels[role].label}
                      </span>
                      <p className={`text-[10px] sm:block leading-relaxed ${formData.org_role === role ? 'text-white/70' : isDark ? 'text-white/30' : 'text-slate-400'}`}>
@@ -226,11 +226,11 @@ export function UserFormFields({
                {(['active', 'invited', 'suspended', 'removed'] as const).map(status => (
                  <button key={status} type="button" onClick={() => onStatusChange(status)}
                    className={`p-3 rounded-2xl border text-center transition-all duration-300 uppercase tracking-widest text-[10px] font-black ${
-                     formData.org_status === status 
-                       ? 'shadow-lg bg-white dark:bg-[#1a1f2e]' 
+                     formData.org_status === status
+                       ? 'shadow-lg bg-white dark:bg-carbon-800'
                        : isDark ? 'border-white/5 bg-white/5 opacity-50 grayscale' : 'border-slate-100 bg-slate-50 opacity-50 grayscale'
                    }`}
-                   style={formData.org_status === status ? { 
+                   style={formData.org_status === status ? {
                      borderColor: statusLabels[status].color,
                      color: statusLabels[status].color,
                    } : {}}
@@ -257,8 +257,8 @@ export function UserFormFields({
           className="px-8 py-3.5 rounded-2xl text-xs font-black uppercase tracking-[0.1em] flex items-center gap-3 transition-all shadow-xl hover:shadow-2xl active:scale-95 disabled:grayscale"
           style={{
             background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
-            color: isDark ? '#000000' : '#FFFFFF',
-            boxShadow: `0 10px 30px ${primaryColor}40`,
+            color: isDark ? 'var(--color-black)' : 'var(--color-bg-light)',
+            boxShadow: `0 10px 30px color-mix(in srgb, ${primaryColor} 25.1%, transparent)`,
           }}
         >
           {isLoading || isUploadingImage ? (

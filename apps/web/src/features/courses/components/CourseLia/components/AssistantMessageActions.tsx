@@ -39,7 +39,7 @@ export function AssistantMessageActions({
           padding: '4px',
           display: 'flex',
           alignItems: 'center',
-          color: wasCopied ? themeColors.accentColor : isLightTheme ? '#64748B' : themeColors.textSecondary,
+          color: wasCopied ? themeColors.accentColor : isLightTheme ? 'var(--color-gray-500)' : themeColors.textSecondary,
         }}
       >
         {wasCopied ? <Check style={{ width: '14px', height: '14px' }} /> : <Copy style={{ width: '14px', height: '14px' }} />}
@@ -50,7 +50,7 @@ export function AssistantMessageActions({
           onClick={() => onSaveNote(convertNoteMarkdownToHtml(message.content))}
           title={t('lia.createNote')}
           aria-label={t('lia.createNote')}
-          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: isLightTheme ? '#64748B' : themeColors.textSecondary }}
+          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: isLightTheme ? 'var(--color-gray-500)' : themeColors.textSecondary }}
         >
           <StickyNote style={{ width: '14px', height: '14px' }} />
         </button>

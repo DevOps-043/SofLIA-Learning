@@ -21,7 +21,7 @@ export function HeroDecorations({ orgColors }: HeroDecorationsProps) {
       />
       <div
         className="absolute bottom-12 right-32 h-3 w-3 rounded-full"
-        style={{ backgroundColor: `${orgColors.primary}40` }}
+        style={{ backgroundColor: `color-mix(in srgb, ${orgColors.primary} 25.1%, transparent)` }}
       />
     </>
   )
@@ -32,9 +32,9 @@ export function HeroBorderOverlay({ orgColors }: HeroDecorationsProps) {
     <div
       className="absolute inset-0 rounded-xl md:rounded-2xl pointer-events-none"
       style={{
-        background: `linear-gradient(135deg, ${orgColors.primary}50, transparent, ${orgColors.primary}30)`,
+        background: `linear-gradient(135deg, color-mix(in srgb, ${orgColors.primary} 31.4%, transparent), transparent, color-mix(in srgb, ${orgColors.primary} 18.8%, transparent))`,
         padding: '1px',
-        mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+        mask: 'linear-gradient(var(--color-bg-light) 0 0) content-box, linear-gradient(var(--color-bg-light) 0 0)',
         maskComposite: 'exclude',
         WebkitMaskComposite: 'xor',
       }}

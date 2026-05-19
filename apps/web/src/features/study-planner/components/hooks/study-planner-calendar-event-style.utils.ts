@@ -6,13 +6,13 @@ export function getEventColor(event: CalendarEvent): string {
     return event.color
   }
   if (event.source === 'study_session') {
-    return '#8E24AA'
+    return 'var(--color-legacy-8e24aa)'
   }
   if (event.provider === 'google') {
-    return '#0066CC'
+    return 'var(--color-legacy-0066cc)'
   }
   if (event.provider === 'microsoft') {
-    return '#0078D4'
+    return 'var(--color-legacy-0078d4)'
   }
   return DEFAULT_EVENT_COLOR
 }

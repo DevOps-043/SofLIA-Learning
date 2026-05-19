@@ -10,19 +10,19 @@ describe('embedded-lia-panel.service', () => {
   it('builds panel colors from theme styles', () => {
     const colors = getEmbeddedLiaColors(
       {
-        accent_color: '#112233',
-        secondary_button_color: '#445566',
-        card_background: '#778899',
-        text_color: '#FFFFFF',
+        accent_color: 'var(--color-legacy-112233)',
+        secondary_button_color: 'var(--color-legacy-445566)',
+        card_background: 'var(--color-legacy-778899)',
+        text_color: 'var(--color-bg-light)',
       },
-      { primary: '#000000' }
+      { primary: 'var(--color-black)' }
     );
 
     expect(colors).toEqual({
-      primary: '#112233',
-      accent: '#445566',
-      cardBg: '#778899',
-      text: '#FFFFFF',
+      primary: 'var(--color-legacy-112233)',
+      accent: 'var(--color-legacy-445566)',
+      cardBg: 'var(--color-legacy-778899)',
+      text: 'var(--color-bg-light)',
     });
   });
 

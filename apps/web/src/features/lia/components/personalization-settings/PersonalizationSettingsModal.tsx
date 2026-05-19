@@ -29,13 +29,13 @@ export function PersonalizationSettingsModal(props: PersonalizationSettingsModal
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         onClick={(event) => event.stopPropagation()}
-        className="relative bg-white dark:bg-[#1E2329] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col"
+        className="relative bg-white dark:bg-carbon-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col"
       >
         <ModalHeader onClose={props.onClose} title={props.title} />
         <div className="flex-1 overflow-y-auto p-6">
           {props.controller.loading && !props.controller.settings ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-[#00D4B3]" />
+              <Loader2 className="w-8 h-8 animate-spin text-accent" />
             </div>
           ) : props.controller.error ? (
             <div className="text-center py-20 text-red-500">

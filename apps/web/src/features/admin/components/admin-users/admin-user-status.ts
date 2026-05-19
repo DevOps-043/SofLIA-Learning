@@ -5,8 +5,8 @@ export function getAdminRemovedStatusConfig(theme: AdminTheme, label: string): A
   return {
     label,
     color: theme.dangerColor,
-    bg: `${theme.dangerColor}14`,
-    border: `${theme.dangerColor}26`,
+    bg: `color-mix(in srgb, ${theme.dangerColor} 7.8%, transparent)`,
+    border: `color-mix(in srgb, ${theme.dangerColor} 14.9%, transparent)`,
     icon: XCircle,
   }
 }

@@ -58,7 +58,7 @@ export function ChatMessagesPanel({
 
   return (
     <motion.div
-      className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-[#0a0a0a] min-h-0 overscroll-contain relative"
+      className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-neutral-950 min-h-0 overscroll-contain relative"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
@@ -67,8 +67,8 @@ export function ChatMessagesPanel({
       {/* Context indicator */}
       {useContextMode && messages.length > 0 && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="sticky top-0 z-10 mb-2">
-          <div className="bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 border border-[#00D4B3]/30 rounded-lg px-3 py-2 flex items-center justify-between gap-2 backdrop-blur-sm">
-            <div className="flex items-center gap-2 text-xs text-[#00D4B3]">
+          <div className="bg-accent/10 dark:bg-accent/20 border border-accent/30 rounded-lg px-3 py-2 flex items-center justify-between gap-2 backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-xs text-accent">
               <Brain className="w-3.5 h-3.5 flex-shrink-0" />
               <span className="font-medium">
                 Contexto activo: {messages.length} mensaje{messages.length !== 1 ? 's' : ''} {messages.length > MAX_CONTEXT_MESSAGES ? `(mostrando últimos ${MAX_CONTEXT_MESSAGES})` : ''}
@@ -76,14 +76,14 @@ export function ChatMessagesPanel({
             </div>
             {showClearContextConfirm ? (
               <div className="flex items-center gap-1">
-                <span className="text-xs text-[#00D4B3]">{clearContextConfirmLabel}</span>
-                <button onClick={() => { clearContextMessages(); setShowClearContextConfirm(false); }} className="text-xs px-2 py-0.5 rounded bg-[#00D4B3] text-white">Sí</button>
-                <button onClick={() => setShowClearContextConfirm(false)} className="text-xs px-2 py-0.5 rounded bg-white/10 text-[#00D4B3]">No</button>
+                <span className="text-xs text-accent">{clearContextConfirmLabel}</span>
+                <button onClick={() => { clearContextMessages(); setShowClearContextConfirm(false); }} className="text-xs px-2 py-0.5 rounded bg-accent text-white">Sí</button>
+                <button onClick={() => setShowClearContextConfirm(false)} className="text-xs px-2 py-0.5 rounded bg-white/10 text-accent">No</button>
               </div>
             ) : (
               <button
                 onClick={() => setShowClearContextConfirm(true)}
-                className="text-[#00D4B3] hover:text-[#00b89a] transition-colors"
+                className="text-accent hover:text-accent transition-colors"
                 title={clearContextLabel}
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -122,7 +122,7 @@ export function ChatMessagesPanel({
               user?.profile_picture_url ? (
                 <Image src={user.profile_picture_url} alt={user.display_name || user.username || 'Usuario'} fill className="object-cover" sizes="40px" />
               ) : (
-                <div className="w-full h-full bg-gradient-to-r from-[#0A2540] to-[#00D4B3] flex items-center justify-center">
+                <div className="w-full h-full bg-gradient-to-r from-primary to-accent flex items-center justify-center">
                   <User className="w-6 h-6 text-white" />
                 </div>
               )
@@ -131,7 +131,7 @@ export function ChatMessagesPanel({
             )}
           </div>
 
-          <div className={`flex-1 rounded-2xl px-3.5 py-3 shadow-lg ${message.role === 'user' ? 'bg-[#10B981] text-white' : 'bg-[#0A2540] text-white dark:bg-[#0A2540]'}`}>
+          <div className={`flex-1 rounded-2xl px-3.5 py-3 shadow-lg ${message.role === 'user' ? 'bg-success text-white' : 'bg-primary text-white dark:bg-primary'}`}>
             <p className="text-[13px] leading-relaxed whitespace-pre-wrap font-medium">
               {renderTextWithLinks(message.content, (url) => onNavigate(url))}
             </p>
@@ -175,7 +175,7 @@ export function ChatMessagesPanel({
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-purple-500 relative">
             <Image src={assistantAvatar} alt={assistantName} fill className="object-cover" sizes="40px" />
           </div>
-          <div className="bg-white dark:bg-[#1E2329] border border-gray-200 dark:border-[#0A2540]/30 rounded-2xl px-4 py-3">
+          <div className="bg-white dark:bg-carbon-800 border border-gray-200 dark:border-primary/30 rounded-2xl px-4 py-3">
             <div className="flex gap-1">
               {[0, 0.2, 0.4].map((delay) => (
                 <motion.div

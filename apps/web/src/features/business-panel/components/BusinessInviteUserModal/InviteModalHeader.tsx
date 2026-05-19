@@ -13,7 +13,7 @@ export function InviteModalHeader({ onClose, t, theme }: InviteModalHeaderProps)
     <div
       className="p-6 border-b"
       style={{
-        background: `linear-gradient(135deg, ${theme.primaryColor}20, ${theme.accentColor}10)`,
+        background: `linear-gradient(135deg, color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent), color-mix(in srgb, ${theme.accentColor} 6.3%, transparent))`,
         borderColor: theme.borderColor
       }}
     >
@@ -23,7 +23,7 @@ export function InviteModalHeader({ onClose, t, theme }: InviteModalHeaderProps)
             animate={{ rotate: [0, 360] }}
             transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
             className="p-2 rounded-xl"
-            style={{ backgroundColor: `${theme.accentColor}20` }}
+            style={{ backgroundColor: `color-mix(in srgb, ${theme.accentColor} 12.5%, transparent)` }}
           >
             <Mail className="w-6 h-6" style={{ color: theme.accentColor }} />
           </motion.div>

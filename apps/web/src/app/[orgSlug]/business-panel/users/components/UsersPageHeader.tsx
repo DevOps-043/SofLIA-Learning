@@ -147,7 +147,7 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
               style={{
                 backgroundColor: primaryColor,
                 color: onPrimaryColor,
-                boxShadow: `0 8px 30px ${primaryColor}40`,
+                boxShadow: `0 8px 30px color-mix(in srgb, ${primaryColor} 25.1%, transparent)`,
               }}
               whileHover={disableHeavy ? undefined : { scale: 1.02 }}
               whileTap={disableHeavy ? undefined : { scale: 0.98 }}

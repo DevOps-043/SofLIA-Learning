@@ -15,7 +15,7 @@ export function ImportUsersErrorAlert({
   if (!error) return null
 
   return (
-    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 p-4 rounded-xl border flex items-center gap-3" style={{ backgroundColor: `${theme.dangerColor}12`, borderColor: `${theme.dangerColor}26` }}>
+    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 p-4 rounded-xl border flex items-center gap-3" style={{ backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`, borderColor: `color-mix(in srgb, ${theme.dangerColor} 14.9%, transparent)` }}>
       <AlertCircle className="w-5 h-5 flex-shrink-0" style={{ color: theme.dangerColor }} />
       <span className="text-sm flex-1" style={{ color: theme.dangerColor }}>{error}</span>
       <button onClick={onDismiss} className="p-1 rounded transition-colors">

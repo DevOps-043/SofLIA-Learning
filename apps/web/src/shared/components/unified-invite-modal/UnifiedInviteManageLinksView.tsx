@@ -151,7 +151,7 @@ export function UnifiedInviteManageLinksView({
                              <h4 className="text-sm font-black uppercase tracking-tight truncate max-w-[150px] sm:max-w-none" style={{ color: theme.textColor }}>
                                 {link.name || t('users.modals.manageLinks.unnamed', 'Enlace sin nombre')}
                              </h4>
-                             <span className="px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-sm border" style={{ backgroundColor: `${statusConfig.color}15`, color: statusConfig.color, borderColor: `${statusConfig.color}20` }}>
+                             <span className="px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-sm border" style={{ backgroundColor: `color-mix(in srgb, ${statusConfig.color} 8.2%, transparent)`, color: statusConfig.color, borderColor: `color-mix(in srgb, ${statusConfig.color} 12.5%, transparent)` }}>
                                 {statusConfig.label}
                              </span>
                           </div>

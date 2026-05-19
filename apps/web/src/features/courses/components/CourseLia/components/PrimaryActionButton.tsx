@@ -26,12 +26,12 @@ export function PrimaryActionButton({
   themeColors,
 }: PrimaryActionButtonProps) {
   const backgroundColor = mode === 'stop'
-    ? isLightTheme ? '#DC2626' : '#EF4444'
+    ? isLightTheme ? 'var(--color-legacy-dc2626)' : 'var(--color-error)'
     : mode === 'send'
       ? themeColors.primaryAction
       : isListening
         ? 'rgba(16,185,129,0.16)'
-        : isLightTheme ? '#CBD5E1' : '#374151';
+        : isLightTheme ? 'var(--color-gray-300)' : 'var(--color-legacy-374151)';
 
   return (
     <motion.button
@@ -59,7 +59,7 @@ export function PrimaryActionButton({
           </motion.span>
         ) : (
           <motion.span key="mic" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.15 }}>
-            <Mic style={{ width: '16px', height: '16px', color: isLightTheme ? '#6B7280' : '#9CA3AF' }} />
+            <Mic style={{ width: '16px', height: '16px', color: isLightTheme ? 'var(--color-legacy-6b7280)' : 'var(--color-legacy-9ca3af)' }} />
           </motion.span>
         )}
       </AnimatePresence>

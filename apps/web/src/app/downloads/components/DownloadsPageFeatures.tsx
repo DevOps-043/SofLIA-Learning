@@ -13,16 +13,16 @@ export function DownloadsPageFeatures() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00D4B3]/10 border border-[#00D4B3]/20 mb-6">
-            <Cpu className="w-4 h-4 text-[#00D4B3]" />
-            <span className="text-sm font-medium text-[#00D4B3]">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 mb-6">
+            <Cpu className="w-4 h-4 text-accent" />
+            <span className="text-sm font-medium text-accent">
               Aplicacion de Escritorio
             </span>
           </div>
-          <h2 className="text-3xl lg:text-4xl font-bold text-[#0A2540] dark:text-white mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-primary dark:text-white mb-4">
             Que es SofLIA Hub?
           </h2>
-          <p className="text-lg text-[#0A2540]/60 dark:text-white/60 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-lg text-primary/60 dark:text-white/60 max-w-4xl mx-auto leading-relaxed">
             SofLIA Hub es tu asistente personal definitivo y el conector central
             con todo nuestro ecosistema. Mucho mas que una aplicacion, te
             permite integrar SofLIA Learning, ProjectHub y el Area de
@@ -42,15 +42,15 @@ export function DownloadsPageFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: index * 0.08 }}
-            className="p-6 rounded-2xl bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 hover:border-[#00D4B3]/30 transition-colors"
+            className="p-6 rounded-2xl bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 hover:border-accent/30 transition-colors"
           >
-            <div className="w-12 h-12 rounded-xl bg-[#00D4B3]/10 flex items-center justify-center text-[#00D4B3] mb-4">
+            <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center text-accent mb-4">
               <feature.icon size={24} />
             </div>
             <h4 className="text-lg font-bold dark:text-white mb-2">
               {feature.title}
             </h4>
-            <p className="text-sm text-[#0A2540]/60 dark:text-white/60 leading-relaxed">
+            <p className="text-sm text-primary/60 dark:text-white/60 leading-relaxed">
               {feature.desc}
             </p>
           </motion.div>

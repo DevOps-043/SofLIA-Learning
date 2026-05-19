@@ -105,7 +105,7 @@ export function BusinessThemeCustomizerControls({
             className="rounded-lg border p-2"
             style={{
               backgroundColor: theme.actionSurface,
-              borderColor: `${theme.actionColor}33`,
+              borderColor: `color-mix(in srgb, ${theme.actionColor} 20%, transparent)`,
             }}
           >
             <Palette className="h-4 w-4" style={{ color: theme.actionColor }} />
@@ -183,7 +183,7 @@ export function BusinessThemeCustomizerControls({
                           borderColor: theme.borderColor,
                           color: theme.textColor,
                         }}
-                        placeholder="#000000"
+                        placeholder="var(--color-black)"
                       />
                     </div>
                   ))}

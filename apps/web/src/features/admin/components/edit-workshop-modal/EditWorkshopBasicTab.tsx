@@ -54,7 +54,7 @@ function FieldShell(props: { label: string; children: ReactNode; error?: string;
     <div>
       <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={props.styles.label}>{props.label}</label>
       {props.children}
-      {props.error ? <p className="mt-1 flex items-center gap-1 text-xs" style={{ color: '#ef4444' }}><AlertTriangle className="h-3 w-3" />{props.error}</p> : null}
+      {props.error ? <p className="mt-1 flex items-center gap-1 text-xs" style={{ color: 'var(--color-error)' }}><AlertTriangle className="h-3 w-3" />{props.error}</p> : null}
     </div>
   )
 }

@@ -38,7 +38,7 @@ export function DeleteNoteConfirmModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             onClick={(event) => event.stopPropagation()}
-            className="relative bg-white dark:bg-[#1E2329]/95 backdrop-blur-md rounded-2xl border border-red-500/20 dark:border-red-500/30 shadow-2xl max-w-sm w-full p-6"
+            className="relative bg-white dark:bg-carbon-800/95 backdrop-blur-md rounded-2xl border border-red-500/20 dark:border-red-500/30 shadow-2xl max-w-sm w-full p-6"
           >
             <div className="flex flex-col items-center text-center">
               <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center mb-4 border border-red-200 dark:border-red-500/20">
@@ -46,14 +46,14 @@ export function DeleteNoteConfirmModal({
               </div>
 
               <h3
-                className="text-xl font-bold text-[#0A2540] dark:text-white mb-2"
+                className="text-xl font-bold text-primary dark:text-white mb-2"
                 style={{ fontFamily: "Inter, sans-serif" }}
               >
                 Eliminar nota
               </h3>
 
               <p
-                className="text-[#6C757D] dark:text-white/60 text-sm mb-6"
+                className="text-gray-500 dark:text-white/60 text-sm mb-6"
                 style={{ fontFamily: "Inter, sans-serif" }}
               >
                 Esta accion no se puede deshacer. La nota se eliminara

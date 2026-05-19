@@ -4,8 +4,8 @@
   "description": "Plataforma educativa de inteligencia artificial con asistente virtual LIA. Capacitación, comunidad y adopción de IA en el entorno laboral.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#3b82f6",
+  "background_color": "rgb(10, 10, 10)",
+  "theme_color": "rgb(59, 130, 246)",
   "orientation": "portrait-primary",
   "icons": [
     {

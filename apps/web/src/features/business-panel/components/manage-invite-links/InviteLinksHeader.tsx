@@ -15,10 +15,10 @@ export function InviteLinksHeader({ isLoading, onClose, onRefresh }: InviteLinks
   const theme = useInviteLinksTheme()
 
   return (
-    <div className="p-6 border-b shrink-0" style={{ background: `linear-gradient(135deg, ${theme.primaryColor}20, ${theme.accentColor}10)`, borderColor: theme.borderColor }}>
+    <div className="p-6 border-b shrink-0" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent), color-mix(in srgb, ${theme.accentColor} 6.3%, transparent))`, borderColor: theme.borderColor }}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl" style={{ backgroundColor: `${theme.accentColor}20` }}>
+          <div className="p-2 rounded-xl" style={{ backgroundColor: `color-mix(in srgb, ${theme.accentColor} 12.5%, transparent)` }}>
             <Link2 className="w-6 h-6" style={{ color: theme.accentColor }} />
           </div>
           <div>

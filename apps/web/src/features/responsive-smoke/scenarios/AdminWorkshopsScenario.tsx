@@ -25,16 +25,16 @@ export function AdminWorkshopsScenario() {
       <Surface title="Embudo de publicacion" subtitle="Tarjetas con contenido variable que no deben romper el grid.">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {smokeWorkshopRows.map((workshop) => (
-            <article key={workshop.id} className="rounded-[24px] border border-[#DCE7F3] bg-[#F8FAFC] p-5 dark:border-white/10 dark:bg-white/5">
+            <article key={workshop.id} className="rounded-[24px] border border-[var(--color-legacy-dce7f3)] bg-slate-50 p-5 dark:border-white/10 dark:bg-white/5">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex rounded-full bg-[#00D4B3]/12 px-3 py-1 text-xs font-semibold text-[#0A7F6D]">{workshop.status}</span>
-                <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-medium text-[#526174] dark:bg-[#09111F] dark:text-white/60">{workshop.learners} alumnos</span>
+                <span className="inline-flex rounded-full bg-accent/[0.12] px-3 py-1 text-xs font-semibold text-[var(--color-legacy-0a7f6d)]">{workshop.status}</span>
+                <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-medium text-[var(--color-legacy-526174)] dark:bg-[var(--color-legacy-09111f)] dark:text-white/60">{workshop.learners} alumnos</span>
               </div>
-              <h3 className="mt-4 text-lg font-semibold leading-tight text-[#0A2540] dark:text-white">{workshop.title}</h3>
-              <p className="mt-3 text-sm text-[#637489] dark:text-white/60">Responsable: {workshop.owner}</p>
+              <h3 className="mt-4 text-lg font-semibold leading-tight text-primary dark:text-white">{workshop.title}</h3>
+              <p className="mt-3 text-sm text-[var(--color-legacy-637489)] dark:text-white/60">Responsable: {workshop.owner}</p>
               <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-                <button type="button" className="rounded-2xl bg-[#0A2540] px-4 py-3 text-sm font-semibold text-white">Gestionar curso</button>
-                <button type="button" className="rounded-2xl border border-[#DCE7F3] bg-white px-4 py-3 text-sm font-semibold text-[#0A2540] dark:border-white/10 dark:bg-white/5 dark:text-white">Ver detalles</button>
+                <button type="button" className="rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white">Gestionar curso</button>
+                <button type="button" className="rounded-2xl border border-[var(--color-legacy-dce7f3)] bg-white px-4 py-3 text-sm font-semibold text-primary dark:border-white/10 dark:bg-white/5 dark:text-white">Ver detalles</button>
               </div>
             </article>
           ))}

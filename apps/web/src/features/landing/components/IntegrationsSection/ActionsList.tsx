@@ -16,8 +16,8 @@ export function ActionsList({ t }: { t: Translate }) {
           transition={{ delay: 0.3 + index * 0.05 }}
           className="flex items-start gap-3"
         >
-          <CheckCircle2 size={20} className="text-[#00D4B3] flex-shrink-0 mt-0.5" />
-          <span className="text-[#0A2540] dark:text-white/90">
+          <CheckCircle2 size={20} className="text-accent flex-shrink-0 mt-0.5" />
+          <span className="text-primary dark:text-white/90">
             {t(`landing.liaSection.actions.${index}`, action)}
           </span>
         </motion.div>

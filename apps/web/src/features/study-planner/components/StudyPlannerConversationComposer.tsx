@@ -34,7 +34,7 @@ export function StudyPlannerConversationComposer({
     isProcessing || (isListening && hasComposerText) || (showApproachButtons && !studyApproach)
 
   return (
-    <div className="flex-shrink-0 border-t border-[#E9ECEF] bg-white px-3 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] backdrop-blur-xl dark:border-[#6C757D]/30 dark:bg-[#0F1419] sm:px-4 sm:py-4">
+    <div className="flex-shrink-0 border-t border-gray-200 bg-white px-3 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] backdrop-blur-xl dark:border-gray-500/30 dark:bg-carbon-900 sm:px-4 sm:py-4">
       <div className="mx-auto w-full max-w-4xl">
         <div className="flex w-full items-center gap-2 sm:gap-3">
           <input
@@ -52,7 +52,7 @@ export function StudyPlannerConversationComposer({
             placeholder={isMobile ? 'Escribe un mensaje...' : 'Escribe tu mensaje o usa el microfono...'}
             disabled={isComposerDisabled || isListening}
             style={{ fontSize: '16px' }}
-            className="min-w-0 flex-1 rounded-xl border border-[#E9ECEF] bg-white px-4 py-3 text-[#0A2540] shadow-sm transition-all placeholder-[#6C757D] focus:border-[#00D4B3]/50 focus:outline-none focus:ring-2 focus:ring-[#00D4B3]/50 disabled:opacity-50 dark:border-[#6C757D]/30 dark:bg-[#1E2329] dark:text-white"
+            className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-primary shadow-sm transition-all placeholder-gray-500 focus:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50 dark:border-gray-500/30 dark:bg-carbon-800 dark:text-white"
           />
 
           <motion.button
@@ -71,10 +71,10 @@ export function StudyPlannerConversationComposer({
             whileTap={{ scale: 0.95 }}
             className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl shadow-sm transition-all duration-300 sm:h-12 sm:w-12 ${
               hasComposerText
-                ? 'bg-[#0A2540] text-white hover:bg-[#0d2f4d] dark:bg-[#0A2540] dark:hover:bg-[#0d2f4d]'
+                ? 'bg-primary text-white hover:bg-primary dark:bg-primary dark:hover:bg-primary'
                 : isListening
-                  ? 'bg-[#10B981] text-white hover:bg-[#10B981]/90'
-                  : 'bg-[#0A2540] text-white hover:bg-[#0d2f4d] dark:bg-[#0A2540] dark:hover:bg-[#0d2f4d]'
+                  ? 'bg-success text-white hover:bg-success/90'
+                  : 'bg-primary text-white hover:bg-primary dark:bg-primary dark:hover:bg-primary'
             } ${isVoiceButtonDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
           >
             <AnimatePresence mode="wait">

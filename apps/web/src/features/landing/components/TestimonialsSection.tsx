@@ -19,7 +19,7 @@ export function TestimonialsSection() {
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0.3])
 
   return (
-    <section ref={sectionRef} className="py-32 relative bg-white dark:bg-[#0F1419]">
+    <section ref={sectionRef} className="py-32 relative bg-white dark:bg-carbon-900">
       <TestimonialsBackground
         disableHeavy={disableHeavy}
         opacity={opacity}

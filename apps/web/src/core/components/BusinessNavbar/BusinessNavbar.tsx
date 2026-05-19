@@ -34,8 +34,8 @@ export function BusinessNavbar() {
     <motion.nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'backdrop-blur-md border-b bg-white/90 dark:bg-[#0F1419]/90 border-[#E9ECEF] dark:border-[#6C757D]/30'
-          : 'bg-white/50 dark:bg-[#0F1419]/50'
+          ? 'backdrop-blur-md border-b bg-white/90 dark:bg-carbon-900/90 border-gray-200 dark:border-gray-500/30'
+          : 'bg-white/50 dark:bg-carbon-900/50'
       }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -57,8 +57,8 @@ export function BusinessNavbar() {
                   href={link.href}
                   className={`text-sm font-medium transition-colors relative whitespace-nowrap ${
                     pathname === link.href
-                      ? 'text-[#0A2540] dark:text-[#00D4B3]'
-                      : 'text-[#6C757D] dark:text-white/70 hover:text-[#0A2540] dark:hover:text-[#00D4B3]'
+                      ? 'text-primary dark:text-accent'
+                      : 'text-gray-500 dark:text-white/70 hover:text-primary dark:hover:text-accent'
                   }`}
                   style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
                 >
@@ -67,7 +67,7 @@ export function BusinessNavbar() {
                     <motion.div
                       layoutId="navbarIndicator"
                       className="absolute -bottom-1 left-0 right-0 h-0.5"
-                      style={{ backgroundColor: '#00D4B3' }}
+                      style={{ backgroundColor: 'var(--color-accent)' }}
                       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     />
                   )}
@@ -79,7 +79,7 @@ export function BusinessNavbar() {
           {/* Right Actions */}
           <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
             <Link href="/auth?tab=register">
-              <Button variant="primary" size="sm" className="bg-[#0A2540] hover:bg-[#0d2f4d] text-white shadow-lg whitespace-nowrap" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+              <Button variant="primary" size="sm" className="bg-primary hover:bg-primary text-white shadow-lg whitespace-nowrap" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
                 Comenzar
               </Button>
             </Link>
@@ -111,7 +111,7 @@ export function BusinessNavbar() {
                     href={link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`text-sm font-medium transition-colors ${
-                      pathname === link.href ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-[#6C757D] dark:text-white/70'
+                      pathname === link.href ? 'text-primary dark:text-accent' : 'text-gray-500 dark:text-white/70'
                     }`}
                     style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
                   >
@@ -120,7 +120,7 @@ export function BusinessNavbar() {
                 ))}
                 <div className="flex flex-col gap-2 pt-4 border-t">
                   <Link href="/auth?tab=register" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="primary" className="w-full bg-[#0A2540] hover:bg-[#0d2f4d] text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+                    <Button variant="primary" className="w-full bg-primary hover:bg-primary text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
                       Comenzar
                     </Button>
                   </Link>

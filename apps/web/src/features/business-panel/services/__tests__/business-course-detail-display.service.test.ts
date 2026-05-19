@@ -18,13 +18,13 @@ describe('business-course-detail-display.service', () => {
   })
 
   it('maps known levels and preserves unknown labels', () => {
-    expect(getBusinessCourseLevelStyles('principiante', '#111111', '#22AA44')).toMatchObject({
+    expect(getBusinessCourseLevelStyles('principiante', 'var(--color-legacy-111111)', 'var(--color-legacy-22aa44)')).toMatchObject({
       text: 'Principiante',
-      color: '#22AA44'
+      color: 'var(--color-legacy-22aa44)'
     })
-    expect(getBusinessCourseLevelStyles('experto', '#111111', '#22AA44')).toMatchObject({
+    expect(getBusinessCourseLevelStyles('experto', 'var(--color-legacy-111111)', 'var(--color-legacy-22aa44)')).toMatchObject({
       text: 'experto',
-      color: '#111111'
+      color: 'var(--color-legacy-111111)'
     })
   })
 

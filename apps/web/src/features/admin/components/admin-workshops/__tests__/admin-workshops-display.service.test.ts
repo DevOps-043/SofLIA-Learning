@@ -93,11 +93,11 @@ describe('admin-workshops-display.service', () => {
     expect(getAdminWorkshopLevelConfig('advanced', displayTheme)).toMatchObject({
       labelKey: 'workshops.card.level.advanced',
       color: displayTheme.dangerColor,
-      bg: `${displayTheme.dangerColor}14`,
+      bg: `color-mix(in srgb, ${displayTheme.dangerColor} 7.8%, transparent)`,
     })
     expect(getAdminWorkshopCategoryConfig('tecnologia', displayTheme)).toMatchObject({
       color: displayTheme.secondaryColor,
-      border: `${displayTheme.secondaryColor}26`,
+      border: `color-mix(in srgb, ${displayTheme.secondaryColor} 14.9%, transparent)`,
     })
     expect(getAdminWorkshopStatusConfig(true, displayTheme)).toMatchObject({
       labelKey: 'workshops.card.statusActive',

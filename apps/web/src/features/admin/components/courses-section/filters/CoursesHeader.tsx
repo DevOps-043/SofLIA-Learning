@@ -58,14 +58,14 @@ export function CoursesHeader({
           </motion.button>
           <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onOpenLearningPathCatalog}
             className="px-6 py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border"
-            style={{ borderColor: colors.accent, color: colors.accent, backgroundColor: `${colors.accent}10` }}>
+            style={{ borderColor: colors.accent, color: colors.accent, backgroundColor: `color-mix(in srgb, ${colors.accent} 6.3%, transparent)` }}>
             <Route className="w-5 h-5" />
             {t('coursesSection.assignPath')}
           </motion.button>
           {activeTab === 'users' && (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onAssignUser}
               className="px-6 py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border"
-              style={{ borderColor: colors.accent, color: colors.accent, backgroundColor: `${colors.accent}10` }}>
+              style={{ borderColor: colors.accent, color: colors.accent, backgroundColor: `color-mix(in srgb, ${colors.accent} 6.3%, transparent)` }}>
               <GraduationCap className="w-5 h-5" />
               Asignar Curso
             </motion.button>

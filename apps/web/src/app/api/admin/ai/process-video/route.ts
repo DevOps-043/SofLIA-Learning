@@ -1,107 +1,105 @@
-import { logger as techDebtLogger } from '@/lib/utils/logger'
-import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { GoogleAIFileManager, FileState } from '@google/generative-ai/server';
-import { writeFile, unlink } from 'fs/promises';
-import { join } from 'path';
-import os from 'os';
+import { NextRequest, NextResponse } from 'next/server'
+import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleAIFileManager, FileState } from '@google/generative-ai/server'
+import { writeFile, unlink } from 'fs/promises'
+import { join } from 'path'
+import os from 'os'
+
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import {
   CIRCUIT_BREAKER_DEFAULTS,
   executeWithCircuitBreaker,
 } from '@/lib/resilience/circuit-breaker'
-import { getSafeFetchSupabaseHosts, safeFetch } from '@/lib/security/safe-fetch';
+import {
+  getSafeFetchSupabaseHosts,
+  safeFetch,
+} from '@/lib/security/safe-fetch'
+import { logger } from '@/lib/utils/logger'
 
-export const runtime = 'nodejs'; // Required for file system operations
-export const maxDuration = 300; // 5 minutes max for processing
+import { processVideoSchema, type ProcessVideoBody } from './schema'
 
-export async function POST(req: NextRequest) {
-  // ✅ SEGURIDAD: Verificar autenticación y autorización de admin
+export const runtime = 'nodejs'
+export const maxDuration = 300
+
+async function handlePost(_request: NextRequest, body: ProcessVideoBody) {
   const auth = await requireAdmin()
   if (auth instanceof NextResponse) return auth
 
+  const googleApiKey = process.env.GOOGLE_API_KEY
+  if (!googleApiKey) {
+    return apiError(
+      'GOOGLE_API_KEY_MISSING',
+      'GOOGLE_API_KEY no configurada',
+      500,
+    )
+  }
+
+  const tempDir = os.tmpdir()
+  const fileName = `temp-video-${Date.now()}.mp4`
+  const filePath = join(tempDir, fileName)
+
   try {
-    const { videoUrl } = await req.json();
-
-    if (!videoUrl) {
-      return NextResponse.json(
-        { error: 'Se requiere la URL del video' },
-        { status: 400 }
-      );
-    }
-
-    const googleApiKey = process.env.GOOGLE_API_KEY;
-    if (!googleApiKey) {
-      return NextResponse.json(
-        { error: 'GOOGLE_API_KEY no configurada' },
-        { status: 500 }
-      );
-    }
-
-
-    // 1. Descargar el video temporalmente
-    const tempDir = os.tmpdir();
-    const fileName = `temp-video-${Date.now()}.mp4`;
-    const filePath = join(tempDir, fileName);
-
-    
-    const videoResponse = await safeFetch(videoUrl, { cache: 'no-store' }, {
-      allowedHosts: getSafeFetchSupabaseHosts(),
-      provider: 'external-video-download',
-      requireHostAllowlist: true,
-    });
+    const videoResponse = await safeFetch(
+      body.videoUrl,
+      { cache: 'no-store' },
+      {
+        allowedHosts: getSafeFetchSupabaseHosts(),
+        provider: 'external-video-download',
+        requireHostAllowlist: true,
+      },
+    )
     if (!videoResponse.ok) {
-      throw new Error(`Error al descargar video: ${videoResponse.statusText}`);
+      return apiError(
+        'VIDEO_DOWNLOAD_FAILED',
+        `Error al descargar video: ${videoResponse.statusText}`,
+        502,
+      )
     }
 
-    const videoBuffer = await videoResponse.arrayBuffer();
-    await writeFile(filePath, Buffer.from(videoBuffer));
+    const videoBuffer = await videoResponse.arrayBuffer()
+    await writeFile(filePath, Buffer.from(videoBuffer))
 
-    // 2. Subir a Gemini File API
-    const fileManager = new GoogleAIFileManager(googleApiKey);
-    
+    const fileManager = new GoogleAIFileManager(googleApiKey)
     const uploadResult = await fileManager.uploadFile(filePath, {
       mimeType: 'video/mp4',
       displayName: 'Lesson Video',
-    });
+    })
 
-    const fileUri = uploadResult.file.uri;
-    const uploadName = uploadResult.file.name;
-
-    // 3. Esperar a que se procese
-    let file = await fileManager.getFile(uploadName);
+    const uploadName = uploadResult.file.name
+    let file = await fileManager.getFile(uploadName)
     while (file.state === FileState.PROCESSING) {
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Esperar 2s
-      file = await fileManager.getFile(uploadName);
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      file = await fileManager.getFile(uploadName)
     }
-
     if (file.state === FileState.FAILED) {
-      throw new Error('El procesamiento del video en Gemini falló.');
+      return apiError(
+        'GEMINI_PROCESSING_FAILED',
+        'El procesamiento del video en Gemini falló.',
+        502,
+      )
     }
 
-
-    // 4. Generar Transcripción y Resumen
-    const genAI = new GoogleGenerativeAI(googleApiKey);
-    const model = genAI.getGenerativeModel({ 
+    const genAI = new GoogleGenerativeAI(googleApiKey)
+    const model = genAI.getGenerativeModel({
       model: process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp',
-      generationConfig: {
-        responseMimeType: "application/json",
-      }
-    });
+      generationConfig: { responseMimeType: 'application/json' },
+    })
 
     const prompt = `
       Actúa como un asistente educativo experto encargado de procesar material didáctico.
-      
+
       Analiza el video y la pista de audio proporcionada EXHAUSTIVAMENTE.
-      
+
       Debes generar un objeto JSON con dos campos obligatorios:
-      
+
       1. "transcript": La transcripción COMPLETA de todo lo que se dice en el video.
          - IMPORTANTE: No devuelvas un solo bloque masivo de texto.
          - Divide el texto en párrafos lógicos y legibles usando doble salto de línea (\\n\\n).
          - La lectura debe ser fluida y natural visualmente.
-      
-      2. "summary": Un resumen educativo, rico y MUY BIEN ESTRUCTURADO. 
+
+      2. "summary": Un resumen educativo, rico y MUY BIEN ESTRUCTURADO.
          - EL FORMATO ES CRÍTICO: Usa Markdown para dar estructura visual.
          - Usa Títulos (###) para separar secciones (ej: Introducción, Conceptos Clave, Conclusión).
          - Usa **Negritas** para resaltar términos importantes.
@@ -113,35 +111,33 @@ export async function POST(req: NextRequest) {
         "transcript": "Párrafo 1...\\n\\nPárrafo 2...",
         "summary": "### Introducción\\nTexto...\\n\\n### Puntos Clave\\n- Item 1\\n- Item 2"
       }
-    `;
+    `
 
     const result = await executeWithCircuitBreaker(
       'gemini-process-video',
-      () => model.generateContent([
-        { fileData: { mimeType: file.mimeType, fileUri: file.uri } },
-        { text: prompt },
-      ]),
+      () =>
+        model.generateContent([
+          { fileData: { mimeType: file.mimeType, fileUri: file.uri } },
+          { text: prompt },
+        ]),
       CIRCUIT_BREAKER_DEFAULTS.gemini,
-    );
+    )
 
-    const responseText = result.response.text();
-    const data = JSON.parse(responseText);
+    const responseText = result.response.text()
+    const data = JSON.parse(responseText)
 
-    // 5. Limpieza
-    await fileManager.deleteFile(uploadName);
-    await unlink(filePath);
+    await fileManager.deleteFile(uploadName)
+    await unlink(filePath)
 
     return NextResponse.json({
       success: true,
       transcript: data.transcript,
       summary: data.summary,
-    });
-
+    })
   } catch (error) {
-    techDebtLogger.error('❌ Error processing video:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Error interno' },
-      { status: 500 }
-    );
+    logger.error('Error processing video', error)
+    return apiError('PROCESS_VIDEO_FAILED', 'Error interno', 500)
   }
 }
+
+export const POST = withZodBody(processVideoSchema, handlePost)

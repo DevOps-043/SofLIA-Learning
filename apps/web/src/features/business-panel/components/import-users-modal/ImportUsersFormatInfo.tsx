@@ -27,10 +27,10 @@ export function ImportUsersFormatInfo() {
         {fields.map(item => (
           <div key={item.field} className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
-              <code className="px-2 py-0.5 rounded text-xs font-mono border font-semibold" style={{ backgroundColor: `${theme.primaryColor}15`, color: theme.primaryColor, borderColor: `${theme.primaryColor}40` }}>{item.field}</code>
+              <code className="px-2 py-0.5 rounded text-xs font-mono border font-semibold" style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 8.2%, transparent)`, color: theme.primaryColor, borderColor: `color-mix(in srgb, ${theme.primaryColor} 25.1%, transparent)` }}>{item.field}</code>
               <span style={{ color: theme.subtextColor }}>{item.desc}</span>
             </div>
-            {item.required && <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: `${theme.warningColor}1F`, color: theme.warningColor }}>{t('users.modals.import.format.required')}</span>}
+            {item.required && <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: `color-mix(in srgb, ${theme.warningColor} 12.2%, transparent)`, color: theme.warningColor }}>{t('users.modals.import.format.required')}</span>}
           </div>
         ))}
       </div>

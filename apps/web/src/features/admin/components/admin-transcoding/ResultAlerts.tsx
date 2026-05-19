@@ -11,7 +11,7 @@ export function ResultAlerts({ scanResult, drainResult }: ResultAlertsProps) {
     <>
       {scanResult && (
         <div className={`mb-4 rounded-xl border p-3 text-sm ${
-          scanResult.success ? 'border-[#10B981]/40 bg-[#10B981]/10 text-[#10B981]' : 'border-[#ef4444]/40 bg-[#ef4444]/10 text-[#ef4444]'
+          scanResult.success ? 'border-success/40 bg-success/10 text-success' : 'border-error/40 bg-error/10 text-error'
         }`}>
           {scanResult.success ? (
             <p>
@@ -29,9 +29,9 @@ export function ResultAlerts({ scanResult, drainResult }: ResultAlertsProps) {
 function DrainAlert({ drainResult }: { drainResult: DrainResponse }) {
   const className = drainResult.success
     ? drainResult.invoked > 0
-      ? 'border-[#10B981]/40 bg-[#10B981]/10 text-[#10B981]'
-      : 'border-[#0A2540]/20 dark:border-white/10 bg-[#0A2540]/5 dark:bg-white/5 text-[#0A2540] dark:text-white/80'
-    : 'border-[#ef4444]/40 bg-[#ef4444]/10 text-[#ef4444]'
+      ? 'border-success/40 bg-success/10 text-success'
+      : 'border-primary/20 dark:border-white/10 bg-primary/5 dark:bg-white/5 text-primary dark:text-white/80'
+    : 'border-error/40 bg-error/10 text-error'
 
   return (
     <div className={`mb-4 rounded-xl border p-3 text-sm ${className}`}>

@@ -21,7 +21,7 @@ export function AdminWorkshopsLoadingState() {
             className="mb-5 h-12 w-12 animate-spin rounded-full border-4 border-transparent"
             style={{
               borderTopColor: theme.primaryColor,
-              borderRightColor: `${theme.primaryColor}40`,
+              borderRightColor: `color-mix(in srgb, ${theme.primaryColor} 25.1%, transparent)`,
             }}
           />
           <p className="text-sm font-bold" style={{ color: theme.textColor }}>

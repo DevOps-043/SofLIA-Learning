@@ -1,27 +1,34 @@
 import type { NextRequest } from 'next/server'
+import { z } from 'zod'
 
 import type { TranslationRequestOptions } from './types'
 
+const translationRequestSchema = z.object({
+  courseId: z.string().uuid().optional(),
+  lessonIds: z.array(z.string().uuid()).max(1_000).optional(),
+  includeActivities: z.boolean().optional().default(true),
+  includeMaterials: z.boolean().optional().default(true),
+})
+
 export async function readTranslationRequest(
-  request: NextRequest
+  request: NextRequest,
 ): Promise<TranslationRequestOptions> {
-  const body = await request.json().catch(() => ({}))
-  const {
-    lessonIds,
-    courseId,
-    includeActivities = true,
-    includeMaterials = true,
-  } = body as {
-    courseId?: string
-    includeActivities?: boolean
-    includeMaterials?: boolean
-    lessonIds?: string[]
+  let raw: unknown = {}
+  try {
+    raw = await request.json()
+  } catch {
+    raw = {}
   }
 
-  return {
-    courseId,
-    includeActivities,
-    includeMaterials,
-    lessonIds,
+  const parsed = translationRequestSchema.safeParse(raw)
+  if (!parsed.success) {
+    return {
+      courseId: undefined,
+      lessonIds: undefined,
+      includeActivities: true,
+      includeMaterials: true,
+    }
   }
+
+  return parsed.data
 }

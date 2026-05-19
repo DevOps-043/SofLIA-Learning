@@ -24,7 +24,7 @@ export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed w-[240px] rounded-2xl border backdrop-blur-xl shadow-2xl overflow-hidden bg-white/95 dark:bg-[#1A1F25]/95 border-gray-200 dark:border-white/10"
+            className="fixed w-[240px] rounded-2xl border backdrop-blur-xl shadow-2xl overflow-hidden bg-white/95 dark:bg-carbon-800/95 border-gray-200 dark:border-white/10"
             style={{ zIndex: USER_DROPDOWN_MENU_Z_INDEX, top: logic.pos.top, right: logic.pos.right }}
           >
             <UserDropdownHeader

@@ -35,20 +35,20 @@ export const UI_DASHBOARD_TEMPLATE: NanoBananaSchema = {
   scene: {
     id: 'scene_dashboard', description: 'Dashboard con sidebar y métricas',
     environment: {
-      lighting: 'ambient', background: '#0F172A', mood: 'professional',
-      colorScheme: 'dark', primaryColor: '#3B82F6', secondaryColor: '#1E293B', accentColor: '#10B981',
+      lighting: 'ambient', background: 'var(--color-legacy-0f172a)', mood: 'professional',
+      colorScheme: 'dark', primaryColor: 'var(--color-info)', secondaryColor: 'var(--color-legacy-1e293b)', accentColor: 'var(--color-success)',
     },
     dimensions: { width: '1440px', height: '900px' },
   },
   entities: [
     {
       id: 'sidebar_main', type: 'container', name: 'Sidebar', position: 'left', emphasis: 'secondary',
-      properties: { width: '280px', backgroundColor: '#1E293B', padding: '24px 16px' },
+      properties: { width: '280px', backgroundColor: 'var(--color-legacy-1e293b)', padding: '24px 16px' },
       children: sidebarChildren,
     },
     {
       id: 'content_main', type: 'container', name: 'Main Content', position: 'center', emphasis: 'primary',
-      properties: { flex: 1, padding: '32px', backgroundColor: '#0F172A' },
+      properties: { flex: 1, padding: '32px', backgroundColor: 'var(--color-legacy-0f172a)' },
       children: contentChildren,
     },
   ],

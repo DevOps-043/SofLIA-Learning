@@ -63,9 +63,9 @@ describe('useOrganizationRegisterForm', () => {
         success: true,
         styles: {
           login: {
-            primary_button_color: '#112233',
-            card_background: '#ffffff',
-            text_color: '#111827',
+            primary_button_color: 'var(--color-legacy-112233)',
+            card_background: 'var(--color-bg-light)',
+            text_color: 'var(--color-legacy-111827)',
           },
         },
       })
@@ -93,7 +93,7 @@ describe('useOrganizationRegisterForm', () => {
     );
 
     await vi.waitFor(() => {
-      expect(result.current.palette.primaryColor).toBe('#112233');
+      expect(result.current.palette.primaryColor).toBe('var(--color-legacy-112233)');
     });
 
     await act(async () => {

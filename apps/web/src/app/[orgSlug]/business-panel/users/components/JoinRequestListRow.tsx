@@ -55,7 +55,7 @@ export function JoinRequestListRow({
         className="w-10 h-10 rounded-lg flex items-center justify-center border flex-shrink-0"
         style={{
           backgroundColor: theme.actionSurface,
-          borderColor: `${theme.actionColor}20`,
+          borderColor: `color-mix(in srgb, ${theme.actionColor} 12.5%, transparent)`,
         }}
       >
         <UserPlus className="w-5 h-5" style={{ color: theme.actionColor }} />
@@ -95,8 +95,8 @@ export function JoinRequestListRow({
           <span
             className="px-2 py-1 rounded-full text-[10px] font-bold border"
             style={{
-              backgroundColor: `${theme.actionColor}12`,
-              borderColor: `${theme.actionColor}20`,
+              backgroundColor: `color-mix(in srgb, ${theme.actionColor} 7.1%, transparent)`,
+              borderColor: `color-mix(in srgb, ${theme.actionColor} 12.5%, transparent)`,
               color: theme.actionColor,
             }}
           >
@@ -132,7 +132,7 @@ export function JoinRequestListRow({
           disabled={isReviewing}
           className="p-2 rounded-lg transition-colors disabled:opacity-60"
           style={{
-            backgroundColor: `${theme.dangerColor}10`,
+            backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 6.3%, transparent)`,
             color: theme.dangerColor,
           }}
           title={t('users.card.reject')}

@@ -12,7 +12,7 @@ interface BrandingColorPickerProps {
 export function BrandingColorPicker({ label, value, onChange }: BrandingColorPickerProps) {
   return (
     <div className="flex items-center gap-3">
-      <label className="block text-sm font-medium w-32" style={{ color: 'var(--org-text-color, #ffffff)' }}>
+      <label className="block text-sm font-medium w-32" style={{ color: 'var(--org-text-color, var(--color-bg-light))' }}>
         {label}
       </label>
       
@@ -22,7 +22,7 @@ export function BrandingColorPicker({ label, value, onChange }: BrandingColorPic
           className="w-10 h-10 rounded border-2 cursor-pointer"
           style={{
             backgroundColor: value,
-            borderColor: 'var(--org-border-color, #334155)'
+            borderColor: 'var(--org-border-color, var(--color-legacy-334155))'
           }}
         >
           <input
@@ -50,14 +50,14 @@ export function BrandingColorPicker({ label, value, onChange }: BrandingColorPic
           className="w-full pl-3 pr-10 py-2 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2"
           style={{
             backgroundColor: 'rgba(var(--org-card-background-rgb, 30, 41, 59), var(--org-card-opacity, 1))',
-            borderColor: 'var(--org-border-color, #334155)',
-            color: 'var(--org-text-color, #ffffff)'
+            borderColor: 'var(--org-border-color, var(--color-legacy-334155))',
+            color: 'var(--org-text-color, var(--color-bg-light))'
           }}
-          placeholder="#FF7300"
+          placeholder="var(--color-legacy-ff7300)"
           aria-label={`${label} color value`}
           title={`${label} color value`}
         />
-        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--org-text-color, #ffffff)' }} />
+        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--org-text-color, var(--color-bg-light))' }} />
       </div>
     </div>
   )

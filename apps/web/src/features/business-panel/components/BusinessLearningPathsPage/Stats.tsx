@@ -17,7 +17,7 @@ export function BusinessLearningPathStats({ logic }: { logic: BusinessLearningPa
         const Icon = stat.icon
         return (
           <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }} className="flex items-center gap-4 rounded-[1.5rem] border p-5" style={{ backgroundColor: inputBg, borderColor }}>
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl" style={{ background: `linear-gradient(135deg, ${primaryColor}20, ${accentColor}20)`, color: primaryColor }}>
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${primaryColor} 12.5%, transparent), color-mix(in srgb, ${accentColor} 12.5%, transparent))`, color: primaryColor }}>
               <Icon className="h-5 w-5" strokeWidth={2.5} />
             </div>
             <div>

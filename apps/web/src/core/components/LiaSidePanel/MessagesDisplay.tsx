@@ -95,7 +95,7 @@ export function MessagesDisplay({
                   borderRadius: '50%',
                   objectFit: 'cover',
                   border: `3px solid ${themeColors.accentColor}`,
-                  boxShadow: `0 0 20px ${themeColors.accentColor}40`,
+                  boxShadow: `0 0 20px color-mix(in srgb, ${themeColors.accentColor} 25.1%, transparent)`,
                   position: 'relative',
                   zIndex: 1,
                 }}

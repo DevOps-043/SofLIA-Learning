@@ -56,10 +56,10 @@ function buildCalendarDays(currentMonth: Date, selectedDate: Date | null, onSele
         whileTap={!isPast ? { scale: 0.9 } : {}}
         className={`rounded-lg p-2 text-sm font-medium transition-all ${
           isPast
-            ? 'cursor-not-allowed text-[#6C757D]'
+            ? 'cursor-not-allowed text-gray-500'
             : isSelected
-              ? 'bg-[#0A2540] text-white shadow-sm dark:bg-[#0A2540]'
-              : 'text-[#0A2540] hover:bg-[#0A2540]/10 hover:text-[#0A2540] dark:text-gray-300 dark:hover:bg-[#0A2540]/20 dark:hover:text-white'
+              ? 'bg-primary text-white shadow-sm dark:bg-primary'
+              : 'text-primary hover:bg-primary/10 hover:text-primary dark:text-gray-300 dark:hover:bg-primary/20 dark:hover:text-white'
         }`}
       >
         {day}
@@ -97,15 +97,15 @@ export function StudyPlannerTargetDateModal({
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             className="pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center p-4"
           >
-            <motion.div className="pointer-events-auto relative w-full max-w-md overflow-hidden rounded-xl border border-[#E9ECEF] bg-white shadow-2xl dark:border-[#6C757D]/30 dark:bg-[#1E2329]">
-              <div className="relative border-b border-[#E9ECEF] bg-[#0A2540]/5 p-5 pb-4 dark:border-[#6C757D]/30 dark:bg-[#0A2540]/10">
+            <motion.div className="pointer-events-auto relative w-full max-w-md overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-500/30 dark:bg-carbon-800">
+              <div className="relative border-b border-gray-200 bg-primary/5 p-5 pb-4 dark:border-gray-500/30 dark:bg-primary/10">
                 <div className="flex items-start gap-3">
-                  <div className="rounded-lg border border-[#0A2540]/20 bg-[#0A2540]/10 p-2.5 dark:border-[#00D4B3]/30 dark:bg-[#0A2540]/20">
-                    <Calendar className="h-5 w-5 text-[#0A2540] dark:text-[#00D4B3]" />
+                  <div className="rounded-lg border border-primary/20 bg-primary/10 p-2.5 dark:border-accent/30 dark:bg-primary/20">
+                    <Calendar className="h-5 w-5 text-primary dark:text-accent" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="mb-1 text-lg font-bold text-[#0A2540] dark:text-white">Selecciona fecha estimada</h3>
-                    <p className="text-xs text-[#6C757D] dark:text-gray-400">Elige cuando quieres terminar tus cursos</p>
+                    <h3 className="mb-1 text-lg font-bold text-primary dark:text-white">Selecciona fecha estimada</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Elige cuando quieres terminar tus cursos</p>
                   </div>
                 </div>
               </div>
@@ -122,11 +122,11 @@ export function StudyPlannerTargetDateModal({
                     }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    className="rounded-lg p-2 text-[#6C757D] transition-all hover:bg-[#E9ECEF] hover:text-[#0A2540] dark:text-gray-400 dark:hover:bg-[#0A2540]/20 dark:hover:text-white"
+                    className="rounded-lg p-2 text-gray-500 transition-all hover:bg-gray-200 hover:text-primary dark:text-gray-400 dark:hover:bg-primary/20 dark:hover:text-white"
                   >
                     <ChevronLeft size={20} />
                   </motion.button>
-                  <h4 className="text-base font-semibold text-[#0A2540] dark:text-white">
+                  <h4 className="text-base font-semibold text-primary dark:text-white">
                     {currentMonth ? currentMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : 'Cargando...'}
                   </h4>
                   <motion.button
@@ -139,7 +139,7 @@ export function StudyPlannerTargetDateModal({
                     }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    className="rounded-lg p-2 text-[#6C757D] transition-all hover:bg-[#E9ECEF] hover:text-[#0A2540] dark:text-gray-400 dark:hover:bg-[#0A2540]/20 dark:hover:text-white"
+                    className="rounded-lg p-2 text-gray-500 transition-all hover:bg-gray-200 hover:text-primary dark:text-gray-400 dark:hover:bg-primary/20 dark:hover:text-white"
                   >
                     <ChevronRight size={20} />
                   </motion.button>
@@ -147,7 +147,7 @@ export function StudyPlannerTargetDateModal({
 
                 <div className="mb-2 grid grid-cols-7 gap-1">
                   {['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'].map((day) => (
-                    <div key={day} className="py-2 text-center text-xs font-semibold text-[#6C757D] dark:text-gray-400">
+                    <div key={day} className="py-2 text-center text-xs font-semibold text-gray-500 dark:text-gray-400">
                       {day}
                     </div>
                   ))}
@@ -157,7 +157,7 @@ export function StudyPlannerTargetDateModal({
                   {currentMonth ? (
                     buildCalendarDays(currentMonth, selectedDate, onSelectDate)
                   ) : (
-                    <div className="col-span-7 py-4 text-center text-[#6C757D] dark:text-gray-400">Cargando calendario...</div>
+                    <div className="col-span-7 py-4 text-center text-gray-500 dark:text-gray-400">Cargando calendario...</div>
                   )}
                 </div>
 
@@ -165,10 +165,10 @@ export function StudyPlannerTargetDateModal({
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 rounded-lg border border-[#0A2540]/20 bg-[#0A2540]/10 p-3 dark:border-[#00D4B3]/30 dark:bg-[#0A2540]/20"
+                    className="mt-4 rounded-lg border border-primary/20 bg-primary/10 p-3 dark:border-accent/30 dark:bg-primary/20"
                   >
-                    <p className="text-sm text-[#0A2540] dark:text-gray-300">
-                      <span className="font-semibold text-[#0A2540] dark:text-[#00D4B3]">Fecha seleccionada:</span>{' '}
+                    <p className="text-sm text-primary dark:text-gray-300">
+                      <span className="font-semibold text-primary dark:text-accent">Fecha seleccionada:</span>{' '}
                       {selectedDate.toLocaleDateString('es-ES', {
                         weekday: 'long',
                         year: 'numeric',
@@ -180,12 +180,12 @@ export function StudyPlannerTargetDateModal({
                 )}
               </div>
 
-              <div className="flex items-center justify-between gap-3 border-t border-[#E9ECEF] bg-white px-5 py-4 dark:border-[#6C757D]/30 dark:bg-[#1E2329]">
+              <div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-5 py-4 dark:border-gray-500/30 dark:bg-carbon-800">
                 <motion.button
                   onClick={onSkip}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-4 py-2 text-xs text-[#6C757D] transition-colors hover:text-[#0A2540] dark:text-gray-400 dark:hover:text-white"
+                  className="px-4 py-2 text-xs text-gray-500 transition-colors hover:text-primary dark:text-gray-400 dark:hover:text-white"
                 >
                   Sin fecha especifica
                 </motion.button>
@@ -196,8 +196,8 @@ export function StudyPlannerTargetDateModal({
                   whileTap={selectedDate ? { scale: 0.95 } : {}}
                   className={`rounded-md px-5 py-2 text-xs font-semibold transition-all ${
                     selectedDate
-                      ? 'bg-[#0A2540] text-white shadow-sm hover:bg-[#0d2f4d] dark:bg-[#0A2540] dark:hover:bg-[#0d2f4d]'
-                      : 'cursor-not-allowed bg-[#6C757D] text-gray-400'
+                      ? 'bg-primary text-white shadow-sm hover:bg-primary dark:bg-primary dark:hover:bg-primary'
+                      : 'cursor-not-allowed bg-gray-500 text-gray-400'
                   }`}
                 >
                   Confirmar

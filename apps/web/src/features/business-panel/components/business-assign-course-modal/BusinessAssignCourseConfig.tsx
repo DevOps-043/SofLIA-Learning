@@ -38,7 +38,7 @@ export function BusinessAssignCourseConfig({ modal, t, theme }: BusinessAssignCo
       </div>
       <div className="space-y-6 flex flex-col justify-end">
         <div className="flex items-center gap-3">
-          <motion.button type="button" onClick={modal.handleSuggestLiaDate} disabled={modal.isSuggesting} className="px-6 py-4 rounded-2xl border transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-3 shadow-sm" style={{ backgroundColor: `${theme.accentColor}10`, borderColor: `${theme.accentColor}25`, color: theme.accentColor }} whileHover={{ scale: 1.02, backgroundColor: `${theme.accentColor}20`, borderColor: `${theme.accentColor}40` }} whileTap={{ scale: 0.98 }}>
+          <motion.button type="button" onClick={modal.handleSuggestLiaDate} disabled={modal.isSuggesting} className="px-6 py-4 rounded-2xl border transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-3 shadow-sm" style={{ backgroundColor: `color-mix(in srgb, ${theme.accentColor} 6.3%, transparent)`, borderColor: `color-mix(in srgb, ${theme.accentColor} 14.5%, transparent)`, color: theme.accentColor }} whileHover={{ scale: 1.02, backgroundColor: `color-mix(in srgb, ${theme.accentColor} 12.5%, transparent)`, borderColor: `color-mix(in srgb, ${theme.accentColor} 25.1%, transparent)` }} whileTap={{ scale: 0.98 }}>
             {modal.isSuggesting ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Sparkles className="w-4 h-4 animate-pulse" />}
             <span>{t('assignCourse.buttons.suggestLia', 'Sugerir con SofLIA')}</span>
           </motion.button>

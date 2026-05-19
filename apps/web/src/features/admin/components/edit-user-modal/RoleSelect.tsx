@@ -65,7 +65,7 @@ export function RoleSelect({ value, onChange }: RoleSelectProps) {
 
   return (
     <div className="group" ref={selectRef}>
-      <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+      <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">
         {t('users.demographics.role')} *
       </label>
       <div className="relative">
@@ -74,16 +74,16 @@ export function RoleSelect({ value, onChange }: RoleSelectProps) {
           onClick={() => setIsOpen(!isOpen)}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
-          className={`w-full pl-10 pr-10 py-2.5 bg-white dark:bg-[#0A0D12] border rounded-xl text-[#0A2540] dark:text-white transition-all duration-200 flex items-center justify-between ${
+          className={`w-full pl-10 pr-10 py-2.5 bg-white dark:bg-carbon-950 border rounded-xl text-primary dark:text-white transition-all duration-200 flex items-center justify-between ${
             isOpen
-              ? 'border-[#00D4B3] ring-2 ring-[#00D4B3]/40'
-              : 'border-[#E9ECEF] dark:border-[#6C757D]/30 hover:border-[#00D4B3]/50'
+              ? 'border-accent ring-2 ring-accent/40'
+              : 'border-gray-200 dark:border-gray-500/30 hover:border-accent/50'
           }`}
         >
           <div className="flex items-center gap-2.5">
             <ShieldCheckIcon
               className={`h-4 w-4 transition-colors ${
-                isOpen ? 'text-[#00D4B3]' : 'text-[#6C757D] dark:text-white/60'
+                isOpen ? 'text-accent' : 'text-gray-500 dark:text-white/60'
               }`}
             />
             <span className="font-medium">{t(`users.roles.${selectedRole.value}`)}</span>
@@ -94,7 +94,7 @@ export function RoleSelect({ value, onChange }: RoleSelectProps) {
           >
             <ChevronDownIcon
               className={`h-4 w-4 transition-colors ${
-                isOpen ? 'text-[#00D4B3]' : 'text-[#6C757D] dark:text-white/60'
+                isOpen ? 'text-accent' : 'text-gray-500 dark:text-white/60'
               }`}
             />
           </motion.div>
@@ -115,7 +115,7 @@ export function RoleSelect({ value, onChange }: RoleSelectProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2, ease: 'easeOut' }}
-                className="absolute z-50 w-full mt-2 bg-white dark:bg-[#1E2329] rounded-xl shadow-2xl border border-[#E9ECEF] dark:border-[#6C757D]/30 overflow-hidden"
+                className="absolute z-50 w-full mt-2 bg-white dark:bg-carbon-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-500/30 overflow-hidden"
               >
                 <div className="p-1.5">
                   {roles.map((role, index) => {
@@ -142,23 +142,23 @@ export function RoleSelect({ value, onChange }: RoleSelectProps) {
                         }}
                         className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 ${
                           isSelected
-                            ? 'bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 text-[#00D4B3]'
-                            : 'text-[#0A2540] dark:text-white hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/30'
+                            ? 'bg-accent/10 dark:bg-accent/20 text-accent'
+                            : 'text-primary dark:text-white hover:bg-gray-200 dark:hover:bg-primary/30'
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div
                             className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                               isSelected
-                                ? 'bg-[#00D4B3]/20'
-                                : 'bg-[#E9ECEF] dark:bg-[#0A0D12]'
+                                ? 'bg-accent/20'
+                                : 'bg-gray-200 dark:bg-carbon-950'
                             }`}
                           >
                             <RoleIcon
                               className={`h-4 w-4 ${
                                 isSelected
-                                  ? 'text-[#00D4B3]'
-                                  : 'text-[#6C757D] dark:text-white/60'
+                                  ? 'text-accent'
+                                  : 'text-gray-500 dark:text-white/60'
                               }`}
                             />
                           </div>
@@ -174,7 +174,7 @@ export function RoleSelect({ value, onChange }: RoleSelectProps) {
                               damping: 30,
                             }}
                           >
-                            <CheckCircleIcon className="h-5 w-5 text-[#00D4B3]" />
+                            <CheckCircleIcon className="h-5 w-5 text-accent" />
                           </motion.div>
                         )}
                       </motion.button>

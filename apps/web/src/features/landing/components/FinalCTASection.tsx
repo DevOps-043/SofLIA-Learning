@@ -50,18 +50,18 @@ export function FinalCTASection() {
     <section 
       id="contact"
       ref={sectionRef}
-      className="py-20 lg:py-32 bg-gradient-to-b from-[#0A2540] to-[#0d2f4d] relative overflow-hidden"
+      className="py-20 lg:py-32 bg-gradient-to-b from-primary to-primary relative overflow-hidden"
     >
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Gradient Orbs */}
         <div 
           className="absolute top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full opacity-20 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #00D4B3, transparent)' }}
+          style={{ background: 'radial-gradient(circle, var(--color-accent), transparent)' }}
         />
         <div 
           className="absolute bottom-1/4 -right-1/4 w-[600px] h-[600px] rounded-full opacity-20 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #8B5CF6, transparent)' }}
+          style={{ background: 'radial-gradient(circle, var(--color-secondary), transparent)' }}
         />
 
         {/* Grid Pattern */}
@@ -88,7 +88,7 @@ export function FinalCTASection() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={isInView ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="inline-block px-4 py-2 rounded-full bg-[#00D4B3]/20 text-[#00D4B3] text-sm font-medium mb-6"
+              className="inline-block px-4 py-2 rounded-full bg-accent/20 text-accent text-sm font-medium mb-6"
             >
               {t('landing.cta.tag', 'Comienza Hoy')}
             </motion.span>
@@ -119,9 +119,9 @@ export function FinalCTASection() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: 'spring', delay: 0.2 }}
-                  className="w-20 h-20 rounded-full bg-[#10B981]/20 flex items-center justify-center mx-auto mb-6"
+                  className="w-20 h-20 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-6"
                 >
-                  <CheckCircle size={40} className="text-[#10B981]" />
+                  <CheckCircle size={40} className="text-success" />
                 </motion.div>
                 <h3 className="text-2xl font-bold text-white mb-3">
                   {t('landing.cta.success.title', '¡Mensaje recibido!')}
@@ -142,7 +142,7 @@ export function FinalCTASection() {
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       placeholder={t('landing.cta.form.name', 'Tu nombre')}
                       required
-                      className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-[#00D4B3]/50 transition-colors"
+                      className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-accent/50 transition-colors"
                     />
                   </div>
 
@@ -155,7 +155,7 @@ export function FinalCTASection() {
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder={t('landing.cta.form.email', 'tu@empresa.com')}
                       required
-                      className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-[#00D4B3]/50 transition-colors"
+                      className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-accent/50 transition-colors"
                     />
                   </div>
                 </div>
@@ -169,7 +169,7 @@ export function FinalCTASection() {
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                     placeholder={t('landing.cta.form.company', 'Nombre de tu empresa')}
                     required
-                    className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-[#00D4B3]/50 transition-colors"
+                    className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-accent/50 transition-colors"
                   />
                 </div>
 
@@ -179,7 +179,7 @@ export function FinalCTASection() {
                   disabled={isSubmitting}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-[#00D4B3] to-[#10B981] text-white font-medium text-lg flex items-center justify-center gap-3 shadow-lg shadow-[#00D4B3]/25 hover:shadow-[#00D4B3]/40 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-accent to-success text-white font-medium text-lg flex items-center justify-center gap-3 shadow-lg shadow-accent/25 hover:shadow-accent/40 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <motion.div
@@ -198,7 +198,7 @@ export function FinalCTASection() {
                 {/* Secondary Option */}
                 <p className="text-center text-white/40 text-sm">
                   {t('landing.cta.form.alternative', '¿Prefieres contactarnos directamente?')}{' '}
-                  <a href="mailto:ernesto.hernandez@ecosdeliderazgo.com" className="text-[#00D4B3] hover:underline">
+                  <a href="mailto:ernesto.hernandez@ecosdeliderazgo.com" className="text-accent hover:underline">
                     ernesto.hernandez@ecosdeliderazgo.com
                   </a>
                 </p>
@@ -214,15 +214,15 @@ export function FinalCTASection() {
             className="mt-12 flex flex-wrap items-center justify-center gap-8 text-white/40 text-sm"
           >
             <div className="flex items-center gap-2">
-              <CheckCircle size={16} className="text-[#10B981]" />
+              <CheckCircle size={16} className="text-success" />
               <span>{t('landing.cta.trust.noCommitment', 'Sin compromiso')}</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle size={16} className="text-[#10B981]" />
+              <CheckCircle size={16} className="text-success" />
               <span>{t('landing.cta.trust.demo', 'Demo personalizada')}</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle size={16} className="text-[#10B981]" />
+              <CheckCircle size={16} className="text-success" />
               <span>{t('landing.cta.trust.response', 'Respuesta en 24h')}</span>
             </div>
           </motion.div>

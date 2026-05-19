@@ -13,14 +13,14 @@ export function CalendarMonthView({
   const MAX_EVENTS_TO_SHOW = 3
 
   return (
-    <div className="flex-1 flex flex-col border-x-0 sm:border border-y sm:border-y border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-none sm:rounded-lg overflow-hidden bg-white dark:bg-[#1E2329] w-full max-w-full">
+    <div className="flex-1 flex flex-col border-x-0 sm:border border-y sm:border-y border-gray-200 dark:border-gray-500/30 rounded-none sm:rounded-lg overflow-hidden bg-white dark:bg-carbon-800 w-full max-w-full">
       <div className="flex-1 flex flex-col w-full min-w-0">
         <div className="flex-1 flex flex-col w-full min-w-0">
-          <div className="grid grid-cols-7 border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
+          <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-500/30">
             {weekDayNames.map((day, index) => (
               <div
                 key={index}
-                className="py-1 text-[9px] sm:text-xs font-medium text-[#6C757D] dark:text-gray-400 uppercase tracking-wider text-center border-r border-[#E9ECEF] dark:border-[#6C757D]/30 last:border-r-0 truncate overflow-hidden"
+                className="py-1 text-[9px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center border-r border-gray-200 dark:border-gray-500/30 last:border-r-0 truncate overflow-hidden"
               >
                 {day}
               </div>
@@ -43,11 +43,11 @@ export function CalendarMonthView({
                     }
                   }}
                   className={`
-                    min-h-[60px] sm:min-h-[120px] p-0.5 sm:p-2 border-r border-b border-[#E9ECEF] dark:border-[#6C757D]/30 relative transition-colors
-                    ${dayInfo.isCurrentMonth ? 'bg-white dark:bg-[#1E2329]' : 'bg-gray-50/50 dark:bg-[#1E2329]/50'}
+                    min-h-[60px] sm:min-h-[120px] p-0.5 sm:p-2 border-r border-b border-gray-200 dark:border-gray-500/30 relative transition-colors
+                    ${dayInfo.isCurrentMonth ? 'bg-white dark:bg-carbon-800' : 'bg-gray-50/50 dark:bg-carbon-800/50'}
                     ${dayInfo.isToday ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''}
                     ${(index + 1) % 7 === 0 ? 'border-r-0' : ''}
-                    hover:bg-gray-50 dark:hover:bg-[#2C333A] cursor-pointer flex flex-col items-center sm:items-stretch overflow-hidden min-w-0
+                    hover:bg-gray-50 dark:hover:bg-[var(--color-legacy-2c333a)] cursor-pointer flex flex-col items-center sm:items-stretch overflow-hidden min-w-0
                   `}
                 >
                   <div className="flex justify-between items-start mb-1">
@@ -55,9 +55,9 @@ export function CalendarMonthView({
                       className={`
                         text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full
                         ${dayInfo.isToday
-                          ? 'bg-[#0A2540] text-white shadow-sm'
+                          ? 'bg-primary text-white shadow-sm'
                           : dayInfo.isCurrentMonth
-                          ? 'text-[#0A2540] dark:text-gray-300'
+                          ? 'text-primary dark:text-gray-300'
                           : 'text-gray-400 dark:text-gray-600'
                         }
                       `}

@@ -45,6 +45,6 @@ export function PlanCard({
 
 function getPlanCardShadow(isPopular: boolean | undefined, isCurrentPlan: boolean, headerColor: string, successColor: string) {
   if (isPopular) return `0 24px 48px -28px ${headerColor}`
-  if (isCurrentPlan) return `0 0 0 2px ${successColor}40`
+  if (isCurrentPlan) return `0 0 0 2px color-mix(in srgb, ${successColor} 25.1%, transparent)`
   return 'none'
 }

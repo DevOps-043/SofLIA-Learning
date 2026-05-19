@@ -68,9 +68,9 @@ export function ProfileSecurityTab({
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={interfaceTransition}
             className="p-4 rounded-2xl flex items-center gap-3"
-            style={{ backgroundColor: `${colors.success}15`, border: `1px solid ${colors.success}30` }}
+            style={{ backgroundColor: `color-mix(in srgb, ${colors.success} 8.2%, transparent)`, border: `1px solid color-mix(in srgb, ${colors.success} 18.8%, transparent)` }}
           >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${colors.success}20` }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${colors.success} 12.5%, transparent)` }}>
               <CheckCircle2 className="w-5 h-5" style={{ color: colors.success }} />
             </div>
             <div>
@@ -87,9 +87,9 @@ export function ProfileSecurityTab({
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={interfaceTransition}
             className="p-4 rounded-2xl flex items-center gap-3"
-            style={{ backgroundColor: `${colors.error}15`, border: `1px solid ${colors.error}30` }}
+            style={{ backgroundColor: `color-mix(in srgb, ${colors.error} 8.2%, transparent)`, border: `1px solid color-mix(in srgb, ${colors.error} 18.8%, transparent)` }}
           >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${colors.error}20` }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${colors.error} 12.5%, transparent)` }}>
               <AlertCircle className="w-5 h-5" style={{ color: colors.error }} />
             </div>
             <div>
@@ -105,7 +105,7 @@ export function ProfileSecurityTab({
       </div>
 
       <div className="pt-4 flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${colors.accent}15` }}>
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${colors.accent} 8.2%, transparent)` }}>
           <Shield className="w-6 h-6" style={{ color: colors.accent }} />
         </div>
         <div>
@@ -152,13 +152,13 @@ export function ProfileSecurityTab({
           style={{
             backgroundColor: isPasswordSubmitDisabled ? 'rgba(255,255,255,0.05)' : colors.accent,
             color: isPasswordSubmitDisabled ? 'rgba(255,255,255,0.3)' : colors.primary,
-            boxShadow: isPasswordSubmitDisabled ? 'none' : `0 10px 30px ${colors.accent}30`
+            boxShadow: isPasswordSubmitDisabled ? 'none' : `0 10px 30px color-mix(in srgb, ${colors.accent} 18.8%, transparent)`
           }}
-          whileHover={isPasswordSubmitDisabled ? undefined : { scale: 1.02, boxShadow: `0 15px 40px ${colors.accent}40` }}
+          whileHover={isPasswordSubmitDisabled ? undefined : { scale: 1.02, boxShadow: `0 15px 40px color-mix(in srgb, ${colors.accent} 25.1%, transparent)` }}
           whileTap={isPasswordSubmitDisabled ? undefined : { scale: 0.98 }}
         >
           {isChangingPassword ? (
-            <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: `${colors.primary}30`, borderTopColor: colors.primary }} />
+            <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: `color-mix(in srgb, ${colors.primary} 18.8%, transparent)`, borderTopColor: colors.primary }} />
           ) : (
             <Lock className="w-5 h-5" />
           )}

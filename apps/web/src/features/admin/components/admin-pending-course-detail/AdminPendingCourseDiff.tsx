@@ -119,7 +119,7 @@ function DiffModuleItem({ diffModule }: { diffModule: DiffModule }) {
 
   return (
     <div className={`rounded-xl border-l-4 ${color.border} overflow-hidden ${isRemoved ? 'opacity-60' : ''}`}>
-      <div className="bg-white dark:bg-[#1E2329] rounded-r-xl border border-l-0 border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-carbon-800 rounded-r-xl border border-l-0 border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="bg-gray-50 dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h3 className={`font-semibold ${isRemoved ? 'line-through text-gray-400' : 'text-gray-800 dark:text-gray-200'}`}>

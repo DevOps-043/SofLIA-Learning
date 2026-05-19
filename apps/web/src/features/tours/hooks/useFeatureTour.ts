@@ -363,7 +363,7 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
       styles: {
         options: {
           zIndex: 10000,
-          arrowColor: '#1E2329',
+          arrowColor: 'var(--color-gray-800)',
         },
         spotlight: {
           borderRadius: 16,

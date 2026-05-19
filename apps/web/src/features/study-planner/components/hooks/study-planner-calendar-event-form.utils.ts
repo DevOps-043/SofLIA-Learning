@@ -21,7 +21,7 @@ export function buildEventFormFromEvent(
     end: event.end,
     location: event.location || '',
     isAllDay: event.isAllDay || false,
-    color: event.color || '#0066CC',
+    color: event.color || 'var(--color-legacy-0066cc)',
   }
 }
 

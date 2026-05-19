@@ -15,8 +15,8 @@ export function HierarchyTreeBody({ onInitializeRootNode, state, t }: HierarchyT
   if (state.isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 opacity-30">
-        <div className="w-10 h-10 border-4 border-neutral-200 dark:border-white/10 border-t-[#0A2540] dark:border-t-[#00D4B3] rounded-full animate-spin" />
-        <span className="text-[10px] font-black uppercase tracking-widest text-[#0A2540] dark:text-white">{t('hierarchy.syncing')}</span>
+        <div className="w-10 h-10 border-4 border-neutral-200 dark:border-white/10 border-t-primary dark:border-t-accent rounded-full animate-spin" />
+        <span className="text-[10px] font-black uppercase tracking-widest text-primary dark:text-white">{t('hierarchy.syncing')}</span>
       </div>
     );
   }
@@ -62,12 +62,12 @@ function EmptyHierarchyState({ onInitializeRootNode, t }: Pick<HierarchyTreeBody
         <Network className="w-12 h-12 text-neutral-300 dark:text-white/10" />
       </div>
       <div className="space-y-3">
-        <h3 className="text-xl font-black text-[#0A2540] dark:text-white italic tracking-tight uppercase">{t('hierarchy.emptyStructureTitle')}</h3>
+        <h3 className="text-xl font-black text-primary dark:text-white italic tracking-tight uppercase">{t('hierarchy.emptyStructureTitle')}</h3>
         <p className="text-xs font-semibold text-neutral-400 dark:text-white/30 max-w-xs mx-auto uppercase tracking-wide leading-relaxed">
           {t('hierarchy.emptyStructureDesc')}
         </p>
       </div>
-      <button onClick={onInitializeRootNode} className="px-8 py-4 rounded-2xl !text-white dark:!text-[#0A2540] text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-2xl active:scale-95 bg-[#0A2540] dark:bg-[#00D4B3]">
+      <button onClick={onInitializeRootNode} className="px-8 py-4 rounded-2xl !text-white dark:!text-primary text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-2xl active:scale-95 bg-primary dark:bg-accent">
         {t('hierarchy.initializeGeneral')}
       </button>
     </div>

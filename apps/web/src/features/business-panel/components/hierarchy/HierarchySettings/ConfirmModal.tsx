@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 
 const CONFIRM_BUTTON_STYLES = {
-  default: 'bg-[#0A2540] dark:bg-[#00D4B3] hover:brightness-110 !text-white dark:!text-[#0A2540]',
+  default: 'bg-primary dark:bg-accent hover:brightness-110 !text-white dark:!text-primary',
   success: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25',
   danger: 'bg-red-600 hover:bg-red-700 shadow-red-600/25',
   neutral: 'bg-neutral-600 hover:bg-neutral-700 shadow-neutral-600/25',
@@ -33,7 +33,7 @@ export function ConfirmModal({
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className="mx-4 w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-[#1E2329]"
+        className="mx-4 w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-carbon-800"
       >
         <h3 className="mb-2 text-lg font-bold text-neutral-900 dark:text-white">{title}</h3>
         <p className="mb-6 text-sm leading-relaxed text-neutral-600 dark:text-white/50">{message}</p>

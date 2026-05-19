@@ -42,7 +42,7 @@ export function CompanyMembersTab({ company }: CompanyMembersTabProps) {
           { l: 'Activos', v: company.active_users, c: colors.success },
           { l: 'Invitados', v: company.invited_users, c: colors.warning },
           { l: 'Suspendidos', v: company.suspended_users, c: colors.error },
-          { l: 'Total', v: company.total_users, c: '#fff' },
+          { l: 'Total', v: company.total_users, c: 'var(--color-bg-light)' },
         ].map((s, i) => (
           <div key={i} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col items-center group hover:bg-white/10 transition-colors">
             <span className="text-2xl font-bold" style={{ color: s.c }}>{s.v}</span>
@@ -59,7 +59,7 @@ export function CompanyMembersTab({ company }: CompanyMembersTabProps) {
         <div className="space-y-3">
           {admins.map(admin => (
             <div key={admin.id} className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center gap-4 hover:border-white/20 transition-all">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-inner" style={{ background: `${colors.accent}20`, color: colors.accent }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-inner" style={{ background: `color-mix(in srgb, ${colors.accent} 12.5%, transparent)`, color: colors.accent }}>
                 {getUserDisplayName(admin.user).charAt(0).toUpperCase()}
               </div>
               <div className="flex-1">
@@ -81,7 +81,7 @@ export function CompanyMembersTab({ company }: CompanyMembersTabProps) {
         <div className="pt-2">
           <h3 className="text-sm font-bold text-white/50 uppercase tracking-wider mb-4 border-b border-white/5 pb-2">Propietario</h3>
           <div className="p-4 rounded-xl bg-gradient-to-r from-white/5 to-transparent border border-white/10 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shadow-lg" style={{ background: `${colors.warning}20`, color: colors.warning }}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shadow-lg" style={{ background: `color-mix(in srgb, ${colors.warning} 12.5%, transparent)`, color: colors.warning }}>
               {getUserDisplayName(owner.user).charAt(0).toUpperCase()}
             </div>
             <div>

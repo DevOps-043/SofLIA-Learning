@@ -129,7 +129,7 @@ export function BusinessUserStatsModal({
                         className="w-16 h-16 sm:w-20 sm:h-20 rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-center shadow-2xl border-2 sm:border-4"
                         style={{
                            background: user.profile_picture_url ? 'transparent' : `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
-                           borderColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
+                           borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'var(--color-bg-light)',
                         }}
                      >
                         {user.profile_picture_url ? (
@@ -149,7 +149,7 @@ export function BusinessUserStatsModal({
                             <Mail className="w-3.5 h-3.5" />
                             <span className="truncate max-w-[150px] sm:max-w-none">{user.email}</span>
                          </div>
-                         <div className="px-3 py-1 rounded-xl border text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-2 capitalize" style={{ backgroundColor: `${theme.primaryColor}15`, borderColor: `${theme.primaryColor}20`, color: theme.primaryColor }}>
+                         <div className="px-3 py-1 rounded-xl border text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-2 capitalize" style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 8.2%, transparent)`, borderColor: `color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent)`, color: theme.primaryColor }}>
                             <Sparkles className="w-3.5 h-3.5" />
                             <span>{user.org_role}</span>
                          </div>
@@ -205,7 +205,7 @@ export function BusinessUserStatsModal({
                       <div
                         className="w-12 h-12 border-[3px] rounded-full animate-spin"
                         style={{
-                          borderColor: `${theme.primaryColor}20`,
+                          borderColor: `color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent)`,
                           borderTopColor: theme.primaryColor,
                         }}
                       />

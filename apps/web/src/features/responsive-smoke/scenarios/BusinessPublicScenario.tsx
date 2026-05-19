@@ -25,12 +25,12 @@ export function BusinessPublicScenario() {
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
         <Surface title="Entrenamiento escalable para equipos" subtitle="Hero editorial con copy largo y espacio para CTA secundarios.">
           <div className="space-y-5">
-            <p className="max-w-2xl text-base leading-7 text-[#526174] dark:text-white/65">
+            <p className="max-w-2xl text-base leading-7 text-[var(--color-legacy-526174)] dark:text-white/65">
               Unificamos onboarding, entrenamiento continuo y acompanamiento con LIA para que cada lider comercial encuentre materiales, recomendaciones y seguimiento accionable sin friccion.
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
               {businessPublicBenefits.map((item) => (
-                <div key={item} className="rounded-[22px] border border-[#DCE7F3] bg-[#F8FAFC] p-4 text-sm font-medium text-[#0A2540] dark:border-white/10 dark:bg-white/5 dark:text-white">
+                <div key={item} className="rounded-[22px] border border-[var(--color-legacy-dce7f3)] bg-slate-50 p-4 text-sm font-medium text-primary dark:border-white/10 dark:bg-white/5 dark:text-white">
                   {item}
                 </div>
               ))}

@@ -20,10 +20,10 @@ export function PremiumTextarea({
 
   return (
     <motion.div className="relative group" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
-      <motion.div className="absolute -inset-[1px] rounded-2xl opacity-0 transition-opacity duration-500" style={{ background: `linear-gradient(135deg, ${colors.accent}40, transparent 50%, ${colors.accent}20)` }} animate={{ opacity: focused ? 1 : 0 }} />
-      <div className="relative rounded-2xl overflow-hidden transition-all duration-300" style={{ boxShadow: focused ? `0 0 30px ${colors.accent}26` : 'none' }}>
-        <div className="absolute inset-0" style={{ backgroundColor: focused ? colors.bgSecondary : `${colors.bgSecondary}cc` }} />
-        <div className="absolute inset-0 rounded-2xl border-2 transition-colors duration-300" style={{ borderColor: focused ? `${colors.accent}80` : colors.border }} />
+      <motion.div className="absolute -inset-[1px] rounded-2xl opacity-0 transition-opacity duration-500" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${colors.accent} 25.1%, transparent), transparent 50%, color-mix(in srgb, ${colors.accent} 12.5%, transparent))` }} animate={{ opacity: focused ? 1 : 0 }} />
+      <div className="relative rounded-2xl overflow-hidden transition-all duration-300" style={{ boxShadow: focused ? `0 0 30px color-mix(in srgb, ${colors.accent} 14.9%, transparent)` : 'none' }}>
+        <div className="absolute inset-0" style={{ backgroundColor: focused ? colors.bgSecondary : `color-mix(in srgb, ${colors.bgSecondary} 80%, transparent)` }} />
+        <div className="absolute inset-0 rounded-2xl border-2 transition-colors duration-300" style={{ borderColor: focused ? `color-mix(in srgb, ${colors.accent} 50.2%, transparent)` : colors.border }} />
         <div className="relative p-5">
           <motion.label className="block mb-3 font-medium text-xs tracking-wide" animate={{ color: focused ? colors.accent : colors.textSecondary }}>
             {label}

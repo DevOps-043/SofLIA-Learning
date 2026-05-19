@@ -99,7 +99,7 @@ export default function SuspendedPage() {
             className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-5 shadow-xl"
           >
             <div className="flex items-center gap-2 mb-4">
-              <Building2 className="w-4 h-4 text-[#00D4B3]" />
+              <Building2 className="w-4 h-4 text-accent" />
               <h2 className="text-sm font-semibold text-white">
                 Cambiar a otra organización
               </h2>
@@ -115,7 +115,7 @@ export default function SuspendedPage() {
                   {/* Org Logo */}
                   <div
                     className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden"
-                    style={{ backgroundColor: org.brandColorPrimary || '#0A2540' }}
+                    style={{ backgroundColor: org.brandColorPrimary || 'var(--color-primary)' }}
                   >
                     {org.brandLogoUrl || org.logoUrl ? (
                       <img
@@ -147,7 +147,7 @@ export default function SuspendedPage() {
                     </div>
                   </div>
 
-                  <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-[#00D4B3] group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-accent group-hover:translate-x-0.5 transition-all flex-shrink-0" />
                 </button>
               ))}
             </div>

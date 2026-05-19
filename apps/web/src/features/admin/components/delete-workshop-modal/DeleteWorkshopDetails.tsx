@@ -53,7 +53,7 @@ function DeleteWorkshopStudentWarning({ count }: { count: number }) {
   const { t } = useTranslation('admin')
   const theme = useAdminPanelTheme()
   return (
-    <div className="rounded-xl border px-3 py-2 sm:col-span-2" style={{ backgroundColor: `${theme.warningColor}14`, borderColor: `${theme.warningColor}26` }}>
+    <div className="rounded-xl border px-3 py-2 sm:col-span-2" style={{ backgroundColor: `color-mix(in srgb, ${theme.warningColor} 7.8%, transparent)`, borderColor: `color-mix(in srgb, ${theme.warningColor} 14.9%, transparent)` }}>
       <div className="flex items-center gap-2">
         <AlertTriangle className="h-4 w-4" style={{ color: theme.warningColor }} />
         <span className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: theme.mutedTextColor }}>{t('workshops.card.studentsLabel')}</span>

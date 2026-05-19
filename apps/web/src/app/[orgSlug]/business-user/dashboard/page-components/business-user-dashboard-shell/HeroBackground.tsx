@@ -40,11 +40,11 @@ export function HeroBackground({ disableHeavyEffects, orgColors }: HeroBackgroun
           />
           <div
             className="absolute -right-20 top-1/2 h-96 w-96 -translate-y-1/2 rounded-full blur-[120px]"
-            style={{ backgroundColor: `${orgColors.accent}20` }}
+            style={{ backgroundColor: `color-mix(in srgb, ${orgColors.accent} 12.5%, transparent)` }}
           />
           <div
             className="absolute bottom-0 right-1/4 h-64 w-64 rounded-full blur-[100px]"
-            style={{ backgroundColor: `${orgColors.primary}15` }}
+            style={{ backgroundColor: `color-mix(in srgb, ${orgColors.primary} 8.2%, transparent)` }}
           />
         </>
       ) : null}

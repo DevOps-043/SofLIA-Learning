@@ -36,8 +36,8 @@ export function CourseSectionHeader({
         <div
           className="rounded-xl border p-2"
           style={{
-            background: `linear-gradient(135deg, ${orgColors.iconColor}25, ${orgColors.iconColor}08)`,
-            borderColor: `${orgColors.iconColor}30`,
+            background: `linear-gradient(135deg, color-mix(in srgb, ${orgColors.iconColor} 14.5%, transparent), color-mix(in srgb, ${orgColors.iconColor} 3.1%, transparent))`,
+            borderColor: `color-mix(in srgb, ${orgColors.iconColor} 18.8%, transparent)`,
           }}
         >
           <GraduationCap className="h-5 w-5" style={{ color: orgColors.iconColor }} />
@@ -55,7 +55,7 @@ export function CourseSectionHeader({
         <div
           id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.courseViewSwitcher}
           className="flex shrink-0 items-center rounded-lg border p-1"
-          style={{ backgroundColor: `${orgColors.cardBg}80`, borderColor: orgColors.border }}
+          style={{ backgroundColor: `color-mix(in srgb, ${orgColors.cardBg} 50.2%, transparent)`, borderColor: orgColors.border }}
         >
           <CourseViewButton icon={<LayoutGrid />} isActive={courseView === 'grid'} label={t('dashboard.view.grid', 'Vista cuadricula')} onClick={() => onCourseViewChange('grid')} orgColors={orgColors} />
           <CourseViewButton icon={<List />} isActive={courseView === 'list'} label={t('dashboard.view.list', 'Vista lista')} onClick={() => onCourseViewChange('list')} orgColors={orgColors} />

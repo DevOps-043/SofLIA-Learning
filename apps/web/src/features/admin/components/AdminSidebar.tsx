@@ -194,7 +194,7 @@ export function AdminSidebar({
         <div
           className="pointer-events-none absolute inset-0 opacity-20"
           style={{
-            background: `radial-gradient(circle at 100% 0%, ${theme.primaryColor}40 0%, transparent 20%), radial-gradient(circle at 0% 100%, ${theme.accentColor}40 0%, transparent 20%)`,
+            background: `radial-gradient(circle at 100% 0%, color-mix(in srgb, ${theme.primaryColor} 25.1%, transparent) 0%, transparent 20%), radial-gradient(circle at 0% 100%, color-mix(in srgb, ${theme.accentColor} 25.1%, transparent) 0%, transparent 20%)`,
           }}
         />
 
@@ -263,7 +263,7 @@ export function AdminSidebar({
                     }`}
                     style={{
                       backgroundColor: isActive ? theme.primaryColor : 'transparent',
-                      boxShadow: isActive ? `0 4px 20px -5px ${theme.primaryColor}60` : 'none',
+                      boxShadow: isActive ? `0 4px 20px -5px color-mix(in srgb, ${theme.primaryColor} 37.6%, transparent)` : 'none',
                       color: isActive ? theme.onPrimaryColor : theme.textColor,
                       opacity: isActive ? 1 : 0.78,
                     }}

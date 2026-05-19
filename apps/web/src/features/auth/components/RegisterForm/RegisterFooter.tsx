@@ -15,12 +15,12 @@ export function RegisterFooter({ t, onLoginClick }: RegisterFooterProps) {
         <SocialLoginButtons showLoginLink={false} />
       </motion.div>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.75, duration: 0.4 }} className="mt-5 text-center">
-        <p className="text-xs sm:text-sm text-[#6C757D] dark:text-white/60">
+        <p className="text-xs sm:text-sm text-gray-500 dark:text-white/60">
           {t('auth.register.hasAccount')}{' '}
           <button
             type="button"
             onClick={onLoginClick}
-            className="font-semibold text-[#00D4B3] hover:text-[#00D4B3]/80 dark:text-[#00D4B3] dark:hover:text-[#00D4B3]/70 transition-colors"
+            className="font-semibold text-accent hover:text-accent/80 dark:text-accent dark:hover:text-accent/70 transition-colors"
           >
             {t('auth.register.loginHere')}
           </button>

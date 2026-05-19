@@ -19,37 +19,37 @@ export function CollapsedSidebarRail({
   const { t } = useTranslation("learn");
 
   return (
-    <div className="my-2 ml-2 hidden w-12 flex-col rounded-lg border border-[#E9ECEF] bg-white shadow-xl backdrop-blur-sm dark:border-[#6C757D]/30 dark:bg-[#1E2329] md:flex">
-      <div className="flex h-[56px] shrink-0 items-center justify-center rounded-t-lg border-b border-[#E9ECEF] bg-white p-3 backdrop-blur-sm dark:border-[#6C757D]/30 dark:bg-[#1E2329]">
+    <div className="my-2 ml-2 hidden w-12 flex-col rounded-lg border border-gray-200 bg-white shadow-xl backdrop-blur-sm dark:border-gray-500/30 dark:bg-carbon-800 md:flex">
+      <div className="flex h-[56px] shrink-0 items-center justify-center rounded-t-lg border-b border-gray-200 bg-white p-3 backdrop-blur-sm dark:border-gray-500/30 dark:bg-carbon-800">
         <button
           onClick={onOpenSidebar}
-          className="rounded-lg p-2 transition-colors hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30"
+          className="rounded-lg p-2 transition-colors hover:bg-gray-200/50 dark:hover:bg-primary/30"
           title="Mostrar material del curso"
         >
-          <ChevronRight className="h-5 w-5 text-[#6C757D] dark:text-white" />
+          <ChevronRight className="h-5 w-5 text-gray-500 dark:text-white" />
         </button>
       </div>
 
       <div className="flex flex-1 flex-col items-center gap-2 p-2">
         <button
           onClick={onOpenContent}
-          className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30"
+          className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-gray-200/50 dark:hover:bg-primary/30"
           title="Ver lecciones"
         >
-          <Layers className="h-4 w-4 text-[#6C757D] dark:text-white/80" />
+          <Layers className="h-4 w-4 text-gray-500 dark:text-white/80" />
         </button>
 
         <button
           onClick={onOpenNotes}
-          className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30"
+          className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-gray-200/50 dark:hover:bg-primary/30"
           title={t("leftPanel.notesSection.viewNotes")}
         >
-          <FileText className="h-4 w-4 text-[#6C757D] dark:text-white/80" />
+          <FileText className="h-4 w-4 text-gray-500 dark:text-white/80" />
         </button>
 
         <button
           onClick={onOpenNewNote}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0A2540] dark:bg-[#00D4B3] shadow-lg shadow-[#0A2540]/25 dark:shadow-[#00D4B3]/25 transition-colors hover:bg-[#0d2f4d] dark:hover:bg-[#00b8a0]"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-primary dark:bg-accent shadow-lg shadow-primary/25 dark:shadow-accent/25 transition-colors hover:bg-primary dark:hover:bg-[var(--color-legacy-00b8a0)]"
           title={t("leftPanel.notesSection.newNote")}
         >
           <Plus className="h-4 w-4 text-white" />

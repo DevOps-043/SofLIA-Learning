@@ -17,13 +17,13 @@ export function CourseStatsDetailedStats() {
       value: modules.filter((module) => module.is_published).length,
       total: modules.length,
       icon: Book,
-      color: '#0A2540',
+      color: 'var(--color-primary)',
     },
     {
       label: 'Lecciones Totales',
       value: userStats?.total_lessons ?? 0,
       icon: FileText,
-      color: '#00D4B3',
+      color: 'var(--color-accent)',
     },
     {
       label: 'Duracion Total',
@@ -31,43 +31,43 @@ export function CourseStatsDetailedStats() {
         modules.reduce((total, module) => total + (module.module_duration_minutes || 0), 0),
       ),
       icon: Clock,
-      color: '#10B981',
+      color: 'var(--color-success)',
     },
     {
       label: 'Materiales',
       value: userStats?.total_materials ?? 0,
       icon: ClipboardList,
-      color: '#F59E0B',
+      color: 'var(--color-warning)',
     },
     {
       label: 'Actividades',
       value: userStats?.total_activities ?? 0,
       icon: Flag,
-      color: '#0A2540',
+      color: 'var(--color-primary)',
     },
     {
       label: 'Tasa de Retencion',
       value: userStats?.retention_rate ? `${userStats.retention_rate.toFixed(1)}%` : '0%',
       icon: Users2,
-      color: '#10B981',
+      color: 'var(--color-success)',
     },
     {
       label: 'Activos 7 dias',
       value: userStats?.active_7d ?? 0,
       icon: TrendingUp,
-      color: '#00D4B3',
+      color: 'var(--color-accent)',
     },
     {
       label: 'Activos 30 dias',
       value: userStats?.active_30d ?? 0,
       icon: BarChart3,
-      color: '#0A2540',
+      color: 'var(--color-primary)',
     },
     {
       label: 'Certificados Emitidos',
       value: userStats?.total_certificates ?? 0,
       icon: Award,
-      color: '#F59E0B',
+      color: 'var(--color-warning)',
     },
   ]
 
@@ -78,12 +78,12 @@ export function CourseStatsDetailedStats() {
       transition={{ delay: 0.5 }}
     >
       <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#10B981] to-[#00D4B3]">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-success to-accent">
           <Sigma className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-[#0A2540] dark:text-white">Analisis Detallado</h2>
-          <p className="text-sm text-[#6C757D] dark:text-white/60">Metricas avanzadas del curso</p>
+          <h2 className="text-2xl font-bold text-primary dark:text-white">Analisis Detallado</h2>
+          <p className="text-sm text-gray-500 dark:text-white/60">Metricas avanzadas del curso</p>
         </div>
       </div>
 
@@ -98,23 +98,23 @@ export function CourseStatsDetailedStats() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.6 + index * 0.05 }}
               whileHover={{ scale: 1.02 }}
-              className="rounded-xl border border-[#E9ECEF] bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md dark:border-[#6C757D]/30 dark:bg-[#1E2329]"
+              className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-500/30 dark:bg-carbon-800"
             >
               <div className="mb-3 flex items-center gap-3">
                 <div
                   className="flex h-10 w-10 items-center justify-center rounded-lg"
-                  style={{ backgroundColor: `${stat.color}15` }}
+                  style={{ backgroundColor: `color-mix(in srgb, ${stat.color} 8.2%, transparent)` }}
                 >
                   <Icon className="h-5 w-5" style={{ color: stat.color }} />
                 </div>
-                <div className="text-xs font-semibold uppercase tracking-wide text-[#6C757D] dark:text-white/60">
+                <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-white/60">
                   {stat.label}
                 </div>
               </div>
-              <div className="text-2xl font-bold text-[#0A2540] dark:text-white">
+              <div className="text-2xl font-bold text-primary dark:text-white">
                 {stat.value}
                 {stat.total !== undefined && (
-                  <span className="ml-2 text-sm font-normal text-[#6C757D] dark:text-white/60">
+                  <span className="ml-2 text-sm font-normal text-gray-500 dark:text-white/60">
                     / {stat.total}
                   </span>
                 )}

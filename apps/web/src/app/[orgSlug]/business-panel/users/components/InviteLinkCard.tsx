@@ -108,8 +108,8 @@ function InviteLinkCard({ link, index, onToggleStatus, onDelete }: InviteLinkCar
             className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl transition-all duration-300 font-bold text-[10px] uppercase tracking-widest border border-white/5"
             style={{
               backgroundColor: link.status === 'active'
-                ? `${theme.statusColors.invited}10`
-                : `${theme.accentColor}10`,
+                ? `color-mix(in srgb, ${theme.statusColors.invited} 6.3%, transparent)`
+                : `color-mix(in srgb, ${theme.accentColor} 6.3%, transparent)`,
               color: link.status === 'active'
                 ? theme.statusColors.invited
                 : theme.accentColor,

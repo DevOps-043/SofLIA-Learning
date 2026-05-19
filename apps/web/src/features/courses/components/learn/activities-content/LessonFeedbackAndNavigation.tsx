@@ -55,7 +55,7 @@ function FeedbackButton(props: {
   const Icon = props.icon;
   const activeClasses =
     props.variant === "positive"
-      ? "bg-[#0A2540]/10 dark:bg-[#00D4B3]/15 text-[#0A2540] dark:text-[#00D4B3]"
+      ? "bg-primary/10 dark:bg-accent/15 text-primary dark:text-accent"
       : "bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400";
 
   return (
@@ -80,7 +80,7 @@ function NavigationButton(props: {
   return (
     <button
       onClick={props.onClick}
-      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#0A2540] hover:bg-[#0d2f4d] dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] text-white dark:text-[#0A1724] transition-colors"
+      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary dark:bg-accent dark:hover:bg-accent text-white dark:text-[var(--color-legacy-0a1724)] transition-colors"
     >
       {props.label}
       <Icon className="w-4 h-4" />

@@ -16,23 +16,23 @@ export function ToolTaskActions(props: {
   }
 
   return (
-    <div className="rounded-xl border border-[#B6E5DB] bg-[#F1FBF8] px-4 py-3 dark:border-[#00D4B3]/20 dark:bg-[#08201B]">
+    <div className="rounded-xl border border-[var(--color-legacy-b6e5db)] bg-[var(--color-legacy-f1fbf8)] px-4 py-3 dark:border-accent/20 dark:bg-[var(--color-legacy-08201b)]">
       <div className="flex flex-wrap items-center gap-2">
         {props.activityConfig.toolTask.showCopyButton && promptText && (
-          <button type="button" onClick={() => copyPrompt(promptText, props.setMessage)} className="inline-flex items-center gap-2 rounded-lg border border-[#0A2540]/10 bg-white px-3 py-2 text-xs font-medium text-[#0A2540] transition hover:border-[#0A2540]/20 hover:bg-[#0A2540]/5 dark:border-white/10 dark:bg-white/5 dark:text-white">
+          <button type="button" onClick={() => copyPrompt(promptText, props.setMessage)} className="inline-flex items-center gap-2 rounded-lg border border-primary/10 bg-white px-3 py-2 text-xs font-medium text-primary transition hover:border-primary/20 hover:bg-primary/5 dark:border-white/10 dark:bg-white/5 dark:text-white">
             <Clipboard className="h-3.5 w-3.5" />
             Copiar prompt
           </button>
         )}
         {props.activity.external_tool?.url && props.activityConfig.toolTask.openInNewTab && (
-          <button type="button" onClick={() => openExternalTool(props.activity, props.setMessage)} className="inline-flex items-center gap-2 rounded-lg border border-[#0A2540]/10 bg-white px-3 py-2 text-xs font-medium text-[#0A2540] transition hover:border-[#0A2540]/20 hover:bg-[#0A2540]/5 dark:border-white/10 dark:bg-white/5 dark:text-white">
+          <button type="button" onClick={() => openExternalTool(props.activity, props.setMessage)} className="inline-flex items-center gap-2 rounded-lg border border-primary/10 bg-white px-3 py-2 text-xs font-medium text-primary transition hover:border-primary/20 hover:bg-primary/5 dark:border-white/10 dark:bg-white/5 dark:text-white">
             <ExternalLink className="h-3.5 w-3.5" />
             Abrir {props.activity.external_tool?.label || "herramienta"}
           </button>
         )}
       </div>
       {props.message && (
-        <p className="mt-2 text-xs text-[#0F6A57] dark:text-[#9DE9D5]">
+        <p className="mt-2 text-xs text-[var(--color-legacy-0f6a57)] dark:text-[var(--color-legacy-9de9d5)]">
           {props.message}
         </p>
       )}

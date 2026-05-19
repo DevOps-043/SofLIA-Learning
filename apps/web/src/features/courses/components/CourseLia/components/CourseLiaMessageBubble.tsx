@@ -49,7 +49,7 @@ export function CourseLiaMessageBubble({
           themeColors={themeColors}
         />
       ) : (
-        <p className={isUser ? 'lia-msg-user-text' : 'lia-msg-assistant-text'} style={{ fontSize: '14px', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap', color: isUser ? '#ffffff' : themeColors.textPrimary }}>
+        <p className={isUser ? 'lia-msg-user-text' : 'lia-msg-assistant-text'} style={{ fontSize: '14px', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap', color: isUser ? 'var(--color-bg-light)' : themeColors.textPrimary }}>
           {message.role === 'assistant'
             ? parseMarkdownContent(message.content, props.onLinkClick, themeColors.assistantLinkColor)
             : message.content}

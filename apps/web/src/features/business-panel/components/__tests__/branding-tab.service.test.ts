@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { DESIGN_HEX_COLOR } from '@/core/theme/color-tokens'
 import {
   createBrandingFormState,
   hasDetectedBrandingPalette,
@@ -10,9 +11,9 @@ describe('branding-tab.service', () => {
     expect(createBrandingFormState()).toMatchObject({
       favicon_url: '',
       banner_url: '',
-      color_primary: '#0A2540',
-      color_secondary: '#00D4B3',
-      color_accent: '#FFFFFF',
+      color_primary: DESIGN_HEX_COLOR.primary,
+      color_secondary: DESIGN_HEX_COLOR.accent,
+      color_accent: DESIGN_HEX_COLOR.bgLight,
     })
   })
 
@@ -37,11 +38,11 @@ describe('branding-tab.service', () => {
   it('valida que la paleta detectada esté completa', () => {
     expect(
       hasDetectedBrandingPalette({
-        color_primary: '#111111',
-        color_secondary: '#222222',
-        color_accent: '#333333',
+        color_primary: 'var(--color-legacy-111111)',
+        color_secondary: 'var(--color-legacy-222222)',
+        color_accent: 'var(--color-legacy-333333)',
       }),
     ).toBe(true)
-    expect(hasDetectedBrandingPalette({ color_primary: '#111111' })).toBe(false)
+    expect(hasDetectedBrandingPalette({ color_primary: 'var(--color-legacy-111111)' })).toBe(false)
   })
 })

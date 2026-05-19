@@ -8,26 +8,26 @@ interface AdminPendingCourseHeaderProps {
 
 export function AdminPendingCourseHeader({ course }: AdminPendingCourseHeaderProps) {
   return (
-    <div className="bg-white dark:bg-[#1E2329] rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
+    <div className="bg-white dark:bg-carbon-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
       <div className="flex flex-col md:flex-row gap-6">
         <div className="w-full md:w-1/3 aspect-video bg-gray-200 rounded-xl overflow-hidden relative">
           {course.thumbnail_url && <img src={course.thumbnail_url} alt="Portada" className="w-full h-full object-cover" />}
           <div className="absolute top-4 right-4 flex flex-col items-end gap-1">
             {course.approval_status === 'rejected' ? (
-              <span className="backdrop-blur-md bg-[#EF4444]/20 dark:bg-[#EF4444]/30 text-[#EF4444] dark:text-[#FCA5A5] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#EF4444]/30 dark:border-[#EF4444]/40 uppercase tracking-widest">
+              <span className="backdrop-blur-md bg-error/20 dark:bg-error/30 text-error dark:text-[var(--color-legacy-fca5a5)] text-xs font-semibold px-2.5 py-0.5 rounded border border-error/30 dark:border-error/40 uppercase tracking-widest">
                 Rechazado
               </span>
             ) : (
-              <span className="backdrop-blur-md bg-[#F59E0B]/20 dark:bg-[#F59E0B]/30 text-[#F59E0B] dark:text-[#FCD34D] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#F59E0B]/30 dark:border-[#F59E0B]/40 uppercase tracking-widest">
+              <span className="backdrop-blur-md bg-warning/20 dark:bg-warning/30 text-warning dark:text-[var(--color-legacy-fcd34d)] text-xs font-semibold px-2.5 py-0.5 rounded border border-warning/30 dark:border-warning/40 uppercase tracking-widest">
                 Pendiente
               </span>
             )}
             {course.is_update ? (
-              <span className="backdrop-blur-md bg-[#3B82F6]/20 dark:bg-[#3B82F6]/30 text-[#3B82F6] dark:text-[#93C5FD] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#3B82F6]/30 dark:border-[#3B82F6]/40 uppercase tracking-widest">
+              <span className="backdrop-blur-md bg-info/20 dark:bg-info/30 text-info dark:text-[var(--color-legacy-93c5fd)] text-xs font-semibold px-2.5 py-0.5 rounded border border-info/30 dark:border-info/40 uppercase tracking-widest">
                 Actualización
               </span>
             ) : (
-              <span className="backdrop-blur-md bg-[#10B981]/20 dark:bg-[#10B981]/30 text-[#10B981] dark:text-[#6EE7B7] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#10B981]/30 dark:border-[#10B981]/40 uppercase tracking-widest">
+              <span className="backdrop-blur-md bg-success/20 dark:bg-success/30 text-success dark:text-[var(--color-legacy-6ee7b7)] text-xs font-semibold px-2.5 py-0.5 rounded border border-success/30 dark:border-success/40 uppercase tracking-widest">
                 Nuevo
               </span>
             )}

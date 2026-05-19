@@ -32,7 +32,7 @@ export function ReviewTabs({ activeTab, counts, tReviews, onTabChange }: ReviewT
             style={{
               backgroundColor: isActive ? panelTheme.actionColor : 'transparent',
               color: isActive ? panelTheme.onActionColor : panelTheme.textColor,
-              border: `1px solid ${isActive ? `${panelTheme.actionColor}30` : 'transparent'}`,
+              border: `1px solid ${isActive ? `color-mix(in srgb, ${panelTheme.actionColor} 18.8%, transparent)` : 'transparent'}`,
               opacity: isActive ? 1 : 0.76,
             }}
           >
@@ -40,7 +40,7 @@ export function ReviewTabs({ activeTab, counts, tReviews, onTabChange }: ReviewT
             <span
               className="text-[11px] px-2 py-0.5 rounded-full"
               style={{
-                backgroundColor: isActive ? `${panelTheme.onActionColor}1A` : panelTheme.hoverBg,
+                backgroundColor: isActive ? `color-mix(in srgb, ${panelTheme.onActionColor} 10.2%, transparent)` : panelTheme.hoverBg,
                 color: isActive ? panelTheme.onActionColor : panelTheme.mutedTextColor,
               }}
             >

@@ -1,6 +1,6 @@
 # Progreso deuda tecnica
 
-Ultima actualizacion: 2026-05-18 (cierre Pasada 4).
+Ultima actualizacion: 2026-05-19 (cierre Tarea 2.3 hex colors).
 
 ## Pasada 4 — cierres adicionales
 
@@ -10,7 +10,7 @@ Ultima actualizacion: 2026-05-18 (cierre Pasada 4).
 | 1.3 Strict mode flags | **Listo via flag** | `TS_STRICT_BUILD=true` activa `ignoreBuildErrors: false` y `ignoreDuringBuilds: false`. Workflow `type-check-progressive.yml` ejecuta los 3 slices en matrix; `core` es blocking. |
 | 5.7 MFA TOTP | **Implementado** | RFC 6238 puro con `node:crypto`; tabla `user_mfa_factors` con RLS + AES-256-GCM; endpoints `setup/activate/verify/disable/regenerate/status`; `docs/security/mfa-totp.md`. Falta integrar con UI y enforcement en login flow. |
 | 5.12 CORS estricto Next | **Implementado** | `apps/web/src/lib/security/cors.ts` (helper + tests) aplicado en `middleware.ts` (`enforceCors` y `applyCorsHeaders`). Whitelist via `WEB_ALLOWED_ORIGINS`. |
-| 1.4 Validacion Zod | **Progreso significativo** | +8 rutas migradas (`profile/password`, `lia/feedback`, `courses/[slug]/rating`, `admin/users/create`, `security/verify-human`, 4 endpoints MFA). Patron documentado en `docs/tech-debt/route-migration-pattern.md` para los ~200 restantes. |
+| 1.4 Validacion Zod | **Progreso significativo** | +8 rutas migradas en Pasada 4 (`profile/password`, `lia/feedback`, `courses/[slug]/rating`, `admin/users/create`, `security/verify-human`, 4 endpoints MFA). **+35 rutas adicionales en Pasada 5**: admin/users/[id], admin/workshops crear+editar, admin/courses/[id]/modules + lessons + materials + activities + checkpoints + reorder (8 rutas), admin/activities/[activityId], admin/companies POST + [id] PUT + members/[userId], admin/ai/process-video, admin/upload/course-videos/transcode, admin/reportes/patch, admin/translate-existing-lessons, profile/route + delete-account, account-settings, organizations/create + join-request, business/users POST + [userId], landing/contact, tours, communities/join + request-access. **Quedan 172 `await request.json()` en 166 archivos** (vs 207 al inicio). Patron en `docs/tech-debt/route-migration-pattern.md`. |
 
 ## Fase 1 - Type Safety y Validacion
 
@@ -81,7 +81,7 @@ Ultima actualizacion: 2026-05-18 (cierre Pasada 4).
 |---|---|---|---|
 | 2.1 Eliminar `select('*')` hot paths | Completa para literals | `docs/tech-debt/select-star-audit.md`; `SELECT_COLUMNS`; 0 `.select('*')` literals | Reemplazar 7 selectors legacy `'*'` tras regenerar schema |
 | 2.2 N+1 en imports/bulk | Completa para prioritarios | `business/users/import` usa lookups/inserts/asignaciones en batch; SCORM ya usa `Promise.all`; course-videos no tiene loop N+1 | Atacar N+1 secundarios listados por auditoria estatica |
-| 2.3 Hex colors hardcoded | En progreso | `docs/tech-debt/hardcoded-colors.md`; ESLint guardrail activo como warning local y error con `CI_STRICT_TECH_DEBT=true` | Reducir de 503 archivos / 3010 matches a <10 archivos antes de promoverlo a error global |
+| 2.3 Hex colors hardcoded | Completa en `apps/web/src` | `docs/tech-debt/hardcoded-colors.md`; `rg` en `apps/web/src/**/*.{ts,tsx,css}` reporta 0 matches; ESLint guardrail activo como error; branding usa `core/theme/color-tokens.ts` para hex derivado runtime | No reescribir migraciones SQL historicas; mantener tokens/variables para colores nuevos |
 | 2.4 Cobertura de tests critica | En progreso | `@vitest/coverage-v8` instalado; `test:coverage:critical` + `.github/workflows/web-critical-quality.yml`; coverage focalizado: `apps/web/src/lib/api` 100% statements/lines, `app/api/auth/refresh` 92.85%, `dashboard-destination` 77.77%; 34 tests pasan | Ejecutar coverage completo y alcanzar >=25% global / >=60% modulos criticos |
 | 2.5 Auditoria RLS | En progreso | `docs/security/rls-matrix.md`; `20260518120000_reportes_problemas_rls.sql`; `rls-migrations.test.ts` bloquea tablas publicas nuevas sin `ENABLE ROW LEVEL SECURITY` | Verificacion runtime en Supabase y E2E con fixtures reales |
 | 2.6 Error envelope estandar | En progreso | `apps/web/src/lib/api/errors.ts`, `with-auth.ts`, `with-validation.ts`; rutas auth criticas (`me`, `questionnaire-status`, `sessions`, `refresh`, `dashboard-destination`) migradas; 34 tests focalizados | Migrar el resto de rutas API al envelope estandar |

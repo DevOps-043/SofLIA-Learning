@@ -42,7 +42,7 @@ export function ModernNavbarBrand({ colors, organization, t }: ModernNavbarBrand
               className="h-11 w-11 rounded-xl flex items-center justify-center"
               style={{
                 background: `linear-gradient(135deg, ${colors.primary}, ${colors.accent})`,
-                boxShadow: `0 4px 20px ${colors.primary}30`,
+                boxShadow: `0 4px 20px color-mix(in srgb, ${colors.primary} 18.8%, transparent)`,
               }}
               whileHover={{ scale: 1.05, rotate: 2 }}
               transition={{ type: 'spring', stiffness: 400 }}
@@ -67,7 +67,7 @@ export function ModernNavbarBrand({ colors, organization, t }: ModernNavbarBrand
             </h1>
             <div className="flex items-center gap-1.5 mt-0.5">
               <Sparkles className="w-3 h-3" style={{ color: colors.accent }} />
-              <p className="text-xs font-medium" style={{ color: `${colors.accent}CC` }}>
+              <p className="text-xs font-medium" style={{ color: `color-mix(in srgb, ${colors.accent} 80%, transparent)` }}>
                 {t('header.learningPanel')}
               </p>
             </div>

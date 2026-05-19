@@ -50,7 +50,7 @@ export default async function CertificatePrintPage({
           width: ${CERTIFICATE_RENDER_WIDTH_PX}px;
           height: ${CERTIFICATE_RENDER_HEIGHT_PX}px;
           overflow: hidden;
-          background: #ffffff;
+          background: var(--color-bg-light);
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }

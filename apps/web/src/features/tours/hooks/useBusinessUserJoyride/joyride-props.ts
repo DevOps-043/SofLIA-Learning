@@ -38,7 +38,7 @@ export function buildBusinessUserJoyrideProps({
     spotlightPadding: isMobile ? 12 : 8,
     tooltipComponent: JoyrideTooltip,
     styles: {
-      options: { zIndex: 999999, arrowColor: '#1E2329' },
+      options: { zIndex: 999999, arrowColor: 'var(--color-gray-800)' },
       spotlight: { borderRadius: 16, zIndex: 1000000 },
       overlay: { backgroundColor: 'rgba(0, 0, 0, 0.7)', pointerEvents: 'none' },
     },

@@ -60,7 +60,7 @@ export function QuestionThread({ questionId, slug }: QuestionThreadProps) {
       onClick={(event) => event.stopPropagation()}
     >
       <div className="mb-8 flex gap-4">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0A2540] to-[#00D4B3]/30 flex items-center justify-center text-white text-xs font-semibold shadow-inner flex-shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent/30 flex items-center justify-center text-white text-xs font-semibold shadow-inner flex-shrink-0">
           Tú
         </div>
         <div className="flex-1">
@@ -69,7 +69,7 @@ export function QuestionThread({ questionId, slug }: QuestionThreadProps) {
             value={newResponse}
             onChange={(event) => setNewResponse(event.target.value)}
             placeholder="Escribe tu respuesta..."
-            className="w-full bg-transparent border-0 border-b border-gray-200 px-0 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0A2540]/40 dark:focus:border-[#00D4B3]/50 focus:ring-0 resize-none transition-colors min-h-[40px]"
+            className="w-full bg-transparent border-0 border-b border-gray-200 px-0 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary/40 dark:focus:border-accent/50 focus:ring-0 resize-none transition-colors min-h-[40px]"
             maxLength={1000}
           />
           <div className="flex justify-between items-center mt-2">

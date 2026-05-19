@@ -22,7 +22,7 @@ export function AdminCompaniesHeaderActions({
         <RefreshCw className="h-4 w-4" />
         {t('companies.actions.refresh')}
       </motion.button>
-      <motion.button type="button" onClick={onCreate} className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold transition-all" style={{ backgroundColor: theme.primaryColor, boxShadow: `0 8px 30px ${theme.primaryColor}40`, color: theme.onPrimaryColor }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+      <motion.button type="button" onClick={onCreate} className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold transition-all" style={{ backgroundColor: theme.primaryColor, boxShadow: `0 8px 30px color-mix(in srgb, ${theme.primaryColor} 25.1%, transparent)`, color: theme.onPrimaryColor }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
         <Plus className="h-5 w-5" strokeWidth={3} />
         <span>{t('companies.actions.create')}</span>
       </motion.button>

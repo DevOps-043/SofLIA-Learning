@@ -1,12 +1,12 @@
 export const organizationInvitationFooterStyles = `
   .info-section {
-    background-color: #f9fafb;
+    background-color: rgb(249, 250, 251);
     border-radius: 8px;
     padding: 24px;
     margin: 40px 0 0 0;
   }
   .info-title {
-    color: #1a1a1a;
+    color: rgb(26, 26, 26);
     font-size: 14px;
     font-weight: 700;
     margin: 0 0 16px 0;
@@ -16,15 +16,15 @@ export const organizationInvitationFooterStyles = `
   .info-list {
     margin: 0;
     padding: 0 0 0 20px;
-    color: #666;
+    color: rgb(102, 102, 102);
     font-size: 14px;
   }
   .info-list li { margin-bottom: 8px; }
   .footer {
-    background-color: #ffffff;
+    background-color: rgb(255, 255, 255);
     padding: 40px;
     text-align: center;
-    border-top: 1px solid #eee;
+    border-top: 1px solid rgb(238, 238, 238);
   }
   .footer-logo {
     height: 32px;
@@ -32,12 +32,12 @@ export const organizationInvitationFooterStyles = `
     margin-bottom: 16px;
   }
   .footer-text {
-    color: #888;
+    color: rgb(136, 136, 136);
     font-size: 12px;
     margin: 0 0 8px 0;
   }
   .footer-copyright {
-    color: #aaa;
+    color: rgb(170, 170, 170);
     font-size: 11px;
     margin: 0;
   }

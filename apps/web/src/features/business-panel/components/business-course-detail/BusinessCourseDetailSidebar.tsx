@@ -56,7 +56,7 @@ export function BusinessCourseDetailSidebar({
       <div className="mb-4 sm:mb-6 pb-4 sm:pb-6 border-b" style={{ borderColor: dividerColor }}>
         {course.subscription_status?.is_organization_purchased ? (
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${accentColor}20` }}>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `color-mix(in srgb, ${accentColor} 12.5%, transparent)` }}>
               <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: accentColor }} />
             </div>
             <div className="min-w-0">
@@ -84,7 +84,7 @@ export function BusinessCourseDetailSidebar({
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-4 p-4 rounded-xl border flex items-center gap-3"
-          style={{ backgroundColor: `${successColor}15`, borderColor: `${successColor}30` }}
+          style={{ backgroundColor: `color-mix(in srgb, ${successColor} 8.2%, transparent)`, borderColor: `color-mix(in srgb, ${successColor} 18.8%, transparent)` }}
         >
           <CheckCircle2 className="w-5 h-5" style={{ color: successColor }} />
           <span className="text-xs font-medium" style={{ color: successColor }}>Curso adquirido exitosamente</span>
@@ -96,7 +96,7 @@ export function BusinessCourseDetailSidebar({
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-4 p-4 rounded-xl border flex items-center gap-3"
-          style={{ backgroundColor: `${dangerColor}15`, borderColor: `${dangerColor}30` }}
+          style={{ backgroundColor: `color-mix(in srgb, ${dangerColor} 8.2%, transparent)`, borderColor: `color-mix(in srgb, ${dangerColor} 18.8%, transparent)` }}
         >
           <AlertCircle className="w-5 h-5" style={{ color: dangerColor }} />
           <span className="text-xs font-medium" style={{ color: dangerColor }}>{purchaseError}</span>
@@ -112,7 +112,7 @@ export function BusinessCourseDetailSidebar({
         style={{
           backgroundColor: accentColor,
           color: onPrimaryColor,
-          boxShadow: `0 8px 30px ${accentColor}40`
+          boxShadow: `0 8px 30px color-mix(in srgb, ${accentColor} 25.1%, transparent)`
         }}
       >
         {isPurchasing ? (
@@ -158,7 +158,7 @@ export function BusinessCourseDetailSidebar({
           <div className="flex items-center gap-4">
             <div className="text-center">
               <div className="flex items-center gap-1 mb-1">
-                <Star className="w-6 h-6 text-yellow-400" fill="#FACC15" />
+                <Star className="w-6 h-6 text-yellow-400" fill="var(--color-legacy-facc15)" />
                 <span className="text-2xl font-bold" style={{ color: textColor }}>{course.rating.toFixed(1)}</span>
               </div>
               <p className="text-xs" style={{ color: mutedTextColor }}>{course.review_count} resenas</p>

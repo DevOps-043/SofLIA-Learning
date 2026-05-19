@@ -23,8 +23,8 @@ export function buildOrganizationAuthPalette(
   loginStyles: OrganizationAuthStyles | null,
   isDark: boolean,
 ): OrganizationAuthPalette {
-  const defaultCardBg = isDark ? '#1a1a2e' : 'rgba(255, 255, 255, 0.9)'
-  const defaultText = isDark ? '#ffffff' : '#0f172a'
+  const defaultCardBg = isDark ? 'var(--color-legacy-1a1a2e)' : 'rgba(255, 255, 255, 0.9)'
+  const defaultText = isDark ? 'var(--color-bg-light)' : 'var(--color-legacy-0f172a)'
   const defaultBorder = isDark
     ? 'rgba(71, 85, 105, 0.5)'
     : 'rgba(226, 232, 240, 0.8)'
@@ -35,9 +35,9 @@ export function buildOrganizationAuthPalette(
     inputBgColor: toInputBackgroundColor(cardBg, isDark),
     borderColor: loginStyles?.border_color || defaultBorder,
     textColor: loginStyles?.text_color || defaultText,
-    primaryColor: loginStyles?.primary_button_color || '#3b82f6',
-    secondaryColor: loginStyles?.secondary_button_color || '#10b981',
-    focusColor: '#00D4B3',
+    primaryColor: loginStyles?.primary_button_color || 'var(--color-info)',
+    secondaryColor: loginStyles?.secondary_button_color || 'var(--color-success)',
+    focusColor: 'var(--color-accent)',
     isDark,
   }
 }

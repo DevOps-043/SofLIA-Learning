@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { DESIGN_HEX_COLOR } from '@/core/theme/color-tokens'
 
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 
@@ -50,7 +51,7 @@ export async function PUT(
     if (color_primary && !colorRegex.test(color_primary)) {
       return NextResponse.json({
         success: false,
-        error: 'El color primario debe ser un valor hexadecimal válido (ej: #3b82f6)'
+        error: 'El color primario debe ser un valor hexadecimal válido'
       }, { status: 400 })
     }
 
@@ -76,9 +77,9 @@ export async function PUT(
     if (logo_url !== undefined) updateData.brand_logo_url = logo_url || null
     if (favicon_url !== undefined) updateData.brand_favicon_url = favicon_url || null
     if (banner_url !== undefined) updateData.brand_banner_url = banner_url || null
-    if (color_primary !== undefined) updateData.brand_color_primary = color_primary || '#3b82f6'
-    if (color_secondary !== undefined) updateData.brand_color_secondary = color_secondary || '#10b981'
-    if (color_accent !== undefined) updateData.brand_color_accent = color_accent || '#8b5cf6'
+    if (color_primary !== undefined) updateData.brand_color_primary = color_primary || DESIGN_HEX_COLOR.info
+    if (color_secondary !== undefined) updateData.brand_color_secondary = color_secondary || DESIGN_HEX_COLOR.success
+    if (color_accent !== undefined) updateData.brand_color_accent = color_accent || DESIGN_HEX_COLOR.secondary
     if (font_family !== undefined) updateData.brand_font_family = font_family || 'Inter'
 
     // Actualizar organización
@@ -103,9 +104,9 @@ export async function PUT(
         logo_url: updatedOrg.brand_logo_url || updatedOrg.logo_url || null,
         favicon_url: updatedOrg.brand_favicon_url || null,
         banner_url: updatedOrg.brand_banner_url || null,
-        color_primary: updatedOrg.brand_color_primary || '#3b82f6',
-        color_secondary: updatedOrg.brand_color_secondary || '#10b981',
-        color_accent: updatedOrg.brand_color_accent || '#8b5cf6',
+        color_primary: updatedOrg.brand_color_primary || DESIGN_HEX_COLOR.info,
+        color_secondary: updatedOrg.brand_color_secondary || DESIGN_HEX_COLOR.success,
+        color_accent: updatedOrg.brand_color_accent || DESIGN_HEX_COLOR.secondary,
         font_family: updatedOrg.brand_font_family || 'Inter'
       }
     })

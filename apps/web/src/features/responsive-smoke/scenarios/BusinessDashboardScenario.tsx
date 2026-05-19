@@ -32,7 +32,7 @@ export function BusinessDashboardScenario() {
         <Surface title="Acciones prioritarias" subtitle="Stack lateral que debe caer debajo en viewports estrechos.">
           <div className="space-y-3">
             {businessDashboardTasks.map((task) => (
-              <div key={task} className="rounded-[22px] border border-[#DCE7F3] bg-[#F8FAFC] p-4 text-sm text-[#0A2540] dark:border-white/10 dark:bg-white/5 dark:text-white">
+              <div key={task} className="rounded-[22px] border border-[var(--color-legacy-dce7f3)] bg-slate-50 p-4 text-sm text-primary dark:border-white/10 dark:bg-white/5 dark:text-white">
                 {task}
               </div>
             ))}

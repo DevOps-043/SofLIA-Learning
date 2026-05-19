@@ -1,25 +1,31 @@
-import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
+import type { z } from 'zod'
+
 import { AdminWorkshopsService } from '@/features/admin/services/adminWorkshops.service'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { logger } from '@/lib/utils/logger'
 import { UpdateWorkshopSchema } from '@/lib/schemas/workshop.schema'
-import { z } from 'zod'
+
 import {
   buildWorkshopAuditContext,
   type WorkshopRouteContext,
 } from './workshop-detail.types'
 
-export async function PUT(
-  request: NextRequest,
-  { params }: WorkshopRouteContext,
-) {
-  try {
-    const auth = await requireAdmin()
-    if (auth instanceof NextResponse) return auth
+type UpdateWorkshopBody = z.infer<typeof UpdateWorkshopSchema>
 
-    const { id: workshopId } = await params
-    const body = await request.json()
-    const workshopData = UpdateWorkshopSchema.parse(body) as Parameters<
+async function handlePut(
+  request: NextRequest,
+  body: UpdateWorkshopBody,
+  context: WorkshopRouteContext,
+) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
+
+  try {
+    const { id: workshopId } = await context.params
+    const workshopData = body as Parameters<
       typeof AdminWorkshopsService.updateWorkshop
     >[1]
     const auditContext = buildWorkshopAuditContext(request)
@@ -36,26 +42,13 @@ export async function PUT(
       workshop: updatedWorkshop,
     })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      techDebtLogger.error('Validation error:', error.errors)
-      return NextResponse.json({
-        success: false,
-        message: 'Datos invÃ¡lidos',
-        errors: error.errors.map((e) => ({
-          field: e.path.join('.'),
-          message: e.message,
-        })),
-      }, { status: 400 })
-    }
-
-    techDebtLogger.error('Error in PUT /api/admin/workshops/[id]:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Error al actualizar taller',
-        message: error instanceof Error ? error.message : 'Error desconocido',
-      },
-      { status: 500 },
+    logger.error('Error in PUT /api/admin/workshops/[id]', error)
+    return apiError(
+      'UPDATE_WORKSHOP_FAILED',
+      'Error al actualizar taller',
+      500,
     )
   }
 }
+
+export const PUT = withZodBody(UpdateWorkshopSchema, handlePut)

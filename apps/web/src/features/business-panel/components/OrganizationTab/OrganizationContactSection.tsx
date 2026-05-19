@@ -36,7 +36,7 @@ function CopyField({ item, formState, styles, theme }: {
       <label className="block text-sm font-medium mb-2" style={styles.labelStyle}>{item.label}</label>
       <div className="flex gap-2">
         <input type="text" value={item.value} readOnly className="flex-1 px-4 py-3 rounded-xl border-2 cursor-default" style={styles.inputStyle} />
-        <motion.button type="button" onClick={() => formState.copyToClipboard(item.value, item.field)} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg" style={{ backgroundColor: copied ? theme.successColor : theme.actionColor, color: copied ? '#FFFFFF' : theme.onActionColor, boxShadow: '0 6px 18px ' + (copied ? theme.successColor : theme.actionColor) + '33' }}>
+        <motion.button type="button" onClick={() => formState.copyToClipboard(item.value, item.field)} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg" style={{ backgroundColor: copied ? theme.successColor : theme.actionColor, color: copied ? 'var(--color-bg-light)' : theme.onActionColor, boxShadow: '0 6px 18px ' + (copied ? theme.successColor : theme.actionColor) + '33' }}>
           {copied ? <><Check className="w-4 h-4" /><span className="hidden sm:inline">Copiado</span></> : <><Copy className="w-4 h-4" /><span className="hidden sm:inline">Copiar</span></>}
         </motion.button>
       </div>

@@ -33,7 +33,7 @@ export function RegisterForm() {
   return (
     <>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full">
-        <div className="bg-white dark:bg-[#1E2329] rounded-2xl shadow-xl dark:shadow-2xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-5 sm:p-6 lg:p-8">
+        <div className="bg-white dark:bg-carbon-800 rounded-2xl shadow-xl dark:shadow-2xl border border-gray-200 dark:border-gray-500/30 p-5 sm:p-6 lg:p-8">
           <RegisterFormHeader t={logic.t} />
           <RegisterStatusMessage success={logic.success} />
           <form onSubmit={handleSubmit(logic.onSubmit)} className="space-y-3">

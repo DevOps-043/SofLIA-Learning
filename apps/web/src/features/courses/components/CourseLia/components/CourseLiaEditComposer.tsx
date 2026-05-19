@@ -36,7 +36,7 @@ export function CourseLiaEditComposer({
         onKeyDown={onEditKeyDown}
         rows={1}
         className="lia-input-reset lia-chat-edit-input"
-        style={{ width: '100%', minWidth: '220px', maxWidth: '100%', resize: 'none', background: 'transparent', border: 'none', outline: 'none', color: '#ffffff', fontSize: '14px', lineHeight: 1.5, padding: 0 }}
+        style={{ width: '100%', minWidth: '220px', maxWidth: '100%', resize: 'none', background: 'transparent', border: 'none', outline: 'none', color: 'var(--color-bg-light)', fontSize: '14px', lineHeight: 1.5, padding: 0 }}
       />
       <div style={{ display: 'flex', gap: '8px', marginTop: '8px', justifyContent: 'flex-end' }}>
         <button

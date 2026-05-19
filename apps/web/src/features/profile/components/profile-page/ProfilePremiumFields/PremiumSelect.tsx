@@ -22,14 +22,14 @@ export function PremiumSelect({
 
   return (
     <motion.div className="relative group" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
-      <motion.div className="absolute -inset-[1px] rounded-2xl opacity-0 transition-opacity duration-500" style={{ background: `linear-gradient(135deg, ${colors.accent}40, transparent 50%, ${colors.accent}20)` }} animate={{ opacity: open ? 1 : 0 }} />
+      <motion.div className="absolute -inset-[1px] rounded-2xl opacity-0 transition-opacity duration-500" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${colors.accent} 25.1%, transparent), transparent 50%, color-mix(in srgb, ${colors.accent} 12.5%, transparent))` }} animate={{ opacity: open ? 1 : 0 }} />
       <Select.Root value={value || EMPTY_SELECT_VALUE} onValueChange={nextValue => onChange(nextValue === EMPTY_SELECT_VALUE ? '' : nextValue)} open={open} onOpenChange={setOpen}>
         <Select.Trigger
           className="relative flex min-h-[68px] w-full items-center rounded-2xl border-2 px-5 text-left transition-all duration-300 focus:outline-none"
           style={{
-            backgroundColor: open ? colors.bgSecondary : `${colors.bgSecondary}cc`,
-            borderColor: open ? `${colors.accent}80` : colors.border,
-            boxShadow: open ? `0 0 30px ${colors.accent}26` : 'none',
+            backgroundColor: open ? colors.bgSecondary : `color-mix(in srgb, ${colors.bgSecondary} 80%, transparent)`,
+            borderColor: open ? `color-mix(in srgb, ${colors.accent} 50.2%, transparent)` : colors.border,
+            boxShadow: open ? `0 0 30px color-mix(in srgb, ${colors.accent} 14.9%, transparent)` : 'none',
             color: colors.text,
           }}
         >

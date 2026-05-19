@@ -39,10 +39,10 @@ export function ConditionalAIChatAgent() {
   const activeStyles = isBusinessUserPage ? userDashboardStyles : panelStyles;
 
   const organizationColors = activeStyles ? {
-    primary: activeStyles.primary_button_color || '#0A2540',
-    accent: activeStyles.accent_color || '#00D4B3',
-    cardBackground: activeStyles.card_background || '#1E2329',
-    textColor: activeStyles.text_color || '#FFFFFF',
+    primary: activeStyles.primary_button_color || 'var(--color-primary)',
+    accent: activeStyles.accent_color || 'var(--color-accent)',
+    cardBackground: activeStyles.card_background || 'var(--color-gray-800)',
+    textColor: activeStyles.text_color || 'var(--color-bg-light)',
   } : undefined;
 
   // Renderizar el nuevo componente embebido con diseño de panel derecho

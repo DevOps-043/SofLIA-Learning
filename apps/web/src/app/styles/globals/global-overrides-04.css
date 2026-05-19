@@ -23,21 +23,21 @@
 /* Navbar styles */
 .dark .navbar-scrolled {
   background: rgba(15, 20, 25, 0.8);
-  /* #0F1419 con opacidad */
+  /* var(--color-bg-dark) con opacidad */
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(108, 117, 125, 0.3);
-  /* #6C757D con opacidad */
+  /* var(--color-gray-500) con opacidad */
 }
 
 .light .navbar-scrolled {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(233, 236, 239, 0.8);
-  /* #E9ECEF con opacidad */
+  /* var(--color-gray-200) con opacidad */
 }
 
 .navbar-logo-text {
-  background: linear-gradient(135deg, #0A2540 0%, #0A2540 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary) 100%);
   /* SOFLIA Deep Blue */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -45,7 +45,7 @@
 }
 
 .dark .navbar-logo-text {
-  background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+  background: linear-gradient(135deg, var(--color-bg-light) 0%, var(--color-bg-light) 100%);
   /* Blanco en modo oscuro */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

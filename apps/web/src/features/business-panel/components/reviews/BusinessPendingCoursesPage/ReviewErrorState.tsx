@@ -14,7 +14,7 @@ export function ReviewErrorState({ error, title }: ReviewErrorStateProps) {
       className="rounded-3xl border p-8 text-center"
       style={{
         backgroundColor: panelTheme.cardBg,
-        borderColor: `${panelTheme.dangerColor}22`,
+        borderColor: `color-mix(in srgb, ${panelTheme.dangerColor} 13.3%, transparent)`,
       }}
     >
       <AlertTriangle

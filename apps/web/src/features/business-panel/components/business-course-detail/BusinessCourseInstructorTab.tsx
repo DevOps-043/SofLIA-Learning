@@ -73,7 +73,7 @@ export function BusinessCourseInstructorTab({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
-                    style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+                    style={{ backgroundColor: `color-mix(in srgb, ${accentColor} 12.5%, transparent)`, color: accentColor }}
                   >
                     <Linkedin className="h-5 w-5" />
                   </a>
@@ -84,7 +84,7 @@ export function BusinessCourseInstructorTab({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
-                    style={{ backgroundColor: `${textColor}12`, color: textColor }}
+                    style={{ backgroundColor: `color-mix(in srgb, ${textColor} 7.1%, transparent)`, color: textColor }}
                   >
                     <Github className="h-5 w-5" />
                   </a>
@@ -95,7 +95,7 @@ export function BusinessCourseInstructorTab({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
-                    style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}
+                    style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 12.5%, transparent)`, color: primaryColor }}
                   >
                     <Globe className="h-5 w-5" />
                   </a>
@@ -107,7 +107,7 @@ export function BusinessCourseInstructorTab({
           {course.instructor.bio ? (
             <div
               className="rounded-xl border p-5"
-              style={{ backgroundColor: `${primaryColor}05`, borderColor: `${primaryColor}18` }}
+              style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 2%, transparent)`, borderColor: `color-mix(in srgb, ${primaryColor} 9.4%, transparent)` }}
             >
               <h4 className="mb-3 font-bold" style={{ color: textColor }}>
                 Biografía
@@ -122,7 +122,7 @@ export function BusinessCourseInstructorTab({
         <div className="py-12 text-center">
           <div
             className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl"
-            style={{ backgroundColor: `${primaryColor}15` }}
+            style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 8.2%, transparent)` }}
           >
             <GraduationCap className="h-10 w-10" style={{ color: mutedTextColor }} />
           </div>

@@ -27,7 +27,7 @@ export function UserAvatar({
       className={`${sizeClass} rounded-full overflow-hidden ring-2 ring-white/80 dark:ring-white/80 flex items-center justify-center shadow-sm`}
       style={{
         background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
-        boxShadow: isOpen ? `0 0 20px ${accentColor}40` : `0 4px 12px ${primaryColor}30`,
+        boxShadow: isOpen ? `0 0 20px color-mix(in srgb, ${accentColor} 25.1%, transparent)` : `0 4px 12px color-mix(in srgb, ${primaryColor} 18.8%, transparent)`,
       }}
     >
       {!isMounted ? (

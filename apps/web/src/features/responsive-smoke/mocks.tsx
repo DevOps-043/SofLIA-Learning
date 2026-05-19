@@ -128,7 +128,7 @@ export const smokeWorkshopColumns: ResponsiveDataTableColumn<SmokeWorkshopRow>[]
     id: 'title',
     header: 'Taller',
     mobileOrder: 0,
-    cell: (item) => <span className="font-semibold text-[#0A2540] dark:text-white">{item.title}</span>,
+    cell: (item) => <span className="font-semibold text-primary dark:text-white">{item.title}</span>,
   },
   {
     id: 'status',
@@ -136,7 +136,7 @@ export const smokeWorkshopColumns: ResponsiveDataTableColumn<SmokeWorkshopRow>[]
     mobileOrder: 1,
     mobileLabel: 'Estado',
     cell: (item) => (
-      <span className="inline-flex rounded-full bg-[#00D4B3]/12 px-3 py-1 text-xs font-semibold text-[#0A7F6D] dark:text-[#00D4B3]">
+      <span className="inline-flex rounded-full bg-accent/[0.12] px-3 py-1 text-xs font-semibold text-[var(--color-legacy-0a7f6d)] dark:text-accent">
         {item.status}
       </span>
     ),
@@ -171,8 +171,8 @@ export const smokeUserColumns: ResponsiveDataTableColumn<SmokeUserRow>[] = [
     mobileOrder: 0,
     cell: (item) => (
       <div className="min-w-0">
-        <p className="truncate font-semibold text-[#0A2540] dark:text-white">{item.name}</p>
-        <p className="truncate text-xs text-[#6C757D] dark:text-white/60">{item.email}</p>
+        <p className="truncate font-semibold text-primary dark:text-white">{item.name}</p>
+        <p className="truncate text-xs text-gray-500 dark:text-white/60">{item.email}</p>
       </div>
     ),
   },
@@ -231,7 +231,7 @@ export const smokeReportColumns: ResponsiveDataTableColumn<SmokeReportRow>[] = [
     id: 'area',
     header: 'Area',
     mobileOrder: 0,
-    cell: (item) => <span className="font-semibold text-[#0A2540] dark:text-white">{item.area}</span>,
+    cell: (item) => <span className="font-semibold text-primary dark:text-white">{item.area}</span>,
   },
   {
     id: 'owner',

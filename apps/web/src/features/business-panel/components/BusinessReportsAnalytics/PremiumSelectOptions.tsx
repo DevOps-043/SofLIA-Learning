@@ -55,7 +55,7 @@ function SelectOptionButton({
       type="button"
       onClick={onClick}
       className="w-full px-4 py-2.5 text-left text-sm transition-colors"
-      style={{ backgroundColor: isSelected ? `${theme.actionColor}25` : 'transparent', color: isSelected ? theme.actionColor : theme.subtextColor }}
+      style={{ backgroundColor: isSelected ? `color-mix(in srgb, ${theme.actionColor} 14.5%, transparent)` : 'transparent', color: isSelected ? theme.actionColor : theme.subtextColor }}
       onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = theme.hoverBg }}
       onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent' }}
     >

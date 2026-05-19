@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { PRESET_THEMES, getThemeById, generateBrandingTheme, getThemeStylesForMode } from '@/features/business-panel/config/preset-themes';
+import { DESIGN_HEX_COLOR } from '@/core/theme/color-tokens'
 
 interface ThemeStyleInput {
   background_type: 'image' | 'color' | 'gradient';
@@ -258,9 +259,9 @@ export async function POST(request: NextRequest) {
 
       // Generar tema desde colores de branding
       theme = generateBrandingTheme({
-        color_primary: orgData.brand_color_primary || '#3b82f6',
-        color_secondary: orgData.brand_color_secondary || '#10b981',
-        color_accent: orgData.brand_color_accent || '#8b5cf6'
+        color_primary: orgData.brand_color_primary || DESIGN_HEX_COLOR.info,
+        color_secondary: orgData.brand_color_secondary || DESIGN_HEX_COLOR.success,
+        color_accent: orgData.brand_color_accent || DESIGN_HEX_COLOR.secondary
       });
     } else {
       // Obtener tema predefinido

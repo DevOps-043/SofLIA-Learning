@@ -8,7 +8,7 @@ interface LiaMetaphorsSectionProps {
 
 export function LiaMetaphorsSection({ sectionRef }: LiaMetaphorsSectionProps) {
   return (
-    <section ref={sectionRef} className="py-32 relative bg-white dark:bg-[#0F1419]">
+    <section ref={sectionRef} className="py-32 relative bg-white dark:bg-carbon-900">
       <div className="container mx-auto px-4">
         <motion.div
           className="text-center mb-20"
@@ -18,13 +18,13 @@ export function LiaMetaphorsSection({ sectionRef }: LiaMetaphorsSectionProps) {
           transition={{ duration: 0.8 }}
         >
           <h2
-            className="text-4xl lg:text-6xl font-bold mb-6 text-[#0A2540] dark:text-white"
+            className="text-4xl lg:text-6xl font-bold mb-6 text-primary dark:text-white"
             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 900 }}
           >
-            SofLIA: Tu <span className="text-[#00D4B3]">Sabiduría Aumentada</span>
+            SofLIA: Tu <span className="text-accent">Sabiduría Aumentada</span>
           </h2>
           <p
-            className="text-xl lg:text-2xl max-w-3xl mx-auto text-[#6C757D] dark:text-white/80"
+            className="text-xl lg:text-2xl max-w-3xl mx-auto text-gray-500 dark:text-white/80"
             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
             SofLIA es más que un asistente. Es la interfaz humana que traduce la inteligencia de SofLIA en
@@ -45,7 +45,7 @@ export function LiaMetaphorsSection({ sectionRef }: LiaMetaphorsSectionProps) {
                 transition={{ delay: index * 0.1, duration: 0.8, type: 'spring', stiffness: 100 }}
                 style={{ transformStyle: 'preserve-3d' }}
               >
-                <div className="relative h-full bg-white dark:bg-[#1E2329] rounded-2xl p-8 border border-[#E9ECEF] dark:border-[#6C757D]/30 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden">
+                <div className="relative h-full bg-white dark:bg-carbon-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-500/30 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden">
                   <motion.div
                     className={`absolute inset-0 bg-gradient-to-br ${metaphor.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}
                   />
@@ -53,7 +53,7 @@ export function LiaMetaphorsSection({ sectionRef }: LiaMetaphorsSectionProps) {
                   <div className="relative z-10 mb-6">
                     <div
                       className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                      style={{ backgroundColor: `${metaphor.color}20` }}
+                      style={{ backgroundColor: `color-mix(in srgb, ${metaphor.color} 12.5%, transparent)` }}
                     >
                       <IconComponent className="w-8 h-8" style={{ color: metaphor.color }} />
                     </div>
@@ -61,13 +61,13 @@ export function LiaMetaphorsSection({ sectionRef }: LiaMetaphorsSectionProps) {
 
                   <div className="relative z-10">
                     <h3
-                      className="text-2xl font-bold mb-4 text-[#0A2540] dark:text-white"
+                      className="text-2xl font-bold mb-4 text-primary dark:text-white"
                       style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
                     >
                       {metaphor.title}
                     </h3>
                     <p
-                      className="text-[#6C757D] dark:text-white/70 leading-relaxed"
+                      className="text-gray-500 dark:text-white/70 leading-relaxed"
                       style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                     >
                       {metaphor.description}

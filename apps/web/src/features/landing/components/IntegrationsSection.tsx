@@ -17,7 +17,7 @@ export function IntegrationsSection({ className = '' }: IntegrationsSectionProps
   return (
     <section
       id="integrations"
-      className={`py-20 lg:py-28 bg-gradient-to-b from-[#E9ECEF]/30 to-white dark:from-[#0A2540]/30 dark:to-[#0F1419] ${className}`}
+      className={`py-20 lg:py-28 bg-gradient-to-b from-gray-200/30 to-white dark:from-primary/30 dark:to-carbon-900 ${className}`}
     >
       <div className="container mx-auto px-4 lg:px-8">
         <IntegrationsHeader t={t} />

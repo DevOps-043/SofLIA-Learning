@@ -210,7 +210,7 @@ function LiaSidePanelContent() {
                         borderRadius: '50%',
                         objectFit: 'cover',
                         border: `4px solid ${themeColors.accentColor}`,
-                        boxShadow: `0 0 50px ${themeColors.accentColor}80`,
+                        boxShadow: `0 0 50px color-mix(in srgb, ${themeColors.accentColor} 50.2%, transparent)`,
                       }}
                     />
                     <div style={{ marginTop: '20px', textAlign: 'center', color: 'white' }}>

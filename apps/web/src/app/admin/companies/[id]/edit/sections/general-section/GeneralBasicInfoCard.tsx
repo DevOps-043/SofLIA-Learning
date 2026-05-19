@@ -22,7 +22,7 @@ export function GeneralBasicInfoCard({ company, setCompany }: GeneralSectionProp
           value={company.description || ''}
           onChange={(event) => setCompany({ ...company, description: event.target.value })}
           rows={3}
-          className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 transition-colors placeholder:text-gray-400 focus:border-[#0A2540] focus:outline-none dark:border-white/10 dark:bg-[#0F1419] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-[#00D4B3]"
+          className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 transition-colors placeholder:text-gray-400 focus:border-primary focus:outline-none dark:border-white/10 dark:bg-carbon-900 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-accent"
           placeholder="Descripción de la empresa..."
         />
       </div>

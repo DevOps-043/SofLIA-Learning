@@ -12,7 +12,7 @@ export function ImportUsersResult({ importResult }: { importResult: ImportResult
 
   return (
     <div className="space-y-4">
-      <div className="p-5 rounded-xl flex items-center gap-4" style={{ backgroundColor: isSuccess ? `${theme.successColor}12` : `${theme.dangerColor}12`, border: `1px solid ${isSuccess ? `${theme.successColor}26` : `${theme.dangerColor}26`}` }}>
+      <div className="p-5 rounded-xl flex items-center gap-4" style={{ backgroundColor: isSuccess ? `color-mix(in srgb, ${theme.successColor} 7.1%, transparent)` : `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`, border: `1px solid ${isSuccess ? `color-mix(in srgb, ${theme.successColor} 14.9%, transparent)` : `color-mix(in srgb, ${theme.dangerColor} 14.9%, transparent)`}` }}>
         {isSuccess ? <CheckCircle className="w-8 h-8" style={{ color: theme.successColor }} /> : <XCircle className="w-8 h-8" style={{ color: theme.dangerColor }} />}
         <div>
           <p className="font-semibold" style={{ color: theme.textColor }}>{isSuccess ? t('users.modals.import.results.successTitle') : t('users.modals.import.results.noImportTitle')}</p>
@@ -34,9 +34,9 @@ function ImportErrorDetails({ importResult }: { importResult: ImportResult }) {
         <XCircle className="w-4 h-4" style={{ color: theme.dangerColor }} />
         {t('users.modals.import.results.errorsFound')} ({importResult.errors})
       </p>
-      <div className="max-h-40 lg:max-h-48 overflow-y-auto space-y-2 p-3 rounded-xl border" style={{ backgroundColor: `${theme.dangerColor}08`, borderColor: `${theme.dangerColor}18`, scrollbarWidth: 'thin', scrollbarColor: `${theme.borderColor} transparent` }}>
-        {importResult.details.slice(0, 10).map((detail, index) => <div key={index} className="text-sm p-2 rounded-lg" style={{ backgroundColor: `${theme.dangerColor}12`, color: theme.dangerColor }}><span className="font-medium">Fila {detail.row}:</span> {detail.error}</div>)}
-        {importResult.details.length > 10 && <p className="text-xs text-center py-2" style={{ color: `${theme.dangerColor}B3` }}>Y {importResult.details.length - 10} errores mas...</p>}
+      <div className="max-h-40 lg:max-h-48 overflow-y-auto space-y-2 p-3 rounded-xl border" style={{ backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 3.1%, transparent)`, borderColor: `color-mix(in srgb, ${theme.dangerColor} 9.4%, transparent)`, scrollbarWidth: 'thin', scrollbarColor: `${theme.borderColor} transparent` }}>
+        {importResult.details.slice(0, 10).map((detail, index) => <div key={index} className="text-sm p-2 rounded-lg" style={{ backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`, color: theme.dangerColor }}><span className="font-medium">Fila {detail.row}:</span> {detail.error}</div>)}
+        {importResult.details.length > 10 && <p className="text-xs text-center py-2" style={{ color: `color-mix(in srgb, ${theme.dangerColor} 70.2%, transparent)` }}>Y {importResult.details.length - 10} errores mas...</p>}
       </div>
     </div>
   )

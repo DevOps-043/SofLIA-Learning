@@ -72,6 +72,6 @@
   background-color: rgba(var(--org-card-background-rgb, 15, 23, 42), var(--org-card-opacity, 1)) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  color: var(--org-text-color, #f8fafc);
+  color: var(--org-text-color, var(--color-gray-50));
 }
 

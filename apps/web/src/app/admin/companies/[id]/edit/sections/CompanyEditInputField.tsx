@@ -25,7 +25,7 @@ export function CompanyEditInputField({
       <div className="relative">
         {Icon ? (
           <div className="absolute left-3 top-1/2 -translate-y-1/2">
-            <Icon className="h-4 w-4 text-gray-400 dark:text-[#8899A6]" />
+            <Icon className="h-4 w-4 text-gray-400 dark:text-muted" />
           </div>
         ) : null}
         <input
@@ -33,7 +33,7 @@ export function CompanyEditInputField({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
-          className={`rounded-xl border border-gray-200 bg-gray-50 py-2.5 pr-4 text-sm text-gray-900 transition-colors placeholder:text-gray-400 focus:border-[#0A2540] focus:outline-none dark:border-white/10 dark:bg-[#0F1419] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-[#00D4B3] ${Icon ? 'w-full pl-10' : 'w-full px-4'}`}
+          className={`rounded-xl border border-gray-200 bg-gray-50 py-2.5 pr-4 text-sm text-gray-900 transition-colors placeholder:text-gray-400 focus:border-primary focus:outline-none dark:border-white/10 dark:bg-carbon-900 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-accent ${Icon ? 'w-full pl-10' : 'w-full px-4'}`}
         />
       </div>
     </div>

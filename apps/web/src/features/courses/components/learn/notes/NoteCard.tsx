@@ -21,19 +21,19 @@ export function NoteCard({
 }: NoteCardProps) {
   return (
     <div
-      className="bg-white dark:bg-[#1E2329] rounded-xl p-3 border border-[#E9ECEF] dark:border-[#6C757D]/30 hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/50 transition-colors group cursor-pointer"
+      className="bg-white dark:bg-carbon-800 rounded-xl p-3 border border-gray-200 dark:border-gray-500/30 hover:bg-gray-200/50 dark:hover:bg-primary/50 transition-colors group cursor-pointer"
       onClick={() => onEdit(note)}
     >
       <div className="flex items-center justify-between mb-2">
         <span
-          className="text-sm text-[#0A2540] dark:text-white font-medium"
+          className="text-sm text-primary dark:text-white font-medium"
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
         >
           {note.title}
         </span>
         <div className="flex items-center gap-2">
           <span
-            className="text-xs text-[#6C757D] dark:text-white/60"
+            className="text-xs text-gray-500 dark:text-white/60"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
           >
             {note.timestamp}
@@ -44,7 +44,7 @@ export function NoteCard({
                 event.stopPropagation();
                 onEdit(note);
               }}
-              className="p-1 hover:bg-[#0A2540]/10 dark:hover:bg-[#00D4B3]/20 rounded text-[#0A2540] dark:text-[#00D4B3] transition-colors"
+              className="p-1 hover:bg-primary/10 dark:hover:bg-accent/20 rounded text-primary dark:text-accent transition-colors"
               title={editLabel}
             >
               <Edit2 className="w-3 h-3" />
@@ -69,7 +69,7 @@ export function NoteCard({
 
       {note.lessonTitle ? (
         <div className="mb-2">
-          <span className="inline-flex items-center rounded-full border border-[#E9ECEF] px-2 py-0.5 text-[11px] font-medium text-[#6C757D] dark:border-[#6C757D]/30 dark:text-white/60">
+          <span className="inline-flex items-center rounded-full border border-gray-200 px-2 py-0.5 text-[11px] font-medium text-gray-500 dark:border-gray-500/30 dark:text-white/60">
             {note.lessonTitle}
           </span>
         </div>
@@ -80,7 +80,7 @@ export function NoteCard({
           {note.tags.map((tag) => (
             <span
               key={tag}
-              className="inline-block px-2 py-0.5 bg-[#0A2540]/10 dark:bg-[#00D4B3]/20 text-[#0A2540] dark:text-[#00D4B3] text-xs rounded border border-[#0A2540]/20 dark:border-[#00D4B3]/30"
+              className="inline-block px-2 py-0.5 bg-primary/10 dark:bg-accent/20 text-primary dark:text-accent text-xs rounded border border-primary/20 dark:border-accent/30"
             >
               {tag}
             </span>

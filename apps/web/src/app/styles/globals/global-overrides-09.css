@@ -12,7 +12,7 @@
 }
 
 .light .auth-page-enhanced {
-  background: #f8fafc;
+  background: var(--color-gray-50);
 }
 
 /* Auth form styles */
@@ -25,12 +25,12 @@
 }
 
 .dark .auth-input:focus {
-  @apply bg-slate-700/50 border-[#00D4B3]/50 shadow-lg shadow-[#00D4B3]/10;
+  @apply bg-slate-700/50 border-accent/50 shadow-lg shadow-accent/10;
   /* Aqua para focus */
 }
 
 .light .auth-input:focus {
-  @apply bg-white border-[#0A2540]/50 shadow-lg shadow-[#0A2540]/10;
+  @apply bg-white border-primary/50 shadow-lg shadow-primary/10;
   /* Azul Profundo para focus */
 }
 
@@ -59,7 +59,7 @@
 }
 
 .dark .auth-card-enhanced {
-  @apply bg-[#1E2329]/80 backdrop-blur-xl border border-[#0A2540]/30 shadow-2xl;
+  @apply bg-carbon-800/80 backdrop-blur-xl border border-primary/30 shadow-2xl;
 }
 
 .light .auth-card-enhanced {
@@ -68,11 +68,11 @@
 
 .dark .bg-glass-enhanced {
   background: rgba(30, 35, 41, 0.8);
-  /* #1E2329 con opacidad */
+  /* var(--color-gray-800) con opacidad */
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(10, 37, 64, 0.3);
-  /* #0A2540 con opacidad */
+  /* var(--color-primary) con opacidad */
 }
 
 .light .bg-glass-enhanced {

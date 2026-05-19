@@ -42,8 +42,8 @@ export function AdminCompaniesStatCard({
         <div
           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] transition-transform duration-500 group-hover:scale-[1.05]"
           style={{
-            background: `linear-gradient(135deg, ${color}15, transparent)`,
-            border: `1px solid ${color}25`,
+            background: `linear-gradient(135deg, color-mix(in srgb, ${color} 8.2%, transparent), transparent)`,
+            border: `1px solid color-mix(in srgb, ${color} 14.5%, transparent)`,
             color,
           }}
         >

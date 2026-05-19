@@ -9,7 +9,7 @@ interface ReportModalHeaderProps {
 
 export function ReportModalHeader({ isSubmitting, onClose, step }: ReportModalHeaderProps) {
   return (
-    <div className="relative bg-[#0A2540] p-6 text-white">
+    <div className="relative bg-primary p-6 text-white">
       <button
         className="absolute right-4 top-4 rounded-xl p-2 transition-colors hover:bg-white/10"
         disabled={isSubmitting}

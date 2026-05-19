@@ -15,7 +15,7 @@ export function PreviewPoints({ loading, points, orgColors }: PreviewPointsProps
           <div
             key={index}
             className="h-4 rounded-full"
-            style={{ backgroundColor: `${orgColors.textMuted}20` }}
+            style={{ backgroundColor: `color-mix(in srgb, ${orgColors.textMuted} 12.5%, transparent)` }}
           />
         ))}
       </div>

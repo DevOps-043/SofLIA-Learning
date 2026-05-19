@@ -139,20 +139,20 @@ export function CostOverviewWidget({ data, isLoading, chartType = 'area' }: Cost
             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorCost" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--color-success)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="var(--color-success)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-legacy-374151)" opacity={0.3} />
               <XAxis
                 dataKey="date"
-                stroke="#9ca3af"
+                stroke="var(--color-legacy-9ca3af)"
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis
-                stroke="#9ca3af"
+                stroke="var(--color-legacy-9ca3af)"
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
@@ -162,7 +162,7 @@ export function CostOverviewWidget({ data, isLoading, chartType = 'area' }: Cost
               <Area
                 type="monotone"
                 dataKey="cost"
-                stroke="#10b981"
+                stroke="var(--color-success)"
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#colorCost)"
@@ -170,23 +170,23 @@ export function CostOverviewWidget({ data, isLoading, chartType = 'area' }: Cost
             </AreaChart>
           ) : (
             <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-legacy-374151)" opacity={0.3} />
               <XAxis
                 dataKey="date"
-                stroke="#9ca3af"
+                stroke="var(--color-legacy-9ca3af)"
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis
-                stroke="#9ca3af"
+                stroke="var(--color-legacy-9ca3af)"
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(value) => `$${value.toFixed(3)}`}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="cost" fill="#10b981" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="cost" fill="var(--color-success)" radius={[4, 4, 0, 0]} />
             </BarChart>
           )}
         </ResponsiveContainer>

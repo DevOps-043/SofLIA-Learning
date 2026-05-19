@@ -1,90 +1,87 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AdminActivitiesService, UpdateActivityData } from '@/features/admin/services/adminActivities.service'
-import { validateUpdateActivityPayload } from '@/features/admin/services/adminActivityPayload.service'
-import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { ZodError } from 'zod'
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string, moduleId: string, lessonId: string, activityId: string }> }
+import {
+  AdminActivitiesService,
+  type UpdateActivityData,
+} from '@/features/admin/services/adminActivities.service'
+import { validateUpdateActivityPayload } from '@/features/admin/services/adminActivityPayload.service'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
+
+import { activityBodySchema, type ActivityBody } from '../schema'
+
+type RouteContext = {
+  params: Promise<{
+    id: string
+    moduleId: string
+    lessonId: string
+    activityId: string
+  }>
+}
+
+async function handlePut(
+  _request: NextRequest,
+  rawBody: ActivityBody,
+  context: RouteContext,
 ) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
+
+  const { activityId, lessonId } = await context.params
+  if (!activityId || !lessonId) {
+    return apiError(
+      'ACTIVITY_ID_REQUIRED',
+      'Activity ID y Lesson ID son requeridos',
+      400,
+    )
+  }
+
+  let body: UpdateActivityData
   try {
-    const auth = await requireAdmin()
-    if (auth instanceof NextResponse) return auth
-    
-    const resolvedParams = await params
-    const { activityId, lessonId } = resolvedParams
-
-    if (!activityId || !lessonId) {
-      return NextResponse.json(
-        { error: 'Activity ID y Lesson ID son requeridos' },
-        { status: 400 }
-      )
-    }
-
-    const body = validateUpdateActivityPayload(await request.json()) as UpdateActivityData
-
-    const activity = await AdminActivitiesService.updateActivity(activityId, body)
-
-    return NextResponse.json({
-      success: true,
-      activity
-    })
+    body = validateUpdateActivityPayload(rawBody) as UpdateActivityData
   } catch (error) {
     if (error instanceof ZodError) {
-      return NextResponse.json(
-        { success: false, error: error.issues[0]?.message || 'Payload de actividad invalido' },
-        { status: 400 }
+      return apiError(
+        'VALIDATION_ERROR',
+        error.issues[0]?.message || 'Payload de actividad inválido',
+        400,
       )
     }
+    throw error
+  }
 
+  try {
+    const activity = await AdminActivitiesService.updateActivity(activityId, body)
+    return NextResponse.json({ success: true, activity })
+  } catch (error) {
     if (error instanceof Error && error.message.includes('external_tool_key')) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 400 }
-      )
+      return apiError('EXTERNAL_TOOL_KEY_INVALID', error.message, 400)
     }
-
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Error al actualizar actividad' 
-      },
-      { status: 500 }
-    )
+    return apiError('UPDATE_ACTIVITY_FAILED', 'Error al actualizar actividad', 500)
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string, moduleId: string, lessonId: string, activityId: string }> }
-) {
-  try {
-    const auth = await requireAdmin()
-    if (auth instanceof NextResponse) return auth
-    
-    const resolvedParams = await params
-    const { activityId, lessonId } = resolvedParams
+export const PUT = withZodBody(activityBodySchema, handlePut)
 
-    if (!activityId || !lessonId) {
-      return NextResponse.json(
-        { error: 'Activity ID y Lesson ID son requeridos' },
-        { status: 400 }
-      )
-    }
+export async function DELETE(_request: NextRequest, context: RouteContext) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
 
-    await AdminActivitiesService.deleteActivity(activityId)
-
-    return NextResponse.json({
-      success: true
-    })
-  } catch (error) {
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Error al eliminar actividad' 
-      },
-      { status: 500 }
+  const { activityId, lessonId } = await context.params
+  if (!activityId || !lessonId) {
+    return apiError(
+      'ACTIVITY_ID_REQUIRED',
+      'Activity ID y Lesson ID son requeridos',
+      400,
     )
+  }
+
+  try {
+    await AdminActivitiesService.deleteActivity(activityId)
+    return NextResponse.json({ success: true })
+  } catch {
+    return apiError('DELETE_ACTIVITY_FAILED', 'Error al eliminar actividad', 500)
   }
 }

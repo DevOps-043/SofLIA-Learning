@@ -26,7 +26,7 @@ export function EmbeddedLiaFloatingBubble({
           exit={{ scale: 0, opacity: 0 }}
           transition={{ type: 'spring', damping: 20, stiffness: 300 }}
           onClick={onOpen}
-          className="fixed right-4 bottom-4 z-[100] w-16 h-16 rounded-full shadow-2xl hover:shadow-[#0A2540]/50 dark:hover:shadow-[#00D4B3]/50 flex items-center justify-center transition-all hover:scale-110 active:scale-95 group overflow-hidden ring-4 ring-[#0A2540]/20 dark:ring-[#00D4B3]/30"
+          className="fixed right-4 bottom-4 z-[100] w-16 h-16 rounded-full shadow-2xl hover:shadow-primary/50 dark:hover:shadow-accent/50 flex items-center justify-center transition-all hover:scale-110 active:scale-95 group overflow-hidden ring-4 ring-primary/20 dark:ring-accent/30"
           title={`Abrir ${assistantName}`}
         >
           <div className="relative w-full h-full">

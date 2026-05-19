@@ -15,19 +15,19 @@ describe('business-user-dashboard.service', () => {
     const colors = buildBusinessUserDashboardColors({
       userDashboardStyles: {
         background_type: 'color',
-        background_value: '#fff',
-        primary_button_color: '#112233',
-        secondary_button_color: '#000000',
-        accent_color: '#445566',
-        sidebar_background: '#778899',
-        card_background: '#ffffff',
+        background_value: 'var(--color-bg-light)',
+        primary_button_color: 'var(--color-legacy-112233)',
+        secondary_button_color: 'var(--color-black)',
+        accent_color: 'var(--color-legacy-445566)',
+        sidebar_background: 'var(--color-legacy-778899)',
+        card_background: 'var(--color-bg-light)',
       },
       resolvedTheme: 'light',
     })
 
-    expect(colors.primary).toBe('#112233')
-    expect(colors.accent).toBe('#445566')
-    expect(colors.sidebarBg).toBe('#778899')
+    expect(colors.primary).toBe('var(--color-legacy-112233)')
+    expect(colors.accent).toBe('var(--color-legacy-445566)')
+    expect(colors.sidebarBg).toBe('var(--color-legacy-778899)')
     expect(colors.isLightMode).toBe(true)
   })
 

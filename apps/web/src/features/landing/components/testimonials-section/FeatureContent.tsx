@@ -33,14 +33,14 @@ export function FeatureContent({
         </motion.h3>
         <motion.p
           animate={isHovered ? { opacity: 1 } : { opacity: 0.8 }}
-          className="text-lg lg:text-xl text-[#6C757D] dark:text-white/70 leading-relaxed"
+          className="text-lg lg:text-xl text-gray-500 dark:text-white/70 leading-relaxed"
           style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           transition={{ duration: 0.3 }}
         >
           {feature.description}
         </motion.p>
         <motion.div
-          className="h-1 bg-[#E9ECEF] dark:bg-[#6C757D]/30 rounded-full overflow-hidden mt-6"
+          className="h-1 bg-gray-200 dark:bg-gray-500/30 rounded-full overflow-hidden mt-6"
           initial={{ width: 0 }}
           transition={{ delay: index * 0.2 + 0.5, duration: 1 }}
           viewport={{ once: true }}

@@ -6,22 +6,22 @@ module.exports = {
       colors: {
         // Colores principales de Aprende y Aplica
         primary: {
-          DEFAULT: '#0066CC', // Azul Principal
-          50: '#E6F2FF',
-          100: '#CCE5FF',
-          500: '#0066CC',
-          600: '#0052A3', // Azul más oscuro
-          900: '#0A0A0A', // Carbón Digital
+          DEFAULT: 'var(--color-legacy-0066cc)', // Azul Principal
+          50: 'var(--color-legacy-e6f2ff)',
+          100: 'var(--color-legacy-cce5ff)',
+          500: 'var(--color-legacy-0066cc)',
+          600: 'var(--color-legacy-0052a3)', // Azul más oscuro
+          900: 'var(--color-legacy-0a0a0a)', // Carbón Digital
         },
-        dark: '#0A0A0A', // Carbón Digital
-        light: '#F2F2F2', // Gris Neblina
-        white: '#FFFFFF', // Blanco Puro
+        dark: 'var(--color-legacy-0a0a0a)', // Carbón Digital
+        light: 'var(--color-legacy-f2f2f2)', // Gris Neblina
+        white: 'var(--color-bg-light)', // Blanco Puro
         
         // Colores semánticos
-        success: '#10B981',
-        warning: '#F59E0B',
-        error: '#EF4444',
-        info: '#3B82F6',
+        success: 'var(--color-success)',
+        warning: 'var(--color-warning)',
+        error: 'var(--color-error)',
+        info: 'var(--color-info)',
       },
       fontFamily: {
         heading: ['Montserrat', 'Arial', 'Helvetica', 'sans-serif'],

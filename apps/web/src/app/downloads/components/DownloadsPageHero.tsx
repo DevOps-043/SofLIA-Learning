@@ -23,7 +23,7 @@ export function DownloadsPageHero({
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8 }}
-        className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-64 bg-[#00D4B3]/20 blur-[100px] rounded-full -z-10"
+        className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-64 bg-accent/20 blur-[100px] rounded-full -z-10"
       />
 
       <motion.div
@@ -31,9 +31,9 @@ export function DownloadsPageHero({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0A2540]/5 dark:bg-white/5 border border-[#0A2540]/10 dark:border-white/10 mb-6">
-          <Sparkles className="w-4 h-4 text-[#00D4B3]" />
-          <span className="text-sm font-medium text-[#0A2540]/60 dark:text-white/60">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 dark:bg-white/5 border border-primary/10 dark:border-white/10 mb-6">
+          <Sparkles className="w-4 h-4 text-accent" />
+          <span className="text-sm font-medium text-primary/60 dark:text-white/60">
             {loading
               ? 'Cargando ultima version...'
               : error
@@ -42,13 +42,13 @@ export function DownloadsPageHero({
           </span>
         </div>
 
-        <h1 className="text-5xl lg:text-7xl font-bold text-[#0A2540] dark:text-white mb-6 tracking-tight">
-          Lleva a <span className="text-[#00D4B3]">SofLIA Hub</span>
+        <h1 className="text-5xl lg:text-7xl font-bold text-primary dark:text-white mb-6 tracking-tight">
+          Lleva a <span className="text-accent">SofLIA Hub</span>
           <br />
           a todas partes
         </h1>
 
-        <p className="text-xl text-[#0A2540]/60 dark:text-white/60 max-w-2xl mx-auto mb-12 leading-relaxed">
+        <p className="text-xl text-primary/60 dark:text-white/60 max-w-2xl mx-auto mb-12 leading-relaxed">
           La aplicacion de escritorio oficial de SofLIA. Accede a tu asistente
           de IA, cursos y herramientas de productividad directamente desde tu
           sistema operativo, sin necesidad de abrir el navegador.
@@ -102,7 +102,7 @@ export function DownloadsPageHero({
                 <h3 className="text-2xl font-bold dark:text-white mb-2">
                   Windows
                 </h3>
-                <p className="text-[#0A2540]/40 dark:text-white/40 text-sm mb-8 flex-1">
+                <p className="text-primary/40 dark:text-white/40 text-sm mb-8 flex-1">
                   Compatible con Windows 10 y 11 (64-bit).
                   {release?.assets.windows?.size ? (
                     <>
@@ -115,7 +115,7 @@ export function DownloadsPageHero({
                 {release?.assets.windows ? (
                   <a
                     href={release.assets.windows.url}
-                    className="flex items-center justify-between w-full px-6 py-4 rounded-2xl bg-[#0A2540] hover:bg-[#0d2f4d] dark:bg-[#00D4B3] dark:hover:bg-[#00b8a3] text-white transition-all group"
+                    className="flex items-center justify-between w-full px-6 py-4 rounded-2xl bg-primary hover:bg-primary dark:bg-accent dark:hover:bg-[var(--color-legacy-00b8a3)] text-white transition-all group"
                   >
                     <span className="font-bold">Descargar para Windows</span>
                     <Download
@@ -152,7 +152,7 @@ export function DownloadsPageHero({
                 <h3 className="text-2xl font-bold dark:text-white mb-2">
                   macOS
                 </h3>
-                <p className="text-[#0A2540]/40 dark:text-white/40 text-sm mb-8 flex-1">
+                <p className="text-primary/40 dark:text-white/40 text-sm mb-8 flex-1">
                   Compatible con Ventura, Sonoma y Posteriores.
                   {release?.assets.mac?.size ? (
                     <>
@@ -165,7 +165,7 @@ export function DownloadsPageHero({
                 {release?.assets.mac ? (
                   <a
                     href={release.assets.mac.url}
-                    className="flex items-center justify-between w-full px-6 py-4 rounded-2xl bg-[#0A2540] hover:bg-[#0d2f4d] dark:bg-white dark:hover:bg-gray-100 dark:text-[#0A2540] text-white transition-all group"
+                    className="flex items-center justify-between w-full px-6 py-4 rounded-2xl bg-primary hover:bg-primary dark:bg-white dark:hover:bg-gray-100 dark:text-primary text-white transition-all group"
                   >
                     <span className="font-bold">Descargar para macOS</span>
                     <Download

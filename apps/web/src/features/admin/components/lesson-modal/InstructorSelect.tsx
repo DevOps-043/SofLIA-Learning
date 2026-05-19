@@ -16,7 +16,7 @@ export function InstructorSelect({ instructors, onChange, value }: InstructorSel
 
   return (
     <div className="group" ref={selectState.selectRef}>
-      <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+      <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">
         Instructor *
       </label>
       <div className="relative">

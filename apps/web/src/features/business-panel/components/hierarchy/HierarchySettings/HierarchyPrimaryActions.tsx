@@ -38,7 +38,7 @@ export function HierarchyPrimaryActions({
           <button
             onClick={onCreateStructure}
             disabled={isLoading}
-            className="rounded-xl bg-[#0A2540] px-6 py-2.5 text-[10px] font-black uppercase tracking-widest !text-white shadow-xl transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#00D4B3] dark:!text-[#0A2540]"
+            className="rounded-xl bg-primary px-6 py-2.5 text-[10px] font-black uppercase tracking-widest !text-white shadow-xl transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-accent dark:!text-primary"
           >
             {isLoading ? t('hierarchy.creating') : t('hierarchy.creating2')}
           </button>

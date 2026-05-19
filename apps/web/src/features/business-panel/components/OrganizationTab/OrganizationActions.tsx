@@ -28,7 +28,7 @@ export function OrganizationActions({ form, theme }: OrganizationSectionProps) {
         whileHover={{ scale: form.isSaving ? 1 : 1.02, x: form.isSaving ? 0 : 2 }}
         whileTap={{ scale: form.isSaving ? 1 : 0.98 }}
         className="px-8 py-3.5 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 shadow-xl"
-        style={{ backgroundColor: theme.actionColor, color: theme.onActionColor, boxShadow: `0 8px 30px ${theme.actionColor}33` }}
+        style={{ backgroundColor: theme.actionColor, color: theme.onActionColor, boxShadow: `0 8px 30px color-mix(in srgb, ${theme.actionColor} 20%, transparent)` }}
       >
         {form.isSaving ? (
           <>

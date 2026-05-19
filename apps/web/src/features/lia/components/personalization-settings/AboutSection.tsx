@@ -22,7 +22,7 @@ export function AboutSection(props: AboutSectionProps) {
       isExpanded={props.isExpanded}
       onToggle={props.onToggle}
     >
-      <label className="block text-sm font-medium mb-2 text-[#0A2540] dark:text-white">
+      <label className="block text-sm font-medium mb-2 text-primary dark:text-white">
         {t('liaPersonalization.nicknameLabel')}
       </label>
       <input
@@ -33,9 +33,9 @@ export function AboutSection(props: AboutSectionProps) {
         }
         placeholder={t('liaPersonalization.nicknamePlaceholder')}
         maxLength={50}
-        className="w-full px-4 py-3 rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 bg-white dark:bg-[#0F1419] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-[#00D4B3]"
+        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-500/30 bg-white dark:bg-carbon-900 text-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
       />
-      <p className="text-xs text-[#6C757D] dark:text-gray-400 mt-2">
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
         {t('liaPersonalization.nicknameHint')}
       </p>
     </Section>

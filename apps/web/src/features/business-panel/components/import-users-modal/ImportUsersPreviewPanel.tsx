@@ -17,10 +17,10 @@ export function ImportUsersPreviewPanel({ importResult, onDownloadTemplate, sele
   const theme = useBusinessPanelTheme()
 
   return (
-    <div className="lg:w-80 w-full p-4 lg:p-8 flex flex-col border-b lg:border-b-0 lg:border-r shrink-0" style={{ background: `linear-gradient(135deg, ${theme.primaryColor}15, ${theme.accentColor}10)`, borderColor: theme.borderColor }}>
+    <div className="lg:w-80 w-full p-4 lg:p-8 flex flex-col border-b lg:border-b-0 lg:border-r shrink-0" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${theme.primaryColor} 8.2%, transparent), color-mix(in srgb, ${theme.accentColor} 6.3%, transparent))`, borderColor: theme.borderColor }}>
       <div className="flex-1 flex flex-col items-center justify-center py-2 lg:py-0">
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1 }} className="relative mb-6">
-          <div className="w-24 h-24 rounded-2xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${theme.primaryColor}30, ${theme.accentColor}30)`, border: `2px solid ${theme.primaryColor}50` }}>
+          <div className="w-24 h-24 rounded-2xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${theme.primaryColor} 18.8%, transparent), color-mix(in srgb, ${theme.accentColor} 18.8%, transparent))`, border: `2px solid color-mix(in srgb, ${theme.primaryColor} 31.4%, transparent)` }}>
             <Upload className="w-12 h-12" style={{ color: theme.onPrimaryColor }} />
           </div>
           <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }} className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: theme.accentColor }}>
@@ -46,7 +46,7 @@ function PreviewState({ importResult, selectedFile }: Pick<ImportUsersPreviewPan
     return (
       <div className="w-full p-4 rounded-xl border" style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${theme.primaryColor}20` }}>
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent)` }}>
             <FileSpreadsheet className="w-5 h-5" style={{ color: theme.primaryColor }} />
           </div>
           <div className="flex-1 min-w-0">
@@ -70,8 +70,8 @@ function ImportStatsPreview({ importResult }: { importResult: ImportResult }) {
   return (
     <div className="w-full space-y-3">
       <div className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: theme.cardBg }}><span className="text-sm" style={{ color: theme.subtextColor }}>Total procesados</span><span className="font-bold" style={{ color: theme.textColor }}>{importResult.total}</span></div>
-      <div className="flex items-center justify-between p-3 rounded-xl border" style={{ backgroundColor: `${theme.successColor}12`, borderColor: `${theme.successColor}26` }}><span className="text-sm" style={{ color: theme.successColor }}>Importados</span><span className="font-bold" style={{ color: theme.successColor }}>{importResult.imported}</span></div>
-      {importResult.errors > 0 && <div className="flex items-center justify-between p-3 rounded-xl border" style={{ backgroundColor: `${theme.dangerColor}12`, borderColor: `${theme.dangerColor}26` }}><span className="text-sm" style={{ color: theme.dangerColor }}>Errores</span><span className="font-bold" style={{ color: theme.dangerColor }}>{importResult.errors}</span></div>}
+      <div className="flex items-center justify-between p-3 rounded-xl border" style={{ backgroundColor: `color-mix(in srgb, ${theme.successColor} 7.1%, transparent)`, borderColor: `color-mix(in srgb, ${theme.successColor} 14.9%, transparent)` }}><span className="text-sm" style={{ color: theme.successColor }}>Importados</span><span className="font-bold" style={{ color: theme.successColor }}>{importResult.imported}</span></div>
+      {importResult.errors > 0 && <div className="flex items-center justify-between p-3 rounded-xl border" style={{ backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`, borderColor: `color-mix(in srgb, ${theme.dangerColor} 14.9%, transparent)` }}><span className="text-sm" style={{ color: theme.dangerColor }}>Errores</span><span className="font-bold" style={{ color: theme.dangerColor }}>{importResult.errors}</span></div>}
     </div>
   )
 }

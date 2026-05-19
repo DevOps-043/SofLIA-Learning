@@ -38,7 +38,7 @@ export function CourseTileFooter({
           }}
           className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition hover:scale-105"
           style={{
-            backgroundColor: `${orgColors.iconColor}18`,
+            backgroundColor: `color-mix(in srgb, ${orgColors.iconColor} 9.4%, transparent)`,
             color: orgColors.iconColor,
           }}
           aria-label={t('dashboard.learningPaths.viewCertificate', 'Ver certificado')}

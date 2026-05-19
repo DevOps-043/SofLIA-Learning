@@ -60,7 +60,7 @@ export function AvailableUsersList({
           )
         })}
       </div>
-      <button onClick={onAddMembers} disabled={selectedUserIds.size === 0 || isAssigning} className="w-full py-2 px-4 rounded-lg text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" style={{ background: selectedUserIds.size > 0 && !isAssigning ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` : '#9CA3AF', textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)' }}>
+      <button onClick={onAddMembers} disabled={selectedUserIds.size === 0 || isAssigning} className="w-full py-2 px-4 rounded-lg text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" style={{ background: selectedUserIds.size > 0 && !isAssigning ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` : 'var(--color-legacy-9ca3af)', textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)' }}>
         {isAssigning ? <><Loader2 className="w-4 h-4 animate-spin" />Agregando...</> : <><UserPlus className="w-4 h-4" />Agregar {selectedUserIds.size > 0 ? `(${selectedUserIds.size})` : ''}</>}
       </button>
     </div>

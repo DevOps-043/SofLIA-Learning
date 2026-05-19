@@ -46,7 +46,7 @@ function InviteLinkRow({ link, index, onToggleStatus, onDelete }: InviteLinkRowP
           </div>
           <div className="text-center">
             <p className="text-[10px] opacity-40 uppercase mb-0.5">{t('users.card.remaining')}</p>
-            <p className="text-sm font-bold" style={{ color: remainingSlots > 0 ? primaryColor : '#EF4444' }}>
+            <p className="text-sm font-bold" style={{ color: remainingSlots > 0 ? primaryColor : 'var(--color-error)' }}>
               {remainingSlots}
             </p>
           </div>

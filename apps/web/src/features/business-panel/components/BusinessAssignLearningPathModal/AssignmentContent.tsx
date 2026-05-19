@@ -29,7 +29,7 @@ export function AssignmentContent({
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 sm:px-8">
       {error ? (
-        <div className="mb-4 rounded-2xl border px-4 py-3 text-sm" style={{ backgroundColor: `${theme.dangerColor}12`, borderColor: `${theme.dangerColor}30`, color: theme.dangerColor }}>
+        <div className="mb-4 rounded-2xl border px-4 py-3 text-sm" style={{ backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`, borderColor: `color-mix(in srgb, ${theme.dangerColor} 18.8%, transparent)`, color: theme.dangerColor }}>
           {error}
         </div>
       ) : null}

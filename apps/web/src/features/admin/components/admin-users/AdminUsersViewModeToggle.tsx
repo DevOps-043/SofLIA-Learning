@@ -54,7 +54,7 @@ export function AdminUsersViewModeToggle({
             style={{
               backgroundColor: isActive ? theme.primaryColor : 'transparent',
               color: isActive ? theme.onPrimaryColor : theme.mutedTextColor,
-              boxShadow: isActive ? `0 8px 20px ${theme.primaryColor}25` : 'none',
+              boxShadow: isActive ? `0 8px 20px color-mix(in srgb, ${theme.primaryColor} 14.5%, transparent)` : 'none',
             }}
             aria-label={label}
             title={label}

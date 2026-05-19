@@ -29,7 +29,7 @@ export function ReporteProblema({
       >
         <motion.div
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-2xl border border-[#E9ECEF] bg-white shadow-2xl dark:border-[#6C757D]/30 dark:bg-[#1E2329]"
+          className="max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-500/30 dark:bg-carbon-800"
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
         >
