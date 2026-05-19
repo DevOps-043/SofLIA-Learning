@@ -4,17 +4,20 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronUp, Plus, TrendingUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import type { LearnNotesStats, LearnSavedNote } from "./types";
+import type { LearnNoteListItem, LearnNotesStats } from "./types";
 import { NoteCard } from "./notes/NoteCard";
 
 type NotesSidebarSectionProps = {
   isCollapsed: boolean;
-  savedNotes: LearnSavedNote[];
+  savedNotes: LearnNoteListItem[];
   notesStats: LearnNotesStats;
   onToggleCollapsed: () => void;
   onCreateNote: () => void;
-  onEditNote: (note: LearnSavedNote) => void;
+  onEditNote: (note: LearnNoteListItem) => void;
   onDeleteNote: (noteId: string) => void;
+  onRegenerateSummary: (moduleId: string) => void;
+  onGenerateDefaultSummary: (moduleId: string) => void;
+  regeneratingSummaryModuleId: string | null;
 };
 
 export function NotesSidebarSection({
@@ -25,6 +28,9 @@ export function NotesSidebarSection({
   onCreateNote,
   onEditNote,
   onDeleteNote,
+  onRegenerateSummary,
+  onGenerateDefaultSummary,
+  regeneratingSummaryModuleId,
 }: NotesSidebarSectionProps) {
   const { t } = useTranslation("learn");
 
@@ -105,8 +111,28 @@ export function NotesSidebarSection({
                       note={note}
                       onEdit={onEditNote}
                       onDelete={onDeleteNote}
+                      onRegenerateSummary={onRegenerateSummary}
+                      onGenerateDefaultSummary={onGenerateDefaultSummary}
+                      isRegenerating={
+                        (note.kind === "module_learning_summary" ||
+                          note.kind === "module_learning_summary_candidate") &&
+                        regeneratingSummaryModuleId === note.moduleId
+                      }
                       editLabel={t("leftPanel.notesSection.editNote")}
                       deleteLabel={t("leftPanel.notesSection.deleteNote")}
+                      generateLabel={t("leftPanel.notesSection.generateSummary")}
+                      regenerateLabel={t("leftPanel.notesSection.regenerateSummary")}
+                      failedLabel={t("leftPanel.notesSection.summaryFailed")}
+                      versionLabel={
+                        note.kind === "module_learning_summary"
+                          ? t("leftPanel.notesSection.generatedSummaryBadge")
+                          : undefined
+                      }
+                      lockedLabel={
+                        note.kind === "module_learning_summary_candidate"
+                          ? t("leftPanel.notesSection.summaryMissing")
+                          : t("leftPanel.notesSection.summaryGenerating")
+                      }
                     />
                   ))
                 )}

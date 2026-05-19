@@ -49,6 +49,7 @@ type LessonProgressSideEffectHandler = (
     lessonId: string
     lessonTitle?: string | null
     instructorId?: string | null
+    organizationId?: string | null
     wasCompleted: boolean
     now: string
   },
@@ -74,6 +75,7 @@ function triggerLessonProgressSideEffectsAsync(
     lessonId: string
     lessonTitle?: string | null
     instructorId?: string | null
+    organizationId?: string | null
     wasCompleted: boolean
     now: string
   },
@@ -534,6 +536,7 @@ export async function completeLessonProgress(
       lessonId,
       lessonTitle: lessons[lessonIndex]?.lesson_title,
       instructorId: course.instructor_id,
+      organizationId: enrollment.organization_id || organizationId || null,
       wasCompleted,
       now,
     },

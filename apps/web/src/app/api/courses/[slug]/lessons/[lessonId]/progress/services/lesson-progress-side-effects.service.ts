@@ -12,6 +12,7 @@ interface CompletionContext {
   lessonId: string
   lessonTitle?: string | null
   instructorId?: string | null
+  organizationId?: string | null
   wasCompleted: boolean
   now: string
 }
@@ -188,11 +189,43 @@ async function handleCourseCompletion({
   }
 }
 
+async function generateModuleLearningSummary(completionContext: CompletionContext) {
+  const { supabase, userId, courseId, lessonId, organizationId } =
+    completionContext
+
+  try {
+    const { data: lesson } = await supabase
+      .from('course_lessons')
+      .select('module_id')
+      .eq('lesson_id', lessonId)
+      .maybeSingle()
+
+    if (!lesson?.module_id) {
+      return
+    }
+
+    const { ModuleLearningSummaryService } = await import(
+      '@/features/courses/services/module-learning-summary.service'
+    )
+
+    await ModuleLearningSummaryService.ensureDefaultSummaryForCompletedModule({
+      courseId,
+      moduleId: lesson.module_id,
+      organizationId,
+      supabase,
+      userId,
+    })
+  } catch (error) {
+    logger.error('Error generando apunte de aprendizaje del modulo:', error)
+  }
+}
+
 export function triggerLessonProgressSideEffects(
   completionContext: CompletionContext,
   overallProgress: number,
 ) {
   fireAndForget(() => notifyLessonCompleted(completionContext))
+  fireAndForget(() => generateModuleLearningSummary(completionContext))
 
   if (overallProgress === 100) {
     fireAndForget(() => handleCourseCompletion(completionContext))

@@ -3,6 +3,8 @@ import {
   Award,
   BarChart2,
   Building2,
+  Check,
+  ChevronRight,
   CalendarDays,
   CalendarPlus,
   Globe,
@@ -18,6 +20,7 @@ import { LANGUAGE_OPTIONS, THEME_OPTIONS } from './constants';
 import { ModernNavbarAvatar } from './ModernNavbarAvatar';
 import { buildStudyPlannerEntryPath } from './service';
 import type { ModernNavbarColors, ModernNavbarOrganization, ModernNavbarUser } from './types';
+import { useOrganization, type Organization } from '../../../../../../core/hooks/useOrganization';
 
 interface ModernNavbarMobileMenuProps {
   canAccessAdminPanel: boolean;
@@ -72,6 +75,25 @@ export function ModernNavbarMobileMenu({
   disableHeavyEffects = false,
   showOrganizations,
 }: ModernNavbarMobileMenuProps) {
+  const {
+    currentOrganization,
+    organizations,
+    canSwitch,
+    switchOrganization,
+  } = useOrganization();
+
+  const handleOrganizationSwitch = (targetOrganization: Organization) => {
+    if (targetOrganization.id !== currentOrganization?.id) {
+      switchOrganization(targetOrganization.slug);
+    }
+    onClose();
+  };
+
+  const getOrganizationRoleLabel = (role?: Organization['role']) => {
+    if (!role) return t('common:profileDropdown.orgRoles.member');
+    return t(`common:profileDropdown.orgRoles.${role}`);
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -112,6 +134,83 @@ export function ModernNavbarMobileMenu({
                 <p className="text-xs truncate opacity-70" style={{ color: colors.text }}>{user?.email || ''}</p>
               </div>
             </div>
+
+            {showOrganizations && currentOrganization && (
+              <div
+                className="rounded-xl p-3"
+                style={{
+                  background: `linear-gradient(135deg, ${colors.primary}14, ${colors.accent}10)`,
+                  border: `1px solid ${colors.border}`,
+                }}
+              >
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <MobileOrganizationMark organization={currentOrganization} colors={colors} />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold" style={{ color: colors.text }}>
+                        {currentOrganization.name}
+                      </p>
+                      <p className="truncate text-xs opacity-70" style={{ color: colors.text }}>
+                        {getOrganizationRoleLabel(currentOrganization.role)}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className="shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold"
+                    style={{ backgroundColor: `${colors.accent}18`, color: colors.accent }}
+                  >
+                    {t('common:profileDropdown.currentOrganization')}
+                  </span>
+                </div>
+
+                {canSwitch && organizations.length > 1 && (
+                  <div className="space-y-1">
+                    <p className="px-1 text-[11px] font-semibold uppercase tracking-wide opacity-70" style={{ color: colors.text }}>
+                      {t('common:profileDropdown.quickSwitch')}
+                    </p>
+                    <div className="max-h-44 space-y-1 overflow-y-auto pr-1">
+                      {organizations.slice(0, 5).map((targetOrganization) => {
+                        const isActive = targetOrganization.id === currentOrganization.id;
+
+                        return (
+                          <button
+                            key={targetOrganization.id}
+                            type="button"
+                            onClick={() => handleOrganizationSwitch(targetOrganization)}
+                            className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left transition-colors"
+                            style={{
+                              backgroundColor: isActive ? `${colors.accent}14` : 'transparent',
+                              color: colors.text,
+                            }}
+                            aria-current={isActive ? 'true' : undefined}
+                          >
+                            <MobileOrganizationMark organization={targetOrganization} colors={colors} compact />
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-xs font-semibold">
+                                {targetOrganization.name}
+                              </span>
+                              <span className="block truncate text-[11px] opacity-70">
+                                {getOrganizationRoleLabel(targetOrganization.role)}
+                              </span>
+                            </span>
+                            {isActive ? (
+                              <Check className="h-4 w-4 shrink-0" style={{ color: colors.accent }} />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 shrink-0 opacity-50" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {organizations.length > 5 && (
+                      <p className="px-1 pt-1 text-[11px] opacity-70" style={{ color: colors.text }}>
+                        {t('common:profileDropdown.moreOrganizations', { count: organizations.length - 5 })}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {canAccessAdminPanel && (
               <motion.button
@@ -322,5 +421,34 @@ export function ModernNavbarMobileMenu({
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+interface MobileOrganizationMarkProps {
+  organization: Organization;
+  colors: ModernNavbarColors;
+  compact?: boolean;
+}
+
+function MobileOrganizationMark({ organization, colors, compact = false }: MobileOrganizationMarkProps) {
+  const logoUrl = organization.brandLogoUrl || organization.logoUrl;
+  const sizeClassName = compact ? 'h-8 w-8 rounded-lg text-xs' : 'h-10 w-10 rounded-xl text-sm';
+
+  if (logoUrl) {
+    return (
+      <span className={`shrink-0 overflow-hidden ${sizeClassName}`} style={{ backgroundColor: colors.cardBg }}>
+        <img src={logoUrl} alt="" className="h-full w-full object-cover" />
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className={`flex shrink-0 items-center justify-center font-bold text-white shadow-sm ${sizeClassName}`}
+      style={{ background: `linear-gradient(135deg, ${organization.brandColorPrimary || colors.primary}, ${colors.accent})` }}
+      aria-hidden="true"
+    >
+      {organization.name.charAt(0).toUpperCase()}
+    </span>
   );
 }

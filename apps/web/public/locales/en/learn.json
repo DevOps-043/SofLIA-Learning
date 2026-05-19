@@ -49,7 +49,17 @@
       "notesCreated": "Notes created",
       "lessonsWithNotes": "Lessons with notes",
       "lastUpdate": "Last update",
-      "viewNotes": "View notes"
+      "viewNotes": "View notes",
+      "generatedSummaryBadge": "SofLIA note",
+      "generateSummary": "Generate note",
+      "regenerateSummary": "Regenerate note",
+      "summaryVersion": "Version {{version}} of {{total}}",
+      "summaryMissing": "Module completed. SofLIA can generate your learning note.",
+      "summaryGenerating": "SofLIA is generating this note.",
+      "summaryFailed": "Could not generate this note.",
+      "summaryLimitReached": "Regeneration limit reached",
+      "previousSummary": "Previous note",
+      "nextSummary": "Next note"
     }
   },
   "tabs": {

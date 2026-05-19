@@ -6797,6 +6797,122 @@ export type Database = {
           },
         ]
       }
+      module_learning_summaries: {
+        Row: {
+          content_html: string
+          content_markdown: string
+          course_id: string
+          created_at: string
+          error_message: string | null
+          generated_at: string | null
+          generation_type: string
+          last_error_code: string | null
+          locked_by: string | null
+          locked_until: string | null
+          model_name: string | null
+          model_provider: string
+          module_id: string
+          next_retry_at: string
+          organization_id: string | null
+          processing_finished_at: string | null
+          processing_started_at: string | null
+          prompt_version: string
+          retry_count: number
+          source_snapshot: Json
+          status: string
+          summary_id: string
+          title: string
+          updated_at: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          content_html?: string
+          content_markdown?: string
+          course_id: string
+          created_at?: string
+          error_message?: string | null
+          generated_at?: string | null
+          generation_type?: string
+          last_error_code?: string | null
+          locked_by?: string | null
+          locked_until?: string | null
+          model_name?: string | null
+          model_provider?: string
+          module_id: string
+          next_retry_at?: string
+          organization_id?: string | null
+          processing_finished_at?: string | null
+          processing_started_at?: string | null
+          prompt_version?: string
+          retry_count?: number
+          source_snapshot?: Json
+          status?: string
+          summary_id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          version: number
+        }
+        Update: {
+          content_html?: string
+          content_markdown?: string
+          course_id?: string
+          created_at?: string
+          error_message?: string | null
+          generated_at?: string | null
+          generation_type?: string
+          last_error_code?: string | null
+          locked_by?: string | null
+          locked_until?: string | null
+          model_name?: string | null
+          model_provider?: string
+          module_id?: string
+          next_retry_at?: string
+          organization_id?: string | null
+          processing_finished_at?: string | null
+          processing_started_at?: string | null
+          prompt_version?: string
+          retry_count?: number
+          source_snapshot?: Json
+          status?: string
+          summary_id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_learning_summaries_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "module_learning_summaries_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "course_modules"
+            referencedColumns: ["module_id"]
+          },
+          {
+            foreignKeyName: "module_learning_summaries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "module_learning_summaries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_lesson_notes: {
         Row: {
           created_at: string | null

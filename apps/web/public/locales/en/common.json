@@ -1411,6 +1411,7 @@
     "modal": {
       "createTitle": "Study > Notes",
       "editTitle": "Edit note",
+      "readOnlyTitle": "Learning note",
       "deleteTitle": "Delete note",
       "exportPdfError": "Error exporting PDF",
       "titlePlaceholder": "Note title...",
@@ -1430,7 +1431,11 @@
         "alignLeft": "Align left",
         "alignCenter": "Center",
         "alignRight": "Align right",
-        "exportPdf": "Export as PDF"
+        "exportPdf": "Export as PDF",
+        "copy": "Copy note",
+        "copyShort": "Copy",
+        "duplicateNote": "Duplicate Note",
+        "regenerate": "Regenerate"
       }
     },
     "pdf": {
@@ -1446,6 +1451,9 @@
     "organizations": "My organizations",
     "certificates": "Certificates",
     "viewAllOrganizations": "View all",
+    "currentOrganization": "Current",
+    "quickSwitch": "Quick switch",
+    "moreOrganizations": "+{{count}} more on the full page",
     "theme": "Theme",
     "certificatesObtained_one": "{{count}} earned",
     "certificatesObtained_other": "{{count}} earned",

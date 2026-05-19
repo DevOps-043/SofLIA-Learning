@@ -1411,6 +1411,7 @@
     "modal": {
       "createTitle": "Estudio > Notas",
       "editTitle": "Editar nota",
+      "readOnlyTitle": "Apunte de aprendizaje",
       "deleteTitle": "Eliminar nota",
       "exportPdfError": "Error al exportar PDF",
       "titlePlaceholder": "Titulo de la nota...",
@@ -1430,7 +1431,11 @@
         "alignLeft": "Alinear izquierda",
         "alignCenter": "Centrar",
         "alignRight": "Alinear derecha",
-        "exportPdf": "Exportar como PDF"
+        "exportPdf": "Exportar como PDF",
+        "copy": "Copiar apunte",
+        "copyShort": "Copiar",
+        "duplicateNote": "Duplicar Nota",
+        "regenerate": "Regenerar"
       }
     },
     "pdf": {
@@ -1446,6 +1451,9 @@
     "organizations": "Mis organizaciones",
     "certificates": "Certificados",
     "viewAllOrganizations": "Ver todas",
+    "currentOrganization": "Actual",
+    "quickSwitch": "Cambio rapido",
+    "moreOrganizations": "+{{count}} mas en la pagina completa",
     "theme": "Tema",
     "certificatesObtained_one": "{{count}} obtenido",
     "certificatesObtained_other": "{{count}} obtenidos",

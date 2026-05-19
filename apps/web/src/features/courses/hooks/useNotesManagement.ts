@@ -7,14 +7,18 @@ import type {
   LearnLesson,
   LearnModule,
   LearnNoteFormData,
+  LearnNoteListItem,
   LearnNotesStats,
   LearnSavedNote,
+  LearnGeneratedModuleSummary,
+  LearnModuleSummaryCandidate,
 } from "../components/learn/types";
 import {
   buildLiaDraftNote,
   buildSavedNoteFromMutation,
   formatNoteTimestamp,
   getDefaultNotesStats,
+  mapApiSummaryToGeneratedNote,
   mapApiNoteToSavedNote,
   normalizeNoteFormData,
 } from "../components/learn/notes/utils";
@@ -28,6 +32,11 @@ type UseNotesManagementParams = {
 };
 
 const NOTE_DELETE_TIMEOUT_MS = 20000;
+
+type ModuleLearningSummariesLoadResult = {
+  listItems: Array<LearnGeneratedModuleSummary | LearnModuleSummaryCandidate>;
+  summaries: LearnGeneratedModuleSummary[];
+};
 
 function getErrorMessage(data: unknown, fallback: string): string {
   if (!data || typeof data !== "object") {
@@ -73,6 +82,88 @@ function isAbortError(error: unknown): boolean {
   return typeof name === "string" && name === "AbortError";
 }
 
+function isModuleCompleted(module: LearnModule): boolean {
+  return (
+    module.lessons.length > 0 &&
+    module.lessons.every((lesson) => Boolean(lesson.is_completed))
+  );
+}
+
+function buildModuleSummaryCandidate(
+  module: LearnModule
+): LearnModuleSummaryCandidate {
+  return {
+    kind: "module_learning_summary_candidate",
+    id: `module-learning-summary-candidate-${module.module_id}`,
+    moduleId: module.module_id,
+    moduleTitle: module.module_title,
+    title: `Apunte SofLIA: ${module.module_title}`,
+    content: "",
+    timestamp: "Ahora",
+  };
+}
+
+function getLatestSummaryPerModule(
+  summaries: LearnGeneratedModuleSummary[]
+): LearnGeneratedModuleSummary[] {
+  const latestSummaryByModuleId = new Map<string, LearnGeneratedModuleSummary>();
+
+  summaries.forEach((summary) => {
+    const currentLatest = latestSummaryByModuleId.get(summary.moduleId);
+
+    if (!currentLatest || summary.version > currentLatest.version) {
+      latestSummaryByModuleId.set(summary.moduleId, summary);
+    }
+  });
+
+  return Array.from(latestSummaryByModuleId.values()).sort((left, right) => {
+    const leftTitle = left.moduleTitle || left.title;
+    const rightTitle = right.moduleTitle || right.title;
+    return leftTitle.localeCompare(rightTitle);
+  });
+}
+
+function buildModuleSummaryListItems(
+  summaries: LearnGeneratedModuleSummary[],
+  completedSummaryCandidates: LearnModuleSummaryCandidate[]
+): Array<LearnGeneratedModuleSummary | LearnModuleSummaryCandidate> {
+  const latestSummaries = getLatestSummaryPerModule(summaries);
+  const summaryModuleIds = new Set(
+    latestSummaries.map((summary) => summary.moduleId)
+  );
+  const missingDefaultCandidates = completedSummaryCandidates.filter(
+    (candidate) => !summaryModuleIds.has(candidate.moduleId)
+  );
+
+  return [...latestSummaries, ...missingDefaultCandidates];
+}
+
+function upsertGeneratedSummaryVersion(
+  summaries: LearnGeneratedModuleSummary[],
+  nextSummary: LearnGeneratedModuleSummary
+): LearnGeneratedModuleSummary[] {
+  const existingIndex = summaries.findIndex(
+    (summary) => summary.id === nextSummary.id
+  );
+  const nextSummaries =
+    existingIndex >= 0
+      ? summaries.map((summary, index) =>
+          index === existingIndex ? nextSummary : summary
+        )
+      : [...summaries, nextSummary];
+
+  return sortGeneratedSummaryVersions(nextSummaries);
+}
+
+function sortGeneratedSummaryVersions(
+  summaries: LearnGeneratedModuleSummary[]
+): LearnGeneratedModuleSummary[] {
+  return [...summaries].sort((left, right) => {
+    const moduleComparison = left.moduleId.localeCompare(right.moduleId);
+    return moduleComparison || left.version - right.version;
+  });
+}
+
 async function fetchWithTimeout(
   input: RequestInfo | URL,
   init: RequestInit,
@@ -100,7 +191,10 @@ export function useNotesManagement({
   isNotesCollapsed,
   closeLia,
 }: UseNotesManagementParams) {
-  const [savedNotes, setSavedNotes] = useState<LearnSavedNote[]>([]);
+  const [savedNotes, setSavedNotes] = useState<LearnNoteListItem[]>([]);
+  const [generatedSummaryVersions, setGeneratedSummaryVersions] = useState<
+    LearnGeneratedModuleSummary[]
+  >([]);
   const [notesStats, setNotesStats] = useState<LearnNotesStats>({
     totalNotes: 0,
     lessonsWithNotes: "0/0",
@@ -115,9 +209,14 @@ export function useNotesManagement({
   const [editingNote, setEditingNote] = useState<LearnEditableNote | null>(
     null
   );
+  const [viewingGeneratedSummary, setViewingGeneratedSummary] =
+    useState<LearnGeneratedModuleSummary | null>(null);
+  const [regeneratingSummaryModuleId, setRegeneratingSummaryModuleId] =
+    useState<string | null>(null);
   const [noteError, setNoteError] = useState<string | null>(null);
 
   const loadedCourseSlugRef = useRef<string | null>(null);
+  const completedSummaryCandidateSignatureRef = useRef<string>("");
   const statsRefreshTimeoutRef = useRef<number | null>(null);
 
   const totalLessons = useMemo(
@@ -135,6 +234,36 @@ export function useNotesManagement({
 
     return nextLessonTitleById;
   }, [modules]);
+  const moduleTitleById = useMemo(() => {
+    const nextModuleTitleById = new Map<string, string>();
+
+    modules.forEach((module) => {
+      nextModuleTitleById.set(module.module_id, module.module_title);
+    });
+
+    return nextModuleTitleById;
+  }, [modules]);
+  const completedSummaryCandidates = useMemo(
+    () => modules.filter(isModuleCompleted).map(buildModuleSummaryCandidate),
+    [modules]
+  );
+  const completedSummaryCandidateSignature = useMemo(
+    () =>
+      completedSummaryCandidates
+        .map((candidate) => candidate.moduleId)
+        .sort()
+        .join("|"),
+    [completedSummaryCandidates]
+  );
+  const hasGeneratingModuleSummary = useMemo(
+    () =>
+      savedNotes.some(
+        (note) =>
+          note.kind === "module_learning_summary" &&
+          note.status === "generating"
+      ),
+    [savedNotes]
+  );
 
   const clearStatsRefreshTimeout = useCallback(() => {
     if (statsRefreshTimeoutRef.current !== null) {
@@ -205,12 +334,67 @@ export function useNotesManagement({
     }, 500);
   }, [clearStatsRefreshTimeout, loadNotesStats, slug]);
 
+  const loadModuleLearningSummaries = useCallback(
+    async (courseSlug: string): Promise<ModuleLearningSummariesLoadResult> => {
+      if (modules.length === 0) {
+        return { listItems: [], summaries: [] };
+      }
+
+      try {
+        const moduleIds = modules
+          .map((module) => module.module_id)
+          .filter(Boolean)
+          .join(",");
+        const response = await fetch(
+          `/api/courses/${courseSlug}/learning-summaries?moduleIds=${encodeURIComponent(
+            moduleIds
+          )}`,
+          {
+            cache: "no-store",
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          return { listItems: completedSummaryCandidates, summaries: [] };
+        }
+
+        const payload = (await response.json()) as {
+          summaries?: unknown[];
+        };
+        const summaries = (payload.summaries || [])
+          .map((summary) => mapApiSummaryToGeneratedNote(summary, moduleTitleById))
+          .filter(
+            (summary): summary is LearnGeneratedModuleSummary =>
+              summary !== null
+          );
+
+        return {
+          listItems: buildModuleSummaryListItems(
+            summaries,
+            completedSummaryCandidates
+          ),
+          summaries,
+        };
+      } catch {
+        return { listItems: completedSummaryCandidates, summaries: [] };
+      }
+    },
+    [completedSummaryCandidates, moduleTitleById, modules]
+  );
+
   const loadCourseNotes = useCallback(async (courseSlug: string) => {
     try {
-      const response = await fetch(`/api/courses/${courseSlug}/notes`, {
+      const [response, generatedSummariesResult] = await Promise.all([
+        fetch(`/api/courses/${courseSlug}/notes`, {
         cache: "no-store",
         credentials: "include",
-      });
+        }),
+        loadModuleLearningSummaries(courseSlug),
+      ]);
+      setGeneratedSummaryVersions(
+        sortGeneratedSummaryVersions(generatedSummariesResult.summaries)
+      );
 
       if (response.ok) {
         const notes = (await response.json()) as unknown[];
@@ -222,19 +406,20 @@ export function useNotesManagement({
             lessonTitle: lessonTitleById.get(note.lessonId),
           }));
 
-        setSavedNotes(mappedNotes);
+        setSavedNotes([...generatedSummariesResult.listItems, ...mappedNotes]);
         loadedCourseSlugRef.current = courseSlug;
         return;
       }
 
       if (response.status === 401 || response.status === 404) {
-        setSavedNotes([]);
+        setSavedNotes(generatedSummariesResult.listItems);
         loadedCourseSlugRef.current = courseSlug;
       }
     } catch {
       setSavedNotes([]);
+      setGeneratedSummaryVersions([]);
     }
-  }, [lessonTitleById]);
+  }, [lessonTitleById, loadModuleLearningSummaries]);
 
   const updateNotesStatsOptimized = useCallback(
     async (operation: "create" | "update" | "delete", lessonId?: string) => {
@@ -300,7 +485,10 @@ export function useNotesManagement({
 
       setSavedNotes((previous) => {
         const existingIndex = previous.findIndex(
-          (note) => note.id === enrichedNote.id
+          (note) =>
+            note.kind !== "module_learning_summary" &&
+            note.kind !== "module_learning_summary_candidate" &&
+            note.id === enrichedNote.id
         );
 
         if (existingIndex >= 0) {
@@ -316,12 +504,20 @@ export function useNotesManagement({
   );
 
   const removeNoteFromLocalState = useCallback((noteId: string) => {
-    setSavedNotes((previous) => previous.filter((note) => note.id !== noteId));
+    setSavedNotes((previous) =>
+      previous.filter(
+        (note) =>
+          note.kind === "module_learning_summary" ||
+          note.kind === "module_learning_summary_candidate" ||
+          note.id !== noteId
+      )
+    );
   }, []);
 
   const closeNotesModal = useCallback(() => {
     setIsNotesModalOpen(false);
     setEditingNote(null);
+    setViewingGeneratedSummary(null);
   }, []);
 
   const closeDeleteNoteConfirm = useCallback(() => {
@@ -331,12 +527,25 @@ export function useNotesManagement({
 
   const openNewNoteModal = useCallback(() => {
     setEditingNote(null);
+    setViewingGeneratedSummary(null);
     closeLia();
     setIsNotesModalOpen(true);
   }, [closeLia]);
 
   const openEditNoteModal = useCallback(
-    (note: LearnSavedNote) => {
+    (note: LearnNoteListItem) => {
+      if (note.kind === "module_learning_summary") {
+        setEditingNote(null);
+        setViewingGeneratedSummary(note);
+        closeLia();
+        setIsNotesModalOpen(true);
+        return;
+      }
+
+      if (note.kind === "module_learning_summary_candidate") {
+        return;
+      }
+
       setEditingNote({
         id: note.id,
         lessonId: note.lessonId,
@@ -350,8 +559,24 @@ export function useNotesManagement({
     [closeLia]
   );
 
+  const duplicateGeneratedSummary = useCallback(
+    (summary: LearnGeneratedModuleSummary) => {
+      setViewingGeneratedSummary(null);
+      setEditingNote({
+        id: "",
+        title: summary.title,
+        content: summary.fullContent,
+        tags: ["SofLIA", "Apunte"],
+      });
+      closeLia();
+      setIsNotesModalOpen(true);
+    },
+    [closeLia]
+  );
+
   const openLiaNoteModal = useCallback(
     (content: string) => {
+      setViewingGeneratedSummary(null);
       setEditingNote(
         buildLiaDraftNote(content, {
           lessonId: currentLesson?.lesson_id,
@@ -456,11 +681,91 @@ export function useNotesManagement({
 
   const handleDeleteNote = useCallback(
     (noteId: string) => {
-      const note = savedNotes.find((savedNote) => savedNote.id === noteId);
+      const note = savedNotes.find(
+        (savedNote) =>
+          savedNote.kind !== "module_learning_summary" &&
+          savedNote.kind !== "module_learning_summary_candidate" &&
+          savedNote.id === noteId
+      ) as LearnSavedNote | undefined;
       setNoteToDelete(note || null);
       setIsDeleteNoteConfirmOpen(true);
     },
     [savedNotes]
+  );
+
+  const generateModuleSummary = useCallback(
+    async (
+      moduleId: string,
+      generationType: "default" | "manual_regeneration" = "manual_regeneration"
+    ) => {
+      if (!slug || regeneratingSummaryModuleId) {
+        return false;
+      }
+
+      setRegeneratingSummaryModuleId(moduleId);
+
+      try {
+        const response = await fetch(
+          `/api/courses/${slug}/modules/${moduleId}/learning-summaries`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ generationType }),
+          }
+        );
+        const payload = (await response.json().catch(() => ({}))) as {
+          error?: string;
+          summary?: unknown;
+        };
+
+        if (!response.ok) {
+          setNoteError(payload.error || "No fue posible regenerar el apunte");
+          return false;
+        }
+
+        const generatedSummary = mapApiSummaryToGeneratedNote(
+          payload.summary,
+          moduleTitleById
+        );
+
+        if (generatedSummary) {
+          setGeneratedSummaryVersions((previous) =>
+            upsertGeneratedSummaryVersion(previous, generatedSummary)
+          );
+          setSavedNotes((previous) => [
+            generatedSummary,
+            ...previous.filter(
+              (note) =>
+                !(
+                  (note.kind === "module_learning_summary_candidate" &&
+                    note.moduleId === moduleId) ||
+                  (note.kind === "module_learning_summary" &&
+                    note.moduleId === moduleId)
+                )
+            ),
+          ]);
+          setViewingGeneratedSummary(generatedSummary);
+          setIsNotesModalOpen(true);
+        }
+
+        return true;
+      } catch {
+        setNoteError("No fue posible regenerar el apunte");
+        return false;
+      } finally {
+        setRegeneratingSummaryModuleId(null);
+      }
+    },
+    [moduleTitleById, regeneratingSummaryModuleId, slug]
+  );
+  const regenerateModuleSummary = useCallback(
+    (moduleId: string) => generateModuleSummary(moduleId, "manual_regeneration"),
+    [generateModuleSummary]
+  );
+  const generateDefaultModuleSummary = useCallback(
+    (moduleId: string) => generateModuleSummary(moduleId, "default"),
+    [generateModuleSummary]
   );
 
   const confirmDeleteNote = useCallback(async () => {
@@ -537,6 +842,7 @@ export function useNotesManagement({
   useEffect(() => {
     if (!slug) {
       setSavedNotes([]);
+      setGeneratedSummaryVersions([]);
       loadedCourseSlugRef.current = null;
       return;
     }
@@ -546,6 +852,16 @@ export function useNotesManagement({
       loadedCourseSlugRef.current !== slug
     ) {
       setSavedNotes([]);
+      setGeneratedSummaryVersions([]);
+      loadedCourseSlugRef.current = null;
+    }
+
+    if (
+      completedSummaryCandidateSignatureRef.current !==
+      completedSummaryCandidateSignature
+    ) {
+      completedSummaryCandidateSignatureRef.current =
+        completedSummaryCandidateSignature;
       loadedCourseSlugRef.current = null;
     }
 
@@ -554,7 +870,42 @@ export function useNotesManagement({
     }
 
     void loadCourseNotes(slug);
-  }, [isNotesCollapsed, loadCourseNotes, slug]);
+  }, [
+    completedSummaryCandidateSignature,
+    isNotesCollapsed,
+    loadCourseNotes,
+    slug,
+  ]);
+
+  useEffect(() => {
+    if (!slug || isNotesCollapsed || !hasGeneratingModuleSummary) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      void loadCourseNotes(slug);
+    }, 4000);
+
+    return () => window.clearInterval(intervalId);
+  }, [hasGeneratingModuleSummary, isNotesCollapsed, loadCourseNotes, slug]);
+
+  useEffect(() => {
+    if (!viewingGeneratedSummary) {
+      return;
+    }
+
+    const updatedSummary = generatedSummaryVersions.find(
+      (note): note is LearnGeneratedModuleSummary =>
+        note.id === viewingGeneratedSummary.id
+    );
+
+    if (
+      updatedSummary &&
+      updatedSummary.updatedAt !== viewingGeneratedSummary.updatedAt
+    ) {
+      setViewingGeneratedSummary(updatedSummary);
+    }
+  }, [generatedSummaryVersions, viewingGeneratedSummary]);
 
   useEffect(() => clearStatsRefreshTimeout, [clearStatsRefreshTimeout]);
 
@@ -564,6 +915,7 @@ export function useNotesManagement({
     closeDeleteNoteConfirm,
     closeNotesModal,
     confirmDeleteNote,
+    duplicateGeneratedSummary,
     editingNote,
     handleDeleteNote,
     handleSaveNote,
@@ -577,7 +929,12 @@ export function useNotesManagement({
     openEditNoteModal,
     openLiaNoteModal,
     openNewNoteModal,
+    generateDefaultModuleSummary,
+    generatedSummaryVersions,
+    regenerateModuleSummary,
+    regeneratingSummaryModuleId,
     savedNotes,
     updateNotesStatsOptimized,
+    viewingGeneratedSummary,
   };
 }

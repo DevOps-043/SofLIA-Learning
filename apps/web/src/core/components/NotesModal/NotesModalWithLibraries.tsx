@@ -47,7 +47,6 @@ export function NotesModalWithLibraries(props: NotesModalProps) {
         editor={editor}
         isEditing={Boolean(props.isEditing)}
         isOpen={props.isOpen}
-        onClose={props.onClose}
         onExportPdf={handleExportPdf}
         onDelete={() => props.onDelete && props.initialNote?.id ? props.onDelete(props.initialNote.id) : undefined}
         variant="libraries"

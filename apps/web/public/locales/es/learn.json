@@ -49,7 +49,17 @@
       "notesCreated": "Notas creadas",
       "lessonsWithNotes": "Lecciones con notas",
       "lastUpdate": "Última actualización",
-      "viewNotes": "Ver notas"
+      "viewNotes": "Ver notas",
+      "generatedSummaryBadge": "Apunte SofLIA",
+      "generateSummary": "Generar apunte",
+      "regenerateSummary": "Regenerar apunte",
+      "summaryVersion": "Version {{version}} de {{total}}",
+      "summaryMissing": "Modulo completado. SofLIA puede generar tu apunte de aprendizaje.",
+      "summaryGenerating": "SofLIA esta generando este apunte.",
+      "summaryFailed": "No fue posible generar este apunte.",
+      "summaryLimitReached": "Limite de regeneraciones alcanzado",
+      "previousSummary": "Apunte anterior",
+      "nextSummary": "Siguiente apunte"
     }
   },
   "tabs": {

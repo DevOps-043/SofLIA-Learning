@@ -2,6 +2,8 @@
 
 import type {
   LearnEditableNote,
+  LearnGeneratedModuleSummary,
+  LearnNoteListItem,
   LearnNoteFormData,
   LearnNotesStats,
   LearnSavedNote,
@@ -9,6 +11,15 @@ import type {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function getNumber(
+  record: Record<string, unknown>,
+  key: string
+): number | undefined {
+  const value = record[key];
+
+  return typeof value === "number" ? value : undefined;
 }
 
 function getString(
@@ -210,6 +221,59 @@ export function mapApiNoteToSavedNote(note: unknown): LearnSavedNote | null {
   );
 }
 
+export function mapApiSummaryToGeneratedNote(
+  summary: unknown,
+  moduleTitleById: Map<string, string>
+): LearnGeneratedModuleSummary | null {
+  if (!isRecord(summary)) {
+    return null;
+  }
+
+  const id = getString(summary, "summary_id");
+  const moduleId = getString(summary, "module_id");
+  const title = getString(summary, "title");
+  const status = getString(summary, "status");
+  const version = getNumber(summary, "version") || 1;
+  const contentHtml = getString(summary, "content_html") || "";
+  const rawErrorMessage = getString(summary, "error_message") || null;
+  const generationType = getString(summary, "generation_type");
+  const timestampSource =
+    getString(summary, "generated_at") ||
+    getString(summary, "updated_at") ||
+    getString(summary, "created_at");
+
+  if (!id || !moduleId || !title) {
+    return null;
+  }
+
+  const normalizedStatus =
+    status === "generating" || status === "failed" || status === "ready"
+      ? status
+      : "failed";
+  const errorMessage = normalizedStatus === "failed" ? rawErrorMessage : null;
+
+  return {
+    kind: "module_learning_summary",
+    id,
+    moduleId,
+    moduleTitle: moduleTitleById.get(moduleId),
+    title,
+    content:
+      normalizedStatus === "ready"
+        ? generateNotePreview(contentHtml, 70)
+        : errorMessage || "",
+    fullContent: contentHtml,
+    timestamp: formatNoteTimestamp(timestampSource || new Date().toISOString()),
+    updatedAt: timestampSource,
+    version,
+    status: normalizedStatus,
+    generationType:
+      generationType === "manual_regeneration" ? generationType : "default",
+    errorMessage,
+    canRegenerate: version < 4 && normalizedStatus !== "generating",
+  };
+}
+
 export function buildSavedNoteFromMutation(
   note: unknown,
   lessonId: string
@@ -236,7 +300,7 @@ export function buildSavedNoteFromMutation(
   );
 }
 
-export function getNotePreviewText(note: LearnSavedNote): string {
+export function getNotePreviewText(note: LearnNoteListItem): string {
   return note.content || generateNotePreview(note.fullContent || "", 50);
 }
 
