@@ -393,6 +393,7 @@
     "viewTour": "Ver Tour",
     "restartTour": "Ver Tour",
     "userPanel": "Panel Usuario",
+    "notebook": "Libro de apuntes",
     "logout": "Cerrar sesión",
     "myCourses": "Mis cursos",
     "profile": "Editar perfil"
@@ -1461,6 +1462,55 @@
       "owner": "Propietario",
       "admin": "Admin",
       "member": "Miembro"
+    }
+  },
+  "notebook": {
+    "pageTitle": "Libro de apuntes",
+    "pageSubtitle": "Todas tus notas y apuntes SofLIA en un solo lugar",
+    "tabs": {
+      "all": "Todas",
+      "byCourse": "Por taller"
+    },
+    "card": {
+      "manualNote": "Nota manual",
+      "sofliaSummary": "Apunte SofLIA",
+      "lesson": "Lección",
+      "module": "Módulo",
+      "course": "Taller",
+      "version": "Versión {{version}}",
+      "generating": "Generando...",
+      "lastUpdate": "Última actualización"
+    },
+    "modal": {
+      "readTitle": "Vista de lectura",
+      "editTitle": "Editar nota",
+      "editButton": "Editar",
+      "saveButton": "Guardar cambios",
+      "cancelButton": "Cancelar",
+      "duplicateButton": "Duplicar como nota editable",
+      "duplicateSuccess": "Apunte duplicado como nota editable.",
+      "duplicateError": "No se pudo duplicar el apunte.",
+      "saving": "Guardando...",
+      "titleLabel": "Título",
+      "contentLabel": "Contenido"
+    },
+    "courseFilter": {
+      "selectCourse": "Selecciona un taller",
+      "allCourses": "Todos los talleres",
+      "notesCount": "{{count}} notas",
+      "summariesCount": "{{count}} apuntes SofLIA"
+    },
+    "empty": {
+      "title": "Sin apuntes todavía",
+      "description": "Tus notas manuales y apuntes SofLIA aparecerán aquí cuando los crees desde un taller.",
+      "courseEmpty": "No hay apuntes para este taller."
+    },
+    "loading": "Cargando apuntes...",
+    "loadMore": "Ver más",
+    "error": {
+      "title": "Error al cargar",
+      "description": "No pudimos cargar tus apuntes. Intenta de nuevo.",
+      "retry": "Reintentar"
     }
   }
 }

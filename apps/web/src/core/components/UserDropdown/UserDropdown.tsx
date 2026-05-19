@@ -26,6 +26,7 @@ import {
   Check,
   BarChart3,
   Award,
+  BookOpen,
   LucideIcon
 } from 'lucide-react'
 import { cn } from '@/shared/utils/cn'
@@ -433,6 +434,15 @@ export const UserDropdown = React.memo(function UserDropdown({
                   label={t('menu.certificates')}
                   onClick={() => handleNavigation('/certificates')}
                 />
+
+                {/* Notebook (Libro de Apuntes) - B2B only */}
+                {currentOrganization?.slug && (
+                  <MenuItem
+                    icon={BookOpen}
+                    label={t('menu.notebook')}
+                    onClick={() => handleNavigation(`/${currentOrganization.slug}/business-user/notebook`)}
+                  />
+                )}
 
                 {/* Edit Profile */}
                 <MenuItem

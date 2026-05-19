@@ -393,6 +393,7 @@
     "viewTour": "View Tour",
     "restartTour": "Restart Tour",
     "userPanel": "User Panel",
+    "notebook": "Notebook",
     "logout": "Sign out",
     "myCourses": "My courses",
     "profile": "Edit profile"
@@ -1461,6 +1462,55 @@
       "owner": "Owner",
       "admin": "Admin",
       "member": "Member"
+    }
+  },
+  "notebook": {
+    "pageTitle": "Notebook",
+    "pageSubtitle": "All your notes and SofLIA summaries in one place",
+    "tabs": {
+      "all": "All",
+      "byCourse": "By workshop"
+    },
+    "card": {
+      "manualNote": "Manual note",
+      "sofliaSummary": "SofLIA summary",
+      "lesson": "Lesson",
+      "module": "Module",
+      "course": "Workshop",
+      "version": "Version {{version}}",
+      "generating": "Generating...",
+      "lastUpdate": "Last update"
+    },
+    "modal": {
+      "readTitle": "Reading view",
+      "editTitle": "Edit note",
+      "editButton": "Edit",
+      "saveButton": "Save changes",
+      "cancelButton": "Cancel",
+      "duplicateButton": "Duplicate as editable note",
+      "duplicateSuccess": "Summary duplicated as editable note.",
+      "duplicateError": "Could not duplicate the summary.",
+      "saving": "Saving...",
+      "titleLabel": "Title",
+      "contentLabel": "Content"
+    },
+    "courseFilter": {
+      "selectCourse": "Select a workshop",
+      "allCourses": "All workshops",
+      "notesCount": "{{count}} notes",
+      "summariesCount": "{{count}} SofLIA summaries"
+    },
+    "empty": {
+      "title": "No notes yet",
+      "description": "Your manual notes and SofLIA summaries will appear here when you create them from a workshop.",
+      "courseEmpty": "No notes for this workshop."
+    },
+    "loading": "Loading notes...",
+    "loadMore": "Load more",
+    "error": {
+      "title": "Error loading",
+      "description": "We could not load your notes. Please try again.",
+      "retry": "Retry"
     }
   }
 }
