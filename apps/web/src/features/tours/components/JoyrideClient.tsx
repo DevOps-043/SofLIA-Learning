@@ -6,6 +6,8 @@ import dynamic from 'next/dynamic'
 import type { Props as JoyrideProps } from 'react-joyride'
 
 type JoyrideModuleShape = {
+  Component?: unknown
+  Joyride?: unknown
   default?: unknown
 }
 
@@ -18,16 +20,32 @@ function resolveJoyrideModule(moduleValue: unknown): ComponentType<JoyrideProps>
     return moduleValue
   }
 
-  const moduleDefault = (moduleValue as JoyrideModuleShape | null)?.default
-  if (isJoyrideComponent(moduleDefault)) {
-    return moduleDefault
+  const moduleObject = moduleValue as JoyrideModuleShape | null
+  const candidates = [
+    moduleObject?.default,
+    (moduleObject?.default as JoyrideModuleShape | null)?.default,
+    moduleObject?.Joyride,
+    moduleObject?.Component,
+  ]
+
+  for (const candidate of candidates) {
+    if (isJoyrideComponent(candidate)) {
+      return candidate
+    }
   }
 
-  throw new Error('react-joyride component export could not be resolved')
+  const availableExports =
+    typeof moduleValue === 'object' && moduleValue !== null
+      ? Object.keys(moduleValue).join(', ')
+      : typeof moduleValue
+
+  throw new Error(
+    `react-joyride component export could not be resolved. Available exports: ${availableExports}`,
+  )
 }
 
 const DynamicJoyride = dynamic<JoyrideProps>(
-  () => import('react-joyride').then(resolveJoyrideModule),
+  () => Promise.resolve(resolveJoyrideModule(require('react-joyride'))),
   { ssr: false },
 )
 
