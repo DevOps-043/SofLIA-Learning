@@ -3,7 +3,7 @@
 import { isValidElement } from 'react'
 import type { ComponentType } from 'react'
 import dynamic from 'next/dynamic'
-import type { Props as JoyrideProps } from 'react-joyride'
+import type { Props as JoyrideProps, Step } from 'react-joyride'
 
 type JoyrideModuleShape = {
   Component?: unknown
@@ -46,13 +46,30 @@ function resolveJoyrideModule(moduleValue: unknown): ComponentType<JoyrideProps>
 
 const DynamicJoyride = dynamic<JoyrideProps>(
   () => Promise.resolve(resolveJoyrideModule(require('react-joyride'))),
-  { ssr: false },
+  {
+    loading: () => null,
+    ssr: false,
+  },
 )
 
 export function JoyrideClient(props: JoyrideProps) {
-  return <DynamicJoyride {...props} />
+  const steps = normalizeJoyrideSteps(props.steps)
+  const run = Boolean(props.run && steps.length > 0)
+
+  return <DynamicJoyride {...props} run={run} steps={steps} />
 }
 
 export function isRenderableJoyrideIcon(icon: unknown): boolean {
   return isValidElement(icon)
+}
+
+function normalizeJoyrideSteps(steps: JoyrideProps['steps']): Step[] {
+  if (!Array.isArray(steps)) {
+    return []
+  }
+
+  return steps.map((step) => ({
+    ...step,
+    disableBeacon: true,
+  }))
 }
