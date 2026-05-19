@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { Book, FileText, Flag, Clock, BarChart3, Users2, DollarSign, Settings, Award, CheckCircle2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { ImageUploadCourse } from '../../../instructor/components/ImageUploadCourse'
+import { ImageUploadCourse } from '../ImageUploadCourse'
 import { CourseSkillsSelector } from '../../../courses/components/CourseSkillsSelector'
 import {
   COURSE_MANAGEMENT_ACTION_BUTTON_CLASS,
