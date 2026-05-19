@@ -2,38 +2,37 @@
 
 import { isValidElement } from 'react'
 import type { ComponentType } from 'react'
-import JoyrideDefault, * as ReactJoyrideModule from 'react-joyride'
+import dynamic from 'next/dynamic'
 import type { Props as JoyrideProps } from 'react-joyride'
 
 type JoyrideModuleShape = {
-  default?: ComponentType<JoyrideProps>
+  default?: unknown
 }
 
 function isJoyrideComponent(value: unknown): value is ComponentType<JoyrideProps> {
   return typeof value === 'function'
 }
 
-function resolveJoyrideComponent(): ComponentType<JoyrideProps> {
-  if (isJoyrideComponent(JoyrideDefault)) {
-    return JoyrideDefault
+function resolveJoyrideModule(moduleValue: unknown): ComponentType<JoyrideProps> {
+  if (isJoyrideComponent(moduleValue)) {
+    return moduleValue
   }
 
-  const moduleDefault = (ReactJoyrideModule as JoyrideModuleShape).default
+  const moduleDefault = (moduleValue as JoyrideModuleShape | null)?.default
   if (isJoyrideComponent(moduleDefault)) {
     return moduleDefault
-  }
-
-  if (isJoyrideComponent(ReactJoyrideModule)) {
-    return ReactJoyrideModule
   }
 
   throw new Error('react-joyride component export could not be resolved')
 }
 
-const ResolvedJoyride = resolveJoyrideComponent()
+const DynamicJoyride = dynamic<JoyrideProps>(
+  () => import('react-joyride').then(resolveJoyrideModule),
+  { ssr: false },
+)
 
 export function JoyrideClient(props: JoyrideProps) {
-  return <ResolvedJoyride {...props} />
+  return <DynamicJoyride {...props} />
 }
 
 export function isRenderableJoyrideIcon(icon: unknown): boolean {
