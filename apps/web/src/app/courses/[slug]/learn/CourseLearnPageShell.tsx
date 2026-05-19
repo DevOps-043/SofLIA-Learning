@@ -4,7 +4,7 @@ import type React from 'react'
 import { Activity, BookOpen, Lock, MessageCircle, Play } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { AnimatePresence, motion } from 'framer-motion'
-import Joyride from 'react-joyride'
+import { JoyrideClient } from '@/features/tours/components/JoyrideClient'
 import type { NotesModalProps } from '../../../../core/components/NotesModal'
 import { COURSE_LEARN_TOUR_TARGET_IDS } from '../../../../core/constants/tourTargets'
 import { CourseAccessGuard } from '../../../../features/courses/components/CourseAccessGuard'
@@ -668,7 +668,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
               onSaveNote={handleSaveLiaNote}
             />
 
-            {mounted && courseTour.run ? <Joyride {...courseTour.joyrideProps} /> : null}
+            {mounted && courseTour.run ? <JoyrideClient {...courseTour.joyrideProps} /> : null}
           </div>
 
         </CourseAccessGuard>

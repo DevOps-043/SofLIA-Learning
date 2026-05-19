@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ChevronRight, Loader2, Shield, Users } from 'lucide-react';
-import Joyride from 'react-joyride';
+import { JoyrideClient } from '@/features/tours/components/JoyrideClient';
 import { useTranslation } from 'react-i18next';
 import { TourRestartButton } from '@/core/components/tours/TourRestartButton';
 import { useOrganization } from '@/core/hooks/useOrganization';
@@ -372,7 +372,7 @@ export default function SelectOrganizationPage() {
       </motion.div>
       <TourRestartButton anchor={{ bottom: 24, right: 24, size: 56 }} />
       {organizationTour.isMounted && organizationTour.run ? (
-        <Joyride {...organizationTour.joyrideProps} />
+        <JoyrideClient {...organizationTour.joyrideProps} />
       ) : null}
     </div>
   );

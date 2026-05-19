@@ -23,7 +23,7 @@ import { BusinessAssignLearningPathModal } from './BusinessAssignLearningPathMod
 import { BusinessLearningPathDefaultModal } from './BusinessLearningPathDefaultModal'
 import { BusinessLearningPathVideosModal } from './BusinessLearningPathVideosModal'
 import { useBusinessLearningPathsPageLogic } from '../hooks/useBusinessLearningPathsPageLogic'
-import Joyride from 'react-joyride'
+import { JoyrideClient } from '@/features/tours/components/JoyrideClient'
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
 import { getAdminPathsSteps, ADMIN_PATHS_TOUR_ID } from '@/features/tours/config/business-panel/admin-paths-steps'
 import type { BusinessUser } from '../services/businessUsers.service'
@@ -82,7 +82,7 @@ export function BusinessLearningPathsPage() {
 
   return (
     <>
-    {joyrideProps.run ? <Joyride {...joyrideProps} /> : null}
+    {joyrideProps.run ? <JoyrideClient {...joyrideProps} /> : null}
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}

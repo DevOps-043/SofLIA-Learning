@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Joyride from 'react-joyride';
+import { JoyrideClient } from '@/features/tours/components/JoyrideClient';
 import { StudyPlannerCalendar } from '../../../features/study-planner/components/StudyPlannerCalendar';
 import {
   StudyPlannerDashboardAssistant,
@@ -178,7 +178,7 @@ export default function StudyPlannerDashboardPage() {
         onConfirm={confirmDialog.onConfirm}
       />
 
-      {isMounted && joyrideProps.run ? <Joyride {...joyrideProps} /> : null}
+      {isMounted && joyrideProps.run ? <JoyrideClient {...joyrideProps} /> : null}
     </div>
   );
 }

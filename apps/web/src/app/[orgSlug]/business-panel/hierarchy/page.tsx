@@ -6,7 +6,7 @@ import { HierarchyTree } from '@/features/business-panel/components/hierarchy/Hi
 import { HierarchySettings } from '@/features/business-panel/components/hierarchy/HierarchySettings';
 import { Network, Settings, LayoutGrid, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import Joyride from 'react-joyride';
+import { JoyrideClient } from '@/features/tours/components/JoyrideClient';
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour';
 import { getAdminHierarchySteps, ADMIN_HIERARCHY_TOUR_ID } from '@/features/tours/config/business-panel/admin-hierarchy-steps';
 
@@ -26,7 +26,7 @@ export default function BusinessPanelHierarchyPage() {
 
   return (
     <>
-      {joyrideProps.run ? <Joyride {...joyrideProps} /> : null}
+      {joyrideProps.run ? <JoyrideClient {...joyrideProps} /> : null}
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}

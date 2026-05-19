@@ -22,7 +22,7 @@ import { ConfirmationModal } from '@/features/admin/components/ConfirmationModal
 import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import { BusinessPanelSearchInput } from '../shared/BusinessPanelSearchInput'
 import { BusinessPanelStatCard } from '../shared/BusinessPanelStatCard'
-import Joyride from 'react-joyride'
+import { JoyrideClient } from '@/features/tours/components/JoyrideClient'
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
 import { getAdminReviewsSteps, ADMIN_REVIEWS_TOUR_ID } from '@/features/tours/config/business-panel/admin-reviews-steps'
 
@@ -162,7 +162,7 @@ export function BusinessPendingCoursesPage({
 
   return (
     <>
-      {joyrideProps.run ? <Joyride {...joyrideProps} /> : null}
+      {joyrideProps.run ? <JoyrideClient {...joyrideProps} /> : null}
     <div className="space-y-8">
       <div id="tour-reviews-header" className="space-y-2">
         <h1 className="text-4xl font-bold tracking-tight" style={{ color: panelTheme.textColor }}>

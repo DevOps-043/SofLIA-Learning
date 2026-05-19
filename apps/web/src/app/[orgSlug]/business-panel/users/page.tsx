@@ -29,7 +29,7 @@ import { JoinRequestListRow } from './components/JoinRequestListRow'
 import { UserListRow } from './components/UserListRow'
 import { UsersPageHeader } from './components/UsersPageHeader'
 import { UsersFilterBar } from './components/UsersFilterBar'
-import Joyride from 'react-joyride'
+import { JoyrideClient } from '@/features/tours/components/JoyrideClient'
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
 import { getAdminUsersSteps, ADMIN_USERS_TOUR_ID } from '@/features/tours/config/business-panel/admin-users-steps'
 
@@ -204,7 +204,7 @@ export default function BusinessPanelUsersPage() {
 
   return (
     <>
-      {joyrideProps.run ? <Joyride {...joyrideProps} /> : null}
+      {joyrideProps.run ? <JoyrideClient {...joyrideProps} /> : null}
       <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8" style={{ color: theme.textColor }}>
       <UsersPageHeader
         t={t}

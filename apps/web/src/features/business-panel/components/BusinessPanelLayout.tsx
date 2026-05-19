@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import Joyride from 'react-joyride'
+import { JoyrideClient } from '@/features/tours/components/JoyrideClient'
 import { usePathname, useRouter } from 'next/navigation'
 
 import { LiaFloatingButton } from '@/core/components/LiaSidePanel/LiaFloatingButton'
@@ -212,7 +212,7 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
           />
         )}
 
-        {isMounted && run && <Joyride {...joyrideProps} />}
+        {isMounted && run && <JoyrideClient {...joyrideProps} />}
 
         <div
           key={styles?.selectedTheme || 'default-theme'}

@@ -1,6 +1,6 @@
 'use client'
 
-import Joyride from 'react-joyride'
+import { JoyrideClient } from '@/features/tours/components/JoyrideClient'
 import { BusinessUserDashboardError } from './page-components/BusinessUserDashboardError'
 import { BusinessUserDashboardLoading } from './page-components/BusinessUserDashboardLoading'
 import { BusinessUserDashboardShell } from './page-components/BusinessUserDashboardShell'
@@ -60,7 +60,7 @@ export default function BusinessUserDashboardPage() {
         disableHeavyEffects={logic.disableHeavyEffects}
       />
       {logic.isMounted && logic.joyrideProps.run && (
-        <Joyride
+        <JoyrideClient
           key={logic.shouldShowTour ? 'active-tour' : 'completed-tour'}
           {...logic.joyrideProps}
         />

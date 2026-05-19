@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import type { TooltipRenderProps } from 'react-joyride';
 import { X, ChevronRight, ChevronLeft, CheckCircle, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { isRenderableJoyrideIcon } from './JoyrideClient';
 
 const FIXED_LEFT_TOOLTIP_DOCK = 'fixed-left';
 const FIXED_LEFT_TOOLTIP_OFFSET = 24;
@@ -123,6 +124,9 @@ export function JoyrideTooltip({
   const resolvedBackProps = backProps as JoyrideButtonElementProps;
   const resolvedCloseProps = closeProps as JoyrideButtonElementProps;
   const resolvedPrimaryProps = primaryProps as JoyrideButtonElementProps;
+  const stepIcon = isJoyrideTooltipData(step.data) && isRenderableJoyrideIcon(step.data.icon)
+    ? step.data.icon
+    : null;
   const tooltipContent = (
     <div
       {...resolvedTooltipProps}
@@ -161,7 +165,7 @@ export function JoyrideTooltip({
               compactViewport ? 'w-9 h-9' : 'w-10 h-10',
             )}
           >
-            {step.data?.icon || <Sparkles className="w-5 h-5 text-[#00D4B3]" />}
+            {stepIcon || <Sparkles className="w-5 h-5 text-[#00D4B3]" />}
           </div>
           <h3
             className={joinClassNames(

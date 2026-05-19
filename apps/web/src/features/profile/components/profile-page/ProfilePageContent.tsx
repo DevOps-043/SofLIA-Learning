@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import Joyride from 'react-joyride'
+import { JoyrideClient } from '../../../tours/components/JoyrideClient'
 import { useTranslation } from 'react-i18next'
 import { TourRestartButton } from '../../../../core/components/tours/TourRestartButton'
 import { useJoyrideMinitour } from '../../../tours/hooks/useJoyrideMinitour'
@@ -115,7 +115,7 @@ export function ProfilePageContent(logic: ProfilePageLogic) {
 
       <TourRestartButton anchor={{ bottom: 24, right: 24, size: 56 }} />
       {profileTour.isMounted && profileTour.run ? (
-        <Joyride {...profileTour.joyrideProps} />
+        <JoyrideClient {...profileTour.joyrideProps} />
       ) : null}
 
       <style>{`
