@@ -1,3 +1,5 @@
+import type { ApiCall } from './app-state.types';
+
 export interface ContextFragment {
   content: string;
   priority: number;
@@ -13,12 +15,30 @@ export interface ContextBuildOptions {
   userId?: string;
 }
 
+export interface ContextRequest extends ContextBuildOptions {}
+
+export interface BuiltContext {
+  basePrompt: string;
+  fragments: ContextFragment[];
+  metadata: {
+    buildTime: number;
+    cacheHits: number;
+    cacheMisses: number;
+    providersUsed: string[];
+  };
+  totalTokens: number;
+}
+
 export interface EnrichedMetadata {
   activeComponents?: ActiveComponent[];
+  activeModals?: string[];
+  apiCalls?: ApiCall[];
   connection?: string;
   contextMarkers?: string[];
+  courseContext?: Partial<CourseContextMetadata>;
   errors?: ConsoleError[];
   errorSummary?: string;
+  formStates?: Record<string, unknown>;
   language?: string;
   memory?: number;
   platform?: {
@@ -51,4 +71,17 @@ export interface ActiveComponent {
   props?: Record<string, unknown>;
   selector: string;
   state?: Record<string, unknown>;
+}
+
+export interface CourseContextMetadata {
+  courseId?: string;
+  courseSlug?: string;
+  courseName?: string;
+  lessonId?: string;
+  lessonTitle?: string;
+  moduleId?: string;
+  moduleName?: string;
+  progress?: number;
+  transcript?: string;
+  summary?: string;
 }

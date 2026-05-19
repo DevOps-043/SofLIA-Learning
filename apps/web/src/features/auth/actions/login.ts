@@ -3,7 +3,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import { z } from 'zod'
-import { headers } from 'next/headers'
+import { cookies, headers } from 'next/headers'
+import {
+  getMfaStatusForLogin,
+  MfaError,
+} from '@/lib/auth/mfa/mfa.service'
 import { requireHumanVerification } from '@/lib/security/bot-protection'
 import { recordSecurityEvent } from '@/lib/security/security-events'
 
@@ -22,6 +26,12 @@ import {
   getLoginLockoutStatus,
   recordFailedLoginAttempt,
 } from './login/lockout'
+import {
+  createLoginMfaChallenge,
+  createLoginMfaChallengeCookieOptions,
+  LoginMfaChallengeError,
+  LOGIN_MFA_CHALLENGE_COOKIE_NAME,
+} from './login/mfa-login-challenge'
 import { validateCustomOrganizationLogin } from './login/organization-context'
 import { resolveLoginRedirect } from './login/redirect'
 import { findLoginUser, validateLoginPassword } from './login/user-credentials'
@@ -37,9 +47,10 @@ export async function loginAction(formData: FormData) {
     }
 
     const parsed = readLoginFormInput(formData)
+    const headersList = await headers()
     const loginAttemptContext = buildLoginAttemptContext(
       parsed.emailOrUsername,
-      await headers(),
+      headersList,
     )
     const currentLockout = await getLoginLockoutStatus(loginAttemptContext)
 
@@ -95,6 +106,59 @@ export async function loginAction(formData: FormData) {
       }
 
       return passwordResult
+    }
+
+    try {
+      const mfaStatus = await getMfaStatusForLogin(user.id)
+      if (mfaStatus.enabled) {
+        const challenge = createLoginMfaChallenge({
+          emailOrUsername: parsed.emailOrUsername,
+          formData,
+          headers: headersList,
+          rememberMe: parsed.rememberMe,
+          userId: user.id,
+        })
+        const cookieStore = await cookies()
+        cookieStore.set(
+          LOGIN_MFA_CHALLENGE_COOKIE_NAME,
+          challenge.nonce,
+          createLoginMfaChallengeCookieOptions(),
+        )
+
+        recordSecurityEvent('mfa-challenge-issued', {
+          actorId: user.id,
+          actorRole: user.cargo_rol,
+          metadata: { factorId: mfaStatus.factorId },
+        })
+
+        return {
+          challengeToken: challenge.token,
+          requiresMfa: true,
+        }
+      }
+    } catch (mfaError) {
+      const errorCode =
+        mfaError instanceof LoginMfaChallengeError
+          ? mfaError.code
+          : mfaError instanceof MfaError
+            ? mfaError.code
+            : 'MFA_STATUS_UNAVAILABLE'
+
+      logger.error('Login failed: MFA gate unavailable', {
+        errorCode,
+        userId: user.id,
+      })
+      recordSecurityEvent('login-failure', {
+        actorId: user.id,
+        actorRole: user.cargo_rol,
+        result: 'error',
+        metadata: { reason: errorCode },
+      })
+
+      return {
+        error:
+          'No se pudo validar la autenticacion multifactor. Por favor, intenta nuevamente.',
+      }
     }
 
     const organizationResult = await validateCustomOrganizationLogin({

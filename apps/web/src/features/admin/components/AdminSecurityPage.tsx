@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, RefreshCw, ShieldCheck } from 'lucide-react'
+import { MfaSettingsPanel } from '@/features/auth/components/MfaSettingsPanel'
 
 type SecurityAuditEvent = {
   id: number
@@ -133,6 +134,8 @@ export function AdminSecurityPage() {
           {error}
         </div>
       ) : null}
+
+      <MfaSettingsPanel />
 
       {data?.alerts.length ? (
         <section className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-500/20 dark:bg-amber-500/10">

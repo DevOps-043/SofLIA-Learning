@@ -1,28 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { logger } from '@/lib/utils/logger'
 import { AdminLearningPathsService } from '@/features/admin/services/adminLearningPaths.service'
-
-const reorderLearningPathItemsSchema = z.object({
-  orderedItemIds: z.array(z.string().uuid('ItemId invalido')).min(1),
-})
-const learningPathParamsSchema = z.object({
-  id: z.string().uuid('LearningPathId invalido'),
-})
+import {
+  learningPathParamsSchema,
+  reorderLearningPathItemsSchema,
+  type ReorderLearningPathItemsBody,
+} from './schema'
 
 interface RouteParams {
   params: Promise<{ id: string }>
 }
 
-export async function PUT(request: NextRequest, { params }: RouteParams) {
+async function handlePut(
+  _request: NextRequest,
+  body: ReorderLearningPathItemsBody,
+  { params }: RouteParams,
+): Promise<Response> {
   try {
     const auth = await requireAdmin()
     if (auth instanceof NextResponse) return auth
 
     const { id } = learningPathParamsSchema.parse(await params)
-    const body = reorderLearningPathItemsSchema.parse(await request.json())
 
     const learningPath = await AdminLearningPathsService.reorderItems(
       id,
@@ -32,15 +34,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ success: true, learningPath })
   } catch (error) {
     logger.error('Error reordering learning path items:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Error al reordenar el learning path',
-      },
-      { status: 400 },
+    return apiError(
+      'ADMIN_LEARNING_PATH_ITEMS_REORDER_FAILED',
+      error instanceof Error ? error.message : 'Error al reordenar el learning path.',
+      400,
     )
   }
 }
+
+export const PUT = withZodBody(reorderLearningPathItemsSchema, handlePut)

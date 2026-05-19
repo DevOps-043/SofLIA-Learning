@@ -5,14 +5,18 @@ const { outputFileTracingExcludes, serverExternalPackages } = require('./tracing
 const { createWebpackConfig } = require('./webpack-config');
 
 function createNextConfig(appDir) {
+  // TS_STRICT_BUILD=true enforces type-check and ESLint at build time.
+  // Default is false during the migration window; flip to true once
+  // all type-check:* slices pass cleanly in CI (see docs/tech-debt/td-001-resolution.md).
+  const strictBuild = process.env.TS_STRICT_BUILD === 'true';
   return {
     poweredByHeader: false,
     productionBrowserSourceMaps: false,
     typescript: {
-      ignoreBuildErrors: true,
+      ignoreBuildErrors: !strictBuild,
     },
     eslint: {
-      ignoreDuringBuilds: true,
+      ignoreDuringBuilds: !strictBuild,
     },
     transpilePackages: ['@aprende-y-aplica/shared', '@aprende-y-aplica/ui'],
     outputFileTracingRoot: path.resolve(appDir, '../../'),

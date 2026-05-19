@@ -55,7 +55,7 @@ const DEFAULT_OPTIONS: UseErrorCaptureOptions = {
 export function useErrorCapture(options: UseErrorCaptureOptions = {}) {
   const config = { ...DEFAULT_OPTIONS, ...options };
   const [errors, setErrors] = useState<CapturedError[]>([]);
-  const originalConsoleError = useRef<typeof logger.error | null>(null);
+  const originalConsoleError = useRef<typeof techDebtLogger.error | null>(null);
   const isSetup = useRef(false);
 
   /**
@@ -141,7 +141,12 @@ export function useErrorCapture(options: UseErrorCaptureOptions = {}) {
       
       techDebtLogger.error = (...args: unknown[]) => {
         // Llamar al logger.error original
-        originalConsoleError.current?.apply(console, args);
+        if (args.length === 0) {
+          originalConsoleError.current?.('');
+        } else {
+          const [message, ...rest] = args;
+          originalConsoleError.current?.(message, ...rest);
+        }
 
         // Capturar el error
         const message = args.map(arg => {
@@ -272,8 +277,6 @@ export function useErrorCapture(options: UseErrorCaptureOptions = {}) {
 }
 
 export default useErrorCapture;
-
-
 
 
 

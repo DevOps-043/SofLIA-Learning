@@ -14,6 +14,7 @@ import {
   saveCredentials,
 } from '../../../../../lib/auth/remember-me'
 import type { LoginFormData } from '../../../types/auth.types'
+import { verifyMfaLoginChallenge } from '../../../services/mfa-login-client.service'
 import {
   buildForcedAuthRedirectUrl,
   buildOrganizationLoginActionFormData,
@@ -56,6 +57,19 @@ function isSuccessfulLoginResult(
   )
 }
 
+function isMfaRequiredResult(
+  result: Awaited<ReturnType<typeof loginAction>> | null | undefined,
+): result is { challengeToken: string; requiresMfa: true } {
+  return (
+    typeof result === 'object' &&
+    result !== null &&
+    'requiresMfa' in result &&
+    result.requiresMfa === true &&
+    'challengeToken' in result &&
+    typeof result.challengeToken === 'string'
+  )
+}
+
 function getLoginResultError(
   result: Awaited<ReturnType<typeof loginAction>> | null | undefined,
 ) {
@@ -85,6 +99,9 @@ export function useOrganizationLoginForm({
   const [isPending, setIsPending] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
   const [captchaToken, setCaptchaToken] = useState('')
+  const [mfaChallengeToken, setMfaChallengeToken] = useState<string | null>(null)
+  const [mfaCode, setMfaCode] = useState('')
+  const [mfaCredentials, setMfaCredentials] = useState<LoginFormData | null>(null)
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const loginSchema = React.useMemo(() => getLoginSchema(t), [t])
   const redirectUrlRef = useRef<string | null>(null)
@@ -98,6 +115,18 @@ export function useOrganizationLoginForm({
       rememberMe: false,
     },
   })
+
+  function persistCredentialsPreference(data: LoginFormData) {
+    if (data.rememberMe) {
+      saveCredentials({
+        emailOrUsername: data.emailOrUsername,
+        password: data.password,
+      })
+      return
+    }
+
+    clearSavedCredentials()
+  }
 
   useEffect(() => {
     const savedCredentials = getSavedCredentials()
@@ -188,15 +217,6 @@ export function useOrganizationLoginForm({
 
       clearPreviousLoginUserState()
 
-      if (data.rememberMe) {
-        saveCredentials({
-          emailOrUsername: data.emailOrUsername,
-          password: data.password,
-        })
-      } else {
-        clearSavedCredentials()
-      }
-
       if (typeof window !== 'undefined' && organizationSlug) {
         try {
           localStorage.setItem('last_organization_slug', organizationSlug)
@@ -268,7 +288,16 @@ export function useOrganizationLoginForm({
       }
 
       if (isSuccessfulLoginResult(result)) {
+        persistCredentialsPreference(data)
         window.location.href = result.redirectTo
+        return
+      }
+
+      if (isMfaRequiredResult(result)) {
+        setMfaChallengeToken(result.challengeToken)
+        setMfaCredentials(data)
+        setMfaCode('')
+        finishPending()
         return
       }
     } catch (submissionError) {
@@ -285,6 +314,61 @@ export function useOrganizationLoginForm({
     finishPending()
   }
 
+  async function onMfaSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!mfaChallengeToken || submitInFlightRef.current) {
+      return
+    }
+
+    submitInFlightRef.current = true
+    setError(null)
+    setIsPending(true)
+
+    try {
+      const result = await verifyMfaLoginChallenge({
+        challengeToken: mfaChallengeToken,
+        fallbackError: t('auth.login.mfa.errors.verifyFailed'),
+        token: mfaCode,
+      })
+
+      if (!result.verified) {
+        if (result.redirectTo && result.redirectMessage) {
+          redirectUrlRef.current = result.redirectTo
+          setRedirectInfo({
+            to: result.redirectTo,
+            message: result.redirectMessage,
+            countdown: 0,
+          })
+        }
+
+        setError(result.error)
+        finishMfaPending()
+        return
+      }
+
+      if (mfaCredentials) {
+        persistCredentialsPreference(mfaCredentials)
+      }
+
+      window.location.href = result.redirectTo
+    } catch {
+      setError(t('auth.login.mfa.errors.verifyFailed'))
+      finishMfaPending()
+    }
+  }
+
+  function finishMfaPending() {
+    submitInFlightRef.current = false
+    setIsPending(false)
+  }
+
+  function resetMfaChallenge() {
+    setMfaChallengeToken(null)
+    setMfaCredentials(null)
+    setMfaCode('')
+    setError(null)
+  }
+
   return {
     bulkInviteToken,
     error,
@@ -292,8 +376,14 @@ export function useOrganizationLoginForm({
     form,
     invitationToken,
     isPending,
+    mfaChallengeToken,
+    mfaCode,
     onSubmit,
+    onMfaSubmit,
     redirectInfo,
+    resetMfaChallenge,
+    setMfaChallengeToken,
+    setMfaCode,
     setFocusedField,
     setCaptchaToken,
     setShowPassword,

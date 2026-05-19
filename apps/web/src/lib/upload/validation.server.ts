@@ -6,6 +6,7 @@ import {
   type UploadBucketPolicy,
 } from './validation';
 import { scanUploadForMalware } from './antimalware.server';
+import { recordSecurityEvent } from '@/lib/security/security-events';
 
 export interface PreparedUploadFile {
   body: File | Buffer;
@@ -74,6 +75,7 @@ export async function validateAndPrepareUpload(
     });
 
     if (scan.status === 'infected') {
+      recordRejectedUpload(bucket, detected.mime, 'malware_detected', scan.signature);
       return {
         valid: false,
         error: scan.signature
@@ -84,6 +86,7 @@ export async function validateAndPrepareUpload(
     }
 
     if (scan.status !== 'clean') {
+      recordRejectedUpload(bucket, detected.mime, 'antimalware_unavailable');
       return {
         valid: false,
         error: 'Este bucket requiere escaneo antimalware antes de aceptar archivos',
@@ -105,6 +108,23 @@ export async function validateAndPrepareUpload(
       };
 
   return { valid: true, file: prepared, policy };
+}
+
+function recordRejectedUpload(
+  bucket: string,
+  detectedMime: string,
+  reason: string,
+  signature?: string,
+) {
+  recordSecurityEvent('file-upload-rejected', {
+    resourceType: 'storage_bucket',
+    resourceId: bucket,
+    metadata: {
+      detectedMime,
+      reason,
+      signature,
+    },
+  });
 }
 
 async function detectFileType(file: File) {

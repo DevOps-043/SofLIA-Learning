@@ -79,10 +79,46 @@
         "connection": "Error de conexión. Verifica tu conexión a internet e intenta nuevamente.",
         "timeout": "La solicitud tardó demasiado. Por favor, intenta nuevamente."
       },
+      "mfa": {
+        "title": "Verificación en dos pasos",
+        "subtitle": "Ingresa el código de tu app autenticadora o un código de recuperación.",
+        "codeLabel": "Código de autenticación",
+        "codePlaceholder": "123456",
+        "verify": "Verificar",
+        "verifying": "Verificando...",
+        "back": "Volver",
+        "errors": {
+          "verifyFailed": "No se pudo verificar el código. Intenta nuevamente."
+        }
+      },
       "validation": {
         "emailOrUsernameRequired": "El correo o usuario es requerido",
         "passwordRequired": "La contraseña es requerida",
         "noSpaces": "No se permiten espacios"
+      }
+    },
+    "mfa": {
+      "settings": {
+        "title": "Autenticacion multifactor",
+        "description": "Protege las cuentas Admin y Business con un codigo temporal ademas de la contrasena.",
+        "status": "Estado",
+        "enabled": "Activa",
+        "disabled": "Inactiva",
+        "recoveryRemaining": "Codigos restantes",
+        "lastUsed": "Ultimo uso",
+        "neverUsed": "Sin uso registrado",
+        "startSetup": "Configurar MFA",
+        "manualSecret": "Clave manual",
+        "recoveryCodes": "Codigos de recuperacion",
+        "activationCode": "Primer codigo de la app",
+        "activate": "Activar MFA",
+        "enabledNotice": "MFA quedo activada para esta cuenta.",
+        "recoveryCopied": "Codigos copiados.",
+        "errors": {
+          "status": "No se pudo cargar el estado MFA.",
+          "setup": "No se pudo iniciar la configuracion MFA.",
+          "activate": "No se pudo activar MFA. Revisa el codigo e intenta de nuevo."
+        }
       }
     },
     "register": {
@@ -1150,6 +1186,7 @@
   "actions": {
     "cancel": "Cancelar",
     "confirm": "Confirmar",
+    "copy": "Copiar",
     "save": "Guardar",
     "saveChanges": "Guardar cambios",
     "delete": "Eliminar",
@@ -1172,6 +1209,7 @@
     "show": "Mostrar",
     "hide": "Ocultar",
     "viewFullImage": "Ver imagen completa",
+    "download": "Descargar",
     "downloadImage": "Descargar imagen",
     "edited": "editado",
     "refresh": "Refrescar",

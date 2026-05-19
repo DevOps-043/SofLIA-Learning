@@ -14,6 +14,7 @@ import type {
 } from '../types/soflia-personalization.types';
 import type { Database } from '../../lib/supabase/types';
 import { fromLoose } from '../../lib/supabase/looseQuery';
+import { SELECT_COLUMNS } from '../../lib/supabase/select-types';
 
 type SofliaPersonalizationRow = SofLIAPersonalizationSettings;
 type SofliaPersonalizationWriteRow = Partial<SofLIAPersonalizationSettings> & {

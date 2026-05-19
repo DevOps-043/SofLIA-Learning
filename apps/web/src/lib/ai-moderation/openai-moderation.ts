@@ -8,17 +8,23 @@ import {
 import type { AIModerationContext, AIModerationResult } from './types'
 
 function getFlaggedCategories(result: {
-  categories: Record<string, boolean>
-  category_scores: Record<string, number>
+  categories: object
+  category_scores: object
 }) {
   let maxScore = 0
   const categories: string[] = []
+  const categoryScores = Object.fromEntries(
+    Object.entries(result.category_scores).map(([category, score]) => [
+      category,
+      typeof score === 'number' ? score : 0,
+    ]),
+  )
 
   Object.entries(result.categories).forEach(([category, isFlagged]) => {
     if (!isFlagged) return
 
     categories.push(category)
-    maxScore = Math.max(maxScore, result.category_scores[category] || 0)
+    maxScore = Math.max(maxScore, categoryScores[category] || 0)
   })
 
   return { categories, maxScore }

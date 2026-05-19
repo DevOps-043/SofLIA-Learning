@@ -8,9 +8,14 @@ export type ValidatedRouteHandler<TBody, TContext = unknown> = (
   context: TContext,
 ) => Promise<Response>;
 
+type WithZodBodyOptions = {
+  emptyBodyFallback?: unknown;
+};
+
 export function withZodBody<TBody, TContext = unknown>(
   schema: ZodSchema<TBody>,
   handler: ValidatedRouteHandler<TBody, TContext>,
+  options: WithZodBodyOptions = {},
 ) {
   return async (request: NextRequest, context: TContext): Promise<Response> => {
     let json: unknown;
@@ -18,7 +23,11 @@ export function withZodBody<TBody, TContext = unknown>(
     try {
       json = await request.json();
     } catch {
-      return apiError('INVALID_JSON', 'El cuerpo de la solicitud no es JSON valido.', 400);
+      if ('emptyBodyFallback' in options) {
+        json = options.emptyBodyFallback;
+      } else {
+        return apiError('INVALID_JSON', 'El cuerpo de la solicitud no es JSON valido.', 400);
+      }
     }
 
     const parsed = schema.safeParse(json);

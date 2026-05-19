@@ -1,46 +1,59 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { ZodError } from 'zod'
 
-import { logger } from '@/lib/utils/logger'
-
-import { AdminCompaniesService } from '@/features/admin/services/adminCompanies.service'
-
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { AdminCompaniesService } from '@/features/admin/services/adminCompanies.service'
+import { logger } from '@/lib/utils/logger'
+import {
+  companyUserAssignmentParamsSchema,
+  userCourseAssignmentSchema,
+  type UserCourseAssignmentBody,
+} from './schema'
 
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+interface RouteParams {
+  params: Promise<{ id: string }>
+}
+
+async function handlePost(
+  _request: NextRequest,
+  body: UserCourseAssignmentBody,
+  { params }: RouteParams,
+): Promise<Response> {
   try {
     const auth = await requireAdmin()
     if (auth instanceof NextResponse) return auth
 
-    const { id: companyId } = params
-    const body = await request.json()
-    const { userId, courseId } = body
-
-    if (!userId || !courseId) {
-      return NextResponse.json(
-        { success: false, error: 'UserId y CourseId son requeridos' },
-        { status: 400 }
-      )
-    }
-
+    const { id: companyId } = companyUserAssignmentParamsSchema.parse(await params)
     const assignment = await AdminCompaniesService.assignCourseToUser(
       companyId,
-      userId,
-      courseId,
-      auth.userId
+      body.userId,
+      body.courseId,
+      auth.userId,
     )
 
     return NextResponse.json({
       success: true,
-      assignment
+      assignment,
     })
   } catch (error) {
     logger.error('Error in POST /api/admin/companies/[id]/user-assignments:', error)
-    return NextResponse.json(
-      { success: false, error: 'Error al asignar curso al usuario' },
-      { status: 500 }
+    if (error instanceof ZodError) {
+      return apiError(
+        'VALIDATION_ERROR',
+        'La solicitud no cumple el contrato esperado.',
+        422,
+        { details: error.flatten() },
+      )
+    }
+
+    return apiError(
+      'ADMIN_USER_COURSE_ASSIGN_FAILED',
+      'Error al asignar curso al usuario.',
+      500,
     )
   }
 }
+
+export const POST = withZodBody(userCourseAssignmentSchema, handlePost)

@@ -1,61 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '../../../../lib/supabase/server';
-import { LiaLogger } from '../../../../lib/analytics/lia-logger';
 
-/**
- * POST /api/lia/feedback
- * 
- * Registra feedback del usuario sobre una respuesta de LIA
- */
-export async function POST(request: NextRequest) {
+import { createClient } from '@/lib/supabase/server';
+import { LiaLogger } from '@/lib/analytics/lia-logger';
+import { withZodBody } from '@/lib/api/with-validation';
+import { apiError } from '@/lib/api/errors';
+
+import { liaFeedbackSchema, type LiaFeedbackInput } from './schema';
+
+async function handleFeedback(_request: NextRequest, body: LiaFeedbackInput) {
   try {
     const supabase = createClient();
-
-    // Verificar autenticación
     const {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return apiError('UNAUTHENTICATED', 'No autorizado.', 401);
     }
 
-    // Obtener datos del body
-    const { messageId, feedbackType, rating, comment } = await request.json();
-
-    if (!messageId || !feedbackType) {
-      return NextResponse.json(
-        { error: 'messageId y feedbackType son requeridos' },
-        { status: 400 }
-      );
-    }
-
-    // Validar feedbackType
-    const validTypes = ['helpful', 'not_helpful', 'incorrect', 'confusing'];
-    if (!validTypes.includes(feedbackType)) {
-      return NextResponse.json(
-        { error: 'feedbackType inválido' },
-        { status: 400 }
-      );
-    }
-
-    // Crear logger y registrar feedback
-    const logger = new LiaLogger(user.id);
-    await logger.logFeedback(messageId, feedbackType, rating, comment);
+    const liaLogger = new LiaLogger(user.id);
+    await liaLogger.logFeedback(body.messageId, body.feedbackType, body.rating, body.comment);
 
     return NextResponse.json({
       success: true,
-      messageId,
-      feedbackType,
+      messageId: body.messageId,
+      feedbackType: body.feedbackType,
     });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Error al registrar feedback' },
-      { status: 500 }
-    );
+  } catch {
+    return apiError('LIA_FEEDBACK_ERROR', 'Error al registrar feedback.', 500);
   }
 }
+
+export const POST = withZodBody(liaFeedbackSchema, handleFeedback);

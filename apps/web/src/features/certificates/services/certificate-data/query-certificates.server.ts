@@ -7,6 +7,12 @@ interface CertificateFilters {
   certificateHash?: string
 }
 
+const CERTIFICATE_SELECT_BASE =
+  'certificate_id, certificate_url, certificate_hash, issued_at, expires_at, created_at, course_id, enrollment_id, organization_id, template_id, user_id, courses(id, title, slug, instructor_id)'
+
+const CERTIFICATE_SELECT_WITH_SNAPSHOTS =
+  'certificate_id, certificate_url, certificate_hash, issued_at, expires_at, created_at, course_id, enrollment_id, organization_id, template_id, user_id, branding_snapshot, document_snapshot, courses(id, title, slug, instructor_id)'
+
 export async function queryCertificates(
   supabase: SupabaseServerClient,
   filters: CertificateFilters,
@@ -15,7 +21,7 @@ export async function queryCertificates(
 
   if (!error) {
     return {
-      rows: (data || []) as CertificateRow[],
+      rows: (data || []) as unknown as CertificateRow[],
       supportsSnapshots: true,
     }
   }
@@ -32,7 +38,7 @@ export async function queryCertificates(
   }
 
   return {
-    rows: ((fallbackData || []) as Array<Omit<CertificateRow, 'branding_snapshot' | 'document_snapshot'>>)
+    rows: ((fallbackData || []) as unknown as Array<Omit<CertificateRow, 'branding_snapshot' | 'document_snapshot'>>)
       .map(row => ({ ...row, branding_snapshot: null, document_snapshot: null })),
     supportsSnapshots: false,
   }
@@ -43,18 +49,9 @@ function buildCertificateQuery(
   filters: CertificateFilters,
   supportsSnapshots: boolean,
 ) {
-  const snapshotFields = supportsSnapshots
-    ? `,
-      branding_snapshot,
-      document_snapshot`
-    : ''
   let query = supabase
     .from('user_course_certificates')
-    .select(`
-      certificate_id, certificate_url, certificate_hash, issued_at, expires_at,
-      created_at, course_id, enrollment_id, organization_id, template_id,
-      user_id${snapshotFields}, courses (id, title, slug, instructor_id)
-    `)
+    .select(supportsSnapshots ? CERTIFICATE_SELECT_WITH_SNAPSHOTS : CERTIFICATE_SELECT_BASE)
     .order('issued_at', { ascending: false })
 
   if (filters.userId) query = query.eq('user_id', filters.userId)

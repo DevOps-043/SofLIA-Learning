@@ -18,15 +18,16 @@ export async function analyzeContentWithGPT(
   context?: AIModerationContext,
 ): Promise<AIModerationResult> {
   const startTime = Date.now()
+  const moderationClient = openai
 
-  if (!AI_MODERATION_ENABLED || !openai) {
+  if (!AI_MODERATION_ENABLED || !moderationClient) {
     return createDisabledResult(startTime)
   }
 
   try {
     const completion = await executeWithCircuitBreaker(
       'openai-content-moderation',
-      () => openai.chat.completions.create({
+      () => moderationClient.chat.completions.create({
         model: OPENAI_MODEL,
         messages: [
           { role: 'system', content: GPT_MODERATION_SYSTEM_PROMPT },

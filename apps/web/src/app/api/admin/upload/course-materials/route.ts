@@ -1,76 +1,88 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { logger } from '@/lib/utils/logger';
 import { createClient } from '@supabase/supabase-js'
+import { type NextRequest, NextResponse } from 'next/server'
+
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { logger } from '@/lib/utils/logger'
+import { generateSafeFileName } from '@/lib/upload/validation'
+import { validateAndPrepareUpload } from '@/lib/upload/validation.server'
 
 export async function POST(request: NextRequest) {
   try {
     const auth = await requireAdmin()
     if (auth instanceof NextResponse) return auth
 
-    // Cliente con service role key para bypass de RLS (dentro de la función para evitar error en build)
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
-    
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json(
+        { error: 'Configuracion del servidor incompleta' },
+        { status: 500 },
+      )
+    }
+
     const formData = await request.formData()
-    const file = formData.get('file') as File
-    const materialType = formData.get('materialType') as string || 'pdf'
+    const file = formData.get('file')
+    const materialType = formData.get('materialType')?.toString() || 'pdf'
 
-    if (!file) {
-      return NextResponse.json({ error: 'No se proporcionó archivo' }, { status: 400 })
+    if (!(file instanceof File)) {
+      return NextResponse.json(
+        { error: 'No se proporciono archivo' },
+        { status: 400 },
+      )
     }
 
-    // Validar tamaño (máximo 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ error: 'El archivo excede el tamaño máximo de 10MB' }, { status: 400 })
+    const uploadValidation = await validateAndPrepareUpload(file, 'documents')
+    if (!uploadValidation.valid || !uploadValidation.file) {
+      return NextResponse.json(
+        { error: uploadValidation.error || 'Archivo no permitido' },
+        { status: uploadValidation.antimalwareRequired ? 503 : 400 },
+      )
     }
 
-    // Validar tipo de archivo
-    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ error: 'Tipo de archivo no permitido. Solo se permiten PDFs y documentos Word' }, { status: 400 })
-    }
-
-    // Generar nombre único para el archivo
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+    const preparedFile = uploadValidation.file
     const folder = materialType === 'pdf' ? 'pdfs' : 'documents'
+    const fileName = generateSafeFileName(file.name, preparedFile.detectedExtension)
     const filePath = `${folder}/${fileName}`
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Subir archivo usando service role key
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('course-materials')
-      .upload(filePath, file, {
+      .upload(filePath, preparedFile.body, {
         cacheControl: '3600',
-        upsert: false
+        contentType: preparedFile.contentType,
+        upsert: false,
       })
 
     if (error) {
-      logger.error('Error uploading file:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      logger.error('Error uploading course material', {
+        code: error.name,
+        message: error.message,
+      })
+      return NextResponse.json(
+        { error: 'Error al subir el material' },
+        { status: 500 },
+      )
     }
 
-    // Obtener URL pública
     const { data: urlData } = supabase.storage
       .from('course-materials')
       .getPublicUrl(filePath)
 
     return NextResponse.json({
-      success: true,
-      url: urlData.publicUrl,
-      path: filePath,
       name: file.name,
-      size: file.size,
-      type: file.type
+      path: filePath,
+      size: preparedFile.sizeBytes,
+      success: true,
+      type: preparedFile.contentType,
+      url: urlData.publicUrl,
     })
-
   } catch (error) {
-    logger.error('Error in upload API:', error)
+    logger.error('Error in course material upload API', {
+      message: error instanceof Error ? error.message : 'unknown',
+    })
     return NextResponse.json(
-      { error: 'Error interno del servidor' }, 
-      { status: 500 }
+      { error: 'Error interno del servidor' },
+      { status: 500 },
     )
   }
 }
-

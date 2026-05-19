@@ -120,23 +120,37 @@ export async function getWorkshopMetadata(workshopId: string): Promise<WorkshopM
     }
 
     // 4. Agrupar lecciones por módulo
+    type LessonRow = {
+      lesson_id: string;
+      module_id: string;
+      lesson_title: string;
+      lesson_description: string | null;
+      lesson_order_index: number;
+      duration_seconds: number | null;
+      total_duration_minutes: number | null;
+    };
+
     const lessonsByModule = new Map<string, LessonInfo[]>();
-    (allLessons || []).forEach((lesson: Record<string, unknown>) => {
+    (allLessons as LessonRow[] | null ?? []).forEach((lesson) => {
       if (!lessonsByModule.has(lesson.module_id)) {
         lessonsByModule.set(lesson.module_id, []);
       }
+      const durationSeconds = lesson.duration_seconds ?? undefined;
+      const totalMinutes = lesson.total_duration_minutes ?? 0;
+      const computedMinutes =
+        totalMinutes > 0
+          ? totalMinutes
+          : durationSeconds && durationSeconds > 0
+            ? Math.ceil(durationSeconds / 60)
+            : 15;
+
       lessonsByModule.get(lesson.module_id)!.push({
         lessonId: lesson.lesson_id,
         lessonTitle: lesson.lesson_title,
-        lessonDescription: lesson.lesson_description || undefined,
+        lessonDescription: lesson.lesson_description ?? undefined,
         lessonOrderIndex: lesson.lesson_order_index,
-        durationSeconds: lesson.duration_seconds || undefined,
-        // ✅ CORRECCIÓN: Priorizar total_duration_minutes, luego calcular desde duration_seconds, fallback a 15 min
-        totalDurationMinutes: lesson.total_duration_minutes && lesson.total_duration_minutes > 0
-          ? lesson.total_duration_minutes
-          : (lesson.duration_seconds && lesson.duration_seconds > 0
-            ? Math.ceil(lesson.duration_seconds / 60)
-            : 15)
+        durationSeconds,
+        totalDurationMinutes: computedMinutes,
       });
     });
 

@@ -46,6 +46,21 @@ describe('withZodBody', () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
+  it('uses the configured fallback for empty or malformed optional bodies', async () => {
+    const optionalBodySchema = z.object({
+      courseId: z.string().min(1).optional(),
+    });
+    const handler = vi.fn(async (_request: NextRequest, body: z.infer<typeof optionalBodySchema>) =>
+      NextResponse.json({ body }),
+    );
+    const route = withZodBody(optionalBodySchema, handler, { emptyBodyFallback: {} });
+
+    const response = await route(requestWithBody(''), undefined);
+
+    await expect(response.json()).resolves.toEqual({ body: {} });
+    expect(handler).toHaveBeenCalledWith(expect.any(Request), {}, undefined);
+  });
+
   it('returns VALIDATION_ERROR with flattened details', async () => {
     const handler = vi.fn();
     const route = withZodBody(schema, handler);

@@ -49,6 +49,26 @@ export async function findLoginUser(
   return byUsername.data ?? byEmail.data ?? null
 }
 
+export async function findLoginUserById(
+  supabase: LoginSupabaseClient,
+  userId: string
+): Promise<LoginUserRecord | null> {
+  const { data, error } = await supabase
+    .from('users')
+    .select(LOGIN_USER_COLUMNS)
+    .eq('id', userId)
+    .maybeSingle<LoginUserRecord>()
+
+  if (error) {
+    logger.error('Login lookup by id failed', {
+      code: error.code,
+      message: error.message,
+    })
+  }
+
+  return data ?? null
+}
+
 export async function validateLoginPassword(
   user: LoginUserRecord,
   password: string

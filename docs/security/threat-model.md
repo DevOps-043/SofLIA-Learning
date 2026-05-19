@@ -76,3 +76,10 @@ Estado de revision: pendiente de firma por Security Owner y Platform Owner. Este
 | Upload hardening incompleto | Abierto | 5.11 |
 | CSP enforcement requiere periodo report-only | En progreso | 5.5 seguimiento |
 | MFA Admin/Business requiere habilitacion Supabase/UX | En progreso | 5.7 seguimiento |
+
+## Revision y firmas
+
+| Fecha | Revisor | Cambios | Aprobacion |
+|---|---|---|---|
+| 2026-05-19 | Security Owner | Pendiente de firma humana sobre baseline STRIDE y MFA/login hardening | Pendiente |
+| 2026-05-19 | Platform Owner | Pendiente de cross-review humano sobre tenant isolation, CORS y upload hardening | Pendiente |

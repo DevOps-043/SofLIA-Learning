@@ -28,14 +28,16 @@ export async function validateRoleAccess(
     });
 
     if (!resolvedUser.userId) {
-      if (!resolvedUser.error) {
+      const resolvedUserError = 'error' in resolvedUser ? resolvedUser.error : undefined;
+
+      if (!resolvedUserError) {
         await logSecurityEvent('UNAUTHORIZED_ACCESS_ATTEMPT', {
           path: pathname,
           ip: clientIp,
           userAgent,
         });
       }
-      return { isValid: false, error: resolvedUser.error || 'No session found' };
+      return { isValid: false, error: resolvedUserError || 'No session found' };
     }
 
     const { data: userData, error: userError } = await supabase

@@ -1,0 +1,27 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": true,
+    "plugins": [],
+    "tsBuildInfoFile": ".next/cache/tsconfig.typecheck.core.tsbuildinfo",
+    "typeRoots": ["../../node_modules/@types"],
+    "types": ["react", "react-dom", "node"]
+  },
+  "include": [
+    "src/core/**/*.ts",
+    "src/core/**/*.tsx",
+    "src/lib/**/*.ts",
+    "src/lib/**/*.tsx",
+    "src/shared/**/*.ts",
+    "src/shared/**/*.tsx",
+    "next-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/**/__tests__/**",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx"
+  ]
+}

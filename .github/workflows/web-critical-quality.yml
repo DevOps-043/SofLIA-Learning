@@ -6,6 +6,7 @@ on:
       - 'apps/web/src/lib/api/**'
       - 'apps/web/src/app/api/auth/**'
       - 'apps/web/src/lib/security/**'
+      - 'apps/web/tests/e2e/**'
       - 'supabase/migrations/**'
       - 'apps/web/package.json'
       - 'package-lock.json'
@@ -17,6 +18,7 @@ on:
       - 'apps/web/src/lib/api/**'
       - 'apps/web/src/app/api/auth/**'
       - 'apps/web/src/lib/security/**'
+      - 'apps/web/tests/e2e/**'
       - 'supabase/migrations/**'
       - 'apps/web/package.json'
       - 'package-lock.json'
@@ -52,3 +54,13 @@ jobs:
           src/app/api/auth/refresh/route.post.ts
           src/lib/security/__tests__/rls-migrations.test.ts
           --quiet
+
+      - name: Install Playwright browser
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+
+      - name: Security fine E2E guard
+        working-directory: apps/web
+        env:
+          WEB_ALLOWED_ORIGINS: https://app.soflia.example
+        run: npx playwright test tests/e2e/tenant-isolation.spec.ts

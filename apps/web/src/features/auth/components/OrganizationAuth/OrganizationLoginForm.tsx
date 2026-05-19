@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 
 import { SocialLoginButtons } from '../SocialLoginButtons/SocialLoginButtons'
 import { HumanVerificationField } from '../HumanVerificationField'
+import { MfaChallengeForm } from '../LoginForm/MfaChallengeForm'
 import { useOrganizationAuthStyles } from './useOrganizationAuthStyles'
 import {
   formatRedirectCountdownMessage,
@@ -38,6 +39,26 @@ export function OrganizationLoginForm(props: OrganizationLoginFormProps) {
     formState: { errors },
     watch,
   } = login.form
+
+  if (login.mfaChallengeToken) {
+    return (
+      <div className="space-y-5">
+        <OrganizationLoginErrorAlert
+          error={login.error}
+          formatRedirectCountdownMessage={formatRedirectCountdownMessage}
+          redirectInfo={login.redirectInfo}
+        />
+        <MfaChallengeForm
+          code={login.mfaCode}
+          isPending={login.isPending}
+          onBack={login.resetMfaChallenge}
+          onCodeChange={login.setMfaCode}
+          onSubmit={login.onMfaSubmit}
+          t={t}
+        />
+      </div>
+    )
+  }
 
   return (
     <>

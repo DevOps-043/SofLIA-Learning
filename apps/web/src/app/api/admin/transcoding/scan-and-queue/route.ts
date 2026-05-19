@@ -1,151 +1,118 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { z } from 'zod'
+import { createClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from 'next/server';
 
-import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import {
   isTranscodingEnabled,
   triggerTranscodingBackground,
-} from '@/lib/media/server/transcoding-dispatcher.server'
+} from '@/lib/media/server/transcoding-dispatcher.server';
 
-export const runtime = 'nodejs'
-export const maxDuration = 60
+import {
+  adminTranscodingScanAndQueueSchema,
+  type AdminTranscodingScanAndQueueBody,
+} from './schema';
 
-const BodySchema = z.object({
-  bucket: z.string().min(1).max(64).default('course-videos'),
-  folder: z.string().max(200).default('videos'),
-  /** Max number of BG functions to invoke immediately.  The rest stay
-   *  queued and must be drained manually with /drain.  Defaults to 10 —
-   *  the upper bound of the safe range on Netlify Pro.  With ~8 min
-   *  per video this drains 85 legacy videos in ~70 min instead of
-   *  ~140 min at concurrency=5.  Supabase Storage rate limits are
-   *  absorbed by the 3-retry backoff in uploadHlsDirectory. */
-  concurrency: z.number().int().min(1).max(10).default(10),
-})
+export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 interface StorageObject {
-  name: string
-  metadata: { size?: number; mimetype?: string } | null
+  name: string;
+  metadata: { size?: number; mimetype?: string } | null;
 }
 
-const MP4_EXTENSIONS = ['.mp4', '.webm', '.mov', '.m4v']
+const MP4_EXTENSIONS = ['.mp4', '.webm', '.mov', '.m4v'];
 
 function isVideoFile(name: string): boolean {
-  const lower = name.toLowerCase()
-  return MP4_EXTENSIONS.some((ext) => lower.endsWith(ext))
+  const lower = name.toLowerCase();
+  return MP4_EXTENSIONS.some((extension) => lower.endsWith(extension));
 }
 
 function guessContentType(name: string): string {
-  const lower = name.toLowerCase()
-  if (lower.endsWith('.webm')) return 'video/webm'
-  if (lower.endsWith('.mov') || lower.endsWith('.m4v')) return 'video/quicktime'
-  return 'video/mp4'
+  const lower = name.toLowerCase();
+  if (lower.endsWith('.webm')) return 'video/webm';
+  if (lower.endsWith('.mov') || lower.endsWith('.m4v')) return 'video/quicktime';
+  return 'video/mp4';
 }
 
-/**
- * Enumerates the source video bucket folder, identifies videos that don't
- * yet have a completed (or in-flight) transcoding job, and queues HLS
- * generation for each.  Returns counts + the first N invoked jobIds so the
- * admin UI can show progress in real time.
- *
- * Concurrency protection: only `concurrency` BG functions are kicked off
- * eagerly.  Remaining rows stay `status: 'queued'` in the table and can be
- * picked up later (drain endpoint can re-trigger them).
- */
-export async function POST(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (auth instanceof NextResponse) return auth
+async function handlePost(_request: NextRequest, body: AdminTranscodingScanAndQueueBody) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
 
   if (!isTranscodingEnabled()) {
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          'Transcoding está desactivado en producción (VIDEO_TRANSCODING_ENABLED).',
-      },
-      { status: 409 },
-    )
+    return apiError(
+      'TRANSCODING_DISABLED',
+      'Transcoding esta desactivado en produccion.',
+      409,
+    );
   }
 
-  const parsed = BodySchema.safeParse(
-    await request.json().catch(() => ({})),
-  )
-  if (!parsed.success) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: parsed.error.issues[0]?.message ?? 'Datos inválidos',
-      },
-      { status: 400 },
-    )
-  }
-
-  const { bucket, folder, concurrency } = parsed.data
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const { bucket, folder, concurrency } = body;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !supabaseServiceKey) {
-    return NextResponse.json(
-      { success: false, error: 'Configuración del servidor incompleta' },
-      { status: 500 },
-    )
+    return apiError(
+      'SERVER_CONFIGURATION_INCOMPLETE',
+      'Configuracion del servidor incompleta.',
+      500,
+    );
   }
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey)
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const all: StorageObject[] = [];
+  let offset = 0;
+  const pageSize = 100;
 
-  // 1. List all video objects in the folder (paginated to handle >1000).
-  const all: StorageObject[] = []
-  let offset = 0
-  const pageSize = 100
   while (true) {
     const { data: page, error: listError } = await supabase.storage
       .from(bucket)
-      .list(folder, { limit: pageSize, offset })
+      .list(folder, { limit: pageSize, offset });
+
     if (listError) {
-      return NextResponse.json(
-        { success: false, error: `No se pudo listar el bucket: ${listError.message}` },
-        { status: 500 },
-      )
+      return apiError(
+        'TRANSCODING_BUCKET_LIST_FAILED',
+        'No se pudo listar el bucket.',
+        500,
+      );
     }
-    if (!page || page.length === 0) break
+
+    if (!page || page.length === 0) break;
     for (const entry of page) {
       if (isVideoFile(entry.name)) {
-        all.push({ name: entry.name, metadata: (entry.metadata ?? null) as StorageObject['metadata'] })
+        all.push({ name: entry.name, metadata: (entry.metadata ?? null) as StorageObject['metadata'] });
       }
     }
-    if (page.length < pageSize) break
-    offset += pageSize
+    if (page.length < pageSize) break;
+    offset += pageSize;
   }
 
   if (all.length === 0) {
     return NextResponse.json({
-      success: true,
-      totalFound: 0,
       alreadyDone: 0,
-      queued: 0,
       invoked: 0,
       jobIds: [],
-    })
+      queued: 0,
+      success: true,
+      totalFound: 0,
+    });
   }
 
-  // 2. Build sourcePath list and check existing job rows in one query.
-  const sourcePaths = all.map((entry) => `${folder}/${entry.name}`)
-
+  const sourcePaths = all.map((entry) => `${folder}/${entry.name}`);
   const { data: existing, error: existingError } = await supabase
     .from('video_transcoding_jobs')
     .select('source_path, status')
     .eq('bucket', bucket)
-    .in('source_path', sourcePaths)
+    .in('source_path', sourcePaths);
 
   if (existingError) {
-    return NextResponse.json(
-      { success: false, error: `No se pudo consultar jobs existentes: ${existingError.message}` },
-      { status: 500 },
-    )
+    return apiError(
+      'TRANSCODING_EXISTING_JOBS_QUERY_FAILED',
+      'No se pudieron consultar jobs existentes.',
+      500,
+    );
   }
 
-  // Skip when there's already a completed or in-flight job.  Re-queue on
-  // failed / skipped / disabled.
   const skipSet = new Set(
     (existing ?? [])
       .filter((row) =>
@@ -154,76 +121,76 @@ export async function POST(request: NextRequest) {
         row.status === 'queued',
       )
       .map((row) => row.source_path),
-  )
+  );
 
-  const pending = all.filter((entry) => !skipSet.has(`${folder}/${entry.name}`))
+  const pending = all.filter((entry) => !skipSet.has(`${folder}/${entry.name}`));
 
   if (pending.length === 0) {
     return NextResponse.json({
-      success: true,
-      totalFound: all.length,
       alreadyDone: skipSet.size,
-      queued: 0,
       invoked: 0,
       jobIds: [],
-    })
+      queued: 0,
+      success: true,
+      totalFound: all.length,
+    });
   }
 
-  // 3. Insert all queued rows in one shot.
   const rowsToInsert = pending.map((entry) => {
-    const sourcePath = `${folder}/${entry.name}`
-    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(sourcePath)
+    const sourcePath = `${folder}/${entry.name}`;
+    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(sourcePath);
     return {
-      source_path: sourcePath,
-      source_url: urlData?.publicUrl ?? '',
       bucket,
       content_type:
         (entry.metadata?.mimetype as string | undefined) ??
         guessContentType(entry.name),
       size_bytes: entry.metadata?.size ?? null,
+      source_path: sourcePath,
+      source_url: urlData?.publicUrl ?? '',
       status: 'queued' as const,
-    }
-  })
+    };
+  });
 
   const { data: insertedRows, error: insertError } = await supabase
     .from('video_transcoding_jobs')
     .insert(rowsToInsert)
-    .select('id, source_path, source_url, bucket, content_type, size_bytes')
+    .select('id, source_path, source_url, bucket, content_type, size_bytes');
 
   if (insertError || !insertedRows) {
-    return NextResponse.json(
-      { success: false, error: `No se pudieron encolar los jobs: ${insertError?.message}` },
-      { status: 500 },
-    )
+    return apiError(
+      'TRANSCODING_JOBS_QUEUE_FAILED',
+      'No se pudieron encolar los jobs.',
+      500,
+    );
   }
 
-  // 4. Trigger the first N BG functions (concurrency-limited).
-  // Run all invocations in parallel — each fetch awaits the 202 response
-  // which is fast (~100-500ms).  Promise.all lets the slowest one bound
-  // the whole step instead of summing them sequentially.
-  const toInvoke = insertedRows.slice(0, concurrency)
+  const toInvoke = insertedRows.slice(0, concurrency);
   const dispatchResults = await Promise.all(
     toInvoke.map((row) =>
       triggerTranscodingBackground({
-        jobId: row.id,
-        sourcePath: row.source_path,
-        sourceUrl: row.source_url,
         bucket: row.bucket,
         contentType: row.content_type,
+        jobId: row.id,
         sizeBytes: row.size_bytes,
+        sourcePath: row.source_path,
+        sourceUrl: row.source_url,
       }),
     ),
-  )
-  const invokedCount = dispatchResults.filter((result) => result.ok).length
-  const failures = dispatchResults.filter((result) => !result.ok)
+  );
+  const invokedCount = dispatchResults.filter((result) => result.ok).length;
+  const failures = dispatchResults.filter((result) => !result.ok);
 
   return NextResponse.json({
-    success: true,
-    totalFound: all.length,
     alreadyDone: skipSet.size,
-    queued: insertedRows.length,
+    failures,
     invoked: invokedCount,
     jobIds: insertedRows.map((row) => row.id),
-    failures,
-  })
+    queued: insertedRows.length,
+    success: true,
+    totalFound: all.length,
+  });
 }
+
+export const POST = withZodBody(adminTranscodingScanAndQueueSchema, handlePost, {
+  emptyBodyFallback: {},
+});

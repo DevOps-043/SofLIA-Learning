@@ -15,6 +15,7 @@ import type {
 } from '../types/lia-personalization.types';
 import type { Database } from '../../lib/supabase/types';
 import { fromLoose } from '../../lib/supabase/looseQuery';
+import { SELECT_COLUMNS } from '../../lib/supabase/select-types';
 
 type LiaPersonalizationRow = SofLIAPersonalizationSettings;
 type LiaPersonalizationWriteRow = Partial<SofLIAPersonalizationSettings> & {
@@ -47,6 +48,10 @@ function personalizationSettingsTable(client: unknown) {
     client,
     'lia_personalization_settings'
   );
+}
+
+function usersTable(client: unknown) {
+  return fromLoose<UserLookupRow>(client, 'users');
 }
 
 // ============================================================================
@@ -146,9 +151,7 @@ export class SofLIAPersonalizationService {
     }
 
     // Verificar que el usuario existe
-    const { data: userCheck, error: userCheckError } = await adminSupabase
-      .from('users')
-      .returns<UserLookupRow[]>()
+    const { data: userCheck, error: userCheckError } = await usersTable(adminSupabase)
       .select('id')
       .eq('id', userId)
       .single();

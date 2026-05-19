@@ -56,7 +56,7 @@ export function generateCSRFToken(): string {
  * @returns Token CSRF actual o recién generado
  */
 export async function getOrCreateCSRFToken(): Promise<string> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const existingToken = cookieStore.get(CSRF_COOKIE_NAME)?.value;
 
   if (existingToken && isValidCSRFToken(existingToken)) {
@@ -106,7 +106,7 @@ export function isValidCSRFToken(token: string): boolean {
  * @returns true si los tokens coinciden
  */
 export async function verifyCSRFToken(request: NextRequest): Promise<boolean> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const cookieToken = cookieStore.get(CSRF_COOKIE_NAME)?.value;
 
   if (!cookieToken) {
@@ -173,7 +173,8 @@ export function isCSRFExcludedPath(pathname: string): boolean {
 export async function csrfProtectionMiddleware(
   request: NextRequest
 ): Promise<NextResponse> {
-  const { pathname, method } = request.nextUrl;
+  const { pathname } = request.nextUrl;
+  const { method } = request;
 
   // Permitir rutas excluidas
   if (isCSRFExcludedPath(pathname)) {

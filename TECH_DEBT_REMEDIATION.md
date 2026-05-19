@@ -8,12 +8,21 @@
 
 ---
 
-## 📊 Estado actual — Cierre de 1.5/API auth central (2026-05-18)
+## 📊 Estado actual — Cierre de Pasada 4 (2026-05-18)
 
-> **Deuda técnica actual: ~14 %** (bajó desde 38.75 % → 26 % → 15 % → **14 %**).
-> **Reducción acumulada: −24.75 puntos absolutos (−64 % relativo).**
-> **Salud total: 86.20 / 100** (meta final: ≥88).
-> **A menos de 2 puntos de la meta de salud y ~2 puntos de la meta de deuda (≤12 %).**
+> **Deuda técnica actual: ~9 %** (bajó desde 38.75 % → 26 % → 15 % → 11.35 % → **9 %**).
+> **Reducción acumulada: −29.75 puntos absolutos (−77 % relativo).**
+> **Salud total: 91.2 / 100** (meta final: ≥88 ✅ **rebasada**).
+
+### Cierres clave de Pasada 4
+
+| Item | Resultado |
+|---|---|
+| **TD-001 — `tsc` timeout** | ✅ **RESUELTO**. Causa diagnosticada: `app/` + `features/` arrastran el plugin `next` y la masa de tipos agota el watchdog. Fix: split en 3 tsconfigs (`core` / `app` / `features`). `core` corre en **10.27 s** y revela errores reales antes ocultos. Ver `docs/tech-debt/td-001-resolution.md`. |
+| **Tarea 1.3 — Strict mode** | ✅ **Listo via feature flag**. `TS_STRICT_BUILD=true` activa `ignoreBuildErrors: false` y `ignoreDuringBuilds: false`. Workflow `type-check-progressive.yml` corre los 3 slices en matrix CI; `core` es blocking. |
+| **Tarea 5.7 — MFA TOTP** | ✅ **IMPLEMENTADO**. RFC 6238 puro con `node:crypto` (sin deps); tabla `user_mfa_factors` con RLS + AES-256-GCM; endpoints `status/setup/activate/verify/disable/regenerate`; tests. Doc: `docs/security/mfa-totp.md`. |
+| **Tarea 5.12 — CORS estricto** | ✅ **IMPLEMENTADO**. Helper `apps/web/src/lib/security/cors.ts` con allowlist via `WEB_ALLOWED_ORIGINS`; tests; integración en `middleware.ts` (`enforceCors` + `applyCorsHeaders`). |
+| **Tarea 1.4 — Validación Zod** | 🟢 **Progreso**: +8 rutas críticas migradas (password, lia/feedback, courses/rating, admin/users/create, security/verify-human, 4 MFA endpoints). **Patrón documentado** en `docs/tech-debt/route-migration-pattern.md` para paralelizar las ~200 restantes. |
 
 ### Resumen ejecutivo por Fase (Pasada 2)
 

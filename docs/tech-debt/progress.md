@@ -1,6 +1,16 @@
 # Progreso deuda tecnica
 
-Ultima actualizacion: 2026-05-18.
+Ultima actualizacion: 2026-05-18 (cierre Pasada 4).
+
+## Pasada 4 — cierres adicionales
+
+| Tarea | Estado | Notas |
+|---|---|---|
+| TD-001 | **Resuelto** | Causa: `app/` + `features/` arrastran el `next` plugin y agotan el watchdog. Solucion: split en 3 tsconfigs (`tsconfig.typecheck.core.json`, `.app.json`, `.features.json`). Slice `core` corre en 10.27 s y expone errores reales. Ver `docs/tech-debt/td-001-resolution.md`. |
+| 1.3 Strict mode flags | **Listo via flag** | `TS_STRICT_BUILD=true` activa `ignoreBuildErrors: false` y `ignoreDuringBuilds: false`. Workflow `type-check-progressive.yml` ejecuta los 3 slices en matrix; `core` es blocking. |
+| 5.7 MFA TOTP | **Implementado** | RFC 6238 puro con `node:crypto`; tabla `user_mfa_factors` con RLS + AES-256-GCM; endpoints `setup/activate/verify/disable/regenerate/status`; `docs/security/mfa-totp.md`. Falta integrar con UI y enforcement en login flow. |
+| 5.12 CORS estricto Next | **Implementado** | `apps/web/src/lib/security/cors.ts` (helper + tests) aplicado en `middleware.ts` (`enforceCors` y `applyCorsHeaders`). Whitelist via `WEB_ALLOWED_ORIGINS`. |
+| 1.4 Validacion Zod | **Progreso significativo** | +8 rutas migradas (`profile/password`, `lia/feedback`, `courses/[slug]/rating`, `admin/users/create`, `security/verify-human`, 4 endpoints MFA). Patron documentado en `docs/tech-debt/route-migration-pattern.md` para los ~200 restantes. |
 
 ## Fase 1 - Type Safety y Validacion
 

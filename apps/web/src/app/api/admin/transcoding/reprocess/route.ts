@@ -1,87 +1,76 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
+import { NextRequest, NextResponse } from 'next/server';
 
-import { requireAdmin } from '@/lib/auth/requireAdmin'
-import { STREAMABLE_VIDEO_MIME_TYPES } from '@/lib/media/video-upload-policy'
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import {
   dispatchTranscodingJob,
   isTranscodingEnabled,
-} from '@/lib/media/server/transcoding-dispatcher.server'
+} from '@/lib/media/server/transcoding-dispatcher.server';
+
 import {
   createTranscodingSupabaseClient,
   getPublicSourceUrl,
   readSourceSizeBytes,
-} from './reprocess-transcoding.helpers'
+} from './reprocess-transcoding.helpers';
+import {
+  adminTranscodingReprocessSchema,
+  type AdminTranscodingReprocessBody,
+} from './schema';
 
-export const runtime = 'nodejs'
-export const maxDuration = 30
+export const runtime = 'nodejs';
+export const maxDuration = 30;
 
-const BodySchema = z.object({
-  sourcePath: z.string().min(1).max(600),
-  bucket: z.string().min(1).max(64).default('course-videos'),
-  contentType: z.enum(STREAMABLE_VIDEO_MIME_TYPES).default('video/mp4'),
-})
-
-export async function POST(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (auth instanceof NextResponse) return auth
+async function handlePost(_request: NextRequest, body: AdminTranscodingReprocessBody) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
 
   if (!isTranscodingEnabled()) {
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          'Transcoding estÃ¡ desactivado en producciÃ³n (VIDEO_TRANSCODING_ENABLED).',
-      },
-      { status: 409 },
-    )
+    return apiError(
+      'TRANSCODING_DISABLED',
+      'Transcoding esta desactivado en produccion.',
+      409,
+    );
   }
 
-  const parsed = BodySchema.safeParse(await request.json().catch(() => null))
-  if (!parsed.success) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: parsed.error.issues[0]?.message ?? 'Datos invÃ¡lidos',
-      },
-      { status: 400 },
-    )
-  }
-
-  const { sourcePath, bucket, contentType } = parsed.data
-  const supabase = createTranscodingSupabaseClient()
+  const { sourcePath, bucket, contentType } = body;
+  const supabase = createTranscodingSupabaseClient();
 
   if (!supabase) {
-    return NextResponse.json(
-      { success: false, error: 'ConfiguraciÃ³n del servidor incompleta' },
-      { status: 500 },
-    )
+    return apiError(
+      'SERVER_CONFIGURATION_INCOMPLETE',
+      'Configuracion del servidor incompleta.',
+      500,
+    );
   }
 
-  const publicSourceUrl = getPublicSourceUrl(supabase, bucket, sourcePath)
+  const publicSourceUrl = getPublicSourceUrl(supabase, bucket, sourcePath);
 
   if (!publicSourceUrl) {
-    return NextResponse.json(
-      { success: false, error: 'No se pudo resolver la URL pÃºblica del video' },
-      { status: 400 },
-    )
+    return apiError(
+      'TRANSCODING_SOURCE_URL_UNRESOLVED',
+      'No se pudo resolver la URL publica del video.',
+      400,
+    );
   }
 
-  const sizeBytes = await readSourceSizeBytes(supabase, bucket, sourcePath)
+  const sizeBytes = await readSourceSizeBytes(supabase, bucket, sourcePath);
   const result = await dispatchTranscodingJob({
-    supabase,
     bucket,
     contentType,
+    sizeBytes,
     sourcePath,
     sourceUrl: publicSourceUrl,
-    sizeBytes,
-  })
+    supabase,
+  });
 
   return NextResponse.json({
-    success: true,
     jobId: result.jobId ?? null,
-    status: result.status,
     sourcePath,
     sourceUrl: publicSourceUrl,
-  })
+    status: result.status,
+    success: true,
+  });
 }
+
+export const POST = withZodBody(adminTranscodingReprocessSchema, handlePost);

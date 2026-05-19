@@ -1,77 +1,79 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/auth/requireAdmin'
-import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(request: NextRequest) {
-  // ✅ SEGURIDAD: Verificar autenticación y autorización de admin
-  const auth = await requireAdmin()
-  if (auth instanceof NextResponse) return auth
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
+import { logger } from '@/lib/utils/logger';
+
+import { adminVideoDurationSchema, type AdminVideoDurationBody } from './schema';
+
+function readDurationFromPayload(payload: unknown): number | null {
+  if (!payload || typeof payload !== 'object' || !('duration' in payload)) {
+    return null;
+  }
+
+  const duration = (payload as { duration?: unknown }).duration;
+  return typeof duration === 'number' && Number.isFinite(duration)
+    ? Math.floor(duration)
+    : null;
+}
+
+async function handlePost(_request: NextRequest, body: AdminVideoDurationBody) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
 
   try {
-    const { provider, videoIdOrUrl } = await request.json()
-
-    if (!provider || !videoIdOrUrl) {
-      return NextResponse.json(
-        { error: 'Provider y videoIdOrUrl son requeridos' },
-        { status: 400 }
-      )
-    }
-
-    let duration: number | null = null
+    const { provider, videoIdOrUrl } = body;
+    let duration: number | null = null;
 
     if (provider === 'youtube') {
-      // Extraer video ID
-      let videoId = videoIdOrUrl
+      let videoId = videoIdOrUrl;
       if (videoIdOrUrl.includes('youtube.com') || videoIdOrUrl.includes('youtu.be')) {
-        const match = videoIdOrUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)
-        if (match && match[1]) {
-          videoId = match[1]
+        const match = videoIdOrUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+        if (match?.[1]) {
+          videoId = match[1];
         }
       }
 
       if (videoId) {
-        // Intentar obtener duración usando oEmbed (no requiere API key, pero no devuelve duración)
-        // Usar una API pública alternativa o simplemente devolver null
-        // Por ahora, devolvemos null y el usuario puede ingresar la duración manualmente
-        // O puedes usar una biblioteca o servicio de terceros
-        duration = null
+        duration = null;
       }
     } else if (provider === 'vimeo') {
-      // Extraer video ID
-      let videoId = videoIdOrUrl
+      let videoId = videoIdOrUrl;
       if (videoIdOrUrl.includes('vimeo.com')) {
-        const match = videoIdOrUrl.match(/vimeo\.com\/(\d+)/)
-        if (match && match[1]) {
-          videoId = match[1]
+        const match = videoIdOrUrl.match(/vimeo\.com\/(\d+)/);
+        if (match?.[1]) {
+          videoId = match[1];
         }
       }
 
       if (videoId) {
-        // Usar oEmbed API de Vimeo (no requiere API key)
         try {
-          const oembedUrl = `https://vimeo.com/api/oembed.json?url=https://vimeo.com/${videoId}`
-          const response = await fetchWithCircuitBreaker('vimeo-oembed', oembedUrl)
-          
+          const oembedUrl = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(`https://vimeo.com/${videoId}`)}`;
+          const response = await fetchWithCircuitBreaker('vimeo-oembed', oembedUrl);
+
           if (response.ok) {
-            const data = await response.json()
-            if (data && data.duration) {
-              duration = Math.floor(data.duration)
-            }
+            const payload: unknown = await response.json();
+            duration = readDurationFromPayload(payload);
           }
         } catch (error) {
+          logger.warn('Unable to fetch Vimeo duration.', { provider, error });
         }
       }
-    } else if (provider === 'custom') {
-      // Para URLs personalizadas, intentar obtener duración desde el servidor
-      // Esto puede no funcionar debido a CORS, pero intentamos
-      duration = null // Por ahora, no podemos obtener duración de URLs personalizadas desde el servidor
+    } else {
+      duration = null;
     }
 
-    return NextResponse.json({ duration })
+    return NextResponse.json({ duration });
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Error al detectar duración del video' },
-      { status: 500 }
-    )
+    logger.error('Error detecting admin video duration.', error);
+    return apiError(
+      'ADMIN_VIDEO_DURATION_DETECTION_FAILED',
+      'Error al detectar duracion del video.',
+      500,
+    );
   }
 }
+
+export const POST = withZodBody(adminVideoDurationSchema, handlePost);

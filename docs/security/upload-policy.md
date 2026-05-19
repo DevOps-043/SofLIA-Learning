@@ -11,6 +11,7 @@ Applies to every endpoint that accepts multipart uploads or signed upload flows 
 | `avatars` | PNG, JPEG, WebP | 2 MB | Re-encode images server-side |
 | `content-images` | PNG, JPEG, WebP, GIF | 5 MB | Re-encode static images server-side |
 | `documents` | PDF, Word, Excel | 10 MB | Antimalware required |
+| `course-materials` | PDF, Word, Excel | 10 MB | Validated through `documents` policy before storage upload |
 | `community-images` | PNG, JPEG, WebP | 5 MB | Re-encode images server-side |
 | `intro-videos` | MP4, WebM, OGG, QuickTime | 500 MB | Adaptive processing after upload |
 | `course-videos` | MP4, WebM | 2 GB | Signed upload flow only |
@@ -26,6 +27,7 @@ Applies to every endpoint that accepts multipart uploads or signed upload flows 
 - Use signed URLs with short TTLs for private downloads.
 - Require antimalware for documents and SCORM ZIP packages. Local development may use `UPLOAD_ANTIMALWARE_MODE=bypass-local`; production must not.
 - Production antimalware is configured with `UPLOAD_ANTIMALWARE_PROVIDER=clamav-http` and `CLAMAV_SCAN_URL`; provider failures keep protected buckets closed.
+- Direct signed upload flows cannot scan bytes inside the request path. Large video buckets require an external storage/media scanner or migration to a managed media provider before strict antimalware enforcement can be claimed.
 
 ## Operational Notes
 

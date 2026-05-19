@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, Loader2, LogIn } from 'lucide-react';
+import { Mail, Loader2, LogIn } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LoginFormData } from '../../types/auth.types';
 import { getLoginSchema } from './LoginForm.schema';
@@ -18,6 +18,8 @@ import { HumanVerificationField } from '../HumanVerificationField';
 import Link from 'next/link';
 import { useAuthTab } from '../AuthTabs/AuthTabContext';
 import { clearAuthUserCache } from '../../../../lib/auth/user-auth-cache';
+import { verifyMfaLoginChallenge } from '../../services/mfa-login-client.service';
+import { MfaChallengeForm } from './MfaChallengeForm';
 
 function hasRedirectTarget(
   result: Awaited<ReturnType<typeof loginAction>> | null | undefined
@@ -39,6 +41,19 @@ function isSuccessfulLoginResult(
     'success' in result &&
     result.success === true &&
     hasRedirectTarget(result)
+  );
+}
+
+function isMfaRequiredResult(
+  result: Awaited<ReturnType<typeof loginAction>> | null | undefined
+): result is { challengeToken: string; requiresMfa: true } {
+  return (
+    typeof result === 'object' &&
+    result !== null &&
+    'requiresMfa' in result &&
+    result.requiresMfa === true &&
+    'challengeToken' in result &&
+    typeof result.challengeToken === 'string'
   );
 }
 
@@ -72,6 +87,9 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState('');
+  const [mfaChallengeToken, setMfaChallengeToken] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
+  const [mfaCredentials, setMfaCredentials] = useState<LoginFormData | null>(null);
   const submitInFlightRef = useRef(false);
   const { setActiveTab } = useAuthTab();
 
@@ -93,6 +111,18 @@ export function LoginForm() {
   });
 
   const rememberMe = watch('rememberMe');
+
+  const persistCredentialsPreference = (data: LoginFormData) => {
+    if (data.rememberMe) {
+      saveCredentials({
+        emailOrUsername: data.emailOrUsername,
+        password: data.password,
+      });
+      return;
+    }
+
+    clearSavedCredentials();
+  };
 
   // Cargar credenciales guardadas al montar el componente
   useEffect(() => {
@@ -123,16 +153,6 @@ export function LoginForm() {
     try {
       clearAuthUserCache();
 
-      // Guardar o eliminar credenciales según el estado de "recuérdame"
-      if (data.rememberMe) {
-        saveCredentials({
-          emailOrUsername: data.emailOrUsername,
-          password: data.password,
-        });
-      } else {
-        clearSavedCredentials();
-      }
-
       const formData = new FormData();
       formData.append('emailOrUsername', data.emailOrUsername);
       formData.append('password', data.password);
@@ -147,11 +167,18 @@ export function LoginForm() {
         finishPending();
         return;
       } else if (isSuccessfulLoginResult(result)) {
+        persistCredentialsPreference(data);
         // ✅ Login exitoso - navegar a la URL indicada
         // IMPORTANTE: Usar window.location.href en lugar de router.push
         // para forzar navegación completa y que las cookies del servidor se propaguen
         window.location.href = result.redirectTo;
         // No resetear isPending - la página recargará completamente
+        return;
+      } else if (isMfaRequiredResult(result)) {
+        setMfaChallengeToken(result.challengeToken);
+        setMfaCredentials(data);
+        setMfaCode('');
+        finishPending();
         return;
       }
       finishPending();
@@ -197,6 +224,49 @@ export function LoginForm() {
     }
   };
 
+  const onMfaSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!mfaChallengeToken || submitInFlightRef.current) {
+      return;
+    }
+
+    submitInFlightRef.current = true;
+    setError(null);
+    setIsPending(true);
+
+    try {
+      const result = await verifyMfaLoginChallenge({
+        challengeToken: mfaChallengeToken,
+        fallbackError: t('auth.login.mfa.errors.verifyFailed'),
+        token: mfaCode,
+      });
+
+      if (!result.verified) {
+        setError(result.error);
+        submitInFlightRef.current = false;
+        setIsPending(false);
+        return;
+      }
+
+      if (mfaCredentials) {
+        persistCredentialsPreference(mfaCredentials);
+      }
+
+      window.location.href = result.redirectTo;
+    } catch {
+      setError(t('auth.login.mfa.errors.verifyFailed'));
+      submitInFlightRef.current = false;
+      setIsPending(false);
+    }
+  };
+
+  const resetMfaChallenge = () => {
+    setMfaChallengeToken(null);
+    setMfaCredentials(null);
+    setMfaCode('');
+    setError(null);
+  };
+
   return (
     <>
       <motion.div
@@ -222,6 +292,17 @@ export function LoginForm() {
             </p>
           </motion.div>
 
+          {mfaChallengeToken ? (
+            <MfaChallengeForm
+              code={mfaCode}
+              isPending={isPending}
+              onBack={resetMfaChallenge}
+              onCodeChange={setMfaCode}
+              onSubmit={onMfaSubmit}
+              t={t}
+            />
+          ) : (
+            <>
           {/* Formulario */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Campo Email/Usuario */}
@@ -379,6 +460,8 @@ export function LoginForm() {
               </button>
             </p>
           </motion.div>
+            </>
+          )}
         </div>
       </motion.div>
 

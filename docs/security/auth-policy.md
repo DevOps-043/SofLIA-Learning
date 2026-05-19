@@ -39,14 +39,15 @@ Reducir credential stuffing, takeover de cuentas privilegiadas, sesiones persist
 
 Roles objetivo: Admin y Business.
 
-Estado: pendiente de UX y configuracion Supabase Auth MFA/TOTP. La politica de enforcement es:
+Estado: TOTP propio implementado para Admin/Business con secretos cifrados, recovery codes y gate de login por challenge firmado de corta vida. La politica de enforcement es:
 
 - Admin: MFA obligatorio.
-- Business owner/admin: MFA obligatorio en operaciones sensibles y recomendado en login.
+- Business owner/admin: MFA obligatorio en login cuando el factor TOTP esta activo.
 - BusinessUser/Instructor: MFA opcional.
 - Recovery codes: generar y mostrar una sola vez.
+- Challenge de login: `MFA_LOGIN_CHALLENGE_SECRET` o `MFA_SECRET_KEY`, minimo 32 caracteres, requerido para emitir retos MFA antes de crear sesion.
 
-No bloquear login en produccion hasta que existan:
+No hacer enforcement global en produccion hasta que existan:
 
 - Pantalla de enrolamiento TOTP.
 - Recovery codes.

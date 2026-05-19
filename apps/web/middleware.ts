@@ -28,6 +28,7 @@ import {
 } from './src/core/middleware/auth.middleware'
 import { applyRateLimit, RATE_LIMITS, addRateLimitHeaders, checkRateLimit } from './src/core/lib/rate-limit'
 import { rejectOversizedRequest } from './src/lib/api/request-size'
+import { applyCorsHeaders, enforceCors } from './src/lib/security/cors'
 import {
   getOrCreateCorrelationId,
   setCorrelationId,
@@ -42,6 +43,11 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const correlationId = getOrCreateCorrelationId(request.headers)
   setCorrelationId(request.headers, correlationId)
+
+  const corsResponse = enforceCors(request)
+  if (corsResponse) {
+    return withCorrelationHeader(corsResponse, correlationId)
+  }
 
   const oversizedRequestResponse = rejectOversizedRequest(request)
   if (oversizedRequestResponse) {
@@ -396,7 +402,9 @@ export async function middleware(request: NextRequest) {
       // console.warn('Error agregando headers de rate limit:', error);
     }
   }
-  
+
+  response = applyCorsHeaders(response, request);
+
   return withCorrelationHeader(response, correlationId);
 }
 
