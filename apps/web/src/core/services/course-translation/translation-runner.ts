@@ -1,6 +1,6 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { AutoTranslationService } from '../autoTranslation.service';
-import { ContentTranslationService } from '../contentTranslation.service';
+import { ContentTranslationWriteService } from '../contentTranslation.write.service';
 import { LanguageDetectionService } from '../languageDetection.service';
 import { createClient } from '../../../lib/supabase/server';
 import { createFailedTranslationResult, getTargetLanguages } from './translation-utils';
@@ -46,7 +46,7 @@ export async function translateAndSaveEntity({
         { context, preserveFormatting: true, sourceLanguage: detectedLanguage }
       );
 
-      const saved = await ContentTranslationService.saveTranslation(
+      const saved = await ContentTranslationWriteService.saveTranslation(
         entityType,
         entityId,
         language,

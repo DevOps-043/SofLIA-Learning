@@ -12,7 +12,7 @@ import { logger } from '@/lib/utils/logger'
 import {
   introVideoUploadUrlSchema,
   type IntroVideoUploadUrlBody,
-} from '../_schemas'
+} from '../../_schemas'
 
 interface RouteParams {
   params: Promise<{ orgSlug: string }>

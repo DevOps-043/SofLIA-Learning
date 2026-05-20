@@ -1,7 +1,7 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { normalizeTranslations } from './translation-validation';
 import { getCachedTranslations, setCachedTranslations } from './translation-cache';
-import { resolveReadClient } from './translation-client';
+import { resolveReadClient } from './translation-read-client';
 import type {
   ContentTranslations,
   EntityType,

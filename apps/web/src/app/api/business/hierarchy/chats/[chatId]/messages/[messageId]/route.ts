@@ -9,7 +9,7 @@ import { logger } from '@/lib/utils/logger';
 import {
   chatMessageEditSchema,
   type ChatMessageEditBody,
-} from '../../../../../_schemas';
+} from '../../../../_schemas';
 
 function createServiceClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

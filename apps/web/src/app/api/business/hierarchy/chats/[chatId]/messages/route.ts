@@ -6,7 +6,7 @@ import { withZodBody } from '@/lib/api/with-validation';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
 
-import { chatMessageSchema, type ChatMessageBody } from '../../../../_schemas';
+import { chatMessageSchema, type ChatMessageBody } from '../../../_schemas';
 
 function createServiceClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

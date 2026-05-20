@@ -5,7 +5,7 @@ import { withZodBody } from '@/lib/api/with-validation';
 import { clearSessionCache } from '@/lib/scorm/session-cache';
 import { createClient } from '@/lib/supabase/server';
 
-import { scormAttemptSchema, type ScormAttemptBody } from '../_schemas';
+import { scormAttemptSchema, type ScormAttemptBody } from '../../_schemas';
 
 async function handlePost(_request: NextRequest, body: ScormAttemptBody) {
   try {

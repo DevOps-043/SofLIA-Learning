@@ -5,10 +5,7 @@ import {
   translateArray,
   translateObject,
 } from './content-translation/translate-content';
-import { saveTranslation } from './content-translation/save-translation';
 import type {
-  ContentTranslationPayload,
-  ContentTranslations,
   EntityType,
   TranslationLanguage,
   TranslationSupabaseClient,
@@ -16,6 +13,12 @@ import type {
 
 export type { ContentTranslations, EntityType } from './content-translation/types';
 
+/**
+ * Servicio de traduccion de contenido — SOLO LECTURA.
+ * Es seguro de importar desde Client Components.
+ * Para escritura usar `ContentTranslationWriteService` de
+ * `contentTranslation.write.service.ts` (server-only).
+ */
 export class ContentTranslationService {
   static loadTranslations(
     entityType: EntityType,
@@ -54,24 +57,6 @@ export class ContentTranslationService {
     supabaseClient?: TranslationSupabaseClient,
   ) {
     return translateArray(entityType, array, fields, language, supabaseClient);
-  }
-
-  static saveTranslation(
-    entityType: EntityType,
-    entityId: string,
-    language: TranslationLanguage,
-    translations: ContentTranslationPayload,
-    userId?: string,
-    supabaseClient?: TranslationSupabaseClient,
-  ) {
-    return saveTranslation(
-      entityType,
-      entityId,
-      language,
-      translations,
-      userId,
-      supabaseClient,
-    );
   }
 
   static clearCache(): void {

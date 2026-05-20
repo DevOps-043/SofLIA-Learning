@@ -1,7 +1,7 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { AutoTranslationService } from '../../../../core/services/autoTranslation.service'
-import { ContentTranslationService } from '../../../../core/services/contentTranslation.service'
+import { ContentTranslationWriteService } from '../../../../core/services/contentTranslation.write.service'
 import { LanguageDetectionService } from '../../../../core/services/languageDetection.service'
 import { createClient } from '../../../../lib/supabase/server'
 import { SupportedLanguage } from '../../../../core/i18n/i18n'
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
     
     try {
       // Intentar guardar usando el servicio
-      saved = await ContentTranslationService.saveTranslation(
+      saved = await ContentTranslationWriteService.saveTranslation(
         'lesson',
         lessonId,
         'es',

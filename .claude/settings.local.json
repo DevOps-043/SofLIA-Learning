@@ -147,7 +147,9 @@
       "Bash(sed -n '380,392p' \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/core/components/NotificationBell/NotificationBell.tsx\")",
       "Bash(sed -n '528,540p' \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/core/components/NotificationBell/NotificationBell.tsx\")",
       "Bash(grep -v \".next\\\\|node_modules\\\\|README\\\\|\\\\.md$\")",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "Bash(grep -rln \"translation-client'\" .)",
+      "Bash(grep -rln \"from './translation-client\" .)"
     ],
     "deny": [],
     "ask": []

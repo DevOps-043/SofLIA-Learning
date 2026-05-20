@@ -1,6 +1,6 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { clearCachedTranslation } from './translation-cache';
-import { createTranslationWriteClient } from './translation-client';
+import { createTranslationWriteClient } from './translation-write-client';
 import type { Json } from '@/lib/supabase/types';
 import type {
   ContentTranslationPayload,

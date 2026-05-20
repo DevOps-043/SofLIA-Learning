@@ -5,7 +5,7 @@ import { withZodBody } from '@/lib/api/with-validation';
 import { getSessionCache } from '@/lib/scorm/session-cache';
 import { createClient } from '@/lib/supabase/server';
 
-import { scormAttemptSchema, type ScormAttemptBody } from '../_schemas';
+import { scormAttemptSchema, type ScormAttemptBody } from '../../_schemas';
 
 type ScormSupabaseClient = Awaited<ReturnType<typeof createClient>>;
 

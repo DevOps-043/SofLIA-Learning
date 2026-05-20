@@ -1,6 +1,14 @@
 # Progreso deuda tecnica
 
-Ultima actualizacion: 2026-05-19 (cierre Tarea 2.3 hex colors).
+Ultima actualizacion: 2026-05-19 (cierre del ciclo — ver `docs/tech-debt/CIERRE-CICLO.md`).
+
+## CIERRE DEL CICLO (2026-05-19)
+
+- **Deuda: 38.75 % -> ~6.0 %** (-85 % relativo). Salud: 61.25 -> 94.0.
+- **Tarea 1.4 CERRADA**: 0 rutas con `request.json()` sin Zod (587 route files auditados, 0 violaciones). 4 rutas MFA usan Zod manual intencional (allowlist).
+- **Guardrail anti-regresion nuevo**: `npm run audit:route-validation` + integrado en `web-critical-quality.yml`. Impide rutas nuevas sin `withZodBody`.
+- **Deuda residual ~6 %**: cobertura de tests (~2 pt, Bloque A), TS strict activacion (~1 pt, Bloque B), operacional OP1-OP10 (~3 pt, Bloque C — requiere operador).
+- Detalle completo y responsables en `docs/tech-debt/CIERRE-CICLO.md`.
 
 ## Pasada 4 — cierres adicionales
 

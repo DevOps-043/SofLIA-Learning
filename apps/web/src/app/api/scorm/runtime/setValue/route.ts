@@ -6,7 +6,7 @@ import { sanitizeCMIValue, validateCMIKey } from '@/lib/scorm/sanitize';
 import { setSessionValue } from '@/lib/scorm/session-cache';
 import { createClient } from '@/lib/supabase/server';
 
-import { scormSetValueSchema, type ScormSetValueBody } from '../_schemas';
+import { scormSetValueSchema, type ScormSetValueBody } from '../../_schemas';
 
 async function handlePost(_request: NextRequest, body: ScormSetValueBody) {
   try {

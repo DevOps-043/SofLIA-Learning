@@ -37,6 +37,16 @@ jobs:
 
       - run: npm ci
 
+      - name: API route validation guard (Tarea 1.4 anti-regresion)
+        env:
+          CI_STRICT_TECH_DEBT: 'true'
+        run: npm run audit:route-validation
+
+      - name: API pagination guard
+        env:
+          CI_STRICT_TECH_DEBT: 'true'
+        run: npm run audit:pagination
+
       - name: Critical coverage guard
         run: npm run test:coverage:critical --workspace=apps/web
 

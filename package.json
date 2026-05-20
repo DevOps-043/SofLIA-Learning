@@ -17,6 +17,7 @@
     "build:packages": "npm run build --workspace=@aprende-y-aplica/ui && npm run build --workspace=@aprende-y-aplica/shared",
     "generate:openapi": "tsx scripts/generate-openapi.ts",
     "audit:pagination": "tsx scripts/audit-api-pagination.ts",
+    "audit:route-validation": "tsx scripts/audit-route-validation.ts",
     "lint": "npm run lint --workspaces",
     "type-check": "npm run type-check --workspaces && tsc --noEmit",
     "load:seed": "tsx tools/load-testing/seed.ts",
@@ -78,7 +79,7 @@
     "express",
     "typescript"
   ],
-  "author": "Equipo Aprende y Aplica",
+  "author": "Equipo SOFLIA",
   "license": "MIT",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

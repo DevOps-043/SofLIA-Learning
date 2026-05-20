@@ -5,7 +5,7 @@ import { withZodBody } from '@/lib/api/with-validation';
 import { createClient } from '@/lib/supabase/server';
 import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
-import { scormInitializeSchema, type ScormInitializeBody } from '../_schemas';
+import { scormInitializeSchema, type ScormInitializeBody } from '../../_schemas';
 
 type ScormUser = {
   email?: string | null;
