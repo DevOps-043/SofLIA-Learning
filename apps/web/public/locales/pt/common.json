@@ -393,6 +393,7 @@
     "viewTour": "Ver Tour",
     "restartTour": "Reiniciar Tour",
     "userPanel": "Painel do Usuário",
+    "notebook": "Caderno de anotações",
     "logout": "Sair",
     "myCourses": "Meus cursos",
     "profile": "Editar perfil"
@@ -1411,6 +1412,7 @@
     "modal": {
       "createTitle": "Estudo > Notas",
       "editTitle": "Editar nota",
+      "readOnlyTitle": "Anotacao de aprendizagem",
       "deleteTitle": "Excluir nota",
       "exportPdfError": "Erro ao exportar PDF",
       "titlePlaceholder": "Titulo da nota...",
@@ -1430,7 +1432,11 @@
         "alignLeft": "Alinhar a esquerda",
         "alignCenter": "Centralizar",
         "alignRight": "Alinhar a direita",
-        "exportPdf": "Exportar como PDF"
+        "exportPdf": "Exportar como PDF",
+        "copy": "Copiar anotacao",
+        "copyShort": "Copiar",
+        "duplicateNote": "Duplicar nota",
+        "regenerate": "Regenerar"
       }
     },
     "pdf": {
@@ -1446,6 +1452,9 @@
     "organizations": "Minhas organizações",
     "certificates": "Certificados",
     "viewAllOrganizations": "Ver todas",
+    "currentOrganization": "Atual",
+    "quickSwitch": "Troca rapida",
+    "moreOrganizations": "+{{count}} mais na pagina completa",
     "theme": "Tema",
     "certificatesObtained_one": "{{count}} obtido",
     "certificatesObtained_other": "{{count}} obtidos",
@@ -1453,6 +1462,60 @@
       "owner": "Proprietario",
       "admin": "Admin",
       "member": "Membro"
+    }
+  },
+  "notebook": {
+    "pageTitle": "Caderno de anotações",
+    "pageSubtitle": "Todas as suas notas e resumos SofLIA em um só lugar",
+    "tabs": {
+      "all": "Todas",
+      "byCourse": "Por oficina"
+    },
+    "card": {
+      "manualNote": "Nota manual",
+      "sofliaSummary": "Resumo SofLIA",
+      "lesson": "Lição",
+      "module": "Módulo",
+      "course": "Oficina",
+      "version": "Versão {{version}}",
+      "generating": "Gerando...",
+      "lastUpdate": "Última atualização"
+    },
+    "modal": {
+      "readTitle": "Modo de leitura",
+      "editTitle": "Editar nota",
+      "editButton": "Editar",
+      "copyButton": "Copiar",
+      "copied": "Copiado",
+      "saveButton": "Salvar alterações",
+      "cancelButton": "Cancelar",
+      "duplicateButton": "Duplicar como nota editável",
+      "duplicating": "Duplicando...",
+      "duplicateSuccess": "Resumo duplicado como nota editável.",
+      "duplicateError": "Não foi possível duplicar o resumo.",
+      "saveError": "Não foi possível salvar a nota.",
+      "saving": "Salvando...",
+      "titleLabel": "Título",
+      "contentLabel": "Conteúdo",
+      "tagsLabel": "Etiquetas"
+    },
+    "courseFilter": {
+      "selectCourse": "Selecione uma oficina",
+      "allCourses": "Todas as oficinas",
+      "notesCount": "{{count}} notas",
+      "summariesCount": "{{count}} resumos SofLIA"
+    },
+    "empty": {
+      "title": "Sem anotações ainda",
+      "description": "Suas notas manuais e resumos SofLIA aparecerão aqui quando você os criar a partir de uma oficina.",
+      "courseEmpty": "Sem anotações para esta oficina."
+    },
+    "loading": "Carregando anotações...",
+    "loadMore": "Ver mais",
+    "error": {
+      "title": "Erro ao carregar",
+      "description": "Não foi possível carregar suas anotações. Tente novamente.",
+      "retry": "Tentar novamente"
     }
   }
 }

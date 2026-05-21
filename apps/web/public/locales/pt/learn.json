@@ -49,7 +49,17 @@
       "notesCreated": "Notas criadas",
       "lessonsWithNotes": "Lições com notas",
       "lastUpdate": "Última atualização",
-      "viewNotes": "Ver notas"
+      "viewNotes": "Ver notas",
+      "generatedSummaryBadge": "Anotacao SofLIA",
+      "generateSummary": "Gerar anotacao",
+      "regenerateSummary": "Regenerar anotacao",
+      "summaryVersion": "Versao {{version}} de {{total}}",
+      "summaryMissing": "Modulo concluido. A SofLIA pode gerar sua anotacao de aprendizagem.",
+      "summaryGenerating": "A SofLIA esta gerando esta anotacao.",
+      "summaryFailed": "Nao foi possivel gerar esta anotacao.",
+      "summaryLimitReached": "Limite de regeneracoes atingido",
+      "previousSummary": "Anotacao anterior",
+      "nextSummary": "Proxima anotacao"
     }
   },
   "tabs": {

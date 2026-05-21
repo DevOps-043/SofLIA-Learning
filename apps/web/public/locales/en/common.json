@@ -393,6 +393,7 @@
     "viewTour": "View Tour",
     "restartTour": "Restart Tour",
     "userPanel": "User Panel",
+    "notebook": "Notebook",
     "logout": "Sign out",
     "myCourses": "My courses",
     "profile": "Edit profile"
@@ -1411,6 +1412,7 @@
     "modal": {
       "createTitle": "Study > Notes",
       "editTitle": "Edit note",
+      "readOnlyTitle": "Learning note",
       "deleteTitle": "Delete note",
       "exportPdfError": "Error exporting PDF",
       "titlePlaceholder": "Note title...",
@@ -1430,7 +1432,11 @@
         "alignLeft": "Align left",
         "alignCenter": "Center",
         "alignRight": "Align right",
-        "exportPdf": "Export as PDF"
+        "exportPdf": "Export as PDF",
+        "copy": "Copy note",
+        "copyShort": "Copy",
+        "duplicateNote": "Duplicate Note",
+        "regenerate": "Regenerate"
       }
     },
     "pdf": {
@@ -1446,6 +1452,9 @@
     "organizations": "My organizations",
     "certificates": "Certificates",
     "viewAllOrganizations": "View all",
+    "currentOrganization": "Current",
+    "quickSwitch": "Quick switch",
+    "moreOrganizations": "+{{count}} more on the full page",
     "theme": "Theme",
     "certificatesObtained_one": "{{count}} earned",
     "certificatesObtained_other": "{{count}} earned",
@@ -1453,6 +1462,60 @@
       "owner": "Owner",
       "admin": "Admin",
       "member": "Member"
+    }
+  },
+  "notebook": {
+    "pageTitle": "Notebook",
+    "pageSubtitle": "All your notes and SofLIA summaries in one place",
+    "tabs": {
+      "all": "All",
+      "byCourse": "By workshop"
+    },
+    "card": {
+      "manualNote": "Manual note",
+      "sofliaSummary": "SofLIA summary",
+      "lesson": "Lesson",
+      "module": "Module",
+      "course": "Workshop",
+      "version": "Version {{version}}",
+      "generating": "Generating...",
+      "lastUpdate": "Last update"
+    },
+    "modal": {
+      "readTitle": "Reading view",
+      "editTitle": "Edit note",
+      "editButton": "Edit",
+      "copyButton": "Copy",
+      "copied": "Copied",
+      "saveButton": "Save changes",
+      "cancelButton": "Cancel",
+      "duplicateButton": "Duplicate as editable note",
+      "duplicating": "Duplicating...",
+      "duplicateSuccess": "Summary duplicated as editable note.",
+      "duplicateError": "Could not duplicate the summary.",
+      "saveError": "Could not save the note.",
+      "saving": "Saving...",
+      "titleLabel": "Title",
+      "contentLabel": "Content",
+      "tagsLabel": "Tags"
+    },
+    "courseFilter": {
+      "selectCourse": "Select a workshop",
+      "allCourses": "All workshops",
+      "notesCount": "{{count}} notes",
+      "summariesCount": "{{count}} SofLIA summaries"
+    },
+    "empty": {
+      "title": "No notes yet",
+      "description": "Your manual notes and SofLIA summaries will appear here when you create them from a workshop.",
+      "courseEmpty": "No notes for this workshop."
+    },
+    "loading": "Loading notes...",
+    "loadMore": "Load more",
+    "error": {
+      "title": "Error loading",
+      "description": "We could not load your notes. Please try again.",
+      "retry": "Retry"
     }
   }
 }

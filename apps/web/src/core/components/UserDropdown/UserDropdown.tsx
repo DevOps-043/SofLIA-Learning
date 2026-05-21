@@ -18,22 +18,27 @@ import {
   Sun,
   LogOut,
   ChevronRight,
+  BriefcaseBusiness,
   GraduationCap,
   Globe,
-  Building2,
   LayoutDashboard,
   ShieldCheck,
   Check,
   BarChart3,
   Award,
+  BookOpen,
   LucideIcon
 } from 'lucide-react'
 import { cn } from '@/shared/utils/cn'
-import { useOrganization } from '../../hooks/useOrganization'
+import { useOrganization, type Organization } from '../../hooks/useOrganization'
 
 interface UserDropdownProps {
   className?: string
   user?: any // Optional user prop to override useAuth
+  onRestartTour?: () => void
+  onCertificatesClick?: () => void
+  onAnalyticsClick?: () => void
+  certificatesCount?: number
 }
 
 const USER_DROPDOWN_BACKDROP_Z_INDEX = 1000002
@@ -46,13 +51,21 @@ export const UserDropdown = React.memo(function UserDropdown({
   const [isOpen, setIsOpen] = useState(false)
   const [pos, setPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 })
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
+  const [isOrgSwitcherOpen, setIsOrgSwitcherOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { user: authUser, logout } = useAuth()
   const user = userProp || authUser
   const { userProfile } = useUserProfile()
   const { theme, setTheme, resolvedTheme, initializeTheme } = useThemeStore()
   const { language, setLanguage } = useLanguage()
-  const { currentOrganization, isB2B, isOrgAdmin } = useOrganization()
+  const {
+    currentOrganization,
+    organizations,
+    canSwitch,
+    isB2B,
+    isOrgAdmin,
+    switchOrganization,
+  } = useOrganization()
   const router = useRouter()
   const { t } = useTranslation('common')
   const [isMounted, setIsMounted] = useState(false)
@@ -82,6 +95,7 @@ export const UserDropdown = React.memo(function UserDropdown({
       ) {
         setIsOpen(false)
         setActiveSubmenu(null)
+        setIsOrgSwitcherOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -90,17 +104,42 @@ export const UserDropdown = React.memo(function UserDropdown({
 
   const isAdmin = useMemo(() => user?.cargo_rol?.toLowerCase() === 'administrador', [user?.cargo_rol])
   const isInstructor = useMemo(() => user?.cargo_rol?.toLowerCase() === 'instructor', [user?.cargo_rol])
+  const fallbackOrganization = useMemo<Organization | null>(() => {
+    if (currentOrganization || !user?.organization?.slug) return null
+
+    return {
+      id: user.organization.id || user.organization.slug,
+      name: user.organization.name,
+      slug: user.organization.slug,
+      logoUrl: user.organization.logo_url,
+      brandLogoUrl: user.organization.brand_logo_url,
+      brandColorPrimary: user.organization.brand_color_primary,
+      role: isAdmin ? 'admin' : 'member',
+    }
+  }, [currentOrganization, isAdmin, user?.organization])
+  const activeOrganization = currentOrganization || fallbackOrganization
 
   const handleLogout = useCallback(async () => {
     await logout()
     setIsOpen(false)
+    setIsOrgSwitcherOpen(false)
   }, [logout])
 
   const handleNavigation = useCallback((path: string) => {
     router.push(path)
     setIsOpen(false)
     setActiveSubmenu(null)
+    setIsOrgSwitcherOpen(false)
   }, [router])
+
+  const handleOrganizationSwitch = useCallback((organization: Organization) => {
+    if (organization.id !== activeOrganization?.id) {
+      switchOrganization(organization.slug)
+    }
+    setIsOpen(false)
+    setActiveSubmenu(null)
+    setIsOrgSwitcherOpen(false)
+  }, [activeOrganization?.id, switchOrganization])
 
   const handleUserDashboardNavigation = useCallback(() => {
     handleNavigation(
@@ -145,6 +184,20 @@ export const UserDropdown = React.memo(function UserDropdown({
     return user?.cargo_rol || ''
   }
 
+  const getOrganizationRoleLabel = (role?: Organization['role']) => {
+    if (!role) return t('profileDropdown.orgRoles.member')
+    return t(`profileDropdown.orgRoles.${role}`)
+  }
+
+  const getOrganizationDisplayName = (organization?: Organization | null) => {
+    return (
+      organization?.name?.trim() ||
+      organization?.slug?.trim() ||
+      organization?.id?.trim() ||
+      t('profileDropdown.organizations')
+    )
+  }
+
   const getInitials = () => {
     const name: string = getDisplayName()
     const parts = name.split(' ').filter((segment): segment is string => Boolean(segment))
@@ -162,14 +215,14 @@ export const UserDropdown = React.memo(function UserDropdown({
     { value: 'pt' as const, label: t('menu.languages.pt'), flag: '🇧🇷' },
   ]
 
-  const primaryColor = currentOrganization?.brandColorPrimary || '#0A2540'
-  const accentColor = '#00D4B3'
+  const primaryColor = activeOrganization?.brandColorPrimary || 'var(--color-primary)'
+  const accentColor = 'var(--color-accent)'
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
       {/* Trigger Button */}
       <motion.button
-        onClick={() => { setIsOpen(!isOpen); setActiveSubmenu(null) }}
+        onClick={() => { setIsOpen(!isOpen); setActiveSubmenu(null); setIsOrgSwitcherOpen(false) }}
         className="flex items-center justify-center p-1 rounded-full transition-all duration-300 hover:bg-black/5 dark:hover:bg-white/5"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -178,7 +231,9 @@ export const UserDropdown = React.memo(function UserDropdown({
           className="relative h-10 w-10 flex items-center justify-center overflow-hidden rounded-full ring-2 ring-white/80 dark:ring-white/80 shadow-sm transition-all duration-300"
           style={{
             background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
-            boxShadow: isOpen ? `0 0 20px ${accentColor}40` : `0 4px 12px ${primaryColor}30`,
+            boxShadow: isOpen
+              ? `0 0 20px color-mix(in srgb, ${accentColor} 28%, transparent)`
+              : `0 4px 12px color-mix(in srgb, ${primaryColor} 22%, transparent)`,
           }}
         >
           {!isMounted ? (
@@ -197,7 +252,7 @@ export const UserDropdown = React.memo(function UserDropdown({
           )}
           
           {/* Status Dot */}
-          <div className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-[#10B981] rounded-full border-2 border-white dark:border-[#0F1419] shadow-sm" />
+          <div className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-900 shadow-sm" />
         </div>
       </motion.button>
 
@@ -213,7 +268,7 @@ export const UserDropdown = React.memo(function UserDropdown({
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 bg-black/10"
                 style={{ zIndex: USER_DROPDOWN_BACKDROP_Z_INDEX }}
-                onClick={() => { setIsOpen(false); setActiveSubmenu(null) }}
+                onClick={() => { setIsOpen(false); setActiveSubmenu(null); setIsOrgSwitcherOpen(false) }}
               />
               
               <motion.div
@@ -222,7 +277,7 @@ export const UserDropdown = React.memo(function UserDropdown({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -8, scale: 0.95 }}
                 transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-                className="fixed w-[240px] rounded-2xl border backdrop-blur-xl shadow-2xl overflow-hidden bg-white/95 dark:bg-[#1A1F25]/95 border-gray-200 dark:border-white/10"
+                className="fixed w-[336px] max-w-[calc(100vw-2rem)] rounded-2xl border backdrop-blur-xl shadow-2xl overflow-hidden bg-white/95 dark:bg-gray-800/95 border-gray-200 dark:border-white/10"
                 style={{
                   zIndex: USER_DROPDOWN_MENU_Z_INDEX,
                   top: pos.top,
@@ -231,14 +286,14 @@ export const UserDropdown = React.memo(function UserDropdown({
               >
               {/* Header - User Info */}
               <div 
-                className="p-4 border-b border-gray-200 dark:border-white/5"
+                className="px-3.5 py-2.5 border-b border-gray-200 dark:border-white/5"
                 style={{
-                  backgroundColor: resolvedTheme === 'dark' ? 'rgba(10, 13, 18, 0.4)' : 'rgba(248, 250, 252, 0.7)'
+                  backgroundColor: resolvedTheme === 'dark' ? 'rgb(15 20 25 / 0.82)' : 'rgb(248 250 252 / 0.88)'
                 }}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <div 
-                    className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-white dark:ring-white/10 flex items-center justify-center shadow-lg flex-shrink-0"
+                    className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-white dark:ring-white/10 flex items-center justify-center shadow-sm flex-shrink-0"
                     style={{ background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})` }}
                   >
                     {!isMounted ? (
@@ -255,7 +310,7 @@ export const UserDropdown = React.memo(function UserDropdown({
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-gray-900 dark:text-white font-semibold text-sm truncate">
+                    <h3 className="text-gray-900 dark:text-white font-semibold text-[13px] truncate">
                       {getDisplayName()}
                     </h3>
                     <p className="text-gray-500 dark:text-gray-400 text-xs truncate">
@@ -264,6 +319,115 @@ export const UserDropdown = React.memo(function UserDropdown({
                   </div>
                 </div>
               </div>
+
+              {activeOrganization && (
+                <div className="border-b border-gray-200 px-3.5 py-2.5 dark:border-white/5">
+                  <div className="rounded-xl border border-gray-200 bg-gray-50/90 p-2.5 dark:border-white/10 dark:bg-white/5">
+                    <div className="mb-2 flex items-center justify-between gap-2.5">
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <OrganizationMark organization={activeOrganization} compact />
+                        <div className="min-w-0">
+                          <p className="truncate text-[13px] font-semibold text-gray-900 dark:text-white">
+                            {getOrganizationDisplayName(activeOrganization)}
+                          </p>
+                          <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+                            {getOrganizationRoleLabel(activeOrganization.role)}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-300">
+                        {t('profileDropdown.currentOrganization')}
+                      </span>
+                    </div>
+
+                    {canSwitch && organizations.length > 1 && (
+                      <div className="space-y-1">
+                        <p className="px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                          {t('profileDropdown.quickSwitch')}
+                        </p>
+                        <button
+                          type="button"
+                          aria-expanded={isOrgSwitcherOpen}
+                          onClick={() => {
+                            setIsOrgSwitcherOpen((open) => !open)
+                            setActiveSubmenu(null)
+                          }}
+                          className="flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-2.5 text-left text-xs font-semibold text-gray-800 shadow-sm transition-colors hover:border-emerald-300 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/15 dark:border-white/10 dark:bg-gray-900/80 dark:text-white dark:hover:border-emerald-500/50 dark:hover:bg-emerald-500/10"
+                        >
+                          <span className="min-w-0 flex-1 truncate">
+                            {getOrganizationDisplayName(activeOrganization)}
+                          </span>
+                          <ChevronRight
+                            className={cn(
+                              'h-3.5 w-3.5 shrink-0 text-gray-400 transition-transform',
+                              isOrgSwitcherOpen ? '-rotate-90' : 'rotate-90',
+                            )}
+                          />
+                        </button>
+                        <AnimatePresence initial={false}>
+                          {isOrgSwitcherOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -4 }}
+                              transition={{ duration: 0.15 }}
+                              className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-gray-900"
+                            >
+                              {organizations.map((organization) => {
+                                const isActive = organization.id === activeOrganization.id
+
+                                return (
+                                  <button
+                                    key={organization.id}
+                                    type="button"
+                                    onClick={() => handleOrganizationSwitch(organization)}
+                                    className={cn(
+                                      'flex w-full items-center gap-2 px-2.5 py-2 text-left transition-colors',
+                                      isActive
+                                        ? 'bg-emerald-50 text-gray-900 dark:bg-emerald-500/10 dark:text-white'
+                                        : 'text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5',
+                                    )}
+                                  >
+                                    <OrganizationMark organization={organization} compact />
+                                    <span className="min-w-0 flex-1">
+                                      <span className="block truncate text-xs font-semibold">
+                                        {getOrganizationDisplayName(organization)}
+                                      </span>
+                                      <span className="block truncate text-[11px] text-gray-500 dark:text-gray-400">
+                                        {getOrganizationRoleLabel(organization.role)}
+                                      </span>
+                                    </span>
+                                    {isActive && <Check className="h-3.5 w-3.5 shrink-0 text-emerald-500" />}
+                                  </button>
+                                )
+                              })}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                        <select
+                          aria-label={t('profileDropdown.quickSwitch')}
+                          className="sr-only"
+                          onChange={(event) => {
+                            const targetOrganization = organizations.find(
+                              (organization) => organization.id === event.target.value,
+                            )
+                            if (targetOrganization) {
+                              handleOrganizationSwitch(targetOrganization)
+                            }
+                          }}
+                          value={activeOrganization.id}
+                        >
+                          {organizations.map((organization) => (
+                            <option key={organization.id} value={organization.id}>
+                              {getOrganizationDisplayName(organization)} · {getOrganizationRoleLabel(organization.role)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Menu Items */}
               <div className="py-1.5 space-y-0.5">
@@ -300,8 +464,8 @@ export const UserDropdown = React.memo(function UserDropdown({
                 {/* Organizations */}
                 {isB2B && (
                   <MenuItem 
-                    icon={Building2} 
-                    label={t('profileDropdown.organizations')} 
+                    icon={BriefcaseBusiness}
+                    label={canSwitch ? t('profileDropdown.viewAllOrganizations') : t('profileDropdown.organizations')}
                     onClick={() => handleNavigation('/auth/select-organization')} 
                   />
                 )}
@@ -321,6 +485,15 @@ export const UserDropdown = React.memo(function UserDropdown({
                   label={t('menu.certificates')}
                   onClick={() => handleNavigation('/certificates')}
                 />
+
+                {/* Notebook (Libro de Apuntes) - B2B only */}
+                {activeOrganization?.slug && (
+                  <MenuItem
+                    icon={BookOpen}
+                    label={t('menu.notebook')}
+                    onClick={() => handleNavigation(`/${activeOrganization.slug}/business-user/notebook`)}
+                  />
+                )}
 
                 {/* Edit Profile */}
                 <MenuItem
@@ -408,6 +581,40 @@ export const UserDropdown = React.memo(function UserDropdown({
 })
 
 // Reusable MenuItem component — compact, no icon backgrounds
+interface OrganizationMarkProps {
+  organization: Organization
+  compact?: boolean
+}
+
+function OrganizationMark({ organization, compact = false }: OrganizationMarkProps) {
+  const logoUrl = organization.brandLogoUrl || organization.logoUrl
+  const sizeClassName = compact ? 'h-8 w-8 rounded-lg text-xs' : 'h-10 w-10 rounded-xl text-sm'
+  const brandColor = organization.brandColorPrimary || 'var(--color-primary)'
+  const organizationLabel =
+    organization.name?.trim() ||
+    organization.slug?.trim() ||
+    organization.id?.trim() ||
+    'O'
+
+  if (logoUrl) {
+    return (
+      <span className={cn('shrink-0 overflow-hidden bg-gray-100 ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-white/10', sizeClassName)}>
+        <img src={logoUrl} alt="" className="h-full w-full object-cover" />
+      </span>
+    )
+  }
+
+  return (
+    <span
+      className={cn('flex shrink-0 items-center justify-center font-bold text-white shadow-sm', sizeClassName)}
+      style={{ background: `linear-gradient(135deg, ${brandColor}, var(--color-accent))` }}
+      aria-hidden="true"
+    >
+      {organizationLabel.charAt(0).toUpperCase()}
+    </span>
+  )
+}
+
 interface MenuItemProps {
   icon: LucideIcon
   label: string

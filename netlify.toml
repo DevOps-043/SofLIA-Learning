@@ -97,6 +97,10 @@
 [functions."process-inbox"]
   schedule = "*/5 * * * *"
 
+# Funcion programada: Procesar apuntes SofLIA por modulo cada 5 minutos
+[functions."process-module-learning-summaries"]
+  schedule = "*/5 * * * *"
+
 # Configuración específica para diferentes contextos (opcional)
 # Si no se especifica, se usa el comando de [build]
 [context.production]

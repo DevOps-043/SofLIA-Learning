@@ -96,6 +96,13 @@ export async function persistConversationTurn({
           context_type: requestContext?.currentLessonContext
             ? 'course'
             : 'general',
+          course_id: requestContext?.currentLessonContext?.courseId || null,
+          module_id: requestContext?.currentLessonContext?.moduleId || null,
+          lesson_id: requestContext?.currentLessonContext?.lessonId || null,
+          organization_id:
+            typeof requestContext?.organizationId === 'string'
+              ? requestContext.organizationId
+              : null,
           started_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },

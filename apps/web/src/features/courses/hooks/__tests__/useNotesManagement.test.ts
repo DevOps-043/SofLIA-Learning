@@ -14,6 +14,33 @@ function createJsonResponse(body: unknown, status: number = 200) {
   });
 }
 
+function withEmptyLearningSummaries(fetchMock: ReturnType<typeof vi.fn>): typeof fetch {
+  return ((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === "string" ? input : input.toString();
+
+    if (url.includes("/learning-summaries")) {
+      return Promise.resolve(createJsonResponse({ summaries: [] }));
+    }
+
+    return fetchMock(input, init);
+  }) as typeof fetch;
+}
+
+function withLearningSummaries(
+  fetchMock: ReturnType<typeof vi.fn>,
+  summaries: unknown[]
+): typeof fetch {
+  return ((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === "string" ? input : input.toString();
+
+    if (url.includes("/learning-summaries")) {
+      return Promise.resolve(createJsonResponse({ summaries }));
+    }
+
+    return fetchMock(input, init);
+  }) as typeof fetch;
+}
+
 describe("useNotesManagement", () => {
   const originalAlert = global.alert;
   const originalFetch = global.fetch;
@@ -45,7 +72,7 @@ describe("useNotesManagement", () => {
       ])
     );
 
-    global.fetch = fetchMock as typeof fetch;
+    global.fetch = withEmptyLearningSummaries(fetchMock);
 
     const { result } = renderHook(() =>
       useNotesManagement({
@@ -85,6 +112,214 @@ describe("useNotesManagement", () => {
     );
   });
 
+  it("shows persisted module learning summaries after a page reload", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = typeof input === "string" ? input : input.toString();
+
+      if (url === "/api/courses/curso-demo/notes") {
+        return createJsonResponse([]);
+      }
+
+      throw new Error(`Unexpected fetch: ${url}`);
+    });
+
+    global.fetch = withLearningSummaries(fetchMock, [
+      {
+        summary_id: "summary-1",
+        module_id: "module-1",
+        title: "Apunte SofLIA: Modulo 1",
+        content_html: "<p>Contenido generado</p>",
+        status: "ready",
+        version: 1,
+        generation_type: "default",
+        generated_at: "2026-04-09T12:00:00.000Z",
+      },
+    ]);
+
+    const { result } = renderHook(() =>
+      useNotesManagement({
+        slug: "curso-demo",
+        modules: [
+          {
+            module_id: "module-1",
+            module_title: "Modulo 1",
+            module_order_index: 1,
+            lessons: [
+              {
+                lesson_id: "lesson-1",
+                lesson_title: "Leccion 1",
+                is_completed: true,
+              },
+            ],
+          },
+        ],
+        currentLesson: null,
+        isNotesCollapsed: false,
+        closeLia: vi.fn(),
+      })
+    );
+
+    await vi.waitFor(() => {
+      expect(result.current.savedNotes).toHaveLength(1);
+    });
+
+    expect(result.current.savedNotes[0]).toMatchObject({
+      kind: "module_learning_summary",
+      id: "summary-1",
+      moduleId: "module-1",
+      status: "ready",
+      version: 1,
+    });
+    expect(result.current.savedNotes).not.toContainEqual(
+      expect.objectContaining({
+        kind: "module_learning_summary_candidate",
+        moduleId: "module-1",
+      })
+    );
+  });
+
+  it("keeps regenerated module summaries as one sidebar item and paginates versions internally", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = typeof input === "string" ? input : input.toString();
+
+      if (url === "/api/courses/curso-demo/notes") {
+        return createJsonResponse([]);
+      }
+
+      throw new Error(`Unexpected fetch: ${url}`);
+    });
+
+    global.fetch = withLearningSummaries(fetchMock, [
+      {
+        summary_id: "summary-2",
+        module_id: "module-1",
+        title: "Apunte SofLIA: Modulo 1 v2",
+        content_html: "<p>Contenido generado v2</p>",
+        status: "ready",
+        version: 2,
+        generation_type: "manual_regeneration",
+        generated_at: "2026-04-10T12:00:00.000Z",
+      },
+      {
+        summary_id: "summary-1",
+        module_id: "module-1",
+        title: "Apunte SofLIA: Modulo 1",
+        content_html: "<p>Contenido generado v1</p>",
+        status: "ready",
+        version: 1,
+        generation_type: "default",
+        generated_at: "2026-04-09T12:00:00.000Z",
+      },
+    ]);
+
+    const { result } = renderHook(() =>
+      useNotesManagement({
+        slug: "curso-demo",
+        modules: [
+          {
+            module_id: "module-1",
+            module_title: "Modulo 1",
+            module_order_index: 1,
+            lessons: [
+              {
+                lesson_id: "lesson-1",
+                lesson_title: "Leccion 1",
+                is_completed: true,
+              },
+            ],
+          },
+        ],
+        currentLesson: null,
+        isNotesCollapsed: false,
+        closeLia: vi.fn(),
+      })
+    );
+
+    await vi.waitFor(() => {
+      expect(result.current.savedNotes).toHaveLength(1);
+    });
+
+    expect(result.current.savedNotes[0]).toMatchObject({
+      kind: "module_learning_summary",
+      id: "summary-2",
+      moduleId: "module-1",
+      version: 2,
+    });
+    expect(result.current.generatedSummaryVersions.map((summary) => summary.id)).toEqual([
+      "summary-1",
+      "summary-2",
+    ]);
+  });
+
+  it("duplicates a generated module summary into an editable note draft", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = typeof input === "string" ? input : input.toString();
+
+      if (url === "/api/courses/curso-demo/notes") {
+        return createJsonResponse([]);
+      }
+
+      throw new Error(`Unexpected fetch: ${url}`);
+    });
+
+    global.fetch = withLearningSummaries(fetchMock, [
+      {
+        summary_id: "summary-1",
+        module_id: "module-1",
+        title: "Apunte SofLIA: Modulo 1",
+        content_html: "<h2>Sintesis</h2><p>Contenido generado</p>",
+        status: "ready",
+        version: 1,
+        generation_type: "default",
+        generated_at: "2026-04-09T12:00:00.000Z",
+      },
+    ]);
+
+    const closeLia = vi.fn();
+    const { result } = renderHook(() =>
+      useNotesManagement({
+        slug: "curso-demo",
+        modules: [
+          {
+            module_id: "module-1",
+            module_title: "Modulo 1",
+            module_order_index: 1,
+            lessons: [
+              {
+                lesson_id: "lesson-1",
+                lesson_title: "Leccion 1",
+                is_completed: true,
+              },
+            ],
+          },
+        ],
+        currentLesson: null,
+        isNotesCollapsed: false,
+        closeLia,
+      })
+    );
+
+    await vi.waitFor(() => {
+      expect(result.current.generatedSummaryVersions).toHaveLength(1);
+    });
+
+    act(() => {
+      result.current.duplicateGeneratedSummary(
+        result.current.generatedSummaryVersions[0]
+      );
+    });
+
+    expect(result.current.editingNote).toEqual({
+      id: "",
+      title: "Apunte SofLIA: Modulo 1",
+      content: "<h2>Sintesis</h2><p>Contenido generado</p>",
+      tags: ["SofLIA", "Apunte"],
+    });
+    expect(result.current.viewingGeneratedSummary).toBeNull();
+    expect(result.current.isNotesModalOpen).toBe(true);
+    expect(closeLia).toHaveBeenCalled();
+  });
+
   it("updates a note using the persisted lessonId and keeps its lesson title", async () => {
     const fetchMock = vi
       .fn()
@@ -110,7 +345,7 @@ describe("useNotesManagement", () => {
         })
       );
 
-    global.fetch = fetchMock as typeof fetch;
+    global.fetch = withEmptyLearningSummaries(fetchMock);
 
     const { result } = renderHook(() =>
       useNotesManagement({
@@ -203,7 +438,7 @@ describe("useNotesManagement", () => {
       throw new Error(`Unexpected fetch: ${url}`);
     });
 
-    global.fetch = fetchMock as typeof fetch;
+    global.fetch = withEmptyLearningSummaries(fetchMock);
 
     const { result } = renderHook(
       ({
@@ -276,6 +511,7 @@ describe("useNotesManagement", () => {
           note_content: "<p>Idea clave</p>",
           note_tags: ["SofLIA", "Clase"],
           source_type: "manual",
+          organization_id: null,
         }),
         headers: { "Content-Type": "application/json" },
         method: "POST",
@@ -321,7 +557,7 @@ describe("useNotesManagement", () => {
       }
     );
 
-    global.fetch = fetchMock as typeof fetch;
+    global.fetch = withEmptyLearningSummaries(fetchMock);
 
     const { result } = renderHook(() =>
       useNotesManagement({
@@ -424,7 +660,7 @@ describe("useNotesManagement", () => {
       }
     );
 
-    global.fetch = fetchMock as typeof fetch;
+    global.fetch = withEmptyLearningSummaries(fetchMock);
 
     const { result } = renderHook(() =>
       useNotesManagement({
@@ -468,7 +704,7 @@ describe("useNotesManagement", () => {
 
     expect(result.current.isDeletingNote).toBe(false);
     expect(result.current.isDeleteNoteConfirmOpen).toBe(false);
-    expect(global.alert).toHaveBeenCalledWith(
+    expect(result.current.noteError).toBe(
       "La eliminacion de la nota tardó demasiado. Intenta de nuevo."
     );
   });

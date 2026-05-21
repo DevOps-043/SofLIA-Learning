@@ -1,11 +1,6 @@
 'use client'
 
-import {
-  BoltIcon,
-  BuildingOffice2Icon,
-  EnvelopeIcon,
-} from '@heroicons/react/24/outline'
-
+import { BoltIcon, BuildingOffice2Icon, EnvelopeIcon } from '@heroicons/react/24/outline'
 import { AdminCreateCompanyPlanSelect } from './AdminCreateCompanyPlanSelect'
 import { AdminCreateCompanySectionTitle } from './AdminCreateCompanySectionTitle'
 import { AdminCreateCompanyTextField } from './AdminCreateCompanyTextField'

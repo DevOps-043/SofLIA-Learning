@@ -23,6 +23,7 @@ import {
   VideoContent,
 } from '../../../../features/courses/components/learn'
 import type { LearnPageLogicResult } from '../../../../features/courses/hooks/useLearnPageLogic'
+import { ModuleLearningSummaryViewerModal } from '../../../../features/courses/components/learn/notes/ModuleLearningSummaryViewerModal'
 import { useCourseIntroVideos } from '../../../../features/courses/hooks/useCourseIntroVideos'
 import { useCourseLearnJoyride } from '../../../../features/tours/hooks/useCourseLearnJoyride'
 import { OnboardingVideoPlayer } from '../../../../features/tours/components/OnboardingVideoPlayer'
@@ -119,6 +120,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     closeDeleteNoteConfirm,
     closeNotesModal,
     confirmDeleteNote,
+    duplicateGeneratedSummary,
     editingNote,
     handleDeleteNote,
     handleSaveNote,
@@ -130,8 +132,13 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     notesStats,
     openEditNoteModal,
     openNewNoteModal,
+    generateDefaultModuleSummary,
+    generatedSummaryVersions,
+    regenerateModuleSummary,
+    regeneratingSummaryModuleId,
     savedNotes,
     updateNotesStatsOptimized,
+    viewingGeneratedSummary,
     getPreviousLesson,
     getNextLesson,
     handleActivityShortcut,
@@ -210,6 +217,27 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
   }
 
   const currentLessonContext = currentLesson ? getLessonContext() : undefined
+  const generatedSummaryVersionsForCurrentModule = viewingGeneratedSummary
+    ? generatedSummaryVersions
+        .filter(
+          (summary) => summary.moduleId === viewingGeneratedSummary.moduleId,
+        )
+        .sort((left, right) => left.version - right.version)
+    : []
+  const generatedSummaryIndex = viewingGeneratedSummary
+    ? generatedSummaryVersionsForCurrentModule.findIndex(
+        (summary) => summary.id === viewingGeneratedSummary.id,
+      )
+    : -1
+  const previousGeneratedSummary =
+    generatedSummaryIndex > 0
+      ? generatedSummaryVersionsForCurrentModule[generatedSummaryIndex - 1]
+      : null
+  const nextGeneratedSummary =
+    generatedSummaryIndex >= 0 &&
+    generatedSummaryIndex < generatedSummaryVersionsForCurrentModule.length - 1
+      ? generatedSummaryVersionsForCurrentModule[generatedSummaryIndex + 1]
+      : null
 
   if (!ready || loading) {
     return (
@@ -415,6 +443,13 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                 onCreateNote={openNewNoteModal}
                 onEditNote={openEditNoteModal}
                 onDeleteNote={handleDeleteNote}
+                onRegenerateSummary={(moduleId) => {
+                  void regenerateModuleSummary(moduleId)
+                }}
+                onGenerateDefaultSummary={(moduleId) => {
+                  void generateDefaultModuleSummary(moduleId)
+                }}
+                regeneratingSummaryModuleId={regeneratingSummaryModuleId}
                 onOpenSidebar={openLeftPanel}
                 onOpenContentSection={openContentSection}
                 onOpenNotesSection={() =>
@@ -618,12 +653,54 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
             )}
 
             <NotesModalComponent
-              isOpen={isNotesModalOpen}
+              isOpen={isNotesModalOpen && !viewingGeneratedSummary}
               onClose={closeNotesModal}
               onSave={handleSaveNote}
               onDelete={handleDeleteNote}
               initialNote={editingNote}
               isEditing={!!editingNote}
+            />
+
+            <ModuleLearningSummaryViewerModal
+              isOpen={isNotesModalOpen && !!viewingGeneratedSummary}
+              isRegenerating={
+                !!viewingGeneratedSummary &&
+                regeneratingSummaryModuleId === viewingGeneratedSummary.moduleId
+              }
+              onClose={closeNotesModal}
+              onDuplicate={
+                viewingGeneratedSummary
+                  ? () => duplicateGeneratedSummary(viewingGeneratedSummary)
+                  : undefined
+              }
+              onNavigatePrevious={
+                previousGeneratedSummary
+                  ? () => openEditNoteModal(previousGeneratedSummary)
+                  : undefined
+              }
+              onNavigateNext={
+                nextGeneratedSummary
+                  ? () => openEditNoteModal(nextGeneratedSummary)
+                  : undefined
+              }
+              onRegenerate={
+                viewingGeneratedSummary
+                  ? () => {
+                      void regenerateModuleSummary(
+                        viewingGeneratedSummary.moduleId,
+                      )
+                    }
+                  : undefined
+              }
+              summary={viewingGeneratedSummary}
+              summaryPosition={
+                generatedSummaryIndex >= 0
+                  ? {
+                      current: generatedSummaryIndex + 1,
+                      total: generatedSummaryVersionsForCurrentModule.length,
+                    }
+                  : undefined
+              }
             />
 
             <CourseCompletedModal

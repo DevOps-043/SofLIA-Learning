@@ -22,6 +22,7 @@ export interface CreateNoteInput {
   note_title: string
   note_content: string
   note_tags?: string[]
+  organization_id?: string | null
   source_type?: 'manual' | 'chat' | 'import'
 }
 
@@ -157,6 +158,7 @@ export class NoteService {
         .insert({
           user_id: userId,
           lesson_id: lessonId,
+          organization_id: noteData.organization_id || null,
           note_title: noteData.note_title,
           note_content: noteData.note_content,
           note_tags: noteData.note_tags || [],

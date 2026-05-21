@@ -3,6 +3,8 @@ import { NoteService } from '@/features/courses/services/note.service'
 import { CourseService } from '@/features/courses/services/course.service'
 import { SessionService } from '@/features/auth/services/session.service'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { createClient } from '@/lib/supabase/server'
+import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
 
 /**
  * GET /api/courses/[slug]/lessons/[lessonId]/notes
@@ -76,9 +78,37 @@ export async function POST(
         { status: 404 }
       )
     }
-
     const body = await request.json()
     let { note_title, note_content, note_tags, source_type } = body
+    const requestedOrganizationId =
+      typeof body?.organization_id === 'string' && body.organization_id.trim()
+        ? body.organization_id.trim()
+        : null
+    const supabase = await createClient()
+
+    if (requestedOrganizationId) {
+      const { data: membership, error: membershipError } = await supabase
+        .from('organization_users')
+        .select('organization_id')
+        .eq('organization_id', requestedOrganizationId)
+        .eq('user_id', currentUser.id)
+        .eq('status', 'active')
+        .maybeSingle()
+
+      if (membershipError || !membership) {
+        return NextResponse.json(
+          { error: 'No tienes acceso a esta organizacion' },
+          { status: 403 }
+        )
+      }
+    }
+
+    const enrollment = await resolveCourseEnrollment(
+      supabase,
+      currentUser.id,
+      course.id,
+      requestedOrganizationId,
+    )
 
     // Validaciones
     if (!note_content || typeof note_content !== 'string' || note_content.trim().length === 0) {
@@ -138,6 +168,7 @@ export async function POST(
       note_title: note_title.trim(),
       note_content: note_content.trim(),
       note_tags: note_tags && Array.isArray(note_tags) ? note_tags.filter(tag => tag.trim().length > 0) : [],
+      organization_id: requestedOrganizationId || enrollment?.organization_id || null,
       source_type: source_type || 'manual'
     })
     return NextResponse.json(note, { status: 201 })
@@ -152,4 +183,3 @@ export async function POST(
     )
   }
 }
-

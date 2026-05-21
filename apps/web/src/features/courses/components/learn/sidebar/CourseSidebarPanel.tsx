@@ -13,9 +13,9 @@ import type {
   LearnLessonQuizStatusMap,
   LearnMaterialMap,
   LearnModule,
+  LearnNoteListItem,
   LearnNotesStats,
   LearnPathState,
-  LearnSavedNote,
 } from "../types";
 import { CollapsedSidebarRail } from "./CollapsedSidebarRail";
 import { CourseContentTree } from "./CourseContentTree";
@@ -33,7 +33,7 @@ type CourseSidebarPanelProps = {
   lessonsActivities: LearnActivityMap;
   lessonsMaterials: LearnMaterialMap;
   lessonsQuizStatus: LearnLessonQuizStatusMap;
-  savedNotes: LearnSavedNote[];
+  savedNotes: LearnNoteListItem[];
   notesStats: LearnNotesStats;
   onClose: () => void;
   onToggleMaterialCollapsed: () => void;
@@ -50,8 +50,11 @@ type CourseSidebarPanelProps = {
   }) => void | Promise<void>;
   onSelectLesson: (lesson: LearnLesson) => void | Promise<void>;
   onCreateNote: () => void;
-  onEditNote: (note: LearnSavedNote) => void;
+  onEditNote: (note: LearnNoteListItem) => void;
   onDeleteNote: (noteId: string) => void;
+  onRegenerateSummary: (moduleId: string) => void;
+  onGenerateDefaultSummary: (moduleId: string) => void;
+  regeneratingSummaryModuleId: string | null;
   onOpenSidebar: () => void;
   onOpenContentSection: () => void;
   onOpenNotesSection: () => void;
@@ -84,6 +87,9 @@ export function CourseSidebarPanel({
   onCreateNote,
   onEditNote,
   onDeleteNote,
+  onRegenerateSummary,
+  onGenerateDefaultSummary,
+  regeneratingSummaryModuleId,
   onOpenSidebar,
   onOpenContentSection,
   onOpenNotesSection,
@@ -228,6 +234,9 @@ export function CourseSidebarPanel({
                     onCreateNote={onCreateNote}
                     onEditNote={onEditNote}
                     onDeleteNote={onDeleteNote}
+                    onRegenerateSummary={onRegenerateSummary}
+                    onGenerateDefaultSummary={onGenerateDefaultSummary}
+                    regeneratingSummaryModuleId={regeneratingSummaryModuleId}
                   />
                 </div>
               </div>

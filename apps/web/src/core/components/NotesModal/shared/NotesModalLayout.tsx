@@ -32,7 +32,6 @@ interface NotesModalLayoutProps {
   editor: NotesEditorState;
   isEditing: boolean;
   isOpen: boolean;
-  onClose: () => void;
   onExportPdf: () => void | Promise<void>;
   onDelete?: () => void | Promise<void>;
   variant: NotesModalVariant;
@@ -133,13 +132,15 @@ export function NotesModalLayout({
   editor,
   isEditing,
   isOpen,
-  onClose,
   onExportPdf,
   onDelete,
   variant,
 }: NotesModalLayoutProps) {
   const classes = notesModalVariantClasses[variant];
   const { t } = useTranslation('common');
+  const handleClose = () => {
+    void editor.handleSave();
+  };
 
   return (
     <AnimatePresence>
@@ -151,7 +152,7 @@ export function NotesModalLayout({
           initial={{ opacity: 0 }}
           onClick={(e) => {
             e.stopPropagation();
-            void editor.handleSave();
+            handleClose();
           }}
         >
           <motion.div
@@ -169,7 +170,9 @@ export function NotesModalLayout({
                 </div>
                 <div>
                   <h2 className={classes.headerTitle}>
-                    {isEditing ? t('notes.modal.editTitle') : t('notes.modal.createTitle')}
+                    {isEditing
+                      ? t('notes.modal.editTitle')
+                      : t('notes.modal.createTitle')}
                   </h2>
                 </div>
               </div>
@@ -177,7 +180,7 @@ export function NotesModalLayout({
                 className={classes.closeButton} 
                 onClick={(e) => {
                   e.stopPropagation();
-                  void editor.handleSave();
+                  handleClose();
                 }}
               >
                 <X className="w-5 h-5 text-gray-700 dark:text-slate-400" />
@@ -187,78 +190,78 @@ export function NotesModalLayout({
             <div className={classes.toolbar}>
               <div className="flex flex-wrap items-center gap-2 w-full">
                 <div className="flex items-center gap-2 flex-grow">
-                <div className={classes.toolbarGroup}>
-                  <button
-                    className={`${classes.toolbarButton} ${classes.toolbarButtonDisabled}`}
-                    disabled={!editor.canUndo}
-                    onClick={editor.undo}
-                    title={t('notes.modal.toolbar.undo')}
-                  >
-                    <Undo className="w-4 h-4 text-gray-600 dark:text-white/70" />
-                  </button>
-                  <button
-                    className={`${classes.toolbarButton} ${classes.toolbarButtonDisabled}`}
-                    disabled={!editor.canRedo}
-                    onClick={editor.redo}
-                    title={t('notes.modal.toolbar.redo')}
-                  >
-                    <Redo className="w-4 h-4 text-gray-600 dark:text-white/70" />
-                  </button>
-                </div>
-                <div className={classes.toolbarSeparator} />
-                <div className={classes.toolbarGroup}>
-                  <div className="relative flex items-center">
-                    <select
-                      className={classes.toolbarDropdown}
-                      onChange={(event) => editor.applyHeading(event.target.value)}
+                  <div className={classes.toolbarGroup}>
+                    <button
+                      className={`${classes.toolbarButton} ${classes.toolbarButtonDisabled}`}
+                      disabled={!editor.canUndo}
+                      onClick={editor.undo}
+                      title={t('notes.modal.toolbar.undo')}
                     >
-                      <option value="Normal">{t('notes.modal.toolbar.normal')}</option>
-                      <option value="H1">H1</option>
-                      <option value="H2">H2</option>
-                      <option value="H3">H3</option>
-                    </select>
-                    {variant === 'native' && (
-                      <ChevronDown className="absolute right-2 w-3 h-3 text-gray-500 pointer-events-none" />
-                    )}
+                      <Undo className="w-4 h-4 text-gray-600 dark:text-white/70" />
+                    </button>
+                    <button
+                      className={`${classes.toolbarButton} ${classes.toolbarButtonDisabled}`}
+                      disabled={!editor.canRedo}
+                      onClick={editor.redo}
+                      title={t('notes.modal.toolbar.redo')}
+                    >
+                      <Redo className="w-4 h-4 text-gray-600 dark:text-white/70" />
+                    </button>
                   </div>
-                  <div className="w-px h-4 bg-gray-300 dark:bg-white/10 mx-1 self-center" />
-                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('bold')} title={t('notes.modal.toolbar.bold')}>
-                    <Bold className="w-4 h-4 text-gray-600 dark:text-white/70" />
-                  </button>
-                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('italic')} title={t('notes.modal.toolbar.italic')}>
-                    <Italic className="w-4 h-4 text-gray-600 dark:text-white/70" />
-                  </button>
-                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('underline')} title={t('notes.modal.toolbar.underline')}>
-                    <Underline className="w-4 h-4 text-gray-600 dark:text-white/70" />
-                  </button>
-                  <button
-                    className={classes.toolbarButton}
-                    onClick={editor.applyLink}
-                    onMouseDown={(event) => event.preventDefault()}
-                    title={t('notes.modal.toolbar.link')}
-                  >
-                    <Link className="w-4 h-4 text-gray-600 dark:text-white/70" />
-                  </button>
-                </div>
-                <div className={classes.toolbarSeparator} />
-                <div className={classes.toolbarGroup}>
-                  <button className={classes.toolbarButton} onClick={() => editor.applyList('ul')} title={t('notes.modal.toolbar.bulletList')}>
-                    <List className="w-4 h-4 text-gray-600 dark:text-white/70" />
-                  </button>
-                  <button className={classes.toolbarButton} onClick={() => editor.applyList('ol')} title={t('notes.modal.toolbar.numberedList')}>
-                    <ListOrdered className="w-4 h-4 text-gray-600 dark:text-white/70" />
-                  </button>
-                  <div className="w-px h-4 bg-gray-300 dark:bg-white/10 mx-1 self-center" />
-                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('justifyLeft')} title={t('notes.modal.toolbar.alignLeft')}>
-                    <AlignLeft className="w-4 h-4 text-gray-600 dark:text-white/70" />
-                  </button>
-                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('justifyCenter')} title={t('notes.modal.toolbar.alignCenter')}>
-                    <AlignCenter className="w-4 h-4 text-gray-600 dark:text-white/70" />
-                  </button>
-                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('justifyRight')} title={t('notes.modal.toolbar.alignRight')}>
-                    <AlignRight className="w-4 h-4 text-gray-600 dark:text-white/70" />
-                  </button>
-                </div>
+                  <div className={classes.toolbarSeparator} />
+                  <div className={classes.toolbarGroup}>
+                    <div className="relative flex items-center">
+                      <select
+                        className={classes.toolbarDropdown}
+                        onChange={(event) => editor.applyHeading(event.target.value)}
+                      >
+                        <option value="Normal">{t('notes.modal.toolbar.normal')}</option>
+                        <option value="H1">H1</option>
+                        <option value="H2">H2</option>
+                        <option value="H3">H3</option>
+                      </select>
+                      {variant === 'native' && (
+                        <ChevronDown className="absolute right-2 w-3 h-3 text-gray-500 pointer-events-none" />
+                      )}
+                    </div>
+                    <div className="w-px h-4 bg-gray-300 dark:bg-white/10 mx-1 self-center" />
+                    <button className={classes.toolbarButton} onClick={() => editor.execCommand('bold')} title={t('notes.modal.toolbar.bold')}>
+                      <Bold className="w-4 h-4 text-gray-600 dark:text-white/70" />
+                    </button>
+                    <button className={classes.toolbarButton} onClick={() => editor.execCommand('italic')} title={t('notes.modal.toolbar.italic')}>
+                      <Italic className="w-4 h-4 text-gray-600 dark:text-white/70" />
+                    </button>
+                    <button className={classes.toolbarButton} onClick={() => editor.execCommand('underline')} title={t('notes.modal.toolbar.underline')}>
+                      <Underline className="w-4 h-4 text-gray-600 dark:text-white/70" />
+                    </button>
+                    <button
+                      className={classes.toolbarButton}
+                      onClick={editor.applyLink}
+                      onMouseDown={(event) => event.preventDefault()}
+                      title={t('notes.modal.toolbar.link')}
+                    >
+                      <Link className="w-4 h-4 text-gray-600 dark:text-white/70" />
+                    </button>
+                  </div>
+                  <div className={classes.toolbarSeparator} />
+                  <div className={classes.toolbarGroup}>
+                    <button className={classes.toolbarButton} onClick={() => editor.applyList('ul')} title={t('notes.modal.toolbar.bulletList')}>
+                      <List className="w-4 h-4 text-gray-600 dark:text-white/70" />
+                    </button>
+                    <button className={classes.toolbarButton} onClick={() => editor.applyList('ol')} title={t('notes.modal.toolbar.numberedList')}>
+                      <ListOrdered className="w-4 h-4 text-gray-600 dark:text-white/70" />
+                    </button>
+                    <div className="w-px h-4 bg-gray-300 dark:bg-white/10 mx-1 self-center" />
+                    <button className={classes.toolbarButton} onClick={() => editor.execCommand('justifyLeft')} title={t('notes.modal.toolbar.alignLeft')}>
+                      <AlignLeft className="w-4 h-4 text-gray-600 dark:text-white/70" />
+                    </button>
+                    <button className={classes.toolbarButton} onClick={() => editor.execCommand('justifyCenter')} title={t('notes.modal.toolbar.alignCenter')}>
+                      <AlignCenter className="w-4 h-4 text-gray-600 dark:text-white/70" />
+                    </button>
+                    <button className={classes.toolbarButton} onClick={() => editor.execCommand('justifyRight')} title={t('notes.modal.toolbar.alignRight')}>
+                      <AlignRight className="w-4 h-4 text-gray-600 dark:text-white/70" />
+                    </button>
+                  </div>
                 </div>
                 
                 {/* Botones PDF y Eliminar movidos a la barra de formato */}
