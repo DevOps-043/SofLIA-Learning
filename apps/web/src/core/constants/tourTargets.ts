@@ -58,6 +58,14 @@ export const SELECT_ORGANIZATION_TOUR_TARGET_IDS = {
   action: 'select-organization-tour-action',
 } as const;
 
+export const NOTEBOOK_TOUR_TARGET_IDS = {
+  toolbar: 'notebook-tour-toolbar',
+  header: 'notebook-tour-header',
+  tabs: 'notebook-tour-tabs',
+  courseFilter: 'notebook-tour-course-filter',
+  notesGrid: 'notebook-tour-notes-grid',
+} as const;
+
 export type CourseLearnTourTargetKey =
   keyof typeof COURSE_LEARN_TOUR_TARGET_IDS;
 
@@ -72,6 +80,9 @@ export type BusinessUserAnalyticsTourTargetKey =
 
 export type SelectOrganizationTourTargetKey =
   keyof typeof SELECT_ORGANIZATION_TOUR_TARGET_IDS;
+
+export type NotebookTourTargetKey =
+  keyof typeof NOTEBOOK_TOUR_TARGET_IDS;
 
 export function getBusinessUserDashboardTourTargetSelector(
   target: BusinessUserDashboardTourTargetKey,
@@ -101,4 +112,10 @@ export function getSelectOrganizationTourTargetSelector(
   target: SelectOrganizationTourTargetKey,
 ): string {
   return `#${SELECT_ORGANIZATION_TOUR_TARGET_IDS[target]}`;
+}
+
+export function getNotebookTourTargetSelector(
+  target: NotebookTourTargetKey,
+): string {
+  return `#${NOTEBOOK_TOUR_TARGET_IDS[target]}`;
 }

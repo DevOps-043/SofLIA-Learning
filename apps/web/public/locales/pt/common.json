@@ -1451,17 +1451,49 @@
     "usernameFallback": "usuario",
     "organizations": "Minhas organizações",
     "certificates": "Certificados",
-    "viewAllOrganizations": "Ver todas",
+    "viewAllOrganizations": "Minhas organizações",
     "currentOrganization": "Atual",
     "quickSwitch": "Troca rapida",
     "moreOrganizations": "+{{count}} mais na pagina completa",
     "theme": "Tema",
     "certificatesObtained_one": "{{count}} obtido",
     "certificatesObtained_other": "{{count}} obtidos",
+    "panels": {
+      "title": "Painéis",
+      "admin": "Admin",
+      "business": "Empresa",
+      "user": "Usuário",
+      "instructor": "Instrutor"
+    },
     "orgRoles": {
       "owner": "Proprietario",
       "admin": "Admin",
       "member": "Membro"
+    }
+  },
+  "notebookTour": {
+    "restart": "Tour do caderno",
+    "steps": {
+      "toolbar": {
+        "title": "Navegacao",
+        "content": "Use Voltar para retornar ao painel e o menu do usuario para mudar de contexto ou ajustar sua conta."
+      },
+      "header": {
+        "title": "Caderno de anotacoes",
+        "content": "Esta pagina reune suas notas manuais e os resumos SofLIA dos seus workshops."
+      },
+      "tabs": {
+        "title": "Visualizacoes do caderno",
+        "content": "Alterne entre todas as notas ou uma visualizacao organizada por workshop para encontrar conteudo mais rapido."
+      },
+      "courseFilter": {
+        "title": "Filtro por workshop",
+        "content": "Ao usar a visualizacao por workshop, estes filtros ajudam voce a focar em um curso especifico."
+      },
+      "notesGrid": {
+        "title": "Cartoes de anotacoes",
+        "content": "Abra qualquer cartao para ler, editar notas manuais ou duplicar resumos SofLIA quando disponivel."
+      }
     }
   },
   "notebook": {

@@ -318,6 +318,11 @@ export function useBusinessUserDashboardPageLogic() {
     router.push(`/${orgSlug}/business-user/analytics`)
   }, [orgSlug, router])
 
+  const handleNotebookClick = useCallback(() => {
+    if (!orgSlug) return
+    router.push(`/${orgSlug}/business-user/notebook`)
+  }, [orgSlug, router])
+
   return {
     orgSlug,
     user,
@@ -354,6 +359,7 @@ export function useBusinessUserDashboardPageLogic() {
     handleProfileClick,
     handleCertificatesClick,
     handleAnalyticsClick,
+    handleNotebookClick,
   }
 }
 

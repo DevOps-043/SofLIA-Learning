@@ -114,7 +114,6 @@ export function ModernNavbar({
         createPortal(
           <ModernNavbarMobileMenu
             canAccessAdminPanel={canAccessAdminPanel}
-            certificatesCount={certificatesCount}
             colors={colors}
             getDisplayName={getDisplayName}
             getInitials={getInitials}
@@ -125,8 +124,6 @@ export function ModernNavbar({
             onLogout={onLogout}
             onProfileClick={onProfileClick}
             onRestartTour={onRestartTour}
-            onCertificatesClick={onCertificatesClick}
-            onAnalyticsClick={onAnalyticsClick}
             organization={organization}
             resolvedTheme={resolvedTheme}
             router={router}

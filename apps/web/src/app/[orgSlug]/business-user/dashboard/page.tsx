@@ -51,6 +51,7 @@ export default function BusinessUserDashboardPage() {
         handleLogout={logic.handleLogout}
         handleCertificatesClick={logic.handleCertificatesClick}
         handleAnalyticsClick={logic.handleAnalyticsClick}
+        handleNotebookClick={logic.handleNotebookClick}
         handleCourseClick={logic.handleCourseClick}
         handleLearningPathCourseClick={logic.handleLearningPathCourseClick}
         showVideoIntro={logic.showVideoIntro}

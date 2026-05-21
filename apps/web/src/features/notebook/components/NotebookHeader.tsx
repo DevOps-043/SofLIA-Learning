@@ -3,6 +3,7 @@
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { BookOpen } from 'lucide-react'
+import { NOTEBOOK_TOUR_TARGET_IDS } from '@/core/constants/tourTargets'
 
 /**
  * NotebookHeader
@@ -15,6 +16,7 @@ export function NotebookHeader() {
 
   return (
     <motion.header
+      id={NOTEBOOK_TOUR_TARGET_IDS.header}
       initial={{ opacity: 0, y: -12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}

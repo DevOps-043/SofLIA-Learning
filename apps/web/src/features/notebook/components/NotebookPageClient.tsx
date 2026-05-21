@@ -1,10 +1,18 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { AlertTriangle, ArrowLeft, Loader2 } from 'lucide-react'
 import { UserDropdown } from '@/core/components/UserDropdown'
+import { NOTEBOOK_TOUR_TARGET_IDS } from '@/core/constants/tourTargets'
+import { JoyrideClient } from '@/features/tours/components/JoyrideClient'
+import { useJoyrideMinitour } from '@/features/tours/hooks/useJoyrideMinitour'
+import {
+  NOTEBOOK_MINITOUR_ID,
+  buildNotebookMinitourSteps,
+} from '@/features/tours/config/notebook-minitour-steps'
 import { useNotebookPageLogic } from '../hooks/useNotebookPageLogic'
 import { NotebookHeader } from './NotebookHeader'
 import { NotebookTabs } from './NotebookTabs'
@@ -51,6 +59,16 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
     loadMore,
     retryFetch,
   } = useNotebookPageLogic({ orgSlug })
+  const tourSteps = useMemo(
+    () => buildNotebookMinitourSteps((key) => String(t(key))),
+    [t],
+  )
+  const notebookTour = useJoyrideMinitour({
+    enabled: !isLoadingNotes && !errorMessage,
+    label: String(t('notebookTour.restart')),
+    steps: tourSteps,
+    tourId: NOTEBOOK_MINITOUR_ID,
+  })
 
   const handleBack = () => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
@@ -68,7 +86,10 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
 
   return (
     <div className="min-h-screen bg-gray-50/40 dark:bg-gray-950">
-      <div className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-gray-900/90">
+      <div
+        id={NOTEBOOK_TOUR_TARGET_IDS.toolbar}
+        className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-gray-900/90"
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-8 lg:px-12">
           <button
             className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:border-teal-300 hover:text-teal-600 dark:border-white/10 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-teal-600 dark:hover:text-teal-300"
@@ -152,7 +173,10 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
       {/* Notes grid */}
         {!isLoadingNotes && !errorMessage && items.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            id={NOTEBOOK_TOUR_TARGET_IDS.notesGrid}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
             {items.map((item, index) => {
               const key =
                 item.kind === 'manual_note'
@@ -190,7 +214,9 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
 
       {/* Empty state */}
         {!isLoadingNotes && !errorMessage && items.length === 0 && (
-          <NotebookEmptyState isCourseFiltered={!!selectedCourseId} />
+          <div id={NOTEBOOK_TOUR_TARGET_IDS.notesGrid}>
+            <NotebookEmptyState isCourseFiltered={!!selectedCourseId} />
+          </div>
         )}
       </main>
 
@@ -206,6 +232,10 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
         onEdit={setModalEditMode}
         onSaveManualNote={saveManualNote}
       />
+
+      {notebookTour.isMounted && notebookTour.joyrideProps.run ? (
+        <JoyrideClient {...notebookTour.joyrideProps} />
+      ) : null}
     </div>
   )
 }

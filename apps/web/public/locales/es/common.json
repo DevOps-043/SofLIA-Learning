@@ -1451,17 +1451,49 @@
     "usernameFallback": "usuario",
     "organizations": "Mis organizaciones",
     "certificates": "Certificados",
-    "viewAllOrganizations": "Ver todas",
+    "viewAllOrganizations": "Mis organizaciones",
     "currentOrganization": "Actual",
     "quickSwitch": "Cambio rapido",
     "moreOrganizations": "+{{count}} mas en la pagina completa",
     "theme": "Tema",
     "certificatesObtained_one": "{{count}} obtenido",
     "certificatesObtained_other": "{{count}} obtenidos",
+    "panels": {
+      "title": "Paneles",
+      "admin": "Admin",
+      "business": "Empresa",
+      "user": "Usuario",
+      "instructor": "Instructor"
+    },
     "orgRoles": {
       "owner": "Propietario",
       "admin": "Admin",
       "member": "Miembro"
+    }
+  },
+  "notebookTour": {
+    "restart": "Tour de libro de apuntes",
+    "steps": {
+      "toolbar": {
+        "title": "Navegacion",
+        "content": "Usa Volver para regresar al panel y el menu de usuario para cambiar de contexto o ajustar tu cuenta."
+      },
+      "header": {
+        "title": "Libro de apuntes",
+        "content": "Aqui se reunen tus notas manuales y los apuntes generados por SofLIA en tus talleres."
+      },
+      "tabs": {
+        "title": "Vistas de apuntes",
+        "content": "Cambia entre todos tus apuntes o una vista organizada por taller para encontrar contenido mas rapido."
+      },
+      "courseFilter": {
+        "title": "Filtro por taller",
+        "content": "Cuando uses la vista por taller, estos filtros te permiten enfocarte en un curso especifico."
+      },
+      "notesGrid": {
+        "title": "Tarjetas de apuntes",
+        "content": "Abre cualquier tarjeta para leer, editar notas manuales o duplicar apuntes SofLIA cuando este disponible."
+      }
     }
   },
   "notebook": {

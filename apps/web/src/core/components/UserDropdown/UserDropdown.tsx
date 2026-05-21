@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../../features/auth/hooks/useAuth'
 import { useUserProfile } from '../../../features/auth/hooks/useUserProfile'
@@ -13,7 +13,6 @@ import { getOrganizationUserDashboardPath } from '../../utils/organizationNaviga
 
 // Lucide Icons
 import {
-  User,
   Moon,
   Sun,
   LogOut,
@@ -24,9 +23,7 @@ import {
   LayoutDashboard,
   ShieldCheck,
   Check,
-  BarChart3,
-  Award,
-  BookOpen,
+  Pencil,
   LucideIcon
 } from 'lucide-react'
 import { cn } from '@/shared/utils/cn'
@@ -67,6 +64,7 @@ export const UserDropdown = React.memo(function UserDropdown({
     switchOrganization,
   } = useOrganization()
   const router = useRouter()
+  const pathname = usePathname()
   const { t } = useTranslation('common')
   const [isMounted, setIsMounted] = useState(false)
   const [imageError, setImageError] = useState(false)
@@ -149,18 +147,6 @@ export const UserDropdown = React.memo(function UserDropdown({
     )
   }, [currentOrganization?.slug, handleNavigation])
 
-  // Para "Mis Estadísticas" preferimos las analíticas personales del usuario
-  // dentro de la organización. Si no hay organización pero es Admin de plataforma,
-  // mandamos a las estadísticas del panel admin.
-  const userStatsPath = useMemo(() => {
-    if (currentOrganization?.slug) {
-      return `/${currentOrganization.slug}/business-user/analytics`
-    }
-    if (isAdmin) {
-      return '/admin/statistics'
-    }
-    return null
-  }, [currentOrganization?.slug, isAdmin])
   const profilePath = useMemo(
     () => currentOrganization?.slug ? `/${currentOrganization.slug}/profile` : '/profile',
     [currentOrganization?.slug],
@@ -217,6 +203,61 @@ export const UserDropdown = React.memo(function UserDropdown({
 
   const primaryColor = activeOrganization?.brandColorPrimary || 'var(--color-primary)'
   const accentColor = 'var(--color-accent)'
+  const availablePanelLinks = useMemo<PanelSwitcherItem[]>(() => {
+    const links: PanelSwitcherItem[] = []
+
+    if (isAdmin) {
+      links.push({
+        id: 'admin',
+        icon: ShieldCheck,
+        label: t('profileDropdown.panels.admin'),
+        isActive: pathname?.startsWith('/admin') ?? false,
+        onClick: () => handleNavigation('/admin/dashboard'),
+      })
+    }
+
+    if (isInstructor) {
+      links.push({
+        id: 'instructor',
+        icon: GraduationCap,
+        label: t('profileDropdown.panels.instructor'),
+        isActive: pathname?.startsWith('/instructor') ?? false,
+        onClick: () => handleNavigation('/instructor/dashboard'),
+      })
+    }
+
+    if (isOrgAdmin && currentOrganization) {
+      links.push({
+        id: 'business',
+        icon: BriefcaseBusiness,
+        label: t('profileDropdown.panels.business'),
+        isActive: pathname?.startsWith(`/${currentOrganization.slug}/business-panel`) ?? false,
+        onClick: () => handleNavigation(`/${currentOrganization.slug}/business-panel`),
+      })
+    }
+
+    links.push({
+      id: 'user',
+      icon: LayoutDashboard,
+      label: t('profileDropdown.panels.user'),
+      isActive: currentOrganization?.slug
+        ? pathname?.startsWith(`/${currentOrganization.slug}/business-user`) ?? false
+        : pathname === '/dashboard',
+      onClick: handleUserDashboardNavigation,
+    })
+
+    return links
+  }, [
+    currentOrganization,
+    handleNavigation,
+    handleUserDashboardNavigation,
+    isAdmin,
+    isInstructor,
+    isOrgAdmin,
+    pathname,
+    t,
+  ])
+  const shouldShowPanelSwitcher = availablePanelLinks.length > 1
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
@@ -317,6 +358,15 @@ export const UserDropdown = React.memo(function UserDropdown({
                       {getRoleLabel()}
                     </p>
                   </div>
+                  <button
+                    type="button"
+                    aria-label={t('menu.profile')}
+                    title={t('menu.profile')}
+                    onClick={() => handleNavigation(profilePath)}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-black/5 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
 
@@ -429,37 +479,22 @@ export const UserDropdown = React.memo(function UserDropdown({
                 </div>
               )}
 
+              {shouldShowPanelSwitcher && (
+                <PanelSwitcher
+                  items={availablePanelLinks}
+                  label={t('profileDropdown.panels.title')}
+                />
+              )}
+
               {/* Menu Items */}
               <div className="py-1.5 space-y-0.5">
-                {/* Panel links at top */}
-                {isAdmin && (
-                  <MenuItem 
-                    icon={ShieldCheck} 
-                    label={t('menu.adminPanel')} 
-                    onClick={() => handleNavigation('/admin/dashboard')} 
+                {!shouldShowPanelSwitcher && (
+                  <MenuItem
+                    icon={LayoutDashboard}
+                    label={t('menu.userPanel')}
+                    onClick={handleUserDashboardNavigation}
                   />
                 )}
-                {isInstructor && (
-                  <MenuItem 
-                    icon={GraduationCap} 
-                    label={t('menu.instructorPanel')} 
-                    onClick={() => handleNavigation('/instructor/dashboard')} 
-                  />
-                )}
-                {isOrgAdmin && currentOrganization && (
-                  <MenuItem 
-                    icon={LayoutDashboard} 
-                    label={t('business:header.administratorRole')} 
-                    onClick={() => handleNavigation(`/${currentOrganization.slug}/business-panel`)} 
-                  />
-                )}
-
-                {/* User Panel */}
-                <MenuItem 
-                  icon={LayoutDashboard} 
-                  label={t('menu.userPanel')} 
-                  onClick={handleUserDashboardNavigation} 
-                />
 
                 {/* Organizations */}
                 {isB2B && (
@@ -469,38 +504,6 @@ export const UserDropdown = React.memo(function UserDropdown({
                     onClick={() => handleNavigation('/auth/select-organization')} 
                   />
                 )}
-
-                {/* My Stats */}
-                {userStatsPath && (
-                  <MenuItem
-                    icon={BarChart3}
-                    label={t('menu.stats')}
-                    onClick={() => handleNavigation(userStatsPath)}
-                  />
-                )}
-
-                {/* My Certificates */}
-                <MenuItem
-                  icon={Award}
-                  label={t('menu.certificates')}
-                  onClick={() => handleNavigation('/certificates')}
-                />
-
-                {/* Notebook (Libro de Apuntes) - B2B only */}
-                {activeOrganization?.slug && (
-                  <MenuItem
-                    icon={BookOpen}
-                    label={t('menu.notebook')}
-                    onClick={() => handleNavigation(`/${activeOrganization.slug}/business-user/notebook`)}
-                  />
-                )}
-
-                {/* Edit Profile */}
-                <MenuItem
-                  icon={User}
-                  label={t('menu.profile')}
-                  onClick={() => handleNavigation(profilePath)}
-                />
 
                 {/* Theme Toggle */}
                 <MenuItem
@@ -612,6 +615,59 @@ function OrganizationMark({ organization, compact = false }: OrganizationMarkPro
     >
       {organizationLabel.charAt(0).toUpperCase()}
     </span>
+  )
+}
+
+interface PanelSwitcherItem {
+  id: string
+  icon: LucideIcon
+  label: string
+  isActive: boolean
+  onClick: () => void
+}
+
+interface PanelSwitcherProps {
+  items: PanelSwitcherItem[]
+  label: string
+}
+
+function PanelSwitcher({ items, label }: PanelSwitcherProps) {
+  const gridClassName = items.length >= 4 ? 'grid-cols-2' : items.length === 3 ? 'grid-cols-3' : 'grid-cols-2'
+
+  return (
+    <div className="border-b border-gray-200 px-3.5 py-2.5 dark:border-white/5">
+      <p className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+        {label}
+      </p>
+      <div className={cn('grid gap-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-900/70', gridClassName)}>
+        {items.map((item) => {
+          const Icon = item.icon
+
+          return (
+            <button
+              key={item.id}
+              type="button"
+              aria-current={item.isActive ? 'page' : undefined}
+              onClick={item.onClick}
+              className={cn(
+                'flex min-h-10 min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20',
+                item.isActive
+                  ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 dark:bg-white/10 dark:text-white dark:ring-white/10'
+                  : 'text-gray-600 hover:bg-white/70 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white',
+              )}
+            >
+              <Icon
+                className={cn(
+                  'h-3.5 w-3.5 shrink-0',
+                  item.isActive ? 'text-emerald-500' : 'text-gray-400',
+                )}
+              />
+              <span className="min-w-0 truncate">{item.label}</span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 

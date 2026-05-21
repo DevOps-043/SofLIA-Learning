@@ -395,6 +395,18 @@
         "title": "Ver relatórios e analytics",
         "desc": "Abrir o novo painel unificado"
       },
+      "myStats": {
+        "title": "Minhas estatísticas",
+        "desc": "Consulte seu avanço"
+      },
+      "certificates": {
+        "title": "Meus certificados",
+        "desc": "Revise suas conquistas"
+      },
+      "notebook": {
+        "title": "Caderno de anotações",
+        "desc": "Abra suas notas"
+      },
       "settings": {
         "title": "Configurações",
         "desc": "Marca e configurações"

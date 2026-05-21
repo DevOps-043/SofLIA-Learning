@@ -395,6 +395,18 @@
         "title": "View reports and analytics",
         "desc": "Open the new unified panel"
       },
+      "myStats": {
+        "title": "My statistics",
+        "desc": "Check your progress"
+      },
+      "certificates": {
+        "title": "My certificates",
+        "desc": "Review your achievements"
+      },
+      "notebook": {
+        "title": "Notebook",
+        "desc": "Open your notes"
+      },
       "settings": {
         "title": "Settings",
         "desc": "Branding and settings"

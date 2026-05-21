@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Award,
-  BarChart2,
   Building2,
   CalendarDays,
   CalendarPlus,
@@ -28,7 +26,6 @@ import type { ModernNavbarColors, ModernNavbarOrganization, ModernNavbarUser } f
 interface ModernNavbarDesktopMenuProps {
   activeSubmenu: string | null;
   canAccessAdminPanel: boolean;
-  certificatesCount?: number;
   colors: ModernNavbarColors;
   getDisplayName: () => string;
   getInitials: () => string;
@@ -38,8 +35,6 @@ interface ModernNavbarDesktopMenuProps {
   onLogout: () => void;
   onProfileClick: () => void;
   onRestartTour?: () => void;
-  onCertificatesClick?: () => void;
-  onAnalyticsClick?: () => void;
   organization: ModernNavbarOrganization | null;
   resolvedTheme: string | null | undefined;
   router: { push: (href: string) => void };
@@ -57,7 +52,6 @@ interface ModernNavbarDesktopMenuProps {
 export function ModernNavbarDesktopMenu({
   activeSubmenu,
   canAccessAdminPanel,
-  certificatesCount = 0,
   colors,
   getDisplayName,
   getInitials,
@@ -66,8 +60,6 @@ export function ModernNavbarDesktopMenu({
   onClose,
   onLogout,
   onProfileClick,
-  onCertificatesClick,
-  onAnalyticsClick,
   organization,
   resolvedTheme,
   router,
@@ -199,38 +191,6 @@ export function ModernNavbarDesktopMenu({
                 >
                   <Building2 className="h-5 w-5 opacity-70" />
                   <span>{t('common:profileDropdown.organizations')}</span>
-                </motion.button>
-              )}
-
-              {/* Certificados */}
-              {onCertificatesClick && (
-                <motion.button
-                  onClick={() => { onCertificatesClick(); onClose() }}
-                  className={menuItemClass}
-                  style={{ color: colors.text }}
-                  whileHover={{ x: 2, backgroundColor: hoverBackground }}
-                >
-                  <Award className="h-5 w-5 opacity-70" />
-                  <span className="flex-1 text-left">{t('common:menu.certificates')}</span>
-                  {certificatesCount > 0 && (
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                      style={{ backgroundColor: `${colors.accent}20`, color: colors.accent }}>
-                      {certificatesCount}
-                    </span>
-                  )}
-                </motion.button>
-              )}
-
-              {/* Mis estadísticas */}
-              {onAnalyticsClick && (
-                <motion.button
-                  onClick={() => { onAnalyticsClick(); onClose() }}
-                  className={menuItemClass}
-                  style={{ color: colors.text }}
-                  whileHover={{ x: 2, backgroundColor: hoverBackground }}
-                >
-                  <BarChart2 className="h-5 w-5 opacity-70" />
-                  <span>{t('common:menu.stats')}</span>
                 </motion.button>
               )}
 

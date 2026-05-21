@@ -5,7 +5,19 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
-import { BookOpen, GraduationCap, Sparkles, TrendingUp, LayoutGrid, List, ChevronDown, ChevronUp } from 'lucide-react'
+import {
+  Award,
+  BarChart3,
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
+  GraduationCap,
+  LayoutGrid,
+  List,
+  Sparkles,
+  TrendingUp,
+  type LucideIcon,
+} from 'lucide-react'
 import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../core/constants/tourTargets'
 import { TeamRequiredBanner } from '../../../../../features/business-panel/components/hierarchy/TeamRequiredBanner'
 import type { StyleConfig } from '../../../../../features/business-panel/hooks/useOrganizationStyles'
@@ -129,6 +141,7 @@ interface BusinessUserDashboardShellProps {
   handleLogout: () => void
   handleCertificatesClick: () => void
   handleAnalyticsClick: () => void
+  handleNotebookClick: () => void
   handleCourseClick: (course: AssignedCourse, action?: 'start' | 'continue' | 'certificate') => void
   handleLearningPathCourseClick: (slug: string | null | undefined) => void
   showVideoIntro: boolean
@@ -158,6 +171,7 @@ export function BusinessUserDashboardShell({
   handleLogout,
   handleCertificatesClick,
   handleAnalyticsClick,
+  handleNotebookClick,
   handleCourseClick,
   handleLearningPathCourseClick,
   showVideoIntro,
@@ -289,6 +303,32 @@ export function BusinessUserDashboardShell({
   }, [assignedCourses.length, disableHeavyEffects])
 
   const showLearningPathCarousel = learningPaths.length > 0 && assignedCourses.length > 0 && courseView === 'grid'
+  const quickAccessActions = useMemo(
+    () => [
+      {
+        id: 'analytics',
+        title: t('dashboard.quickActions.myStats.title', 'Mis estadisticas'),
+        description: t('dashboard.quickActions.myStats.desc', 'Consulta tu avance'),
+        icon: BarChart3,
+        onClick: handleAnalyticsClick,
+      },
+      {
+        id: 'certificates',
+        title: t('dashboard.quickActions.certificates.title', 'Mis certificados'),
+        description: t('dashboard.quickActions.certificates.desc', 'Revisa tus logros'),
+        icon: Award,
+        onClick: handleCertificatesClick,
+      },
+      {
+        id: 'notebook',
+        title: t('dashboard.quickActions.notebook.title', 'Libro de apuntes'),
+        description: t('dashboard.quickActions.notebook.desc', 'Abre tus notas'),
+        icon: BookOpen,
+        onClick: handleNotebookClick,
+      },
+    ],
+    [handleAnalyticsClick, handleCertificatesClick, handleNotebookClick, t],
+  )
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') {
@@ -418,26 +458,40 @@ export function BusinessUserDashboardShell({
                 </>
               ) : null}
 
-              <div className="relative z-10">
-                <motion.h1
-                  className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1.5 md:mb-2 leading-tight"
-                  style={{ color: 'var(--color-bg-light)' }}
-                  initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
-                  animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
-                  transition={disableHeavyEffects ? undefined : interfaceTransition}
-                >
-                  <BusinessUserGreeting firstName={user?.first_name} t={t} />
-                </motion.h1>
+              <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                <div className="min-w-0">
+                  <motion.h1
+                    className="mb-1.5 text-2xl font-bold leading-tight md:mb-2 md:text-3xl lg:text-4xl"
+                    style={{ color: 'var(--color-bg-light)' }}
+                    initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
+                    animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
+                    transition={disableHeavyEffects ? undefined : interfaceTransition}
+                  >
+                    <BusinessUserGreeting firstName={user?.first_name} t={t} />
+                  </motion.h1>
 
-                <motion.p
-                  className="text-xs md:text-sm lg:text-base max-w-xl line-clamp-2 md:line-clamp-none"
-                  style={{ color: 'rgb(255 255 255 / 80%)' }}
-                  initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
+                  <motion.p
+                    className="max-w-xl text-xs line-clamp-2 md:text-sm md:line-clamp-none lg:text-base"
+                    style={{ color: 'rgb(255 255 255 / 80%)' }}
+                    initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
+                    animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
+                    transition={disableHeavyEffects ? undefined : interfaceTransition}
+                  >
+                    {t('dashboard.subtitle')}
+                  </motion.p>
+                </div>
+
+                <motion.div
+                  initial={disableHeavyEffects ? false : { opacity: 0, y: 16 }}
                   animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
                   transition={disableHeavyEffects ? undefined : interfaceTransition}
+                  className="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:min-w-[480px] lg:max-w-[560px]"
+                  aria-label={t('dashboard.quickActions.title', 'Accesos rápidos')}
                 >
-                  {t('dashboard.subtitle')}
-                </motion.p>
+                  {quickAccessActions.map((action) => (
+                    <DashboardHeroQuickAccessButton key={action.id} action={action} />
+                  ))}
+                </motion.div>
               </div>
 
               {!disableHeavyEffects ? (
@@ -455,7 +509,7 @@ export function BusinessUserDashboardShell({
             </motion.div>
           </div>
 
-          {/* Stats section moved to user dropdown menu */}
+          {/* Legacy stats tour anchor: kept hidden so existing tour targets remain stable. */}
           <div
             id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statsSection}
             className="scroll-mt-32 relative hidden"
@@ -860,5 +914,41 @@ function BusinessUserGreeting({
       {getBusinessUserDashboardGreeting(currentTime, t)},{' '}
       <span className="text-white">{firstName || 'Usuario'}</span>
     </>
+  )
+}
+
+interface DashboardQuickAccessAction {
+  id: string
+  title: string
+  description: string
+  icon: LucideIcon
+  onClick: () => void
+}
+
+function DashboardHeroQuickAccessButton({
+  action,
+}: {
+  action: DashboardQuickAccessAction
+}) {
+  const Icon = action.icon
+
+  return (
+    <button
+      type="button"
+      onClick={action.onClick}
+      className="group flex min-h-12 min-w-0 items-center gap-2.5 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-left text-white shadow-sm backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-white/15 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-white/30"
+    >
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white transition-transform group-hover:scale-105">
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate text-xs font-bold sm:text-sm">
+          {action.title}
+        </span>
+        <span className="mt-0.5 block truncate text-[11px] text-white/70">
+          {action.description}
+        </span>
+      </span>
+    </button>
   )
 }

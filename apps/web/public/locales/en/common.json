@@ -1451,17 +1451,49 @@
     "usernameFallback": "user",
     "organizations": "My organizations",
     "certificates": "Certificates",
-    "viewAllOrganizations": "View all",
+    "viewAllOrganizations": "My organizations",
     "currentOrganization": "Current",
     "quickSwitch": "Quick switch",
     "moreOrganizations": "+{{count}} more on the full page",
     "theme": "Theme",
     "certificatesObtained_one": "{{count}} earned",
     "certificatesObtained_other": "{{count}} earned",
+    "panels": {
+      "title": "Panels",
+      "admin": "Admin",
+      "business": "Business",
+      "user": "User",
+      "instructor": "Instructor"
+    },
     "orgRoles": {
       "owner": "Owner",
       "admin": "Admin",
       "member": "Member"
+    }
+  },
+  "notebookTour": {
+    "restart": "Notebook tour",
+    "steps": {
+      "toolbar": {
+        "title": "Navigation",
+        "content": "Use Back to return to the dashboard and the user menu to switch context or adjust your account."
+      },
+      "header": {
+        "title": "Notebook",
+        "content": "This page brings together your manual notes and SofLIA summaries from your workshops."
+      },
+      "tabs": {
+        "title": "Notebook views",
+        "content": "Switch between all notes or a workshop-organized view to find content faster."
+      },
+      "courseFilter": {
+        "title": "Workshop filter",
+        "content": "When you use the workshop view, these filters help you focus on a specific course."
+      },
+      "notesGrid": {
+        "title": "Note cards",
+        "content": "Open any card to read, edit manual notes, or duplicate SofLIA summaries when available."
+      }
     }
   },
   "notebook": {

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS,
+  NOTEBOOK_TOUR_TARGET_IDS,
   PROFILE_TOUR_TARGET_IDS,
   SELECT_ORGANIZATION_TOUR_TARGET_IDS,
 } from '../../../../core/constants/tourTargets';
@@ -17,6 +18,10 @@ import {
   SELECT_ORGANIZATION_MINITOUR_ID,
   buildSelectOrganizationMinitourSteps,
 } from '../select-organization-minitour-steps';
+import {
+  NOTEBOOK_MINITOUR_ID,
+  buildNotebookMinitourSteps,
+} from '../notebook-minitour-steps';
 
 const t = (key: string) => key;
 
@@ -29,6 +34,7 @@ describe('minitour step configs', () => {
     expect(SELECT_ORGANIZATION_MINITOUR_ID).toBe(
       'select-organization-minitour-v1',
     );
+    expect(NOTEBOOK_MINITOUR_ID).toBe('notebook-minitour-v1');
   });
 
   it('builds profile tour targets in the expected order', () => {
@@ -69,6 +75,18 @@ describe('minitour step configs', () => {
       `#${SELECT_ORGANIZATION_TOUR_TARGET_IDS.role}`,
       `#${SELECT_ORGANIZATION_TOUR_TARGET_IDS.action}`,
       `#${SELECT_ORGANIZATION_TOUR_TARGET_IDS.grid}`,
+    ]);
+  });
+
+  it('builds notebook tour targets in the expected order', () => {
+    const steps = buildNotebookMinitourSteps(t);
+
+    expect(steps.map((step) => step.target)).toEqual([
+      `#${NOTEBOOK_TOUR_TARGET_IDS.toolbar}`,
+      `#${NOTEBOOK_TOUR_TARGET_IDS.header}`,
+      `#${NOTEBOOK_TOUR_TARGET_IDS.tabs}`,
+      `#${NOTEBOOK_TOUR_TARGET_IDS.courseFilter}`,
+      `#${NOTEBOOK_TOUR_TARGET_IDS.notesGrid}`,
     ]);
   });
 });
