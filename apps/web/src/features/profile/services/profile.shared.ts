@@ -10,9 +10,12 @@ import type {
   UserStats,
   UserSubscription
 } from '../types/profile.types'
+import type { AuthOAuthProvider } from '../../auth/services/auth-account-method.service'
 
 type UserRow = Database['public']['Tables']['users']['Row']
 type UserProfileExtraFields = {
+  auth_providers?: AuthOAuthProvider[] | null
+  can_edit_credentials?: boolean | null
   phone_number?: string | null
   points?: number | null
   job_title?: string | null
@@ -75,7 +78,9 @@ export function mapUserProfileRow(data: UserProfileRow): UserProfile {
     points: data.points || 0,
     created_at: data.created_at,
     last_login_at: data.last_login_at || data.created_at,
-    email_verified: data.email_verified || false
+    email_verified: data.email_verified || false,
+    auth_providers: data.auth_providers || [],
+    can_edit_credentials: data.can_edit_credentials ?? true
   }
 }
 

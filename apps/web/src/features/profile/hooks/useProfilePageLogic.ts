@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useOrganizationStyles } from '../../business-panel/hooks/useOrganizationStyles'
 import { ChangePasswordSchema, type ChangePasswordInput } from '../../../lib/schemas/user.schema'
+import { buildAuthLoginPath } from '@/lib/auth/auth-routes'
 import { useProfile } from './useProfile'
 import { ProfileService } from '../services/profile.service'
 import { createProfileUpdateRequest, formatProfileDate, resolveProfileColors } from '../services/profile.shared'
@@ -131,7 +132,7 @@ export function useProfilePageLogic() {
     handleProfilePictureUpload,
     handleChangePassword,
     goBack: () => router.back(),
-    goToLogin: () => router.push('/login'),
+    goToLogin: () => router.push(buildAuthLoginPath('session_expired')),
     retryLoad: () => window.location.reload(),
     formatDate: formatProfileDate
   }

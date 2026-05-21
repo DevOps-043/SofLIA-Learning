@@ -15,6 +15,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
+import { AUTH_LOGIN_PATH } from '@/lib/auth/auth-routes';
 import { clearClientSessionState } from '@/features/auth/services/logout-client.service';
 
 interface UseInactivityLogoutOptions {
@@ -112,8 +113,8 @@ export function useInactivityLogout(
 
     await clearClientSessionState();
 
-    // Redirigir al login
-    router.push('/login?reason=inactivity');
+    // Redirigir a la pantalla de autenticación pública
+    router.push(`${AUTH_LOGIN_PATH}?reason=inactivity`);
   }, [onLogout, router]);
 
   // Función para mostrar advertencia

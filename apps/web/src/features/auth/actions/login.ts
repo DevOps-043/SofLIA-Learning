@@ -12,6 +12,10 @@ import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { cookies, headers } from 'next/headers'
 import { logger } from '../../../lib/logger'
+import {
+  AuthAccountMethodService,
+  buildOAuthLoginRequiredMessage,
+} from '../services/auth-account-method.service'
 
 const loginSchema = z.object({
   emailOrUsername: z.string().min(1, 'El correo o usuario es requerido').regex(/^\S+$/, 'No se permiten espacios'),
@@ -26,6 +30,7 @@ interface LoginUserRecord {
   username: string | null
   email: string | null
   password_hash: string | null
+  oauth_provider: string | null
   email_verified: boolean | null
   cargo_rol: string | null
   is_banned: boolean | null
@@ -192,7 +197,7 @@ export async function loginAction(formData: FormData) {
     // OPTIMIZADO: Una sola consulta con OR en lugar de dos secuenciales
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, username, email, password_hash, email_verified, cargo_rol, is_banned, ban_reason')
+      .select('id, username, email, password_hash, oauth_provider, email_verified, cargo_rol, is_banned, ban_reason')
       .or(`username.ilike.${parsed.emailOrUsername},email.ilike.${parsed.emailOrUsername}`)
       .maybeSingle<LoginUserRecord>()
 
@@ -210,8 +215,22 @@ export async function loginAction(formData: FormData) {
     }
 
     // 4. Verificar contraseña con bcrypt (como en tu sistema anterior)
-    if (!user.password_hash) {
+    const accountMethodStatus = await AuthAccountMethodService.getAccountMethodStatus({
+      legacyOAuthProvider: user.oauth_provider,
+      passwordHash: user.password_hash,
+      supabase,
+      userId: user.id,
+    })
 
+    if (accountMethodStatus.oauthProviders.length > 0) {
+      return {
+        error: buildOAuthLoginRequiredMessage(accountMethodStatus.oauthProviders),
+        errorCode: 'oauth_account_login_required',
+        providers: accountMethodStatus.oauthProviders,
+      }
+    }
+
+    if (!accountMethodStatus.canUseLocalCredentials) {
       return { error: 'Error en la configuración de la cuenta. Por favor, contacta al soporte.' }
     }
 

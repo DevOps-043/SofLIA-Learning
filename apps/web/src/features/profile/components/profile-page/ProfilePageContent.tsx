@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { JoyrideClient } from '../../../tours/components/JoyrideClient'
 import { useTranslation } from 'react-i18next'
@@ -60,6 +60,15 @@ export function ProfilePageContent(logic: ProfilePageLogic) {
     tourId: PROFILE_MINITOUR_ID,
   })
 
+  const hasOAuthAuthProvider = Boolean(profile?.auth_providers?.length)
+  const canEditCredentials = Boolean(profile) && !hasOAuthAuthProvider && profile.can_edit_credentials
+
+  useEffect(() => {
+    if (!canEditCredentials && activeTab === 'security') {
+      setActiveTab('personal')
+    }
+  }, [activeTab, canEditCredentials, setActiveTab])
+
   if (!profile) {
     return null
   }
@@ -79,11 +88,11 @@ export function ProfilePageContent(logic: ProfilePageLogic) {
           formatDate={formatDate}
         />
 
-        <ProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} colors={colors} />
+        <ProfileTabs activeTab={activeTab} canEditCredentials={canEditCredentials} setActiveTab={setActiveTab} colors={colors} />
 
         <div className="px-6 lg:px-12 py-10">
           <AnimatePresence initial={false}>
-            {activeTab === 'personal' ? (
+            {activeTab === 'personal' || !canEditCredentials ? (
               <div id={PROFILE_TOUR_TARGET_IDS.personalForm}>
                 <ProfilePersonalTab formData={formData} handleInputChange={handleInputChange} colors={colors} />
               </div>

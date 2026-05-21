@@ -1,4 +1,5 @@
 import type { UserGender } from '../../../lib/schemas/user-demographics.schema'
+import type { AuthOAuthProvider } from '../../auth/services/auth-account-method.service'
 
 export interface UserProfile {
   id: string
@@ -22,6 +23,8 @@ export interface UserProfile {
   created_at: string
   last_login_at: string
   email_verified: boolean
+  auth_providers: AuthOAuthProvider[]
+  can_edit_credentials: boolean
 }
 
 export interface UpdateProfileRequest {

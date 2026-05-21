@@ -11,6 +11,7 @@ import {
   resolveChangedProfileFields
 } from './profile.shared'
 import type { UpdateProfileRequest, UserProfile, UserSubscription } from '../types/profile.types'
+import { AuthAccountMethodService } from '../../auth/services/auth-account-method.service'
 
 export class ProfileServerService {
   static async getProfile(userId: string, organizationId?: string | null): Promise<UserProfile> {
@@ -35,8 +36,17 @@ export class ProfileServerService {
       throw new Error('Perfil no encontrado')
     }
 
+    const accountMethodStatus = await AuthAccountMethodService.getAccountMethodStatus({
+      legacyOAuthProvider: data.oauth_provider,
+      passwordHash: data.password_hash,
+      supabase,
+      userId,
+    })
+
     return mapUserProfileRow({
       ...data,
+      auth_providers: accountMethodStatus.oauthProviders,
+      can_edit_credentials: accountMethodStatus.canUseLocalCredentials,
       job_title: membership?.job_title ?? null,
       job_description: membership?.job_description ?? null
     })
@@ -68,10 +78,18 @@ export class ProfileServerService {
     const organizationUpdates = pickAllowedOrganizationProfileUpdates(updates)
     const actualChanges = resolveChangedProfileFields(oldData, safeUpdates)
     const organizationChanges = resolveChangedOrganizationProfileFields(oldMembership, organizationUpdates)
+    const accountMethodStatus = await AuthAccountMethodService.getAccountMethodStatus({
+      legacyOAuthProvider: oldData.oauth_provider,
+      passwordHash: oldData.password_hash,
+      supabase,
+      userId,
+    })
 
     if (actualChanges.length === 0 && organizationChanges.length === 0) {
       return mapUserProfileRow({
         ...oldData,
+        auth_providers: accountMethodStatus.oauthProviders,
+        can_edit_credentials: accountMethodStatus.canUseLocalCredentials,
         job_title: oldMembership?.job_title ?? null,
         job_description: oldMembership?.job_description ?? null
       })
@@ -137,6 +155,8 @@ export class ProfileServerService {
 
     return mapUserProfileRow({
       ...nextProfile,
+      auth_providers: accountMethodStatus.oauthProviders,
+      can_edit_credentials: accountMethodStatus.canUseLocalCredentials,
       job_title: nextMembership?.job_title ?? null,
       job_description: nextMembership?.job_description ?? null
     })

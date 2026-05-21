@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '../../../../lib/logger'
 import { SessionService } from '../../../../features/auth/services/session.service'
 import { createClient } from '../../../../lib/supabase/server'
+import {
+  AuthAccountMethodService,
+  buildOAuthLoginRequiredMessage,
+} from '../../../../features/auth/services/auth-account-method.service'
 
 export async function PUT(request: NextRequest) {
   try {
@@ -26,7 +30,7 @@ export async function PUT(request: NextRequest) {
 
     const { data: userData, error: fetchError } = await supabase
       .from('users')
-      .select('password_hash')
+      .select('password_hash, oauth_provider')
       .eq('id', user.id)
       .single()
 
@@ -34,7 +38,25 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
     }
 
-    if (!userData.password_hash) {
+    const accountMethodStatus = await AuthAccountMethodService.getAccountMethodStatus({
+      legacyOAuthProvider: userData.oauth_provider,
+      passwordHash: userData.password_hash,
+      supabase,
+      userId: user.id,
+    })
+
+    if (accountMethodStatus.oauthProviders.length > 0) {
+      return NextResponse.json(
+        {
+          error: buildOAuthLoginRequiredMessage(accountMethodStatus.oauthProviders),
+          errorCode: 'oauth_account_password_not_supported',
+          providers: accountMethodStatus.oauthProviders,
+        },
+        { status: 409 },
+      )
+    }
+
+    if (!accountMethodStatus.canUseLocalCredentials) {
       return NextResponse.json({ error: 'La cuenta no tiene contraseña local configurada' }, { status: 400 })
     }
 

@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { buildAuthLoginPath } from '@/lib/auth/auth-routes';
 
 interface RefreshSessionResponse {
   accessToken?: string;
@@ -57,7 +58,7 @@ class ApiService {
               if (typeof window !== 'undefined') {
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('refreshToken');
-                window.location.href = '/login';
+                window.location.href = buildAuthLoginPath('session_expired');
               }
             }
           }

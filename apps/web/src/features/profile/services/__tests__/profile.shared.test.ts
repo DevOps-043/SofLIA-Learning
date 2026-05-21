@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   createEmptyUserStats,
   normalizeUserStats,
+  mapUserProfileRow,
   pickAllowedProfileUpdates,
   resolveChangedProfileFields,
   resolveProfileColors
@@ -10,6 +11,21 @@ import {
 describe('profile.shared', () => {
   it('returns empty stats when payload is missing', () => {
     expect(normalizeUserStats(null)).toEqual(createEmptyUserStats())
+  })
+
+  it('maps credential editing metadata without exposing password state', () => {
+    expect(
+      mapUserProfileRow({
+        auth_providers: ['google'],
+        can_edit_credentials: false,
+        created_at: '2026-05-21T00:00:00.000Z',
+        id: 'user-1',
+      }),
+    ).toMatchObject({
+      auth_providers: ['google'],
+      can_edit_credentials: false,
+      id: 'user-1',
+    })
   })
 
   it('filters profile updates to the allowed fields', () => {
