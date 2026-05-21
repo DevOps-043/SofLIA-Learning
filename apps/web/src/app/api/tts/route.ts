@@ -2,17 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { addRateLimitHeaders, checkRateLimit } from '../../../core/lib/rate-limit';
 import {
-  DEFAULT_ELEVENLABS_MODEL_ID,
   DEFAULT_TTS_OPTIMIZE_STREAMING_LATENCY,
   DEFAULT_TTS_OUTPUT_FORMAT,
   MAX_TTS_TEXT_LENGTH,
 } from '../../../core/services/tts/shared';
-import { isElevenLabsConfigured, synthesizeSpeechWithElevenLabs } from '../../../core/services/tts/server.service';
+import {
+  getConfiguredTTSProvider,
+  isConfiguredTTSProviderAvailable,
+  synthesizeSpeechWithConfiguredProvider,
+} from '../../../core/services/tts/server.service';
+
+async function readProviderError(response: Response) {
+  const contentType = response.headers.get('content-type') || '';
+
+  try {
+    if (contentType.includes('application/json')) {
+      return await response.json();
+    }
+
+    const text = await response.text();
+    return text.slice(0, 500);
+  } catch {
+    return null;
+  }
+}
 
 const textToSpeechSchema = z.object({
   text: z.string().trim().min(1).max(MAX_TTS_TEXT_LENGTH),
   voiceId: z.string().trim().min(1).max(128).optional(),
-  modelId: z.string().trim().min(1).max(128).optional().default(DEFAULT_ELEVENLABS_MODEL_ID),
+  modelId: z.string().trim().min(1).max(128).optional(),
   voiceSettings: z.object({
     stability: z.number().min(0).max(1),
     similarity_boost: z.number().min(0).max(1),
@@ -40,12 +58,13 @@ export async function POST(request: NextRequest) {
   try {
     const payload = textToSpeechSchema.parse(await request.json());
 
-    if (!isElevenLabsConfigured()) {
+    if (!isConfiguredTTSProviderAvailable()) {
       return addRateLimitHeaders(
         NextResponse.json(
           {
             error: 'TTS provider unavailable',
             code: 'TTS_PROVIDER_UNAVAILABLE',
+            provider: getConfiguredTTSProvider(),
           },
           { status: 503 }
         ),
@@ -55,14 +74,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const providerResponse = await synthesizeSpeechWithElevenLabs(payload);
+    const { provider, response: providerResponse } = await synthesizeSpeechWithConfiguredProvider(payload);
 
     if (!providerResponse.ok) {
+      const providerError = await readProviderError(providerResponse);
+      console.error('TTS synthesis failed', {
+        provider,
+        status: providerResponse.status,
+        statusText: providerResponse.statusText,
+        error: providerError,
+      });
+
       return addRateLimitHeaders(
         NextResponse.json(
           {
             error: 'Unable to synthesize speech',
             code: 'TTS_SYNTHESIS_FAILED',
+            provider,
+            providerStatus: providerResponse.status,
           },
           { status: 502 }
         ),

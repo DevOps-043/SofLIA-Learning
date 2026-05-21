@@ -1,23 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { NotificationService } from '../../../../../features/notifications/services/notification.service'
 import { requireAdmin } from '../../../../../lib/auth/requireAdmin'
+import { createAdminClient } from '../../../../../lib/supabase/admin'
 
 export const dynamic = 'force-dynamic'
 
+const DEFAULT_RECENT_ACTIVITY_LIMIT = 10
+const MAX_RECENT_ACTIVITY_LIMIT = 50
+
+function parseRecentActivityLimit(value: string | null) {
+  const parsedLimit = Number.parseInt(value ?? String(DEFAULT_RECENT_ACTIVITY_LIMIT), 10)
+
+  if (!Number.isSafeInteger(parsedLimit) || parsedLimit < 1) {
+    return DEFAULT_RECENT_ACTIVITY_LIMIT
+  }
+
+  return Math.min(parsedLimit, MAX_RECENT_ACTIVITY_LIMIT)
+}
+
 export async function GET(request: NextRequest) {
   try {
-    // ✅ SEGURIDAD: Verificar autenticación y autorización de admin
     const auth = await requireAdmin()
     if (auth instanceof NextResponse) return auth
 
     const searchParams = request.nextUrl.searchParams
-    const limit = parseInt(searchParams.get('limit') || '10', 10)
+    const limit = parseRecentActivityLimit(searchParams.get('limit'))
+    const supabase = createAdminClient()
 
-    const notifications = await NotificationService.getRecentActivity(limit)
+    const notifications = await NotificationService.getRecentActivity(limit, supabase)
 
     return NextResponse.json({
       success: true,
-      activities: notifications
+      activities: notifications,
     })
   } catch (error: unknown) {
     console.error('Error in GET /api/admin/activity/recent:', error)
@@ -25,9 +39,9 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: 'Error al obtener actividad reciente',
-        activities: []
+        activities: [],
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

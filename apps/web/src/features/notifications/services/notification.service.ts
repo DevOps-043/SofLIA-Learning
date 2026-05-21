@@ -9,6 +9,7 @@ import {
   markMultipleNotificationsAsRead,
   markNotificationAsRead,
 } from './notification'
+import type { getServerClient } from './auto-notifications-server-client'
 import type {
   CreateNotificationParams,
   Notification,
@@ -22,6 +23,8 @@ export type {
   NotificationFilters,
 }
 
+type NotificationSupabaseClient = Awaited<ReturnType<typeof getServerClient>>
+
 export class NotificationService {
   static async createNotification(
     params: CreateNotificationParams,
@@ -32,16 +35,25 @@ export class NotificationService {
   static async getUserNotifications(
     userId: string,
     filters?: NotificationFilters,
+    supabase?: NotificationSupabaseClient,
   ): Promise<NotificationQueryResult> {
-    return getUserNotifications(userId, filters)
+    if (!supabase) {
+      return getUserNotifications(userId, filters)
+    }
+
+    return getUserNotifications(userId, filters, { supabase })
   }
 
-  static async getUnreadCount(userId: string): Promise<{
+  static async getUnreadCount(userId: string, supabase?: NotificationSupabaseClient): Promise<{
     total: number
     critical: number
     high: number
   }> {
-    return getUnreadCount(userId)
+    if (!supabase) {
+      return getUnreadCount(userId)
+    }
+
+    return getUnreadCount(userId, { supabase })
   }
 
   static async markAsRead(
@@ -78,7 +90,12 @@ export class NotificationService {
 
   static async getRecentActivity(
     limit = 10,
+    supabase?: NotificationSupabaseClient,
   ): Promise<Array<Record<string, unknown>>> {
-    return getRecentActivity(limit)
+    if (!supabase) {
+      return getRecentActivity(limit)
+    }
+
+    return getRecentActivity(limit, { supabase })
   }
 }

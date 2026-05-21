@@ -9,6 +9,7 @@ import {
   notificationListQuerySchema,
 } from '@/features/notifications/services/notification/api.schemas'
 import { logger } from '@/lib/logger'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 function canCreateNotifications(cargoRol: string | null | undefined) {
   return cargoRol === 'Admin'
@@ -51,8 +52,9 @@ export async function GET(request: NextRequest) {
       offset,
     }
 
+    const supabase = createAdminClient()
     const { notifications, total, hasMore, nextCursor } =
-      await NotificationService.getUserNotifications(user.id, filters)
+      await NotificationService.getUserNotifications(user.id, filters, supabase)
 
     return new NextResponse(
       JSON.stringify({

@@ -16,8 +16,54 @@ import type {
   NotificationQueryResult,
 } from './types'
 
-async function getUnreadCountFallback(userId: string) {
-  const supabase = await getServerClient()
+type NotificationSupabaseClient = Awaited<ReturnType<typeof getServerClient>>
+
+interface NotificationQueryOptions {
+  supabase?: NotificationSupabaseClient
+}
+
+function normalizeSupabaseError(error: unknown) {
+  if (!error) {
+    return null
+  }
+
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+    }
+  }
+
+  if (typeof error !== 'object') {
+    return { message: String(error) }
+  }
+
+  const supabaseError = error as {
+    code?: unknown
+    details?: unknown
+    hint?: unknown
+    message?: unknown
+    status?: unknown
+  }
+
+  return {
+    code: supabaseError.code,
+    details: supabaseError.details,
+    hint: supabaseError.hint,
+    message: supabaseError.message,
+    status: supabaseError.status,
+  }
+}
+
+async function resolveNotificationClient(options?: NotificationQueryOptions) {
+  return options?.supabase ?? await getServerClient()
+}
+
+async function getUnreadCountFallback(
+  userId: string,
+  options?: NotificationQueryOptions,
+) {
+  const supabase = await resolveNotificationClient(options)
   const now = new Date().toISOString()
   const activeFilter = buildNotificationsActiveFilter(now)
 
@@ -46,10 +92,11 @@ async function getUnreadCountFallback(userId: string) {
 
   if (totalResult.error || criticalResult.error || highResult.error) {
     logger.error('Error en fallback count:', {
-      totalError: totalResult.error,
-      criticalError: criticalResult.error,
-      highError: highResult.error,
+      totalError: normalizeSupabaseError(totalResult.error),
+      criticalError: normalizeSupabaseError(criticalResult.error),
+      highError: normalizeSupabaseError(highResult.error),
     })
+    throw new Error('Error al contar notificaciones no leidas')
   }
 
   return {
@@ -62,8 +109,9 @@ async function getUnreadCountFallback(userId: string) {
 export async function getUserNotifications(
   userId: string,
   filters?: NotificationFilters,
+  options?: NotificationQueryOptions,
 ): Promise<NotificationQueryResult> {
-  const supabase = await getServerClient()
+  const supabase = await resolveNotificationClient(options)
   const now = new Date().toISOString()
   const activeFilter = buildNotificationsActiveFilter(now)
   const normalizedFilters = normalizeNotificationFilters(filters)
@@ -121,7 +169,7 @@ export async function getUserNotifications(
 
   const { data, error, count } = await query
   if (error) {
-    logger.error('Error obteniendo notificaciones:', error)
+    logger.error('Error obteniendo notificaciones:', normalizeSupabaseError(error))
     throw new Error(`Error al obtener notificaciones: ${error.message}`)
   }
 
@@ -144,8 +192,11 @@ export async function getUserNotifications(
   }
 }
 
-export async function getUnreadCount(userId: string) {
-  const supabase = await getServerClient()
+export async function getUnreadCount(
+  userId: string,
+  options?: NotificationQueryOptions,
+) {
+  const supabase = await resolveNotificationClient(options)
   const rpcClient = supabase as unknown as {
     rpc: (
       fn: string,
@@ -159,8 +210,10 @@ export async function getUnreadCount(userId: string) {
       .single()
 
     if (error) {
-      logger.warn('RPC no disponible, usando query tradicional', { error })
-      return getUnreadCountFallback(userId)
+      logger.warn('RPC no disponible, usando query tradicional', {
+        error: normalizeSupabaseError(error),
+      })
+      return getUnreadCountFallback(userId, options)
     }
 
     const counts = data ?? {}
@@ -173,7 +226,7 @@ export async function getUnreadCount(userId: string) {
   } catch (error) {
     logger.error('Error en getUnreadCount:', error)
     try {
-      return await getUnreadCountFallback(userId)
+      return await getUnreadCountFallback(userId, options)
     } catch (fallbackError) {
       logger.error('Fallback tambien fallo:', fallbackError)
       return { total: 0, critical: 0, high: 0 }
@@ -181,8 +234,11 @@ export async function getUnreadCount(userId: string) {
   }
 }
 
-export async function getRecentActivity(limit = 10) {
-  const supabase = await getServerClient()
+export async function getRecentActivity(
+  limit = 10,
+  options?: NotificationQueryOptions,
+) {
+  const supabase = await resolveNotificationClient(options)
   const { data, error } = await supabase
     .from('user_notifications')
     .select(NOTIFICATION_SELECT)
@@ -190,7 +246,7 @@ export async function getRecentActivity(limit = 10) {
     .limit(limit)
 
   if (error) {
-    logger.error('Error obteniendo actividad reciente:', error)
+    logger.error('Error obteniendo actividad reciente:', normalizeSupabaseError(error))
     throw new Error(`Error al obtener actividad reciente: ${error.message}`)
   }
 

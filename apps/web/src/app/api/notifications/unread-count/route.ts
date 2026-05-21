@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { SessionService } from '@/features/auth/services/session.service'
 import { NotificationService } from '@/features/notifications/services/notification.service'
 import { logger } from '@/lib/logger'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 /**
  * GET /api/notifications/unread-count
@@ -19,7 +20,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Obtener conteo de no leídas
-    const counts = await NotificationService.getUnreadCount(user.id)
+    const supabase = createAdminClient()
+    const counts = await NotificationService.getUnreadCount(user.id, supabase)
 
     return NextResponse.json({
       success: true,
@@ -39,4 +41,3 @@ export async function GET(request: NextRequest) {
     })
   }
 }
-

@@ -1,5 +1,7 @@
 import type { ElevenLabsVoiceSettings, WebSpeechVoiceSettings } from '../../utils/tts-voice-settings';
 
+export type TextToSpeechProvider = 'elevenlabs' | 'gemini';
+
 export interface TextToSpeechRequestPayload {
   text: string;
   voiceId?: string;
