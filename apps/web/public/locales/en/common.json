@@ -1485,14 +1485,19 @@
       "readTitle": "Reading view",
       "editTitle": "Edit note",
       "editButton": "Edit",
+      "copyButton": "Copy",
+      "copied": "Copied",
       "saveButton": "Save changes",
       "cancelButton": "Cancel",
       "duplicateButton": "Duplicate as editable note",
+      "duplicating": "Duplicating...",
       "duplicateSuccess": "Summary duplicated as editable note.",
       "duplicateError": "Could not duplicate the summary.",
+      "saveError": "Could not save the note.",
       "saving": "Saving...",
       "titleLabel": "Title",
-      "contentLabel": "Content"
+      "contentLabel": "Content",
+      "tagsLabel": "Tags"
     },
     "courseFilter": {
       "selectCourse": "Select a workshop",

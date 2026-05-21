@@ -433,6 +433,11 @@ interface MobileOrganizationMarkProps {
 function MobileOrganizationMark({ organization, colors, compact = false }: MobileOrganizationMarkProps) {
   const logoUrl = organization.brandLogoUrl || organization.logoUrl;
   const sizeClassName = compact ? 'h-8 w-8 rounded-lg text-xs' : 'h-10 w-10 rounded-xl text-sm';
+  const organizationLabel =
+    organization.name?.trim() ||
+    organization.slug?.trim() ||
+    organization.id?.trim() ||
+    'O';
 
   if (logoUrl) {
     return (
@@ -448,7 +453,7 @@ function MobileOrganizationMark({ organization, colors, compact = false }: Mobil
       style={{ background: `linear-gradient(135deg, ${organization.brandColorPrimary || colors.primary}, ${colors.accent})` }}
       aria-hidden="true"
     >
-      {organization.name.charAt(0).toUpperCase()}
+      {organizationLabel.charAt(0).toUpperCase()}
     </span>
   );
 }

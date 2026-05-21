@@ -240,6 +240,7 @@ export function useLearnPageLogic() {
     currentLesson,
     isNotesCollapsed,
     closeLia,
+    organizationId,
   })
 
   useLearnPageCourseData({

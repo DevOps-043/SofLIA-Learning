@@ -1485,14 +1485,19 @@
       "readTitle": "Modo de leitura",
       "editTitle": "Editar nota",
       "editButton": "Editar",
+      "copyButton": "Copiar",
+      "copied": "Copiado",
       "saveButton": "Salvar alterações",
       "cancelButton": "Cancelar",
       "duplicateButton": "Duplicar como nota editável",
+      "duplicating": "Duplicando...",
       "duplicateSuccess": "Resumo duplicado como nota editável.",
       "duplicateError": "Não foi possível duplicar o resumo.",
+      "saveError": "Não foi possível salvar a nota.",
       "saving": "Salvando...",
       "titleLabel": "Título",
-      "contentLabel": "Conteúdo"
+      "contentLabel": "Conteúdo",
+      "tagsLabel": "Etiquetas"
     },
     "courseFilter": {
       "selectCourse": "Selecione uma oficina",

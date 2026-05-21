@@ -11,14 +11,17 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useCurrentOrganizationSlug } from '@/core/stores/organizationStore'
 import {
+  duplicateNotebookSummary,
   getNotebookCourses,
   getNotebookNotes,
+  updateNotebookNote,
 } from '../services/notebook.client.service'
 import type {
   NotebookCourse,
   NotebookItem,
   NotebookModalState,
   NotebookTab,
+  NotebookUpdateNoteInput,
 } from '../types'
 import { NOTEBOOK_DEFAULT_PAGE_SIZE } from '../types'
 
@@ -40,6 +43,9 @@ export interface UseNotebookPageLogicReturn {
   isLoadingMore: boolean
   hasMore: boolean
   errorMessage: string | null
+  mutationError: string | null
+  isSavingNote: boolean
+  isDuplicatingSummary: boolean
 
   // Actions
   setActiveTab: (tab: NotebookTab) => void
@@ -47,13 +53,23 @@ export interface UseNotebookPageLogicReturn {
   openModal: (item: NotebookItem) => void
   closeModal: () => void
   setModalEditMode: () => void
+  setModalReadMode: () => void
+  saveManualNote: (payload: NotebookUpdateNoteInput) => Promise<boolean>
+  duplicateSummary: () => Promise<boolean>
   loadMore: () => void
   retryFetch: () => void
 }
 
-export function useNotebookPageLogic(): UseNotebookPageLogicReturn {
+interface UseNotebookPageLogicParams {
+  orgSlug?: string
+}
+
+export function useNotebookPageLogic({
+  orgSlug: routeOrgSlug,
+}: UseNotebookPageLogicParams = {}): UseNotebookPageLogicReturn {
   const { t } = useTranslation('common')
-  const orgSlug = useCurrentOrganizationSlug()
+  const storeOrgSlug = useCurrentOrganizationSlug()
+  const orgSlug = routeOrgSlug || storeOrgSlug
 
   // Data state
   const [items, setItems] = useState<NotebookItem[]>([])
@@ -74,6 +90,9 @@ export function useNotebookPageLogic(): UseNotebookPageLogicReturn {
   const [isLoadingCourses, setIsLoadingCourses] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [mutationError, setMutationError] = useState<string | null>(null)
+  const [isSavingNote, setIsSavingNote] = useState(false)
+  const [isDuplicatingSummary, setIsDuplicatingSummary] = useState(false)
 
   // Prevent double-fetch in React strict mode
   const fetchedRef = useRef(false)
@@ -176,16 +195,105 @@ export function useNotebookPageLogic(): UseNotebookPageLogicReturn {
   }, [])
 
   const openModal = useCallback((item: NotebookItem) => {
+    setMutationError(null)
     setModalState({ isOpen: true, item, mode: 'read' })
   }, [])
 
   const closeModal = useCallback(() => {
+    setMutationError(null)
     setModalState({ isOpen: false, item: null, mode: 'read' })
   }, [])
 
   const setModalEditMode = useCallback(() => {
     setModalState((prev) => ({ ...prev, mode: 'edit' }))
   }, [])
+
+  const setModalReadMode = useCallback(() => {
+    setMutationError(null)
+    setModalState((prev) => ({ ...prev, mode: 'read' }))
+  }, [])
+
+  const replaceNotebookItem = useCallback((nextItem: NotebookItem) => {
+    setItems((previousItems) =>
+      previousItems.map((item) => {
+        if (
+          item.kind === 'manual_note' &&
+          nextItem.kind === 'manual_note' &&
+          item.noteId === nextItem.noteId
+        ) {
+          return nextItem
+        }
+
+        return item
+      }),
+    )
+  }, [])
+
+  const prependNotebookItem = useCallback((nextItem: NotebookItem) => {
+    setItems((previousItems) => [nextItem, ...previousItems])
+  }, [])
+
+  const saveManualNote = useCallback(
+    async (payload: NotebookUpdateNoteInput) => {
+      if (!orgSlug || modalState.item?.kind !== 'manual_note') return false
+
+      setIsSavingNote(true)
+      setMutationError(null)
+
+      try {
+        const result = await updateNotebookNote(
+          orgSlug,
+          modalState.item.noteId,
+          payload,
+        )
+
+        if (!result.success || !result.item) {
+          setMutationError(result.error || t('notebook.modal.saveError'))
+          return false
+        }
+
+        replaceNotebookItem(result.item)
+        setModalState({ isOpen: true, item: result.item, mode: 'read' })
+        void fetchCourses()
+        return true
+      } catch {
+        setMutationError(t('notebook.modal.saveError'))
+        return false
+      } finally {
+        setIsSavingNote(false)
+      }
+    },
+    [fetchCourses, modalState.item, orgSlug, replaceNotebookItem, t],
+  )
+
+  const duplicateSummary = useCallback(async () => {
+    if (!orgSlug || modalState.item?.kind !== 'soflia_summary') return false
+
+    setIsDuplicatingSummary(true)
+    setMutationError(null)
+
+    try {
+      const result = await duplicateNotebookSummary(
+        orgSlug,
+        modalState.item.summaryId,
+      )
+
+      if (!result.success || !result.item) {
+        setMutationError(result.error || t('notebook.modal.duplicateError'))
+        return false
+      }
+
+      prependNotebookItem(result.item)
+      setModalState({ isOpen: true, item: result.item, mode: 'edit' })
+      void fetchCourses()
+      return true
+    } catch {
+      setMutationError(t('notebook.modal.duplicateError'))
+      return false
+    } finally {
+      setIsDuplicatingSummary(false)
+    }
+  }, [fetchCourses, modalState.item, orgSlug, prependNotebookItem, t])
 
   const loadMore = useCallback(() => {
     if (!nextCursor || isLoadingMore) return
@@ -217,11 +325,17 @@ export function useNotebookPageLogic(): UseNotebookPageLogicReturn {
     isLoadingMore,
     hasMore: nextCursor !== null,
     errorMessage,
+    mutationError,
+    isSavingNote,
+    isDuplicatingSummary,
     setActiveTab: handleSetActiveTab,
     setSelectedCourseId: handleSetSelectedCourseId,
     openModal,
     closeModal,
     setModalEditMode,
+    setModalReadMode,
+    saveManualNote,
+    duplicateSummary,
     loadMore,
     retryFetch,
   }

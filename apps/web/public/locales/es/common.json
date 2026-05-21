@@ -1485,14 +1485,19 @@
       "readTitle": "Vista de lectura",
       "editTitle": "Editar nota",
       "editButton": "Editar",
+      "copyButton": "Copiar",
+      "copied": "Copiado",
       "saveButton": "Guardar cambios",
       "cancelButton": "Cancelar",
       "duplicateButton": "Duplicar como nota editable",
+      "duplicating": "Duplicando...",
       "duplicateSuccess": "Apunte duplicado como nota editable.",
       "duplicateError": "No se pudo duplicar el apunte.",
+      "saveError": "No se pudo guardar la nota.",
       "saving": "Guardando...",
       "titleLabel": "Título",
-      "contentLabel": "Contenido"
+      "contentLabel": "Contenido",
+      "tagsLabel": "Etiquetas"
     },
     "courseFilter": {
       "selectCourse": "Selecciona un taller",

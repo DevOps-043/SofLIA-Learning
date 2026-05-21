@@ -63,6 +63,18 @@ export interface NotebookNotesResponse {
   totalCount: number
 }
 
+export interface NotebookUpdateNoteInput {
+  title: string
+  content: string
+  tags: string[]
+}
+
+export interface NotebookMutationResponse {
+  success: boolean
+  item?: NotebookManualNote
+  error?: string
+}
+
 export interface NotebookCourse {
   courseId: string
   courseTitle: string

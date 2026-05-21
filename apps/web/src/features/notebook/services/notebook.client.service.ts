@@ -6,7 +6,9 @@
  */
 
 import type {
+  NotebookMutationResponse,
   NotebookCoursesResponse,
+  NotebookUpdateNoteInput,
   NotebookNotesQueryParams,
   NotebookNotesResponse,
 } from '../types'
@@ -15,10 +17,11 @@ import type {
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function fetchJson<T>(url: string): Promise<T> {
+async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
+    ...init,
   })
 
   if (!response.ok) {
@@ -54,5 +57,31 @@ export async function getNotebookCourses(
 ): Promise<NotebookCoursesResponse> {
   return fetchJson<NotebookCoursesResponse>(
     `/api/${orgSlug}/business-user/notebook/courses`,
+  )
+}
+
+export async function updateNotebookNote(
+  orgSlug: string,
+  noteId: string,
+  payload: NotebookUpdateNoteInput,
+): Promise<NotebookMutationResponse> {
+  return fetchJson<NotebookMutationResponse>(
+    `/api/${orgSlug}/business-user/notebook/notes/${noteId}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    },
+  )
+}
+
+export async function duplicateNotebookSummary(
+  orgSlug: string,
+  summaryId: string,
+): Promise<NotebookMutationResponse> {
+  return fetchJson<NotebookMutationResponse>(
+    `/api/${orgSlug}/business-user/notebook/summaries/${summaryId}/duplicate`,
+    {
+      method: 'POST',
+    },
   )
 }

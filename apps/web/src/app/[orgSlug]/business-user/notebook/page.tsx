@@ -7,6 +7,11 @@ export const metadata: Metadata = {
     'Accede a tus notas manuales y apuntes SofLIA en un solo lugar.',
 }
 
-export default function NotebookPage() {
-  return <NotebookPageClient />
+export default function NotebookPage({
+  params,
+}: {
+  params: { orgSlug: string }
+}) {
+  const { orgSlug } = params
+  return <NotebookPageClient orgSlug={orgSlug} />
 }

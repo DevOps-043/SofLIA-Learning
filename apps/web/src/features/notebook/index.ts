@@ -19,8 +19,10 @@ export { useNotebookPageLogic } from './hooks/useNotebookPageLogic'
 
 // Services (client)
 export {
+  duplicateNotebookSummary,
   getNotebookNotes,
   getNotebookCourses,
+  updateNotebookNote,
 } from './services/notebook.client.service'
 
 // Types
@@ -32,6 +34,8 @@ export type {
   NotebookNotesResponse,
   NotebookCoursesResponse,
   NotebookNotesQueryParams,
+  NotebookUpdateNoteInput,
+  NotebookMutationResponse,
   NotebookTab,
   NotebookModalMode,
   NotebookModalState,

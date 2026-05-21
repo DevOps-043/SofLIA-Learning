@@ -29,6 +29,7 @@ type UseNotesManagementParams = {
   currentLesson: LearnLesson | null;
   isNotesCollapsed: boolean;
   closeLia: () => void;
+  organizationId?: string | null;
 };
 
 const NOTE_DELETE_TIMEOUT_MS = 20000;
@@ -190,6 +191,7 @@ export function useNotesManagement({
   currentLesson,
   isNotesCollapsed,
   closeLia,
+  organizationId,
 }: UseNotesManagementParams) {
   const [savedNotes, setSavedNotes] = useState<LearnNoteListItem[]>([]);
   const [generatedSummaryVersions, setGeneratedSummaryVersions] = useState<
@@ -345,10 +347,16 @@ export function useNotesManagement({
           .map((module) => module.module_id)
           .filter(Boolean)
           .join(",");
+        const queryParams = new URLSearchParams({
+          moduleIds,
+        });
+
+        if (organizationId) {
+          queryParams.set("orgId", organizationId);
+        }
+
         const response = await fetch(
-          `/api/courses/${courseSlug}/learning-summaries?moduleIds=${encodeURIComponent(
-            moduleIds
-          )}`,
+          `/api/courses/${courseSlug}/learning-summaries?${queryParams.toString()}`,
           {
             cache: "no-store",
             credentials: "include",
@@ -380,7 +388,7 @@ export function useNotesManagement({
         return { listItems: completedSummaryCandidates, summaries: [] };
       }
     },
-    [completedSummaryCandidates, moduleTitleById, modules]
+    [completedSummaryCandidates, moduleTitleById, modules, organizationId]
   );
 
   const loadCourseNotes = useCallback(async (courseSlug: string) => {
@@ -640,7 +648,10 @@ export function useNotesManagement({
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(notePayload),
+            body: JSON.stringify({
+              ...notePayload,
+              organization_id: organizationId || null,
+            }),
           }
         );
 
@@ -674,6 +685,7 @@ export function useNotesManagement({
       editingNote?.lessonId,
       loadCourseNotes,
       loadNotesStats,
+      organizationId,
       slug,
       updateNotesStatsOptimized,
     ]
@@ -711,7 +723,10 @@ export function useNotesManagement({
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
-            body: JSON.stringify({ generationType }),
+            body: JSON.stringify({
+              generationType,
+              organizationId: organizationId || null,
+            }),
           }
         );
         const payload = (await response.json().catch(() => ({}))) as {
@@ -757,7 +772,7 @@ export function useNotesManagement({
         setRegeneratingSummaryModuleId(null);
       }
     },
-    [moduleTitleById, regeneratingSummaryModuleId, slug]
+    [moduleTitleById, organizationId, regeneratingSummaryModuleId, slug]
   );
   const regenerateModuleSummary = useCallback(
     (moduleId: string) => generateModuleSummary(moduleId, "manual_regeneration"),
