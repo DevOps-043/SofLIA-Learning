@@ -23,7 +23,7 @@ CREATE POLICY "lia_messages_select_own_conv" ON public.lia_messages
   FOR SELECT TO authenticated
   USING (
     conversation_id IN (
-      SELECT id FROM public.lia_conversations WHERE user_id = auth.uid()
+      SELECT conversation_id FROM public.lia_conversations WHERE user_id = auth.uid()
     )
   );
 
@@ -31,7 +31,7 @@ CREATE POLICY "lia_messages_insert_own_conv" ON public.lia_messages
   FOR INSERT TO authenticated
   WITH CHECK (
     conversation_id IN (
-      SELECT id FROM public.lia_conversations WHERE user_id = auth.uid()
+      SELECT conversation_id FROM public.lia_conversations WHERE user_id = auth.uid()
     )
   );
 

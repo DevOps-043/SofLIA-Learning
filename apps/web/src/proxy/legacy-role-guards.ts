@@ -33,9 +33,18 @@ export async function validateLegacyInstructorRoute(request: NextRequest, logger
 }
 
 async function getLegacySessionUserRole(request: NextRequest) {
+  const supabase = createProxySupabaseClient(request)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (user?.id) {
+    const { data: userData } = await supabase.from('users').select('cargo_rol').eq('id', user.id).single()
+    return normalizeRole(userData?.cargo_rol)
+  }
+
   const sessionCookie = request.cookies.get('aprende-y-aplica-session')
   if (!sessionCookie?.value) return null
-  const supabase = createProxySupabaseClient(request)
   const { data: sessionData } = await supabase.from('user_session').select('user_id').eq('jwt_id', sessionCookie.value).eq('revoked', false).gt('expires_at', new Date().toISOString()).single()
   if (!sessionData) return null
   const { data: userData } = await supabase.from('users').select('cargo_rol').eq('id', sessionData.user_id).single()

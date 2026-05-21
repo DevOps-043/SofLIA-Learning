@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
-import { createClient } from '../../lib/supabase/server';
+import { createServerClient } from '@supabase/ssr';
 import { logger } from '../../lib/logger';
+import type { Database } from '../../lib/supabase/types';
 import { getClientIp, logSecurityEvent } from './auth.logging';
 import { hasRoleAccess, normalizeRole } from './auth.roles';
 import { resolveAuthenticatedUserId } from './auth.session';
@@ -19,7 +20,7 @@ export async function validateRoleAccess(
   const userAgent = request.headers.get('user-agent') || 'unknown';
 
   try {
-    const supabase = await createClient();
+    const supabase = createRequestSupabaseClient(request);
     const resolvedUser = await resolveAuthenticatedUserId({
       request,
       supabase,
@@ -61,6 +62,23 @@ export async function validateRoleAccess(
     logger.error('Error in role validation', error);
     return { isValid: false, error: 'Validation error' };
   }
+}
+
+function createRequestSupabaseClient(request: NextRequest) {
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll() {
+          // Session refresh is handled by the top-level Supabase middleware.
+        },
+      },
+    },
+  );
 }
 
 async function validateResolvedUserAccess(params: {

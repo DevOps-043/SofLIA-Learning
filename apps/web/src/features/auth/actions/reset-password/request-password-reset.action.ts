@@ -1,9 +1,12 @@
 'use server';
 
 import { z } from 'zod';
-import { createClient } from '../../../../lib/supabase/server';
+import { createAdminClient } from '../../../../lib/supabase/admin';
+import { createAuthActionClient } from '../../../../lib/supabase/auth-server';
 import { requireHumanVerification } from '../../../../lib/security/bot-protection';
 import { recordSecurityEvent } from '../../../../lib/security/security-events';
+import { getEmailAppUrl } from '../../services/email.utils';
+import { ensureSupabaseAuthUserRecordForLegacyProfile } from '../../services/supabase-auth-bridge.service';
 import { parsePasswordResetRequest } from './reset-password.schemas';
 import {
   buildRateLimitError,
@@ -13,13 +16,16 @@ import {
   recordResetAttempt,
 } from './reset-password.rate-limit';
 import {
-  createPasswordResetToken,
   findPasswordResetUser,
   PASSWORD_RESET_SUCCESS_MESSAGE,
-  sendPasswordResetEmail,
 } from './request-password-reset.helpers';
 
-export async function requestPasswordResetAction(formData: FormData | { email: string }) {
+const PASSWORD_RESET_ERROR_MESSAGE =
+  'Error procesando solicitud. Intentalo mas tarde.';
+
+export async function requestPasswordResetAction(
+  formData: FormData | { email: string },
+) {
   try {
     const humanVerification = await requireHumanVerification(formData);
     if (!humanVerification.ok) {
@@ -44,7 +50,7 @@ export async function requestPasswordResetAction(formData: FormData | { email: s
     const email = parsePasswordResetRequest(formData);
     recordResetAttempt(clientIP);
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const user = await findPasswordResetUser(supabase, email);
 
     if (!user) {
@@ -54,16 +60,27 @@ export async function requestPasswordResetAction(formData: FormData | { email: s
       return { success: true, message: PASSWORD_RESET_SUCCESS_MESSAGE };
     }
 
-    const resetToken = await createPasswordResetToken(supabase, user.id);
-
-    if (!resetToken) {
-      return { error: 'Error procesando solicitud. Inténtalo más tarde.' };
+    try {
+      await ensureSupabaseAuthUserRecordForLegacyProfile(user);
+    } catch {
+      return { error: PASSWORD_RESET_ERROR_MESSAGE };
     }
 
-    await sendPasswordResetEmail(user, resetToken);
+    const authClient = await createAuthActionClient();
+    const { error: resetError } = await authClient.auth.resetPasswordForEmail(
+      email.trim().toLowerCase(),
+      {
+        redirectTo: `${getEmailAppUrl()}/auth/reset-password?mode=supabase`,
+      },
+    );
+
+    if (resetError) {
+      return { error: PASSWORD_RESET_ERROR_MESSAGE };
+    }
+
     recordSecurityEvent('password-reset-request', {
       actorId: user.id,
-      metadata: { matchedUser: true },
+      metadata: { matchedUser: true, provider: 'supabase_auth' },
     });
 
     return { success: true, message: PASSWORD_RESET_SUCCESS_MESSAGE };
@@ -72,6 +89,6 @@ export async function requestPasswordResetAction(formData: FormData | { email: s
       return { error: error.errors[0].message };
     }
 
-    return { error: 'Error procesando solicitud. Inténtalo más tarde.' };
+    return { error: PASSWORD_RESET_ERROR_MESSAGE };
   }
 }

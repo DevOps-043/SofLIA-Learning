@@ -31,13 +31,13 @@ export interface OrganizationUserWithProfileRow {
 }
 
 export interface UserInsertRow {
+  id: string
   username: string
   email: string
   first_name: string | null
   last_name: string | null
   display_name: string | null
   cargo_rol: string
-  password_hash: string
   date_of_birth?: string | null
   gender?: UserGender | null
 }

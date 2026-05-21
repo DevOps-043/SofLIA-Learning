@@ -1,6 +1,9 @@
 import { calculateAgeFromDateOfBirth } from '../../../../../lib/schemas/user-demographics.schema'
 import type { BusinessUser } from '../../businessUsers.service'
-import type { OrganizationUserWithProfileRow } from '../types'
+import type {
+  BusinessUserProfileRow,
+  OrganizationUserWithProfileRow,
+} from '../types'
 import {
   normalizeOrganizationRole,
   normalizeOrganizationStatus,
@@ -8,8 +11,8 @@ import {
 
 function getJoinedProfile(
   value: OrganizationUserWithProfileRow['users'],
-): OrganizationUserWithProfileRow['users'] extends Array<infer T> ? T : never {
-  return (Array.isArray(value) ? value[0] ?? null : value) as never
+): BusinessUserProfileRow | null {
+  return Array.isArray(value) ? value[0] ?? null : value
 }
 
 export function mapOrganizationUserRecord(

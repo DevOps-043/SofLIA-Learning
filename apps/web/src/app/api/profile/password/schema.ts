@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { passwordSchema } from '@/lib/validation/password-security';
 
 export const passwordChangeSchema = z
   .object({
@@ -7,10 +8,7 @@ export const passwordChangeSchema = z
       .min(1, 'CURRENT_PASSWORD_REQUIRED')
       .max(200)
       .refine((value) => !/\s/.test(value), 'PASSWORD_NO_WHITESPACE'),
-    newPassword: z
-      .string()
-      .min(12, 'PASSWORD_MIN_12_CHARS')
-      .max(200)
+    newPassword: passwordSchema
       .refine((value) => !/\s/.test(value), 'PASSWORD_NO_WHITESPACE'),
   })
   .refine((data) => data.currentPassword !== data.newPassword, {

@@ -7,7 +7,7 @@ import { escapeIlikePattern } from '@/lib/supabase/ilike-escape'
 import type { LoginSupabaseClient, LoginUserRecord } from './types'
 
 const LOGIN_USER_COLUMNS =
-  'id, username, email, password_hash, email_verified, cargo_rol, is_banned, ban_reason'
+  'id, username, email, password_hash, email_verified, cargo_rol, is_banned, ban_reason, first_name, last_name, display_name, profile_picture_url'
 
 export async function findLoginUser(
   supabase: LoginSupabaseClient,

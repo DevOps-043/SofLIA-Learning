@@ -16,7 +16,7 @@ interface AddWorkshopModalProps {
   onSave: () => Promise<void>
 }
 
-const AddWorkshopMediaTab = dynamic(() => import('./AddWorkshopMediaTab').then((module) => ({ default: module.AddWorkshopMediaTab })), { ssr: false, loading: () => <div className="h-40 animate-pulse rounded-xl border border-[var(--color-gray-200)] bg-[var(--color-gray-100)] dark:border-white/10 dark:bg-white/5" /> })
+const AddWorkshopMediaTab = dynamic(() => import('./AddWorkshopMediaTab').then((module) => ({ default: module.AddWorkshopMediaTab })), { ssr: false, loading: () => <div className="h-40 animate-pulse rounded-xl border border-[var(--color-gray-200)] bg-[var(--color-bg-dark)] dark:border-white/10 dark:bg-white/5" /> })
 
 export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalProps) {
   const theme = useAdminPanelTheme()

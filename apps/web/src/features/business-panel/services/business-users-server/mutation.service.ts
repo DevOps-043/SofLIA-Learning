@@ -1,6 +1,10 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 import { fromLoose } from '../../../../lib/supabase/looseQuery'
+import {
+  createSupabaseAuthUserWithLegacyId,
+  deleteSupabaseAuthUser,
+} from '@/features/auth/services/supabase-auth-bridge.service'
 import type {
   BusinessUser,
   CreateBusinessUserRequest,
@@ -97,10 +101,27 @@ export async function createOrganizationUser(
   try {
     validateCreateBusinessUserRequest(userData)
 
-    const passwordHash = await bcrypt.hash(userData.password.trim(), 10)
+    const userId = crypto.randomUUID()
+    const password = userData.password?.trim()
+    if (!password) {
+      throw new Error('La contrasena es requerida')
+    }
+
+    await createSupabaseAuthUserWithLegacyId({
+      cargo_rol: 'Business',
+      display_name: userData.display_name ?? null,
+      email: userData.email,
+      email_verified: true,
+      first_name: userData.first_name ?? null,
+      id: userId,
+      last_name: userData.last_name ?? null,
+      password,
+      username: userData.username,
+    })
+
     const userInsertData = buildUserInsertData(
+      userId,
       userData,
-      passwordHash,
     ) satisfies UserInsertRow
 
     const { data: newUser, error: userError } = await fromLoose<
@@ -112,6 +133,7 @@ export async function createOrganizationUser(
       .single()
 
     if (userError || !newUser) {
+      await deleteSupabaseAuthUser(userId)
       throw userError ?? new Error('No se pudo crear el usuario')
     }
 
@@ -135,6 +157,7 @@ export async function createOrganizationUser(
       const { error: rollbackError } = await fromLoose(supabase, 'users')
         .delete()
         .eq('id', newUser.id)
+      await deleteSupabaseAuthUser(newUser.id)
 
       if (rollbackError) {
         // Log the orphaned user so it can be manually cleaned up
@@ -195,7 +218,7 @@ export async function updateOrganizationUser(
     // Notificar al usuario si el rol cambió
     if (userData.org_role) {
       try {
-        await AutoNotificationsService.org.notifyRoleUpdated(
+        await AutoNotificationsService.notifyRoleUpdated(
           userId,
           organizationId,
           userData.org_role

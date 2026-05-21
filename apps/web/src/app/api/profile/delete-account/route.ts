@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { SessionService } from '@/features/auth/services/session.service'
+import { revokeSupabaseAuthSessions } from '@/features/auth/services/supabase-auth-bridge.service'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { recordSecurityEvent } from '@/lib/security/security-events'
@@ -49,7 +50,7 @@ async function handlePost(request: NextRequest, body: DeleteAccountBody) {
   }
 
   if (existingRequest) {
-    return buildDeletionResponse(existingRequest.scheduled_deletion_at)
+    return buildDeletionResponse(existingRequest.scheduled_deletion_at, request)
   }
 
   const { data: deletionRequest, error } = await supabase
@@ -80,12 +81,12 @@ async function handlePost(request: NextRequest, body: DeleteAccountBody) {
     resourceId: user.id,
   })
 
-  return buildDeletionResponse(deletionRequest.scheduled_deletion_at)
+  return buildDeletionResponse(deletionRequest.scheduled_deletion_at, request)
 }
 
 export const POST = withZodBody(deleteAccountSchema, handlePost)
 
-function buildDeletionResponse(scheduledDeletionAt: string) {
+function buildDeletionResponse(scheduledDeletionAt: string, request?: NextRequest) {
   const response = NextResponse.json({
     success: true,
     status: 'pending',
@@ -96,6 +97,7 @@ function buildDeletionResponse(scheduledDeletionAt: string) {
     'aprende-y-aplica-session',
     'access_token',
     'refresh_token',
+    ...getSupabaseAuthCookieNames(request),
   ]) {
     response.cookies.set(cookieName, '', {
       httpOnly: true,
@@ -128,7 +130,19 @@ async function revokeUserSessions(userId: string) {
       .update({ revoked: true })
       .eq('user_id', userId)
       .eq('revoked', false),
+    revokeSupabaseAuthSessions(userId),
   ])
+}
+
+function getSupabaseAuthCookieNames(request?: NextRequest) {
+  if (!request) {
+    return []
+  }
+
+  return request.cookies
+    .getAll()
+    .map((cookie) => cookie.name)
+    .filter((name) => name.startsWith('sb-') && name.includes('auth-token'))
 }
 
 function getClientIp(request: NextRequest) {

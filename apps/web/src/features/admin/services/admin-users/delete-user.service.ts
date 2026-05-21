@@ -1,4 +1,6 @@
 import { createClient } from '../../../../lib/supabase/server'
+import { deleteSupabaseAuthUser } from '@/features/auth/services/supabase-auth-bridge.service'
+import { SELECT_COLUMNS } from '../../../../lib/supabase/select-types'
 import { createAdminClient } from './client'
 import { logUserDeleteAttempt } from './delete-user.audit'
 import { prepareRequiredInstructorReferencesForDelete } from './delete-user.instructor-reassign'
@@ -34,8 +36,10 @@ export async function deleteAdminUser(
 
   const deletedViaRpc = await deleteUserViaRpc(adminSupabase, userId)
   if (deletedViaRpc) {
+    await deleteSupabaseAuthUser(userId)
     return
   }
 
   await deleteUserManually(adminSupabase, userId)
+  await deleteSupabaseAuthUser(userId)
 }

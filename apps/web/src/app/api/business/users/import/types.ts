@@ -9,6 +9,7 @@ export interface ImportResult {
 export type ParsedImportUserRow = Record<string, string>
 
 export interface UserInsertData {
+  id: string
   username: string
   email: string
   first_name: string | null
@@ -17,7 +18,6 @@ export interface UserInsertData {
   cargo_rol: string
   type_rol: string
   organization_id: string
-  password_hash: string
   date_of_birth: string | null
   gender: UserGender | null
 }

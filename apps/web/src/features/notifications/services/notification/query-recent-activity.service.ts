@@ -1,5 +1,5 @@
 import { logger } from '../../../../lib/logger'
-import { getServerClient } from '../auto-notifications-server-client'
+import { getSystemNotificationClient } from '../auto-notifications-server-client'
 import { NOTIFICATION_SELECT } from './select'
 import {
   attachUsersToNotifications,
@@ -7,7 +7,7 @@ import {
 } from './utils'
 
 export async function getRecentActivity(limit = 10) {
-  const supabase = await getServerClient()
+  const supabase = await getSystemNotificationClient()
   const { data, error } = await supabase
     .from('user_notifications')
     .select(NOTIFICATION_SELECT)

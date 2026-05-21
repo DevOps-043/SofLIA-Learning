@@ -8,7 +8,7 @@ export async function handleAuthenticatedAuthRouteRedirect(request: NextRequest,
   if (!request.nextUrl.pathname.startsWith('/auth') || !cookies.hasSession) return null
   try {
     const supabase = createProxySupabaseClient(request)
-    const userId = await getLegacyUserId(request, supabase)
+    const userId = await getAuthenticatedUserId(request, supabase)
     if (!userId) {
       logger.log('?????? No se pudo obtener userId, redirigiendo a /dashboard')
       return NextResponse.redirect(new URL('/dashboard', request.url))
@@ -27,7 +27,12 @@ export async function handleAuthenticatedAuthRouteRedirect(request: NextRequest,
   }
 }
 
-async function getLegacyUserId(request: NextRequest, supabase: ReturnType<typeof createProxySupabaseClient>) {
+async function getAuthenticatedUserId(request: NextRequest, supabase: ReturnType<typeof createProxySupabaseClient>) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (user?.id) return user.id
+
   const sessionCookie = request.cookies.get('aprende-y-aplica-session')
   if (!sessionCookie?.value) return null
   const { data: sessionData } = await supabase.from('user_session').select('user_id').eq('jwt_id', sessionCookie.value).eq('revoked', false).gt('expires_at', new Date().toISOString()).single()

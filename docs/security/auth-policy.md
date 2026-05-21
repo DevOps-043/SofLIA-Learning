@@ -1,6 +1,6 @@
 # Auth hardening policy
 
-Ultima revision: 2026-05-18
+Ultima revision: 2026-05-20
 
 ## Objetivo
 
@@ -15,8 +15,8 @@ Reducir credential stuffing, takeover de cuentas privilegiadas, sesiones persist
 | Email enumeration | Activo | Login y reset usan mensajes genericos para credenciales/correos inexistentes |
 | Password minimo | Activo | 12 caracteres, mayuscula, minuscula, numero y caracter especial |
 | HIBP | Activo | Check k-anonymity SHA-1 prefix contra Have I Been Pwned; no se envia la password completa |
-| Token rotation | Activo parcial | Refresh tokens propios con revocacion y expiracion; documentar valores en Supabase dashboard |
-| Revocacion de sesiones | Activo | Reset password revoca sesiones; Admin puede revocar sesiones por usuario |
+| Token rotation | En migracion | Supabase Auth es la fuente objetivo; refresh tokens propios quedan como fallback temporal controlado por `AUTH_LEGACY_SESSION_FALLBACK_ENABLED` |
+| Revocacion de sesiones | Activo | Reset password de Supabase Auth limpia `password_hash` y revoca sesiones legacy; Admin puede revocar sesiones por usuario |
 | OAuth state/CSRF | Activo | Callback Google/Microsoft valida cookie `oauth_state` contra `state`; test dedicado en `oauth-callback.service.test.ts` |
 
 ## Politica de lockout
@@ -46,6 +46,7 @@ Estado: TOTP propio implementado para Admin/Business con secretos cifrados, reco
 - BusinessUser/Instructor: MFA opcional.
 - Recovery codes: generar y mostrar una sola vez.
 - Challenge de login: `MFA_LOGIN_CHALLENGE_SECRET` o `MFA_SECRET_KEY`, minimo 32 caracteres, requerido para emitir retos MFA antes de crear sesion.
+- Despues de validar TOTP, el login intenta sesion nativa de Supabase Auth; la sesion legacy solo queda como fallback temporal monitoreado. En staging/produccion post-import se puede cortar con `AUTH_LEGACY_SESSION_FALLBACK_ENABLED=false`.
 
 No hacer enforcement global en produccion hasta que existan:
 
@@ -58,7 +59,8 @@ No hacer enforcement global en produccion hasta que existan:
 
 - Usuarios pueden revocar sesiones individuales desde `/api/auth/sessions`.
 - Admin puede revocar sesiones de un usuario via `POST /api/admin/users/:id/sessions/revoke`.
-- Reset password revoca sesiones activas despues de cambiar password.
+- Reset password nuevo usa Supabase Auth recovery y revoca sesiones legacy despues de cambiar password.
+- Links antiguos con `password_reset_tokens` siguen aceptados solo durante la transicion.
 - Incidentes P0/P1 deben revocar sesiones del usuario afectado y registrar evento en `security_audit_log` cuando 5.9 este listo.
 
 ## OAuth state validation

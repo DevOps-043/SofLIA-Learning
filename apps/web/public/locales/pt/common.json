@@ -37,7 +37,10 @@
       "loadErrorTitle": "Não foi possível carregar o vídeo",
       "loadErrorDescription": "Verifique se o arquivo existe e se é um MP4 ou WebM otimizado para web.",
       "skipToContent": "Continuar sem vídeo",
-      "slowConnection": "Conexão lenta - carregando..."
+      "slowConnection": "Conexão lenta - carregando...",
+      "quality": "Qualidade",
+      "qualityAuto": "Auto",
+      "qualityAdaptive": "adaptável"
     }
   },
   "dashboardNav": {

@@ -127,7 +127,7 @@ export function PremiumSelect({
             style={{
               backgroundColor: theme.panelBg,
               borderColor: theme.borderColor,
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              boxShadow: '0 25px 50px -12px color-mix(in srgb, var(--color-black) 50%, transparent)',
               zIndex: 9999
             }}
           >

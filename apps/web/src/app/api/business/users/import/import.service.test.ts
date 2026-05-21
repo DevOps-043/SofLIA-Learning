@@ -2,21 +2,30 @@ import { performance } from 'node:perf_hooks'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 import { importBusinessUsersFromCsv } from './import.service'
 
-vi.mock('@/lib/supabase/server', () => ({
-  createClient: vi.fn(),
+const {
+  createAdminClientMock,
+  createAuthUserMock,
+  deleteAuthUserMock,
+} = vi.hoisted(() => ({
+  createAdminClientMock: vi.fn(),
+  createAuthUserMock: vi.fn(async () => ({ id: 'auth-user' })),
+  deleteAuthUserMock: vi.fn(async () => undefined),
 }))
 
-vi.mock('bcryptjs', () => ({
-  default: {
-    hash: vi.fn(async (password: string) => `hashed:${password}`),
-  },
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: createAdminClientMock,
 }))
 
-const mockedCreateClient = vi.mocked(createClient)
+vi.mock('@/features/auth/services/supabase-auth-bridge.service', () => ({
+  createSupabaseAuthUserWithLegacyId: createAuthUserMock,
+  deleteSupabaseAuthUser: deleteAuthUserMock,
+}))
+
+const mockedCreateAdminClient = vi.mocked(createAdminClient)
 
 describe('importBusinessUsersFromCsv', () => {
   beforeEach(() => {
@@ -25,7 +34,7 @@ describe('importBusinessUsersFromCsv', () => {
 
   it('imports 100 CSV rows with batched lookups and inserts under 3 seconds', async () => {
     const supabase = createBulkImportSupabaseMock()
-    mockedCreateClient.mockResolvedValueOnce(supabase.client)
+    mockedCreateAdminClient.mockReturnValueOnce(supabase.client)
     const csv = buildCsv(100)
 
     const startedAt = performance.now()
@@ -44,6 +53,9 @@ describe('importBusinessUsersFromCsv', () => {
     expect(supabase.userLookupQueries).toBe(2)
     expect(supabase.insertedUsers).toHaveLength(100)
     expect(supabase.insertedMemberships).toHaveLength(100)
+    expect(createAuthUserMock).toHaveBeenCalledTimes(100)
+    expect(supabase.insertedUsers[0]).toHaveProperty('id')
+    expect(supabase.insertedUsers[0]).not.toHaveProperty('password_hash')
     expect(durationMs).toBeLessThan(3000)
   })
 })
@@ -101,7 +113,7 @@ function createBulkImportSupabaseMock() {
             return {
               select: async () => ({
                 data: rows.map((row, index) => ({
-                  id: `created-user-${index + 1}`,
+                  id: row.id || `created-user-${index + 1}`,
                   email: row.email,
                   username: row.username,
                 })),
@@ -137,7 +149,7 @@ function createBulkImportSupabaseMock() {
 
       throw new Error(`Unexpected table in bulk import test: ${tableName}`)
     },
-  } as Awaited<ReturnType<typeof createClient>>
+  } as unknown as ReturnType<typeof createAdminClient>
 
   return Object.assign(state, { client })
 }

@@ -92,6 +92,7 @@ describe('business-users-server.helpers', () => {
   it('builds insert and update payloads without undefined fields', () => {
     expect(
       buildUserInsertData(
+        'user-1',
         {
           username: 'ada',
           email: 'ada@example.com',
@@ -101,9 +102,9 @@ describe('business-users-server.helpers', () => {
           last_name: 'Lovelace',
           display_name: 'Ada',
         },
-        'hash',
       ),
     ).toEqual({
+      id: 'user-1',
       username: 'ada',
       email: 'ada@example.com',
       first_name: 'Ada',
@@ -112,7 +113,6 @@ describe('business-users-server.helpers', () => {
       date_of_birth: null,
       gender: null,
       cargo_rol: 'Business',
-      password_hash: 'hash',
     })
 
     expect(

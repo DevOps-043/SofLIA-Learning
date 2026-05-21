@@ -319,6 +319,10 @@ export function useOrganizationLoginForm({
     if (!mfaChallengeToken || submitInFlightRef.current) {
       return
     }
+    if (!mfaCredentials?.password) {
+      setError(t('auth.login.mfa.errors.verifyFailed'))
+      return
+    }
 
     submitInFlightRef.current = true
     setError(null)
@@ -328,6 +332,7 @@ export function useOrganizationLoginForm({
       const result = await verifyMfaLoginChallenge({
         challengeToken: mfaChallengeToken,
         fallbackError: t('auth.login.mfa.errors.verifyFailed'),
+        password: mfaCredentials.password,
         token: mfaCode,
       })
 

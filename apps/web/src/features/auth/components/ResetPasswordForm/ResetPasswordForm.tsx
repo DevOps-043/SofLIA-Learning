@@ -6,7 +6,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { resetPasswordAction, validateResetTokenAction } from '../../actions/reset-password';
+import { createClient as createBrowserSupabaseClient } from '@/lib/supabase/client';
+import {
+  resetPasswordAction,
+  resetSupabaseRecoveryPasswordAction,
+  validateResetTokenAction,
+} from '../../actions/reset-password';
 import { getResetPasswordSchema, type ResetPasswordFormData } from './ResetPasswordForm.schema';
 import { Loader2, Lock, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { PasswordInput } from '../PasswordInput';
@@ -17,11 +22,14 @@ export function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
+  const recoveryCode = searchParams.get('code');
+  const recoveryMode = searchParams.get('mode');
 
   const [isLoading, setIsLoading] = useState(false);
   const [isValidatingToken, setIsValidatingToken] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
+  const [resetMode, setResetMode] = useState<'legacy' | 'supabase'>('legacy');
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [result, setResult] = useState<{
     type: 'success' | 'error';
@@ -45,11 +53,45 @@ export function ResetPasswordForm() {
   useEffect(() => {
     const validateToken = async () => {
       if (!token) {
-        setTokenError('Token no proporcionado');
+        const hasSupabaseRecovery =
+          recoveryMode === 'supabase' ||
+          Boolean(recoveryCode) ||
+          window.location.hash.includes('access_token');
+
+        if (!hasSupabaseRecovery) {
+          setTokenError('Token no proporcionado');
+          setIsValidatingToken(false);
+          return;
+        }
+
+        const supabase = createBrowserSupabaseClient();
+        if (recoveryCode) {
+          const { error } = await supabase.auth.exchangeCodeForSession(recoveryCode);
+          if (error) {
+            setTokenError(t('auth.resetPassword.validation.invalidToken'));
+            setIsValidatingToken(false);
+            return;
+          }
+        }
+
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error || !session?.user) {
+          setTokenError(t('auth.resetPassword.validation.invalidToken'));
+          setIsValidatingToken(false);
+          return;
+        }
+
+        setResetMode('supabase');
+        setTokenValid(true);
         setIsValidatingToken(false);
         return;
       }
 
+      setResetMode('legacy');
       const result = await validateResetTokenAction(token);
 
       if (result.valid) {
@@ -62,7 +104,7 @@ export function ResetPasswordForm() {
     };
 
     validateToken();
-  }, [token]);
+  }, [recoveryCode, recoveryMode, token, t]);
 
   // Calcular fortaleza de contraseña
   const getPasswordStrength = () => {
@@ -85,24 +127,37 @@ export function ResetPasswordForm() {
   };
 
   const onSubmit = async (data: ResetPasswordFormData) => {
-    if (!token) return;
+    if (resetMode === 'legacy' && !token) return;
 
     setIsLoading(true);
     setResult(null);
 
     try {
       const formData = new FormData();
-      formData.append('token', token);
       formData.append('newPassword', data.newPassword);
+      if (token) {
+        formData.append('token', token);
+      }
 
-      const response = await resetPasswordAction(formData);
+      const response = resetMode === 'supabase'
+        ? await resetSupabaseRecoveryPasswordAction(formData)
+        : await resetPasswordAction(formData);
 
-      if (response.error) {
-        setResult({ type: 'error', message: response.error });
+      const responseError =
+        'error' in response && typeof response.error === 'string'
+          ? response.error
+          : null;
+      const responseMessage =
+        'message' in response && typeof response.message === 'string'
+          ? response.message
+          : null;
+
+      if (responseError) {
+        setResult({ type: 'error', message: responseError });
       } else {
         setResult({
           type: 'success',
-          message: response.message || t('auth.resetPassword.success'),
+          message: responseMessage || t('auth.resetPassword.success'),
         });
 
         // Redirigir al login después de 2 segundos

@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { logger } from '../../../../lib/logger';
-import { createClient } from '../../../../lib/supabase/server';
+import { createAdminClient } from '../../../../lib/supabase/admin';
 import {
   buildRateLimitError,
   checkRateLimit,
@@ -41,7 +41,7 @@ export async function resetPasswordAction(
 
     recordResetAttempt(clientIP);
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const tokenData = await getPasswordResetToken(supabase, token);
     const validation = validatePasswordResetTokenState(tokenData);
 

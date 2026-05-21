@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getServerClient } from '../auto-notifications-server-client'
+import {
+  getServerClient,
+  getSystemNotificationClient,
+} from '../auto-notifications-server-client'
 import {
   getRecentActivity,
   getUserNotifications,
@@ -7,6 +10,7 @@ import {
 
 vi.mock('../auto-notifications-server-client', () => ({
   getServerClient: vi.fn(),
+  getSystemNotificationClient: vi.fn(),
 }))
 
 vi.mock('../../../../lib/logger', () => ({
@@ -255,7 +259,7 @@ describe('notification query service', () => {
       error: null,
     })
 
-    vi.mocked(getServerClient).mockResolvedValue({
+    vi.mocked(getSystemNotificationClient).mockResolvedValue({
       from: vi.fn((table: string) => {
         if (table === 'user_notifications') {
           return notificationsChain

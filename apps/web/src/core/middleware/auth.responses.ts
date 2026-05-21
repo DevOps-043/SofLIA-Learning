@@ -9,6 +9,7 @@ export function createUnauthorizedResponse(request: NextRequest): NextResponse {
   response.cookies.delete('aprende-y-aplica-session');
   response.cookies.delete('access_token');
   response.cookies.delete('refresh_token');
+  deleteSupabaseAuthCookies(request, response);
 
   return response;
 }
@@ -32,4 +33,12 @@ export function buildAccessFailureResponse(
   }
 
   return createForbiddenResponse(request);
+}
+
+function deleteSupabaseAuthCookies(request: NextRequest, response: NextResponse) {
+  for (const cookie of request.cookies.getAll()) {
+    if (cookie.name.startsWith('sb-') && cookie.name.includes('-auth-token')) {
+      response.cookies.delete(cookie.name);
+    }
+  }
 }

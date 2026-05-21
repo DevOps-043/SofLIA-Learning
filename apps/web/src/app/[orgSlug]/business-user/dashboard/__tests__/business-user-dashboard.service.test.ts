@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   buildBusinessUserDashboardColors,
   buildBusinessUserDashboardStats,
-  buildBusinessUserIntroVideos,
   formatBusinessUserDashboardDate,
   getBusinessUserCertificateRoute,
   getBusinessUserDashboardGreeting,
@@ -53,10 +52,8 @@ describe('business-user-dashboard.service', () => {
     expect(stats[4]?.kind).toBe('analytics')
   })
 
-  it('formats dates, videos and certificate routes safely', () => {
+  it('formats dates and certificate routes safely', () => {
     expect(formatBusinessUserDashboardDate(new Date('2026-04-01T09:00:00Z'), 'es')).toContain('2026')
-    expect(buildBusinessUserIntroVideos(undefined)).toEqual([])
-    expect(buildBusinessUserIntroVideos('https://example.supabase.co')).toHaveLength(2)
     expect(
       getBusinessUserCertificateRoute([{ course_id: 'course-1', certificate_id: 'cert-9' }], 'course-1')
     ).toBe('/certificates/cert-9')

@@ -21,11 +21,12 @@ export function useLiaSidePanelEnvironment() {
   const { resolvedTheme } = useThemeStore();
   const isDarkMode = resolvedTheme === 'dark';
   const isLightTheme = !isDarkMode;
-  const orgStyles = useOrganizationStylesContext()?.styles;
-  const effectiveStyles = isLiaDashboardRoute(pathname)
+  const organizationStyles = useOrganizationStylesContext();
+  const orgStyles = organizationStyles.effectiveStyles || organizationStyles.styles;
+  const activeStyles = isLiaDashboardRoute(pathname)
     ? orgStyles?.userDashboard || orgStyles?.panel
     : orgStyles?.panel;
-  const themeColors = getLiaThemeColors(isLightTheme, effectiveStyles);
+  const themeColors = getLiaThemeColors(isLightTheme, activeStyles);
   const chat = useLiaGeneralChat();
   const { settings: liaSettings } = useSofLIAPersonalization();
   const { language } = useLanguage();

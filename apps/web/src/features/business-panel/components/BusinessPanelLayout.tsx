@@ -11,6 +11,7 @@ import { LiaPanelContext } from '@/core/contexts/LiaPanelContext'
 import { useResponsiveLiaLayout } from '@/core/hooks/useResponsiveLiaLayout'
 import { OnboardingVideoPlayer } from '@/features/tours/components/OnboardingVideoPlayer'
 import { useBusinessPanelJoyride } from '@/features/tours/hooks/useBusinessPanelJoyride'
+import { usePlatformIntroTeaser } from '@/features/tours/hooks/usePlatformIntroTeaser'
 import { useAuth } from '../../auth/hooks/useAuth'
 import {
   OrganizationStylesProvider,
@@ -76,12 +77,9 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
   const backgroundStyle = useMemo(() => getBackgroundStyle(panelStyles), [panelStyles])
   const cssVariables = useMemo(() => generateCSSVariables(panelStyles), [panelStyles])
 
-  const introVideos = useMemo(
-    () => [
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/Teaser%20-%20SofLIA%20Nexus.mp4`,
-    ],
-    [],
-  )
+  // Teaser institucional resuelto a HLS cuando esta transcodificado, para
+  // que el reproductor del tour ofrezca seleccion de resolucion.
+  const introVideos = usePlatformIntroTeaser()
 
   // ── Supabase Storage CDN optimization ─────────────────────────────────────
   // Establish the TCP + TLS connection to the Supabase CDN origin as early as

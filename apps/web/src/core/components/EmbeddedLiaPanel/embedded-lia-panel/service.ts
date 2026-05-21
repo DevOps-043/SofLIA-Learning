@@ -17,7 +17,7 @@ export function getEmbeddedLiaColors(
     primary: themeStyles?.accent_color || organizationColors?.primary || 'var(--color-accent)',
     accent: themeStyles?.secondary_button_color || organizationColors?.accent || 'var(--color-gray-500)',
     cardBg: themeStyles?.card_background || organizationColors?.cardBackground || 'var(--color-gray-800)',
-    text: themeStyles?.text_color || organizationColors?.textColor || 'var(--color-bg-light)',
+    text: themeStyles?.text_color || organizationColors?.textColor || 'var(--color-contrast)',
   };
 }
 

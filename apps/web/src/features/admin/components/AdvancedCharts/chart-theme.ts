@@ -19,7 +19,7 @@ export function getChartTheme(darkMode = true) {
     tickColor: darkMode ? 'var(--color-gray-200)' : 'var(--color-gray-500)',
     tooltipBg: darkMode ? 'var(--color-gray-800)' : 'var(--color-bg-light)',
     tooltipBorder: darkMode ? 'rgba(255,255,255,0.1)' : 'var(--color-gray-200)',
-    tooltipText: darkMode ? 'var(--color-gray-50)' : 'var(--color-gray-900)'
+    tooltipText: 'var(--color-contrast)'
   };
 }
 

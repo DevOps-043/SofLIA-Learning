@@ -96,8 +96,8 @@ export interface BusinessPanelThemeTokens {
 
 export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
   const { resolvedTheme } = useThemeStore()
-  const { styles } = useOrganizationStylesContext()
-  const panelStyles = styles?.panel
+  const { effectiveStyles, styles } = useOrganizationStylesContext()
+  const panelStyles = effectiveStyles?.panel || styles?.panel
   const isDark = resolvedTheme === 'dark'
 
   return useMemo<BusinessPanelThemeTokens>(() => {
@@ -105,8 +105,8 @@ export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
     // para mantener contraste sobre fondos oscuros, independiente de la org.
     const brandColor = panelStyles?.primary_button_color ?? 'var(--color-primary)'
     const actionColor = isDark ? 'var(--color-accent)' : brandColor
-    const onActionColor = isDark ? 'var(--color-legacy-04130f)' : 'var(--color-bg-light)'
-    const actionSurface = isDark ? 'rgba(0,212,179,0.12)' : 'rgba(10,37,64,0.08)'
+    const onActionColor = isDark ? 'var(--color-primary)' : 'var(--color-bg-light)'
+    const actionSurface = `color-mix(in srgb, ${actionColor} ${isDark ? 12 : 8}%, transparent)`
 
     // Acciones, iconos y textos destacados de UI siguen el modo:
     // claro = azul profundo, oscuro = aqua.
@@ -126,42 +126,40 @@ export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
       secondaryColor,
 
       // Texto
-      textColor: isDark
-        ? (panelStyles?.text_color ?? 'var(--color-bg-light)')
-        : 'var(--color-legacy-0f172a)',
-      subtextColor: isDark ? 'var(--color-legacy-858e9b)' : 'var(--color-gray-600)',
-      mutedTextColor: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.5)',
+      textColor: panelStyles?.text_color ?? 'var(--color-contrast)',
+      subtextColor: 'var(--color-muted)',
+      mutedTextColor: `color-mix(in srgb, var(--color-contrast) ${isDark ? 40 : 50}%, transparent)`,
       inverseTextColor: 'var(--color-bg-light)',
-      inverseSubtextColor: 'rgba(255,255,255,0.82)',
-      inverseMutedTextColor: 'rgba(255,255,255,0.62)',
+      inverseSubtextColor: 'color-mix(in srgb, var(--color-bg-light) 82%, transparent)',
+      inverseMutedTextColor: 'color-mix(in srgb, var(--color-bg-light) 62%, transparent)',
 
       // Superficies
       cardBg: isDark
-        ? (panelStyles?.card_background ?? 'rgba(30, 35, 41, 0.6)')
-        : 'var(--color-bg-light)',
-      inputBg: isDark ? 'rgba(255,255,255,0.03)' : 'var(--color-gray-50)',
-      panelBg: isDark ? 'var(--color-legacy-0b0e14)' : 'var(--color-bg-light)',
-      hoverBg: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.05)',
-      overlayBg: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(15,23,42,0.45)',
-      inverseSurface: 'rgba(255,255,255,0.08)',
-      inverseBorderColor: 'rgba(255,255,255,0.18)',
-      heroBackground: isDark
-        ? 'linear-gradient(135deg, rgba(10,37,64,0.82) 0%, rgba(15,20,25,0.95) 55%, rgba(0,212,179,0.18) 100%)'
-        : 'linear-gradient(135deg, rgba(10,37,64,0.95) 0%, rgba(15,23,42,0.88) 52%, rgba(0,212,179,0.30) 100%)',
-      heroBorderColor: isDark ? 'rgba(0,212,179,0.12)' : 'rgba(0,212,179,0.18)',
+        ? (panelStyles?.card_background ?? 'var(--color-gray-800)')
+        : (panelStyles?.card_background ?? 'var(--color-bg-light)'),
+      inputBg: `color-mix(in srgb, var(--color-contrast) ${isDark ? 3 : 4}%, transparent)`,
+      panelBg: isDark
+        ? (panelStyles?.sidebar_background ?? 'var(--color-bg-dark)')
+        : (panelStyles?.sidebar_background ?? 'var(--color-bg-light)'),
+      hoverBg: `color-mix(in srgb, var(--color-contrast) ${isDark ? 8 : 5}%, transparent)`,
+      overlayBg: 'color-mix(in srgb, var(--color-black) 55%, transparent)',
+      inverseSurface: 'color-mix(in srgb, var(--color-bg-light) 8%, transparent)',
+      inverseBorderColor: 'color-mix(in srgb, var(--color-bg-light) 18%, transparent)',
+      heroBackground: `linear-gradient(135deg, color-mix(in srgb, var(--color-primary) ${isDark ? 82 : 95}%, transparent) 0%, color-mix(in srgb, var(--color-primary) ${isDark ? 55 : 88}%, var(--color-black)) 55%, color-mix(in srgb, var(--color-accent) ${isDark ? 18 : 30}%, transparent) 100%)`,
+      heroBorderColor: `color-mix(in srgb, var(--color-accent) ${isDark ? 12 : 18}%, transparent)`,
 
       // Bordes
       borderColor: isDark
-        ? (panelStyles?.border_color ?? 'rgba(255,255,255,0.06)')
-        : 'rgba(0,0,0,0.06)',
-      dividerColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+        ? (panelStyles?.border_color ?? 'color-mix(in srgb, var(--color-bg-light) 6%, transparent)')
+        : (panelStyles?.border_color ?? 'color-mix(in srgb, var(--color-black) 6%, transparent)'),
+      dividerColor: `color-mix(in srgb, ${isDark ? 'var(--color-bg-light)' : 'var(--color-black)'} 10%, transparent)`,
 
       // Roles
       roleColors: {
-        owner: { text: 'var(--color-legacy-a855f7)', bg: 'rgba(168,85,247,0.12)' },
+        owner: { text: 'var(--color-secondary)', bg: 'color-mix(in srgb, var(--color-secondary) 12%, transparent)' },
         admin: {
-          text: isDark ? 'var(--color-legacy-60a5fa)' : brandColor,
-          bg: isDark ? 'rgba(96, 165, 250, 0.16)' : 'rgba(10,37,64,0.1)',
+          text: isDark ? 'var(--color-info)' : brandColor,
+          bg: `color-mix(in srgb, ${isDark ? 'var(--color-info)' : brandColor} ${isDark ? 16 : 10}%, transparent)`,
         },
         member: {
           text: actionColor,
@@ -174,15 +172,15 @@ export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
         active: 'var(--color-success)',
         invited: 'var(--color-warning)',
         suspended: 'var(--color-error)',
-        removed: 'var(--color-legacy-6b7280)',
+        removed: 'var(--color-muted)',
       },
 
       // Semánticos (invariantes de tema)
-      chartColors: ['var(--color-success)', 'var(--color-info)', 'var(--color-warning)', 'var(--color-secondary)', 'var(--color-error)', 'var(--color-legacy-06b6d4)'],
+      chartColors: ['var(--color-success)', 'var(--color-info)', 'var(--color-warning)', 'var(--color-secondary)', 'var(--color-error)', 'var(--color-accent)'],
 
       difficultyColors: {
-        beginner: 'var(--color-legacy-22c55e)',
-        intermediate: 'var(--color-legacy-eab308)',
+        beginner: 'var(--color-success)',
+        intermediate: 'var(--color-warning)',
         advanced: 'var(--color-error)',
         default: 'var(--color-info)',
       },

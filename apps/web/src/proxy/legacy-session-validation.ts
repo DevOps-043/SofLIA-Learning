@@ -8,15 +8,26 @@ export async function validateLegacySessionAndQuestionnaire(
   response: NextResponse,
   logger: ProxyLogger,
 ) {
-  const sessionCookie = request.cookies.get('aprende-y-aplica-session')
-  if (!sessionCookie) {
-    logger.log('??? No hay sesi??n, redirigiendo a /auth')
-    return { response: NextResponse.redirect(new URL('/auth', request.url)), shouldReturn: true }
-  }
   logger.log('???? Validando sesi??n en base de datos...')
   try {
     let mutableResponse = response
     const supabase = createProxySupabaseClient(request, (nextResponse) => { mutableResponse = nextResponse })
+    const {
+      data: { user: nativeUser },
+    } = await supabase.auth.getUser()
+
+    if (nativeUser?.id) {
+      const questionnaireRedirect = await validateQuestionnaire(request, nativeUser.id, logger)
+      if (questionnaireRedirect) return { response: questionnaireRedirect, shouldReturn: true }
+      return { response: mutableResponse, shouldReturn: false }
+    }
+
+    const sessionCookie = request.cookies.get('aprende-y-aplica-session')
+    if (!sessionCookie) {
+      logger.log('??? No hay sesi??n, redirigiendo a /auth')
+      return { response: NextResponse.redirect(new URL('/auth', request.url)), shouldReturn: true }
+    }
+
     const { data: sessionData, error: sessionError } = await supabase.from('user_session').select('user_id').eq('jwt_id', sessionCookie.value).eq('revoked', false).gt('expires_at', new Date().toISOString()).single()
     logger.log('???? Sesi??n en DB:', sessionData ? 'V??lida' : 'No v??lida')
     logger.log('??? Error de sesi??n:', sessionError?.message || 'Ninguno')

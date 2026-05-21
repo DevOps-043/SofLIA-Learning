@@ -1,9 +1,14 @@
-import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { createClient } from '@/lib/supabase/server'
 import {
   normalizeDateOfBirthForStorage,
   normalizeGenderForStorage,
 } from '@/lib/schemas/user-demographics.schema'
+import {
+  createSupabaseAuthUserWithLegacyId,
+  deleteSupabaseAuthUser,
+} from '@/features/auth/services/supabase-auth-bridge.service'
 import { getExistingUserImportError } from './existing-user.service'
 import { autoAssignUserToDefaultTeam } from './hierarchy'
 import type { ImportContext, ParsedImportUserRow, UserInsertData } from './types'
@@ -29,8 +34,30 @@ export async function importUserRow(params: {
     return { success: false as const, ...existingUserError }
   }
 
-  const passwordHash = await bcrypt.hash(validation.password, 10)
+  const userId = crypto.randomUUID()
+  try {
+    await createSupabaseAuthUserWithLegacyId({
+      cargo_rol: 'Business User',
+      display_name: userData.display_name ||
+        `${userData.first_name || ''} ${userData.last_name || ''}`.trim() ||
+        null,
+      email: userData.email,
+      email_verified: true,
+      first_name: userData.first_name || null,
+      id: userId,
+      last_name: userData.last_name || null,
+      password: validation.password,
+      username: userData.username,
+    })
+  } catch (error) {
+    return {
+      success: false as const,
+      error: error instanceof Error ? error.message : 'Error al crear usuario Auth',
+    }
+  }
+
   const userInsertData: UserInsertData = {
+    id: userId,
     username: userData.username,
     email: userData.email,
     first_name: userData.first_name || null,
@@ -41,22 +68,23 @@ export async function importUserRow(params: {
     cargo_rol: 'Business User',
     type_rol: 'Business User',
     organization_id: context.organizationId,
-    password_hash: passwordHash,
     date_of_birth: normalizeDateOfBirthForStorage(validation.demographics.date_of_birth),
     gender: normalizeGenderForStorage(validation.demographics.gender),
   }
 
-  const { data: newUser, error: userError } = await supabase
+  const adminSupabase = createAdminClient()
+  const { data: newUser, error: userError } = await adminSupabase
     .from('users')
     .insert(userInsertData)
     .select('id')
     .single()
 
   if (userError) {
+    await deleteSupabaseAuthUser(userId)
     return { success: false as const, error: userError.message || 'Error al crear usuario' }
   }
 
-  const { error: orgUserError } = await supabase.from('organization_users').insert({
+  const { error: orgUserError } = await adminSupabase.from('organization_users').insert({
     organization_id: context.organizationId,
     user_id: newUser.id,
     role: validation.orgRole,
@@ -68,7 +96,8 @@ export async function importUserRow(params: {
   })
 
   if (orgUserError) {
-    await supabase.from('users').delete().eq('id', newUser.id)
+    await adminSupabase.from('users').delete().eq('id', newUser.id)
+    await deleteSupabaseAuthUser(newUser.id)
     return {
       success: false as const,
       error: orgUserError.message || 'Error al agregar usuario a la organizacion',
@@ -76,7 +105,7 @@ export async function importUserRow(params: {
   }
 
   if (validation.orgRole === 'member') {
-    await autoAssignUserToDefaultTeam(supabase, newUser.id, context.hierarchy)
+    await autoAssignUserToDefaultTeam(adminSupabase, newUser.id, context.hierarchy)
   }
 
   return { success: true as const }

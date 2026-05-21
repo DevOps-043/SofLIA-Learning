@@ -38,7 +38,8 @@
     "load:k6:dashboard": "node scripts/generate-load-test-dashboard.mjs",
     "performance:public": "node scripts/check-public-performance.mjs",
     "performance:lighthouse": "npx @lhci/cli@0.15.1 autorun --config=lighthouserc.cjs",
-    "observability:health-check": "node scripts/check-observability-health.mjs"
+    "observability:health-check": "node scripts/check-observability-health.mjs",
+    "auth:migrate-legacy": "tsx scripts/migrate-legacy-users-to-supabase-auth.ts"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.56.1",

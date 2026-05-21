@@ -1,12 +1,12 @@
 'use server';
 
-import { createClient } from '../../../../lib/supabase/server';
+import { createAdminClient } from '../../../../lib/supabase/admin';
 import { getPasswordResetToken } from './reset-password.db';
 import { validatePasswordResetTokenState } from './reset-password.validation';
 
 export async function validateResetTokenAction(token: string) {
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const tokenData = await getPasswordResetToken(supabase, token);
     const validation = validatePasswordResetTokenState(tokenData);
 

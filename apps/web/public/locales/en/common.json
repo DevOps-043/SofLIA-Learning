@@ -37,7 +37,10 @@
       "loadErrorTitle": "Could not load the video",
       "loadErrorDescription": "Check that the file exists and is an MP4 or WebM optimized for the web.",
       "skipToContent": "Continue without video",
-      "slowConnection": "Slow connection - loading..."
+      "slowConnection": "Slow connection - loading...",
+      "quality": "Quality",
+      "qualityAuto": "Auto",
+      "qualityAdaptive": "adaptive"
     }
   },
   "dashboardNav": {

@@ -1,3 +1,4 @@
+import type { createAdminClient } from '../../../../lib/supabase/admin';
 import type { createClient } from '../../../../lib/supabase/server';
 import type {
   OAuthProvider,
@@ -5,7 +6,9 @@ import type {
 } from '../../types/oauth.types';
 import type { ServerAuthSession } from '../auth-session.service';
 
-export type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+export type SupabaseServerClient =
+  | Awaited<ReturnType<typeof createClient>>
+  | ReturnType<typeof createAdminClient>;
 
 export interface OAuthInitParams {
   organizationId?: string;

@@ -148,16 +148,6 @@ export function buildBusinessUserDashboardStats(
   ]
 }
 
-export function buildBusinessUserIntroVideos(supabaseUrl: string | undefined): string[] {
-  if (!supabaseUrl) {
-    return []
-  }
-
-  return [
-    `${supabaseUrl}/storage/v1/object/public/assets/Teaser%20-%20SofLIA%20Nexus.mp4`,
-  ]
-}
-
 export function getBusinessUserCertificateRoute(
   certificates: BusinessUserCertificateSummary[] | null | undefined,
   courseId: string

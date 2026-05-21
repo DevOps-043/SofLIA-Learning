@@ -155,10 +155,12 @@ export function useBusinessPanelDashboardLogic() {
     primary: panelStyles?.primary_button_color || 'var(--color-primary)',
     secondary: panelStyles?.secondary_button_color || 'var(--color-info)',
     accent: panelStyles?.accent_color || 'var(--color-accent)',
-    text: isDark ? (panelStyles?.text_color || 'var(--color-bg-light)') : 'var(--color-legacy-0f172a)',
-    cardBg: isDark ? (panelStyles?.card_background || 'rgba(30, 35, 41, 0.6)') : 'var(--color-bg-light)',
-    borderColor: isDark ? (panelStyles?.border_color || 'rgb(255 255 255 / 10%)') : 'rgb(0 0 0 / 10%)',
-    background: panelStyles?.background_value || (isDark ? 'var(--color-gray-900)' : 'var(--color-gray-50)'),
+    text: panelStyles?.text_color || 'var(--color-contrast)',
+    cardBg: panelStyles?.card_background || (isDark ? 'var(--color-gray-800)' : 'var(--color-bg-light)'),
+    borderColor: isDark
+      ? (panelStyles?.border_color || 'color-mix(in srgb, var(--color-bg-light) 10%, transparent)')
+      : (panelStyles?.border_color || 'color-mix(in srgb, var(--color-black) 10%, transparent)'),
+    background: panelStyles?.background_value || 'var(--color-bg-dark)',
     backgroundType: panelStyles?.background_type || 'color',
   }), [panelStyles, isDark])
 

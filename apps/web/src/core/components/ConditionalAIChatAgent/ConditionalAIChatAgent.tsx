@@ -10,7 +10,7 @@ import { useOrganizationStyles } from '../../../features/business-panel/hooks/us
  */
 export function ConditionalAIChatAgent() {
   const pathname = usePathname();
-  const { styles } = useOrganizationStyles();
+  const { effectiveStyles, styles } = useOrganizationStyles();
 
   // Verificación de pathname (puede ser null durante SSG/prerendering)
   if (!pathname) {
@@ -31,8 +31,9 @@ export function ConditionalAIChatAgent() {
 
   // Obtener colores de la organización si están disponibles
   // Usamos userDashboard styles para el business-user dashboard
-  const userDashboardStyles = styles?.userDashboard;
-  const panelStyles = styles?.panel;
+  const activeOrganizationStyles = effectiveStyles || styles;
+  const userDashboardStyles = activeOrganizationStyles?.userDashboard;
+  const panelStyles = activeOrganizationStyles?.panel;
 
   // Determinar qué colores usar basado en la ruta
   const isBusinessUserPage = pathname.startsWith('/business-user');
@@ -42,7 +43,7 @@ export function ConditionalAIChatAgent() {
     primary: activeStyles.primary_button_color || 'var(--color-primary)',
     accent: activeStyles.accent_color || 'var(--color-accent)',
     cardBackground: activeStyles.card_background || 'var(--color-gray-800)',
-    textColor: activeStyles.text_color || 'var(--color-bg-light)',
+    textColor: activeStyles.text_color || 'var(--color-contrast)',
   } : undefined;
 
   // Renderizar el nuevo componente embebido con diseño de panel derecho

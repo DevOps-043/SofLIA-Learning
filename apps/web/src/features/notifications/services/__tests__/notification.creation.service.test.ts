@@ -6,7 +6,7 @@ vi.mock('../../../../lib/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 vi.mock('../auto-notifications-server-client', () => ({
-  getServerClient: vi.fn(),
+  getSystemNotificationClient: vi.fn(),
 }))
 vi.mock('../notification/utils', () => ({
   buildNotificationInsertPayload: vi.fn((params) => ({
@@ -20,7 +20,7 @@ vi.mock('../notification/utils', () => ({
   getDuplicateNotificationWindow: vi.fn(() => null),
 }))
 
-import { getServerClient } from '../auto-notifications-server-client'
+import { getSystemNotificationClient } from '../auto-notifications-server-client'
 import { getDuplicateNotificationWindow } from '../notification/utils'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -62,7 +62,7 @@ describe('createNotification', () => {
   it('creates and returns a notification on happy path', async () => {
     const notif = { notification_id: 'notif-1', ...makeParams() }
     const supabase = makeSupabase({ data: notif })
-    vi.mocked(getServerClient).mockResolvedValue(supabase as any)
+    vi.mocked(getSystemNotificationClient).mockResolvedValue(supabase as any)
 
     const result = await createNotification(makeParams())
 
@@ -72,7 +72,7 @@ describe('createNotification', () => {
 
   it('throws when userId is missing', async () => {
     const supabase = makeSupabase()
-    vi.mocked(getServerClient).mockResolvedValue(supabase as any)
+    vi.mocked(getSystemNotificationClient).mockResolvedValue(supabase as any)
 
     await expect(createNotification(makeParams({ userId: '' }))).rejects.toThrow(
       'Faltan campos requeridos',
@@ -81,7 +81,7 @@ describe('createNotification', () => {
 
   it('throws when notificationType is missing', async () => {
     const supabase = makeSupabase()
-    vi.mocked(getServerClient).mockResolvedValue(supabase as any)
+    vi.mocked(getSystemNotificationClient).mockResolvedValue(supabase as any)
 
     await expect(createNotification(makeParams({ notificationType: '' }))).rejects.toThrow(
       'Faltan campos requeridos',
@@ -90,7 +90,7 @@ describe('createNotification', () => {
 
   it('throws when title is missing', async () => {
     const supabase = makeSupabase()
-    vi.mocked(getServerClient).mockResolvedValue(supabase as any)
+    vi.mocked(getSystemNotificationClient).mockResolvedValue(supabase as any)
 
     await expect(createNotification(makeParams({ title: '' }))).rejects.toThrow(
       'Faltan campos requeridos',
@@ -102,7 +102,7 @@ describe('createNotification', () => {
     const supabaseDup = makeSupabase()
     // checkDuplicate query returns one existing notification
     supabaseDup.chain.limit = vi.fn().mockResolvedValue({ data: [{ notification_id: 'existing' }], error: null })
-    vi.mocked(getServerClient).mockResolvedValue(supabaseDup as any)
+    vi.mocked(getSystemNotificationClient).mockResolvedValue(supabaseDup as any)
 
     await expect(createNotification(makeParams())).rejects.toThrow(
       'Notificacion duplicada evitada',
@@ -115,7 +115,7 @@ describe('createNotification', () => {
     const supabase = makeSupabase({ data: notif })
     // checkDuplicate returns empty
     supabase.chain.limit = vi.fn().mockResolvedValue({ data: [], error: null })
-    vi.mocked(getServerClient).mockResolvedValue(supabase as any)
+    vi.mocked(getSystemNotificationClient).mockResolvedValue(supabase as any)
 
     const result = await createNotification(makeParams())
 
@@ -124,7 +124,7 @@ describe('createNotification', () => {
 
   it('throws with error message when insert fails', async () => {
     const supabase = makeSupabase({ data: null, error: { message: 'Insert failed' } })
-    vi.mocked(getServerClient).mockResolvedValue(supabase as any)
+    vi.mocked(getSystemNotificationClient).mockResolvedValue(supabase as any)
 
     await expect(createNotification(makeParams())).rejects.toThrow('Error al crear notificacion')
   })

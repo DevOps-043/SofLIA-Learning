@@ -149,7 +149,9 @@
       "Bash(grep -v \".next\\\\|node_modules\\\\|README\\\\|\\\\.md$\")",
       "Bash(python -c ' *)",
       "Bash(grep -rln \"translation-client'\" .)",
-      "Bash(grep -rln \"from './translation-client\" .)"
+      "Bash(grep -rln \"from './translation-client\" .)",
+      "Bash(powershell -NoProfile -Command \"Get-Process node -ErrorAction SilentlyContinue | Measure-Object | Select-Object -ExpandProperty Count\")",
+      "Bash(powershell -NoProfile -Command 'Get-CimInstance Win32_Process -Filter \"Name='\\\\''node.exe'\\\\''\" | Select-Object ProcessId,@{N='\\\\''Cmd'\\\\'';E={$_.CommandLine.Substring\\(0,[Math]::Min\\(120,$_.CommandLine.Length\\)\\)}} | Format-Table -AutoSize -Wrap')"
     ],
     "deny": [],
     "ask": []

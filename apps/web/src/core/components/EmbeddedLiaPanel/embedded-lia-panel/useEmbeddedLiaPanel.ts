@@ -26,13 +26,13 @@ export function useEmbeddedLiaPanel({
   initialMessage = null,
   organizationColors,
 }: EmbeddedLiaPanelProps) {
-  const { styles } = useOrganizationStylesContext();
+  const { effectiveStyles, styles } = useOrganizationStylesContext();
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useAuth();
   const { language } = useLanguage();
   const { isOpen, openPanel, closePanel } = useLiaPanel();
-  const themeStyles = styles?.panel;
+  const themeStyles = effectiveStyles?.panel || styles?.panel;
 
   const colors = useMemo(
     () => getEmbeddedLiaColors(themeStyles, organizationColors),

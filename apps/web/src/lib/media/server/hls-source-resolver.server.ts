@@ -55,3 +55,21 @@ export async function resolveHlsUrlsForSources(
   }
   return map
 }
+
+/**
+ * Single-URL convenience wrapper around {@link resolveHlsUrlsForSources}.
+ *
+ * Returns the HLS master.m3u8 URL when a completed transcoding job exists
+ * for the given source, otherwise echoes back the original URL so the
+ * caller always has a playable URL.  Returns null only when the input is
+ * empty.  Used by the intro/learning-path video routes, which deal with
+ * one video at a time (unlike the lesson list, which batches).
+ */
+export async function resolveHlsUrlForSource(
+  supabase: SupabaseClient,
+  sourceUrl: string | null | undefined,
+): Promise<string | null> {
+  if (!sourceUrl) return null
+  const map = await resolveHlsUrlsForSources(supabase, [sourceUrl])
+  return map.get(sourceUrl) ?? sourceUrl
+}

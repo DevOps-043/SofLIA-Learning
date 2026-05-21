@@ -27,7 +27,7 @@ export function useAdminDashboardLogic() {
   const { stats, isLoading, error } = useAdminStats()
   const { profile } = useProfile()
   const { resolvedTheme } = useThemeStore()
-  const { styles: orgStyles } = useOrganizationStylesContext()
+  const { effectiveStyles, styles: orgStyles } = useOrganizationStylesContext()
 
   const [activityRecords, setActivityRecords] = useState<AdminDashboardActivityRecord[]>(
     []
@@ -37,7 +37,7 @@ export function useAdminDashboardLogic() {
 
   const themeColors = buildAdminDashboardThemeColors(
     resolvedTheme === 'light',
-    orgStyles?.panel
+    effectiveStyles?.panel || orgStyles?.panel
   )
 
   useEffect(() => {

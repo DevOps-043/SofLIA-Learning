@@ -279,7 +279,7 @@ export async function validateApiRouteAccess(
         userAgent: request.headers.get('user-agent') ?? 'unknown',
       })
     }
-    return createApiAuthFailureResponse(401, 'UNAUTHENTICATED')
+    return createApiAuthFailureResponse(401, 'UNAUTHENTICATED', request)
   }
 
   const { data: userData, error: userError } = await supabase
@@ -372,13 +372,17 @@ function parseOrgScopedApiRoute(pathname: string):
   }
 }
 
-function createApiAuthFailureResponse(status: 401 | 403, error: string) {
+function createApiAuthFailureResponse(status: 401 | 403, error: string, request?: NextRequest) {
   const response = NextResponse.json({ error }, { status })
 
   if (status === 401) {
     response.cookies.delete('aprende-y-aplica-session')
     response.cookies.delete('access_token')
     response.cookies.delete('refresh_token')
+    request?.cookies
+      .getAll()
+      .filter((cookie) => cookie.name.startsWith('sb-') && cookie.name.includes('-auth-token'))
+      .forEach((cookie) => response.cookies.delete(cookie.name))
   }
 
   return response

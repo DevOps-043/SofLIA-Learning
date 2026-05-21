@@ -10,6 +10,7 @@ export const tokenSchema = z.object({
 
 export const loginChallengeTokenSchema = tokenSchema.extend({
   challengeToken: z.string().min(32).max(4096),
+  password: z.string().min(1).max(1024),
 });
 
 export const activateSchema = z.object({

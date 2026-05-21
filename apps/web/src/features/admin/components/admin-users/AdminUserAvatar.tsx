@@ -32,8 +32,8 @@ export function AdminUserAvatar({
         borderColor,
         background: imageUrl
           ? undefined
-          : `linear-gradient(135deg, ${accentColor}, color-mix(in srgb, ${accentColor} 82%, white))`,
-        color: 'white',
+          : `linear-gradient(135deg, ${accentColor}, color-mix(in srgb, ${accentColor} 82%, var(--color-bg-light)))`,
+        color: 'var(--color-bg-light)',
       }}
     >
       {imageUrl ? (

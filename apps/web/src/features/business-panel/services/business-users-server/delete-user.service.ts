@@ -1,4 +1,5 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
+import { deleteSupabaseAuthUser } from '@/features/auth/services/supabase-auth-bridge.service'
 import { fromLoose } from '../../../../lib/supabase/looseQuery'
 import { createBusinessUsersAdminClient } from './client'
 import {
@@ -170,4 +171,6 @@ export async function deleteOrganizationUser(
       `No se pudo eliminar el usuario de la plataforma: ${deleteUserError.message}`,
     )
   }
+
+  await deleteSupabaseAuthUser(userId)
 }

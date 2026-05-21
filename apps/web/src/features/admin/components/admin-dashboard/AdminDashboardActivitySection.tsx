@@ -49,23 +49,26 @@ function AdminDashboardActivityItemRow({
         return {}
       }
     }
-    return activity.metadata as Record<string, any>
+    return activity.metadata as Record<string, unknown>
   }, [activity.metadata])
 
   const titleKey = activity.title
   const descKey = activity.description
   const isLocalized = !!metadata?.is_localized || titleKey?.startsWith('notifications.')
   
-  const location = metadata?.location || metadata?.ip || t('notifications.unknownLocation', { defaultValue: 'Ubicación desconocida' })
+  const rawLocation = metadata?.location || metadata?.ip
+  const location = typeof rawLocation === 'string' && rawLocation.trim()
+    ? rawLocation
+    : t('notifications.unknownLocation', { defaultValue: 'Ubicacion desconocida' })
 
   // Try to resolve title
-  const displayTitle = isLocalized 
-    ? t(titleKey, { ...metadata, location, ns: 'common' })
+  const displayTitle = isLocalized
+    ? String(t(titleKey, { ...metadata, location, ns: 'common' }))
     : titleKey
 
   // Try to resolve description
   const displayDescription = (isLocalized || descKey?.startsWith('notifications.'))
-    ? t(descKey, { ...metadata, location, ns: 'common' })
+    ? String(t(descKey, { ...metadata, location, ns: 'common' }))
     : descKey
 
   return (
@@ -150,7 +153,9 @@ export function AdminDashboardActivitySection({
         initial={{ opacity: 0, y: 20 }}
         style={{
           backgroundColor: themeColors.cardBackground,
-          borderColor: themeColors.isLightMode ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.04)',
+          borderColor: themeColors.isLightMode
+            ? 'var(--color-gray-200)'
+            : 'color-mix(in srgb, var(--color-bg-light) 4%, transparent)',
         }}
         transition={{ delay: 0.7 }}
       >
@@ -193,7 +198,7 @@ export function AdminDashboardActivitySection({
                 style={{
                   borderBottom:
                     index < activities.length - 1
-                      ? `1px solid ${themeColors.isLightMode ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.04)'}`
+                      ? `1px solid ${themeColors.isLightMode ? 'var(--color-gray-200)' : 'color-mix(in srgb, var(--color-bg-light) 4%, transparent)'}`
                       : 'none',
                 }}
               >

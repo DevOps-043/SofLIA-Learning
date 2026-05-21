@@ -5,6 +5,7 @@ import { apiError } from '@/lib/api/errors'
 import { RefreshTokenService } from '@/lib/auth/refreshToken.service'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { logger } from '@/lib/logger'
+import { revokeSupabaseAuthSessions } from '@/features/auth/services/supabase-auth-bridge.service'
 
 type RevokeSessionsContext = {
   params: Promise<{ id: string }>
@@ -27,9 +28,11 @@ export async function POST(_request: NextRequest, context: RevokeSessionsContext
       targetUserId,
       `admin_revoked_by:${auth.userId}`,
     )
+    const nativeSessionsRevoked = await revokeSupabaseAuthSessions(targetUserId)
 
     logger.warn('security.admin_revoked_user_sessions', {
       actorUserId: auth.userId,
+      nativeSessionsRevoked,
       targetUserId,
     })
 

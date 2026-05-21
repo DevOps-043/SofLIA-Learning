@@ -9,7 +9,12 @@ export async function resolveAuthenticatedUserId(
   cookieStore: CookieStore,
   supabase: SupabaseServerClient,
 ): Promise<string | null> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   return (
+    user?.id ??
     await resolveLegacySessionUserId(cookieStore, supabase) ??
     await resolveRefreshTokenUserId(cookieStore, supabase)
   )

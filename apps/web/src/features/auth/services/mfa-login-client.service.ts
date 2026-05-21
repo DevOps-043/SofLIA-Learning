@@ -19,11 +19,13 @@ export function normalizeMfaLoginToken(token: string): string {
 export async function verifyMfaLoginChallenge(input: {
   challengeToken: string;
   fallbackError: string;
+  password: string;
   token: string;
 }): Promise<MfaLoginVerifyResult> {
   const response = await fetch('/api/auth/mfa/verify', {
     body: JSON.stringify({
       challengeToken: input.challengeToken,
+      password: input.password,
       token: normalizeMfaLoginToken(input.token),
     }),
     credentials: 'include',

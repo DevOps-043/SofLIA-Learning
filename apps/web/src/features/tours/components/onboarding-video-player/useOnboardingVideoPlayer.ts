@@ -32,7 +32,10 @@ export function useOnboardingVideoPlayer({ onComplete, videos }: Pick<Onboarding
   const isSlowConnection = useSlowConnection();
   const { resetControlsTimeout, setShowControls, showControls } = useControlsVisibility(isPlaying);
   const { clearBufferingTimeout, markVideoResponsive, scheduleBufferingIndicator } = useBufferingIndicator(videoRef, setIsBuffering);
-  useVideoJsHlsPlayback(videoRef, currentVideoSrc, playbackPolicy.nativeVideoPreload);
+  // Controlador de calidad HLS: expone las renditions disponibles y permite
+  // forzar una resolucion concreta. Se reutiliza en ControlsOverlay para
+  // pintar el selector de calidad (mismo comportamiento que CustomVideoPlayer).
+  const quality = useVideoJsHlsPlayback(videoRef, currentVideoSrc, playbackPolicy.nativeVideoPreload);
 
   useEffect(() => {
     const videosChanged = JSON.stringify(videos) !== JSON.stringify(prevVideosRef.current);
@@ -128,7 +131,7 @@ export function useOnboardingVideoPlayer({ onComplete, videos }: Pick<Onboarding
     handleCanPlay, handleInteraction, handleLoadedMetadata, handlePlaying, handleProgressEvent,
     handleRetry, handleSeek, handleTimeUpdate, handleVideoEnd,
     markVideoResponsive, resetControlsTimeout, scheduleBufferingIndicator, setShowControls, showControls,
-    hasError, isBuffering, isMuted, isPlaying, isSlowConnection, playbackPolicy, progress,
+    hasError, isBuffering, isMuted, isPlaying, isSlowConnection, playbackPolicy, progress, quality,
     setHasError, setIsBuffering, setIsPlaying, shouldReduceMotion, toggleMute, togglePlay, videoRef,
   };
 }

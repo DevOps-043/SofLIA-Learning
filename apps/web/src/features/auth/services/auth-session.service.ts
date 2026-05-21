@@ -1,5 +1,6 @@
 import { logger } from '../../../lib/logger';
 import { createClient } from '../../../lib/supabase/server';
+import type { createAdminClient } from '../../../lib/supabase/admin';
 import { RefreshTokenService } from '../../../lib/auth/refreshToken.service';
 import {
   SECURE_COOKIE_OPTIONS,
@@ -7,7 +8,9 @@ import {
 } from '../../../lib/auth/cookie-config';
 import { SessionService } from './session.service';
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+type SupabaseServerClient =
+  | Awaited<ReturnType<typeof createClient>>
+  | ReturnType<typeof createAdminClient>;
 
 export interface RequestMetadata {
   ip: string;

@@ -1,6 +1,7 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAuthActionClient } from '@/lib/supabase/auth-server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 import { z } from 'zod'
 import { cookies, headers } from 'next/headers'
@@ -12,6 +13,11 @@ import { requireHumanVerification } from '@/lib/security/bot-protection'
 import { recordSecurityEvent } from '@/lib/security/security-events'
 
 import { updateLastLoginAt } from '../services/auth-session.service'
+import { isLegacySessionFallbackEnabled } from '../services/legacy-auth-fallback'
+import {
+  ensureSupabaseAuthUserForLegacyProfile,
+  SupabaseAuthBridgeError,
+} from '../services/supabase-auth-bridge.service'
 import { createLoginSessions } from './login/create-login-sessions'
 import {
   getUnknownErrorMessage,
@@ -35,6 +41,8 @@ import {
 import { validateCustomOrganizationLogin } from './login/organization-context'
 import { resolveLoginRedirect } from './login/redirect'
 import { findLoginUser, validateLoginPassword } from './login/user-credentials'
+import { notifyLoginSuccess } from './login/login-notifications'
+import type { LoginUserRecord } from './login/types'
 
 export async function loginAction(formData: FormData) {
   try {
@@ -61,7 +69,7 @@ export async function loginAction(formData: FormData) {
       return { error: buildLockoutErrorMessage(currentLockout) }
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const user = await findLoginUser(supabase, parsed.emailOrUsername)
 
     if (!user) {
@@ -79,38 +87,49 @@ export async function loginAction(formData: FormData) {
       }
     }
 
-    const passwordResult = await validateLoginPassword(user, parsed.password)
-    if (passwordResult) {
-      const isBanned = 'banned' in passwordResult && passwordResult.banned === true
-      const debugCode = isBanned
-        ? 'USER_BANNED'
-        : !user.password_hash
-          ? 'NO_PASSWORD_HASH'
-          : 'PASSWORD_MISMATCH'
-      logger.warn('Login failed: password validation failed', {
-        userId: user.id,
-        debugCode,
-      })
-
+    if (user.is_banned) {
       recordSecurityEvent('login-failure', {
         actorId: user.id,
         actorRole: user.cargo_rol,
-        metadata: { reason: debugCode },
+        metadata: { reason: 'USER_BANNED' },
       })
-
-      if (!isBanned) {
-        const failedAttempt = await recordFailedLoginAttempt(loginAttemptContext)
-        if (failedAttempt.isLocked) {
-          return { error: buildLockoutErrorMessage(failedAttempt) }
-        }
+      return {
+        error: `Tu cuenta ha sido suspendida por violaciones de las reglas de la comunidad. ${user.ban_reason || ''}`,
       }
-
-      return passwordResult
     }
 
     try {
       const mfaStatus = await getMfaStatusForLogin(user.id)
       if (mfaStatus.enabled) {
+        const passwordResult = await validatePasswordBeforeMfaChallenge({
+          password: parsed.password,
+          user,
+        })
+        if (!passwordResult.success) {
+          const debugCode = passwordResult.debugCode
+          logger.warn('Login failed: password validation failed', {
+            nativeReason: passwordResult.nativeReason,
+            userId: user.id,
+            debugCode,
+          })
+
+          recordSecurityEvent('login-failure', {
+            actorId: user.id,
+            actorRole: user.cargo_rol,
+            metadata: {
+              nativeReason: passwordResult.nativeReason,
+              reason: debugCode,
+            },
+          })
+
+          const failedAttempt = await recordFailedLoginAttempt(loginAttemptContext)
+          if (failedAttempt.isLocked) {
+            return { error: buildLockoutErrorMessage(failedAttempt) }
+          }
+
+          return { error: passwordResult.error }
+        }
+
         const challenge = createLoginMfaChallenge({
           emailOrUsername: parsed.emailOrUsername,
           formData,
@@ -161,6 +180,38 @@ export async function loginAction(formData: FormData) {
       }
     }
 
+    const nativeLoginResult = await trySupabasePasswordLogin({
+      password: parsed.password,
+      user,
+    })
+    if (!nativeLoginResult.success) {
+      const passwordResult = await validateLoginPassword(user, parsed.password)
+      if (passwordResult) {
+        const debugCode = !user.password_hash
+          ? 'NO_PASSWORD_HASH'
+          : 'PASSWORD_MISMATCH'
+        logger.warn('Login failed: password validation failed', {
+          nativeReason: nativeLoginResult.reason,
+          userId: user.id,
+          debugCode,
+        })
+
+        recordSecurityEvent('login-failure', {
+          actorId: user.id,
+          actorRole: user.cargo_rol,
+          metadata: { reason: debugCode, nativeReason: nativeLoginResult.reason },
+        })
+
+        const failedAttempt = await recordFailedLoginAttempt(loginAttemptContext)
+        if (failedAttempt.isLocked) {
+          return { error: buildLockoutErrorMessage(failedAttempt) }
+        }
+
+        return passwordResult
+      }
+
+    }
+
     const organizationResult = await validateCustomOrganizationLogin({
       formData,
       supabase,
@@ -170,6 +221,10 @@ export async function loginAction(formData: FormData) {
       logger.warn('Login failed: organization validation failed', {
         userId: user.id,
       })
+      if (nativeLoginResult.success) {
+        const authClient = await createAuthActionClient()
+        await authClient.auth.signOut({ scope: 'local' })
+      }
       recordSecurityEvent('login-failure', {
         actorId: user.id,
         actorRole: user.cargo_rol,
@@ -178,21 +233,54 @@ export async function loginAction(formData: FormData) {
       return organizationResult
     }
 
-    const sessionResult = await createLoginSessions({
-      rememberMe: parsed.rememberMe,
-      userId: user.id,
-    })
-    if (sessionResult) {
-      logger.error('Login failed: session creation failed', {
+    if (nativeLoginResult.success) {
+      await notifyLoginSuccess({
+        ip: loginAttemptContext.ip,
+        rememberMe: parsed.rememberMe,
+        userAgent: headersList.get('user-agent') || 'unknown',
         userId: user.id,
       })
-      recordSecurityEvent('login-failure', {
-        actorId: user.id,
-        actorRole: user.cargo_rol,
-        result: 'error',
-        metadata: { reason: 'session_creation_failed' },
+    } else {
+      if (!isLegacySessionFallbackEnabled()) {
+        logger.error('Supabase Auth login failed and legacy fallback is disabled', {
+          reason: nativeLoginResult.reason,
+          userId: user.id,
+        })
+        recordSecurityEvent('login-failure', {
+          actorId: user.id,
+          actorRole: user.cargo_rol,
+          result: 'error',
+          metadata: {
+            nativeReason: nativeLoginResult.reason,
+            reason: 'supabase_auth_unavailable_legacy_fallback_disabled',
+          },
+        })
+        return {
+          error:
+            'No se pudo iniciar sesion con Supabase Auth. Por favor, intenta nuevamente.',
+        }
+      }
+
+      logger.warn('Supabase Auth login unavailable; using legacy session fallback', {
+        reason: nativeLoginResult.reason,
+        userId: user.id,
       })
-      return sessionResult
+      const legacySessionResult = await createLoginSessions({
+        rememberMe: parsed.rememberMe,
+        userId: user.id,
+      })
+      if (legacySessionResult) {
+        logger.error('Login failed: fallback session creation failed', {
+          userId: user.id,
+        })
+        recordSecurityEvent('login-failure', {
+          actorId: user.id,
+          actorRole: user.cargo_rol,
+          result: 'error',
+          metadata: { reason: 'session_creation_failed' },
+        })
+        return legacySessionResult
+      }
     }
 
     scheduleExpiredSessionCleanup()
@@ -238,6 +326,145 @@ export async function loginAction(formData: FormData) {
 
     return {
       error: getUnknownErrorMessage(error, 'Error inesperado al iniciar sesion'),
+    }
+  }
+}
+
+async function trySupabasePasswordLogin(input: {
+  password: string
+  user: LoginUserRecord
+}): Promise<{ success: true } | { reason: string; success: false }> {
+  if (!input.user.email) {
+    return { reason: 'MISSING_EMAIL', success: false }
+  }
+
+  try {
+    await ensureSupabaseAuthUserForLegacyProfile(input.user)
+    const authClient = await createAuthActionClient()
+    const { data, error } = await authClient.auth.signInWithPassword({
+      email: input.user.email,
+      password: input.password,
+    })
+
+    if (error || !data.user) {
+      return {
+        reason: error?.message || 'AUTH_SIGNIN_FAILED',
+        success: false,
+      }
+    }
+
+    if (data.user.id !== input.user.id) {
+      await authClient.auth.signOut({ scope: 'local' })
+      return { reason: 'AUTH_USER_ID_MISMATCH', success: false }
+    }
+
+    return { success: true }
+  } catch (error) {
+    if (error instanceof SupabaseAuthBridgeError) {
+      return { reason: error.code, success: false }
+    }
+
+    return {
+      reason: error instanceof Error ? error.message : 'AUTH_LOGIN_ERROR',
+      success: false,
+    }
+  }
+}
+
+async function validatePasswordBeforeMfaChallenge(input: {
+  password: string
+  user: LoginUserRecord
+}): Promise<
+  | { success: true }
+  | {
+      debugCode: string
+      error: string
+      nativeReason?: string
+      success: false
+    }
+> {
+  const nativePasswordResult = await trySupabasePasswordVerification(input)
+  if (nativePasswordResult.success) {
+    return { success: true }
+  }
+
+  if (nativePasswordResult.reason === 'AUTH_PRE_MFA_SIGNOUT_FAILED') {
+    return {
+      debugCode: 'AUTH_PRE_MFA_SIGNOUT_FAILED',
+      error:
+        'No se pudo preparar la autenticacion multifactor. Por favor, intenta nuevamente.',
+      nativeReason: nativePasswordResult.reason,
+      success: false,
+    }
+  }
+
+  if (!input.user.password_hash) {
+    return {
+      debugCode: 'SUPABASE_AUTH_PASSWORD_MISMATCH',
+      error: 'Credenciales invalidas',
+      nativeReason: nativePasswordResult.reason,
+      success: false,
+    }
+  }
+
+  const legacyPasswordResult = await validateLoginPassword(input.user, input.password)
+  if (!legacyPasswordResult) {
+    return { success: true }
+  }
+
+  return {
+    debugCode: 'PASSWORD_MISMATCH',
+    error: legacyPasswordResult.error,
+    nativeReason: nativePasswordResult.reason,
+    success: false,
+  }
+}
+
+async function trySupabasePasswordVerification(input: {
+  password: string
+  user: LoginUserRecord
+}): Promise<{ success: true } | { reason: string; success: false }> {
+  if (!input.user.email) {
+    return { reason: 'MISSING_EMAIL', success: false }
+  }
+
+  try {
+    await ensureSupabaseAuthUserForLegacyProfile(input.user)
+    const authClient = await createAuthActionClient()
+    const { data, error } = await authClient.auth.signInWithPassword({
+      email: input.user.email,
+      password: input.password,
+    })
+
+    if (error || !data.user) {
+      return {
+        reason: error?.message || 'AUTH_SIGNIN_FAILED',
+        success: false,
+      }
+    }
+
+    if (data.user.id !== input.user.id) {
+      const { error: signOutError } = await authClient.auth.signOut({ scope: 'local' })
+      if (signOutError) {
+        return { reason: 'AUTH_PRE_MFA_SIGNOUT_FAILED', success: false }
+      }
+      return { reason: 'AUTH_USER_ID_MISMATCH', success: false }
+    }
+
+    const { error: signOutError } = await authClient.auth.signOut({ scope: 'local' })
+    if (signOutError) {
+      return { reason: 'AUTH_PRE_MFA_SIGNOUT_FAILED', success: false }
+    }
+
+    return { success: true }
+  } catch (error) {
+    if (error instanceof SupabaseAuthBridgeError) {
+      return { reason: error.code, success: false }
+    }
+
+    return {
+      reason: error instanceof Error ? error.message : 'AUTH_PASSWORD_VERIFY_ERROR',
+      success: false,
     }
   }
 }

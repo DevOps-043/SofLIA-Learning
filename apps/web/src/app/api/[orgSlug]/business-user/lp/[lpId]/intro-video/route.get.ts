@@ -3,6 +3,7 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { requireBusinessUser } from '@/lib/auth/requireBusiness'
+import { resolveHlsUrlForSource } from '@/lib/media/server/hls-source-resolver.server'
 
 import { logger } from '@/lib/utils/logger'
 
@@ -45,9 +46,16 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
         .maybeSingle(),
     ])
 
+    // Sirve el master.m3u8 cuando el video del LP ya fue transcodificado a
+    // HLS, habilitando la seleccion de resolucion. Fallback al MP4 original.
+    const introVideoUrl = await resolveHlsUrlForSource(
+      supabase,
+      videoResult.data?.intro_video_url,
+    )
+
     return NextResponse.json({
       success: true,
-      introVideoUrl: videoResult.data?.intro_video_url ?? null,
+      introVideoUrl,
       watched: Boolean(progressResult.data?.lp_intro_watched_at),
     })
   } catch (error) {

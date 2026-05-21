@@ -1,14 +1,18 @@
-import crypto from 'crypto';
-import { emailService } from '../../services/email.service';
 import { logger } from '../../../../lib/logger';
 import { escapeIlikePattern } from '../../../../lib/supabase/ilike-escape';
+import type { createAdminClient } from '../../../../lib/supabase/admin';
+import type { createClient } from '../../../../lib/supabase/server';
 import type { PasswordResetUser } from './reset-password.types';
 
 export const PASSWORD_RESET_SUCCESS_MESSAGE =
   'Si el correo está registrado, recibirás un enlace de recuperación.';
 
+type PasswordResetLookupClient =
+  | Awaited<ReturnType<typeof createClient>>
+  | ReturnType<typeof createAdminClient>;
+
 export async function findPasswordResetUser(
-  supabase: Awaited<ReturnType<typeof import('../../../../lib/supabase/server').createClient>>,
+  supabase: PasswordResetLookupClient,
   email: string
 ): Promise<PasswordResetUser | null> {
   const normalized = email.trim();
@@ -18,7 +22,7 @@ export async function findPasswordResetUser(
 
   const { data: user, error } = await supabase
     .from('users')
-    .select('id, email, username, first_name')
+    .select('id, email, username, first_name, last_name, display_name, profile_picture_url, cargo_rol, email_verified, password_hash')
     .ilike('email', escapeIlikePattern(normalized))
     .maybeSingle();
 
@@ -37,47 +41,4 @@ export async function findPasswordResetUser(
 
   logger.info('User found for password reset', { userId: user.id });
   return user;
-}
-
-export async function createPasswordResetToken(
-  supabase: Awaited<ReturnType<typeof import('../../../../lib/supabase/server').createClient>>,
-  userId: string
-): Promise<string | null> {
-  const resetToken = crypto.randomBytes(32).toString('hex');
-  const expiresAt = new Date(Date.now() + 3600000);
-  const { error } = await supabase.from('password_reset_tokens').insert({
-    expires_at: expiresAt.toISOString(),
-    token: resetToken,
-    user_id: userId,
-  });
-
-  if (error) {
-    logger.error('Error inserting reset token', error);
-    return null;
-  }
-
-  return resetToken;
-}
-
-export async function sendPasswordResetEmail(
-  user: PasswordResetUser,
-  resetToken: string
-): Promise<void> {
-  try {
-    if (!emailService.isReady()) {
-      logger.error('Email service not ready for password reset');
-      return;
-    }
-
-    const userEmail = user.email?.trim();
-    if (!userEmail) {
-      logger.error('User found without email, skipping reset email', { userId: user.id });
-      return;
-    }
-
-    const username = user.first_name || user.username || userEmail.split('@')[0];
-    await emailService.sendPasswordResetEmail(userEmail, resetToken, username);
-  } catch (emailError) {
-    logger.error('Error sending password reset email', emailError);
-  }
 }

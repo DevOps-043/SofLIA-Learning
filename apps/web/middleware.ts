@@ -39,6 +39,14 @@ function withCorrelationHeader<T extends NextResponse>(response: T, correlationI
   return response
 }
 
+function hasSupabaseAuthTokenCookie(request: NextRequest) {
+  return request.cookies
+    .getAll()
+    .some((cookie) =>
+      cookie.name.startsWith('sb-') && cookie.name.includes('-auth-token'),
+    )
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const correlationId = getOrCreateCorrelationId(request.headers)
@@ -184,7 +192,8 @@ export async function middleware(request: NextRequest) {
   const hasLegacySession = !!sessionCookie?.value;
   const hasAccessToken = !!accessTokenCookie?.value;
   const hasRefreshToken = !!refreshTokenCookie?.value;
-  const hasSession = hasLegacySession || hasAccessToken;
+  const hasSupabaseAuthSession = hasSupabaseAuthTokenCookie(request);
+  const hasSession = hasLegacySession || hasAccessToken || hasSupabaseAuthSession;
 
   if (
     shouldBlockAutomatedSensitiveAccess({
@@ -343,31 +352,41 @@ export async function middleware(request: NextRequest) {
         );
 
         const orgSlug = pathParts[0];
-        const sessionCookieVal = request.cookies.get('aprende-y-aplica-session')?.value;
+        let authenticatedUserId: string | null = null;
+        const {
+          data: { user: nativeUser },
+        } = await supabaseForSuspension.auth.getUser();
 
-        if (sessionCookieVal) {
-          const { data: sessionRow } = await supabaseForSuspension
-            .from('user_session')
-            .select('user_id')
-            .eq('jwt_id', sessionCookieVal)
-            .eq('revoked', false)
-            .gt('expires_at', new Date().toISOString())
-            .single();
+        authenticatedUserId = nativeUser?.id ?? null;
 
-          if (sessionRow?.user_id) {
-            const { data: membership } = await supabaseForSuspension
-              .from('organization_users')
-              .select('status, organizations!inner(slug)')
-              .eq('user_id', sessionRow.user_id)
-              .eq('organizations.slug', orgSlug)
+        if (!authenticatedUserId) {
+          const sessionCookieVal = request.cookies.get('aprende-y-aplica-session')?.value;
+          if (sessionCookieVal) {
+            const { data: sessionRow } = await supabaseForSuspension
+              .from('user_session')
+              .select('user_id')
+              .eq('jwt_id', sessionCookieVal)
+              .eq('revoked', false)
+              .gt('expires_at', new Date().toISOString())
               .single();
 
-            if (membership?.status === 'suspended') {
-              return withCorrelationHeader(
-                NextResponse.redirect(new URL(`/${orgSlug}/suspended`, request.url)),
-                correlationId,
-              );
-            }
+            authenticatedUserId = sessionRow?.user_id ?? null;
+          }
+        }
+
+        if (authenticatedUserId) {
+          const { data: membership } = await supabaseForSuspension
+            .from('organization_users')
+            .select('status, organizations!inner(slug)')
+            .eq('user_id', authenticatedUserId)
+            .eq('organizations.slug', orgSlug)
+            .single();
+
+          if (membership?.status === 'suspended') {
+            return withCorrelationHeader(
+              NextResponse.redirect(new URL(`/${orgSlug}/suspended`, request.url)),
+              correlationId,
+            );
           }
         }
       } catch {

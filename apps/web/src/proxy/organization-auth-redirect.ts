@@ -9,15 +9,14 @@ const activeStatuses = ['active', 'trial']
 export async function handleOrganizationAuthRedirect(request: NextRequest, logger: ProxyLogger) {
   const { pathname } = request.nextUrl
   if ((pathname !== '/auth' && pathname !== '/auth/') || request.nextUrl.searchParams.has('redirect')) return null
-  const sessionCookie = request.cookies.get('aprende-y-aplica-session')
-  if (!sessionCookie) return null
 
   try {
     const supabase = createProxySupabaseClient(request)
-    const { data: sessionData } = await supabase.from('user_session').select('user_id').eq('jwt_id', sessionCookie.value).eq('revoked', false).gt('expires_at', new Date().toISOString()).single()
-    if (!sessionData) return null
-    const { data: user } = await supabase.from('users').select('cargo_rol').eq('id', sessionData.user_id).single()
-    const { data: orgUser } = await supabase.from('organization_users').select('organization_id').eq('user_id', sessionData.user_id).eq('status', 'active').single()
+    const userId = await getAuthenticatedUserId(request, supabase)
+    if (!userId) return null
+
+    const { data: user } = await supabase.from('users').select('cargo_rol').eq('id', userId).single()
+    const { data: orgUser } = await supabase.from('organization_users').select('organization_id').eq('user_id', userId).eq('status', 'active').single()
     const customLoginRedirect = await getCustomLoginRedirect(request, orgUser?.organization_id || null, supabase)
     if (customLoginRedirect) return customLoginRedirect
     if (user) {
@@ -29,6 +28,18 @@ export async function handleOrganizationAuthRedirect(request: NextRequest, logge
     logger.error('Error verificando organizaci??n en middleware:', error)
   }
   return null
+}
+
+async function getAuthenticatedUserId(request: NextRequest, supabase: ReturnType<typeof createProxySupabaseClient>) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (user?.id) return user.id
+
+  const sessionCookie = request.cookies.get('aprende-y-aplica-session')
+  if (!sessionCookie?.value) return null
+  const { data: sessionData } = await supabase.from('user_session').select('user_id').eq('jwt_id', sessionCookie.value).eq('revoked', false).gt('expires_at', new Date().toISOString()).single()
+  return sessionData?.user_id || null
 }
 
 async function getCustomLoginRedirect(request: NextRequest, organizationId: string | null, supabase: ReturnType<typeof createProxySupabaseClient>) {

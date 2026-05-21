@@ -1,5 +1,16 @@
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
+--
+-- SECURITY REVIEW 2026-05-20:
+-- - Supabase Auth should be the canonical authentication source.
+-- - public.users should be treated as an application profile table, not as a
+--   credentials/session/OAuth store.
+-- - Credentials and provider identities belong to auth.users/auth.identities.
+-- - App authorization should be enforced with RLS policies using auth.uid()
+--   and server-only service_role routes for administrative mutations.
+-- - The legacy columns/tables password_hash, email_verified,
+--   oauth_provider/oauth_provider_id, password_reset_tokens, oauth_accounts,
+--   refresh_tokens, and user_session must be migrated out in controlled phases.
 
 CREATE TABLE public.admin_dashboard_layouts (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -1407,15 +1418,30 @@ CREATE TABLE public.user_warnings (
   CONSTRAINT user_warnings_pkey PRIMARY KEY (warning_id),
   CONSTRAINT user_warnings_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
+-- Corrected target model:
+-- public.users is an application profile row keyed by auth.users.id.
+-- Do not store password hashes, OAuth provider ids, refresh tokens, reset
+-- tokens, or email verification state here. Those belong to Supabase Auth.
+-- Migration note:
+-- If current public.users.id values do not already match auth.users.id, do not
+-- apply this target definition directly. First add a transitional
+-- public.users.auth_user_id column, backfill it from verified email matches,
+-- move login/session flows to Supabase Auth, then cut over foreign keys in a
+-- later migration.
 CREATE TABLE public.users (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  id uuid NOT NULL,
   username text NOT NULL UNIQUE CHECK (username ~* '^[A-Za-z0-9_-]+$'::text),
-  email text UNIQUE CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'::text),
-  password_hash text CHECK (password_hash IS NULL OR password_hash ~* '^\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}$'::text),
+  email text UNIQUE CHECK (
+    email IS NULL
+    OR (
+      email = lower(email)
+      AND email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'::text
+    )
+  ),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   last_login_at timestamp with time zone,
-  cargo_rol text CHECK (cargo_rol = ANY (ARRAY['Usuario'::text, 'Instructor'::text, 'Administrador'::text, 'Business'::text, 'Business User'::text])),
+  cargo_rol text NOT NULL DEFAULT 'Usuario'::text CHECK (cargo_rol = ANY (ARRAY['Usuario'::text, 'Instructor'::text, 'Administrador'::text, 'Business'::text, 'Business User'::text])),
   type_rol text,
   first_name text,
   last_name text,
@@ -1424,11 +1450,7 @@ CREATE TABLE public.users (
   bio text,
   location text,
   profile_picture_url text,
-  email_verified boolean NOT NULL DEFAULT false,
-  email_verified_at timestamp with time zone,
   country_code text,
-  oauth_provider character varying,
-  oauth_provider_id character varying,
   is_banned boolean NOT NULL DEFAULT false,
   banned_at timestamp with time zone,
   ban_reason text,
@@ -1439,8 +1461,94 @@ CREATE TABLE public.users (
   notification_marketing boolean DEFAULT false,
   notification_course_updates boolean DEFAULT true,
   notification_community_updates boolean DEFAULT false,
-  CONSTRAINT users_pkey PRIMARY KEY (id)
+  CONSTRAINT users_pkey PRIMARY KEY (id),
+  CONSTRAINT users_auth_user_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
 );
+
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users FORCE ROW LEVEL SECURITY;
+
+REVOKE ALL ON TABLE public.users FROM anon;
+REVOKE ALL ON TABLE public.users FROM authenticated;
+
+GRANT SELECT ON TABLE public.users TO authenticated;
+GRANT UPDATE (
+  username,
+  first_name,
+  last_name,
+  display_name,
+  phone,
+  bio,
+  location,
+  profile_picture_url,
+  country_code,
+  notification_email,
+  notification_push,
+  notification_marketing,
+  notification_course_updates,
+  notification_community_updates
+) ON TABLE public.users TO authenticated;
+GRANT ALL ON TABLE public.users TO service_role;
+
+CREATE POLICY users_select_own_profile
+  ON public.users
+  FOR SELECT
+  TO authenticated
+  USING ((select auth.uid()) = id);
+
+CREATE POLICY users_update_own_profile
+  ON public.users
+  FOR UPDATE
+  TO authenticated
+  USING ((select auth.uid()) = id)
+  WITH CHECK ((select auth.uid()) = id);
+
+CREATE OR REPLACE FUNCTION public.handle_auth_user_created()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  INSERT INTO public.users (
+    id,
+    email,
+    username,
+    first_name,
+    last_name,
+    display_name,
+    profile_picture_url
+  )
+  VALUES (
+    NEW.id,
+    lower(NEW.email),
+    COALESCE(
+      NULLIF(NEW.raw_user_meta_data ->> 'username', ''),
+      'u_' || substring(replace(NEW.id::text, '-', '') from 1 for 16)
+    ),
+    NULLIF(NEW.raw_user_meta_data ->> 'first_name', ''),
+    NULLIF(NEW.raw_user_meta_data ->> 'last_name', ''),
+    COALESCE(
+      NULLIF(NEW.raw_user_meta_data ->> 'display_name', ''),
+      NULLIF(NEW.raw_user_meta_data ->> 'full_name', ''),
+      NULLIF(NEW.raw_user_meta_data ->> 'name', '')
+    ),
+    COALESCE(
+      NULLIF(NEW.raw_user_meta_data ->> 'avatar_url', ''),
+      NULLIF(NEW.raw_user_meta_data ->> 'picture', '')
+    )
+  )
+  ON CONFLICT (id) DO NOTHING;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_auth_user_created();
 CREATE TABLE public.work_team_course_assignments (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   team_id uuid NOT NULL,
@@ -1562,3 +1670,251 @@ CREATE TABLE public.work_teams (
   CONSTRAINT work_teams_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
   CONSTRAINT work_teams_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id)
 );
+
+-- RLS phase 1: direct user activity tables.
+-- Users own their own rows. Business owner/admin users can read activity rows
+-- for active members of their organization when the row carries organization_id.
+CREATE OR REPLACE FUNCTION public.can_read_org_user_activity(
+  target_user_id uuid,
+  target_organization_id uuid
+)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+  SELECT
+    target_organization_id IS NOT NULL
+    AND EXISTS (
+      SELECT 1
+      FROM public.organization_users actor_membership
+      JOIN public.organization_users target_membership
+        ON target_membership.organization_id = actor_membership.organization_id
+      WHERE actor_membership.user_id = auth.uid()
+        AND actor_membership.organization_id = target_organization_id
+        AND actor_membership.status = 'active'
+        AND actor_membership.role IN ('owner', 'admin')
+        AND target_membership.user_id = target_user_id
+        AND target_membership.status = 'active'
+    );
+$$;
+
+REVOKE ALL ON FUNCTION public.can_read_org_user_activity(uuid, uuid) FROM public;
+GRANT EXECUTE ON FUNCTION public.can_read_org_user_activity(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.can_read_org_user_activity(uuid, uuid) TO service_role;
+
+ALTER TABLE public.user_notification_preferences ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_lesson_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_lesson_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.study_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lia_conversations ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON TABLE public.user_notifications FROM anon;
+REVOKE INSERT, UPDATE, DELETE ON TABLE public.user_notifications FROM authenticated;
+GRANT SELECT ON TABLE public.user_notifications TO authenticated;
+GRANT UPDATE (status, read_at, updated_at) ON TABLE public.user_notifications TO authenticated;
+GRANT DELETE ON TABLE public.user_notifications TO authenticated;
+GRANT ALL ON TABLE public.user_notifications TO service_role;
+
+CREATE POLICY user_notification_preferences_select_own
+  ON public.user_notification_preferences
+  FOR SELECT
+  TO authenticated
+  USING (user_id = auth.uid());
+
+CREATE POLICY user_notification_preferences_insert_own
+  ON public.user_notification_preferences
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY user_notification_preferences_update_own
+  ON public.user_notification_preferences
+  FOR UPDATE
+  TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY user_notification_preferences_delete_own
+  ON public.user_notification_preferences
+  FOR DELETE
+  TO authenticated
+  USING (user_id = auth.uid());
+
+CREATE POLICY user_notification_preferences_service_role
+  ON public.user_notification_preferences
+  FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
+
+CREATE POLICY user_notifications_select_self_or_org_admin
+  ON public.user_notifications
+  FOR SELECT
+  TO authenticated
+  USING (
+    user_id = auth.uid()
+    OR public.can_read_org_user_activity(user_id, organization_id)
+  );
+
+CREATE POLICY user_notifications_update_own
+  ON public.user_notifications
+  FOR UPDATE
+  TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY user_notifications_delete_own
+  ON public.user_notifications
+  FOR DELETE
+  TO authenticated
+  USING (user_id = auth.uid());
+
+CREATE POLICY user_notifications_service_role
+  ON public.user_notifications
+  FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
+
+CREATE POLICY user_lesson_notes_select_self_or_org_admin
+  ON public.user_lesson_notes
+  FOR SELECT
+  TO authenticated
+  USING (
+    user_id = auth.uid()
+    OR public.can_read_org_user_activity(user_id, organization_id)
+  );
+
+CREATE POLICY user_lesson_notes_insert_own
+  ON public.user_lesson_notes
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY user_lesson_notes_update_own
+  ON public.user_lesson_notes
+  FOR UPDATE
+  TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY user_lesson_notes_delete_own
+  ON public.user_lesson_notes
+  FOR DELETE
+  TO authenticated
+  USING (user_id = auth.uid());
+
+CREATE POLICY user_lesson_notes_service_role
+  ON public.user_lesson_notes
+  FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
+
+CREATE POLICY user_lesson_progress_select_self_or_org_admin
+  ON public.user_lesson_progress
+  FOR SELECT
+  TO authenticated
+  USING (
+    user_id = auth.uid()
+    OR public.can_read_org_user_activity(user_id, organization_id)
+  );
+
+CREATE POLICY user_lesson_progress_insert_own
+  ON public.user_lesson_progress
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY user_lesson_progress_update_own
+  ON public.user_lesson_progress
+  FOR UPDATE
+  TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY user_lesson_progress_delete_own
+  ON public.user_lesson_progress
+  FOR DELETE
+  TO authenticated
+  USING (user_id = auth.uid());
+
+CREATE POLICY user_lesson_progress_service_role
+  ON public.user_lesson_progress
+  FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
+
+CREATE POLICY study_sessions_select_self_or_org_admin
+  ON public.study_sessions
+  FOR SELECT
+  TO authenticated
+  USING (
+    user_id = auth.uid()
+    OR public.can_read_org_user_activity(user_id, organization_id)
+  );
+
+CREATE POLICY study_sessions_insert_own
+  ON public.study_sessions
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY study_sessions_update_own
+  ON public.study_sessions
+  FOR UPDATE
+  TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY study_sessions_delete_own
+  ON public.study_sessions
+  FOR DELETE
+  TO authenticated
+  USING (user_id = auth.uid());
+
+CREATE POLICY study_sessions_service_role
+  ON public.study_sessions
+  FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
+
+CREATE POLICY lia_conversations_select_self_or_org_admin
+  ON public.lia_conversations
+  FOR SELECT
+  TO authenticated
+  USING (
+    user_id = auth.uid()
+    OR public.can_read_org_user_activity(user_id, organization_id)
+  );
+
+CREATE POLICY lia_conversations_insert_own
+  ON public.lia_conversations
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY lia_conversations_update_own
+  ON public.lia_conversations
+  FOR UPDATE
+  TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY lia_conversations_delete_own
+  ON public.lia_conversations
+  FOR DELETE
+  TO authenticated
+  USING (user_id = auth.uid());
+
+CREATE POLICY lia_conversations_service_role
+  ON public.lia_conversations
+  FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);

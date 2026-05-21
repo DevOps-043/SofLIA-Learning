@@ -8,10 +8,11 @@ import { normalizeOrganizationRole, normalizeOrganizationStatus } from './busine
 import { assertValidBusinessUserDemographics } from './business-users-validation'
 
 export function buildUserInsertData(
+  userId: string,
   userData: CreateBusinessUserRequest,
-  passwordHash: string,
 ): UserInsertRow {
   return {
+    id: userId,
     username: userData.username,
     email: userData.email,
     first_name: userData.first_name ?? null,
@@ -20,7 +21,6 @@ export function buildUserInsertData(
     date_of_birth: normalizeDateOfBirthForStorage(userData.date_of_birth),
     gender: normalizeGenderForStorage(userData.gender),
     cargo_rol: 'Business',
-    password_hash: passwordHash,
   }
 }
 

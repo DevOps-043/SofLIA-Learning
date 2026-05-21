@@ -4,13 +4,17 @@ import type { createClient } from '../../lib/supabase/server';
 import { logSecurityEvent } from './auth.logging';
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+type SupabaseSessionClient = Pick<SupabaseServerClient, 'auth' | 'from'>;
 
 export async function resolveAuthenticatedUserId(params: {
   request: NextRequest;
-  supabase: SupabaseServerClient;
+  supabase: SupabaseSessionClient;
   pathname: string;
   clientIp: string;
 }) {
+  const nativeResult = await resolveSupabaseAuthUserId(params.supabase);
+  if (nativeResult.userId) return nativeResult;
+
   const legacyResult = await resolveLegacySessionUserId(params);
   if (legacyResult.userId || legacyResult.error) return legacyResult;
 
@@ -24,9 +28,17 @@ export async function resolveAuthenticatedUserId(params: {
     : { userId: null };
 }
 
+async function resolveSupabaseAuthUserId(supabase: SupabaseSessionClient) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return user?.id ? { userId: user.id } : { userId: null };
+}
+
 async function resolveLegacySessionUserId(params: {
   request: NextRequest;
-  supabase: SupabaseServerClient;
+  supabase: SupabaseSessionClient;
   pathname: string;
   clientIp: string;
 }) {
@@ -66,7 +78,7 @@ async function resolveLegacySessionUserId(params: {
 
 async function resolveRefreshTokenUserId(
   request: NextRequest,
-  supabase: SupabaseServerClient,
+  supabase: SupabaseSessionClient,
 ) {
   const refreshToken = request.cookies.get('refresh_token')?.value;
   const accessToken = request.cookies.get('access_token')?.value;

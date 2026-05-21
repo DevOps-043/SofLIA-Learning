@@ -2,6 +2,7 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { requireUser } from '@/lib/auth/requireUser'
+import { resolveHlsUrlForSource } from '@/lib/media/server/hls-source-resolver.server'
 import { logger } from '@/lib/utils/logger'
 
 interface RouteParams {
@@ -168,8 +169,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const courseVideoUrl = courseVideo?.intro_video_url ?? null
     const courseIntroWatched = Boolean(enrollment?.course_intro_watched_at)
 
-    const courseVideosForPanel = courseVideoUrl ? [courseVideoUrl] : []
-    const videos = courseVideoUrl && !courseIntroWatched ? [courseVideoUrl] : []
+    // Si el video introductorio ya fue transcodificado, servimos el
+    // master.m3u8 para que el reproductor habilite el selector de
+    // resolucion. Sin job completado se mantiene el MP4 original.
+    const playbackUrl = await resolveHlsUrlForSource(supabase, courseVideoUrl)
+
+    const courseVideosForPanel = playbackUrl ? [playbackUrl] : []
+    const videos = playbackUrl && !courseIntroWatched ? [playbackUrl] : []
 
     return NextResponse.json<IntroVideosResponse & { success: true }>({
       success: true,

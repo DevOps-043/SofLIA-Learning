@@ -1,8 +1,11 @@
+import type { createAdminClient } from '@/lib/supabase/admin'
 import type { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import type { HierarchyAutoAssignConfig } from './types'
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+type SupabaseServerClient =
+  | Awaited<ReturnType<typeof createClient>>
+  | ReturnType<typeof createAdminClient>
 
 export async function loadHierarchyAutoAssignConfig(
   supabase: SupabaseServerClient,

@@ -28,7 +28,7 @@ export async function validateProtectedRouteAccess(request: NextRequest, route: 
 async function refreshAccessTokenOrRedirect(request: NextRequest, logger: ProxyLogger) {
   logger.log('???? Intentando refrescar access token expirado')
   try {
-    await RefreshTokenService.refreshSession(request)
+    await RefreshTokenService.refreshSession()
     logger.log('??? Access token refrescado exitosamente')
     return null
   } catch (error) {

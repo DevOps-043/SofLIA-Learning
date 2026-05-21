@@ -8,11 +8,20 @@ import {
   verifyMfaToken,
   verifyMfaTokenForLogin,
 } from '@/lib/auth/mfa/mfa.service'
+import { logger } from '@/lib/logger'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { createAuthActionClient } from '@/lib/supabase/auth-server'
 import { createClient } from '@/lib/supabase/server'
 import type { Tables } from '@/lib/supabase/types'
 import { recordSecurityEvent } from '@/lib/security/security-events'
 import { updateLastLoginAt } from '@/features/auth/services/auth-session.service'
+import { isLegacySessionFallbackEnabled } from '@/features/auth/services/legacy-auth-fallback'
+import {
+  ensureSupabaseAuthUserForLegacyProfile,
+  SupabaseAuthBridgeError,
+} from '@/features/auth/services/supabase-auth-bridge.service'
 import { createLoginSessions } from '@/features/auth/actions/login/create-login-sessions'
+import { scheduleExpiredSessionCleanup } from '@/features/auth/actions/login/expired-session-cleanup'
 import {
   buildLockoutErrorMessage,
   buildLoginAttemptContext,
@@ -26,9 +35,14 @@ import {
   LoginMfaChallengeError,
   verifyLoginMfaChallenge,
 } from '@/features/auth/actions/login/mfa-login-challenge'
+import { notifyLoginSuccess } from '@/features/auth/actions/login/login-notifications'
 import { validateCustomOrganizationLogin } from '@/features/auth/actions/login/organization-context'
 import { resolveLoginRedirect } from '@/features/auth/actions/login/redirect'
-import { findLoginUserById } from '@/features/auth/actions/login/user-credentials'
+import {
+  findLoginUserById,
+  validateLoginPassword,
+} from '@/features/auth/actions/login/user-credentials'
+import type { LoginUserRecord } from '@/features/auth/actions/login/types'
 
 import { loginChallengeTokenSchema, tokenSchema } from '../schema'
 
@@ -79,7 +93,7 @@ export async function POST(request: NextRequest) {
 
 async function verifyLoginChallenge(
   request: NextRequest,
-  input: { challengeToken: string; token: string },
+  input: { challengeToken: string; password: string; token: string },
 ) {
   const cookieStore = await cookies()
   let challenge: ReturnType<typeof verifyLoginMfaChallenge>
@@ -113,7 +127,7 @@ async function verifyLoginChallenge(
     return apiError('ACCOUNT_LOCKED', buildLockoutErrorMessage(currentLockout), 423)
   }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const user = await findLoginUserById(supabase, challenge.userId)
   if (!user?.email || user.is_banned) {
     cookieStore.delete(LOGIN_MFA_CHALLENGE_COOKIE_NAME)
@@ -153,14 +167,76 @@ async function verifyLoginChallenge(
       return NextResponse.json(organizationResult)
     }
 
-    const sessionResult = await createLoginSessions({
-      rememberMe: challenge.rememberMe,
-      userId: user.id,
+    const nativeLoginResult = await trySupabasePasswordLoginAfterMfa({
+      password: input.password,
+      user,
     })
-    if (sessionResult) {
-      return apiError('SESSION_CREATION_FAILED', sessionResult.error, 500)
+    if (nativeLoginResult.success) {
+      await notifyLoginSuccess({
+        ip: loginAttemptContext.ip,
+        rememberMe: challenge.rememberMe,
+        userAgent: request.headers.get('user-agent') || 'unknown',
+        userId: user.id,
+      })
+    } else {
+      const passwordResult = user.password_hash
+        ? await validateLoginPassword(user, input.password)
+        : { error: 'Credenciales invalidas' }
+
+      if (passwordResult) {
+        const failedAttempt = await recordFailedLoginAttempt(loginAttemptContext)
+        recordSecurityEvent('login-failure', {
+          actorId: user.id,
+          actorRole: user.cargo_rol,
+          metadata: {
+            nativeReason: nativeLoginResult.reason,
+            reason: 'password_validation_failed_after_mfa',
+          },
+        })
+        return apiError(
+          'LOGIN_CREDENTIALS_INVALID',
+          failedAttempt.isLocked
+            ? buildLockoutErrorMessage(failedAttempt)
+            : passwordResult.error,
+          failedAttempt.isLocked ? 423 : 401,
+        )
+      }
+
+      if (!isLegacySessionFallbackEnabled()) {
+        logger.error('Supabase Auth MFA login failed and legacy fallback is disabled', {
+          reason: nativeLoginResult.reason,
+          userId: user.id,
+        })
+        recordSecurityEvent('login-failure', {
+          actorId: user.id,
+          actorRole: user.cargo_rol,
+          result: 'error',
+          metadata: {
+            nativeReason: nativeLoginResult.reason,
+            reason: 'supabase_auth_mfa_unavailable_legacy_fallback_disabled',
+          },
+        })
+        return apiError(
+          'SUPABASE_AUTH_UNAVAILABLE',
+          'No se pudo iniciar sesion con Supabase Auth. Por favor, intenta nuevamente.',
+          503,
+        )
+      }
+
+      logger.warn('Supabase Auth MFA login unavailable; using legacy session fallback', {
+        reason: nativeLoginResult.reason,
+        userId: user.id,
+      })
+      const sessionResult = await createLoginSessions({
+        rememberMe: challenge.rememberMe,
+        userId: user.id,
+      })
+      if (sessionResult) {
+        return apiError('SESSION_CREATION_FAILED', sessionResult.error, 500)
+      }
     }
 
+    scheduleExpiredSessionCleanup()
     await clearLoginLockout(loginAttemptContext)
     await updateLastLoginAt(supabase, user.id)
     cookieStore.delete(LOGIN_MFA_CHALLENGE_COOKIE_NAME)
@@ -184,6 +260,47 @@ async function verifyLoginChallenge(
       return apiError(error.code, error.message, 500)
     }
     return apiError('MFA_VERIFY_ERROR', 'Error al verificar MFA.', 500)
+  }
+}
+
+async function trySupabasePasswordLoginAfterMfa(input: {
+  password: string
+  user: LoginUserRecord
+}): Promise<{ success: true } | { reason: string; success: false }> {
+  if (!input.user.email) {
+    return { reason: 'MISSING_EMAIL', success: false }
+  }
+
+  try {
+    await ensureSupabaseAuthUserForLegacyProfile(input.user)
+    const authClient = await createAuthActionClient()
+    const { data, error } = await authClient.auth.signInWithPassword({
+      email: input.user.email,
+      password: input.password,
+    })
+
+    if (error || !data.user) {
+      return {
+        reason: error?.message || 'AUTH_SIGNIN_FAILED',
+        success: false,
+      }
+    }
+
+    if (data.user.id !== input.user.id) {
+      await authClient.auth.signOut({ scope: 'local' })
+      return { reason: 'AUTH_USER_ID_MISMATCH', success: false }
+    }
+
+    return { success: true }
+  } catch (error) {
+    if (error instanceof SupabaseAuthBridgeError) {
+      return { reason: error.code, success: false }
+    }
+
+    return {
+      reason: error instanceof Error ? error.message : 'AUTH_LOGIN_ERROR',
+      success: false,
+    }
   }
 }
 

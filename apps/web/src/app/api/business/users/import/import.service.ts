@@ -1,10 +1,15 @@
-import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import type { createClient } from '@/lib/supabase/server'
 import {
   normalizeDateOfBirthForStorage,
   normalizeGenderForStorage,
 } from '@/lib/schemas/user-demographics.schema'
+import {
+  createSupabaseAuthUserWithLegacyId,
+  deleteSupabaseAuthUser,
+} from '@/features/auth/services/supabase-auth-bridge.service'
 
 import {
   buildUserDataFromCsvLine,
@@ -22,7 +27,9 @@ import {
   type ImportUserRowValidationResult,
 } from './validation'
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+type SupabaseServerClient =
+  | Awaited<ReturnType<typeof createClient>>
+  | ReturnType<typeof createAdminClient>
 
 interface ImportRowCandidate {
   rowNumber: number
@@ -31,6 +38,10 @@ interface ImportRowCandidate {
 
 interface ValidImportRow extends ImportRowCandidate {
   validation: Extract<ImportUserRowValidationResult, { success: true }>
+}
+
+interface AuthReadyImportRow extends ValidImportRow {
+  userId: string
 }
 
 interface ExistingUserLookup {
@@ -58,7 +69,7 @@ export async function importBusinessUsersFromCsv(params: {
   const parsedCsv = parseImportCsvContent(params.fileContent)
   if ('error' in parsedCsv) return { success: false as const, error: parsedCsv.error }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const hierarchy = await loadHierarchyAutoAssignConfig(
     supabase,
     params.organizationId,
@@ -89,11 +100,39 @@ export async function importBusinessUsersFromCsv(params: {
     return { success: true as const, result }
   }
 
-  const passwordHashes = await Promise.all(
-    rowsToCreate.map((row) => bcrypt.hash(row.validation.password, 10)),
-  )
-  const usersToInsert = rowsToCreate.map((row, index) =>
-    buildUserInsertData(row, params.organizationId, passwordHashes[index]),
+  const authReadyRows: AuthReadyImportRow[] = []
+  for (const row of rowsToCreate) {
+    const userId = crypto.randomUUID()
+    try {
+      await createSupabaseAuthUserWithLegacyId({
+        cargo_rol: 'Business User',
+        display_name: row.userData.display_name ||
+          `${row.userData.first_name || ''} ${row.userData.last_name || ''}`.trim() ||
+          null,
+        email: row.userData.email,
+        email_verified: true,
+        first_name: row.userData.first_name || null,
+        id: userId,
+        last_name: row.userData.last_name || null,
+        password: row.validation.password,
+        username: row.userData.username,
+      })
+      authReadyRows.push({ ...row, userId })
+    } catch (error) {
+      result.errors.push({
+        row: row.rowNumber,
+        error: error instanceof Error ? error.message : 'Error al crear usuario Auth',
+        data: row.userData,
+      })
+    }
+  }
+
+  if (authReadyRows.length === 0) {
+    return { success: true as const, result }
+  }
+
+  const usersToInsert = authReadyRows.map((row) =>
+    buildUserInsertData(row, params.organizationId),
   )
 
   const { data: createdUsers, error: usersError } = await supabase
@@ -102,7 +141,8 @@ export async function importBusinessUsersFromCsv(params: {
     .select('id, email, username')
 
   if (usersError || !createdUsers) {
-    rowsToCreate.forEach((row) => {
+    await rollbackAuthUsers(authReadyRows.map((row) => row.userId))
+    authReadyRows.forEach((row) => {
       result.errors.push({
         row: row.rowNumber,
         error: usersError?.message || 'Error al crear usuarios',
@@ -113,7 +153,7 @@ export async function importBusinessUsersFromCsv(params: {
   }
 
   const createdUserByEmail = mapUsersByEmail(createdUsers as CreatedUserLookup[])
-  const organizationUsers = rowsToCreate.flatMap((row) => {
+  const organizationUsers = authReadyRows.flatMap((row) => {
     const createdUser = createdUserByEmail.get(normalizeLookupValue(row.userData.email))
     if (!createdUser) {
       result.errors.push({
@@ -142,7 +182,8 @@ export async function importBusinessUsersFromCsv(params: {
 
   if (orgUsersError) {
     await rollbackCreatedUsers(supabase, createdUsers as CreatedUserLookup[])
-    rowsToCreate.forEach((row) => {
+    await rollbackAuthUsers(authReadyRows.map((row) => row.userId))
+    authReadyRows.forEach((row) => {
       result.errors.push({
         row: row.rowNumber,
         error: orgUsersError.message || 'Error al agregar usuarios a la organización',
@@ -154,7 +195,7 @@ export async function importBusinessUsersFromCsv(params: {
 
   await assignCreatedMembersToDefaultTeam(
     supabase,
-    rowsToCreate,
+    authReadyRows,
     createdUserByEmail,
     hierarchy,
   )
@@ -280,13 +321,13 @@ async function loadExistingMemberships(
 }
 
 function buildUserInsertData(
-  row: ValidImportRow,
+  row: AuthReadyImportRow,
   organizationId: string,
-  passwordHash: string,
 ): UserInsertData {
   const { userData, validation } = row
 
   return {
+    id: row.userId,
     username: userData.username,
     email: userData.email,
     first_name: userData.first_name || null,
@@ -297,7 +338,6 @@ function buildUserInsertData(
     cargo_rol: 'Business User',
     type_rol: 'Business User',
     organization_id: organizationId,
-    password_hash: passwordHash,
     date_of_birth: normalizeDateOfBirthForStorage(validation.demographics.date_of_birth),
     gender: normalizeGenderForStorage(validation.demographics.gender),
   }
@@ -338,6 +378,12 @@ async function rollbackCreatedUsers(
   if (createdUserIds.length === 0) return
 
   await supabase.from('users').delete().in('id', createdUserIds)
+}
+
+async function rollbackAuthUsers(userIds: string[]) {
+  for (const userId of userIds) {
+    await deleteSupabaseAuthUser(userId)
+  }
 }
 
 function mapUsersByEmail<T extends { email: string | null }>(users: T[]) {

@@ -11,16 +11,27 @@ import type {
   AdminDashboardThemeColors,
 } from './types'
 
-const DEFAULT_LIGHT_BACKGROUND = 'var(--color-gray-50)'
+const DEFAULT_LIGHT_BACKGROUND = 'var(--color-bg-dark)'
 const DEFAULT_LIGHT_CARD = 'var(--color-bg-light)'
 const DEFAULT_DARK_BACKGROUND = 'var(--color-bg-dark)'
 const DEFAULT_DARK_CARD = 'var(--color-gray-800)'
+const DEFAULT_LIGHT_INPUT = 'color-mix(in srgb, var(--color-contrast) 4%, transparent)'
 const DEFAULT_PRIMARY = 'var(--color-primary)'
 const DEFAULT_ACCENT = 'var(--color-accent)'
 const DEFAULT_SECONDARY = 'var(--color-info)'
 const DEFAULT_SUCCESS = 'var(--color-success)'
 const DEFAULT_WARNING = 'var(--color-warning)'
 const DEFAULT_PURPLE = 'var(--color-secondary)'
+
+type TranslateFunction = (key: string, options?: Record<string, unknown>) => string
+
+function translate(
+  t: unknown,
+  key: string,
+  options?: Record<string, unknown>
+) {
+  return typeof t === 'function' ? (t as TranslateFunction)(key, options) : key
+}
 
 export function buildAdminDashboardThemeColors(
   isLightTheme: boolean,
@@ -32,47 +43,39 @@ export function buildAdminDashboardThemeColors(
 
   return {
     accent,
-    background: isLightTheme
-      ? panelStyles?.background_value &&
-        panelStyles.background_value !== DEFAULT_DARK_BACKGROUND
-        ? panelStyles.background_value
-        : DEFAULT_LIGHT_BACKGROUND
-      : DEFAULT_DARK_BACKGROUND,
-    borderColor: isLightTheme ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.06)',
-    cardBackground: isLightTheme
-      ? panelStyles?.card_background &&
-        panelStyles.card_background !== DEFAULT_DARK_CARD
-        ? panelStyles.card_background
-        : DEFAULT_LIGHT_CARD
-      : DEFAULT_DARK_CARD,
-    inputBg: isLightTheme ? 'var(--color-gray-100)' : DEFAULT_DARK_CARD,
-    inverseSubtext: 'rgba(255,255,255,0.72)',
+    background: panelStyles?.background_value || (isLightTheme ? DEFAULT_LIGHT_BACKGROUND : DEFAULT_DARK_BACKGROUND),
+    borderColor: isLightTheme
+      ? 'var(--color-gray-200)'
+      : 'color-mix(in srgb, var(--color-bg-light) 6%, transparent)',
+    cardBackground: panelStyles?.card_background || (isLightTheme ? DEFAULT_LIGHT_CARD : DEFAULT_DARK_CARD),
+    inputBg: isLightTheme ? DEFAULT_LIGHT_INPUT : DEFAULT_DARK_CARD,
+    inverseSubtext: 'color-mix(in srgb, var(--color-bg-light) 72%, transparent)',
     inverseText: 'var(--color-bg-light)',
     isLightMode: isLightTheme,
     primary,
     secondary,
-    textPrimary: isLightTheme ? 'var(--color-legacy-0f172a)' : 'var(--color-bg-light)',
-    textSecondary: isLightTheme ? 'var(--color-gray-500)' : 'var(--color-legacy-858e9b)',
+    textPrimary: panelStyles?.text_color || 'var(--color-contrast)',
+    textSecondary: 'var(--color-muted)',
   }
 }
 
-export function getAdminDashboardGreeting(now: Date, t: any) {
+export function getAdminDashboardGreeting(now: Date, t?: unknown) {
   const hour = now.getHours()
 
   if (hour < 12) {
-    return t('dashboard.greetings.morning')
+    return translate(t, 'dashboard.greetings.morning')
   }
 
   if (hour < 18) {
-    return t('dashboard.greetings.afternoon')
+    return translate(t, 'dashboard.greetings.afternoon')
   }
 
-  return t('dashboard.greetings.evening')
+  return translate(t, 'dashboard.greetings.evening')
 }
 
 export function getAdminDashboardUserName(
   profile?: AdminDashboardProfileLike | null,
-  t?: any
+  t?: unknown
 ) {
   if (profile?.first_name && profile?.last_name) {
     return `${profile.first_name} ${profile.last_name}`
@@ -90,12 +93,14 @@ export function getAdminDashboardUserName(
     return profile.username
   }
 
-  return t ? t('dashboard.activities.defaultUser') : 'Administrador'
+  return typeof t === 'function'
+    ? translate(t, 'dashboard.activities.defaultUser')
+    : 'Administrador'
 }
 
 export function buildAdminDashboardStatsData(
   stats: AdminStatsWithChanges | null,
-  t: any
+  t?: unknown
 ): AdminDashboardStatItem[] {
   if (!stats) {
     return []
@@ -107,7 +112,7 @@ export function buildAdminDashboardStatsData(
       href: '/admin/users',
       iconKey: 'users',
       iconColor: DEFAULT_PRIMARY,
-      title: t('dashboard.stats.users'),
+      title: translate(t, 'dashboard.stats.users'),
       value: stats.totalUsers,
     },
     {
@@ -115,7 +120,7 @@ export function buildAdminDashboardStatsData(
       href: '/admin/workshops',
       iconKey: 'courses',
       iconColor: DEFAULT_SUCCESS,
-      title: t('dashboard.stats.courses'),
+      title: translate(t, 'dashboard.stats.courses'),
       value: stats.activeCourses,
     },
     {
@@ -123,7 +128,7 @@ export function buildAdminDashboardStatsData(
       href: '/admin/companies',
       iconKey: 'organizations',
       iconColor: DEFAULT_ACCENT,
-      title: t('dashboard.stats.organizations'),
+      title: translate(t, 'dashboard.stats.organizations'),
       value: stats.totalOrganizations || 0,
     },
     {
@@ -131,48 +136,48 @@ export function buildAdminDashboardStatsData(
       href: '/admin/lia-analytics',
       iconKey: 'engagement',
       iconColor: DEFAULT_PURPLE,
-      title: t('dashboard.stats.engagement'),
+      title: translate(t, 'dashboard.stats.engagement'),
       value: `${stats.engagementRate}%`,
     },
   ]
 }
 
-export function getAdminDashboardQuickActions(t: any): AdminDashboardQuickActionItem[] {
+export function getAdminDashboardQuickActions(t?: unknown): AdminDashboardQuickActionItem[] {
   return [
     {
       color: DEFAULT_SUCCESS,
-      description: t('dashboard.quickActions.createCourse.description'),
+      description: translate(t, 'dashboard.quickActions.createCourse.description'),
       href: '/admin/workshops/new',
       iconKey: 'courses',
-      title: t('dashboard.quickActions.createCourse.title'),
+      title: translate(t, 'dashboard.quickActions.createCourse.title'),
     },
     {
       color: DEFAULT_PRIMARY,
-      description: t('dashboard.quickActions.manageUsers.description'),
+      description: translate(t, 'dashboard.quickActions.manageUsers.description'),
       href: '/admin/users',
       iconKey: 'users',
-      title: t('dashboard.quickActions.manageUsers.title'),
+      title: translate(t, 'dashboard.quickActions.manageUsers.title'),
     },
     {
       color: DEFAULT_ACCENT,
-      description: t('dashboard.quickActions.manageCompanies.description'),
+      description: translate(t, 'dashboard.quickActions.manageCompanies.description'),
       href: '/admin/companies',
       iconKey: 'organizations',
-      title: t('dashboard.quickActions.manageCompanies.title'),
+      title: translate(t, 'dashboard.quickActions.manageCompanies.title'),
     },
     {
       color: DEFAULT_PURPLE,
-      description: t('dashboard.quickActions.viewAnalytics.description'),
+      description: translate(t, 'dashboard.quickActions.viewAnalytics.description'),
       href: '/admin/lia-analytics',
       iconKey: 'engagement',
-      title: t('dashboard.quickActions.viewAnalytics.title'),
+      title: translate(t, 'dashboard.quickActions.viewAnalytics.title'),
     },
     {
       color: DEFAULT_WARNING,
-      description: t('dashboard.quickActions.viewReports.description'),
+      description: translate(t, 'dashboard.quickActions.viewReports.description'),
       href: '/admin/reportes',
       iconKey: 'documents',
-      title: t('dashboard.quickActions.viewReports.title'),
+      title: translate(t, 'dashboard.quickActions.viewReports.title'),
     },
   ]
 }
@@ -197,22 +202,22 @@ function getActivityType(notificationType?: string | null) {
   return 'system' as const
 }
 
-function getActivityUserName(record: AdminDashboardActivityRecord, t: any) {
+function getActivityUserName(record: AdminDashboardActivityRecord, t?: unknown) {
   const user = record.users
 
   return (
     user?.display_name ||
     `${user?.first_name || ''} ${user?.last_name || ''}`.trim() ||
     user?.username ||
-    t('dashboard.activities.defaultUser')
+    (typeof t === 'function' ? translate(t, 'dashboard.activities.defaultUser') : 'Usuario')
   )
 }
 
 export function mapAdminDashboardActivities(
   activities: AdminDashboardActivityRecord[],
-  tn: any, // t for notifications (common)
+  tn?: unknown, // t for notifications (common)
   language: 'es' | 'en' | 'pt' = 'es',
-  ta?: any // t for admin/fallbacks (admin)
+  ta?: unknown // t for admin/fallbacks (admin)
 ): AdminDashboardActivityItem[] {
   const t = tn;
   const tFallback = ta || tn;
@@ -228,12 +233,12 @@ export function mapAdminDashboardActivities(
     }
 
     const title = metadata?.is_localized && activity.title
-      ? t(activity.title)
-      : activity.title || tFallback('dashboard.activities.defaultTitle')
+      ? translate(t, activity.title, metadata as Record<string, unknown>)
+      : activity.title || translate(tFallback, 'dashboard.activities.defaultTitle')
 
     const description = metadata?.is_localized && activity.message
-      ? t(activity.message, metadata as any)
-      : activity.message || tFallback('dashboard.activities.defaultDescription')
+      ? translate(t, activity.message, metadata as Record<string, unknown>)
+      : activity.message || translate(tFallback, 'dashboard.activities.defaultDescription')
 
     return {
       description,
