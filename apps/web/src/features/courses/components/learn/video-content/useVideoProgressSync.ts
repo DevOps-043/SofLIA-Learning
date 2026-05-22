@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { LearnLesson } from "../types";
 import type { CurrentTimeRef, VideoPlayerContextValue } from "./video-content.types";
 import { attachVideoPlaybackListeners } from "./video-progress-listeners";
@@ -21,6 +21,9 @@ export function useVideoProgressSync({
   lesson,
   videoPlayerContext,
 }: UseVideoProgressSyncParams) {
+  const videoPlayerContextRef = useRef(videoPlayerContext);
+  videoPlayerContextRef.current = videoPlayerContext;
+
   useEffect(() => {
     let cleanupFn: (() => void) | undefined;
     let isSetup = false;
@@ -38,21 +41,26 @@ export function useVideoProgressSync({
       currentVideoElement = videoElement;
       isSetup = true;
 
-      if (videoPlayerContext && lesson.lesson_id) {
+      if (lesson.lesson_id) {
         scheduleVideoRestore(videoElement, () =>
-          restoreVideoProgress({
-            context: videoPlayerContext,
-            currentTimeRef,
-            isDisposed: () => isDisposed,
-            lesson,
-            videoElement,
-          }),
+          {
+            const context = videoPlayerContextRef.current;
+            if (!context) return Promise.resolve();
+
+            return restoreVideoProgress({
+              context,
+              currentTimeRef,
+              isDisposed: () => isDisposed,
+              lesson,
+              videoElement,
+            });
+          },
         );
       }
 
       cleanupFn = attachVideoPlaybackListeners({
-        context: videoPlayerContext,
         currentTimeRef,
+        getContext: () => videoPlayerContextRef.current,
         lessonId: lesson.lesson_id,
         videoElement,
       });
@@ -81,5 +89,5 @@ export function useVideoProgressSync({
         currentVideoElement.pause();
       }
     };
-  }, [currentTimeRef, lesson, videoPlayerContext]);
+  }, [currentTimeRef, lesson]);
 }

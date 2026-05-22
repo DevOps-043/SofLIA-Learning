@@ -153,6 +153,7 @@ export function CourseCard3D({
             src={course.thumbnail || '/images/course-placeholder.png'}
             alt={course.title}
             fill
+            priority={index < 6}
             className={`object-cover ${disableHeavyEffects ? '' : 'transition-transform duration-500 group-hover:scale-105'}`}
             sizes="64px"
           />
@@ -250,6 +251,7 @@ export function CourseCard3D({
           src={course.thumbnail || '/images/course-placeholder.png'}
           alt={course.title}
           fill
+          priority={index < 4}
           className={`object-cover ${disableHeavyEffects ? '' : 'transition-transform duration-700 ease-out group-hover:scale-105'}`}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />

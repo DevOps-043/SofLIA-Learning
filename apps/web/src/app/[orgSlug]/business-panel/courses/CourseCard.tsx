@@ -87,7 +87,9 @@ export function CourseCard({ course, index, onClick }: CourseCardProps) {
             src={course.thumbnail_url}
             alt={course.title}
             fill
+            priority={index < 4}
             className="object-cover transition-transform duration-700 group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1536px) 33vw, 25vw"
           />
         ) : (
           <div

@@ -1,6 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import {
+  createContext,
+  createElement,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react'
 import { useThemeStore } from '../../../../core/stores/themeStore'
 import {
   buildOrganizationAuthPalette,
@@ -8,24 +15,60 @@ import {
   type OrganizationAuthStyles,
 } from './organization-auth.styles'
 
-export function useOrganizationAuthStyles(
-  organizationSlug: string,
-): {
+interface OrganizationAuthStyleState {
   isDark: boolean
   loginStyles: OrganizationAuthStyles | null
   mounted: boolean
+  organizationSlug: string
   palette: OrganizationAuthPalette
-} {
+}
+
+const OrganizationAuthStylesContext =
+  createContext<OrganizationAuthStyleState | null>(null)
+
+export function OrganizationAuthStylesProvider({
+  children,
+  value,
+}: {
+  children: ReactNode
+  value: OrganizationAuthStyleState
+}) {
+  return createElement(OrganizationAuthStylesContext.Provider, { value }, children)
+}
+
+export function useOrganizationAuthStyles(
+  organizationSlug: string,
+  initialLoginStyles?: OrganizationAuthStyles | null,
+): OrganizationAuthStyleState {
+  const contextStyles = useContext(OrganizationAuthStylesContext)
+  const activeContextStyles =
+    contextStyles?.organizationSlug === organizationSlug ? contextStyles : null
+  const shouldUseContextStyles = activeContextStyles !== null
+
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme)
   const [mounted, setMounted] = useState(false)
-  const [loginStyles, setLoginStyles] = useState<OrganizationAuthStyles | null>(null)
+  const [loginStyles, setLoginStyles] = useState<OrganizationAuthStyles | null>(
+    shouldUseContextStyles
+      ? activeContextStyles.loginStyles
+      : (initialLoginStyles ?? null),
+  )
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
   useEffect(() => {
-    if (!organizationSlug) {
+    if (initialLoginStyles !== undefined) {
+      setLoginStyles(initialLoginStyles)
+    }
+  }, [initialLoginStyles])
+
+  useEffect(() => {
+    if (
+      shouldUseContextStyles ||
+      !organizationSlug ||
+      initialLoginStyles !== undefined
+    ) {
       return
     }
 
@@ -56,14 +99,19 @@ export function useOrganizationAuthStyles(
     return () => {
       isCancelled = true
     }
-  }, [organizationSlug])
+  }, [initialLoginStyles, organizationSlug, shouldUseContextStyles])
 
   const isDark = mounted ? resolvedTheme === 'dark' : true
+
+  if (shouldUseContextStyles) {
+    return activeContextStyles
+  }
 
   return {
     isDark,
     loginStyles,
     mounted,
+    organizationSlug,
     palette: buildOrganizationAuthPalette(loginStyles, isDark),
   }
 }

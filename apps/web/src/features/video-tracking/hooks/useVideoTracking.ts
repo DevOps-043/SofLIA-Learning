@@ -15,21 +15,34 @@ interface VideoTrackingOptions {
 }
 
 /**
- * Hook personalizado para tracking de progreso de video
- * 
- * Maneja el registro de eventos de video (play, pause, ended, etc.) y
- * actualiza el progreso en la base de datos con debouncing inteligente.
- * 
+ * Tras este número de fallos consecutivos de red el tracking se desactiva.
+ *
+ * El tracking de video es telemetría "fire-and-forget": si la red no responde,
+ * insistir solo satura el navegador. Antes, cada evento de video (`seeked`,
+ * `ratechange`, `play`...) disparaba un `fetch` inmediato sin deduplicación ni
+ * límite de fallos; al navegar fuera de la página el reproductor emitía eventos
+ * en ráfaga y se generaban miles de peticiones por segundo
+ * (`ERR_INSUFFICIENT_RESOURCES`), lo que tumbaba el resto de la app.
+ */
+const MAX_CONSECUTIVE_FAILURES = 3;
+
+const UPDATE_PROGRESS_ENDPOINT = '/api/lesson-tracking/update-progress';
+
+/**
+ * Hook personalizado para tracking de progreso de video.
+ *
+ * Registra eventos de video (play, pause, ended, etc.) y actualiza el progreso
+ * en la base de datos con debouncing. Es resiliente por diseño:
+ *
+ * - **Deduplicación**: nunca hay más de una petición en vuelo a la vez.
+ * - **Corte por fallos**: tras {@link MAX_CONSECUTIVE_FAILURES} fallos seguidos
+ *   el tracking se desactiva para no saturar la red.
+ * - **Seguro al desmontar**: no se emiten peticiones tras desmontar el hook.
+ *
  * @example
  * ```tsx
- * const tracking = useVideoTracking({
- *   lessonId: 'lesson-123',
- *   trackingId: 'tracking-456',
- *   onError: (error) => logger.error('Tracking error:', error)
- * });
- * 
- * // En el video element
- * video.addEventListener('play', () => 
+ * const tracking = useVideoTracking({ lessonId, trackingId });
+ * video.addEventListener('play', () =>
  *   tracking.handlePlay(video.currentTime, video.duration, video.playbackRate)
  * );
  * ```
@@ -39,167 +52,168 @@ export function useVideoTracking({
     trackingId,
     onError
 }: VideoTrackingOptions) {
-    // 🐛 DEBUG: Log when hook is initialized
-    useEffect(() => {
-
-        if (!lessonId) {
-            techDebtLogger.warn('[useVideoTracking] ⚠️ No lessonId provided - tracking will NOT work');
-        } else {
-        }
-    }, [lessonId, trackingId]);
-
-    // Ref para rastrear la última actualización de progreso
+    // Última posición reportada (segundos).
     const lastProgressUpdate = useRef(0);
-    // Ref para rastrear el punto máximo alcanzado en el video
+    // Punto máximo alcanzado en el video (segundos).
     const maxSecondsReached = useRef(0);
+    // El hook sigue montado: bloquea peticiones tras desmontar.
+    const isMountedRef = useRef(true);
+    // Hay una petición en vuelo: evita ráfagas concurrentes.
+    const inFlightRef = useRef(false);
+    // Fallos de red consecutivos.
+    const consecutiveFailuresRef = useRef(0);
+    // El tracking se desactivó tras demasiados fallos.
+    const trackingDisabledRef = useRef(false);
 
-    /**
-     * Función para actualizar el progreso del video en la base de datos
-     */
-    const updateProgress = async (
-        currentTime: number,
-        duration: number,
-        playbackRate: number
-    ) => {
-        try {
-            // Actualizar el máximo alcanzado
-            maxSecondsReached.current = Math.max(maxSecondsReached.current, currentTime);
-
-            const response = await fetch('/api/lesson-tracking/update-progress', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    lessonId,
-                    trackingId,
-                    checkpoint: Math.floor(currentTime),
-                    maxReached: Math.floor(maxSecondsReached.current),
-                    totalDuration: Math.floor(duration),
-                    playbackRate
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to update progress: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            // Si el servidor devuelve un trackingId nuevo, podríamos guardarlo
-            // (útil para la primera vez que se crea el tracking)
-            if (data.trackingId && !trackingId) {
-            }
-
-            lastProgressUpdate.current = currentTime;
-        } catch (error) {
-            techDebtLogger.error('[VideoTracking] Error updating progress:', error);
-            onError?.(error as Error);
+    useEffect(() => {
+        isMountedRef.current = true;
+        if (!lessonId) {
+            techDebtLogger.warn(
+                '[useVideoTracking] No se proporcionó lessonId — el tracking no funcionará'
+            );
         }
-    };
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, [lessonId]);
 
     /**
-     * Versión con debouncing para actualizaciones frecuentes (timeupdate)
-     * Se ejecuta máximo cada 5 segundos
+     * Envía el progreso del video al backend.
+     *
+     * No-op si: falta `lessonId`, el hook está desmontado, el tracking quedó
+     * desactivado por fallos, o ya hay una petición en vuelo.
+     */
+    const updateProgress = useCallback(
+        async (currentTime: number, duration: number, playbackRate: number) => {
+            if (!lessonId) return;
+            if (!isMountedRef.current) return;
+            if (trackingDisabledRef.current) return;
+            if (inFlightRef.current) return;
+
+            inFlightRef.current = true;
+            maxSecondsReached.current = Math.max(
+                maxSecondsReached.current,
+                currentTime
+            );
+
+            try {
+                const response = await fetch(UPDATE_PROGRESS_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        lessonId,
+                        trackingId,
+                        checkpoint: Math.floor(currentTime),
+                        maxReached: Math.floor(maxSecondsReached.current),
+                        totalDuration: Math.floor(duration),
+                        playbackRate
+                    }),
+                    // Permite que un último envío sobreviva a la navegación
+                    // sin necesidad de mantener viva la página.
+                    keepalive: true
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to update progress: ${response.status}`);
+                }
+
+                await response.json();
+                consecutiveFailuresRef.current = 0;
+                lastProgressUpdate.current = currentTime;
+            } catch (error) {
+                consecutiveFailuresRef.current += 1;
+
+                if (consecutiveFailuresRef.current >= MAX_CONSECUTIVE_FAILURES) {
+                    trackingDisabledRef.current = true;
+                    techDebtLogger.warn(
+                        '[VideoTracking] Tracking desactivado tras 3 fallos consecutivos para evitar saturar la red.'
+                    );
+                } else {
+                    techDebtLogger.error(
+                        '[VideoTracking] Error updating progress:',
+                        error
+                    );
+                }
+
+                onError?.(error as Error);
+            } finally {
+                inFlightRef.current = false;
+            }
+        },
+        [lessonId, trackingId, onError]
+    );
+
+    /**
+     * Versión con debouncing para actualizaciones frecuentes (timeupdate).
+     * Se ejecuta máximo cada 5 segundos.
      */
     const debouncedUpdate = useDebouncedCallback(updateProgress, 5000);
 
-    /**
-     * Handler para evento 'play'
-     * Actualiza inmediatamente cuando el usuario da play
-     */
-    const handlePlay = useCallback((
-        currentTime: number,
-        duration: number,
-        playbackRate: number
-    ) => {
-        if (process.env.NODE_ENV === 'development') {
-        }
-        // Actualizar inmediatamente al dar play
-        updateProgress(currentTime, duration, playbackRate);
-    }, [lessonId, trackingId]);
-
-    /**
-     * Handler para evento 'pause'
-     * Actualiza inmediatamente y cancela cualquier update pendiente
-     */
-    const handlePause = useCallback((
-        currentTime: number,
-        duration: number,
-        playbackRate: number
-    ) => {
-        if (process.env.NODE_ENV === 'development') {
-        }
-        // Actualizar inmediatamente al pausar
-        updateProgress(currentTime, duration, playbackRate);
-        // Cancelar cualquier debounce pendiente
-        debouncedUpdate.cancel();
-    }, [lessonId, trackingId]);
-
-    /**
-     * Handler para evento 'ended'
-     * Actualiza inmediatamente cuando el video termina
-     */
-    const handleEnded = useCallback((
-        currentTime: number,
-        duration: number,
-        playbackRate: number
-    ) => {
-        if (process.env.NODE_ENV === 'development') {
-        }
-        // Actualizar con la duración completa
-        updateProgress(duration, duration, playbackRate);
-        debouncedUpdate.cancel();
-    }, [lessonId, trackingId]);
-
-    /**
-     * Handler para evento 'seeked'
-     * Actualiza inmediatamente cuando el usuario salta a otra posición
-     */
-    const handleSeeked = useCallback((
-        currentTime: number,
-        duration: number,
-        playbackRate: number
-    ) => {
-        if (process.env.NODE_ENV === 'development') {
-        }
-        // Actualizar inmediatamente al hacer seek
-        updateProgress(currentTime, duration, playbackRate);
-    }, [lessonId, trackingId]);
-
-    /**
-     * Handler para evento 'timeupdate'
-     * Usa debouncing para evitar sobrecarga de la BD
-     * Solo actualiza si han pasado más de 3 segundos desde la última actualización
-     */
-    const handleTimeUpdate = useCallback((
-        currentTime: number,
-        duration: number,
-        playbackRate: number
-    ) => {
-        // Solo actualizar si han pasado más de 3 segundos desde la última actualización
-        // Esto evita actualizaciones excesivas incluso con el debouncing
-        if (Math.abs(currentTime - lastProgressUpdate.current) >= 3) {
-            debouncedUpdate(currentTime, duration, playbackRate);
-        }
+    /** Cancela debounces pendientes al desmontar (además de {@link cleanup}). */
+    useEffect(() => {
+        return () => {
+            debouncedUpdate.cancel();
+        };
     }, [debouncedUpdate]);
 
-    /**
-     * Handler para evento 'ratechange'
-     * Actualiza inmediatamente cuando cambia la velocidad de reproducción
-     */
-    const handleRateChange = useCallback((
-        currentTime: number,
-        duration: number,
-        playbackRate: number
-    ) => {
-        if (process.env.NODE_ENV === 'development') {
-        }
-        // Actualizar inmediatamente al cambiar velocidad
-        updateProgress(currentTime, duration, playbackRate);
-    }, [lessonId, trackingId]);
+    /** Handler para 'play': actualiza inmediatamente. */
+    const handlePlay = useCallback(
+        (currentTime: number, duration: number, playbackRate: number) => {
+            void updateProgress(currentTime, duration, playbackRate);
+        },
+        [updateProgress]
+    );
+
+    /** Handler para 'pause': actualiza inmediatamente y cancela el debounce. */
+    const handlePause = useCallback(
+        (currentTime: number, duration: number, playbackRate: number) => {
+            void updateProgress(currentTime, duration, playbackRate);
+            debouncedUpdate.cancel();
+        },
+        [updateProgress, debouncedUpdate]
+    );
+
+    /** Handler para 'ended': actualiza con la duración completa. */
+    const handleEnded = useCallback(
+        (_currentTime: number, duration: number, playbackRate: number) => {
+            void updateProgress(duration, duration, playbackRate);
+            debouncedUpdate.cancel();
+        },
+        [updateProgress, debouncedUpdate]
+    );
+
+    /** Handler para 'seeked': actualiza inmediatamente. */
+    const handleSeeked = useCallback(
+        (currentTime: number, duration: number, playbackRate: number) => {
+            void updateProgress(currentTime, duration, playbackRate);
+        },
+        [updateProgress]
+    );
 
     /**
-     * Función de limpieza para cancelar debounces pendientes
-     * Debe llamarse al desmontar el componente
+     * Handler para 'timeupdate': debounced, y solo si avanzó ≥3 s desde la
+     * última actualización reportada.
+     */
+    const handleTimeUpdate = useCallback(
+        (currentTime: number, duration: number, playbackRate: number) => {
+            if (Math.abs(currentTime - lastProgressUpdate.current) >= 3) {
+                debouncedUpdate(currentTime, duration, playbackRate);
+            }
+        },
+        [debouncedUpdate]
+    );
+
+    /** Handler para 'ratechange': actualiza inmediatamente. */
+    const handleRateChange = useCallback(
+        (currentTime: number, duration: number, playbackRate: number) => {
+            void updateProgress(currentTime, duration, playbackRate);
+        },
+        [updateProgress]
+    );
+
+    /**
+     * Cancela debounces pendientes. Debe llamarse al desmontar el componente
+     * (el hook también lo hace automáticamente).
      */
     const cleanup = useCallback(() => {
         debouncedUpdate.cancel();

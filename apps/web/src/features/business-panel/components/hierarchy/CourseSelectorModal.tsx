@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Dialog } from '@headlessui/react'
+import Image from 'next/image'
 import { X, Search, BookOpen, Check } from 'lucide-react'
 import { BusinessCourse, useBusinessCourses } from '@/features/business-panel/hooks/useBusinessCourses'
 import { useOrganizationStylesContext } from '@/features/business-panel/contexts/OrganizationStylesContext'
@@ -94,7 +95,15 @@ export function CourseSelectorModal({
               >
                 <div className="w-12 h-12 rounded-lg bg-gray-200 dark:bg-neutral-800 flex items-center justify-center shrink-0 overflow-hidden">
                   {course.thumbnail_url ? (
-                    <img src={course.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                    <div className="relative h-full w-full">
+                      <Image
+                        src={course.thumbnail_url}
+                        alt=""
+                        fill
+                        className="object-cover"
+                        sizes="48px"
+                      />
+                    </div>
                   ) : (
                     <BookOpen className="w-6 h-6 text-gray-400 dark:text-white/40" />
                   )}

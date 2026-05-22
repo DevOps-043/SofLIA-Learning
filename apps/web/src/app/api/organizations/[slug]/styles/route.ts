@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { getOrganizationBySlug } from '@/features/auth/services/organization.service';
+import { getPublicAuthOrganizationBySlug } from '@/features/auth/services/organization.service';
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error && error.message ? error.message : 'Error al obtener estilos'
@@ -25,7 +24,7 @@ export async function GET(
     }
 
     // Obtener organización por slug
-    const organization = await getOrganizationBySlug(slug);
+    const organization = await getPublicAuthOrganizationBySlug(slug);
 
     if (!organization) {
       return NextResponse.json(

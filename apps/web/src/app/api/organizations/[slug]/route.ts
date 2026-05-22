@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOrganizationBySlug } from '@/features/auth/services/organization.service';
+import { getPublicAuthOrganizationBySlug } from '@/features/auth/services/organization.service';
 import { canUseCustomLogin } from '@/lib/organization-auth';
 import { logger } from '@/lib/logger';
 
@@ -22,7 +22,7 @@ export async function GET(
     }
 
     // Obtener organización por slug
-    const organization = await getOrganizationBySlug(slug);
+    const organization = await getPublicAuthOrganizationBySlug(slug);
 
     if (!organization) {
       return NextResponse.json(
@@ -59,6 +59,7 @@ export async function GET(
         brand_favicon_url: organization.brand_favicon_url,
         google_login_enabled: organization.google_login_enabled,
         microsoft_login_enabled: organization.microsoft_login_enabled,
+        login_styles: organization.login_styles || null,
       }
     });
   } catch (error) {
@@ -69,4 +70,3 @@ export async function GET(
     );
   }
 }
-

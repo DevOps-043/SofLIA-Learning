@@ -50,6 +50,7 @@ export interface OrganizationRow {
 
 export interface MapOrganizationOptions {
   usersMap?: Map<string, AdminCompanyUserProfile>
+  memberRoles?: string[]
   pendingInvitationCount?: number
   pendingInvitations?: Record<string, unknown>[]
   bulkInviteLinks?: Record<string, unknown>[]

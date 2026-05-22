@@ -43,7 +43,7 @@ export function HumanVerificationField({ onTokenChange }: HumanVerificationField
 
   return (
     <div className="flex justify-center">
-      <Script src={provider.scriptUrl} strategy="afterInteractive" async defer />
+      <Script src={provider.scriptUrl} strategy="lazyOnload" async defer />
       <div
         className={provider.name === 'turnstile' ? 'cf-turnstile' : 'h-captcha'}
         data-sitekey={provider.siteKey}

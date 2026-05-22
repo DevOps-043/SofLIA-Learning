@@ -1,7 +1,15 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
+import useSWR from 'swr'
 import type { AdminCompany, CompanyCreatePayload, CompanyStats } from '../types/admin-companies.types'
+
+interface AdminCompaniesResponse {
+  success?: boolean
+  companies?: AdminCompany[]
+  stats?: CompanyStats | null
+  error?: string
+}
 
 interface UseAdminCompaniesReturn {
   companies: AdminCompany[]
@@ -15,33 +23,37 @@ interface UseAdminCompaniesReturn {
   actionError: string | null
 }
 
+async function fetchAdminCompanies(url: string): Promise<AdminCompaniesResponse> {
+  const response = await fetch(url, { credentials: 'include' })
+  const data = (await response.json().catch(() => null)) as AdminCompaniesResponse | null
+
+  if (!response.ok || !data?.success) {
+    throw new Error(data?.error || 'Error al obtener empresas')
+  }
+
+  return data
+}
+
 export function useAdminCompanies(): UseAdminCompaniesReturn {
-  const [companies, setCompanies] = useState<AdminCompany[]>([])
-  const [stats, setStats] = useState<CompanyStats | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
 
-  const fetchCompanies = useCallback(async () => {
-    try {
-      setIsLoading(true)
-      setError(null)
-      const response = await fetch('/api/admin/companies')
+  const {
+    data,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR<AdminCompaniesResponse>('/api/admin/companies', fetchAdminCompanies, {
+    dedupingInterval: 60000,
+    errorRetryCount: 1,
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+  })
 
-      if (!response.ok) {
-        throw new Error('Error al obtener empresas')
-      }
-
-      const data = await response.json()
-      setCompanies(data.companies || [])
-      setStats(data.stats || null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
+  const fetchCompanies = useCallback(() => {
+    void mutate()
+  }, [mutate])
 
   const updateCompany = useCallback(
     async (companyId: string, payload: Partial<Pick<AdminCompany, 'is_active' | 'subscription_plan' | 'subscription_status' | 'max_users'>>) => {
@@ -61,7 +73,7 @@ export function useAdminCompanies(): UseAdminCompaniesReturn {
           throw new Error(errorData.error || 'Error al actualizar la empresa')
         }
 
-        await fetchCompanies()
+        await mutate()
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Error desconocido'
         setActionError(message)
@@ -70,7 +82,7 @@ export function useAdminCompanies(): UseAdminCompaniesReturn {
         setUpdatingId(null)
       }
     },
-    [fetchCompanies]
+    [mutate]
   )
 
   const createCompany = useCallback(
@@ -90,25 +102,21 @@ export function useAdminCompanies(): UseAdminCompaniesReturn {
           throw new Error(errorData.error || 'Error al crear la empresa')
         }
 
-        await fetchCompanies()
+        await mutate()
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Error desconocido'
         setActionError(message)
         throw err
       }
     },
-    [fetchCompanies]
+    [mutate]
   )
 
-  useEffect(() => {
-    fetchCompanies()
-  }, [fetchCompanies])
-
   return {
-    companies,
-    stats,
-    isLoading,
-    error,
+    companies: data?.companies || [],
+    stats: data?.stats || null,
+    isLoading: isLoading && !data,
+    error: error instanceof Error ? error.message : null,
     refetch: fetchCompanies,
     updatingId,
     updateCompany,

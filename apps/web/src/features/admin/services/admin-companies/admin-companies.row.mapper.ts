@@ -16,9 +16,11 @@ export function mapOrganizationRow(
   options: MapOrganizationOptions = {},
 ): AdminCompany {
   const organizationUsers = row.organization_users ?? []
+  const memberRoles = options.memberRoles ? new Set(options.memberRoles) : undefined
   const membershipSummary = summarizeOrganizationMembership(
     organizationUsers,
     options.usersMap,
+    memberRoles,
   )
 
   return {

@@ -4,6 +4,7 @@ import { AdminCompaniesService } from '@/features/admin/services/adminCompanies.
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { cacheHeaders } from '@/lib/utils/cache-headers'
 import { logger } from '@/lib/utils/logger'
 
 import {
@@ -18,7 +19,10 @@ export async function GET() {
   try {
     const companies = await AdminCompaniesService.getCompanies()
     const stats = AdminCompaniesService.calculateStats(companies)
-    return NextResponse.json({ success: true, companies, stats })
+    return NextResponse.json(
+      { success: true, companies, stats },
+      { headers: cacheHeaders.privateShort },
+    )
   } catch (error) {
     logger.error('Error in GET /api/admin/companies', error)
     return apiError(

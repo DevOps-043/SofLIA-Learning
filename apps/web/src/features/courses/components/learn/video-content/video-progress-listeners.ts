@@ -1,34 +1,34 @@
 import type { CurrentTimeRef, VideoPlayerContextValue } from "./video-content.types";
 
 interface AttachVideoPlaybackListenersParams {
-  context?: VideoPlayerContextValue | null;
   currentTimeRef: CurrentTimeRef;
+  getContext?: () => VideoPlayerContextValue | null | undefined;
   lessonId?: string;
   videoElement: HTMLVideoElement;
 }
 
 export function attachVideoPlaybackListeners({
-  context,
   currentTimeRef,
+  getContext,
   lessonId,
   videoElement,
 }: AttachVideoPlaybackListenersParams) {
   const saveProgress = () => {
     if (lessonId) {
-      context?.saveVideoProgress?.(lessonId, videoElement.currentTime);
+      getContext?.()?.saveVideoProgress?.(lessonId, videoElement.currentTime);
     }
   };
-  const onPlay = () => context?.setIsVideoPlaying(true);
+  const onPlay = () => getContext?.()?.setIsVideoPlaying(true);
   const onPause = () => {
-    context?.setIsVideoPlaying(false);
+    getContext?.()?.setIsVideoPlaying(false);
     saveProgress();
   };
   const onEnded = () => {
-    context?.setIsVideoPlaying(false);
+    getContext?.()?.setIsVideoPlaying(false);
     saveProgress();
   };
-  const onEnterPiP = () => context?.setIsPiPActive(true);
-  const onLeavePiP = () => context?.setIsPiPActive(false);
+  const onEnterPiP = () => getContext?.()?.setIsPiPActive(true);
+  const onLeavePiP = () => getContext?.()?.setIsPiPActive(false);
   const onTimeUpdate = () => {
     currentTimeRef.current = videoElement.currentTime;
   };
@@ -41,7 +41,7 @@ export function attachVideoPlaybackListeners({
   videoElement.addEventListener("timeupdate", onTimeUpdate);
 
   if (!videoElement.paused) {
-    context?.setIsVideoPlaying(true);
+    getContext?.()?.setIsVideoPlaying(true);
   }
 
   return () => {

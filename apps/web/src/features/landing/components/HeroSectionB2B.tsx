@@ -194,10 +194,11 @@ export function HeroSectionB2B() {
                   <Image
                     src="/Logo.png"
                     alt="SofLIA"
-                    fill
-                    className="object-contain drop-shadow-2xl"
-                    priority
-                  />
+                  fill
+                  className="object-contain drop-shadow-2xl"
+                  sizes="(min-width: 1024px) 480px, 80vw"
+                  priority
+                />
                 </div>
               ) : (
                 <motion.div
@@ -214,6 +215,7 @@ export function HeroSectionB2B() {
                     alt="SofLIA"
                     fill
                     className="object-contain drop-shadow-2xl"
+                    sizes="(min-width: 1024px) 480px, 80vw"
                     priority
                   />
                 </motion.div>

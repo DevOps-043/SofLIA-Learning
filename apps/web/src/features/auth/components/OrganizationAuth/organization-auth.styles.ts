@@ -1,12 +1,7 @@
 import { hexToRgb } from '../../../business-panel/utils/styles'
+import type { StyleConfig } from '../../../business-panel/hooks/useOrganizationStyles'
 
-export interface OrganizationAuthStyles {
-  primary_button_color?: string
-  secondary_button_color?: string
-  card_background?: string
-  text_color?: string
-  border_color?: string
-}
+export type OrganizationAuthStyles = Partial<StyleConfig>
 
 export interface OrganizationAuthPalette {
   cardBg: string
@@ -54,6 +49,10 @@ export function toInputBackgroundColor(cardBg: string, isDark: boolean): string 
         .map((value: string) => value.trim())
       return `rgba(${red}, ${green}, ${blue}, ${isDark ? 0.5 : 0.05})`
     })
+  }
+
+  if (cardBg.startsWith('var(')) {
+    return `rgba(${hexToRgb(cardBg)}, ${isDark ? 0.5 : 0.05})`
   }
 
   return cardBg

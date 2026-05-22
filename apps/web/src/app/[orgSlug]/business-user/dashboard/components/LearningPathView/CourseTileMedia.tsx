@@ -35,6 +35,7 @@ export function CourseTileMedia({
         src={course.thumbnail || '/images/course-placeholder.png'}
         alt={course.title}
         fill
+        priority={item.position <= 3}
         className={`object-cover ${isLocked ? 'grayscale' : ''} ${
           disableHeavyEffects ? '' : 'transition-transform duration-300 group-hover:scale-[1.03]'
         }`}

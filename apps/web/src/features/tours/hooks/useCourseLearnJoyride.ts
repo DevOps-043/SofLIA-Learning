@@ -19,6 +19,9 @@ import type { SofliaJoyrideEvent as CallBackProps, SofliaJoyrideStep } from '../
 const TOUR_START_DELAY_MS = 1500;
 const TOUR_RESTART_DELAY_MS = 120;
 const TOUR_LAYOUT_SYNC_DELAY_MS = 180;
+const TOUR_TARGET_READY_TIMEOUT_MS = 2500;
+const TOUR_TARGET_READY_POLL_MS = 50;
+const TOUR_BEFORE_TIMEOUT_MS = 5000;
 const SCROLLABLE_STEP_INDEXES = new Set<number>([
   COURSE_LEARN_JOYRIDE_STEP_INDEXES.videoPanel,
   COURSE_LEARN_JOYRIDE_STEP_INDEXES.tools,
@@ -47,6 +50,74 @@ function waitForLayoutSync(): Promise<void> {
   });
 }
 
+function resolveStepTargetElement(
+  stepTarget: SofliaJoyrideStep['target'],
+): HTMLElement | null {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  if (typeof stepTarget === 'string') {
+    const element = document.querySelector(stepTarget);
+    return element instanceof HTMLElement ? element : null;
+  }
+
+  if (stepTarget instanceof HTMLElement) {
+    return stepTarget;
+  }
+
+  if (typeof stepTarget === 'function') {
+    const element = stepTarget();
+    return element instanceof HTMLElement ? element : null;
+  }
+
+  if (stepTarget && 'current' in stepTarget) {
+    const element = stepTarget.current;
+    return element instanceof HTMLElement ? element : null;
+  }
+
+  return null;
+}
+
+function isStepTargetReady(stepTarget: SofliaJoyrideStep['target']): boolean {
+  const element = resolveStepTargetElement(stepTarget);
+
+  if (!element) {
+    return false;
+  }
+
+  const { display, visibility } = window.getComputedStyle(element);
+  const rect = element.getBoundingClientRect();
+
+  return display !== 'none' && visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+}
+
+function waitForStepTargetReady(
+  stepTarget: SofliaJoyrideStep['target'],
+): Promise<void> {
+  if (typeof window === 'undefined') {
+    return Promise.resolve();
+  }
+
+  const startedAt = Date.now();
+
+  return new Promise((resolve) => {
+    const checkTarget = () => {
+      if (
+        isStepTargetReady(stepTarget) ||
+        Date.now() - startedAt >= TOUR_TARGET_READY_TIMEOUT_MS
+      ) {
+        resolve();
+        return;
+      }
+
+      window.setTimeout(checkTarget, TOUR_TARGET_READY_POLL_MS);
+    };
+
+    checkTarget();
+  });
+}
+
 function scrollStepTargetIntoView(
   nextStepIndex: number,
   stepTarget: SofliaJoyrideStep['target'],
@@ -58,7 +129,7 @@ function scrollStepTargetIntoView(
     return;
   }
 
-  const element = document.querySelector(stepTarget);
+  const element = resolveStepTargetElement(stepTarget);
 
   if (!(element instanceof HTMLElement)) {
     return;
@@ -91,7 +162,7 @@ export function useCourseLearnJoyride({
     () => (key, interpolation) => t(key, interpolation),
     [t],
   );
-  const steps = useMemo(
+  const baseSteps = useMemo(
     () =>
       buildCourseLearnJoyrideSteps({
         courseTitle,
@@ -115,7 +186,7 @@ export function useCourseLearnJoyride({
   const [stepIndex, setStepIndex] = useState(0);
   const [isTourActive, setIsTourActive] = useState(false);
 
-  const pendingAutoTour = !mobilePerformanceMode && shouldShowTour
+  const pendingAutoTour = !mobilePerformanceMode && shouldShowTour;
   const suppressVideoPlayback =
     enabled && (isLoading || pendingAutoTour || isTourActive);
   const skipVideoAutoplay = enabled && (pendingAutoTour || isTourActive);
@@ -137,7 +208,10 @@ export function useCourseLearnJoyride({
   }, [resetTourState, skipTour]);
 
   const prepareStep = useCallback(
-    async (nextStepIndex: number) => {
+    async (
+      nextStepIndex: number,
+      stepTarget: SofliaJoyrideStep['target'],
+    ) => {
       closeLia();
       setActiveTab('video');
 
@@ -152,20 +226,26 @@ export function useCourseLearnJoyride({
       }
 
       await waitForLayoutSync();
-      const nextStep = steps[nextStepIndex];
-
-      if (nextStep) {
-        scrollStepTargetIntoView(nextStepIndex, nextStep.target);
-        await waitForLayoutSync();
-      }
+      await waitForStepTargetReady(stepTarget);
+      scrollStepTargetIntoView(nextStepIndex, stepTarget);
+      await waitForLayoutSync();
     },
-    [closeLeftPanel, closeLia, isMobile, openLeftPanel, setActiveTab, steps],
+    [closeLeftPanel, closeLia, isMobile, openLeftPanel, setActiveTab],
   );
 
-  const launchTour = useCallback(async () => {
-    setIsTourActive(true);
-    await prepareStep(COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome);
+  const tourSteps = useMemo(
+    () =>
+      baseSteps.map((step, index) => ({
+        ...step,
+        before: () => prepareStep(index, step.target),
+        beforeTimeout: TOUR_BEFORE_TIMEOUT_MS,
+        targetWaitTimeout: TOUR_TARGET_READY_TIMEOUT_MS,
+      })),
+    [baseSteps, prepareStep],
+  );
 
+  const launchTour = useCallback(() => {
+    setIsTourActive(true);
     setRun(false);
     setStepIndex(COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome);
     void startTour();
@@ -173,7 +253,7 @@ export function useCourseLearnJoyride({
     window.setTimeout(() => {
       setRun(true);
     }, TOUR_RESTART_DELAY_MS);
-  }, [prepareStep, startTour]);
+  }, [startTour]);
 
   useEffect(() => {
     if (!enabled || mobilePerformanceMode || isLoading || !shouldShowTour) {
@@ -252,22 +332,21 @@ export function useCourseLearnJoyride({
           return;
         }
 
-        if (nextStepIndex >= steps.length) {
+        if (nextStepIndex >= tourSteps.length) {
           await finishTour();
           return;
         }
 
-        await prepareStep(nextStepIndex);
         setStepIndex(nextStepIndex);
         updateStep(nextStepIndex); // debounced fire-and-forget
       }
     },
-    [dismissTour, finishTour, prepareStep, steps.length, updateStep],
+    [dismissTour, finishTour, tourSteps.length, updateStep],
   );
 
   const joyrideProps = useMemo(
     () => ({
-      steps,
+      steps: tourSteps,
       run,
       stepIndex,
       callback: handleJoyrideCallback,
@@ -316,7 +395,7 @@ export function useCourseLearnJoyride({
         skip: 'Saltar',
       },
     }),
-    [handleJoyrideCallback, isMobile, run, stepIndex, steps],
+    [handleJoyrideCallback, isMobile, run, stepIndex, tourSteps],
   );
 
   return {

@@ -14,6 +14,8 @@ import {
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
 type UserProfileRow = Omit<AdminCompanyUserProfile, 'email'> & { email: string | null }
 
+const COMPANY_MEMBER_PROFILE_ROLES = ['owner', 'admin']
+
 const ORGANIZATION_SELECT = `
   id,
   name,
@@ -97,10 +99,14 @@ async function buildPendingInvitationCountMap(
 }
 
 function collectOrganizationUserIds(organizations: OrganizationRow[]): string[] {
+  const profileRoles = new Set(COMPANY_MEMBER_PROFILE_ROLES)
+
   return Array.from(
     new Set(
       organizations.flatMap((organization) =>
-        (organization.organization_users || []).map((membership) => membership.user_id)
+        (organization.organization_users || [])
+          .filter((membership) => membership.role && profileRoles.has(membership.role))
+          .map((membership) => membership.user_id)
       )
     )
   )
@@ -134,6 +140,7 @@ export async function getAdminCompanies(): Promise<AdminCompany[]> {
   return organizations.map((organization) =>
     mapOrganizationRow(organization, {
       usersMap,
+      memberRoles: COMPANY_MEMBER_PROFILE_ROLES,
       pendingInvitationCount: invitationCountsMap[organization.id] || 0,
     })
   )
@@ -157,8 +164,13 @@ export async function getAdminCompanyById(id: string): Promise<AdminCompany | nu
   }
 
   const organization = data as OrganizationRow
+  const profileRoles = new Set(COMPANY_MEMBER_PROFILE_ROLES)
   const userIds = Array.from(
-    new Set((organization.organization_users || []).map((membership) => membership.user_id))
+    new Set(
+      (organization.organization_users || [])
+        .filter((membership) => membership.role && profileRoles.has(membership.role))
+        .map((membership) => membership.user_id)
+    )
   )
 
   const [usersMap, pendingInvitationsResponse, bulkInviteLinksResponse] = await Promise.all([
@@ -175,6 +187,7 @@ export async function getAdminCompanyById(id: string): Promise<AdminCompany | nu
 
   return mapOrganizationRow(organization, {
     usersMap,
+    memberRoles: COMPANY_MEMBER_PROFILE_ROLES,
     pendingInvitationCount: pendingInvitationsResponse.data?.length || 0,
     pendingInvitations: pendingInvitationsResponse.data || [],
     bulkInviteLinks: bulkInviteLinksResponse.data || [],

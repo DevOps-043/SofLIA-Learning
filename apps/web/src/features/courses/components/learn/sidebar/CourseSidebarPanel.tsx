@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useTranslation } from "react-i18next";
 
 import { COURSE_LEARN_TOUR_TARGET_IDS } from "../../../../../core/constants/tourTargets";
 import { useSwipe } from "../../../../../hooks/useSwipe";
@@ -14,7 +13,6 @@ import type {
   LearnMaterialMap,
   LearnModule,
   LearnNotesStats,
-  LearnPathState,
   LearnSavedNote,
 } from "../types";
 import { CollapsedSidebarRail } from "./CollapsedSidebarRail";
@@ -25,7 +23,6 @@ type CourseSidebarPanelProps = {
   isMobile: boolean;
   modules: LearnModule[];
   currentLesson: LearnLesson | null;
-  learningPathState: LearnPathState | null;
   isMaterialCollapsed: boolean;
   isNotesCollapsed: boolean;
   expandedLessons: Set<string>;
@@ -63,7 +60,6 @@ export function CourseSidebarPanel({
   isMobile,
   modules,
   currentLesson,
-  learningPathState,
   isMaterialCollapsed,
   isNotesCollapsed,
   expandedLessons,
@@ -89,8 +85,6 @@ export function CourseSidebarPanel({
   onOpenNotesSection,
   onOpenNewNote,
 }: CourseSidebarPanelProps) {
-  const { t } = useTranslation("learn");
-
   const swipeToCloseRef = useSwipe<HTMLDivElement>({
     onSwipeLeft: () => {
       if (isMobile && isOpen) {
@@ -149,56 +143,6 @@ export function CourseSidebarPanel({
                     : "1.5rem",
                 }}
               >
-                {learningPathState ? (
-                  <div className="mb-6 rounded-2xl border border-accent/20 bg-accent/5 p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-accent">
-                      {t("leftPanel.learningPath.badge")}
-                    </p>
-                    <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
-                      {learningPathState.title}
-                    </h3>
-                    <p className="mt-1 text-xs text-gray-500 dark:text-white/60">
-                      {t("leftPanel.learningPath.completedCount", {
-                        completed: learningPathState.completedItemsCount,
-                        total: learningPathState.totalItemsCount,
-                      })}
-                    </p>
-                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
-                      <div
-                        className="h-full rounded-full bg-accent"
-                        style={{ width: `${learningPathState.progressPercentage}%` }}
-                      />
-                    </div>
-                    <div className="mt-4 space-y-2">
-                      {learningPathState.items.map((item) => (
-                        <div
-                          key={`${item.courseId}-${item.position}`}
-                          className={`rounded-xl border px-3 py-2 text-xs ${
-                            item.isCurrent
-                              ? "border-accent/40 bg-accent/10"
-                              : item.isUnlocked
-                                ? "border-black/10 bg-white/40 dark:border-white/10 dark:bg-white/5"
-                                : "border-amber-500/20 bg-amber-500/10"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <span className="font-medium text-gray-900 dark:text-white/90">
-                              {item.position}. {item.title}
-                            </span>
-                            <span className="text-[10px] uppercase tracking-[0.18em] text-gray-500 dark:text-white/50">
-                              {item.isCompleted
-                                ? t("leftPanel.learningPath.status.completed")
-                                : item.isUnlocked
-                                  ? t("leftPanel.learningPath.status.available")
-                                  : t("leftPanel.learningPath.status.locked")}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-
                 <CourseContentTree
                   modules={modules}
                   currentLesson={currentLesson}

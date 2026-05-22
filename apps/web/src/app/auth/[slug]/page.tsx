@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { OrganizationAuthLayout } from '@/features/auth/components/OrganizationAuth/OrganizationAuthLayout';
 import { OrganizationLoginForm } from '@/features/auth/components/OrganizationAuth/OrganizationLoginForm';
+import type { OrganizationAuthStyles } from '@/features/auth/components/OrganizationAuth/organization-auth.styles';
 import Link from 'next/link';
 
 interface Organization {
@@ -18,11 +19,11 @@ interface Organization {
   brand_favicon_url?: string | null;
   google_login_enabled?: boolean;
   microsoft_login_enabled?: boolean;
+  login_styles?: OrganizationAuthStyles | null;
 }
 
 export default function OrganizationLoginPage() {
   const params = useParams();
-  const router = useRouter();
   const slug = params?.slug as string;
   
   const [organization, setOrganization] = useState<Organization | null>(null);
@@ -118,4 +119,3 @@ export default function OrganizationLoginPage() {
     </OrganizationAuthLayout>
   );
 }
-

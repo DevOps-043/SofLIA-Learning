@@ -334,7 +334,9 @@ export function CoursesPageContent() {
                         src={course.thumbnail_url}
                         alt={course.title}
                         fill
+                        priority={index < 8}
                         className="object-cover"
+                        sizes="64px"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 12.5%, transparent)` }}>

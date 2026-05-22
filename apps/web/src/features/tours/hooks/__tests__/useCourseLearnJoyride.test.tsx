@@ -14,6 +14,7 @@ import {
 } from '../../config/course-learn-joyride-steps';
 import { useCourseLearnJoyride } from '../useCourseLearnJoyride';
 import type { SofliaJoyrideEvent as CallBackProps } from '../../types/joyride';
+import { COURSE_LEARN_TOUR_TARGET_IDS } from '../../../../core/constants/tourTargets';
 
 const completeTour = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
 const skipTour = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
@@ -78,6 +79,7 @@ function buildCallbackProps(
 describe('useCourseLearnJoyride', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    document.body.innerHTML = '';
     tourProgressState.isLoading = false;
     tourProgressState.shouldShowTour = false;
     vi.useRealTimers();
@@ -155,5 +157,69 @@ describe('useCourseLearnJoyride', () => {
 
     expect(startTour).toHaveBeenCalledTimes(1);
     expect(result.current.run).toBe(true);
+  });
+
+  it('prepares the sidebar target before showing that step', async () => {
+    vi.useFakeTimers();
+
+    const sidebarTarget = document.createElement('div');
+    sidebarTarget.id = COURSE_LEARN_TOUR_TARGET_IDS.sidebar;
+    document.body.appendChild(sidebarTarget);
+
+    const rectSpy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({
+        bottom: 40,
+        height: 40,
+        left: 0,
+        right: 120,
+        top: 0,
+        width: 120,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      } as DOMRect);
+
+    const closeLia = vi.fn();
+    const openLeftPanel = vi.fn();
+    const setActiveTab = vi.fn();
+
+    try {
+      const { result } = renderHook(() =>
+        useCourseLearnJoyride({
+          closeLia,
+          closeLeftPanel: vi.fn(),
+          courseSlug: 'stack-tech-1',
+          courseTitle: 'Curso de prueba',
+          enabled: true,
+          isMobile: false,
+          lessonTitle: 'Leccion de prueba',
+          openLeftPanel,
+          setActiveTab,
+        }),
+      );
+
+      const before =
+        result.current.joyrideProps.steps[
+          COURSE_LEARN_JOYRIDE_STEP_INDEXES.sidebar
+        ].before;
+
+      if (!before) {
+        throw new Error('Expected sidebar step to include a before hook');
+      }
+
+      const beforePromise = before({} as Parameters<typeof before>[0]);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500);
+        await beforePromise;
+      });
+
+      expect(closeLia).toHaveBeenCalledTimes(1);
+      expect(openLeftPanel).toHaveBeenCalledTimes(1);
+      expect(setActiveTab).toHaveBeenCalledWith('video');
+    } finally {
+      rectSpy.mockRestore();
+    }
   });
 });
