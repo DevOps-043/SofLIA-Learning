@@ -18,7 +18,7 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { STREAMABLE_VIDEO_ACCEPT } from '@/lib/media/video-upload-policy'
-import { useVideoJsHlsPlayback } from '@/lib/media/useVideoJsHlsPlayback'
+import { useHlsPlayback } from '@/lib/media/useHlsPlayback'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 import { useBusinessLearningPathVideos } from '../hooks/useBusinessLearningPathVideos'
 import type { BusinessLearningPath } from '../services/businessLearningPaths.service'
@@ -44,7 +44,7 @@ interface VideoSlotProps {
 function VideoSlot({ title, videoUrl, isUploading, isDeleting, onUpload, onDelete, theme, t }: VideoSlotProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
-  useVideoJsHlsPlayback(videoRef, videoUrl ?? '', 'metadata')
+  useHlsPlayback(videoRef, videoUrl ?? '')
 
   return (
     <div

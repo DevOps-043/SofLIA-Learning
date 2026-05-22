@@ -1,5 +1,19 @@
 import type { CourseThemeColors } from "./course-theme-types";
 
+/**
+ * CSS del tema de curso.
+ *
+ * IMPORTANTE: el course-theme SOLO debe exponer el color de acento del curso
+ * (`--course-accent`) y el estilo de scrollbar. NO debe repintar el texto, los
+ * fondos, los headings ni el `color-scheme` globalmente.
+ *
+ * Las versiones anteriores inyectaban reglas `!important` sobre `body`, `html`,
+ * `h1-h6` y `[class*="text-gray-*"]`. Eso pisaba el sistema de tema de la app
+ * (clases `.light` / `.dark`, `--color-contrast`, variantes `dark:` de
+ * Tailwind) y, cuando el modo calculado no coincidia con el tema real del
+ * usuario, dejaba texto blanco invisible sobre fondo claro. El tema de la app
+ * ya gestiona correctamente texto y fondo en ambos modos.
+ */
 export function buildCourseThemeBaseCss(
   colors: CourseThemeColors,
   accentRgb: string
@@ -15,7 +29,6 @@ export function buildCourseThemeBaseCss(
     :root {
       --course-accent: ${colors.accent};
       --course-accent-rgb: ${accentRgb};
-      color-scheme: ${colors.isLightMode ? "light" : "dark"};
     }
 
     ::-webkit-scrollbar {
@@ -37,11 +50,6 @@ export function buildCourseThemeBaseCss(
     }
     ::-webkit-scrollbar-corner {
       background: transparent !important;
-    }
-
-    body, .min-h-screen, html {
-      background: ${colors.bgPrimary} !important;
-      color: ${colors.text} !important;
     }
   `;
 }

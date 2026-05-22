@@ -1,3 +1,5 @@
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types'
+
 import type {
   LessonActivityRow,
   LessonMaterialRow,

@@ -45,7 +45,9 @@ export function OnboardingVideoElement({ player }: { player: OnboardingVideoCont
       onWaiting={() => player.scheduleBufferingIndicator(NATIVE_VIDEO_BUFFERING_DELAY_MS)}
       playsInline
       preload={player.playbackPolicy.nativeVideoPreload}
-      src={player.currentVideoSrc}
+      src={
+        player.quality.usesNativeSource ? player.currentVideoSrc : undefined
+      }
     />
   );
 }

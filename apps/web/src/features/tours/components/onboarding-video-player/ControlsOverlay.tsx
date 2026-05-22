@@ -15,7 +15,7 @@ export function ControlsOverlay({ player, totalVideos }: ControlsOverlayProps) {
   const visible = player.showControls || !player.isPlaying || player.isBuffering;
 
   // El selector de calidad solo aplica cuando la fuente es HLS y la
-  // reproducimos via MSE (video.js). En HLS nativo (Safari/iOS) el SO
+  // reproducimos via MSE (hls.js). En HLS nativo (Safari/iOS) el SO
   // controla el bitrate y no exponemos una API para forzar resolucion,
   // por lo que ocultamos el control para no mentirle al usuario.
   const canSelectQuality =

@@ -73,6 +73,49 @@ function mfaFactorsTable(client: unknown) {
   return fromLoose<MfaFactorRow, MfaFactorWrite>(client, 'user_mfa_factors');
 }
 
+const MFA_STATUS_DISABLED: MfaStatus = {
+  enabled: false,
+  factorId: null,
+  lastUsedAt: null,
+  recoveryCodesRemaining: 0,
+};
+
+/**
+ * Detecta errores que indican que la infraestructura de MFA aun no esta
+ * desplegada (tabla o columna `user_mfa_factors` inexistente).
+ *
+ * Cuando la migracion `20260518130000_mfa_totp_factors.sql` no se ha
+ * aplicado, la lectura de estado MFA falla. En ese caso NO se debe bloquear
+ * el login: si la tabla no existe, ningun usuario puede tener MFA, asi que
+ * lo correcto es degradar a "sin MFA" y dejar continuar el login. Bloquear
+ * todos los inicios de sesion por una migracion pendiente seria una
+ * auto-denegacion de servicio.
+ */
+function isMissingMfaInfrastructureError(error: {
+  code?: string | null;
+  message?: string | null;
+}): boolean {
+  const code = error.code ?? '';
+  // 42P01 = undefined_table, 42703 = undefined_column,
+  // PGRST205 = tabla ausente del schema cache, PGRST204 = columna ausente.
+  if (
+    code === '42P01' ||
+    code === '42703' ||
+    code === 'PGRST205' ||
+    code === 'PGRST204'
+  ) {
+    return true;
+  }
+
+  const message = (error.message ?? '').toLowerCase();
+  return (
+    message.includes('user_mfa_factors') &&
+    (message.includes('does not exist') ||
+      message.includes('could not find') ||
+      message.includes('schema cache'))
+  );
+}
+
 export async function getMfaStatus(userId: string): Promise<MfaStatus> {
   const supabase = await getSupabase();
   return readMfaStatus(supabase, userId);
@@ -95,10 +138,16 @@ async function readMfaStatus(
     .limit(1)
     .maybeSingle();
 
-  if (error) throw new MfaError('MFA_STATUS_READ_FAILED', error.message);
+  if (error) {
+    // Migracion MFA pendiente: degradar a "sin MFA" en vez de bloquear el login.
+    if (isMissingMfaInfrastructureError(error)) {
+      return MFA_STATUS_DISABLED;
+    }
+    throw new MfaError('MFA_STATUS_READ_FAILED', error.message);
+  }
 
   if (!data) {
-    return { enabled: false, factorId: null, lastUsedAt: null, recoveryCodesRemaining: 0 };
+    return MFA_STATUS_DISABLED;
   }
 
   return {

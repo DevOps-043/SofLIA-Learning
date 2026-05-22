@@ -15,7 +15,7 @@ import { SessionService } from '@/features/auth/services/session.service';
  */
 export async function GET(
     request: NextRequest,
-    { params }: { params: { lessonId: string } }
+    { params }: { params: Promise<{ lessonId: string }> }
 ) {
     try {
         // Use SessionService to get user (matches app's custom auth system)
@@ -28,7 +28,8 @@ export async function GET(
         // Create Supabase client for database operations
         const supabase = await createClient();
 
-        const { lessonId } = params;
+        // Next.js 15: `params` es asíncrono y debe await-earse antes de usarlo.
+        const { lessonId } = await params;
 
         if (!lessonId) {
             return NextResponse.json({ error: 'lessonId is required' }, { status: 400 });

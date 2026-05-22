@@ -14,23 +14,36 @@ import type {
   CourseThemeStyleSource,
 } from "./course-theme-types";
 
+/**
+ * `themeOverride` fija el modo claro/oscuro segun el tema REAL del usuario.
+ *
+ * Antes el modo se derivaba del `card_background` de la organizacion. Eso
+ * provocaba que el course-theme inyectara reglas `!important` de modo oscuro
+ * (texto blanco sobre headings y `text-gray-*`) mientras la pagina estaba en
+ * modo claro -> texto blanco invisible. El tema del curso debe SEGUIR el
+ * tema del usuario, no inferirlo de un color de marca de la organizacion.
+ */
 export function resolveCourseThemeColors(
-  effectiveStyles?: CourseThemeStyleSource | null
+  effectiveStyles?: CourseThemeStyleSource | null,
+  themeOverride?: 'light' | 'dark'
 ): CourseThemeColors {
   const dashboardStyles = effectiveStyles?.userDashboard;
 
   if (!dashboardStyles) {
+    const isLightMode = themeOverride === 'light';
     return {
       accent: DEFAULT_ACCENT,
-      bgPrimary: DEFAULT_BG_PRIMARY,
-      bgSecondary: DEFAULT_BG_SECONDARY,
-      isLightMode: false,
+      bgPrimary: isLightMode ? LIGHT_BG_PRIMARY : DEFAULT_BG_PRIMARY,
+      bgSecondary: isLightMode ? LIGHT_BG_SECONDARY : DEFAULT_BG_SECONDARY,
+      isLightMode,
       primary: DEFAULT_PRIMARY,
-      text: DEFAULT_DARK_TEXT,
+      text: isLightMode ? DEFAULT_LIGHT_TEXT : DEFAULT_DARK_TEXT,
     };
   }
 
-  const isLightMode = isLightCardBackground(dashboardStyles.card_background);
+  const isLightMode = themeOverride
+    ? themeOverride === 'light'
+    : isLightCardBackground(dashboardStyles.card_background);
   const bgPrimary = resolvePrimaryBackground(dashboardStyles.background_value, isLightMode);
   const sidebarBackground = effectiveStyles?.panel?.sidebar_background;
 

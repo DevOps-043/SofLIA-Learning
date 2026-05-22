@@ -8,7 +8,7 @@ import {
   NATIVE_VIDEO_STALLED_DELAY_MS,
   hasNativeVideoPlayableData,
 } from '@/lib/media';
-import { useVideoJsHlsPlayback } from '@/lib/media/useVideoJsHlsPlayback';
+import { useHlsPlayback } from '@/lib/media/useHlsPlayback';
 import type { OnboardingVideoPlayerProps } from './types';
 import { useBufferingIndicator } from './useBufferingIndicator';
 import { useControlsVisibility } from './useControlsVisibility';
@@ -35,7 +35,7 @@ export function useOnboardingVideoPlayer({ onComplete, videos }: Pick<Onboarding
   // Controlador de calidad HLS: expone las renditions disponibles y permite
   // forzar una resolucion concreta. Se reutiliza en ControlsOverlay para
   // pintar el selector de calidad (mismo comportamiento que CustomVideoPlayer).
-  const quality = useVideoJsHlsPlayback(videoRef, currentVideoSrc, playbackPolicy.nativeVideoPreload);
+  const quality = useHlsPlayback(videoRef, currentVideoSrc);
 
   useEffect(() => {
     const videosChanged = JSON.stringify(videos) !== JSON.stringify(prevVideosRef.current);

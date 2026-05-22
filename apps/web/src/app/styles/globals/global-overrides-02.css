@@ -1,5 +1,10 @@
 
-/* Light mode variables */
+/* Light mode variables — tambien es el TEMA POR DEFECTO (:root).
+   Antes :root (global-overrides-01.css) tenia los valores del tema oscuro,
+   por lo que cualquier estado sin clase de tema (SSR, hidratacion, portales)
+   renderizaba texto claro sobre fondo claro. El default ahora es claro y
+   `.dark` lo sobreescribe explicitamente. */
+:root,
 .light {
   /* Nueva Paleta SOFLIA - Modo Claro (alineada con preset-themes.ts lightMode) */
   --color-primary: rgb(10 37 64);
