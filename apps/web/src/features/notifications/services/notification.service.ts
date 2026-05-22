@@ -84,8 +84,15 @@ export class NotificationService {
     return deleteNotification(notificationId, userId)
   }
 
-  static async markAllAsRead(userId: string): Promise<{ updated: number }> {
-    return markAllNotificationsAsRead(userId)
+  static async markAllAsRead(
+    userId: string,
+    supabase?: NotificationSupabaseClient,
+  ): Promise<{ updated: number }> {
+    if (!supabase) {
+      return markAllNotificationsAsRead(userId)
+    }
+
+    return markAllNotificationsAsRead(userId, { supabase })
   }
 
   static async getRecentActivity(

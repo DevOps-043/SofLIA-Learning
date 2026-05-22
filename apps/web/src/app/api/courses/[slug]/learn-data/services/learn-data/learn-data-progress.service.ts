@@ -1,7 +1,10 @@
 import type { createClient as createSupabaseClient } from '@/lib/supabase/server'
+import type { createAdminClient } from '@/lib/supabase/admin'
 import { NoteService } from '@/features/courses/services/note.service'
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseClient>>
+type SupabaseServerClient =
+  | Awaited<ReturnType<typeof createSupabaseClient>>
+  | ReturnType<typeof createAdminClient>
 
 export interface NotesStats {
   totalNotes: number

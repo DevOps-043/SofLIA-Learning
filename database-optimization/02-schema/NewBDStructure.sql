@@ -48,6 +48,25 @@ CREATE TABLE public.ai_moderation_logs (
   CONSTRAINT ai_moderation_logs_pkey PRIMARY KEY (log_id),
   CONSTRAINT ai_moderation_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
+CREATE TABLE public.async_jobs (
+  job_id text NOT NULL,
+  job_name text NOT NULL,
+  dedup_key text NOT NULL,
+  provider text NOT NULL DEFAULT 'qstash'::text,
+  provider_message_id text,
+  status text NOT NULL DEFAULT 'pending_publish'::text CHECK (status = ANY (ARRAY['pending_publish'::text, 'queued'::text, 'processing'::text, 'succeeded'::text, 'failed'::text, 'publish_failed'::text, 'dead_letter'::text])),
+  organization_id uuid,
+  created_by uuid,
+  payload_ref text,
+  attempts integer NOT NULL DEFAULT 0,
+  result jsonb,
+  error_message text,
+  queued_at timestamp with time zone NOT NULL DEFAULT now(),
+  started_at timestamp with time zone,
+  completed_at timestamp with time zone,
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT async_jobs_pkey PRIMARY KEY (job_id)
+);
 CREATE TABLE public.audit_logs (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
@@ -570,6 +589,17 @@ CREATE TABLE public.learning_preview_cache (
   CONSTRAINT learning_preview_cache_pkey PRIMARY KEY (id),
   CONSTRAINT learning_preview_cache_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
+CREATE TABLE public.learning_preview_summaries (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  kind text NOT NULL CHECK (kind = ANY (ARRAY['course'::text, 'learning_path'::text])),
+  target_id uuid NOT NULL,
+  locale text NOT NULL CHECK (locale = ANY (ARRAY['es'::text, 'en'::text, 'pt'::text])),
+  model_name text,
+  payload jsonb NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT learning_preview_summaries_pkey PRIMARY KEY (id)
+);
 CREATE TABLE public.lesson_activities (
   activity_id uuid NOT NULL DEFAULT gen_random_uuid(),
   activity_title character varying NOT NULL,
@@ -703,7 +733,7 @@ CREATE TABLE public.lia_activity_completions (
   completed_steps integer DEFAULT 0,
   current_step integer DEFAULT 1,
   generated_output jsonb,
-  attempts_to_complete integer DEFAULT 1,
+  attempts_to_complete integer DEFAULT 1 CHECK (attempts_to_complete >= 1 AND attempts_to_complete <= 3) NOT VALI),
   time_to_complete_seconds integer,
   user_needed_help boolean DEFAULT false,
   lia_had_to_redirect integer DEFAULT 0,
@@ -838,6 +868,39 @@ CREATE TABLE public.lia_user_feedback (
   CONSTRAINT lia_user_feedback_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES public.lia_conversations(conversation_id),
   CONSTRAINT lia_user_feedback_message_id_fkey FOREIGN KEY (message_id) REFERENCES public.lia_messages(message_id),
   CONSTRAINT lia_user_feedback_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.module_learning_summaries (
+  summary_id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  course_id uuid NOT NULL,
+  module_id uuid NOT NULL,
+  organization_id uuid,
+  version integer NOT NULL CHECK (version >= 1 AND version <= 4),
+  title text NOT NULL,
+  content_html text NOT NULL DEFAULT ''::text,
+  content_markdown text NOT NULL DEFAULT ''::text,
+  status text NOT NULL DEFAULT 'generating'::text CHECK (status = ANY (ARRAY['generating'::text, 'ready'::text, 'failed'::text])),
+  generation_type text NOT NULL DEFAULT 'default'::text CHECK (generation_type = ANY (ARRAY['default'::text, 'manual_regeneration'::text])),
+  source_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
+  model_provider text NOT NULL DEFAULT 'openai'::text,
+  model_name text,
+  prompt_version text NOT NULL DEFAULT 'module-learning-summary-v1'::text,
+  error_message text,
+  generated_at timestamp with time zone,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  processing_started_at timestamp with time zone,
+  processing_finished_at timestamp with time zone,
+  retry_count integer NOT NULL DEFAULT 0 CHECK (retry_count >= 0),
+  next_retry_at timestamp with time zone NOT NULL DEFAULT now(),
+  locked_until timestamp with time zone,
+  locked_by text,
+  last_error_code text,
+  CONSTRAINT module_learning_summaries_pkey PRIMARY KEY (summary_id),
+  CONSTRAINT module_learning_summaries_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT module_learning_summaries_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id),
+  CONSTRAINT module_learning_summaries_module_id_fkey FOREIGN KEY (module_id) REFERENCES public.course_modules(module_id),
+  CONSTRAINT module_learning_summaries_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
 CREATE TABLE public.monitoring_sessions (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -1077,6 +1140,23 @@ CREATE TABLE public.organization_learning_path_assignments (
   CONSTRAINT organization_learning_path_assignments_learning_path_id_fkey FOREIGN KEY (learning_path_id) REFERENCES public.learning_paths(id),
   CONSTRAINT organization_learning_path_assignments_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.users(id)
 );
+CREATE TABLE public.organization_learning_path_default_rules (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  organization_id uuid NOT NULL,
+  learning_path_id uuid NOT NULL,
+  scope_type text NOT NULL DEFAULT 'organization'::text CHECK (scope_type = ANY (ARRAY['organization'::text, 'node'::text])),
+  node_id uuid,
+  include_descendants boolean NOT NULL DEFAULT true,
+  status text NOT NULL DEFAULT 'active'::text CHECK (status = ANY (ARRAY['active'::text, 'revoked'::text])),
+  created_by uuid,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT organization_learning_path_default_rules_pkey PRIMARY KEY (id),
+  CONSTRAINT organization_learning_path_default_rules_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
+  CONSTRAINT organization_learning_path_default_rules_learning_path_id_fkey FOREIGN KEY (learning_path_id) REFERENCES public.learning_paths(id),
+  CONSTRAINT organization_learning_path_default_rules_node_id_fkey FOREIGN KEY (node_id) REFERENCES public.organization_nodes(id),
+  CONSTRAINT organization_learning_path_default_rules_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id)
+);
 CREATE TABLE public.organization_lp_intro_videos (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   organization_id uuid NOT NULL,
@@ -1267,6 +1347,7 @@ CREATE TABLE public.organization_users (
   zone_id uuid,
   region_id uuid,
   hierarchy_scope character varying DEFAULT NULL::character varying CHECK (hierarchy_scope IS NULL OR (hierarchy_scope::text = ANY (ARRAY['organization'::text, 'region'::text, 'zone'::text, 'team'::text]))),
+  job_description text,
   CONSTRAINT organization_users_pkey PRIMARY KEY (id),
   CONSTRAINT organization_users_invited_by_fkey FOREIGN KEY (invited_by) REFERENCES public.users(id),
   CONSTRAINT organization_users_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
@@ -1339,6 +1420,11 @@ CREATE TABLE public.organizations (
   show_navbar_name boolean DEFAULT true,
   hierarchy_enabled boolean DEFAULT false,
   hierarchy_config jsonb DEFAULT '{}'::jsonb,
+  industry text,
+  company_size text,
+  company_type text,
+  company_mission text,
+  company_country text,
   CONSTRAINT organizations_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.password_reset_tokens (
@@ -1440,6 +1526,55 @@ CREATE TABLE public.preguntas (
   CONSTRAINT preguntas_pkey PRIMARY KEY (id),
   CONSTRAINT preguntas_exclusivo_nivel_id_fkey FOREIGN KEY (exclusivo_nivel_id) REFERENCES public.niveles(id),
   CONSTRAINT preguntas_exclusivo_rol_id_fkey FOREIGN KEY (exclusivo_rol_id) REFERENCES public.roles(id)
+);
+CREATE TABLE public.privacy_deletion_requests (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid,
+  subject_user_id uuid,
+  requested_at timestamp with time zone NOT NULL DEFAULT now(),
+  scheduled_deletion_at timestamp with time zone NOT NULL DEFAULT (now() + '30 days'::interval),
+  cancelled_at timestamp with time zone,
+  completed_at timestamp with time zone,
+  status text NOT NULL DEFAULT 'pending'::text CHECK (status = ANY (ARRAY['pending'::text, 'cancelled'::text, 'completed'::text])),
+  requester_ip inet,
+  user_agent text,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  CONSTRAINT privacy_deletion_requests_pkey PRIMARY KEY (id),
+  CONSTRAINT privacy_deletion_requests_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.privacy_deletion_tombstones (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  original_request_id uuid NOT NULL,
+  subject_id_hash text NOT NULL,
+  scheduled_deletion_at timestamp with time zone NOT NULL,
+  completed_at timestamp with time zone NOT NULL DEFAULT now(),
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  CONSTRAINT privacy_deletion_tombstones_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.quiz_feedback_cache (
+  feedback_id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  course_id uuid NOT NULL,
+  lesson_id uuid NOT NULL,
+  organization_id uuid,
+  material_id uuid,
+  activity_id uuid,
+  enrollment_id uuid,
+  prompt_hash text NOT NULL,
+  prompt_text text NOT NULL,
+  feedback_content text NOT NULL,
+  source_model text,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT quiz_feedback_cache_pkey PRIMARY KEY (feedback_id),
+  CONSTRAINT quiz_feedback_cache_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT quiz_feedback_cache_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id),
+  CONSTRAINT quiz_feedback_cache_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.course_lessons(lesson_id),
+  CONSTRAINT quiz_feedback_cache_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
+  CONSTRAINT quiz_feedback_cache_material_id_fkey FOREIGN KEY (material_id) REFERENCES public.lesson_materials(material_id),
+  CONSTRAINT quiz_feedback_cache_activity_id_fkey FOREIGN KEY (activity_id) REFERENCES public.lesson_activities(activity_id),
+  CONSTRAINT quiz_feedback_cache_enrollment_id_fkey FOREIGN KEY (enrollment_id) REFERENCES public.user_course_enrollments(enrollment_id)
 );
 CREATE TABLE public.refresh_tokens (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -1586,6 +1721,23 @@ CREATE TABLE public.sectores (
   nombre text NOT NULL,
   CONSTRAINT sectores_pkey PRIMARY KEY (id)
 );
+CREATE TABLE public.security_audit_log (
+  id bigint NOT NULL DEFAULT nextval('security_audit_log_id_seq'::regclass),
+  occurred_at timestamp with time zone NOT NULL DEFAULT now(),
+  actor_id uuid,
+  actor_role text,
+  action text NOT NULL,
+  resource_type text,
+  resource_id text,
+  ip inet,
+  user_agent text,
+  org_id uuid,
+  result text NOT NULL CHECK (result = ANY (ARRAY['success'::text, 'denied'::text, 'error'::text])),
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  CONSTRAINT security_audit_log_pkey PRIMARY KEY (id),
+  CONSTRAINT security_audit_log_actor_id_fkey FOREIGN KEY (actor_id) REFERENCES public.users(id),
+  CONSTRAINT security_audit_log_org_id_fkey FOREIGN KEY (org_id) REFERENCES public.organizations(id)
+);
 CREATE TABLE public.skill_badges (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   skill_id uuid NOT NULL,
@@ -1611,6 +1763,106 @@ CREATE TABLE public.skills (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT skills_pkey PRIMARY KEY (skill_id)
+);
+CREATE TABLE public.soflia_dialogue_evaluations (
+  evaluation_id uuid NOT NULL DEFAULT gen_random_uuid(),
+  session_id uuid NOT NULL,
+  turn_id uuid,
+  model_name text,
+  overall_score numeric NOT NULL DEFAULT 0,
+  decision text NOT NULL,
+  recommended_next_state text NOT NULL,
+  criteria_met ARRAY NOT NULL DEFAULT '{}'::text[],
+  criteria_missing ARRAY NOT NULL DEFAULT '{}'::text[],
+  dimension_scores jsonb NOT NULL DEFAULT '[]'::jsonb,
+  flags jsonb NOT NULL DEFAULT '{}'::jsonb,
+  feedback_for_tutor text,
+  backend_notes text,
+  evidence_quotes jsonb NOT NULL DEFAULT '[]'::jsonb,
+  raw_payload jsonb NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT soflia_dialogue_evaluations_pkey PRIMARY KEY (evaluation_id),
+  CONSTRAINT soflia_dialogue_evaluations_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.soflia_dialogue_sessions(session_id),
+  CONSTRAINT soflia_dialogue_evaluations_turn_id_fkey FOREIGN KEY (turn_id) REFERENCES public.soflia_dialogue_turns(turn_id)
+);
+CREATE TABLE public.soflia_dialogue_events (
+  event_id uuid NOT NULL DEFAULT gen_random_uuid(),
+  session_id uuid,
+  activity_id uuid,
+  user_id uuid,
+  event_type text NOT NULL,
+  payload jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT soflia_dialogue_events_pkey PRIMARY KEY (event_id),
+  CONSTRAINT soflia_dialogue_events_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.soflia_dialogue_sessions(session_id),
+  CONSTRAINT soflia_dialogue_events_activity_id_fkey FOREIGN KEY (activity_id) REFERENCES public.lesson_activities(activity_id),
+  CONSTRAINT soflia_dialogue_events_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.soflia_dialogue_results (
+  result_id uuid NOT NULL DEFAULT gen_random_uuid(),
+  session_id uuid NOT NULL UNIQUE,
+  activity_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  enrollment_id uuid NOT NULL,
+  activity_result text NOT NULL CHECK (activity_result = ANY (ARRAY['completed'::text, 'needs_retry'::text])),
+  score numeric NOT NULL DEFAULT 0,
+  criteria_met ARRAY NOT NULL DEFAULT '{}'::text[],
+  criteria_missing ARRAY NOT NULL DEFAULT '{}'::text[],
+  student_feedback text NOT NULL,
+  instructor_summary text,
+  analytics_tags ARRAY NOT NULL DEFAULT '{}'::text[],
+  payload jsonb NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT soflia_dialogue_results_pkey PRIMARY KEY (result_id),
+  CONSTRAINT soflia_dialogue_results_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.soflia_dialogue_sessions(session_id),
+  CONSTRAINT soflia_dialogue_results_activity_id_fkey FOREIGN KEY (activity_id) REFERENCES public.lesson_activities(activity_id),
+  CONSTRAINT soflia_dialogue_results_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT soflia_dialogue_results_enrollment_id_fkey FOREIGN KEY (enrollment_id) REFERENCES public.user_course_enrollments(enrollment_id)
+);
+CREATE TABLE public.soflia_dialogue_sessions (
+  session_id uuid NOT NULL DEFAULT gen_random_uuid(),
+  activity_id uuid NOT NULL,
+  course_id uuid NOT NULL,
+  lesson_id uuid NOT NULL,
+  enrollment_id uuid NOT NULL,
+  organization_id uuid,
+  user_id uuid NOT NULL,
+  state text NOT NULL DEFAULT 'START'::text,
+  current_score numeric NOT NULL DEFAULT 0,
+  turns_count integer NOT NULL DEFAULT 0,
+  hints_used integer NOT NULL DEFAULT 0,
+  low_evidence_turns integer NOT NULL DEFAULT 0,
+  criteria_met ARRAY NOT NULL DEFAULT '{}'::text[],
+  criteria_missing ARRAY NOT NULL DEFAULT '{}'::text[],
+  activity_config_snapshot jsonb NOT NULL,
+  schema_version text NOT NULL DEFAULT '1.0.0'::text,
+  rubric_version text NOT NULL DEFAULT '1.0.0'::text,
+  prompt_version text,
+  started_at timestamp with time zone NOT NULL DEFAULT now(),
+  completed_at timestamp with time zone,
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  attempt_number integer CHECK (attempt_number >= 1 AND attempt_number <= 3) NOT VALI),
+  CONSTRAINT soflia_dialogue_sessions_pkey PRIMARY KEY (session_id),
+  CONSTRAINT soflia_dialogue_sessions_activity_id_fkey FOREIGN KEY (activity_id) REFERENCES public.lesson_activities(activity_id),
+  CONSTRAINT soflia_dialogue_sessions_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id),
+  CONSTRAINT soflia_dialogue_sessions_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.course_lessons(lesson_id),
+  CONSTRAINT soflia_dialogue_sessions_enrollment_id_fkey FOREIGN KEY (enrollment_id) REFERENCES public.user_course_enrollments(enrollment_id),
+  CONSTRAINT soflia_dialogue_sessions_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
+  CONSTRAINT soflia_dialogue_sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.soflia_dialogue_turns (
+  turn_id uuid NOT NULL DEFAULT gen_random_uuid(),
+  session_id uuid NOT NULL,
+  role text NOT NULL CHECK (role = ANY (ARRAY['user'::text, 'assistant'::text, 'system'::text])),
+  content text NOT NULL,
+  turn_number integer NOT NULL,
+  client_turn_id text,
+  state_before text,
+  state_after text,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT soflia_dialogue_turns_pkey PRIMARY KEY (turn_id),
+  CONSTRAINT soflia_dialogue_turns_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.soflia_dialogue_sessions(session_id)
 );
 CREATE TABLE public.study_plans (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -1924,11 +2176,14 @@ CREATE TABLE public.user_learning_path_assignments (
   assigned_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  assignment_source text NOT NULL DEFAULT 'manual'::text CHECK (assignment_source = ANY (ARRAY['manual'::text, 'bulk'::text, 'default_rule'::text])),
+  default_rule_id uuid,
   CONSTRAINT user_learning_path_assignments_pkey PRIMARY KEY (id),
   CONSTRAINT user_learning_path_assignments_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
   CONSTRAINT user_learning_path_assignments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
   CONSTRAINT user_learning_path_assignments_learning_path_id_fkey FOREIGN KEY (learning_path_id) REFERENCES public.learning_paths(id),
-  CONSTRAINT user_learning_path_assignments_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.users(id)
+  CONSTRAINT user_learning_path_assignments_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.users(id),
+  CONSTRAINT user_learning_path_assignments_default_rule_id_fkey FOREIGN KEY (default_rule_id) REFERENCES public.organization_learning_path_default_rules(id)
 );
 CREATE TABLE public.user_learning_path_progress (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -1998,6 +2253,22 @@ CREATE TABLE public.user_lesson_progress (
   CONSTRAINT user_lesson_progress_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.course_lessons(lesson_id),
   CONSTRAINT user_lesson_progress_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
   CONSTRAINT user_lesson_progress_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
+);
+CREATE TABLE public.user_mfa_factors (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  factor_type text NOT NULL DEFAULT 'totp'::text CHECK (factor_type = 'totp'::text),
+  status text NOT NULL DEFAULT 'pending'::text CHECK (status = ANY (ARRAY['pending'::text, 'active'::text, 'revoked'::text])),
+  secret_encrypted bytea NOT NULL,
+  recovery_codes_hashed ARRAY NOT NULL DEFAULT '{}'::text[],
+  issuer text NOT NULL DEFAULT 'SofLIA Learning'::text,
+  label text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  verified_at timestamp with time zone,
+  last_used_at timestamp with time zone,
+  revoked_at timestamp with time zone,
+  CONSTRAINT user_mfa_factors_pkey PRIMARY KEY (id),
+  CONSTRAINT user_mfa_factors_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.user_notification_preferences (
   preference_id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -2191,7 +2462,24 @@ CREATE TABLE public.users (
   notification_community_updates boolean DEFAULT false,
   date_of_birth date CHECK (date_of_birth IS NULL OR date_of_birth >= '1900-01-01'::date AND date_of_birth <= CURRENT_DATE),
   gender text CHECK (gender IS NULL OR (gender = ANY (ARRAY['female'::text, 'male'::text, 'non_binary'::text, 'other'::text, 'prefer_not_to_say'::text]))),
-  CONSTRAINT users_pkey PRIMARY KEY (id)
+  CONSTRAINT users_pkey PRIMARY KEY (id),
+  CONSTRAINT users_auth_user_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.video_transcoding_jobs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  source_path text NOT NULL,
+  source_url text NOT NULL,
+  bucket text NOT NULL DEFAULT 'course-videos'::text,
+  content_type text NOT NULL,
+  size_bytes bigint,
+  status text NOT NULL DEFAULT 'queued'::text CHECK (status = ANY (ARRAY['queued'::text, 'processing'::text, 'completed'::text, 'failed'::text, 'skipped'::text, 'disabled'::text])),
+  result_path text,
+  result_url text,
+  error_message text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  started_at timestamp with time zone,
+  completed_at timestamp with time zone,
+  CONSTRAINT video_transcoding_jobs_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.zone_course_assignments (
   hierarchy_assignment_id uuid NOT NULL,

@@ -1,5 +1,6 @@
 // Barrel re-export — all logic lives in sub-files
 import type { createClient as createSupabaseClient } from '@/lib/supabase/server'
+import type { createAdminClient } from '@/lib/supabase/admin'
 
 // Re-export from sub-files
 export {
@@ -45,7 +46,9 @@ export interface LearnDataQueryPayload {
   totalTimeMs: number
 }
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseClient>>
+type SupabaseServerClient =
+  | Awaited<ReturnType<typeof createSupabaseClient>>
+  | ReturnType<typeof createAdminClient>
 
 export async function loadLearnDataPayload(
   supabase: SupabaseServerClient,

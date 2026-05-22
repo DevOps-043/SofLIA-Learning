@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
 import { SessionService } from '@/features/auth/services/session.service'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
 interface ExistingQuizSubmissionRow {
@@ -354,7 +355,8 @@ export async function POST(
       0
 
     if (hasQuizzes && (!existingSubmission || isPassed || didImproveBestScore)) {
-      const { data: existingProgress } = await supabase
+      const progressClient = createAdminClient()
+      const { data: existingProgress } = await progressClient
         .from('user_lesson_progress')
         .select(
           'progress_id, quiz_progress_percentage, quiz_passed, video_progress_percentage',
@@ -369,7 +371,7 @@ export async function POST(
       const bestPassed = existingProgress?.quiz_passed || isPassed
 
       if (existingProgress) {
-        const { error: progressUpdateError } = await supabase
+        const { error: progressUpdateError } = await progressClient
           .from('user_lesson_progress')
           .update({
             quiz_progress_percentage: bestProgressScore,
@@ -388,7 +390,7 @@ export async function POST(
           )
         }
       } else {
-        const { error: progressInsertError } = await supabase
+        const { error: progressInsertError } = await progressClient
           .from('user_lesson_progress')
           .insert({
             user_id: currentUser.id,

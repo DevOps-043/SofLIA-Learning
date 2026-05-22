@@ -10,6 +10,8 @@ export type QuizQuestion = {
 
 export type SelectedQuizAnswers = Record<string, string | number>;
 
+const TRUE_FALSE_OPTIONS = new Set(["verdadero", "falso", "true", "false"]);
+
 function normalizeOption(text: string): string {
   return text.trim().replace(/\s+/g, " ").toLowerCase();
 }
@@ -94,9 +96,23 @@ export function isQuizAnswerCorrect(
   return false;
 }
 
+export function isTrueFalseQuizQuestion(question: QuizQuestion): boolean {
+  if (question.questionType === "true_false") {
+    return true;
+  }
+
+  if (question.options.length !== 2) {
+    return false;
+  }
+
+  return question.options.every((option) =>
+    TRUE_FALSE_OPTIONS.has(normalizeOption(option))
+  );
+}
+
 export function normalizeQuizQuestions(quizData: QuizQuestion[]): QuizQuestion[] {
   return quizData.map((question) => {
-    if (question.questionType !== "true_false") {
+    if (!isTrueFalseQuizQuestion(question)) {
       return question;
     }
 
@@ -115,6 +131,77 @@ export function normalizeQuizQuestions(quizData: QuizQuestion[]): QuizQuestion[]
       options: ["Verdadero", "Falso"],
     };
   });
+}
+
+function shuffleOptions(
+  options: string[],
+  random: () => number
+): { options: string[]; originalIndexes: number[] } {
+  const shuffled = options.map((option, originalIndex) => ({
+    option,
+    originalIndex,
+  }));
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(random() * (index + 1));
+    const current = shuffled[index];
+    shuffled[index] = shuffled[swapIndex];
+    shuffled[swapIndex] = current;
+  }
+
+  return {
+    options: shuffled.map((item) => item.option),
+    originalIndexes: shuffled.map((item) => item.originalIndex),
+  };
+}
+
+export function shuffleQuizQuestions(
+  quizData: QuizQuestion[],
+  random: () => number = Math.random
+): QuizQuestion[] {
+  return quizData.map((question) => {
+    if (isTrueFalseQuizQuestion(question) || question.options.length < 2) {
+      return question;
+    }
+
+    const { options, originalIndexes } = shuffleOptions(question.options, random);
+
+    if (options.every((option, index) => option === question.options[index])) {
+      return question;
+    }
+
+    const correctAnswer =
+      typeof question.correctAnswer === "number"
+        ? originalIndexes.indexOf(question.correctAnswer)
+        : question.correctAnswer;
+
+    return {
+      ...question,
+      correctAnswer,
+      options,
+    };
+  });
+}
+
+export function mapAnswerIndexesToOptionText(
+  quizData: QuizQuestion[],
+  selectedAnswers: SelectedQuizAnswers
+): SelectedQuizAnswers {
+  return Object.entries(selectedAnswers).reduce<SelectedQuizAnswers>(
+    (mappedAnswers, [questionId, selectedAnswer]) => {
+      const question = quizData.find((item) => item.id === questionId);
+
+      if (typeof selectedAnswer === "number" && question) {
+        mappedAnswers[questionId] =
+          question.options[selectedAnswer] ?? selectedAnswer;
+        return mappedAnswers;
+      }
+
+      mappedAnswers[questionId] = selectedAnswer;
+      return mappedAnswers;
+    },
+    {}
+  );
 }
 
 export function calculateQuizResults(

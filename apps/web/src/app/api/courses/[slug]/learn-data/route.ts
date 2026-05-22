@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SessionService } from '@/features/auth/services/session.service'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { cacheHeaders, withCacheHeaders } from '@/lib/utils/cache-headers'
 import { resolveLearningPathAccessForCourse } from '@/features/learning-paths/services/learning-path-access.server'
 import { buildLearnDataResponse } from './services/learn-data-response.service'
@@ -16,8 +17,8 @@ export async function GET(
     const lessonId = searchParams.get('lessonId')
     const language = searchParams.get('language') || 'es'
     const organizationId = searchParams.get('orgId')
-    const supabase = await createClient()
     const currentUser = await SessionService.getCurrentUser()
+    const supabase = currentUser ? createAdminClient() : await createClient()
 
     const payload = await loadLearnDataPayload(
       supabase,

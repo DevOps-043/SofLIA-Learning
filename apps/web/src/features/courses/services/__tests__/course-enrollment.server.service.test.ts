@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  mapPreferredCourseEnrollments,
   selectPreferredCourseEnrollment,
   type CourseEnrollmentRecord,
 } from '../course-enrollment.server.service'
@@ -91,5 +92,38 @@ describe('course-enrollment.server.service', () => {
     ])
 
     expect(enrollment?.enrollment_id).toBe('legacy')
+  })
+
+  it('maps each course to the preferred enrollment for the active organization', () => {
+    const enrollmentMap = mapPreferredCourseEnrollments(
+      [
+        {
+          ...buildEnrollment({
+            enrollment_id: 'course-a-legacy',
+            overall_progress_percentage: 20,
+          }),
+          course_id: 'course-a',
+        },
+        {
+          ...buildEnrollment({
+            enrollment_id: 'course-a-org',
+            organization_id: 'org-1',
+            overall_progress_percentage: 60,
+          }),
+          course_id: 'course-a',
+        },
+        {
+          ...buildEnrollment({
+            enrollment_id: 'course-b-legacy',
+            overall_progress_percentage: 35,
+          }),
+          course_id: 'course-b',
+        },
+      ],
+      'org-1',
+    )
+
+    expect(enrollmentMap.get('course-a')?.enrollment_id).toBe('course-a-org')
+    expect(enrollmentMap.get('course-b')?.enrollment_id).toBe('course-b-legacy')
   })
 })

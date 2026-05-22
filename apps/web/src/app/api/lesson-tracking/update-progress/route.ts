@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '@/features/auth/services/session.service';
 
@@ -15,7 +15,7 @@ async function syncUserLessonProgress({
     lessonId: string;
     maxReached: number;
     now: string;
-    supabase: Awaited<ReturnType<typeof createClient>>;
+    supabase: ReturnType<typeof createAdminClient>;
     totalDuration: number;
     userId: string;
 }) {
@@ -33,13 +33,13 @@ async function syncUserLessonProgress({
         return;
     }
 
-    if (!progressRow) {
-        return;
-    }
-
     const videoProgressPercentage = totalDuration > 0
         ? Math.min(100, Math.round((Math.max(checkpoint, maxReached) / totalDuration) * 100))
         : 0;
+
+    if (!progressRow) {
+        return;
+    }
 
     const updatePayload: {
         current_time_seconds: number;
@@ -95,8 +95,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Create Supabase client for database operations
-        const supabase = await createClient();
+        // Use admin client after SessionService auth to avoid RLS/session drift.
+        const supabase = createAdminClient();
 
         const body = await request.json();
         const { lessonId, trackingId, checkpoint, maxReached, totalDuration, playbackRate } = body;

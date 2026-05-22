@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   archiveNotification,
   deleteNotification,
+  markAllNotificationsAsRead,
   markMultipleNotificationsAsRead,
   markNotificationAsRead,
 } from '../notification/actions.service'
@@ -188,6 +189,70 @@ describe('markMultipleNotificationsAsRead', () => {
 })
 
 // ─── archiveNotification ──────────────────────────────────────────────────────
+
+describe('markAllNotificationsAsRead', () => {
+  it('uses the provided server client and falls back when the RPC is unavailable', async () => {
+    const countChain = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      or: vi.fn().mockResolvedValue({ count: 2, error: null }),
+    }
+    const updateChain = {
+      update: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      or: vi.fn().mockResolvedValue({ error: null }),
+    }
+    let fromCallCount = 0
+    const supabase = {
+      rpc: vi.fn(() => ({
+        single: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: 'Function not found' },
+        }),
+      })),
+      from: vi.fn(() => {
+        fromCallCount += 1
+        return fromCallCount === 1 ? countChain : updateChain
+      }),
+    }
+
+    const result = await markAllNotificationsAsRead('user-1', {
+      supabase: supabase as any,
+    })
+
+    expect(getServerClient).not.toHaveBeenCalled()
+    expect(supabase.rpc).toHaveBeenCalledWith('mark_all_notifications_read', {
+      p_user_id: 'user-1',
+    })
+    expect(countChain.eq).toHaveBeenCalledWith('user_id', 'user-1')
+    expect(updateChain.eq).toHaveBeenCalledWith('user_id', 'user-1')
+    expect(updateChain.update).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'read' }),
+    )
+    expect(result).toEqual({ updated: 2 })
+  })
+
+  it('returns zero without issuing an update when there are no unread notifications', async () => {
+    const countChain = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      or: vi.fn().mockResolvedValue({ count: 0, error: null }),
+    }
+    const supabase = {
+      rpc: vi.fn(() => {
+        throw new Error('RPC unavailable')
+      }),
+      from: vi.fn(() => countChain),
+    }
+
+    const result = await markAllNotificationsAsRead('user-1', {
+      supabase: supabase as any,
+    })
+
+    expect(supabase.from).toHaveBeenCalledTimes(1)
+    expect(result).toEqual({ updated: 0 })
+  })
+})
 
 describe('archiveNotification', () => {
   it('archives notification and returns updated record', async () => {

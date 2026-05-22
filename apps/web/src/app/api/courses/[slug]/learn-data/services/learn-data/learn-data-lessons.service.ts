@@ -1,4 +1,5 @@
 import type { createClient as createSupabaseClient } from '@/lib/supabase/server'
+import type { createAdminClient } from '@/lib/supabase/admin'
 import { ContentTranslationService } from '@/core/services/contentTranslation.service'
 import type { SupportedLanguage } from '@/core/i18n/i18n'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
@@ -11,7 +12,9 @@ import {
   type TranslationContext,
 } from '@/app/api/courses/_services/lesson-language-resolution.service'
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseClient>>
+type SupabaseServerClient =
+  | Awaited<ReturnType<typeof createSupabaseClient>>
+  | ReturnType<typeof createAdminClient>
 
 interface ModuleRow {
   module_id: string

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/utils/logger'
 import { requireBusinessUser } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { cacheHeaders } from '@/lib/utils/cache-headers'
 import { loadBusinessUserLearningPaths } from '@/features/learning-paths/services/learning-path-dashboard.server'
 import { LearningPathDefaultsService } from '@/features/learning-paths/services/learning-path-defaults.server'
+import { mapPreferredCourseEnrollments } from '@/features/courses/services/course-enrollment.server.service'
 import type { AssignedLearningPathDashboard } from '@/features/learning-paths/services/learning-path-dashboard.service'
 
 interface DashboardStats {
@@ -65,9 +66,12 @@ interface CertificateRow {
 interface EnrollmentRow {
   enrollment_id: string
   course_id: string
+  organization_id: string | null
   overall_progress_percentage: number | null
   enrollment_status: string | null
   completed_at: string | null
+  last_accessed_at: string | null
+  enrolled_at: string | null
 }
 
 interface InstructorRow {
@@ -130,7 +134,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       )
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { userId, organizationId } = auth
 
     if (!organizationId) {
@@ -238,7 +242,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       courseIds.length > 0
         ? supabase
             .from('user_course_enrollments')
-            .select('enrollment_id, course_id, overall_progress_percentage, enrollment_status, completed_at')
+            .select('enrollment_id, course_id, organization_id, overall_progress_percentage, enrollment_status, completed_at, last_accessed_at, enrolled_at')
             .eq('user_id', userId)
             .in('course_id', courseIds)
             .returns<EnrollmentRow[]>()
@@ -262,9 +266,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     ])
 
     if (!enrollmentsError && enrollments) {
-      enrollments.forEach((enrollment) => {
-        enrollmentsMap.set(enrollment.course_id, enrollment)
-      })
+      enrollmentsMap = mapPreferredCourseEnrollments(enrollments, organizationId)
     } else if (enrollmentsError) {
       logger.error('❌ Error fetching enrollments:', enrollmentsError)
     }

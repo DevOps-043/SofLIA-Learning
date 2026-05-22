@@ -11,8 +11,9 @@ export function buildLearnDataResponse({
   totalTimeMs,
 }: LearnDataQueryPayload) {
   const requestedLanguage = normalizeLearnLanguage(
-    lessonDataResult?.translationContext.requestedLanguage ||
-      modulesResult.translationContext.requestedLanguage,
+    lessonDataResult?.translationContext?.requestedLanguage ||
+      modulesResult.translationContext?.requestedLanguage ||
+      'es',
   )
   const translationContext = mergeTranslationContexts(
     [modulesResult.translationContext, lessonDataResult?.translationContext],

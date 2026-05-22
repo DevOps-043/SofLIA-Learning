@@ -56,6 +56,34 @@ export function selectPreferredCourseEnrollment(
   return enrollments.find(hasRecordedProgress) ?? enrollments[0]
 }
 
+export function mapPreferredCourseEnrollments<T extends CourseEnrollmentRecord & { course_id: string }>(
+  enrollments: T[],
+  organizationId?: string | null,
+) {
+  const enrollmentsByCourse = new Map<string, T[]>()
+
+  for (const enrollment of enrollments) {
+    const current = enrollmentsByCourse.get(enrollment.course_id) || []
+    current.push(enrollment)
+    enrollmentsByCourse.set(enrollment.course_id, current)
+  }
+
+  const preferredByCourse = new Map<string, T>()
+
+  for (const [courseId, courseEnrollments] of enrollmentsByCourse.entries()) {
+    const preferred = selectPreferredCourseEnrollment(
+      courseEnrollments,
+      organizationId,
+    ) as T | null
+
+    if (preferred) {
+      preferredByCourse.set(courseId, preferred)
+    }
+  }
+
+  return preferredByCourse
+}
+
 export async function loadCourseEnrollments(
   supabase: SupabaseServerClient,
   userId: string,

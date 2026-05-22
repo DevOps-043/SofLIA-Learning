@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '@/features/auth/services/session.service';
 
@@ -24,8 +24,8 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Create Supabase client for database operations
-        const supabase = await createClient();
+        // Use admin client after SessionService auth to avoid RLS/session drift.
+        const supabase = createAdminClient();
 
         const { lessonId } = params;
 
@@ -48,8 +48,29 @@ export async function GET(
             return NextResponse.json({ error: 'Database error' }, { status: 500 });
         }
 
+        const { data: lessonProgress } = await supabase
+            .from('user_lesson_progress')
+            .select('current_time_seconds, video_progress_percentage, lesson_status, is_completed')
+            .eq('user_id', user.id)
+            .eq('lesson_id', lessonId)
+            .order('updated_at', { ascending: false, nullsFirst: false })
+            .limit(1)
+            .maybeSingle();
+
         // Si no hay tracking previo, retornar valores por defecto
         if (!tracking) {
+            if (lessonProgress) {
+                return NextResponse.json({
+                    checkpointSeconds: lessonProgress.current_time_seconds || 0,
+                    playbackRate: 1.0,
+                    hasWatched: (lessonProgress.video_progress_percentage || 0) > 0,
+                    completionPercentage: lessonProgress.video_progress_percentage || 0,
+                    status: lessonProgress.is_completed
+                        ? 'completed'
+                        : lessonProgress.lesson_status || 'not_started'
+                });
+            }
+
             return NextResponse.json({
                 checkpointSeconds: 0,
                 playbackRate: 1.0,
@@ -63,13 +84,14 @@ export async function GET(
         const completionPercentage = tracking.video_total_duration_seconds > 0
             ? Math.round((tracking.video_max_seconds / tracking.video_total_duration_seconds) * 100)
             : 0;
+        const savedLessonProgressPercentage = lessonProgress?.video_progress_percentage || 0;
 
         return NextResponse.json({
-            checkpointSeconds: tracking.video_checkpoint_seconds || 0,
+            checkpointSeconds: tracking.video_checkpoint_seconds || lessonProgress?.current_time_seconds || 0,
             playbackRate: tracking.video_playback_rate || 1.0,
-            hasWatched: tracking.video_max_seconds > 0,
-            completionPercentage,
-            status: tracking.status
+            hasWatched: tracking.video_max_seconds > 0 || savedLessonProgressPercentage > 0,
+            completionPercentage: Math.max(completionPercentage, savedLessonProgressPercentage),
+            status: lessonProgress?.is_completed ? 'completed' : tracking.status
         });
     } catch (error) {
         console.error('[Resume API] Unexpected error:', error);

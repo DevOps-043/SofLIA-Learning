@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { SessionService } from '@/features/auth/services/session.service'
 import { NotificationService } from '@/features/notifications/services/notification.service'
 import { logger } from '@/lib/logger'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 /**
  * POST /api/notifications/mark-all-read
@@ -9,6 +10,8 @@ import { logger } from '@/lib/logger'
  */
 export async function POST(request: NextRequest) {
   try {
+    void request
+
     // Obtener usuario autenticado
     const user = await SessionService.getCurrentUser()
     if (!user) {
@@ -19,7 +22,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Marcar todas como leídas
-    const { updated } = await NotificationService.markAllAsRead(user.id)
+    const supabase = createAdminClient()
+    const { updated } = await NotificationService.markAllAsRead(
+      user.id,
+      supabase,
+    )
 
     return NextResponse.json({
       success: true,
@@ -38,4 +45,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

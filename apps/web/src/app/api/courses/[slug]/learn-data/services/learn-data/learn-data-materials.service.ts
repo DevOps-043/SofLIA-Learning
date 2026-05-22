@@ -1,10 +1,13 @@
 import type { createClient as createSupabaseClient } from '@/lib/supabase/server'
+import type { createAdminClient } from '@/lib/supabase/admin'
 import {
   resolveCourseLessonByLanguage,
   type TranslationContext,
 } from '@/app/api/courses/_services/lesson-language-resolution.service'
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseClient>>
+type SupabaseServerClient =
+  | Awaited<ReturnType<typeof createSupabaseClient>>
+  | ReturnType<typeof createAdminClient>
 
 export interface LessonDataResult {
   lesson_id: string

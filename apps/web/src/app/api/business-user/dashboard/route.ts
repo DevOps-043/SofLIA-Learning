@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { logger } from '@/lib/utils/logger'
 import { requireBusinessUser } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { mapPreferredCourseEnrollments } from '@/features/courses/services/course-enrollment.server.service'
 
 interface DashboardStats {
   total_assigned: number
@@ -72,9 +73,12 @@ interface CombinedAssignmentRow extends DirectAssignmentRow {
 interface EnrollmentRow {
   enrollment_id: string
   course_id: string
+  organization_id: string | null
   overall_progress_percentage: number | null
   enrollment_status: string | null
   completed_at: string | null
+  last_accessed_at: string | null
+  enrolled_at: string | null
 }
 
 interface InstructorRow {
@@ -116,7 +120,7 @@ export async function GET() {
       )
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { userId, organizationId } = auth
 
     if (!organizationId) {
@@ -313,7 +317,7 @@ export async function GET() {
       courseIds.length > 0
         ? supabase
             .from('user_course_enrollments')
-            .select('enrollment_id, course_id, overall_progress_percentage, enrollment_status, completed_at')
+            .select('enrollment_id, course_id, organization_id, overall_progress_percentage, enrollment_status, completed_at, last_accessed_at, enrolled_at')
             .eq('user_id', userId)
             .in('course_id', courseIds)
             .limit(100)
@@ -329,9 +333,10 @@ export async function GET() {
     ])
 
     if (!enrollmentsError && enrollments) {
-      ;(enrollments as EnrollmentRow[]).forEach((enrollment) => {
-        enrollmentsMap.set(enrollment.course_id, enrollment)
-      })
+      enrollmentsMap = mapPreferredCourseEnrollments(
+        enrollments as EnrollmentRow[],
+        organizationId,
+      )
     } else if (enrollmentsError) {
       logger.error('❌ Error fetching enrollments:', enrollmentsError)
     }

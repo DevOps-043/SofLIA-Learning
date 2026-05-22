@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SessionService } from '@/features/auth/services/session.service'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import {
   completeLessonProgress,
 } from './services/lesson-progress-completion.service'
@@ -51,7 +51,7 @@ export async function POST(
     }
 
     const { slug, lessonId } = await params
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const progress = await completeLessonProgress(
       supabase,
       currentUser.id,

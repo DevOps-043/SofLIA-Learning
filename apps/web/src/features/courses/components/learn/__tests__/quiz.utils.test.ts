@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import {
   isQuizAnswerCorrect,
+  mapAnswerIndexesToOptionText,
   normalizeQuizQuestions,
   calculateQuizResults,
+  shuffleQuizQuestions,
   type QuizQuestion,
 } from '../quiz.utils'
 
@@ -118,6 +120,54 @@ describe('normalizeQuizQuestions', () => {
 
   it('handles empty array', () => {
     expect(normalizeQuizQuestions([])).toEqual([])
+  })
+})
+
+describe('shuffleQuizQuestions', () => {
+  it('shuffles non-true_false options and remaps numeric correctAnswer', () => {
+    const q = makeQuestion({
+      options: ['Madrid', 'Paris', 'Londres'],
+      correctAnswer: 1,
+    })
+
+    const result = shuffleQuizQuestions([q], () => 0)
+
+    expect(result[0].options).toEqual(['Paris', 'Londres', 'Madrid'])
+    expect(result[0].correctAnswer).toBe(0)
+    expect(isQuizAnswerCorrect(result[0], 'Paris')).toBe(true)
+  })
+
+  it('does not shuffle true_false questions', () => {
+    const q = makeQuestion({
+      questionType: 'true_false',
+      options: ['Verdadero', 'Falso'],
+      correctAnswer: 0,
+    })
+
+    const result = shuffleQuizQuestions([q], () => 0)
+
+    expect(result[0]).toEqual(q)
+  })
+})
+
+describe('mapAnswerIndexesToOptionText', () => {
+  it('converts saved numeric answers to option text for order-independent review', () => {
+    const question = makeQuestion({
+      id: 'q1',
+      options: ['Madrid', 'Paris', 'Londres'],
+    })
+
+    expect(mapAnswerIndexesToOptionText([question], { q1: 1 })).toEqual({
+      q1: 'Paris',
+    })
+  })
+
+  it('keeps string answers unchanged', () => {
+    const question = makeQuestion()
+
+    expect(mapAnswerIndexesToOptionText([question], { q1: 'Paris' })).toEqual({
+      q1: 'Paris',
+    })
   })
 })
 

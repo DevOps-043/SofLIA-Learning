@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import type { createAdminClient } from '@/lib/supabase/admin'
 import { calculateCourseProgress } from '@/lib/utils/lesson-progress'
 import { computeLessonActivityProgress } from '@/features/courses/services/activity-submission.server.service'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
@@ -8,7 +9,9 @@ import {
   sortLessonsForCourse,
 } from './lesson-progress.shared'
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+type SupabaseServerClient =
+  | Awaited<ReturnType<typeof createClient>>
+  | ReturnType<typeof createAdminClient>
 
 interface CourseRow {
   id: string

@@ -4,6 +4,12 @@ import { NOTIFICATION_SELECT } from './select'
 import { buildNotificationsActiveFilter } from './utils'
 import type { Notification } from './types'
 
+type NotificationSupabaseClient = Awaited<ReturnType<typeof getServerClient>>
+
+interface NotificationActionOptions {
+  supabase?: NotificationSupabaseClient
+}
+
 async function ensureNotificationOwnership(
   notificationId: string,
   userId: string,
@@ -24,8 +30,15 @@ async function ensureNotificationOwnership(
   return { supabase, notification: data as unknown as Notification }
 }
 
-async function markAllAsReadFallback(userId: string) {
-  const supabase = await getServerClient()
+async function resolveNotificationClient(options?: NotificationActionOptions) {
+  return options?.supabase ?? await getServerClient()
+}
+
+async function markAllAsReadFallback(
+  userId: string,
+  options?: NotificationActionOptions,
+) {
+  const supabase = await resolveNotificationClient(options)
   const now = new Date().toISOString()
   const activeFilter = buildNotificationsActiveFilter(now)
 
@@ -180,8 +193,11 @@ export async function deleteNotification(
   }
 }
 
-export async function markAllNotificationsAsRead(userId: string) {
-  const supabase = await getServerClient()
+export async function markAllNotificationsAsRead(
+  userId: string,
+  options?: NotificationActionOptions,
+) {
+  const supabase = await resolveNotificationClient(options)
   const rpcClient = supabase as unknown as {
     rpc: (
       fn: string,
@@ -196,12 +212,12 @@ export async function markAllNotificationsAsRead(userId: string) {
 
     if (error) {
       logger.warn('RPC no disponible, usando update tradicional', { error })
-      return markAllAsReadFallback(userId)
+      return markAllAsReadFallback(userId, options)
     }
 
     return { updated: Number(data?.updated_count) || 0 }
   } catch (error) {
     logger.error('Error en markAllAsRead:', error)
-    return markAllAsReadFallback(userId)
+    return markAllAsReadFallback(userId, options)
   }
 }
