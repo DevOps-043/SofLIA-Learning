@@ -1,7 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
@@ -10,11 +10,19 @@ import { useThemeStore } from '../../../../../core/stores/themeStore';
 import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../core/constants/tourTargets';
 import { ModernNavbarBrand } from './modern-navbar/ModernNavbarBrand';
 import { UserDropdown } from '@/core/components/UserDropdown';
-import { ModernNavbarMobileMenu } from './modern-navbar/ModernNavbarMobileMenu';
 import type { ModernNavbarProps } from './modern-navbar/types';
 import { useModernNavbar } from './modern-navbar/useModernNavbar';
 import { useOrganization } from '../../../../../core/hooks/useOrganization';
-import { NotificationBell } from '@/core/components/NotificationBell';
+
+const NotificationBell = dynamic(
+  () => import('@/core/components/NotificationBell').then((module) => module.NotificationBell),
+  { ssr: false, loading: () => null }
+);
+
+const ModernNavbarMobileMenu = dynamic(
+  () => import('./modern-navbar/ModernNavbarMobileMenu').then((module) => module.ModernNavbarMobileMenu),
+  { ssr: false, loading: () => null }
+);
 
 export function ModernNavbar({
   organization,
@@ -84,7 +92,7 @@ export function ModernNavbar({
                 />
               </div>
 
-              <motion.button
+              <button
                 id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.mobileMenuTrigger}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="md:hidden p-2.5 rounded-xl border-2 transition-all duration-300"
@@ -92,19 +100,18 @@ export function ModernNavbar({
                   backgroundColor: mobileMenuOpen ? `${colors.primary}15` : 'transparent',
                   borderColor: mobileMenuOpen ? colors.borderActive : colors.border,
                 }}
-                whileTap={disableHeavyEffects ? undefined : { scale: 0.95 }}
               >
-                <motion.div
-                  animate={disableHeavyEffects ? undefined : { rotate: mobileMenuOpen ? 90 : 0 }}
-                  transition={disableHeavyEffects ? undefined : { duration: 0.2 }}
+                <div
+                  className={disableHeavyEffects ? undefined : 'transition-transform duration-200'}
+                  style={{ transform: disableHeavyEffects ? undefined : `rotate(${mobileMenuOpen ? 90 : 0}deg)` }}
                 >
                   {mobileMenuOpen ? (
                     <X className="h-5 w-5" style={{ color: colors.accent }} />
                   ) : (
                     <Menu className="h-5 w-5" style={{ color: `${colors.text}80` }} />
                   )}
-                </motion.div>
-              </motion.button>
+                </div>
+              </button>
             </div>
           </div>
         </div>

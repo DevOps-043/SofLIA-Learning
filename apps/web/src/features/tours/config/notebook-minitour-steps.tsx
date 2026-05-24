@@ -16,7 +16,7 @@ export function buildNotebookMinitourSteps(t: MinitourTranslator): Step[] {
       title: t('notebookTour.steps.toolbar.title'),
       content: t('notebookTour.steps.toolbar.content'),
       placement: 'bottom',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <MousePointerClick className={iconClassName} /> },
     },
     {
@@ -24,7 +24,7 @@ export function buildNotebookMinitourSteps(t: MinitourTranslator): Step[] {
       title: t('notebookTour.steps.header.title'),
       content: t('notebookTour.steps.header.content'),
       placement: 'bottom',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <BookOpen className={iconClassName} /> },
     },
     {
@@ -32,7 +32,7 @@ export function buildNotebookMinitourSteps(t: MinitourTranslator): Step[] {
       title: t('notebookTour.steps.tabs.title'),
       content: t('notebookTour.steps.tabs.content'),
       placement: 'bottom',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <Rows3 className={iconClassName} /> },
     },
     {
@@ -40,7 +40,7 @@ export function buildNotebookMinitourSteps(t: MinitourTranslator): Step[] {
       title: t('notebookTour.steps.courseFilter.title'),
       content: t('notebookTour.steps.courseFilter.content'),
       placement: 'bottom',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <Filter className={iconClassName} /> },
     },
     {
@@ -48,7 +48,7 @@ export function buildNotebookMinitourSteps(t: MinitourTranslator): Step[] {
       title: t('notebookTour.steps.notesGrid.title'),
       content: t('notebookTour.steps.notesGrid.content'),
       placement: 'top',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <LibraryBig className={iconClassName} /> },
     },
   ];

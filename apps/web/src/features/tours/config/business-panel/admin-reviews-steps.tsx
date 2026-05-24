@@ -9,7 +9,7 @@ export const getAdminReviewsSteps = (t: TFunction): Step[] => [
     target: '#tour-reviews-header',
     title: t('adminTour.steps.reviewsHeader.title', 'Revisiones Pendientes'),
     content: t('adminTour.steps.reviewsHeader.content', 'Aquí revisas los cursos enviados desde Course Engine. Puedes aprobarlos para publicación o rechazarlos con comentarios.'),
-    disableBeacon: true,
+    skipBeacon: true,
     data: {
       icon: <ClipboardCheck className="w-5 h-5 text-accent" />
     }

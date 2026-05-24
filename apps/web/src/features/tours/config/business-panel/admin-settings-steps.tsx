@@ -9,7 +9,7 @@ export const getAdminSettingsSteps = (t: TFunction): Step[] => [
     target: '#tour-settings-hero',
     title: t('adminTour.steps.settingsHero.title', 'Configuración'),
     content: t('adminTour.steps.settingsHero.content', 'Tu panel de control central. Desde aquí gestionas toda la configuración de tu organización: datos generales, personalización visual y branding corporativo.'),
-    disableBeacon: true,
+    skipBeacon: true,
     data: {
       icon: <Settings className="w-5 h-5 text-accent" />
     }

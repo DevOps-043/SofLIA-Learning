@@ -9,7 +9,7 @@ export const getAdminPathsSteps = (t: TFunction): Step[] => [
     target: '#tour-paths-hero',
     title: t('adminTour.steps.pathsHero.title', 'Rutas de Aprendizaje'),
     content: t('adminTour.steps.pathsHero.content', 'Este es tu centro de gestión de rutas. Asigna a tus usuarios secuencias de cursos ordenadas para guiar su desarrollo profesional.'),
-    disableBeacon: true,
+    skipBeacon: true,
     data: {
       icon: <Route className="w-5 h-5 text-accent" />
     }

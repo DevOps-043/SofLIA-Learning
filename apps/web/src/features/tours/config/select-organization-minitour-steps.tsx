@@ -16,7 +16,7 @@ export function buildSelectOrganizationMinitourSteps(t: MinitourTranslator): Ste
       title: t('selectOrganizationTour.steps.header.title'),
       content: t('selectOrganizationTour.steps.header.content'),
       placement: 'bottom',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <Building2 className={iconClassName} /> },
     },
     {
@@ -24,7 +24,7 @@ export function buildSelectOrganizationMinitourSteps(t: MinitourTranslator): Ste
       title: t('selectOrganizationTour.steps.counter.title'),
       content: t('selectOrganizationTour.steps.counter.content'),
       placement: 'bottom',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <Users className={iconClassName} /> },
     },
     {
@@ -32,7 +32,7 @@ export function buildSelectOrganizationMinitourSteps(t: MinitourTranslator): Ste
       title: t('selectOrganizationTour.steps.card.title'),
       content: t('selectOrganizationTour.steps.card.content'),
       placement: 'top',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <Building2 className={iconClassName} /> },
     },
     {
@@ -40,7 +40,7 @@ export function buildSelectOrganizationMinitourSteps(t: MinitourTranslator): Ste
       title: t('selectOrganizationTour.steps.role.title'),
       content: t('selectOrganizationTour.steps.role.content'),
       placement: 'top',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <ShieldCheck className={iconClassName} /> },
     },
     {
@@ -48,7 +48,7 @@ export function buildSelectOrganizationMinitourSteps(t: MinitourTranslator): Ste
       title: t('selectOrganizationTour.steps.action.title'),
       content: t('selectOrganizationTour.steps.action.content'),
       placement: 'left',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <ArrowRightCircle className={iconClassName} /> },
     },
     {
@@ -56,7 +56,7 @@ export function buildSelectOrganizationMinitourSteps(t: MinitourTranslator): Ste
       title: t('selectOrganizationTour.steps.slug.title'),
       content: t('selectOrganizationTour.steps.slug.content'),
       placement: 'top',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <Hash className={iconClassName} /> },
     },
   ];

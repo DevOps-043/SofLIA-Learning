@@ -6,7 +6,7 @@ import {
   EVENTS,
   LIFECYCLE,
   STATUS,
-  type CallBackProps,
+  type EventData,
   type Step,
 } from 'react-joyride';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -61,19 +61,41 @@ vi.mock('../useTourProgress', () => ({
   useTourProgress: () => tourProgressState,
 }));
 
-function buildCallbackProps(overrides: Partial<CallBackProps> = {}): CallBackProps {
+function appendTourTarget(id: string): HTMLElement {
+  const element = document.createElement('div');
+  element.id = id;
+  element.getBoundingClientRect = vi.fn(() => ({
+    bottom: 120,
+    height: 80,
+    left: 20,
+    right: 220,
+    toJSON: () => '',
+    top: 40,
+    width: 200,
+    x: 20,
+    y: 40,
+  }));
+  document.body.appendChild(element);
+  return element;
+}
+
+function buildCallbackProps(overrides: Partial<EventData> = {}): EventData {
   return {
     action: ACTIONS.NEXT,
     controlled: true,
+    error: null,
     index: 0,
     lifecycle: LIFECYCLE.COMPLETE,
     origin: null,
+    scroll: null,
+    scrolling: false,
     size: steps.length,
     status: STATUS.RUNNING,
     step: steps[0],
     type: EVENTS.STEP_AFTER,
+    waiting: false,
     ...overrides,
-  };
+  } as EventData;
 }
 
 describe('useFeatureTour', () => {
@@ -82,9 +104,12 @@ describe('useFeatureTour', () => {
     vi.useRealTimers();
     tourProgressState.isLoading = false;
     tourProgressState.shouldShowTour = false;
+    document.body.innerHTML = '';
+    appendTourTarget('first');
+    appendTourTarget('second');
   });
 
-  it('completes and closes when advancing past the final step', () => {
+  it('completes and closes when advancing past the final step', async () => {
     const { result } = renderHook(() =>
       useFeatureTour({
         steps,
@@ -92,8 +117,9 @@ describe('useFeatureTour', () => {
       }),
     );
 
-    act(() => {
+    await act(async () => {
       result.current.startTour();
+      await Promise.resolve();
     });
 
     expect(result.current.run).toBe(true);

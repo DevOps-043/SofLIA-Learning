@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { BarChart3 } from 'lucide-react'
 import { hexToRgb } from '../../../../../features/business-panel/utils/styles'
 import { useThemeStore } from '../../../../../core/stores/themeStore'
 import type { StyleConfig } from '../../../../../features/business-panel/contexts/OrganizationStylesContext'
@@ -8,7 +9,7 @@ import type { StyleConfig } from '../../../../../features/business-panel/context
 interface ModernStatsCardProps {
   label: string
   value: number | string
-  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>
+  icon?: React.ElementType<{ className?: string; style?: React.CSSProperties }>
   color: string
   index: number
   onClick?: () => void
@@ -36,6 +37,7 @@ export function ModernStatsCard({
 }: ModernStatsCardProps) {
   const { resolvedTheme } = useThemeStore()
   const isSystemLight = resolvedTheme === 'light'
+  const IconComponent = Icon ?? BarChart3
 
   const primaryColor = styles?.primary_button_color || '#0A2540'
   const accentColor = styles?.accent_color || '#00D4B3' // Aqua from SofLIA Design System
@@ -88,7 +90,7 @@ export function ModernStatsCard({
              border: `1px solid ${iconColor}25`
           }}
         >
-          <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: iconColor }} />
+          <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: iconColor }} />
         </div>
 
         {/* Text content */}

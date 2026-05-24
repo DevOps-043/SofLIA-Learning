@@ -86,7 +86,7 @@ export const UserDropdown = React.memo(function UserDropdown({
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      const dropdownMenu = document.getElementById('global-user-dropdown-menu')
+      const dropdownMenu = document.getElementById('tour-user-dropdown-menu')
       if (
         dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
         dropdownMenu && !dropdownMenu.contains(event.target as Node)
@@ -263,6 +263,7 @@ export const UserDropdown = React.memo(function UserDropdown({
     <div className={`relative ${className}`} ref={dropdownRef}>
       {/* Trigger Button */}
       <motion.button
+        id="tour-user-dropdown-trigger"
         onClick={() => { setIsOpen(!isOpen); setActiveSubmenu(null); setIsOrgSwitcherOpen(false) }}
         className="flex items-center justify-center p-1 rounded-full transition-all duration-300 hover:bg-black/5 dark:hover:bg-white/5"
         whileHover={{ scale: 1.05 }}
@@ -304,6 +305,7 @@ export const UserDropdown = React.memo(function UserDropdown({
             <>
               {/* Backdrop */}
               <motion.div
+                id="tour-user-dropdown-backdrop"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -313,7 +315,7 @@ export const UserDropdown = React.memo(function UserDropdown({
               />
               
               <motion.div
-                id="global-user-dropdown-menu"
+                id="tour-user-dropdown-menu"
                 initial={{ opacity: 0, y: -8, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -8, scale: 0.95 }}

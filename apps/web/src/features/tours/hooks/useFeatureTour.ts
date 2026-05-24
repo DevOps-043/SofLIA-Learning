@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { CallBackProps, STATUS, ACTIONS, EVENTS, Step } from 'react-joyride';
+import { STATUS, ACTIONS, EVENTS, type EventData, type Step } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourRestart } from '@/core/contexts/TourRestartContext';
 import { useTranslation } from 'react-i18next';
+import {
+  waitForJoyrideStepTargetReady,
+} from '../utils/joyride-targets';
 
 interface UseFeatureTourOptions {
   tourId: string;
@@ -21,7 +24,6 @@ const TOP_OFFSET_PX = 100;
 const STABLE_FRAMES_REQUIRED = 3;
 const SCROLL_MAX_WAIT_MS = 800;
 const SPOTLIGHT_PADDING_PX = 8;
-const SPOTLIGHT_SYNC_MAX_ATTEMPTS = 10;
 
 /**
  * Scroll the target element into view inside #main-scroll-container and invoke
@@ -92,35 +94,6 @@ function scrollTargetIntoView(
   requestAnimationFrame(tick);
 }
 
-function getTargetElement(target: Step['target']): HTMLElement | null {
-  if (typeof target === 'string') {
-    return document.querySelector<HTMLElement>(target);
-  }
-
-  return target instanceof HTMLElement ? target : null;
-}
-
-function syncSpotlightToTarget(target: Step['target']): boolean {
-  const el = getTargetElement(target);
-  const spotlight = document.querySelector<HTMLElement>(
-    '.react-joyride__spotlight[data-test-id="spotlight"]',
-  );
-
-  if (!el || !spotlight) {
-    return false;
-  }
-
-  const rect = el.getBoundingClientRect();
-
-  spotlight.style.position = 'fixed';
-  spotlight.style.top = `${Math.round(rect.top - SPOTLIGHT_PADDING_PX)}px`;
-  spotlight.style.left = `${Math.round(rect.left - SPOTLIGHT_PADDING_PX)}px`;
-  spotlight.style.width = `${Math.round(rect.width + SPOTLIGHT_PADDING_PX * 2)}px`;
-  spotlight.style.height = `${Math.round(rect.height + SPOTLIGHT_PADDING_PX * 2)}px`;
-
-  return true;
-}
-
 /**
  * Generic hook to manage a Joyride tour for a specific feature.
  * Connects with useTourProgress for persistence and handle common Joyride logic.
@@ -153,12 +126,12 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
   const [stepIndex, setStepIndex] = useState(0);
   const [isFinishedInSession, setIsFinishedInSession] = useState(false);
 
-  // Default disableBeacon to true for every step. Joyride's native beacon is
+  // Default skipBeacon to true for every step. Joyride's native beacon is
   // a red dot that requires an extra click before showing the tooltip; the
   // tour is `continuous`, so we want each step to render its tooltip directly.
-  // Spread order preserves explicit opt-out (`disableBeacon: false`) per step.
+  // Spread order preserves explicit opt-out (`skipBeacon: false`) per step.
   const enhancedSteps = useMemo(
-    () => steps.map((s) => ({ disableBeacon: true, ...s })),
+    () => steps.map((s) => ({ skipBeacon: true, ...s })),
     [steps],
   );
 
@@ -185,15 +158,24 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
     setStepIndex(0);
     setRun(false);
 
-    const start = () => {
+    const start = async () => {
+      const firstStep = steps[0];
+      if (firstStep) {
+        const targetReady = await waitForJoyrideStepTargetReady(firstStep, `useFeatureTour:${tourId}`);
+        if (!targetReady) {
+          setIsFinishedInSession(true);
+          return;
+        }
+      }
+
       dbStartTour().catch(err => console.error(`[useFeatureTour:${tourId}] Start failed`, err));
       setRun(true);
     };
 
     if (steps.length > 0) {
-      scrollTargetIntoView(steps[0].target as string | HTMLElement, start);
+      scrollTargetIntoView(steps[0].target as string | HTMLElement, () => void start());
     } else {
-      start();
+      void start();
     }
   }, [dbStartTour, steps, tourId]);
 
@@ -237,64 +219,6 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
     return () => clearTimeout(timer);
   }, [enabled, isFinishedInSession, isLoading, run, shouldShowTour, startAtFirstStep]);
 
-  useEffect(() => {
-    if (!run) {
-      return;
-    }
-
-    const currentStep = enhancedSteps[stepIndex];
-    if (!currentStep) {
-      return;
-    }
-
-    let frameId = 0;
-    let attempts = 0;
-
-    const scheduleSpotlightSync = () => {
-      cancelAnimationFrame(frameId);
-
-      frameId = requestAnimationFrame(() => {
-        frameId = requestAnimationFrame(() => {
-          attempts += 1;
-          const synced = syncSpotlightToTarget(currentStep.target);
-
-          if (!synced && attempts < SPOTLIGHT_SYNC_MAX_ATTEMPTS) {
-            scheduleSpotlightSync();
-          }
-        });
-      });
-    };
-
-    scheduleSpotlightSync();
-
-    const scrollContainer = document.getElementById(SCROLL_CONTAINER_ID);
-    window.addEventListener('resize', scheduleSpotlightSync);
-    scrollContainer?.addEventListener('scroll', scheduleSpotlightSync, { passive: true });
-
-    // Joyride treats descendants of the fixed business-panel shell as fixed
-    // targets and can use offsetTop instead of viewport coordinates. Re-sync
-    // the spotlight from the real client rect so it stays over the actual UI.
-    const targetElement = getTargetElement(currentStep.target);
-    const observer =
-      targetElement && typeof MutationObserver !== 'undefined'
-        ? new MutationObserver(scheduleSpotlightSync)
-        : null;
-    if (targetElement) {
-      observer?.observe(targetElement, {
-        attributes: true,
-        childList: true,
-        subtree: true,
-      });
-    }
-
-    return () => {
-      cancelAnimationFrame(frameId);
-      window.removeEventListener('resize', scheduleSpotlightSync);
-      scrollContainer?.removeEventListener('scroll', scheduleSpotlightSync);
-      observer?.disconnect();
-    };
-  }, [enhancedSteps, run, stepIndex]);
-
   // Scroll before updating the controlled index so Joyride measures the settled target.
   const moveToStep = useCallback((nextIndex: number) => {
     if (nextIndex < 0) {
@@ -316,7 +240,7 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
   }, [dbUpdateStep, finishTour, steps]);
 
   // Handle Joyride callbacks
-  const handleJoyrideCallback = useCallback((data: CallBackProps) => {
+  const handleJoyrideCallback = useCallback((data: EventData) => {
     const { action, index, status, type } = data;
 
     // Handle tour completion

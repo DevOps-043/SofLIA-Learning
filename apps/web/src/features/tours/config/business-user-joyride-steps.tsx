@@ -47,7 +47,7 @@ export function buildBusinessUserJoyrideSteps({
       title: t('dashboardTour.steps.welcome.title'),
       content: t('dashboardTour.steps.welcome.content'),
       placement: 'bottom',
-      disableBeacon: true,
+      skipBeacon: true,
       data: {
         icon: <Sparkles className={tourIconClassName} />,
       },
@@ -59,7 +59,7 @@ export function buildBusinessUserJoyrideSteps({
       title: t('dashboardTour.steps.userMenuTrigger.title'),
       content: t('dashboardTour.steps.userMenuTrigger.content'),
       placement: isMobile ? 'bottom' : 'bottom-end',
-      disableBeacon: true,
+      skipBeacon: true,
       data: {
         icon: <User className={tourIconClassName} />,
       },
@@ -71,7 +71,7 @@ export function buildBusinessUserJoyrideSteps({
       title: t('dashboardTour.steps.userMenuPanel.title'),
       content: t('dashboardTour.steps.userMenuPanel.content'),
       placement: isMobile ? 'bottom' : 'left',
-      disableBeacon: true,
+      skipBeacon: true,
       data: {
         behavior: BUSINESS_USER_TOUR_STEP_BEHAVIOR.openUserMenu,
         icon: <Menu className={tourIconClassName} />,
@@ -85,7 +85,7 @@ export function buildBusinessUserJoyrideSteps({
       title: t('dashboardTour.steps.courseFilters.title'),
       content: t('dashboardTour.steps.courseFilters.content'),
       placement: isMobile ? 'top' : 'left',
-      disableBeacon: true,
+      skipBeacon: true,
       data: {
         icon: <ListFilter className={tourIconClassName} />,
       },
@@ -99,7 +99,7 @@ export function buildBusinessUserJoyrideSteps({
         title: t('dashboardTour.steps.learningPaths.title'),
         content: t('dashboardTour.steps.learningPaths.content'),
         placement: isMobile ? 'top' : 'top',
-        disableBeacon: true,
+        skipBeacon: true,
         data: {
           behavior: BUSINESS_USER_TOUR_STEP_BEHAVIOR.showLearningPaths,
           icon: <Route className={tourIconClassName} />,
@@ -110,7 +110,7 @@ export function buildBusinessUserJoyrideSteps({
         title: t('dashboardTour.steps.learningPathVideo.title'),
         content: t('dashboardTour.steps.learningPathVideo.content'),
         placement: isMobile ? 'top' : 'left',
-        disableBeacon: true,
+        skipBeacon: true,
         data: {
           behavior: BUSINESS_USER_TOUR_STEP_BEHAVIOR.showLearningPaths,
           icon: <Film className={tourIconClassName} />,
@@ -121,7 +121,7 @@ export function buildBusinessUserJoyrideSteps({
         title: t('dashboardTour.steps.learningPathCourses.title'),
         content: t('dashboardTour.steps.learningPathCourses.content'),
         placement: isMobile ? 'top' : 'bottom',
-        disableBeacon: true,
+        skipBeacon: true,
         data: {
           behavior: BUSINESS_USER_TOUR_STEP_BEHAVIOR.showLearningPaths,
           icon: <BookOpen className={tourIconClassName} />,
@@ -136,14 +136,9 @@ export function buildBusinessUserJoyrideSteps({
       title: t('dashboardTour.steps.soflia.title'),
       content: t('dashboardTour.steps.soflia.content'),
       placement: isMobile ? 'top' : 'top-end',
-      disableBeacon: true,
-      disableScrolling: true,
+      skipBeacon: true,
+      skipScroll: true,
       spotlightPadding: isMobile ? 4 : 10,
-      styles: {
-        spotlight: {
-          borderRadius: '50%',
-        },
-      },
       data: {
         icon: <Bot className={tourIconClassName} />,
       },

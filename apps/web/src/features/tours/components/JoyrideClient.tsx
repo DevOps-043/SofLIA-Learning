@@ -1,9 +1,15 @@
 'use client'
 
-import { Component, isValidElement } from 'react'
-import type { ComponentType, ErrorInfo, ReactNode } from 'react'
-import dynamic from 'next/dynamic'
-import type { Props as JoyrideProps, Step } from 'react-joyride'
+import { Component, isValidElement, useEffect, useState } from 'react'
+import type { ComponentType, CSSProperties, ErrorInfo, ReactNode } from 'react'
+import type {
+  EventData,
+  FloatingOptions,
+  Options,
+  Props as JoyrideProps,
+  Step,
+  Styles,
+} from 'react-joyride'
 
 type JoyrideModuleShape = {
   Component?: unknown
@@ -44,18 +50,39 @@ function resolveJoyrideModule(moduleValue: unknown): ComponentType<JoyrideProps>
   )
 }
 
-// Canonical next/dynamic pattern: native ESM import() so webpack/SWC
-// produce a stable chunk in production builds. Using require() inside a
-// Promise.resolve wrapper was returning a different CommonJS interop shape
-// in production than in development, which caused step props (notably
-// disableBeacon) to be silently dropped by the resolved component.
-const DynamicJoyride = dynamic<JoyrideProps>(
-  () => import('react-joyride').then((mod) => resolveJoyrideModule(mod)),
-  {
-    loading: () => null,
-    ssr: false,
-  },
-)
+type LegacyJoyrideStyles = Partial<Styles> & {
+  options?: {
+    arrowColor?: string
+    primaryColor?: string
+    zIndex?: number
+  }
+}
+
+export type JoyrideClientProps = Omit<
+  JoyrideProps,
+  'onEvent' | 'options' | 'styles'
+> & {
+  callback?: (data: EventData) => void
+  disableCloseOnEsc?: boolean
+  disableOverlay?: boolean
+  disableOverlayClose?: boolean
+  disableScrolling?: boolean
+  floatingOptions?: Partial<FloatingOptions>
+  floaterProps?: {
+    hideArrow?: boolean
+    offset?: number
+    styles?: {
+      floater?: CSSProperties
+    }
+  }
+  hideCloseButton?: boolean
+  scrollOffset?: number
+  showProgress?: boolean
+  showSkipButton?: boolean
+  spotlightClicks?: boolean
+  spotlightPadding?: Step['spotlightPadding']
+  styles?: LegacyJoyrideStyles
+}
 
 type JoyrideErrorBoundaryProps = {
   children: ReactNode
@@ -93,13 +120,38 @@ class JoyrideErrorBoundary extends Component<
   }
 }
 
-export function JoyrideClient(props: JoyrideProps) {
+export function JoyrideClient(props: JoyrideClientProps) {
+  const [JoyrideComponent, setJoyrideComponent] =
+    useState<ComponentType<JoyrideProps> | null>(null)
   const steps = normalizeJoyrideSteps(props.steps)
   const run = Boolean(props.run && steps.length > 0)
+  const joyrideProps = toJoyrideV3Props(props, run, steps)
+
+  useEffect(() => {
+    let cancelled = false
+
+    import('react-joyride')
+      .then((mod) => {
+        if (!cancelled) {
+          setJoyrideComponent(() => resolveJoyrideModule(mod))
+        }
+      })
+      .catch((error) => {
+        console.error('[JoyrideClient] react-joyride import failed:', error)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (!JoyrideComponent) {
+    return null
+  }
 
   return (
     <JoyrideErrorBoundary>
-      <DynamicJoyride {...props} run={run} steps={steps} />
+      <JoyrideComponent {...joyrideProps} />
     </JoyrideErrorBoundary>
   )
 }
@@ -108,13 +160,129 @@ export function isRenderableJoyrideIcon(icon: unknown): boolean {
   return isValidElement(icon)
 }
 
-function normalizeJoyrideSteps(steps: JoyrideProps['steps']): Step[] {
+export function normalizeJoyrideSteps(steps: JoyrideProps['steps']): Step[] {
   if (!Array.isArray(steps)) {
     return []
   }
 
-  return steps.map((step) => ({
-    ...step,
-    disableBeacon: true,
-  }))
+  return steps.map((step: Step & { disableBeacon?: boolean }) => {
+    const { disableBeacon: _disableBeacon, styles, ...rest } = step
+    const sanitizedStyles = sanitizeJoyrideStepStyles(styles)
+
+    return omitUndefinedValues({
+      ...rest,
+      styles: sanitizedStyles,
+      skipBeacon: step.skipBeacon ?? step.disableBeacon ?? true,
+    }) as Step
+  })
+}
+
+function sanitizeJoyrideStepStyles(styles: Step['styles']): Step['styles'] {
+  if (!styles) {
+    return undefined
+  }
+
+  const {
+    borderRadius: _legacySpotlightBorderRadius,
+    zIndex: _legacySpotlightZIndex,
+    ...spotlightStyles
+  } = styles.spotlight ?? {}
+
+  return omitUndefinedValues({
+    ...styles,
+    spotlight: Object.keys(spotlightStyles).length > 0 ? spotlightStyles : undefined,
+  }) as Step['styles']
+}
+
+export function toJoyrideV3Props(
+  props: JoyrideClientProps,
+  run: boolean,
+  steps: Step[],
+): JoyrideProps {
+  const {
+    callback,
+    disableCloseOnEsc,
+    disableOverlay,
+    disableOverlayClose,
+    disableScrolling,
+    floaterProps,
+    hideCloseButton,
+    scrollOffset,
+    showProgress,
+    showSkipButton,
+    spotlightPadding,
+    styles,
+    ...rest
+  } = props
+
+  const legacyOptions = styles?.options ?? {}
+  const { options: _legacyStyleOptions, ...joyrideStyles } = styles ?? {}
+  const {
+    borderRadius: _legacySpotlightBorderRadius,
+    zIndex: _legacySpotlightZIndex,
+    ...spotlightStyles
+  } = joyrideStyles.spotlight ?? {}
+  const buttons = ['back', 'primary'] as NonNullable<Step['buttons']>
+
+  if (!hideCloseButton) {
+    buttons.push('close')
+  }
+
+  if (showSkipButton) {
+    buttons.push('skip')
+  }
+
+  const baseZIndex = legacyOptions.zIndex ?? 10000
+  const options = omitUndefinedValues<Partial<Options>>({
+    arrowColor: legacyOptions.arrowColor,
+    blockTargetInteraction: props.spotlightClicks === false,
+    buttons,
+    closeButtonAction: 'skip',
+    dismissKeyAction: disableCloseOnEsc ? false : 'close',
+    hideOverlay: disableOverlay,
+    offset: floaterProps?.offset,
+    overlayClickAction: disableOverlayClose ? false : 'close',
+    primaryColor: legacyOptions.primaryColor,
+    scrollOffset,
+    showProgress,
+    skipScroll: disableScrolling,
+    spotlightPadding,
+    spotlightRadius:
+      typeof styles?.spotlight?.borderRadius === 'number'
+        ? styles.spotlight.borderRadius
+        : 16,
+    targetWaitTimeout: 1600,
+    zIndex: baseZIndex,
+  })
+
+  return {
+    ...rest,
+    floatingOptions: {
+      hideArrow: floaterProps?.hideArrow,
+      ...props.floatingOptions,
+    },
+    onEvent: callback,
+    options,
+    run,
+    steps,
+    styles: {
+      ...joyrideStyles,
+      floater: {
+        zIndex: baseZIndex + 2,
+        ...(styles?.floater ?? {}),
+        ...(floaterProps?.styles?.floater ?? {}),
+      },
+      tooltip: {
+        zIndex: baseZIndex + 2,
+        ...(styles?.tooltip ?? {}),
+      },
+      spotlight: spotlightStyles,
+    },
+  }
+}
+
+function omitUndefinedValues<T extends Record<string, unknown>>(value: T): T {
+  return Object.fromEntries(
+    Object.entries(value).filter((entry) => entry[1] !== undefined),
+  ) as T
 }

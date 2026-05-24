@@ -16,7 +16,7 @@ export function buildBusinessUserAnalyticsMinitourSteps(t: MinitourTranslator): 
       title: t('analyticsTour.steps.header.title'),
       content: t('analyticsTour.steps.header.content'),
       placement: 'bottom',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <LineChart className={iconClassName} /> },
     },
     {
@@ -24,7 +24,7 @@ export function buildBusinessUserAnalyticsMinitourSteps(t: MinitourTranslator): 
       title: t('analyticsTour.steps.ranges.title'),
       content: t('analyticsTour.steps.ranges.content'),
       placement: 'bottom-end',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <CalendarRange className={iconClassName} /> },
     },
     {
@@ -32,7 +32,7 @@ export function buildBusinessUserAnalyticsMinitourSteps(t: MinitourTranslator): 
       title: t('analyticsTour.steps.metrics.title'),
       content: t('analyticsTour.steps.metrics.content'),
       placement: 'bottom',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <Trophy className={iconClassName} /> },
     },
     {
@@ -40,7 +40,7 @@ export function buildBusinessUserAnalyticsMinitourSteps(t: MinitourTranslator): 
       title: t('analyticsTour.steps.courseProgress.title'),
       content: t('analyticsTour.steps.courseProgress.content'),
       placement: 'top',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <BarChart3 className={iconClassName} /> },
     },
     {
@@ -48,7 +48,7 @@ export function buildBusinessUserAnalyticsMinitourSteps(t: MinitourTranslator): 
       title: t('analyticsTour.steps.aiAdoption.title'),
       content: t('analyticsTour.steps.aiAdoption.content'),
       placement: 'top',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <Brain className={iconClassName} /> },
     },
     {
@@ -56,7 +56,7 @@ export function buildBusinessUserAnalyticsMinitourSteps(t: MinitourTranslator): 
       title: t('analyticsTour.steps.feedback.title'),
       content: t('analyticsTour.steps.feedback.content'),
       placement: 'top',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <Sparkles className={iconClassName} /> },
     },
     {
@@ -64,7 +64,7 @@ export function buildBusinessUserAnalyticsMinitourSteps(t: MinitourTranslator): 
       title: t('analyticsTour.steps.heatmap.title'),
       content: t('analyticsTour.steps.heatmap.content'),
       placement: 'top',
-      disableBeacon: true,
+      skipBeacon: true,
       data: { icon: <Flame className={iconClassName} /> },
     },
   ];

@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { CallBackProps, STATUS, ACTIONS, EVENTS } from 'react-joyride';
+import { STATUS, ACTIONS, EVENTS, type EventData } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
 import { getBusinessPanelJoyrideSteps, BUSINESS_PANEL_TOUR_ID } from '../config/business-panel-joyride-steps';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourRestart } from '@/core/contexts/TourRestartContext';
 import { useTranslation } from 'react-i18next';
+import { waitForJoyrideStepTargetReady } from '../utils/joyride-targets';
 
 interface UseBusinessPanelJoyrideOptions {
   enabled?: boolean;
@@ -64,16 +65,26 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
     }
   }, [enabled]);
 
-  const handleVideoComplete = useCallback(() => {
+  const handleVideoComplete = useCallback(async () => {
     setShowVideoIntro(false);
     setStepIndex(0);
     setIsFinishedInSession(false);
+
+    const targetReady = await waitForJoyrideStepTargetReady(
+      steps[0],
+      'useBusinessPanelJoyride',
+    );
+    if (!targetReady) {
+      setIsFinishedInSession(true);
+      return;
+    }
+
     startTour().catch(err => console.error('[useBusinessPanelJoyride] DB start failed', err));
     setRun(true);
-  }, [startTour]);
+  }, [startTour, steps]);
 
   // Handle Joyride callbacks
-  const handleJoyrideCallback = useCallback((data: CallBackProps) => {
+  const handleJoyrideCallback = useCallback((data: EventData) => {
     const { action, index, status, type } = data;
 
     // Handle tour completion
@@ -143,7 +154,6 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
       showProgress: false,
       showSkipButton: true,
       hideCloseButton: false,
-      disableOverlay: true,
       disableOverlayClose: false,
       disableCloseOnEsc: false,
       disableFocus: true,

@@ -14,7 +14,7 @@ export const studyPlannerJoyrideSteps: Step[] = [
       </div>
     ),
     placement: 'bottom' as const,
-    disableBeacon: true,
+    skipBeacon: true,
     data: {
       icon: <Sparkles className="w-5 h-5 text-accent" />
     }

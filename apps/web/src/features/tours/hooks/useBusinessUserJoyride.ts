@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ACTIONS, CallBackProps, EVENTS, STATUS, type Step } from 'react-joyride';
+import { ACTIONS, EVENTS, STATUS, type EventData, type Step } from 'react-joyride';
 import {
   getBusinessUserDashboardTourTargetSelector,
 } from '../../../core/constants/tourTargets';
@@ -10,12 +10,28 @@ import { useTourRestart } from '../../../core/contexts/TourRestartContext';
 import * as businessUserJoyrideConfig from '../config/business-user-joyride-steps';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourProgress } from './useTourProgress';
+import {
+  waitForJoyrideStepTargetReady,
+  waitForJoyrideTargetReady,
+} from '../utils/joyride-targets';
 
 interface UseBusinessUserJoyrideOptions {
   enabled?: boolean;
   hasCourseControls?: boolean;
   hasLearningPaths?: boolean;
   mobilePerformanceMode?: boolean;
+}
+
+const BUSINESS_USER_STEP_TARGET_TIMEOUT_MS = 4500;
+
+function wait(milliseconds: number): Promise<void> {
+  if (milliseconds <= 0) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, milliseconds);
+  });
 }
 
 function queryTourTarget(selector: string): HTMLElement | null {
@@ -53,45 +69,6 @@ function getStepBehavior(step: Step | undefined): string | null {
 
   const behavior = (data as { behavior?: unknown }).behavior;
   return typeof behavior === 'string' ? behavior : null;
-}
-
-function targetExists(step: Step): boolean {
-  if (typeof document === 'undefined') {
-    return true;
-  }
-
-  if (typeof step.target !== 'string') {
-    return true;
-  }
-
-  return document.querySelector(step.target) instanceof HTMLElement;
-}
-
-function targetIsVisible(step: Step): boolean {
-  if (typeof document === 'undefined' || typeof step.target !== 'string') {
-    return true;
-  }
-
-  const element = document.querySelector(step.target);
-  if (!(element instanceof HTMLElement)) {
-    return false;
-  }
-
-  if (element.closest('[hidden], [aria-hidden="true"], .hidden')) {
-    return false;
-  }
-
-  const style = window.getComputedStyle(element);
-  if (
-    style.display === 'none' ||
-    style.visibility === 'hidden' ||
-    Number(style.opacity) === 0
-  ) {
-    return false;
-  }
-
-  const rect = element.getBoundingClientRect();
-  return rect.width > 0 && rect.height > 0;
 }
 
 function ensureUserMenuOpen(isMobile: boolean): number {
@@ -211,6 +188,7 @@ export function useBusinessUserJoyride(
   const [isMobile, setIsMobile] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const [isTourFinishedInSession, setIsTourFinishedInSession] = useState(false);
+  const stepTransitionIdRef = useRef(0);
 
   useEffect(() => {
     setHasMounted(true);
@@ -235,25 +213,60 @@ export function useBusinessUserJoyride(
   }, [hasCourseControls, hasLearningPaths, isMobile, tBusiness]);
 
   const runnableSteps = useMemo(() => {
-    // We provide all steps to Joyride.
-    // If a target doesn't exist yet (e.g. menu not open), Joyride emits TARGET_NOT_FOUND
-    // and our callback handles opening the menu or moving to the next step.
     return steps;
   }, [steps]);
 
+  const finishTourFromMissingTargets = useCallback(() => {
+    setRun(false);
+    setIsTourFinishedInSession(true);
+    closeUserMenuIfOpen();
+    completeTour().catch((err) =>
+      console.error('[useBusinessUserJoyride] Complete failed (no available targets)', err),
+    );
+  }, [completeTour]);
+
   const moveToStep = useCallback(
-    (nextIndex: number) => {
-      const nextStep = steps[nextIndex];
-      const delay = prepareBusinessUserStep(nextStep, isMobile);
+    (requestedIndex: number, direction: 'next' | 'prev' = 'next') => {
+      const transitionId = stepTransitionIdRef.current + 1;
+      stepTransitionIdRef.current = transitionId;
 
-      if (delay > 0) {
-        window.setTimeout(() => setStepIndex(nextIndex), delay);
-        return;
-      }
+      void (async () => {
+        const stepDelta = direction === 'prev' ? -1 : 1;
+        let candidateIndex = requestedIndex;
 
-      setStepIndex(nextIndex);
+        while (candidateIndex >= 0 && candidateIndex < steps.length) {
+          const candidateStep = steps[candidateIndex];
+          const delay = prepareBusinessUserStep(candidateStep, isMobile);
+          await wait(delay);
+
+          const targetReady = candidateStep
+            ? await waitForJoyrideTargetReady(
+                candidateStep.target,
+                BUSINESS_USER_STEP_TARGET_TIMEOUT_MS,
+              )
+            : false;
+
+          if (transitionId !== stepTransitionIdRef.current) {
+            return;
+          }
+
+          if (targetReady) {
+            setStepIndex(candidateIndex);
+            return;
+          }
+
+          console.warn(
+            '[useBusinessUserJoyride] Skipping unavailable step target',
+            candidateIndex,
+            candidateStep?.target,
+          );
+          candidateIndex += stepDelta;
+        }
+
+        finishTourFromMissingTargets();
+      })();
     },
-    [isMobile, steps],
+    [finishTourFromMissingTargets, isMobile, steps],
   );
 
   useEffect(() => {
@@ -288,18 +301,30 @@ export function useBusinessUserJoyride(
     // appear briefly and then the overlay would persist with no highlight.
     setTimeout(() => {
       console.log('[useBusinessUserJoyride] Starting Joyride with', runnableSteps.length, 'steps');
-      startTour().catch((err) =>
-        console.error('[useBusinessUserJoyride] DB start failed', err),
-      );
-      prepareBusinessUserStep(steps[0], isMobile);
-      setRun(true);
+      void (async () => {
+        prepareBusinessUserStep(steps[0], isMobile);
+        const targetReady = await waitForJoyrideStepTargetReady(
+          steps[0],
+          'useBusinessUserJoyride',
+        );
+        if (!targetReady) {
+          setIsTourFinishedInSession(true);
+          closeUserMenuIfOpen();
+          return;
+        }
+
+        startTour().catch((err) =>
+          console.error('[useBusinessUserJoyride] DB start failed', err),
+        );
+        setRun(true);
+      })();
     }, 700);
   }, [isMobile, runnableSteps.length, startTour, steps]);
 
   const targetNotFoundRetryCount = useRef(0);
 
   const handleJoyrideCallback = useCallback(
-    (data: CallBackProps) => {
+    (data: EventData) => {
       const { action, index, status, type } = data;
 
       // Track consecutive TARGET_NOT_FOUND events.  If we hit the same step
@@ -364,7 +389,7 @@ export function useBusinessUserJoyride(
 
       if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
         if (action === ACTIONS.PREV) {
-          moveToStep(Math.max(0, index - 1));
+          moveToStep(Math.max(0, index - 1), 'prev');
           return;
         }
 
@@ -380,7 +405,7 @@ export function useBusinessUserJoyride(
           return;
         }
 
-        moveToStep(index + 1);
+        moveToStep(index + 1, 'next');
       }
     },
     [completeTour, moveToStep, runnableSteps.length, skipTour],

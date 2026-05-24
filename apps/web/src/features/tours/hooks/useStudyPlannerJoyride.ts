@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { CallBackProps, STATUS, Step, ACTIONS, EVENTS } from 'react-joyride';
+import { STATUS, ACTIONS, EVENTS, type EventData } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
 import { studyPlannerJoyrideSteps } from '../config/study-planner-joyride-config';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourRestart } from '@/core/contexts/TourRestartContext';
+import { waitForJoyrideStepTargetReady } from '../utils/joyride-targets';
 
 export const useStudyPlannerJoyride = () => {
   const [run, setRun] = useState(false);
@@ -19,6 +20,22 @@ export const useStudyPlannerJoyride = () => {
   } = tourProgress;
   const { setRestart } = useTourRestart();
 
+  const launchTour = useCallback(async () => {
+    const targetReady = await waitForJoyrideStepTargetReady(
+      studyPlannerJoyrideSteps[0],
+      'useStudyPlannerJoyride',
+    );
+    if (!targetReady) {
+      setIsFinishedInSession(true);
+      return;
+    }
+
+    startTour().catch((err) =>
+      console.error('[useStudyPlannerJoyride] DB start failed', err),
+    );
+    setRun(true);
+  }, [startTour]);
+
   // Initiate tour check on mount
   useEffect(() => {
     const checkTourStatus = () => {
@@ -27,19 +44,16 @@ export const useStudyPlannerJoyride = () => {
         if (!hasSeenTour && !isFinishedInSession) {
           // Small delay to ensure elements are rendered
           const timer = setTimeout(() => {
-             startTour().catch((err) =>
-               console.error('[useStudyPlannerJoyride] DB start failed', err),
-             );
-             setRun(true);
+            void launchTour();
           }, 1000);
           return () => clearTimeout(timer);
         }
       }
     };
     return checkTourStatus();
-  }, [hasSeenTour, isFinishedInSession, isLoading, startTour]);
+  }, [hasSeenTour, isFinishedInSession, isLoading, launchTour]);
 
-  const handleJoyrideCallback = useCallback(async (data: CallBackProps) => {
+  const handleJoyrideCallback = useCallback(async (data: EventData) => {
     const { action, index, status, type } = data;
 
     // Handle close button click
@@ -92,11 +106,8 @@ export const useStudyPlannerJoyride = () => {
   const restartTour = useCallback(() => {
     setStepIndex(0);
     setIsFinishedInSession(false);
-    startTour().catch((err) =>
-      console.error('[useStudyPlannerJoyride] DB restart failed', err),
-    );
-    setRun(true);
-  }, [startTour]);
+    void launchTour();
+  }, [launchTour]);
 
   useEffect(() => {
     setRestart(restartTour, 'Reiniciar tutorial');

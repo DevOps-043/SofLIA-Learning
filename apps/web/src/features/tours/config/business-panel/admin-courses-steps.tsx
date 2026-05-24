@@ -9,7 +9,7 @@ export const getAdminCoursesSteps = (t: TFunction): Step[] => [
     target: '#tour-courses-hero',
     title: t('adminTour.steps.coursesHero.title', 'Catálogo de Cursos'),
     content: t('adminTour.steps.coursesHero.content', 'Este es tu centro de gestión de cursos. Desde aquí puedes explorar, buscar y administrar todo el contenido de aprendizaje disponible para tu organización.'),
-    disableBeacon: true,
+    skipBeacon: true,
     data: {
       icon: <BookOpen className="w-5 h-5 text-accent" />
     }

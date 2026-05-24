@@ -9,7 +9,7 @@ export const getAdminReportsSteps = (t: TFunction): Step[] => [
     target: '#tour-reports-hero',
     title: t('adminTour.steps.reportsHero.title', 'Reportes y Analytics'),
     content: t('adminTour.steps.reportsHero.content', 'Tu centro de inteligencia de datos. Genera insights con IA, exporta reportes en Excel, CSV o PDF y analiza el ROI de tu capacitación.'),
-    disableBeacon: true,
+    skipBeacon: true,
     data: {
       icon: <BarChart3 className="w-5 h-5 text-accent" />
     }

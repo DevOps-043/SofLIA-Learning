@@ -9,7 +9,7 @@ export const getAdminHierarchySteps = (t: TFunction): Step[] => [
     target: '#tour-hierarchy-header',
     title: t('adminTour.steps.hierarchyHeader.title', 'Estructura Organizacional'),
     content: t('adminTour.steps.hierarchyHeader.content', 'Desde aquí gestionas los niveles organizacionales de tu empresa: regiones, zonas y equipos para una administración granular.'),
-    disableBeacon: true,
+    skipBeacon: true,
     data: {
       icon: <Network className="w-5 h-5 text-accent" />
     }

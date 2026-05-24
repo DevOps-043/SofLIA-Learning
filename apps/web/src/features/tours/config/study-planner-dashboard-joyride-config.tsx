@@ -12,7 +12,7 @@ export const studyPlannerDashboardJoyrideSteps: Step[] = [
       </p>
     ),
     placement: 'right' as const,
-    disableBeacon: true,
+    skipBeacon: true,
     data: {
       icon: <CalendarDays className="w-5 h-5 text-accent" />
     }

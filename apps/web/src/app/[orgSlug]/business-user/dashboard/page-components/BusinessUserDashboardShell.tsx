@@ -2,7 +2,6 @@
 
 import type { CSSProperties } from 'react'
 import { Suspense, useEffect, useMemo, useState } from 'react'
-import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import {
@@ -25,6 +24,10 @@ import { OnboardingVideoPlayer } from '../../../../../features/tours/components/
 import { useMinuteTicker } from '../../../../../shared/hooks/useMinuteTicker'
 import { useMotionSafe } from '../../../../../lib/utils/motion'
 import { getBusinessUserDashboardGreeting } from '../services/business-user-dashboard.service'
+import { ModernNavbar } from '../components/ModernNavbar'
+import { ModernStatsCard } from '../components/ModernStatsCard'
+import { CourseCard3D } from '../components/CourseCard3D'
+import { LearningPathView } from '../components/LearningPathView'
 import type {
   AssignedCourse,
   AssignedLearningPath,
@@ -34,27 +37,6 @@ import type {
   Organization,
   OrgRole,
 } from '../types'
-
-// next/dynamic handles SSR correctly. React.lazy() is not supported during
-// server-side rendering of Client Components in Next.js App Router — it causes
-// an "updateDehydratedSuspenseComponent: Cannot read 'call' of undefined"
-// hydration mismatch because the lazy module is unavailable during SSR.
-const ModernNavbar = dynamic(
-  () => import('../components/ModernNavbar').then((m) => ({ default: m.ModernNavbar })),
-  { ssr: false }
-)
-const ModernStatsCard = dynamic(
-  () => import('../components/ModernStatsCard').then((m) => ({ default: m.ModernStatsCard })),
-  { ssr: false }
-)
-const CourseCard3D = dynamic(
-  () => import('../components/CourseCard3D').then((m) => ({ default: m.CourseCard3D })),
-  { ssr: false }
-)
-const LearningPathView = dynamic(
-  () => import('../components/LearningPathView').then((m) => ({ default: m.LearningPathView })),
-  { ssr: false }
-)
 
 interface CourseListSectionEntry {
   assigned: boolean

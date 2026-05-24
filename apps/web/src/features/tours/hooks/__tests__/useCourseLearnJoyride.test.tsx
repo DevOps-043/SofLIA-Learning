@@ -6,7 +6,7 @@ import {
   EVENTS,
   LIFECYCLE,
   STATUS,
-  type CallBackProps,
+  type EventData,
 } from 'react-joyride';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -58,21 +58,43 @@ vi.mock('../useTourProgress', () => ({
 }));
 
 function buildCallbackProps(
-  overrides: Partial<CallBackProps>,
-  step: CallBackProps['step'],
-): CallBackProps {
+  overrides: Partial<EventData>,
+  step: EventData['step'],
+): EventData {
   return {
     action: ACTIONS.NEXT,
     controlled: true,
+    error: null,
     index: COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome,
     lifecycle: LIFECYCLE.COMPLETE,
     origin: null,
+    scroll: null,
+    scrolling: false,
     size: 6,
     status: STATUS.RUNNING,
     step,
     type: EVENTS.STEP_AFTER,
+    waiting: false,
     ...overrides,
-  };
+  } as EventData;
+}
+
+function appendTourTarget(id: string): HTMLElement {
+  const element = document.createElement('div');
+  element.id = id;
+  element.getBoundingClientRect = vi.fn(() => ({
+    bottom: 120,
+    height: 80,
+    left: 20,
+    right: 220,
+    toJSON: () => '',
+    top: 40,
+    width: 200,
+    x: 20,
+    y: 40,
+  }));
+  document.body.appendChild(element);
+  return element;
 }
 
 describe('useCourseLearnJoyride', () => {
@@ -81,6 +103,8 @@ describe('useCourseLearnJoyride', () => {
     tourProgressState.isLoading = false;
     tourProgressState.shouldShowTour = false;
     vi.useRealTimers();
+    document.body.innerHTML = '';
+    appendTourTarget('course-learn-workspace');
   });
 
   it('completes and closes the tour when the final step advances past the last index', async () => {
@@ -151,6 +175,7 @@ describe('useCourseLearnJoyride', () => {
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2200);
+      await Promise.resolve();
     });
 
     expect(startTour).toHaveBeenCalledTimes(1);

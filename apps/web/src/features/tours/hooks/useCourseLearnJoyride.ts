@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ACTIONS, CallBackProps, EVENTS, STATUS } from 'react-joyride';
+import { ACTIONS, EVENTS, STATUS, type EventData } from 'react-joyride';
 
 import type { LearnTab } from '../../courses/components/learn/types';
 import { useTourRestart } from '../../../core/contexts/TourRestartContext';
@@ -14,6 +14,7 @@ import {
 } from '../config/course-learn-joyride-steps';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourProgress } from './useTourProgress';
+import { waitForJoyrideStepTargetReady } from '../utils/joyride-targets';
 
 const TOUR_START_DELAY_MS = 1500;
 const TOUR_RESTART_DELAY_MS = 120;
@@ -67,39 +68,6 @@ function scrollStepTargetIntoView(
     behavior: 'auto',
     block: 'start',
     inline: 'nearest',
-  });
-}
-
-// Joyride falls back to its beacon UI when a step target cannot be
-// queried at mount time, even if `disableBeacon: true` is set per step.
-// In production the layout sometimes settles slower than in dev, so we
-// poll briefly before launching to guarantee the first target exists.
-const TARGET_POLL_INTERVAL_MS = 80;
-const TARGET_POLL_TIMEOUT_MS = 1500;
-
-function waitForTargetInDom(target: string): Promise<boolean> {
-  if (typeof document === 'undefined') {
-    return Promise.resolve(false);
-  }
-
-  if (document.querySelector(target)) {
-    return Promise.resolve(true);
-  }
-
-  return new Promise((resolve) => {
-    const start = Date.now();
-    const intervalId = window.setInterval(() => {
-      if (document.querySelector(target)) {
-        window.clearInterval(intervalId);
-        resolve(true);
-        return;
-      }
-
-      if (Date.now() - start >= TARGET_POLL_TIMEOUT_MS) {
-        window.clearInterval(intervalId);
-        resolve(false);
-      }
-    }, TARGET_POLL_INTERVAL_MS);
   });
 }
 
@@ -202,17 +170,13 @@ export function useCourseLearnJoyride({
     // Without this guard, Joyride silently falls back to its beacon UI,
     // which is exactly the "black dot" symptom observed in production.
     const welcomeStep = steps[COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome];
-    const welcomeTarget = welcomeStep?.target;
-    if (typeof welcomeTarget === 'string') {
-      const targetReady = await waitForTargetInDom(welcomeTarget);
-      if (!targetReady) {
-        console.warn(
-          '[useCourseLearnJoyride] welcome target missing in DOM, aborting tour:',
-          welcomeTarget,
-        );
-        setIsTourActive(false);
-        return;
-      }
+    const targetReady = await waitForJoyrideStepTargetReady(
+      welcomeStep,
+      'useCourseLearnJoyride',
+    );
+    if (!targetReady) {
+      setIsTourActive(false);
+      return;
     }
 
     setRun(false);
@@ -275,7 +239,7 @@ export function useCourseLearnJoyride({
   }, [enabled, restartTour, setRestart, t]);
 
   const handleJoyrideCallback = useCallback(
-    async (data: CallBackProps) => {
+    async (data: EventData) => {
       const { action, index, status, type } = data;
 
       if (status === STATUS.FINISHED) {

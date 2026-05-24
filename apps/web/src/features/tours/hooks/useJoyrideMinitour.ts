@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ACTIONS, type CallBackProps, EVENTS, STATUS, type Step } from 'react-joyride';
+import { ACTIONS, type EventData, EVENTS, STATUS, type Step } from 'react-joyride';
 
 import { useTourRestart } from '../../../core/contexts/TourRestartContext';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourProgress } from './useTourProgress';
+import { waitForJoyrideStepTargetReady } from '../utils/joyride-targets';
 
 interface UseJoyrideMinitourOptions {
   enabled?: boolean;
@@ -45,11 +46,22 @@ export function useJoyrideMinitour({
   const restartTour = useCallback(() => {
     setStepIndex(0);
     setIsFinishedInSession(false);
-    startTour().catch((error) =>
-      console.error(`[useJoyrideMinitour:${tourId}] start failed`, error),
-    );
-    setRun(true);
-  }, [startTour, tourId]);
+    void (async () => {
+      const targetReady = await waitForJoyrideStepTargetReady(
+        steps[0],
+        `useJoyrideMinitour:${tourId}`,
+      );
+      if (!targetReady) {
+        setIsFinishedInSession(true);
+        return;
+      }
+
+      startTour().catch((error) =>
+        console.error(`[useJoyrideMinitour:${tourId}] start failed`, error),
+      );
+      setRun(true);
+    })();
+  }, [startTour, steps, tourId]);
 
   useEffect(() => {
     if (!enabled || steps.length === 0) {
@@ -90,7 +102,7 @@ export function useJoyrideMinitour({
   ]);
 
   const handleJoyrideCallback = useCallback(
-    (data: CallBackProps) => {
+    (data: EventData) => {
       const { action, index, status, type } = data;
 
       if (status === STATUS.FINISHED) {

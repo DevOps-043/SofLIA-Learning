@@ -104,7 +104,7 @@ export function buildCourseLearnJoyrideSteps({
       title: translate('tour.steps.welcome.title'),
       content: translate('tour.steps.welcome.description', interpolation),
       placement: 'center',
-      disableBeacon: true,
+      skipBeacon: true,
       data: {
         icon: <Sparkles className="h-5 w-5 text-accent" />,
       },
@@ -114,7 +114,7 @@ export function buildCourseLearnJoyrideSteps({
       title: translate('tour.steps.sidebar.title'),
       content: translate('tour.steps.sidebar.description', interpolation),
       placement: isMobile ? 'top' : 'right',
-      disableBeacon: true,
+      skipBeacon: true,
       data: {
         icon: <BookOpen className="h-5 w-5 text-accent" />,
       },
@@ -124,8 +124,8 @@ export function buildCourseLearnJoyrideSteps({
       title: translate('tour.steps.videoPanel.title'),
       content: translate('tour.steps.videoPanel.description', interpolation),
       placement: isMobile ? 'bottom' : 'left-start',
-      disableBeacon: true,
-      floaterProps: isMobile
+      skipBeacon: true,
+      floatingOptions: isMobile
         ? undefined
         : {
             hideArrow: true,
@@ -145,7 +145,7 @@ export function buildCourseLearnJoyrideSteps({
       title: translate('tour.steps.tools.title'),
       content: translate('tour.steps.tools.description', interpolation),
       placement: isMobile ? 'top' : 'bottom',
-      disableBeacon: true,
+      skipBeacon: true,
       data: {
         icon: <LayoutPanelTop className="h-5 w-5 text-accent" />,
       },
@@ -155,8 +155,8 @@ export function buildCourseLearnJoyrideSteps({
       title: translate('tour.steps.soflia.title'),
       content: translate('tour.steps.soflia.description', interpolation),
       placement: isMobile ? 'top' : 'top-end',
-      disableBeacon: true,
-      disableScrolling: true,
+      skipBeacon: true,
+      skipScroll: true,
       spotlightPadding: isMobile ? 12 : 20,
       data: {
         icon: <Bot className="h-5 w-5 text-accent" />,
@@ -167,7 +167,7 @@ export function buildCourseLearnJoyrideSteps({
       title: translate('tour.steps.ready.title'),
       content: translate('tour.steps.ready.description', interpolation),
       placement: isMobile ? 'bottom' : 'bottom-end',
-      disableBeacon: true,
+      skipBeacon: true,
       data: {
         icon: <Map className="h-5 w-5 text-accent" />,
       },

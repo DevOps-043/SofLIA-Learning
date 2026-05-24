@@ -10,7 +10,7 @@ export const getAdminUsersSteps = (t: TFunction): Step[] => [
     title: t('adminTour.steps.usersActions.title', 'Gestion de Usuarios'),
     content: t('adminTour.steps.usersActions.content', 'Desde aqui puedes invitar nuevos usuarios, importar por lotes o descargar la plantilla de carga.'),
     placement: 'bottom-end',
-    disableBeacon: true,
+    skipBeacon: true,
     data: {
       icon: <Send className="w-5 h-5 text-accent" />,
     },

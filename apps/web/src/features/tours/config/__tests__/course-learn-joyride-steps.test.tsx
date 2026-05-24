@@ -73,7 +73,7 @@ describe('course-learn-joyride-steps', () => {
       'left-start',
     );
     expect(
-      steps[COURSE_LEARN_JOYRIDE_STEP_INDEXES.videoPanel].floaterProps?.hideArrow,
+      steps[COURSE_LEARN_JOYRIDE_STEP_INDEXES.videoPanel].floatingOptions?.hideArrow,
     ).toBe(true);
     expect(
       steps[COURSE_LEARN_JOYRIDE_STEP_INDEXES.videoPanel].data,

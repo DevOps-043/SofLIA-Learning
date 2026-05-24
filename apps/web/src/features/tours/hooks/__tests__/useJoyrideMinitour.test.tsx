@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { act, renderHook } from '@testing-library/react';
-import { ACTIONS, EVENTS, LIFECYCLE, STATUS, type CallBackProps, type Step } from 'react-joyride';
+import { ACTIONS, EVENTS, LIFECYCLE, STATUS, type EventData, type Step } from 'react-joyride';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useJoyrideMinitour } from '../useJoyrideMinitour';
@@ -26,13 +26,13 @@ const steps: Step[] = [
     target: '#first',
     title: 'first.title',
     content: 'first.content',
-    disableBeacon: true,
+    skipBeacon: true,
   },
   {
     target: '#second',
     title: 'second.title',
     content: 'second.content',
-    disableBeacon: true,
+    skipBeacon: true,
   },
 ];
 
@@ -52,19 +52,41 @@ vi.mock('../useTourProgress', () => ({
   useTourProgress: () => tourProgressState,
 }));
 
-function buildCallbackProps(overrides: Partial<CallBackProps> = {}): CallBackProps {
+function appendTourTarget(id: string): HTMLElement {
+  const element = document.createElement('div');
+  element.id = id;
+  element.getBoundingClientRect = vi.fn(() => ({
+    bottom: 120,
+    height: 80,
+    left: 20,
+    right: 220,
+    toJSON: () => '',
+    top: 40,
+    width: 200,
+    x: 20,
+    y: 40,
+  }));
+  document.body.appendChild(element);
+  return element;
+}
+
+function buildCallbackProps(overrides: Partial<EventData> = {}): EventData {
   return {
     action: ACTIONS.NEXT,
     controlled: true,
+    error: null,
     index: 0,
     lifecycle: LIFECYCLE.COMPLETE,
     origin: null,
+    scroll: null,
+    scrolling: false,
     size: steps.length,
     status: STATUS.RUNNING,
     step: steps[0],
     type: EVENTS.STEP_AFTER,
+    waiting: false,
     ...overrides,
-  };
+  } as EventData;
 }
 
 describe('useJoyrideMinitour', () => {
@@ -73,6 +95,9 @@ describe('useJoyrideMinitour', () => {
     tourProgressState.isLoading = false;
     tourProgressState.shouldShowTour = false;
     vi.useRealTimers();
+    document.body.innerHTML = '';
+    appendTourTarget('first');
+    appendTourTarget('second');
   });
 
   it('registers a restart handler when enabled', () => {
@@ -101,6 +126,7 @@ describe('useJoyrideMinitour', () => {
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(50);
+      await Promise.resolve();
     });
 
     expect(startTour).toHaveBeenCalledTimes(1);
