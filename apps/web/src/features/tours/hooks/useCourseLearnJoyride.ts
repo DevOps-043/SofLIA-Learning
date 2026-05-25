@@ -324,7 +324,17 @@ export function useCourseLearnJoyride({
         return;
       }
 
-      if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+      // TARGET_NOT_FOUND NO debe avanzar. En react-joyride v3 este evento se
+      // emite cuando un step no encuentra su target a tiempo. Si se trataba
+      // igual que STEP_AFTER, una sola pulsacion de "Siguiente" cascadeaba
+      // TARGET_NOT_FOUND por todos los steps restantes y terminaba el tour en
+      // un instante. Aqui solo registramos y dejamos al tour pausado para que
+      // el usuario pueda cerrar/saltar manualmente.
+      if (type === EVENTS.TARGET_NOT_FOUND) {
+        return;
+      }
+
+      if (type === EVENTS.STEP_AFTER) {
         const nextStepIndex =
           action === ACTIONS.PREV ? index - 1 : index + 1;
 

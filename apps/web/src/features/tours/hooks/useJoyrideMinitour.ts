@@ -111,7 +111,18 @@ export function useJoyrideMinitour({
         return;
       }
 
-      if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+      // TARGET_NOT_FOUND: el step no encontro su elemento. NO avanzar: si se
+      // trata igual que STEP_AFTER, una pulsacion de "Siguiente" cuyo target
+      // siguiente todavia no esta listo dispara una cascada que recorre todos
+      // los steps en un solo evento y termina el tour de golpe.
+      if (type === EVENTS.TARGET_NOT_FOUND) {
+        techDebtLogger.warn(
+          `[useJoyrideMinitour:${tourId}] TARGET_NOT_FOUND on step ${index}`,
+        );
+        return;
+      }
+
+      if (type === EVENTS.STEP_AFTER) {
         const nextIndex = action === ACTIONS.PREV ? Math.max(0, index - 1) : index + 1;
 
         if (nextIndex >= steps.length) {
