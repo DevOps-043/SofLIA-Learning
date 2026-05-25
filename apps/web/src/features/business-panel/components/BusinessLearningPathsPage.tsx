@@ -3,29 +3,11 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import {
-  ArrowRight,
-  BookOpen,
-  CheckCircle2,
-  ChevronRight,
-  Film,
-  Layers,
-  Lock,
-  Route,
-  Search,
-  Sparkles,
-  Trash2,
-  Users,
-} from 'lucide-react'
 
-import { BusinessAssignLearningPathModal } from './BusinessAssignLearningPathModal'
-import { BusinessLearningPathDefaultModal } from './BusinessLearningPathDefaultModal'
-import { BusinessLearningPathVideosModal } from './BusinessLearningPathVideosModal'
 import { useBusinessLearningPathsPageLogic } from '../hooks/useBusinessLearningPathsPageLogic'
 import { JoyrideClient } from '@/features/tours/components/JoyrideClient'
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
 import { ADMIN_PATHS_TOUR_ID, getAdminPathsSteps } from '@/features/tours/config/business-panel/admin-paths-steps'
-import { useBusinessLearningPathsPageLogic } from '../hooks/useBusinessLearningPathsPageLogic'
 import { BusinessLearningPathAssignments } from './BusinessLearningPathsPage/Assignments'
 import { BusinessLearningPathCards } from './BusinessLearningPathsPage/Cards'
 import { BusinessLearningPathsFeedback } from './BusinessLearningPathsPage/Feedback'
@@ -49,38 +31,39 @@ export function BusinessLearningPathsPage() {
     () => logic.learningPaths.find((path) => path.id === videosLearningPathId) ?? null,
     [logic.learningPaths, videosLearningPathId],
   )
+  const { panelBg, borderColor, inputBg } = logic.theme
 
   if (logic.isLoading) {
-    return <BusinessLearningPathsLoading inputBg={logic.theme.inputBg} />
+    return <BusinessLearningPathsLoading inputBg={inputBg} />
   }
 
   return (
     <>
-    {joyrideProps.run ? <JoyrideClient {...joyrideProps} /> : null}
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="min-h-screen p-5 lg:p-8 space-y-6"
-      style={{ backgroundColor: panelBg }}
-    >
-      {/* ── Hero ── */}
-      <div
-        id="tour-paths-hero"
-        className="relative overflow-hidden rounded-[2rem] border px-8 py-8 lg:py-10"
-        style={{ borderColor, backgroundColor: inputBg }}
+      {joyrideProps.run ? <JoyrideClient {...joyrideProps} /> : null}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen p-5 lg:p-8 space-y-6"
+        style={{ backgroundColor: panelBg }}
       >
-        <BusinessLearningPathsHero theme={logic.theme} />
-        <BusinessLearningPathStats logic={logic} />
-        <BusinessLearningPathsFeedback logic={logic} />
-        <BusinessLearningPathsSearch logic={logic} />
-        <BusinessLearningPathCards logic={logic} t={t} onOpenVideos={setVideosLearningPathId} />
-        <BusinessLearningPathAssignments logic={logic} language={i18n.language} />
-        <BusinessLearningPathModals
-          logic={logic}
-          videosLearningPathId={videosLearningPathId}
-          selectedLearningPathForVideos={selectedLearningPathForVideos}
-          onCloseVideos={() => setVideosLearningPathId(null)}
-        />
+        <div
+          id="tour-paths-hero"
+          className="relative overflow-hidden rounded-[2rem] border px-8 py-8 lg:py-10"
+          style={{ borderColor, backgroundColor: inputBg }}
+        >
+          <BusinessLearningPathsHero theme={logic.theme} />
+          <BusinessLearningPathStats logic={logic} />
+          <BusinessLearningPathsFeedback logic={logic} />
+          <BusinessLearningPathsSearch logic={logic} />
+          <BusinessLearningPathCards logic={logic} t={t} onOpenVideos={setVideosLearningPathId} />
+          <BusinessLearningPathAssignments logic={logic} language={i18n.language} />
+          <BusinessLearningPathModals
+            logic={logic}
+            videosLearningPathId={videosLearningPathId}
+            selectedLearningPathForVideos={selectedLearningPathForVideos}
+            onCloseVideos={() => setVideosLearningPathId(null)}
+          />
+        </div>
       </motion.div>
     </>
   )
