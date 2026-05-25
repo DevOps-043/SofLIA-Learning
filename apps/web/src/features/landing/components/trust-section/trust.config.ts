@@ -1,8 +1,8 @@
 import {
   Award,
   BarChart3,
-  FileCheck,
   Globe2,
+  Route,
   ShieldCheck,
   Users,
   type LucideIcon,
@@ -21,7 +21,7 @@ export interface TrustStat {
 
 export const trustBadges: TrustBadge[] = [
   { icon: Globe2, key: 'multilingual', iconClassName: 'bg-accent/15 text-accent' },
-  { icon: FileCheck, key: 'scorm', iconClassName: 'bg-success/15 text-success' },
+  { icon: Route, key: 'learningPaths', iconClassName: 'bg-success/15 text-success' },
   { icon: Award, key: 'certificates', iconClassName: 'bg-warning/15 text-warning' },
   { icon: Users, key: 'roles', iconClassName: 'bg-primary/15 text-primary dark:text-white' },
   { icon: BarChart3, key: 'analytics', iconClassName: 'bg-accent/15 text-accent' },
@@ -30,7 +30,6 @@ export const trustBadges: TrustBadge[] = [
 
 export const trustStats: TrustStat[] = [
   { value: '3', key: 'languages' },
-  { value: 'SCORM', key: 'compatible' },
   { value: '24/7', key: 'lia' },
   { value: 'SHA-256', key: 'hash' },
 ];

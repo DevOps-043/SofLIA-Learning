@@ -7,7 +7,6 @@ import {
   Plus,
   Settings,
   Trash2,
-  Zap,
 } from 'lucide-react';
 import type {
   StudyPlannerDashboardToolbarProps,
@@ -30,7 +29,6 @@ export function StudyPlannerDashboardToolbar({
   onOpenCalendarConfig,
   onOpenCalendarModal,
   onRecreatePlan,
-  onRestartTour,
   setHoveredButton,
 }: StudyPlannerDashboardToolbarProps) {
   const isCalendarConfigDisabled = !connectedProvider;
@@ -46,47 +44,6 @@ export function StudyPlannerDashboardToolbar({
         onClick={onGoBack}
         setHoveredButton={setHoveredButton}
       />
-
-      <div className="relative">
-        <motion.button
-          layout
-          onClick={onRestartTour}
-          onMouseEnter={() => setHoveredButton('tour')}
-          onMouseLeave={() => setHoveredButton(null)}
-          whileTap={{ scale: 0.95 }}
-          className="rounded-lg bg-white dark:bg-carbon-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-primary/20 border border-gray-200 dark:border-gray-500/30 transition-colors flex items-center overflow-hidden"
-          title="Ver Tour"
-        >
-          <motion.div
-            className="p-2.5 flex-shrink-0 flex items-center justify-center"
-            animate={hoveredButton === 'tour' ? {
-              scale: [1, 1.1, 1],
-              rotate: [0, -10, 10, 0],
-            } : {}}
-            transition={{
-              duration: 0.5,
-              repeat: hoveredButton === 'tour' ? Infinity : 0,
-              repeatType: 'reverse',
-              ease: 'easeInOut',
-            }}
-          >
-            <Zap className="w-5 h-5" />
-          </motion.div>
-          <AnimatePresence>
-            {hoveredButton === 'tour' && (
-              <motion.span
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: 'auto', opacity: 1 }}
-                exit={{ width: 0, opacity: 0 }}
-                transition={{ duration: 0.2, ease: 'easeInOut' }}
-                className="pr-3 whitespace-nowrap text-sm font-medium overflow-hidden inline-block"
-              >
-                Ver Tour
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </motion.button>
-      </div>
 
       <div className="relative calendar-menu-container">
         <motion.button

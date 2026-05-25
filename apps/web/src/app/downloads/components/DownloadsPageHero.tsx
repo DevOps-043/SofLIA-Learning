@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { AlertTriangle, Apple, Download, Monitor, Sparkles } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { ReleaseData } from '../types'
 
 interface DownloadsPageHeroProps {
@@ -17,6 +18,8 @@ export function DownloadsPageHero({
   error,
   onRetry,
 }: DownloadsPageHeroProps) {
+  const { t } = useTranslation('common')
+
   return (
     <section className="text-center mb-20 relative">
       <motion.div
@@ -35,23 +38,21 @@ export function DownloadsPageHero({
           <Sparkles className="w-4 h-4 text-accent" />
           <span className="text-sm font-medium text-primary/60 dark:text-white/60">
             {loading
-              ? 'Cargando ultima version...'
+              ? t('downloadsPage.hero.loading')
               : error
-                ? 'Error al obtener la version'
-                : `Version ${release?.version} disponible`}
+                ? t('downloadsPage.hero.error')
+                : t('downloadsPage.hero.versionAvailable', { version: release?.version })}
           </span>
         </div>
 
         <h1 className="text-5xl lg:text-7xl font-bold text-primary dark:text-white mb-6 tracking-tight">
-          Lleva a <span className="text-accent">SofLIA Hub</span>
-          <br />
-          a todas partes
+          {t('downloadsPage.hero.title').split('SofLIA Hub')[0]}
+          <span className="text-accent">SofLIA Hub</span>
+          {t('downloadsPage.hero.title').split('SofLIA Hub')[1]}
         </h1>
 
         <p className="text-xl text-primary/60 dark:text-white/60 max-w-2xl mx-auto mb-12 leading-relaxed">
-          La aplicacion de escritorio oficial de SofLIA. Accede a tu asistente
-          de IA, cursos y herramientas de productividad directamente desde tu
-          sistema operativo, sin necesidad de abrir el navegador.
+          {t('downloadsPage.hero.description')}
         </p>
       </motion.div>
 
@@ -69,7 +70,7 @@ export function DownloadsPageHero({
             onClick={onRetry}
             className="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-700 dark:text-amber-400 text-sm font-medium transition-colors shrink-0"
           >
-            Reintentar
+            {t('actions.retry')}
           </button>
         </motion.div>
       ) : null}
@@ -103,11 +104,11 @@ export function DownloadsPageHero({
                   Windows
                 </h3>
                 <p className="text-primary/40 dark:text-white/40 text-sm mb-8 flex-1">
-                  Compatible con Windows 10 y 11 (64-bit).
+                  {t('downloadsPage.hero.windowsCompat')}
                   {release?.assets.windows?.size ? (
                     <>
                       <br />
-                      Tamano: {release.assets.windows.size}
+                      {t('downloadsPage.hero.size', { size: release.assets.windows.size })}
                     </>
                   ) : null}
                 </p>
@@ -117,7 +118,7 @@ export function DownloadsPageHero({
                     href={release.assets.windows.url}
                     className="flex items-center justify-between w-full px-6 py-4 rounded-2xl bg-primary hover:bg-primary dark:bg-accent dark:hover:bg-[var(--color-legacy-00b8a3)] text-white transition-all group"
                   >
-                    <span className="font-bold">Descargar para Windows</span>
+                    <span className="font-bold">{t('downloadsPage.hero.downloadWindows')}</span>
                     <Download
                       size={20}
                       className="group-hover:translate-y-1 transition-transform"
@@ -128,7 +129,7 @@ export function DownloadsPageHero({
                     disabled
                     className="w-full px-6 py-4 rounded-2xl bg-gray-200 dark:bg-white/10 text-gray-500 cursor-not-allowed"
                   >
-                    No disponible en esta version
+                    {t('downloadsPage.hero.notAvailable')}
                   </button>
                 )}
               </div>
@@ -153,11 +154,11 @@ export function DownloadsPageHero({
                   macOS
                 </h3>
                 <p className="text-primary/40 dark:text-white/40 text-sm mb-8 flex-1">
-                  Compatible con Ventura, Sonoma y Posteriores.
+                  {t('downloadsPage.hero.macCompat')}
                   {release?.assets.mac?.size ? (
                     <>
                       <br />
-                      Tamano: {release.assets.mac.size}
+                      {t('downloadsPage.hero.size', { size: release.assets.mac.size })}
                     </>
                   ) : null}
                 </p>
@@ -167,7 +168,7 @@ export function DownloadsPageHero({
                     href={release.assets.mac.url}
                     className="flex items-center justify-between w-full px-6 py-4 rounded-2xl bg-primary hover:bg-primary dark:bg-white dark:hover:bg-gray-100 dark:text-primary text-white transition-all group"
                   >
-                    <span className="font-bold">Descargar para macOS</span>
+                    <span className="font-bold">{t('downloadsPage.hero.downloadMac')}</span>
                     <Download
                       size={20}
                       className="group-hover:translate-y-1 transition-transform"
@@ -178,7 +179,7 @@ export function DownloadsPageHero({
                     disabled
                     className="w-full px-6 py-4 rounded-2xl bg-gray-200 dark:bg-white/10 text-gray-500 cursor-not-allowed"
                   >
-                    No disponible en esta version
+                    {t('downloadsPage.hero.notAvailable')}
                   </button>
                 )}
               </div>

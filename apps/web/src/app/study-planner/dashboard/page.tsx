@@ -2,7 +2,6 @@
 
 import { useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { JoyrideClient } from '@/features/tours/components/JoyrideClient';
 import { StudyPlannerCalendar } from '../../../features/study-planner/components/StudyPlannerCalendar';
 import {
   StudyPlannerDashboardAssistant,
@@ -26,9 +25,6 @@ export default function StudyPlannerDashboardPage() {
     error,
     clearMessages,
     clearError,
-    restartTour,
-    joyrideProps,
-    isMounted,
     isLiaPanelOpen,
     setIsLiaPanelOpen,
     isLiaCollapsed,
@@ -100,7 +96,6 @@ export default function StudyPlannerDashboardPage() {
           onOpenCalendarConfig={() => setIsCalendarConfigOpen(true)}
           onOpenCalendarModal={() => setIsCalendarModalOpen(true)}
           onRecreatePlan={handleRecreatePlan}
-          onRestartTour={restartTour}
           onSelectPlan={handlePlanSelection}
           selectedPlanId={selectedPlanId}
           setHoveredButton={setHoveredButton}
@@ -178,7 +173,6 @@ export default function StudyPlannerDashboardPage() {
         onConfirm={confirmDialog.onConfirm}
       />
 
-      {isMounted && joyrideProps.run ? <JoyrideClient {...joyrideProps} /> : null}
     </div>
   );
 }

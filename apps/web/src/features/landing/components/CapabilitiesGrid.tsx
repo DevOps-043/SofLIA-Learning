@@ -31,7 +31,7 @@ export function CapabilitiesGrid() {
           variants={capabilitiesContainerVariants}
           initial="hidden"
           animate={isInView ? 'visible' : 'hidden'}
-          className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
+          className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
         >
           {capabilities.map((capability) => (
             <CapabilityCard key={capability.key} capability={capability} t={t} />

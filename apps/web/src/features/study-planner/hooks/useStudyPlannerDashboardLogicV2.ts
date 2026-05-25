@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStudyPlannerDashboardSofLIA } from './useStudyPlannerDashboardSofLIA';
-import { useStudyPlannerDashboardTour } from './useStudyPlannerDashboardTour';
 import { useStudyPlannerCalendarConnection } from './useStudyPlannerCalendarConnection';
 import { useStudyPlannerPlanManagement } from './useStudyPlannerPlanManagement';
 
@@ -30,7 +29,6 @@ export function useStudyPlannerDashboardLogicV2() {
     sendMessage, executeAction, clearMessages, clearError,
   } = useStudyPlannerDashboardSofLIA(selectedPlanId);
 
-  const { restartTour, joyrideProps } = useStudyPlannerDashboardTour();
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => { setIsMounted(true); }, []);
 
@@ -136,7 +134,7 @@ export function useStudyPlannerDashboardLogicV2() {
   return {
     activePlan, availablePlans, messages, isSending, error,
     clearMessages, clearError,
-    restartTour, joyrideProps, isMounted,
+    isMounted,
     isLiaPanelOpen, setIsLiaPanelOpen,
     isLiaCollapsed, setIsLiaCollapsed,
     liaPanelRef, messagesEndRef,

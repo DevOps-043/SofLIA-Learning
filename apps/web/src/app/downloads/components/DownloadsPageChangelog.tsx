@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown, FileText } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { DOWNLOADS_CHANGELOG_SECTION_META } from '../constants'
 import { parseReleaseNotes } from '../services/downloads-page.service'
 import type { ReleaseChangelog } from '../types'
@@ -40,6 +41,8 @@ export function DownloadsPageChangelog({
   onToggleVersion,
   loading,
 }: DownloadsPageChangelogProps) {
+  const { t } = useTranslation('common')
+
   if (loading || changelogs.length === 0) {
     return null
   }
@@ -55,7 +58,7 @@ export function DownloadsPageChangelog({
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 dark:bg-white/5 border border-primary/10 dark:border-white/10 mb-4">
           <FileText className="w-4 h-4 text-accent" />
           <span className="text-sm font-medium text-primary/60 dark:text-white/60">
-            Changelog
+            {t('downloadsPage.changelog.title')}
           </span>
         </div>
       </div>
@@ -64,7 +67,7 @@ export function DownloadsPageChangelog({
         {changelogs.map((changelog, index) => {
           const { releaseTitle, sections } = parseReleaseNotes(changelog.notes)
           const isVersionExpanded =
-            expandedVersions[changelog.version] ?? index === 0
+             expandedVersions[changelog.version] ?? index === 0
           const totalItems = sections.reduce(
             (sum, section) => sum + section.items.length,
             0,
@@ -100,7 +103,7 @@ export function DownloadsPageChangelog({
 
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-accent/10 text-accent">
-                    {totalItems} {totalItems === 1 ? 'cambio' : 'cambios'}
+                    {totalItems} {totalItems === 1 ? t('downloadsPage.changelog.change') : t('downloadsPage.changelog.changes')}
                   </span>
                   <ChevronDown
                     size={18}
@@ -124,10 +127,11 @@ export function DownloadsPageChangelog({
 
                     <div className="px-8 pt-4 pb-2">
                       <p className="text-sm text-primary/50 dark:text-white/50 leading-relaxed">
-                        Novedades y mejoras incluidas en esta version de SofLIA
-                        Hub.
+                        {t('downloadsPage.changelog.subtitle')}
                       </p>
                     </div>
+
+                    <div className="mx-8 h-px bg-black/[0.06] dark:bg-white/[0.06]" />
 
                     <div className="px-8 py-2">
                       {sections.map((section, sectionIndex) => {
@@ -162,7 +166,7 @@ export function DownloadsPageChangelog({
                                       : 'text-primary/30 dark:text-white/30'
                                   }`}
                                 >
-                                  {section.label}
+                                  {t(`downloadsPage.changelog.sections.${section.key}`)}
                                 </span>
                                 <span
                                   className={`text-xs font-medium px-2 py-0.5 rounded-full ${

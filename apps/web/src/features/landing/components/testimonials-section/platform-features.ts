@@ -1,4 +1,4 @@
-import { Calendar, Newspaper, Users, Video } from 'lucide-react'
+import { Calendar, Newspaper, Route, Video } from 'lucide-react'
 import type { PlatformFeature } from './types'
 
 export const platformFeatures: PlatformFeature[] = [
@@ -23,12 +23,12 @@ export const platformFeatures: PlatformFeature[] = [
     gradient: 'from-success to-success/80',
   },
   {
-    id: 'communities',
-    icon: Users,
-    title: 'Comunidades',
+    id: 'learning-paths',
+    icon: Route,
+    title: 'Rutas de Aprendizaje',
     description:
-      'Conecta con otros estudiantes y profesionales en comunidades especializadas.',
-    link: '/communities',
+      'Rutas estructuradas y secuenciales para guiar la capacitación de tu equipo.',
+    link: '/learning-paths',
     color: 'var(--color-primary)',
     gradient: 'from-primary to-primary/80',
   },

@@ -9,8 +9,6 @@ import { useAuth } from '../../../../../features/auth/hooks/useAuth'
 import { useOrganizationStyles } from '../../../../../features/business-panel/hooks/useOrganizationStyles'
 import { getBackgroundStyle, generateCSSVariables } from '../../../../../features/business-panel/utils/styles'
 import { useThemeStore } from '../../../../../core/stores/themeStore'
-import { useBusinessUserJoyride } from '../../../../../features/tours/hooks/useBusinessUserJoyride'
-import { usePlatformIntroTeaser } from '../../../../../features/tours/hooks/usePlatformIntroTeaser'
 import { useMobilePerformanceMode } from '../../../../../lib/utils/mobile-performance'
 import {
   buildBusinessUserDashboardColors,
@@ -203,18 +201,6 @@ export function useBusinessUserDashboardPageLogic() {
     () => buildBusinessUserDashboardColors({ userDashboardStyles, resolvedTheme }),
     [resolvedTheme, userDashboardStyles]
   )
-  // Teaser institucional resuelto a HLS cuando esta transcodificado, para
-  // que el reproductor del tour ofrezca seleccion de resolucion.
-  const introVideos = usePlatformIntroTeaser()
-
-  const { joyrideProps, shouldShowTour, startTour: restartTour, showVideoIntro, handleVideoComplete } =
-    useBusinessUserJoyride({
-      enabled: orgRole !== null && orgRole !== 'superadmin',
-      hasCourseControls: assignedCourses.length > 0,
-      hasLearningPaths: learningPaths.length > 0 && assignedCourses.length > 0,
-      mobilePerformanceMode: disableHeavyEffects,
-    })
-
   const translate = useCallback(
     (key: string, defaultValue?: string) => t(key, defaultValue || key),
     [t]
@@ -343,12 +329,6 @@ export function useBusinessUserDashboardPageLogic() {
     orgColors,
     disableHeavyEffects,
     isMobileViewport,
-    joyrideProps,
-    shouldShowTour,
-    restartTour,
-    showVideoIntro,
-    handleVideoComplete,
-    introVideos,
     myStats,
     displayName,
     initials,

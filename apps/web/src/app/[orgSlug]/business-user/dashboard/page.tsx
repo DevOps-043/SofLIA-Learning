@@ -1,6 +1,5 @@
 'use client'
 
-import { JoyrideClient } from '@/features/tours/components/JoyrideClient'
 import { BusinessUserDashboardError } from './page-components/BusinessUserDashboardError'
 import { BusinessUserDashboardLoading } from './page-components/BusinessUserDashboardLoading'
 import { BusinessUserDashboardShell } from './page-components/BusinessUserDashboardShell'
@@ -46,7 +45,6 @@ export default function BusinessUserDashboardPage() {
         stats={logic.stats}
         assignedCourses={logic.assignedCourses}
         learningPaths={logic.learningPaths}
-        restartTour={logic.restartTour}
         handleProfileClick={logic.handleProfileClick}
         handleLogout={logic.handleLogout}
         handleCertificatesClick={logic.handleCertificatesClick}
@@ -54,18 +52,9 @@ export default function BusinessUserDashboardPage() {
         handleNotebookClick={logic.handleNotebookClick}
         handleCourseClick={logic.handleCourseClick}
         handleLearningPathCourseClick={logic.handleLearningPathCourseClick}
-        showVideoIntro={logic.showVideoIntro}
-        handleVideoComplete={logic.handleVideoComplete}
-        introVideos={logic.introVideos}
         t={logic.translate}
         disableHeavyEffects={logic.disableHeavyEffects}
       />
-      {logic.isMounted && logic.joyrideProps.run && (
-        <JoyrideClient
-          key={logic.shouldShowTour ? 'active-tour' : 'completed-tour'}
-          {...logic.joyrideProps}
-        />
-      )}
     </>
   )
 }

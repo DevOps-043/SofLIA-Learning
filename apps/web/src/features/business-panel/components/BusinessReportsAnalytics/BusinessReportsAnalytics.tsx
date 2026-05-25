@@ -1,11 +1,7 @@
 'use client'
 
 import { AlertTriangle, Loader2 } from 'lucide-react'
-import { useMemo } from 'react'
-import { SofliaJoyride as Joyride } from '@/features/tours/components/SofliaJoyride'
 import { useTranslation } from 'react-i18next'
-import { getAdminReportsSteps, ADMIN_REPORTS_TOUR_ID } from '@/features/tours/config/business-panel/admin-reports-steps'
-import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
 import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import { useBusinessReportsAnalytics } from '../../hooks/useBusinessReportsAnalytics'
 import { FiltersBar } from './FiltersBar'
@@ -23,60 +19,49 @@ export function BusinessReportsAnalytics() {
   const locale: ReportsAnalyticsLocale = isReportsAnalyticsLocale(i18n.language) ? i18n.language : 'es'
   const t = useReportsAnalyticsText(baseT as (key: string) => string, locale)
   const formatters = useReportFormatters(t)
-  const tourSteps = useMemo(() => getAdminReportsSteps(baseT), [baseT])
-  const { joyrideProps } = useFeatureTour({
-    tourId: ADMIN_REPORTS_TOUR_ID,
-    steps: tourSteps,
-    enabled: !analytics.isLoading,
-  })
 
   return (
-    <>
-      {joyrideProps.run ? <Joyride {...joyrideProps} /> : null}
-      <div className="w-full space-y-6">
-        <ReportsHero
+    <div className="w-full space-y-6">
+      <ReportsHero
+        data={analytics.data}
+        isExporting={analytics.isExporting}
+        isGeneratingInsights={analytics.isGeneratingInsights}
+        locale={locale}
+        theme={theme}
+        t={t}
+        onExport={analytics.exportAnalytics}
+        onGenerateInsights={analytics.generateInsights}
+      />
+      <FiltersBar
+        data={analytics.data}
+        filters={analytics.filters}
+        isLoading={analytics.isLoading}
+        theme={theme}
+        t={t}
+        onFilterChange={analytics.updateFilter}
+        onRefresh={analytics.refetch}
+        onReset={analytics.resetFilters}
+      />
+      {analytics.error ? (
+        <StatePanel theme={theme} icon={AlertTriangle} title={t('reportsAnalytics.states.errorTitle')} message={t('reportsAnalytics.states.errorDescription')} />
+      ) : null}
+      {analytics.isLoading ? (
+        <StatePanel theme={theme} icon={Loader2} title={t('reportsAnalytics.states.loadingTitle')} message={t('reportsAnalytics.states.loadingDescription')} spinning />
+      ) : null}
+      {!analytics.isLoading && analytics.data ? (
+        <ReportsLoadedContent
           data={analytics.data}
-          isExporting={analytics.isExporting}
+          formatters={formatters}
+          insights={analytics.insights}
+          isExportingInsightsPdf={analytics.isExportingInsightsPdf}
           isGeneratingInsights={analytics.isGeneratingInsights}
           locale={locale}
           theme={theme}
           t={t}
-          onExport={analytics.exportAnalytics}
-          onGenerateInsights={analytics.generateInsights}
+          onExportInsightsPdf={() => analytics.exportInsightsPdf(locale)}
+          onGenerateInsights={() => analytics.generateInsights(locale)}
         />
-        <div id="tour-reports-filters">
-          <FiltersBar
-            data={analytics.data}
-            filters={analytics.filters}
-            isLoading={analytics.isLoading}
-            theme={theme}
-            t={t}
-            onFilterChange={analytics.updateFilter}
-            onRefresh={analytics.refetch}
-            onReset={analytics.resetFilters}
-          />
-        </div>
-        {analytics.error ? (
-          <StatePanel theme={theme} icon={AlertTriangle} title={t('reportsAnalytics.states.errorTitle')} message={t('reportsAnalytics.states.errorDescription')} />
-        ) : null}
-        {analytics.isLoading ? (
-          <StatePanel theme={theme} icon={Loader2} title={t('reportsAnalytics.states.loadingTitle')} message={t('reportsAnalytics.states.loadingDescription')} spinning />
-        ) : null}
-        {!analytics.isLoading && analytics.data ? (
-          <ReportsLoadedContent
-            data={analytics.data}
-            formatters={formatters}
-            insights={analytics.insights}
-            isExportingInsightsPdf={analytics.isExportingInsightsPdf}
-            isGeneratingInsights={analytics.isGeneratingInsights}
-            locale={locale}
-            theme={theme}
-            t={t}
-            onExportInsightsPdf={() => analytics.exportInsightsPdf(locale)}
-            onGenerateInsights={() => analytics.generateInsights(locale)}
-          />
-        ) : null}
-      </div>
-    </>
+      ) : null}
+    </div>
   )
 }

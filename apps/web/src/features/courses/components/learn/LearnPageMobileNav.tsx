@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { COURSE_LEARN_TOUR_TARGET_IDS } from "../../../../core/constants/tourTargets";
 import { LiaMobileButton } from "./LiaMobileButton";
 
 interface LearnPageMobileNavProps {
@@ -43,7 +42,6 @@ export function LearnPageMobileNav({
     >
       <div className="flex items-center justify-around px-4 py-3">
         <button
-          id={COURSE_LEARN_TOUR_TARGET_IDS.mobileMaterialButton}
           onClick={onOpenMaterial}
           className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${
             isLeftPanelOpen

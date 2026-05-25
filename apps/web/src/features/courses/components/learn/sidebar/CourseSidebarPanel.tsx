@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { COURSE_LEARN_TOUR_TARGET_IDS } from "../../../../../core/constants/tourTargets";
 import { useSwipe } from "../../../../../hooks/useSwipe";
 import { NotesSidebarSection } from "../NotesSidebarSection";
 import type {
@@ -131,7 +130,6 @@ export function CourseSidebarPanel({
 
             <motion.div
               ref={swipeToCloseRef}
-              id={COURSE_LEARN_TOUR_TARGET_IDS.sidebar}
               initial={isMobile ? { x: "-100%" } : { width: 0, opacity: 0 }}
               animate={isMobile ? { x: 0 } : { width: 320, opacity: 1 }}
               exit={isMobile ? { x: "-100%" } : { width: 0, opacity: 0 }}

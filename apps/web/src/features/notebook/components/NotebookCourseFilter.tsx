@@ -2,7 +2,6 @@
 
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/shared/utils/cn'
-import { NOTEBOOK_TOUR_TARGET_IDS } from '@/core/constants/tourTargets'
 import type { NotebookCourse } from '../types'
 
 interface NotebookCourseFilterProps {
@@ -43,7 +42,6 @@ export function NotebookCourseFilter({
 
   return (
     <div
-      id={NOTEBOOK_TOUR_TARGET_IDS.courseFilter}
       className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-thin"
     >
       {/* "All courses" pill */}

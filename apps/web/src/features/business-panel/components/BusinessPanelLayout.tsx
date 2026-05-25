@@ -2,22 +2,17 @@
 
 import type { CSSProperties } from 'react'
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { JoyrideClient } from '@/features/tours/components/JoyrideClient'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 import { LiaFloatingButton } from '@/core/components/LiaSidePanel/LiaFloatingButton'
 import { LiaSidePanel } from '@/core/components/LiaSidePanel'
 import { LiaPanelContext } from '@/core/contexts/LiaPanelContext'
 import { useResponsiveLiaLayout } from '@/core/hooks/useResponsiveLiaLayout'
-import { OnboardingVideoPlayer } from '@/features/tours/components/OnboardingVideoPlayer'
-import { useBusinessPanelJoyride } from '@/features/tours/hooks/useBusinessPanelJoyride'
-import { usePlatformIntroTeaser } from '@/features/tours/hooks/usePlatformIntroTeaser'
 import { useAuth } from '../../auth/hooks/useAuth'
 import {
   OrganizationStylesProvider,
   useOrganizationStylesContext,
 } from '../contexts/OrganizationStylesContext'
-import { BusinessPanelTourProvider } from '../contexts/BusinessPanelTourContext'
 import { generateCSSVariables, getBackgroundStyle } from '../utils/styles'
 import { BusinessPanelHeader } from './BusinessPanelHeader'
 import { BusinessPanelSidebar } from './BusinessPanelSidebar'
@@ -30,18 +25,8 @@ interface BusinessPanelLayoutProps {
 function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
-  const pathname = usePathname()
   const { styles, effectiveStyles, loading: stylesLoading } =
     useOrganizationStylesContext()
-  const normalizedUserRole = user?.cargo_rol?.toLowerCase().trim()
-  const isDashboardRoute = pathname?.includes('/business-panel/dashboard') ?? false
-  const { joyrideProps, startTour, resetTour, run, showVideoIntro, handleVideoComplete } =
-    useBusinessPanelJoyride({
-      enabled:
-        isDashboardRoute &&
-        normalizedUserRole !== 'superadmin' &&
-        normalizedUserRole !== 'super admin',
-    })
   const [isMounted, setIsMounted] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('dashboard')
@@ -76,10 +61,6 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
   )
   const backgroundStyle = useMemo(() => getBackgroundStyle(panelStyles), [panelStyles])
   const cssVariables = useMemo(() => generateCSSVariables(panelStyles), [panelStyles])
-
-  // Teaser institucional resuelto a HLS cuando esta transcodificado, para
-  // que el reproductor del tour ofrezca seleccion de resolucion.
-  const introVideos = usePlatformIntroTeaser()
 
   // ── Supabase Storage CDN optimization ─────────────────────────────────────
   // Establish the TCP + TLS connection to the Supabase CDN origin as early as
@@ -197,21 +178,7 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
   }
 
   return (
-    <BusinessPanelTourProvider
-      startTour={startTour}
-      resetTour={resetTour}
-      isRunning={run}
-    >
-      <>
-        {showVideoIntro && (
-          <OnboardingVideoPlayer
-            videos={introVideos}
-            onComplete={handleVideoComplete}
-          />
-        )}
-
-        {isMounted && run && <JoyrideClient {...joyrideProps} />}
-
+    <>
         <div
           key={styles?.selectedTheme || 'default-theme'}
           className="business-panel-layout fixed inset-0 z-0 flex h-screen max-w-full flex-col overflow-hidden transition-all duration-300"
@@ -258,8 +225,7 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
             </div>
           </div>
         </div>
-      </>
-    </BusinessPanelTourProvider>
+    </>
   )
 }
 

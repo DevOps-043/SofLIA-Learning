@@ -15,7 +15,6 @@ type DashboardNavbarProps = Pick<
   | 'organization'
   | 'orgColors'
   | 'orgRole'
-  | 'restartTour'
   | 'stats'
   | 'user'
   | 'userDashboardStyles'
@@ -45,7 +44,6 @@ export function DashboardNavbar(props: DashboardNavbarProps) {
         onProfileClick={props.handleProfileClick}
         onLogout={props.handleLogout}
         styles={props.userDashboardStyles}
-        onRestartTour={props.restartTour}
         disableHeavyEffects={disableHeavyEffects}
         onCertificatesClick={stats.certificates > 0 ? props.handleCertificatesClick : undefined}
         onAnalyticsClick={props.handleAnalyticsClick}

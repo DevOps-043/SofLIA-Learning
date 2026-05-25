@@ -37,7 +37,6 @@ export interface ModernNavbarProps {
   onProfileClick: () => void;
   onLogout: () => void;
   styles?: ModernNavbarStyleConfig | null;
-  onRestartTour?: () => void;
   disableHeavyEffects?: boolean;
   onCertificatesClick?: () => void;
   onAnalyticsClick?: () => void;

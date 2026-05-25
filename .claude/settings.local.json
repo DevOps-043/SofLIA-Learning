@@ -151,7 +151,11 @@
       "Bash(grep -rln \"translation-client'\" .)",
       "Bash(grep -rln \"from './translation-client\" .)",
       "Bash(powershell -NoProfile -Command \"Get-Process node -ErrorAction SilentlyContinue | Measure-Object | Select-Object -ExpandProperty Count\")",
-      "Bash(powershell -NoProfile -Command 'Get-CimInstance Win32_Process -Filter \"Name='\\\\''node.exe'\\\\''\" | Select-Object ProcessId,@{N='\\\\''Cmd'\\\\'';E={$_.CommandLine.Substring\\(0,[Math]::Min\\(120,$_.CommandLine.Length\\)\\)}} | Format-Table -AutoSize -Wrap')"
+      "Bash(powershell -NoProfile -Command 'Get-CimInstance Win32_Process -Filter \"Name='\\\\''node.exe'\\\\''\" | Select-Object ProcessId,@{N='\\\\''Cmd'\\\\'';E={$_.CommandLine.Substring\\(0,[Math]::Min\\(120,$_.CommandLine.Length\\)\\)}} | Format-Table -AutoSize -Wrap')",
+      "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\Pulse Hub\\\\Soflia Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\features\\\\tours\")",
+      "Bash(Remove-Item -Force \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\Pulse Hub\\\\Soflia Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\core\\\\constants\\\\tourTargets.ts\")",
+      "Bash(git ls-tree *)",
+      "Bash(git commit -m ' *)"
     ],
     "deny": [],
     "ask": []

@@ -641,9 +641,9 @@
           "title": "Multilingual",
           "description": "ES, EN, PT"
         },
-        "scorm": {
-          "title": "SCORM",
-          "description": "Compatible"
+        "learningPaths": {
+          "title": "Learning Paths",
+          "description": "Structured routes"
         },
         "certificates": {
           "title": "Certificates",
@@ -664,7 +664,6 @@
       },
       "stats": {
         "languages": "Languages",
-        "compatible": "Compatible",
         "lia": "SofLIA Assistant",
         "hash": "Certificates"
       }
@@ -730,16 +729,6 @@
           "title": "White-label",
           "benefit": "Complete corporate branding",
           "result": "Brand experience"
-        },
-        "scorm": {
-          "title": "SCORM",
-          "benefit": "E-learning standard compatibility",
-          "result": "Frictionless migration"
-        },
-        "community": {
-          "title": "Community",
-          "benefit": "Forums and employee collaboration",
-          "result": "Learning culture"
         }
       }
     },
@@ -809,7 +798,6 @@
       "description": "Connect SofLIA with your existing tools for a frictionless experience. Agile deployment with calendar sync, e-learning compatibility and options for custom integrations.",
       "features": {
         "calendar": "Sync with Google Calendar and Microsoft Outlook",
-        "elearning": "Compatible with SCORM",
         "api": "Connectivity for CRM, HRIS and internal systems",
         "deploy": "Implementation in weeks, not months"
       },
@@ -1607,6 +1595,101 @@
       "title": "Error loading",
       "description": "We could not load your notes. Please try again.",
       "retry": "Retry"
+     }
+  },
+  "downloadsPage": {
+    "hero": {
+      "loading": "Loading latest version...",
+      "error": "Error getting version",
+      "versionAvailable": "Version {{version}} available",
+      "title": "Bring SofLIA Hub everywhere",
+      "description": "The official desktop application of SofLIA. Access your AI assistant, courses, and productivity tools directly from your operating system, without opening the browser.",
+      "downloadWindows": "Download for Windows",
+      "downloadMac": "Download for macOS",
+      "notAvailable": "Not available in this version",
+      "windowsCompat": "Compatible with Windows 10 and 11 (64-bit).",
+      "macCompat": "Compatible with Ventura, Sonoma, and later.",
+      "size": "Size: {{size}}",
+      "errorRateLimit": "Request limit exceeded. Please try again in a few minutes.",
+      "errorNotFound": "No available releases found.",
+      "errorGeneric": "Could not connect to the download server. Please check your internet connection."
+    },
+    "changelog": {
+      "title": "Changelog",
+      "subtitle": "News and improvements included in this version of SofLIA Hub.",
+      "change": "change",
+      "changes": "changes",
+      "sections": {
+        "added": "Improvements",
+        "fixed": "Fixes",
+        "changed": "Changes",
+        "removed": "Removed",
+        "security": "Security",
+        "notes": "Notes"
+      }
+    },
+    "features": {
+      "badge": "Desktop Application",
+      "title": "What is SofLIA Hub?",
+      "description": "SofLIA Hub is your ultimate personal assistant and the central connector to our entire ecosystem. Much more than an application, it allows you to integrate SofLIA Learning, ProjectHub, and the Productivity Area directly into your operating system. Connect with WhatsApp, Google, and Microsoft, search and interact with files on your computer, and share folders, projects, prompts, and chats with your entire team, all from one place.",
+      "items": {
+        "lia": {
+          "title": "Your Personal AI Assistant",
+          "desc": "LIA becomes your personal assistant on the desktop. Customize it to your needs to automate workflows, perform deep research, and get instant answers."
+        },
+        "ecosystem": {
+          "title": "Complete Ecosystem",
+          "desc": "Interact with the entire SofLIA ecosystem, from ProjectHub to SofLIA Learning. Share chats, projects, folders, and prompts directly with your team."
+        },
+        "integrations": {
+          "title": "Powerful Integrations",
+          "desc": "Seamless connection with WhatsApp, Google Workspace, and Microsoft 365, centralizing your communications and work tools in one place."
+        },
+        "computerControl": {
+          "title": "Control Over Your Computer",
+          "desc": "Search information inside your local files and execute operating system commands. SofLIA Hub lives in your environment and helps you control it intelligently."
+        },
+        "productivity": {
+          "title": "Productivity Area",
+          "desc": "A panel dedicated exclusively to maximizing your performance. Monitor your activity, optimize your concentration time, and manage your daily tasks."
+        },
+        "settings": {
+          "title": "Deep Configuration",
+          "desc": "Personalize all aspects of interaction, manage integrations, adjust local permissions, and decide exactly how you want SofLIA to work for you."
+        }
+      }
+    },
+    "steps": {
+      "download": {
+        "title": "Download",
+        "desc": "Choose your platform and download the official installer."
+      },
+      "install": {
+        "title": "Installation",
+        "desc": "Run the wizard and follow the steps on the screen."
+      },
+      "sync": {
+        "title": "Synchronization",
+        "desc": "Log in and enjoy SofLIA Hub in your daily workflow."
+      }
+    },
+    "requirements": {
+      "title": "System Requirements",
+      "subtitle": "Make sure your computer meets the requirements for the best experience.",
+      "platform": "Platform",
+      "os": "O.S.",
+      "ram": "RAM",
+      "disk": "Storage",
+      "ramRecomended": "4 GB (8 GB recommended)"
+    },
+    "safety": {
+      "title": "Safe and Verified",
+      "description": "All SofLIA Hub releases are securely and automatically built and signed to guarantee the integrity and security of each installer.",
+      "badges": {
+        "ssl": "Digital SSL Signature",
+        "updates": "Automatic Updates",
+        "source": "Protected Source Code"
+      }
     }
   }
 }

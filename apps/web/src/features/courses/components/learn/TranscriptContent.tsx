@@ -130,7 +130,7 @@ export function TranscriptContent({
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-dashed border-[var(--color-legacy-d7dee6)] bg-white p-5 dark:border-white/10 dark:bg-carbon-900/40">
+      <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-gray-900/40">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 dark:bg-accent/10">
             <ScrollText className="h-4 w-4 animate-pulse text-primary dark:text-accent" />
@@ -149,7 +149,7 @@ export function TranscriptContent({
 
   if (!hasTranscript) {
     return (
-      <div className="rounded-2xl border border-dashed border-[var(--color-legacy-d7dee6)] bg-white p-5 dark:border-white/10 dark:bg-carbon-900/40">
+      <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-gray-900/40">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 dark:bg-accent/10">
             <Info className="h-4 w-4 text-primary dark:text-accent" />
@@ -170,19 +170,19 @@ export function TranscriptContent({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 rounded-full border border-primary/10 bg-white px-3 py-1.5 text-sm text-[var(--color-legacy-44556b)] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70">
+        <div className="flex items-center gap-2 rounded-full border border-primary/10 bg-white px-3 py-1.5 text-sm text-gray-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70">
           <div className="h-1.5 w-1.5 rounded-full bg-primary dark:bg-accent" />
           <span className="font-medium">{transcriptContent?.length || 0}</span>
           <span className="text-xs">{t("transcript.characters")}</span>
         </div>
-        <div className="flex items-center gap-2 rounded-full border border-primary/10 bg-white px-3 py-1.5 text-sm text-[var(--color-legacy-44556b)] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70">
+        <div className="flex items-center gap-2 rounded-full border border-primary/10 bg-white px-3 py-1.5 text-sm text-gray-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 font-sans">
           <Clock className="h-3.5 w-3.5 text-primary dark:text-accent" />
           <span className="font-medium">{estimatedReadingTime}</span>
           <span className="text-xs">{t("transcript.readTime")}</span>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-carbon-900/50">
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-gray-900/50">
         <div className="p-6">
           <div className="divide-y divide-gray-100 dark:divide-white/5">
             {parseTranscriptSegments(transcriptContent || "").map((block, idx) => (

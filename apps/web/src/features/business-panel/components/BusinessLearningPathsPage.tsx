@@ -5,9 +5,6 @@ import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 
 import { useBusinessLearningPathsPageLogic } from '../hooks/useBusinessLearningPathsPageLogic'
-import { JoyrideClient } from '@/features/tours/components/JoyrideClient'
-import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
-import { ADMIN_PATHS_TOUR_ID, getAdminPathsSteps } from '@/features/tours/config/business-panel/admin-paths-steps'
 import { BusinessLearningPathAssignments } from './BusinessLearningPathsPage/Assignments'
 import { BusinessLearningPathCards } from './BusinessLearningPathsPage/Cards'
 import { BusinessLearningPathsFeedback } from './BusinessLearningPathsPage/Feedback'
@@ -21,12 +18,6 @@ export function BusinessLearningPathsPage() {
   const { t, i18n } = useTranslation('business')
   const logic = useBusinessLearningPathsPageLogic()
   const [videosLearningPathId, setVideosLearningPathId] = useState<string | null>(null)
-  const tourSteps = useMemo(() => getAdminPathsSteps(t), [t])
-  const { joyrideProps } = useFeatureTour({
-    tourId: ADMIN_PATHS_TOUR_ID,
-    steps: tourSteps,
-    enabled: !logic.isLoading,
-  })
   const selectedLearningPathForVideos = useMemo(
     () => logic.learningPaths.find((path) => path.id === videosLearningPathId) ?? null,
     [logic.learningPaths, videosLearningPathId],
@@ -39,7 +30,6 @@ export function BusinessLearningPathsPage() {
 
   return (
     <>
-      {joyrideProps.run ? <JoyrideClient {...joyrideProps} /> : null}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -47,7 +37,6 @@ export function BusinessLearningPathsPage() {
         style={{ backgroundColor: panelBg }}
       >
         <div
-          id="tour-paths-hero"
           className="relative overflow-hidden rounded-[2rem] border px-8 py-8 lg:py-10"
           style={{ borderColor, backgroundColor: inputBg }}
         >

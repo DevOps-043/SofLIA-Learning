@@ -16,7 +16,6 @@ import {
   Sun,
   User,
 } from 'lucide-react'
-import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../../core/constants/tourTargets'
 import type { Theme } from '../../../../../../core/stores/themeStore'
 import { LANGUAGE_OPTIONS, THEME_OPTIONS } from './constants'
 import { ModernNavbarAvatar } from './ModernNavbarAvatar'
@@ -34,7 +33,6 @@ interface ModernNavbarDesktopMenuProps {
   onClose: () => void;
   onLogout: () => void;
   onProfileClick: () => void;
-  onRestartTour?: () => void;
   organization: ModernNavbarOrganization | null;
   resolvedTheme: string | null | undefined;
   router: { push: (href: string) => void };
@@ -93,7 +91,6 @@ export function ModernNavbarDesktopMenu({
         <>
           {/* Backdrop — fixed, por encima de TODOS los elementos flotantes */}
           <motion.div
-            id="tour-user-dropdown-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -105,7 +102,6 @@ export function ModernNavbarDesktopMenu({
           {/* Panel */}
           <motion.div
             data-modern-navbar-dropdown="true"
-            id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.userDropdownMenu}
             initial={{ opacity: 0, y: -8, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
@@ -332,7 +328,6 @@ export function ModernNavbarDesktopMenu({
       {/* Trigger button */}
       <motion.button
         ref={triggerRef}
-        id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.userDropdownTrigger}
         onClick={() => setUserDropdownOpen(!userDropdownOpen)}
         className="flex items-center justify-center rounded-full p-1 transition-all duration-300 hover:bg-black/5 dark:hover:bg-white/5"
         whileHover={{ scale: 1.05 }}

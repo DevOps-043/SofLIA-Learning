@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { AlertCircle, RefreshCw, Settings as SettingsIcon, XCircle } from 'lucide-react'
 import Image from 'next/image'
@@ -10,9 +9,6 @@ import { LoginPersonalizadoSection } from './LoginPersonalizadoSection'
 import { OrganizationTab } from './OrganizationTab'
 import { useBusinessSettingsLogic } from './hooks/useBusinessSettingsLogic'
 import { useTranslation } from 'react-i18next'
-import { JoyrideClient } from '@/features/tours/components/JoyrideClient'
-import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
-import { getAdminSettingsSteps, ADMIN_SETTINGS_TOUR_ID } from '@/features/tours/config/business-panel/admin-settings-steps'
 
 export function BusinessSettings() {
   const theme = useBusinessPanelTheme()
@@ -34,14 +30,6 @@ export function BusinessSettings() {
     setSaveError,
     canUseBranding,
   } = useBusinessSettingsLogic()
-
-  const tourSteps = useMemo(() => getAdminSettingsSteps(t), [t])
-
-  const { joyrideProps } = useFeatureTour({
-    tourId: ADMIN_SETTINGS_TOUR_ID,
-    steps: tourSteps,
-    enabled: !isLoading,
-  })
 
   if (isLoading) {
     return (
@@ -105,9 +93,8 @@ export function BusinessSettings() {
 
   return (
     <>
-      {joyrideProps.run ? <JoyrideClient {...joyrideProps} /> : null}
     <div className="min-h-screen p-6 lg:p-8 space-y-8">
-      <div id="tour-settings-hero">
+      <div>
       <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -187,7 +174,6 @@ export function BusinessSettings() {
           borderColor: theme.borderColor,
         }}
       >
-        <div id="tour-settings-tabs">
         <div
           className="flex border-b overflow-x-auto"
           style={{ borderColor: theme.dividerColor }}
@@ -199,7 +185,6 @@ export function BusinessSettings() {
             return (
               <motion.button
                 key={tab.id}
-                id={tab.id === 'organization' ? 'tour-settings-org-tab' : tab.id === 'branding' ? 'tour-settings-branding-tab' : undefined}
                 onClick={() => setActiveTab(tab.id)}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -237,9 +222,7 @@ export function BusinessSettings() {
             )
           })}
         </div>
-        </div>
 
-        <div id="tour-settings-content">
         <motion.div
           key={activeTab}
           initial={{ opacity: 0, x: 20 }}
@@ -305,7 +288,6 @@ export function BusinessSettings() {
             </motion.div>
           )}
         </motion.div>
-        </div>
       </motion.div>
     </div>
     </>

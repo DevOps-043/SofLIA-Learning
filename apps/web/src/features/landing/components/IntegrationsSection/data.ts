@@ -36,7 +36,7 @@ export const chatConversation = [
   {
     type: 'lia' as const,
     message:
-      'Este es tu Dashboard. Desde aquí puedes ver tus cursos asignados, tu progreso de aprendizaje, certificaciones obtenidas y acceder a las comunidades. ¿En qué te puedo ayudar?',
+      'Este es tu Dashboard. Desde aquí puedes ver tus cursos asignados, tu progreso de aprendizaje, certificaciones obtenidas y acceder al planificador de estudios. ¿En qué te puedo ayudar?',
   },
   { type: 'user' as const, message: '¿Cómo veo mis certificados?' },
   {

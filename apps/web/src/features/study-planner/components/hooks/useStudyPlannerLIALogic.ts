@@ -235,7 +235,6 @@ export function useStudyPlannerLIALogic() {
       schedulePreview: schedulePreviewState,
       voice,
       handlers: buildStudyPlannerLIAHandlers({
-        restartTour: () => {},
         interactionHandlers,
         planningFlow,
       }),

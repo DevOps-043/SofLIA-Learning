@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
-import { SHARED_TOUR_TARGET_IDS } from '@/core/constants/tourTargets';
 import { useLiaCourse } from '@/features/courses/context/LiaCourseContext';
 
 import {
@@ -23,7 +22,6 @@ export function CourseLiaFloatingButton() {
     <AnimatePresence>
       {!isOpen && (
         <div
-          id={SHARED_TOUR_TARGET_IDS.liaTrigger}
           data-tour="lia-button"
           className="hidden md:block"
           style={{

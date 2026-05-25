@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { RELEASES_API } from '../constants'
 import {
   getDownloadsErrorMessage,
@@ -11,6 +12,7 @@ import {
 import type { ReleaseChangelog, ReleaseData } from '../types'
 
 export function useDownloadsPageData() {
+  const { t } = useTranslation('common')
   const [release, setRelease] = useState<ReleaseData | null>(null)
   const [changelogs, setChangelogs] = useState<ReleaseChangelog[]>([])
   const [loading, setLoading] = useState(true)
@@ -65,7 +67,7 @@ export function useDownloadsPageData() {
         return
       }
 
-      setError(getDownloadsErrorMessage(error))
+      setError(getDownloadsErrorMessage(error, t))
     } finally {
       if (!signal?.aborted) {
         setLoading(false)

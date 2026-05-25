@@ -1,6 +1,5 @@
 import { motion, type Transition } from 'framer-motion'
-import { OnboardingVideoPlayer } from '@/features/tours/components/OnboardingVideoPlayer'
-import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '@/core/constants/tourTargets'
+import { OnboardingVideoPlayer } from '@/features/courses/components/onboarding-video-player/OnboardingVideoPlayer'
 import type { AssignedCourse, AssignedLearningPath } from '../../types'
 import { getIntroFallback } from './intro-video.api'
 import { LearningPathHeader } from './LearningPathHeader'
@@ -46,7 +45,6 @@ export function LearningPathSection(props: LearningPathSectionProps) {
   return (
     <motion.section
       key={props.learningPath.id}
-      id={props.pathIndex === 0 ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.learningPathSection : undefined}
       initial={props.disableHeavyEffects ? false : { opacity: 0, y: 12 }}
       animate={props.disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
       transition={props.disableHeavyEffects ? undefined : {

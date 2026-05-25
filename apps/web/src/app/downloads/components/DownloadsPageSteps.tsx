@@ -1,13 +1,34 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { DOWNLOADS_STEPS } from '../constants'
+import { Monitor, ShieldCheck, Zap } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export function DownloadsPageSteps() {
+  const { t } = useTranslation('common')
+
+  const stepsList = [
+    {
+      title: t('downloadsPage.steps.download.title'),
+      desc: t('downloadsPage.steps.download.desc'),
+      icon: Monitor,
+    },
+    {
+      title: t('downloadsPage.steps.install.title'),
+      desc: t('downloadsPage.steps.install.desc'),
+      icon: Zap,
+    },
+    {
+      title: t('downloadsPage.steps.sync.title'),
+      desc: t('downloadsPage.steps.sync.desc'),
+      icon: ShieldCheck,
+    },
+  ]
+
   return (
     <section className="mb-20">
       <div className="grid md:grid-cols-3 gap-8">
-        {DOWNLOADS_STEPS.map((step, index) => (
+        {stepsList.map((step, index) => (
           <motion.div
             key={step.title}
             initial={{ opacity: 0, y: 30 }}
