@@ -13,6 +13,7 @@ export function buildOrganizationLoginActionFormData(params: {
   organizationSlug: string
   invitationToken?: string | null
   bulkInviteToken?: string | null
+  captchaToken?: string
 }): FormData {
   const formData = new FormData()
   formData.append('emailOrUsername', params.data.emailOrUsername)
@@ -20,6 +21,7 @@ export function buildOrganizationLoginActionFormData(params: {
   formData.append('rememberMe', params.data.rememberMe.toString())
   formData.append('organizationId', params.organizationId)
   formData.append('organizationSlug', params.organizationSlug)
+  formData.append('captchaToken', params.captchaToken ?? '')
 
   if (params.invitationToken) {
     formData.append('invitationToken', params.invitationToken)

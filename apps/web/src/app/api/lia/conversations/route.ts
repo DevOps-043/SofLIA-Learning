@@ -1,6 +1,13 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import {
+  conversationsPatchSchema,
+  type ConversationsPatchBody,
+} from '../_schemas';
 
 interface LiaConversationRow {
   conversation_id: string;
@@ -59,7 +66,7 @@ export async function GET(request: NextRequest) {
     // Construir query base para contar total (necesario para paginación)
     let countQuery = supabase
       .from('lia_conversations')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id);
 
     // Construir query base para obtener conversaciones
@@ -113,7 +120,7 @@ export async function GET(request: NextRequest) {
     const { data: conversations, error } = await query;
 
     if (error) {
-      console.error('Error obteniendo conversaciones:', error);
+      techDebtLogger.error('Error obteniendo conversaciones:', error);
       
       // Si el error es por columna no encontrada, intentar sin conversation_title
       if (error.message?.includes('conversation_title') || error.message?.includes('column') || error.code === '42703') {
@@ -149,7 +156,7 @@ export async function GET(request: NextRequest) {
         const { data: retryConversations, error: retryError } = await retryQuery;
 
         if (retryError) {
-          console.error('Error obteniendo conversaciones (sin conversation_title):', retryError);
+          techDebtLogger.error('Error obteniendo conversaciones (sin conversation_title):', retryError);
           return NextResponse.json(
             { error: 'Error obteniendo conversaciones' },
             { status: 500 }
@@ -216,7 +223,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Error en API de conversaciones:', error);
+    techDebtLogger.error('Error en API de conversaciones:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -224,19 +231,18 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PATCH(request: NextRequest) {
+async function handlePatch(
+  _request: NextRequest,
+  body: ConversationsPatchBody,
+  _context: unknown,
+) {
   try {
     const user = await SessionService.getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+      return apiError('UNAUTHENTICATED', 'No autenticado', 401);
     }
 
-    const body = await request.json();
     const { conversationId, title } = body;
-
-    if (!conversationId || !title) {
-        return NextResponse.json({ error: 'Faltan datos' }, { status: 400 });
-    }
 
     const supabase = await createClient();
     
@@ -249,7 +255,7 @@ export async function PATCH(request: NextRequest) {
         .single();
         
     if (!conversation) {
-        return NextResponse.json({ error: 'Conversación no encontrada' }, { status: 404 });
+        return apiError('CONVERSATION_NOT_FOUND', 'Conversación no encontrada', 404);
     }
 
     // Actualizar
@@ -262,7 +268,13 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-      console.error('Error updating conversation:', error);
-      return NextResponse.json({ error: 'Error actualizando conversación' }, { status: 500 });
+      techDebtLogger.error('Error updating conversation:', error);
+      return apiError(
+        'CONVERSATION_UPDATE_FAILED',
+        'Error actualizando conversación',
+        500,
+      );
   }
 }
+
+export const PATCH = withZodBody(conversationsPatchSchema, handlePatch);

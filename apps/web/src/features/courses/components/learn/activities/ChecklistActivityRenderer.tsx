@@ -26,7 +26,7 @@ export function ChecklistActivityRenderer({
   return (
     <div className="space-y-4">
       {content && (
-        <div className="rounded-xl border border-gray-200 bg-white px-4 py-4 dark:border-white/10 dark:bg-[#10161D]">
+        <div className="rounded-xl border border-gray-200 bg-white px-4 py-4 dark:border-white/10 dark:bg-[var(--color-legacy-10161d)]">
           <div className="space-y-2">
             {content
               .split("\n")
@@ -53,12 +53,12 @@ export function ChecklistActivityRenderer({
               key={item.id}
               type="button"
               onClick={() => onToggleItem(item.id)}
-              className="flex w-full items-start gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left transition hover:border-[#0A2540]/25 hover:bg-gray-50 dark:border-white/10 dark:bg-[#10161D] dark:hover:border-[#00D4B3]/30 dark:hover:bg-white/[0.03]"
+              className="flex w-full items-start gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left transition hover:border-primary/25 hover:bg-gray-50 dark:border-white/10 dark:bg-[var(--color-legacy-10161d)] dark:hover:border-accent/30 dark:hover:bg-white/[0.03]"
             >
               <span
                 className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded border text-[11px] font-bold transition ${
                   checked
-                    ? "border-[#0A2540] bg-[#0A2540] text-white dark:border-[#00D4B3] dark:bg-[#00D4B3] dark:text-[#08141F]"
+                    ? "border-primary bg-primary text-white dark:border-accent dark:bg-accent dark:text-[var(--color-legacy-08141f)]"
                     : "border-gray-300 text-transparent dark:border-white/20"
                 }`}
               >
@@ -93,7 +93,7 @@ export function ChecklistActivityRenderer({
           value={noteValue}
           onChange={(event) => onNoteChange(event.target.value)}
           rows={4}
-          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm leading-relaxed text-gray-800 outline-none transition focus:border-[#0A2540]/30 focus:ring-2 focus:ring-[#0A2540]/10 dark:border-white/10 dark:bg-[#10161D] dark:text-white dark:focus:border-[#00D4B3]/40 dark:focus:ring-[#00D4B3]/20"
+          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm leading-relaxed text-gray-800 outline-none transition focus:border-primary/30 focus:ring-2 focus:ring-primary/10 dark:border-white/10 dark:bg-[var(--color-legacy-10161d)] dark:text-white dark:focus:border-accent/40 dark:focus:ring-accent/20"
           placeholder="Opcional: explica que hiciste, bloqueos o hallazgos."
         />
       </div>
@@ -106,7 +106,7 @@ export function ChecklistActivityRenderer({
           value={evidenceValue}
           onChange={(event) => onEvidenceChange(event.target.value)}
           rows={4}
-          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm leading-relaxed text-gray-800 outline-none transition focus:border-[#0A2540]/30 focus:ring-2 focus:ring-[#0A2540]/10 dark:border-white/10 dark:bg-[#10161D] dark:text-white dark:focus:border-[#00D4B3]/40 dark:focus:ring-[#00D4B3]/20"
+          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm leading-relaxed text-gray-800 outline-none transition focus:border-primary/30 focus:ring-2 focus:ring-primary/10 dark:border-white/10 dark:bg-[var(--color-legacy-10161d)] dark:text-white dark:focus:border-accent/40 dark:focus:ring-accent/20"
           placeholder={
             evidencePlaceholder ||
             "Pega aqui enlaces, notas o evidencia complementaria."

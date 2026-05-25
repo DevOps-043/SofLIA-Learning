@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback } from 'react';
 import { applyPlannerPreSendGuardrails } from '../services/planner-guardrails.service';
 import { buildStudyPlannerChatRequestContext, sendStudyPlannerChatRequest } from '../services/planner-chat-request.service';
@@ -181,7 +182,7 @@ export function useStudyPlannerMessageHandler(params: UseStudyPlannerMessageHand
         await params.speakText(buildStudyPlannerSpeechText(liaResponse));
       }
     } catch (error) {
-      console.error('Error enviando mensaje:', error);
+      techDebtLogger.error('Error enviando mensaje:', error);
       params.setConversationHistory(prev => [
         ...prev,
         { role: 'assistant', content: 'Lo siento, tuve un problema procesando tu mensaje. ¿Podrías intentarlo de nuevo?' },

@@ -51,7 +51,7 @@ export function EmbeddedLiaComposer({
               lineHeight: '20px',
               fontFamily: 'Inter, sans-serif',
               backgroundColor: colors.cardBg,
-              border: `1px solid ${colors.primary}30`,
+              border: `1px solid color-mix(in srgb, ${colors.primary} 18.8%, transparent)`,
               color: colors.text,
             }}
           />
@@ -70,8 +70,8 @@ export function EmbeddedLiaComposer({
           disabled={isLoading && !!message.trim()}
           className={`flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 shadow-sm ${isLoading && message.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
           style={{
-            backgroundColor: message.trim() ? colors.primary : isRecording ? '#EF4444' : 'rgba(255, 255, 255, 0.05)',
-            color: message.trim() || isRecording ? '#FFFFFF' : colors.primary,
+            backgroundColor: message.trim() ? colors.primary : isRecording ? 'var(--color-error)' : 'rgba(255, 255, 255, 0.05)',
+            color: message.trim() || isRecording ? 'var(--color-bg-light)' : colors.primary,
           }}
           title={message.trim() ? 'Enviar mensaje' : isRecording ? 'Detener grabacion' : 'Grabar audio'}
         >

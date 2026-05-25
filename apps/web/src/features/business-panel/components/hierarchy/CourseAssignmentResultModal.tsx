@@ -32,8 +32,8 @@ export function CourseAssignmentResultModal({
 }: CourseAssignmentResultModalProps) {
   const { styles } = useOrganizationStylesContext()
   const panelStyles = styles?.panel
-  const primaryColor = panelStyles?.primary_button_color || '#0A2540'
-  const accentColor = panelStyles?.accent_color || '#00D4B3'
+  const primaryColor = panelStyles?.primary_button_color || 'var(--color-primary)'
+  const accentColor = panelStyles?.accent_color || 'var(--color-accent)'
 
   if (!isOpen) return null
 
@@ -43,7 +43,7 @@ export function CourseAssignmentResultModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-[#1E2329] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl">
+      <div className="bg-white dark:bg-carbon-800 rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl">
         
         {/* Header */}
         <div className="p-6 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">

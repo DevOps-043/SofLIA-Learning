@@ -1,24 +1,23 @@
-import type { GoogleCreatedEventResponse, GoogleEventUpdatePayload } from './calendar-google.types';
-
-function normalizeEventId(eventId: string): string {
-  return eventId.split('_')[0];
-}
+import type {
+  GoogleCalendarWriteResult,
+  GoogleCreatedEventResponse,
+  GoogleEventCreateInput,
+  GoogleEventUpdateInput,
+  GoogleEventUpdatePayload,
+} from './calendar-google.types';
+import { logger } from '@/lib/logger';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
+export { deleteGoogleEvent } from './calendar-google-delete.service';
 
 export async function createGoogleEvent(
   accessToken: string,
-  event: {
-    title: string;
-    description?: string;
-    startTime: string;
-    endTime: string;
-    timezone: string;
-    location?: string;
-  },
+  event: GoogleEventCreateInput,
   calendarId: string | null,
-): Promise<{ id: string; htmlLink?: string } | null> {
+): Promise<GoogleCalendarWriteResult | null> {
   try {
     const targetCalendarId = calendarId || 'primary';
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`,
       {
         method: 'POST',
@@ -34,13 +33,13 @@ export async function createGoogleEvent(
       },
     );
     if (!response.ok) {
-      console.error('[Calendar] Error creando evento:', await response.text());
+      logger.warn('[Calendar] Error creando evento', { status: response.status });
       return null;
     }
     const data: GoogleCreatedEventResponse = await response.json();
     return { id: data.id, htmlLink: data.htmlLink };
   } catch (error) {
-    console.error('[Calendar] Error creando evento:', error);
+    logger.warn('[Calendar] Error creando evento', { error });
     return null;
   }
 }
@@ -48,14 +47,7 @@ export async function createGoogleEvent(
 export async function updateGoogleEvent(
   accessToken: string,
   eventId: string,
-  event: {
-    title?: string;
-    description?: string;
-    startTime?: string;
-    endTime?: string;
-    timezone?: string;
-    location?: string;
-  },
+  event: GoogleEventUpdateInput,
   calendarId: string | null,
 ): Promise<boolean> {
   try {
@@ -67,7 +59,8 @@ export async function updateGoogleEvent(
     if (event.startTime && event.timezone) updateData.start = { dateTime: event.startTime, timeZone: event.timezone };
     if (event.endTime && event.timezone) updateData.end = { dateTime: event.endTime, timeZone: event.timezone };
 
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events/${eventId}`,
       {
         method: 'PATCH',
@@ -76,45 +69,12 @@ export async function updateGoogleEvent(
       },
     );
     if (!response.ok) {
-      console.error('[Calendar] Error actualizando evento:', await response.text());
+      logger.warn('[Calendar] Error actualizando evento', { status: response.status });
       return false;
     }
     return true;
   } catch (error) {
-    console.error('[Calendar] Error actualizando evento:', error);
-    return false;
-  }
-}
-
-export async function deleteGoogleEvent(
-  accessToken: string,
-  eventId: string,
-  calendarId: string | null,
-): Promise<boolean> {
-  try {
-    const cleanEventId = normalizeEventId(eventId);
-    const targetCalendarId = calendarId || 'primary';
-    const response = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events/${encodeURIComponent(cleanEventId)}`,
-      { method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` } },
-    );
-
-    if (response.ok) return true;
-
-    if (response.status === 404 && targetCalendarId !== 'primary') {
-      const fallback = await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(cleanEventId)}`,
-        { method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` } },
-      );
-      return fallback.ok || fallback.status === 404;
-    }
-
-    if (response.status === 404) return true;
-
-    console.error('[Calendar] Error eliminando evento:', await response.text());
-    return false;
-  } catch (error) {
-    console.error('[Calendar] Error eliminando evento:', error);
+    logger.warn('[Calendar] Error actualizando evento', { error });
     return false;
   }
 }

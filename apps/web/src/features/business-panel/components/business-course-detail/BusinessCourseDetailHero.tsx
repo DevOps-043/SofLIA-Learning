@@ -66,13 +66,13 @@ export function BusinessCourseDetailHero({
           <div className="flex items-center gap-2">
             <span
               className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.15em] border"
-              style={{ backgroundColor: `${primaryColor}10`, color: mutedTextColor, borderColor }}
+              style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 6.3%, transparent)`, color: mutedTextColor, borderColor }}
             >
               {course.category || 'Curso Profundo'}
             </span>
             <span
               className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.15em] border"
-              style={{ backgroundColor: `${levelStyles.color}10`, color: levelStyles.color, borderColor: `${levelStyles.color}20` }}
+              style={{ backgroundColor: `color-mix(in srgb, ${levelStyles.color} 6.3%, transparent)`, color: levelStyles.color, borderColor: `color-mix(in srgb, ${levelStyles.color} 12.5%, transparent)` }}
             >
               {levelStyles.text}
             </span>
@@ -85,7 +85,7 @@ export function BusinessCourseDetailHero({
           <div className="flex items-center gap-4 py-3 lg:py-5 border-y" style={{ borderColor }}>
             <div
               className="flex items-center gap-2 px-3 py-1.5 rounded-xl border"
-              style={{ backgroundColor: `${primaryColor}10`, borderColor }}
+              style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 6.3%, transparent)`, borderColor }}
             >
               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 shrink-0" />
               <span className="text-base font-black" style={{ color: textColor }}>{course.rating.toFixed(1)}</span>

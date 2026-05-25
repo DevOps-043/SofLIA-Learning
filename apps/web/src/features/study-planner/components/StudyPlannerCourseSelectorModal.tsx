@@ -67,16 +67,16 @@ export function StudyPlannerCourseSelectorModal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[#E9ECEF] bg-white shadow-2xl dark:border-[#6C757D]/30 dark:bg-[#1E2329]"
+            className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-500/30 dark:bg-carbon-800"
           >
-            <div className="relative border-b border-[#E9ECEF] bg-[#0A2540]/5 p-5 pb-4 dark:border-[#6C757D]/30 dark:bg-[#0A2540]/10">
+            <div className="relative border-b border-gray-200 bg-primary/5 p-5 pb-4 dark:border-gray-500/30 dark:bg-primary/10">
               <div className="mb-4 flex items-start gap-3">
-                <div className="rounded-lg border border-[#0A2540]/20 bg-[#0A2540]/10 p-2.5 dark:border-[#00D4B3]/30 dark:bg-[#0A2540]/20">
-                  <BookOpen className="h-5 w-5 text-[#0A2540] dark:text-[#00D4B3]" />
+                <div className="rounded-lg border border-primary/20 bg-primary/10 p-2.5 dark:border-accent/30 dark:bg-primary/20">
+                  <BookOpen className="h-5 w-5 text-primary dark:text-accent" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="mb-1 text-lg font-bold text-[#0A2540] dark:text-white">¿Que curso quieres planificar?</h3>
-                  <p className="text-xs text-[#6C757D] dark:text-gray-400">
+                  <h3 className="mb-1 text-lg font-bold text-primary dark:text-white">¿Que curso quieres planificar?</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Selecciona un curso a la vez para crear tu plan de estudios
                   </p>
                 </div>
@@ -85,7 +85,7 @@ export function StudyPlannerCourseSelectorModal({
                     onClick={onClose}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    className="rounded-lg p-1.5 text-[#6C757D] transition-colors hover:bg-[#E9ECEF] hover:text-[#0A2540] dark:hover:bg-[#0A2540]/20 dark:hover:text-white"
+                    className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-200 hover:text-primary dark:hover:bg-primary/20 dark:hover:text-white"
                     title="Cerrar"
                   >
                     <X size={18} />
@@ -99,21 +99,21 @@ export function StudyPlannerCourseSelectorModal({
                   animate={{ opacity: 1, y: 0 }}
                   className="relative mt-4"
                 >
-                  <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#6C757D]" />
+                  <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500" />
                   <input
                     type="text"
                     suppressHydrationWarning
                     value={searchQuery}
                     onChange={(event) => onSearchChange(event.target.value)}
                     placeholder="Buscar cursos..."
-                    className="w-full rounded-lg border border-[#E9ECEF] bg-white py-2.5 pl-10 pr-10 text-[#0A2540] transition-all placeholder:text-[#6C757D] focus:border-[#00D4B3]/50 focus:outline-none focus:ring-2 focus:ring-[#00D4B3]/50 dark:border-[#6C757D]/30 dark:bg-[#1E2329] dark:text-white"
+                    className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-10 text-primary transition-all placeholder:text-gray-500 focus:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/50 dark:border-gray-500/30 dark:bg-carbon-800 dark:text-white"
                   />
                   {searchQuery && (
                     <motion.button
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       onClick={onClearSearch}
-                      className="absolute right-3 top-1/2 rounded p-1 text-[#6C757D] transition-colors hover:bg-[#E9ECEF] hover:text-[#0A2540] dark:hover:bg-[#0A2540]/20 dark:hover:text-white"
+                      className="absolute right-3 top-1/2 rounded p-1 text-gray-500 transition-colors hover:bg-gray-200 hover:text-primary dark:hover:bg-primary/20 dark:hover:text-white"
                       title="Limpiar busqueda"
                     >
                       <X size={16} />
@@ -127,17 +127,17 @@ export function StudyPlannerCourseSelectorModal({
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center px-6 py-16">
                   <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
-                    <Loader2 className="h-12 w-12 text-[#0A2540] dark:text-[#00D4B3]" />
+                    <Loader2 className="h-12 w-12 text-primary dark:text-accent" />
                   </motion.div>
-                  <p className="mt-4 text-sm text-[#6C757D] dark:text-gray-400">Cargando tus cursos...</p>
+                  <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Cargando tus cursos...</p>
                 </div>
               ) : !hasCourses ? (
                 <div className="flex flex-col items-center justify-center px-6 py-16">
-                  <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[#E9ECEF] dark:bg-[#0A2540]/20">
-                    <BookOpen className="h-10 w-10 text-[#6C757D] dark:text-gray-400" />
+                  <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gray-200 dark:bg-primary/20">
+                    <BookOpen className="h-10 w-10 text-gray-500 dark:text-gray-400" />
                   </div>
-                  <h4 className="mb-2 font-semibold text-[#0A2540] dark:text-white">No tienes cursos disponibles para planificar</h4>
-                  <p className="max-w-sm text-center text-sm text-[#6C757D] dark:text-gray-400">
+                  <h4 className="mb-2 font-semibold text-primary dark:text-white">No tienes cursos disponibles para planificar</h4>
+                  <p className="max-w-sm text-center text-sm text-gray-500 dark:text-gray-400">
                     Todos tus cursos ya tienen un plan activo o no tienes cursos asignados por ahora
                   </p>
                 </div>
@@ -146,9 +146,9 @@ export function StudyPlannerCourseSelectorModal({
                   <div className="custom-scrollbar flex-1 space-y-3 overflow-y-auto px-6 py-4">
                     {filteredCourses.length === 0 && searchQuery ? (
                       <div className="flex flex-col items-center justify-center py-12">
-                        <Search className="mb-3 h-12 w-12 text-[#6C757D] dark:text-gray-400" />
-                        <p className="text-sm text-[#6C757D] dark:text-gray-400">No se encontraron cursos</p>
-                        <p className="mt-1 text-xs text-[#6C757D] dark:text-gray-500">Intenta con otro termino de busqueda</p>
+                        <Search className="mb-3 h-12 w-12 text-gray-500 dark:text-gray-400" />
+                        <p className="text-sm text-gray-500 dark:text-gray-400">No se encontraron cursos</p>
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">Intenta con otro termino de busqueda</p>
                       </div>
                     ) : (
                       filteredCourses.map((course, index) => (
@@ -163,25 +163,25 @@ export function StudyPlannerCourseSelectorModal({
                     )}
                   </div>
 
-                  <div className="border-t border-[#E9ECEF] bg-white px-5 py-4 dark:border-[#6C757D]/30 dark:bg-[#1E2329]">
+                  <div className="border-t border-gray-200 bg-white px-5 py-4 dark:border-gray-500/30 dark:bg-carbon-800">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-2">
                         <div
                           className={`flex h-8 w-8 items-center justify-center rounded-lg ${
                             hasSelectedCourses
-                              ? 'border border-[#0A2540]/20 bg-[#0A2540]/10 dark:border-[#00D4B3]/30 dark:bg-[#0A2540]/20'
-                              : 'bg-[#E9ECEF] dark:bg-[#6C757D]/30'
+                              ? 'border border-primary/20 bg-primary/10 dark:border-accent/30 dark:bg-primary/20'
+                              : 'bg-gray-200 dark:bg-gray-500/30'
                           }`}
                         >
-                          <span className={`text-sm font-bold ${hasSelectedCourses ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-[#6C757D]'}`}>
+                          <span className={`text-sm font-bold ${hasSelectedCourses ? 'text-primary dark:text-accent' : 'text-gray-500'}`}>
                             {selectedCourseIds.length}
                           </span>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-[#0A2540] dark:text-white">
+                          <p className="text-sm font-medium text-primary dark:text-white">
                             {getSelectedCoursesLabel(selectedCourseIds.length)}
                           </p>
-                          <p className="text-xs text-[#6C757D] dark:text-gray-400">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
                             {hasSelectedCourses ? 'Listo para crear tu plan' : 'Selecciona un curso para continuar'}
                           </p>
                         </div>
@@ -194,8 +194,8 @@ export function StudyPlannerCourseSelectorModal({
                           whileTap={hasSelectedCourses ? { scale: 0.95 } : {}}
                           className={`rounded-md px-5 py-2.5 text-sm font-semibold transition-all ${
                             hasSelectedCourses
-                              ? 'bg-[#0A2540] text-white shadow-sm hover:bg-[#0d2f4d] dark:bg-[#0A2540] dark:hover:bg-[#0d2f4d]'
-                              : 'cursor-not-allowed bg-[#6C757D] text-gray-400'
+                              ? 'bg-primary text-white shadow-sm hover:bg-primary dark:bg-primary dark:hover:bg-primary'
+                              : 'cursor-not-allowed bg-gray-500 text-gray-400'
                           }`}
                         >
                           Aceptar

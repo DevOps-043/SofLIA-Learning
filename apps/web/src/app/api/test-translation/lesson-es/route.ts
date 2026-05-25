@@ -1,6 +1,7 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { AutoTranslationService } from '../../../../core/services/autoTranslation.service'
-import { ContentTranslationService } from '../../../../core/services/contentTranslation.service'
+import { ContentTranslationWriteService } from '../../../../core/services/contentTranslation.write.service'
 import { LanguageDetectionService } from '../../../../core/services/languageDetection.service'
 import { createClient } from '../../../../lib/supabase/server'
 import { SupportedLanguage } from '../../../../core/i18n/i18n'
@@ -96,7 +97,7 @@ export async function GET(request: NextRequest) {
       )
 
     } catch (error) {
-      console.error('[TEST-ES-TRANSLATION] ❌ Error en traducción:', error)
+      techDebtLogger.error('[TEST-ES-TRANSLATION] ❌ Error en traducción:', error)
       return NextResponse.json({
         success: false,
         step: 'translation',
@@ -117,7 +118,7 @@ export async function GET(request: NextRequest) {
     
     try {
       // Intentar guardar usando el servicio
-      saved = await ContentTranslationService.saveTranslation(
+      saved = await ContentTranslationWriteService.saveTranslation(
         'lesson',
         lessonId,
         'es',
@@ -128,7 +129,7 @@ export async function GET(request: NextRequest) {
 
     } catch (error) {
       saveError = error
-      console.error('[TEST-ES-TRANSLATION] ❌ Excepción en saveTranslation:', error)
+      techDebtLogger.error('[TEST-ES-TRANSLATION] ❌ Excepción en saveTranslation:', error)
     }
 
     // Si falló, intentar guardar directamente para ver el error
@@ -177,7 +178,7 @@ export async function GET(request: NextRequest) {
               hint: directError.hint,
               code: directError.code
             }
-            console.error('[TEST-ES-TRANSLATION] ❌ Error directo de Supabase:', directError)
+            techDebtLogger.error('[TEST-ES-TRANSLATION] ❌ Error directo de Supabase:', directError)
           } else {
             saved = true
 
@@ -189,14 +190,14 @@ export async function GET(request: NextRequest) {
           message: directError instanceof Error ? directError.message : String(directError),
           stack: directError instanceof Error ? directError.stack : undefined
         }
-        console.error('[TEST-ES-TRANSLATION] ❌ Excepción en guardado directo:', directError)
+        techDebtLogger.error('[TEST-ES-TRANSLATION] ❌ Excepción en guardado directo:', directError)
       }
     }
 
     // PASO 4: Verificar si se guardó
     const { data: savedTranslation, error: queryError } = await supabase
       .from('content_translations')
-      .select('*')
+      .select(SELECT_COLUMNS.content_translations)
       .eq('entity_type', 'lesson')
       .eq('entity_id', lessonId)
       .eq('language_code', 'es')
@@ -229,7 +230,7 @@ export async function GET(request: NextRequest) {
         : '❌ Error al guardar traducción a español. Revisa los logs del servidor para más detalles.'
     })
   } catch (error) {
-    console.error('[TEST-ES-TRANSLATION] ❌ Error en prueba:', error)
+    techDebtLogger.error('[TEST-ES-TRANSLATION] ❌ Error en prueba:', error)
     return NextResponse.json(
       {
         success: false,

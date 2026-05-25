@@ -12,7 +12,7 @@ import { useOrganizationStylesContext } from '../contexts/OrganizationStylesCont
  *
  * Jerarquía de prioridad:
  *   1. Colores de la organización (OrganizationStylesContext) — modo claro
- *   2. Paleta del design system (#00D4B3, #0A2540, etc.) — modo oscuro y fallbacks
+ *   2. Paleta del design system (var(--color-accent), var(--color-primary), etc.) — modo oscuro y fallbacks
  */
 export interface BusinessPanelThemeTokens {
   // ─── Identidad ───────────────────────────────────────────────────
@@ -96,23 +96,23 @@ export interface BusinessPanelThemeTokens {
 
 export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
   const { resolvedTheme } = useThemeStore()
-  const { styles } = useOrganizationStylesContext()
-  const panelStyles = styles?.panel
+  const { effectiveStyles, styles } = useOrganizationStylesContext()
+  const panelStyles = effectiveStyles?.panel || styles?.panel
   const isDark = resolvedTheme === 'dark'
 
   return useMemo<BusinessPanelThemeTokens>(() => {
-    // En modo oscuro el color primario de acción siempre es el acento (#00D4B3)
+    // En modo oscuro el color primario de acción siempre es el acento (var(--color-accent))
     // para mantener contraste sobre fondos oscuros, independiente de la org.
-    const brandColor = panelStyles?.primary_button_color ?? '#0A2540'
-    const actionColor = isDark ? '#00D4B3' : brandColor
-    const onActionColor = isDark ? '#04130F' : '#FFFFFF'
-    const actionSurface = isDark ? 'rgba(0,212,179,0.12)' : 'rgba(10,37,64,0.08)'
+    const brandColor = panelStyles?.primary_button_color ?? 'var(--color-primary)'
+    const actionColor = isDark ? 'var(--color-accent)' : brandColor
+    const onActionColor = isDark ? 'var(--color-primary)' : 'var(--color-bg-light)'
+    const actionSurface = `color-mix(in srgb, ${actionColor} ${isDark ? 12 : 8}%, transparent)`
 
     // Acciones, iconos y textos destacados de UI siguen el modo:
     // claro = azul profundo, oscuro = aqua.
     const accentColor = actionColor
 
-    const secondaryColor = panelStyles?.secondary_button_color ?? '#8B5CF6'
+    const secondaryColor = panelStyles?.secondary_button_color ?? 'var(--color-secondary)'
 
     return {
       isDark,
@@ -126,42 +126,40 @@ export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
       secondaryColor,
 
       // Texto
-      textColor: isDark
-        ? (panelStyles?.text_color ?? '#FFFFFF')
-        : '#0F172A',
-      subtextColor: isDark ? '#858E9B' : '#475569',
-      mutedTextColor: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.5)',
-      inverseTextColor: '#FFFFFF',
-      inverseSubtextColor: 'rgba(255,255,255,0.82)',
-      inverseMutedTextColor: 'rgba(255,255,255,0.62)',
+      textColor: panelStyles?.text_color ?? 'var(--color-contrast)',
+      subtextColor: 'var(--color-muted)',
+      mutedTextColor: `color-mix(in srgb, var(--color-contrast) ${isDark ? 40 : 50}%, transparent)`,
+      inverseTextColor: 'var(--color-bg-light)',
+      inverseSubtextColor: 'color-mix(in srgb, var(--color-bg-light) 82%, transparent)',
+      inverseMutedTextColor: 'color-mix(in srgb, var(--color-bg-light) 62%, transparent)',
 
       // Superficies
       cardBg: isDark
-        ? (panelStyles?.card_background ?? 'rgba(30, 35, 41, 0.6)')
-        : '#FFFFFF',
-      inputBg: isDark ? 'rgba(255,255,255,0.03)' : '#F8FAFC',
-      panelBg: isDark ? '#0b0e14' : '#FFFFFF',
-      hoverBg: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.05)',
-      overlayBg: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(15,23,42,0.45)',
-      inverseSurface: 'rgba(255,255,255,0.08)',
-      inverseBorderColor: 'rgba(255,255,255,0.18)',
-      heroBackground: isDark
-        ? 'linear-gradient(135deg, rgba(10,37,64,0.82) 0%, rgba(15,20,25,0.95) 55%, rgba(0,212,179,0.18) 100%)'
-        : 'linear-gradient(135deg, rgba(10,37,64,0.95) 0%, rgba(15,23,42,0.88) 52%, rgba(0,212,179,0.30) 100%)',
-      heroBorderColor: isDark ? 'rgba(0,212,179,0.12)' : 'rgba(0,212,179,0.18)',
+        ? (panelStyles?.card_background ?? 'var(--color-gray-800)')
+        : (panelStyles?.card_background ?? 'var(--color-bg-light)'),
+      inputBg: `color-mix(in srgb, var(--color-contrast) ${isDark ? 3 : 4}%, transparent)`,
+      panelBg: isDark
+        ? (panelStyles?.sidebar_background ?? 'var(--color-bg-dark)')
+        : (panelStyles?.sidebar_background ?? 'var(--color-bg-light)'),
+      hoverBg: `color-mix(in srgb, var(--color-contrast) ${isDark ? 8 : 5}%, transparent)`,
+      overlayBg: 'color-mix(in srgb, var(--color-black) 55%, transparent)',
+      inverseSurface: 'color-mix(in srgb, var(--color-bg-light) 8%, transparent)',
+      inverseBorderColor: 'color-mix(in srgb, var(--color-bg-light) 18%, transparent)',
+      heroBackground: `linear-gradient(135deg, color-mix(in srgb, var(--color-primary) ${isDark ? 82 : 95}%, transparent) 0%, color-mix(in srgb, var(--color-primary) ${isDark ? 55 : 88}%, var(--color-black)) 55%, color-mix(in srgb, var(--color-accent) ${isDark ? 18 : 30}%, transparent) 100%)`,
+      heroBorderColor: `color-mix(in srgb, var(--color-accent) ${isDark ? 12 : 18}%, transparent)`,
 
       // Bordes
       borderColor: isDark
-        ? (panelStyles?.border_color ?? 'rgba(255,255,255,0.06)')
-        : 'rgba(0,0,0,0.06)',
-      dividerColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+        ? (panelStyles?.border_color ?? 'color-mix(in srgb, var(--color-bg-light) 6%, transparent)')
+        : (panelStyles?.border_color ?? 'color-mix(in srgb, var(--color-black) 6%, transparent)'),
+      dividerColor: `color-mix(in srgb, ${isDark ? 'var(--color-bg-light)' : 'var(--color-black)'} 10%, transparent)`,
 
       // Roles
       roleColors: {
-        owner: { text: '#A855F7', bg: 'rgba(168,85,247,0.12)' },
+        owner: { text: 'var(--color-secondary)', bg: 'color-mix(in srgb, var(--color-secondary) 12%, transparent)' },
         admin: {
-          text: isDark ? '#60A5FA' : brandColor,
-          bg: isDark ? 'rgba(96, 165, 250, 0.16)' : 'rgba(10,37,64,0.1)',
+          text: isDark ? 'var(--color-info)' : brandColor,
+          bg: `color-mix(in srgb, ${isDark ? 'var(--color-info)' : brandColor} ${isDark ? 16 : 10}%, transparent)`,
         },
         member: {
           text: actionColor,
@@ -171,25 +169,25 @@ export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
 
       // Estatus
       statusColors: {
-        active: '#10B981',
-        invited: '#F59E0B',
-        suspended: '#EF4444',
-        removed: '#6B7280',
+        active: 'var(--color-success)',
+        invited: 'var(--color-warning)',
+        suspended: 'var(--color-error)',
+        removed: 'var(--color-muted)',
       },
 
       // Semánticos (invariantes de tema)
-      chartColors: ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EF4444', '#06B6D4'],
+      chartColors: ['var(--color-success)', 'var(--color-info)', 'var(--color-warning)', 'var(--color-secondary)', 'var(--color-error)', 'var(--color-accent)'],
 
       difficultyColors: {
-        beginner: '#22C55E',
-        intermediate: '#EAB308',
-        advanced: '#EF4444',
-        default: '#3B82F6',
+        beginner: 'var(--color-success)',
+        intermediate: 'var(--color-warning)',
+        advanced: 'var(--color-error)',
+        default: 'var(--color-info)',
       },
 
-      successColor: '#10B981',
-      dangerColor: '#EF4444',
-      warningColor: '#F59E0B',
+      successColor: 'var(--color-success)',
+      dangerColor: 'var(--color-error)',
+      warningColor: 'var(--color-warning)',
     }
   }, [isDark, panelStyles])
 }

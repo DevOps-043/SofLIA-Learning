@@ -23,14 +23,14 @@ describe('business-invite-modal.service', () => {
   });
 
   it('maps invite status metadata', () => {
-    expect(getBusinessInviteStatusConfig('active', '#fff', '#000')).toMatchObject({
+    expect(getBusinessInviteStatusConfig('active', 'var(--color-bg-light)', 'var(--color-black)')).toMatchObject({
       label: 'Activo',
       icon: 'check-circle',
     });
-    expect(getBusinessInviteStatusConfig('custom', '#fff', '#000')).toMatchObject({
+    expect(getBusinessInviteStatusConfig('custom', 'var(--color-bg-light)', 'var(--color-black)')).toMatchObject({
       label: 'custom',
-      color: '#fff',
-      bgColor: '#000',
+      color: 'var(--color-bg-light)',
+      bgColor: 'var(--color-black)',
       icon: 'alert-circle',
     });
   });

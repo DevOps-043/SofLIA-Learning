@@ -1,3 +1,5 @@
+import 'server-only'
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { CalendarIntegrationService } from './calendar-integration.service';
@@ -39,7 +41,7 @@ export class CalendarSyncService {
       if (refreshedToken) {
         accessToken = refreshedToken;
       } else {
-        console.error('[CalendarSync] Error refrescando token');
+        techDebtLogger.error('[CalendarSync] Error refrescando token');
         return null;
       }
     }
@@ -78,10 +80,10 @@ export class CalendarSyncService {
       if (context) {
         if (session.calendar_provider === 'google') {
           const result = await syncDeleteGoogleEvent(context.accessToken, session.external_event_id, context.calendarId);
-          if (!result.success) console.warn('[CalendarSync] No se pudo eliminar el evento externo:', result.error);
+          if (!result.success) techDebtLogger.warn('[CalendarSync] No se pudo eliminar el evento externo:', result.error);
         } else if (session.calendar_provider === 'microsoft') {
           const result = await syncDeleteMicrosoftEvent(context.accessToken, session.external_event_id);
-          if (!result.success) console.warn('[CalendarSync] No se pudo eliminar el evento de Microsoft:', result.error);
+          if (!result.success) techDebtLogger.warn('[CalendarSync] No se pudo eliminar el evento de Microsoft:', result.error);
         }
       }
     }

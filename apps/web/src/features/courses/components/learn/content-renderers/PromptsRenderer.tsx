@@ -61,7 +61,7 @@ export function PromptsRenderer({
   }
 
   return (
-    <div className="rounded-lg border border-[#0A2540]/15 bg-[#F5F8FC] p-4 dark:border-[#00D4B3]/20 dark:bg-[#0B1A20]">
+    <div className="rounded-lg border border-primary/15 bg-[var(--color-legacy-f5f8fc)] p-4 dark:border-accent/20 dark:bg-[var(--color-legacy-0b1a20)]">
       {externalTool && (
         <div className="mb-3 flex flex-wrap items-center gap-2">
           {externalTool.url && (
@@ -71,14 +71,14 @@ export function PromptsRenderer({
                 window.open(externalTool.url || "", "_blank", "noopener,noreferrer");
                 setActionMessage(`Abriendo ${externalTool.label} en una nueva ventana.`);
               }}
-              className="inline-flex items-center gap-2 rounded-lg border border-[#0A2540]/10 bg-white px-3 py-2 text-xs font-medium text-[#0A2540] transition hover:border-[#0A2540]/20 hover:bg-[#0A2540]/5 dark:border-white/10 dark:bg-white/5 dark:text-white"
+              className="inline-flex items-center gap-2 rounded-lg border border-primary/10 bg-white px-3 py-2 text-xs font-medium text-primary transition hover:border-primary/20 hover:bg-primary/5 dark:border-white/10 dark:bg-white/5 dark:text-white"
             >
               <ExternalLink className="h-3.5 w-3.5" />
               Abrir {externalTool.label}
             </button>
           )}
           {actionMessage && (
-            <span className="text-xs text-[#0F6A57] dark:text-[#9DE9D5]">
+            <span className="text-xs text-[var(--color-legacy-0f6a57)] dark:text-[var(--color-legacy-9de9d5)]">
               {actionMessage}
             </span>
           )}
@@ -100,21 +100,21 @@ export function PromptsRenderer({
 
               setActionMessage("No fue posible copiar el prompt.");
             }}
-            className="group w-full rounded-lg border border-[#0A2540]/15 bg-white px-4 py-3 text-left transition hover:border-[#0A2540]/30 hover:bg-[#0A2540]/5 dark:border-white/10 dark:bg-[#10161D] dark:hover:border-[#00D4B3]/30 dark:hover:bg-white/[0.03]"
+            className="group w-full rounded-lg border border-primary/15 bg-white px-4 py-3 text-left transition hover:border-primary/30 hover:bg-primary/5 dark:border-white/10 dark:bg-[var(--color-legacy-10161d)] dark:hover:border-accent/30 dark:hover:bg-white/[0.03]"
           >
             <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#0A2540]/10 text-xs font-bold text-[#0A2540] dark:bg-[#00D4B3]/15 dark:text-[#00D4B3]">
+              <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary dark:bg-accent/15 dark:text-accent">
                 {index + 1}
               </div>
-              <p className="flex-1 text-sm leading-relaxed text-[#0A2540] dark:text-white">
+              <p className="flex-1 text-sm leading-relaxed text-primary dark:text-white">
                 {prompt}
               </p>
-              <span className="mt-1 shrink-0 text-[#0A2540] dark:text-[#00D4B3]">
+              <span className="mt-1 shrink-0 text-primary dark:text-accent">
                 <Copy className="h-4 w-4" />
               </span>
             </div>
             {copiedIndex === index && (
-              <p className="mt-2 text-xs text-[#0F6A57] dark:text-[#9DE9D5]">
+              <p className="mt-2 text-xs text-[var(--color-legacy-0f6a57)] dark:text-[var(--color-legacy-9de9d5)]">
                 Prompt copiado.
               </p>
             )}

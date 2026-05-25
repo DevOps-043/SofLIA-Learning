@@ -4,6 +4,21 @@ import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import { getAllowedNotificationChannels } from '@/lib/subscription/subscriptionFeatures'
 import { getOrganizationPlan } from '@/lib/subscription/subscriptionHelper'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import {
+  notificationSettingsUpdateSchema,
+  type NotificationSettingsUpdateBody,
+} from './schema'
+
+type NotificationSettingData = {
+  organization_id: string
+  event_type: string
+  enabled: boolean
+  channels: string[]
+  template: unknown
+  updated_at: string
+}
 
 /**
  * GET /api/business/notifications/settings
@@ -15,10 +30,7 @@ export async function GET(request: NextRequest) {
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Usuario no pertenece a ninguna organización'
-      }, { status: 400 })
+      return apiError('NO_ORGANIZATION', 'Usuario no pertenece a ninguna organización', 400)
     }
 
     const supabase = await createClient()
@@ -36,7 +48,7 @@ export async function GET(request: NextRequest) {
     // Obtener configuraciones existentes
     const { data: settings, error: settingsError } = await supabase
       .from('notification_settings')
-      .select('*')
+      .select(SELECT_COLUMNS.notification_settings)
       .eq('organization_id', auth.organizationId)
 
     if (settingsError && settingsError.code !== 'PGRST116') {
@@ -74,7 +86,7 @@ export async function GET(request: NextRequest) {
     // Obtener todas las configuraciones (existentes + nuevas)
     const { data: allSettings, error: fetchError } = await supabase
       .from('notification_settings')
-      .select('*')
+      .select(SELECT_COLUMNS.notification_settings)
       .eq('organization_id', auth.organizationId)
       .order('event_type', { ascending: true })
 
@@ -113,7 +125,11 @@ export async function GET(request: NextRequest) {
  * PUT /api/business/notifications/settings
  * Actualiza la configuración de notificaciones automáticas
  */
-export async function PUT(request: NextRequest) {
+async function handlePut(
+  _request: NextRequest,
+  body: NotificationSettingsUpdateBody,
+  _context: unknown,
+) {
   try {
     const auth = await requireBusiness()
     if (auth instanceof NextResponse) return auth
@@ -126,23 +142,15 @@ export async function PUT(request: NextRequest) {
     }
 
     const supabase = await createClient()
-    const body = await request.json()
     const { settings } = body
-
-    if (!settings || !Array.isArray(settings)) {
-      return NextResponse.json({
-        success: false,
-        error: 'Configuraciones de notificaciones son requeridas'
-      }, { status: 400 })
-    }
 
     // Validar canales disponibles según plan
     const plan = await getOrganizationPlan(auth.organizationId)
     const allowedChannels = getAllowedNotificationChannels(plan)
 
     // Actualizar o insertar cada configuración
-    const updates = []
-    const inserts = []
+    const updates: Array<{ id: string; data: NotificationSettingData }> = []
+    const inserts: NotificationSettingData[] = []
 
     for (const setting of settings) {
       const { event_type, enabled, channels, template } = setting
@@ -158,7 +166,7 @@ export async function PUT(request: NextRequest) {
         filteredChannels.push('email') // Siempre incluir email
       }
 
-      const settingData = {
+      const settingData: NotificationSettingData = {
         organization_id: auth.organizationId,
         event_type,
         enabled: enabled !== undefined ? enabled : true,
@@ -219,12 +227,11 @@ export async function PUT(request: NextRequest) {
     })
   } catch (error) {
     logger.error('💥 Error in /api/business/notifications/settings PUT:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Error interno del servidor'
-    }, { status: 500 })
+    return apiError('UPDATE_NOTIFICATION_SETTINGS_FAILED', 'Error interno del servidor', 500)
   }
 }
+
+export const PUT = withZodBody(notificationSettingsUpdateSchema, handlePut)
 
 // Helper functions
 function getEventTypeLabel(eventType: string): string {
@@ -250,5 +257,3 @@ function getEventTypeDescription(eventType: string): string {
   }
   return descriptions[eventType] || ''
 }
-
-

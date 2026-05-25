@@ -33,14 +33,14 @@ export function UsersToolbar({
           placeholder={placeholder}
           value={searchTerm}
           onChange={(event) => onSearchTermChange(event.target.value)}
-          className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-500 focus:border-[#0A2540] focus:outline-none dark:border-white/10 dark:bg-[#0F1419] dark:text-white dark:focus:border-[#00D4B3]"
+          className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-500 focus:border-primary focus:outline-none dark:border-white/10 dark:bg-carbon-900 dark:text-white dark:focus:border-accent"
         />
       </div>
       {activeSubTab === 'members' ? (
         <select
           value={roleFilter}
           onChange={(event) => onRoleFilterChange(event.target.value)}
-          className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 focus:border-[#0A2540] focus:outline-none dark:border-white/10 dark:bg-[#0F1419] dark:text-white dark:focus:border-[#00D4B3]"
+          className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 focus:border-primary focus:outline-none dark:border-white/10 dark:bg-carbon-900 dark:text-white dark:focus:border-accent"
         >
           <option value="all">Todos los roles</option>
           <option value="owner">Owner</option>

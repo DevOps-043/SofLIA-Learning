@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState } from 'react'
 import { X, Calendar, Clock, MessageSquare, BookOpen } from 'lucide-react'
 import { CourseSelectorModal } from './CourseSelectorModal'
@@ -33,8 +34,8 @@ export function CourseAssignmentForm({
 }: CourseAssignmentFormProps) {
   const { styles } = useOrganizationStylesContext()
   const panelStyles = styles?.panel
-  const primaryColor = panelStyles?.primary_button_color || '#0A2540'
-  const accentColor = panelStyles?.accent_color || '#00D4B3'
+  const primaryColor = panelStyles?.primary_button_color || 'var(--color-primary)'
+  const accentColor = panelStyles?.accent_color || 'var(--color-accent)'
 
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>(assignment ? [assignment.course_id] : [])
   const [showCourseSelector, setShowCourseSelector] = useState(false)
@@ -100,7 +101,7 @@ export function CourseAssignmentForm({
       handleClose()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error al guardar la asignación')
-      console.error('Error en asignación:', err)
+      techDebtLogger.error('Error en asignación:', err)
     } finally {
       setIsSubmitting(false)
     }
@@ -123,7 +124,7 @@ export function CourseAssignmentForm({
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div className="bg-white dark:bg-[#1E2329] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+        <div className="bg-white dark:bg-carbon-800 rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
           
           {/* Header */}
           <div className="p-6 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">

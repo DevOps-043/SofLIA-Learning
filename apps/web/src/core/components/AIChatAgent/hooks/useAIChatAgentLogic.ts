@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
@@ -133,13 +134,13 @@ export function useAIChatAgentLogic({
   const theme = useMemo(() => {
     switch (currentMode) {
       case 'nanobana':
-        return { header: 'bg-[#0A2540]', accent: 'amber', bubbleUser: 'from-[#0A2540] to-[#00D4B3]', ring: 'focus:ring-amber-500', borderUser: 'border-[#00D4B3]', chipBg: 'bg-amber-500/15 text-amber-400 border border-amber-500/30', chipActive: 'bg-amber-500 text-white border-transparent' };
+        return { header: 'bg-primary', accent: 'amber', bubbleUser: 'from-primary to-accent', ring: 'focus:ring-amber-500', borderUser: 'border-accent', chipBg: 'bg-amber-500/15 text-amber-400 border border-amber-500/30', chipActive: 'bg-amber-500 text-white border-transparent' };
       case 'prompt':
-        return { header: 'bg-[#0A2540]', accent: 'purple', bubbleUser: 'from-[#0A2540] to-[#00D4B3]', ring: 'focus:ring-purple-500', borderUser: 'border-[#00D4B3]', chipBg: 'bg-purple-500/15 text-purple-400 border border-purple-500/30', chipActive: 'bg-purple-500 text-white border-transparent' };
+        return { header: 'bg-primary', accent: 'purple', bubbleUser: 'from-primary to-accent', ring: 'focus:ring-purple-500', borderUser: 'border-accent', chipBg: 'bg-purple-500/15 text-purple-400 border border-purple-500/30', chipActive: 'bg-purple-500 text-white border-transparent' };
       case 'analysis':
-        return { header: 'bg-[#0A2540]', accent: '[#00D4B3]', bubbleUser: 'from-[#0A2540] to-[#00D4B3]', ring: 'focus:ring-[#00D4B3]', borderUser: 'border-[#00D4B3]', chipBg: 'bg-[#00D4B3]/15 text-[#00D4B3] border border-[#00D4B3]/30', chipActive: 'bg-[#00D4B3] text-white border-transparent' };
+        return { header: 'bg-primary', accent: 'accent', bubbleUser: 'from-primary to-accent', ring: 'focus:ring-accent', borderUser: 'border-accent', chipBg: 'bg-accent/15 text-accent border border-accent/30', chipActive: 'bg-accent text-white border-transparent' };
       default:
-        return { header: 'bg-[#0A2540]', accent: '[#00D4B3]', bubbleUser: 'from-[#0A2540] to-[#00D4B3]', ring: 'focus:ring-[#00D4B3]', borderUser: 'border-[#00D4B3]', chipBg: 'bg-[#00D4B3]/15 text-[#00D4B3] border border-[#00D4B3]/30', chipActive: 'bg-[#00D4B3] text-white border-transparent' };
+        return { header: 'bg-primary', accent: 'accent', bubbleUser: 'from-primary to-accent', ring: 'focus:ring-accent', borderUser: 'border-accent', chipBg: 'bg-accent/15 text-accent border border-accent/30', chipActive: 'bg-accent text-white border-transparent' };
     }
   }, [currentMode]);
 
@@ -394,7 +395,7 @@ export function useAIChatAgentLogic({
         if (voice.isVoiceEnabled && assistantMsg.content) voice.speakText(assistantMsg.content);
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') console.error('Error en el chat:', error);
+      if (process.env.NODE_ENV === 'development') techDebtLogger.error('Error en el chat:', error);
       const errMsg: Message = { id: (Date.now() + 1).toString(), role: 'assistant', content: errorGeneric, timestamp: new Date() };
       if (isPromptMode) setPromptMessages(prev => [...prev, errMsg]); else setNormalMessages(prev => [...prev, errMsg]);
       if (voice.isVoiceEnabled && errMsg.content) voice.speakText(errMsg.content);

@@ -7,11 +7,11 @@ export function getModernNavbarColors(
   resolvedTheme: string | null | undefined
 ): ModernNavbarColors {
   const isLightMode = resolvedTheme === 'light';
-  const primaryColor = styles?.primary_button_color || '#0A2540';
-  const accentColor = styles?.accent_color || '#00D4B3';
-  const textColor = isLightMode ? '#0F172A' : (styles?.text_color || '#FFFFFF');
-  const cardBg = isLightMode ? '#FFFFFF' : (styles?.card_background || '#1E2329');
-  const sidebarBg = isLightMode ? '#FFFFFF' : (styles?.sidebar_background || '#0F1419');
+  const primaryColor = styles?.primary_button_color || 'var(--color-primary)';
+  const accentColor = styles?.accent_color || 'var(--color-accent)';
+  const textColor = isLightMode ? 'var(--color-legacy-0f172a)' : (styles?.text_color || 'var(--color-bg-light)');
+  const cardBg = isLightMode ? 'var(--color-bg-light)' : (styles?.card_background || 'var(--color-gray-800)');
+  const sidebarBg = isLightMode ? 'var(--color-bg-light)' : (styles?.sidebar_background || 'var(--color-bg-dark)');
   const sidebarOpacity = styles?.sidebar_opacity !== undefined ? styles.sidebar_opacity : 0.95;
 
   let navBgColor: string;
@@ -27,8 +27,8 @@ export function getModernNavbarColors(
     text: textColor,
     cardBg,
     navBg: navBgColor,
-    border: isLightMode ? '#E2E8F0' : 'rgba(255, 255, 255, 0.08)',
-    borderActive: `${accentColor}40`,
+    border: isLightMode ? 'var(--color-gray-200)' : 'rgba(255, 255, 255, 0.08)',
+    borderActive: `color-mix(in srgb, ${accentColor} 25.1%, transparent)`,
     gradientStart: primaryColor,
     gradientEnd: accentColor,
     isLightMode,

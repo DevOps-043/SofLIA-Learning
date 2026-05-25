@@ -1,14 +1,11 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createAdminClient } from './check-changes-db.service';
 import type {
   CalendarIntegrationRow,
   TokenRefreshResponse,
 } from './check-changes.types';
-
-interface RefreshCredentials {
-  clientId: string;
-  clientSecret: string;
-  tokenUrl: string;
-}
+import { getRefreshCredentials } from './check-changes-token.credentials';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 
 export async function resolveCalendarAccessToken(
   integration: CalendarIntegrationRow,
@@ -40,7 +37,7 @@ async function refreshAccessToken(
   }
 
   try {
-    const response = await fetch(credentials.tokenUrl, {
+    const response = await fetchWithCircuitBreaker('calendar-check-changes-token-refresh', credentials.tokenUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
@@ -63,43 +60,9 @@ async function refreshAccessToken(
     await persistRefreshedTokens(integration, tokens);
     return { success: true, accessToken: tokens.access_token };
   } catch (error) {
-    console.error('Error en refreshAccessToken:', error);
+    techDebtLogger.error('Error en refreshAccessToken:', error);
     return { success: false };
   }
-}
-
-function getRefreshCredentials(provider: string): RefreshCredentials | null {
-  if (provider === 'google') {
-    return {
-      clientId:
-        process.env.GOOGLE_CALENDAR_CLIENT_ID
-        || process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_CLIENT_ID
-        || process.env.GOOGLE_CLIENT_ID
-        || '',
-      clientSecret:
-        process.env.GOOGLE_CALENDAR_CLIENT_SECRET
-        || process.env.GOOGLE_CLIENT_SECRET
-        || '',
-      tokenUrl: 'https://oauth2.googleapis.com/token',
-    };
-  }
-
-  if (provider === 'microsoft') {
-    return {
-      clientId:
-        process.env.MICROSOFT_CALENDAR_CLIENT_ID
-        || process.env.NEXT_PUBLIC_MICROSOFT_CALENDAR_CLIENT_ID
-        || process.env.MICROSOFT_CLIENT_ID
-        || '',
-      clientSecret:
-        process.env.MICROSOFT_CALENDAR_CLIENT_SECRET
-        || process.env.MICROSOFT_CLIENT_SECRET
-        || '',
-      tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
-    };
-  }
-
-  return null;
 }
 
 async function persistRefreshedTokens(

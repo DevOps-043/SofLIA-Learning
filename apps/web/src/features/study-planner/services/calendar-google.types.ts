@@ -43,6 +43,29 @@ export interface GoogleEventUpdatePayload {
   end?: { dateTime: string; timeZone: string };
 }
 
+export interface GoogleEventCreateInput {
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  timezone: string;
+  location?: string;
+}
+
+export interface GoogleEventUpdateInput {
+  title?: string;
+  description?: string;
+  startTime?: string;
+  endTime?: string;
+  timezone?: string;
+  location?: string;
+}
+
+export interface GoogleCalendarWriteResult {
+  id: string;
+  htmlLink?: string;
+}
+
 export interface GoogleUserInfoResponse {
   email?: string | null;
 }

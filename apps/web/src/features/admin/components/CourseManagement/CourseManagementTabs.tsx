@@ -33,7 +33,7 @@ export function CourseManagementTabs() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.1 }}
-      className="mb-6 rounded-xl border border-[#E9ECEF] bg-white p-1.5 shadow-sm dark:border-[#6C757D]/30 dark:bg-[#1E2329]"
+      className="mb-6 rounded-xl border border-gray-200 bg-white p-1.5 shadow-sm dark:border-gray-500/30 dark:bg-carbon-800"
     >
       <div className="scrollbar-hide -mx-1 flex gap-1.5 overflow-x-auto px-1 sm:mx-0 sm:px-0">
         {tabs.map((tab) => {
@@ -52,13 +52,13 @@ export function CourseManagementTabs() {
                   ? 'text-white'
                   : isDisabled
                     ? 'cursor-not-allowed text-gray-300 opacity-50 dark:text-gray-700'
-                    : 'text-[#6C757D] hover:text-[#0A2540] dark:text-white/60 dark:hover:text-white'
+                    : 'text-gray-500 hover:text-primary dark:text-white/60 dark:hover:text-white'
               }`}
             >
               {activeTab === tab.key && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 rounded-lg bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 shadow-md dark:from-[#0A2540] dark:to-[#0A2540]/80"
+                  className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary to-primary/90 shadow-md dark:from-primary dark:to-primary/80"
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                 />
               )}

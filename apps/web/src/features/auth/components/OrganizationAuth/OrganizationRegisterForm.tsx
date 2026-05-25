@@ -3,6 +3,7 @@
 import type { ComponentProps, JSX } from 'react'
 import dynamic from 'next/dynamic'
 import { ToastNotification } from '../../../../core/components/ToastNotification'
+import { HumanVerificationField } from '../HumanVerificationField'
 import {
   OrganizationRegisterActions,
   OrganizationRegisterCredentialsFields,
@@ -41,6 +42,7 @@ export function OrganizationRegisterForm(
     palette,
     selectedCountryCode,
     setError,
+    setCaptchaToken,
     setShowLegalModal,
     showLegalModal,
     success,
@@ -74,6 +76,8 @@ export function OrganizationRegisterForm(
           dialCode={dialCode}
           onCountryChange={onCountryChange}
         />
+
+        <HumanVerificationField onTokenChange={setCaptchaToken} />
 
         <OrganizationRegisterActions
           register={register}

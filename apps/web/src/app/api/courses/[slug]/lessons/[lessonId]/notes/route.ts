@@ -29,7 +29,7 @@ export async function GET(
 
     // Verificar que el curso existe (opcional, para validación)
     const course = await CourseService.getCourseBySlug(slug, currentUser.id)
-    
+
     if (!course) {
       return NextResponse.json(
         { error: 'Curso no encontrado' },
@@ -118,31 +118,31 @@ export async function POST(
       )
     }
 
-    // 🤖 GENERACIÓN DE TÍTULO POR IA: Si el título está vacío, generarlo automáticamente
+    // GENERACIÓN DE TÍTULO POR IA: Si el título está vacío, generarlo automáticamente
     if (!note_title || typeof note_title !== 'string' || note_title.trim().length === 0) {
       try {
         const googleApiKey = process.env.GOOGLE_API_KEY;
         const geminiModel = process.env.GEMINI_MODEL || "gemini-1.5-flash";
-        
+
         if (googleApiKey) {
           const genAI = new GoogleGenerativeAI(googleApiKey);
           const model = genAI.getGenerativeModel({ model: geminiModel });
-          
+
           const prompt = `Eres un asistente experto en educación que genera títulos cortos, profesionales y descriptivos para notas de estudio.
-          
+
           Contenido de la nota: "${note_content.replace(/<[^>]*>?/gm, '').substring(0, 1500)}"
-          
+
           Instrucciones:
           1. El título debe ser muy corto (máximo 5 palabras).
           2. Debe capturar la esencia principal del contenido.
           3. Evita palabras genéricas como "Nota sobre" o "Resumen de".
           4. Responde ÚNICAMENTE con el texto del título, sin comillas, sin puntos finales y sin explicaciones.
           5. Idioma: Español.`;
-          
+
           const result = await model.generateContent(prompt);
           const response = await result.response;
           const generatedTitle = response.text().trim().replace(/^["']|["']$/g, '').replace(/\.$/, '');
-          
+
           if (generatedTitle && generatedTitle.length > 0 && !generatedTitle.toLowerCase().includes("error")) {
             note_title = generatedTitle;
           } else {
@@ -157,7 +157,7 @@ export async function POST(
     }
 
     // Validar que note_tags sea un array si se proporciona
-    if (note_tags !== undefined && (!Array.isArray(note_tags) || note_tags.some(tag => typeof tag !== 'string'))) {
+    if (note_tags !== undefined && (!Array.isArray(note_tags) || note_tags.some((tag: unknown) => typeof tag !== 'string'))) {
       return NextResponse.json(
         { error: 'Las etiquetas deben ser un array de strings' },
         { status: 400 }
@@ -167,7 +167,7 @@ export async function POST(
     const note = await NoteService.createNote(currentUser.id, lessonId, {
       note_title: note_title.trim(),
       note_content: note_content.trim(),
-      note_tags: note_tags && Array.isArray(note_tags) ? note_tags.filter(tag => tag.trim().length > 0) : [],
+      note_tags: note_tags && Array.isArray(note_tags) ? note_tags.filter((tag: string) => tag.trim().length > 0) : [],
       organization_id: requestedOrganizationId || enrollment?.organization_id || null,
       source_type: source_type || 'manual'
     })

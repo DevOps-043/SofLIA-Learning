@@ -4,64 +4,7 @@ import { NotFoundError } from '@/core/errors/app-error'
 
 import { CoursesService } from '../courses.service'
 import type { CoursesRepository } from '../courses.repository'
-import type { CourseListItem, LessonProgress } from '../courses.types'
-
-function makeCourse(overrides: Partial<CourseListItem> = {}): CourseListItem {
-  return {
-    id: 'course-1',
-    title: 'Test Course',
-    description: 'A test course',
-    category: 'technology',
-    level: 'beginner',
-    instructor_id: 'inst-1',
-    duration_total_minutes: 120,
-    thumbnail_url: null,
-    slug: 'test-course',
-    is_active: true,
-    price: 0,
-    average_rating: 4.5,
-    student_count: 100,
-    review_count: 20,
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-    instructor: null,
-    ...overrides,
-  }
-}
-
-function makeProgress(overrides: Partial<LessonProgress> = {}): LessonProgress {
-  return {
-    progress_id: 'progress-1',
-    lesson_id: 'lesson-1',
-    user_id: 'user-1',
-    enrollment_id: 'enrollment-1',
-    progress_percent: 50,
-    time_spent_seconds: 300,
-    is_completed: false,
-    last_position: 150,
-    completed_at: null,
-    updated_at: '2026-01-01T00:00:00Z',
-    last_accessed_at: '2026-01-01T00:00:00Z',
-    lesson_status: 'in_progress',
-    video_progress_percentage: 50,
-    quiz_completed: false,
-    quiz_passed: false,
-    ...overrides,
-  }
-}
-
-function makeRepository(
-  overrides: Partial<CoursesRepository> = {},
-): CoursesRepository {
-  return {
-    findCourses: vi.fn().mockResolvedValue({ courses: [], total: 0 }),
-    findCourseBySlug: vi.fn().mockResolvedValue(makeCourse()),
-    findLessonProgress: vi.fn().mockResolvedValue(null),
-    upsertLessonProgress: vi.fn().mockResolvedValue(makeProgress()),
-    findUserEnrollments: vi.fn().mockResolvedValue([]),
-    ...overrides,
-  }
-}
+import { makeCourse, makeRepository, makeProgress } from './courses.fixtures'
 
 describe('CoursesService', () => {
   let service: CoursesService
@@ -81,8 +24,7 @@ describe('CoursesService', () => {
       const result = await service.getCourses({ limit: 50, offset: 0, isActive: true, orderBy: 'created_at', orderDirection: 'desc' })
 
       expect(result.courses).toHaveLength(2)
-      expect(result.total).toBe(2)
-      expect(result.page).toBe(1)
+      expect(result).toMatchObject({ total: 2, page: 1 })
     })
 
     it('calculates total_pages correctly', async () => {
@@ -147,8 +89,7 @@ describe('CoursesService', () => {
         isCompleted: true,
       })
 
-      expect(result.is_completed).toBe(true)
-      expect(result.progress_percent).toBe(100)
+      expect(result).toMatchObject({ is_completed: true, progress_percent: 100 })
     })
 
     it('passes all fields to repository', async () => {
@@ -181,8 +122,7 @@ describe('CoursesService', () => {
 
       const result = await service.getUserEnrollments('user-1')
 
-      expect(result).toHaveLength(2)
-      expect(result[0].course_id).toBe('course-1')
+      expect(result.map((item) => item.course_id)).toEqual(['course-1', 'course-2'])
     })
   })
 })

@@ -1,34 +1,29 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API Route: SofLIA Onboarding Chat
  * Endpoint para conversación por voz durante el onboarding
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
+import {
+  onboardingChatSchema,
+  type OnboardingChatBody,
+} from '../_schemas';
 
-interface OnboardingChatRequest {
-  question: string;
-  context: {
-    isOnboarding: boolean;
-    currentStep: number;
-    totalSteps: number;
-    conversationHistory: Array<{ role: string; content: string }>;
-  };
-  userName?: string;
-  pageContext?: Record<string, unknown>;
-}
-
-export async function POST(request: NextRequest) {
+async function handlePost(
+  request: NextRequest,
+  body: OnboardingChatBody,
+  _context: unknown,
+) {
   try {
-    const body: OnboardingChatRequest = await request.json();
-    
     const { question, context, userName, pageContext } = body;
 
     // Validaciones
     if (!question || !question.trim()) {
-      return NextResponse.json(
-        { error: 'La pregunta es requerida' },
-        { status: 400 }
-      );
+      return apiError('QUESTION_REQUIRED', 'La pregunta es requerida', 400);
     }
 
     // En lugar de llamar directamente a OpenAI desde aquí, delegamos en el endpoint
@@ -64,23 +59,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, response: aiData.response });
 
   } catch (error) {
-    console.error('❌ Error en onboarding-chat:', error);
-    return NextResponse.json(
-      { 
-        error: 'Error procesando la solicitud',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
+    techDebtLogger.error('❌ Error en onboarding-chat:', error);
+    return apiError(
+      'ONBOARDING_CHAT_ERROR',
+      'Error procesando la solicitud',
+      500,
     );
   }
 }
+
+export const POST = withZodBody(onboardingChatSchema, handlePost);
 
 /**
  * Construye un prompt específico para el onboarding
  */
 function buildOnboardingPrompt(
   userQuestion: string,
-  context: OnboardingChatRequest['context']
+  context: OnboardingChatBody['context']
 ): string {
   return `Eres SofLIA, la asistente virtual de la plataforma SofLIA. Estás guiando a un nuevo usuario en su proceso de onboarding.
 
@@ -126,7 +121,7 @@ async function callLIA(
     const apiKey = process.env.OPENAI_API_KEY;
     
     if (!apiKey) {
-      console.warn('⚠️ OPENAI_API_KEY no configurada, usando respuesta simulada');
+      techDebtLogger.warn('⚠️ OPENAI_API_KEY no configurada, usando respuesta simulada');
       return generateMockResponse();
     }
 
@@ -143,7 +138,7 @@ async function callLIA(
       },
     ];
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetchWithCircuitBreaker('openai-onboarding-chat', 'https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -165,7 +160,7 @@ async function callLIA(
     return data.choices[0]?.message?.content || 'Lo siento, no pude generar una respuesta.';
 
   } catch (error) {
-    console.error('❌ Error llamando a OpenAI:', error);
+    techDebtLogger.error('❌ Error llamando a OpenAI:', error);
     return generateMockResponse();
   }
 }

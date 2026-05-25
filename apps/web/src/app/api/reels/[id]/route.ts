@@ -1,29 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '../../../../lib/supabase/server';
 import { z } from 'zod';
 
-// ✅ Schema de validación para UUID
-const ReelIdSchema = z.string().uuid('ID de reel inválido');
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { createClient } from '@/lib/supabase/server';
+
+import { reelUpdateSchema, type ReelUpdateBody } from '../_schemas';
+
+const ReelIdSchema = z.string().uuid('ID de reel invalido');
+
+type RouteContext = { params: Promise<{ id: string }> };
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: RouteContext,
 ) {
   try {
     const supabase = await createClient();
     const { id } = await params;
 
-    // ✅ SEGURIDAD: Validar que el ID sea un UUID válido
     try {
       ReelIdSchema.parse(id);
     } catch (error) {
-      return NextResponse.json(
-        { error: 'ID de reel inválido' },
-        { status: 400 }
-      );
+      return apiError('INVALID_REEL_ID', 'ID de reel invalido', 400);
     }
 
-    // Obtener el reel con información del creador
+    // Obtener el reel con informacion del creador
     const { data: reel, error: reelError } = await supabase
       .from('reels')
       .select(`
@@ -56,7 +58,7 @@ export async function GET(
       .single();
 
     if (reelError || !reel) {
-      return NextResponse.json({ error: 'Reel no encontrado' }, { status: 404 });
+      return apiError('REEL_NOT_FOUND', 'Reel no encontrado', 404);
     }
 
     // Obtener hashtags
@@ -89,57 +91,54 @@ export async function GET(
       .order('created_at', { ascending: false })
       .limit(10);
 
-    // Registrar visualización
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
+    // Registrar visualizacion
+    const clientIP = request.headers.get('x-forwarded-for') ||
+                     request.headers.get('x-real-ip') ||
                      'unknown';
-    
+
     await supabase
       .from('reel_views')
       .insert({
         reel_id: id,
         ip_address: clientIP,
-        user_agent: request.headers.get('user-agent') || 'unknown'
+        user_agent: request.headers.get('user-agent') || 'unknown',
       });
 
     return NextResponse.json({
       reel: {
         ...reel,
-        hashtags: hashtags?.map((hashtag) => hashtag.reel_hashtags.name) || []
+        hashtags: hashtags?.map((hashtag) => hashtag.reel_hashtags.name) || [],
       },
-      comments: comments || []
+      comments: comments || [],
     });
 
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Error interno del servidor', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
+    return apiError('INTERNAL_SERVER_ERROR', 'Error interno del servidor', 500);
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+async function handlePut(
+  _request: NextRequest,
+  body: ReelUpdateBody,
+  { params }: RouteContext,
 ) {
   try {
     const supabase = await createClient();
     const { id } = await params;
 
-    // Verificar autenticación
+    // Verificar autenticacion
     const { SessionService } = await import('../../../../features/auth/services/session.service');
     const user = await SessionService.getCurrentUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+      return apiError('UNAUTHENTICATED', 'No autorizado', 401);
     }
 
-    const body = await request.json();
     const {
       title,
       description,
       category,
-      hashtags = []
+      hashtags = [],
     } = body;
 
     // Verificar que el usuario es el creador del reel
@@ -150,7 +149,11 @@ export async function PUT(
       .single();
 
     if (!existingReel || existingReel.created_by !== user.id) {
-      return NextResponse.json({ error: 'No tienes permisos para editar este reel' }, { status: 403 });
+      return apiError(
+        'FORBIDDEN',
+        'No tienes permisos para editar este reel',
+        403,
+      );
     }
 
     // Actualizar el reel
@@ -160,14 +163,14 @@ export async function PUT(
         title,
         description,
         category,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', id)
       .select()
       .single();
 
     if (updateError) {
-      return NextResponse.json({ error: 'Error al actualizar el reel' }, { status: 500 });
+      return apiError('REEL_UPDATE_FAILED', 'Error al actualizar el reel', 500);
     }
 
     // Actualizar hashtags si se proporcionaron
@@ -194,7 +197,7 @@ export async function PUT(
             .from('reel_hashtag_relations')
             .insert({
               reel_id: id,
-              hashtag_id: hashtag.id
+              hashtag_id: hashtag.id,
             });
         }
       }
@@ -202,31 +205,30 @@ export async function PUT(
 
     return NextResponse.json({
       reel: updatedReel,
-      message: 'Reel actualizado exitosamente'
+      message: 'Reel actualizado exitosamente',
     });
 
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Error interno del servidor', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
+    return apiError('INTERNAL_SERVER_ERROR', 'Error interno del servidor', 500);
   }
 }
 
+export const PUT = withZodBody(reelUpdateSchema, handlePut);
+
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  { params }: RouteContext,
 ) {
   try {
     const supabase = await createClient();
     const { id } = await params;
 
-    // Verificar autenticación
+    // Verificar autenticacion
     const { SessionService } = await import('../../../../features/auth/services/session.service');
     const user = await SessionService.getCurrentUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+      return apiError('UNAUTHENTICATED', 'No autorizado', 401);
     }
 
     // Verificar que el usuario es el creador del reel
@@ -237,7 +239,11 @@ export async function DELETE(
       .single();
 
     if (!existingReel || existingReel.created_by !== user.id) {
-      return NextResponse.json({ error: 'No tienes permisos para eliminar este reel' }, { status: 403 });
+      return apiError(
+        'FORBIDDEN',
+        'No tienes permisos para eliminar este reel',
+        403,
+      );
     }
 
     // Marcar como inactivo en lugar de eliminar
@@ -247,17 +253,14 @@ export async function DELETE(
       .eq('id', id);
 
     if (deleteError) {
-      return NextResponse.json({ error: 'Error al eliminar el reel' }, { status: 500 });
+      return apiError('REEL_DELETE_FAILED', 'Error al eliminar el reel', 500);
     }
 
     return NextResponse.json({
-      message: 'Reel eliminado exitosamente'
+      message: 'Reel eliminado exitosamente',
     });
 
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Error interno del servidor', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
+    return apiError('INTERNAL_SERVER_ERROR', 'Error interno del servidor', 500);
   }
 }

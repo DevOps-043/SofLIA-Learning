@@ -1,13 +1,17 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
-import { useThemeStore } from '../../../../core/stores/themeStore';
 import { getBackgroundStyle, generateCSSVariables, hexToRgb } from '../../../business-panel/utils/styles';
-import type { StyleConfig } from '../../../business-panel/hooks/useOrganizationStyles';
+import { useDevicePerformanceMode } from '../../../../lib/utils/mobile-performance';
+import {
+  OrganizationAuthStylesProvider,
+  useOrganizationAuthStyles,
+} from './useOrganizationAuthStyles';
+import type { OrganizationAuthStyles } from './organization-auth.styles';
 
 interface OrganizationAuthLayoutProps {
   organization: {
@@ -20,6 +24,7 @@ interface OrganizationAuthLayoutProps {
     brand_color_secondary?: string | null;
     brand_font_family?: string | null;
     brand_favicon_url?: string | null;
+    login_styles?: OrganizationAuthStyles | null;
   };
   children: React.ReactNode;
   isLoading?: boolean;
@@ -33,41 +38,18 @@ export function OrganizationAuthLayout({
   error = null,
 }: OrganizationAuthLayoutProps) {
   const { t } = useTranslation('common');
-  const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
-  const [mounted, setMounted] = useState(false);
-  
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const isDark = mounted ? resolvedTheme === 'dark' : true; // Esperar a que se monte para evitar flash
+  const organizationSlug = organization.slug || '';
+  const authStyles = useOrganizationAuthStyles(
+    organizationSlug,
+    organization.login_styles ?? null,
+  );
+  const { disableHeavyEffects } = useDevicePerformanceMode();
+  const isDark = authStyles.isDark;
+  const loginStyles = authStyles.loginStyles;
 
   const faviconUrl = organization.brand_favicon_url || organization.logo_url || '/icono.png';
-  const primaryColor = organization.brand_color_primary || '#3b82f6';
-  const secondaryColor = organization.brand_color_secondary || '#10b981';
-  const [loginStyles, setLoginStyles] = useState<StyleConfig | null>(null);
-
-  // Obtener estilos de login desde la API
-  useEffect(() => {
-    const fetchLoginStyles = async () => {
-      try {
-        const slug = organization.slug;
-        if (!slug) return;
-
-        const response = await fetch(`/api/organizations/${slug}/styles`, {
-          credentials: 'include',
-        });
-
-        const data = await response.json();
-        if (data.success && data.styles?.login) {
-          setLoginStyles(data.styles.login);
-        }
-      } catch (error) {
-      }
-    };
-
-    fetchLoginStyles();
-  }, [organization]);
+  const primaryColor = organization.brand_color_primary || 'var(--color-info)';
+  const secondaryColor = organization.brand_color_secondary || 'var(--color-success)';
 
   // Aplicar estilos personalizados de login
   const backgroundStyle = getBackgroundStyle(loginStyles);
@@ -78,10 +60,10 @@ export function OrganizationAuthLayout({
   const finalSecondaryColor = loginStyles?.secondary_button_color || secondaryColor;
   
   // Calcular estilos de la tarjeta - Adaptativos
-  const defaultCardBg = isDark ? '#1a1a2e' : 'rgba(255, 255, 255, 0.9)';
-  const defaultText = isDark ? '#ffffff' : '#0f172a';
+  const defaultCardBg = isDark ? 'var(--color-legacy-1a1a2e)' : 'rgba(255, 255, 255, 0.9)';
+  const defaultText = isDark ? 'var(--color-bg-light)' : 'var(--color-legacy-0f172a)';
   const defaultBorder = isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.8)';
-  const defaultPageBg = isDark ? '#0f172a' : '#f0f4f8';
+  const defaultPageBg = isDark ? 'var(--color-legacy-0f172a)' : 'var(--color-legacy-f0f4f8)';
 
   const cardBackground = loginStyles?.card_background || defaultCardBg;
   const cardOpacity = loginStyles?.card_opacity !== undefined ? loginStyles.card_opacity : 0.95;
@@ -122,12 +104,13 @@ export function OrganizationAuthLayout({
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center relative overflow-x-hidden overflow-y-auto transition-all duration-500"
-      style={pageStyle}
-    >
+    <OrganizationAuthStylesProvider value={authStyles}>
+      <div
+        className="min-h-screen flex items-center justify-center relative overflow-x-hidden overflow-y-auto transition-all duration-500"
+        style={pageStyle}
+      >
       {/* Animated Gradient Orbs */}
-      {!loginStyles?.background_type && (
+      {!loginStyles?.background_type && !disableHeavyEffects && (
         <>
           <motion.div
             className="absolute inset-0 z-0 fixed"
@@ -189,33 +172,35 @@ export function OrganizationAuthLayout({
               style={{
                 backgroundColor: cardBackgroundColor,
                 borderColor: borderColor,
-                boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px ${borderColor}20`,
+                boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px color-mix(in srgb, ${borderColor} 12.5%, transparent)`,
               }}
             >
               {/* Inner gradient overlay */}
               <motion.div 
                 className="absolute inset-0 opacity-10 rounded-3xl pointer-events-none"
                 style={{
-                  background: `linear-gradient(135deg, ${finalPrimaryColor}20, transparent, ${finalSecondaryColor}20)`,
+                  background: `linear-gradient(135deg, color-mix(in srgb, ${finalPrimaryColor} 12.5%, transparent), transparent, color-mix(in srgb, ${finalSecondaryColor} 12.5%, transparent))`,
                 }}
               />
 
               {/* Shimmer effect */}
-              <motion.div
-                className="absolute inset-0 opacity-10 pointer-events-none"
-                style={{
-                  background: `linear-gradient(135deg, transparent 30%, ${finalPrimaryColor}20 50%, transparent 70%)`,
-                }}
-                animate={{
-                  x: ['-100%', '100%'],
-                }}
-                transition={{
-                  duration: 5,
-                  repeat: Infinity,
-                  ease: 'linear',
-                  delay: 2
-                }}
-              />
+              {!disableHeavyEffects && (
+                <motion.div
+                  className="absolute inset-0 opacity-10 pointer-events-none"
+                  style={{
+                    background: `linear-gradient(135deg, transparent 30%, color-mix(in srgb, ${finalPrimaryColor} 12.5%, transparent) 50%, transparent 70%)`,
+                  }}
+                  animate={{
+                    x: ['-100%', '100%'],
+                  }}
+                  transition={{
+                    duration: 5,
+                    repeat: Infinity,
+                    ease: 'linear',
+                    delay: 2
+                  }}
+                />
+              )}
 
               {/* Content */}
               <div className="relative z-10 w-full">
@@ -239,7 +224,7 @@ export function OrganizationAuthLayout({
                     {organization.description && (
                       <motion.p 
                         className="text-sm font-medium leading-relaxed"
-                        style={{ color: `${textColor}90` }}
+                        style={{ color: `color-mix(in srgb, ${textColor} 56.5%, transparent)` }}
                       >
                         {organization.description}
                       </motion.p>
@@ -300,8 +285,12 @@ export function OrganizationAuthLayout({
             {/* Mobile logo — below card, hidden on desktop */}
             <div className="lg:hidden flex justify-center mt-6 pb-2">
               <motion.div
-                animate={{ y: [-8, 8, -8] }}
-                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                animate={disableHeavyEffects ? undefined : { y: [-8, 8, -8] }}
+                transition={
+                  disableHeavyEffects
+                    ? undefined
+                    : { duration: 6, repeat: Infinity, ease: 'easeInOut' }
+                }
                 className="relative w-20 h-20"
               >
                 <Image
@@ -325,8 +314,12 @@ export function OrganizationAuthLayout({
           >
             <motion.div
               className="relative"
-              animate={{ y: [-10, 10, -10] }}
-              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+              animate={disableHeavyEffects ? undefined : { y: [-10, 10, -10] }}
+              transition={
+                disableHeavyEffects
+                  ? undefined
+                  : { duration: 6, repeat: Infinity, ease: 'easeInOut' }
+              }
             >
               <div className="relative w-[280px] h-[280px] flex items-center justify-center">
                 <motion.div
@@ -346,16 +339,19 @@ export function OrganizationAuthLayout({
                     }}
                   />
                 </motion.div>
-                <motion.div
-                  className="absolute inset-0 rounded-full pointer-events-none -z-10 blur-[60px]"
-                  style={{ background: `radial-gradient(circle, ${finalPrimaryColor}40, transparent 70%)` }}
-                  animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.3, 0.6, 0.3] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                />
+                {!disableHeavyEffects && (
+                  <motion.div
+                    className="absolute inset-0 rounded-full pointer-events-none -z-10 blur-[60px]"
+                    style={{ background: `radial-gradient(circle, color-mix(in srgb, ${finalPrimaryColor} 25.1%, transparent), transparent 70%)` }}
+                    animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                )}
               </div>
             </motion.div>
           </motion.div>
         </div>
-    </div>
+      </div>
+    </OrganizationAuthStylesProvider>
   );
 }

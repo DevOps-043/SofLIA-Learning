@@ -1,12 +1,14 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { CallBackProps, STATUS, ACTIONS, EVENTS } from 'react-joyride';
+import { STATUS, ACTIONS, EVENTS } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
 import { getBusinessPanelJoyrideSteps, BUSINESS_PANEL_TOUR_ID } from '../config/business-panel-joyride-steps';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourRestart } from '@/core/contexts/TourRestartContext';
 import { useTranslation } from 'react-i18next';
+import type { SofliaJoyrideEvent as CallBackProps } from '../types/joyride';
 
 interface UseBusinessPanelJoyrideOptions {
   enabled?: boolean;
@@ -33,13 +35,13 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
 
   const finishTour = useCallback(() => {
     stopTour();
-    completeTour().catch(err => console.error('[useBusinessPanelJoyride] Complete failed', err));
+    completeTour().catch(err => techDebtLogger.error('[useBusinessPanelJoyride] Complete failed', err));
   }, [completeTour, stopTour]);
 
   const dismissTour = useCallback((reason: 'skip' | 'close') => {
     stopTour();
     const label = reason === 'close' ? 'Close' : 'Skip';
-    skipTour().catch(err => console.error(`[useBusinessPanelJoyride] ${label} failed`, err));
+    skipTour().catch(err => techDebtLogger.error(`[useBusinessPanelJoyride] ${label} failed`, err));
   }, [skipTour, stopTour]);
 
   // Auto-start tour when conditions are met
@@ -68,7 +70,7 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
     setShowVideoIntro(false);
     setStepIndex(0);
     setIsFinishedInSession(false);
-    startTour().catch(err => console.error('[useBusinessPanelJoyride] DB start failed', err));
+    startTour().catch(err => techDebtLogger.error('[useBusinessPanelJoyride] DB start failed', err));
     setRun(true);
   }, [startTour]);
 
@@ -94,8 +96,20 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
       return;
     }
 
+    // TARGET_NOT_FOUND: el step no encontro su elemento. NO avanzar: si se
+    // trata igual que STEP_AFTER, una pulsacion de "Siguiente" cuyo target
+    // siguiente todavia no esta listo dispara una cascada que recorre todos
+    // los steps en un solo evento y termina el tour de golpe.
+    if (type === EVENTS.TARGET_NOT_FOUND) {
+      techDebtLogger.warn(
+        '[useBusinessPanelJoyride] TARGET_NOT_FOUND on step',
+        index,
+      );
+      return;
+    }
+
     // Handle step navigation
-    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+    if (type === EVENTS.STEP_AFTER) {
       const nextIndex = action === ACTIONS.PREV ? Math.max(0, index - 1) : index + 1;
 
       if (nextIndex >= steps.length) {
@@ -156,7 +170,7 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
       styles: {
         options: {
           zIndex: 10000,
-          arrowColor: '#1E2329',
+          arrowColor: 'var(--color-gray-800)',
         },
         spotlight: {
           borderRadius: 16,

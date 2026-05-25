@@ -56,7 +56,7 @@ export function UnifiedInviteSuccessView({
             initial={{ scale: 0, rotate: -20 }}
             style={{ 
                background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
-               boxShadow: `0 32px 64px -12px ${theme.primaryColor}50`
+               boxShadow: `0 32px 64px -12px color-mix(in srgb, ${theme.primaryColor} 31.4%, transparent)`
             }}
             transition={{ type: 'spring', damping: 15, stiffness: 200, delay: 0.1 }}
           >
@@ -111,7 +111,7 @@ export function UnifiedInviteSuccessView({
             className="w-20 h-20 rounded-[2rem] flex items-center justify-center mb-6 shadow-2xl border-4"
             initial={{ scale: 0 }}
             style={{ 
-               background: `linear-gradient(135deg, ${theme.primaryColor}20, ${theme.accentColor}10)`,
+               background: `linear-gradient(135deg, color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent), color-mix(in srgb, ${theme.accentColor} 6.3%, transparent))`,
                borderColor: theme.borderColor,
                color: theme.primaryColor
             }}

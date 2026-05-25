@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
+
 import {
   getSecurityStateCookieOptions,
   getVerificationChallengeCookieOptions,
@@ -10,63 +11,51 @@ import {
   SECURITY_STATE_COOKIE_NAME,
   serializeSecurityState,
   VERIFICATION_CHALLENGE_COOKIE_NAME,
-} from '@/lib/security/security-state'
-import { recordSecurityEvent } from '@/lib/security/security-events'
+} from '@/lib/security/security-state';
+import { recordSecurityEvent } from '@/lib/security/security-events';
+import { withZodBody } from '@/lib/api/with-validation';
 
-export const dynamic = 'force-dynamic'
+import { verifyHumanSchema, type VerifyHumanInput } from './schema';
 
-interface VerifyHumanPayload {
-  holdDurationMs?: number
-  returnTo?: string
+export const dynamic = 'force-dynamic';
+
+const RESPONSE_HEADERS = {
+  'Cache-Control': 'private, no-store, max-age=0',
+  'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet, noimageindex',
+};
+
+function getClientIp(request: NextRequest): string | undefined {
+  return (
+    request.headers.get('cf-connecting-ip') ||
+    request.headers.get('x-forwarded-for') ||
+    undefined
+  );
 }
 
-async function readPayload(request: NextRequest) {
-  try {
-    return (await request.json()) as VerifyHumanPayload
-  } catch {
-    return null
-  }
-}
+async function handleVerifyHuman(request: NextRequest, payload: VerifyHumanInput) {
+  const challenge = readVerificationChallengeFromRequest(request);
 
-export async function POST(request: NextRequest) {
-  const payload = await readPayload(request)
-  const challenge = readVerificationChallengeFromRequest(request)
-  const responseHeaders = {
-    'Cache-Control': 'private, no-store, max-age=0',
-    'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet, noimageindex',
-  }
-
-  if (!payload || !challenge) {
+  if (!challenge) {
     recordSecurityEvent('verification-failed', {
       pathname: request.nextUrl.pathname,
       method: request.method,
       userAgent: request.headers.get('user-agent') || undefined,
-      ip:
-        request.headers.get('cf-connecting-ip') ||
-        request.headers.get('x-forwarded-for') ||
-        undefined,
-      reasons: ['missing verification payload or challenge cookie'],
-    })
+      ip: getClientIp(request),
+      reasons: ['missing challenge cookie'],
+    });
 
     return NextResponse.json(
       {
         ok: false,
         error: 'El reto de verificacion ya no es valido. Recarga e intenta nuevamente.',
       },
-      { status: 403, headers: responseHeaders },
-    )
+      { status: 403, headers: RESPONSE_HEADERS },
+    );
   }
 
-  const holdDurationMs =
-    typeof payload.holdDurationMs === 'number' &&
-    Number.isFinite(payload.holdDurationMs)
-      ? payload.holdDurationMs
-      : 0
-
-  const elapsedSinceIssued = Date.now() - challenge.issuedAt
-  const currentUserAgentHash = hashUserAgent(
-    request.headers.get('user-agent') || '',
-  )
+  const holdDurationMs = payload.holdDurationMs ?? 0;
+  const elapsedSinceIssued = Date.now() - challenge.issuedAt;
+  const currentUserAgentHash = hashUserAgent(request.headers.get('user-agent') || '');
 
   if (
     holdDurationMs < challenge.minHoldMs ||
@@ -77,72 +66,55 @@ export async function POST(request: NextRequest) {
       pathname: request.nextUrl.pathname,
       method: request.method,
       userAgent: request.headers.get('user-agent') || undefined,
-      ip:
-        request.headers.get('cf-connecting-ip') ||
-        request.headers.get('x-forwarded-for') ||
-        undefined,
+      ip: getClientIp(request),
       reasons: ['verification challenge requirements not satisfied'],
-      metadata: {
-        holdDurationMs,
-        minHoldMs: challenge.minHoldMs,
-        elapsedSinceIssued,
-      },
-    })
+      metadata: { holdDurationMs, minHoldMs: challenge.minHoldMs, elapsedSinceIssued },
+    });
 
     return NextResponse.json(
       {
         ok: false,
-        error: 'No se pudo completar la verificacion. Mantén presionado el botón el tiempo indicado.',
+        error: 'No se pudo completar la verificacion. Manten presionado el boton el tiempo indicado.',
       },
-      { status: 403, headers: responseHeaders },
-    )
+      { status: 403, headers: RESPONSE_HEADERS },
+    );
   }
 
-  const currentState = readSecurityStateFromRequest(request)
-  const verifiedUntil = Date.now() + 12 * 60 * 60 * 1000
+  const currentState = readSecurityStateFromRequest(request);
+  const verifiedUntil = Date.now() + 12 * 60 * 60 * 1000;
   const nextState = mergeSecurityState(currentState, {
     verifiedHumanUntil: verifiedUntil,
     verifiedPathScope: resolvePathnameFromReturnTo(challenge.returnTo),
-  })
+  });
 
   const response = NextResponse.json(
-    {
-      ok: true,
-      redirectTo: challenge.returnTo,
-    },
-    {
-      headers: responseHeaders,
-    },
-  )
+    { ok: true, redirectTo: challenge.returnTo },
+    { headers: RESPONSE_HEADERS },
+  );
 
   response.cookies.set(
     SECURITY_STATE_COOKIE_NAME,
     serializeSecurityState(nextState),
     getSecurityStateCookieOptions(),
-  )
-  response.cookies.set(
-    VERIFICATION_CHALLENGE_COOKIE_NAME,
-    '',
-    {
-      ...getVerificationChallengeCookieOptions(),
-      maxAge: 0,
-    },
-  )
+  );
+  response.cookies.set(VERIFICATION_CHALLENGE_COOKIE_NAME, '', {
+    ...getVerificationChallengeCookieOptions(),
+    maxAge: 0,
+  });
 
   recordSecurityEvent('verification-passed', {
     pathname: request.nextUrl.pathname,
     method: request.method,
     userAgent: request.headers.get('user-agent') || undefined,
-    ip:
-      request.headers.get('cf-connecting-ip') ||
-      request.headers.get('x-forwarded-for') ||
-      undefined,
+    ip: getClientIp(request),
     metadata: {
       verifiedUntil,
       returnTo: challenge.returnTo,
       requestedReturnTo: payload.returnTo,
     },
-  })
+  });
 
-  return response
+  return response;
 }
+
+export const POST = withZodBody(verifyHumanSchema, handleVerifyHuman);

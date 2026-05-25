@@ -1,0 +1,33 @@
+{
+  "extends": "../apps/web/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "incremental": false,
+    "plugins": []
+  },
+  "include": [
+    "../apps/web/src/lib/nanobana/templates.ts",
+    "../apps/web/src/lib/nanobana/templates/**/*.ts",
+    "../apps/web/src/features/admin/services/admin-workshops/workshop-deletion.service.ts",
+    "../apps/web/src/features/admin/services/admin-workshops/workshop-deletion/**/*.ts",
+    "../apps/web/src/features/business-panel/services/reports-analytics/reports-analytics.insights.service.ts",
+    "../apps/web/src/features/business-panel/services/reports-analytics/reports-analytics.insights*.ts",
+    "../apps/web/src/features/business-panel/services/reports-analytics/reports-analytics.insights/**/*.ts",
+    "../apps/web/src/core/components/NotesModal/shared/notes-pdf-jspdf.service.ts",
+    "../apps/web/src/core/components/NotesModal/shared/notes-pdf-jspdf/**/*.ts",
+    "../apps/web/src/features/learning-paths/services/learning-path-defaults.server.ts",
+    "../apps/web/src/features/learning-paths/services/learning-path-defaults/**/*.ts",
+    "../apps/web/src/features/business-panel/components/BusinessAssignLearningPathModal.tsx",
+    "../apps/web/src/features/business-panel/components/BusinessAssignLearningPathModal/**/*.ts",
+    "../apps/web/src/features/business-panel/components/BusinessAssignLearningPathModal/**/*.tsx",
+    "../apps/web/src/features/business-panel/components/OrganizationTab.tsx",
+    "../apps/web/src/features/business-panel/components/OrganizationTab/**/*.ts",
+    "../apps/web/src/features/business-panel/components/OrganizationTab/**/*.tsx",
+    "../apps/web/src/features/certificates/components/CertificateDocument.tsx",
+    "../apps/web/src/features/certificates/components/CertificateDocument/**/*.ts",
+    "../apps/web/src/features/certificates/components/CertificateDocument/**/*.tsx",
+    "../apps/web/src/lib/lia-context/__tests__/optional-isolated.test.ts",
+    "../apps/web/src/lib/lia-context/__tests__/optional-features.test.ts",
+    "../apps/web/src/lib/lia-context/__tests__/optional-context-tests/**/*.ts"
+  ]
+}

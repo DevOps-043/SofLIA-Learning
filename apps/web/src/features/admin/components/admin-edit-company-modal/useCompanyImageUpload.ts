@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useRef, useState, type ChangeEvent } from 'react'
 
 interface UseCompanyImageUploadProps {
@@ -41,7 +42,7 @@ export function useCompanyImageUpload({
         onBannerUploaded(result.image.url)
       }
     } catch (error) {
-      console.error('Upload error:', error)
+      techDebtLogger.error('Upload error:', error)
       setImageUploadError('Error al subir la imagen')
     } finally {
       setUploadingState(imageType, false, setUploadingLogo, setUploadingBanner)
@@ -92,6 +93,6 @@ async function postCompanyImage(
     return result
   }
 
-  console.error('Upload failed:', result.error)
+  techDebtLogger.error('Upload failed:', result.error)
   throw new Error(result.error || 'Error al subir la imagen')
 }

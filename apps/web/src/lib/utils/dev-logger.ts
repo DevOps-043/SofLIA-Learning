@@ -1,6 +1,7 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Utilidad de logging que solo funciona en modo desarrollo
- * Reemplaza los console.log directos en el código
+ * Reemplaza los logger.log directos en el código
  */
 
 type LogLevel = 'log' | 'info' | 'warn' | 'error' | 'debug'
@@ -58,10 +59,42 @@ class DevLogger {
     // Log
     const logMessage = parts.join(' ')
 
-    if (data !== undefined) {
-      console[level](logMessage, data)
-    } else {
-      console[level](logMessage)
+    switch (level) {
+      case 'debug':
+        if (data !== undefined) {
+          techDebtLogger.debug(logMessage, data)
+        } else {
+          techDebtLogger.debug(logMessage)
+        }
+        break
+      case 'error':
+        if (data !== undefined) {
+          techDebtLogger.error(logMessage, data)
+        } else {
+          techDebtLogger.error(logMessage)
+        }
+        break
+      case 'info':
+        if (data !== undefined) {
+          techDebtLogger.info(logMessage, data)
+        } else {
+          techDebtLogger.info(logMessage)
+        }
+        break
+      case 'warn':
+        if (data !== undefined) {
+          techDebtLogger.warn(logMessage, data)
+        } else {
+          techDebtLogger.warn(logMessage)
+        }
+        break
+      default:
+        if (data !== undefined) {
+          techDebtLogger.log(logMessage, data)
+        } else {
+          techDebtLogger.log(logMessage)
+        }
+        break
     }
   }
 
@@ -128,9 +161,9 @@ class DevLogger {
       return
     }
 
-    console.group(`📦 ${label}`)
+    techDebtLogger.group(`📦 ${label}`)
     callback()
-    console.groupEnd()
+    techDebtLogger.groupEnd()
   }
 
 }

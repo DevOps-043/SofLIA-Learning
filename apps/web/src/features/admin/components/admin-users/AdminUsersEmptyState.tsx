@@ -67,7 +67,7 @@ export function AdminUsersEmptyState({
           style={{
             backgroundColor: theme.primaryColor,
             color: theme.onPrimaryColor,
-            boxShadow: `0 10px 24px ${theme.primaryColor}24`,
+            boxShadow: `0 10px 24px color-mix(in srgb, ${theme.primaryColor} 14.1%, transparent)`,
           }}
         >
           <Plus className="h-4 w-4" />

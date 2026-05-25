@@ -1,11 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import dynamic from 'next/dynamic'
+import { useEffect, useState } from 'react'
 import { CalendarIcon } from '@heroicons/react/24/outline'
-
-// Lazy load Nivo components
-const ResponsiveLine = dynamic(() => import('@nivo/line').then(mod => mod.ResponsiveLine), { ssr: false })
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 
 interface MonthlyGrowthData {
   month: string
@@ -23,6 +29,14 @@ interface MonthlyGrowthWidgetProps {
   metrics?: string[]
 }
 
+const metricConfig: Record<string, { color: string; label: string }> = {
+  aiApps: { color: 'var(--color-error)', label: 'Apps de IA' },
+  communities: { color: 'var(--color-accent)', label: 'Comunidades' },
+  courses: { color: 'var(--color-success)', label: 'Talleres' },
+  prompts: { color: 'var(--color-warning)', label: 'Prompts' },
+  users: { color: 'var(--color-primary)', label: 'Usuarios' },
+}
+
 export function MonthlyGrowthWidget({ period = 8, metrics = ['users'] }: MonthlyGrowthWidgetProps) {
   const [data, setData] = useState<MonthlyGrowthData[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -33,18 +47,17 @@ export function MonthlyGrowthWidget({ period = 8, metrics = ['users'] }: Monthly
       try {
         setIsLoading(true)
         setError(null)
-        
+
         const response = await fetch(`/api/admin/statistics/monthly-growth?period=${period}`)
         const result = await response.json()
-        
+
         if (result.success) {
           setData(result.data)
         } else {
           setError(result.error || 'Error al cargar datos')
         }
-      } catch (err) {
+      } catch {
         setError('Error al cargar datos de crecimiento mensual')
-        console.error(err)
       } finally {
         setIsLoading(false)
       }
@@ -72,33 +85,7 @@ export function MonthlyGrowthWidget({ period = 8, metrics = ['users'] }: Monthly
     )
   }
 
-  // Preparar datos para Nivo
-  const chartData = metrics.map(metric => {
-    const colorMap: Record<string, string> = {
-      users: '#3b82f6',
-      courses: '#10b981',
-      communities: '#8b5cf6',
-      prompts: '#f97316',
-      aiApps: '#ec4899'
-    }
-
-    const labelMap: Record<string, string> = {
-      users: 'Usuarios',
-      courses: 'Talleres',
-      communities: 'Comunidades',
-      prompts: 'Prompts',
-      aiApps: 'Apps de IA'
-    }
-
-    return {
-      id: labelMap[metric] || metric,
-      color: colorMap[metric] || '#3b82f6',
-      data: data.map(item => ({
-        x: item.month,
-        y: item[metric as keyof MonthlyGrowthData] as number
-      }))
-    }
-  })
+  const visibleMetrics = metrics.filter((metric) => metric in metricConfig)
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -111,117 +98,37 @@ export function MonthlyGrowthWidget({ period = 8, metrics = ['users'] }: Monthly
           Últimos {period} meses
         </div>
       </div>
-      
+
       <div className="h-64">
-        <ResponsiveLine
-          data={chartData}
-          margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
-          xScale={{ type: 'point' }}
-          yScale={{
-            type: 'linear',
-            min: 0,
-            max: 'auto',
-            stacked: false,
-            reverse: false
-          }}
-          yFormat=" >-.0f"
-          axisTop={null}
-          axisRight={null}
-          axisBottom={{
-            tickSize: 5,
-            tickPadding: 5,
-            tickRotation: 0,
-            legend: 'Mes',
-            legendOffset: 36,
-            legendPosition: 'middle'
-          }}
-          axisLeft={{
-            tickSize: 5,
-            tickPadding: 5,
-            tickRotation: 0,
-            legend: 'Cantidad',
-            legendOffset: -40,
-            legendPosition: 'middle'
-          }}
-          pointSize={8}
-          pointColor={{ theme: 'background' }}
-          pointBorderWidth={2}
-          pointBorderColor={{ from: 'serieColor' }}
-          pointLabelYOffset={-12}
-          useMesh={true}
-          legends={[
-            {
-              anchor: 'bottom-right',
-              direction: 'column',
-              justify: false,
-              translateX: 100,
-              translateY: 0,
-              itemsSpacing: 0,
-              itemDirection: 'left-to-right',
-              itemWidth: 80,
-              itemHeight: 20,
-              itemOpacity: 0.75,
-              symbolSize: 12,
-              symbolShape: 'circle',
-              effects: [
-                {
-                  on: 'hover',
-                  style: {
-                    itemBackground: 'rgba(0, 0, 0, .03)',
-                    itemOpacity: 1
-                  }
-                }
-              ]
-            }
-          ]}
-          theme={{
-            axis: {
-              domain: {
-                line: {
-                  stroke: '#777777',
-                  strokeWidth: 1
-                }
-              },
-              legend: {
-                text: {
-                  fill: '#777777',
-                  fontSize: 12
-                }
-              },
-              ticks: {
-                line: {
-                  stroke: '#777777',
-                  strokeWidth: 1
-                },
-                text: {
-                  fill: '#777777',
-                  fontSize: 11
-                }
-              }
-            },
-            grid: {
-              line: {
-                stroke: '#dddddd',
-                strokeWidth: 1
-              }
-            },
-            legends: {
-              text: {
-                fill: '#777777',
-                fontSize: 11
-              }
-            },
-            tooltip: {
-              container: {
-                background: '#ffffff',
-                color: '#333333',
-                fontSize: 12
-              }
-            }
-          }}
-        />
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 24, right: 32, bottom: 16, left: 8 }}>
+            <CartesianGrid stroke="currentColor" strokeDasharray="3 3" className="text-gray-200 dark:text-gray-700" />
+            <XAxis dataKey="month" tick={{ fill: 'currentColor', fontSize: 11 }} />
+            <YAxis allowDecimals={false} tick={{ fill: 'currentColor', fontSize: 11 }} width={44} />
+            <Tooltip
+              contentStyle={{
+                background: 'var(--color-bg-light)',
+                border: '1px solid var(--color-gray-200)',
+                borderRadius: 8,
+                color: 'var(--color-primary)',
+                fontSize: 12,
+              }}
+            />
+            <Legend />
+            {visibleMetrics.map((metric) => (
+              <Line
+                key={metric}
+                dataKey={metric}
+                dot={{ r: 3 }}
+                name={metricConfig[metric].label}
+                stroke={metricConfig[metric].color}
+                strokeWidth={2}
+                type="monotone"
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     </div>
   )
 }
-

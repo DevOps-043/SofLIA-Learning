@@ -3,6 +3,14 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import { requireFeature } from '@/lib/subscription/subscriptionHelper'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import {
+  certificateTemplateCreateSchema,
+  certificateTemplateUpdateSchema,
+  type CertificateTemplateCreateBody,
+  type CertificateTemplateUpdateBody,
+} from './schema'
 
 /**
  * GET /api/business/certificates/templates
@@ -14,10 +22,7 @@ export async function GET(request: NextRequest) {
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Usuario no pertenece a ninguna organización'
-      }, { status: 400 })
+      return apiError('NO_ORGANIZATION', 'Usuario no pertenece a ninguna organización', 400)
     }
 
     const supabase = await createClient()
@@ -31,7 +36,7 @@ export async function GET(request: NextRequest) {
     // Obtener templates de la organización
     const { data: templates, error: templatesError } = await supabase
       .from('certificate_templates')
-      .select('*')
+      .select(SELECT_COLUMNS.certificate_templates)
       .eq('organization_id', auth.organizationId)
       .eq('is_active', true)
       .order('is_default', { ascending: false })
@@ -54,10 +59,10 @@ export async function GET(request: NextRequest) {
         design_config: {
           layout: 'modern',
           colors: {
-            primary: '#8b5cf6',
-            secondary: '#6366f1',
-            text: '#1f2937',
-            background: '#ffffff'
+            primary: 'var(--color-secondary)',
+            secondary: 'var(--color-legacy-6366f1)',
+            text: 'var(--color-legacy-1f2937)',
+            background: 'var(--color-bg-light)'
           },
           fonts: {
             title: 'Inter',
@@ -108,16 +113,17 @@ export async function GET(request: NextRequest) {
  * POST /api/business/certificates/templates
  * Crea un nuevo template de certificado
  */
-export async function POST(request: NextRequest) {
+async function handlePost(
+  _request: NextRequest,
+  body: CertificateTemplateCreateBody,
+  _context: unknown,
+) {
   try {
     const auth = await requireBusiness()
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Usuario no pertenece a ninguna organización'
-      }, { status: 400 })
+      return apiError('NO_ORGANIZATION', 'Usuario no pertenece a ninguna organización', 400)
     }
 
     const supabase = await createClient()
@@ -128,15 +134,7 @@ export async function POST(request: NextRequest) {
       return featureCheck
     }
 
-    const body = await request.json()
     const { name, description, design_config, is_default } = body
-
-    if (!name || !design_config) {
-      return NextResponse.json({
-        success: false,
-        error: 'Nombre y configuración de diseño son requeridos'
-      }, { status: 400 })
-    }
 
     // Si es el template por defecto, desmarcar otros templates por defecto
     if (is_default) {
@@ -163,10 +161,11 @@ export async function POST(request: NextRequest) {
 
     if (createError) {
       logger.error('Error creating certificate template:', createError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al crear template de certificado'
-      }, { status: 500 })
+      return apiError(
+        'CREATE_CERTIFICATE_TEMPLATE_FAILED',
+        'Error al crear template de certificado',
+        500,
+      )
     }
 
     return NextResponse.json({
@@ -175,27 +174,27 @@ export async function POST(request: NextRequest) {
     }, { status: 201 })
   } catch (error) {
     logger.error('💥 Error in /api/business/certificates/templates POST:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Error interno del servidor'
-    }, { status: 500 })
+    return apiError('CREATE_CERTIFICATE_TEMPLATE_FAILED', 'Error interno del servidor', 500)
   }
 }
+
+export const POST = withZodBody(certificateTemplateCreateSchema, handlePost)
 
 /**
  * PUT /api/business/certificates/templates/[id]
  * Actualiza un template de certificado existente
  */
-export async function PUT(request: NextRequest) {
+async function handlePut(
+  request: NextRequest,
+  body: CertificateTemplateUpdateBody,
+  _context: unknown,
+) {
   try {
     const auth = await requireBusiness()
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Usuario no pertenece a ninguna organización'
-      }, { status: 400 })
+      return apiError('NO_ORGANIZATION', 'Usuario no pertenece a ninguna organización', 400)
     }
 
     const supabase = await createClient()
@@ -203,13 +202,9 @@ export async function PUT(request: NextRequest) {
     const templateId = searchParams.get('id')
 
     if (!templateId) {
-      return NextResponse.json({
-        success: false,
-        error: 'ID de template es requerido'
-      }, { status: 400 })
+      return apiError('TEMPLATE_ID_REQUIRED', 'ID de template es requerido', 400)
     }
 
-    const body = await request.json()
     const { name, description, design_config, is_default, is_active } = body
 
     // Verificar que el template pertenece a la organización
@@ -221,10 +216,11 @@ export async function PUT(request: NextRequest) {
       .maybeSingle()
 
     if (fetchError || !existingTemplate) {
-      return NextResponse.json({
-        success: false,
-        error: 'Template no encontrado o no pertenece a tu organización'
-      }, { status: 404 })
+      return apiError(
+        'CERTIFICATE_TEMPLATE_NOT_FOUND',
+        'Template no encontrado o no pertenece a tu organización',
+        404,
+      )
     }
 
     // Si es el template por defecto, desmarcar otros
@@ -258,10 +254,11 @@ export async function PUT(request: NextRequest) {
 
     if (updateError) {
       logger.error('Error updating certificate template:', updateError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al actualizar template de certificado'
-      }, { status: 500 })
+      return apiError(
+        'UPDATE_CERTIFICATE_TEMPLATE_FAILED',
+        'Error al actualizar template de certificado',
+        500,
+      )
     }
 
     return NextResponse.json({
@@ -270,12 +267,11 @@ export async function PUT(request: NextRequest) {
     })
   } catch (error) {
     logger.error('💥 Error in /api/business/certificates/templates PUT:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Error interno del servidor'
-    }, { status: 500 })
+    return apiError('UPDATE_CERTIFICATE_TEMPLATE_FAILED', 'Error interno del servidor', 500)
   }
 }
+
+export const PUT = withZodBody(certificateTemplateUpdateSchema, handlePut)
 
 /**
  * DELETE /api/business/certificates/templates/[id]
@@ -354,4 +350,3 @@ export async function DELETE(request: NextRequest) {
     }, { status: 500 })
   }
 }
-

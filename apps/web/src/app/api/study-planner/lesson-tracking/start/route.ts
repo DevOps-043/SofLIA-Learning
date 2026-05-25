@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API Endpoint: Lesson Tracking Start
  * 
@@ -7,9 +8,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { SessionService } from '../../../../../features/auth/services/session.service';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../../lib/supabase/types';
+import {
+  lessonTrackingStartSchema,
+  type LessonTrackingStartBody,
+} from '../../_schemas';
 
 // Crear cliente admin
 function createAdminClient() {
@@ -28,18 +35,6 @@ function createAdminClient() {
   });
 }
 
-interface StartRequest {
-  lessonId: string;
-  sessionId?: string;
-  planId?: string;
-  trigger?: 'video_play' | 'page_load' | 'manual';
-  lessonTimeEstimates?: {
-    t_lesson_minutes: number;
-    t_video_minutes: number;
-    t_materials_minutes: number;
-  };
-}
-
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
 }
@@ -56,27 +51,19 @@ function isUniqueTrackingError(error: unknown): boolean {
   return text.includes('23505') || text.includes('lesson_tracking_unique');
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+async function handlePost(
+  _request: NextRequest,
+  body: LessonTrackingStartBody,
+): Promise<NextResponse | Response> {
   try {
     // Verificar autenticación
     const user = await SessionService.getCurrentUser();
 
     if (!user) {
-      return NextResponse.json({
-        error: 'No autorizado',
-        success: false
-      }, { status: 401 });
+      return apiError('UNAUTHENTICATED', 'No autorizado', 401);
     }
 
-    const body: StartRequest = await request.json();
     const { lessonId, sessionId, planId, trigger = 'video_play', lessonTimeEstimates } = body;
-
-    if (!lessonId) {
-      return NextResponse.json({
-        error: 'lessonId es requerido',
-        success: false
-      }, { status: 400 });
-    }
 
     const supabase = createAdminClient();
     const now = new Date();
@@ -175,11 +162,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         }
       }
 
-      console.error('Error creando lesson tracking:', error);
-      return NextResponse.json({
-        error: `Error al crear tracking: ${error.message}`,
-        success: false
-      }, { status: 500 });
+      techDebtLogger.error('Error creando lesson tracking:', error);
+      return apiError(
+        'CREATE_LESSON_TRACKING_FAILED',
+        `Error al crear tracking: ${error.message}`,
+        500,
+      );
     }
 
     // Si hay sessionId, actualizar study_session con started_at
@@ -204,10 +192,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
   } catch (error: unknown) {
-    console.error('Error en POST /api/study-planner/lesson-tracking/start:', error);
-    return NextResponse.json({
-      error: getErrorMessage(error, 'Error interno del servidor'),
-      success: false
-    }, { status: 500 });
+    techDebtLogger.error('Error en POST /api/study-planner/lesson-tracking/start:', error);
+    return apiError(
+      'CREATE_LESSON_TRACKING_FAILED',
+      getErrorMessage(error, 'Error interno del servidor'),
+      500,
+    );
   }
 }
+
+export const POST = withZodBody(lessonTrackingStartSchema, handlePost);

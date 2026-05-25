@@ -44,10 +44,10 @@ export function getBusinessUserStatsRoleTranslationKey(
 export function getBusinessUserStatsCourseProgressColor(
   course: Pick<BusinessUserStatsCourseData, 'status' | 'progress'>,
 ): string {
-  if (course.status === 'completed') return '#10B981'
-  if (course.progress > 50) return '#3B82F6'
-  if (course.progress > 0) return '#F59E0B'
-  return '#6B7280'
+  if (course.status === 'completed') return 'var(--color-success)'
+  if (course.progress > 50) return 'var(--color-info)'
+  if (course.progress > 0) return 'var(--color-warning)'
+  return 'var(--color-legacy-6b7280)'
 }
 
 export function shouldShowBusinessUserPlatformActivity(

@@ -76,7 +76,7 @@ describe('validateFile', () => {
     const file = makeFile('photo.png', 'image/jpeg', 100);
     const result = validateFile(file);
     expect(result.valid).toBe(false);
-    expect(result.error).toContain('extensión no coincide');
+    expect(result.error).toContain('extension no coincide');
   });
 
   it('respects custom allowedTypes option', () => {
@@ -214,9 +214,8 @@ describe('generateSafeFileName', () => {
     expect(result).toMatch(/\.bin$/);
   });
 
-  it('includes timestamp-like number prefix', () => {
+  it('uses an opaque generated identifier prefix', () => {
     const result = generateSafeFileName('file.txt');
-    // Format: timestamp-randomstring.ext
-    expect(result).toMatch(/^\d+-[a-z0-9]+-?[a-z0-9]+\.\w+$/);
+    expect(result).toMatch(/^[a-z0-9-]+\.txt$/);
   });
 });

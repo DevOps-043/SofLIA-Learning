@@ -34,8 +34,8 @@ export function EmbeddedLiaPanelHeader({
       animate={{ y: 0, opacity: 1 }}
       className="backdrop-blur-md rounded-2xl shadow-lg"
       style={{
-        backgroundColor: `${colors.cardBg}F5`,
-        border: `1px solid ${colors.primary}30`,
+        backgroundColor: `color-mix(in srgb, ${colors.cardBg} 96.1%, transparent)`,
+        border: `1px solid color-mix(in srgb, ${colors.primary} 18.8%, transparent)`,
       }}
     >
       <div className="flex items-center justify-between px-3 py-2.5">
@@ -48,7 +48,7 @@ export function EmbeddedLiaPanelHeader({
           >
             <div
               className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0"
-              style={{ boxShadow: `0 0 0 2px ${colors.accent}50` }}
+              style={{ boxShadow: `0 0 0 2px color-mix(in srgb, ${colors.accent} 31.4%, transparent)` }}
             >
               <img src={assistantAvatar} alt={assistantName} className="w-full h-full object-cover" />
             </div>
@@ -58,14 +58,14 @@ export function EmbeddedLiaPanelHeader({
               </h3>
               <div className="flex items-center gap-1.5">
                 <MessageSquare className="w-3 h-3 flex-shrink-0" style={{ color: currentModeData.color }} />
-                <span className="text-[10px] leading-tight truncate" style={{ color: `${colors.text}80` }}>
+                <span className="text-[10px] leading-tight truncate" style={{ color: `color-mix(in srgb, ${colors.text} 50.2%, transparent)` }}>
                   {currentModeData.name}
                 </span>
               </div>
             </div>
             <ChevronDown
               className={`w-3.5 h-3.5 transition-transform flex-shrink-0 ${isModeDropdownOpen ? 'rotate-180' : ''}`}
-              style={{ color: `${colors.text}80` }}
+              style={{ color: `color-mix(in srgb, ${colors.text} 50.2%, transparent)` }}
             />
           </button>
         </div>
@@ -74,7 +74,7 @@ export function EmbeddedLiaPanelHeader({
           <button
             onClick={onClearHistory}
             className="p-1.5 rounded-lg transition-colors flex-shrink-0"
-            style={{ color: `${colors.text}80` }}
+            style={{ color: `color-mix(in srgb, ${colors.text} 50.2%, transparent)` }}
             title="Limpiar conversacion"
           >
             <X className="w-3.5 h-3.5" />
@@ -82,7 +82,7 @@ export function EmbeddedLiaPanelHeader({
           <button
             onClick={onCollapse}
             className="p-1.5 rounded-lg transition-colors flex-shrink-0"
-            style={{ color: `${colors.text}80` }}
+            style={{ color: `color-mix(in srgb, ${colors.text} 50.2%, transparent)` }}
             title="Colapsar"
           >
             <ChevronRight className="w-3.5 h-3.5" />

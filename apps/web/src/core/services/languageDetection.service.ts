@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Servicio de detección de idioma usando OpenAI
  * Detecta el idioma del contenido (es, en, pt) para determinar qué traducciones hacer
@@ -5,6 +6,7 @@
 
 import { SupportedLanguage } from '../i18n/i18n';
 import { trackOpenAICall, calculateOpenAIMetadata } from '../../lib/openai/usage-monitor';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 
 type DetectableLanguage = 'es' | 'en' | 'pt';
 
@@ -24,7 +26,7 @@ export class LanguageDetectionService {
     }
 
     if (!this.OPENAI_API_KEY) {
-      console.warn('[LanguageDetectionService] ⚠️ OPENAI_API_KEY no configurada, usando detección básica');
+      techDebtLogger.warn('[LanguageDetectionService] ⚠️ OPENAI_API_KEY no configurada, usando detección básica');
       return this.detectLanguageBasic(text);
     }
 
@@ -51,7 +53,7 @@ Texto:
 ${text.substring(0, 1000)}${text.length > 1000 ? '...' : ''}`;
 
       const startTime = Date.now();
-      const response = await fetch(this.OPENAI_BASE_URL, {
+      const response = await fetchWithCircuitBreaker('openai-language-detection', this.OPENAI_BASE_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +78,7 @@ ${text.substring(0, 1000)}${text.length > 1000 ? '...' : ''}`;
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error(`[LanguageDetectionService] ❌ Error de OpenAI API: ${response.status}`, errorData);
+        techDebtLogger.error(`[LanguageDetectionService] ❌ Error de OpenAI API: ${response.status}`, errorData);
         // Fallback a detección básica
         return this.detectLanguageBasic(text);
       }
@@ -102,11 +104,11 @@ ${text.substring(0, 1000)}${text.length > 1000 ? '...' : ''}`;
 
         return detectedLang as DetectableLanguage;
       } else {
-        console.warn(`[LanguageDetectionService] ⚠️ Idioma detectado no válido: "${detectedLang}", usando detección básica`);
+        techDebtLogger.warn(`[LanguageDetectionService] ⚠️ Idioma detectado no válido: "${detectedLang}", usando detección básica`);
         return this.detectLanguageBasic(text);
       }
     } catch (error) {
-      console.error('[LanguageDetectionService] ❌ Error detectando idioma con OpenAI:', error);
+      techDebtLogger.error('[LanguageDetectionService] ❌ Error detectando idioma con OpenAI:', error);
       // Fallback a detección básica
       return this.detectLanguageBasic(text);
     }
@@ -197,4 +199,3 @@ ${text.substring(0, 1000)}${text.length > 1000 ? '...' : ''}`;
     return mostCommon;
   }
 }
-

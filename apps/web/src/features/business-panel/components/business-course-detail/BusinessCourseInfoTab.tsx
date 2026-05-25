@@ -21,9 +21,9 @@ export function BusinessCourseInfoTab({
   isDark,
   formatDuration,
 }: BusinessCourseInfoTabProps) {
-  const statBackground = isDark ? `${primaryColor}12` : `${primaryColor}08`
-  const statBorderColor = isDark ? `${primaryColor}32` : borderColor
-  const secondaryTextColor = isDark ? 'rgba(255,255,255,0.85)' : `${textColor}70`
+  const statBackground = isDark ? `color-mix(in srgb, ${primaryColor} 7.1%, transparent)` : `color-mix(in srgb, ${primaryColor} 3.1%, transparent)`
+  const statBorderColor = isDark ? `color-mix(in srgb, ${primaryColor} 19.6%, transparent)` : borderColor
+  const secondaryTextColor = isDark ? 'rgba(255,255,255,0.85)' : `color-mix(in srgb, ${textColor} 43.9%, transparent)`
 
   return (
     <motion.div
@@ -47,10 +47,10 @@ export function BusinessCourseInfoTab({
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
                   className="flex items-start gap-3 rounded-xl border p-4"
-                  style={{ backgroundColor: `${primaryColor}08`, borderColor }}
+                  style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 3.1%, transparent)`, borderColor }}
                 >
                   <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0" style={{ color: accentColor }} />
-                  <span style={{ color: `${textColor}90` }}>{objective}</span>
+                  <span style={{ color: `color-mix(in srgb, ${textColor} 56.5%, transparent)` }}>{objective}</span>
                 </motion.div>
               ))}
             </div>
@@ -93,7 +93,7 @@ export function BusinessCourseInfoTab({
             <h3 className="mb-4 text-xl font-bold" style={{ color: textColor }}>
               Descripción del Curso
             </h3>
-            <p className="whitespace-pre-line leading-relaxed" style={{ color: `${textColor}80` }}>
+            <p className="whitespace-pre-line leading-relaxed" style={{ color: `color-mix(in srgb, ${textColor} 50.2%, transparent)` }}>
               {course.description}
             </p>
           </div>

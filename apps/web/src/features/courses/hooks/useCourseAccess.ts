@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useOrganizationStore } from '@/core/stores/organizationStore';
@@ -64,7 +65,7 @@ export function useCourseAccess(courseSlug: string): CourseAccessState {
                         : 'No tienes acceso a este curso. Por favor, adquiérelo primero.',
                 });
             } catch (error) {
-                console.error('[useCourseAccess] Error:', error);
+                techDebtLogger.error('[useCourseAccess] Error:', error);
                 setState({
                     hasAccess: false,
                     isLoading: false,

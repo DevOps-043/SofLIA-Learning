@@ -40,7 +40,7 @@ export function AdminCompanyViewModal({ company, onClose, onEdit, themeColors }:
           <AdminCompanyAdminsSection members={adminMembers} themeColors={themeColors} />
           <AdminCompanyContactSection company={company} themeColors={themeColors} />
           <AdminCompanyUsersSection company={company} usagePercent={usagePercent} themeColors={themeColors} />
-          <button type="button" onClick={() => { onClose(); router.push(`/admin/companies/${company.id}/edit`) }} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl text-sm font-bold lg:col-span-2" style={{ backgroundColor: theme.primaryColor, color: theme.onPrimaryColor, boxShadow: `0 12px 28px ${theme.primaryColor}24` }}>
+          <button type="button" onClick={() => { onClose(); router.push(`/admin/companies/${company.id}/edit`) }} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl text-sm font-bold lg:col-span-2" style={{ backgroundColor: theme.primaryColor, color: theme.onPrimaryColor, boxShadow: `0 12px 28px color-mix(in srgb, ${theme.primaryColor} 14.1%, transparent)` }}>
             <Pencil className="h-4 w-4" />
             {t('companies.modal.editDetails')}
           </button>

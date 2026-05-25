@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { OrganizationNode, OrganizationNodeProperties } from '../../../types/dynamicHierarchy.types'
@@ -160,7 +161,7 @@ export function useNodeFormState(
         const users = await HierarchyService.searchOrganizationUsers(managerSearch)
         setManagerResults(users)
       } catch (error) {
-        console.error('Failed to search managers', error)
+        techDebtLogger.error('Failed to search managers', error)
       } finally {
         setIsSearchingManager(false)
       }
@@ -211,7 +212,7 @@ export function useNodeFormState(
       await onSave(name, finalType, properties, managerId || undefined)
       onClose()
     } catch (error) {
-      console.error(error)
+      techDebtLogger.error(error)
       setSaveError(t('hierarchy.saveNodeError'))
     } finally {
       setLoading(false)

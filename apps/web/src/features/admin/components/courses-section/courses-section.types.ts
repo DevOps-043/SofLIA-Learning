@@ -81,16 +81,16 @@ export interface CompanyMember {
 }
 
 export const colors = {
-  primary: '#0A2540',
-  accent: '#00D4B3',
-  bgPrimary: '#0A0D12',
-  bgSecondary: '#1E2329',
-  bgTertiary: '#0F1419',
-  grayMedium: '#8899A6',
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  blue: '#3B82F6',
-  purple: '#8B5CF6',
-  pink: '#EC4899'
+  primary: 'var(--color-primary)',
+  accent: 'var(--color-accent)',
+  bgPrimary: 'var(--color-gray-950)',
+  bgSecondary: 'var(--color-gray-800)',
+  bgTertiary: 'var(--color-bg-dark)',
+  grayMedium: 'var(--color-muted)',
+  success: 'var(--color-success)',
+  warning: 'var(--color-warning)',
+  error: 'var(--color-error)',
+  blue: 'var(--color-info)',
+  purple: 'var(--color-secondary)',
+  pink: 'var(--color-legacy-ec4899)'
 }

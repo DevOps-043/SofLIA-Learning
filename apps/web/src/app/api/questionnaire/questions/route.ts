@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
     // Luego filtrar en memoria por bloque, área y rol
     const { data: allQuestionsByDifficulty, error: questionsError } = await supabase
       .from('preguntas')
-      .select('*')
+      .select(SELECT_COLUMNS.preguntas)
       .eq('dificultad', userProfile.dificultad_id)
       .limit(500); // Obtener un conjunto razonable para filtrar
     

@@ -1,8 +1,10 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback } from 'react';
-import { CallBackProps, STATUS, ACTIONS, EVENTS } from 'react-joyride';
+import { STATUS, ACTIONS, EVENTS } from 'react-joyride';
 import { useTourProgress } from '../../tours/hooks/useTourProgress';
 import { studyPlannerDashboardJoyrideSteps } from '../../tours/config/study-planner-dashboard-joyride-config';
 import { JoyrideTooltip } from '../../tours/components/JoyrideTooltip';
+import type { SofliaJoyrideEvent as CallBackProps } from '../../tours/types/joyride';
 
 export function useStudyPlannerDashboardTour() {
   const [run, setRun] = useState(false);
@@ -25,7 +27,7 @@ export function useStudyPlannerDashboardTour() {
     // Small delay to ensure elements are rendered.
     const timer = setTimeout(() => {
       startTour().catch((err) =>
-        console.error('[useStudyPlannerDashboardTour] DB start failed', err),
+        techDebtLogger.error('[useStudyPlannerDashboardTour] DB start failed', err),
       );
       setRun(true);
     }, 1500);
@@ -58,7 +60,19 @@ export function useStudyPlannerDashboardTour() {
       return;
     }
 
-    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+    // TARGET_NOT_FOUND: el step no encontro su elemento. NO avanzar: si se
+    // trata igual que STEP_AFTER, una pulsacion de "Siguiente" cuyo target
+    // siguiente todavia no esta listo dispara una cascada que recorre todos
+    // los steps en un solo evento y termina el tour de golpe.
+    if (type === EVENTS.TARGET_NOT_FOUND) {
+      techDebtLogger.warn(
+        '[useStudyPlannerDashboardTour] TARGET_NOT_FOUND on step',
+        index,
+      );
+      return;
+    }
+
+    if (type === EVENTS.STEP_AFTER) {
       const nextIndex = action === ACTIONS.PREV ? Math.max(0, index - 1) : index + 1;
 
       if (nextIndex >= studyPlannerDashboardJoyrideSteps.length) {
@@ -75,7 +89,7 @@ export function useStudyPlannerDashboardTour() {
     setStepIndex(0);
     setIsFinishedInSession(false);
     startTour().catch((err) =>
-      console.error('[useStudyPlannerDashboardTour] DB restart failed', err),
+      techDebtLogger.error('[useStudyPlannerDashboardTour] DB restart failed', err),
     );
     setRun(true);
   }, [startTour]);

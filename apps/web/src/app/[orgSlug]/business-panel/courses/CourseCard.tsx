@@ -43,15 +43,15 @@ function getLevelStyles(
   switch (level?.toLowerCase()) {
     case 'beginner':
     case 'principiante':
-      return { bg: `${difficultyColors.beginner}20`, color: difficultyColors.beginner, text: translate('courses.levels.beginner') }
+      return { bg: `color-mix(in srgb, ${difficultyColors.beginner} 12.5%, transparent)`, color: difficultyColors.beginner, text: translate('courses.levels.beginner') }
     case 'intermediate':
     case 'intermedio':
-      return { bg: `${difficultyColors.intermediate}20`, color: difficultyColors.intermediate, text: translate('courses.levels.intermediate') }
+      return { bg: `color-mix(in srgb, ${difficultyColors.intermediate} 12.5%, transparent)`, color: difficultyColors.intermediate, text: translate('courses.levels.intermediate') }
     case 'advanced':
     case 'avanzado':
-      return { bg: `${difficultyColors.advanced}20`, color: difficultyColors.advanced, text: translate('courses.levels.advanced') }
+      return { bg: `color-mix(in srgb, ${difficultyColors.advanced} 12.5%, transparent)`, color: difficultyColors.advanced, text: translate('courses.levels.advanced') }
     default:
-      return { bg: `${difficultyColors.default}20`, color: difficultyColors.default, text: level || 'N/A' }
+      return { bg: `color-mix(in srgb, ${difficultyColors.default} 12.5%, transparent)`, color: difficultyColors.default, text: level || 'N/A' }
   }
 }
 
@@ -87,14 +87,16 @@ export function CourseCard({ course, index, onClick }: CourseCardProps) {
             src={course.thumbnail_url}
             alt={course.title}
             fill
+            priority={index < 4}
             className="object-cover transition-transform duration-700 group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1536px) 33vw, 25vw"
           />
         ) : (
           <div
             className="w-full h-full flex items-center justify-center bg-gray-900"
-            style={{ background: `linear-gradient(135deg, ${primaryColor}40, ${primaryColor}10)` }}
+            style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${primaryColor} 25.1%, transparent), color-mix(in srgb, ${primaryColor} 6.3%, transparent))` }}
           >
-            <BookOpen className="w-10 h-10" style={{ color: `${primaryColor}60` }} />
+            <BookOpen className="w-10 h-10" style={{ color: `color-mix(in srgb, ${primaryColor} 37.6%, transparent)` }} />
           </div>
         )}
 
@@ -102,7 +104,7 @@ export function CourseCard({ course, index, onClick }: CourseCardProps) {
         <div className="absolute top-3 left-3">
           <span
             className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest backdrop-blur-md border"
-            style={{ backgroundColor: levelStyles.bg, color: levelStyles.color, borderColor: `${levelStyles.color}30` }}
+            style={{ backgroundColor: levelStyles.bg, color: levelStyles.color, borderColor: `color-mix(in srgb, ${levelStyles.color} 18.8%, transparent)` }}
           >
             {levelStyles.text}
           </span>

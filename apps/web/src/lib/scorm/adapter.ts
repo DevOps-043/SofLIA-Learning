@@ -50,7 +50,7 @@ export class SCORMAPIAdapter {
       });
 
       const data: ScormInitializeResponse = await res.json();
-      if (data.success) {
+      if (data.success && data.attemptId) {
         this.attemptId = data.attemptId;
         Object.entries(data.cmiData || {}).forEach(([key, value]) => {
           this.cache.set(key, value);
@@ -306,5 +306,5 @@ export function findAPI(win: Window): SCORMAPIAdapter | null {
     currentWindow = getScormWindow(currentWindow.parent);
   }
 
-  return currentWindow.API_1484_11 || currentWindow.API || null;
+  return currentWindow.API_1484_11 ?? currentWindow.API ?? null;
 }

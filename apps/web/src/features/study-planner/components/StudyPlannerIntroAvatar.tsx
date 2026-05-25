@@ -15,7 +15,7 @@ export function StudyPlannerIntroAvatar({
   return (
     <div className="relative mb-1.5 h-28 w-28 sm:mb-2 sm:h-36 sm:w-36 md:mb-3 md:h-44 md:w-44">
       <motion.div
-        className="absolute inset-8 overflow-hidden rounded-full bg-gradient-to-br from-[#00D4B3] via-[#00D4B3] to-[#00b89a] p-1 sm:inset-10 md:inset-12"
+        className="absolute inset-8 overflow-hidden rounded-full bg-gradient-to-br from-accent via-accent to-accent p-1 sm:inset-10 md:inset-12"
         animate={isSpeaking && !isMobile ? { scale: [1, 1.08, 1] } : {}}
         style={{
           boxShadow: isSpeaking

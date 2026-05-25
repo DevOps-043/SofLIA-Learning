@@ -120,7 +120,7 @@ export default function InvitePage() {
     validateToken();
   }, [token]);
 
-  const primaryColor = organization?.primaryColor || '#14b8a6';
+  const primaryColor = organization?.primaryColor || 'var(--color-legacy-14b8a6)';
 
   const handleCreateAccount = () => {
     if (organization?.slug) {
@@ -167,7 +167,7 @@ export default function InvitePage() {
   // ——— LOADING ———
   if (pageState === 'loading' || authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0F1419]">
+      <div className="min-h-screen flex items-center justify-center bg-carbon-900">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -185,11 +185,11 @@ export default function InvitePage() {
   // ——— ACCEPTED SUCCESS ———
   if (accepted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0F1419] px-4">
+      <div className="min-h-screen flex items-center justify-center bg-carbon-900 px-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-[#161b22] rounded-2xl border border-white/10 p-8 text-center"
+          className="max-w-md w-full bg-carbon-800 rounded-2xl border border-white/10 p-8 text-center"
         >
           <PartyPopper className="w-14 h-14 text-teal-400 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-white mb-2">
@@ -222,11 +222,11 @@ export default function InvitePage() {
     };
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0F1419] px-4">
+      <div className="min-h-screen flex items-center justify-center bg-carbon-900 px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-md w-full bg-[#161b22] rounded-2xl border border-white/10 p-8 text-center"
+          className="max-w-md w-full bg-carbon-800 rounded-2xl border border-white/10 p-8 text-center"
         >
           <div className="mb-6">
             {errorIcons[errorReason] || <XCircle className="w-12 h-12 text-red-400 mx-auto" />}
@@ -263,12 +263,12 @@ export default function InvitePage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-[#0F1419] text-white flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-carbon-900 text-white flex items-center justify-center px-4 py-12">
       {/* Background glow */}
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
-          background: `radial-gradient(ellipse 60% 40% at 50% 0%, ${primaryColor}15, transparent)`,
+          background: `radial-gradient(ellipse 60% 40% at 50% 0%, color-mix(in srgb, ${primaryColor} 8.2%, transparent), transparent)`,
         }}
       />
 
@@ -279,11 +279,11 @@ export default function InvitePage() {
         className="relative max-w-lg w-full"
       >
         {/* Card */}
-        <div className="bg-[#161b22] rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
+        <div className="bg-carbon-800 rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
           {/* Top accent bar */}
           <div
             className="h-1.5"
-            style={{ background: `linear-gradient(to right, ${primaryColor}, ${organization?.accentColor || primaryColor}88)` }}
+            style={{ background: `linear-gradient(to right, ${primaryColor}, color-mix(in srgb, ${organization?.accentColor || primaryColor} 53.3%, transparent))` }}
           />
 
           <div className="p-8 space-y-8">
@@ -298,7 +298,7 @@ export default function InvitePage() {
               ) : (
                 <div
                   className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center"
-                  style={{ backgroundColor: `${primaryColor}20` }}
+                  style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 12.5%, transparent)` }}
                 >
                   <Building2 className="w-8 h-8" style={{ color: primaryColor }} />
                 </div>
@@ -376,7 +376,7 @@ export default function InvitePage() {
                     className="w-full py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2.5 text-white shadow-lg disabled:opacity-50"
                     style={{
                       backgroundColor: primaryColor,
-                      boxShadow: `0 8px 24px ${primaryColor}30`,
+                      boxShadow: `0 8px 24px color-mix(in srgb, ${primaryColor} 18.8%, transparent)`,
                     }}
                   >
                     {accepting ? (
@@ -397,7 +397,7 @@ export default function InvitePage() {
                     className="w-full py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2.5 group text-white shadow-lg"
                     style={{
                       backgroundColor: primaryColor,
-                      boxShadow: `0 8px 24px ${primaryColor}30`,
+                      boxShadow: `0 8px 24px color-mix(in srgb, ${primaryColor} 18.8%, transparent)`,
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.1)')}
                     onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}

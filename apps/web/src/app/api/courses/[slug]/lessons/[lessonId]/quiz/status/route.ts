@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
@@ -79,7 +80,7 @@ export async function GET(
       .eq('material_type', 'quiz');
 
     if (materialsError) {
-      console.error('Error obteniendo quizzes de materiales:', materialsError);
+      techDebtLogger.error('Error obteniendo quizzes de materiales:', materialsError);
     }
 
     // 2. Quizzes en lesson_activities (solo los obligatorios)
@@ -91,7 +92,7 @@ export async function GET(
       .eq('is_required', true);
 
     if (activitiesError) {
-      console.error('Error obteniendo quizzes de actividades:', activitiesError);
+      techDebtLogger.error('Error obteniendo quizzes de actividades:', activitiesError);
     }
 
     const materialQuizzesList = materialQuizzes || [];
@@ -121,7 +122,7 @@ export async function GET(
       .eq('enrollment_id', enrollmentId);
 
     if (submissionsError) {
-      console.error('Error obteniendo submissions:', submissionsError);
+      techDebtLogger.error('Error obteniendo submissions:', submissionsError);
     }
 
     const submissionsList: QuizSubmissionRow[] = submissions || [];
@@ -190,7 +191,7 @@ export async function GET(
       quizzes: quizzesStatus,
     });
   } catch (error) {
-    console.error('Error en GET /api/courses/[slug]/lessons/[lessonId]/quiz/status:', error);
+    techDebtLogger.error('Error en GET /api/courses/[slug]/lessons/[lessonId]/quiz/status:', error);
     return NextResponse.json(
       {
         error: 'Error interno del servidor',

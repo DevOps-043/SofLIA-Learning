@@ -92,7 +92,7 @@ export function BusinessSettings() {
             style={{
               backgroundColor: theme.actionColor,
               color: theme.onActionColor,
-              boxShadow: `0 8px 30px ${theme.actionColor}33`,
+              boxShadow: `0 8px 30px color-mix(in srgb, ${theme.actionColor} 20%, transparent)`,
             }}
           >
             <RefreshCw className="w-4 h-4" />
@@ -207,7 +207,7 @@ export function BusinessSettings() {
                 className="relative px-6 py-5 font-medium transition-all duration-300 whitespace-nowrap flex items-center gap-3 group"
                 style={{
                   color: isActive ? tab.color : theme.subtextColor,
-                  backgroundColor: isActive ? `${tab.color}10` : 'transparent',
+                  backgroundColor: isActive ? `color-mix(in srgb, ${tab.color} 6.3%, transparent)` : 'transparent',
                 }}
               >
                 {isActive && (
@@ -230,7 +230,7 @@ export function BusinessSettings() {
                 <motion.div
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
                   style={{
-                    background: `linear-gradient(to right, transparent, ${tab.color}10, transparent)`,
+                    background: `linear-gradient(to right, transparent, color-mix(in srgb, ${tab.color} 6.3%, transparent), transparent)`,
                   }}
                 />
               </motion.button>

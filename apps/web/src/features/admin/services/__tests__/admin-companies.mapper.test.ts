@@ -66,7 +66,7 @@ describe('admin-companies.mapper', () => {
       ]),
     })
 
-    expect(company.brand_color_primary).toBe('#3b82f6')
+    expect(company.brand_color_primary).toBe('var(--color-info)')
     expect(company.brand_font_family).toBe('Inter')
     expect(company.active_users).toBe(1)
     expect(company.invited_users).toBe(3)

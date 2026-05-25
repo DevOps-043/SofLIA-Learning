@@ -104,10 +104,11 @@ function collectInlineSegments(
 
   let nextStyle = inheritedStyle;
 
-  // Bold and italic are intentionally NOT applied here.
-  // The <strong>/<em> tags are stripped upstream in parseNoteHtmlToPdfBlocks
-  // to prevent pdfmake from splitting text runs and eating inter-word spaces.
-  if (tagName === 'u') {
+  if (tagName === 'strong' || tagName === 'b') {
+    nextStyle = { ...nextStyle, bold: true };
+  } else if (tagName === 'em' || tagName === 'i') {
+    nextStyle = { ...nextStyle, italics: true };
+  } else if (tagName === 'u') {
     nextStyle = { ...nextStyle, decoration: 'underline' };
   } else if (tagName === 'a') {
     const normalizedUrl = normalizeNoteLinkUrl(element.getAttribute('href') || '');
@@ -214,21 +215,9 @@ function parseElementToBlocks(
   }
 }
 
-/**
- * Strips bold / italic wrapper tags so the DOMParser only sees plain text
- * inside block-level elements.  This prevents pdfmake from creating
- * separate text-run objects per inline tag, which historically caused it
- * to swallow the whitespace between runs.
- */
-function stripInlineStyleTags(html: string): string {
-  return html
-    .replace(/<\/?(strong|b|em|i)\s*>/gi, '');
-}
-
 export function parseNoteHtmlToPdfBlocks(html: string): NotePdfContentBlock[] {
   const parser = new DOMParser();
-  const sanitizedHtml = stripInlineStyleTags(html);
-  const documentNode = parser.parseFromString(sanitizedHtml, 'text/html');
+  const documentNode = parser.parseFromString(html, 'text/html');
   const blocks: NotePdfContentBlock[] = [];
 
   Array.from(documentNode.body.children).forEach((element) => {

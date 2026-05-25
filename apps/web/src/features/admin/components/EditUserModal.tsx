@@ -73,7 +73,7 @@ export function EditUserModal({
                   duration: 0.3,
                   ease: [0.25, 0.46, 0.45, 0.94],
                 }}
-                className="relative bg-white dark:bg-[#1E2329] rounded-2xl shadow-2xl max-w-4xl w-full border border-[#E9ECEF] dark:border-[#6C757D]/30 max-h-[90vh] overflow-hidden flex flex-col"
+                className="relative bg-white dark:bg-carbon-800 rounded-2xl shadow-2xl max-w-4xl w-full border border-gray-200 dark:border-gray-500/30 max-h-[90vh] overflow-hidden flex flex-col"
                 onClick={(e) => e.stopPropagation()}
               >
                 <EditUserModalHeader

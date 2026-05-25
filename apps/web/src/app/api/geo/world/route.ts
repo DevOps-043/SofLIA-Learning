@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
 
 function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === 'AbortError'
@@ -19,7 +20,7 @@ export async function GET() {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-        const response = await fetch(source, {
+        const response = await fetchWithCircuitBreaker('geojson-world-map', source, {
           headers: {
             'Accept': 'application/json',
           },

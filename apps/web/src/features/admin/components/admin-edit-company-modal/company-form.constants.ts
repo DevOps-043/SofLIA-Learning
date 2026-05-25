@@ -34,11 +34,11 @@ export const PLAN_OPTIONS = [
 
 export const THEME_PRESETS = [
   { id: 'SOFLIA', name: 'SOFLIA Default', primary: colors.primary, secondary: colors.bgSecondary, accent: colors.accent, description: 'Tema profesional' },
-  { id: 'modern-blue', name: 'Moderno Azul', primary: '#1E40AF', secondary: '#1E3A8A', accent: colors.info, description: 'Azul corporativo' },
-  { id: 'emerald', name: 'Esmeralda', primary: '#065F46', secondary: '#064E3B', accent: colors.success, description: 'Verde empresarial' },
-  { id: 'purple', name: 'Violeta', primary: '#4C1D95', secondary: '#5B21B6', accent: colors.purple, description: 'Morado elegante' },
-  { id: 'rose', name: 'Rosa', primary: '#9F1239', secondary: '#881337', accent: '#F43F5E', description: 'Rosa vibrante' },
-  { id: 'amber', name: 'Ámbar', primary: '#92400E', secondary: '#78350F', accent: colors.warning, description: 'Naranja cálido' },
+  { id: 'modern-blue', name: 'Moderno Azul', primary: 'var(--color-legacy-1e40af)', secondary: 'var(--color-legacy-1e3a8a)', accent: colors.info, description: 'Azul corporativo' },
+  { id: 'emerald', name: 'Esmeralda', primary: 'var(--color-legacy-065f46)', secondary: 'var(--color-legacy-064e3b)', accent: colors.success, description: 'Verde empresarial' },
+  { id: 'purple', name: 'Violeta', primary: 'var(--color-legacy-4c1d95)', secondary: 'var(--color-legacy-5b21b6)', accent: colors.purple, description: 'Morado elegante' },
+  { id: 'rose', name: 'Rosa', primary: 'var(--color-legacy-9f1239)', secondary: 'var(--color-legacy-881337)', accent: 'var(--color-legacy-f43f5e)', description: 'Rosa vibrante' },
+  { id: 'amber', name: 'Ámbar', primary: 'var(--color-legacy-92400e)', secondary: 'var(--color-legacy-78350f)', accent: colors.warning, description: 'Naranja cálido' },
 ]
 
 export const BRANDING_COLOR_FIELDS: Array<{ k: BrandingColorKey; l: string }> = [

@@ -105,7 +105,7 @@ export function CoursesPageContent() {
         className="relative overflow-hidden rounded-3xl p-8 mb-8 shadow-lg"
         style={{
           background: isDark
-            ? `linear-gradient(135deg, ${primaryColor}20, ${accentColor}10)`
+            ? `linear-gradient(135deg, color-mix(in srgb, ${primaryColor} 12.5%, transparent), color-mix(in srgb, ${accentColor} 6.3%, transparent))`
             : `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
           border: isDark ? '1px solid rgba(255,255,255,0.1)' : 'none'
         }}
@@ -147,7 +147,7 @@ export function CoursesPageContent() {
           </h1>
           <p
             className="text-base lg:text-lg max-w-2xl"
-            style={{ color: isDark ? `${textColor}99` : 'var(--color-bg-light)', opacity: 0.8 }}
+            style={{ color: isDark ? `color-mix(in srgb, ${textColor} 60%, transparent)` : 'var(--color-bg-light)', opacity: 0.8 }}
           >
             {t('courses.subtitle')}
           </p>
@@ -194,7 +194,7 @@ export function CoursesPageContent() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 focus:outline-none transition-all duration-300"
             style={{
-              backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF',
+              backgroundColor: isDark ? 'var(--org-card-background, var(--color-gray-800))' : 'var(--color-bg-light)',
               borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
               color: textColor,
             }}
@@ -233,13 +233,13 @@ export function CoursesPageContent() {
           className="flex items-center rounded-xl border-2 overflow-hidden ml-auto"
           style={{
             borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-            backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF',
+            backgroundColor: isDark ? 'var(--org-card-background, var(--color-gray-800))' : 'var(--color-bg-light)',
           }}
         >
           <button
             onClick={() => setViewMode('grid')}
             className={`p-3.5 transition-all ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}
-            style={{ backgroundColor: viewMode === 'grid' ? `${primaryColor}30` : 'transparent' }}
+            style={{ backgroundColor: viewMode === 'grid' ? `color-mix(in srgb, ${primaryColor} 18.8%, transparent)` : 'transparent' }}
           >
             <LayoutGrid className="w-5 h-5" style={{ color: viewMode === 'grid' ? primaryColor : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)') }} />
           </button>
@@ -247,7 +247,7 @@ export function CoursesPageContent() {
           <button
             onClick={() => setViewMode('list')}
             className={`p-3.5 transition-all ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}
-            style={{ backgroundColor: viewMode === 'list' ? `${primaryColor}30` : 'transparent' }}
+            style={{ backgroundColor: viewMode === 'list' ? `color-mix(in srgb, ${primaryColor} 18.8%, transparent)` : 'transparent' }}
           >
             <List className="w-5 h-5" style={{ color: viewMode === 'list' ? primaryColor : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)') }} />
           </button>
@@ -264,14 +264,14 @@ export function CoursesPageContent() {
         >
           <div
             className="w-20 h-20 rounded-2xl mx-auto mb-6 flex items-center justify-center"
-            style={{ backgroundColor: `${primaryColor}20` }}
+            style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 12.5%, transparent)` }}
           >
             <BookOpen className="w-10 h-10" style={{ color: primaryColor }} />
           </div>
           <h3 className="text-xl font-bold mb-2" style={{ color: textColor }}>
             {courses.length === 0 ? t('courses.empty.noCourses') : t('courses.empty.noResults')}
           </h3>
-          <p className="text-sm" style={{ color: `${textColor}70` }}>
+          <p className="text-sm" style={{ color: `color-mix(in srgb, ${textColor} 43.9%, transparent)` }}>
             {courses.length === 0
               ? t('courses.empty.noCoursesSubtitle')
               : t('courses.empty.noResultsSubtitle')}
@@ -285,7 +285,7 @@ export function CoursesPageContent() {
             animate={{ opacity: 1 }}
             className="flex items-center justify-between mb-6"
           >
-            <p className="text-sm" style={{ color: `${textColor}70` }}>
+            <p className="text-sm" style={{ color: `color-mix(in srgb, ${textColor} 43.9%, transparent)` }}>
               {t('courses.results.showing')}{' '}
               <span className="font-semibold" style={{ color: textColor }}>
                 {filteredCourses.length}
@@ -334,10 +334,12 @@ export function CoursesPageContent() {
                         src={course.thumbnail_url}
                         alt={course.title}
                         fill
+                        priority={index < 8}
                         className="object-cover"
+                        sizes="64px"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
+                      <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 12.5%, transparent)` }}>
                         <BookOpen className="w-6 h-6" style={{ color: primaryColor }} />
                       </div>
                     )}

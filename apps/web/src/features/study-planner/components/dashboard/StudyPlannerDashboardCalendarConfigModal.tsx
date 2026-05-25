@@ -56,8 +56,8 @@ export function StudyPlannerDashboardCalendarConfigModal({
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="bg-white dark:bg-[#1E2329] rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-200 dark:border-[#6C757D]/30">
-              <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-[#6C757D]/30">
+            <div className="bg-white dark:bg-carbon-800 rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-200 dark:border-gray-500/30">
+              <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-500/30">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-accent/10 dark:bg-accent/20">
                     <Settings className="w-5 h-5 text-accent" />
@@ -68,14 +68,14 @@ export function StudyPlannerDashboardCalendarConfigModal({
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-[#0A2540]/20 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg transition-colors"
                 >
                   <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                 </button>
               </div>
 
               <div className="p-5 space-y-5">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-[#0A2540]/10 border border-gray-200 dark:border-[#6C757D]/20">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-primary/10 border border-gray-200 dark:border-gray-500/20">
                   <div>
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
                       {planOnlyTitle}
@@ -86,10 +86,10 @@ export function StudyPlannerDashboardCalendarConfigModal({
                   </div>
                   <motion.button
                     onClick={toggleShowOnlyPlanEvents}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:ring-offset-2 cursor-pointer ${
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 cursor-pointer ${
                       showOnlyPlanEvents
-                        ? 'bg-[#0A2540] dark:bg-[#0A2540]'
-                        : 'bg-gray-300 dark:bg-[#6C757D]'
+                        ? 'bg-primary dark:bg-primary'
+                        : 'bg-gray-300 dark:bg-gray-500'
                     }`}
                     role="switch"
                     aria-checked={showOnlyPlanEvents}

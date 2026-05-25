@@ -1,0 +1,32 @@
+﻿{
+  "extends": "../apps/web/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "incremental": false,
+    "plugins": []
+  },
+  "include": [
+    "../apps/web/src/shared/utils/animations.ts",
+    "../apps/web/src/shared/utils/animations/**/*.ts",
+    "../apps/web/src/lib/validation/password-security.ts",
+    "../apps/web/src/lib/validation/password-security/**/*.ts",
+    "../apps/web/src/lib/lia/page-metadata.ts",
+    "../apps/web/src/lib/lia/page-metadata/**/*.ts",
+    "../apps/web/src/lib/course-content.ts",
+    "../apps/web/src/lib/course-content/**/*.ts",
+    "../apps/web/src/lib/courseImport.ts",
+    "../apps/web/src/lib/course-import/**/*.ts",
+    "../apps/web/src/core/services/intent-detection.service.ts",
+    "../apps/web/src/core/services/intent-detection/**/*.ts",
+    "../apps/web/src/app/api/lia/chat/prompt-instructions.service.ts",
+    "../apps/web/src/app/api/lia/chat/prompt-instructions/**/*.ts",
+    "../apps/web/src/app/api/lia/chat/platform-context.service.ts",
+    "../apps/web/src/app/api/lia/chat/platform-context/**/*.ts",
+    "../apps/web/src/app/api/business/progress/route.ts",
+    "../apps/web/src/app/api/business/progress/progress/**/*.ts",
+    "../apps/web/src/features/business-panel/services/reports-analytics/reports-analytics.blueprint.service.ts",
+    "../apps/web/src/features/business-panel/services/reports-analytics/reports-analytics.blueprint/**/*.ts",
+    "../apps/web/src/features/business-panel/services/business-user-analytics/business-user-analytics.insights.service.ts",
+    "../apps/web/src/features/business-panel/services/business-user-analytics/business-user-analytics.insights/**/*.ts"
+  ]
+}

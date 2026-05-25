@@ -34,7 +34,7 @@ export function useBusinessThemeCustomizerLogic() {
   const [loginStyles, setLoginStyles] = useState<StyleConfig | null>(() => getDefaultBusinessStyle());
 
   const [copiedGradient, setCopiedGradient] = useState(false);
-  const [gradientColors, setGradientColors] = useState<string[]>(['#1e3a8a', '#1e40af']);
+  const [gradientColors, setGradientColors] = useState<string[]>(['var(--color-legacy-1e3a8a)', 'var(--color-legacy-1e40af)']);
   const [gradientAngle, setGradientAngle] = useState(135);
 
   useEffect(() => {
@@ -235,7 +235,7 @@ export function useBusinessThemeCustomizerLogic() {
 
   const addGradientColor = () => {
     if (gradientColors.length < 5) {
-      setGradientColors((prev) => [...prev, '#3b82f6']);
+      setGradientColors((prev) => [...prev, 'var(--color-info)']);
     }
   };
 

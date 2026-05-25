@@ -39,7 +39,7 @@ const quickActions: QuickAction[] = [
     description: 'Añadir un nuevo taller a la plataforma',
     href: '/admin/workshops/create',
     icon: BookOpenIcon,
-    gradient: 'from-[#10B981] to-[#059669]',
+    gradient: 'from-success to-emerald-600',
     shadow: 'shadow-emerald-500/20'
   },
   {
@@ -94,7 +94,7 @@ export function AdminQuickActions() {
         >
           <Link
             href={action.href}
-            className="block h-full bg-white dark:bg-[#1E2329] rounded-2xl border border-[#E9ECEF] dark:border-white/5 p-6 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative"
+            className="block h-full bg-white dark:bg-carbon-800 rounded-2xl border border-gray-200 dark:border-white/5 p-6 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative"
           >
             {/* Hover Gradient Overlay */}
             <div className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 bg-gradient-to-br ${action.gradient}`} />
@@ -105,16 +105,16 @@ export function AdminQuickActions() {
               </div>
               
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-bold text-[#0A2540] dark:text-white group-hover:text-[#00D4B3] transition-colors duration-300">
+                <h3 className="text-lg font-bold text-primary dark:text-white group-hover:text-accent transition-colors duration-300">
                   {action.name}
                 </h3>
-                <p className="mt-1 text-sm text-[#6C757D] dark:text-white/60 line-clamp-2">
+                <p className="mt-1 text-sm text-gray-500 dark:text-white/60 line-clamp-2">
                   {action.description}
                 </p>
               </div>
 
               <div className="shrink-0 self-center">
-                 <ArrowRightIcon className="h-5 w-5 text-[#6C757D] dark:text-white/40 group-hover:text-[#00D4B3] group-hover:translate-x-1 transition-all duration-300" />
+                 <ArrowRightIcon className="h-5 w-5 text-gray-500 dark:text-white/40 group-hover:text-accent group-hover:translate-x-1 transition-all duration-300" />
               </div>
             </div>
 

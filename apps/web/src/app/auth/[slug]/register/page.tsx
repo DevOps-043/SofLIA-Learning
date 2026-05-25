@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { OrganizationAuthLayout } from '@/features/auth/components/OrganizationAuth/OrganizationAuthLayout';
 import { OrganizationRegisterForm } from '@/features/auth/components/OrganizationAuth/OrganizationRegisterForm';
+import type { OrganizationAuthStyles } from '@/features/auth/components/OrganizationAuth/organization-auth.styles';
 import { validateInvitationAction } from '@/features/auth/actions/invitation';
 import { getExistingAccountInvitationLoginPath } from '@/features/auth/services/invitation-auth-routing.service';
 import { getInvitationErrorTranslationKey } from '@/features/auth/services/invitation-i18n.service';
@@ -22,6 +23,7 @@ interface Organization {
   brand_favicon_url?: string | null;
   google_login_enabled?: boolean;
   microsoft_login_enabled?: boolean;
+  login_styles?: OrganizationAuthStyles | null;
 }
 
 interface InvitationData {

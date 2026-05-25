@@ -1,114 +1,68 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AdminLessonsService, UpdateLessonData } from '@/features/admin/services/adminLessons.service'
-import { requireAdmin } from '@/lib/auth/requireAdmin'
+
+import { AdminLessonsService } from '@/features/admin/services/adminLessons.service'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+
+import {
+  updateLessonSchema,
+  type UpdateLessonBody,
+} from '../schema'
+import {
+  lessonRouteError,
+  lessonRouteSuccess,
+  resolveAdminLessonId,
+  type LessonRouteContext,
+} from './lesson-route.helpers'
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string, moduleId: string, lessonId: string }> }
+  _request: NextRequest,
+  { params }: LessonRouteContext,
 ) {
   try {
-    const auth = await requireAdmin()
-    if (auth instanceof NextResponse) return auth
-    
-    const { lessonId } = await params
-
-    if (!lessonId) {
-      return NextResponse.json(
-        { error: 'Lesson ID es requerido' },
-        { status: 400 }
-      )
-    }
+    const lessonId = await resolveAdminLessonId(params)
+    if (lessonId instanceof NextResponse) return lessonId
 
     const lesson = await AdminLessonsService.getLessonById(lessonId)
-
     if (!lesson) {
-      return NextResponse.json(
-        { error: 'Lección no encontrada' },
-        { status: 404 }
-      )
+      return lessonRouteError('Lección no encontrada', 404)
     }
 
-    return NextResponse.json({
-      success: true,
-      lesson
-    })
-  } catch (error) {
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Error al obtener lección' 
-      },
-      { status: 500 }
-    )
+    return lessonRouteSuccess({ lesson })
+  } catch {
+    return apiError('GET_LESSON_FAILED', 'Error al obtener lección', 500)
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string, moduleId: string, lessonId: string }> }
+async function handlePut(
+  _request: NextRequest,
+  body: UpdateLessonBody,
+  { params }: LessonRouteContext,
 ) {
   try {
-    const auth = await requireAdmin()
-    if (auth instanceof NextResponse) return auth
-    
-    const { lessonId } = await params
-    const body = await request.json() as UpdateLessonData
-
-    if (!lessonId) {
-      return NextResponse.json(
-        { error: 'Lesson ID es requerido' },
-        { status: 400 }
-      )
-    }
+    const lessonId = await resolveAdminLessonId(params)
+    if (lessonId instanceof NextResponse) return lessonId
 
     const lesson = await AdminLessonsService.updateLesson(lessonId, body)
-
-    return NextResponse.json({
-      success: true,
-      lesson
-    })
-  } catch (error) {
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Error al actualizar lección' 
-      },
-      { status: 500 }
-    )
+    return lessonRouteSuccess({ lesson })
+  } catch {
+    return apiError('UPDATE_LESSON_FAILED', 'Error al actualizar lección', 500)
   }
 }
+
+export const PUT = withZodBody(updateLessonSchema, handlePut)
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string, moduleId: string, lessonId: string }> }
+  _request: NextRequest,
+  { params }: LessonRouteContext,
 ) {
   try {
-    const auth = await requireAdmin()
-    if (auth instanceof NextResponse) return auth
-    
-    const { lessonId } = await params
-
-    if (!lessonId) {
-      return NextResponse.json(
-        { error: 'Lesson ID es requerido' },
-        { status: 400 }
-      )
-    }
+    const lessonId = await resolveAdminLessonId(params)
+    if (lessonId instanceof NextResponse) return lessonId
 
     await AdminLessonsService.deleteLesson(lessonId)
-
-    return NextResponse.json({
-      success: true,
-      message: 'Lección eliminada correctamente'
-    })
-  } catch (error) {
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Error al eliminar lección' 
-      },
-      { status: 500 }
-    )
+    return lessonRouteSuccess({ message: 'Lección eliminada correctamente' })
+  } catch {
+    return apiError('DELETE_LESSON_FAILED', 'Error al eliminar lección', 500)
   }
 }
-

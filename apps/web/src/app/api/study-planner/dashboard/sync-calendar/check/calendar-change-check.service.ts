@@ -1,3 +1,4 @@
+import 'server-only'
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { CalendarIntegrationService } from '../../../../../../features/study-planner/services/calendar-integration.service';
 import type { Database } from '../../../../../../lib/supabase/types';
@@ -76,7 +77,7 @@ export async function checkCalendarChangesForUser(
   const supabase = createAdminClient();
   const { data: calendarIntegration, error: integrationError } = await supabase
     .from('calendar_integrations')
-    .select('*')
+    .select(SELECT_COLUMNS.calendar_integrations)
     .eq('user_id', userId)
     .limit(1)
     .single();

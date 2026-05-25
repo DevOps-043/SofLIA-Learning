@@ -70,7 +70,7 @@ export function FeatureLock({
           <div className="space-y-2">
             <h3
               className="text-lg font-semibold flex items-center gap-2"
-              style={{ color: 'var(--org-text-color, #FFFFFF)' }}
+              style={{ color: 'var(--org-text-color, var(--color-bg-light))' }}
             >
               <AlertCircle className="w-5 h-5 text-yellow-400" />
               Función No Disponible
@@ -78,7 +78,7 @@ export function FeatureLock({
             {showMessage && (
               <p
                 className="text-sm leading-relaxed"
-                style={{ color: 'var(--org-text-color, #94a3b8)', opacity: 0.8 }}
+                style={{ color: 'var(--org-text-color, var(--color-gray-400))', opacity: 0.8 }}
               >
                 {message}
               </p>

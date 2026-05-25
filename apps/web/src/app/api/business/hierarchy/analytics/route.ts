@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
     })
 
     if (error) {
-      console.error('CRITICAL RPC ERROR:', error); // Explicit log for terminal
+      techDebtLogger.error('CRITICAL RPC ERROR:', error); // Explicit log for terminal
       logger.error('❌ Error en RPC get_hierarchy_analytics:', {
         error: error.message,
         code: error.code,

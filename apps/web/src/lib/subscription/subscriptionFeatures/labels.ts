@@ -1,0 +1,42 @@
+import type { FeatureKey, SubscriptionPlan } from './types'
+
+export const FEATURE_NAMES: Record<FeatureKey, string> = {
+  panel_admin: 'Panel de administración',
+  course_messaging: 'Asignación de cursos con mensajería',
+  custom_groups: 'Grupos de usuarios personalizados',
+  advanced_groups: 'Administración avanzada de grupos',
+  corporate_branding: 'Branding corporativo',
+  basic_reports: 'Reportes básicos',
+  advanced_analytics: 'Analytics avanzados',
+  skills_info: 'Información de habilidades',
+  course_analysis: 'Análisis de cursos',
+  custom_dashboard: 'Dashboard personalizado',
+  data_export: 'Exportación de datos',
+  full_catalog: 'Acceso a catálogo completo',
+  unlimited_certifications: 'Certificaciones ilimitadas',
+  custom_certificates: 'Certificados personalizados',
+  mobile_app: 'Aplicación móvil',
+  offline_learning: 'Offline learning',
+  live_courses: 'Cursos en vivo',
+  automatic_notifications: 'Notificaciones automáticas',
+  smart_reminders: 'Recordatorios inteligentes',
+  external_integrations: 'Integración con sistemas externos',
+  enterprise_sso: 'SSO empresarial',
+  calendar_integration: 'Integración con calendarios',
+  data_api: 'API de datos',
+  email_support: 'Soporte por email',
+  priority_support: 'Soporte prioritario',
+  dedicated_247_support: 'Soporte 24/7 dedicado',
+  customer_success_manager: 'Customer Success Manager',
+  custom_onboarding: 'Onboarding personalizado',
+  strategic_consulting: 'Consultoría estratégica',
+  notification_email: 'Notificaciones por Email',
+  notification_push: 'Notificaciones Push',
+  notification_sms: 'Notificaciones por SMS',
+}
+
+export const PLAN_NAMES: Record<SubscriptionPlan, string> = {
+  team: 'Team',
+  business: 'Business',
+  enterprise: 'Enterprise',
+}

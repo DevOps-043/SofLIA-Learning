@@ -9,7 +9,7 @@ export function AdminCreateCompanySidebarPreview(props: { formData: CreateCompan
   return (
     <div className="relative z-10 mb-8 text-center">
       <motion.div className="relative mb-4 inline-block" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-        <div className="mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border-2 border-gray-200 bg-gray-100 shadow-2xl backdrop-blur-sm dark:border-white/10 dark:bg-white/5" style={{ background: props.formData.brand_logo_url ? '#fff' : `linear-gradient(135deg, ${props.primaryColor}, ${props.accentColor})` }}>
+        <div className="mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border-2 border-gray-200 bg-gray-100 shadow-2xl backdrop-blur-sm dark:border-white/10 dark:bg-white/5" style={{ background: props.formData.brand_logo_url ? 'var(--color-bg-light)' : `linear-gradient(135deg, ${props.primaryColor}, ${props.accentColor})` }}>
           {props.formData.brand_logo_url ? <img src={props.formData.brand_logo_url} alt="Logo" className="h-full w-full object-contain p-2" /> : <PlusIcon className="h-10 w-10 text-white" />}
         </div>
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-2 -right-2 rounded-full border border-bgSecondary p-1.5 shadow-lg" style={{ backgroundColor: props.formData.is_active ? SOFLIA_ADMIN_COLORS.success : SOFLIA_ADMIN_COLORS.warning }}>

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { userGroupMemberCreateSchema, type UserGroupMemberCreateBody } from './schema'
 
 /**
  * GET /api/business/user-groups/[id]/members
@@ -18,10 +21,7 @@ export async function GET(
     const { id: groupId } = await params
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Usuario no pertenece a ninguna organización'
-      }, { status: 400 })
+      return apiError('NO_ORGANIZATION', 'Usuario no pertenece a ninguna organización', 400)
     }
 
     const supabase = await createClient()
@@ -88,12 +88,15 @@ export async function GET(
   }
 }
 
+export const POST = withZodBody(userGroupMemberCreateSchema, handlePost)
+
 /**
  * POST /api/business/user-groups/[id]/members
  * Agrega un miembro a un grupo
  */
-export async function POST(
-  request: NextRequest,
+async function handlePost(
+  _request: NextRequest,
+  body: UserGroupMemberCreateBody,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -103,22 +106,11 @@ export async function POST(
     const { id: groupId } = await params
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Usuario no pertenece a ninguna organización'
-      }, { status: 400 })
+      return apiError('NO_ORGANIZATION', 'Usuario no pertenece a ninguna organización', 400)
     }
 
     const supabase = await createClient()
-    const body = await request.json()
     const { user_id, role } = body
-
-    if (!user_id) {
-      return NextResponse.json({
-        success: false,
-        error: 'user_id es requerido'
-      }, { status: 400 })
-    }
 
     // Verificar que el grupo exista y pertenezca a la organización
     const { data: group } = await supabase
@@ -129,10 +121,7 @@ export async function POST(
       .single()
 
     if (!group) {
-      return NextResponse.json({
-        success: false,
-        error: 'Grupo no encontrado'
-      }, { status: 404 })
+      return apiError('GROUP_NOT_FOUND', 'Grupo no encontrado', 404)
     }
 
     // Verificar que el usuario pertenezca a la organización
@@ -145,10 +134,11 @@ export async function POST(
       .single()
 
     if (!orgUser) {
-      return NextResponse.json({
-        success: false,
-        error: 'El usuario no pertenece a tu organización o no está activo'
-      }, { status: 400 })
+      return apiError(
+        'USER_NOT_IN_ORGANIZATION',
+        'El usuario no pertenece a tu organización o no está activo',
+        400,
+      )
     }
 
     // Verificar que el usuario no esté ya en el grupo
@@ -160,10 +150,7 @@ export async function POST(
       .single()
 
     if (existingMember) {
-      return NextResponse.json({
-        success: false,
-        error: 'El usuario ya está en este grupo'
-      }, { status: 400 })
+      return apiError('USER_ALREADY_IN_GROUP', 'El usuario ya está en este grupo', 400)
     }
 
     // Agregar miembro al grupo
@@ -197,10 +184,7 @@ export async function POST(
 
     if (addError || !newMember) {
       logger.error('Error adding group member:', addError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al agregar miembro al grupo'
-      }, { status: 500 })
+      return apiError('ADD_GROUP_MEMBER_FAILED', 'Error al agregar miembro al grupo', 500)
     }
 
     return NextResponse.json({
@@ -209,10 +193,6 @@ export async function POST(
     })
   } catch (error) {
     logger.error('💥 Error in /api/business/user-groups/[id]/members POST:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Error interno del servidor'
-    }, { status: 500 })
+    return apiError('ADD_GROUP_MEMBER_FAILED', 'Error interno del servidor', 500)
   }
 }
-

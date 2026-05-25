@@ -19,6 +19,7 @@ export interface BusinessUserStatsTheme {
   chartColors: string[]
   successColor: string
   warningColor: string
+  dangerColor: string
 }
 
 export type BusinessUserStatsTranslateOptions =

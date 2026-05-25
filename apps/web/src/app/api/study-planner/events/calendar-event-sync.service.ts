@@ -1,3 +1,5 @@
+import 'server-only'
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Calendar Event Sync Service
  *
@@ -138,10 +140,10 @@ export async function syncDeletedEvents(
       .eq('user_id', userId);
 
     if (deleteError) {
-      console.error('Error eliminando eventos sincronizados:', deleteError);
+      techDebtLogger.error('Error eliminando eventos sincronizados:', deleteError);
     }
   } catch (error) {
-    console.error('Error en syncDeletedEvents:', error);
+    techDebtLogger.error('Error en syncDeletedEvents:', error);
   }
 }
 
@@ -196,10 +198,10 @@ export async function cleanupOrphanedPlanEvents(
       .eq('user_id', userId);
 
     if (deleteError) {
-      console.error('Error eliminando eventos huerfanos:', deleteError);
+      techDebtLogger.error('Error eliminando eventos huerfanos:', deleteError);
     }
   } catch (error) {
-    console.error('Error en cleanupOrphanedPlanEvents:', error);
+    techDebtLogger.error('Error en cleanupOrphanedPlanEvents:', error);
   }
 }
 

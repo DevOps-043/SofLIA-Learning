@@ -1,4 +1,4 @@
-import { Step } from 'react-joyride';
+import type { SofliaJoyrideStep as Step } from '@/features/tours/types/joyride';
 import React from 'react';
 import { Sparkles, MessageCircle, Mic, Calendar } from 'lucide-react';
 

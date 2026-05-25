@@ -30,13 +30,13 @@ export function LearnPageHeader({
     <motion.div
       initial={disableHeavyEffects ? false : { opacity: 0, y: -20 }}
       animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
-      className="bg-white dark:bg-[#1E2329] border-b border-[#E9ECEF] dark:border-[#6C757D]/30 px-3 md:px-4 py-1.5 md:py-2 shrink-0 relative z-40"
+      className="bg-white dark:bg-carbon-800 border-b border-gray-200 dark:border-gray-500/30 px-3 md:px-4 py-1.5 md:py-2 shrink-0 relative z-40"
     >
       <div className="flex items-center justify-between w-full gap-2">
         <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
           <button
             onClick={onBack}
-            className="p-1.5 hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30 rounded-lg transition-colors shrink-0"
+            className="p-1.5 hover:bg-gray-200/50 dark:hover:bg-primary/30 rounded-lg transition-colors shrink-0"
             aria-label={t("header.backButton")}
             title={t("header.backButton")}
           >
@@ -44,7 +44,7 @@ export function LearnPageHeader({
           </button>
           <div className="min-w-0 flex-1">
             <h1
-              className="text-sm md:text-base font-bold text-[#0A2540] dark:text-white truncate"
+              className="text-sm md:text-base font-bold text-primary dark:text-white truncate"
               style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}
             >
               {courseTitle}
@@ -56,7 +56,7 @@ export function LearnPageHeader({
             <button
               id={COURSE_LEARN_TOUR_TARGET_IDS.replayButton}
               onClick={onRestartTour}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#E9ECEF] dark:border-[#6C757D]/30 bg-white dark:bg-[#1E2329] px-2.5 py-1.5 text-[#0A2540] dark:text-[#00D4B3] hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-500/30 bg-white dark:bg-carbon-800 px-2.5 py-1.5 text-primary dark:text-accent hover:bg-gray-200/50 dark:hover:bg-primary/30 transition-colors"
               aria-label={restartTourLabel}
               title={restartTourLabel}
             >
@@ -71,18 +71,18 @@ export function LearnPageHeader({
           ) : null}
 
           <div className="hidden md:flex items-center gap-2">
-            <div className="w-32 lg:w-40 h-1.5 bg-[#E9ECEF] dark:bg-[#1E2329] rounded-full overflow-hidden">
+            <div className="w-32 lg:w-40 h-1.5 bg-gray-200 dark:bg-carbon-800 rounded-full overflow-hidden">
               <motion.div
                 initial={disableHeavyEffects ? false : { width: 0 }}
                 animate={{ width: `${courseProgress}%` }}
                 transition={disableHeavyEffects ? undefined : { duration: 1 }}
-                className="h-full bg-gradient-to-r from-[#0A2540] via-[#0A2540] to-[#00D4B3] rounded-full shadow-lg"
+                className="h-full bg-gradient-to-r from-primary via-primary to-accent rounded-full shadow-lg"
               />
             </div>
           </div>
           <NotificationBell />
           <span
-            className="text-xs text-[#0A2540] dark:text-[#00D4B3] font-medium bg-[#0A2540]/10 dark:bg-[#00D4B3]/15 px-2 py-0.5 rounded-full min-w-[2.5rem] text-center shrink-0"
+            className="text-xs text-primary dark:text-accent font-medium bg-primary/10 dark:bg-accent/15 px-2 py-0.5 rounded-full min-w-[2.5rem] text-center shrink-0"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
           >
             {courseProgress}%

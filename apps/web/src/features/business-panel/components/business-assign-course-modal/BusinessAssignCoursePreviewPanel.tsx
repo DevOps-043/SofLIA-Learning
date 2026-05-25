@@ -54,7 +54,7 @@ export function BusinessAssignCoursePreviewPanel({
           style={{
             backgroundColor: theme.primaryColor,
             color: theme.onPrimaryColor,
-            boxShadow: `0 20px 40px ${theme.primaryColor}30`,
+            boxShadow: `0 20px 40px color-mix(in srgb, ${theme.primaryColor} 18.8%, transparent)`,
           }}
         >
           <BookOpen className="h-10 w-10" style={{ color: theme.onPrimaryColor }} />
@@ -163,7 +163,7 @@ export function BusinessAssignCoursePreviewPanel({
         {dueDate ? (
           <div
             className="flex items-center gap-3 rounded-[1.5rem] border p-4"
-            style={{ backgroundColor: `${theme.accentColor}10`, borderColor: `${theme.accentColor}20` }}
+            style={{ backgroundColor: `color-mix(in srgb, ${theme.accentColor} 6.3%, transparent)`, borderColor: `color-mix(in srgb, ${theme.accentColor} 12.5%, transparent)` }}
           >
             <Calendar className="h-5 w-5 flex-shrink-0" style={{ color: theme.accentColor }} />
             <div className="flex flex-col">

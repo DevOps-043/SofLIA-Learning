@@ -1,6 +1,6 @@
 import validator from 'validator';
 import { logger } from '../../../../lib/logger';
-import { createClient } from '../../../../lib/supabase/server';
+import { createAdminClient } from '../../../../lib/supabase/admin';
 import { AuthService } from '../../services/auth.service';
 import { OAuthService } from '../../services/oauth.service';
 import {
@@ -74,7 +74,7 @@ export async function processOAuthCallback<TProviderTokens>({
       };
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const initialOrgContext = parseOAuthOrganizationContext(orgContextCookie);
     const existingUser = await OAuthService.findUserByEmail(
       normalizedProfile.email,

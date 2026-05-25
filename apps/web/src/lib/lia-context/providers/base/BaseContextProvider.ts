@@ -8,6 +8,11 @@
 
 import type { ContextFragment, ContextBuildOptions, EnrichedMetadata } from '../../types';
 
+function isPromptUnsafeControlChar(char: string): boolean {
+  const code = char.charCodeAt(0);
+  return code <= 0x08 || code === 0x0b || code === 0x0c || (code >= 0x0e && code <= 0x1f) || code === 0x7f;
+}
+
 /**
  * Clase base abstracta para providers de contexto
  */
@@ -97,7 +102,7 @@ export abstract class BaseContextProvider {
    */
   protected sanitize(content: string): string {
     // Eliminar caracteres de control
-    let sanitized = content.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+    let sanitized = Array.from(content).filter((char) => !isPromptUnsafeControlChar(char)).join('');
     // Limitar longitud excesiva
     if (sanitized.length > 10000) {
       sanitized = sanitized.substring(0, 10000) + '...[truncated]';

@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { getSessionCache } from '@/lib/scorm/session-cache';
+import { createClient } from '@/lib/supabase/server';
+
+import { scormAttemptSchema, type ScormAttemptBody } from '../../_schemas';
 
 type ScormSupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
-export async function POST(req: NextRequest) {
+async function handlePost(_request: NextRequest, body: ScormAttemptBody) {
   try {
     const supabase = await createClient();
     const {
@@ -12,17 +17,10 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: '401' }, { status: 401 });
+      return apiError('UNAUTHENTICATED', 'Unauthorized', 401);
     }
 
-    const { attemptId } = await req.json();
-
-    if (!attemptId) {
-      return NextResponse.json(
-        { error: 'attemptId is required' },
-        { status: 400 }
-      );
-    }
+    const { attemptId } = body;
 
     const cache = getSessionCache(attemptId);
     if (cache.size === 0) {
@@ -95,7 +93,7 @@ export async function POST(req: NextRequest) {
       .eq('user_id', user.id);
 
     if (error) {
-      return NextResponse.json({ error: 'Failed to save' }, { status: 500 });
+      return apiError('SCORM_COMMIT_SAVE_FAILED', 'Failed to save', 500);
     }
 
     // Procesar interacciones si las hay
@@ -103,13 +101,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to commit' }, { status: 500 });
+    return apiError('SCORM_COMMIT_FAILED', 'Failed to commit', 500);
   }
 }
 
 function parseSessionTime(time: string): string {
-  // SCORM 1.2: HHHH:MM:SS.ss → PostgreSQL interval
-  // SCORM 2004: PT#H#M#S → PostgreSQL interval
+  // SCORM 1.2: HHHH:MM:SS.ss -> PostgreSQL interval
+  // SCORM 2004: PT#H#M#S -> PostgreSQL interval
   if (time.startsWith('PT')) {
     // ISO 8601 duration
     const match = time.match(
@@ -146,7 +144,7 @@ async function saveInteractions(
 
   if (interactionKeys.length === 0) return;
 
-  // Agrupar por índice de interacción
+  // Agrupar por indice de interaccion
   const interactions = new Map<string, Record<string, string>>();
 
   for (const key of interactionKeys) {
@@ -160,7 +158,7 @@ async function saveInteractions(
     }
   }
 
-  // Insertar cada interacción
+  // Insertar cada interaccion
   for (const [, data] of interactions) {
     if (data.id) {
       try {
@@ -185,3 +183,5 @@ async function saveInteractions(
     }
   }
 }
+
+export const POST = withZodBody(scormAttemptSchema, handlePost);

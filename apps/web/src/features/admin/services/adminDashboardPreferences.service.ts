@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../lib/supabase/server'
 
 export interface AdminDashboardPreferences {
@@ -17,12 +18,12 @@ export class AdminDashboardPreferencesService {
       
       const { data: preferences, error } = await supabase
         .from('admin_dashboard_preferences')
-        .select('*')
+        .select(SELECT_COLUMNS.admin_dashboard_preferences)
         .eq('user_id', userId)
         .maybeSingle()
       
       if (error && error.code !== 'PGRST116') {
-        console.error('Error getting preferences:', error)
+        techDebtLogger.error('Error getting preferences:', error)
       }
       
       if (preferences) {
@@ -41,7 +42,7 @@ export class AdminDashboardPreferencesService {
         growth_chart_metrics: ['users']
       }
     } catch (error) {
-      console.error('Error in getPreferences:', error)
+      techDebtLogger.error('Error in getPreferences:', error)
       return {
         user_id: userId,
         activity_period: '24h',
@@ -111,7 +112,7 @@ export class AdminDashboardPreferencesService {
         }
       }
     } catch (error) {
-      console.error('Error saving preferences:', error)
+      techDebtLogger.error('Error saving preferences:', error)
       throw error
     }
   }

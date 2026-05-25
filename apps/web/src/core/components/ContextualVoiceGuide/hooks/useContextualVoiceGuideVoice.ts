@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getElevenLabsVoiceSettings, getWebSpeechVoiceSettings } from '../../../utils/tts-voice-settings'
 import { isTTSAbortError, playAudioBlob, requestTTSAudio, speakWithWebSpeech } from '../../../services/tts'
@@ -110,7 +111,7 @@ export function useContextualVoiceGuideVoice({
         }
       } catch (error) {
         if (!isTTSAbortError(error)) {
-          console.error('Error en sintesis de voz contextual:', error)
+          techDebtLogger.error('Error en sintesis de voz contextual:', error)
         }
         setIsSpeaking(false)
       }

@@ -1,10 +1,17 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { SessionService } from '@/features/auth/services/session.service'
 import { resolveCourseLessonContext } from '@/features/courses/services/activity-submission.server.service'
 import { sanitizeContextPayload } from '@/lib/security/context-sanitizer'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import {
+  lessonSuggestionsRequestSchema,
+  type LessonSuggestionsRequest,
+} from '../_schemas'
 
 import {
   computeLessonContentHash,
@@ -16,7 +23,6 @@ import {
   LessonSuggestionsGenerationError,
 } from './lesson-suggestions.service'
 import {
-  lessonSuggestionsRequestSchema,
   type LessonContextSnapshot,
   type LessonSuggestionsResponse,
 } from './lesson-suggestions.types'
@@ -37,25 +43,18 @@ interface CourseRow {
   title: string | null
 }
 
-function jsonError(message: string, status: number) {
-  return NextResponse.json({ error: message }, { status })
-}
-
-export async function POST(request: NextRequest) {
+async function handlePost(
+  _request: NextRequest,
+  body: LessonSuggestionsRequest,
+  _context: unknown,
+) {
   try {
-    const rawBody = (await request.json()) as unknown
-    const parsedBody = lessonSuggestionsRequestSchema.safeParse(rawBody)
-
-    if (!parsedBody.success) {
-      return jsonError('Payload inválido', 400)
-    }
-
-    const sanitizedBody = sanitizeContextPayload(parsedBody.data)
+    const sanitizedBody = sanitizeContextPayload(body)
     const { lessonId, courseSlug, language, activityFocus } = sanitizedBody
 
     const currentUser = await SessionService.getCurrentUser()
     if (!currentUser) {
-      return jsonError('No autenticado', 401)
+      return apiError('UNAUTHENTICATED', 'No autenticado', 401)
     }
 
     const supabase = await createClient()
@@ -68,7 +67,11 @@ export async function POST(request: NextRequest) {
         lessonId,
       )
     } catch {
-      return jsonError('Sin acceso al curso o lección', 403)
+      return apiError(
+        'LESSON_ACCESS_DENIED',
+        'Sin acceso al curso o lección',
+        403,
+      )
     }
 
     const { data: lesson, error: lessonError } = await supabase
@@ -78,7 +81,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle<LessonRow>()
 
     if (lessonError || !lesson) {
-      return jsonError('Lección no encontrada', 404)
+      return apiError('LESSON_NOT_FOUND', 'Lección no encontrada', 404)
     }
 
     const { data: course, error: courseError } = await supabase
@@ -88,7 +91,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle<CourseRow>()
 
     if (courseError || !course) {
-      return jsonError('Curso no encontrado', 404)
+      return apiError('COURSE_NOT_FOUND', 'Curso no encontrado', 404)
     }
 
     const snapshot: LessonContextSnapshot = {
@@ -123,7 +126,7 @@ export async function POST(request: NextRequest) {
 
     const apiKey = process.env.GOOGLE_API_KEY
     if (!apiKey) {
-      console.error(
+      techDebtLogger.error(
         '[lesson-suggestions] GOOGLE_API_KEY missing; degrading gracefully',
       )
       return NextResponse.json(
@@ -163,7 +166,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(response)
     } catch (error) {
       if (error instanceof LessonSuggestionsGenerationError) {
-        console.warn('[lesson-suggestions] generation failed', {
+        techDebtLogger.warn('[lesson-suggestions] generation failed', {
           lessonId,
           language,
           message: error.message,
@@ -181,7 +184,13 @@ export async function POST(request: NextRequest) {
       throw error
     }
   } catch (error) {
-    console.error('[lesson-suggestions] unhandled error', error)
-    return jsonError('Error interno del servidor', 500)
+    techDebtLogger.error('[lesson-suggestions] unhandled error', error)
+    return apiError(
+      'LESSON_SUGGESTIONS_ERROR',
+      'Error interno del servidor',
+      500,
+    )
   }
 }
+
+export const POST = withZodBody(lessonSuggestionsRequestSchema, handlePost)

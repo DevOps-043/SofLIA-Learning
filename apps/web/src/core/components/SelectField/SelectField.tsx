@@ -83,17 +83,17 @@ export function SelectField({
       >
         <Select.Trigger
           className={cn(
-            'w-full px-4 py-3 bg-white dark:bg-[#1E2329]',
-            'border border-[#E9ECEF] dark:border-[#6C757D]/30',
-            'rounded-xl text-[#0A2540] dark:text-white',
-            'focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:ring-opacity-20 focus:border-[#00D4B3]',
+            'w-full px-4 py-3 bg-white dark:bg-carbon-800',
+            'border border-gray-200 dark:border-gray-500/30',
+            'rounded-xl text-primary dark:text-white',
+            'focus:outline-none focus:ring-2 focus:ring-accent focus:ring-opacity-20 focus:border-accent',
             'transition-all duration-300',
-            'hover:border-[#00D4B3]/50 dark:hover:border-[#00D4B3]/50',
+            'hover:border-accent/50 dark:hover:border-accent/50',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             'flex items-center justify-between gap-2',
             'text-sm font-normal',
             error && 'border-red-500 dark:border-red-500',
-            isOpen && 'ring-2 ring-[#00D4B3] ring-opacity-20 border-[#00D4B3] shadow-lg shadow-[#00D4B3]/10'
+            isOpen && 'ring-2 ring-accent ring-opacity-20 border-accent shadow-lg shadow-accent/10'
           )}
         >
           <span className="flex items-center gap-2 flex-1 min-w-0">
@@ -105,8 +105,8 @@ export function SelectField({
           <Select.Icon asChild>
             <ChevronDown
               className={cn(
-                'w-4 h-4 text-[#6C757D] dark:text-white/50 flex-shrink-0 transition-transform duration-300',
-                isOpen && 'rotate-180 text-[#00D4B3]'
+                'w-4 h-4 text-gray-500 dark:text-white/50 flex-shrink-0 transition-transform duration-300',
+                isOpen && 'rotate-180 text-accent'
               )}
             />
           </Select.Icon>
@@ -115,8 +115,8 @@ export function SelectField({
         <Select.Portal>
           <Select.Content
             className={cn(
-              'bg-white dark:bg-[#1E2329]',
-              'rounded-xl shadow-2xl border border-[#E9ECEF] dark:border-[#6C757D]/30',
+              'bg-white dark:bg-carbon-800',
+              'rounded-xl shadow-2xl border border-gray-200 dark:border-gray-500/30',
               'z-50 min-w-[var(--radix-select-trigger-width)] max-h-[300px]',
               'overflow-hidden'
             )}
@@ -168,14 +168,14 @@ export function SelectField({
                             value={optionValue}
                             className={cn(
                               'relative flex items-center gap-3 px-4 py-3 rounded-lg',
-                              'text-[#0A2540] dark:text-white',
+                              'text-primary dark:text-white',
                               'cursor-pointer select-none',
-                              'focus:bg-[#00D4B3]/10 dark:focus:bg-[#00D4B3]/20',
+                              'focus:bg-accent/10 dark:focus:bg-accent/20',
                               'focus:outline-none',
                               'transition-colors duration-150',
-                              'hover:bg-[#E9ECEF] dark:hover:bg-[#2A2F35]',
+                              'hover:bg-gray-200 dark:hover:bg-gray-700',
                               'text-sm font-normal',
-                              String(value) === optionValue && 'bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20'
+                              String(value) === optionValue && 'bg-accent/10 dark:bg-accent/20'
                             )}
                           >
                             <motion.div

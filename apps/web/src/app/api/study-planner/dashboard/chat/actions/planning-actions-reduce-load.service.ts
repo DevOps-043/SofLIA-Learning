@@ -6,6 +6,8 @@ import {
 } from '../calendar.service'
 import type { ActionResult } from '../types'
 
+const RESIZABLE_SESSION_SELECT = 'id, start_time'
+
 export async function executeReduceSessionLoad(
   userId: string,
   _planId: string,
@@ -56,7 +58,11 @@ export async function executeReduceSessionLoad(
     }
 
     if (reduceAction === 'resize' && newData?.durationMinutes) {
-      const { data: session } = await supabase.from('study_sessions').select('*').eq('id', sessionId).single()
+      const { data: session } = await supabase
+        .from('study_sessions')
+        .select(RESIZABLE_SESSION_SELECT)
+        .eq('id', sessionId)
+        .single()
 
       if (!session) {
         reduceResults.push({ sessionId, action: 'resized', success: false })

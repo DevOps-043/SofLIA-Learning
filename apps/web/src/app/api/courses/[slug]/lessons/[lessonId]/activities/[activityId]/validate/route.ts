@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { SessionService } from '@/features/auth/services/session.service'
 import {
-  activityValidationRequestSchema,
-} from '@/features/courses/types/activity-config'
+  courseActivityValidationSchema,
+  type CourseActivityValidationBody,
+} from '@/app/api/courses/_schemas'
+import { SessionService } from '@/features/auth/services/session.service'
 import {
   CourseActivityError,
   getActivitySubmissionDetail,
@@ -12,6 +13,9 @@ import {
   saveActivitySubmission,
 } from '@/features/courses/services/activity-submission.server.service'
 import { evaluateActivitySubmissionWithSoflia } from '@/features/courses/services/activity-validation.server.service'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 type RouteParams = {
@@ -20,28 +24,34 @@ type RouteParams = {
   activityId: string
 }
 
-export async function POST(
-  request: NextRequest,
+function sanitizeActivityValidationBody(
+  body: CourseActivityValidationBody,
+): CourseActivityValidationBody {
+  if (body.responseText === undefined || body.responseText === null) {
+    return body
+  }
+
+  return {
+    ...body,
+    responseText: sanitizeHtml(body.responseText, {
+      level: 'rich',
+      maxLength: 20_000,
+    }),
+  }
+}
+
+async function handlePost(
+  _request: NextRequest,
+  body: CourseActivityValidationBody,
   { params }: { params: Promise<RouteParams> },
 ) {
   try {
     const currentUser = await SessionService.getCurrentUser()
     if (!currentUser) {
-      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+      return apiError('UNAUTHENTICATED', 'No autenticado.', 401)
     }
 
-    const body = await request.json().catch(() => ({}))
-    const parsedRequest = activityValidationRequestSchema.safeParse(body)
-    if (!parsedRequest.success) {
-      return NextResponse.json(
-        {
-          error: 'Payload invalido para validar la actividad',
-          details: parsedRequest.error.flatten(),
-        },
-        { status: 400 },
-      )
-    }
-
+    const sanitizedBody = sanitizeActivityValidationBody(body)
     const { slug, lessonId, activityId } = await params
     const supabase = createAdminClient()
     const context = await resolveCourseActivityContext(
@@ -54,22 +64,22 @@ export async function POST(
 
     const currentSubmission = await getActivitySubmissionDetail(supabase, context)
     const shouldPersistIncomingPayload =
-      parsedRequest.data.responseText !== undefined ||
-      parsedRequest.data.responsePayload !== undefined ||
-      parsedRequest.data.evidencePayload !== undefined
+      sanitizedBody.responseText !== undefined ||
+      sanitizedBody.responsePayload !== undefined ||
+      sanitizedBody.evidencePayload !== undefined
 
     const submission =
       shouldPersistIncomingPayload || !currentSubmission
         ? await saveActivitySubmission(supabase, context, {
             status: 'submitted',
             responseText:
-              parsedRequest.data.responseText ?? currentSubmission?.responseText,
+              sanitizedBody.responseText ?? currentSubmission?.responseText,
             responsePayload:
-              parsedRequest.data.responsePayload ??
+              sanitizedBody.responsePayload ??
               currentSubmission?.responsePayload ??
               {},
             evidencePayload:
-              parsedRequest.data.evidencePayload ??
+              sanitizedBody.evidencePayload ??
               currentSubmission?.evidencePayload ??
               null,
           })
@@ -155,13 +165,15 @@ export async function POST(
     const isCourseActivityError = error instanceof CourseActivityError
     const status = isCourseActivityError ? error.status : 500
 
-    return NextResponse.json(
-      {
-        code: isCourseActivityError ? error.code : undefined,
-        error: isCourseActivityError ? error.message : 'Error interno del servidor',
-        details: isCourseActivityError ? error.details : undefined,
-      },
-      { status },
+    return apiError(
+      isCourseActivityError ? error.code : 'INTERNAL_ERROR',
+      isCourseActivityError ? error.message : 'Error interno del servidor.',
+      status,
+      { details: isCourseActivityError ? error.details : undefined },
     )
   }
 }
+
+export const POST = withZodBody(courseActivityValidationSchema, handlePost, {
+  emptyBodyFallback: {},
+})

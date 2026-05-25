@@ -38,8 +38,8 @@ export function CourseStatCard({ title, value, icon: Icon, color, delay }: Cours
         <div 
           className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-[14px] transition-transform duration-500 group-hover:scale-[1.05]"
           style={{
-             background: `linear-gradient(135deg, ${iconColor}15, transparent)`,
-             border: `1px solid ${iconColor}25`
+             background: `linear-gradient(135deg, color-mix(in srgb, ${iconColor} 8.2%, transparent), transparent)`,
+             border: `1px solid color-mix(in srgb, ${iconColor} 14.5%, transparent)`
           }}
         >
           <Icon className="w-5 h-5" style={{ color: iconColor }} />

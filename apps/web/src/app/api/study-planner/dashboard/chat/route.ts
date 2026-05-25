@@ -3,22 +3,30 @@ import { randomUUID } from 'crypto'
 import {
   STUDY_PLANNER_CHAT_RATE_LIMIT,
   applyRouteRateLimit,
+  type RateLimitSuccessResult,
   withRouteRateLimitHeaders,
 } from '@/app/api/_lib/ai-route-rate-limit'
 import { SessionService } from '@/features/auth/services/session.service'
+import { apiError } from '@/lib/api/errors'
+import { recordSecurityEvent } from '@/lib/security/security-events'
+import { withZodBody } from '@/lib/api/with-validation'
 import { logger } from '@/lib/utils/logger'
 import { SofLIALogger } from '@/lib/analytics/lia-logger/lia-logger-session'
+import { dashboardChatSchema, type DashboardChatBody } from '../../_schemas'
 import { getPlanContext } from './context.service'
 import { resolvePlanSelectionForChat } from './plan-resolution.service'
 import { setCurrentTimezone } from './format.utils'
-import type { ChatRequest } from './types'
 import {
   buildActionProposals,
   extractActionTags,
   resolveDashboardChatAction,
 } from './chat-actions.service'
-import { parseDashboardChatRequest } from './chat-request.service'
 import { sendDashboardChatMessage } from './gemini-chat.service'
+import { evaluateStudyPlannerPromptGuardrails } from './security-guardrails.service'
+
+type DashboardChatContext = {
+  rateLimit: RateLimitSuccessResult
+}
 
 function withRateLimitHeaders(
   response: NextResponse,
@@ -29,39 +37,18 @@ function withRateLimitHeaders(
     : response
 }
 
-export async function POST(
+async function handlePost(
   request: NextRequest,
+  parsedRequest: DashboardChatBody,
+  context: DashboardChatContext,
 ): Promise<NextResponse> {
-  const rateLimit = applyRouteRateLimit(
-    request,
-    STUDY_PLANNER_CHAT_RATE_LIMIT,
-    'study-planner-dashboard-chat',
-  )
-
-  if (!rateLimit.success) {
-    return rateLimit.response
-  }
+  const { rateLimit } = context
 
   try {
     const user = await SessionService.getCurrentUser()
     if (!user) {
       return withRateLimitHeaders(
-        NextResponse.json(
-          { success: false, response: '', error: 'Usuario no autenticado' },
-          { status: 401 },
-        ),
-        rateLimit,
-      )
-    }
-
-    const payload = (await request.json()) as ChatRequest
-    const parsedRequest = parseDashboardChatRequest(payload)
-    if (parsedRequest.error) {
-      return withRateLimitHeaders(
-        NextResponse.json(
-          { success: false, response: '', error: parsedRequest.error.error },
-          { status: parsedRequest.error.status },
-        ),
+        apiError('UNAUTHENTICATED', 'Usuario no autenticado', 401),
         rateLimit,
       )
     }
@@ -72,8 +59,39 @@ export async function POST(
       activePlanId,
       trigger,
       isProactiveInit,
-    } = parsedRequest.data!
+    } = parsedRequest
     const traceId = randomUUID()
+    const promptGuardrails = evaluateStudyPlannerPromptGuardrails(message)
+
+    if (promptGuardrails.blocked) {
+      recordSecurityEvent('prompt-injection-blocked', {
+        pathname: request.nextUrl.pathname,
+        method: request.method,
+        userAgent: request.headers.get('user-agent') || undefined,
+        ip:
+          request.headers.get('cf-connecting-ip') ||
+          request.headers.get('x-forwarded-for') ||
+          undefined,
+        reasons: promptGuardrails.assessment.reasons,
+        metadata: {
+          score: promptGuardrails.assessment.score,
+          categories: promptGuardrails.assessment.categories,
+        },
+      })
+
+      return withRateLimitHeaders(
+        NextResponse.json({
+          success: true,
+          response: promptGuardrails.refusalMessage,
+          action: null,
+          actions: [],
+          needsConfirmation: false,
+          traceId,
+        }),
+        rateLimit,
+      )
+    }
+
     const liaLogger = new SofLIALogger(user.id)
     let conversationId: string | undefined
 
@@ -182,17 +200,30 @@ export async function POST(
     logger.error('Error critico en chat del dashboard:', error)
 
     return withRateLimitHeaders(
-      NextResponse.json(
-        {
-          success: false,
-          response: 'Ocurrio un error inesperado en el servidor.',
-          error: error instanceof Error ? error.message : 'Error interno',
-        },
-        { status: 500 },
-      ),
+      apiError('DASHBOARD_CHAT_FAILED', 'Ocurrio un error inesperado en el servidor.', 500),
       rateLimit,
     )
   }
+}
+
+const validatedPost = withZodBody<DashboardChatBody, DashboardChatContext>(
+  dashboardChatSchema,
+  handlePost,
+)
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  const rateLimit = applyRouteRateLimit(
+    request,
+    STUDY_PLANNER_CHAT_RATE_LIMIT,
+    'study-planner-dashboard-chat',
+  )
+
+  if (!rateLimit.success) {
+    return rateLimit.response
+  }
+
+  const response = await validatedPost(request, { rateLimit })
+  return withRateLimitHeaders(response as NextResponse, rateLimit)
 }
 
 function buildDeterministicActionsFromContext(

@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import React, { useEffect, useState, useMemo } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, ScaleControl } from 'react-leaflet'
 import { useTranslation } from 'react-i18next'
@@ -88,7 +89,7 @@ function FullscreenControl() {
           map.invalidateSize()
         }, 100)
       }).catch((err) => {
-        console.error('Error al entrar en pantalla completa:', err)
+        techDebtLogger.error('Error al entrar en pantalla completa:', err)
       })
     } else {
       document.exitFullscreen().then(() => {
@@ -98,7 +99,7 @@ function FullscreenControl() {
           map.invalidateSize()
         }, 100)
       }).catch((err) => {
-        console.error('Error al salir de pantalla completa:', err)
+        techDebtLogger.error('Error al salir de pantalla completa:', err)
       })
     }
   }
@@ -133,7 +134,7 @@ function FullscreenControl() {
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            background: '#1E2329',
+            background: 'var(--color-gray-800)',
             border: '1px solid rgba(255, 255, 255, 0.2)',
             borderRadius: '4px',
             color: 'white',
@@ -172,7 +173,7 @@ function MapMarkers({
           zIndexOffset={point.isTopPerformer ? 1000 : 0}
         >
           <Popup className="custom-popup dark-popup">
-            <div className="min-w-[200px] bg-gradient-to-br from-[#1E2329] to-[#2A2F35] text-white rounded-lg border border-white/10 shadow-xl overflow-hidden">
+            <div className="min-w-[200px] bg-gradient-to-br from-carbon-800 to-gray-700 text-white rounded-lg border border-white/10 shadow-xl overflow-hidden">
               {/* Header con gradiente */}
               <div className={`px-4 py-3 border-b border-white/10 relative ${point.isTopPerformer ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20' : 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10'}`}>
                 <div className="flex items-center justify-between pr-8">
@@ -209,7 +210,7 @@ function MapMarkers({
 const MapLoadingState = ({ message }: { message?: string }) => {
   const { t } = useTranslation('business')
   return (
-  <div className="h-[400px] w-full rounded-2xl bg-[#1E2329] border border-white/10 flex items-center justify-center">
+  <div className="h-[400px] w-full rounded-2xl bg-carbon-800 border border-white/10 flex items-center justify-center">
     <div className="text-white/40">{message || t('hierarchy.map.loading')}</div>
   </div>
 )}
@@ -319,7 +320,7 @@ function HierarchyMap({ points, center = [23.6345, -102.5528], zoom = 5, enableS
       
       {/* Toggle para habilitar/deshabilitar zoom con rueda */}
       <div 
-        className="absolute bottom-2 right-2 z-[1000] bg-[#1E2329] border border-white/20 rounded-lg p-2 flex items-center gap-2"
+        className="absolute bottom-2 right-2 z-[1000] bg-carbon-800 border border-white/20 rounded-lg p-2 flex items-center gap-2"
         style={{ pointerEvents: 'auto' }}
       >
         <label className="flex items-center gap-2 cursor-pointer text-white text-sm">
@@ -327,7 +328,7 @@ function HierarchyMap({ points, center = [23.6345, -102.5528], zoom = 5, enableS
             type="checkbox"
             checked={scrollWheelEnabled}
             onChange={(e) => setScrollWheelEnabled(e.target.checked)}
-            className="w-4 h-4 rounded border-white/20 bg-[#2A2F35] text-blue-500 focus:ring-2 focus:ring-blue-500"
+            className="w-4 h-4 rounded border-white/20 bg-gray-700 text-blue-500 focus:ring-2 focus:ring-blue-500"
           />
           <span>{t('hierarchy.map.wheelZoom')}</span>
         </label>

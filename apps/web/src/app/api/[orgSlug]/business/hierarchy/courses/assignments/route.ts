@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import {
+  updateCourseAssignmentSchema,
+  type UpdateCourseAssignmentBody,
+} from '@/app/api/business/hierarchy/_schemas'
 
 interface HierarchyEntityInfo {
   id: string
@@ -141,8 +147,9 @@ export async function GET(
 /**
  * PUT /api/[orgSlug]/business/hierarchy/courses/assignments/[id]
  */
-export async function PUT(
-  request: NextRequest,
+async function handlePut(
+  _request: NextRequest,
+  body: UpdateCourseAssignmentBody,
   { params }: { params: Promise<{ orgSlug: string; id: string }> }
 ) {
   try {
@@ -150,7 +157,10 @@ export async function PUT(
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
 
-    const body = await request.json()
+    if (!auth.organizationId) {
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403)
+    }
+
     const { due_date, start_date, approach, message, status } = body
 
     const supabase = await createClient()
@@ -163,7 +173,7 @@ export async function PUT(
       .single()
 
     if (checkError || !existingAssignment) {
-      return NextResponse.json({ success: false, error: 'Asignación no encontrada' }, { status: 404 })
+      return apiError('ASSIGNMENT_NOT_FOUND', 'Asignación no encontrada', 404)
     }
 
     const updateData: HierarchyAssignmentUpdateData = {}
@@ -182,15 +192,17 @@ export async function PUT(
 
     if (updateError) {
       logger.error('Error actualizando asignación:', updateError)
-      return NextResponse.json({ success: false, error: 'Error al actualizar' }, { status: 500 })
+      return apiError('UPDATE_ASSIGNMENT_FAILED', 'Error al actualizar', 500)
     }
 
     return NextResponse.json({ success: true, data: updatedAssignment })
   } catch (error: unknown) {
     logger.error('Error inesperado en PUT [orgSlug]/hierarchy/courses/assignments/[id]:', error)
-    return NextResponse.json({ success: false, error: getErrorMessage(error) }, { status: 500 })
+    return apiError('UPDATE_ASSIGNMENT_FAILED', getErrorMessage(error), 500)
   }
 }
+
+export const PUT = withZodBody(updateCourseAssignmentSchema, handlePut)
 
 /**
  * DELETE /api/[orgSlug]/business/hierarchy/courses/assignments/[id]

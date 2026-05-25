@@ -68,7 +68,7 @@ export function UserProfilePreview({
       className="lg:w-80 w-full shrink-0 items-center border-b p-6 text-center lg:border-b-0 lg:border-r lg:p-10"
       style={{
         borderColor: theme.borderColor,
-        background: `linear-gradient(135deg, ${theme.primaryColor}10, ${theme.accentColor}08)`,
+        background: `linear-gradient(135deg, color-mix(in srgb, ${theme.primaryColor} 6.3%, transparent), color-mix(in srgb, ${theme.accentColor} 3.1%, transparent))`,
       }}
     >
       <div className="flex flex-1 flex-col items-center justify-center w-full">
@@ -108,7 +108,7 @@ export function UserProfilePreview({
             {isUploadingImage ? (
               <div
                 className="h-5 w-5 animate-spin rounded-full border-2"
-                style={{ borderColor: `${theme.onPrimaryColor}4D`, borderTopColor: theme.onPrimaryColor }}
+                style={{ borderColor: `color-mix(in srgb, ${theme.onPrimaryColor} 30.2%, transparent)`, borderTopColor: theme.onPrimaryColor }}
               />
             ) : (
               <Camera className="h-6 w-6" style={{ color: theme.onPrimaryColor }} strokeWidth={2.5} />
@@ -153,7 +153,7 @@ export function UserProfilePreview({
               style={{
                 background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
                 color: theme.onPrimaryColor,
-                boxShadow: `0 10px 25px ${theme.primaryColor}30`,
+                boxShadow: `0 10px 25px color-mix(in srgb, ${theme.primaryColor} 18.8%, transparent)`,
               }}
             >
               {currentRole?.label}
@@ -163,9 +163,9 @@ export function UserProfilePreview({
           <div
             className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-[10px] font-black uppercase tracking-widest"
             style={{
-              backgroundColor: `${currentStatus.color}15`,
+              backgroundColor: `color-mix(in srgb, ${currentStatus.color} 8.2%, transparent)`,
               color: currentStatus.color,
-              borderColor: `${currentStatus.color}30`,
+              borderColor: `color-mix(in srgb, ${currentStatus.color} 18.8%, transparent)`,
             }}
           >
             <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: currentStatus.color }} />

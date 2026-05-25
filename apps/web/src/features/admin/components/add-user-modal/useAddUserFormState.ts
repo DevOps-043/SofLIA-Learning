@@ -1,55 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import type { UserGender } from '../../../../lib/schemas/user-demographics.schema'
 
-export type TabType = 'basic' | 'personal' | 'additional'
+import { INITIAL_ADD_USER_FORM } from './add-user-form-state.constants'
+import type { NewAdminUserData, TabType } from './add-user-form-state.types'
 
-export interface NewAdminUserData {
-  username: string
-  email: string
-  password: string
-  first_name: string
-  last_name: string
-  display_name: string
-  cargo_rol: string
-  type_rol: string
-  phone: string
-  date_of_birth: string
-  gender: UserGender | ''
-  bio: string
-  location: string
-  profile_picture_url: string
-  curriculum_url: string
-  linkedin_url: string
-  github_url: string
-  website_url: string
-  points: number
-  country_code: string
-}
-
-const INITIAL_FORM: NewAdminUserData = {
-  username: '',
-  email: '',
-  password: '',
-  first_name: '',
-  last_name: '',
-  display_name: '',
-  cargo_rol: 'Usuario',
-  type_rol: '',
-  phone: '',
-  date_of_birth: '',
-  gender: '',
-  bio: '',
-  location: '',
-  profile_picture_url: '',
-  curriculum_url: '',
-  linkedin_url: '',
-  github_url: '',
-  website_url: '',
-  points: 0,
-  country_code: ''
-}
+export type { NewAdminUserData, TabType } from './add-user-form-state.types'
 
 interface UseAddUserFormStateProps {
   onSave: (userData: NewAdminUserData) => Promise<void>
@@ -57,7 +13,7 @@ interface UseAddUserFormStateProps {
 }
 
 export function useAddUserFormState({ onSave, onClose }: UseAddUserFormStateProps) {
-  const [formData, setFormData] = useState<NewAdminUserData>(INITIAL_FORM)
+  const [formData, setFormData] = useState<NewAdminUserData>(INITIAL_ADD_USER_FORM)
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -69,7 +25,7 @@ export function useAddUserFormState({ onSave, onClose }: UseAddUserFormStateProp
     const { name, value, type } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'number' ? parseInt(value) || 0 : value
+      [name]: type === 'number' ? parseInt(value) || 0 : value,
     }))
   }
 
@@ -86,7 +42,7 @@ export function useAddUserFormState({ onSave, onClose }: UseAddUserFormStateProp
 
     try {
       await onSave(formData)
-      setFormData(INITIAL_FORM)
+      setFormData(INITIAL_ADD_USER_FORM)
       setConfirmPassword('')
       onClose()
     } catch (err) {
@@ -106,6 +62,6 @@ export function useAddUserFormState({ onSave, onClose }: UseAddUserFormStateProp
     activeTab,
     setActiveTab,
     handleChange,
-    handleSubmit
+    handleSubmit,
   }
 }

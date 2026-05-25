@@ -82,12 +82,12 @@ export function StudyPlannerDashboardToolbarV2({
       />
 
       <div className="min-w-[240px] flex-1 max-w-[360px]">
-        <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[#6C757D] dark:text-gray-400">
+        <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
           Plan activo
         </label>
         <div className="relative">
           <select
-            className="w-full appearance-none rounded-xl border border-[#E9ECEF] bg-white px-4 py-3 pr-10 text-sm font-medium text-[#0A2540] shadow-sm outline-none transition focus:border-[#0A2540]/40 dark:border-[#6C757D]/30 dark:bg-[#1E2329] dark:text-white"
+            className="w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 py-3 pr-10 text-sm font-medium text-primary shadow-sm outline-none transition focus:border-primary/40 dark:border-gray-500/30 dark:bg-carbon-800 dark:text-white"
             onChange={(event) => onSelectPlan(event.target.value)}
             value={selectedPlanId || ''}
           >
@@ -97,7 +97,7 @@ export function StudyPlannerDashboardToolbarV2({
               </option>
             ))}
           </select>
-          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6C757D]" />
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
         </div>
       </div>
 
@@ -108,7 +108,7 @@ export function StudyPlannerDashboardToolbarV2({
           onMouseEnter={() => setHoveredButton('tour')}
           onMouseLeave={() => setHoveredButton(null)}
           whileTap={{ scale: 0.95 }}
-          className="rounded-lg bg-white dark:bg-[#1E2329] text-[#6C757D] dark:text-gray-400 hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 border border-[#E9ECEF] dark:border-[#6C757D]/30 transition-colors flex items-center overflow-hidden"
+          className="rounded-lg bg-white dark:bg-carbon-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-primary/20 border border-gray-200 dark:border-gray-500/30 transition-colors flex items-center overflow-hidden"
           title="Ver Tour"
         >
           <motion.div
@@ -139,8 +139,8 @@ export function StudyPlannerDashboardToolbarV2({
           whileTap={{ scale: 0.95 }}
           className={`rounded-lg transition-colors flex items-center overflow-hidden ${
             isCalendarConnected
-              ? 'bg-[#10B981]/10 dark:bg-[#10B981]/20 text-[#10B981] dark:text-[#10B981] hover:bg-[#10B981]/20 dark:hover:bg-[#10B981]/30 border border-[#10B981]/30 dark:border-[#10B981]/40'
-              : 'bg-white dark:bg-[#1E2329] text-[#6C757D] dark:text-gray-400 hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 border border-[#E9ECEF] dark:border-[#6C757D]/30'
+              ? 'bg-success/10 dark:bg-success/20 text-success dark:text-success hover:bg-success/20 dark:hover:bg-success/30 border border-success/30 dark:border-success/40'
+              : 'bg-white dark:bg-carbon-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-primary/20 border border-gray-200 dark:border-gray-500/30'
           }`}
         >
           <motion.div className="p-2.5 flex-shrink-0 flex items-center justify-center">

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '../../../../lib/supabase/server'
 import { LanguageDetectionService } from '../../../../core/services/languageDetection.service'
@@ -143,7 +144,7 @@ export async function GET(request: NextRequest) {
         }))
     })
   } catch (error: unknown) {
-    console.error('[TEST-COURSE-LESSONS] ❌ Error:', error)
+    techDebtLogger.error('[TEST-COURSE-LESSONS] ❌ Error:', error)
     return NextResponse.json(
       {
         success: false,

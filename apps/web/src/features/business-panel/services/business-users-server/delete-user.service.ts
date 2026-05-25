@@ -1,3 +1,5 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
+import { deleteSupabaseAuthUser } from '@/features/auth/services/supabase-auth-bridge.service'
 import { fromLoose } from '../../../../lib/supabase/looseQuery'
 import { createBusinessUsersAdminClient } from './client'
 import {
@@ -25,10 +27,10 @@ async function deleteFromTable(
       .eq(target.column ?? 'user_id', userId)
 
     if (error && !isIgnorableDeleteErrorCode(error.code)) {
-      console.warn(`Error eliminando de ${target.tableName}:`, error.message)
+      techDebtLogger.warn(`Error eliminando de ${target.tableName}:`, error.message)
     }
   } catch (error) {
-    console.warn(`Excepcion eliminando de ${target.tableName}:`, error)
+    techDebtLogger.warn(`Excepcion eliminando de ${target.tableName}:`, error)
   }
 }
 
@@ -169,4 +171,6 @@ export async function deleteOrganizationUser(
       `No se pudo eliminar el usuario de la plataforma: ${deleteUserError.message}`,
     )
   }
+
+  await deleteSupabaseAuthUser(userId)
 }

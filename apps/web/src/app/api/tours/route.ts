@@ -1,7 +1,12 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { SessionService } from '../../../features/auth/services/session.service';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 import type { Database } from '../../../lib/supabase/types';
+import { tourProgressSchema, type TourProgressBody } from './schema';
 
 // ---------------------------------------------------------------------------
 // Singleton admin client
@@ -52,10 +57,9 @@ function isMissingTourProgressInfrastructureError(error: unknown) {
 
 // ---------------------------------------------------------------------------
 // GET /api/tours?tourId=<id>
-// Verifica si el usuario ya vio un tour específico.
-// Cache privado de 60 s: el estado del tour cambia raramente y un usuario
-// autenticado no comparte caché con otros. Esto evita hits a la DB en cada
-// render/montaje del hook useTourProgress.
+// Verifica si el usuario ya vio un tour especifico.
+// No cacheamos: el estado puede cambiar inmediatamente por POST complete/skip.
+// Cachear un "no visto" haria que el tour reaparezca al navegar rapido.
 // ---------------------------------------------------------------------------
 export async function GET(request: NextRequest) {
   try {
@@ -74,13 +78,13 @@ export async function GET(request: NextRequest) {
     const supabase = getAdminClient();
     const { data, error } = await supabase
       .from('user_tour_progress')
-      .select('*')
+      .select(SELECT_COLUMNS.user_tour_progress)
       .eq('user_id', user.id)
       .eq('tour_id', tourId)
       .maybeSingle();
 
     if (error) {
-      console.error('[GET /api/tours] DB error:', error);
+      techDebtLogger.error('[GET /api/tours] DB error:', error);
       if (isMissingTourProgressInfrastructureError(error)) {
         // Don't claim the user has seen the tour just because the table is
         // missing — that masks infrastructure problems. Return 503 with an
@@ -99,19 +103,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Error al verificar tour' }, { status: 500 });
     }
 
+    const hasSeenTour = Boolean(data?.completed_at || data?.skipped_at);
+
     return NextResponse.json(
-      { success: true, hasSeenTour: !!data, tourProgress: data ?? null },
+      { success: true, hasSeenTour, tourProgress: data ?? null },
       {
         headers: {
-          // Private cache: browser can cache this for 60 s, CDN must not.
-          // After 60 s the browser revalidates. Reduces DB calls on fast
-          // navigations where the user hasn't completed the tour yet.
-          'Cache-Control': 'private, max-age=60, stale-while-revalidate=30',
+          'Cache-Control': 'no-store',
         },
       }
     );
   } catch (err) {
-    console.error('[GET /api/tours] Unexpected error:', err);
+    techDebtLogger.error('[GET /api/tours] Unexpected error:', err);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -121,31 +124,14 @@ export async function GET(request: NextRequest) {
 // Registra progreso: start | step | complete | skip
 // No cacheamos: es escritura y necesita ser inmediata.
 // ---------------------------------------------------------------------------
-export async function POST(request: NextRequest) {
+async function handlePost(_request: NextRequest, body: TourProgressBody) {
   try {
     const user = await SessionService.getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+      return apiError('UNAUTHORIZED', 'No autorizado', 401);
     }
 
-    const body = await request.json();
-    const { tourId, action, stepReached } = body as {
-      tourId?: string;
-      action?: string;
-      stepReached?: number;
-    };
-
-    if (!tourId || !action) {
-      return NextResponse.json(
-        { error: 'tourId y action son requeridos' },
-        { status: 400 }
-      );
-    }
-
-    if (!VALID_ACTIONS.has(action)) {
-      return NextResponse.json({ error: 'Acción inválida' }, { status: 400 });
-    }
-
+    const { tourId, action, stepReached } = body;
     const supabase = getAdminClient();
 
     // Single read to check existence — we only SELECT id + step_reached
@@ -157,7 +143,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (existingError) {
-      console.error('[POST /api/tours] Read DB error:', existingError);
+      techDebtLogger.error('[POST /api/tours] Read DB error:', existingError);
       if (isMissingTourProgressInfrastructureError(existingError)) {
         return NextResponse.json(
           { success: false, reason: 'infrastructure_unavailable', tourProgress: null },
@@ -215,7 +201,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (result.error) {
-      console.error('[POST /api/tours] DB error:', result.error);
+      techDebtLogger.error('[POST /api/tours] DB error:', result.error);
       if (isMissingTourProgressInfrastructureError(result.error)) {
         return NextResponse.json(
           { success: false, reason: 'infrastructure_unavailable', tourProgress: null },
@@ -227,7 +213,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, tourProgress: result.data });
   } catch (err) {
-    console.error('[POST /api/tours] Unexpected error:', err);
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+    techDebtLogger.error('[POST /api/tours] Unexpected error:', err);
+    return apiError('TOUR_PROGRESS_FAILED', 'Error interno del servidor', 500);
   }
 }
+
+export const POST = withZodBody(tourProgressSchema, handlePost);

@@ -98,7 +98,7 @@ export function BusinessUserStatsOverviewTab({
                         value={stats.lia_activities_completed}
                         label={t('users.stats.platformActivity.liaActivities', 'Actividades SofLIA')}
                         helper={`${stats.lia_activities_total || 0} ${t('users.stats.platformActivity.total', 'en total')}`}
-                        color={isDark ? '#F43F5E' : '#E11D48'}
+                        color={isDark ? 'var(--color-legacy-f43f5e)' : 'var(--color-legacy-e11d48)'}
                         theme={theme}
                      />
                   )}
@@ -130,7 +130,7 @@ export function BusinessUserStatsOverviewTab({
                      className="absolute inset-y-0 left-0 rounded-full"
                      style={{
                         background: `linear-gradient(90deg, ${theme.primaryColor}, ${theme.accentColor})`,
-                        boxShadow: `0 0 30px ${theme.primaryColor}80`,
+                        boxShadow: `0 0 30px color-mix(in srgb, ${theme.primaryColor} 50.2%, transparent)`,
                      }}
                   />
                </div>
@@ -152,7 +152,7 @@ function ActivityItem({ icon: Icon, value, label, helper, color, theme }: any) {
    return (
       <div className="flex items-center gap-4 p-5 rounded-[1.8rem] border shadow-lg transition-all hover:scale-[1.01]" 
            style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', borderColor: 'rgba(255,255,255,0.05)' }}>
-         <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
+         <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${color} 8.2%, transparent)` }}>
             <Icon className="w-6 h-6" style={{ color }} />
          </div>
          <div className="flex-1">
@@ -161,7 +161,7 @@ function ActivityItem({ icon: Icon, value, label, helper, color, theme }: any) {
          </div>
          {helper && (
             <div className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border"
-                 style={{ backgroundColor: `${color}10`, borderColor: `${color}20`, color }}>
+                 style={{ backgroundColor: `color-mix(in srgb, ${color} 6.3%, transparent)`, borderColor: `color-mix(in srgb, ${color} 12.5%, transparent)`, color }}>
                {helper}
             </div>
          )}

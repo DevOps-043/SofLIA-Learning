@@ -29,7 +29,7 @@ export function ProfilePageHeader({ colors, saving, showSaveSuccess, goBack, han
           className="flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300"
           style={{
             backgroundColor: saving ? 'rgba(255,255,255,0.1)' : showSaveSuccess ? colors.success : colors.primary,
-            color: saving ? colors.textSecondary : '#FFFFFF'
+            color: saving ? colors.textSecondary : 'var(--color-bg-light)'
           }}
           whileHover={!saving ? { scale: 1.02 } : undefined}
           whileTap={!saving ? { scale: 0.98 } : undefined}

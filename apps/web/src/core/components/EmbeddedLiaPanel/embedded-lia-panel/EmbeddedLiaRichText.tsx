@@ -26,7 +26,7 @@ export function EmbeddedLiaRichText({ text, onNavigate }: EmbeddedLiaRichTextPro
                 onNavigate(token.href);
               }
             }}
-            className="text-[#00D4B3] dark:text-[#00D4B3] hover:text-[#00b89a] dark:hover:text-[#00b89a] underline font-medium transition-colors"
+            className="text-accent dark:text-accent hover:text-accent dark:hover:text-accent underline font-medium transition-colors"
             {...(!isRelative && { target: '_blank', rel: 'noopener noreferrer' })}
           >
             {token.content}

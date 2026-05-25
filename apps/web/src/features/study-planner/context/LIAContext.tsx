@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import {
   type CourseInfo,
@@ -70,7 +71,7 @@ export function LIAProvider({ children }: { children: ReactNode }) {
         isLoading: false,
       }));
     } catch (error) {
-      console.error('❌ [LIAContext] Error cargando datos del usuario:', error);
+      techDebtLogger.error('❌ [LIAContext] Error cargando datos del usuario:', error);
       setState((prev) => ({
         ...prev,
         error: error instanceof Error ? error.message : 'Error desconocido',
@@ -121,7 +122,7 @@ export function LIAProvider({ children }: { children: ReactNode }) {
         lastUpdated: new Date(),
       }));
     } catch (error) {
-      console.error('❌ [LIAContext] Error cargando lecciones:', error);
+      techDebtLogger.error('❌ [LIAContext] Error cargando lecciones:', error);
       setState((prev) => ({
         ...prev,
         error: error instanceof Error ? error.message : 'Error desconocido',

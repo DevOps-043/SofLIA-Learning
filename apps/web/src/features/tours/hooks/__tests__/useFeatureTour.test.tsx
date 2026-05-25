@@ -6,12 +6,11 @@ import {
   EVENTS,
   LIFECYCLE,
   STATUS,
-  type CallBackProps,
-  type Step,
 } from 'react-joyride';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useFeatureTour } from '../useFeatureTour';
+import type { SofliaJoyrideEvent as CallBackProps, SofliaJoyrideStep as Step } from '../../types/joyride';
 
 const completeTour = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
 const skipTour = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
@@ -113,7 +112,7 @@ describe('useFeatureTour', () => {
     expect(result.current.stepIndex).toBe(0);
   });
 
-  it('advances past missing targets instead of leaving the overlay stuck', () => {
+  it('does not advance on TARGET_NOT_FOUND so a single Next click cannot cascade through every step', () => {
     const { result } = renderHook(() =>
       useFeatureTour({
         steps,
@@ -129,8 +128,11 @@ describe('useFeatureTour', () => {
       );
     });
 
-    expect(result.current.stepIndex).toBe(1);
-    expect(updateStep).toHaveBeenCalledWith(1);
+    // Tour stays on the current step; user can close/skip manually.
+    expect(result.current.stepIndex).toBe(0);
+    expect(updateStep).not.toHaveBeenCalled();
+    expect(completeTour).not.toHaveBeenCalled();
+    expect(skipTour).not.toHaveBeenCalled();
   });
 
   it('skips when the close action is emitted', () => {

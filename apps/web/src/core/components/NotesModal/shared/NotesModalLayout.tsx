@@ -44,45 +44,45 @@ const notesModalVariantClasses: Record<NotesModalVariant, Record<string, string>
     closeButton:
       'p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors text-gray-500 hover:text-gray-900 dark:text-white/40 dark:hover:text-white',
     container:
-      'bg-white dark:bg-[#0F1419] rounded-2xl shadow-2xl border border-gray-200 dark:border-white/10 w-full max-w-3xl overflow-hidden',
+      'bg-white dark:bg-carbon-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-white/10 w-full max-w-3xl overflow-hidden',
     editorArea:
-      'flex-1 bg-white dark:bg-[#0F1419] border-none rounded-none p-4 min-h-0 overflow-y-auto flex flex-col',
+      'flex-1 bg-white dark:bg-carbon-900 border-none rounded-none p-4 min-h-0 overflow-y-auto flex flex-col',
     exportButton:
       'hidden md:flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-700 dark:text-white rounded-xl text-sm font-medium transition-colors border border-gray-200 dark:border-white/10',
     footer:
-      'flex flex-col md:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[#0F1419] shrink-0',
+      'flex flex-col md:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-carbon-900 shrink-0',
     footerHint:
       'hidden md:block text-[10px] text-gray-400 dark:text-white/30 uppercase tracking-wider font-medium',
     header:
-      'flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-white/10 shrink-0 bg-white dark:bg-[#0F1419]',
+      'flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-white/10 shrink-0 bg-white dark:bg-carbon-900',
     headerIcon:
       'w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700',
     headerTitle: 'text-lg font-semibold text-gray-900 dark:text-white tracking-tight',
     input:
-      'w-full bg-white dark:bg-[#1E2329] border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-lg font-semibold placeholder-gray-500 dark:placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-[#00D4B3]/50 focus:border-transparent',
+      'w-full bg-white dark:bg-carbon-800 border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-lg font-semibold placeholder-gray-500 dark:placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-transparent',
     modalHeight:
       'max-h-[calc(100vh-2rem)] md:max-h-[75vh] md:h-[75vh] flex flex-col overflow-hidden',
     overlay:
       'fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 md:p-4',
     primaryButton:
-      'flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold transition-all shadow-md',
+      'flex items-center justify-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold transition-all shadow-md',
     secondaryButton:
       'px-5 py-2.5 bg-transparent hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 hover:text-gray-900 dark:text-white/60 dark:hover:text-white rounded-xl text-sm font-medium transition-colors border border-transparent hover:border-gray-200 dark:hover:border-white/10',
     tagChip:
-      'inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 dark:bg-[#1E2329] text-accent text-xs font-medium rounded-full border border-gray-200 dark:border-white/5',
+      'inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 dark:bg-carbon-800 text-accent text-xs font-medium rounded-full border border-gray-200 dark:border-white/5',
     tagRemoveButton: 'hover:text-gray-900 dark:hover:text-white transition-colors',
     tagSection: 'mt-4 shrink-0',
     toolbar:
-      'px-4 py-3 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0F1419] shrink-0 overflow-x-auto scrollbar-hide',
+      'px-4 py-3 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-carbon-900 shrink-0 overflow-x-auto scrollbar-hide',
     toolbarButton:
       'p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-md transition-colors',
     toolbarButtonDisabled: 'disabled:opacity-30 disabled:cursor-not-allowed',
     toolbarDropdown:
       'pl-3 pr-8 py-1.5 bg-transparent rounded-md text-gray-900 dark:text-white text-xs font-medium focus:outline-none focus:bg-gray-100 dark:focus:bg-white/10 appearance-none cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors border-none',
-    toolbarGroup: 'flex gap-1 bg-white dark:bg-[#1E2329] p-1 rounded-lg border border-gray-200 dark:border-white/5',
+    toolbarGroup: 'flex gap-1 bg-white dark:bg-carbon-800 p-1 rounded-lg border border-gray-200 dark:border-white/5',
     toolbarSeparator: 'w-px h-6 bg-gray-300 dark:bg-white/10 mx-1',
     wrapper:
-      'flex-1 p-6 flex flex-col overflow-hidden min-h-0 bg-white dark:bg-[#0F1419]',
+      'flex-1 p-6 flex flex-col overflow-hidden min-h-0 bg-white dark:bg-carbon-900',
   },
   native: {
     addTagButton:
@@ -101,13 +101,13 @@ const notesModalVariantClasses: Record<NotesModalVariant, Record<string, string>
       'w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700',
     headerTitle: 'text-lg font-semibold text-gray-900 dark:text-white tracking-tight',
     input:
-      'w-full bg-gray-50 dark:!bg-slate-800/80 border border-gray-200 dark:border-slate-700/80 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-lg font-medium placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#00D4B3]/20 transition-all',
+      'w-full bg-gray-50 dark:!bg-slate-800/80 border border-gray-200 dark:border-slate-700/80 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-lg font-medium placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all',
     modalHeight:
       'max-h-[calc(100vh-2rem)] md:max-h-[85vh] md:h-[75vh] flex flex-col overflow-hidden',
     overlay:
       'fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 md:p-4',
     primaryButton:
-      'flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold transition-all shadow-md',
+      'flex items-center justify-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold transition-all shadow-md',
     secondaryButton:
       'px-5 py-2.5 bg-transparent hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 hover:text-gray-900 dark:text-white/60 dark:hover:text-white rounded-xl text-sm font-medium transition-colors border border-transparent hover:border-gray-200 dark:hover:border-white/10',
     tagChip:
@@ -307,7 +307,7 @@ export function NotesModalLayout({
               <div className={classes.tagSection}>
                 <div className="relative flex items-center mb-3">
                   <input
-                    className="flex-1 bg-gray-50 dark:bg-[#1E2329] border border-gray-200 dark:border-white/10 rounded-lg pl-3 pr-10 py-2 text-gray-900 dark:text-white text-xs placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#00D4B3]/20 transition-all"
+                    className="flex-1 bg-gray-50 dark:bg-carbon-800 border border-gray-200 dark:border-white/10 rounded-lg pl-3 pr-10 py-2 text-gray-900 dark:text-white text-xs placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all"
                     onChange={(event) => editor.setTagInput(event.target.value)}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter') {
@@ -320,7 +320,7 @@ export function NotesModalLayout({
                     value={editor.tagInput}
                   />
                   <div className="absolute right-3 flex items-center pointer-events-none">
-                    <kbd className="hidden sm:flex h-5 items-center gap-1 rounded border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0F1419] px-1.5 font-sans text-[10px] font-medium text-gray-400 dark:text-white/30">
+                    <kbd className="hidden sm:flex h-5 items-center gap-1 rounded border border-gray-200 dark:border-white/10 bg-white dark:bg-carbon-900 px-1.5 font-sans text-[10px] font-medium text-gray-400 dark:text-white/30">
                       <CornerDownLeft className="w-2.5 h-2.5" />
                       <span>Enter</span>
                     </kbd>

@@ -21,7 +21,7 @@ interface AdminWorkshopCardMediaProps {
 export function AdminWorkshopCardMedia(props: AdminWorkshopCardMediaProps) {
   const { disableHeavy } = useMotionSafe()
   return (
-    <div className="group/image relative h-56 flex-shrink-0 overflow-hidden bg-[var(--color-gray-100)]">
+    <div className="group/image relative h-56 flex-shrink-0 overflow-hidden bg-[var(--color-bg-dark)]">
       <WorkshopThumbnail thumbnailUrl={props.thumbnailUrl} title={props.title} />
       <div className="absolute inset-0 opacity-60 transition-opacity duration-500 group-hover:opacity-80" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.62), rgba(0,0,0,0.18), transparent)' }} />
       <div className="pointer-events-none absolute inset-0 rounded-t-2xl border-2 border-transparent transition-all duration-500 group-hover:opacity-100" style={{ borderColor: 'transparent' }} />

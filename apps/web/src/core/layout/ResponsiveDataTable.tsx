@@ -102,7 +102,7 @@ export function ResponsiveDataTable<T>({
             <div
               key={itemKey}
               className={cn(
-                'rounded-2xl border border-[#E9ECEF] bg-white p-4 shadow-sm dark:border-[#6C757D]/30 dark:bg-[#1E2329]',
+                'rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-500/30 dark:bg-carbon-800',
                 mobileCardClassName,
               )}
             >
@@ -112,10 +112,10 @@ export function ResponsiveDataTable<T>({
                     key={column.id}
                     className="flex items-start justify-between gap-4"
                   >
-                    <dt className="min-w-0 text-xs font-semibold uppercase tracking-wide text-[#6C757D] dark:text-white/60">
+                    <dt className="min-w-0 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-white/60">
                       {column.mobileLabel ?? column.header}
                     </dt>
-                    <dd className="min-w-0 flex-1 text-right text-sm text-[#0A2540] dark:text-white">
+                    <dd className="min-w-0 flex-1 text-right text-sm text-primary dark:text-white">
                       {column.mobileValue
                         ? column.mobileValue(item, index)
                         : column.cell(item, index)}

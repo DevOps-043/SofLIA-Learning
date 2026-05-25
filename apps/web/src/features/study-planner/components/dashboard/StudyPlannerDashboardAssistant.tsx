@@ -62,9 +62,9 @@ export function StudyPlannerDashboardAssistant({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 z-40 flex h-screen w-full max-w-[420px] flex-col overflow-hidden rounded-bl-[30px] rounded-tl-[30px] border-l border-gray-200 bg-white shadow-[-4px_0_32px_rgba(0,0,0,0.1)] dark:border-[#1e2a35] dark:bg-[#0a0f14] dark:shadow-[-4px_0_32px_rgba(0,0,0,0.4)]"
+            className="fixed top-0 right-0 z-40 flex h-screen w-full max-w-[420px] flex-col overflow-hidden rounded-bl-[30px] rounded-tl-[30px] border-l border-gray-200 bg-white shadow-[-4px_0_32px_rgba(0,0,0,0.1)] dark:border-[var(--color-legacy-1e2a35)] dark:bg-[var(--color-legacy-0a0f14)] dark:shadow-[-4px_0_32px_rgba(0,0,0,0.4)]"
           >
-            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-5 dark:border-[#1e2a35] dark:bg-[#0a0f14]">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-5 dark:border-[var(--color-legacy-1e2a35)] dark:bg-[var(--color-legacy-0a0f14)]">
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <img
@@ -72,16 +72,16 @@ export function StudyPlannerDashboardAssistant({
                     alt="SofLIA"
                     width={40}
                     height={40}
-                    className="rounded-full border-2 border-[#00D4B3] object-cover"
+                    className="rounded-full border-2 border-accent object-cover"
                   />
-                  <div className="absolute bottom-[-2px] right-[-2px] h-[14px] w-[14px] rounded-full border-2 border-[#0a0f14] bg-green-500" />
+                  <div className="absolute bottom-[-2px] right-[-2px] h-[14px] w-[14px] rounded-full border-2 border-[var(--color-legacy-0a0f14)] bg-green-500" />
                 </div>
 
                 <div>
                   <h2 className="m-0 text-base font-semibold leading-[1.2] text-gray-900 dark:text-white">
                     SofLIA
                   </h2>
-                  <p className="m-0 text-xs font-medium text-[#00D4B3]">
+                  <p className="m-0 text-xs font-medium text-accent">
                     Asistente de tu plan
                   </p>
                 </div>
@@ -93,19 +93,19 @@ export function StudyPlannerDashboardAssistant({
                   title="Limpiar conversacion"
                   className={`flex h-8 w-8 items-center justify-center rounded-lg border-none bg-transparent transition-colors ${
                     messages.length > 0
-                      ? 'cursor-pointer opacity-100 hover:bg-red-50 dark:hover:bg-[#450a0a]'
+                      ? 'cursor-pointer opacity-100 hover:bg-red-50 dark:hover:bg-[var(--color-legacy-450a0a)]'
                       : 'cursor-not-allowed opacity-50'
                   }`}
                   disabled={messages.length === 0}
                 >
-                  <Trash2 className="h-[18px] w-[18px] text-red-500 dark:text-[#f87171]" />
+                  <Trash2 className="h-[18px] w-[18px] text-red-500 dark:text-[var(--color-legacy-f87171)]" />
                 </button>
 
                 <button
                   onClick={() => setIsCollapsed(true)}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border-none bg-transparent transition-colors hover:bg-gray-100 dark:hover:bg-[#1e2a35]"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border-none bg-transparent transition-colors hover:bg-gray-100 dark:hover:bg-[var(--color-legacy-1e2a35)]"
                 >
-                  <X className="h-[18px] w-[18px] text-gray-500 dark:text-[#6b7280]" />
+                  <X className="h-[18px] w-[18px] text-gray-500 dark:text-[var(--color-legacy-6b7280)]" />
                 </button>
               </div>
             </div>
@@ -119,13 +119,13 @@ export function StudyPlannerDashboardAssistant({
                     transition={{ duration: 0.5 }}
                     className="relative mb-6"
                   >
-                    <div className="absolute top-1/2 left-1/2 h-[120px] w-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#00D4B3] opacity-20 blur-[40px] z-0" />
+                    <div className="absolute top-1/2 left-1/2 h-[120px] w-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent opacity-20 blur-[40px] z-0" />
                     <img
                       src="/lia-avatar.webp"
                       alt="SofLIA"
                       width={80}
                       height={80}
-                      className="relative z-10 rounded-full border-[3px] border-[#00D4B3] object-cover shadow-[0_0_20px_rgba(0,212,179,0.4)]"
+                      className="relative z-10 rounded-full border-[3px] border-accent object-cover shadow-[0_0_20px_rgba(0,212,179,0.4)]"
                     />
                   </motion.div>
 
@@ -137,7 +137,7 @@ export function StudyPlannerDashboardAssistant({
                     <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
                       SofLIA
                     </h3>
-                    <p className="mx-auto max-w-[280px] text-sm leading-relaxed text-gray-500 dark:text-[#6b7280]">
+                    <p className="mx-auto max-w-[280px] text-sm leading-relaxed text-gray-500 dark:text-[var(--color-legacy-6b7280)]">
                       Puedo ayudarte a reprogramar sesiones, ajustar tu plan o resolver conflictos de horario.
                     </p>
                   </motion.div>
@@ -167,10 +167,10 @@ export function StudyPlannerDashboardAssistant({
                       className="rounded-full object-cover"
                     />
                   </div>
-                  <div className="flex items-center gap-1.5 rounded-[16px_16px_16px_4px] bg-gray-100 px-4 py-3 dark:bg-[#1e2a35]">
-                    <div className="h-2 w-2 rounded-full bg-[#00D4B3] animate-[liaPulse_1s_infinite]" />
-                    <div className="h-2 w-2 rounded-full bg-[#00D4B3] animate-[liaPulse_1s_infinite_0.2s]" />
-                    <div className="h-2 w-2 rounded-full bg-[#00D4B3] animate-[liaPulse_1s_infinite_0.4s]" />
+                  <div className="flex items-center gap-1.5 rounded-[16px_16px_16px_4px] bg-gray-100 px-4 py-3 dark:bg-[var(--color-legacy-1e2a35)]">
+                    <div className="h-2 w-2 rounded-full bg-accent animate-[liaPulse_1s_infinite]" />
+                    <div className="h-2 w-2 rounded-full bg-accent animate-[liaPulse_1s_infinite_0.2s]" />
+                    <div className="h-2 w-2 rounded-full bg-accent animate-[liaPulse_1s_infinite_0.4s]" />
                   </div>
                 </div>
               )}
@@ -179,16 +179,16 @@ export function StudyPlannerDashboardAssistant({
             {error && (
               <div className="border-t border-red-100 bg-red-50 px-5 py-2 dark:border-red-900/20 dark:bg-red-900/10">
                 <div className="flex items-center justify-between">
-                  <p className="m-0 text-sm text-red-500 dark:text-[#f87171]">{error}</p>
+                  <p className="m-0 text-sm text-red-500 dark:text-[var(--color-legacy-f87171)]">{error}</p>
                   <button onClick={clearError} className="border-none bg-transparent p-1">
-                    <XCircle className="h-4 w-4 text-red-500 dark:text-[#f87171]" />
+                    <XCircle className="h-4 w-4 text-red-500 dark:text-[var(--color-legacy-f87171)]" />
                   </button>
                 </div>
               </div>
             )}
 
-            <div className="border-t border-gray-200 bg-white p-3 pb-4 dark:border-[#1e2a35] dark:bg-[#0a0f14]">
-              <div className="flex items-center gap-3 rounded-3xl border border-gray-200 bg-gray-50 px-4 py-2.5 dark:border-[#374151] dark:bg-[rgba(255,255,255,0.05)]">
+            <div className="border-t border-gray-200 bg-white p-3 pb-4 dark:border-[var(--color-legacy-1e2a35)] dark:bg-[var(--color-legacy-0a0f14)]">
+              <div className="flex items-center gap-3 rounded-3xl border border-gray-200 bg-gray-50 px-4 py-2.5 dark:border-[var(--color-legacy-374151)] dark:bg-[rgba(255,255,255,0.05)]">
                 <input
                   id="dashboard-chat-input"
                   value={message}
@@ -208,8 +208,8 @@ export function StudyPlannerDashboardAssistant({
                   disabled={!message.trim() || isSending}
                   className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
                     message.trim() && !isSending
-                      ? 'cursor-pointer bg-[#00D4B3] hover:bg-[#00c0a3]'
-                      : 'cursor-not-allowed bg-gray-200 dark:bg-[#374151]'
+                      ? 'cursor-pointer bg-accent hover:bg-[var(--color-legacy-00c0a3)]'
+                      : 'cursor-not-allowed bg-gray-200 dark:bg-[var(--color-legacy-374151)]'
                   }`}
                 >
                   {isSending ? (

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { useOrganizationStore } from '@/core/stores/organizationStore'
@@ -134,7 +135,7 @@ export function useBranding(): UseBrandingReturn {
     } catch (err: unknown) {
       const errorMessage = getErrorMessage(err, 'Error al detectar colores de la imagen')
       setError(errorMessage)
-      console.error('Error detectando colores:', err)
+      techDebtLogger.error('Error detectando colores:', err)
       return null
     }
   }

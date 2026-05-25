@@ -44,19 +44,22 @@ export function useContentTranslation() {
   ): T => {
     // IMPORTANTE: Ahora siempre intentamos traducir, incluso para español
     // Si el contenido original está en inglés/portugués, necesitamos la traducción a español
-    if (!entity.id) {
+    if (typeof entity.id !== 'string') {
       return entity;
     }
 
+    const entityId = entity.id;
     const translated: Record<string, unknown> = { ...entity };
 
     fields.forEach(field => {
-      if (entity[field]) {
+      const fallbackValue = entity[field];
+
+      if (typeof fallbackValue === 'string' && fallbackValue.length > 0) {
         translated[field] = translateField(
           entityType,
-          entity.id,
+          entityId,
           field,
-          entity[field]
+          fallbackValue
         );
       }
     });

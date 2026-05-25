@@ -31,7 +31,7 @@ export function BrandingFaviconCard({
         <div
           className="absolute -top-16 -left-16 w-32 h-32 rounded-full blur-2xl"
           style={{
-            background: `radial-gradient(circle, ${theme.secondaryColor}24 0%, transparent 70%)`,
+            background: `radial-gradient(circle, color-mix(in srgb, ${theme.secondaryColor} 14.1%, transparent) 0%, transparent 70%)`,
           }}
         />
       </div>
@@ -42,7 +42,7 @@ export function BrandingFaviconCard({
             whileHover={{ rotate: 15, scale: 1.1 }}
             className="p-2.5 rounded-xl"
             style={{
-              backgroundColor: `${theme.secondaryColor}18`,
+              backgroundColor: `color-mix(in srgb, ${theme.secondaryColor} 9.4%, transparent)`,
               color: theme.secondaryColor,
             }}
           >
@@ -61,8 +61,8 @@ export function BrandingFaviconCard({
         <motion.div
           className="mb-4 rounded-xl overflow-hidden"
           style={{
-            background: `linear-gradient(135deg, ${branding.color_primary}15, ${branding.color_secondary}10)`,
-            border: `1px solid ${branding.color_primary}30`,
+            background: `linear-gradient(135deg, color-mix(in srgb, ${branding.color_primary} 8.2%, transparent), color-mix(in srgb, ${branding.color_secondary} 6.3%, transparent))`,
+            border: `1px solid color-mix(in srgb, ${branding.color_primary} 18.8%, transparent)`,
             height: '120px',
           }}
         >
@@ -81,7 +81,7 @@ export function BrandingFaviconCard({
                 ) : (
                   <div
                     className="w-14 h-14 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: `${branding.color_primary}30` }}
+                    style={{ backgroundColor: `color-mix(in srgb, ${branding.color_primary} 18.8%, transparent)` }}
                   >
                     <Globe
                       className="w-7 h-7"
@@ -115,7 +115,7 @@ export function BrandingFaviconCard({
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-300"
           style={{
             backgroundColor: theme.actionSurface,
-            border: `1px solid ${theme.actionColor}33`,
+            border: `1px solid color-mix(in srgb, ${theme.actionColor} 20%, transparent)`,
             color: theme.actionColor,
           }}
         >

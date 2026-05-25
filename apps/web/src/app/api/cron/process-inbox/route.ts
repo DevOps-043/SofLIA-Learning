@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createAdminSupabase, resolveInstructorFromPayload } from '@/lib/courseImport'
@@ -109,7 +110,7 @@ export async function GET(request: Request) {
         .limit(5)
 
     if (fetchError) {
-        console.error('[INBOX CRON] Error leyendo inbox:', fetchError)
+        techDebtLogger.error('[INBOX CRON] Error leyendo inbox:', fetchError)
         return NextResponse.json({ error: fetchError.message }, { status: 500 })
     }
 
@@ -135,7 +136,7 @@ export async function GET(request: Request) {
             details.push({ slug: item.course_slug, status: 'processed' })
         } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
-            console.error(`[INBOX CRON] ❌ Error en ${item.course_slug}:`, errorMessage)
+            techDebtLogger.error(`[INBOX CRON] ❌ Error en ${item.course_slug}:`, errorMessage)
 
             await supabase
                 .from('courseengine_inbox')

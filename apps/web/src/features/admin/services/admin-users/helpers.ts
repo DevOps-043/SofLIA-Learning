@@ -80,13 +80,11 @@ export function buildAdminUserUpdatePayload(userData: Partial<AdminUser>) {
 export function buildAdminUserInsertPayload(
   userId: string,
   userData: AdminUserCreateInput,
-  passwordHash: string,
 ) {
   return {
     id: userId,
     username: userData.username,
     email: userData.email,
-    password_hash: passwordHash,
     first_name: userData.first_name || null,
     last_name: userData.last_name || null,
     display_name: userData.display_name || null,
@@ -99,7 +97,7 @@ export function buildAdminUserInsertPayload(
     country_code: userData.country_code || null,
     date_of_birth: normalizeDateOfBirthForStorage(userData.date_of_birth),
     gender: normalizeGenderForStorage(userData.gender),
-    email_verified: false,
+    email_verified: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }

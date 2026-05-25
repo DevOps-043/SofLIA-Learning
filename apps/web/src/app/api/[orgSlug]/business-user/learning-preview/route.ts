@@ -1,21 +1,18 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextRequest, NextResponse } from 'next/server'
 
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { requireBusinessUser } from '@/lib/auth/requireBusiness'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { fromLoose } from '@/lib/supabase/looseQuery'
 import { logger } from '@/lib/utils/logger'
 import { loadBusinessUserLearningPaths } from '@/features/learning-paths/services/learning-path-dashboard.server'
 import { LearningPathDefaultsService } from '@/features/learning-paths/services/learning-path-defaults.server'
+import { learningPreviewSchema, type LearningPreviewBody } from './schema'
 
 interface RouteContext {
   params: Promise<{ orgSlug: string }>
-}
-
-interface PreviewRequestBody {
-  kind?: 'course' | 'learning_path'
-  targetId?: string
-  locale?: string
 }
 
 interface CoursePreviewRow {
@@ -395,23 +392,26 @@ async function getPreviewResult(input: {
   return result
 }
 
-export async function POST(request: NextRequest, context: RouteContext) {
+async function handlePost(
+  _request: NextRequest,
+  body: LearningPreviewBody,
+  context: RouteContext,
+) {
   try {
     const { orgSlug } = await context.params
-    const body = (await request.json()) as PreviewRequestBody
 
-    if (!orgSlug || !body.kind || !body.targetId) {
-      return NextResponse.json({ success: false, error: 'Solicitud invalida' }, { status: 400 })
-    }
-
-    if (body.kind !== 'course' && body.kind !== 'learning_path') {
-      return NextResponse.json({ success: false, error: 'Tipo de preview invalido' }, { status: 400 })
+    if (!orgSlug) {
+      return apiError('ORG_SLUG_REQUIRED', 'Solicitud invalida', 400)
     }
 
     const auth = await requireBusinessUser({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
     if (!auth.userId || !auth.organizationId) {
-      return NextResponse.json({ success: false, error: 'Sin contexto de organizacion' }, { status: 403 })
+      return apiError(
+        'BUSINESS_USER_ORGANIZATION_REQUIRED',
+        'Sin contexto de organizacion',
+        403,
+      )
     }
 
     const supabase = createAdminClient()
@@ -430,7 +430,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (body.kind === 'learning_path') {
       const assignedPath = learningPaths.find((path) => path.id === body.targetId)
       if (!assignedPath) {
-        return NextResponse.json({ success: false, error: 'Ruta no asignada' }, { status: 404 })
+        return apiError('LEARNING_PATH_NOT_ASSIGNED', 'Ruta no asignada', 404)
       }
 
       const { data: pathData, error } = await supabase
@@ -490,7 +490,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .maybeSingle<CourseAccessRow>()
 
     if (!directAccess && !pathItem) {
-      return NextResponse.json({ success: false, error: 'Curso no asignado' }, { status: 404 })
+      return apiError('COURSE_NOT_ASSIGNED', 'Curso no asignado', 404)
     }
 
     const { data: course, error } = await supabase
@@ -501,7 +501,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     if (error || !course) {
       logger.error('Learning preview course fetch failed', error)
-      return NextResponse.json({ success: false, error: 'Curso no encontrado' }, { status: 404 })
+      return apiError('COURSE_NOT_FOUND', 'Curso no encontrado', 404)
     }
 
     const result = await getPreviewResult({
@@ -526,6 +526,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ success: true, ...result })
   } catch (error) {
     logger.error('Learning preview endpoint failed', error)
-    return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 })
+    return apiError('LEARNING_PREVIEW_FAILED', 'Error interno', 500)
   }
 }
+
+export const POST = withZodBody(learningPreviewSchema, handlePost)

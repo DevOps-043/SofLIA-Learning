@@ -1,5 +1,6 @@
 'use client'
 
+import type { ChangeEvent, MutableRefObject } from 'react'
 import {
   AdminCompanyBrandingColorPalette,
   AdminCompanyBrandingPanel,
@@ -8,6 +9,11 @@ import { AdminCreateCompanyBannerUpload } from './AdminCreateCompanyBannerUpload
 import { AdminCreateCompanyLogoUpload } from './AdminCreateCompanyLogoUpload'
 import { updateCompanyColor } from './service'
 import type { CreateCompanyData } from './types'
+
+type CreateCompanyColorKey =
+  | 'brand_color_primary'
+  | 'brand_color_secondary'
+  | 'brand_color_accent'
 
 interface AdminCreateCompanyBrandingTabProps {
   formData: CreateCompanyData
@@ -26,7 +32,7 @@ const colorFields = [
   { key: 'brand_color_primary', label: 'Primario' },
   { key: 'brand_color_secondary', label: 'Secundario' },
   { key: 'brand_color_accent', label: 'Acento' },
-] as const
+] as const satisfies readonly { key: CreateCompanyColorKey; label: string }[]
 
 export function AdminCreateCompanyBrandingTab({
   formData,
@@ -59,7 +65,7 @@ export function AdminCreateCompanyBrandingTab({
           }
         />
       </div>
-      <AdminCompanyBrandingColorPalette
+      <AdminCompanyBrandingColorPalette<CreateCompanyColorKey>
         fields={colorFields}
         values={formData}
         onChange={(key, value) =>

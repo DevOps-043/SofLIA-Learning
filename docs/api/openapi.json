@@ -1,0 +1,683 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "SofLIA Learning API",
+    "version": "0.1.0",
+    "description": "Incremental OpenAPI contract generated from Zod schemas. New API routes should register schemas here as they adopt request validation."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local web app"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Operations",
+      "description": "Operational health and performance endpoints."
+    },
+    {
+      "name": "Profile",
+      "description": "Authenticated user profile operations."
+    },
+    {
+      "name": "Study Planner",
+      "description": "Study planning and calendar workflows."
+    }
+  ],
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "details": {
+            "nullable": true
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "HealthDependency": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded",
+              "down"
+            ]
+          },
+          "responseTimeMs": {
+            "type": "number",
+            "minimum": 0
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "responseTimeMs"
+        ]
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded",
+              "down"
+            ]
+          },
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "correlationId": {
+            "type": "string"
+          },
+          "checks": {
+            "type": "object",
+            "properties": {
+              "database": {
+                "$ref": "#/components/schemas/HealthDependency"
+              },
+              "openai": {
+                "$ref": "#/components/schemas/HealthDependency"
+              },
+              "gemini": {
+                "$ref": "#/components/schemas/HealthDependency"
+              },
+              "observability": {
+                "$ref": "#/components/schemas/HealthDependency"
+              }
+            },
+            "required": [
+              "database",
+              "openai",
+              "gemini",
+              "observability"
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "checkedAt",
+          "correlationId",
+          "checks"
+        ]
+      },
+      "ProfileUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 30
+          },
+          "first_name": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 100
+          },
+          "last_name": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 100
+          },
+          "display_name": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 100
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 20
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 500
+          },
+          "location": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 100
+          },
+          "cargo_rol": {
+            "type": "string",
+            "nullable": true
+          },
+          "type_rol": {
+            "type": "string",
+            "nullable": true
+          },
+          "job_title": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 100
+          },
+          "job_description": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 1000
+          },
+          "profile_picture_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "format": "uri"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  ""
+                ]
+              },
+              {
+                "nullable": true
+              }
+            ]
+          },
+          "country_code": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 10
+          },
+          "date_of_birth": {
+            "type": "string",
+            "nullable": true
+          },
+          "gender": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true,
+            "format": "email"
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "first_name": {
+            "type": "string",
+            "nullable": true
+          },
+          "last_name": {
+            "type": "string",
+            "nullable": true
+          },
+          "display_name": {
+            "type": "string",
+            "nullable": true
+          },
+          "profile_picture_url": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "StudyPlannerSession": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "course_id": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "lesson_id": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "is_ai_generated": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "session_type": {
+            "type": "string",
+            "nullable": true
+          },
+          "external_event_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "calendar_provider": {
+            "type": "string",
+            "nullable": true
+          },
+          "metrics": {
+            "nullable": true
+          },
+          "plan_id": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "start_time",
+          "end_time",
+          "status",
+          "course_id",
+          "lesson_id",
+          "is_ai_generated",
+          "session_type",
+          "external_event_id",
+          "calendar_provider",
+          "plan_id"
+        ]
+      },
+      "StudyPlannerSessionsResponse": {
+        "type": "object",
+        "properties": {
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudyPlannerSession"
+            }
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "totalSessions": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "hasActivePlan": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sessions",
+          "startDate",
+          "endDate",
+          "totalSessions",
+          "hasActivePlan"
+        ]
+      },
+      "PerformanceMetricsResponse": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "serverClientPool": {
+            "type": "object",
+            "properties": {}
+          },
+          "browserClientPool": {
+            "type": "object",
+            "properties": {}
+          },
+          "requestDeduplication": {
+            "type": "object",
+            "properties": {}
+          },
+          "memoryCache": {
+            "type": "object",
+            "properties": {}
+          },
+          "capacityBudget": {
+            "type": "object",
+            "properties": {}
+          },
+          "summary": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        "required": [
+          "timestamp",
+          "serverClientPool",
+          "browserClientPool",
+          "requestDeduplication",
+          "memoryCache",
+          "capacityBudget",
+          "summary"
+        ]
+      }
+    },
+    "parameters": {},
+    "securitySchemes": {
+      "SupabaseAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "sb-access-token",
+        "description": "Supabase-managed authenticated session cookie."
+      }
+    }
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "Operations"
+        ],
+        "summary": "Read application dependency health.",
+        "responses": {
+          "200": {
+            "description": "Application is healthy or degraded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "A critical dependency is down.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile": {
+      "get": {
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Read the authenticated user profile.",
+        "security": [
+          {
+            "SupabaseAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "org",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authenticated user profile.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Update the authenticated user profile.",
+        "security": [
+          {
+            "SupabaseAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "org",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated profile.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request payload is invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/study-planner/sessions": {
+      "get": {
+        "tags": [
+          "Study Planner"
+        ],
+        "summary": "List study sessions for the authenticated user.",
+        "security": [
+          {
+            "SupabaseAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "required": true,
+            "name": "startDate",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "required": true,
+            "name": "endDate",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "planId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Study sessions for the date range.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudyPlannerSessionsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request payload is invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/performance/metrics": {
+      "get": {
+        "tags": [
+          "Operations"
+        ],
+        "summary": "Read runtime performance counters and capacity budgets.",
+        "responses": {
+          "200": {
+            "description": "Runtime performance metrics.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceMetricsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

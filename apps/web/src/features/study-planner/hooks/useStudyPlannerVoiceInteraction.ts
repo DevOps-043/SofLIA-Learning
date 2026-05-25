@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { VoicePlaybackMode } from '../services/study-planner-voice-text.service';
 import { useVoiceAudioPlayback } from './useVoiceAudioPlayback';
@@ -82,7 +83,7 @@ export function useStudyPlannerVoiceInteraction({
       speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
 
     if (!SpeechRecognitionCtor) {
-      console.warn('El navegador no soporta reconocimiento de voz');
+      techDebtLogger.warn('El navegador no soporta reconocimiento de voz');
       return undefined;
     }
 
@@ -170,7 +171,7 @@ export function useStudyPlannerVoiceInteraction({
       setIsListening(true);
     } catch (error) {
       const typedError = error as Error;
-      console.error('Error al solicitar permisos de microfono:', error);
+      techDebtLogger.error('Error al solicitar permisos de microfono:', error);
       setIsListening(false);
       if (typedError.name === 'NotAllowedError') {
         setVoiceError('Necesito permiso para usar el microfono. Por favor permite el acceso al microfono en tu navegador y vuelve a intentar.');

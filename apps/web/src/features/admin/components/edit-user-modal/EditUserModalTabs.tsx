@@ -22,7 +22,7 @@ export function EditUserModalTabs({
 }: EditUserModalTabsProps) {
   const { t } = useTranslation('admin')
   return (
-    <div className="flex items-center gap-1 px-6 py-3 bg-[#E9ECEF]/50 dark:bg-[#0A0D12] border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
+    <div className="flex items-center gap-1 px-6 py-3 bg-gray-200/50 dark:bg-carbon-950 border-b border-gray-200 dark:border-gray-500/30">
       {EDIT_USER_TABS.map((tab) => {
         const Icon = iconMap[tab.iconName]
         const isActive = activeTab === tab.id
@@ -35,8 +35,8 @@ export function EditUserModalTabs({
             whileTap={{ scale: 0.98 }}
             className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
               isActive
-                ? 'text-[#00D4B3] bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20'
-                : 'text-[#6C757D] dark:text-white/60 hover:text-[#0A2540] dark:hover:text-white hover:bg-[#E9ECEF] dark:hover:bg-[#1E2329]'
+                ? 'text-accent bg-accent/10 dark:bg-accent/20'
+                : 'text-gray-500 dark:text-white/60 hover:text-primary dark:hover:text-white hover:bg-gray-200 dark:hover:bg-carbon-800'
             }`}
           >
             <Icon className="h-4 w-4" />
@@ -44,7 +44,7 @@ export function EditUserModalTabs({
             {isActive && (
               <motion.div
                 layoutId="activeTab"
-                className="absolute inset-0 rounded-xl bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 -z-10"
+                className="absolute inset-0 rounded-xl bg-accent/10 dark:bg-accent/20 -z-10"
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               />
             )}

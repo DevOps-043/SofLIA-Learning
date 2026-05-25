@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * UserOrganizationService
  *
@@ -9,6 +10,7 @@ import type {
   OrganizationInfo,
   WorkTeam,
 } from '../types/user-context.types';
+import { mapOrganizationInfo, mapWorkTeam } from './user-organization.mapper';
 
 export class UserOrganizationService {
   /**
@@ -26,7 +28,7 @@ export class UserOrganizationService {
       .maybeSingle();
 
     if (orgUserError) {
-      console.error('❌ [getUserOrganization] Error buscando en organization_users:', orgUserError);
+      techDebtLogger.error('❌ [getUserOrganization] Error buscando en organization_users:', orgUserError);
       return null;
     }
 
@@ -49,21 +51,11 @@ export class UserOrganizationService {
       .single();
 
     if (error) {
-      console.error('Error obteniendo organización:', error);
+      techDebtLogger.error('Error obteniendo organización:', error);
       return null;
     }
 
-    return {
-      id: data.id,
-      name: data.name,
-      slug: data.slug ?? undefined,
-      logoUrl: data.logo_url ?? undefined,
-      // industry no existe en la tabla
-      industry: undefined,
-      // size no existe, usar max_users como referencia
-      size: data.max_users ? `${data.max_users} usuarios` : undefined,
-      plan: data.subscription_plan ?? undefined,
-    };
+    return mapOrganizationInfo(data);
   }
 
   /**
@@ -88,26 +80,10 @@ export class UserOrganizationService {
       .eq('status', 'active');
 
     if (error) {
-      console.error('Error obteniendo equipos de trabajo:', error);
+      techDebtLogger.error('Error obteniendo equipos de trabajo:', error);
       return [];
     }
 
-    return data.map((item) => {
-      const team = item.work_teams as unknown as {
-        team_id: string;
-        name: string;
-        description?: string;
-        course_id?: string;
-      };
-
-      return {
-        teamId: team.team_id,
-        name: team.name,
-        description: team.description ?? undefined,
-        role: item.role as 'member' | 'leader' | 'co-leader',
-        status: item.status as 'active' | 'inactive',
-        courseId: team.course_id ?? undefined,
-      };
-    });
+    return data.map(mapWorkTeam);
   }
 }

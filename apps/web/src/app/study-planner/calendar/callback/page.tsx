@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
@@ -13,7 +14,7 @@ function getErrorHelp(errorType: string): { title: string; message: string; step
         title: 'Usuario no autorizado en modo de prueba',
         message: 'Tu email no está agregado como usuario de prueba en la aplicación de Google.',
         steps: [
-          'Ve a Google Cloud Console (console.cloud.google.com)',
+          'Ve a Google Cloud Console (cloud.google.com/console)',
           'Selecciona tu proyecto',
           'Ve a "APIs & Services" > "OAuth consent screen"',
           'En la sección "Test users", haz clic en "+ ADD USERS"',
@@ -26,7 +27,7 @@ function getErrorHelp(errorType: string): { title: string; message: string; step
         title: 'Aplicación requiere configuración',
         message: 'La aplicación de Google necesita estar configurada correctamente.',
         steps: [
-          'Ve a Google Cloud Console (console.cloud.google.com)',
+          'Ve a Google Cloud Console (cloud.google.com/console)',
           'Ve a "APIs & Services" > "OAuth consent screen"',
           'Si la app está en "Production", cámbiala a "Testing" (modo de prueba)',
           'Agrega tu email como usuario de prueba en "Test users"',
@@ -166,7 +167,7 @@ export default function CalendarCallbackPage() {
               }
             }, 500);
           } catch (e) {
-            console.error('Error cerrando popup:', e);
+            techDebtLogger.error('Error cerrando popup:', e);
             setShowError({
               type: error,
               description: errorDescription || error,
@@ -214,7 +215,7 @@ export default function CalendarCallbackPage() {
         );
 
       } catch (e) {
-        console.error('[Calendar Callback] Error enviando mensaje:', e);
+        techDebtLogger.error('[Calendar Callback] Error enviando mensaje:', e);
       }
 
       // Enviar el mensaje varias veces para asegurarse de que llegue
@@ -228,7 +229,7 @@ export default function CalendarCallbackPage() {
             window.location.origin
           );
         } catch (e) {
-          console.error('[Calendar Callback] Error enviando mensaje:', e);
+          techDebtLogger.error('[Calendar Callback] Error enviando mensaje:', e);
         }
       };
 
@@ -245,7 +246,7 @@ export default function CalendarCallbackPage() {
         try {
           window.close();
         } catch (e) {
-          console.error('[Calendar Callback] Error cerrando popup:', e);
+          techDebtLogger.error('[Calendar Callback] Error cerrando popup:', e);
           setCalendarConnected(true);
         }
       }, 1000);
@@ -258,7 +259,7 @@ export default function CalendarCallbackPage() {
       // Si no es popup, redirigir normalmente
       window.location.href = `/study-planner/create?calendar_connected=${providerFromState}`;
     } else if (!code && !success) {
-      console.warn('[Calendar Callback] No hay código ni éxito, posible error en el flujo');
+      techDebtLogger.warn('[Calendar Callback] No hay código ni éxito, posible error en el flujo');
     }
   }, [searchParams]);
 
@@ -359,4 +360,3 @@ export default function CalendarCallbackPage() {
     </div>
   );
 }
-

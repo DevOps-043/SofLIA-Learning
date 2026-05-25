@@ -48,7 +48,7 @@ export function BusinessThemeCustomizer() {
         <div
           className="h-16 w-16 animate-spin rounded-full border-4"
           style={{
-            borderColor: `${theme.actionColor}33`,
+            borderColor: `color-mix(in srgb, ${theme.actionColor} 20%, transparent)`,
             borderTopColor: theme.actionColor,
           }}
         />
@@ -61,8 +61,8 @@ export function BusinessThemeCustomizer() {
       <div
         className="rounded-lg border p-6 text-center"
         style={{
-          backgroundColor: `${theme.dangerColor}12`,
-          borderColor: `${theme.dangerColor}33`,
+          backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`,
+          borderColor: `color-mix(in srgb, ${theme.dangerColor} 20%, transparent)`,
         }}
       >
         <AlertCircle className="mx-auto mb-2 h-8 w-8" style={{ color: theme.dangerColor }} />

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '../../../../lib/supabase/server'
+import { semiStaticCache, withCache } from '@/core/utils/cache-headers'
+
+export const revalidate = 600
 
 export async function GET(
   request: NextRequest,
@@ -19,7 +22,7 @@ export async function GET(
     
     const { data, error } = await supabase
       .from('news')
-      .select('*')
+      .select(SELECT_COLUMNS.news)
       .eq('slug', slug)
       .eq('status', 'published')
       .single()
@@ -47,7 +50,7 @@ export async function GET(
       comment_count: data.metrics?.comments || 0
     }
 
-    return NextResponse.json(newsWithMetrics)
+    return withCache(NextResponse.json(newsWithMetrics), semiStaticCache)
   } catch (error) {
     return NextResponse.json(
       { 

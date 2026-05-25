@@ -30,21 +30,20 @@ describe('admin-users.helpers', () => {
         date_of_birth: '1990-05-10',
         gender: 'female',
       },
-      'hashed-password',
     )
 
     expect(payload).toMatchObject({
       id: 'user-1',
       username: 'ada',
       email: 'ada@example.com',
-      password_hash: 'hashed-password',
       cargo_rol: 'Administrador',
       first_name: null,
       type_rol: null,
       date_of_birth: '1990-05-10',
       gender: 'female',
-      email_verified: false,
+      email_verified: true,
     })
+    expect(payload).not.toHaveProperty('password_hash')
   })
 
   it('builds update payload and refreshes verification timestamp when needed', () => {

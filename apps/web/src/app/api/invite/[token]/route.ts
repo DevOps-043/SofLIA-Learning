@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+import { logger as techDebtLogger } from '@/lib/utils/logger'
+import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import {
@@ -6,6 +7,9 @@ import {
   createInvitationRuntime,
 } from '@/features/auth/actions/invitation/index'
 import { fromLoose } from '@/lib/supabase/looseQuery'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { acceptInviteSchema, type AcceptInviteBody } from './schema'
 
 interface BulkInviteOrganizationRow {
   id: string
@@ -232,7 +236,7 @@ export async function GET(
       } : null
     })
   } catch (error) {
-    console.error('Error in GET /api/invite/[token]:', error)
+    techDebtLogger.error('Error in GET /api/invite/[token]:', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor', valid: false },
       { status: 500 }
@@ -241,18 +245,16 @@ export async function GET(
 }
 
 // POST - Accept an invite link (for authenticated users)
-export async function POST(
-  request: Request,
+async function handlePost(
+  _request: NextRequest,
+  body: AcceptInviteBody,
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
     const { token } = await params
 
     if (!token) {
-      return NextResponse.json(
-        { success: false, error: 'Token es requerido' },
-        { status: 400 }
-      )
+      return apiError('INVITE_TOKEN_REQUIRED', 'Token es requerido', 400)
     }
 
     // SECURITY FIX: Verificar identidad del usuario desde el servidor,
@@ -269,10 +271,9 @@ export async function POST(
     }
 
     // Validación extra de defensa: si el cliente envía userId, verificar que coincida
-    const body = await request.json().catch(() => ({}))
     const { userId: clientUserId } = body
     if (clientUserId && clientUserId !== authenticatedUserId) {
-      console.error('[SECURITY] Invite userId mismatch — client:', clientUserId, 'session:', authenticatedUserId)
+      techDebtLogger.error('[SECURITY] Invite userId mismatch — client:', clientUserId, 'session:', authenticatedUserId)
       return NextResponse.json(
         { success: false, error: 'No autorizado.' },
         { status: 403 }
@@ -299,10 +300,14 @@ export async function POST(
       organizationSlug: result.organizationSlug || null
     })
   } catch (error) {
-    console.error('Error in POST /api/invite/[token]:', error)
+    techDebtLogger.error('Error in POST /api/invite/[token]:', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }
     )
   }
 }
+
+export const POST = withZodBody(acceptInviteSchema, handlePost, {
+  emptyBodyFallback: {},
+})

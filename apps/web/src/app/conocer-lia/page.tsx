@@ -27,7 +27,7 @@ export default function ConocerLiaPage() {
   const capabilitiesY = useTransform(capabilitiesScroll, [0, 1], [50, -50]);
 
   return (
-    <main className="min-h-screen bg-white dark:bg-[#0F1419] relative overflow-x-hidden">
+    <main className="min-h-screen bg-white dark:bg-carbon-900 relative overflow-x-hidden">
       <LiaLandingBackground />
       <LiaLandingBackLink />
       <LiaHeroSection heroRef={heroRef} heroInView={heroInView} />

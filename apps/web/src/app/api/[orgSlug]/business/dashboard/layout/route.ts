@@ -1,16 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import { requireFeature } from '@/lib/subscription/subscriptionHelper'
+import {
+  dashboardLayoutSaveSchema,
+  type DashboardLayoutSaveBody,
+} from '../../_schemas'
+
+type RouteContext = {
+  params: Promise<{ orgSlug: string }>
+}
 
 /**
  * GET /api/[orgSlug]/business/dashboard/layout
- * Obtiene el layout personalizado del dashboard de la organización
+ * Obtiene el layout personalizado del dashboard de la organizacion
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> }
+  { params }: RouteContext,
 ) {
   try {
     const { orgSlug } = await params
@@ -21,16 +31,15 @@ export async function GET(
     if (!auth.organizationId) {
       return NextResponse.json({
         success: false,
-        error: 'Usuario no pertenece a ninguna organización'
+        error: 'Usuario no pertenece a ninguna organizacion',
       }, { status: 400 })
     }
 
     const supabase = await createClient()
 
-    // Obtener layout por defecto de la organización
     const { data: layout, error: layoutError } = await supabase
       .from('dashboard_layouts')
-      .select('*')
+      .select(SELECT_COLUMNS.dashboard_layouts)
       .eq('organization_id', auth.organizationId)
       .eq('is_default', true)
       .maybeSingle()
@@ -39,11 +48,10 @@ export async function GET(
       logger.error('Error fetching dashboard layout:', layoutError)
       return NextResponse.json({
         success: false,
-        error: 'Error al obtener layout del dashboard'
+        error: 'Error al obtener layout del dashboard',
       }, { status: 500 })
     }
 
-    // Si no hay layout personalizado, retornar layout por defecto
     if (!layout) {
       return NextResponse.json({
         success: true,
@@ -56,23 +64,23 @@ export async function GET(
               { id: 'progress-chart', type: 'progress-chart', position: { x: 0, y: 2, w: 8, h: 4 } },
               { id: 'recent-activity', type: 'activity', position: { x: 8, y: 2, w: 4, h: 4 } },
               { id: 'users-chart', type: 'users-chart', position: { x: 0, y: 6, w: 6, h: 4 } },
-              { id: 'courses-chart', type: 'courses-chart', position: { x: 6, y: 6, w: 6, h: 4 } }
-            ]
+              { id: 'courses-chart', type: 'courses-chart', position: { x: 6, y: 6, w: 6, h: 4 } },
+            ],
           },
-          is_default: true
-        }
+          is_default: true,
+        },
       })
     }
 
     return NextResponse.json({
       success: true,
-      layout: layout
+      layout,
     })
   } catch (error) {
-    logger.error('💥 Error in /api/[orgSlug]/business/dashboard/layout GET:', error)
+    logger.error('Error in /api/[orgSlug]/business/dashboard/layout GET:', error)
     return NextResponse.json({
       success: false,
-      error: 'Error interno del servidor'
+      error: 'Error interno del servidor',
     }, { status: 500 })
   }
 }
@@ -81,9 +89,10 @@ export async function GET(
  * POST /api/[orgSlug]/business/dashboard/layout
  * Guarda o actualiza el layout personalizado del dashboard
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> }
+async function handlePost(
+  _request: NextRequest,
+  body: DashboardLayoutSaveBody,
+  { params }: RouteContext,
 ) {
   try {
     const { orgSlug } = await params
@@ -92,31 +101,17 @@ export async function POST(
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Usuario no pertenece a ninguna organización'
-      }, { status: 400 })
+      return apiError('NO_ORGANIZATION', 'Usuario no pertenece a ninguna organizacion', 400)
     }
 
-    // Verificar que el plan permite dashboards personalizables (solo Enterprise según tablas)
     const featureCheck = await requireFeature(auth.organizationId, 'custom_dashboard')
     if (featureCheck) {
       return featureCheck
     }
 
     const supabase = await createClient()
-
-    const body = await request.json()
     const { name, layout_config, is_default } = body
 
-    if (!name || !layout_config) {
-      return NextResponse.json({
-        success: false,
-        error: 'Nombre y configuración de layout son requeridos'
-      }, { status: 400 })
-    }
-
-    // Si es el layout por defecto, desmarcar otros layouts por defecto
     if (is_default) {
       await supabase
         .from('dashboard_layouts')
@@ -125,7 +120,6 @@ export async function POST(
         .eq('is_default', true)
     }
 
-    // Verificar si ya existe un layout por defecto
     const { data: existingLayout } = await supabase
       .from('dashboard_layouts')
       .select('id')
@@ -136,14 +130,13 @@ export async function POST(
     let layout
 
     if (existingLayout) {
-      // Actualizar layout existente
       const { data: updatedLayout, error: updateError } = await supabase
         .from('dashboard_layouts')
         .update({
           name,
           layout_config,
           is_default: is_default !== undefined ? is_default : true,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', existingLayout.id)
         .eq('organization_id', auth.organizationId)
@@ -152,32 +145,33 @@ export async function POST(
 
       if (updateError) {
         logger.error('Error updating dashboard layout:', updateError)
-        return NextResponse.json({
-          success: false,
-          error: 'Error al actualizar layout del dashboard'
-        }, { status: 500 })
+        return apiError(
+          'UPDATE_DASHBOARD_LAYOUT_FAILED',
+          'Error al actualizar layout del dashboard',
+          500,
+        )
       }
 
       layout = updatedLayout
     } else {
-      // Crear nuevo layout
       const { data: newLayout, error: createError } = await supabase
         .from('dashboard_layouts')
         .insert({
           organization_id: auth.organizationId,
           name,
           layout_config,
-          is_default: is_default !== undefined ? is_default : true
+          is_default: is_default !== undefined ? is_default : true,
         })
         .select()
         .single()
 
       if (createError) {
         logger.error('Error creating dashboard layout:', createError)
-        return NextResponse.json({
-          success: false,
-          error: 'Error al crear layout del dashboard'
-        }, { status: 500 })
+        return apiError(
+          'CREATE_DASHBOARD_LAYOUT_FAILED',
+          'Error al crear layout del dashboard',
+          500,
+        )
       }
 
       layout = newLayout
@@ -185,16 +179,15 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      layout: layout
+      layout,
     })
   } catch (error) {
-    logger.error('💥 Error in /api/[orgSlug]/business/dashboard/layout POST:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Error interno del servidor'
-    }, { status: 500 })
+    logger.error('Error in /api/[orgSlug]/business/dashboard/layout POST:', error)
+    return apiError('SAVE_DASHBOARD_LAYOUT_FAILED', 'Error interno del servidor', 500)
   }
 }
+
+export const POST = withZodBody(dashboardLayoutSaveSchema, handlePost)
 
 /**
  * DELETE /api/[orgSlug]/business/dashboard/layout
@@ -202,7 +195,7 @@ export async function POST(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> }
+  { params }: RouteContext,
 ) {
   try {
     const { orgSlug } = await params
@@ -213,7 +206,7 @@ export async function DELETE(
     if (!auth.organizationId) {
       return NextResponse.json({
         success: false,
-        error: 'Usuario no pertenece a ninguna organización'
+        error: 'Usuario no pertenece a ninguna organizacion',
       }, { status: 400 })
     }
 
@@ -228,19 +221,19 @@ export async function DELETE(
       logger.error('Error deleting dashboard layout:', error)
       return NextResponse.json({
         success: false,
-        error: 'Error al eliminar layout del dashboard'
+        error: 'Error al eliminar layout del dashboard',
       }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Layout personalizado eliminado exitosamente'
+      message: 'Layout personalizado eliminado exitosamente',
     })
   } catch (error) {
-    logger.error('💥 Error in /api/[orgSlug]/business/dashboard/layout DELETE:', error)
+    logger.error('Error in /api/[orgSlug]/business/dashboard/layout DELETE:', error)
     return NextResponse.json({
       success: false,
-      error: 'Error interno del servidor'
+      error: 'Error interno del servidor',
     }, { status: 500 })
   }
 }

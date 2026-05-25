@@ -1,0 +1,35 @@
+name: Observability health monitor
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      OBSERVABILITY_BASE_URL: ${{ secrets.OBSERVABILITY_BASE_URL || secrets.LOAD_BASE_URL }}
+      OBSERVABILITY_DASHBOARD_TOKEN: ${{ secrets.OBSERVABILITY_DASHBOARD_TOKEN }}
+      OBSERVABILITY_ALLOW_DEGRADED: 'false'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check observability health
+        run: |
+          node scripts/check-observability-health.mjs
+          cat observability-results/health.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload observability health artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: observability-health-${{ github.run_id }}
+          path: observability-results/**

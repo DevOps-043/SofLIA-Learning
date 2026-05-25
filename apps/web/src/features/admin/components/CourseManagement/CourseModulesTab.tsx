@@ -37,10 +37,10 @@ export function CourseModulesTab() {
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
-          <h2 className="text-2xl font-bold text-[#0A2540] dark:text-white">
+          <h2 className="text-2xl font-bold text-primary dark:text-white">
             {t('workshops.editor.modules.title')}
           </h2>
-          <p className="mt-1 text-sm text-[#6C757D] dark:text-white/60">
+          <p className="mt-1 text-sm text-gray-500 dark:text-white/60">
             {t('workshops.editor.modules.description')}
           </p>
         </div>
@@ -54,7 +54,7 @@ export function CourseModulesTab() {
               y: recalculatingDurations ? 0 : -2,
             }}
             whileTap={{ scale: recalculatingDurations ? 1 : 0.95 }}
-            className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg border border-[#E9ECEF] bg-[#E9ECEF] px-3 py-2 text-xs font-medium text-[#6C757D] shadow-sm transition-all duration-200 hover:border-[#00D4B3]/30 hover:bg-[#00D4B3]/10 hover:text-[#00D4B3] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white/60 dark:hover:bg-[#00D4B3]/20 sm:w-auto"
+            className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg border border-gray-200 bg-gray-200 px-3 py-2 text-xs font-medium text-gray-500 shadow-sm transition-all duration-200 hover:border-accent/30 hover:bg-accent/10 hover:text-accent hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-500/30 dark:bg-carbon-950 dark:text-white/60 dark:hover:bg-accent/20 sm:w-auto"
             title={t('workshops.editor.modules.recalculateButton')}
           >
             <motion.div
@@ -79,9 +79,9 @@ export function CourseModulesTab() {
             }}
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
-            className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 px-4 py-3 text-sm font-medium text-white shadow-md shadow-[#0A2540]/20 transition-all duration-200 hover:from-[#0d2f4d] hover:to-[#0A2540] hover:shadow-lg hover:shadow-[#0A2540]/30 sm:w-auto"
+            className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-primary to-primary/90 px-4 py-3 text-sm font-medium text-white shadow-md shadow-primary/20 transition-all duration-200 hover:from-primary hover:to-primary hover:shadow-lg hover:shadow-primary/30 sm:w-auto"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-[#00D4B3]/20 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+            <div className="absolute inset-0 bg-gradient-to-r from-accent/20 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
             <motion.div
               animate={{ rotate: [0, 90, 0] }}
               transition={{ duration: 0.2 }}
@@ -99,9 +99,9 @@ export function CourseModulesTab() {
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-            className="mx-auto mb-3 h-12 w-12 rounded-full border-3 border-[#00D4B3]/20 border-t-[#00D4B3]"
+            className="mx-auto mb-3 h-12 w-12 rounded-full border-3 border-accent/20 border-t-accent"
           />
-          <p className="text-sm text-[#6C757D] dark:text-white/60">
+          <p className="text-sm text-gray-500 dark:text-white/60">
             {t('workshops.editor.modules.loading')}
           </p>
         </div>
@@ -109,19 +109,19 @@ export function CourseModulesTab() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border-2 border-dashed border-[#E9ECEF] bg-white py-16 text-center shadow-sm dark:border-[#6C757D]/30 dark:bg-[#1E2329]"
+          className="rounded-xl border-2 border-dashed border-gray-200 bg-white py-16 text-center shadow-sm dark:border-gray-500/30 dark:bg-carbon-800"
         >
           <motion.div
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-[#00D4B3]/10 to-[#0A2540]/10 dark:from-[#00D4B3]/20 dark:to-[#0A2540]/20"
+            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-accent/10 to-primary/10 dark:from-accent/20 dark:to-primary/20"
           >
-            <Book className="h-8 w-8 text-[#00D4B3]" />
+            <Book className="h-8 w-8 text-accent" />
           </motion.div>
-          <p className="mb-1.5 text-base font-semibold text-[#0A2540] dark:text-white">
+          <p className="mb-1.5 text-base font-semibold text-primary dark:text-white">
             {t('workshops.editor.modules.emptyTitle')}
           </p>
-          <p className="mb-5 text-xs text-[#6C757D] dark:text-white/60">
+          <p className="mb-5 text-xs text-gray-500 dark:text-white/60">
             {t('workshops.editor.modules.emptyDescription')}
           </p>
           <motion.button
@@ -131,7 +131,7 @@ export function CourseModulesTab() {
             }}
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 px-4 py-2 text-sm font-medium text-white shadow-md transition-all duration-200 hover:from-[#0d2f4d] hover:to-[#0A2540] hover:shadow-lg"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-primary/90 px-4 py-2 text-sm font-medium text-white shadow-md transition-all duration-200 hover:from-primary hover:to-primary hover:shadow-lg"
           >
             <Plus className="h-4 w-4" />
             <span>{t('workshops.editor.modules.createFirstButton')}</span>

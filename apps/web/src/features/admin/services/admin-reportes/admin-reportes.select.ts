@@ -1,0 +1,23 @@
+export const REPORTE_SELECT = `
+  id,
+  user_id,
+  titulo,
+  descripcion,
+  categoria,
+  prioridad,
+  pagina_url,
+  pathname,
+  user_agent,
+  screen_resolution,
+  navegador,
+  screenshot_url,
+  pasos_reproducir,
+  comportamiento_esperado,
+  estado,
+  admin_asignado,
+  notas_admin,
+  created_at,
+  updated_at,
+  resuelto_at,
+  metadata
+`

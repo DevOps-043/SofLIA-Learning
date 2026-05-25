@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import { SessionService } from '@/features/auth/services/session.service'
+import {
+  teamCreateSchema,
+  type TeamCreateBody,
+} from '../_schemas'
 
 interface RouteContext {
   params: Promise<{ orgSlug: string }>
@@ -10,7 +16,7 @@ interface RouteContext {
 
 /**
  * GET /api/[orgSlug]/business/teams
- * Lista todos los equipos de la organización especificada
+ * Lista todos los equipos de la organizacion especificada
  */
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
@@ -19,11 +25,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
     if (!orgSlug) {
       return NextResponse.json({
         success: false,
-        error: 'Slug de organización requerido'
+        error: 'Slug de organizacion requerido',
       }, { status: 400 })
     }
 
-    // Verificar autenticación y acceso a esta organización específica
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
 
@@ -31,7 +36,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') || 'active'
 
-    // Obtener equipos de la organización
     const { data: teams, error: teamsError } = await supabase
       .from('work_teams')
       .select(`
@@ -57,36 +61,34 @@ export async function GET(request: NextRequest, context: RouteContext) {
       if (teamsError.code === '42P01' || teamsError.message?.includes('does not exist')) {
         return NextResponse.json({
           success: false,
-          error: 'Las tablas de equipos no existen en la base de datos.'
+          error: 'Las tablas de equipos no existen en la base de datos.',
         }, { status: 500 })
       }
       return NextResponse.json({
         success: false,
-        error: teamsError.message || 'Error al obtener equipos'
+        error: teamsError.message || 'Error al obtener equipos',
       }, { status: 500 })
     }
 
     if (!teams || teams.length === 0) {
       return NextResponse.json({
         success: true,
-        teams: []
+        teams: [],
       }, {
         headers: {
-          'Cache-Control': 'private, max-age=30, stale-while-revalidate=60'
-        }
+          'Cache-Control': 'private, max-age=30, stale-while-revalidate=60',
+        },
       })
     }
 
-    // Recopilar todos los IDs necesarios
-    const teamIds = teams.map(t => t.team_id)
-    const leaderIds = [...new Set(teams.map(t => t.team_leader_id).filter(Boolean))]
-    const courseIds = [...new Set(teams.map(t => t.course_id).filter(Boolean))]
+    const teamIds = teams.map((team) => team.team_id)
+    const leaderIds = [...new Set(teams.map((team) => team.team_leader_id).filter(Boolean))]
+    const courseIds = [...new Set(teams.map((team) => team.course_id).filter(Boolean))]
 
-    // Ejecutar todas las queries dependientes en paralelo
     const [
       { data: members, error: membersError },
       { data: leaders },
-      { data: courses }
+      { data: courses },
     ] = await Promise.all([
       supabase
         .from('work_team_members')
@@ -105,108 +107,93 @@ export async function GET(request: NextRequest, context: RouteContext) {
             .from('courses')
             .select('id, title, thumbnail_url')
             .in('id', courseIds)
-        : Promise.resolve({ data: [] })
+        : Promise.resolve({ data: [] }),
     ])
 
     if (membersError) {
       logger.error('Error fetching members:', membersError)
     }
 
-    // Crear mapas para búsqueda O(1)
     const memberCounts: Record<string, { total: number; active: number }> = {}
-    teamIds.forEach(teamId => {
-      const teamMembers = (members || []).filter(m => m.team_id === teamId)
+    teamIds.forEach((teamId) => {
+      const teamMembers = (members || []).filter((member) => member.team_id === teamId)
       memberCounts[teamId] = {
         total: teamMembers.length,
-        active: teamMembers.filter(m => m.status === 'active').length
+        active: teamMembers.filter((member) => member.status === 'active').length,
       }
     })
 
-    const leadersMap = new Map((leaders || []).map(leader => [
+    const leadersMap = new Map((leaders || []).map((leader) => [
       leader.id,
       {
         id: leader.id,
         name: leader.display_name || `${leader.first_name || ''} ${leader.last_name || ''}`.trim() || leader.email,
         email: leader.email,
-        profile_picture_url: leader.profile_picture_url
-      }
+        profile_picture_url: leader.profile_picture_url,
+      },
     ]))
 
-    const coursesMap = new Map((courses || []).map(course => [
+    const coursesMap = new Map((courses || []).map((course) => [
       course.id,
       {
         id: course.id,
         title: course.title,
-        thumbnail_url: course.thumbnail_url
-      }
+        thumbnail_url: course.thumbnail_url,
+      },
     ]))
 
-    // Enriquecer equipos
-    const enrichedTeams = teams.map(team => ({
+    const enrichedTeams = teams.map((team) => ({
       ...team,
       team_leader: team.team_leader_id ? leadersMap.get(team.team_leader_id) || null : null,
       course: team.course_id ? coursesMap.get(team.course_id) || null : null,
       member_count: memberCounts[team.team_id]?.total || 0,
-      active_member_count: memberCounts[team.team_id]?.active || 0
+      active_member_count: memberCounts[team.team_id]?.active || 0,
     }))
 
     return NextResponse.json({
       success: true,
-      teams: enrichedTeams
+      teams: enrichedTeams,
     }, {
       headers: {
-        'Cache-Control': 'private, max-age=30, stale-while-revalidate=60'
-      }
+        'Cache-Control': 'private, max-age=30, stale-while-revalidate=60',
+      },
     })
   } catch (error) {
-    logger.error('💥 Error in /api/[orgSlug]/business/teams GET:', error)
+    logger.error('Error in /api/[orgSlug]/business/teams GET:', error)
     return NextResponse.json({
       success: false,
-      error: 'Error interno del servidor'
+      error: 'Error interno del servidor',
     }, { status: 500 })
   }
 }
 
 /**
  * POST /api/[orgSlug]/business/teams
- * Crea un nuevo equipo en la organización especificada
+ * Crea un nuevo equipo en la organizacion especificada
  */
-export async function POST(request: NextRequest, context: RouteContext) {
+async function handlePost(
+  _request: NextRequest,
+  body: TeamCreateBody,
+  context: RouteContext,
+) {
   try {
     const { orgSlug } = await context.params
 
     if (!orgSlug) {
-      return NextResponse.json({
-        success: false,
-        error: 'Slug de organización requerido'
-      }, { status: 400 })
+      return apiError('ORG_SLUG_REQUIRED', 'Slug de organizacion requerido', 400)
     }
 
-    // Verificar autenticación y acceso a esta organización específica
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
 
     const currentUser = await SessionService.getCurrentUser()
     if (!currentUser) {
-      return NextResponse.json({
-        success: false,
-        error: 'No autenticado'
-      }, { status: 401 })
+      return apiError('UNAUTHENTICATED', 'No autenticado', 401)
     }
 
-    const body = await request.json()
     const { name, description, team_leader_id, course_id, member_ids, metadata, image_url } = body
-
-    if (!name || typeof name !== 'string' || name.trim().length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'El nombre del equipo es requerido'
-      }, { status: 400 })
-    }
-
     const supabase = await createClient()
 
-    // Crear el equipo
     const { data: team, error: teamError } = await supabase
       .from('work_teams')
       .insert({
@@ -218,21 +205,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
         course_id: course_id || null,
         status: 'active',
         metadata: metadata || {},
-        image_url: image_url || null
+        image_url: image_url || null,
       })
       .select()
       .single()
 
     if (teamError || !team) {
       logger.error('Error creating team:', teamError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al crear el equipo'
-      }, { status: 500 })
+      return apiError('CREATE_TEAM_FAILED', 'Error al crear el equipo', 500)
     }
 
-    // Agregar miembros si se proporcionaron
-    if (member_ids && Array.isArray(member_ids) && member_ids.length > 0) {
+    if (member_ids && member_ids.length > 0) {
       const { data: orgUsers, error: orgUsersError } = await supabase
         .from('organization_users')
         .select('user_id')
@@ -243,17 +226,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
       if (orgUsersError) {
         logger.error('Error validating organization users:', orgUsersError)
       } else if (orgUsers && orgUsers.length > 0) {
-        const validUserIds = orgUsers.map(u => u.user_id)
+        const validUserIds = orgUsers.map((user) => user.user_id)
 
         const allMemberIds = team_leader_id && !validUserIds.includes(team_leader_id)
           ? [...validUserIds, team_leader_id]
           : validUserIds
 
-        const membersToInsert = allMemberIds.map(userId => ({
+        const membersToInsert = allMemberIds.map((userId) => ({
           team_id: team.team_id,
           user_id: userId,
           role: userId === team_leader_id ? 'leader' : 'member',
-          status: 'active'
+          status: 'active',
         }))
 
         const { error: membersError } = await supabase
@@ -271,7 +254,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
           team_id: team.team_id,
           user_id: team_leader_id,
           role: 'leader',
-          status: 'active'
+          status: 'active',
         })
 
       if (leaderError) {
@@ -279,7 +262,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
       }
     }
 
-    // Obtener el equipo completo con relaciones
     const { data: fullTeam, error: fullTeamError } = await supabase
       .from('work_teams')
       .select(`
@@ -301,22 +283,22 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     if (fullTeamError || !fullTeam) {
       logger.error('Error fetching created team:', fullTeamError)
-      return NextResponse.json({
-        success: false,
-        error: 'Equipo creado pero error al obtener detalles'
-      }, { status: 500 })
+      return apiError(
+        'FETCH_CREATED_TEAM_FAILED',
+        'Equipo creado pero error al obtener detalles',
+        500,
+      )
     }
 
     return NextResponse.json({
       success: true,
       team: fullTeam,
-      message: 'Equipo creado exitosamente'
+      message: 'Equipo creado exitosamente',
     })
   } catch (error) {
-    logger.error('💥 Error in /api/[orgSlug]/business/teams POST:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Error interno del servidor'
-    }, { status: 500 })
+    logger.error('Error in /api/[orgSlug]/business/teams POST:', error)
+    return apiError('CREATE_TEAM_FAILED', 'Error interno del servidor', 500)
   }
 }
+
+export const POST = withZodBody(teamCreateSchema, handlePost)

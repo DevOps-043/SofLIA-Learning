@@ -34,8 +34,8 @@ export function StatCard({ title, value, delay, href, id, theme, gradientStyle, 
   const isLightMode = primaryColor.toLowerCase() === 'var(--color-bg-light)' ||
     primaryColor.toLowerCase() === 'var(--color-gray-50)' ||
     primaryColor.startsWith('rgb(255') ||
-    primaryColor === '#FFFFFF' ||
-    primaryColor === '#ffffff'
+    primaryColor === 'var(--color-bg-light)' ||
+    primaryColor === 'var(--color-bg-light)'
   
   const textColor = theme?.text || (isLightMode ? 'var(--color-gray-900)' : 'var(--color-bg-light)')
   const iconColor = isLightMode ? 'var(--color-primary)' : actualAccentColor
@@ -61,8 +61,8 @@ export function StatCard({ title, value, delay, href, id, theme, gradientStyle, 
         <div 
           className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-[14px] transition-transform duration-500 group-hover:scale-[1.05]"
           style={{
-             background: `linear-gradient(135deg, ${iconColor}15, transparent)`,
-             border: `1px solid ${iconColor}25`
+             background: `linear-gradient(135deg, color-mix(in srgb, ${iconColor} 8.2%, transparent), transparent)`,
+             border: `1px solid color-mix(in srgb, ${iconColor} 14.5%, transparent)`
           }}
         >
           <Icon className="w-5 h-5" style={{ color: iconColor }} />

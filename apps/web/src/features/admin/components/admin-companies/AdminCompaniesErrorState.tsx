@@ -21,8 +21,8 @@ export function AdminCompaniesErrorState({
   const theme = useAdminPanelTheme()
   return (
     <div className="flex min-h-screen items-center justify-center p-4 sm:p-6 lg:p-8" style={{ backgroundColor: themeColors.background }}>
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md rounded-[24px] border p-8 text-center shadow-sm" style={{ backgroundColor: themeColors.cardBackground, borderColor: `${theme.dangerColor}30` }}>
-        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border" style={{ backgroundColor: `${theme.dangerColor}12`, borderColor: `${theme.dangerColor}24`, color: theme.dangerColor }}>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md rounded-[24px] border p-8 text-center shadow-sm" style={{ backgroundColor: themeColors.cardBackground, borderColor: `color-mix(in srgb, ${theme.dangerColor} 18.8%, transparent)` }}>
+        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border" style={{ backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`, borderColor: `color-mix(in srgb, ${theme.dangerColor} 14.1%, transparent)`, color: theme.dangerColor }}>
           <AlertTriangle className="h-7 w-7" />
         </div>
         <h2 className="mb-2 text-xl font-extrabold" style={{ color: themeColors.textPrimary }}>{t('companies.page.errorLoading')}</h2>

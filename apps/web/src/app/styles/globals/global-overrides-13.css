@@ -1,0 +1,81 @@
+
+.theme-toggle-button:hover {
+  background: rgba(30, 41, 59, 1);
+}
+
+.dark .theme-toggle-button:hover {
+  background: rgba(30, 41, 59, 1);
+}
+
+.light .theme-toggle-button:hover {
+  background: rgba(248, 250, 252, 1);
+}
+
+/* Theme Toggle Dropdown - Desktop */
+.theme-toggle-dropdown {
+  background: rgba(30, 41, 59, 0.98);
+  border-color: rgba(71, 85, 105, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .theme-toggle-dropdown {
+  background: rgba(15, 23, 42, 0.98);
+  border-color: rgba(71, 85, 105, 0.6);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+}
+
+.light .theme-toggle-dropdown {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Theme Toggle Dropdown - Mobile */
+.theme-toggle-dropdown-mobile {
+  background: rgba(30, 41, 59, 0.98);
+  border-color: rgba(71, 85, 105, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .theme-toggle-dropdown-mobile {
+  background: rgba(15, 23, 42, 0.98);
+  border-color: rgba(71, 85, 105, 0.6);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+}
+
+.light .theme-toggle-dropdown-mobile {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Theme Toggle Option */
+.theme-toggle-option {
+  color: var(--color-contrast);
+}
+
+.dark .theme-toggle-option {
+  color: var(--color-contrast);
+  background: transparent;
+}
+
+.light .theme-toggle-option {
+  color: var(--color-contrast);
+  background: transparent;
+}
+
+.theme-toggle-option:hover {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.dark .theme-toggle-option:hover {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--color-primary);
+}
+
+.light .theme-toggle-option:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-primary);
+}

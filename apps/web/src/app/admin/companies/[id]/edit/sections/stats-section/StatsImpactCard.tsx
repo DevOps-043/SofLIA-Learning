@@ -19,7 +19,7 @@ export function StatsImpactCard({ overview }: { overview: StatsOverview }) {
     <Card title="Impacto del Aprendizaje" description="Métricas de calidad y constancia" icon={SparklesIcon} iconColor={colors.warning}>
       <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
         {IMPACT_ITEMS.map((item) => (
-          <div key={item.key} className="flex flex-col justify-center rounded-2xl border border-gray-100 bg-gray-50 p-4 text-center dark:border-white/5 dark:bg-[#0F1419]">
+          <div key={item.key} className="flex flex-col justify-center rounded-2xl border border-gray-100 bg-gray-50 p-4 text-center dark:border-white/5 dark:bg-carbon-900">
             <p className={`text-2xl font-black ${item.color}`}>{overview[item.key]}{item.suffix || ''}</p>
             <p className="mt-1 text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 dark:text-white/40">{item.label}</p>
           </div>

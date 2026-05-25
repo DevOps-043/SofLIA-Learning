@@ -20,7 +20,7 @@ export function EditWorkshopModalTabs({ activeTab, onChange }: EditWorkshopModal
         const Icon = tab.icon
         const isActive = activeTab === tab.id
         return (
-          <motion.button key={tab.id} type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => onChange(tab.id)} className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200" style={{ backgroundColor: isActive ? `${theme.primaryColor}14` : theme.inputBg, color: isActive ? theme.primaryColor : theme.subtextColor }}>
+          <motion.button key={tab.id} type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => onChange(tab.id)} className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200" style={{ backgroundColor: isActive ? `color-mix(in srgb, ${theme.primaryColor} 7.8%, transparent)` : theme.inputBg, color: isActive ? theme.primaryColor : theme.subtextColor }}>
             <Icon className="h-4 w-4" />
             <span>{t(tab.labelKey)}</span>
           </motion.button>

@@ -1,42 +1,13 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { resolveStudyPlannerCourseId, resolveStudyPlannerCourseIds } from './study-planner-course-id.shared';
-
-interface StudyPlannerMyCourseRecord {
-  course_id?: string;
-  id?: string;
-  courses?: {
-    slug?: string | null;
-  } | null;
-  slug?: string | null;
-  enrollment_id?: string | null;
-}
-
-interface StudyPlannerMyCoursesPayload {
-  courses?: StudyPlannerMyCourseRecord[];
-}
-
-interface StudyPlannerModulesPayload {
-  modules?: Array<{
-    lessons?: Array<{
-      lesson_id?: string;
-      lessonId?: string;
-      lesson_title?: string;
-      lessonTitle?: string;
-      is_published?: boolean;
-    }>;
-  }>;
-}
-
-interface StudyPlannerProgressPayload {
-  completedLessonIds?: string[];
-}
-
-interface CalculateStudyPlannerCourseWorkloadInput {
-  selectedCourseIds: string[];
-}
-
-function normalizeCourseCollection(payload: StudyPlannerMyCourseRecord[] | StudyPlannerMyCoursesPayload): StudyPlannerMyCourseRecord[] {
-  return Array.isArray(payload) ? payload : payload.courses || [];
-}
+import { normalizeCourseCollection } from './planner-course-workload.helpers';
+import type {
+  CalculateStudyPlannerCourseWorkloadInput,
+  StudyPlannerModulesPayload,
+  StudyPlannerMyCourseRecord,
+  StudyPlannerMyCoursesPayload,
+  StudyPlannerProgressPayload,
+} from './planner-course-workload.types';
 
 async function fetchRemainingLessonsForCourse(
   courseId: string,
@@ -107,7 +78,7 @@ export async function calculateStudyPlannerTotalLessonsNeeded(
           const remainingLessons = await fetchRemainingLessonsForCourse(courseId, courses);
           return remainingLessons > 0 ? remainingLessons : 10;
         } catch (error) {
-          console.warn(`Error obteniendo carga academica del curso ${courseId}:`, error);
+          techDebtLogger.warn(`Error obteniendo carga academica del curso ${courseId}:`, error);
           return 10;
         }
       }),
@@ -116,7 +87,7 @@ export async function calculateStudyPlannerTotalLessonsNeeded(
     const totalLessonsNeeded = courseLessonCounts.reduce((sum, total) => sum + total, 0);
     return totalLessonsNeeded > 0 ? totalLessonsNeeded : input.selectedCourseIds.length * 10;
   } catch (error) {
-    console.warn('Error calculando carga academica del planner:', error);
+    techDebtLogger.warn('Error calculando carga academica del planner:', error);
     return input.selectedCourseIds.length * 10;
   }
 }

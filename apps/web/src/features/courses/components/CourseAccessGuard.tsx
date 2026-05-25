@@ -22,9 +22,9 @@ export function CourseAccessGuard({ courseSlug, children }: CourseAccessGuardPro
     // Mostrar loader mientras verifica el acceso
     if (isLoading || hasAccess === null) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#0F1419]">
+            <div className="min-h-screen flex items-center justify-center bg-carbon-900">
                 <div className="text-center">
-                    <Loader2 className="w-12 h-12 text-[#00D4B3] animate-spin mx-auto mb-4" />
+                    <Loader2 className="w-12 h-12 text-accent animate-spin mx-auto mb-4" />
                     <p className="text-white/70">Verificando acceso al curso...</p>
                 </div>
             </div>
@@ -34,8 +34,8 @@ export function CourseAccessGuard({ courseSlug, children }: CourseAccessGuardPro
     // Mostrar mensaje de error si no tiene acceso
     if (!hasAccess) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#0F1419] p-4">
-                <div className="max-w-md w-full bg-[#1E2329] rounded-2xl border border-[#6C757D]/30 p-8 text-center">
+            <div className="min-h-screen flex items-center justify-center bg-carbon-900 p-4">
+                <div className="max-w-md w-full bg-carbon-800 rounded-2xl border border-gray-500/30 p-8 text-center">
                     <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                         <Lock className="w-8 h-8 text-red-500" />
                     </div>
@@ -58,7 +58,7 @@ export function CourseAccessGuard({ courseSlug, children }: CourseAccessGuardPro
                     <div className="flex flex-col sm:flex-row gap-3">
                         <button
                             onClick={() => router.push(`/courses/${courseSlug}`)}
-                            className="flex-1 bg-[#00D4B3] hover:bg-[#00D4B3]/90 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                            className="flex-1 bg-accent hover:bg-accent/90 text-white font-medium py-3 px-6 rounded-lg transition-colors"
                         >
                             Ver Curso
                         </button>
@@ -70,7 +70,7 @@ export function CourseAccessGuard({ courseSlug, children }: CourseAccessGuardPro
                                     router.push('/dashboard');
                                 }
                             }}
-                            className="flex-1 bg-[#0A2540] hover:bg-[#0A2540]/90 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                            className="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-colors"
                         >
                             Ir al Dashboard
                         </button>

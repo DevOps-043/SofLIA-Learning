@@ -24,12 +24,12 @@ interface TranscodingJobProgressProps {
 }
 
 const STATUS_COPY: Record<TranscodingJobStatus, { label: string; tone: string }> = {
-  queued: { label: 'En cola', tone: 'text-[#6C757D]' },
-  processing: { label: 'Procesando', tone: 'text-[#0A2540] dark:text-[#00D4B3]' },
-  completed: { label: 'Completado', tone: 'text-[#10B981]' },
-  failed: { label: 'Falló', tone: 'text-[#ef4444]' },
-  skipped: { label: 'Omitido', tone: 'text-[#6C757D]' },
-  disabled: { label: 'Transcoding desactivado', tone: 'text-[#6C757D]' },
+  queued: { label: 'En cola', tone: 'text-gray-500' },
+  processing: { label: 'Procesando', tone: 'text-primary dark:text-accent' },
+  completed: { label: 'Completado', tone: 'text-success' },
+  failed: { label: 'Falló', tone: 'text-error' },
+  skipped: { label: 'Omitido', tone: 'text-gray-500' },
+  disabled: { label: 'Transcoding desactivado', tone: 'text-gray-500' },
 }
 
 function StatusIcon({ status }: { status: TranscodingJobStatus }) {
@@ -64,7 +64,7 @@ export function TranscodingJobProgress({
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 text-xs text-[#ef4444]">
+      <div className="flex items-center gap-2 text-xs text-error">
         <ExclamationTriangleIcon className="h-4 w-4" />
         <span>No se pudo consultar el estado: {error}</span>
       </div>
@@ -73,7 +73,7 @@ export function TranscodingJobProgress({
 
   if (!job) {
     return (
-      <div className="flex items-center gap-2 text-xs text-[#6C757D] dark:text-white/60">
+      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-white/60">
         <ArrowPathIcon className="h-4 w-4 animate-spin" />
         <span>Cargando estado del job…</span>
       </div>
@@ -96,30 +96,30 @@ export function TranscodingJobProgress({
         <StatusIcon status={job.status} />
         <span className="font-medium">{copy.label}</span>
         {job.status === 'processing' && (
-          <span className="text-[#6C757D] dark:text-white/60">· {elapsedLabel}</span>
+          <span className="text-gray-500 dark:text-white/60">· {elapsedLabel}</span>
         )}
       </div>
     )
   }
 
   return (
-    <div className="rounded-xl border border-[#E9ECEF] dark:border-white/10 bg-white dark:bg-[#0A0D12] p-3">
+    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-carbon-950 p-3">
       <div className={`flex items-center gap-2 text-sm font-medium ${copy.tone}`}>
         <StatusIcon status={job.status} />
         <span>{copy.label}</span>
         {job.status === 'processing' && (
-          <span className="ml-auto text-xs text-[#6C757D] dark:text-white/60">
+          <span className="ml-auto text-xs text-gray-500 dark:text-white/60">
             {elapsedLabel} transcurridos
           </span>
         )}
       </div>
       {job.status === 'failed' && job.error_message && (
-        <p className="mt-2 text-xs text-[#ef4444] break-words">
+        <p className="mt-2 text-xs text-error break-words">
           {job.error_message}
         </p>
       )}
       {job.status === 'completed' && job.result_url && (
-        <p className="mt-2 text-xs text-[#10B981] truncate">
+        <p className="mt-2 text-xs text-success truncate">
           HLS listo · {job.result_url.split('/').slice(-2).join('/')}
         </p>
       )}

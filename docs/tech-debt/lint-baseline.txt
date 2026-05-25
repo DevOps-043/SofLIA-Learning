@@ -1,0 +1,2218 @@
+﻿
+> @aprende-y-aplica/web@1.0.0 lint
+> eslint src --ext .js,.jsx,.ts,.tsx
+
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\[orgSlug]\business-user\dashboard\hooks\useBusinessUserDashboardPageLogic.ts
+  264:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\[orgSlug]\business-user\dashboard\page-components\BusinessUserDashboardShell.tsx
+  41:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\admin\companies\[id]\edit\sections\stats-section\useCompanyStats.ts
+  17:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\admin\companies\[id]\edit\sections\users-section\useUsersSectionState.ts
+  40:7  warning  Unexpected console statement  no-console
+  62:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\admin\moderation-ai\page.tsx
+  56:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\certificates\templates\route.ts
+  36:62  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\dashboard\layout\route.ts
+  31:56  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\hierarchy\chats\[chatId]\route.ts
+  43:52  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  58:41  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\hierarchy\chats\route.ts
+   90:21  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  181:42  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\hierarchy\full\route.ts
+  44:58  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  59:54  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  74:54  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\hierarchy\nodes\[nodeId]\move\route.ts
+  25:38  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  39:44  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\hierarchy\structures\route.get.ts
+  32:47  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\invite-links\[id]\route.ts
+   25:41  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   44:5   warning  Unexpected console statement                       no-console
+   83:61  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   97:36  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  163:7   warning  Unexpected console statement                       no-console
+  175:5   warning  Unexpected console statement                       no-console
+  217:7   warning  Unexpected console statement                       no-console
+  229:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\invite-links\route.get.ts
+  29:42  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  36:7   warning  Unexpected console statement                       no-console
+  48:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\invite-links\route.post.ts
+   89:7  warning  Unexpected console statement  no-console
+  101:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\notifications\settings\route.ts
+  41:60  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  79:60  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\progress\route.ts
+  100:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\settings\check-slug\route.ts
+  45:7  warning  Unexpected console statement  no-console
+  56:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\settings\route.ts
+  38:49  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  60:42  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\settings\subscription\route.get.ts
+  48:47  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\user-groups\[id]\route.ts
+   42:54  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   57:29  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  160:29  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\[orgSlug]\business\user-groups\route.get.ts
+  70:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\_lib\deadline-suggestions\ai-deadlines.ts
+  62:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\_lib\deadline-suggestions\handler.ts
+  39:7  warning  Unexpected console statement  no-console
+  68:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\activity\recent\route.ts
+  23:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\ai\process-video\route.ts
+  127:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\companies\[id]\invite-links\[linkId]\route.delete.ts
+  29:7  warning  Unexpected console statement  no-console
+  41:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\companies\[id]\invite-links\[linkId]\route.get.ts
+  22:41  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  41:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\companies\[id]\invite-links\[linkId]\route.patch.ts
+   25:61  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   39:36  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  102:7   warning  Unexpected console statement                       no-console
+  114:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\companies\[id]\invite-links\route.get.ts
+  24:42  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  31:7   warning  Unexpected console statement                       no-console
+  43:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\companies\[id]\invite-links\route.post.ts
+  73:7  warning  Unexpected console statement  no-console
+  85:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\companies\[id]\members\[userId]\route.delete.ts
+  39:31  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  61:7   warning  Unexpected console statement                       no-console
+  70:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\companies\[id]\members\[userId]\route.put.ts
+  59:7  warning  Unexpected console statement  no-console
+  68:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\courses\[id]\modules\[moduleId]\lessons\reorder\route.ts
+  37:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\courses\[id]\modules\reorder\route.ts
+  37:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\courses\[id]\student-details\[userId]\route.ts
+   60:7   warning  Unexpected console statement                       no-console
+  104:9   warning  Unexpected console statement                       no-console
+  173:30  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  383:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\courses\recalculate-durations\route.ts
+  170:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\lia-analytics\activities\route.ts
+  205:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\lia-analytics\conversations\route.ts
+   22:69  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   27:7   warning  Unexpected console statement                       no-console
+   76:7   warning  Unexpected console statement                       no-console
+  138:5   warning  Unexpected console statement                       no-console
+  139:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\lia-analytics\courses\route.ts
+   78:7   warning  Unexpected console statement              no-console
+   93:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  174:5   warning  Unexpected console statement              no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\lia-analytics\heatmap\route.ts
+   60:7  warning  Unexpected console statement  no-console
+  138:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\lia-analytics\hour-detail\route.ts
+  109:7  warning  Unexpected console statement  no-console
+  298:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\lia-analytics\lia-analytics\daily-costs.ts
+  46:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\lia-analytics\lia-analytics\summary-metrics.ts
+  11:47  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  32:48  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\lia-analytics\route.ts
+  71:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\lia-analytics\top-questions\route.ts
+  122:7  warning  Unexpected console statement  no-console
+  214:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\lia-analytics\top-users\route.ts
+  223:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\recalculate-durations\route.ts
+  41:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\translate-existing-lessons\route.ts
+  38:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\workshops\[id]\workshop-detail.delete.ts
+  33:7  warning  Unexpected console statement  no-console
+  43:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\workshops\[id]\workshop-detail.put.ts
+  39:7  warning  Unexpected console statement  no-console
+  50:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\admin\workshops\create\route.ts
+  55:69  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  71:7   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\ai-chat\ai-provider.service.ts
+  327:5  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\ai-chat\services\__tests__\calendar-validation-extended.service.test.ts
+  144:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  159:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  173:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  186:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\auth\dashboard-destination\route.ts
+  37:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\certificates\templates\route.ts
+  32:62  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\dashboard\layout\route.ts
+  26:56  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\hierarchy\analytics\route.ts
+  54:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\hierarchy\chats\[chatId]\route.ts
+  46:52  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  62:41  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\hierarchy\chats\hierarchy-chats\chat-queries.ts
+  19:19  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  46:26  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\hierarchy\chats\hierarchy-chats\participant-queries.ts
+  38:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\hierarchy\full\route.ts
+  50:58  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  65:54  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  80:54  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\hierarchy\nodes\[nodeId]\members\[userId]\route.ts
+  79:13  warning  Unexpected console statement  no-console
+  92:9   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\hierarchy\nodes\[nodeId]\members\route.ts
+   58:13  warning  Unexpected console statement  no-console
+   70:9   warning  Unexpected console statement  no-console
+  207:17  warning  Unexpected console statement  no-console
+  218:9   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\hierarchy\nodes\[nodeId]\move\route.ts
+  18:38  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  32:44  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  90:9   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\hierarchy\nodes\[nodeId]\route.ts
+   22:56  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   42:13  warning  Unexpected console statement                       no-console
+   86:13  warning  Unexpected console statement                       no-console
+  135:9   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\hierarchy\structures\route.ts
+  19:47  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\hierarchy\users\search\route.ts
+  48:13  warning  Unexpected console statement  no-console
+  62:9   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\invite-links\[id]\route.ts
+   24:41  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   43:5   warning  Unexpected console statement                       no-console
+   81:61  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   95:36  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  161:7   warning  Unexpected console statement                       no-console
+  173:5   warning  Unexpected console statement                       no-console
+  214:7   warning  Unexpected console statement                       no-console
+  226:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\invite-links\route.get.ts
+  32:7  warning  Unexpected console statement  no-console
+  44:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\invite-links\route.post.ts
+  84:7  warning  Unexpected console statement  no-console
+  96:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\notifications\settings\route.ts
+  37:60  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  75:60  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\settings\check-slug\route.ts
+  57:7  warning  Unexpected console statement  no-console
+  74:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\settings\styles\route.ts
+  54:7  warning  Unexpected console statement  no-console
+  96:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\settings\subscription\change-plan\route.ts
+  132:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\settings\subscription\route.ts
+   41:65  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  133:38  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\user-groups\[id]\route.ts
+   43:54  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   58:29  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  162:29  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\user-groups\route.get.ts
+  67:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\business\users\template\route.ts
+   57:7  warning  Unexpected console statement  no-console
+  133:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\communities\[slug]\members\route.ts
+   70:68  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  150:9   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\communities\[slug]\moderation\reports\route.ts
+   25:7   warning  Unexpected console statement                       no-console
+   45:7   warning  Unexpected console statement                       no-console
+   56:7   warning  Unexpected console statement                       no-console
+   67:7   warning  Unexpected console statement                       no-console
+   97:17  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  115:7   warning  Unexpected console statement                       no-console
+  210:7   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\communities\[slug]\overview\route.ts
+  51:7  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\communities\[slug]\posts\[postId]\comments\comments.get.ts
+  23:43  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  43:39  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  60:42  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\communities\[slug]\posts\[postId]\comments\comments.post.ts
+  52:58  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\communities\[slug]\posts\[postId]\report\route.ts
+   32:7  warning  Unexpected console statement  no-console
+   42:7  warning  Unexpected console statement  no-console
+   59:7  warning  Unexpected console statement  no-console
+   76:7  warning  Unexpected console statement  no-console
+   99:7  warning  Unexpected console statement  no-console
+  130:7  warning  Unexpected console statement  no-console
+  174:7  warning  Unexpected console statement  no-console
+  202:7  warning  Unexpected console statement  no-console
+  252:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\communities\[slug]\reports\[reportId]\resolve\route.ts
+   34:7   warning  Unexpected console statement                       no-console
+   44:7   warning  Unexpected console statement                       no-console
+   56:7   warning  Unexpected console statement                       no-console
+   78:56  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   85:7   warning  Unexpected console statement                       no-console
+  100:7   warning  Unexpected console statement                       no-console
+  109:7   warning  Unexpected console statement                       no-console
+  126:9   warning  Unexpected console statement                       no-console
+  163:9   warning  Unexpected console statement                       no-console
+  179:9   warning  Unexpected console statement                       no-console
+  203:63  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  211:7   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\communities\[slug]\route.ts
+  27:62  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\communities\join\route.ts
+  26:62  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\communities\request-access\route.ts
+  26:62  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\[slug]\learn-data\services\learn-data\learn-data-materials.service.ts
+  36:5  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  41:5  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\[slug]\lessons\[lessonId]\activities\route.ts
+  61:64  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\[slug]\lessons\[lessonId]\feedback\route.post.ts
+  133:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\[slug]\lessons\[lessonId]\materials\route.ts
+  55:62  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\[slug]\lessons\[lessonId]\quiz\status\route.ts
+   82:7  warning  Unexpected console statement  no-console
+   94:7  warning  Unexpected console statement  no-console
+  124:7  warning  Unexpected console statement  no-console
+  193:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\[slug]\lessons\[lessonId]\quiz\submit\route.ts
+  296:11  warning  Unexpected console statement  no-console
+  328:9   warning  Unexpected console statement  no-console
+  384:11  warning  Unexpected console statement  no-console
+  406:11  warning  Unexpected console statement  no-console
+  448:5   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\[slug]\lessons\[lessonId]\sidebar-data\route.ts
+  51:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\[slug]\lessons\[lessonId]\sidebar-data\sidebar-data\sidebar-content.queries.ts
+   8:10  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  17:10  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\[slug]\lessons\[lessonId]\sidebar-data\sidebar-data\sidebar-loader.ts
+  42:5  warning  Unexpected console statement  no-console
+  47:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\[slug]\lessons\[lessonId]\summary\route.ts
+  75:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\[slug]\lessons\[lessonId]\transcript\route.ts
+  75:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\[slug]\modules\route.ts
+  126:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\[slug]\rating\route.ts
+   62:5  warning  Unexpected console statement  no-console
+  161:7  warning  Unexpected console statement  no-console
+  176:7  warning  Unexpected console statement  no-console
+  193:9  warning  Unexpected console statement  no-console
+  204:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\import\course-import\api-key.ts
+  8:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\import\course-import\course-upsert.ts
+  51:27  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  60:3   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\import\course-import\import-body.ts
+  12:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\courses\import\route.ts
+  51:7  warning  Unexpected console statement  no-console
+  77:7  warning  Unexpected console statement  no-console
+  89:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\cron\process-inbox\route.ts
+  112:9   warning  Unexpected console statement  no-console
+  138:13  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\invite\[token]\route.ts
+  235:5  warning  Unexpected console statement  no-console
+  275:7  warning  Unexpected console statement  no-console
+  302:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\landing\contact\route.ts
+   60:7  warning  Unexpected console statement  no-console
+  193:7  warning  Unexpected console statement  no-console
+  204:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lesson-tracking\update-progress\route.ts
+   32:9   warning  Unexpected console statement  no-console
+   67:9   warning  Unexpected console statement  no-console
+  133:17  warning  Unexpected console statement  no-console
+  182:17  warning  Unexpected console statement  no-console
+  221:13  warning  Unexpected console statement  no-console
+  240:9   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\chat\chat-context.builder.ts
+   72:9  warning  Unexpected console statement  no-console
+   93:7  warning  Unexpected console statement  no-console
+  121:5  warning  Unexpected console statement  no-console
+  155:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\chat\chat-response.formatter.ts
+  64:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\chat\lia-chat-history.service.ts
+   53:7  warning  Unexpected console statement  no-console
+   62:5  warning  Unexpected console statement  no-console
+  106:7  warning  Unexpected console statement  no-console
+  119:7  warning  Unexpected console statement  no-console
+  138:7  warning  Unexpected console statement  no-console
+  157:7  warning  Unexpected console statement  no-console
+  163:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\chat\lia-report-workflow\draft-tokens.ts
+  11:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\chat\lia-report-workflow\submit-bug-report.ts
+  38:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\chat\platform-context\fetch-platform-context.ts
+  34:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\chat\platform-context\platform-counts.ts
+   9:5  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  10:5  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  11:5  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\chat\route.ts
+  145:7  warning  Unexpected console statement  no-console
+  339:5  warning  Unexpected console statement  no-console
+  344:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\complete-activity\route.ts
+   64:5  warning  Unexpected console statement  no-console
+   79:5  warning  Unexpected console statement  no-console
+  159:9  warning  Unexpected console statement  no-console
+  206:7  warning  Unexpected console statement  no-console
+  255:7  warning  Unexpected console statement  no-console
+  276:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\conversations\[conversationId]\messages\route.ts
+  57:7  warning  Unexpected console statement  no-console
+  75:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\conversations\[conversationId]\route.ts
+   85:7  warning  Unexpected console statement  no-console
+  123:5  warning  Unexpected console statement  no-console
+  180:7  warning  Unexpected console statement  no-console
+  194:7  warning  Unexpected console statement  no-console
+  206:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\conversations\route.ts
+   60:22  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  116:7   warning  Unexpected console statement                       no-console
+  152:11  warning  Unexpected console statement                       no-console
+  219:5   warning  Unexpected console statement                       no-console
+  265:7   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\lesson-suggestions\lesson-suggestions.service.ts
+   69:5  warning  Unexpected console statement  no-console
+  205:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\lesson-suggestions\route.ts
+  126:7  warning  Unexpected console statement  no-console
+  166:9  warning  Unexpected console statement  no-console
+  184:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\onboarding-chat\route.ts
+   67:5  warning  Unexpected console statement  no-console
+  129:7  warning  Unexpected console statement  no-console
+  168:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\start-activity\route.ts
+  82:7  warning  Unexpected console statement  no-console
+  96:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\lia\update-activity\route.ts
+  70:7  warning  Unexpected console statement  no-console
+  83:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\news\[slug]\route.ts
+  20:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\questionnaire\questions-client\questions-client\questionnaire-questions.ts
+  23:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\questionnaire\questions\[id]\route.ts
+  61:60  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\questionnaire\questions\route.ts
+  106:77  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\reportes\route.ts
+  267:17  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\scorm\packages\[id]\route.get.ts
+  20:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\scorm\packages\[id]\route.patch.ts
+  23:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\scorm\packages\route.ts
+  19:17  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\scorm\runtime\initialize\route.ts
+  25:59  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  40:45  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\skills\route.ts
+  16:17  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\statistics\profile\route.ts
+  18:58  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\statistics\results\route.ts
+  23:62  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  47:64  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner-chat\route.ts
+  15:35  warning  Unexpected console statement  no-console
+  16:35  warning  Unexpected console statement  no-console
+  17:36  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calculate-availability\calculate-availability.service.ts
+  118:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calculate-availability\route.ts
+  51:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calendar\analyze\route.ts
+  65:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calendar\callback\route.ts
+   17:7  warning  Unexpected console statement  no-console
+  100:7  warning  Unexpected console statement  no-console
+  172:7  warning  Unexpected console statement  no-console
+  236:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calendar\check-changes\check-changes-db.service.ts
+  58:47  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calendar\check-changes\check-changes-token.service.ts
+  61:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calendar\check-changes\route.ts
+  48:7  warning  Unexpected console statement  no-console
+  80:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calendar\cleanup\cleanup-calendar-events.service.ts
+   66:7  warning  Unexpected console statement  no-console
+   76:5  warning  Unexpected console statement  no-console
+   93:7  warning  Unexpected console statement  no-console
+  103:5  warning  Unexpected console statement  no-console
+  125:5  warning  Unexpected console statement  no-console
+  142:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calendar\cleanup\route.ts
+  199:9  warning  Unexpected console statement  no-console
+  215:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calendar\connect\route.get.ts
+  84:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calendar\connect\route.post.ts
+  68:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calendar\delete-plan-events\route.ts
+  51:13  warning  Unexpected console statement                                                                                         no-console
+  76:21  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  80:17  warning  Unexpected console statement                                                                                         no-console
+  93:9   warning  Unexpected console statement                                                                                         no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calendar\disconnect\route.ts
+  58:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calendar\insert-events\route.ts
+   54:67  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  104:5   warning  Unexpected console statement                       no-console
+  141:5   warning  Unexpected console statement                       no-console
+  174:7   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calendar\list\calendar-list-token.service.ts
+  38:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calendar\list\route.ts
+  51:28  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\calendar\selection\route.ts
+  33:5  warning  Unexpected console statement  no-console
+  85:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\course-progress\route.ts
+   74:7  warning  Unexpected console statement  no-console
+   98:7  warning  Unexpected console statement  no-console
+  129:9  warning  Unexpected console statement  no-console
+  137:9  warning  Unexpected console statement  no-console
+  153:9  warning  Unexpected console statement  no-console
+  161:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\dashboard\chat\actions\planning-actions-recover-missed.service.ts
+  29:60  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\dashboard\chat\actions\planning-actions-reduce-load.service.ts
+  59:39  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\dashboard\chat\actions\planning-actions-v2-recover-missed.service.ts
+  62:60  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\dashboard\chat\actions\planning-actions-v2-reduce-load.service.ts
+  70:39  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\dashboard\sync-calendar\check\calendar-change-check.service.ts
+  77:72  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\events\[id]\event-delete-route.handler.ts
+  29:7  warning  Unexpected console statement  no-console
+  40:5  warning  Unexpected console statement  no-console
+  56:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\events\[id]\event-update-route.handler.ts
+   52:9  warning  Unexpected console statement  no-console
+   75:5  warning  Unexpected console statement  no-console
+  159:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\events\[id]\event-update.service.ts
+   69:9  warning  Unexpected console statement  no-console
+   88:5  warning  Unexpected console statement  no-console
+  219:7  warning  Unexpected console statement  no-console
+  227:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\events\[id]\route.ts
+  21:5  warning  Unexpected console statement  no-console
+  39:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\events\calendar-event-provider.service.ts
+  26:5  warning  Unexpected console statement  no-console
+  57:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\events\calendar-event-sync.service.ts
+  141:7  warning  Unexpected console statement  no-console
+  144:5  warning  Unexpected console statement  no-console
+  199:7  warning  Unexpected console statement  no-console
+  202:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\events\calendar-token-manager.service.ts
+  35:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\events\route.ts
+   57:43  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   66:7   warning  Unexpected console statement                       no-console
+   71:9   warning  Unexpected console statement                       no-console
+   88:45  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  103:5   warning  Unexpected console statement                       no-console
+  168:9   warning  Unexpected console statement                       no-console
+  191:7   warning  Unexpected console statement                       no-console
+  213:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\generate-plan\route.ts
+  39:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\lesson-tracking\complete\route.ts
+  112:7  warning  Unexpected console statement  no-console
+  158:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\lesson-tracking\event\route.ts
+  142:7  warning  Unexpected console statement  no-console
+  156:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\lesson-tracking\route.ts
+   74:7   warning  Unexpected console statement                       no-console
+   83:5   warning  Unexpected console statement                       no-console
+  111:53  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  119:7   warning  Unexpected console statement                       no-console
+  221:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\lesson-tracking\start\route.ts
+  178:7  warning  Unexpected console statement  no-console
+  207:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\pending-lessons\pending-lessons-course-lessons.service.ts
+  64:5  warning  Unexpected console statement  no-console
+  77:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\pending-lessons\pending-lessons-sources.service.ts
+  119:7  warning  Unexpected console statement  no-console
+  156:9  warning  Unexpected console statement  no-console
+  189:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\status\route.ts
+   62:17  warning  Unexpected console statement  no-console
+   96:13  warning  Unexpected console statement  no-console
+  113:9   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\suggest-learning-route\route.ts
+  123:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\study-planner\validate-session-times\route.ts
+  30:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\test-lia-db\route.ts
+  71:58  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\test-translation\course-lessons\route.ts
+  146:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\test-translation\lesson-es\route.ts
+   99:7   warning  Unexpected console statement                       no-console
+  131:7   warning  Unexpected console statement                       no-console
+  180:13  warning  Unexpected console statement                       no-console
+  192:9   warning  Unexpected console statement                       no-console
+  197:65  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  232:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\test-translation\lesson\route.ts
+   67:76  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   88:78  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  162:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\test-translation\route.ts
+   99:68  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  155:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\tours\route.ts
+   75:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   83:7   warning  Unexpected console statement                       no-console
+  102:5   warning  Unexpected console statement                       no-console
+  148:7   warning  Unexpected console statement                       no-console
+  203:7   warning  Unexpected console statement                       no-console
+  212:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\users\organizations\route.ts
+  49:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\video-tracking\resume\[lessonId]\route.ts
+  47:13  warning  Unexpected console statement  no-console
+  75:9   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\api\workshops\[id]\metadata\route.ts
+  40:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\auth\oauth\microsoft\callback\page.tsx
+  26:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\error.tsx
+  16:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\app\study-planner\calendar\callback\page.tsx
+  169:13  warning  Unexpected console statement  no-console
+  217:9   warning  Unexpected console statement  no-console
+  231:11  warning  Unexpected console statement  no-console
+  248:11  warning  Unexpected console statement  no-console
+  261:7   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\components\AIChatAgent\NanoBananaPreviewPanel.tsx
+  36:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\components\AIChatAgent\PromptPreviewPanel.tsx
+  39:7  warning  Unexpected console statement  no-console
+  60:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\components\AIChatAgent\hooks\useAIChatAgentLogic.ts
+  397:51  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\components\AIChatAgent\hooks\useAIChatPersistence.ts
+  31:7  warning  Unexpected console statement  no-console
+  42:7  warning  Unexpected console statement  no-console
+  52:7  warning  Unexpected console statement  no-console
+  68:7  warning  Unexpected console statement  no-console
+  81:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\components\AIChatAgent\hooks\useAIChatSendMessage.ts
+  149:7   warning  Unexpected console statement  no-console
+  247:51  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\components\AIChatAgent\hooks\useAIChatVoice.ts
+  148:9  warning  Unexpected console statement  no-console
+  170:7  warning  Unexpected console statement  no-console
+  212:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\components\ContextualVoiceGuide\hooks\useContextualVoiceGuideVoice.ts
+  113:11  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\components\LiaSidePanel\hooks\useLiaSidePanelDictation.ts
+  143:7  warning  Unexpected console statement  no-console
+  247:9  warning  Unexpected console statement  no-console
+  283:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\components\LiaSidePanel\hooks\useLiaSidePanelLogic\history.ts
+  28:7  warning  Unexpected console statement  no-console
+  60:7  warning  Unexpected console statement  no-console
+  81:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\components\LiaSidePanel\hooks\useLiaSidePanelVoice.ts
+  121:11  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\hoc\useTranslatedContent.ts
+  44:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\hoc\useTranslatedObject.ts
+  38:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\hooks\useLiaCourseChat\useLiaConversationLifecycle.ts
+  47:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\hooks\useLiaGeneralChat.ts
+  266:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\providers\OrganizationProvider.tsx
+  117:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\services\autoTranslation.service.ts
+   30:7  warning  Unexpected console statement  no-console
+   31:7  warning  Unexpected console statement  no-console
+   60:7  warning  Unexpected console statement  no-console
+   61:7  warning  Unexpected console statement  no-console
+   71:7  warning  Unexpected console statement  no-console
+  135:9  warning  Unexpected console statement  no-console
+  156:9  warning  Unexpected console statement  no-console
+  162:7  warning  Unexpected console statement  no-console
+  164:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\services\content-translation\content-translation.batch.ts
+  47:7  warning  Unexpected console statement  no-console
+  66:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\services\content-translation\content-translation.read.ts
+  51:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\services\content-translation\content-translation.write-client.ts
+  15:5  warning  Unexpected console statement  no-console
+  16:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\services\content-translation\content-translation.write.ts
+  32:3  warning  Unexpected console statement  no-console
+  47:7  warning  Unexpected console statement  no-console
+  77:7  warning  Unexpected console statement  no-console
+  87:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\services\content-translation\load-translations.ts
+  46:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\services\content-translation\save-translation.ts
+  26:5  warning  Unexpected console statement  no-console
+  34:5  warning  Unexpected console statement  no-console
+  64:7  warning  Unexpected console statement  no-console
+  79:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\services\content-translation\translate-content.ts
+   89:7  warning  Unexpected console statement  no-console
+  104:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\services\content-translation\translation-client.ts
+  17:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\services\course-translation\translation-runner.ts
+  22:5  warning  Unexpected console statement  no-console
+  29:5  warning  Unexpected console statement  no-console
+  61:9  warning  Unexpected console statement  no-console
+  66:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\services\intent-detection\ai-detector.ts
+  20:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\services\languageDetection.service.ts
+   27:7  warning  Unexpected console statement  no-console
+   79:9  warning  Unexpected console statement  no-console
+  105:9  warning  Unexpected console statement  no-console
+  109:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\services\lia-personalization.service.ts
+   63:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   73:7   warning  Unexpected console statement                       no-console
+  118:7   warning  Unexpected console statement                       no-console
+  177:11  warning  Unexpected console statement                       no-console
+  184:7   warning  Unexpected console statement                       no-console
+  204:7   warning  Unexpected console statement                       no-console
+  253:20  error    Irregular whitespace not allowed                   no-irregular-whitespace
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\core\services\soflia-personalization.service.ts
+   51:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   60:7   warning  Unexpected console statement                       no-console
+  101:7   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\actions\admin-courses\approve-course.service.ts
+  45:9   warning  Unexpected console statement                       no-console
+  50:58  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  57:9   warning  Unexpected console statement                       no-console
+  77:9   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\actions\admin-courses\course-review-mutations.service.ts
+  25:9  warning  Unexpected console statement  no-console
+  38:9  warning  Unexpected console statement  no-console
+  55:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\actions\admin-courses\pending-courses.service.ts
+  33:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\AdminStatisticsPage.tsx
+   78:7  warning  Unexpected console statement  no-console
+   98:7  warning  Unexpected console statement  no-console
+  128:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\CourseManagement\CoursePreviewTab.tsx
+  62:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  74:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  74:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  74:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\CourseManagement\hooks\useCourseConfig.ts
+  63:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\DashboardPreferences.tsx
+  49:7  warning  Unexpected console statement  no-console
+  74:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\LiaAnalyticsWidgets\ActivityHeatmapWidget.tsx
+  44:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\LiaAnalyticsWidgets\ActivityPerformanceWidget.tsx
+  59:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\LiaAnalyticsWidgets\ConversationsTableWidget.tsx
+  125:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\LiaAnalyticsWidgets\CourseAnalyticsWidget.tsx
+  66:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\LiaAnalyticsWidgets\HeatmapDetailModal\useHourDetailData.ts
+  28:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\LiaAnalyticsWidgets\TopQuestionsWidget.tsx
+  48:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\LiaAnalyticsWidgets\TopUsersWidget.tsx
+  52:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\StatisticsWidgets\RecentActivityWidget.tsx
+  40:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\admin-dashboard\AdminDashboardActivitySection.tsx
+  52:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\admin-dashboard\service.ts
+   59:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   75:7   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   98:6   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  140:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  200:71  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  213:7   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  215:8   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  235:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\admin-dashboard\useAdminDashboardLogic.ts
+  63:11  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\admin-edit-company-modal\useCompanyImageUpload.ts
+  44:7  warning  Unexpected console statement  no-console
+  95:3  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\courses-section\useCourseSectionLogic.ts
+  109:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\dashboard-layout-manager\DashboardGridRenderer.tsx
+  70:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\dashboard-layout-manager\grid-layout-loader.ts
+  22:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\components\dashboard-layout-manager\useDashboardLayoutManager.ts
+  48:7  warning  Unexpected console statement  no-console
+  60:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\hooks\useAdminCourseDetail.ts
+   6:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:13  warning  Unexpected console statement              no-console
+  52:13  warning  Unexpected console statement              no-console
+  66:13  warning  Unexpected console statement              no-console
+  80:13  warning  Unexpected console statement              no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\hooks\useAdminPendingCourses.ts
+  45:13  warning  Unexpected console statement  no-console
+  59:13  warning  Unexpected console statement  no-console
+  73:13  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\hooks\useAdminWorkshopsPageLogic.ts
+   98:7  warning  Unexpected console statement  no-console
+  115:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\__tests__\admin-users.query.service.test.ts
+   57:94  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   69:94  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   79:94  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   94:99  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  101:94  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  128:72  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  149:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  168:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-activities\admin-activities.create.ts
+  8:27  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-activities\admin-activities.queries.ts
+   7:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  25:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-companies\admin-companies-read.service.ts
+  166:5  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  171:5  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-lessons\lesson-enrichment.service.ts
+  28:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-materials\admin-materials.create.ts
+   8:27  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  29:5   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-materials\admin-materials.duration.ts
+  25:5  warning  Unexpected console statement  no-console
+  49:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-materials\admin-materials.queries.ts
+   6:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  20:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-modules\admin-modules.create.ts
+  37:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-modules\admin-modules.queries.ts
+  31:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-statistics\content-distribution.service.ts
+  36:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-statistics\monthly-growth.service.ts
+  38:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-statistics\recent-activity.service.ts
+  35:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-users\delete-user.service.ts
+  17:36  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-users\delete-user.table-operations.ts
+  20:5  warning  Unexpected console statement  no-console
+  36:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-users\mutation.service.ts
+  27:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-workshops\workshops-mutation.service.ts
+   79:9   warning  Unexpected console statement                       no-console
+  116:11  warning  Unexpected console statement                       no-console
+  117:11  warning  Unexpected console statement                       no-console
+  124:9   warning  Unexpected console statement                       no-console
+  125:9   warning  Unexpected console statement                       no-console
+  126:9   warning  Unexpected console statement                       no-console
+  128:11  warning  Unexpected console statement                       no-console
+  129:11  warning  Unexpected console statement                       no-console
+  131:11  warning  Unexpected console statement                       no-console
+  146:39  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  252:44  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  278:9   warning  Unexpected console statement                       no-console
+  281:7   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\admin-workshops\workshops-stats-query.service.ts
+  12:5  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  16:5  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\adminCheckpoints.service.ts
+  33:37  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  53:37  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  74:31  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\adminCourses.service.ts
+  257:9  warning  Unexpected console statement  no-console
+  276:7  warning  Unexpected console statement  no-console
+  297:7  warning  Unexpected console statement  no-console
+  364:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\adminDashboardLayout.service.ts
+   29:45  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   37:9   warning  Unexpected console statement                       no-console
+   53:7   warning  Unexpected console statement                       no-console
+  123:7   warning  Unexpected console statement                       no-console
+  142:7   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\adminDashboardPreferences.service.ts
+   18:50  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+   25:9   warning  Unexpected console statement                       no-console
+   44:7   warning  Unexpected console statement                       no-console
+  114:7   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\admin\services\auditLog.service.ts
+  59:17  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\auth\actions\login\create-login-sessions.ts
+  56:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\auth\actions\login\organization-context.ts
+  102:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\auth\actions\register.ts
+  221:7   warning  Unexpected console statement  no-console
+  244:12  warning  Unexpected console statement  no-console
+  275:9   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\auth\components\AuthSecurityGuard.tsx
+  28:17  warning  Unexpected console statement  no-console
+  36:17  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\auth\components\DashboardButton\DashboardButton.tsx
+  19:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\auth\components\LoginForm\LoginForm.tsx
+  156:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\auth\services\oauth.service.ts
+   85:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  108:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\auth\services\organization.service.ts
+  39:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  64:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\BusinessPanelHeader.tsx
+  26:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\branding-tab\useBrandingTabState.ts
+   83:9  warning  Unexpected console statement  no-console
+  151:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\bulk-invite-link\useBusinessBulkInviteLinkModal.ts
+  87:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\business-assign-course-modal\useBusinessAssignCourseModal.ts
+   98:9  warning  Unexpected console statement  no-console
+  267:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\business-user-stats-modal\BusinessUserStatsActivityTab.tsx
+  113:74  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  128:68  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\business-user-stats-modal\BusinessUserStatsOverviewTab.tsx
+  150:75  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  172:72  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\hierarchy\CourseAssignmentForm.tsx
+  103:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\hierarchy\CourseAssignments.tsx
+  52:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\hierarchy\HierarchyChat\hooks\useChatLogic.ts
+  170:7  warning  Unexpected console statement  no-console
+  178:7  warning  Unexpected console statement  no-console
+  280:7  warning  Unexpected console statement  no-console
+  306:7  warning  Unexpected console statement  no-console
+  319:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\hierarchy\HierarchyMap.tsx
+   18:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   91:9   warning  Unexpected console statement              no-console
+  101:9   warning  Unexpected console statement              no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\hierarchy\MemberAssignmentModal.tsx
+  56:9  warning  Unexpected console statement  no-console
+  85:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\hierarchy\StructureForm.tsx
+  37:13  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\hierarchy\hierarchy-tree\useHierarchyTreeCommands.ts
+  21:14  warning  Unexpected console statement  no-console
+  35:7   warning  Unexpected console statement  no-console
+  54:7   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\hierarchy\hierarchy-tree\useHierarchyTreeState.ts
+  37:7  warning  Unexpected console statement  no-console
+  50:7  warning  Unexpected console statement  no-console
+  80:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\hierarchy\node-dashboard\useNodeDashboardState.ts
+   59:7  warning  Unexpected console statement  no-console
+   79:7  warning  Unexpected console statement  no-console
+  102:7  warning  Unexpected console statement  no-console
+  119:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\hierarchy\node-form\useGeocoding.ts
+   72:7  warning  Unexpected console statement  no-console
+  109:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\hierarchy\node-form\useNodeFormState.ts
+  163:9  warning  Unexpected console statement  no-console
+  214:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\components\personalization-tab\usePersonalizationTabState.ts
+  87:5  error  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  91:7  error  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\contexts\OrganizationStylesContext.tsx
+   11:21  warning  Unexpected console statement  no-console
+  327:11  warning  Unexpected console statement  no-console
+  375:11  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\hooks\useBranding.ts
+  137:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\hooks\useHierarchyAnalytics.ts
+  73:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\hooks\useSubscriptionFeatures.ts
+  193:9  warning  Unexpected console statement  no-console
+  205:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\services\business-users-server\delete-user.service.ts
+  28:7  warning  Unexpected console statement  no-console
+  31:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\services\business-users-server\mutation.service.ts
+  140:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\services\businessUsers.service.ts
+  129:9  warning  Unexpected console statement  no-console
+  138:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\services\dynamicHierarchy.service.ts
+  45:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\services\hierarchy-assignments.service.ts
+  63:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\services\hierarchy-service\hierarchy-common\hierarchy-api.ts
+  35:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\services\hierarchyChats.service.ts
+  65:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\services\hierarchyUpload.service.ts
+   99:7  warning  Unexpected console statement  no-console
+  114:5  warning  Unexpected console statement  no-console
+  142:5  warning  Unexpected console statement  no-console
+  172:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\services\subscription.service.ts
+  105:7   warning  Unexpected console statement                       no-console
+  150:7   warning  Unexpected console statement                       no-console
+  215:38  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  224:9   warning  Unexpected console statement                       no-console
+  230:7   warning  Unexpected console statement                       no-console
+  291:7   warning  Unexpected console statement                       no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\services\userGroups.service.ts
+   67:7  warning  Unexpected console statement  no-console
+   85:7  warning  Unexpected console statement  no-console
+  153:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\business-panel\utils\colorDetection.ts
+  221:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\components\CourseLia\hooks\useMessageCopyAction.ts
+  18:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\components\CourseLia\lia-link.utils.ts
+  15:22  error  Unexpected control character(s) in regular expression: \x00, \x1f  no-control-regex
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\components\CourseScormSection.tsx
+  43:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\components\course-skills-selector\useCourseSkillsSelector.ts
+  21:7  warning  Unexpected console statement  no-console
+  34:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\components\learn\questions\__tests__\useCourseQuestions.test.tsx
+  33:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  39:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  57:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\components\learn\quiz-renderer\quiz-submit.service.ts
+  33:7  warning  Unexpected console statement  no-console
+  44:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\components\learn\quiz-renderer\useQuizSubmitHandler.ts
+  86:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\components\learn\sidebar\__tests__\utils.test.ts
+  241:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\hooks\learn-page\useLearnPageCourseData.ts
+  202:19  warning  Unexpected console statement  no-console
+  347:9   warning  Unexpected console statement  no-console
+  359:9   warning  Unexpected console statement  no-console
+  376:11  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\hooks\learn-page\useLearnPageLiaIntegration.ts
+  83:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\hooks\lesson-navigation\activity-shortcut-validation.ts
+  50:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\hooks\lesson-navigation\completion-validation.ts
+  44:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\hooks\lesson-navigation\transition-validation.ts
+  45:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\hooks\notes-management\useSaveNoteMutation.ts
+  79:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\hooks\useCourseAccess.ts
+  67:17  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\hooks\useCourseCompletionFlow.ts
+  83:7  warning  Unexpected console statement  no-console
+  92:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\hooks\useLessonCompletion\error-utils.ts
+  17:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\hooks\useLessonCompletion\progress-failure.ts
+  69:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\hooks\useLessonCompletion\quiz-status.ts
+  73:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\services\course-certificate.service.ts
+  66:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\services\course-rating.service.ts
+  40:7  warning  Unexpected console statement  no-console
+  98:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\services\favorites.service.ts
+  105:11  warning  Unexpected console statement  no-console
+  119:9   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\services\soflia-dialogue\dialogue-events.service.ts
+  22:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\services\soflia-dialogue\dialogue-result-persistence.service.ts
+  25:26  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\services\soflia-dialogue\dialogue-session\evaluations.ts
+   8:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  32:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\services\soflia-dialogue\dialogue-session\response.ts
+  11:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\services\soflia-dialogue\dialogue-session\session-by-id.ts
+  10:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\services\soflia-dialogue\dialogue-session\session-factory.ts
+  66:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\services\soflia-dialogue\dialogue-session\session-queries.ts
+  10:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  36:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\services\soflia-dialogue\dialogue-session\session-updates.ts
+  28:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\courses\services\soflia-dialogue\dialogue-session\turns.ts
+   9:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  31:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  61:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\landing\components\FinalCTASection.tsx
+  42:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\landing\components\business\InstructorsInfoSection.tsx
+  35:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\notifications\services\__tests__\notification.actions.service.test.ts
+   96:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  124:72  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  140:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  152:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  167:94  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  182:94  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  196:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  206:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  238:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  245:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\notifications\services\__tests__\notification.creation.service.test.ts
+   65:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   75:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   84:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   93:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  105:65  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  118:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  127:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\notifications\services\notification\actions.service.ts
+  32:46  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\profile\services\profile-server\profile-query.service.ts
+  12:5  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\profile\services\profile-server\profile-stats.service.ts
+  13:7  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  18:7  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  23:7  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  27:7  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\profile\services\profile-server\profile-update.service.ts
+  24:5  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\scorm\hooks\useScormAttempts.ts
+  29:19  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\skills\hooks\useSkillLevel.ts
+  46:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\skills\hooks\useUserSkills.ts
+  56:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\components\CalendarConnection.tsx
+  62:7  warning  Unexpected console statement  no-console
+  79:7  warning  Unexpected console statement  no-console
+  92:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\components\CalendarSelection\hooks\useCalendarSelection.ts
+   67:7  warning  Unexpected console statement  no-console
+  133:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\components\hooks\planner-redirect.utils.ts
+  30:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\components\hooks\study-planner-calendar-actions.shared.ts
+  128:5  warning  Unexpected console statement  no-console
+  134:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\components\hooks\study-planner-calendar-analysis.service.ts
+   61:7  warning  Unexpected console statement  no-console
+  230:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\components\hooks\study-planner-calendar-connection.service.ts
+   64:7  warning  Unexpected console statement  no-console
+  127:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\context\LIAContext.tsx
+   73:7  warning  Unexpected console statement  no-console
+  124:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\dashboard-lia-proactive-analysis.ts
+  30:7   warning  Unexpected console statement  no-console
+  48:5   warning  Unexpected console statement  no-console
+  67:21  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\dashboard-soflia-fetch-helpers.ts
+  78:7  warning  Unexpected console statement  no-console
+  96:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\dashboard-soflia-plan-refresh.ts
+  16:21  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\planner-message-handler.utils.ts
+  120:7  warning  Unexpected console statement  no-console
+  159:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\study-planner-calendar-ui-helpers.ts
+  40:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\study-planner-session-storage.service.ts
+  22:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useDashboardLIAAnalysis.ts
+  111:7  warning  Unexpected console statement  no-console
+  164:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useDashboardLIAData.ts
+   57:9  warning  Unexpected console statement  no-console
+   80:7  warning  Unexpected console statement  no-console
+  134:9  warning  Unexpected console statement  no-console
+  138:7  warning  Unexpected console statement  no-console
+  157:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useDashboardSofLIAActionExecution.ts
+  125:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useDashboardSofLIAFetch.ts
+   58:9  warning  Unexpected console statement  no-console
+   81:7  warning  Unexpected console statement  no-console
+  136:9  warning  Unexpected console statement  no-console
+  140:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useDashboardSofLIAState.ts
+  108:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useLIAData.ts
+  103:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useSofLIAData.ts
+  103:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useStudyPlanPersistence.ts
+  124:13  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useStudyPlannerB2BCalendarAnalysis.ts
+   97:11  warning  Unexpected console statement  no-console
+  135:5   warning  Unexpected console statement  no-console
+  227:7   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useStudyPlannerCalendarConnection.ts
+   56:7  warning  Unexpected console statement  no-console
+  175:9  warning  Unexpected console statement  no-console
+  201:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useStudyPlannerCalendarUiFlow.ts
+   76:7   warning  Unexpected console statement  no-console
+  155:7   warning  Unexpected console statement  no-console
+  166:11  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useStudyPlannerDashboardTour.ts
+  28:9  warning  Unexpected console statement  no-console
+  78:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useStudyPlannerInitializationFlow.ts
+  116:9   warning  Unexpected console statement  no-console
+  171:11  warning  Unexpected console statement  no-console
+  183:5   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useStudyPlannerMessageHandler.ts
+  184:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useStudyPlannerPlanManagement.ts
+   92:9  warning  Unexpected console statement  no-console
+  127:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useStudyPlannerSofLIA.ts
+   42:7  warning  Unexpected console statement  no-console
+   93:7  warning  Unexpected console statement  no-console
+  137:7  warning  Unexpected console statement  no-console
+  153:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useStudyPlannerVoiceInteraction.ts
+   85:7  warning  Unexpected console statement  no-console
+  173:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useStudyPlannerVoiceQuestionHandler.ts
+   58:7  warning  Unexpected console statement  no-console
+   80:9  warning  Unexpected console statement  no-console
+  177:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useStudyPlannerWelcomeFlow.ts
+  119:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\hooks\useVoiceAudioPlayback.ts
+  117:7   warning  Unexpected console statement  no-console
+  141:36  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\__tests__\availability-calculator.service.test.ts
+  133:101  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  141:109  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  196:94   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\__tests__\lia-phase-instructions.service.test.ts
+   52:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   91:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\__tests__\lia-prompt-formatter.service.test.ts
+   43:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   71:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   80:81  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   98:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  119:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  145:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  172:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  194:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  205:89  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  221:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\__tests__\plan-adjustment.service.test.ts
+   33:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   42:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   90:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  106:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  122:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  140:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  142:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  157:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  219:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  242:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  260:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  277:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  301:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\__tests__\planner-message-context.service.test.ts
+   97:76  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  220:82  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\calendar-auth-connect.service.ts
+   40:7  warning  Unexpected console statement  no-console
+   59:7  warning  Unexpected console statement  no-console
+   83:9  warning  Unexpected console statement  no-console
+   89:5  warning  Unexpected console statement  no-console
+  117:7  warning  Unexpected console statement  no-console
+  129:7  warning  Unexpected console statement  no-console
+  145:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\calendar-auth-token-refresh.service.ts
+  24:5  warning  Unexpected console statement  no-console
+  55:7  warning  Unexpected console statement  no-console
+  74:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\calendar-db-integration-save.service.ts
+  122:3  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\calendar-db-selection.service.ts
+  44:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\calendar-db.service.ts
+  109:7  warning  Unexpected console statement  no-console
+  128:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\calendar-google.service.ts
+  48:9  warning  Unexpected console statement  no-console
+  54:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\calendar-microsoft.service.ts
+   23:9   warning  Unexpected console statement  no-console
+   30:7   warning  Unexpected console statement  no-console
+   56:9   warning  Unexpected console statement  no-console
+   69:7   warning  Unexpected console statement  no-console
+  119:13  warning  Unexpected console statement  no-console
+  147:9   warning  Unexpected console statement  no-console
+  155:7   warning  Unexpected console statement  no-console
+  203:9   warning  Unexpected console statement  no-console
+  210:7   warning  Unexpected console statement  no-console
+  232:9   warning  Unexpected console statement  no-console
+  238:7   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\calendar-sync.service.ts
+  42:9   warning  Unexpected console statement  no-console
+  81:32  warning  Unexpected console statement  no-console
+  84:32  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\course-analysis\db-progress.ts
+   46:5   warning  Unexpected console statement                       no-console
+   74:5   warning  Unexpected console statement                       no-console
+   90:5   warning  Unexpected console statement                       no-console
+  101:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\course-analysis\db.ts
+   41:5  warning  Unexpected console statement  no-console
+   89:5  warning  Unexpected console statement  no-console
+  108:5  warning  Unexpected console statement  no-console
+  139:5  warning  Unexpected console statement  no-console
+  160:5  warning  Unexpected console statement  no-console
+  181:5  warning  Unexpected console statement  no-console
+  230:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\lesson-time.service.ts
+  41:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\lesson-tracking.service.ts
+   93:5  warning  Unexpected console statement  no-console
+  125:5  warning  Unexpected console statement  no-console
+  146:5  warning  Unexpected console statement  no-console
+  235:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\organization-planner-config\organization-holidays.service.ts
+  66:5  warning  Unexpected console statement  no-console
+  70:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\organization-planner-config\organization-planner-config-query.service.ts
+  28:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\planner-course-workload.service.ts
+  80:11  warning  Unexpected console statement  no-console
+  89:5   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\planner-message-context-format\date-format.ts
+  17:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\planner-weekly-goals.service.ts
+  143:5  warning  Unexpected console statement  no-console
+  229:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\user-course-assignments\hierarchy.service.ts
+   76:9  warning  Unexpected console statement  no-console
+  206:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\user-course-assignments\organization-memberships.service.ts
+  37:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\user-course-assignments\organization.service.ts
+  45:5  warning  Unexpected console statement  no-console
+  88:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\user-course-assignments\purchases.service.ts
+  32:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\user-identity.service.ts
+   30:7  warning  Unexpected console statement  no-console
+   69:7  warning  Unexpected console statement  no-console
+  121:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\user-organization.service.ts
+  30:7  warning  Unexpected console statement  no-console
+  53:7  warning  Unexpected console statement  no-console
+  82:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\study-planner\services\user-preferences.service.ts
+   74:7  warning  Unexpected console statement  no-console
+  113:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\tours\components\onboarding-video-player\useOnboardingVideoPlayer.ts
+   46:105  warning  Unexpected console statement  no-console
+  109:37   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\tours\hooks\useBusinessPanelJoyride.ts
+  36:33  warning  Unexpected console statement  no-console
+  42:29  warning  Unexpected console statement  no-console
+  71:30  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\tours\hooks\useBusinessUserJoyride.ts
+  55:49  warning  Unexpected console statement  no-console
+  88:48  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\tours\hooks\useBusinessUserJoyride\useBusinessUserJoyrideCallback.ts
+  28:34  warning  Unexpected console statement  no-console
+  35:7   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\tours\hooks\useFeatureTour.ts
+  173:35  warning  Unexpected console statement  no-console
+  179:31  warning  Unexpected console statement  no-console
+  189:34  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\tours\hooks\useJoyrideMinitour.ts
+   49:7   warning  Unexpected console statement  no-console
+   99:11  warning  Unexpected console statement  no-console
+  107:11  warning  Unexpected console statement  no-console
+  118:13  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\tours\hooks\useStudyPlannerJoyride.ts
+  31:16  warning  Unexpected console statement  no-console
+  96:7   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\tours\hooks\useTourProgress.ts
+   56:11  warning  Unexpected console statement  no-console
+   60:9   warning  Unexpected console statement  no-console
+   92:9   warning  Unexpected console statement  no-console
+  114:7   warning  Unexpected console statement  no-console
+  131:11  warning  Unexpected console statement  no-console
+  152:7   warning  Unexpected console statement  no-console
+  170:7   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\features\video-tracking\hooks\useVideoTracking.ts
+  45:13  warning  Unexpected console statement  no-console
+  93:13  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\__tests__\courseDiff.test.ts
+    6:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   16:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   16:83  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   23:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   23:68  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  219:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  220:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\__tests__\lesson-progress.test.ts
+  113:66  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\__tests__\organization-slug.test.ts
+  64:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  65:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  97:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\__tests__\slug.test.ts
+   18:33  warning  Unexpected any. Specify a different type                     @typescript-eslint/no-explicit-any
+   19:38  warning  Unexpected any. Specify a different type                     @typescript-eslint/no-explicit-any
+   85:32  error    Unexpected control character(s) in regular expression: \x00  no-control-regex
+  106:32  warning  Unexpected any. Specify a different type                     @typescript-eslint/no-explicit-any
+  107:37  warning  Unexpected any. Specify a different type                     @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\__tests__\subscriptionFeatures.test.ts
+  202:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\__tests__\upload-validation.test.ts
+  113:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\analytics\lia-logger\lia-logger-interactions.ts
+  26:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  44:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  62:33  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  82:47  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  88:42  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  94:48  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\analytics\lia-logger\lia-logger-session\activity-progress.ts
+  39:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\analytics\lia-logger\lia-logger-session\conversation-state.ts
+  28:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\analytics\lia-logger\lia-logger-session\message-logging.ts
+  43:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\analytics\lia-logger\lia-logger-session\start-conversation.ts
+  30:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\auth\hierarchical-access\context.service.ts
+   70:7  warning  Unexpected console statement  no-console
+   87:7  warning  Unexpected console statement  no-console
+  185:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\auth\refreshToken.service.ts
+   77:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+  230:35  warning  No uses select('*'). Selecciona campos explícitos  no-restricted-syntax
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\auth\remember-me.ts
+  25:5  warning  Unexpected console statement  no-console
+  53:5  warning  Unexpected console statement  no-console
+  67:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\course-import\apply-payload-details.ts
+  43:14  warning  Unexpected console statement  no-console
+  56:14  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\holidays\holiday-resolver.ts
+  16:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\holidays\holidays.service.ts
+  32:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\error-context.test.ts
+   17:1   warning  Unexpected console statement  no-console
+   26:9   warning  Unexpected console statement  no-console
+   29:9   warning  Unexpected console statement  no-console
+   34:7   warning  Unexpected console statement  no-console
+   70:5   warning  Unexpected console statement  no-console
+   96:7   warning  Unexpected console statement  no-console
+   99:7   warning  Unexpected console statement  no-console
+  124:7   warning  Unexpected console statement  no-console
+  127:7   warning  Unexpected console statement  no-console
+  191:3   warning  Unexpected console statement  no-console
+  192:3   warning  Unexpected console statement  no-console
+  193:3   warning  Unexpected console statement  no-console
+  194:3   warning  Unexpected console statement  no-console
+  197:5   warning  Unexpected console statement  no-console
+  199:5   warning  Unexpected console statement  no-console
+  205:18  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-context-tests\assertions.ts
+   5:5  warning  Unexpected console statement  no-console
+  10:3  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-context-tests\context-builder.suite.ts
+  6:15  error  Parsing error: Unterminated string literal
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-context-tests\lia-components.suite.ts
+  6:15  error  Parsing error: Unterminated string literal
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-context-tests\metrics.suite.ts
+  6:15  error  Parsing error: Unterminated string literal
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-context-tests\page-metadata.suite.ts
+  6:15  error  Parsing error: Unterminated string literal
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-context-tests\page-service.suite.ts
+  6:15  error  Parsing error: Unterminated string literal
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-context-tests\platform-provider.suite.ts
+  6:15  error  Parsing error: Unterminated string literal
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-context-tests\runner.ts
+  12:15  error  Parsing error: Unterminated string literal
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-context-tests\user-provider.suite.ts
+  6:15  error  Parsing error: Unterminated string literal
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-features.test.ts
+  16:10  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-isolated.test.ts
+  16:10  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-tests\context-builder.tests.ts
+  5:3  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-tests\context-metrics.tests.ts
+  5:3  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-tests\lia-component-utilities.tests.ts
+  13:3  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-tests\page-context-service.tests.ts
+  5:3  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-tests\page-metadata.tests.ts
+   5:3   warning  Unexpected console statement  no-console
+  38:3   warning  Unexpected console statement  no-console
+  39:71  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-tests\platform-context-provider.tests.ts
+  5:3  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-tests\test-runner.ts
+  14:9  warning  Unexpected console statement  no-console
+  18:7  warning  Unexpected console statement  no-console
+  28:3  warning  Unexpected console statement  no-console
+  29:3  warning  Unexpected console statement  no-console
+  30:3  warning  Unexpected console statement  no-console
+  41:3  warning  Unexpected console statement  no-console
+  42:3  warning  Unexpected console statement  no-console
+  43:3  warning  Unexpected console statement  no-console
+  49:5  warning  Unexpected console statement  no-console
+  54:3  warning  Unexpected console statement  no-console
+  55:3  warning  Unexpected console statement  no-console
+  56:3  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\optional-tests\user-context-provider.tests.ts
+  5:3  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\page-context.test.ts
+   17:1  warning  Unexpected console statement  no-console
+   26:7  warning  Unexpected console statement  no-console
+   29:7  warning  Unexpected console statement  no-console
+   33:5  warning  Unexpected console statement  no-console
+   43:3  warning  Unexpected console statement  no-console
+  129:7  warning  Unexpected console statement  no-console
+  133:7  warning  Unexpected console statement  no-console
+  154:1  warning  Unexpected console statement  no-console
+  155:1  warning  Unexpected console statement  no-console
+  156:1  warning  Unexpected console statement  no-console
+  157:1  warning  Unexpected console statement  no-console
+  160:3  warning  Unexpected console statement  no-console
+  162:3  warning  Unexpected console statement  no-console
+  170:1  warning  Unexpected console statement  no-console
+  178:3  warning  Unexpected console statement  no-console
+  180:3  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\phase2-simple.test.ts
+   17:1  warning  Unexpected console statement  no-console
+   26:7  warning  Unexpected console statement  no-console
+   29:7  warning  Unexpected console statement  no-console
+   33:5  warning  Unexpected console statement  no-console
+  164:1  warning  Unexpected console statement  no-console
+  165:1  warning  Unexpected console statement  no-console
+  166:1  warning  Unexpected console statement  no-console
+  167:1  warning  Unexpected console statement  no-console
+  170:3  warning  Unexpected console statement  no-console
+  171:3  warning  Unexpected console statement  no-console
+  172:3  warning  Unexpected console statement  no-console
+  174:3  warning  Unexpected console statement  no-console
+  182:1  warning  Unexpected console statement  no-console
+  187:1  warning  Unexpected console statement  no-console
+  188:1  warning  Unexpected console statement  no-console
+  189:1  warning  Unexpected console statement  no-console
+  191:3  warning  Unexpected console statement  no-console
+  193:1  warning  Unexpected console statement  no-console
+  194:1  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\phase3-hooks.test.ts
+   13:1  warning  Unexpected console statement  no-console
+   22:7  warning  Unexpected console statement  no-console
+   25:7  warning  Unexpected console statement  no-console
+   29:5  warning  Unexpected console statement  no-console
+  226:3  warning  Unexpected console statement  no-console
+  227:3  warning  Unexpected console statement  no-console
+  228:3  warning  Unexpected console statement  no-console
+  229:3  warning  Unexpected console statement  no-console
+  232:5  warning  Unexpected console statement  no-console
+  233:5  warning  Unexpected console statement  no-console
+  234:5  warning  Unexpected console statement  no-console
+  236:5  warning  Unexpected console statement  no-console
+  243:3  warning  Unexpected console statement  no-console
+  244:3  warning  Unexpected console statement  no-console
+  245:3  warning  Unexpected console statement  no-console
+  246:3  warning  Unexpected console statement  no-console
+  247:3  warning  Unexpected console statement  no-console
+  248:3  warning  Unexpected console statement  no-console
+  249:3  warning  Unexpected console statement  no-console
+  250:3  warning  Unexpected console statement  no-console
+  251:3  warning  Unexpected console statement  no-console
+  252:3  warning  Unexpected console statement  no-console
+  253:3  warning  Unexpected console statement  no-console
+  254:3  warning  Unexpected console statement  no-console
+  255:3  warning  Unexpected console statement  no-console
+  256:3  warning  Unexpected console statement  no-console
+  257:3  warning  Unexpected console statement  no-console
+  263:3  warning  Unexpected console statement  no-console
+  264:3  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\__tests__\phase4-expansion.test.ts
+   17:1  warning  Unexpected console statement  no-console
+   26:7  warning  Unexpected console statement  no-console
+   29:7  warning  Unexpected console statement  no-console
+   33:5  warning  Unexpected console statement  no-console
+   41:1  warning  Unexpected console statement  no-console
+   63:1  warning  Unexpected console statement  no-console
+   85:1  warning  Unexpected console statement  no-console
+   89:3  warning  Unexpected console statement  no-console
+   96:7  warning  Unexpected console statement  no-console
+  108:7  warning  Unexpected console statement  no-console
+  118:1  warning  Unexpected console statement  no-console
+  175:1  warning  Unexpected console statement  no-console
+  212:1  warning  Unexpected console statement  no-console
+  213:1  warning  Unexpected console statement  no-console
+  214:1  warning  Unexpected console statement  no-console
+  215:1  warning  Unexpected console statement  no-console
+  218:3  warning  Unexpected console statement  no-console
+  220:3  warning  Unexpected console statement  no-console
+  228:1  warning  Unexpected console statement  no-console
+  244:1  warning  Unexpected console statement  no-console
+  246:3  warning  Unexpected console statement  no-console
+  248:1  warning  Unexpected console statement  no-console
+  254:1  warning  Unexpected console statement  no-console
+  256:1  warning  Unexpected console statement  no-console
+  257:1  warning  Unexpected console statement  no-console
+  258:1  warning  Unexpected console statement  no-console
+  259:1  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\hooks\useErrorCapture.ts
+  139:38  warning  Unexpected console statement  no-console
+  141:7   warning  Unexpected console statement  no-console
+  249:9   warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\providers\base\BaseContextProvider.ts
+  100:37  error  Unexpected control character(s) in regular expression: \x00, \x08, \x0b, \x0c, \x0e, \x1f  no-control-regex
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\providers\user\UserContextProvider.ts
+  77:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\services\ContextBuilderService.ts
+  53:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\services\ContextCacheService.ts
+  12:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\services\context-builder.service.ts
+  145:9  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\services\error-context\error-context.queries.ts
+  10:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\services\error-context\error-context.search.ts
+  29:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\services\error-context\error-context.stats.ts
+  28:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\lia-context\services\organization-ai-context.clean.ts
+  6:33  error  Unexpected control character(s) in regular expression: \x00, \x1f  no-control-regex
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\media\server\transcoding-dispatcher.server.ts
+   63:5  warning  Unexpected console statement  no-console
+   69:5  warning  Unexpected console statement  no-console
+   98:7  warning  Unexpected console statement  no-console
+  114:5  warning  Unexpected console statement  no-console
+  148:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\media\useVideoJsHlsPlayback.ts
+  205:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\oauth\microsoft.ts
+  23:7  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\security\context-sanitizer.ts
+  40:14  error  Unexpected control character(s) in regular expression: \x00, \x08, \x0b, \x0c, \x0e, \x1f  no-control-regex
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\utils\dev-logger.ts
+   62:7  warning  Unexpected console statement  no-console
+   64:7  warning  Unexpected console statement  no-console
+  131:5  warning  Unexpected console statement  no-console
+  133:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\lib\utils\workshop-metadata.ts
+   47:7  warning  Unexpected console statement  no-console
+   65:7  warning  Unexpected console statement  no-console
+  104:7  warning  Unexpected console statement  no-console
+  159:5  warning  Unexpected console statement  no-console
+  182:7  warning  Unexpected console statement  no-console
+  189:5  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\proxy\logger.ts
+  4:53  warning  Unexpected console statement  no-console
+  5:34  warning  Unexpected console statement  no-console
+  6:54  warning  Unexpected console statement  no-console
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\shared\utils\__tests__\animations.test.ts
+   36:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   40:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   44:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   48:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   52:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   56:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   60:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   64:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   68:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   72:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   76:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   80:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   84:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   88:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   92:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  124:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  125:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  152:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  157:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  162:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  167:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  172:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  187:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  192:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  197:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  202:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  207:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  208:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  209:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  214:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  219:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  234:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  239:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  244:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  249:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  254:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  259:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  264:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  265:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web\src\shared\utils\date-formatter.ts
+  41:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 1234 problems (18 errors, 1216 warnings)
+
+npm error Lifecycle script `lint` failed with error:
+npm error code 1
+npm error path C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web
+npm error workspace @aprende-y-aplica/web@1.0.0
+npm error location C:\Users\fysg5\OneDrive\Escritorio\Pulse Hub\Soflia Learning\SofLIA-Learning\apps\web
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c eslint src --ext .js,.jsx,.ts,.tsx

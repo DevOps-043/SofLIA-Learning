@@ -4,14 +4,18 @@ import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import { SubscriptionService } from '@/features/business-panel/services/subscription.service'
 import { SessionService } from '@/features/auth/services/session.service'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { courseAssignSchema, type CourseAssignBody } from './schema'
 
 /**
  * POST /api/business/courses/[id]/assign
  * Asigna un curso a usuarios de la organización
  * Requiere: membresía activa Y que el usuario haya adquirido el curso primero
  */
-export async function POST(
-  request: NextRequest,
+async function handlePost(
+  _request: NextRequest,
+  body: CourseAssignBody,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -24,18 +28,12 @@ export async function POST(
     // Obtener usuario autenticado
     const currentUser = await SessionService.getCurrentUser()
     if (!currentUser) {
-      return NextResponse.json({
-        success: false,
-        error: 'No autenticado'
-      }, { status: 401 })
+      return apiError('UNAUTHENTICATED', 'No autenticado', 401)
     }
 
     // Obtener organizationId
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'No tienes una organización asignada'
-      }, { status: 403 })
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403)
     }
 
     const organizationId = auth.organizationId
@@ -43,10 +41,11 @@ export async function POST(
     // Validar que la organización tenga membresía activa
     const hasSubscription = await SubscriptionService.hasActiveSubscription(currentUser.id, organizationId)
     if (!hasSubscription) {
-      return NextResponse.json({
-        success: false,
-        error: 'Se requiere una membresía activa (Team/Enterprise) para asignar cursos'
-      }, { status: 403 })
+      return apiError(
+        'SUBSCRIPTION_REQUIRED',
+        'Se requiere una membresía activa (Team/Enterprise) para asignar cursos',
+        403,
+      )
     }
 
     // Verificar que la organización haya adquirido el curso primero
@@ -59,10 +58,11 @@ export async function POST(
       .maybeSingle()
 
     if (!orgPurchase) {
-      return NextResponse.json({
-        success: false,
-        error: 'Tu organización debe adquirir el curso primero antes de poder asignarlo a usuarios'
-      }, { status: 403 })
+      return apiError(
+        'COURSE_PURCHASE_REQUIRED',
+        'Tu organización debe adquirir el curso primero antes de poder asignarlo a usuarios',
+        403,
+      )
     }
 
     // Verificar que el curso exista y esté activo
@@ -75,22 +75,10 @@ export async function POST(
 
     if (courseError || !course) {
       logger.error('Error fetching course:', courseError)
-      return NextResponse.json({
-        success: false,
-        error: 'Curso no encontrado'
-      }, { status: 404 })
+      return apiError('COURSE_NOT_FOUND', 'Curso no encontrado', 404)
     }
 
-    // Parsear body de la request
-    const body = await request.json()
     const { user_ids, due_date, start_date, approach, message } = body
-
-    if (!user_ids || !Array.isArray(user_ids) || user_ids.length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'Debes seleccionar al menos un usuario'
-      }, { status: 400 })
-    }
 
     // Validar que todos los usuarios pertenezcan a la misma organización
     const { data: orgUsers, error: orgUsersError } = await supabase
@@ -102,17 +90,15 @@ export async function POST(
 
     if (orgUsersError) {
       logger.error('Error validating organization users:', orgUsersError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al validar usuarios'
-      }, { status: 500 })
+      return apiError('VALIDATE_USERS_FAILED', 'Error al validar usuarios', 500)
     }
 
     if (!orgUsers || orgUsers.length !== user_ids.length) {
-      return NextResponse.json({
-        success: false,
-        error: 'Algunos usuarios no pertenecen a tu organización o no están activos'
-      }, { status: 400 })
+      return apiError(
+        'INVALID_ORGANIZATION_USERS',
+        'Algunos usuarios no pertenecen a tu organización o no están activos',
+        400,
+      )
     }
 
     // Validar que start_date <= due_date si ambos están presentes
@@ -121,19 +107,12 @@ export async function POST(
       const dueDateObj = new Date(due_date)
       
       if (startDateObj > dueDateObj) {
-        return NextResponse.json({
-          success: false,
-          error: 'La fecha de inicio no puede ser posterior a la fecha límite'
-        }, { status: 400 })
+        return apiError(
+          'INVALID_DATE_RANGE',
+          'La fecha de inicio no puede ser posterior a la fecha límite',
+          400,
+        )
       }
-    }
-
-    // Validar approach si está presente
-    if (approach && !['fast', 'balanced', 'long', 'custom'].includes(approach)) {
-      return NextResponse.json({
-        success: false,
-        error: 'Enfoque inválido. Debe ser: fast, balanced, long o custom'
-      }, { status: 400 })
     }
 
     // Verificar que los usuarios no tengan ya el curso asignado
@@ -149,10 +128,11 @@ export async function POST(
     const newUserIds = user_ids.filter(id => !existingUserIds.includes(id))
 
     if (newUserIds.length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'Todos los usuarios seleccionados ya tienen este curso asignado'
-      }, { status: 400 })
+      return apiError(
+        'COURSE_ALREADY_ASSIGNED',
+        'Todos los usuarios seleccionados ya tienen este curso asignado',
+        400,
+      )
     }
 
     const now = new Date().toISOString()
@@ -179,10 +159,7 @@ export async function POST(
 
     if (assignError || !createdAssignments) {
       logger.error('Error creating assignments:', assignError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al asignar el curso'
-      }, { status: 500 })
+      return apiError('ASSIGN_COURSE_FAILED', 'Error al asignar el curso', 500)
     }
 
     // Crear enrollments faltantes en bloque. Antes se hacia una consulta por usuario,
@@ -241,9 +218,8 @@ export async function POST(
     })
   } catch (error) {
     logger.error('💥 Error in /api/business/courses/[id]/assign:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Error interno del servidor'
-    }, { status: 500 })
+    return apiError('ASSIGN_COURSE_FAILED', 'Error interno del servidor', 500)
   }
 }
+
+export const POST = withZodBody(courseAssignSchema, handlePost)

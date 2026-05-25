@@ -9,7 +9,6 @@ import { LiaFloatingButton } from '../../../core/components/LiaSidePanel/LiaFloa
 import { LiaSidePanel } from '../../../core/components/LiaSidePanel'
 import { LiaPanelContext } from '@/core/contexts/LiaPanelContext'
 import { useResponsiveLiaLayout } from '@/core/hooks/useResponsiveLiaLayout'
-import { useThemeStore } from '../../../core/stores/themeStore'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useOrganizationStylesContext } from '../../business-panel/contexts/OrganizationStylesContext'
 import { generateCSSVariables, getBackgroundStyle } from '../../business-panel/utils/styles'
@@ -24,7 +23,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const { t } = useTranslation('admin')
-  const { resolvedTheme } = useThemeStore()
   const { styles, effectiveStyles, loading: stylesLoading } = useOrganizationStylesContext()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('dashboard')
@@ -48,8 +46,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   )
   const backgroundStyle = useMemo(() => getBackgroundStyle(panelStyles), [panelStyles])
   const cssVariables = useMemo(() => generateCSSVariables(panelStyles), [panelStyles])
-  const isLightTheme = resolvedTheme === 'light'
-  const fallbackBackground = isLightTheme ? 'var(--color-gray-50)' : 'var(--color-bg-dark)'
+  const fallbackBackground = 'var(--color-bg-dark)'
   const isLoading = typeof authLoading === 'boolean' ? authLoading : true
 
   const liaPanel = useContext(LiaPanelContext) ?? null

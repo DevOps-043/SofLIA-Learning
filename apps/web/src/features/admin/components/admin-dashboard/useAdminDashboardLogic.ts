@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -26,7 +27,7 @@ export function useAdminDashboardLogic() {
   const { stats, isLoading, error } = useAdminStats()
   const { profile } = useProfile()
   const { resolvedTheme } = useThemeStore()
-  const { styles: orgStyles } = useOrganizationStylesContext()
+  const { effectiveStyles, styles: orgStyles } = useOrganizationStylesContext()
 
   const [activityRecords, setActivityRecords] = useState<AdminDashboardActivityRecord[]>(
     []
@@ -36,7 +37,7 @@ export function useAdminDashboardLogic() {
 
   const themeColors = buildAdminDashboardThemeColors(
     resolvedTheme === 'light',
-    orgStyles?.panel
+    effectiveStyles?.panel || orgStyles?.panel
   )
 
   useEffect(() => {
@@ -60,7 +61,7 @@ export function useAdminDashboardLogic() {
         }
       } catch (fetchError) {
         if (!cancelled) {
-          console.error('Error fetching activities:', fetchError)
+          techDebtLogger.error('Error fetching activities:', fetchError)
         }
       } finally {
         if (!cancelled) {

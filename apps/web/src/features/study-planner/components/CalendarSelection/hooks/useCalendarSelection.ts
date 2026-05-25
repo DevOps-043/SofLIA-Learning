@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { CalendarListItem, CalendarProvider } from '../../../types/user-context.types';
 
@@ -64,7 +65,7 @@ export function useCalendarSelection(provider: CalendarProvider): UseCalendarSel
       }
     } catch (err) {
       setError('Error al cargar los calendarios');
-      console.error('[useCalendarSelection] Error fetching calendars:', err);
+      techDebtLogger.error('[useCalendarSelection] Error fetching calendars:', err);
     } finally {
       setIsLoading(false);
     }
@@ -130,7 +131,7 @@ export function useCalendarSelection(provider: CalendarProvider): UseCalendarSel
       return true;
     } catch (err) {
       setError('Error al guardar la selección');
-      console.error('[useCalendarSelection] Error saving selection:', err);
+      techDebtLogger.error('[useCalendarSelection] Error saving selection:', err);
       return false;
     } finally {
       setIsSaving(false);

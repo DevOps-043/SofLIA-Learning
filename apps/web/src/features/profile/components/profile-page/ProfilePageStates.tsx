@@ -16,7 +16,7 @@ export function ProfileLoadingState({ colors }: ProfileLoadingStateProps) {
         <div className="relative w-16 h-16 mx-auto mb-4">
           <motion.div
             className="absolute inset-0 rounded-full"
-            style={{ border: `2px solid ${colors.accent}30` }}
+            style={{ border: `2px solid color-mix(in srgb, ${colors.accent} 18.8%, transparent)` }}
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
           />
@@ -51,7 +51,7 @@ export function ProfileErrorState({ colors, retryLoad, goToLogin }: ProfileError
         <button onClick={retryLoad} className="px-4 py-2 rounded-lg bg-white/10 transition-colors" style={{ color: colors.text }}>
           {t('profile.error.retry')}
         </button>
-        <button onClick={goToLogin} className="px-4 py-2 rounded-lg font-medium text-white transition-colors" style={{ backgroundColor: colors.primary }}>
+        <button onClick={goToLogin} className="px-4 py-2 rounded-lg font-medium transition-colors" style={{ backgroundColor: colors.primary, color: 'var(--color-bg-light)' }}>
           {t('profile.error.login')}
         </button>
       </div>

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Lesson Tracking Service
  * 
@@ -90,7 +91,7 @@ export async function getLessonTimeEstimates(
 
     return null;
   } catch (error) {
-    console.error('Error obteniendo tiempos de lección:', error);
+    techDebtLogger.error('Error obteniendo tiempos de lección:', error);
     return null;
   }
 }
@@ -122,7 +123,7 @@ export async function lessonHasQuiz(lessonId: string): Promise<boolean> {
 
     return activities && activities.length > 0;
   } catch (error) {
-    console.error('Error verificando quiz:', error);
+    techDebtLogger.error('Error verificando quiz:', error);
     return false;
   }
 }
@@ -143,7 +144,7 @@ export async function lessonHasLiaActivity(lessonId: string): Promise<boolean> {
 
     return activities && activities.length > 0;
   } catch (error) {
-    console.error('Error verificando actividad LIA:', error);
+    techDebtLogger.error('Error verificando actividad LIA:', error);
     return false;
   }
 }
@@ -232,7 +233,7 @@ export async function updateVideoProgress(
 
     return !error;
   } catch (error) {
-    console.error('Error actualizando progreso de video:', error);
+    techDebtLogger.error('Error actualizando progreso de video:', error);
     return false;
   }
 }

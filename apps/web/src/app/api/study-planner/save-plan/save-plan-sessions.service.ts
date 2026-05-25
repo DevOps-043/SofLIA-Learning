@@ -2,13 +2,13 @@ import type { SessionMetricsPayload } from '../dashboard/chat/calendar.service'
 import type {
   CreatedStudySessionRow,
   InvalidSavePlanSession,
+  SavePlanSessionInput,
   SavePlanSessionInsertRow,
 } from './save-plan.types'
-import type { StudySession } from '../../../../features/study-planner/types/user-context.types'
 import { resolveStudySessionTitle } from '../study-session-title.utils'
 
 export function buildSessionsToInsert(params: {
-  sessions: StudySession[]
+  sessions: SavePlanSessionInput[]
   planId: string
   userId: string
   organizationId: string | null

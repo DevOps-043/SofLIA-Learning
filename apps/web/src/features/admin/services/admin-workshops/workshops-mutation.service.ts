@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../../lib/supabase/server'
 import { sanitizeSlug, generateUniqueSlugAsync } from '../../../../lib/slug'
 import { AuditLogService } from '../auditLog.service'
@@ -76,7 +77,7 @@ export class AdminWorkshopsMutationService {
         .single()
 
       if (error) {
-        console.error('[AdminWorkshopsService.createWorkshop] Error creando curso en BD:', error);
+        techDebtLogger.error('[AdminWorkshopsService.createWorkshop] Error creando curso en BD:', error);
         throw error
       }
 
@@ -113,22 +114,22 @@ export class AdminWorkshopsMutationService {
 
 
         if (!translationResult.success) {
-          console.error('[AdminWorkshopsService] La traduccion NO fue exitosa');
-          console.error('[AdminWorkshopsService] Errores:', translationResult.errors);
+          techDebtLogger.error('[AdminWorkshopsService] La traduccion NO fue exitosa');
+          techDebtLogger.error('[AdminWorkshopsService] Errores:', translationResult.errors);
         } else {
 
         }
 
       } catch (translationError) {
         // No fallar la creacion del curso si falla la traduccion
-        console.error('[AdminWorkshopsService] ========== ERROR EN TRADUCCION ==========');
-        console.error('[AdminWorkshopsService] EXCEPCION en traduccion automatica del curso');
-        console.error('[AdminWorkshopsService] Tipo de error:', translationError?.constructor?.name || typeof translationError);
+        techDebtLogger.error('[AdminWorkshopsService] ========== ERROR EN TRADUCCION ==========');
+        techDebtLogger.error('[AdminWorkshopsService] EXCEPCION en traduccion automatica del curso');
+        techDebtLogger.error('[AdminWorkshopsService] Tipo de error:', translationError?.constructor?.name || typeof translationError);
         if (translationError instanceof Error) {
-          console.error('[AdminWorkshopsService] Mensaje:', translationError.message);
-          console.error('[AdminWorkshopsService] Stack trace:', translationError.stack);
+          techDebtLogger.error('[AdminWorkshopsService] Mensaje:', translationError.message);
+          techDebtLogger.error('[AdminWorkshopsService] Stack trace:', translationError.stack);
         } else {
-          console.error('[AdminWorkshopsService] Error (no es instancia de Error):', JSON.stringify(translationError, null, 2));
+          techDebtLogger.error('[AdminWorkshopsService] Error (no es instancia de Error):', JSON.stringify(translationError, null, 2));
         }
       }
 
@@ -145,7 +146,7 @@ export class AdminWorkshopsMutationService {
       // Obtener datos anteriores para el log de auditoria
       const { data: oldData } = await supabase
         .from('courses')
-        .select('*')
+        .select(SELECT_COLUMNS.courses)
         .eq('id', workshopId)
         .single()
 
@@ -251,7 +252,7 @@ export class AdminWorkshopsMutationService {
       // Obtener datos del taller antes de eliminarlo para el log de auditoria
       const { data: workshopData } = await supabase
         .from('courses')
-        .select('*')
+        .select(SELECT_COLUMNS.courses)
         .eq('id', workshopId)
         .single()
 
@@ -275,10 +276,10 @@ export class AdminWorkshopsMutationService {
           user_agent: requestInfo?.userAgent
         })
       } catch (auditLogError) {
-        console.error('No se pudo registrar el borrado del taller en audit_logs:', auditLogError)
+        techDebtLogger.error('No se pudo registrar el borrado del taller en audit_logs:', auditLogError)
       }
     } catch (error) {
-      console.error('Error in AdminWorkshopsService.deleteWorkshop:', error)
+      techDebtLogger.error('Error in AdminWorkshopsService.deleteWorkshop:', error)
       throw error
     }
   }

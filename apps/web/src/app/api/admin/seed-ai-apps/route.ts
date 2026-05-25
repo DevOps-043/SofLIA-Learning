@@ -17,7 +17,7 @@ export async function POST() {
         slug: 'chatbots-conversacional',
         description: 'Herramientas de IA para conversación y asistencia',
         icon: 'chat-bubble-left-right',
-        color: '#3B82F6',
+        color: 'var(--color-info)',
         is_active: true
       },
       {
@@ -25,7 +25,7 @@ export async function POST() {
         slug: 'generacion-imagenes',
         description: 'Herramientas para crear imágenes con IA',
         icon: 'photo',
-        color: '#10B981',
+        color: 'var(--color-success)',
         is_active: true
       }
     ]

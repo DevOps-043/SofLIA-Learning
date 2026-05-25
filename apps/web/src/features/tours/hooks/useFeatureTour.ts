@@ -1,11 +1,13 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { CallBackProps, STATUS, ACTIONS, EVENTS, Step } from 'react-joyride';
+import { STATUS, ACTIONS, EVENTS } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourRestart } from '@/core/contexts/TourRestartContext';
 import { useTranslation } from 'react-i18next';
+import type { SofliaJoyrideEvent as CallBackProps, SofliaJoyrideStep as Step } from '../types/joyride';
 
 interface UseFeatureTourOptions {
   tourId: string;
@@ -103,7 +105,7 @@ function getTargetElement(target: Step['target']): HTMLElement | null {
 function syncSpotlightToTarget(target: Step['target']): boolean {
   const el = getTargetElement(target);
   const spotlight = document.querySelector<HTMLElement>(
-    '.react-joyride__spotlight[data-test-id="spotlight"]',
+    '.react-joyride__spotlight[data-testid="spotlight"]',
   );
 
   if (!el || !spotlight) {
@@ -170,13 +172,13 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
 
   const finishTour = useCallback(() => {
     stopTour();
-    dbCompleteTour().catch(err => console.error(`[useFeatureTour:${tourId}] Complete failed`, err));
+    dbCompleteTour().catch(err => techDebtLogger.error(`[useFeatureTour:${tourId}] Complete failed`, err));
     if (onComplete) onComplete();
   }, [dbCompleteTour, onComplete, stopTour, tourId]);
 
   const dismissTour = useCallback(() => {
     stopTour();
-    dbSkipTour().catch(err => console.error(`[useFeatureTour:${tourId}] Skip failed`, err));
+    dbSkipTour().catch(err => techDebtLogger.error(`[useFeatureTour:${tourId}] Skip failed`, err));
     if (onSkip) onSkip();
   }, [dbSkipTour, onSkip, stopTour, tourId]);
 
@@ -186,7 +188,7 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
     setRun(false);
 
     const start = () => {
-      dbStartTour().catch(err => console.error(`[useFeatureTour:${tourId}] Start failed`, err));
+      dbStartTour().catch(err => techDebtLogger.error(`[useFeatureTour:${tourId}] Start failed`, err));
       setRun(true);
     };
 
@@ -331,12 +333,23 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
       return;
     }
 
+    // TARGET_NOT_FOUND: el step no encontro su elemento. NO avanzar: si se
+    // trata igual que STEP_AFTER, una pulsacion de "Siguiente" cuyo target
+    // siguiente todavia no esta listo dispara una cascada que recorre todos
+    // los steps en un solo evento y termina el tour de golpe.
+    if (type === EVENTS.TARGET_NOT_FOUND) {
+      techDebtLogger.warn(
+        `[useFeatureTour:${tourId}] TARGET_NOT_FOUND on step ${index}`,
+      );
+      return;
+    }
+
     // Handle step navigation: scroll first, then advance
-    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+    if (type === EVENTS.STEP_AFTER) {
       const nextIndex = action === ACTIONS.PREV ? index - 1 : index + 1;
       moveToStep(nextIndex);
     }
-  }, [dismissTour, finishTour, moveToStep]);
+  }, [dismissTour, finishTour, moveToStep, tourId]);
 
   return {
     joyrideProps: {
@@ -362,7 +375,7 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
       styles: {
         options: {
           zIndex: 10000,
-          arrowColor: '#1E2329',
+          arrowColor: 'var(--color-gray-800)',
         },
         spotlight: {
           borderRadius: 16,

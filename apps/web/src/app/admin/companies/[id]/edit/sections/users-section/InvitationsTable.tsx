@@ -34,12 +34,12 @@ export function InvitationsTable({
           <th className="pb-3 text-right font-medium">Acciones</th>
         </tr>
       </thead>
-      <tbody className="divide-y" style={{ borderColor: `${colors.grayMedium}10` }}>
+      <tbody className="divide-y" style={{ borderColor: `color-mix(in srgb, ${colors.grayMedium} 6.3%, transparent)` }}>
         {invitations.map((invitation) => (
           <tr key={invitation.id} className="group">
             <td className="py-3"><p className="text-sm font-medium text-gray-900 dark:text-white">{invitation.email}</p></td>
             <td className="py-3">
-              <span className="rounded-lg bg-[#00D4B3]/20 px-2.5 py-1 text-xs font-medium uppercase text-[#00D4B3]">
+              <span className="rounded-lg bg-accent/20 px-2.5 py-1 text-xs font-medium uppercase text-accent">
                 {invitation.role}
               </span>
             </td>

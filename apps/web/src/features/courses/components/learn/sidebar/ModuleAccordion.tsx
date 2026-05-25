@@ -61,7 +61,7 @@ export function ModuleAccordion({
       <div className="group-hover:bg-white/[0.02] flex items-start justify-between rounded-lg p-2 transition-colors">
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-700 dark:text-[#00D4B3]">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-700 dark:text-accent">
               Módulo {moduleIndex + 1}
             </span>
             <div className="h-[1px] flex-1 bg-gray-200 dark:bg-white/10" />
@@ -77,15 +77,15 @@ export function ModuleAccordion({
 
         <button
           onClick={() => onToggleModule(module.module_id)}
-          className="flex-shrink-0 rounded-md p-2 transition-colors hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30"
+          className="flex-shrink-0 rounded-md p-2 transition-colors hover:bg-gray-200/50 dark:hover:bg-primary/30"
           title={
             isExpanded ? t("leftPanel.collapseModule") : t("leftPanel.expandModule")
           }
         >
           {isExpanded ? (
-            <ChevronUp className="h-4 w-4 text-[#6C757D] dark:text-white/60" />
+            <ChevronUp className="h-4 w-4 text-gray-500 dark:text-white/60" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-[#6C757D] dark:text-white/60" />
+            <ChevronDown className="h-4 w-4 text-gray-500 dark:text-white/60" />
           )}
         </button>
       </div>
@@ -101,12 +101,12 @@ export function ModuleAccordion({
           >
             <div className="mb-4 flex gap-3">
               <span
-                className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-[#00D4B3]/30 dark:bg-[#00D4B3]/20 dark:text-[#00D4B3]"
+                className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-accent/30 dark:bg-accent/20 dark:text-accent"
                 style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
               >
                 {completedLessons}/{totalLessons} {t("leftPanel.completed")}
               </span>
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-[#00D4B3]/30 dark:bg-[#00D4B3]/20 dark:text-[#00D4B3]">
+              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-accent/30 dark:bg-accent/20 dark:text-accent">
                 {completionPercentage}% {t("leftPanel.completedPercentage")}
               </span>
             </div>

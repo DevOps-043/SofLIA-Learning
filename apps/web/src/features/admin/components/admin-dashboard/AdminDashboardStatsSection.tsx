@@ -67,7 +67,7 @@ export function AdminDashboardStatsSection({
               onClick={() => setIsStatsOpenMobile((previous) => !previous)}
               className="flex items-center justify-center rounded-full p-2 transition-colors md:hidden"
               style={{
-                backgroundColor: `${themeColors.primary}15`,
+                backgroundColor: `color-mix(in srgb, ${themeColors.primary} 8.2%, transparent)`,
                 color: themeColors.primary,
               }}
               aria-label="Toggle statistics"

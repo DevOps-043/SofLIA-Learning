@@ -32,40 +32,40 @@ export const liaMetaphors: LiaHighlightCard[] = [
     title: 'Sistema Operativo de Aprendizaje',
     description:
       'SofLIA es la capa que organiza, coordina y conecta todas las aplicaciones de formación, contenidos y experiencias. SofLIA piensa, SofLIA te acompaña.',
-    color: '#00D4B3',
-    gradient: 'from-[#00D4B3] to-[#00D4B3]/80',
+    color: 'var(--color-accent)',
+    gradient: 'from-accent to-accent/80',
   },
   {
     icon: Brain,
     title: 'Cerebro Extendido',
     description:
       'SofLIA amplía tu capacidad de memoria, razonamiento y acceso a conocimiento. El núcleo de IA procesa datos; SofLIA es la voz que explica y orienta.',
-    color: '#10B981',
-    gradient: 'from-[#10B981] to-[#10B981]/80',
+    color: 'var(--color-success)',
+    gradient: 'from-success to-success/80',
   },
   {
     icon: Navigation,
     title: 'Copiloto de Aprendizaje',
     description:
       'Nadie recorre la ruta de desarrollo solo. SofLIA es tu copiloto visible que te ayuda a decidir el próximo paso y te propone rutas personalizadas.',
-    color: '#F59E0B',
-    gradient: 'from-[#F59E0B] to-[#F59E0B]/80',
+    color: 'var(--color-warning)',
+    gradient: 'from-warning to-warning/80',
   },
   {
     icon: Network,
     title: 'Sistema Nervioso del Talento',
     description:
       'SofLIA conecta señales dispersas (datos, capacidades, necesidades) y las transforma en acción coordinada. Detecta patrones y te interpreta las señales.',
-    color: '#0A2540',
-    gradient: 'from-[#0A2540] to-[#0A2540]/80',
+    color: 'var(--color-primary)',
+    gradient: 'from-primary to-primary/80',
   },
   {
     icon: Layers,
     title: 'Infraestructura de Conocimiento',
     description:
       'SofLIA es la puerta de acceso a la infraestructura donde se almacena, organiza y actualiza el conocimiento crítico. Orquesta y ensambla tu aprendizaje.',
-    color: '#00D4B3',
-    gradient: 'from-[#00D4B3] to-[#00D4B3]/80',
+    color: 'var(--color-accent)',
+    gradient: 'from-accent to-accent/80',
   },
 ];
 
@@ -75,7 +75,7 @@ export const liaCapabilities: LiaHighlightCard[] = [
     title: 'PRL-1.0 Mini',
     description:
       'Modelo conversacional con contexto de página. Resuelve dudas, explica conceptos y te guía en tu aprendizaje de forma personalizada.',
-    color: '#00D4B3',
+    color: 'var(--color-accent)',
     examples: ['Contexto inteligente de página', 'Resuelve dudas al instante', 'Explica conceptos complejos'],
   },
   {
@@ -83,7 +83,7 @@ export const liaCapabilities: LiaHighlightCard[] = [
     title: 'Resúmenes y Explicaciones',
     description:
       '¿Necesitas un resumen para recordar lo que acabas de aprender? SofLIA resume y explica fragmentos de tus clases favoritas.',
-    color: '#10B981',
+    color: 'var(--color-success)',
     examples: ['Resúmenes de clases', 'Explicaciones paso a paso', 'Síntesis de conceptos'],
   },
   {
@@ -91,7 +91,7 @@ export const liaCapabilities: LiaHighlightCard[] = [
     title: 'Corrección de Ejercicios',
     description:
       'Revisa tus ejercicios con SofLIA. Resuelve tus dudas y pide ayuda para entender las partes con las que tienes dificultades.',
-    color: '#F59E0B',
+    color: 'var(--color-warning)',
     examples: ['Revisa tu código', 'Corrige ejercicios', 'Explica errores'],
   },
   {
@@ -99,7 +99,7 @@ export const liaCapabilities: LiaHighlightCard[] = [
     title: 'Respuestas Personalizadas',
     description:
       'Estudia con SofLIA de tu propia manera, de forma personalizada. Pregunta lo que consideres necesario y profundiza en el conocimiento.',
-    color: '#0A2540',
+    color: 'var(--color-primary)',
     examples: ['Adaptado a tu nivel', 'Respuestas contextualizadas', 'Aprendizaje personalizado'],
   },
 ];
@@ -110,7 +110,7 @@ export const liaStudyPlannerFeatures: LiaHighlightCard[] = [
     title: 'Generación Automática con IA',
     description:
       'LIA crea tu plan de estudios considerando tu rol profesional, perfil completo, cursos adquiridos y progreso actual. Todo adaptado a tu disponibilidad y preferencias.',
-    color: '#00D4B3',
+    color: 'var(--color-accent)',
     features: [
       'Análisis de tu perfil profesional',
       'Cálculo de disponibilidad granular',
@@ -123,7 +123,7 @@ export const liaStudyPlannerFeatures: LiaHighlightCard[] = [
     title: 'Gestión Inteligente de Tiempo',
     description:
       'LIA calcula tiempos mínimos por lección, considera duración de videos, actividades y materiales. Valida que tu plan sea realista y alcanzable.',
-    color: '#10B981',
+    color: 'var(--color-success)',
     features: [
       'Cálculo preciso de tiempos',
       'Validación de tiempos mínimos',
@@ -136,7 +136,7 @@ export const liaStudyPlannerFeatures: LiaHighlightCard[] = [
     title: 'Rutas Personalizadas',
     description:
       'LIA propone rutas de aprendizaje basadas en tu nivel, área profesional y objetivos. Te sugiere el siguiente paso más adecuado para ti.',
-    color: '#F59E0B',
+    color: 'var(--color-warning)',
     features: [
       'Rutas adaptadas a tu nivel',
       'Secuencias optimizadas',
@@ -149,7 +149,7 @@ export const liaStudyPlannerFeatures: LiaHighlightCard[] = [
     title: 'Seguimiento de Progreso',
     description:
       'LIA monitorea tu avance, detecta patrones de estudio y ajusta tu plan dinámicamente. Te ayuda a mantener rachas y cumplir objetivos.',
-    color: '#0A2540',
+    color: 'var(--color-primary)',
     features: ['Monitoreo continuo', 'Ajustes automáticos', 'Sistema de rachas', 'Métricas de progreso'],
   },
   {
@@ -157,7 +157,7 @@ export const liaStudyPlannerFeatures: LiaHighlightCard[] = [
     title: 'Integración con Calendarios',
     description:
       'LIA sincroniza tu plan de estudios con tus calendarios externos. Respeta tus compromisos y encuentra los mejores momentos para estudiar.',
-    color: '#00D4B3',
+    color: 'var(--color-accent)',
     features: [
       'Sincronización automática',
       'Detección de conflictos',
@@ -170,7 +170,7 @@ export const liaStudyPlannerFeatures: LiaHighlightCard[] = [
     title: 'Mejores Prácticas de Estudio',
     description:
       'LIA aplica técnicas comprobadas como repetición espaciada, práctica distribuida y recall activo para maximizar tu retención y aprendizaje.',
-    color: '#10B981',
+    color: 'var(--color-success)',
     features: ['Repetición espaciada', 'Práctica distribuida', 'Técnica Pomodoro', 'Recall activo'],
   },
 ];
@@ -181,27 +181,27 @@ export const liaPersonalityFeatures: LiaHighlightCard[] = [
     title: 'Tono Cálido pero Profesional',
     description:
       'SofLIA habla de "nosotros" (equipo) más que de "yo máquina". Siempre justifica sus recomendaciones y adapta la complejidad según tu perfil.',
-    color: '#00D4B3',
+    color: 'var(--color-accent)',
   },
   {
     icon: Users,
     title: 'Anticipa y Sugiere',
     description:
       'SofLIA no impone ni regaña. Anticipa tus necesidades, sugiere próximos pasos y explica el porqué de cada recomendación.',
-    color: '#10B981',
+    color: 'var(--color-success)',
   },
   {
     icon: Clock,
     title: 'Disponible 24/7',
     description:
       'SofLIA está siempre disponible para ayudarte. Estudia las 24 horas, los 7 días de la semana, cuando y donde quieras.',
-    color: '#F59E0B',
+    color: 'var(--color-warning)',
   },
   {
     icon: TrendingUp,
     title: 'Transparencia Total',
     description:
       'SofLIA es transparente sobre lo que sabe, lo que infiere y lo que aún necesita que definas. Sin límites ocultos.',
-    color: '#0A2540',
+    color: 'var(--color-primary)',
   },
 ];

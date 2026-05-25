@@ -21,15 +21,21 @@ export function getLiaThemeColors(
   effectiveStyles?: LiaPanelStylePalette | null
 ): LiaThemeColors {
   return {
-    panelBg: isLightTheme ? '#FFFFFF' : effectiveStyles?.sidebar_background || '#0a0f14',
-    headerBg: isLightTheme ? '#F8FAFC' : effectiveStyles?.sidebar_background || '#0a0f14',
-    borderColor: isLightTheme ? '#E2E8F0' : effectiveStyles?.border_color || '#1e2a35',
-    messageBubbleAssistant: isLightTheme ? '#F1F5F9' : effectiveStyles?.card_background || '#1e2a35',
-    messageBubbleUser: effectiveStyles?.primary_button_color || '#0A2540',
-    textPrimary: isLightTheme ? '#1E293B' : effectiveStyles?.text_color || '#e5e7eb',
-    textSecondary: isLightTheme ? '#64748B' : '#6b7280',
-    inputBg: isLightTheme ? '#F1F5F9' : 'rgba(255, 255, 255, 0.05)',
-    inputBorder: isLightTheme ? '#CBD5E1' : effectiveStyles?.border_color || '#374151',
-    accentColor: '#00D4B3',
+    panelBg: isLightTheme ? 'var(--color-bg-light)' : effectiveStyles?.sidebar_background || 'var(--color-bg-dark)',
+    headerBg: isLightTheme ? 'var(--color-bg-light)' : effectiveStyles?.sidebar_background || 'var(--color-bg-dark)',
+    borderColor: isLightTheme
+      ? 'var(--color-gray-200)'
+      : effectiveStyles?.border_color || 'color-mix(in srgb, var(--color-bg-light) 10%, transparent)',
+    messageBubbleAssistant: isLightTheme ? 'var(--color-bg-dark)' : effectiveStyles?.card_background || 'var(--color-gray-800)',
+    messageBubbleUser: effectiveStyles?.primary_button_color || 'var(--color-primary)',
+    textPrimary: isLightTheme ? 'var(--color-contrast)' : effectiveStyles?.text_color || 'var(--color-contrast)',
+    textSecondary: 'var(--color-muted)',
+    inputBg: isLightTheme
+      ? 'var(--color-bg-dark)'
+      : 'color-mix(in srgb, var(--color-bg-light) 5%, transparent)',
+    inputBorder: isLightTheme
+      ? 'var(--color-gray-300)'
+      : effectiveStyles?.border_color || 'color-mix(in srgb, var(--color-bg-light) 14%, transparent)',
+    accentColor: 'var(--color-accent)',
   };
 }

@@ -86,13 +86,13 @@ export function getBusinessInviteStatusConfig(
 ): BusinessInviteStatusConfig {
   switch (status) {
     case 'active':
-      return { label: 'Activo', color: '#22C55E', bgColor: 'rgba(34, 197, 94, 0.1)', icon: 'check-circle' };
+      return { label: 'Activo', color: 'var(--color-legacy-22c55e)', bgColor: 'rgba(34, 197, 94, 0.1)', icon: 'check-circle' };
     case 'paused':
-      return { label: 'Pausado', color: '#F59E0B', bgColor: 'rgba(245, 158, 11, 0.1)', icon: 'pause' };
+      return { label: 'Pausado', color: 'var(--color-warning)', bgColor: 'rgba(245, 158, 11, 0.1)', icon: 'pause' };
     case 'expired':
-      return { label: 'Expirado', color: '#EF4444', bgColor: 'rgba(239, 68, 68, 0.1)', icon: 'clock' };
+      return { label: 'Expirado', color: 'var(--color-error)', bgColor: 'rgba(239, 68, 68, 0.1)', icon: 'clock' };
     case 'exhausted':
-      return { label: 'Agotado', color: '#6B7280', bgColor: 'rgba(107, 114, 128, 0.1)', icon: 'x-circle' };
+      return { label: 'Agotado', color: 'var(--color-legacy-6b7280)', bgColor: 'rgba(107, 114, 128, 0.1)', icon: 'x-circle' };
     default:
       return { label: status, color: fallbackColor, bgColor: fallbackBgColor, icon: 'alert-circle' };
   }

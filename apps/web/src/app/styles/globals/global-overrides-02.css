@@ -1,0 +1,191 @@
+
+/* Light mode variables — tambien es el TEMA POR DEFECTO (:root).
+   Antes :root (global-overrides-01.css) tenia los valores del tema oscuro,
+   por lo que cualquier estado sin clase de tema (SSR, hidratacion, portales)
+   renderizaba texto claro sobre fondo claro. El default ahora es claro y
+   `.dark` lo sobreescribe explicitamente. */
+:root,
+.light {
+  /* Nueva Paleta SOFLIA - Modo Claro (alineada con preset-themes.ts lightMode) */
+  --color-primary: rgb(10 37 64);
+  --color-primary-rgb: 10 37 64;
+  --color-primary-hover: rgb(13 47 77);
+  --color-primary-hover-rgb: 13 47 77;
+  /* Azul Profundo - Tecnología + confianza */
+  --color-accent: rgb(0 212 179);
+  --color-accent-rgb: 0 212 179;
+  --color-accent-hover: rgb(0 184 154);
+  --color-accent-hover-rgb: 0 184 154;
+  /* Aqua/Verde Azulado - Aprendizaje + IA viva */
+  --color-bg-dark: rgb(248 250 252);
+  --color-bg-dark-rgb: 248 250 252;
+  /* Fondo claro principal (slate-50) */
+  --color-bg-light: rgb(255 255 255);
+  --color-bg-light-rgb: 255 255 255;
+  /* Fondo de cards (blanco) */
+  --color-contrast: rgb(30 41 59);
+  --color-contrast-rgb: 30 41 59;
+  /* Texto oscuro sobre fondo claro (slate-800) */
+
+  /* Colores Secundarios */
+  --color-success: rgb(16 185 129);
+  --color-success-rgb: 16 185 129;
+  /* Verde Suave */
+  --color-warning: rgb(245 158 11);
+  --color-warning-rgb: 245 158 11;
+  /* Amarillo Ámbar Suave */
+  --color-error: rgb(239 68 68);
+  --color-error-rgb: 239 68 68;
+  --color-info: rgb(59 130 246);
+  --color-info-rgb: 59 130 246;
+  --color-secondary: rgb(139 92 246);
+  --color-secondary-rgb: 139 92 246;
+
+  /* Variables específicas */
+  --color-lia: rgb(0 153 135);
+  --color-lia-rgb: 0 153 135;
+  /* LIA con más contraste en fondo claro */
+  --color-progress: rgb(0 212 179);
+  --color-progress-rgb: 0 212 179;
+  --color-card-bg: rgb(255 255 255);
+  --color-card-bg-rgb: 255 255 255;
+  --color-surface: rgb(255 255 255);
+  --color-surface-rgb: 255 255 255;
+  --color-border: rgb(226 232 240);
+  --color-border-rgb: 226 232 240;
+  --color-muted: rgb(100 116 139);
+  --color-muted-rgb: 100 116 139;
+
+  /* Escala de Grises - Invertida semánticamente para modo claro */
+  /* Los componentes usan gray-800/900/950 como fondos oscuros, que en light mode deben ser claros */
+  --color-gray-50: rgb(15 20 25);
+  --color-gray-50-rgb: 15 20 25;
+  /* Más oscuro (invertido) - para textos enfatizados */
+  --color-gray-100: rgb(30 41 59);
+  --color-gray-100-rgb: 30 41 59;
+  /* Oscuro (invertido) - para textos principales */
+  --color-gray-200: rgb(226 232 240);
+  --color-gray-200-rgb: 226 232 240;
+  /* Bordes claros */
+  --color-gray-300: rgb(203 213 225);
+  --color-gray-300-rgb: 203 213 225;
+  /* Bordes y divisores */
+  --color-gray-400: rgb(148 163 184);
+  --color-gray-400-rgb: 148 163 184;
+  /* Texto placeholder/terciario */
+  --color-gray-500: rgb(100 116 139);
+  --color-gray-500-rgb: 100 116 139;
+  /* Texto secundario */
+  --color-gray-600: rgb(71 85 105);
+  --color-gray-600-rgb: 71 85 105;
+  /* Texto medio */
+  --color-gray-700: rgb(241 245 249);
+  --color-gray-700-rgb: 241 245 249;
+  /* Fondos sutiles (invertido) */
+  --color-gray-800: rgb(248 250 252);
+  --color-gray-800-rgb: 248 250 252;
+  /* Fondos de cards (invertido) */
+  --color-gray-900: rgb(255 255 255);
+  --color-gray-900-rgb: 255 255 255;
+  /* Fondo principal (invertido) */
+  --color-gray-950: rgb(255 255 255);
+  --color-gray-950-rgb: 255 255 255;
+  --status-locked: rgb(107 114 128);
+  --status-locked-rgb: 107 114 128;
+  --status-not-started: rgb(156 163 175);
+  --status-not-started-rgb: 156 163 175;
+  --status-in-progress: rgb(0 212 179);
+  --status-in-progress-rgb: 0 212 179;
+  --status-completed: rgb(16 185 129);
+  --status-completed-rgb: 16 185 129;
+  /* Fondo de página (invertido) */
+}
+
+/* Dark mode variables (explicit) */
+.dark {
+  /* Nueva Paleta SOFLIA - Modo Oscuro */
+  --color-primary: rgb(10 37 64);
+  --color-primary-rgb: 10 37 64;
+  --color-primary-hover: rgb(13 47 77);
+  --color-primary-hover-rgb: 13 47 77;
+  /* Azul Profundo - Tecnología + confianza */
+  --color-accent: rgb(0 212 179);
+  --color-accent-rgb: 0 212 179;
+  --color-accent-hover: rgb(0 184 154);
+  --color-accent-hover-rgb: 0 184 154;
+  /* Aqua/Verde Azulado - Aprendizaje + IA viva */
+  --color-bg-dark: rgb(15 20 25);
+  --color-bg-dark-rgb: 15 20 25;
+  /* Fondo oscuro base - Gris azulado oscuro */
+  --color-bg-light: rgb(255 255 255);
+  --color-bg-light-rgb: 255 255 255;
+  /* Fondo de cards (blanco sobre oscuro) */
+  --color-contrast: rgb(248 250 252);
+  --color-contrast-rgb: 248 250 252;
+  /* Texto claro sobre fondo oscuro */
+
+  /* Colores Secundarios */
+  --color-success: rgb(16 185 129);
+  --color-success-rgb: 16 185 129;
+  /* Verde Suave */
+  --color-warning: rgb(245 158 11);
+  --color-warning-rgb: 245 158 11;
+  /* Amarillo Ámbar Suave */
+  --color-error: rgb(239 68 68);
+  --color-error-rgb: 239 68 68;
+  --color-info: rgb(59 130 246);
+  --color-info-rgb: 59 130 246;
+  --color-secondary: rgb(139 92 246);
+  --color-secondary-rgb: 139 92 246;
+
+  /* Variables específicas */
+  --color-lia: rgb(0 212 179);
+  --color-lia-rgb: 0 212 179;
+  --color-progress: rgb(0 212 179);
+  --color-progress-rgb: 0 212 179;
+  --color-card-bg: rgb(255 255 255);
+  --color-card-bg-rgb: 255 255 255;
+  --color-surface: rgb(15 20 25);
+  --color-surface-rgb: 15 20 25;
+  --color-border: rgb(255 255 255);
+  --color-border-rgb: 255 255 255;
+  --color-muted: rgb(136 153 166);
+  --color-muted-rgb: 136 153 166;
+
+  /* Escala de Grises Neutros */
+  --color-gray-50: rgb(248 250 252);
+  --color-gray-50-rgb: 248 250 252;
+  --color-gray-100: rgb(241 245 249);
+  --color-gray-100-rgb: 241 245 249;
+  --color-gray-200: rgb(233 236 239);
+  --color-gray-200-rgb: 233 236 239;
+  /* Light gray - Estructura */
+  --color-gray-300: rgb(222 226 230);
+  --color-gray-300-rgb: 222 226 230;
+  --color-gray-400: rgb(206 212 218);
+  --color-gray-400-rgb: 206 212 218;
+  --color-gray-500: rgb(108 117 125);
+  --color-gray-500-rgb: 108 117 125;
+  /* Dark gray - Tipografía y bordes */
+  --color-gray-600: rgb(73 80 87);
+  --color-gray-600-rgb: 73 80 87;
+  --color-gray-700: rgb(52 58 64);
+  --color-gray-700-rgb: 52 58 64;
+  --color-gray-800: rgb(30 35 41);
+  --color-gray-800-rgb: 30 35 41;
+  /* Gris oscuro con tinte azulado */
+  --color-gray-900: rgb(15 20 25);
+  --color-gray-900-rgb: 15 20 25;
+  /* Fondo oscuro principal */
+  --color-gray-950: rgb(10 13 18);
+  --color-gray-950-rgb: 10 13 18;
+  --status-locked: rgb(107 114 128);
+  --status-locked-rgb: 107 114 128;
+  --status-not-started: rgb(156 163 175);
+  --status-not-started-rgb: 156 163 175;
+  --status-in-progress: rgb(0 212 179);
+  --status-in-progress-rgb: 0 212 179;
+  --status-completed: rgb(16 185 129);
+  --status-completed-rgb: 16 185 129;
+  /* Fondo más oscuro */
+}

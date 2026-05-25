@@ -14,10 +14,10 @@ export function getEmbeddedLiaColors(
   organizationColors?: OrganizationColors
 ): EmbeddedLiaColors {
   return {
-    primary: themeStyles?.accent_color || organizationColors?.primary || '#00D4B3',
-    accent: themeStyles?.secondary_button_color || organizationColors?.accent || '#6C757D',
-    cardBg: themeStyles?.card_background || organizationColors?.cardBackground || '#1E2329',
-    text: themeStyles?.text_color || organizationColors?.textColor || '#FFFFFF',
+    primary: themeStyles?.accent_color || organizationColors?.primary || 'var(--color-accent)',
+    accent: themeStyles?.secondary_button_color || organizationColors?.accent || 'var(--color-gray-500)',
+    cardBg: themeStyles?.card_background || organizationColors?.cardBackground || 'var(--color-gray-800)',
+    text: themeStyles?.text_color || organizationColors?.textColor || 'var(--color-contrast)',
   };
 }
 

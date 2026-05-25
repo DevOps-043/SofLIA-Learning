@@ -5,6 +5,8 @@ import {
   HarmBlockThreshold,
   type Part,
 } from '@google/generative-ai';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import {
   buildSanitizedContextExcerpt,
   sanitizeContextPayload,
@@ -26,20 +28,26 @@ import {
   appendBugReportContext,
   buildCleanHistory,
 } from './chat-context.builder';
+import { buildCurrentTurnPrompt } from './prompt-current-turn.service';
 import { processAIResponse } from './chat-response.formatter';
 import { toInlineImagePart } from '@/core/reporting/report-problem.server';
+import {
+  CIRCUIT_BREAKER_DEFAULTS,
+  executeWithCircuitBreaker,
+} from '@/lib/resilience/circuit-breaker';
+import { logger } from '@/lib/logger';
 import {
   buildPendingBugReportPromptSection,
   detectBugReportConfirmationIntent,
   extractBugReportDraftToken,
   submitConfirmedBugReport,
-  type LiaChatProcessingBody,
 } from './lia-report-workflow.service';
 import {
   getLatestAssistantMessageContent,
   persistConversationTurn,
 } from './lia-chat-history.service';
 import { detectTechnicalBugReportIntent } from './bug-report-intent.service';
+import { liaChatSchema, type LiaChatBody } from '../_schemas';
 
 function buildCurrentMessageParts(
   promptWithContext: string,
@@ -121,31 +129,26 @@ function buildAssistantResponse(content: string, shouldStream: boolean) {
 // ============================================
 // API HANDLER
 // ============================================
-export async function POST(request: NextRequest) {
+async function handlePost(
+  request: NextRequest,
+  body: LiaChatBody,
+  _context: unknown,
+) {
 
   let shouldStream = true;
 
   try {
-    const body: LiaChatProcessingBody = await request.json();
-
     const { messages, context: requestContext, stream = true } = body;
     shouldStream = stream;
-
-    // Validation
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json(
-        { error: 'Se requiere al menos un mensaje' },
-        { status: 400 }
-      );
-    }
 
     // Verify API Key
     const googleApiKey = process.env.GOOGLE_API_KEY;
     if (!googleApiKey) {
-      console.error('❌ GOOGLE_API_KEY no está configurada');
-      return NextResponse.json(
-        { error: 'GOOGLE_API_KEY no está configurada' },
-        { status: 500 }
+      logger.error('GOOGLE_API_KEY no esta configurada');
+      return apiError(
+        'GOOGLE_API_KEY_MISSING',
+        'GOOGLE_API_KEY no está configurada',
+        500,
       );
     }
 
@@ -211,9 +214,10 @@ export async function POST(request: NextRequest) {
     // Validate last message
     const lastMessage = sanitizedLastMessage;
     if (!lastMessage || lastMessage.role !== 'user') {
-      return NextResponse.json(
-        { error: 'Se requiere un mensaje del usuario' },
-        { status: 400 }
+      return apiError(
+        'USER_MESSAGE_REQUIRED',
+        'Se requiere un mensaje del usuario',
+        400,
       );
     }
 
@@ -289,15 +293,19 @@ export async function POST(request: NextRequest) {
     });
 
     const cleanHistory = buildCleanHistory(sanitizedMessages);
-    const messageWithContext = systemPrompt + '\n\n---\n\nUsuario: ' + lastMessage.content;
+    const messageWithContext = buildCurrentTurnPrompt(systemPrompt, lastMessage.content);
 
     const chatSession = model.startChat({
       history: cleanHistory,
       generationConfig: { maxOutputTokens: 8192, temperature: 0.7 },
     });
 
-    const result = await chatSession.sendMessage(
-      buildCurrentMessageParts(messageWithContext, lastMessage.attachments)
+    const result = await executeWithCircuitBreaker(
+      'gemini-lia-chat',
+      () => chatSession.sendMessage(
+        buildCurrentMessageParts(messageWithContext, lastMessage.attachments)
+      ),
+      CIRCUIT_BREAKER_DEFAULTS.gemini,
     );
     const finalContent = result.response.text();
 
@@ -336,12 +344,11 @@ export async function POST(request: NextRequest) {
     return buildAssistantResponse(securedClientContent, shouldStream);
 
   } catch (error) {
-    console.error('❌ LIA Chat API error:', error);
+    logger.error('LIA Chat API error', error);
 
     let errorMessage = 'Error interno del servidor';
     if (error instanceof Error) {
       errorMessage = error.message;
-      console.error('Error stack:', error.stack);
     }
 
     // Handle Rate Limit
@@ -351,9 +358,11 @@ export async function POST(request: NextRequest) {
       return buildAssistantResponse(politeMessage, shouldStream);
     }
 
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return apiError('LIA_CHAT_ERROR', errorMessage, 500);
   }
 }
+
+export const POST = withZodBody(liaChatSchema, handlePost);
 
 export async function GET() {
   return NextResponse.json({

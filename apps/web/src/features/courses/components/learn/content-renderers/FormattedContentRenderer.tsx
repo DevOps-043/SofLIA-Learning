@@ -1,6 +1,7 @@
 "use client";
 
 import { normalizeContentForRenderer } from "@/lib/course-content";
+import { sanitizeRichHtml } from "@/lib/security/sanitize-html";
 
 type FormattedContentItem = {
   content: string;
@@ -99,11 +100,11 @@ function StaticChecklistItem({
   content: string;
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-[#10161D]">
+    <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-[var(--color-legacy-10161d)]">
       <span
         className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded border text-[11px] font-bold ${
           checked
-            ? "border-[#0A2540] bg-[#0A2540] text-white dark:border-[#00D4B3] dark:bg-[#00D4B3] dark:text-[#08141F]"
+            ? "border-primary bg-primary text-white dark:border-accent dark:bg-accent dark:text-[var(--color-legacy-08141f)]"
             : "border-gray-300 text-transparent dark:border-white/20"
         }`}
       >
@@ -136,11 +137,13 @@ export function FormattedContentRenderer({
   }
 
   if (/<[a-z][\s\S]*>/i.test(readingContent)) {
+    const sanitizedReadingContent = sanitizeRichHtml(readingContent);
+
     return (
-      <div className="rounded-xl border border-[#E9ECEF] bg-white p-8 shadow-sm dark:border-white/10 dark:bg-[#10161D]">
+      <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm dark:border-white/10 dark:bg-[var(--color-legacy-10161d)]">
         <article
-          className="prose prose-slate max-w-none overflow-x-auto text-[#0A2540] dark:prose-invert dark:text-white [&_table]:my-6 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-gray-200 [&_td]:p-3 dark:[&_td]:border-white/10 [&_th]:border [&_th]:border-gray-300 [&_th]:bg-gray-100 [&_th]:p-3 [&_th]:text-left dark:[&_th]:border-white/20 dark:[&_th]:bg-white/10"
-          dangerouslySetInnerHTML={{ __html: readingContent }}
+          className="prose prose-slate max-w-none overflow-x-auto text-primary dark:prose-invert dark:text-white [&_table]:my-6 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-gray-200 [&_td]:p-3 dark:[&_td]:border-white/10 [&_th]:border [&_th]:border-gray-300 [&_th]:bg-gray-100 [&_th]:p-3 [&_th]:text-left dark:[&_th]:border-white/20 dark:[&_th]:bg-white/10"
+          dangerouslySetInnerHTML={{ __html: sanitizedReadingContent }}
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
         />
       </div>
@@ -150,14 +153,14 @@ export function FormattedContentRenderer({
   const formattedContent = buildFormattedContent(readingContent);
 
   return (
-    <div className="rounded-xl border border-[#E9ECEF] bg-white p-8 shadow-sm dark:border-white/10 dark:bg-[#10161D]">
+    <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm dark:border-white/10 dark:bg-[var(--color-legacy-10161d)]">
       <article className="space-y-5">
         {formattedContent.map((item, index) => {
           if (item.type === "main-title") {
             return (
               <h1
                 key={`item-${index}`}
-                className="border-b border-[#0A2540]/15 pb-3 text-3xl font-bold text-[#0A2540] dark:border-[#00D4B3]/20 dark:text-white"
+                className="border-b border-primary/15 pb-3 text-3xl font-bold text-primary dark:border-accent/20 dark:text-white"
                 style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}
               >
                 {item.content}
@@ -169,7 +172,7 @@ export function FormattedContentRenderer({
             return (
               <h2
                 key={`item-${index}`}
-                className="text-2xl font-bold text-[#0A2540] dark:text-white"
+                className="text-2xl font-bold text-primary dark:text-white"
                 style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}
               >
                 {item.content}
@@ -183,11 +186,11 @@ export function FormattedContentRenderer({
             return (
               <div
                 key={`item-${index}`}
-                className="flex items-center gap-3 text-[#0A2540] dark:text-[#D6FFF8]"
+                className="flex items-center gap-3 text-primary dark:text-[var(--color-legacy-d6fff8)]"
               >
                 {match ? (
                   <>
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#0A2540]/20 bg-[#0A2540]/5 text-lg font-bold dark:border-[#00D4B3]/25 dark:bg-[#00D4B3]/10 dark:text-[#00D4B3]">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary/20 bg-primary/5 text-lg font-bold dark:border-accent/25 dark:bg-accent/10 dark:text-accent">
                       {match[1]}
                     </span>
                     <h3 className="text-xl font-semibold">{match[2]}</h3>
@@ -203,9 +206,9 @@ export function FormattedContentRenderer({
             return (
               <div
                 key={`item-${index}`}
-                className="rounded-xl border-l-4 border-[#0A2540]/30 bg-[#F5F8FC] px-4 py-3 dark:border-[#00D4B3]/35 dark:bg-[#0B1A20]"
+                className="rounded-xl border-l-4 border-primary/30 bg-[var(--color-legacy-f5f8fc)] px-4 py-3 dark:border-accent/35 dark:bg-[var(--color-legacy-0b1a20)]"
               >
-                <p className="text-sm font-semibold uppercase tracking-wide text-[#0A2540] dark:text-[#98F5E4]">
+                <p className="text-sm font-semibold uppercase tracking-wide text-primary dark:text-[var(--color-legacy-98f5e4)]">
                   Ejemplo
                 </p>
                 <p className="mt-1 text-sm leading-relaxed text-gray-700 dark:text-white/80">
@@ -219,9 +222,9 @@ export function FormattedContentRenderer({
             return (
               <div
                 key={`item-${index}`}
-                className="rounded-xl border border-[#F3D98B] bg-[#FFF7DA] px-4 py-3 dark:border-[#8A6D1F]/50 dark:bg-[#2B2410]"
+                className="rounded-xl border border-[var(--color-legacy-f3d98b)] bg-[var(--color-legacy-fff7da)] px-4 py-3 dark:border-[color-mix(in_srgb,var(--color-legacy-8a6d1f)_50%,transparent)] dark:bg-[var(--color-legacy-2b2410)]"
               >
-                <p className="text-lg italic leading-relaxed text-[#5B4A18] dark:text-[#F7E7A8]">
+                <p className="text-lg italic leading-relaxed text-[var(--color-legacy-5b4a18)] dark:text-[var(--color-legacy-f7e7a8)]">
                   {item.content}
                 </p>
               </div>
@@ -241,10 +244,10 @@ export function FormattedContentRenderer({
           if (item.type === "list") {
             return (
               <div key={`item-${index}`} className="flex items-start gap-3">
-                <span className="mt-1 text-lg font-bold text-[#0A2540] dark:text-[#00D4B3]">
+                <span className="mt-1 text-lg font-bold text-primary dark:text-accent">
                   -
                 </span>
-                <p className="flex-1 text-base leading-relaxed text-[#0A2540] dark:text-white">
+                <p className="flex-1 text-base leading-relaxed text-primary dark:text-white">
                   {item.content}
                 </p>
               </div>
@@ -254,7 +257,7 @@ export function FormattedContentRenderer({
           return (
             <p
               key={`item-${index}`}
-              className="text-base leading-[1.9] text-[#0A2540] dark:text-white"
+              className="text-base leading-[1.9] text-primary dark:text-white"
               style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
             >
               {item.content}

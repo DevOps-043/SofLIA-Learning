@@ -30,16 +30,16 @@ export function CourseManagementMoveLessonModal() {
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="w-full max-w-md rounded-2xl border border-[#E9ECEF] bg-white p-6 shadow-2xl dark:border-[#6C757D]/30 dark:bg-[#1E2329]"
+            className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-500/30 dark:bg-carbon-800"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F59E0B]/10">
-                <ArrowRightLeft className="h-5 w-5 text-[#F59E0B]" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-warning/10">
+                <ArrowRightLeft className="h-5 w-5 text-warning" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-[#0A2540] dark:text-white">Mover Leccion</h3>
-                <p className="text-xs text-[#6C757D] dark:text-white/60">Selecciona el modulo de destino</p>
+                <h3 className="text-lg font-bold text-primary dark:text-white">Mover Leccion</h3>
+                <p className="text-xs text-gray-500 dark:text-white/60">Selecciona el modulo de destino</p>
               </div>
             </div>
 
@@ -56,33 +56,33 @@ export function CourseManagementMoveLessonModal() {
                   }
                   className={`group flex w-full items-center justify-between rounded-xl border p-3 text-left transition-all ${
                     module.module_id === movingLesson.module_id
-                      ? 'cursor-not-allowed border-transparent bg-[#E9ECEF]/50 opacity-50'
-                      : 'border-[#E9ECEF] hover:border-[#00D4B3]/50 dark:border-[#6C757D]/30'
+                      ? 'cursor-not-allowed border-transparent bg-gray-200/50 opacity-50'
+                      : 'border-gray-200 hover:border-accent/50 dark:border-gray-500/30'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <Book
                       className={`h-4 w-4 ${
-                        module.module_id === movingLesson.module_id ? 'text-[#6C757D]' : 'text-[#00D4B3]'
+                        module.module_id === movingLesson.module_id ? 'text-gray-500' : 'text-accent'
                       }`}
                     />
-                    <span className="max-w-[200px] truncate text-sm font-medium text-[#0A2540] dark:text-white">
+                    <span className="max-w-[200px] truncate text-sm font-medium text-primary dark:text-white">
                       {module.module_title}
                     </span>
                   </div>
                   {module.module_id === movingLesson.module_id ? (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#6C757D]">Actual</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Actual</span>
                   ) : (
-                    <ChevronRight className="h-4 w-4 text-[#6C757D]/30 transition-colors group-hover:text-[#00D4B3]" />
+                    <ChevronRight className="h-4 w-4 text-gray-500/30 transition-colors group-hover:text-accent" />
                   )}
                 </motion.button>
               ))}
             </div>
 
-            <div className="mt-6 flex justify-end border-t border-[#E9ECEF] pt-6 dark:border-[#6C757D]/30">
+            <div className="mt-6 flex justify-end border-t border-gray-200 pt-6 dark:border-gray-500/30">
               <button
                 onClick={() => setShowMoveLessonModal(false)}
-                className="px-4 py-2 text-sm font-semibold text-[#6C757D] transition-colors hover:text-[#0A2540] dark:text-white/60 dark:hover:text-white"
+                className="px-4 py-2 text-sm font-semibold text-gray-500 transition-colors hover:text-primary dark:text-white/60 dark:hover:text-white"
               >
                 Cancelar
               </button>

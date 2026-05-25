@@ -20,7 +20,7 @@ export function AdminUserListInfo(props: AdminUserListInfoProps) {
   return (
     <>
       <div className="flex min-w-0 items-center gap-3">
-        <AdminUserAvatar displayName={displayName} imageUrl={imageUrl} size="sm" accentColor={theme.primaryColor} borderColor={theme.borderColor} />
+        <AdminUserAvatar displayName={displayName} imageUrl={imageUrl ?? null} size="sm" accentColor={theme.primaryColor} borderColor={theme.borderColor} />
         <div className="min-w-0">
           <h3 className="truncate text-sm font-extrabold" style={{ color: theme.textColor }} title={displayName}>{displayName}</h3>
           <p className="mt-1 flex min-w-0 items-center gap-1.5 truncate text-xs font-semibold" style={{ color: theme.subtextColor }} title={username}>

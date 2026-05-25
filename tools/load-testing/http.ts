@@ -1,26 +1,6 @@
-import type { LoadProfileName, QaUser, RequestMetric } from './types';
-
-interface RequestOptions {
-  runId: string;
-  profile: LoadProfileName | 'manual';
-  flow: string;
-  name: string;
-  method?: string;
-  baseUrl: string;
-  path: string;
-  user?: QaUser;
-  body?: unknown;
-  timeoutMs: number;
-  headers?: Record<string, string>;
-  captureResponseText?: boolean;
-}
-
-function userIp(user?: QaUser) {
-  if (!user) return undefined;
-  const third = Math.floor(user.index / 250);
-  const fourth = (user.index % 250) + 1;
-  return `10.240.${third}.${fourth}`;
-}
+import type { RequestMetric } from './types';
+import type { RequestOptions } from './http.types';
+import { userIp } from './http-user';
 
 export async function timedFetch(options: RequestOptions): Promise<RequestMetric> {
   const method = options.method || (options.body ? 'POST' : 'GET');

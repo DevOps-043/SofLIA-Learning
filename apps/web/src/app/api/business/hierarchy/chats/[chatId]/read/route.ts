@@ -1,17 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
 
-// Crear cliente con service_role que bypasea RLS
+import { chatReadSchema, type ChatReadBody } from '../../../_schemas';
+
 function createServiceClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
   if (!supabaseUrl || !supabaseServiceKey) {
     throw new Error('Configuración de Supabase incompleta');
   }
-
   return createSupabaseClient(supabaseUrl, supabaseServiceKey);
 }
 
@@ -19,29 +21,22 @@ interface RouteParams {
   params: Promise<{ chatId: string }>;
 }
 
-/**
- * POST /api/business/hierarchy/chats/[chatId]/read
- * Marca los mensajes de un chat como leídos
- */
-export async function POST(request: Request, { params }: RouteParams) {
+async function handlePost(
+  _request: NextRequest,
+  body: ChatReadBody,
+  { params }: RouteParams,
+) {
   try {
     const auth = await requireBusiness();
     if (auth instanceof NextResponse) return auth;
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
-      );
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403);
     }
 
     const { chatId } = await params;
-    const body = await request.json();
-    const { last_read_at } = body;
-
     const supabase = createServiceClient();
 
-    // Verificar que el usuario es participante
     const { data: participant } = await supabase
       .from('hierarchy_chat_participants')
       .select('id')
@@ -51,41 +46,40 @@ export async function POST(request: Request, { params }: RouteParams) {
       .single();
 
     if (!participant) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes acceso a este chat' },
-        { status: 403 }
-      );
+      return apiError('CHAT_FORBIDDEN', 'No tienes acceso a este chat', 403);
     }
 
-    // Actualizar last_read_at y resetear unread_count
-    const readAt = last_read_at || new Date().toISOString();
+    const readAt = body.last_read_at || new Date().toISOString();
     const { error: updateError } = await supabase
       .from('hierarchy_chat_participants')
       .update({
         last_read_at: readAt,
         unread_count: 0,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', participant.id);
 
     if (updateError) {
       logger.error('Error marcando mensajes como leídos:', updateError);
-      return NextResponse.json(
-        { success: false, error: 'Error al marcar mensajes como leídos' },
-        { status: 500 }
+      return apiError(
+        'MARK_READ_FAILED',
+        'Error al marcar mensajes como leídos',
+        500,
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Mensajes marcados como leídos'
-    });
+    return NextResponse.json({ success: true, message: 'Mensajes marcados como leídos' });
   } catch (error) {
-    logger.error('Error en POST /api/business/hierarchy/chats/[chatId]/read:', error);
-    return NextResponse.json(
-      { success: false, error: 'Error al marcar mensajes como leídos' },
-      { status: 500 }
+    logger.error(
+      'Error en POST /api/business/hierarchy/chats/[chatId]/read:',
+      error,
+    );
+    return apiError(
+      'MARK_READ_FAILED',
+      'Error al marcar mensajes como leídos',
+      500,
     );
   }
 }
 
+export const POST = withZodBody(chatReadSchema, handlePost);

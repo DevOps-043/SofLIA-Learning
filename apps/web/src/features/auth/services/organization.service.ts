@@ -3,6 +3,27 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+
+const PUBLIC_AUTH_ORGANIZATION_SELECT = [
+  'brand_color_accent',
+  'brand_color_primary',
+  'brand_color_secondary',
+  'brand_favicon_url',
+  'brand_font_family',
+  'brand_logo_url',
+  'description',
+  'google_login_enabled',
+  'id',
+  'is_active',
+  'login_styles',
+  'logo_url',
+  'microsoft_login_enabled',
+  'name',
+  'slug',
+  'subscription_plan',
+  'subscription_status',
+].join(', ');
 
 export interface Organization {
   id: string;
@@ -25,6 +46,7 @@ export interface Organization {
   brand_favicon_url?: string | null;
   google_login_enabled?: boolean;
   microsoft_login_enabled?: boolean;
+  login_styles?: Record<string, unknown> | null;
 }
 
 /**
@@ -38,7 +60,7 @@ export async function getOrganizationBySlug(slug: string): Promise<Organization 
 
     const { data, error } = await supabase
       .from('organizations')
-      .select('*')
+      .select(SELECT_COLUMNS.organizations)
       .ilike('slug', slug.trim())
       .single();
 
@@ -48,6 +70,26 @@ export async function getOrganizationBySlug(slug: string): Promise<Organization 
 
     return data as Organization;
   } catch (error) {
+    return null;
+  }
+}
+
+export async function getPublicAuthOrganizationBySlug(slug: string): Promise<Organization | null> {
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('organizations')
+      .select(PUBLIC_AUTH_ORGANIZATION_SELECT)
+      .ilike('slug', slug.trim())
+      .single();
+
+    if (error || !data) {
+      return null;
+    }
+
+    return data as Organization;
+  } catch {
     return null;
   }
 }
@@ -63,7 +105,7 @@ export async function getOrganizationById(id: string): Promise<Organization | nu
 
     const { data, error } = await supabase
       .from('organizations')
-      .select('*')
+      .select(SELECT_COLUMNS.organizations)
       .eq('id', id)
       .single();
 
@@ -98,4 +140,3 @@ export async function isOrganizationSlugAvailable(slug: string): Promise<boolean
     return false;
   }
 }
-

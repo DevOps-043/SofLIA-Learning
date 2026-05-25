@@ -131,8 +131,7 @@ export function BusinessLogo() {
         {/* Logo Text */}
         <span 
           ref={textRef}
-          className="font-bold text-lg lg:text-xl hidden sm:inline-block"
-          style={{ color: '#8B5CF6' }}
+          className="font-bold text-lg lg:text-xl hidden sm:inline-block text-primary"
         >
           SofLIA
         </span>
@@ -178,9 +177,8 @@ export function BusinessLogo() {
         </div>
       </div>
       
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
+      <style>
+        {`
             @keyframes shimmer {
               0% {
                 transform: translateX(-100%);
@@ -189,9 +187,8 @@ export function BusinessLogo() {
                 transform: translateX(100%);
               }
             }
-          `,
-        }}
-      />
+          `}
+      </style>
     </Link>
   );
 }

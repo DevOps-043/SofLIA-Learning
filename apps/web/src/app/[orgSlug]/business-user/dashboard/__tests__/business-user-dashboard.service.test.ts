@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   buildBusinessUserDashboardColors,
   buildBusinessUserDashboardStats,
-  buildBusinessUserIntroVideos,
   formatBusinessUserDashboardDate,
   getBusinessUserCertificateRoute,
   getBusinessUserDashboardGreeting,
@@ -15,19 +14,19 @@ describe('business-user-dashboard.service', () => {
     const colors = buildBusinessUserDashboardColors({
       userDashboardStyles: {
         background_type: 'color',
-        background_value: '#fff',
-        primary_button_color: '#112233',
-        secondary_button_color: '#000000',
-        accent_color: '#445566',
-        sidebar_background: '#778899',
-        card_background: '#ffffff',
+        background_value: 'var(--color-bg-light)',
+        primary_button_color: 'var(--color-legacy-112233)',
+        secondary_button_color: 'var(--color-black)',
+        accent_color: 'var(--color-legacy-445566)',
+        sidebar_background: 'var(--color-legacy-778899)',
+        card_background: 'var(--color-bg-light)',
       },
       resolvedTheme: 'light',
     })
 
-    expect(colors.primary).toBe('#112233')
-    expect(colors.accent).toBe('#445566')
-    expect(colors.sidebarBg).toBe('#778899')
+    expect(colors.primary).toBe('var(--color-legacy-112233)')
+    expect(colors.accent).toBe('var(--color-legacy-445566)')
+    expect(colors.sidebarBg).toBe('var(--color-legacy-778899)')
     expect(colors.isLightMode).toBe(true)
   })
 
@@ -53,10 +52,8 @@ describe('business-user-dashboard.service', () => {
     expect(stats[4]?.kind).toBe('analytics')
   })
 
-  it('formats dates, videos and certificate routes safely', () => {
+  it('formats dates and certificate routes safely', () => {
     expect(formatBusinessUserDashboardDate(new Date('2026-04-01T09:00:00Z'), 'es')).toContain('2026')
-    expect(buildBusinessUserIntroVideos(undefined)).toEqual([])
-    expect(buildBusinessUserIntroVideos('https://example.supabase.co')).toHaveLength(2)
     expect(
       getBusinessUserCertificateRoute([{ course_id: 'course-1', certificate_id: 'cert-9' }], 'course-1')
     ).toBe('/certificates/cert-9')

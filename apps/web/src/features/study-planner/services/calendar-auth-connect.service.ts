@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { CalendarIntegration } from '../types/user-context.types'
 import {
   GOOGLE_CLIENT_ID,
@@ -10,6 +11,7 @@ import { parseGoogleOAuthError } from './calendar-auth-errors.service'
 import { CalendarDbService } from './calendar-db.service'
 import { CalendarGoogleService } from './calendar-google.service'
 import { CalendarMicrosoftService } from './calendar-microsoft.service'
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
 
 export async function connectGoogleCalendar(
   userId: string,
@@ -17,7 +19,7 @@ export async function connectGoogleCalendar(
   expectedEmail?: string,
 ): Promise<CalendarIntegration | null> {
   try {
-    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+    const tokenResponse = await fetchWithCircuitBreaker('google-oauth-connect', 'https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
@@ -37,7 +39,7 @@ export async function connectGoogleCalendar(
       } catch {
         errorData = { error: 'unknown_error', error_description: errorText }
       }
-      console.error('[Calendar Integration] Error obteniendo tokens de Google:', {
+      techDebtLogger.error('[Calendar Integration] Error obteniendo tokens de Google:', {
         status: tokenResponse.status,
         statusText: tokenResponse.statusText,
         error: errorData,
@@ -56,7 +58,7 @@ export async function connectGoogleCalendar(
       && expectedEmail
       && expectedEmail.toLowerCase() !== calendarUserEmail.toLowerCase()
     ) {
-      console.warn('[Calendar Integration] El email del calendario no coincide con el usuario de la app:', {
+      techDebtLogger.warn('[Calendar Integration] El email del calendario no coincide con el usuario de la app:', {
         emailApp: expectedEmail,
         emailCalendar: calendarUserEmail,
       })
@@ -80,13 +82,13 @@ export async function connectGoogleCalendar(
       if (secondaryCalendarId) {
         await CalendarDbService.saveSecondaryCalendarId(userId, secondaryCalendarId)
       } else {
-        console.warn('[Calendar Integration] No se pudo crear el calendario secundario, se usará el principal')
+        techDebtLogger.warn('[Calendar Integration] No se pudo crear el calendario secundario, se usará el principal')
       }
     }
 
     return integration
   } catch (error) {
-    console.error('Error conectando Google Calendar:', error)
+    techDebtLogger.error('Error conectando Google Calendar:', error)
     if (error instanceof Error) {
       throw error
     }
@@ -100,7 +102,7 @@ export async function connectMicrosoftCalendar(
   expectedEmail?: string,
 ): Promise<CalendarIntegration | null> {
   try {
-    const tokenResponse = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
+    const tokenResponse = await fetchWithCircuitBreaker('microsoft-oauth-connect', 'https://login.microsoftonline.com/common/oauth2/v2.0/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
@@ -114,7 +116,7 @@ export async function connectMicrosoftCalendar(
     })
 
     if (!tokenResponse.ok) {
-      console.error('Error obteniendo tokens de Microsoft:', await tokenResponse.text())
+      techDebtLogger.error('Error obteniendo tokens de Microsoft:', await tokenResponse.text())
       return null
     }
 
@@ -126,7 +128,7 @@ export async function connectMicrosoftCalendar(
       && expectedEmail
       && expectedEmail.toLowerCase() !== calendarUserEmail.toLowerCase()
     ) {
-      console.warn('[Calendar Integration] El email del calendario Microsoft no coincide con el usuario de la app:', {
+      techDebtLogger.warn('[Calendar Integration] El email del calendario Microsoft no coincide con el usuario de la app:', {
         emailApp: expectedEmail,
         emailCalendar: calendarUserEmail,
       })
@@ -142,7 +144,7 @@ export async function connectMicrosoftCalendar(
       calendarUserEmail,
     )
   } catch (error) {
-    console.error('Error conectando Microsoft Calendar:', error)
+    techDebtLogger.error('Error conectando Microsoft Calendar:', error)
     if (error instanceof Error) {
       throw error
     }

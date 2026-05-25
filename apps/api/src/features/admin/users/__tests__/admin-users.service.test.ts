@@ -2,72 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AdminUsersService } from '../admin-users.service'
 import type { AdminUsersRepository } from '../admin-users.repository'
-import type {
-  AdminUser,
-  AdminUserDetail,
-  AdminUserListItem,
-} from '../admin-users.types'
-
-function createAdminUser(overrides: Partial<AdminUser> = {}): AdminUser {
-  return {
-    id: 'user-1',
-    username: 'ada',
-    email: 'ada@example.com',
-    first_name: 'Ada',
-    last_name: 'Lovelace',
-    display_name: 'Ada Lovelace',
-    cargo_rol: 'Administrador',
-    type_rol: 'Admin',
-    email_verified: true,
-    email_verified_at: new Date().toISOString(),
-    phone: null,
-    bio: null,
-    location: null,
-    profile_picture_url: null,
-    country_code: 'MX',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    last_login_at: new Date().toISOString(),
-    is_banned: false,
-    banned_at: null,
-    ban_reason: null,
-    ...overrides,
-  }
-}
-
-function createAdminUserDetail(
-  overrides: Partial<AdminUserDetail> = {},
-): AdminUserDetail {
-  return {
-    ...createAdminUser(),
-    memberships: [],
-    ...overrides,
-  }
-}
-
-function createAdminUserListItem(
-  overrides: Partial<AdminUserListItem> = {},
-): AdminUserListItem {
-  return {
-    ...createAdminUser(),
-    organization_name: 'Acme',
-    organization_slug: 'acme',
-    organization_role: 'owner',
-    membership_status: 'active',
-    ...overrides,
-  }
-}
-
-function createRepositoryMock(): AdminUsersRepository {
-  return {
-    findUsers: vi.fn(),
-    getStats: vi.fn(),
-    findById: vi.fn(),
-    updateUser: vi.fn(),
-    updateUserRole: vi.fn(),
-    softDeleteUser: vi.fn(),
-  }
-}
+import {
+  createAdminUserDetail,
+  createAdminUserListItem,
+  createRepositoryMock,
+} from './admin-users.fixtures'
 
 describe('AdminUsersService', () => {
   let repository: AdminUsersRepository

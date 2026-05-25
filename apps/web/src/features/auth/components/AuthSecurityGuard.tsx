@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
 
@@ -25,7 +26,7 @@ export function AuthSecurityGuard({ children }: { children: React.ReactNode }) {
             // Limpiar auth-storage persistido (puede tener datos de otro usuario)
             const authStorage = localStorage.getItem('auth-storage')
             if (authStorage) {
-                console.warn('🔒 Security: Limpiando auth-storage residual')
+                techDebtLogger.warn('🔒 Security: Limpiando auth-storage residual')
                 localStorage.removeItem('auth-storage')
             }
 
@@ -33,7 +34,7 @@ export function AuthSecurityGuard({ children }: { children: React.ReactNode }) {
             const accessToken = localStorage.getItem('accessToken')
             const refreshToken = localStorage.getItem('refreshToken')
             if (accessToken || refreshToken) {
-                console.warn('🔒 Security: Limpiando tokens residuales del localStorage')
+                techDebtLogger.warn('🔒 Security: Limpiando tokens residuales del localStorage')
                 localStorage.removeItem('accessToken')
                 localStorage.removeItem('refreshToken')
             }

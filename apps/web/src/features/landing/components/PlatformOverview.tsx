@@ -18,27 +18,27 @@ const platformFeatures = [
   {
     key: 'aiTraining',
     icon: Bot,
-    color: '#00D4B3',
+    color: 'var(--color-accent)',
   },
   {
     key: 'liaAssistant',
     icon: Sparkles,
-    color: '#8B5CF6',
+    color: 'var(--color-secondary)',
   },
   {
     key: 'studyPlanner',
     icon: CalendarDays,
-    color: '#F59E0B',
+    color: 'var(--color-warning)',
   },
   {
     key: 'analytics',
     icon: LineChart,
-    color: '#10B981',
+    color: 'var(--color-success)',
   },
   {
     key: 'certificates',
     icon: GraduationCap,
-    color: '#EC4899',
+    color: 'var(--color-legacy-ec4899)',
   },
 ];
 
@@ -73,7 +73,7 @@ export function PlatformOverview() {
     <section 
       id="platform"
       ref={sectionRef}
-      className="py-20 lg:py-32 bg-white dark:bg-[#1E2329] relative overflow-hidden"
+      className="py-20 lg:py-32 bg-white dark:bg-carbon-800 relative overflow-hidden"
     >
       {/* Background Gradient */}
       <div className="absolute top-0 right-0 w-1/2 h-full opacity-30 dark:opacity-20 pointer-events-none">
@@ -97,16 +97,16 @@ export function PlatformOverview() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={isInView ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="inline-block px-4 py-2 rounded-full bg-[#0A2540]/10 dark:bg-white/10 text-[#0A2540] dark:text-white text-sm font-medium mb-6"
+              className="inline-block px-4 py-2 rounded-full bg-primary/10 dark:bg-white/10 text-primary dark:text-white text-sm font-medium mb-6"
             >
               {t('landing.platform.tag', 'La Plataforma')}
             </motion.span>
 
-            <h2 className="text-3xl lg:text-5xl font-bold text-[#0A2540] dark:text-white mb-6 leading-tight">
+            <h2 className="text-3xl lg:text-5xl font-bold text-primary dark:text-white mb-6 leading-tight">
               {t('landing.platform.title', 'Capacitación corporativa potenciada por inteligencia artificial')}
             </h2>
 
-            <p className="text-lg text-[#6C757D] dark:text-white/60 mb-10 leading-relaxed">
+            <p className="text-lg text-gray-500 dark:text-white/60 mb-10 leading-relaxed">
               {t('landing.platform.description', 'SofLIA combina tecnología de punta con diseño centrado en el usuario para ofrecer una experiencia de aprendizaje que genera resultados medibles para tu organización.')}
             </p>
 
@@ -121,11 +121,11 @@ export function PlatformOverview() {
                 <motion.div
                   key={feature.key}
                   variants={itemVariants}
-                  className="group flex items-start gap-4 p-4 rounded-xl hover:bg-[#E9ECEF]/50 dark:hover:bg-white/5 transition-colors duration-300 cursor-default"
+                  className="group flex items-start gap-4 p-4 rounded-xl hover:bg-gray-200/50 dark:hover:bg-white/5 transition-colors duration-300 cursor-default"
                 >
                   <div 
                     className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
-                    style={{ backgroundColor: `${feature.color}15` }}
+                    style={{ backgroundColor: `color-mix(in srgb, ${feature.color} 8.2%, transparent)` }}
                   >
                     <feature.icon 
                       size={20} 
@@ -133,16 +133,16 @@ export function PlatformOverview() {
                     />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-base font-semibold text-[#0A2540] dark:text-white mb-1">
+                    <h3 className="text-base font-semibold text-primary dark:text-white mb-1">
                       {t(`landing.platform.features.${feature.key}.title`, feature.key)}
                     </h3>
-                    <p className="text-sm text-[#6C757D] dark:text-white/50">
+                    <p className="text-sm text-gray-500 dark:text-white/50">
                       {t(`landing.platform.features.${feature.key}.description`, '')}
                     </p>
                   </div>
                   <ArrowRight 
                     size={18} 
-                    className="flex-shrink-0 text-[#00D4B3] opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-1"
+                    className="flex-shrink-0 text-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-1"
                   />
                 </motion.div>
               ))}
@@ -157,9 +157,9 @@ export function PlatformOverview() {
             className="relative"
           >
             {/* Main Dashboard Preview */}
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/20 dark:shadow-black/40 border border-[#E9ECEF] dark:border-white/10">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/20 dark:shadow-black/40 border border-gray-200 dark:border-white/10">
               {/* Dashboard Image */}
-              <div className="aspect-[4/3] bg-gradient-to-br from-[#0A2540] to-[#1E3A5F] relative">
+              <div className="aspect-[4/3] bg-gradient-to-br from-primary to-[var(--color-legacy-1e3a5f)] relative">
                 {/* Try to load actual dashboard image, fallback to gradient */}
                 <Image
                   src="/images/dashboard-header.webp"
@@ -207,15 +207,15 @@ export function PlatformOverview() {
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
               animate={isInView ? { opacity: 1, scale: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.6 }}
-              className="absolute -bottom-6 -left-6 lg:-left-10 bg-white dark:bg-[#0F1419] rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/30 p-4 border border-[#E9ECEF] dark:border-white/10"
+              className="absolute -bottom-6 -left-6 lg:-left-10 bg-white dark:bg-carbon-900 rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/30 p-4 border border-gray-200 dark:border-white/10"
             >
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00D4B3] to-[#10B981] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent to-success flex items-center justify-center">
                   <GraduationCap size={24} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-[#0A2540] dark:text-white">Tutor IA</p>
-                  <p className="text-xs text-[#00D4B3]">Disponible 24/7</p>
+                  <p className="text-sm font-semibold text-primary dark:text-white">Tutor IA</p>
+                  <p className="text-xs text-accent">Disponible 24/7</p>
                 </div>
               </div>
             </motion.div>
@@ -225,15 +225,15 @@ export function PlatformOverview() {
               initial={{ opacity: 0, scale: 0.8, y: -20 }}
               animate={isInView ? { opacity: 1, scale: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.8 }}
-              className="absolute -top-4 -right-4 lg:-right-8 bg-white dark:bg-[#0F1419] rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/30 p-4 border border-[#E9ECEF] dark:border-white/10"
+              className="absolute -top-4 -right-4 lg:-right-8 bg-white dark:bg-carbon-900 rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/30 p-4 border border-gray-200 dark:border-white/10"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-[#10B981]/10 flex items-center justify-center">
-                  <LineChart size={20} className="text-[#10B981]" />
+                <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                  <LineChart size={20} className="text-success" />
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-[#0A2540] dark:text-white">+85%</p>
-                  <p className="text-xs text-[#6C757D] dark:text-white/50">Completitud</p>
+                  <p className="text-lg font-bold text-primary dark:text-white">+85%</p>
+                  <p className="text-xs text-gray-500 dark:text-white/50">Completitud</p>
                 </div>
               </div>
             </motion.div>

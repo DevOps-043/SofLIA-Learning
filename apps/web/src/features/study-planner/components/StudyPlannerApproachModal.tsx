@@ -45,15 +45,15 @@ export function StudyPlannerApproachModal({
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             className="pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center p-4"
           >
-            <motion.div className="pointer-events-auto relative w-full max-w-lg overflow-hidden rounded-xl border border-[#E9ECEF] bg-white shadow-2xl dark:border-[#6C757D]/30 dark:bg-[#1E2329]">
-              <div className="relative border-b border-[#E9ECEF] bg-[#0A2540]/5 p-5 pb-4 dark:border-[#6C757D]/30 dark:bg-[#0A2540]/10">
+            <motion.div className="pointer-events-auto relative w-full max-w-lg overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-500/30 dark:bg-carbon-800">
+              <div className="relative border-b border-gray-200 bg-primary/5 p-5 pb-4 dark:border-gray-500/30 dark:bg-primary/10">
                 <div className="flex items-start gap-3">
-                  <div className="rounded-lg border border-[#0A2540]/20 bg-[#0A2540]/10 p-2.5 dark:border-[#00D4B3]/30 dark:bg-[#0A2540]/20">
-                    <BookOpen className="h-5 w-5 text-[#0A2540] dark:text-[#00D4B3]" />
+                  <div className="rounded-lg border border-primary/20 bg-primary/10 p-2.5 dark:border-accent/30 dark:bg-primary/20">
+                    <BookOpen className="h-5 w-5 text-primary dark:text-accent" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="mb-1 text-lg font-bold text-[#0A2540] dark:text-white">Que duracion de sesion prefieres?</h3>
-                    <p className="text-xs text-[#6C757D] dark:text-gray-400">
+                    <h3 className="mb-1 text-lg font-bold text-primary dark:text-white">Que duracion de sesion prefieres?</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Elige la duracion que mejor se adapte a tu disponibilidad
                     </p>
                   </div>
@@ -73,23 +73,23 @@ export function StudyPlannerApproachModal({
                       whileTap={{ scale: 0.98 }}
                       className={`w-full rounded-xl border-2 p-4 text-left transition-all ${
                         isSelected
-                          ? 'border-[#0A2540]/30 bg-[#0A2540]/10 shadow-sm dark:border-[#00D4B3]/30 dark:bg-[#0A2540]/20'
-                          : 'border-[#E9ECEF] bg-[#E9ECEF]/30 hover:border-[#0A2540]/50 hover:bg-[#E9ECEF]/50 dark:border-[#6C757D]/30 dark:bg-[#0A2540]/5 dark:hover:border-[#00D4B3]/50 dark:hover:bg-[#0A2540]/10'
+                          ? 'border-primary/30 bg-primary/10 shadow-sm dark:border-accent/30 dark:bg-primary/20'
+                          : 'border-gray-200 bg-gray-200/30 hover:border-primary/50 hover:bg-gray-200/50 dark:border-gray-500/30 dark:bg-primary/5 dark:hover:border-accent/50 dark:hover:bg-primary/10'
                       }`}
                     >
                       <div className="flex items-start gap-4">
                         <div
                           className={`rounded-lg p-2 ${
-                            isSelected ? 'bg-[#0A2540]/10 dark:bg-[#0A2540]/20' : 'bg-[#E9ECEF] dark:bg-[#6C757D]/30'
+                            isSelected ? 'bg-primary/10 dark:bg-primary/20' : 'bg-gray-200 dark:bg-gray-500/30'
                           }`}
                         >
-                          <Icon className="h-5 w-5 text-[#0A2540] dark:text-[#00D4B3]" />
+                          <Icon className="h-5 w-5 text-primary dark:text-accent" />
                         </div>
 
                         <div className="flex-1">
-                          <h4 className="mb-1 text-base font-semibold text-[#0A2540] dark:text-white">{option.title}</h4>
-                          <p className="text-xs text-[#6C757D] dark:text-gray-300">{option.description}</p>
-                          <div className="mt-2 flex items-center gap-2 text-xs text-[#6C757D] dark:text-gray-400">
+                          <h4 className="mb-1 text-base font-semibold text-primary dark:text-white">{option.title}</h4>
+                          <p className="text-xs text-gray-500 dark:text-gray-300">{option.description}</p>
+                          <div className="mt-2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                             <span>- {option.sessionRange}</span>
                             <span>- {option.supportingCopy}</span>
                           </div>
@@ -99,7 +99,7 @@ export function StudyPlannerApproachModal({
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0A2540] dark:bg-[#0A2540]"
+                            className="flex h-6 w-6 items-center justify-center rounded-full bg-primary dark:bg-primary"
                           >
                             <Check className="h-4 w-4 text-white" />
                           </motion.div>
@@ -110,8 +110,8 @@ export function StudyPlannerApproachModal({
                 })}
               </div>
 
-              <div className="border-t border-[#E9ECEF] bg-white px-5 py-4 dark:border-[#6C757D]/30 dark:bg-[#1E2329]">
-                <p className="text-center text-xs text-[#6C757D] dark:text-gray-400">
+              <div className="border-t border-gray-200 bg-white px-5 py-4 dark:border-gray-500/30 dark:bg-carbon-800">
+                <p className="text-center text-xs text-gray-500 dark:text-gray-400">
                   Esta seleccion determina que tan rapido completaras el curso
                 </p>
               </div>

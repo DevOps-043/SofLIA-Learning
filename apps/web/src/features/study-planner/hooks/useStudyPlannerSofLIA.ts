@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   type PhaseData,
@@ -39,7 +40,7 @@ export function useStudyPlannerSofLIA(): StudyPlannerSofLIAState & StudyPlannerS
         }));
       }
     } catch (error) {
-      console.error('Error cargando contexto:', error);
+      techDebtLogger.error('Error cargando contexto:', error);
       setState((prev) => ({
         ...prev,
         error: 'Error al cargar tu información. Por favor, recarga la página.',
@@ -90,7 +91,7 @@ export function useStudyPlannerSofLIA(): StudyPlannerSofLIAState & StudyPlannerS
       setState((prev) => ({ ...prev, messages: [...prev.messages, assistantMessage], isLoading: false }));
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'AbortError') return;
-      console.error('Error enviando mensaje:', error);
+      techDebtLogger.error('Error enviando mensaje:', error);
       setState((prev) => ({
         ...prev,
         error: 'Error al comunicarse con SofLIA. Por favor, intenta de nuevo.',
@@ -134,7 +135,7 @@ export function useStudyPlannerSofLIA(): StudyPlannerSofLIAState & StudyPlannerS
       const sessions = await generateStudyPlanRequest(state.phaseData);
       setState((prev) => ({ ...prev, phaseData: { ...prev.phaseData, generatedSessions: sessions }, isLoading: false }));
     } catch (error) {
-      console.error('Error generando plan:', error);
+      techDebtLogger.error('Error generando plan:', error);
       setState((prev) => ({
         ...prev,
         error: error instanceof Error ? error.message : 'Error al generar el plan',
@@ -150,7 +151,7 @@ export function useStudyPlannerSofLIA(): StudyPlannerSofLIAState & StudyPlannerS
       if (result) setState((prev) => ({ ...prev, currentPhase: StudyPlannerPhase.COMPLETE, isLoading: false }));
       return result;
     } catch (error) {
-      console.error('Error guardando plan:', error);
+      techDebtLogger.error('Error guardando plan:', error);
       setState((prev) => ({
         ...prev,
         error: error instanceof Error ? error.message : 'Error al guardar el plan',

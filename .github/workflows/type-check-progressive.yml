@@ -1,0 +1,61 @@
+name: Type Check (Progressive)
+
+on:
+  pull_request:
+    branches: [main, reafctorizacion/main]
+  push:
+    branches: [main, reafctorizacion/main]
+
+concurrency:
+  group: type-check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  type-check-slice:
+    name: type-check:${{ matrix.slice }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - slice: core
+            required: true
+          - slice: app
+            required: false
+          - slice: features
+            required: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install
+        run: npm ci --no-audit --no-fund
+      - name: Cache tsbuildinfo
+        uses: actions/cache@v4
+        with:
+          path: apps/web/.next/cache
+          key: tsbuildinfo-${{ matrix.slice }}-${{ hashFiles('apps/web/tsconfig*.json', 'package-lock.json') }}
+          restore-keys: |
+            tsbuildinfo-${{ matrix.slice }}-
+      - name: Type check
+        id: typecheck
+        continue-on-error: ${{ matrix.required == false }}
+        run: |
+          set -o pipefail
+          npm run type-check:${{ matrix.slice }} --workspace=apps/web | tee type-check-${{ matrix.slice }}.log
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: type-check-${{ matrix.slice }}
+          path: type-check-${{ matrix.slice }}.log
+          retention-days: 14
+      - name: Annotate slice status
+        if: matrix.required == false && steps.typecheck.outcome != 'success'
+        run: |
+          echo "::warning::Slice '${{ matrix.slice }}' has unresolved type errors. See docs/tech-debt/td-001-resolution.md."

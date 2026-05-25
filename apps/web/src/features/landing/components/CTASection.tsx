@@ -25,7 +25,7 @@ export function CTASection() {
   return (
     <section
       ref={sectionRef}
-      className="pt-16 lg:pt-20 pb-4 lg:pb-6 relative bg-gradient-to-br from-white via-[#F8F9FA] to-white dark:from-[#0F1419] dark:via-[#0A0D12] dark:to-[#0F1419]"
+      className="pt-16 lg:pt-20 pb-4 lg:pb-6 relative bg-gradient-to-br from-white via-gray-50 to-white dark:from-carbon-900 dark:via-carbon-950 dark:to-carbon-900"
     >
       {/* Animated Background Effects */}
       <motion.div
@@ -34,13 +34,13 @@ export function CTASection() {
       >
         {/* Gradient Orbs — static on mobile, animated on desktop */}
         <motion.div
-          className="absolute -top-[300px] -left-[300px] w-[900px] h-[900px] bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 rounded-full blur-3xl"
+          className="absolute -top-[300px] -left-[300px] w-[900px] h-[900px] bg-accent/10 dark:bg-accent/20 rounded-full blur-3xl"
           style={{ y: y1 }}
           animate={disableHeavy ? {} : { scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3], x: [0, 50, 0] }}
           transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
-          className="absolute -bottom-[300px] -right-[300px] w-[900px] h-[900px] bg-[#0A2540]/10 dark:bg-[#0A2540]/20 rounded-full blur-3xl"
+          className="absolute -bottom-[300px] -right-[300px] w-[900px] h-[900px] bg-primary/10 dark:bg-primary/20 rounded-full blur-3xl"
           style={{ y: y2 }}
           animate={disableHeavy ? {} : { scale: [1, 1.4, 1], opacity: [0.2, 0.5, 0.2], x: [0, -50, 0] }}
           transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
@@ -50,7 +50,7 @@ export function CTASection() {
         <div
           className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03]"
           style={{
-            backgroundImage: `linear-gradient(#0A2540 1px, transparent 1px), linear-gradient(90deg, #0A2540 1px, transparent 1px)`,
+            backgroundImage: `linear-gradient(var(--color-primary) 1px, transparent 1px), linear-gradient(90deg, var(--color-primary) 1px, transparent 1px)`,
             backgroundSize: '50px 50px',
           }}
         />
@@ -87,7 +87,7 @@ export function CTASection() {
 
           {/* Main Title */}
           <motion.h2
-            className="text-5xl lg:text-7xl xl:text-8xl font-bold mb-4 text-[#0A2540] dark:text-white leading-tight"
+            className="text-5xl lg:text-7xl xl:text-8xl font-bold mb-4 text-primary dark:text-white leading-tight"
             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 900 }}
             initial={{ opacity: 0, scale: 0.5, y: 50 }}
             whileInView={{ opacity: 1, scale: 1, y: 0 }}
@@ -98,16 +98,16 @@ export function CTASection() {
               stiffness: 100
             }}
           >
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#0A2540] via-[#00D4B3] to-[#0A2540] dark:from-white dark:via-[#00D4B3] dark:to-white">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-primary dark:from-white dark:via-accent dark:to-white">
               ¿Listo para revolucionar
             </span>
             <br />
-            <span className="text-[#00D4B3]">tu carrera?</span>
+            <span className="text-accent">tu carrera?</span>
           </motion.h2>
 
           {/* Subtitle */}
           <motion.p
-            className="text-xl lg:text-2xl xl:text-3xl mb-8 max-w-3xl mx-auto leading-relaxed text-[#6C757D] dark:text-white/80 font-medium"
+            className="text-xl lg:text-2xl xl:text-3xl mb-8 max-w-3xl mx-auto leading-relaxed text-gray-500 dark:text-white/80 font-medium"
             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -126,7 +126,7 @@ export function CTASection() {
           >
             <Link href="/auth">
               <motion.button
-                className="group relative px-12 py-5 lg:px-16 lg:py-6 bg-gradient-to-r from-[#0A2540] via-[#0A2540] to-[#00D4B3] text-white rounded-2xl font-bold text-lg lg:text-xl overflow-hidden shadow-2xl shadow-[#00D4B3]/30"
+                className="group relative px-12 py-5 lg:px-16 lg:py-6 bg-gradient-to-r from-primary via-primary to-accent text-white rounded-2xl font-bold text-lg lg:text-xl overflow-hidden shadow-2xl shadow-accent/30"
                 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
                 whileHover={{
                   scale: 1.05,
@@ -136,7 +136,7 @@ export function CTASection() {
                 style={{ boxShadow: '0 20px 60px rgba(0, 212, 179, 0.35)' }}
               >
                 {/* Hover gradient — CSS only, no JS animation */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#00D4B3] via-[#10B981] to-[#00D4B3] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-r from-accent via-success to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                 {/* Shimmer — desktop only */}
                 {!disableHeavy && (
@@ -155,29 +155,29 @@ export function CTASection() {
                 </span>
 
                 {/* Border glow — static */}
-                <div className="absolute inset-0 rounded-2xl border-2 border-[#00D4B3]/50 pointer-events-none" />
+                <div className="absolute inset-0 rounded-2xl border-2 border-accent/50 pointer-events-none" />
               </motion.button>
             </Link>
           </motion.div>
 
           {/* Trust indicators */}
           <motion.div
-            className="mt-6 flex flex-wrap justify-center items-center gap-6 text-sm text-[#6C757D] dark:text-white/60"
+            className="mt-6 flex flex-wrap justify-center items-center gap-6 text-sm text-gray-500 dark:text-white/60"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.7, duration: 0.6 }}
           >
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
               <span>Sin tarjeta de crédito</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
               <span>Acceso inmediato</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
               <span>Cancelación en cualquier momento</span>
             </div>
           </motion.div>
@@ -185,27 +185,27 @@ export function CTASection() {
 
         {/* Footer with Legal Links */}
         <motion.footer
-          className="mt-12 lg:mt-16 pt-8 border-t border-[#E9ECEF] dark:border-[#6C757D]/30"
+          className="mt-12 lg:mt-16 pt-8 border-t border-gray-200 dark:border-gray-500/30"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.9, duration: 0.6 }}
         >
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 text-sm">
-            <p className="text-[#6C757D] dark:text-white/60">
+            <p className="text-gray-500 dark:text-white/60">
               © {new Date().getFullYear()} SofLIA. Todos los derechos reservados.
             </p>
             <div className="flex items-center gap-4">
               <Link
                 href="/privacy"
-                className="text-[#0A2540] dark:text-[#00D4B3] hover:underline transition-colors font-medium"
+                className="text-primary dark:text-accent hover:underline transition-colors font-medium"
               >
                 Política de Privacidad
               </Link>
-              <span className="text-[#6C757D] dark:text-white/40">â€¢</span>
+              <span className="text-gray-500 dark:text-white/40">â€¢</span>
               <Link
                 href="/terms"
-                className="text-[#0A2540] dark:text-[#00D4B3] hover:underline transition-colors font-medium"
+                className="text-primary dark:text-accent hover:underline transition-colors font-medium"
               >
                 Términos de Servicio
               </Link>

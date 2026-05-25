@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { UserGender } from '../../../lib/schemas/user-demographics.schema'
 
 export interface BusinessUser {
@@ -126,7 +127,7 @@ export class BusinessUsersService {
       const data = await response.json()
 
       if (!response.ok) {
-        console.error('Error fetching users:', data.error || response.statusText)
+        techDebtLogger.error('Error fetching users:', data.error || response.statusText)
         return { users: [], invitations: [] }
       }
 
@@ -135,7 +136,7 @@ export class BusinessUsersService {
         invitations: data.invitations || []
       }
     } catch (error) {
-      console.error('Error fetching users:', error)
+      techDebtLogger.error('Error fetching users:', error)
       return { users: [], invitations: [] }
     }
   }

@@ -144,7 +144,7 @@ export function ModernNavbarDesktopMenu({
                   <p className="text-sm font-semibold truncate" style={{ color: colors.text }}>
                     {getDisplayName()}
                   </p>
-                  <p className="text-xs truncate" style={{ color: colors.isLightMode ? '#64748B' : 'rgba(255,255,255,0.7)' }}>
+                  <p className="text-xs truncate" style={{ color: colors.isLightMode ? 'var(--color-gray-500)' : 'rgba(255,255,255,0.7)' }}>
                     {user?.email || ''}
                   </p>
                 </div>
@@ -191,6 +191,38 @@ export function ModernNavbarDesktopMenu({
                 >
                   <Building2 className="h-5 w-5 opacity-70" />
                   <span>{t('common:profileDropdown.organizations')}</span>
+                </motion.button>
+              )}
+
+              {/* Certificados */}
+              {onCertificatesClick && (
+                <motion.button
+                  onClick={() => { onCertificatesClick(); onClose() }}
+                  className={menuItemClass}
+                  style={{ color: colors.text }}
+                  whileHover={{ x: 2, backgroundColor: hoverBackground }}
+                >
+                  <Award className="h-5 w-5 opacity-70" />
+                  <span className="flex-1 text-left">{t('common:menu.certificates')}</span>
+                  {certificatesCount > 0 && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                      style={{ backgroundColor: `color-mix(in srgb, ${colors.accent} 12.5%, transparent)`, color: colors.accent }}>
+                      {certificatesCount}
+                    </span>
+                  )}
+                </motion.button>
+              )}
+
+              {/* Mis estadísticas */}
+              {onAnalyticsClick && (
+                <motion.button
+                  onClick={() => { onAnalyticsClick(); onClose() }}
+                  className={menuItemClass}
+                  style={{ color: colors.text }}
+                  whileHover={{ x: 2, backgroundColor: hoverBackground }}
+                >
+                  <BarChart2 className="h-5 w-5 opacity-70" />
+                  <span>{t('common:menu.stats')}</span>
                 </motion.button>
               )}
 
@@ -310,7 +342,7 @@ export function ModernNavbarDesktopMenu({
           className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full ring-2 ring-white/80 dark:ring-white/80"
           style={{
             background: `linear-gradient(135deg, ${colors.primary}, ${colors.accent})`,
-            boxShadow: `0 4px 15px ${colors.primary}40`,
+            boxShadow: `0 4px 15px color-mix(in srgb, ${colors.primary} 25.1%, transparent)`,
           }}
         >
           <ModernNavbarAvatar

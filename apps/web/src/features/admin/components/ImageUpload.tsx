@@ -126,14 +126,14 @@ export function ImageUpload({
             }
           `}
         style={!(disabled || isUploading) ? {
-          borderColor: 'var(--org-primary-button-color, #3b82f6)'
+          borderColor: 'var(--org-primary-button-color, var(--color-info))'
         } : {}}
         >
           {isUploading ? (
             <div className="space-y-3">
               <CloudArrowUpIcon
                 className="mx-auto h-12 w-12 animate-pulse"
-                style={{ color: 'var(--org-primary-button-color, #3b82f6)' }}
+                style={{ color: 'var(--org-primary-button-color, var(--color-info))' }}
               />
               <div className="text-sm text-carbon-300">
                 <div className="mb-2">Subiendo imagen...</div>
@@ -142,7 +142,7 @@ export function ImageUpload({
                     className="h-2 rounded-full transition-all duration-300"
                     style={{
                       width: `${uploadProgress}%`,
-                      backgroundColor: 'var(--org-primary-button-color, #3b82f6)'
+                      backgroundColor: 'var(--org-primary-button-color, var(--color-info))'
                     }}
                   />
                 </div>
@@ -185,7 +185,7 @@ export function ImageUpload({
             disabled={disabled || isUploading}
             className="absolute bottom-2 right-2 px-3 py-1 disabled:bg-carbon-600 text-white text-sm rounded transition-colors"
             style={!(disabled || isUploading) ? {
-              backgroundColor: 'var(--org-primary-button-color, #3b82f6)'
+              backgroundColor: 'var(--org-primary-button-color, var(--color-info))'
             } : {}}
             onMouseEnter={(e) => {
               if (!(disabled || isUploading)) {
@@ -194,7 +194,7 @@ export function ImageUpload({
             }}
             onMouseLeave={(e) => {
               if (!(disabled || isUploading)) {
-                e.currentTarget.style.backgroundColor = 'var(--org-primary-button-color, #3b82f6)'
+                e.currentTarget.style.backgroundColor = 'var(--org-primary-button-color, var(--color-info))'
               }
             }}
           >

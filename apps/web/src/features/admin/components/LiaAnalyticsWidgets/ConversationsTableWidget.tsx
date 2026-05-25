@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback } from 'react';
 import {
   UserCircleIcon,
@@ -122,7 +123,7 @@ export function ConversationsTableWidget({
         setTotal(data.data.pagination.total);
       }
     } catch (error) {
-      console.error('Error fetching conversations:', error);
+      techDebtLogger.error('Error fetching conversations:', error);
     } finally {
       setIsLoading(false);
     }

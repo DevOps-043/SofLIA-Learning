@@ -49,7 +49,7 @@ function EmptyState({ onAddClick }: EmptyStateProps) {
       <div className="relative z-10">
         <motion.div
           className="w-24 h-24 mx-auto mb-6 rounded-2xl flex items-center justify-center"
-          style={{ backgroundColor: `${primaryColor}15` }}
+          style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 8.2%, transparent)` }}
           animate={{ rotate: [0, 5, -5, 0] }}
           transition={{ duration: 4, repeat: Infinity }}
         >
@@ -69,7 +69,7 @@ function EmptyState({ onAddClick }: EmptyStateProps) {
           className="px-6 py-3 rounded-xl font-bold text-white transition-all"
           style={{
             background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
-            boxShadow: `0 8px 30px ${primaryColor}40`,
+            boxShadow: `0 8px 30px color-mix(in srgb, ${primaryColor} 25.1%, transparent)`,
           }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}

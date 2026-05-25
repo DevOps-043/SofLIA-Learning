@@ -43,7 +43,7 @@ export function AdminCreateCompanyModalFooter({
           className="flex items-center gap-2 rounded-xl px-8 py-2.5 font-bold text-white shadow-lg transition-all disabled:cursor-not-allowed disabled:opacity-50 hover:scale-105 active:scale-95"
           style={{
             background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
-            boxShadow: `0 4px 20px ${primaryColor}40`,
+            boxShadow: `0 4px 20px color-mix(in srgb, ${primaryColor} 25.1%, transparent)`,
           }}
         >
           {isCreating ? <ArrowPathIcon className="h-4 w-4 animate-spin" /> : null}

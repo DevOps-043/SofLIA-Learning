@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import {
+  createTeamSchema,
+  type CreateTeamBody,
+} from '@/app/api/business/hierarchy/_schemas';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string }>;
@@ -29,6 +35,12 @@ interface OrganizationTeamRow {
 interface OrganizationUserTeamRow {
   team_id: string | null;
 }
+
+const parseLatLng = (value: number | string | null | undefined) => {
+  if (value === null || value === undefined || value === '') return null;
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  return Number.isNaN(num) ? null : num;
+};
 
 /**
  * GET /api/[orgSlug]/business/hierarchy/teams
@@ -136,39 +148,25 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
  * POST /api/[orgSlug]/business/hierarchy/teams
  * Crea un nuevo equipo
  */
-export async function POST(request: NextRequest, { params }: RouteContext) {
+async function handlePost(
+  _request: NextRequest,
+  body: CreateTeamBody,
+  { params }: RouteContext,
+) {
   try {
     const { orgSlug } = await params;
     const auth = await requireBusiness({ organizationSlug: orgSlug });
     if (auth instanceof NextResponse) return auth;
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
-      );
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403);
     }
 
     if (auth.organizationRole !== 'owner' && auth.organizationRole !== 'admin') {
-      return NextResponse.json(
-        { success: false, error: 'Solo el propietario o administrador puede crear equipos' },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-
-    if (!body.zone_id) {
-      return NextResponse.json(
-        { success: false, error: 'La zona es requerida' },
-        { status: 400 }
-      );
-    }
-
-    if (!body.name || typeof body.name !== 'string' || body.name.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'El nombre del equipo es requerido' },
-        { status: 400 }
+      return apiError(
+        'FORBIDDEN',
+        'Solo el propietario o administrador puede crear equipos',
+        403,
       );
     }
 
@@ -183,10 +181,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       .single();
 
     if (zoneError || !zone) {
-      return NextResponse.json(
-        { success: false, error: 'Zona no encontrada' },
-        { status: 404 }
-      );
+      return apiError('ZONE_NOT_FOUND', 'Zona no encontrada', 404);
     }
 
     // Verificar nombre único dentro de la zona
@@ -198,9 +193,10 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       .ilike('name', body.name.trim());
 
     if (existingCount && existingCount > 0) {
-      return NextResponse.json(
-        { success: false, error: 'Ya existe un equipo con ese nombre en esta zona' },
-        { status: 400 }
+      return apiError(
+        'DUPLICATE_NAME',
+        'Ya existe un equipo con ese nombre en esta zona',
+        400,
       );
     }
 
@@ -221,8 +217,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         state: body.state?.trim() || null,
         country: body.country?.trim() || null,
         postal_code: body.postal_code?.trim() || null,
-        latitude: body.latitude !== null && body.latitude !== undefined && body.latitude !== '' ? parseFloat(body.latitude) : null,
-        longitude: body.longitude !== null && body.longitude !== undefined && body.longitude !== '' ? parseFloat(body.longitude) : null,
+        latitude: parseLatLng(body.latitude),
+        longitude: parseLatLng(body.longitude),
         // Campos de contacto
         phone: body.phone?.trim() || null,
         email: body.email?.trim() || null,
@@ -248,10 +244,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     if (error) {
       logger.error('Error creando equipo:', error);
-      return NextResponse.json(
-        { success: false, error: 'Error al crear el equipo' },
-        { status: 500 }
-      );
+      return apiError('CREATE_TEAM_FAILED', 'Error al crear el equipo', 500);
     }
 
     return NextResponse.json({
@@ -260,9 +253,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     });
   } catch (error) {
     logger.error('Error en POST /api/[orgSlug]/business/hierarchy/teams:', error);
-    return NextResponse.json(
-      { success: false, error: 'Error al crear el equipo' },
-      { status: 500 }
-    );
+    return apiError('CREATE_TEAM_FAILED', 'Error al crear el equipo', 500);
   }
 }
+
+export const POST = withZodBody(createTeamSchema, handlePost);

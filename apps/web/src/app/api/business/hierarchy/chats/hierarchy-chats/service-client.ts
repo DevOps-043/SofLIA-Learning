@@ -1,0 +1,13 @@
+import 'server-only'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+export function createServiceClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Configuración de Supabase incompleta. Verifica NEXT_PUBLIC_SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY');
+  }
+
+  return createSupabaseClient(supabaseUrl, supabaseServiceKey);
+}

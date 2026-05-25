@@ -1,6 +1,6 @@
 'use client';
 
-import { Step } from 'react-joyride';
+import type { SofliaJoyrideStep as Step } from '@/features/tours/types/joyride';
 import React from 'react';
 import { 
   LayoutDashboard, 

@@ -51,11 +51,11 @@ export function BusinessCourseDetailErrorState({
         className="rounded-3xl p-16 border text-center shadow-sm"
         style={{ backgroundColor: cardBackground, borderColor }}
       >
-        <div className="w-20 h-20 rounded-2xl mx-auto mb-6 flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
+        <div className="w-20 h-20 rounded-2xl mx-auto mb-6 flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 12.5%, transparent)` }}>
           <BookOpen className="w-10 h-10" style={{ color: primaryColor }} />
         </div>
         <h3 className="text-xl font-bold mb-2" style={{ color: textColor }}>{error || 'Curso no encontrado'}</h3>
-        <p className="text-sm" style={{ color: `${textColor}70` }}>El curso con ID "{courseId}" no existe o no tienes acceso.</p>
+        <p className="text-sm" style={{ color: `color-mix(in srgb, ${textColor} 43.9%, transparent)` }}>El curso con ID "{courseId}" no existe o no tienes acceso.</p>
       </div>
     </div>
   )

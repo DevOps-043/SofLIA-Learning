@@ -15,12 +15,12 @@ export function CustomizationTypographyCard({ company, setCompany }: Customizati
         <select
           value={fontFamily}
           onChange={(event) => setCompany({ ...company, brand_font_family: event.target.value })}
-          className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 focus:border-[#0A2540] focus:outline-none dark:border-white/10 dark:bg-[#0F1419] dark:text-white dark:focus:border-[#00D4B3]"
+          className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 focus:border-primary focus:outline-none dark:border-white/10 dark:bg-carbon-900 dark:text-white dark:focus:border-accent"
         >
           {VALID_FONTS.map((font) => <option key={font} value={font}>{font}</option>)}
         </select>
       </div>
-      <div className="mt-4 rounded-xl bg-gray-50 p-4 dark:bg-[#0F1419]">
+      <div className="mt-4 rounded-xl bg-gray-50 p-4 dark:bg-carbon-900">
         <p className="mb-3 text-xs font-medium uppercase text-gray-500 dark:text-white/50">Vista previa</p>
         <p className="text-2xl font-bold text-gray-900 dark:text-white" style={{ fontFamily }}>Vista previa de texto</p>
         <p className="mt-1 text-base text-gray-600 dark:text-white/70" style={{ fontFamily }}>

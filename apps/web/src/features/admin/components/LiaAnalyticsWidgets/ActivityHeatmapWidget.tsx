@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useMemo } from 'react';
 import { FireIcon } from '@heroicons/react/24/outline';
 import { HeatmapDetailModal } from './HeatmapDetailModal';
@@ -41,7 +42,7 @@ export function ActivityHeatmapWidget({ period = 'month', isLoading: externalLoa
           setPeakHour(result.data.peakHour);
         }
       } catch (error) {
-        console.error('Error fetching heatmap data:', error);
+        techDebtLogger.error('Error fetching heatmap data:', error);
       } finally {
         setIsLoading(false);
       }

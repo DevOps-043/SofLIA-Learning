@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { Dispatch, SetStateAction } from 'react';
 import type {
   StudyPlannerCalendarProvider,
@@ -117,7 +118,7 @@ export async function syncUpdatedStudyPlanSessions(params: {
 
     if (!updateResponse.ok) {
       const errorText = await updateResponse.text();
-      console.error(`Error actualizando sesiones en BD (${updateResponse.status}):`, errorText);
+      techDebtLogger.error(`Error actualizando sesiones en BD (${updateResponse.status}):`, errorText);
       params.setConversationHistory(prev => [
         ...prev,
         { role: 'assistant', content: 'Error al actualizar los horarios en la base de datos. Por favor, intenta guardar el plan de nuevo.' },
@@ -156,7 +157,7 @@ export async function syncUpdatedStudyPlanSessions(params: {
 
     return planIdToUse;
   } catch (error) {
-    console.error('Error actualizando sesiones en BD:', error);
+    techDebtLogger.error('Error actualizando sesiones en BD:', error);
     return planIdToUse;
   }
 }

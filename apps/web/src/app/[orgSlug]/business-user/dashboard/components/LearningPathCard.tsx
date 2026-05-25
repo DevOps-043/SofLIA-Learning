@@ -67,8 +67,8 @@ export function LearningPathCard({
               <span
                 className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border"
                 style={{
-                  backgroundColor: `${orgColors.iconColor}18`,
-                  borderColor: `${orgColors.iconColor}30`,
+                  backgroundColor: `color-mix(in srgb, ${orgColors.iconColor} 9.4%, transparent)`,
+                  borderColor: `color-mix(in srgb, ${orgColors.iconColor} 18.8%, transparent)`,
                 }}
               >
                 <Route className="h-4 w-4" style={{ color: orgColors.iconColor }} />
@@ -119,7 +119,7 @@ export function LearningPathCard({
           </div>
           <div
             className="h-2 overflow-hidden rounded-full"
-            style={{ backgroundColor: `${orgColors.textMuted}25` }}
+            style={{ backgroundColor: `color-mix(in srgb, ${orgColors.textMuted} 14.5%, transparent)` }}
           >
             <div
               className="h-full rounded-full transition-all"
@@ -135,8 +135,8 @@ export function LearningPathCard({
           <div
             className="mt-5 rounded-xl border px-4 py-3"
             style={{
-              backgroundColor: `${orgColors.iconColor}10`,
-              borderColor: `${orgColors.iconColor}25`,
+              backgroundColor: `color-mix(in srgb, ${orgColors.iconColor} 6.3%, transparent)`,
+              borderColor: `color-mix(in srgb, ${orgColors.iconColor} 14.5%, transparent)`,
             }}
           >
             <p className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: orgColors.textSecondary }}>
@@ -163,12 +163,12 @@ export function LearningPathCard({
                 style={{
                   backgroundColor:
                     item.status === 'locked'
-                      ? `${orgColors.textMuted}10`
-                      : `${orgColors.iconColor}08`,
+                      ? `color-mix(in srgb, ${orgColors.textMuted} 6.3%, transparent)`
+                      : `color-mix(in srgb, ${orgColors.iconColor} 3.1%, transparent)`,
                   borderColor:
                     item.status === 'locked'
-                      ? `${orgColors.textMuted}25`
-                      : `${orgColors.iconColor}25`,
+                      ? `color-mix(in srgb, ${orgColors.textMuted} 14.5%, transparent)`
+                      : `color-mix(in srgb, ${orgColors.iconColor} 14.5%, transparent)`,
                 }}
               >
                 <span className="flex min-w-0 items-center gap-3">
@@ -177,8 +177,8 @@ export function LearningPathCard({
                     style={{
                       backgroundColor:
                         item.status === 'locked'
-                          ? `${orgColors.textMuted}18`
-                          : `${orgColors.iconColor}18`,
+                          ? `color-mix(in srgb, ${orgColors.textMuted} 9.4%, transparent)`
+                          : `color-mix(in srgb, ${orgColors.iconColor} 9.4%, transparent)`,
                     }}
                   >
                     <Icon
@@ -208,8 +208,8 @@ export function LearningPathCard({
                   style={{
                     backgroundColor:
                       item.status === 'locked'
-                        ? `${orgColors.textMuted}18`
-                        : `${orgColors.iconColor}18`,
+                        ? `color-mix(in srgb, ${orgColors.textMuted} 9.4%, transparent)`
+                        : `color-mix(in srgb, ${orgColors.iconColor} 9.4%, transparent)`,
                     color:
                       item.status === 'locked' ? orgColors.textMuted : orgColors.iconColor,
                   }}

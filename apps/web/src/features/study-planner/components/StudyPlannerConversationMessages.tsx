@@ -43,14 +43,14 @@ export function StudyPlannerConversationMessages({
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ delay: index * 0.05 + 0.1, type: 'spring', stiffness: 200, damping: 15 }}
-                className="relative hidden h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border-2 border-[#0A2540]/30 shadow-lg shadow-[#0A2540]/20 dark:border-[#00D4B3]/40 dark:shadow-[#00D4B3]/20 sm:block sm:h-10 sm:w-10"
+                className="relative hidden h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border-2 border-primary/30 shadow-lg shadow-primary/20 dark:border-accent/40 dark:shadow-accent/20 sm:block sm:h-10 sm:w-10"
               >
                 <Image src="/lia-avatar.webp" alt="LIA" fill sizes="40px" className="object-cover" />
               </motion.div>
             )}
 
             {message.role === 'assistant' && (
-              <div className="relative mt-1 h-6 w-6 flex-shrink-0 self-start overflow-hidden rounded-full border border-[#0A2540]/30 dark:border-[#00D4B3]/40 sm:hidden">
+              <div className="relative mt-1 h-6 w-6 flex-shrink-0 self-start overflow-hidden rounded-full border border-primary/30 dark:border-accent/40 sm:hidden">
                 <Image src="/lia-avatar.webp" alt="LIA" fill sizes="24px" className="object-cover" />
               </div>
             )}
@@ -62,13 +62,13 @@ export function StudyPlannerConversationMessages({
                 transition={{ delay: index * 0.05 + 0.15, type: 'spring', stiffness: 300, damping: 20 }}
                 className={`relative max-w-full overflow-hidden px-3.5 py-2.5 shadow-sm sm:px-5 sm:py-3 ${
                   message.role === 'user'
-                    ? 'rounded-[18px] rounded-br-[6px] bg-[#0A2540] text-white shadow-[#0A2540]/25 sm:rounded-[22px]'
-                    : 'rounded-[18px] rounded-bl-[6px] border border-[#E9ECEF] bg-[#FFFFFF] text-[#0A2540] shadow-sm dark:border-[#6C757D]/30 dark:bg-[#1E2329] dark:text-white sm:rounded-[22px]'
+                    ? 'rounded-[18px] rounded-br-[6px] bg-primary text-white shadow-primary/25 sm:rounded-[22px]'
+                    : 'rounded-[18px] rounded-bl-[6px] border border-gray-200 bg-white text-primary shadow-sm dark:border-gray-500/30 dark:bg-carbon-800 dark:text-white sm:rounded-[22px]'
                 }`}
               >
                 <div className="relative z-10 break-words">
                   {message.role === 'assistant' ? (
-                    <div className="font-body text-[14px] leading-[1.6] tracking-wide text-[#0A2540] dark:text-white sm:text-[16px] sm:leading-[1.75]">
+                    <div className="font-body text-[14px] leading-[1.6] tracking-wide text-primary dark:text-white sm:text-[16px] sm:leading-[1.75]">
                       <ReactMarkdown
                         components={{
                           p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
@@ -94,9 +94,9 @@ export function StudyPlannerConversationMessages({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.3 }}
                   onClick={onOpenCourseSelector}
-                  className="flex items-center gap-2 self-start rounded-xl border border-[#0A2540]/20 bg-white px-3.5 py-2 text-sm font-medium text-[#0A2540] shadow-sm transition-all hover:border-[#00D4B3]/50 hover:bg-[#00D4B3]/5 hover:text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#1E2329] dark:text-white dark:hover:border-[#00D4B3]/50 dark:hover:bg-[#00D4B3]/10"
+                  className="flex items-center gap-2 self-start rounded-xl border border-primary/20 bg-white px-3.5 py-2 text-sm font-medium text-primary shadow-sm transition-all hover:border-accent/50 hover:bg-accent/5 hover:text-primary dark:border-gray-500/30 dark:bg-carbon-800 dark:text-white dark:hover:border-accent/50 dark:hover:bg-accent/10"
                 >
-                  <BookOpen size={15} className="text-[#00D4B3]" />
+                  <BookOpen size={15} className="text-accent" />
                   Seleccionar taller
                 </motion.button>
               )}
@@ -113,11 +113,11 @@ export function StudyPlannerConversationMessages({
           className="group flex justify-start"
         >
           <div className="flex items-end gap-2 sm:gap-2.5">
-            <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border-2 border-[#0A2540]/30 shadow-lg dark:border-[#00D4B3]/40 sm:h-10 sm:w-10">
+            <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border-2 border-primary/30 shadow-lg dark:border-accent/40 sm:h-10 sm:w-10">
               <Image src="/lia-avatar.webp" alt="LIA" fill sizes="40px" className="object-cover" />
             </div>
             <motion.div
-              className="relative overflow-hidden rounded-[20px] rounded-bl-[6px] border border-[#E9ECEF] bg-[#FFFFFF] px-4 py-3 shadow-sm dark:border-[#6C757D]/30 dark:bg-[#1E2329] sm:px-5 sm:py-3.5"
+              className="relative overflow-hidden rounded-[20px] rounded-bl-[6px] border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-gray-500/30 dark:bg-carbon-800 sm:px-5 sm:py-3.5"
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
             >
@@ -127,7 +127,7 @@ export function StudyPlannerConversationMessages({
                     key={delay}
                     animate={{ scale: [1, 1.3, 1], y: [0, -4, 0] }}
                     transition={{ duration: 0.6, repeat: Infinity, delay, ease: 'easeInOut' }}
-                    className="h-2 w-2 rounded-full bg-[#00D4B3] shadow-lg sm:h-2.5 sm:w-2.5"
+                    className="h-2 w-2 rounded-full bg-accent shadow-lg sm:h-2.5 sm:w-2.5"
                   />
                 ))}
               </div>
@@ -140,13 +140,13 @@ export function StudyPlannerConversationMessages({
 
       {isListening && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center">
-          <div className="flex items-center gap-2 rounded-full border border-[#10B981]/30 bg-[#10B981]/10 px-4 py-2 dark:bg-[#10B981]/20">
+          <div className="flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-4 py-2 dark:bg-success/20">
             <motion.div
               animate={{ scale: [1, 1.3, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
-              className="h-3 w-3 rounded-full bg-[#10B981]"
+              className="h-3 w-3 rounded-full bg-success"
             />
-            <span className="text-sm text-[#10B981]">Escuchando...</span>
+            <span className="text-sm text-success">Escuchando...</span>
           </div>
         </motion.div>
       )}

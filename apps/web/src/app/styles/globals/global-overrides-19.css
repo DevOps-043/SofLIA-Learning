@@ -1,0 +1,81 @@
+
+.dark .business-panel-layout .text-carbon-400 {
+  color: var(--org-text-color, var(--color-gray-400)) !important;
+  opacity: 0.8;
+}
+
+/* ========================================
+   BUSINESS PANEL - LIGHT MODE
+   Usa colores de preset-themes.ts lightMode:
+   bg: var(--color-gray-50), card: var(--color-bg-light), text: var(--color-legacy-1e293b), border: var(--color-gray-200)
+   ======================================== */
+
+/* Tarjetas en modo claro */
+.light .business-panel-content .bg-carbon-900:not(.no-theme),
+.light .business-panel-content .bg-carbon-800:not(.no-theme),
+.light .bg-carbon-900.business-card,
+.light .bg-carbon-800.business-card {
+  background-color: rgba(var(--org-card-background-rgb, 255, 255, 255), var(--org-card-opacity, 1)) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--org-text-color, var(--color-legacy-1e293b));
+  border: 1px solid var(--org-border-color, var(--color-gray-200));
+}
+
+/* Todas las tarjetas del business panel - modo claro */
+.light .business-panel-layout .bg-carbon-900:not(.sidebar):not(.header),
+.light .business-panel-layout .bg-carbon-800:not(.sidebar):not(.header),
+.light .business-panel-layout .from-carbon-700,
+.light .business-panel-layout .to-carbon-800,
+.light .business-panel-layout .bg-gradient-to-br {
+  background: rgba(var(--org-card-background-rgb, 255, 255, 255), var(--org-card-opacity, 1)) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--org-border-color, var(--color-gray-200));
+}
+
+.light .business-panel-layout .bg-gradient-to-br.from-carbon-700.to-carbon-800,
+.light .business-panel-layout [class*="bg-gradient-to-br"][class*="from-carbon"] {
+  background: rgba(var(--org-card-background-rgb, 255, 255, 255), var(--org-card-opacity, 1)) !important;
+}
+
+/* Texto en modo claro */
+.light .business-panel-content h1,
+.light .business-panel-content h2,
+.light .business-panel-content h3,
+.light .business-panel-content h4,
+.light .business-panel-content label,
+.light .business-panel-content p,
+.light .business-panel-layout h1,
+.light .business-panel-layout h2,
+.light .business-panel-layout h3,
+.light .business-panel-layout h4,
+.light .business-panel-layout label {
+  color: var(--org-text-color, var(--color-legacy-1e293b));
+}
+
+.light .business-panel-content .text-carbon-300,
+.light .business-panel-content .text-carbon-400 {
+  color: var(--org-text-color, var(--color-gray-500)) !important;
+  opacity: 0.8;
+}
+
+/* Inputs - modo claro */
+.light .business-panel-content input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+.light .business-panel-content textarea,
+.light .business-panel-content select {
+  color: var(--org-text-color, var(--color-legacy-1e293b)) !important;
+}
+
+.light .business-panel-layout select,
+.light .business-panel-layout option {
+  background-color: rgba(var(--org-card-background-rgb, 255, 255, 255), var(--org-card-opacity, 1)) !important;
+  color: var(--org-text-color, var(--color-legacy-1e293b)) !important;
+  border-color: var(--org-border-color, var(--color-gray-200)) !important;
+}
+
+.light .business-panel-layout input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]) {
+  background-color: rgba(var(--org-card-background-rgb, 255, 255, 255), var(--org-card-opacity, 1)) !important;
+  color: var(--org-text-color, var(--color-legacy-1e293b)) !important;
+  border-color: var(--org-border-color, var(--color-gray-200)) !important;
+}

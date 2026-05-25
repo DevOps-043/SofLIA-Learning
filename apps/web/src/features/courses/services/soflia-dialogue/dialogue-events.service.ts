@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { dialogueEventsTable } from './dialogue-tables'
 
 export async function recordDialogueEvent(
@@ -19,7 +20,7 @@ export async function recordDialogueEvent(
   })
 
   if (error) {
-    console.error('[SofLIA Dialogue] Failed to record event', {
+    techDebtLogger.error('[SofLIA Dialogue] Failed to record event', {
       eventType: input.eventType,
       message: error.message,
     })

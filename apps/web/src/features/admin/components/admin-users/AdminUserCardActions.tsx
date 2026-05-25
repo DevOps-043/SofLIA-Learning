@@ -18,7 +18,7 @@ export function AdminUserCardActions({ onEdit, onDelete, tc }: AdminUserCardActi
         <Edit3 className="h-4 w-4" />
         {tc('actions.edit')}
       </button>
-      <button type="button" onClick={onDelete} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border text-xs font-extrabold uppercase tracking-wider transition-all" style={{ backgroundColor: `${theme.dangerColor}12`, borderColor: `${theme.dangerColor}30`, color: theme.dangerColor }}>
+      <button type="button" onClick={onDelete} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border text-xs font-extrabold uppercase tracking-wider transition-all" style={{ backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`, borderColor: `color-mix(in srgb, ${theme.dangerColor} 18.8%, transparent)`, color: theme.dangerColor }}>
         <Trash2 className="h-4 w-4" />
         {tc('actions.delete')}
       </button>

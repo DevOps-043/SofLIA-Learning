@@ -26,15 +26,15 @@ export function AdminWorkshopsErrorState({
           className="rounded-[24px] border p-6 shadow-sm"
           style={{
             backgroundColor: theme.cardBg,
-            borderColor: `${theme.dangerColor}30`,
+            borderColor: `color-mix(in srgb, ${theme.dangerColor} 18.8%, transparent)`,
           }}
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             <div
               className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border"
               style={{
-                backgroundColor: `${theme.dangerColor}12`,
-                borderColor: `${theme.dangerColor}24`,
+                backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`,
+                borderColor: `color-mix(in srgb, ${theme.dangerColor} 14.1%, transparent)`,
                 color: theme.dangerColor,
               }}
             >

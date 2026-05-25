@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { SessionService } from '../../../../features/auth/services/session.service';
 import { cacheHeaders } from '../../../../lib/utils/cache-headers';
+import { apiError } from '@/lib/api/errors';
 import { logger } from '@/lib/utils/logger';
 import { createClient } from '@/lib/supabase/server';
 import { MemoryCache } from '@/lib/cache/memory-cache';
@@ -34,11 +35,7 @@ export async function GET(request: Request) {
     }
 
     if (!user) {
-      return NextResponse.json({
-        success: false,
-        error: 'No autenticado'
-      }, {
-        status: 401,
+      return apiError('UNAUTHENTICATED', 'No autenticado.', 401, {
         headers: cacheHeaders.private // NO cachear - datos sensibles
       });
     }
@@ -98,9 +95,8 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     logger.error('Error getting current user:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Error interno'
-    }, { status: 500 });
+    return apiError('INTERNAL_SERVER_ERROR', 'Error interno.', 500, {
+      headers: cacheHeaders.private
+    });
   }
 }

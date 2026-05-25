@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../../lib/supabase/server'
 import { fromLoose } from '../../../../lib/supabase/looseQuery'
 import {
@@ -38,7 +39,7 @@ export async function fetchCourseInfoRow(
     .single()
 
   if (error || !data) {
-    console.error('Error obteniendo informacion del curso:', error)
+    techDebtLogger.error('Error obteniendo informacion del curso:', error)
     return null
   }
 
@@ -86,7 +87,7 @@ export async function fetchCourseModulesRowsByCourseIds(
     .order('module_order_index', { ascending: true })
 
   if (error || !data) {
-    console.error('Error obteniendo modulos del curso:', error)
+    techDebtLogger.error('Error obteniendo modulos del curso:', error)
     return []
   }
 
@@ -105,7 +106,7 @@ export async function fetchLessonRows(lessonIds: string[]): Promise<LessonRow[]>
     .in('lesson_id', lessonIds)
 
   if (error || !data) {
-    console.error('Error obteniendo lecciones:', error)
+    techDebtLogger.error('Error obteniendo lecciones:', error)
     return []
   }
 
@@ -136,7 +137,7 @@ export async function fetchLessonEstimateRows(
     .in('lesson_id', lessonIds)
 
   if (error || !data) {
-    console.error('Error obteniendo estimaciones de leccion:', error)
+    techDebtLogger.error('Error obteniendo estimaciones de leccion:', error)
     return []
   }
 
@@ -157,7 +158,7 @@ export async function fetchLessonActivityRows(
     .in('lesson_id', lessonIds)
 
   if (error || !data) {
-    console.error('Error obteniendo actividades de leccion:', error)
+    techDebtLogger.error('Error obteniendo actividades de leccion:', error)
     return []
   }
 
@@ -178,7 +179,7 @@ export async function fetchLessonMaterialRows(
     .in('lesson_id', lessonIds)
 
   if (error || !data) {
-    console.error('Error obteniendo materiales de leccion:', error)
+    techDebtLogger.error('Error obteniendo materiales de leccion:', error)
     return []
   }
 
@@ -227,7 +228,7 @@ export async function fetchAvailableCourseRows(params: {
   const { data, error } = await query
 
   if (error || !data) {
-    console.error('Error obteniendo cursos disponibles:', error)
+    techDebtLogger.error('Error obteniendo cursos disponibles:', error)
     return []
   }
 

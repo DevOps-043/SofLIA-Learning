@@ -1,4 +1,6 @@
-import { createClient } from '../../../lib/supabase/server';
+import { createAdminClient } from '../../../lib/supabase/admin';
+import { escapeIlikePattern } from '../../../lib/supabase/ilike-escape';
+import { SELECT_COLUMNS } from '../../../lib/supabase/select-types';
 import type { Database } from '../../../lib/supabase/types';
 import {
   OAuthAccount,
@@ -6,9 +8,13 @@ import {
   OAuthTokens,
   OAuthUserRecord,
 } from '../types/oauth.types';
+import {
+  createSupabaseAuthUserRecordWithLegacyId,
+  deleteSupabaseAuthUser,
+} from './supabase-auth-bridge.service';
 
 type OAuthAccountRow = Database['public']['Tables']['oauth_accounts']['Row'];
-type OAuthSupabaseClient = Awaited<ReturnType<typeof createClient>>;
+type OAuthSupabaseClient = ReturnType<typeof createAdminClient>;
 
 interface OAuthMembershipUserRow {
   user_id: string;
@@ -40,7 +46,7 @@ export class OAuthService {
     providerAccountId: string,
     tokens: OAuthTokens
   ): Promise<OAuthAccount> {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const expiresAt = tokens.expires_at ? new Date(tokens.expires_at) : null;
 
@@ -79,11 +85,11 @@ export class OAuthService {
     provider: OAuthProvider,
     providerAccountId: string
   ): Promise<OAuthAccount | null> {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const { data, error } = await supabase
       .from('oauth_accounts')
-      .select('*')
+      .select(SELECT_COLUMNS.oauth_accounts)
       .eq('provider', provider)
       .eq('provider_account_id', providerAccountId)
       .single();
@@ -102,11 +108,11 @@ export class OAuthService {
    * Busca cuentas OAuth por usuario
    */
   static async findOAuthAccountsByUser(userId: string): Promise<OAuthAccount[]> {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const { data, error } = await supabase
       .from('oauth_accounts')
-      .select('*')
+      .select(SELECT_COLUMNS.oauth_accounts)
       .eq('user_id', userId);
 
     if (error) {
@@ -123,7 +129,7 @@ export class OAuthService {
     provider: OAuthProvider,
     providerAccountId: string
   ): Promise<void> {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const { error } = await supabase
       .from('oauth_accounts')
@@ -143,13 +149,16 @@ export class OAuthService {
     email: string,
     preferredOrganizationId?: string
   ): Promise<OAuthUserRecord | null> {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const normalizedEmail = email.trim();
+    if (!normalizedEmail) {
+      return null;
+    }
 
     const { data, error } = await supabase
       .from('users')
       .select('id, email, username, first_name, last_name, email_verified, cargo_rol')
-      .ilike('email', normalizedEmail)
+      .ilike('email', escapeIlikePattern(normalizedEmail))
       .limit(10);
 
     if (error) {
@@ -224,7 +233,7 @@ export class OAuthService {
     cargoRol?: string,
     _typeRol?: string // Mantener parámetro por compatibilidad pero ignorarlo
   ): Promise<string> {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // Generar username base desde email
     const baseUsername = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -241,6 +250,18 @@ export class OAuthService {
       const userId = crypto.randomUUID();
 
       try {
+        await createSupabaseAuthUserRecordWithLegacyId({
+          cargo_rol: cargoRol || 'Usuario',
+          display_name: `${firstName} ${lastName}`.trim(),
+          email,
+          email_verified: true,
+          first_name: firstName,
+          id: userId,
+          last_name: lastName,
+          profile_picture_url: profilePicture || null,
+          username,
+        });
+
         const { data, error } = await supabase
           .from('users')
           .insert({
@@ -252,7 +273,6 @@ export class OAuthService {
             display_name: `${firstName} ${lastName}`.trim(),
             email_verified: true, // OAuth emails ya están verificados
             profile_picture_url: profilePicture || null,
-            password_hash: '', // String vacío para usuarios OAuth
             cargo_rol: cargoRol || 'Usuario',
             // NOTA: type_rol fue eliminado - el cargo va en organization_users.job_title
           })
@@ -268,6 +288,7 @@ export class OAuthService {
 
         // ✅ ISSUE #13: Si error es por username duplicado (23505), reintentar
         if (error.code === '23505' && error.message.includes('username')) {
+          await deleteSupabaseAuthUser(userId);
           // Exponential backoff: 0ms, 100ms, 200ms, 300ms, 400ms
           const backoffMs = attempt * 100;
           if (backoffMs > 0) {
@@ -277,9 +298,11 @@ export class OAuthService {
         }
 
         // Otro tipo de error (no relacionado con username)
+        await deleteSupabaseAuthUser(userId);
         throw new Error(`Error creando usuario: ${error.message}`);
 
       } catch (err) {
+        await deleteSupabaseAuthUser(userId);
         // Si es el último intento, propagar el error
         if (attempt === maxAttempts - 1) {
           throw new Error(

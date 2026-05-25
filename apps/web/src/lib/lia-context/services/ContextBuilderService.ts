@@ -1,10 +1,31 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Servicio orquestador para construir contexto de LIA
  * Agrupa fragmentos de múltiples providers y construye el prompt final
  */
 
-import type { ContextRequest, BuiltContext, ContextFragment } from '../types';
-import type { LiaContextProvider } from '../providers/base/types';
+import type { ContextBuildOptions, ContextFragment } from '../types';
+
+type ContextRequest = ContextBuildOptions;
+
+interface BuiltContext {
+  basePrompt: string;
+  fragments: ContextFragment[];
+  totalTokens: number;
+  metadata: {
+    buildTime: number;
+    cacheHits: number;
+    cacheMisses: number;
+    providersUsed: string[];
+  };
+}
+
+interface LiaContextProvider {
+  name: string;
+  priority: number;
+  getContext(options: ContextBuildOptions): Promise<ContextFragment | null>;
+  shouldInclude(contextType: string): boolean;
+}
 
 export class ContextBuilderService {
   private static providers: LiaContextProvider[] = [];
@@ -30,8 +51,8 @@ export class ContextBuilderService {
     let cacheMisses = 0;
     
     // 1. Obtener fragmentos de todos los providers relevantes
-    const relevantProviders = this.providers.filter(p => 
-      p.shouldInclude(request)
+    const relevantProviders = this.providers.filter(p =>
+      p.shouldInclude(request.contextType)
     );
     
     
@@ -50,7 +71,7 @@ export class ContextBuilderService {
         return null;
       } catch (error) {
         const providerTime = Date.now() - providerStartTime;
-        console.error(`[ContextBuilder] Error en provider ${provider.name} (${providerTime}ms):`, error);
+        techDebtLogger.error(`[ContextBuilder] Error en provider ${provider.name} (${providerTime}ms):`, error);
         return null;
       }
     });
@@ -110,4 +131,3 @@ export class ContextBuilderService {
     this.providers = [];
   }
 }
-

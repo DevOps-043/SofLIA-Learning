@@ -229,8 +229,8 @@ export function BusinessLearningPathDefaultModal({
                 <div
                   className="rounded-2xl border px-4 py-3 text-sm"
                   style={{
-                    backgroundColor: `${theme.dangerColor}12`,
-                    borderColor: `${theme.dangerColor}30`,
+                    backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`,
+                    borderColor: `color-mix(in srgb, ${theme.dangerColor} 18.8%, transparent)`,
                     color: theme.dangerColor,
                   }}
                 >
@@ -311,8 +311,8 @@ export function BusinessLearningPathDefaultModal({
                           disabled={isSaving}
                           className="rounded-xl border p-2 transition disabled:opacity-50"
                           style={{
-                            backgroundColor: `${theme.dangerColor}0d`,
-                            borderColor: `${theme.dangerColor}25`,
+                            backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 5.1%, transparent)`,
+                            borderColor: `color-mix(in srgb, ${theme.dangerColor} 14.5%, transparent)`,
                             color: theme.dangerColor,
                           }}
                         >

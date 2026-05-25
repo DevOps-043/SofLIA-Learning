@@ -39,10 +39,10 @@ export default function PlansPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-white dark:bg-[#0F1419] flex items-center justify-center pt-24">
+      <main className="min-h-screen bg-white dark:bg-carbon-900 flex items-center justify-center pt-24">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#0A2540]/30 dark:border-[#00D4B3]/30 border-t-[#0A2540] dark:border-t-[#00D4B3] rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-[#6C757D] dark:text-white/70">Cargando...</p>
+          <div className="w-12 h-12 border-4 border-primary/30 dark:border-accent/30 border-t-primary dark:border-t-accent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-500 dark:text-white/70">Cargando...</p>
         </div>
       </main>
     );
@@ -53,7 +53,7 @@ export default function PlansPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white dark:bg-[#0F1419]">
+    <main className="min-h-screen bg-white dark:bg-carbon-900">
       {/* Pricing Section */}
       <section className="py-16 pt-32">
         <PricingSection
@@ -79,7 +79,7 @@ export default function PlansPage() {
       />
 
       {/* CTA Section */}
-      <section className="py-16 bg-white dark:bg-[#0F1419]">
+      <section className="py-16 bg-white dark:bg-carbon-900">
         <div className="container mx-auto px-4">
           <motion.div
             className="text-center max-w-3xl mx-auto"
@@ -88,14 +88,14 @@ export default function PlansPage() {
             viewport={{ once: true }}
             variants={fadeIn}
           >
-            <h2 className="text-4xl font-bold mb-6 text-[#0A2540] dark:text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>
+            <h2 className="text-4xl font-bold mb-6 text-primary dark:text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>
               ¿Necesitas algo personalizado?
             </h2>
-            <p className="text-xl mb-8 text-[#6C757D] dark:text-white/70" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
+            <p className="text-xl mb-8 text-gray-500 dark:text-white/70" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
               Contacta con nuestro equipo para un plan Enterprise a medida
             </p>
             <Link href="/auth">
-              <Button variant="primary" size="lg" className="group shadow-lg bg-[#0A2540] hover:bg-[#0d2f4d] text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+              <Button variant="primary" size="lg" className="group shadow-lg bg-primary hover:bg-primary text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
                 <span className="flex items-center gap-2">
                   Hablar con Ventas
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

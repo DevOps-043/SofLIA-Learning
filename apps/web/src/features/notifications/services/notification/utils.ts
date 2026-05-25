@@ -1,10 +1,5 @@
 import type { Json } from '../../../../lib/supabase/types'
-import type {
-  CreateNotificationParams,
-  Notification,
-  NotificationCursor,
-  NotificationFilters,
-} from './types'
+import type { CreateNotificationParams } from './types'
 
 export const NON_DUPLICATE_NOTIFICATION_TYPES: Record<string, number> = {
   system_login_success: 5,
@@ -52,94 +47,17 @@ export function buildNotificationInsertPayload(
   }
 }
 
-export function normalizeNotificationFilters(filters?: NotificationFilters) {
-  return {
-    status: filters?.status,
-    notificationType: filters?.notificationType,
-    priority: filters?.priority,
-    limit:
-      filters?.limit && filters.limit > 0 ? Math.min(filters.limit, 100) : 50,
-    offset: filters?.offset && filters.offset >= 0 ? filters.offset : 0,
-    cursor: filters?.cursor?.trim() || undefined,
-    orderBy: filters?.orderBy || 'created_at',
-    orderDirection: filters?.orderDirection || 'desc',
-  }
-}
-
-export function encodeNotificationCursor(
-  notification: Pick<Notification, 'created_at' | 'notification_id'>,
-) {
-  return `${notification.created_at}::${notification.notification_id}`
-}
-
-export function parseNotificationCursor(
-  cursor?: string,
-): NotificationCursor | null {
-  if (!cursor) {
-    return null
-  }
-
-  const [createdAt, notificationId] = cursor.split('::')
-  if (!createdAt || !notificationId) {
-    return null
-  }
-
-  const parsedDate = new Date(createdAt)
-  if (Number.isNaN(parsedDate.getTime())) {
-    return null
-  }
-
-  return {
-    createdAt,
-    notificationId,
-  }
-}
-
-export function buildNextNotificationCursor(
-  notifications: Array<Pick<Notification, 'created_at' | 'notification_id'>>,
-) {
-  const lastNotification = notifications[notifications.length - 1]
-
-  if (!lastNotification) {
-    return null
-  }
-
-  return encodeNotificationCursor(lastNotification)
-}
-
-export function shouldUseNotificationCursorPagination(filters: {
-  cursor?: string
-  offset: number
-  orderBy: 'created_at' | 'priority' | 'status'
-}) {
-  return filters.orderBy === 'created_at' && (Boolean(filters.cursor) || filters.offset === 0)
-}
-
-export function filterExpiredNotifications<T extends { expires_at?: string | null }>(
-  notifications: T[],
-  now = new Date(),
-) {
-  return notifications.filter((notification) => {
-    if (!notification.expires_at) {
-      return true
-    }
-
-    return new Date(notification.expires_at) > now
-  })
-}
-
-export function attachUsersToNotifications<
-  T extends { user_id: string; users?: unknown },
-  U extends { id: string },
->(notifications: T[], users: U[]) {
-  const usersMap = new Map(users.map((user) => [user.id, user]))
-
-  return notifications.map((notification) => ({
-    ...notification,
-    users: usersMap.get(notification.user_id) || null,
-  }))
-}
-
-export function buildNotificationsActiveFilter(now: string) {
-  return `expires_at.is.null,expires_at.gt.${now}`
-}
+export {
+  buildNextNotificationCursor,
+  encodeNotificationCursor,
+  parseNotificationCursor,
+} from './notification-cursor.utils'
+export {
+  buildNotificationsActiveFilter,
+  normalizeNotificationFilters,
+  shouldUseNotificationCursorPagination,
+} from './notification-filter.utils'
+export {
+  attachUsersToNotifications,
+  filterExpiredNotifications,
+} from './notification-user.utils'

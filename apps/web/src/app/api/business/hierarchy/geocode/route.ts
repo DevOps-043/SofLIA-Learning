@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
+import { geocodeSchema, type GeocodeBody } from '../_schemas';
 
 /**
  * POST /api/business/hierarchy/geocode
@@ -14,13 +18,11 @@ import { logger } from '@/lib/utils/logger';
  *   postal_code?: string
  * }
  */
-export async function POST(request: NextRequest) {
+async function handlePost(request: NextRequest, body: GeocodeBody) {
   try {
-    // Verificar autenticación business
     const auth = await requireBusiness();
     if (auth instanceof NextResponse) return auth;
 
-    const body = await request.json();
     const { address, city, state, country, postal_code } = body;
 
     // Construir query structured para Nominatim (es más preciso)
@@ -40,9 +42,10 @@ export async function POST(request: NextRequest) {
     const hasStructuredParams = address || city || state || country || postal_code;
 
     if (!hasStructuredParams) {
-      return NextResponse.json(
-        { success: false, error: 'Debes proporcionar al menos un campo de ubicación (calle, ciudad, estado, etc.)' },
-        { status: 400 }
+      return apiError(
+        'MISSING_LOCATION_FIELDS',
+        'Debes proporcionar al menos un campo de ubicación (calle, ciudad, estado, etc.)',
+        400,
       );
     }
 
@@ -50,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     const nominatimUrl = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
 
-    const response = await fetch(nominatimUrl, {
+    const response = await fetchWithCircuitBreaker('nominatim-geocode', nominatimUrl, {
       headers: {
         'User-Agent': 'Aprende-y-Aplica/1.0 (contact@aprendeyapla.com)', // Requerido por Nominatim
         'Accept-Language': 'es,en',
@@ -91,7 +94,7 @@ export async function POST(request: NextRequest) {
       logger.info(`🔍 Geocoding request (fallback): ${query}`);
 
       const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`;
-      const fallbackRes = await fetch(fallbackUrl, {
+      const fallbackRes = await fetchWithCircuitBreaker('nominatim-geocode', fallbackUrl, {
         headers: {
           'User-Agent': 'Aprende-y-Aplica/1.0 (contact@aprendeyapla.com)',
           'Accept-Language': 'es,en',
@@ -150,15 +153,17 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logger.error('❌ Error en geocoding:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Error desconocido al buscar coordenadas'
-      },
-      { status: 500 }
+    return apiError(
+      'GEOCODING_FAILED',
+      error instanceof Error
+        ? error.message
+        : 'Error desconocido al buscar coordenadas',
+      500,
     );
   }
 }
+
+export const POST = withZodBody(geocodeSchema, handlePost);
 
 /**
  * GET /api/business/hierarchy/geocode
@@ -181,7 +186,7 @@ export async function GET(request: NextRequest) {
 
     const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&addressdetails=1`;
 
-    const response = await fetch(url, {
+    const response = await fetchWithCircuitBreaker('nominatim-geocode', url, {
       headers: {
         'User-Agent': 'Aprende-y-Aplica/1.0 (contact@aprendeyapla.com)',
         'Accept-Language': 'es,en',

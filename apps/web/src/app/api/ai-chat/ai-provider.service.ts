@@ -2,6 +2,11 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import { logger } from '../../../lib/utils/logger';
 import { calculateCost, logOpenAIUsage } from '../../../lib/openai/usage-monitor';
 import {
+  CIRCUIT_BREAKER_DEFAULTS,
+  executeWithCircuitBreaker,
+  fetchWithCircuitBreaker,
+} from '@/lib/resilience/circuit-breaker'
+import {
   LANGUAGE_CONFIG,
   type SupportedLanguage,
 } from './services/language-detection.service'
@@ -171,13 +176,16 @@ ${antiMarkdownInstructions}
     ];
 
   // Optimizar para respuestas más rápidas
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${openaiApiKey}`,
-    },
-    body: JSON.stringify({
+  const response = await fetchWithCircuitBreaker(
+    'openai-chat-completions',
+    'https://api.openai.com/v1/chat/completions',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openaiApiKey}`,
+      },
+      body: JSON.stringify({
       model: process.env.CHATBOT_MODEL || 'gpt-4o-mini',
       messages: messages,
       // ✅ OPTIMIZACIÓN: Configuración específica para onboarding (conversación por voz)
@@ -196,8 +204,10 @@ ${antiMarkdownInstructions}
         frequency_penalty: 0.3, // Variar vocabulario
         top_p: 0.9,             // Más determinístico
       }),
-    }),
-  });
+      }),
+    },
+    CIRCUIT_BREAKER_DEFAULTS.openai,
+  );
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -314,7 +324,6 @@ export async function callGemini(
   // Valores permitidos: 'minimal', 'low', 'medium', 'high'
   const thinkingLevel = process.env.GEMINI_THINKING_LEVEL;
   if (thinkingLevel && ['minimal', 'low', 'medium', 'high'].includes(thinkingLevel)) {
-    // @ts-ignore - Propiedades nuevas en SDK beta para Gemini 3
     generationConfig.thinkingConfig = {
       includeThoughts: false, // Mantener en false para no ensuciar la UI con el proceso de pensamiento
       thinkingLevel: thinkingLevel
@@ -338,7 +347,11 @@ export async function callGemini(
 
     // Enviar mensaje
     logger.info('🦄 [GEMINI API CALL] Enviando mensaje a Google Gemini...', { model: modelName, messageLength: message.length });
-    const result = await chatSession.sendMessage(message);
+    const result = await executeWithCircuitBreaker(
+      'gemini-ai-chat',
+      () => chatSession.sendMessage(message),
+      CIRCUIT_BREAKER_DEFAULTS.gemini,
+    );
     const response = result.response;
     const text = response.text();
 

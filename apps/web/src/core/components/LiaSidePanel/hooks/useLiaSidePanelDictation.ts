@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { Dispatch, RefObject, SetStateAction } from 'react';
 import { getLiaSpeechLanguage } from '../services/lia-side-panel-voice.service';
@@ -140,7 +141,7 @@ export function useLiaSidePanelDictation({
 
   const toggleDictation = useCallback(async () => {
     if (!isDictationEnabled) {
-      console.warn('Dictado no esta habilitado en la configuracion');
+      techDebtLogger.warn('Dictado no esta habilitado en la configuracion');
       return;
     }
 
@@ -244,7 +245,7 @@ export function useLiaSidePanelDictation({
       };
 
       recognition.onerror = (event: SpeechErrorEvent) => {
-        console.error('Error en reconocimiento de voz:', event.error);
+        techDebtLogger.error('Error en reconocimiento de voz:', event.error);
         if (event.error === 'no-speech') {
           // Mark for restart so onend resumes instead of stopping
           if (isDictatingRef.current) {
@@ -280,7 +281,7 @@ export function useLiaSidePanelDictation({
 
       recognition.start();
     } catch (error: unknown) {
-      console.error('Error iniciando dictado:', error);
+      techDebtLogger.error('Error iniciando dictado:', error);
       setIsDictating(false);
       setIsProcessingDictation(false);
 

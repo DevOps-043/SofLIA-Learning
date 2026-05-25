@@ -3,6 +3,12 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import { SubscriptionService } from '@/features/business-panel/services/subscription.service'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import {
+  assignCoursesSchema,
+  type AssignCoursesBody,
+} from '@/app/api/business/hierarchy/_schemas'
 
 interface RouteContext {
   params: Promise<{ orgSlug: string }>;
@@ -23,17 +29,18 @@ function getErrorMessage(error: unknown): string {
 /**
  * POST /api/[orgSlug]/business/hierarchy/courses/assign
  */
-export async function POST(request: NextRequest, { params }: RouteContext) {
+async function handlePost(
+  _request: NextRequest,
+  body: AssignCoursesBody,
+  { params }: RouteContext,
+) {
   try {
     const { orgSlug } = await params;
     const auth = await requireBusiness({ organizationSlug: orgSlug });
     if (auth instanceof NextResponse) return auth;
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'No tienes una organización asignada'
-      }, { status: 403 })
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403)
     }
 
     const organizationId = auth.organizationId;
@@ -42,21 +49,14 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     // Validar membresía
     const hasSubscription = await SubscriptionService.hasActiveSubscription(userId, organizationId)
     if (!hasSubscription) {
-      return NextResponse.json({
-        success: false,
-        error: 'Se requiere una membresía activa (Team/Enterprise) para asignar cursos'
-      }, { status: 403 })
+      return apiError(
+        'NO_ACTIVE_SUBSCRIPTION',
+        'Se requiere una membresía activa (Team/Enterprise) para asignar cursos',
+        403,
+      )
     }
 
-    const body = await request.json()
     const { entity_id, course_ids, start_date, due_date, approach, message } = body
-
-    if (!entity_id || !course_ids || !Array.isArray(course_ids) || course_ids.length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'Se requiere entity_id (node_id) y course_ids (array no vacío)'
-      }, { status: 400 })
-    }
 
     const supabase = await createClient()
 
@@ -69,10 +69,11 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       .single()
 
     if (nodeError || !node) {
-      return NextResponse.json({
-        success: false,
-        error: 'Nodo no encontrado o no pertenece a tu organización'
-      }, { status: 404 })
+      return apiError(
+        'NODE_NOT_FOUND',
+        'Nodo no encontrado o no pertenece a tu organización',
+        404,
+      )
     }
 
     // 2. Obtener usuarios
@@ -83,10 +84,11 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       .returns<OrganizationNodeUserRow[]>()
 
     if (usersError) {
-      return NextResponse.json({
-        success: false,
-        error: 'Error al obtener usuarios del nodo'
-      }, { status: 500 })
+      return apiError(
+        'NODE_USERS_FETCH_FAILED',
+        'Error al obtener usuarios del nodo',
+        500,
+      )
     }
 
     const user_ids = nodeUsers?.map((user) => user.user_id) || []
@@ -101,20 +103,22 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       .returns<OrganizationCoursePurchaseRow[]>()
 
     if (purchaseError) {
-      return NextResponse.json({
-        success: false,
-        error: 'Error al validar cursos adquiridos'
-      }, { status: 500 })
+      return apiError(
+        'COURSE_VALIDATION_FAILED',
+        'Error al validar cursos adquiridos',
+        500,
+      )
     }
 
     const purchasedCourseIds = orgPurchases?.map((purchase) => purchase.course_id) || []
     const missingCourses = course_ids.filter((id: string) => !purchasedCourseIds.includes(id))
 
     if (missingCourses.length > 0) {
-      return NextResponse.json({
-        success: false,
-        error: `La organización no ha adquirido algunos de los cursos especificados`
-      }, { status: 403 })
+      return apiError(
+        'COURSES_NOT_PURCHASED',
+        'La organización no ha adquirido algunos de los cursos especificados',
+        403,
+      )
     }
 
     // Batch fetch course titles instead of N+1 loop
@@ -193,9 +197,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
   } catch (error: unknown) {
     logger.error('Error en POST assign:', error)
-    return NextResponse.json({
-      success: false,
-      error: getErrorMessage(error)
-    }, { status: 500 })
+    return apiError('ASSIGN_COURSES_FAILED', getErrorMessage(error), 500)
   }
 }
+
+export const POST = withZodBody(assignCoursesSchema, handlePost)

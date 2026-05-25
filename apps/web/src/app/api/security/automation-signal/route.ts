@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { withZodBody } from '@/lib/api/with-validation'
 import {
   getSecurityStateCookieOptions,
   mergeSecurityState,
@@ -8,18 +9,13 @@ import {
 } from '@/lib/security/security-state'
 import { recordSecurityEvent } from '@/lib/security/security-events'
 
+import { automationSignalSchema, type AutomationSignalBody } from '../_schemas'
+
 export const dynamic = 'force-dynamic'
 
-interface AutomationSignalPayload {
-  webdriver?: boolean
-  headlessUa?: boolean
-  headlessBrand?: boolean
-  playwright?: boolean
-  selenium?: boolean
-  cdcArtifacts?: number
-  emptyPlugins?: boolean
-  emptyLanguages?: boolean
-  path?: string
+const RESPONSE_HEADERS = {
+  'Cache-Control': 'private, no-store, max-age=0',
+  'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet, noimageindex',
 }
 
 function toBoolean(value: unknown) {
@@ -30,7 +26,7 @@ function toNumber(value: unknown) {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0
 }
 
-function scoreAutomationSignals(payload: AutomationSignalPayload) {
+function scoreAutomationSignals(payload: AutomationSignalBody) {
   let score = 0
   const reasons: string[] = []
 
@@ -80,29 +76,11 @@ function scoreAutomationSignals(payload: AutomationSignalPayload) {
   }
 }
 
-async function readPayload(request: NextRequest) {
-  try {
-    return (await request.json()) as AutomationSignalPayload
-  } catch {
-    return null
-  }
-}
-
-export async function POST(request: NextRequest) {
-  const payload = await readPayload(request)
-  const responseHeaders = {
-    'Cache-Control': 'private, no-store, max-age=0',
-    'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet, noimageindex',
-  }
-
-  if (!payload) {
-    return new NextResponse(null, { status: 204, headers: responseHeaders })
-  }
-
+async function handlePost(request: NextRequest, payload: AutomationSignalBody) {
   const { score, reasons } = scoreAutomationSignals(payload)
 
   if (score < 25) {
-    return new NextResponse(null, { status: 204, headers: responseHeaders })
+    return new NextResponse(null, { status: 204, headers: RESPONSE_HEADERS })
   }
 
   const currentState = readSecurityStateFromRequest(request)
@@ -116,7 +94,7 @@ export async function POST(request: NextRequest) {
 
   const response = new NextResponse(null, {
     status: 204,
-    headers: responseHeaders,
+    headers: RESPONSE_HEADERS,
   })
   response.cookies.set(
     SECURITY_STATE_COOKIE_NAME,
@@ -141,3 +119,7 @@ export async function POST(request: NextRequest) {
 
   return response
 }
+
+export const POST = withZodBody(automationSignalSchema, handlePost, {
+  emptyBodyFallback: {},
+})

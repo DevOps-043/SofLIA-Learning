@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin';
+import { logger as techDebtLogger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '@/features/auth/services/session.service';
 
@@ -14,7 +15,7 @@ import { SessionService } from '@/features/auth/services/session.service';
  */
 export async function GET(
     request: NextRequest,
-    { params }: { params: { lessonId: string } }
+    { params }: { params: Promise<{ lessonId: string }> }
 ) {
     try {
         // Use SessionService to get user (matches app's custom auth system)
@@ -27,7 +28,8 @@ export async function GET(
         // Use admin client after SessionService auth to avoid RLS/session drift.
         const supabase = createAdminClient();
 
-        const { lessonId } = params;
+        // Next.js 15: `params` es asíncrono y debe await-earse antes de usarlo.
+        const { lessonId } = await params;
 
         if (!lessonId) {
             return NextResponse.json({ error: 'lessonId is required' }, { status: 400 });
@@ -44,7 +46,7 @@ export async function GET(
             .maybeSingle();
 
         if (error) {
-            console.error('[Resume API] Error fetching tracking:', error);
+            techDebtLogger.error('[Resume API] Error fetching tracking:', error);
             return NextResponse.json({ error: 'Database error' }, { status: 500 });
         }
 
@@ -94,7 +96,7 @@ export async function GET(
             status: lessonProgress?.is_completed ? 'completed' : tracking.status
         });
     } catch (error) {
-        console.error('[Resume API] Unexpected error:', error);
+        techDebtLogger.error('[Resume API] Unexpected error:', error);
         return NextResponse.json({
             error: 'Internal server error',
             details: process.env.NODE_ENV === 'development' ? String(error) : undefined

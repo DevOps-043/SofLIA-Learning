@@ -49,7 +49,7 @@ export function AuthTabs() {
   return (
     <Suspense fallback={
       <div className="w-full h-64 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-[#0A2540]/30 dark:border-[#00D4B3]/30 border-t-[#0A2540] dark:border-t-[#00D4B3] rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-primary/30 dark:border-accent/30 border-t-primary dark:border-t-accent rounded-full animate-spin"></div>
       </div>
     }>
       <AuthTabsWithProvider />

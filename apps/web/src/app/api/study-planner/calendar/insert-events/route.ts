@@ -1,11 +1,12 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { SessionService } from '../../../../../features/auth/services/session.service'
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service'
-import {
-  buildEventsToInsert,
-  type InsertEventsRequest,
-} from './insert-events-format.service'
+import { insertEventsSchema, type InsertEventsBody } from '../../_schemas'
+import { buildEventsToInsert } from './insert-events-format.service'
 
 function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -33,45 +34,42 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Error interno del servidor'
 }
 
-export async function POST(request: NextRequest) {
+async function handlePost(_request: NextRequest, body: InsertEventsBody) {
   try {
     const user = await SessionService.getCurrentUser()
 
     if (!user) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+      return apiError('UNAUTHENTICATED', 'No autorizado', 401)
     }
 
-    const body: InsertEventsRequest = await request.json()
     const { lessonDistribution, timezone, planName } = body
-
-    if (!lessonDistribution || !Array.isArray(lessonDistribution) || lessonDistribution.length === 0) {
-      return NextResponse.json({
-        error: 'No hay sesiones para insertar',
-      }, { status: 400 })
-    }
 
     const supabase = createAdminClient()
     const { data: integrations, error: integrationError } = await supabase
       .from('calendar_integrations')
-      .select('*')
+      .select(SELECT_COLUMNS.calendar_integrations)
       .eq('user_id', user.id)
       .order('updated_at', { ascending: false })
       .limit(1)
 
     if (integrationError || !integrations || integrations.length === 0) {
-      return NextResponse.json({
-        error: 'No hay calendario conectado. Por favor, conecta tu calendario primero.',
-        requiresConnection: true,
-      }, { status: 400 })
+      return apiError(
+        'CALENDAR_NOT_CONNECTED',
+        'No hay calendario conectado. Por favor, conecta tu calendario primero.',
+        400,
+        { details: { requiresConnection: true } },
+      )
     }
 
     const integration = integrations[0] as CalendarIntegrationRow
     const accessToken = await resolveAccessToken(user.id, integration)
     if (!accessToken) {
-      return NextResponse.json({
-        error: 'Token expirado y no se pudo refrescar. Por favor, reconecta tu calendario.',
-        requiresReconnection: true,
-      }, { status: 401 })
+      return apiError(
+        'CALENDAR_TOKEN_EXPIRED',
+        'Token expirado y no se pudo refrescar. Por favor, reconecta tu calendario.',
+        401,
+        { details: { requiresReconnection: true } },
+      )
     }
 
     const calendarId = await resolveCalendarId(user.id, integration.provider, accessToken)
@@ -101,13 +99,12 @@ export async function POST(request: NextRequest) {
         : `Se insertaron ${insertedCount} de ${eventsToInsert.length} eventos. ${failedCount} fallaron.`,
     })
   } catch (error: unknown) {
-    console.error('[Insert Events] Error general:', error)
-    return NextResponse.json({
-      error: getErrorMessage(error),
-      success: false,
-    }, { status: 500 })
+    techDebtLogger.error('[Insert Events] Error general:', error)
+    return apiError('INSERT_EVENTS_FAILED', getErrorMessage(error), 500)
   }
 }
+
+export const POST = withZodBody(insertEventsSchema, handlePost)
 
 async function resolveAccessToken(
   userId: string,
@@ -138,7 +135,7 @@ async function resolveCalendarId(
   if (calendarId) {
     await CalendarIntegrationService.saveSecondaryCalendarId(userId, calendarId)
   } else {
-    console.warn('[Insert Events] No se pudo crear calendario secundario, usando primario')
+    techDebtLogger.warn('[Insert Events] No se pudo crear calendario secundario, usando primario')
   }
 
   return calendarId
@@ -171,7 +168,7 @@ async function insertCalendarEvents(params: {
         await new Promise((resolve) => setTimeout(resolve, throttleMs))
       }
     } catch (error: unknown) {
-      console.error(`[Insert Events] Error insertando evento ${index + 1}:`, error)
+      techDebtLogger.error(`[Insert Events] Error insertando evento ${index + 1}:`, error)
       results.push({ success: false, error: getErrorMessage(error), index })
     }
   }

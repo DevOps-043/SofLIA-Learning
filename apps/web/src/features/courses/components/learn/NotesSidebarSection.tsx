@@ -38,7 +38,7 @@ export function NotesSidebarSection({
     <>
       <div className="flex items-center justify-between mb-4">
         <h3
-          className="text-[#0A2540] dark:text-white font-semibold text-sm"
+          className="text-primary dark:text-white font-semibold text-sm"
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}
         >
           {t("leftPanel.notesSection.myNotes")}
@@ -47,7 +47,7 @@ export function NotesSidebarSection({
           {!isCollapsed && (
             <button
               onClick={onCreateNote}
-              className="p-1.5 hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30 rounded-lg transition-colors"
+              className="p-1.5 hover:bg-gray-200/50 dark:hover:bg-primary/30 rounded-lg transition-colors"
               title={t("leftPanel.notesSection.newNote")}
             >
               <Plus className="w-4 h-4 text-gray-700 dark:text-white/70" />
@@ -55,7 +55,7 @@ export function NotesSidebarSection({
           )}
           <button
             onClick={onToggleCollapsed}
-            className="p-1.5 hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30 rounded-lg transition-colors"
+            className="p-1.5 hover:bg-gray-200/50 dark:hover:bg-primary/30 rounded-lg transition-colors"
             title={
               isCollapsed
                 ? t("leftPanel.notesSection.expandNotes")
@@ -82,7 +82,7 @@ export function NotesSidebarSection({
           >
             <div className="space-y-3 mb-6">
               <h3
-                className="text-[#0A2540] dark:text-white font-semibold text-sm"
+                className="text-primary dark:text-white font-semibold text-sm"
                 style={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}
               >
                 {t("leftPanel.notesSection.savedNotes")}
@@ -90,15 +90,15 @@ export function NotesSidebarSection({
 
               <div className="space-y-2">
                 {savedNotes.length === 0 ? (
-                  <div className="bg-white dark:bg-[#1E2329] rounded-xl p-4 border border-[#E9ECEF] dark:border-[#6C757D]/30 text-center">
+                  <div className="bg-white dark:bg-carbon-800 rounded-xl p-4 border border-gray-200 dark:border-gray-500/30 text-center">
                     <p
-                      className="text-sm text-[#0A2540] dark:text-white"
+                      className="text-sm text-primary dark:text-white"
                       style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
                     >
                       {t("leftPanel.notesSection.noSavedNotes")}
                     </p>
                     <p
-                      className="text-xs text-[#6C757D] dark:text-white/60 mt-1"
+                      className="text-xs text-gray-500 dark:text-white/60 mt-1"
                       style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
                     >
                       {t("leftPanel.notesSection.saveFirstNote")}

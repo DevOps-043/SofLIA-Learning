@@ -8,7 +8,7 @@ export function LiaLandingBackLink() {
       <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-[#6C757D] dark:text-white/70 hover:text-[#0A2540] dark:hover:text-white transition-colors"
+          className="inline-flex items-center gap-2 text-gray-500 dark:text-white/70 hover:text-primary dark:hover:text-white transition-colors"
           style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
         >
           <ArrowLeft className="w-5 h-5" />

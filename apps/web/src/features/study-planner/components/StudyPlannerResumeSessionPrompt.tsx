@@ -21,7 +21,7 @@ export function StudyPlannerResumeSessionPrompt({
       exit={{ opacity: 0, scale: 0.95 }}
       className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
     >
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-purple-500/30 dark:bg-[#0f172a] md:p-8">
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-purple-500/30 dark:bg-slate-900 md:p-8">
         <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
         <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-purple-500/10 blur-[50px] dark:bg-purple-500/20" />
 

@@ -41,11 +41,11 @@ export function StudyPlannerCalendarConfigModal({
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             className="pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center p-4"
           >
-            <motion.div className="pointer-events-auto relative w-full max-w-md overflow-hidden rounded-xl border border-[#E9ECEF] bg-white shadow-2xl dark:border-[#6C757D]/30 dark:bg-[#1E2329]">
-              <div className="flex items-center justify-between border-b border-[#E9ECEF] p-4 dark:border-[#6C757D]/30">
+            <motion.div className="pointer-events-auto relative w-full max-w-md overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-500/30 dark:bg-carbon-800">
+              <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-500/30">
                 <div>
-                  <h3 className="text-lg font-bold text-[#0A2540] dark:text-white">Configurar calendarios</h3>
-                  <p className="mt-0.5 text-xs text-[#6C757D] dark:text-gray-400">
+                  <h3 className="text-lg font-bold text-primary dark:text-white">Configurar calendarios</h3>
+                  <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                     Selecciona que calendarios considerar para tu disponibilidad
                   </p>
                 </div>
@@ -53,7 +53,7 @@ export function StudyPlannerCalendarConfigModal({
                   onClick={onClose}
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
-                  className="rounded-lg p-2 text-[#6C757D] transition-all hover:bg-[#E9ECEF] hover:text-[#0A2540] dark:text-gray-400 dark:hover:bg-[#0A2540]/20 dark:hover:text-white"
+                  className="rounded-lg p-2 text-gray-500 transition-all hover:bg-gray-200 hover:text-primary dark:text-gray-400 dark:hover:bg-primary/20 dark:hover:text-white"
                 >
                   <X size={18} />
                 </motion.button>

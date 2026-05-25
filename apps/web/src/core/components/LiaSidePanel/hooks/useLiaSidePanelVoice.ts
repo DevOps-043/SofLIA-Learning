@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { SofLIAMessage } from '../../../types/lia.types';
 import type { SofLIAPersonalizationSettings } from '../../../types/soflia-personalization.types';
@@ -118,7 +119,7 @@ export function useLiaSidePanelVoice({
         }
       } catch (error) {
         if (!isTTSAbortError(error)) {
-          console.error('Error en sintesis de voz con ElevenLabs:', error);
+          techDebtLogger.error('Error en sintesis de voz con ElevenLabs:', error);
         }
         setIsSpeaking(false);
       }

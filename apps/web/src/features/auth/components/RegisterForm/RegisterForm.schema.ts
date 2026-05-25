@@ -30,7 +30,7 @@ export const getRegisterSchema = (t: TFunction) => z
     confirmEmail: z.string().email(t('auth.register.validation.invalidEmail')),
     password: z
       .string()
-      .min(8, t('auth.register.validation.passwordMin'))
+      .min(12, t('auth.register.validation.passwordMin'))
       .regex(/[A-Z]/, t('auth.register.validation.passwordUppercase'))
       .regex(/[a-z]/, t('auth.register.validation.passwordLowercase'))
       .regex(/[0-9]/, t('auth.register.validation.passwordNumber'))

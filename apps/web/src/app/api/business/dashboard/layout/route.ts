@@ -3,6 +3,9 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import { requireFeature } from '@/lib/subscription/subscriptionHelper'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { dashboardLayoutSchema, type DashboardLayoutBody } from './schema'
 
 /**
  * GET /api/business/dashboard/layout
@@ -14,10 +17,7 @@ export async function GET(request: NextRequest) {
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Usuario no pertenece a ninguna organización'
-      }, { status: 400 })
+      return apiError('NO_ORGANIZATION', 'Usuario no pertenece a ninguna organización', 400)
     }
 
     const supabase = await createClient()
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     // Obtener layout por defecto de la organización
     const { data: layout, error: layoutError } = await supabase
       .from('dashboard_layouts')
-      .select('*')
+      .select(SELECT_COLUMNS.dashboard_layouts)
       .eq('organization_id', auth.organizationId)
       .eq('is_default', true)
       .maybeSingle()
@@ -76,7 +76,11 @@ export async function GET(request: NextRequest) {
  * POST /api/business/dashboard/layout
  * Guarda o actualiza el layout personalizado del dashboard
  */
-export async function POST(request: NextRequest) {
+async function handlePost(
+  _request: NextRequest,
+  body: DashboardLayoutBody,
+  _context: unknown,
+) {
   try {
     const auth = await requireBusiness()
     if (auth instanceof NextResponse) return auth
@@ -96,15 +100,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
-    const body = await request.json()
     const { name, layout_config, is_default } = body
-
-    if (!name || !layout_config) {
-      return NextResponse.json({
-        success: false,
-        error: 'Nombre y configuración de layout son requeridos'
-      }, { status: 400 })
-    }
 
     // Si es el layout por defecto, desmarcar otros layouts por defecto
     if (is_default) {
@@ -142,10 +138,11 @@ export async function POST(request: NextRequest) {
 
       if (updateError) {
         logger.error('Error updating dashboard layout:', updateError)
-        return NextResponse.json({
-          success: false,
-          error: 'Error al actualizar layout del dashboard'
-        }, { status: 500 })
+        return apiError(
+          'UPDATE_DASHBOARD_LAYOUT_FAILED',
+          'Error al actualizar layout del dashboard',
+          500,
+        )
       }
 
       layout = updatedLayout
@@ -164,10 +161,11 @@ export async function POST(request: NextRequest) {
 
       if (createError) {
         logger.error('Error creating dashboard layout:', createError)
-        return NextResponse.json({
-          success: false,
-          error: 'Error al crear layout del dashboard'
-        }, { status: 500 })
+        return apiError(
+          'CREATE_DASHBOARD_LAYOUT_FAILED',
+          'Error al crear layout del dashboard',
+          500,
+        )
       }
 
       layout = newLayout
@@ -179,12 +177,11 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     logger.error('💥 Error in /api/business/dashboard/layout POST:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Error interno del servidor'
-    }, { status: 500 })
+    return apiError('SAVE_DASHBOARD_LAYOUT_FAILED', 'Error interno del servidor', 500)
   }
 }
+
+export const POST = withZodBody(dashboardLayoutSchema, handlePost)
 
 /**
  * DELETE /api/business/dashboard/layout
@@ -229,4 +226,3 @@ export async function DELETE(request: NextRequest) {
     }, { status: 500 })
   }
 }
-

@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { handleMicrosoftCallback } from '@/features/auth/actions/oauth';
@@ -23,7 +24,7 @@ export default function MicrosoftCallbackPage() {
         }
       } catch (err) {
         // Si la Server Action lanzó (redirección u otro error de red), evitar romper el cliente
-        console.error('[MICROSOFT OAUTH] Callback error:', err);
+        techDebtLogger.error('[MICROSOFT OAUTH] Callback error:', err);
         router.replace('/auth?error=oauth_callback_failed');
       }
     })();

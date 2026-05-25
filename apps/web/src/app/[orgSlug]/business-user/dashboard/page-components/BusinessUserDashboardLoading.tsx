@@ -22,8 +22,8 @@ export function BusinessUserDashboardLoading({
           <div
             className="w-20 h-20 rounded-full"
             style={{
-              background: `linear-gradient(135deg, ${orgColors.primary}15, ${orgColors.accent}15)`,
-              border: `2px solid ${orgColors.accent}50`,
+              background: `linear-gradient(135deg, color-mix(in srgb, ${orgColors.primary} 8.2%, transparent), color-mix(in srgb, ${orgColors.accent} 8.2%, transparent))`,
+              border: `2px solid color-mix(in srgb, ${orgColors.accent} 31.4%, transparent)`,
             }}
           />
           <div className="absolute inset-0 flex items-center justify-center">

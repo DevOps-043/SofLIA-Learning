@@ -1,0 +1,87 @@
+
+.light select::-webkit-scrollbar {
+  width: 6px;
+}
+
+.light select::-webkit-scrollbar-track {
+  background: var(--color-gray-100);
+  border-radius: 3px;
+}
+
+.light select::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: 3px;
+}
+
+.light select::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}
+
+/* Estilos para el editor de notas - Listas */
+.notes-editor ul,
+.notes-editor ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  list-style-position: outside;
+}
+
+.notes-editor ul {
+  list-style-type: disc;
+}
+
+.notes-editor ol {
+  list-style-type: decimal;
+}
+
+.notes-editor li {
+  margin: 0.25rem 0;
+  padding-left: 0.25rem;
+  display: list-item;
+}
+
+.notes-editor ul ul {
+  list-style-type: circle;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.notes-editor ul ul ul {
+  list-style-type: square;
+}
+
+.notes-editor ol ol {
+  list-style-type: lower-alpha;
+}
+
+.notes-editor ol ol ol {
+  list-style-type: lower-roman;
+}
+
+/* Fix para Joyride spotlight en contenedores con overflow */
+/* Esto asegura que el spotlight se posicione correctamente sobre elementos en contenedores con scroll */
+.react-joyride__spotlight {
+  pointer-events: none !important;
+}
+
+/* Asegurar que el overlay y spotlight de Joyride no sean afectados por transforms del padre */
+.__floater {
+  z-index: 10001 !important;
+}
+
+/* Fix específico para tabs del curso - forzar que el contenedor no afecte el cálculo de posición */
+[id^="tour-tab-"] {
+  position: relative;
+  z-index: 1;
+}
+
+/* Estilos para popups de Leaflet - Modo oscuro mejorado */
+.leaflet-popup-content-wrapper {
+  background: transparent !important;
+  color: var(--color-bg-light) !important;
+  border-radius: 12px !important;
+  border: none !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  backdrop-filter: blur(10px) !important;
+}

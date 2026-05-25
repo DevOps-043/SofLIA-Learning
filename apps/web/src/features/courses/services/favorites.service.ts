@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../lib/supabase/server'
 
 export class FavoritesService {
@@ -102,7 +103,7 @@ export class FavoritesService {
       // PGRST116 = no rows returned (no es un error, simplemente no existe)
       if (error && error.code !== 'PGRST116') {
         if (process.env.NODE_ENV === 'development') {
-          console.error('Error checking favorite status:', error, { userId, courseId: normalizedCourseId })
+          techDebtLogger.error('Error checking favorite status:', error, { userId, courseId: normalizedCourseId })
         }
         throw new Error(`Error al verificar favorito: ${error.message}`)
       }
@@ -116,7 +117,7 @@ export class FavoritesService {
       return result
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('Error in FavoritesService.isFavorite:', error)
+        techDebtLogger.error('Error in FavoritesService.isFavorite:', error)
       }
 
       // Si es un error de configuración de Supabase, devolver false

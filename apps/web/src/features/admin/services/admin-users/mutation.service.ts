@@ -1,8 +1,11 @@
-import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import { createClient } from '../../../../lib/supabase/server'
 import { AuditLogService } from '../auditLog.service'
 import { createAdminClient } from './client'
+import {
+  createSupabaseAuthUserWithLegacyId,
+  deleteSupabaseAuthUser,
+} from '@/features/auth/services/supabase-auth-bridge.service'
 import {
   ADMIN_USER_SELECT_FIELDS,
   buildAdminUserInsertPayload,
@@ -26,7 +29,7 @@ export async function updateAdminUser(
   const adminSupabase = createAdminClient()
   const { data: oldData } = await adminSupabase
     .from('users')
-    .select('*')
+    .select(SELECT_COLUMNS.users)
     .eq('id', userId)
     .single()
 
@@ -80,16 +83,28 @@ export async function createAdminUser(
   const adminSupabase = createAdminClient()
 
   try {
-    const passwordHash = await bcrypt.hash(userData.password, 12)
     const userId = crypto.randomUUID()
+    await createSupabaseAuthUserWithLegacyId({
+      cargo_rol: userData.cargo_rol,
+      display_name: userData.display_name || null,
+      email: userData.email,
+      email_verified: true,
+      first_name: userData.first_name || null,
+      id: userId,
+      last_name: userData.last_name || null,
+      password: userData.password,
+      profile_picture_url: userData.profile_picture_url || null,
+      username: userData.username,
+    })
 
     const { data, error } = await adminSupabase
       .from('users')
-      .insert(buildAdminUserInsertPayload(userId, userData, passwordHash))
+      .upsert(buildAdminUserInsertPayload(userId, userData), { onConflict: 'id' })
       .select(ADMIN_USER_SELECT_FIELDS)
       .single()
 
     if (error) {
+      await deleteSupabaseAuthUser(userId)
       throw error
     }
 

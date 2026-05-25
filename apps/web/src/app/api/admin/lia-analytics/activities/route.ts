@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API de LIA Analytics - Actividades
  * 
@@ -172,10 +173,10 @@ export async function GET(request: NextRequest) {
     
     // Distribución por estado
     const byStatus = [
-      { status: 'completed', count: statusCounts.completed, percentage: Number(((statusCounts.completed / totalActivities) * 100).toFixed(1)), color: '#10b981' },
-      { status: 'in_progress', count: statusCounts.in_progress, percentage: Number(((statusCounts.in_progress / totalActivities) * 100).toFixed(1)), color: '#3b82f6' },
-      { status: 'started', count: statusCounts.started, percentage: Number(((statusCounts.started / totalActivities) * 100).toFixed(1)), color: '#f59e0b' },
-      { status: 'abandoned', count: statusCounts.abandoned, percentage: Number(((statusCounts.abandoned / totalActivities) * 100).toFixed(1)), color: '#ef4444' }
+      { status: 'completed', count: statusCounts.completed, percentage: Number(((statusCounts.completed / totalActivities) * 100).toFixed(1)), color: 'var(--color-success)' },
+      { status: 'in_progress', count: statusCounts.in_progress, percentage: Number(((statusCounts.in_progress / totalActivities) * 100).toFixed(1)), color: 'var(--color-info)' },
+      { status: 'started', count: statusCounts.started, percentage: Number(((statusCounts.started / totalActivities) * 100).toFixed(1)), color: 'var(--color-warning)' },
+      { status: 'abandoned', count: statusCounts.abandoned, percentage: Number(((statusCounts.abandoned / totalActivities) * 100).toFixed(1)), color: 'var(--color-error)' }
     ].filter(s => s.count > 0);
     
     return NextResponse.json({
@@ -202,7 +203,7 @@ export async function GET(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error('Error en LIA Analytics Activities:', error);
+    techDebtLogger.error('Error en LIA Analytics Activities:', error);
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

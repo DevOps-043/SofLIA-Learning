@@ -38,7 +38,7 @@ export function BusinessUserStatsMetricCard({
       <div className="flex items-center gap-4 mb-4">
         <div
           className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transform group-hover:rotate-12 transition-transform duration-500"
-          style={{ backgroundColor: `${iconColor}20` }}
+          style={{ backgroundColor: `color-mix(in srgb, ${iconColor} 12.5%, transparent)` }}
         >
           <Icon className="w-6 h-6" style={{ color: iconColor }} />
         </div>

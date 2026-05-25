@@ -4,14 +4,48 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { cacheHeaders } from '@/lib/utils/cache-headers'
 
-interface OrganizationUserStatsRow {
-  status: 'active' | 'invited' | string
-  joined_at: string | null
-  created_at: string | null
-}
-
 interface BulkInviteLinkRow {
   current_uses: number | null
+}
+
+interface CompletionProgressRow {
+  completion_percentage: number | null
+}
+
+interface RecentCompletionProgressRow extends CompletionProgressRow {
+  assigned_at: string | null
+}
+
+interface CountQueryResult {
+  count: number | null
+  error: unknown | null
+}
+
+interface BusinessDashboardAggregate {
+  active_users: number
+  invited_org_users: number
+  pending_invitations: number
+  bulk_link_usage: number
+  recent_active_users: number
+  previous_active_users: number
+  recent_invited_users: number
+  previous_invited_users: number
+  total_assignments: number
+  completed_assignments: number
+  recent_assignments: number
+  previous_assignments: number
+  recent_completed: number
+  previous_completed: number
+  average_progress: number
+  recent_average_progress: number
+  previous_average_progress: number
+}
+
+interface BusinessDashboardStatsRpcClient {
+  rpc(
+    fn: 'get_business_dashboard_stats',
+    args: { target_organization_id: string },
+  ): PromiseLike<{ data: BusinessDashboardAggregate | null; error: { message?: string } | null }>
 }
 
 export async function GET(

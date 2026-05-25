@@ -1,0 +1,2 @@
+export const SKELETON_PLACEHOLDERS = 3
+export const ANIMATION_DURATION = 0.18

@@ -1,4 +1,5 @@
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react'
 import { Search, X, UserPlus, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -53,7 +54,7 @@ export function MemberAssignmentModal({
         const results = await HierarchyService.getAvailableUsersForNode(nodeId, searchQuery, role === 'leader', orgSlug)
         setUsers(results)
       } catch (err) {
-        console.error(err)
+        techDebtLogger.error(err)
         setError(t('hierarchy.memberModal.errorSearch'))
       } finally {
         setSearching(false)
@@ -82,7 +83,7 @@ export function MemberAssignmentModal({
         setError(result.error || t('hierarchy.memberModal.errorAssign'))
       }
     } catch (err) {
-      console.error(err)
+      techDebtLogger.error(err)
       setError(t('hierarchy.errorConnection'))
     } finally {
       setLoading(false)
@@ -108,7 +109,7 @@ export function MemberAssignmentModal({
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-[#1E2329] rounded-2xl shadow-2xl w-full max-w-[500px] pointer-events-auto border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col max-h-[85vh]"
+              className="bg-white dark:bg-carbon-800 rounded-2xl shadow-2xl w-full max-w-[500px] pointer-events-auto border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col max-h-[85vh]"
             >
               {/* Header */}
               <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
@@ -133,16 +134,16 @@ export function MemberAssignmentModal({
                     placeholder={t('hierarchy.memberModal.placeholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 bg-gray-50 dark:bg-[#2A3038] border border-gray-200 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder-gray-500"
+                    className="w-full pl-9 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder-gray-500"
                   />
                 </div>
 
                 {/* Role Selector */}
-                <div className="flex bg-gray-50 dark:bg-[#2A3038] p-1 rounded-lg border border-gray-100 dark:border-white/5">
+                <div className="flex bg-gray-50 dark:bg-gray-700 p-1 rounded-lg border border-gray-100 dark:border-white/5">
                   <button
                     onClick={() => setRole('member')}
                     className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${role === 'member'
-                      ? 'bg-white dark:bg-[#1E2329] text-gray-900 dark:text-white shadow-sm'
+                      ? 'bg-white dark:bg-carbon-800 text-gray-900 dark:text-white shadow-sm'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                       }`}
                   >
@@ -151,7 +152,7 @@ export function MemberAssignmentModal({
                   <button
                     onClick={() => setRole('leader')}
                     className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${role === 'leader'
-                      ? 'bg-white dark:bg-[#1E2329] text-purple-600 dark:text-purple-400 shadow-sm'
+                      ? 'bg-white dark:bg-carbon-800 text-purple-600 dark:text-purple-400 shadow-sm'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                       }`}
                   >
@@ -180,7 +181,7 @@ export function MemberAssignmentModal({
                           } `}
                       >
                         {/* Avatar */}
-                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-[#2A3038] flex-shrink-0 overflow-hidden">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex-shrink-0 overflow-hidden">
                           {user?.profile_picture_url ? (
                             <img src={user.profile_picture_url} alt="" className="w-full h-full object-cover" />
                           ) : (
@@ -221,7 +222,7 @@ export function MemberAssignmentModal({
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t border-gray-100 dark:border-white/5 flex justify-end gap-3 bg-gray-50/50 dark:bg-[#1E2329]">
+              <div className="px-6 py-4 border-t border-gray-100 dark:border-white/5 flex justify-end gap-3 bg-gray-50/50 dark:bg-carbon-800">
                 <button
                   onClick={onClose}
                   className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"

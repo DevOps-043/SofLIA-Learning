@@ -1,7 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 
-export async function POST(req: NextRequest) {
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { createClient } from '@/lib/supabase/server';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+
+import { scormInitializeSchema, type ScormInitializeBody } from '../../_schemas';
+
+type ScormUser = {
+  email?: string | null;
+  id: string;
+  user_metadata?: {
+    full_name?: string | null;
+  };
+};
+
+async function handlePost(_request: NextRequest, body: ScormInitializeBody) {
   try {
     const supabase = await createClient();
     const {
@@ -9,37 +23,27 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return apiError('UNAUTHENTICATED', 'Unauthorized', 401);
     }
 
-    const { packageId } = await req.json();
-
-    if (!packageId) {
-      return NextResponse.json(
-        { error: 'packageId is required' },
-        { status: 400 }
-      );
-    }
+    const { packageId } = body;
 
     // Obtener paquete
     const { data: package_, error: packageError } = await supabase
       .from('scorm_packages')
-      .select('*')
+      .select(SELECT_COLUMNS.scorm_packages)
       .eq('id', packageId)
       .eq('status', 'active')
       .single();
 
     if (packageError || !package_) {
-      return NextResponse.json(
-        { error: 'Package not found' },
-        { status: 404 }
-      );
+      return apiError('SCORM_PACKAGE_NOT_FOUND', 'Package not found', 404);
     }
 
     // Buscar attempt existente o crear nuevo
     const { data: existingAttempt } = await supabase
       .from('scorm_attempts')
-      .select('*')
+      .select(SELECT_COLUMNS.scorm_attempts)
       .eq('user_id', user.id)
       .eq('package_id', packageId)
       .order('attempt_number', { ascending: false })
@@ -48,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     let attempt = existingAttempt;
 
-    // Si no hay attempt o el último está completo, crear nuevo
+    // Si no hay attempt o el ultimo esta completo, crear nuevo
     if (
       !attempt ||
       attempt.lesson_status === 'completed' ||
@@ -87,7 +91,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Construir datos CMI iniciales
-    const cmiData = buildCMIData(attempt, user, package_);
+    const cmiData = buildCMIData(
+      attempt as Record<string, unknown>,
+      user,
+      package_ as Record<string, unknown>,
+    );
 
     return NextResponse.json({
       success: true,
@@ -96,12 +104,17 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to initialize';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('SCORM_INITIALIZE_FAILED', message, 500);
   }
 }
 
-function buildCMIData(attempt: Record<string, unknown>, user: { id: string }, package_: Record<string, unknown>) {
+function buildCMIData(
+  attempt: Record<string, unknown>,
+  user: ScormUser,
+  package_: Record<string, unknown>,
+) {
   const isScorm2004 = package_.version === 'SCORM_2004';
+  const learnerName = user.user_metadata?.full_name || user.email || user.id;
 
   if (isScorm2004) {
     return {
@@ -109,36 +122,44 @@ function buildCMIData(attempt: Record<string, unknown>, user: { id: string }, pa
         attempt.lesson_status === 'completed' ? 'completed' : 'incomplete',
       'cmi.success_status':
         attempt.lesson_status === 'passed' ? 'passed' : 'unknown',
-      'cmi.location': attempt.lesson_location || '',
-      'cmi.suspend_data': attempt.suspend_data || '',
-      'cmi.score.raw': attempt.score_raw?.toString() || '',
-      'cmi.score.min': attempt.score_min?.toString() || '0',
-      'cmi.score.max': attempt.score_max?.toString() || '100',
-      'cmi.score.scaled': attempt.score_scaled?.toString() || '',
-      'cmi.total_time': formatTime2004(attempt.total_time),
+      'cmi.location': toScormString(attempt.lesson_location),
+      'cmi.suspend_data': toScormString(attempt.suspend_data),
+      'cmi.score.raw': toScormString(attempt.score_raw),
+      'cmi.score.min': toScormString(attempt.score_min, '0'),
+      'cmi.score.max': toScormString(attempt.score_max, '100'),
+      'cmi.score.scaled': toScormString(attempt.score_scaled),
+      'cmi.total_time': formatTime2004(toNullableString(attempt.total_time)),
       'cmi.learner_id': user.id,
-      'cmi.learner_name': user.user_metadata?.full_name || user.email,
-      'cmi.entry': attempt.entry || 'ab-initio',
-      'cmi.credit': attempt.credit || 'credit',
+      'cmi.learner_name': learnerName,
+      'cmi.entry': toScormString(attempt.entry, 'ab-initio'),
+      'cmi.credit': toScormString(attempt.credit, 'credit'),
       'cmi.mode': 'normal',
     };
   }
 
   // SCORM 1.2
   return {
-    'cmi.core.lesson_status': attempt.lesson_status || 'not attempted',
-    'cmi.core.lesson_location': attempt.lesson_location || '',
-    'cmi.suspend_data': attempt.suspend_data || '',
-    'cmi.core.score.raw': attempt.score_raw?.toString() || '',
-    'cmi.core.score.min': attempt.score_min?.toString() || '0',
-    'cmi.core.score.max': attempt.score_max?.toString() || '100',
-    'cmi.core.total_time': formatTime12(attempt.total_time),
+    'cmi.core.lesson_status': toScormString(attempt.lesson_status, 'not attempted'),
+    'cmi.core.lesson_location': toScormString(attempt.lesson_location),
+    'cmi.suspend_data': toScormString(attempt.suspend_data),
+    'cmi.core.score.raw': toScormString(attempt.score_raw),
+    'cmi.core.score.min': toScormString(attempt.score_min, '0'),
+    'cmi.core.score.max': toScormString(attempt.score_max, '100'),
+    'cmi.core.total_time': formatTime12(toNullableString(attempt.total_time)),
     'cmi.core.student_id': user.id,
-    'cmi.core.student_name': user.user_metadata?.full_name || user.email,
-    'cmi.core.entry': attempt.entry || 'ab-initio',
-    'cmi.core.credit': attempt.credit || 'credit',
+    'cmi.core.student_name': learnerName,
+    'cmi.core.entry': toScormString(attempt.entry, 'ab-initio'),
+    'cmi.core.credit': toScormString(attempt.credit, 'credit'),
     'cmi.core.lesson_mode': 'normal',
   };
+}
+
+function toScormString(value: unknown, fallback = ''): string {
+  return value === null || value === undefined ? fallback : String(value);
+}
+
+function toNullableString(value: unknown): string | null {
+  return value === null || value === undefined ? null : String(value);
 }
 
 function formatTime12(interval: string | null): string {
@@ -178,3 +199,5 @@ function formatTime2004(interval: string | null): string {
   }
   return 'PT0S';
 }
+
+export const POST = withZodBody(scormInitializeSchema, handlePost);

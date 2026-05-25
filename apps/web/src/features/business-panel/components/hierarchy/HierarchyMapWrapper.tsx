@@ -24,7 +24,7 @@ interface HierarchyMapWrapperProps {
 
 // Loading component para el mapa
 const MapLoadingPlaceholder = () => (
-  <div className="h-[400px] w-full rounded-2xl bg-[#1E2329] border border-white/10 flex items-center justify-center">
+  <div className="h-[400px] w-full rounded-2xl bg-carbon-800 border border-white/10 flex items-center justify-center">
     <Loader2 className="w-8 h-8 text-white/20 animate-spin" />
   </div>
 )
@@ -56,7 +56,7 @@ export function HierarchyMapWrapper({ points, center, zoom }: HierarchyMapWrappe
   // Si hay error, mostrar fallback
   if (hasError) {
     return (
-      <div className="h-[400px] w-full rounded-2xl bg-[#1E2329] border border-white/10 flex items-center justify-center">
+      <div className="h-[400px] w-full rounded-2xl bg-carbon-800 border border-white/10 flex items-center justify-center">
         <div className="text-center text-white/40">
           <p>No se pudo cargar el mapa</p>
           <button

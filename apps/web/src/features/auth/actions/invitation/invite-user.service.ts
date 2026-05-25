@@ -34,10 +34,10 @@ export async function inviteUser(
       // Notificar in-app si el usuario ya existe
       const organization = await runtime.repo.getOrganizationById(data.organizationId)
       if (organization) {
-        await AutoNotificationsService.org.notifyUserInvited(
+        await AutoNotificationsService.notifyUserInvited(
           existingUser.id,
           data.organizationId,
-          organization.name
+          organization.name ?? 'Organizacion'
         )
       }
     }

@@ -1,5 +1,6 @@
 import type { StyleConfig } from '../contexts/OrganizationStylesContext';
 import type { ThemeConfig } from '../config/preset-themes';
+import { DESIGN_HEX_COLOR } from '@/core/theme/color-tokens';
 
 export type ActivePanel = 'panel' | 'userDashboard' | 'login';
 
@@ -22,13 +23,13 @@ export interface BusinessThemeColorField {
 }
 
 export const BUSINESS_THEME_COLOR_FIELDS: BusinessThemeColorField[] = [
-  { field: 'primary_button_color', label: 'Boton Primario', defaultValue: '#3b82f6' },
-  { field: 'secondary_button_color', label: 'Boton Secundario', defaultValue: '#8b5cf6' },
-  { field: 'text_color', label: 'Color de Texto', defaultValue: '#ffffff' },
-  { field: 'accent_color', label: 'Color Acento', defaultValue: '#60a5fa' },
-  { field: 'sidebar_background', label: 'Fondo Sidebar', defaultValue: '#1e293b' },
-  { field: 'card_background', label: 'Fondo Tarjetas', defaultValue: '#1e293b' },
-  { field: 'border_color', label: 'Color Bordes', defaultValue: '#334155' },
+  { field: 'primary_button_color', label: 'Boton Primario', defaultValue: DESIGN_HEX_COLOR.info },
+  { field: 'secondary_button_color', label: 'Boton Secundario', defaultValue: DESIGN_HEX_COLOR.secondary },
+  { field: 'text_color', label: 'Color de Texto', defaultValue: DESIGN_HEX_COLOR.bgLight },
+  { field: 'accent_color', label: 'Color Acento', defaultValue: DESIGN_HEX_COLOR.blue400 },
+  { field: 'sidebar_background', label: 'Fondo Sidebar', defaultValue: DESIGN_HEX_COLOR.slate800 },
+  { field: 'card_background', label: 'Fondo Tarjetas', defaultValue: DESIGN_HEX_COLOR.slate800 },
+  { field: 'border_color', label: 'Color Bordes', defaultValue: DESIGN_HEX_COLOR.slate700 },
 ];
 
 const BUSINESS_THEME_ICON_MAP: Record<string, string> = {
@@ -49,14 +50,14 @@ const BUSINESS_THEME_ICON_MAP: Record<string, string> = {
 export function getDefaultBusinessStyle(): StyleConfig {
   return {
     background_type: 'gradient',
-    background_value: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1e40af 100%)',
-    primary_button_color: '#3b82f6',
-    secondary_button_color: '#2563eb',
-    accent_color: '#60a5fa',
-    sidebar_background: '#1e293b',
-    card_background: '#1e293b',
-    text_color: '#f8fafc',
-    border_color: '#334155',
+    background_value: `linear-gradient(135deg, ${DESIGN_HEX_COLOR.blue900} 0%, ${DESIGN_HEX_COLOR.blue800} 50%, ${DESIGN_HEX_COLOR.blue800} 100%)`,
+    primary_button_color: DESIGN_HEX_COLOR.info,
+    secondary_button_color: DESIGN_HEX_COLOR.blue600,
+    accent_color: DESIGN_HEX_COLOR.blue400,
+    sidebar_background: DESIGN_HEX_COLOR.slate800,
+    card_background: DESIGN_HEX_COLOR.slate800,
+    text_color: DESIGN_HEX_COLOR.gray50,
+    border_color: DESIGN_HEX_COLOR.slate700,
     modal_opacity: 0.95,
     card_opacity: 1,
     sidebar_opacity: 1,
@@ -86,7 +87,7 @@ export function parseGradientStyleValue(backgroundValue: string): ParsedGradient
 
 export function buildGradientCss(colors: string[], angle: number): string {
   if (colors.length < 2) {
-    return 'linear-gradient(135deg, #1e3a8a, #1e40af)';
+    return `linear-gradient(135deg, ${DESIGN_HEX_COLOR.blue900}, ${DESIGN_HEX_COLOR.blue800})`;
   }
 
   const colorsWithStops = colors
@@ -109,7 +110,7 @@ export function getBusinessThemeIcon(themeId: string): string {
 
 export function getBusinessThemePreview(theme: ThemeConfig): string {
   if (theme.id === 'branding-personalizado') {
-    return 'linear-gradient(135deg, #fbbf24, #f59e0b)';
+    return `linear-gradient(135deg, ${DESIGN_HEX_COLOR.amber400}, ${DESIGN_HEX_COLOR.warning})`;
   }
 
   return theme.panel.background_value;

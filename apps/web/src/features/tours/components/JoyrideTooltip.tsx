@@ -127,12 +127,18 @@ export function JoyrideTooltip({
   const stepIcon = isJoyrideTooltipData(step.data) && isRenderableJoyrideIcon(step.data.icon)
     ? step.data.icon
     : null;
+  const showSkipButton = Boolean(skipProps && !isLastStep);
+  const resolvedSkipProps = skipProps as JoyrideButtonElementProps | undefined;
+
+
   const tooltipContent = (
     <div
       {...resolvedTooltipProps}
       className={joinClassNames(
         resolvedTooltipProps.className,
-        'joyride-tooltip-container relative flex flex-col overflow-hidden border-0 bg-white dark:bg-[#1E2329] text-gray-900 dark:text-white z-[1000001] pointer-events-auto',
+        // ring-1 + ring color visible en ambos modos asegura que el tooltip
+        // quede delineado encima del overlay oscuro del Joyride (rgba 0,0,0,0.7).
+        'joyride-tooltip-container relative flex flex-col overflow-hidden border-0 bg-white dark:bg-carbon-800 text-gray-900 dark:text-white z-[1000001] pointer-events-auto ring-1 ring-gray-200 dark:ring-white/10',
         compactViewport ? 'rounded-[20px] max-h-[80vh]' : 'rounded-2xl max-h-[85vh]',
         resolveTooltipWidthClass(step.data, compactViewport)
       )}
@@ -141,14 +147,15 @@ export function JoyrideTooltip({
         ...(fixedLeftDock ? resolveFixedLeftTooltipStyle(step) : {}),
         zIndex: 1000001,
         pointerEvents: 'auto',
+        // Sombra mas pronunciada para que el tooltip "pop" sobre el overlay oscuro.
         boxShadow: compactViewport
-          ? '0 14px 34px -16px rgba(0,0,0,0.28), 0 0 0 1px rgba(0,0,0,0.05)'
-          : '0 20px 50px -10px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05)',
+          ? '0 18px 40px -14px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04)'
+          : '0 28px 60px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04)',
       }}
     >
       {/* Background decoration */}
       <div
-        className="absolute top-0 right-0 w-32 h-32 opacity-10 rounded-bl-full pointer-events-none bg-[#00D4B3]"
+        className="absolute top-0 right-0 w-32 h-32 opacity-10 rounded-bl-full pointer-events-none bg-accent"
       />
 
       {/* Header */}
@@ -161,11 +168,11 @@ export function JoyrideTooltip({
         <div className="flex items-center gap-3">
           <div
             className={joinClassNames(
-              'flex items-center justify-center rounded-xl text-xl shrink-0 bg-[#00D4B3]/20 dark:bg-[#00D4B3]/20 border border-[#00D4B3]/30',
+              'flex items-center justify-center rounded-xl text-xl shrink-0 bg-accent/20 dark:bg-accent/20 border border-accent/30',
               compactViewport ? 'w-9 h-9' : 'w-10 h-10',
             )}
           >
-            {stepIcon || <Sparkles className="w-5 h-5 text-[#00D4B3]" />}
+            {stepIcon || <Sparkles className="w-5 h-5 text-accent" />}
           </div>
           <h3
             className={joinClassNames(
@@ -184,7 +191,7 @@ export function JoyrideTooltip({
           type="button"
           className={joinClassNames(
             resolvedCloseProps.className,
-            'p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors shrink-0 text-gray-400 dark:text-gray-500 cursor-pointer'
+            'p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors shrink-0 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white cursor-pointer'
           )}
         >
           <X size={18} />
@@ -194,7 +201,9 @@ export function JoyrideTooltip({
       {/* Content */}
       <div
         className={joinClassNames(
-          'leading-relaxed opacity-90 prose prose-slate dark:prose-invert max-w-none overflow-y-auto custom-scrollbar text-gray-600 dark:text-gray-300',
+          // Sin opacity-90: aplicar opacidad al texto del cuerpo reducia el
+          // contraste por debajo de WCAG AA sobre el fondo oscuro del tooltip.
+          'leading-relaxed prose prose-slate dark:prose-invert max-w-none overflow-y-auto custom-scrollbar text-gray-700 dark:text-gray-200',
           compactViewport ? 'px-4 text-[13px]' : 'px-6 text-sm',
         )}
       >
@@ -209,21 +218,35 @@ export function JoyrideTooltip({
         )}
       >
         {/* Progress */}
-        <div className="flex items-center gap-1 text-xs font-medium text-gray-400 dark:text-gray-500">
+        <div className="flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400">
           <span>{index + 1}</span>
-          <span className="opacity-50">/</span>
+          <span className="opacity-60">/</span>
           <span>{size}</span>
         </div>
 
         {/* Navigation Buttons */}
         <div className="flex items-center gap-2">
+          {showSkipButton && resolvedSkipProps && (
+            <button
+              {...resolvedSkipProps}
+              type="button"
+              className={joinClassNames(
+                resolvedSkipProps.className,
+                'flex items-center justify-center rounded-lg font-medium transition-all hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white cursor-pointer',
+                compactViewport ? 'px-2.5 py-2 text-[13px]' : 'px-3 py-2 text-sm',
+              )}
+            >
+              {t('actions.skip')}
+            </button>
+          )}
+
           {index > 0 && (
             <button
               {...resolvedBackProps}
               type="button"
               className={joinClassNames(
                 resolvedBackProps.className,
-                'flex items-center justify-center rounded-lg font-medium transition-all hover:bg-gray-100 dark:hover:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white cursor-pointer',
+                'flex items-center justify-center rounded-lg font-medium transition-all hover:bg-gray-100 dark:hover:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-white cursor-pointer',
                 compactViewport ? 'px-2.5 py-2 text-[13px]' : 'px-3 py-2 text-sm',
               )}
             >
@@ -238,10 +261,10 @@ export function JoyrideTooltip({
               type="button"
               className={joinClassNames(
                 resolvedPrimaryProps.className,
-                'flex items-center justify-center rounded-lg font-bold transition-all hover:brightness-110 bg-[#0A2540] text-white cursor-pointer',
+                'flex items-center justify-center rounded-lg font-bold transition-all hover:brightness-110 bg-primary text-white cursor-pointer',
                 compactViewport
-                  ? 'px-3 py-2 text-[13px] shadow-md shadow-[#0A2540]/25'
-                  : 'px-4 py-2 text-sm shadow-lg shadow-[#0A2540]/40',
+                  ? 'px-3 py-2 text-[13px] shadow-md shadow-primary/25'
+                  : 'px-4 py-2 text-sm shadow-lg shadow-primary/40',
               )}
             >
               {isLastStep ? (

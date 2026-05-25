@@ -1,7 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { updateTeamSchema, type UpdateTeamBody } from '../../_schemas';
 
 interface RouteParams {
   params: Promise<{ teamId: string }>;
@@ -79,27 +82,24 @@ export async function GET(request: Request, { params }: RouteParams) {
  * PUT /api/business/hierarchy/teams/[teamId]
  * Actualiza un equipo
  */
-export async function PUT(request: Request, { params }: RouteParams) {
+async function handlePut(_request: NextRequest, body: UpdateTeamBody, { params }: RouteParams) {
   try {
     const auth = await requireBusiness();
     if (auth instanceof NextResponse) return auth;
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
-      );
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403);
     }
 
     if (auth.organizationRole !== 'owner' && auth.organizationRole !== 'admin') {
-      return NextResponse.json(
-        { success: false, error: 'Solo el propietario o administrador puede modificar equipos' },
-        { status: 403 }
+      return apiError(
+        'FORBIDDEN',
+        'Solo el propietario o administrador puede modificar equipos',
+        403,
       );
     }
 
     const { teamId } = await params;
-    const body = await request.json();
     const supabase = await createClient();
 
     // Verificar que el equipo existe
@@ -111,13 +111,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
       .single();
 
     if (fetchError || !existingTeam) {
-      return NextResponse.json(
-        { success: false, error: 'Equipo no encontrado' },
-        { status: 404 }
-      );
+      return apiError('TEAM_NOT_FOUND', 'Equipo no encontrado', 404);
     }
 
-    // Si se cambia el nombre, verificar unicidad en la zona
     if (body.name) {
       const { count: duplicateCount } = await supabase
         .from('organization_teams')
@@ -128,14 +124,14 @@ export async function PUT(request: Request, { params }: RouteParams) {
         .neq('id', teamId);
 
       if (duplicateCount && duplicateCount > 0) {
-        return NextResponse.json(
-          { success: false, error: 'Ya existe un equipo con ese nombre en esta zona' },
-          { status: 400 }
+        return apiError(
+          'DUPLICATE_NAME',
+          'Ya existe un equipo con ese nombre en esta zona',
+          400,
         );
       }
     }
 
-    // Si se reduce max_members, verificar que no hay más miembros actuales
     if (body.max_members !== undefined && body.max_members !== null) {
       const { count: currentMembers } = await supabase
         .from('organization_users')
@@ -144,15 +140,19 @@ export async function PUT(request: Request, { params }: RouteParams) {
         .eq('status', 'active');
 
       if (currentMembers && body.max_members < currentMembers) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: `El equipo tiene ${currentMembers} miembros. No puede establecer un límite menor.`
-          },
-          { status: 400 }
+        return apiError(
+          'TEAM_MEMBERS_EXCEED_LIMIT',
+          `El equipo tiene ${currentMembers} miembros. No puede establecer un límite menor.`,
+          400,
         );
       }
     }
+
+    const parseLatLng = (value: number | string | null | undefined) => {
+      if (value === null || value === undefined || value === '') return null;
+      const num = typeof value === 'string' ? parseFloat(value) : value;
+      return Number.isNaN(num) ? null : num;
+    };
 
     // Preparar datos de actualización
     const updateData: Record<string, unknown> = {};
@@ -169,8 +169,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
     if (body.state !== undefined) updateData.state = body.state?.trim() || null;
     if (body.country !== undefined) updateData.country = body.country?.trim() || null;
     if (body.postal_code !== undefined) updateData.postal_code = body.postal_code?.trim() || null;
-    if (body.latitude !== undefined) updateData.latitude = body.latitude !== null && body.latitude !== '' ? parseFloat(body.latitude) : null;
-    if (body.longitude !== undefined) updateData.longitude = body.longitude !== null && body.longitude !== '' ? parseFloat(body.longitude) : null;
+    if (body.latitude !== undefined) updateData.latitude = parseLatLng(body.latitude);
+    if (body.longitude !== undefined) updateData.longitude = parseLatLng(body.longitude);
     
     // Campos de contacto
     if (body.phone !== undefined) updateData.phone = body.phone?.trim() || null;
@@ -182,10 +182,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     if (body.monthly_target !== undefined) updateData.monthly_target = body.monthly_target;
 
     if (Object.keys(updateData).length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'No hay datos para actualizar' },
-        { status: 400 }
-      );
+      return apiError('NO_CHANGES', 'No hay datos para actualizar', 400);
     }
 
     const { data: team, error } = await supabase
@@ -209,26 +206,19 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     if (error) {
       logger.error('Error actualizando equipo:', error);
-      return NextResponse.json(
-        { success: false, error: 'Error al actualizar el equipo' },
-        { status: 500 }
-      );
+      return apiError('UPDATE_TEAM_FAILED', 'Error al actualizar el equipo', 500);
     }
 
     logger.info('Equipo actualizado:', { teamId, changes: Object.keys(updateData) });
 
-    return NextResponse.json({
-      success: true,
-      team
-    });
+    return NextResponse.json({ success: true, team });
   } catch (error) {
     logger.error('Error en PUT /api/business/hierarchy/teams/[teamId]:', error);
-    return NextResponse.json(
-      { success: false, error: 'Error al actualizar el equipo' },
-      { status: 500 }
-    );
+    return apiError('UPDATE_TEAM_FAILED', 'Error al actualizar el equipo', 500);
   }
 }
+
+export const PUT = withZodBody(updateTeamSchema, handlePut);
 
 /**
  * DELETE /api/business/hierarchy/teams/[teamId]

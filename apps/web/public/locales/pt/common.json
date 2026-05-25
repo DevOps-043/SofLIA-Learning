@@ -32,11 +32,15 @@
   "media": {
     "tapToPlay": "Toque para reproduzir",
     "videoPreview": "Previa do video",
+    "videoUnavailable": "Video indisponivel",
     "introPlayer": {
       "loadErrorTitle": "Não foi possível carregar o vídeo",
       "loadErrorDescription": "Verifique se o arquivo existe e se é um MP4 ou WebM otimizado para web.",
       "skipToContent": "Continuar sem vídeo",
-      "slowConnection": "Conexão lenta - carregando..."
+      "slowConnection": "Conexão lenta - carregando...",
+      "quality": "Qualidade",
+      "qualityAuto": "Auto",
+      "qualityAdaptive": "adaptável"
     }
   },
   "dashboardNav": {
@@ -78,10 +82,46 @@
         "connection": "Erro de conexão. Verifique sua conexão com a internet e tente novamente.",
         "timeout": "A solicitação demorou muito. Por favor, tente novamente."
       },
+      "mfa": {
+        "title": "Verificação em duas etapas",
+        "subtitle": "Digite o código do seu app autenticador ou um código de recuperação.",
+        "codeLabel": "Código de autenticação",
+        "codePlaceholder": "123456",
+        "verify": "Verificar",
+        "verifying": "Verificando...",
+        "back": "Voltar",
+        "errors": {
+          "verifyFailed": "Não foi possível verificar o código. Tente novamente."
+        }
+      },
       "validation": {
         "emailOrUsernameRequired": "E-mail ou usuário é obrigatório",
         "passwordRequired": "A senha é obrigatória",
         "noSpaces": "Espaços não son permitidos"
+      }
+    },
+    "mfa": {
+      "settings": {
+        "title": "Autenticacao multifator",
+        "description": "Proteja contas Admin e Business com um codigo temporario alem da senha.",
+        "status": "Status",
+        "enabled": "Ativa",
+        "disabled": "Inativa",
+        "recoveryRemaining": "Codigos restantes",
+        "lastUsed": "Ultimo uso",
+        "neverUsed": "Nenhum uso registrado",
+        "startSetup": "Configurar MFA",
+        "manualSecret": "Chave manual",
+        "recoveryCodes": "Codigos de recuperacao",
+        "activationCode": "Primeiro codigo do app",
+        "activate": "Ativar MFA",
+        "enabledNotice": "MFA foi ativada para esta conta.",
+        "recoveryCopied": "Codigos copiados.",
+        "errors": {
+          "status": "Nao foi possivel carregar o status MFA.",
+          "setup": "Nao foi possivel iniciar a configuracao MFA.",
+          "activate": "Nao foi possivel ativar MFA. Confira o codigo e tente de novo."
+        }
       }
     },
     "register": {
@@ -103,7 +143,7 @@
       "countryPlaceholder": "País",
       "phonePlaceholder": "1234567890",
       "passwordLabel": "Senha",
-      "passwordPlaceholder": "Mínimo 8 caracteres",
+      "passwordPlaceholder": "Mínimo 12 caracteres",
       "confirmPasswordLabel": "Confirmar Senha",
       "confirmPasswordPlaceholder": "Repita sua senha",
       "acceptTerms": "Aceito os <0>termos e condições</0> e a <1>política de privacidade</1>",
@@ -126,7 +166,7 @@
         "phoneMax": "O número de telefone não pode exceder 15 dígitos",
         "onlyNumbers": "Apenas números são permitidos",
         "invalidEmail": "Insira un e-mail válido",
-        "passwordMin": "A senha deve ter pelo menos 8 caracteres",
+        "passwordMin": "A senha deve ter pelo menos 12 caracteres",
         "passwordUppercase": "Deve conter pelo menos uma letra maiúscula",
         "passwordLowercase": "Deve conter pelo menos uma letra minúscula",
         "passwordNumber": "Deve conter pelo menos um número",
@@ -155,7 +195,7 @@
       "title": "Nova Senha",
       "subtitle": "Crie uma senha segura para proteger sua conta.",
       "newPasswordLabel": "Nova senha",
-      "newPasswordPlaceholder": "Mínimo 8 caracteres",
+      "newPasswordPlaceholder": "Mínimo 12 caracteres",
       "confirmPasswordLabel": "Confirmar senha",
       "confirmPasswordPlaceholder": "Repita sua senha",
       "updating": "Atualizando...",
@@ -180,10 +220,11 @@
         "number": "Um número"
       },
       "validation": {
-        "passwordMin": "A senha deve ter pelo menos 8 caracteres",
+        "passwordMin": "A senha deve ter pelo menos 12 caracteres",
         "passwordUppercase": "Deve conter pelo menos uma letra maiúscula",
         "passwordLowercase": "Deve conter pelo menos uma letra minúscula",
         "passwordNumber": "Deve conter pelo menos um número",
+        "passwordSpecial": "Deve conter pelo menos um caractere especial",
         "passwordsDoNotMatch": "As senhas não coincidem"
       }
     },
@@ -1130,9 +1171,26 @@
       }
     }
   },
+  "courseSkillsSelector": {
+    "selectedTitle": "Skills do curso ({{count}})",
+    "addButton": "Adicionar skills",
+    "modalTitle": "Selecionar skills",
+    "modalSubtitle": "Escolha as skills aprendidas neste curso",
+    "searchPlaceholder": "Buscar skills...",
+    "allCategories": "Todas",
+    "loading": "Carregando skills...",
+    "noResults": "Nenhuma skill encontrada",
+    "allSelected": "Todas as skills ja foram selecionadas"
+  },
+  "datePicker": {
+    "placeholder": "Selecionar data",
+    "clear": "Limpar",
+    "today": "Hoje"
+  },
   "actions": {
     "cancel": "Cancelar",
     "confirm": "Confirmar",
+    "copy": "Copiar",
     "save": "Salvar",
     "saveChanges": "Salvar alterações",
     "delete": "Excluir",
@@ -1155,6 +1213,7 @@
     "show": "Mostrar",
     "hide": "Ocultar",
     "viewFullImage": "Ver imagem completa",
+    "download": "Baixar",
     "downloadImage": "Baixar imagem",
     "edited": "editado",
     "refresh": "Atualizar",

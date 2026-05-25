@@ -1,33 +1,16 @@
-/**
- * Servicio para gestionar ratings de cursos
- */
+import { logger as techDebtLogger } from '@/lib/utils/logger'
+import type {
+  CourseRatingSubmissionInput,
+  RatingCheckResponse,
+  SubmitRatingResponse,
+} from './course-rating.types';
 
-export interface CourseRating {
-  review_id: string;
-  rating: number;
-  review_title?: string | null;
-  review_content: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface RatingCheckResponse {
-  success: boolean;
-  hasRating: boolean;
-  rating: CourseRating | null;
-}
-
-export interface SubmitRatingResponse {
-  success: boolean;
-  rating: CourseRating;
-  message: string;
-}
-
-export interface CourseRatingSubmissionInput {
-  rating: number;
-  reviewTitle?: string;
-  reviewContent?: string;
-}
+export type {
+  CourseRating,
+  CourseRatingSubmissionInput,
+  RatingCheckResponse,
+  SubmitRatingResponse,
+} from './course-rating.types';
 
 export class CourseRatingService {
   /**
@@ -55,7 +38,7 @@ export class CourseRatingService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error("Error checking user rating:", error);
+      techDebtLogger.error("Error checking user rating:", error);
       throw error;
     }
   }
@@ -113,7 +96,7 @@ export class CourseRatingService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error("Error submitting rating:", error);
+      techDebtLogger.error("Error submitting rating:", error);
       throw error;
     }
   }

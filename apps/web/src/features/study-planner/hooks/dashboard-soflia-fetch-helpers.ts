@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { Dispatch, SetStateAction } from 'react';
 import type {
   ActiveStudyPlan,
@@ -8,6 +9,7 @@ import {
   buildDashboardAssistantMessage,
   resolveDashboardPrimaryAction,
 } from './dashboard-soflia-chat-response.service';
+import { refreshSofLIAPlanAfterAction } from './dashboard-soflia-plan-refresh';
 import type { DashboardChatSuccessPayload } from './useDashboardSofLIAState.types';
 
 export function createSofLIANoPlanMessage(): DashboardMessage {
@@ -74,7 +76,7 @@ export async function loadSofLIAProactiveAnalysis({
 
     const chatData = await chatResponse.json() as DashboardChatSuccessPayload;
     if (!chatData.success || !chatData.response) {
-      console.warn('[SofLIA Dashboard] Respuesta sin exito:', chatData.error || 'Sin respuesta');
+      techDebtLogger.warn('[SofLIA Dashboard] Respuesta sin exito:', chatData.error || 'Sin respuesta');
       throw new Error(chatData.error || 'Sin respuesta del analisis');
     }
 
@@ -92,26 +94,10 @@ export async function loadSofLIAProactiveAnalysis({
       refreshSofLIAPlanAfterAction(planQuery, setState);
     }
   } catch (chatError) {
-    console.error('[SofLIA Dashboard] Error obteniendo analisis proactivo:', chatError);
+    techDebtLogger.error('[SofLIA Dashboard] Error obteniendo analisis proactivo:', chatError);
     setState(prev => ({
       ...prev,
       messages: [createSofLIAWelcomeMessage(plan)],
     }));
   }
-}
-
-function refreshSofLIAPlanAfterAction(
-  planQuery: string,
-  setState: Dispatch<SetStateAction<StudyPlannerDashboardState>>,
-) {
-  setTimeout(() => {
-    fetch(`/api/study-planner/dashboard/plan${planQuery}`)
-      .then(response => response.json())
-      .then(planData => {
-        if (planData.success && planData.data) {
-          setState(prev => ({ ...prev, activePlan: planData.data }));
-        }
-      })
-      .catch(err => console.error('Error recargando plan:', err));
-  }, 500);
 }

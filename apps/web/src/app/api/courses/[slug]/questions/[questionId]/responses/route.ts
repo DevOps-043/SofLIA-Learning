@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { responseCreateSchema, type ResponseCreateBody } from '@/app/api/courses/_schemas';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
 
@@ -243,8 +247,9 @@ export async function GET(
  * POST /api/courses/[slug]/questions/[questionId]/responses
  * Crea una nueva respuesta a una pregunta
  */
-export async function POST(
-  request: NextRequest,
+async function handlePost(
+  _request: NextRequest,
+  body: ResponseCreateBody,
   { params }: { params: Promise<{ slug: string; questionId: string }> }
 ) {
   try {
@@ -254,10 +259,7 @@ export async function POST(
     // Obtener usuario actual
     const user = await SessionService.getCurrentUser();
     if (!user) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return apiError('UNAUTHENTICATED', 'No autorizado.', 401);
     }
 
     // Obtener el curso por slug
@@ -268,10 +270,7 @@ export async function POST(
       .single();
 
     if (courseError || !course) {
-      return NextResponse.json(
-        { error: 'Curso no encontrado' },
-        { status: 404 }
-      );
+      return apiError('COURSE_NOT_FOUND', 'Curso no encontrado.', 404);
     }
 
     // Verificar que la pregunta existe
@@ -283,21 +282,17 @@ export async function POST(
       .single();
 
     if (questionError || !question) {
-      return NextResponse.json(
-        { error: 'Pregunta no encontrada' },
-        { status: 404 }
-      );
+      return apiError('QUESTION_NOT_FOUND', 'Pregunta no encontrada.', 404);
     }
 
-    // Obtener datos del body
-    const body = await request.json();
     const { content, parent_response_id, attachment_url, attachment_type, attachment_data } = body;
+    const sanitizedContent = sanitizeHtml(content, {
+      level: 'rich',
+      maxLength: 50_000,
+    }).trim();
 
-    if (!content || content.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'El contenido de la respuesta es requerido' },
-        { status: 400 }
-      );
+    if (!sanitizedContent) {
+      return apiError('VALIDATION_ERROR', 'El contenido de la respuesta es requerido.', 422);
     }
 
     // Determinar si es respuesta de instructor
@@ -310,7 +305,7 @@ export async function POST(
         question_id: questionId,
         course_id: course.id,
         user_id: user.id,
-        content: content.trim(),
+        content: sanitizedContent,
         parent_response_id: parent_response_id || null,
         is_instructor_answer: isInstructorAnswer,
         attachment_url: attachment_url || null,
@@ -331,20 +326,15 @@ export async function POST(
       .single();
 
     if (responseError) {
-      return NextResponse.json(
-        { error: 'Error al crear respuesta' },
-        { status: 500 }
-      );
+      return apiError('RESPONSE_CREATE_FAILED', 'Error al crear respuesta.', 500);
     }
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    return NextResponse.json(
-      { 
-        error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido'
-      },
-      { status: 500 }
-    );
+    return apiError('INTERNAL_ERROR', 'Error interno del servidor.', 500, {
+      details: error instanceof Error ? error.message : 'Error desconocido',
+    });
   }
 }
+
+export const POST = withZodBody(responseCreateSchema, handlePost);

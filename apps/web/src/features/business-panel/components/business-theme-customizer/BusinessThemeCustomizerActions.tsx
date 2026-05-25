@@ -31,8 +31,8 @@ export function BusinessThemeCustomizerActions({
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-3 rounded-lg border p-4"
           style={{
-            backgroundColor: `${theme.successColor}12`,
-            borderColor: `${theme.successColor}33`,
+            backgroundColor: `color-mix(in srgb, ${theme.successColor} 7.1%, transparent)`,
+            borderColor: `color-mix(in srgb, ${theme.successColor} 20%, transparent)`,
           }}
         >
           <CheckCircle className="h-5 w-5 flex-shrink-0" style={{ color: theme.successColor }} />
@@ -46,8 +46,8 @@ export function BusinessThemeCustomizerActions({
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-3 rounded-lg border p-4"
           style={{
-            backgroundColor: `${theme.dangerColor}12`,
-            borderColor: `${theme.dangerColor}33`,
+            backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`,
+            borderColor: `color-mix(in srgb, ${theme.dangerColor} 20%, transparent)`,
           }}
         >
           <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: theme.dangerColor }} />
@@ -102,7 +102,7 @@ export function BusinessThemeCustomizerActions({
           style={{
             backgroundColor: theme.actionColor,
             color: theme.onActionColor,
-            boxShadow: `0 10px 30px ${theme.actionColor}33`,
+            boxShadow: `0 10px 30px color-mix(in srgb, ${theme.actionColor} 20%, transparent)`,
           }}
         >
           <motion.div

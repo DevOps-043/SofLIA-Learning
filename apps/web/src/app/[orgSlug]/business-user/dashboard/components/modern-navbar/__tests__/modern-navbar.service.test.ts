@@ -9,16 +9,16 @@ describe('modern-navbar.service', () => {
   it('builds light theme colors from style config', () => {
     const colors = getModernNavbarColors(
       {
-        primary_button_color: '#112233',
-        accent_color: '#44AA88',
-        sidebar_background: '#102030',
+        primary_button_color: 'var(--color-legacy-112233)',
+        accent_color: 'var(--color-legacy-44aa88)',
+        sidebar_background: 'var(--color-legacy-102030)',
         sidebar_opacity: 0.5,
       } as never,
       'light'
     );
 
-    expect(colors.primary).toBe('#112233');
-    expect(colors.accent).toBe('#44AA88');
+    expect(colors.primary).toBe('var(--color-legacy-112233)');
+    expect(colors.accent).toBe('var(--color-legacy-44aa88)');
     expect(colors.navBg).toBe('rgba(255, 255, 255, 0.5)');
     expect(colors.isLightMode).toBe(true);
   });

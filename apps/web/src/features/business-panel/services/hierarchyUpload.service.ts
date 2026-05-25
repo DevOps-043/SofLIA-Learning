@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Servicio de Upload para Imágenes de Jerarquía
  * 
@@ -96,7 +97,7 @@ export async function uploadHierarchyImage(options: UploadOptions): Promise<Uplo
       });
     
     if (error) {
-      console.error('Error uploading to storage:', error);
+      techDebtLogger.error('Error uploading to storage:', error);
       return { success: false, error: error.message };
     }
     
@@ -111,7 +112,7 @@ export async function uploadHierarchyImage(options: UploadOptions): Promise<Uplo
       path: data?.path
     };
   } catch (err) {
-    console.error('Upload failed:', err);
+    techDebtLogger.error('Upload failed:', err);
     return { success: false, error: 'Error al subir la imagen' };
   }
 }
@@ -139,7 +140,7 @@ export async function deleteHierarchyImage(
     
     return { success: true };
   } catch (err) {
-    console.error('Delete failed:', err);
+    techDebtLogger.error('Delete failed:', err);
     return { success: false, error: 'Error al eliminar la imagen' };
   }
 }
@@ -169,7 +170,7 @@ export async function listHierarchyImages(
     const files = data?.map(file => file.name) || [];
     return { success: true, files };
   } catch (err) {
-    console.error('List failed:', err);
+    techDebtLogger.error('List failed:', err);
     return { success: false, error: 'Error al listar imágenes' };
   }
 }

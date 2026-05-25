@@ -3,10 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown, FileText } from 'lucide-react'
 import { DOWNLOADS_CHANGELOG_SECTION_META } from '../constants'
-import {
-  formatMarkdownBold,
-  parseReleaseNotes,
-} from '../services/downloads-page.service'
+import { parseReleaseNotes } from '../services/downloads-page.service'
 import type { ReleaseChangelog } from '../types'
 
 interface DownloadsPageChangelogProps {
@@ -16,6 +13,23 @@ interface DownloadsPageChangelogProps {
   onToggleSection: (version: string, key: string) => void
   onToggleVersion: (version: string) => void
   loading: boolean
+}
+
+function renderMarkdownBold(text: string): Array<string | JSX.Element> {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong
+          key={`bold-${index}`}
+          className="font-semibold text-gray-900 dark:text-white"
+        >
+          {part.slice(2, -2)}
+        </strong>
+      )
+    }
+
+    return part
+  })
 }
 
 export function DownloadsPageChangelog({
@@ -38,9 +52,9 @@ export function DownloadsPageChangelog({
       className="mt-16 max-w-4xl mx-auto"
     >
       <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0A2540]/5 dark:bg-white/5 border border-[#0A2540]/10 dark:border-white/10 mb-4">
-          <FileText className="w-4 h-4 text-[#00D4B3]" />
-          <span className="text-sm font-medium text-[#0A2540]/60 dark:text-white/60">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 dark:bg-white/5 border border-primary/10 dark:border-white/10 mb-4">
+          <FileText className="w-4 h-4 text-accent" />
+          <span className="text-sm font-medium text-primary/60 dark:text-white/60">
             Changelog
           </span>
         </div>
@@ -67,17 +81,17 @@ export function DownloadsPageChangelog({
               >
                 <div className="flex items-center gap-5">
                   <div className="shrink-0">
-                    <div className="text-xl md:text-2xl font-bold text-[#0A2540] dark:text-white tracking-tight">
+                    <div className="text-xl md:text-2xl font-bold text-primary dark:text-white tracking-tight">
                       {changelog.version}
                     </div>
-                    <div className="text-xs text-[#0A2540]/40 dark:text-white/40 mt-0.5">
+                    <div className="text-xs text-primary/40 dark:text-white/40 mt-0.5">
                       {changelog.date}
                     </div>
                   </div>
 
                   <div className="hidden md:block text-left">
                     {releaseTitle ? (
-                      <span className="text-sm font-medium text-[#0A2540]/70 dark:text-white/70">
+                      <span className="text-sm font-medium text-primary/70 dark:text-white/70">
                         {releaseTitle}
                       </span>
                     ) : null}
@@ -85,12 +99,12 @@ export function DownloadsPageChangelog({
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-[#00D4B3]/10 text-[#00D4B3]">
+                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-accent/10 text-accent">
                     {totalItems} {totalItems === 1 ? 'cambio' : 'cambios'}
                   </span>
                   <ChevronDown
                     size={18}
-                    className={`text-[#0A2540]/30 dark:text-white/30 transition-transform duration-300 ${
+                    className={`text-primary/30 dark:text-white/30 transition-transform duration-300 ${
                       isVersionExpanded ? 'rotate-180' : ''
                     }`}
                   />
@@ -109,7 +123,7 @@ export function DownloadsPageChangelog({
                     <div className="mx-8 h-px bg-black/[0.06] dark:bg-white/[0.06]" />
 
                     <div className="px-8 pt-4 pb-2">
-                      <p className="text-sm text-[#0A2540]/50 dark:text-white/50 leading-relaxed">
+                      <p className="text-sm text-primary/50 dark:text-white/50 leading-relaxed">
                         Novedades y mejoras incluidas en esta version de SofLIA
                         Hub.
                       </p>
@@ -144,8 +158,8 @@ export function DownloadsPageChangelog({
                                 <span
                                   className={`text-sm font-medium ${
                                     hasItems
-                                      ? 'text-[#0A2540] dark:text-white'
-                                      : 'text-[#0A2540]/30 dark:text-white/30'
+                                      ? 'text-primary dark:text-white'
+                                      : 'text-primary/30 dark:text-white/30'
                                   }`}
                                 >
                                   {section.label}
@@ -153,8 +167,8 @@ export function DownloadsPageChangelog({
                                 <span
                                   className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                                     hasItems
-                                      ? 'bg-[#0A2540]/5 dark:bg-white/10 text-[#0A2540]/60 dark:text-white/60'
-                                      : 'bg-black/[0.03] dark:bg-white/[0.04] text-[#0A2540]/25 dark:text-white/25'
+                                      ? 'bg-primary/5 dark:bg-white/10 text-primary/60 dark:text-white/60'
+                                      : 'bg-black/[0.03] dark:bg-white/[0.04] text-primary/25 dark:text-white/25'
                                   }`}
                                 >
                                   {section.items.length}
@@ -163,7 +177,7 @@ export function DownloadsPageChangelog({
                               {hasItems ? (
                                 <ChevronDown
                                   size={16}
-                                  className={`text-[#0A2540]/30 dark:text-white/30 transition-transform duration-300 ${
+                                  className={`text-primary/30 dark:text-white/30 transition-transform duration-300 ${
                                     isExpanded ? 'rotate-180' : ''
                                   }`}
                                 />
@@ -191,12 +205,8 @@ export function DownloadsPageChangelog({
                                         <div
                                           className={`w-1.5 h-1.5 rounded-full ${metadata.dotColor} mt-2 shrink-0 opacity-60`}
                                         />
-                                        <span className="text-sm text-[#0A2540]/70 dark:text-white/70 leading-relaxed">
-                                          <span
-                                            dangerouslySetInnerHTML={{
-                                              __html: formatMarkdownBold(item),
-                                            }}
-                                          />
+                                        <span className="text-sm text-primary/70 dark:text-white/70 leading-relaxed">
+                                          {renderMarkdownBold(item)}
                                         </span>
                                       </div>
                                     ))}

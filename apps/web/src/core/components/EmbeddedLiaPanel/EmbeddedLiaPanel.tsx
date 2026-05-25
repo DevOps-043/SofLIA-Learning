@@ -74,7 +74,7 @@ export function EmbeddedLiaPanel(props: EmbeddedLiaPanelProps) {
             className={`fixed right-0 top-0 h-full z-40 shadow-2xl flex flex-col ${expandedWidth} transition-all duration-300 ease-in-out`}
             style={{
               backgroundColor: colors.cardBg,
-              borderLeft: `1px solid ${colors.primary}20`,
+              borderLeft: `1px solid color-mix(in srgb, ${colors.primary} 12.5%, transparent)`,
             }}
           >
             <div

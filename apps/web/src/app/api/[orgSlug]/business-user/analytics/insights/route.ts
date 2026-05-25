@@ -1,26 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import { requireBusinessUser } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
-import { logger } from '@/lib/utils/logger'
+
+import { getBusinessUserAnalyticsInsights } from '@/features/business-panel/services/business-user-analytics/business-user-analytics.insights.service'
 import {
   fetchBusinessUserAnalyticsDataset,
   normalizeBusinessUserAnalyticsRange,
 } from '@/features/business-panel/services/business-user-analytics/business-user-analytics.server.service'
-import { getBusinessUserAnalyticsInsights } from '@/features/business-panel/services/business-user-analytics/business-user-analytics.insights.service'
 import type {
   BusinessUserAnalyticsLocale,
   BusinessUserAnalyticsRange,
 } from '@/features/business-panel/types/business-user-analytics.types'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { requireBusinessUser } from '@/lib/auth/requireBusiness'
+import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/utils/logger'
+import {
+  businessUserInsightsSchema,
+  type BusinessUserInsightsBody,
+} from './schema'
 
-const insightsSchema = z.object({
-  range: z.enum(['30d', '90d', '180d', '365d']).optional(),
-  locale: z.enum(['es', 'en', 'pt']).optional(),
-})
+type RouteContext = {
+  params: Promise<{ orgSlug: string }>
+}
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> },
+async function handlePost(
+  _request: NextRequest,
+  body: BusinessUserInsightsBody,
+  { params }: RouteContext,
 ) {
   try {
     const { orgSlug } = await params
@@ -28,9 +34,9 @@ export async function POST(
     if (auth instanceof NextResponse) return auth
     if (!auth.userId || !auth.organizationId) return forbiddenResponse()
 
-    const parsed = insightsSchema.parse(await request.json())
-    const range: BusinessUserAnalyticsRange = normalizeBusinessUserAnalyticsRange(parsed.range)
-    const locale: BusinessUserAnalyticsLocale = parsed.locale || 'es'
+    const range: BusinessUserAnalyticsRange =
+      normalizeBusinessUserAnalyticsRange(body.range)
+    const locale: BusinessUserAnalyticsLocale = body.locale || 'es'
     const supabase = await createClient()
     const dataset = await fetchBusinessUserAnalyticsDataset({
       supabase,
@@ -59,24 +65,21 @@ export async function POST(
       },
     )
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { success: false, error: 'Parametros de analytics invalidos' },
-        { status: 400 },
-      )
-    }
-
     logger.error('Business user analytics insights failed', error)
-    return NextResponse.json(
-      { success: false, error: 'Error al generar informe IA' },
-      { status: 500 },
+    return apiError(
+      'BUSINESS_USER_ANALYTICS_INSIGHTS_FAILED',
+      'Error al generar informe IA',
+      500,
     )
   }
 }
 
 function forbiddenResponse(): NextResponse {
-  return NextResponse.json(
-    { success: false, error: 'No tienes una organizacion asignada' },
-    { status: 403 },
+  return apiError(
+    'BUSINESS_USER_ORGANIZATION_REQUIRED',
+    'No tienes una organizacion asignada',
+    403,
   )
 }
+
+export const POST = withZodBody(businessUserInsightsSchema, handlePost)

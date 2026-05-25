@@ -2,6 +2,12 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import {
+    updateNodeSchema,
+    type UpdateNodeBody,
+} from '@/app/api/business/hierarchy/_schemas';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string; nodeId: string }>;
@@ -42,7 +48,7 @@ export async function GET(
         const supabase = await createClient();
 
         if (!nodeId) {
-            return NextResponse.json({ error: 'Node ID is required' }, { status: 400 });
+            return apiError('NODE_ID_REQUIRED', 'Node ID is required', 400);
         }
 
         const { data: node, error: nodeError } = await supabase
@@ -63,7 +69,7 @@ export async function GET(
             .single();
 
         if (nodeError || !node) {
-            return NextResponse.json({ error: 'Node not found' }, { status: 404 });
+            return apiError('NODE_NOT_FOUND', 'Node not found', 404);
         }
 
         const formattedManager = node.manager ? {
@@ -146,15 +152,13 @@ export async function GET(
         });
 
     } catch (error) {
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+        return apiError('INTERNAL_ERROR', 'Internal Server Error', 500);
     }
 }
 
-export async function PUT(
-    request: NextRequest,
+async function handlePut(
+    _request: NextRequest,
+    body: UpdateNodeBody,
     { params }: RouteContext
 ) {
     try {
@@ -162,8 +166,11 @@ export async function PUT(
         const auth = await requireBusiness({ organizationSlug: orgSlug });
         if (auth instanceof NextResponse) return auth;
 
+        if (!auth.organizationId) {
+            return apiError('NO_ORGANIZATION', 'Organization ID required', 403);
+        }
+
         const supabase = await createClient();
-        const body = await request.json();
 
         const { data, error } = await supabase
             .from('organization_nodes')
@@ -173,7 +180,7 @@ export async function PUT(
             .select()
             .single();
 
-        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        if (error) return apiError('UPDATE_NODE_FAILED', error.message, 500);
 
         if (body.manager_id && body.manager_id !== null) {
             await supabase
@@ -206,9 +213,11 @@ export async function PUT(
         }
         return NextResponse.json({ data });
     } catch (error) {
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        return apiError('INTERNAL_ERROR', 'Internal Server Error', 500);
     }
 }
+
+export const PUT = withZodBody(updateNodeSchema, handlePut);
 
 export async function DELETE(
     request: NextRequest,
@@ -227,9 +236,9 @@ export async function DELETE(
             .eq('id', nodeId)
             .eq('organization_id', auth.organizationId);
 
-        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        if (error) return apiError('DELETE_NODE_FAILED', error.message, 500);
         return NextResponse.json({ success: true });
     } catch (error) {
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        return apiError('INTERNAL_ERROR', 'Internal Server Error', 500);
     }
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Building2, Menu } from 'lucide-react'
@@ -23,7 +24,7 @@ interface BusinessPanelHeaderProps {
 
 export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
   if (!onMenuClick || typeof onMenuClick !== 'function') {
-    console.error('BusinessPanelHeader: onMenuClick debe ser una funcion')
+    techDebtLogger.error('BusinessPanelHeader: onMenuClick debe ser una funcion')
     return null
   }
 
@@ -42,12 +43,12 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
       return {
         backgroundColor: isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.85)',
         borderColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.8)',
-        color: isDark ? '#f8fafc' : '#1E293B',
+        color: isDark ? 'var(--color-gray-50)' : 'var(--color-legacy-1e293b)',
         hoverBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
       }
     }
 
-    const sidebarBg = panelStyles.sidebar_background || '#0f172a'
+    const sidebarBg = panelStyles.sidebar_background || 'var(--color-legacy-0f172a)'
     const sidebarOpacity =
       panelStyles.sidebar_opacity !== undefined ? panelStyles.sidebar_opacity : 0.85
     const borderColor = panelStyles.border_color || 'rgba(71, 85, 105, 0.3)'
@@ -101,7 +102,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
               style={{
                 color:
                   navbarStyle.color ||
-                  (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.8)'),
+                  (resolvedTheme === 'light' ? 'var(--color-legacy-1e293b)' : 'rgba(255, 255, 255, 0.8)'),
               }}
             >
               <Menu className="h-5 w-5" />
@@ -148,7 +149,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                   style={{
                     color:
                       navbarStyle.color ||
-                      (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.95)'),
+                      (resolvedTheme === 'light' ? 'var(--color-legacy-1e293b)' : 'rgba(255, 255, 255, 0.95)'),
                   }}
                 >
                   {organization?.name || t('header.myOrganization')}

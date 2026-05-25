@@ -46,7 +46,7 @@ function AdminWorkshopInstructorAvatar(props: {
 }) {
   const theme = useAdminPanelTheme()
   return (
-    <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-2" style={{ '--tw-ring-color': `${theme.accentColor}33` } as CSSProperties}>
+    <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-2" style={{ '--tw-ring-color': `color-mix(in srgb, ${theme.accentColor} 20%, transparent)` } as CSSProperties}>
       <div className="absolute inset-0 flex items-center justify-center text-xs font-bold" style={{ background: `linear-gradient(135deg, ${theme.accentColor}, ${theme.primaryColor})`, color: theme.onPrimaryColor }}>{props.initials}</div>
       <Image src={props.imageUrl} alt={props.name} fill sizes="40px" className="relative z-10 object-cover" onError={props.onError} />
     </div>
@@ -56,7 +56,7 @@ function AdminWorkshopInstructorAvatar(props: {
 function AdminWorkshopInstructorFallback({ initials }: { initials: string }) {
   const theme = useAdminPanelTheme()
   return (
-    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ring-2" style={{ '--tw-ring-color': `${theme.accentColor}33`, background: `linear-gradient(135deg, ${theme.accentColor}, ${theme.primaryColor})`, color: theme.onPrimaryColor } as CSSProperties}>
+    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ring-2" style={{ '--tw-ring-color': `color-mix(in srgb, ${theme.accentColor} 20%, transparent)`, background: `linear-gradient(135deg, ${theme.accentColor}, ${theme.primaryColor})`, color: theme.onPrimaryColor } as CSSProperties}>
       {initials}
     </div>
   )

@@ -1,8 +1,12 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 
+import { quizSubmitSchema, type QuizSubmitBody } from '@/app/api/courses/_schemas'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
 import { SessionService } from '@/features/auth/services/session.service'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
 
 interface ExistingQuizSubmissionRow {
@@ -116,8 +120,9 @@ function isAnswerCorrect(
   return false
 }
 
-export async function POST(
-  request: NextRequest,
+async function handlePost(
+  _request: NextRequest,
+  body: QuizSubmitBody,
   { params }: { params: Promise<{ slug: string; lessonId: string }> },
 ) {
   try {
@@ -126,7 +131,7 @@ export async function POST(
 
     const currentUser = await SessionService.getCurrentUser()
     if (!currentUser) {
-      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+      return apiError('UNAUTHENTICATED', 'No autenticado.', 401)
     }
 
     const { data: course, error: courseError } = await supabase
@@ -136,17 +141,12 @@ export async function POST(
       .single()
 
     if (courseError || !course) {
-      return NextResponse.json(
-        { error: 'Curso no encontrado' },
-        { status: 404 },
-      )
+      return apiError('COURSE_NOT_FOUND', 'Curso no encontrado.', 404)
     }
 
-    const body = await request.json()
     const organizationId =
-      typeof body?.organizationId === 'string' &&
-      body.organizationId.trim().length > 0
-        ? body.organizationId.trim()
+      body.organizationId && body.organizationId.trim().length > 0
+        ? body.organizationId
         : null
 
     const enrollment = await resolveCourseEnrollment(
@@ -157,10 +157,7 @@ export async function POST(
     )
 
     if (!enrollment) {
-      return NextResponse.json(
-        { error: 'No estas inscrito en este curso' },
-        { status: 404 },
-      )
+      return apiError('ENROLLMENT_NOT_FOUND', 'No estas inscrito en este curso.', 404)
     }
 
     const enrollmentId = enrollment.enrollment_id
@@ -171,24 +168,7 @@ export async function POST(
       materialId,
       activityId,
       totalPoints,
-    } = body as {
-      activityId?: string | null
-      answers?: Record<string, string | number>
-      materialId?: string | null
-      quizData?: QuizQuestionRow[] | { questions?: QuizQuestionRow[] }
-      organizationId?: string | null
-      totalPoints?: number
-    }
-
-    if (!answers || !quizData || (!materialId && !activityId)) {
-      return NextResponse.json(
-        {
-          error:
-            'Datos incompletos: se requieren answers, quizData y materialId o activityId',
-        },
-        { status: 400 },
-      )
-    }
+    } = body
 
     const { data: lesson, error: lessonError } = await supabase
       .from('course_lessons')
@@ -197,10 +177,7 @@ export async function POST(
       .single()
 
     if (lessonError || !lesson) {
-      return NextResponse.json(
-        { error: 'Leccion no encontrada' },
-        { status: 404 },
-      )
+      return apiError('LESSON_NOT_FOUND', 'Leccion no encontrada.', 404)
     }
 
     const questions = Array.isArray(quizData)
@@ -294,10 +271,11 @@ export async function POST(
           .single()
 
         if (error) {
-          console.error('Error actualizando submission:', error)
-          return NextResponse.json(
-            { error: 'Error al actualizar respuestas del quiz' },
-            { status: 500 },
+          techDebtLogger.error('Error actualizando submission:', error)
+          return apiError(
+            'QUIZ_SUBMISSION_UPDATE_FAILED',
+            'Error al actualizar respuestas del quiz.',
+            500,
           )
         }
 
@@ -326,10 +304,11 @@ export async function POST(
         .single()
 
       if (error) {
-        console.error('Error creando submission:', error)
-        return NextResponse.json(
-          { error: 'Error al guardar respuestas del quiz' },
-          { status: 500 },
+        techDebtLogger.error('Error creando submission:', error)
+        return apiError(
+          'QUIZ_SUBMISSION_SAVE_FAILED',
+          'Error al guardar respuestas del quiz.',
+          500,
         )
       }
 
@@ -383,10 +362,11 @@ export async function POST(
           .eq('progress_id', existingProgress.progress_id)
 
         if (progressUpdateError) {
-          console.error('Error actualizando progreso del quiz:', progressUpdateError)
-          return NextResponse.json(
-            { error: 'Error al actualizar el progreso del quiz' },
-            { status: 500 },
+          techDebtLogger.error('Error actualizando progreso del quiz:', progressUpdateError)
+          return apiError(
+            'QUIZ_PROGRESS_UPDATE_FAILED',
+            'Error al actualizar el progreso del quiz.',
+            500,
           )
         }
       } else {
@@ -405,10 +385,11 @@ export async function POST(
           })
 
         if (progressInsertError) {
-          console.error('Error creando progreso del quiz:', progressInsertError)
-          return NextResponse.json(
-            { error: 'Error al guardar el progreso del quiz' },
-            { status: 500 },
+          techDebtLogger.error('Error creando progreso del quiz:', progressInsertError)
+          return apiError(
+            'QUIZ_PROGRESS_SAVE_FAILED',
+            'Error al guardar el progreso del quiz.',
+            500,
           )
         }
       }
@@ -447,16 +428,14 @@ export async function POST(
       },
     })
   } catch (error) {
-    console.error(
+    techDebtLogger.error(
       'Error en POST /api/courses/[slug]/lessons/[lessonId]/quiz/submit:',
       error,
     )
-    return NextResponse.json(
-      {
-        error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido',
-      },
-      { status: 500 },
-    )
+    return apiError('INTERNAL_ERROR', 'Error interno del servidor.', 500, {
+      details: error instanceof Error ? error.message : 'Error desconocido',
+    })
   }
 }
+
+export const POST = withZodBody(quizSubmitSchema, handlePost)

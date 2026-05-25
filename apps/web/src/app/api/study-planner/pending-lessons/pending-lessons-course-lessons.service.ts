@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server'
 import type {
   CourseSource,
@@ -61,7 +62,7 @@ export async function loadPendingLessonsForCourse(params: {
     .order('lesson_order_index', { ascending: true })
 
   if (lessonsError || !lessons) {
-    console.error(`Error obteniendo lecciones del curso ${params.courseSource.course_id}:`, lessonsError)
+    techDebtLogger.error(`Error obteniendo lecciones del curso ${params.courseSource.course_id}:`, lessonsError)
     return null
   }
 
@@ -74,7 +75,7 @@ export async function loadPendingLessonsForCourse(params: {
     .in('lesson_id', lessonIds)
 
   if (progressError) {
-    console.error(`Error consultando progreso para curso ${params.courseSource.course_id}:`, progressError)
+    techDebtLogger.error(`Error consultando progreso para curso ${params.courseSource.course_id}:`, progressError)
   }
 
   const completedLessonIds = new Set(

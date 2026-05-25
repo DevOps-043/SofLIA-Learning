@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { questionUpdateSchema, type QuestionUpdateBody } from '@/app/api/courses/_schemas';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
 
@@ -75,8 +79,9 @@ export async function GET(
  * PUT /api/courses/[slug]/questions/[questionId]
  * Actualiza una pregunta
  */
-export async function PUT(
-  request: NextRequest,
+async function handlePut(
+  _request: NextRequest,
+  body: QuestionUpdateBody,
   { params }: { params: Promise<{ slug: string; questionId: string }> }
 ) {
   try {
@@ -86,10 +91,7 @@ export async function PUT(
     // Obtener usuario actual
     const user = await SessionService.getCurrentUser();
     if (!user) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return apiError('UNAUTHENTICATED', 'No autorizado.', 401);
     }
 
     // Obtener el curso por slug
@@ -100,10 +102,7 @@ export async function PUT(
       .single();
 
     if (courseError || !course) {
-      return NextResponse.json(
-        { error: 'Curso no encontrado' },
-        { status: 404 }
-      );
+      return apiError('COURSE_NOT_FOUND', 'Curso no encontrado.', 404);
     }
 
     // Verificar que la pregunta existe y pertenece al usuario o es instructor
@@ -114,10 +113,7 @@ export async function PUT(
       .single();
 
     if (questionError || !question) {
-      return NextResponse.json(
-        { error: 'Pregunta no encontrada' },
-        { status: 404 }
-      );
+      return apiError('QUESTION_NOT_FOUND', 'Pregunta no encontrada.', 404);
     }
 
     // Verificar permisos: solo el autor o instructor pueden editar
@@ -131,20 +127,28 @@ export async function PUT(
     const isAuthor = question.user_id === user.id;
 
     if (!isAuthor && !isInstructor) {
-      return NextResponse.json(
-        { error: 'No tienes permisos para editar esta pregunta' },
-        { status: 403 }
+      return apiError(
+        'QUESTION_EDIT_FORBIDDEN',
+        'No tienes permisos para editar esta pregunta.',
+        403,
       );
     }
 
-    // Obtener datos del body
-    const body = await request.json();
     const { title, content, tags, is_pinned, is_resolved } = body;
 
     // Preparar datos de actualización
     const updateData: Record<string, unknown> = {};
     if (title !== undefined) updateData.title = title?.trim() || null;
-    if (content !== undefined) updateData.content = content.trim();
+    if (content !== undefined) {
+      const sanitizedContent = sanitizeHtml(content, {
+        level: 'rich',
+        maxLength: 50_000,
+      }).trim();
+      if (!sanitizedContent) {
+        return apiError('VALIDATION_ERROR', 'El contenido de la pregunta es requerido.', 422);
+      }
+      updateData.content = sanitizedContent;
+    }
     if (tags !== undefined) updateData.tags = tags || [];
     if (is_pinned !== undefined && isInstructor) updateData.is_pinned = is_pinned;
     if (is_resolved !== undefined && isAuthor) updateData.is_resolved = is_resolved;
@@ -170,23 +174,18 @@ export async function PUT(
       .single();
 
     if (updateError) {
-      return NextResponse.json(
-        { error: 'Error al actualizar pregunta' },
-        { status: 500 }
-      );
+      return apiError('QUESTION_UPDATE_FAILED', 'Error al actualizar pregunta.', 500);
     }
 
     return NextResponse.json(updatedQuestion);
   } catch (error) {
-    return NextResponse.json(
-      { 
-        error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido'
-      },
-      { status: 500 }
-    );
+    return apiError('INTERNAL_ERROR', 'Error interno del servidor.', 500, {
+      details: error instanceof Error ? error.message : 'Error desconocido',
+    });
   }
 }
+
+export const PUT = withZodBody(questionUpdateSchema, handlePut);
 
 /**
  * DELETE /api/courses/[slug]/questions/[questionId]
@@ -278,4 +277,3 @@ export async function DELETE(
     );
   }
 }
-

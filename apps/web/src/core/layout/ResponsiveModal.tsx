@@ -43,7 +43,7 @@ export function ResponsiveModalPanel({
   return (
     <div
       className={cn(
-        'relative flex w-full min-w-0 flex-col overflow-hidden border border-[#E9ECEF] bg-white shadow-2xl dark:border-[#6C757D]/30 dark:bg-[#1E2329]',
+        'relative flex w-full min-w-0 flex-col overflow-hidden border border-gray-200 bg-white shadow-2xl dark:border-gray-500/30 dark:bg-carbon-800',
         'max-h-[100dvh] rounded-none sm:max-h-[min(92vh,960px)] sm:rounded-[28px]',
         MODAL_SIZE_CLASSNAME[size],
         className,
@@ -86,7 +86,7 @@ export function ResponsiveModalFooter({
   return (
     <div
       className={cn(
-        'shrink-0 border-t border-[#E9ECEF] bg-white px-4 py-4 dark:border-[#6C757D]/30 dark:bg-[#1E2329] sm:px-6',
+        'shrink-0 border-t border-gray-200 bg-white px-4 py-4 dark:border-gray-500/30 dark:bg-carbon-800 sm:px-6',
         stickyOnMobile && 'sticky bottom-0',
         className,
       )}

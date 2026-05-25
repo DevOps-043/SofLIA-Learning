@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabaseStorageService } from '../../../../../../core/services/supabaseStorage'
@@ -167,7 +168,7 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
         setParticipants(result.participants || [])
       }
     } catch (error) {
-      console.error('Error cargando mensajes:', error)
+      techDebtLogger.error('Error cargando mensajes:', error)
     }
   }
 
@@ -175,7 +176,7 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
     try {
       await HierarchyChatsService.markAsRead(chatId)
     } catch (error) {
-      console.error('Error marcando como leído:', error)
+      techDebtLogger.error('Error marcando como leído:', error)
     }
   }
 
@@ -277,7 +278,7 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
         await markAsRead(chat.id)
       }
     } catch (error) {
-      console.error('Error enviando mensaje:', error)
+      techDebtLogger.error('Error enviando mensaje:', error)
       setMessageContent(content)
       setError(error instanceof Error ? error.message : t('hierarchy.chat.errors.send'))
     } finally {
@@ -303,7 +304,7 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
         setEditContent('')
       }
     } catch (error) {
-      console.error('Error editando mensaje:', error)
+      techDebtLogger.error('Error editando mensaje:', error)
     }
   }
 
@@ -316,7 +317,7 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
         setMessages(prev => prev.filter(msg => msg.id !== messageId))
       }
     } catch (error) {
-      console.error('Error eliminando mensaje:', error)
+      techDebtLogger.error('Error eliminando mensaje:', error)
     }
   }
 

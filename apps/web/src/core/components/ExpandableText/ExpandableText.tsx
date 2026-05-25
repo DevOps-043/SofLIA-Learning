@@ -26,7 +26,7 @@ function formatText(text: string): React.ReactNode {
         formattedElements.push(
           <ol key={`list-${formattedElements.length}`} className="list-decimal list-inside space-y-1 my-2 ml-4">
             {currentList.map((item, idx) => (
-              <li key={idx} className="text-[#0A2540] dark:text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
+              <li key={idx} className="text-primary dark:text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
                 {item.trim()}
               </li>
             ))}
@@ -36,7 +36,7 @@ function formatText(text: string): React.ReactNode {
         formattedElements.push(
           <ul key={`list-${formattedElements.length}`} className="list-disc list-inside space-y-1 my-2 ml-4">
             {currentList.map((item, idx) => (
-              <li key={idx} className="text-[#0A2540] dark:text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
+              <li key={idx} className="text-primary dark:text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
                 {item.trim()}
               </li>
             ))}
@@ -85,7 +85,7 @@ function formatText(text: string): React.ReactNode {
     // Detectar títulos/secciones (líneas que terminan con :)
     if (trimmedLine.endsWith(':')) {
       formattedElements.push(
-        <p key={`p-${index}`} className="font-semibold text-[#0A2540] dark:text-white mt-3 mb-1" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
+        <p key={`p-${index}`} className="font-semibold text-primary dark:text-white mt-3 mb-1" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
           {trimmedLine}
         </p>
       );
@@ -94,7 +94,7 @@ function formatText(text: string): React.ReactNode {
     
     // Párrafo normal
     formattedElements.push(
-      <p key={`p-${index}`} className="text-[#0A2540] dark:text-white mb-2" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
+      <p key={`p-${index}`} className="text-primary dark:text-white mb-2" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
         {trimmedLine}
       </p>
     );
@@ -121,7 +121,7 @@ export function ExpandableText({
 
   if (!needsTruncation) {
     return (
-      <div className={`text-[#0A2540] dark:text-white leading-relaxed ${className}`} style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
+      <div className={`text-primary dark:text-white leading-relaxed ${className}`} style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
         {formatText(text)}
       </div>
     );
@@ -130,12 +130,12 @@ export function ExpandableText({
   return (
     <div className={className}>
       {isExpanded ? (
-        <div className="text-[#0A2540] dark:text-white leading-relaxed" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
+        <div className="text-primary dark:text-white leading-relaxed" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
           {formatText(text)}
         </div>
       ) : (
         <div
-          className="text-[#0A2540] dark:text-white leading-relaxed overflow-hidden"
+          className="text-primary dark:text-white leading-relaxed overflow-hidden"
           style={{
             fontFamily: 'Inter, sans-serif',
             fontWeight: 400,
@@ -152,12 +152,12 @@ export function ExpandableText({
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="group relative mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 ease-out
-          bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20
-          border border-[#00D4B3]/30 dark:border-[#00D4B3]/40
-          text-[#00D4B3] dark:text-[#00D4B3]
-          hover:bg-[#00D4B3]/20 dark:hover:bg-[#00D4B3]/30
-          hover:border-[#00D4B3]/50 dark:hover:border-[#00D4B3]/60
-          hover:shadow-md hover:shadow-[#00D4B3]/20 dark:hover:shadow-[#00D4B3]/30
+          bg-accent/10 dark:bg-accent/20
+          border border-accent/30 dark:border-accent/40
+          text-accent dark:text-accent
+          hover:bg-accent/20 dark:hover:bg-accent/30
+          hover:border-accent/50 dark:hover:border-accent/60
+          hover:shadow-md hover:shadow-accent/20 dark:hover:shadow-accent/30
           hover:scale-[1.02] active:scale-[0.98]
           backdrop-blur-sm overflow-hidden"
         style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}

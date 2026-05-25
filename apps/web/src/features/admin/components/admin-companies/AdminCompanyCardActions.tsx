@@ -38,7 +38,7 @@ function AdminCompanyActivateButton({
   const { t } = useTranslation('admin')
   const theme = useAdminPanelTheme()
   return (
-    <button type="button" onClick={onClick} disabled={isUpdating} className="flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl px-4 text-xs font-extrabold uppercase tracking-wider transition-opacity disabled:cursor-not-allowed disabled:opacity-50" style={{ backgroundColor: `${theme.successColor}14`, color: theme.successColor }}>
+    <button type="button" onClick={onClick} disabled={isUpdating} className="flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl px-4 text-xs font-extrabold uppercase tracking-wider transition-opacity disabled:cursor-not-allowed disabled:opacity-50" style={{ backgroundColor: `color-mix(in srgb, ${theme.successColor} 7.8%, transparent)`, color: theme.successColor }}>
       {isUpdating ? <RefreshCw className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
       {t('companies.actions.activate')}
     </button>
@@ -55,11 +55,11 @@ function AdminCompanyManageButtons(props: {
   const theme = useAdminPanelTheme()
   return (
     <>
-      <button type="button" onClick={props.onEdit} className="flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl px-4 text-xs font-extrabold uppercase tracking-wider transition-all" style={{ backgroundColor: `${theme.primaryColor}14`, color: theme.primaryColor }}>
+      <button type="button" onClick={props.onEdit} className="flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl px-4 text-xs font-extrabold uppercase tracking-wider transition-all" style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 7.8%, transparent)`, color: theme.primaryColor }}>
         <Pencil className="h-4 w-4" />
         {t('companies.actions.edit')}
       </button>
-      <button type="button" onClick={props.onToggle} disabled={props.isUpdating} className="flex h-11 w-12 items-center justify-center rounded-2xl transition-opacity disabled:cursor-not-allowed disabled:opacity-50" style={{ backgroundColor: props.isActive ? `${theme.warningColor}14` : `${theme.successColor}14`, color: props.isActive ? theme.warningColor : theme.successColor }} aria-label={props.isActive ? t('companies.actions.pause') : t('companies.actions.activate')} title={props.isActive ? t('companies.actions.pause') : t('companies.actions.activate')}>
+      <button type="button" onClick={props.onToggle} disabled={props.isUpdating} className="flex h-11 w-12 items-center justify-center rounded-2xl transition-opacity disabled:cursor-not-allowed disabled:opacity-50" style={{ backgroundColor: props.isActive ? `color-mix(in srgb, ${theme.warningColor} 7.8%, transparent)` : `color-mix(in srgb, ${theme.successColor} 7.8%, transparent)`, color: props.isActive ? theme.warningColor : theme.successColor }} aria-label={props.isActive ? t('companies.actions.pause') : t('companies.actions.activate')} title={props.isActive ? t('companies.actions.pause') : t('companies.actions.activate')}>
         {props.isUpdating ? <RefreshCw className="h-4 w-4 animate-spin" /> : props.isActive ? <PauseCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
       </button>
     </>

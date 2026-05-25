@@ -55,7 +55,7 @@ export default function AIModerationPanel() {
     
     const { data, error } = await supabase
       .from('ai_moderation_pending_review')
-      .select('*')
+      .select(SELECT_COLUMNS.ai_moderation_pending_review)
       .order('confidence_score', { ascending: false })
       .limit(50);
 

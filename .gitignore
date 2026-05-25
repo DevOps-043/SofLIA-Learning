@@ -6,6 +6,10 @@ node_modules/
 .env
 # Testing
 /coverage
+coverage/
+**/coverage/
+docs/tech-debt/*.tmp
+tsc-*.tmp
 settings.local.json
 # Next.js - All patterns to cover any location
 .next/
@@ -40,6 +44,7 @@ apps/**/.next/static/
 
 # Webpack cache and hot reload - All variants
 **/webpack*.js
+!apps/web/next-config/webpack*.js
 *.webpack.hot-update.*
 **/*.webpack.hot-update.*
 **/*.hot-update.*

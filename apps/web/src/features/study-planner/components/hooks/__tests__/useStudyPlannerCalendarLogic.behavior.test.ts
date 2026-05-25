@@ -92,7 +92,7 @@ describe('useStudyPlannerCalendarLogic behavior', () => {
     const event = createCalendarEvent({
       description: 'Existing description',
       location: 'Sala 1',
-      color: '#00D4B3',
+      color: 'var(--color-accent)',
     });
     const { result } = renderHook(() =>
       useStudyPlannerCalendarLogic({ showOnlyPlanEvents: false }),
@@ -113,7 +113,7 @@ describe('useStudyPlannerCalendarLogic behavior', () => {
       title: 'Planning session',
       description: 'Existing description',
       location: 'Sala 1',
-      color: '#00D4B3',
+      color: 'var(--color-accent)',
       start: '2026-04-02T09:00:00.000Z',
       end: '2026-04-02T10:00:00.000Z',
     });

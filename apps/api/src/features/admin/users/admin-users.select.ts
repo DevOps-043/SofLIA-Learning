@@ -1,0 +1,23 @@
+export const ADMIN_USER_SELECT_FIELDS = `
+  id,
+  username,
+  email,
+  first_name,
+  last_name,
+  display_name,
+  cargo_rol,
+  type_rol,
+  email_verified,
+  email_verified_at,
+  phone,
+  bio,
+  location,
+  profile_picture_url,
+  country_code,
+  created_at,
+  updated_at,
+  last_login_at,
+  is_banned,
+  banned_at,
+  ban_reason
+`

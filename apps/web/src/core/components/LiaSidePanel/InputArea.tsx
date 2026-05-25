@@ -147,14 +147,14 @@ export function InputArea({
               height: '32px',
               borderRadius: '50%',
               backgroundColor: isDictating
-                ? '#EF4444'
+                ? 'var(--color-error)'
                 : isProcessingDictation
                 ? isLightTheme
-                  ? '#CBD5E1'
-                  : '#374151'
+                  ? 'var(--color-gray-300)'
+                  : 'var(--color-legacy-374151)'
                 : 'transparent',
               border: `1px solid ${
-                isDictating ? '#EF4444' : themeColors.inputBorder
+                isDictating ? 'var(--color-error)' : themeColors.inputBorder
               }`,
               cursor: isProcessingDictation ? 'not-allowed' : 'pointer',
               display: 'flex',
@@ -166,8 +166,8 @@ export function InputArea({
             onMouseEnter={(e) => {
               if (!isProcessingDictation && !isDictating) {
                 e.currentTarget.style.backgroundColor = isLightTheme
-                  ? '#E2E8F0'
-                  : '#1e2a35';
+                  ? 'var(--color-gray-200)'
+                  : 'var(--color-legacy-1e2a35)';
               }
             }}
             onMouseLeave={(e) => {
@@ -186,7 +186,7 @@ export function InputArea({
                 className="animate-spin"
               />
             ) : isDictating ? (
-              <VoiceWaveform color="#FFFFFF" barCount={4} height={14} />
+              <VoiceWaveform color="var(--color-bg-light)" barCount={4} height={14} />
             ) : (
               <Mic
                 style={{
@@ -209,8 +209,8 @@ export function InputArea({
             backgroundColor: canSendMessage
               ? themeColors.accentColor
               : isLightTheme
-              ? '#CBD5E1'
-              : '#374151',
+              ? 'var(--color-gray-300)'
+              : 'var(--color-legacy-374151)',
             border: 'none',
             cursor: canSendMessage ? 'pointer' : 'not-allowed',
             display: 'flex',
@@ -224,10 +224,10 @@ export function InputArea({
               width: '16px',
               height: '16px',
               color: canSendMessage
-                ? '#FFFFFF'
+                ? 'var(--color-bg-light)'
                 : isLightTheme
-                ? '#6B7280'
-                : '#9CA3AF',
+                ? 'var(--color-legacy-6b7280)'
+                : 'var(--color-legacy-9ca3af)',
             }}
           />
         </button>

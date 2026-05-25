@@ -143,7 +143,7 @@ export default function CertificateVerifyPage() {
                 <div
                   className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
                   style={{
-                    backgroundColor: isValid ? `${theme.successColor}18` : `${theme.dangerColor}18`,
+                    backgroundColor: isValid ? `color-mix(in srgb, ${theme.successColor} 9.4%, transparent)` : `color-mix(in srgb, ${theme.dangerColor} 9.4%, transparent)`,
                     color: isValid ? theme.successColor : theme.dangerColor,
                   }}
                 >

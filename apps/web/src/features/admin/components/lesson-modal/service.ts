@@ -65,11 +65,11 @@ export function canGenerateLessonAi(
 
 export function validateLessonForm(formData: LessonFormData): string | null {
   if (!formData.instructor_id) {
-    return 'Debe seleccionar un instructor'
+    return 'instructorRequired'
   }
 
   if (!formData.duration_seconds || formData.duration_seconds <= 0) {
-    return 'La duración debe ser mayor a 0 segundos'
+    return 'durationRequired'
   }
 
   return null

@@ -130,17 +130,17 @@ export function TranscriptContent({
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-dashed border-[#D7DEE6] bg-white p-5 dark:border-white/10 dark:bg-[#0F1419]/40">
+      <div className="rounded-2xl border border-dashed border-[var(--color-legacy-d7dee6)] bg-white p-5 dark:border-white/10 dark:bg-carbon-900/40">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0A2540]/10 dark:bg-[#00D4B3]/10">
-            <ScrollText className="h-4 w-4 animate-pulse text-[#0A2540] dark:text-[#00D4B3]" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 dark:bg-accent/10">
+            <ScrollText className="h-4 w-4 animate-pulse text-primary dark:text-accent" />
           </div>
           <div className="space-y-2">
             <div className="h-3 w-40 animate-pulse rounded bg-gray-200 dark:bg-white/10" />
             <div className="h-3 w-28 animate-pulse rounded bg-gray-200 dark:bg-white/10" />
           </div>
         </div>
-        <p className="mt-4 text-sm text-[#6C757D] dark:text-white/60">
+        <p className="mt-4 text-sm text-gray-500 dark:text-white/60">
           {t("loading.transcript")}
         </p>
       </div>
@@ -149,16 +149,16 @@ export function TranscriptContent({
 
   if (!hasTranscript) {
     return (
-      <div className="rounded-2xl border border-dashed border-[#D7DEE6] bg-white p-5 dark:border-white/10 dark:bg-[#0F1419]/40">
+      <div className="rounded-2xl border border-dashed border-[var(--color-legacy-d7dee6)] bg-white p-5 dark:border-white/10 dark:bg-carbon-900/40">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0A2540]/10 dark:bg-[#00D4B3]/10">
-            <Info className="h-4 w-4 text-[#0A2540] dark:text-[#00D4B3]" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 dark:bg-accent/10">
+            <Info className="h-4 w-4 text-primary dark:text-accent" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-[#0A2540] dark:text-white">
+            <h3 className="text-sm font-semibold text-primary dark:text-white">
               {t("transcript.notAvailable")}
             </h3>
-            <p className="mt-1 text-sm text-[#6C757D] dark:text-white/60">
+            <p className="mt-1 text-sm text-gray-500 dark:text-white/60">
               {t("transcript.notAvailableMessage")}
             </p>
           </div>
@@ -170,19 +170,19 @@ export function TranscriptContent({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 rounded-full border border-[#0A2540]/10 bg-white px-3 py-1.5 text-sm text-[#44556B] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70">
-          <div className="h-1.5 w-1.5 rounded-full bg-[#0A2540] dark:bg-[#00D4B3]" />
+        <div className="flex items-center gap-2 rounded-full border border-primary/10 bg-white px-3 py-1.5 text-sm text-[var(--color-legacy-44556b)] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70">
+          <div className="h-1.5 w-1.5 rounded-full bg-primary dark:bg-accent" />
           <span className="font-medium">{transcriptContent?.length || 0}</span>
           <span className="text-xs">{t("transcript.characters")}</span>
         </div>
-        <div className="flex items-center gap-2 rounded-full border border-[#0A2540]/10 bg-white px-3 py-1.5 text-sm text-[#44556B] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70">
-          <Clock className="h-3.5 w-3.5 text-[#0A2540] dark:text-[#00D4B3]" />
+        <div className="flex items-center gap-2 rounded-full border border-primary/10 bg-white px-3 py-1.5 text-sm text-[var(--color-legacy-44556b)] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70">
+          <Clock className="h-3.5 w-3.5 text-primary dark:text-accent" />
           <span className="font-medium">{estimatedReadingTime}</span>
           <span className="text-xs">{t("transcript.readTime")}</span>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-[#E9ECEF] bg-white shadow-sm dark:border-white/10 dark:bg-[#0F1419]/50">
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-carbon-900/50">
         <div className="p-6">
           <div className="divide-y divide-gray-100 dark:divide-white/5">
             {parseTranscriptSegments(transcriptContent || "").map((block, idx) => (
@@ -190,7 +190,7 @@ export function TranscriptContent({
                 {/* Time column */}
                 <div className="sm:w-28 shrink-0">
                   {block.time && (
-                    <div className="inline-flex items-center gap-1.5 rounded-lg border border-[#0A2540]/10 bg-[#0A2540]/5 px-2.5 py-1 text-sm font-medium text-[#0A2540] dark:border-[#00D4B3]/20 dark:bg-[#00D4B3]/10 dark:text-[#00D4B3]">
+                    <div className="inline-flex items-center gap-1.5 rounded-lg border border-primary/10 bg-primary/5 px-2.5 py-1 text-sm font-medium text-primary dark:border-accent/20 dark:bg-accent/10 dark:text-accent">
                       <Clock className="h-3.5 w-3.5 opacity-70" />
                       <span>{block.time}</span>
                     </div>
@@ -208,8 +208,8 @@ export function TranscriptContent({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#E9ECEF] bg-gray-50 px-6 py-4 dark:border-white/10 dark:bg-white/[0.03]">
-          <span className="text-xs font-medium uppercase tracking-[0.18em] text-[#6C757D] dark:text-white/30">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-white/10 dark:bg-white/[0.03]">
+          <span className="text-xs font-medium uppercase tracking-[0.18em] text-gray-500 dark:text-white/30">
             {t("transcript.tips.autoGenerated")}
           </span>
 
@@ -218,7 +218,7 @@ export function TranscriptContent({
               type="button"
               onClick={handleSaveToNotes}
               disabled={isSaving}
-              className="flex items-center gap-2 rounded-lg border border-[#0A2540]/15 bg-[#0A2540]/8 px-4 py-1.5 text-xs font-medium text-[#0A2540] transition-colors hover:bg-[#0A2540]/12 disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#00D4B3]/20 dark:bg-[#00D4B3]/10 dark:text-[#00D4B3] dark:hover:bg-[#00D4B3]/15"
+              className="flex items-center gap-2 rounded-lg border border-primary/15 bg-primary/[0.08] px-4 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/[0.12] disabled:cursor-not-allowed disabled:opacity-60 dark:border-accent/20 dark:bg-accent/10 dark:text-accent dark:hover:bg-accent/15"
             >
               <Save className={`h-3.5 w-3.5 ${isSaving ? "animate-spin" : ""}`} />
               {isSaving ? t("transcript.savingToNotes") : t("transcript.generateNote")}

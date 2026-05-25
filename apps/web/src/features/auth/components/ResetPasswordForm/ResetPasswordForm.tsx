@@ -6,7 +6,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { resetPasswordAction, validateResetTokenAction } from '../../actions/reset-password';
+import { createClient as createBrowserSupabaseClient } from '@/lib/supabase/client';
+import {
+  resetPasswordAction,
+  resetSupabaseRecoveryPasswordAction,
+  validateResetTokenAction,
+} from '../../actions/reset-password';
 import { getResetPasswordSchema, type ResetPasswordFormData } from './ResetPasswordForm.schema';
 import { Loader2, Lock, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { PasswordInput } from '../PasswordInput';
@@ -17,11 +22,14 @@ export function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
+  const recoveryCode = searchParams.get('code');
+  const recoveryMode = searchParams.get('mode');
 
   const [isLoading, setIsLoading] = useState(false);
   const [isValidatingToken, setIsValidatingToken] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
+  const [resetMode, setResetMode] = useState<'legacy' | 'supabase'>('legacy');
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [result, setResult] = useState<{
     type: 'success' | 'error';
@@ -45,11 +53,45 @@ export function ResetPasswordForm() {
   useEffect(() => {
     const validateToken = async () => {
       if (!token) {
-        setTokenError('Token no proporcionado');
+        const hasSupabaseRecovery =
+          recoveryMode === 'supabase' ||
+          Boolean(recoveryCode) ||
+          window.location.hash.includes('access_token');
+
+        if (!hasSupabaseRecovery) {
+          setTokenError('Token no proporcionado');
+          setIsValidatingToken(false);
+          return;
+        }
+
+        const supabase = createBrowserSupabaseClient();
+        if (recoveryCode) {
+          const { error } = await supabase.auth.exchangeCodeForSession(recoveryCode);
+          if (error) {
+            setTokenError(t('auth.resetPassword.validation.invalidToken'));
+            setIsValidatingToken(false);
+            return;
+          }
+        }
+
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error || !session?.user) {
+          setTokenError(t('auth.resetPassword.validation.invalidToken'));
+          setIsValidatingToken(false);
+          return;
+        }
+
+        setResetMode('supabase');
+        setTokenValid(true);
         setIsValidatingToken(false);
         return;
       }
 
+      setResetMode('legacy');
       const result = await validateResetTokenAction(token);
 
       if (result.valid) {
@@ -62,7 +104,7 @@ export function ResetPasswordForm() {
     };
 
     validateToken();
-  }, [token]);
+  }, [recoveryCode, recoveryMode, token, t]);
 
   // Calcular fortaleza de contraseña
   const getPasswordStrength = () => {
@@ -75,7 +117,7 @@ export function ResetPasswordForm() {
     if (/[0-9]/.test(newPassword)) strength++;
 
     const labels = ['', t('auth.resetPassword.strengthLabels.weak'), t('auth.resetPassword.strengthLabels.medium'), t('auth.resetPassword.strengthLabels.good'), t('auth.resetPassword.strengthLabels.strong')];
-    const colors = ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-[#00D4B3]'];
+    const colors = ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-accent'];
 
     return {
       strength,
@@ -85,24 +127,37 @@ export function ResetPasswordForm() {
   };
 
   const onSubmit = async (data: ResetPasswordFormData) => {
-    if (!token) return;
+    if (resetMode === 'legacy' && !token) return;
 
     setIsLoading(true);
     setResult(null);
 
     try {
       const formData = new FormData();
-      formData.append('token', token);
       formData.append('newPassword', data.newPassword);
+      if (token) {
+        formData.append('token', token);
+      }
 
-      const response = await resetPasswordAction(formData);
+      const response = resetMode === 'supabase'
+        ? await resetSupabaseRecoveryPasswordAction(formData)
+        : await resetPasswordAction(formData);
 
-      if (response.error) {
-        setResult({ type: 'error', message: response.error });
+      const responseError =
+        'error' in response && typeof response.error === 'string'
+          ? response.error
+          : null;
+      const responseMessage =
+        'message' in response && typeof response.message === 'string'
+          ? response.message
+          : null;
+
+      if (responseError) {
+        setResult({ type: 'error', message: responseError });
       } else {
         setResult({
           type: 'success',
-          message: response.message || t('auth.resetPassword.success'),
+          message: responseMessage || t('auth.resetPassword.success'),
         });
 
         // Redirigir al login después de 2 segundos
@@ -126,8 +181,8 @@ export function ResetPasswordForm() {
   if (isValidatingToken) {
     return (
       <div className="w-full max-w-md mx-auto p-12 text-center">
-        <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-[#00D4B3]" />
-        <p className="text-[#6C757D] dark:text-white/60 font-medium">{t('auth.resetPassword.verifying')}</p>
+        <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-accent" />
+        <p className="text-gray-500 dark:text-white/60 font-medium">{t('auth.resetPassword.verifying')}</p>
       </div>
     );
   }
@@ -140,17 +195,17 @@ export function ResetPasswordForm() {
         animate={{ opacity: 1, scale: 1 }}
         className="w-full"
       >
-        <div className="bg-white dark:bg-[#1E2329] rounded-2xl shadow-xl dark:shadow-2xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-8 sm:p-10 text-center">
+        <div className="bg-white dark:bg-carbon-800 rounded-2xl shadow-xl dark:shadow-2xl border border-gray-200 dark:border-gray-500/30 p-8 sm:p-10 text-center">
           <div className="flex justify-center mb-6">
             <div className="w-16 h-16 bg-red-50 dark:bg-red-900/10 rounded-full flex items-center justify-center text-red-500">
               <XCircle className="w-8 h-8" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-[#0A2540] dark:text-white mb-3">{t('auth.resetPassword.invalidTokenTitle')}</h1>
-          <p className="text-[#6C757D] dark:text-white/60 mb-8">{tokenError}</p>
+          <h1 className="text-2xl font-bold text-primary dark:text-white mb-3">{t('auth.resetPassword.invalidTokenTitle')}</h1>
+          <p className="text-gray-500 dark:text-white/60 mb-8">{tokenError}</p>
           <button
             onClick={() => router.push('/auth/forgot-password')}
-            className="w-full px-6 py-3.5 rounded-xl bg-[#0A2540] hover:bg-[#0d2f4d] text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+            className="w-full px-6 py-3.5 rounded-xl bg-primary hover:bg-primary text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
           >
             {t('auth.resetPassword.requestNewLink')}
           </button>
@@ -161,11 +216,11 @@ export function ResetPasswordForm() {
 
   // ESTADO: Formulario principal
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-white via-[#F8F9FA] to-white dark:from-[#0F1419] dark:via-[#0A0D12] dark:to-[#0F1419]">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-white via-gray-50 to-white dark:from-carbon-900 dark:via-carbon-950 dark:to-carbon-900">
       {/* Fondo animado con formas geométricas (Consistent with Auth Page) */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute top-20 left-10 w-72 h-72 bg-[#00D4B3]/5 dark:bg-[#00D4B3]/10 rounded-full blur-3xl"
+          className="absolute top-20 left-10 w-72 h-72 bg-accent/5 dark:bg-accent/10 rounded-full blur-3xl"
           animate={{
             x: [0, 100, 0],
             y: [0, 50, 0],
@@ -174,7 +229,7 @@ export function ResetPasswordForm() {
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-[#0A2540]/5 dark:bg-[#0A2540]/10 rounded-full blur-3xl"
+          className="absolute bottom-20 right-10 w-96 h-96 bg-primary/5 dark:bg-primary/10 rounded-full blur-3xl"
           animate={{
             x: [0, -80, 0],
             y: [0, -60, 0],
@@ -183,7 +238,7 @@ export function ResetPasswordForm() {
           transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
         />
         <div 
-          className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03] bg-[linear-gradient(#0A2540_1px,transparent_1px),linear-gradient(90deg,#0A2540_1px,transparent_1px)] bg-[length:50px_50px]"
+          className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03] bg-[linear-gradient(var(--color-primary)_1px,transparent_1px),linear-gradient(90deg,var(--color-primary)_1px,transparent_1px)] bg-[length:50px_50px]"
         />
       </div>
 
@@ -193,7 +248,7 @@ export function ResetPasswordForm() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-lg z-10"
       >
-        <div className="bg-white/80 dark:bg-[#1E2329]/90 backdrop-blur-xl rounded-2xl shadow-xl dark:shadow-2xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-8 sm:p-10">
+        <div className="bg-white/80 dark:bg-carbon-800/90 backdrop-blur-xl rounded-2xl shadow-xl dark:shadow-2xl border border-gray-200 dark:border-gray-500/30 p-8 sm:p-10">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -205,13 +260,13 @@ export function ResetPasswordForm() {
             <motion.div 
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
-              className="w-16 h-16 bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 rounded-full flex items-center justify-center text-[#00D4B3]"
+              className="w-16 h-16 bg-accent/10 dark:bg-accent/20 rounded-full flex items-center justify-center text-accent"
             >
               <Lock className="w-8 h-8" />
             </motion.div>
           </div>
-          <h1 className="text-3xl font-bold text-[#0A2540] dark:text-white mb-3">{t('auth.resetPassword.title')}</h1>
-          <p className="text-sm sm:text-base text-[#6C757D] dark:text-white/60">
+          <h1 className="text-3xl font-bold text-primary dark:text-white mb-3">{t('auth.resetPassword.title')}</h1>
+          <p className="text-sm sm:text-base text-gray-500 dark:text-white/60">
             {t('auth.resetPassword.subtitle')}
           </p>
         </motion.div>
@@ -220,7 +275,7 @@ export function ResetPasswordForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Nueva Contraseña */}
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-[#0A2540] dark:text-white/90">
+            <label className="block text-sm font-medium text-primary dark:text-white/90">
               {t('auth.resetPassword.newPasswordLabel')}
             </label>
             <PasswordInput
@@ -248,13 +303,13 @@ export function ResetPasswordForm() {
                         className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
                           level <= passwordStrength.strength
                             ? passwordStrength.color
-                            : 'bg-[#E9ECEF] dark:bg-[#6C757D]/20'
+                            : 'bg-gray-200 dark:bg-gray-500/20'
                         }`}
                       />
                     ))}
                   </div>
-                  <p className="text-xs font-medium text-[#6C757D] dark:text-white/60">
-                    {t('auth.resetPassword.strength')}: <span className={passwordStrength.strength > 2 ? 'text-[#00D4B3]' : ''}>{passwordStrength.label}</span>
+                  <p className="text-xs font-medium text-gray-500 dark:text-white/60">
+                    {t('auth.resetPassword.strength')}: <span className={passwordStrength.strength > 2 ? 'text-accent' : ''}>{passwordStrength.label}</span>
                   </p>
                 </motion.div>
               )}
@@ -268,7 +323,7 @@ export function ResetPasswordForm() {
                 { label: t('auth.resetPassword.requirements.lowercase'), test: /[a-z]/.test(newPassword) },
                 { label: t('auth.resetPassword.requirements.number'), test: /[0-9]/.test(newPassword) },
               ].map((req, i) => (
-                <div key={i} className={`flex items-center gap-2 text-xs font-medium transition-colors ${req.test ? 'text-[#00D4B3]' : 'text-[#6C757D] dark:text-white/40'}`}>
+                <div key={i} className={`flex items-center gap-2 text-xs font-medium transition-colors ${req.test ? 'text-accent' : 'text-gray-500 dark:text-white/40'}`}>
                   <CheckCircle className={`w-3 h-3 ${req.test ? 'opacity-100' : 'opacity-30'}`} />
                   <span>{req.label}</span>
                 </div>
@@ -278,7 +333,7 @@ export function ResetPasswordForm() {
 
           {/* Confirmar Contraseña */}
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-[#0A2540] dark:text-white/90">
+            <label className="block text-sm font-medium text-primary dark:text-white/90">
               {t('auth.resetPassword.confirmPasswordLabel')}
             </label>
             <PasswordInput
@@ -320,7 +375,7 @@ export function ResetPasswordForm() {
             disabled={isLoading || result?.type === 'success'}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full bg-[#0A2540] hover:bg-[#0d2f4d] text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-primary hover:bg-primary text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -335,7 +390,7 @@ export function ResetPasswordForm() {
           <div className="text-center pt-2">
             <Link
               href="/auth"
-              className="inline-flex items-center gap-2 text-sm font-medium text-[#6C757D] hover:text-[#00D4B3] dark:text-white/60 dark:hover:text-[#00D4B3] transition-colors group"
+              className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-accent dark:text-white/60 dark:hover:text-accent transition-colors group"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               <span>{t('auth.resetPassword.backToLogin')}</span>

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Utilidades para obtener metadatos de talleres dinámicamente desde la BD
  * 
@@ -44,7 +45,7 @@ export async function getWorkshopMetadata(workshopId: string): Promise<WorkshopM
       .single();
 
     if (workshopError || !workshop) {
-      console.error('Error obteniendo taller:', workshopError);
+      techDebtLogger.error('Error obteniendo taller:', workshopError);
       return null;
     }
 
@@ -62,7 +63,7 @@ export async function getWorkshopMetadata(workshopId: string): Promise<WorkshopM
       .order('module_order_index', { ascending: true });
 
     if (modulesError) {
-      console.error('Error obteniendo módulos:', modulesError);
+      techDebtLogger.error('Error obteniendo módulos:', modulesError);
       return {
         workshopId: workshop.id,
         workshopSlug: workshop.slug || '',
@@ -101,7 +102,7 @@ export async function getWorkshopMetadata(workshopId: string): Promise<WorkshopM
       .order('lesson_order_index', { ascending: true });
 
     if (lessonsError) {
-      console.error('Error obteniendo lecciones:', lessonsError);
+      techDebtLogger.error('Error obteniendo lecciones:', lessonsError);
       // Retornar módulos sin lecciones en caso de error
       return {
         workshopId: workshop.id,
@@ -119,23 +120,37 @@ export async function getWorkshopMetadata(workshopId: string): Promise<WorkshopM
     }
 
     // 4. Agrupar lecciones por módulo
+    type LessonRow = {
+      lesson_id: string;
+      module_id: string;
+      lesson_title: string;
+      lesson_description: string | null;
+      lesson_order_index: number;
+      duration_seconds: number | null;
+      total_duration_minutes: number | null;
+    };
+
     const lessonsByModule = new Map<string, LessonInfo[]>();
-    (allLessons || []).forEach((lesson: Record<string, unknown>) => {
+    (allLessons as LessonRow[] | null ?? []).forEach((lesson) => {
       if (!lessonsByModule.has(lesson.module_id)) {
         lessonsByModule.set(lesson.module_id, []);
       }
+      const durationSeconds = lesson.duration_seconds ?? undefined;
+      const totalMinutes = lesson.total_duration_minutes ?? 0;
+      const computedMinutes =
+        totalMinutes > 0
+          ? totalMinutes
+          : durationSeconds && durationSeconds > 0
+            ? Math.ceil(durationSeconds / 60)
+            : 15;
+
       lessonsByModule.get(lesson.module_id)!.push({
         lessonId: lesson.lesson_id,
         lessonTitle: lesson.lesson_title,
-        lessonDescription: lesson.lesson_description || undefined,
+        lessonDescription: lesson.lesson_description ?? undefined,
         lessonOrderIndex: lesson.lesson_order_index,
-        durationSeconds: lesson.duration_seconds || undefined,
-        // ✅ CORRECCIÓN: Priorizar total_duration_minutes, luego calcular desde duration_seconds, fallback a 15 min
-        totalDurationMinutes: lesson.total_duration_minutes && lesson.total_duration_minutes > 0
-          ? lesson.total_duration_minutes
-          : (lesson.duration_seconds && lesson.duration_seconds > 0
-            ? Math.ceil(lesson.duration_seconds / 60)
-            : 15)
+        durationSeconds,
+        totalDurationMinutes: computedMinutes,
       });
     });
 
@@ -156,7 +171,7 @@ export async function getWorkshopMetadata(workshopId: string): Promise<WorkshopM
       modules
     };
   } catch (error) {
-    console.error('Error inesperado obteniendo metadatos del taller:', error);
+    techDebtLogger.error('Error inesperado obteniendo metadatos del taller:', error);
     return null;
   }
 }
@@ -179,14 +194,14 @@ export async function getWorkshopMetadataBySlug(workshopSlug: string): Promise<W
       .single();
 
     if (workshopError || !workshop) {
-      console.error('Error obteniendo taller por slug:', workshopError);
+      techDebtLogger.error('Error obteniendo taller por slug:', workshopError);
       return null;
     }
 
     // Luego usar la función principal con el ID
     return await getWorkshopMetadata(workshop.id);
   } catch (error) {
-    console.error('Error inesperado obteniendo metadatos del taller por slug:', error);
+    techDebtLogger.error('Error inesperado obteniendo metadatos del taller por slug:', error);
     return null;
   }
 }

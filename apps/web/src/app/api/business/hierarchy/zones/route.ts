@@ -1,7 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { createZoneSchema, type CreateZoneBody } from '../_schemas';
 
 /**
  * GET /api/business/hierarchy/zones
@@ -112,38 +115,20 @@ export async function GET(request: Request) {
  * POST /api/business/hierarchy/zones
  * Crea una nueva zona
  */
-export async function POST(request: Request) {
+async function handlePost(_request: NextRequest, body: CreateZoneBody) {
   try {
     const auth = await requireBusiness();
     if (auth instanceof NextResponse) return auth;
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
-      );
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403);
     }
 
     if (auth.organizationRole !== 'owner' && auth.organizationRole !== 'admin') {
-      return NextResponse.json(
-        { success: false, error: 'Solo el propietario o administrador puede crear zonas' },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-
-    if (!body.region_id) {
-      return NextResponse.json(
-        { success: false, error: 'La región es requerida' },
-        { status: 400 }
-      );
-    }
-
-    if (!body.name || typeof body.name !== 'string' || body.name.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'El nombre de la zona es requerido' },
-        { status: 400 }
+      return apiError(
+        'FORBIDDEN',
+        'Solo el propietario o administrador puede crear zonas',
+        403,
       );
     }
 
@@ -158,13 +143,9 @@ export async function POST(request: Request) {
       .single();
 
     if (regionError || !region) {
-      return NextResponse.json(
-        { success: false, error: 'Región no encontrada' },
-        { status: 404 }
-      );
+      return apiError('REGION_NOT_FOUND', 'Región no encontrada', 404);
     }
 
-    // Verificar nombre único dentro de la región
     const { count: existingCount } = await supabase
       .from('organization_zones')
       .select('id', { count: 'exact', head: true })
@@ -173,11 +154,18 @@ export async function POST(request: Request) {
       .ilike('name', body.name.trim());
 
     if (existingCount && existingCount > 0) {
-      return NextResponse.json(
-        { success: false, error: 'Ya existe una zona con ese nombre en esta región' },
-        { status: 400 }
+      return apiError(
+        'DUPLICATE_NAME',
+        'Ya existe una zona con ese nombre en esta región',
+        400,
       );
     }
+
+    const parseLatLng = (value: number | string | null | undefined) => {
+      if (value === null || value === undefined || value === '') return null;
+      const num = typeof value === 'string' ? parseFloat(value) : value;
+      return Number.isNaN(num) ? null : num;
+    };
 
     const { data: zone, error } = await supabase
       .from('organization_zones')
@@ -195,8 +183,8 @@ export async function POST(request: Request) {
         state: body.state?.trim() || null,
         country: body.country?.trim() || null,
         postal_code: body.postal_code?.trim() || null,
-        latitude: body.latitude !== null && body.latitude !== undefined && body.latitude !== '' ? parseFloat(body.latitude) : null,
-        longitude: body.longitude !== null && body.longitude !== undefined && body.longitude !== '' ? parseFloat(body.longitude) : null,
+        latitude: parseLatLng(body.latitude),
+        longitude: parseLatLng(body.longitude),
         // Campos de contacto
         phone: body.phone?.trim() || null,
         email: body.email?.trim() || null,
@@ -215,23 +203,16 @@ export async function POST(request: Request) {
 
     if (error) {
       logger.error('Error creando zona:', error);
-      return NextResponse.json(
-        { success: false, error: 'Error al crear la zona' },
-        { status: 500 }
-      );
+      return apiError('CREATE_ZONE_FAILED', 'Error al crear la zona', 500);
     }
 
     logger.info('Zona creada:', { zoneId: zone.id, name: zone.name });
 
-    return NextResponse.json({
-      success: true,
-      zone
-    });
+    return NextResponse.json({ success: true, zone });
   } catch (error) {
     logger.error('Error en POST /api/business/hierarchy/zones:', error);
-    return NextResponse.json(
-      { success: false, error: 'Error al crear la zona' },
-      { status: 500 }
-    );
+    return apiError('CREATE_ZONE_FAILED', 'Error al crear la zona', 500);
   }
 }
+
+export const POST = withZodBody(createZoneSchema, handlePost);

@@ -1,3 +1,6 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
+
 export interface CleanupCalendarEvent {
   id: string
   summary?: string
@@ -57,13 +60,14 @@ async function getGoogleCalendarEvents(
       orderBy: 'startTime',
       maxResults: '500',
     })
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar-cleanup',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params}`,
       { headers: { Authorization: `Bearer ${accessToken}` } },
     )
 
     if (!response.ok) {
-      console.error('[Cleanup] Error obteniendo eventos de Google:', await response.text())
+      techDebtLogger.error('[Cleanup] Error obteniendo eventos de Google:', await response.text())
       return []
     }
 
@@ -73,7 +77,7 @@ async function getGoogleCalendarEvents(
       summary: event.summary,
     }))
   } catch (error) {
-    console.error('[Cleanup] Error en getGoogleCalendarEvents:', error)
+    techDebtLogger.error('[Cleanup] Error en getGoogleCalendarEvents:', error)
     return []
   }
 }
@@ -84,13 +88,14 @@ async function getMicrosoftCalendarEvents(
   endDate: Date,
 ): Promise<CleanupCalendarEvent[]> {
   try {
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'microsoft-calendar-cleanup',
       `https://graph.microsoft.com/v1.0/me/calendarview?startDateTime=${startDate.toISOString()}&endDateTime=${endDate.toISOString()}&$top=500`,
       { headers: { Authorization: `Bearer ${accessToken}` } },
     )
 
     if (!response.ok) {
-      console.error('[Cleanup] Error obteniendo eventos de Microsoft:', await response.text())
+      techDebtLogger.error('[Cleanup] Error obteniendo eventos de Microsoft:', await response.text())
       return []
     }
 
@@ -100,7 +105,7 @@ async function getMicrosoftCalendarEvents(
       summary: event.subject,
     }))
   } catch (error) {
-    console.error('[Cleanup] Error en getMicrosoftCalendarEvents:', error)
+    techDebtLogger.error('[Cleanup] Error en getMicrosoftCalendarEvents:', error)
     return []
   }
 }
@@ -112,7 +117,8 @@ async function deleteGoogleEvent(
 ): Promise<boolean> {
   try {
     const cleanEventId = eventId.split('_')[0]
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar-cleanup',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(cleanEventId)}`,
       {
         method: 'DELETE',
@@ -122,14 +128,15 @@ async function deleteGoogleEvent(
 
     return response.ok || response.status === 404
   } catch (error) {
-    console.error('[Cleanup] Error en deleteGoogleEvent:', error)
+    techDebtLogger.error('[Cleanup] Error en deleteGoogleEvent:', error)
     return false
   }
 }
 
 async function deleteMicrosoftEvent(accessToken: string, eventId: string): Promise<boolean> {
   try {
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'microsoft-calendar-cleanup',
       `https://graph.microsoft.com/v1.0/me/calendar/events/${encodeURIComponent(eventId)}`,
       {
         method: 'DELETE',
@@ -139,7 +146,7 @@ async function deleteMicrosoftEvent(accessToken: string, eventId: string): Promi
 
     return response.ok || response.status === 404
   } catch (error) {
-    console.error('[Cleanup] Error en deleteMicrosoftEvent:', error)
+    techDebtLogger.error('[Cleanup] Error en deleteMicrosoftEvent:', error)
     return false
   }
 }

@@ -80,7 +80,7 @@ export default function StudyPlannerDashboardPage() {
   }, [availablePlans, router, searchParams, selectedPlanId]);
 
   return (
-    <div className="min-h-screen flex overflow-hidden bg-white dark:bg-[#0F1419]">
+    <div className="min-h-screen flex overflow-hidden bg-white dark:bg-carbon-900">
       <div
         id="dashboard-calendar-container"
         className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${
@@ -107,7 +107,7 @@ export default function StudyPlannerDashboardPage() {
         />
 
         <div className="flex-1 overflow-auto px-0 sm:px-6 pb-6">
-          <div className="bg-white dark:bg-[#1E2329] rounded-none sm:rounded-xl shadow-sm border-x-0 sm:border border-[#E9ECEF] dark:border-[#6C757D]/30 p-0 sm:p-6 h-full flex flex-col">
+          <div className="bg-white dark:bg-carbon-800 rounded-none sm:rounded-xl shadow-sm border-x-0 sm:border border-gray-200 dark:border-gray-500/30 p-0 sm:p-6 h-full flex flex-col">
             <StudyPlannerCalendar
               refreshTrigger={calendarRefreshTrigger}
               selectedPlanId={selectedPlanId}

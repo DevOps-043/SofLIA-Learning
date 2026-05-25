@@ -12,7 +12,7 @@ export function LiaCapabilitiesSection({ sectionRef, capabilitiesY }: LiaCapabil
   return (
     <section
       ref={sectionRef}
-      className="py-32 relative bg-gradient-to-b from-white to-[#F8F9FA] dark:from-[#0F1419] dark:to-[#0A0D12]"
+      className="py-32 relative bg-gradient-to-b from-white to-gray-50 dark:from-carbon-900 dark:to-carbon-950"
     >
       <div className="container mx-auto px-4">
         <motion.div
@@ -23,13 +23,13 @@ export function LiaCapabilitiesSection({ sectionRef, capabilitiesY }: LiaCapabil
           transition={{ duration: 0.8 }}
         >
           <h2
-            className="text-4xl lg:text-6xl font-bold mb-6 text-[#0A2540] dark:text-white"
+            className="text-4xl lg:text-6xl font-bold mb-6 text-primary dark:text-white"
             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 900 }}
           >
-            ¿Qué puede hacer <span className="text-[#00D4B3]">SofLIA</span> por ti?
+            ¿Qué puede hacer <span className="text-accent">SofLIA</span> por ti?
           </h2>
           <p
-            className="text-xl lg:text-2xl max-w-3xl mx-auto text-[#6C757D] dark:text-white/80"
+            className="text-xl lg:text-2xl max-w-3xl mx-auto text-gray-500 dark:text-white/80"
             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
             Explora todas las capacidades que SofLIA tiene para ayudarte en tu aprendizaje
@@ -49,21 +49,21 @@ export function LiaCapabilitiesSection({ sectionRef, capabilitiesY }: LiaCapabil
                 transition={{ delay: index * 0.1, duration: 0.6 }}
                 style={{ y: capabilitiesY }}
               >
-                <div className="relative h-full bg-white dark:bg-[#1E2329] rounded-2xl p-8 border border-[#E9ECEF] dark:border-[#6C757D]/30 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className="relative h-full bg-white dark:bg-carbon-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-500/30 shadow-lg hover:shadow-xl transition-all duration-300">
                   <div className="mb-6">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#00D4B3] to-[#0A2540] flex items-center justify-center mb-4">
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-4">
                       <IconComponent className="w-7 h-7 text-white" />
                     </div>
                   </div>
 
                   <h3
-                    className="text-xl font-bold mb-3 text-[#0A2540] dark:text-white"
+                    className="text-xl font-bold mb-3 text-primary dark:text-white"
                     style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
                   >
                     {capability.title}
                   </h3>
                   <p
-                    className="text-[#6C757D] dark:text-white/70 leading-relaxed mb-4"
+                    className="text-gray-500 dark:text-white/70 leading-relaxed mb-4"
                     style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                   >
                     {capability.description}
@@ -71,8 +71,8 @@ export function LiaCapabilitiesSection({ sectionRef, capabilitiesY }: LiaCapabil
 
                   <div className="space-y-2">
                     {capability.examples?.map((example) => (
-                      <div key={example} className="flex items-center gap-2 text-sm text-[#6C757D] dark:text-white/60">
-                        <CheckCircle2 className="w-4 h-4 text-[#10B981] flex-shrink-0" />
+                      <div key={example} className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/60">
+                        <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
                         <span>{example}</span>
                       </div>
                     ))}

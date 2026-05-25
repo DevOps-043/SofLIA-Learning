@@ -4,28 +4,14 @@ import { z } from 'zod'
 import { AdminLearningPathsService } from '@/features/admin/services/adminLearningPaths.service'
 import { LearningPathDefaultsService } from '@/features/learning-paths/services/learning-path-defaults.server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
-
-const userIdsSchema = z
-  .array(z.string().uuid('UserId invalido'))
-  .min(1, 'Selecciona al menos un usuario')
-
-const assignLearningPathSchema = z.object({
-  learningPathId: z.string().uuid('LearningPathId invalido'),
-  userIds: z.array(z.string().uuid('UserId invalido')).optional(),
-  target: z.object({
-    type: z.enum(['all', 'node']),
-    nodeIds: z.array(z.string().uuid('NodeId invalido')).optional(),
-    includeDescendants: z.boolean().optional(),
-  }).optional(),
-}).refine(
-  (value) => (value.userIds && value.userIds.length > 0) || Boolean(value.target),
-  'Selecciona al menos un usuario o una audiencia',
-).refine(
-  (value) => value.target?.type !== 'node' || Boolean(value.target.nodeIds?.length),
-  'Selecciona al menos un nodo',
-)
+import {
+  assignLearningPathSchema,
+  type AssignLearningPathBody,
+} from '../../_schemas'
 
 const assignmentIdSchema = z.string().uuid('AssignmentId invalido')
 
@@ -33,36 +19,35 @@ interface RouteParams {
   params: Promise<{ orgSlug: string }>
 }
 
-export async function POST(request: NextRequest, { params }: RouteParams) {
+async function handlePost(
+  _request: NextRequest,
+  body: AssignLearningPathBody,
+  { params }: RouteParams,
+) {
   try {
     const { orgSlug } = await params
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organizacion asignada' },
-        { status: 403 },
-      )
+      return apiError('NO_ORGANIZATION', 'No tienes una organizacion asignada', 403)
     }
 
     if (!auth.isOrgAdmin) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No tienes permisos para asignar rutas dentro de esta organizacion',
-        },
-        { status: 403 },
+      return apiError(
+        'FORBIDDEN',
+        'No tienes permisos para asignar rutas dentro de esta organizacion',
+        403,
       )
     }
 
-    const body = assignLearningPathSchema.parse(await request.json())
     const learningPath = await AdminLearningPathsService.getLearningPathById(body.learningPathId)
 
     if (!learningPath || !learningPath.is_active) {
-      return NextResponse.json(
-        { success: false, error: 'La ruta de aprendizaje no esta disponible' },
-        { status: 404 },
+      return apiError(
+        'LEARNING_PATH_NOT_AVAILABLE',
+        'La ruta de aprendizaje no esta disponible',
+        404,
       )
     }
 
@@ -85,7 +70,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       })
     }
 
-    const uniqueUserIds = Array.from(new Set(userIdsSchema.parse(body.userIds)))
+    const uniqueUserIds = Array.from(new Set(body.userIds ?? []))
     const supabase = await createClient()
     const { data: activeMembers, error: membershipError } = await supabase
       .from('organization_users')
@@ -99,19 +84,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         'Error validating organization members for learning path assignment:',
         membershipError,
       )
-      return NextResponse.json(
-        { success: false, error: 'No se pudieron validar los usuarios seleccionados' },
-        { status: 500 },
+      return apiError(
+        'VALIDATE_MEMBERS_FAILED',
+        'No se pudieron validar los usuarios seleccionados',
+        500,
       )
     }
 
     if ((activeMembers || []).length !== uniqueUserIds.length) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Algunos usuarios no pertenecen a tu organizacion o no estan activos',
-        },
-        { status: 400 },
+      return apiError(
+        'INVALID_ORGANIZATION_USERS',
+        'Algunos usuarios no pertenecen a tu organizacion o no estan activos',
+        400,
       )
     }
 
@@ -135,21 +119,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     })
   } catch (error) {
     logger.error('Error assigning learning path from business panel:', error)
-    const isValidationError = error instanceof z.ZodError
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: isValidationError
-          ? error.errors[0]?.message || 'Solicitud invalida'
-          : error instanceof Error
-            ? error.message
-            : 'Error al asignar la ruta de aprendizaje',
-      },
-      { status: isValidationError ? 400 : 500 },
+    return apiError(
+      'ASSIGN_LEARNING_PATH_FAILED',
+      error instanceof Error ? error.message : 'Error al asignar la ruta de aprendizaje',
+      500,
     )
   }
 }
+
+export const POST = withZodBody(assignLearningPathSchema, handlePost)
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {

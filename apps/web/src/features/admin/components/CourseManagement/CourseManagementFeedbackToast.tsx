@@ -23,7 +23,7 @@ export function CourseManagementFeedbackToast() {
           <div
             className={`flex items-start gap-3 rounded-xl border px-4 py-3 shadow-2xl backdrop-blur-md ${
               feedbackMessage.type === 'success'
-                ? 'border-[#10B981]/30 bg-[#10B981]/10 text-[#10B981] dark:border-[#10B981]/40 dark:bg-[#10B981]/20 dark:text-[#10B981]'
+                ? 'border-success/30 bg-success/10 text-success dark:border-success/40 dark:bg-success/20 dark:text-success'
                 : 'border-red-400/30 bg-red-500/10 text-red-600 dark:border-red-400/40 dark:bg-red-500/20 dark:text-red-400'
             }`}
           >

@@ -104,8 +104,8 @@ export const NodeItem: React.FC<NodeItemProps> = ({
             className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center border transition-all"
             style={{
               backgroundColor: theme.inputBg,
-              borderColor: isExpanded ? `${theme.primaryColor}20` : theme.borderColor,
-              boxShadow: isExpanded ? `0 12px 28px -16px ${theme.primaryColor}80` : 'none'
+              borderColor: isExpanded ? `color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent)` : theme.borderColor,
+              boxShadow: isExpanded ? `0 12px 28px -16px color-mix(in srgb, ${theme.primaryColor} 50.2%, transparent)` : 'none'
             }}
           >
             <nodeTypeStyle.Icon size={18} style={{ color: nodeTypeStyle.color }} />
@@ -125,8 +125,8 @@ export const NodeItem: React.FC<NodeItemProps> = ({
                   className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg border"
                   style={{
                     color: theme.primaryColor,
-                    backgroundColor: `${theme.primaryColor}10`,
-                    borderColor: `${theme.primaryColor}20`
+                    backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 6.3%, transparent)`,
+                    borderColor: `color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent)`
                   }}
                 >
                   {node.code}
@@ -157,7 +157,7 @@ export const NodeItem: React.FC<NodeItemProps> = ({
             style={{ color: theme.mutedTextColor, backgroundColor: 'transparent' }}
             onMouseEnter={(event) => {
               event.currentTarget.style.color = theme.primaryColor
-              event.currentTarget.style.backgroundColor = `${theme.primaryColor}12`
+              event.currentTarget.style.backgroundColor = `color-mix(in srgb, ${theme.primaryColor} 7.1%, transparent)`
             }}
             onMouseLeave={(event) => {
               event.currentTarget.style.color = theme.mutedTextColor
@@ -189,7 +189,7 @@ export const NodeItem: React.FC<NodeItemProps> = ({
             style={{ color: theme.mutedTextColor, backgroundColor: 'transparent' }}
             onMouseEnter={(event) => {
               event.currentTarget.style.color = theme.dangerColor
-              event.currentTarget.style.backgroundColor = `${theme.dangerColor}12`
+              event.currentTarget.style.backgroundColor = `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`
             }}
             onMouseLeave={(event) => {
               event.currentTarget.style.color = theme.mutedTextColor

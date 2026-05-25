@@ -1,3 +1,5 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
+import { DESIGN_HEX_COLOR } from '@/core/theme/color-tokens'
 /**
  * Utilidad para detectar colores dominantes de una imagen usando Canvas API
  */
@@ -177,9 +179,9 @@ export async function detectColorsFromImage(imageUrl: string): Promise<ColorPale
         if (colors.length === 0) {
           // Si no hay colores válidos, usar valores por defecto
           resolve({
-            color_primary: '#3b82f6',
-            color_secondary: '#10b981',
-            color_accent: '#8b5cf6'
+            color_primary: DESIGN_HEX_COLOR.info,
+            color_secondary: DESIGN_HEX_COLOR.success,
+            color_accent: DESIGN_HEX_COLOR.secondary
           })
           return
         }
@@ -218,7 +220,7 @@ export async function detectColorsFromImage(imageUrl: string): Promise<ColorPale
     }
 
     img.onerror = (error) => {
-      console.error('Error cargando imagen para detección de colores:', error)
+      techDebtLogger.error('Error cargando imagen para detección de colores:', error)
       reject(new Error('No se pudo cargar la imagen. Verifica que la URL sea válida, accesible y no tenga restricciones CORS.'))
     }
 

@@ -1,48 +1,11 @@
-import type { Dispatch, SetStateAction } from 'react';
-import { STUDY_PLANNER_EVENT_COLORS } from './study-planner-calendar.constants';
-import type {
-  CalendarEvent,
-  StudyPlannerCalendarConfirmDialogState,
-  StudyPlannerCalendarEventForm,
-  StudyPlannerCalendarToastState,
-} from './study-planner-calendar.types';
+import { STUDY_PLANNER_EVENT_COLORS } from './study-planner-calendar.constants'
+import type { BuildStudyPlannerCalendarLogicResultParams } from './study-planner-calendar-logic-result.types'
 import {
   getEventColor,
   getEventLayoutsForDay,
   getEventPosition,
   getEventsForDay,
-} from './study-planner-calendar.utils';
-import type { useStudyPlannerCalendarNavigation } from './useStudyPlannerCalendarNavigation';
-
-interface BuildStudyPlannerCalendarLogicResultParams {
-  confirmDialog: StudyPlannerCalendarConfirmDialogState;
-  eventForm: StudyPlannerCalendarEventForm;
-  events: CalendarEvent[];
-  handleCreateEvent: () => void;
-  handleDeleteEvent: () => void;
-  handleEditEvent: () => void;
-  handleManualRefresh: () => void;
-  handleSaveEvent: () => void;
-  hoveredRefreshButton: boolean;
-  isCreatingEvent: boolean;
-  isDeletingEvent: boolean;
-  isEditMode: boolean;
-  isEventModalOpen: boolean;
-  isLoadingEvents: boolean;
-  isMounted: boolean;
-  isRefreshing: boolean;
-  isSaving: boolean;
-  navigation: ReturnType<typeof useStudyPlannerCalendarNavigation>;
-  selectedEvent: CalendarEvent | null;
-  setEventForm: Dispatch<SetStateAction<StudyPlannerCalendarEventForm>>;
-  setHoveredRefreshButton: Dispatch<SetStateAction<boolean>>;
-  setIsCreatingEvent: Dispatch<SetStateAction<boolean>>;
-  setIsEditMode: Dispatch<SetStateAction<boolean>>;
-  setIsEventModalOpen: Dispatch<SetStateAction<boolean>>;
-  setSelectedEvent: Dispatch<SetStateAction<CalendarEvent | null>>;
-  setToast: Dispatch<SetStateAction<StudyPlannerCalendarToastState>>;
-  toast: StudyPlannerCalendarToastState;
-}
+} from './study-planner-calendar.utils'
 
 export function buildStudyPlannerCalendarLogicResult(
   params: BuildStudyPlannerCalendarLogicResultParams,
@@ -98,5 +61,5 @@ export function buildStudyPlannerCalendarLogicResult(
     getEventPosition,
     getEventLayoutsForDay: (date: Parameters<typeof getEventLayoutsForDay>[1]) =>
       getEventLayoutsForDay(params.events, date),
-  };
+  }
 }

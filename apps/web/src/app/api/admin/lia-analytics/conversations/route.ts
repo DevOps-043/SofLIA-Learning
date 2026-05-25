@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API de LIA Analytics - Conversaciones
  * 
@@ -21,10 +22,10 @@ export async function GET(request: NextRequest) {
     // ✅ DEBUG: Verificar total de conversaciones sin filtros
     const { count: totalWithoutFilters, error: countError } = await supabase
       .from('lia_conversations')
-      .select('*', { count: 'exact', head: true });
+      .select('id', { count: 'exact', head: true });
     
     if (countError) {
-      console.error('[LIA Analytics Conversations] Error counting total:', countError);
+      techDebtLogger.error('[LIA Analytics Conversations] Error counting total:', countError);
     }
 
     // Obtener parámetros
@@ -73,7 +74,7 @@ export async function GET(request: NextRequest) {
     const { data: conversations, count, error } = await query;
     
     if (error) {
-      console.error('Error fetching conversations:', error);
+      techDebtLogger.error('Error fetching conversations:', error);
       return NextResponse.json(
         { success: false, error: 'Error al obtener conversaciones', details: error.message },
         { status: 500 }
@@ -135,8 +136,8 @@ export async function GET(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error('Error en LIA Analytics Conversations:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
+    techDebtLogger.error('Error en LIA Analytics Conversations:', error);
+    techDebtLogger.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }

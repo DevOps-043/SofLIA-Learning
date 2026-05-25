@@ -1,30 +1,30 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { SessionService } from '../../../../../features/auth/services/session.service'
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service'
 import { UserContextService } from '../../../../../features/study-planner/services/user-context.service'
 import type { CalendarEvent } from '../../../../../features/study-planner/types/user-context.types'
+import { analyzeCalendarSchema, type AnalyzeCalendarBody } from '../../_schemas'
 import type {
-  AnalyzeCalendarRequest,
   AnalyzeCalendarResponse,
   CalendarAnalysisConfig,
 } from './analyze-calendar.types'
 import { rankRecommendedSlots } from './calendar-recommendations.service'
 import { generateLIAAnalysis } from './lia-availability-analysis.service'
 
-export async function POST(
-  request: NextRequest,
-): Promise<NextResponse<AnalyzeCalendarResponse>> {
+async function handlePost(
+  _request: NextRequest,
+  body: AnalyzeCalendarBody,
+): Promise<NextResponse<AnalyzeCalendarResponse> | Response> {
   try {
     const user = await SessionService.getCurrentUser()
 
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'No autenticado' },
-        { status: 401 },
-      )
+      return apiError('UNAUTHENTICATED', 'No autenticado', 401)
     }
 
-    const body: AnalyzeCalendarRequest = await request.json()
     const userContext = await UserContextService.getFullUserContext(user.id)
     const startDate = body.startDate ? new Date(body.startDate) : new Date()
     const endDate = body.endDate
@@ -62,16 +62,12 @@ export async function POST(
       },
     })
   } catch (error) {
-    console.error('Error analizando calendario:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Error interno del servidor',
-      },
-      { status: 500 },
-    )
+    techDebtLogger.error('Error analizando calendario:', error)
+    return apiError('ANALYZE_CALENDAR_FAILED', 'Error interno del servidor', 500)
   }
 }
+
+export const POST = withZodBody(analyzeCalendarSchema, handlePost)
 
 async function loadCalendarEvents(
   userId: string,

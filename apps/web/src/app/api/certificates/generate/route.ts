@@ -4,8 +4,14 @@ import { CertificateService } from '@/core/services/certificate.service'
 import { SessionService } from '@/features/auth/services/session.service'
 import { hasActiveOrganizationMembership } from '@/features/certificates/services/certificate-organization.server'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/utils/logger'
+import {
+  generateCertificateSchema,
+  type GenerateCertificateBody,
+} from './schema'
 
 function normalizeNullableString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0
@@ -16,39 +22,30 @@ function normalizeNullableString(value: unknown): string | null {
 /**
  * POST /api/certificates/generate
  * Genera un certificado para un curso completado.
- * El usuario debe haber completado el curso y enviado su reseña.
  */
-export async function POST(request: NextRequest) {
+async function handlePost(
+  request: NextRequest,
+  body: GenerateCertificateBody,
+) {
   try {
     const currentUser = await SessionService.getCurrentUser()
 
     if (!currentUser) {
-      return NextResponse.json(
-        { error: 'No autenticado' },
-        { status: 401 },
-      )
+      return apiError('UNAUTHENTICATED', 'No autenticado', 401)
     }
 
-    const body = await request.json()
     const {
       course_id: rawCourseId,
       enrollment_id: rawEnrollmentId,
       organization_id: rawOrganizationId,
-    } = body as {
-      course_id?: unknown
-      enrollment_id?: unknown
-      organization_id?: unknown
-    }
+    } = body
 
     const courseId = normalizeNullableString(rawCourseId)
     const requestedEnrollmentId = normalizeNullableString(rawEnrollmentId)
     const requestedOrganizationId = normalizeNullableString(rawOrganizationId)
 
     if (!courseId) {
-      return NextResponse.json(
-        { error: 'course_id es requerido' },
-        { status: 400 },
-      )
+      return apiError('COURSE_ID_REQUIRED', 'course_id es requerido', 400)
     }
 
     const supabase = createAdminClient()
@@ -61,9 +58,10 @@ export async function POST(request: NextRequest) {
         requestedOrganizationId,
       ))
     ) {
-      return NextResponse.json(
-        { error: 'La organizacion solicitada no corresponde al usuario actual' },
-        { status: 403 },
+      return apiError(
+        'ORGANIZATION_FORBIDDEN',
+        'La organizacion solicitada no corresponde al usuario actual',
+        403,
       )
     }
 
@@ -77,20 +75,22 @@ export async function POST(request: NextRequest) {
       | null = null
 
     if (requestedEnrollmentId) {
-      const { data: explicitEnrollment, error: explicitEnrollmentError } = await supabase
-        .from('user_course_enrollments')
-        .select(
-          'enrollment_id, overall_progress_percentage, enrollment_status, organization_id',
-        )
-        .eq('enrollment_id', requestedEnrollmentId)
-        .eq('user_id', currentUser.id)
-        .eq('course_id', courseId)
-        .maybeSingle()
+      const { data: explicitEnrollment, error: explicitEnrollmentError } =
+        await supabase
+          .from('user_course_enrollments')
+          .select(
+            'enrollment_id, overall_progress_percentage, enrollment_status, organization_id',
+          )
+          .eq('enrollment_id', requestedEnrollmentId)
+          .eq('user_id', currentUser.id)
+          .eq('course_id', courseId)
+          .maybeSingle()
 
       if (explicitEnrollmentError) {
-        return NextResponse.json(
-          { error: 'Error al validar la inscripcion del certificado' },
-          { status: 500 },
+        return apiError(
+          'CERTIFICATE_ENROLLMENT_VALIDATION_FAILED',
+          'Error al validar la inscripcion del certificado',
+          500,
         )
       }
 
@@ -100,9 +100,10 @@ export async function POST(request: NextRequest) {
         explicitEnrollment.organization_id &&
         explicitEnrollment.organization_id !== requestedOrganizationId
       ) {
-        return NextResponse.json(
-          { error: 'La inscripcion no coincide con la organizacion solicitada' },
-          { status: 409 },
+        return apiError(
+          'CERTIFICATE_ENROLLMENT_ORGANIZATION_MISMATCH',
+          'La inscripcion no coincide con la organizacion solicitada',
+          409,
         )
       }
 
@@ -119,9 +120,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (!enrollment) {
-      return NextResponse.json(
-        { error: 'No estas inscrito en este curso' },
-        { status: 404 },
+      return apiError(
+        'COURSE_ENROLLMENT_NOT_FOUND',
+        'No estas inscrito en este curso',
+        404,
       )
     }
 
@@ -129,23 +131,26 @@ export async function POST(request: NextRequest) {
       enrollment.enrollment_status !== 'completed' &&
       (enrollment.overall_progress_percentage ?? 0) < 100
     ) {
-      return NextResponse.json(
-        { error: 'Debes completar el curso al 100% para obtener un certificado' },
-        { status: 400 },
+      return apiError(
+        'COURSE_NOT_COMPLETED',
+        'Debes completar el curso al 100% para obtener un certificado',
+        400,
       )
     }
 
-    const { data: existingCertificate, error: existingCertificateError } = await supabase
-      .from('user_course_certificates')
-      .select('certificate_id')
-      .eq('user_id', currentUser.id)
-      .eq('course_id', courseId)
-      .maybeSingle()
+    const { data: existingCertificate, error: existingCertificateError } =
+      await supabase
+        .from('user_course_certificates')
+        .select('certificate_id')
+        .eq('user_id', currentUser.id)
+        .eq('course_id', courseId)
+        .maybeSingle()
 
     if (existingCertificateError) {
-      return NextResponse.json(
-        { error: 'Error al validar el certificado existente' },
-        { status: 500 },
+      return apiError(
+        'CERTIFICATE_LOOKUP_FAILED',
+        'Error al validar el certificado existente',
+        500,
       )
     }
 
@@ -158,17 +163,19 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (reviewError && reviewError.code !== 'PGRST116') {
-        logger.error('Error verificando reseña del curso:', reviewError)
-        return NextResponse.json(
-          { error: 'Error al validar la reseña del curso' },
-          { status: 500 },
+        logger.error('Error verificando resena del curso:', reviewError)
+        return apiError(
+          'COURSE_REVIEW_VALIDATION_FAILED',
+          'Error al validar la resena del curso',
+          500,
         )
       }
 
       if (!review) {
-        return NextResponse.json(
-          { error: 'Debes calificar el curso antes de generar el certificado' },
-          { status: 403 },
+        return apiError(
+          'COURSE_REVIEW_REQUIRED',
+          'Debes calificar el curso antes de generar el certificado',
+          403,
         )
       }
 
@@ -179,10 +186,7 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (!courseInfo) {
-        return NextResponse.json(
-          { error: 'Curso no encontrado' },
-          { status: 404 },
-        )
+        return apiError('COURSE_NOT_FOUND', 'Curso no encontrado', 404)
       }
     }
 
@@ -206,12 +210,12 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     logger.error('Error en /api/certificates/generate:', error)
-    return NextResponse.json(
-      {
-        error: 'Error al generar certificado',
-        details: error instanceof Error ? error.message : 'Error desconocido',
-      },
-      { status: 500 },
+    return apiError(
+      'CERTIFICATE_GENERATION_FAILED',
+      'Error al generar certificado',
+      500,
     )
   }
 }
+
+export const POST = withZodBody(generateCertificateSchema, handlePost)

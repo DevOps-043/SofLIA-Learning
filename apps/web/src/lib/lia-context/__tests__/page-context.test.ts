@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Tests para el Sistema de Contexto Dinámico de LIA - Fase 1
  * 
@@ -14,7 +15,7 @@ import { PAGE_METADATA, getRegisteredRoutes, hasPageMetadata } from '../config/p
 // TESTS
 // ============================================================================
 
-console.log('\n🧪 === TESTS DEL SISTEMA DE CONTEXTO DINÁMICO DE LIA ===\n');
+techDebtLogger.log('\n🧪 === TESTS DEL SISTEMA DE CONTEXTO DINÁMICO DE LIA ===\n');
 
 let passed = 0;
 let failed = 0;
@@ -23,14 +24,14 @@ function test(name: string, fn: () => boolean) {
   try {
     const result = fn();
     if (result) {
-      console.log(`✅ PASS: ${name}`);
+      techDebtLogger.log(`✅ PASS: ${name}`);
       passed++;
     } else {
-      console.log(`❌ FAIL: ${name}`);
+      techDebtLogger.log(`❌ FAIL: ${name}`);
       failed++;
     }
   } catch (error) {
-    console.log(`❌ ERROR: ${name} - ${error}`);
+    techDebtLogger.log(`❌ ERROR: ${name} - ${error}`);
     failed++;
   }
 }
@@ -40,7 +41,7 @@ function test(name: string, fn: () => boolean) {
 // ----------------------------------------------------------------------------
 test('Hay páginas registradas en PAGE_METADATA', () => {
   const routes = getRegisteredRoutes();
-  console.log(`   → Páginas registradas: ${routes.length}`);
+  techDebtLogger.log(`   → Páginas registradas: ${routes.length}`);
   return routes.length >= 5;
 });
 
@@ -126,11 +127,11 @@ test('Ruta inexistente retorna mensaje de "no hay metadata"', () => {
 test('Cada página tiene todos los campos requeridos', () => {
   for (const [route, metadata] of Object.entries(PAGE_METADATA)) {
     if (!metadata.route || !metadata.routePattern || !metadata.pageType) {
-      console.log(`   → Fallo en: ${route}`);
+      techDebtLogger.log(`   → Fallo en: ${route}`);
       return false;
     }
     if (!Array.isArray(metadata.components) || !Array.isArray(metadata.apis)) {
-      console.log(`   → Fallo en arrays: ${route}`);
+      techDebtLogger.log(`   → Fallo en arrays: ${route}`);
       return false;
     }
   }
@@ -151,15 +152,15 @@ test('estimateTokens calcula aproximadamente bien', () => {
 // RESUMEN
 // ============================================================================
 
-console.log('\n📊 === RESUMEN DE TESTS ===\n');
-console.log(`✅ Tests pasados: ${passed}`);
-console.log(`❌ Tests fallidos: ${failed}`);
-console.log(`📈 Porcentaje de éxito: ${Math.round((passed / (passed + failed)) * 100)}%\n`);
+techDebtLogger.log('\n📊 === RESUMEN DE TESTS ===\n');
+techDebtLogger.log(`✅ Tests pasados: ${passed}`);
+techDebtLogger.log(`❌ Tests fallidos: ${failed}`);
+techDebtLogger.log(`📈 Porcentaje de éxito: ${Math.round((passed / (passed + failed)) * 100)}%\n`);
 
 if (failed === 0) {
-  console.log('🎉 ¡Todos los tests pasaron! El sistema de contexto dinámico está funcionando correctamente.\n');
+  techDebtLogger.log('🎉 ¡Todos los tests pasaron! El sistema de contexto dinámico está funcionando correctamente.\n');
 } else {
-  console.log('⚠️ Algunos tests fallaron. Revisar la implementación.\n');
+  techDebtLogger.log('⚠️ Algunos tests fallaron. Revisar la implementación.\n');
   process.exit(1);
 }
 
@@ -167,7 +168,7 @@ if (failed === 0) {
 // DEMO: Mostrar contexto generado
 // ============================================================================
 
-console.log('📄 === DEMO: CONTEXTO GENERADO ===\n');
+techDebtLogger.log('📄 === DEMO: CONTEXTO GENERADO ===\n');
 
 const demoRoutes = [
   '/acme/business-panel/courses',
@@ -175,9 +176,9 @@ const demoRoutes = [
 ];
 
 demoRoutes.forEach(route => {
-  console.log(`\n--- Contexto para: ${route} ---\n`);
+  techDebtLogger.log(`\n--- Contexto para: ${route} ---\n`);
   const context = PageContextService.buildPageContext(route);
-  console.log(context.substring(0, 1000) + (context.length > 1000 ? '\n...[truncado]' : ''));
+  techDebtLogger.log(context.substring(0, 1000) + (context.length > 1000 ? '\n...[truncado]' : ''));
 });
 
 

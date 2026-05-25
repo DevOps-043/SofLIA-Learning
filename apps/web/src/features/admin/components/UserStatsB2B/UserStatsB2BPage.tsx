@@ -1,50 +1,45 @@
 'use client'
 
 import { useState } from 'react'
-import { BarChart3, BookOpen, Activity, Users } from 'lucide-react'
-import type { UserStatsTab } from './types'
-import { OverviewTab } from './OverviewTab'
-import { LearningTab } from './LearningTab'
+import { useTranslation } from 'react-i18next'
+import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 import { EngagementTab } from './EngagementTab'
+import { LearningTab } from './LearningTab'
+import { OverviewTab } from './OverviewTab'
 import { UserDetailTab } from './UserDetailTab'
-
-const TABS: { id: UserStatsTab; label: string; icon: typeof BarChart3 }[] = [
-  { id: 'overview', label: 'Resumen', icon: BarChart3 },
-  { id: 'learning', label: 'Aprendizaje', icon: BookOpen },
-  { id: 'engagement', label: 'Engagement', icon: Activity },
-  { id: 'users', label: 'Detalle Usuarios', icon: Users },
-]
+import { UserStatsPageHeader } from './shared/UserStatsPageHeader'
+import { USER_STATS_TABS } from './shared/user-stats-tabs'
+import type { UserStatsTab } from './types'
 
 export function UserStatsB2BPage() {
+  const { t } = useTranslation('admin')
+  const theme = useAdminPanelTheme()
   const [activeTab, setActiveTab] = useState<UserStatsTab>('overview')
 
   return (
-    <div className="p-6 w-full">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Estadísticas de Usuarios</h1>
-        <p className="text-gray-500 dark:text-gray-400">Métricas de aprendizaje, engagement y detalle de usuarios</p>
-      </div>
+    <div className="w-full space-y-6 p-4 md:p-6">
+      <UserStatsPageHeader />
 
-      {/* Tabs */}
-      <div className="flex space-x-1 mb-6 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg overflow-x-auto">
-        {TABS.map(({ id, label, icon: Icon }) => (
+      <div
+        className="flex gap-2 overflow-x-auto rounded-[24px] border p-2"
+        style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
+      >
+        {USER_STATS_TABS.map(({ id, labelKey, icon: Icon }) => (
           <button
             key={id}
+            type="button"
             onClick={() => setActiveTab(id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors whitespace-nowrap ${
-              activeTab === id
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
-            }`}
+            className="flex items-center gap-2 whitespace-nowrap rounded-2xl px-4 py-3 text-sm font-semibold transition-all"
+            style={activeTab === id
+              ? { backgroundColor: theme.primaryColor, color: theme.onPrimaryColor }
+              : { backgroundColor: 'transparent', color: theme.subtextColor }}
           >
-            <Icon className="w-4 h-4" />
-            {label}
+            <Icon className="h-4 w-4" />
+            {t(labelKey)}
           </button>
         ))}
       </div>
 
-      {/* Tab Content */}
       {activeTab === 'overview' && <OverviewTab />}
       {activeTab === 'learning' && <LearningTab />}
       {activeTab === 'engagement' && <EngagementTab />}

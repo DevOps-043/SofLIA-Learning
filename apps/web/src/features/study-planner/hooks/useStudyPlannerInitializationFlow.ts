@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { fetchStudyPlannerUserContext } from '../services/planner-user-context-client.service';
 
@@ -113,7 +114,7 @@ export function useStudyPlannerInitializationFlow({
 
         setConnectedCalendar(null);
       } catch (error) {
-        console.error('Error verificando integracion inicial del planificador:', error);
+        techDebtLogger.error('Error verificando integracion inicial del planificador:', error);
       }
     };
 
@@ -168,7 +169,7 @@ export function useStudyPlannerInitializationFlow({
             void getAnalyzeCalendarAndSuggest()(provider, undefined, 'balance');
           }, 1000);
         } catch (error) {
-          console.error('Error reanudando flujo tras OAuth:', error);
+          techDebtLogger.error('Error reanudando flujo tras OAuth:', error);
         }
       };
 
@@ -180,7 +181,7 @@ export function useStudyPlannerInitializationFlow({
       return;
     }
 
-    console.error('Error en conexion de calendario:', calendarError);
+    techDebtLogger.error('Error en conexion de calendario:', calendarError);
     window.history.replaceState({}, '', window.location.pathname);
     setConversationHistory((previousHistory) => [
       ...previousHistory,

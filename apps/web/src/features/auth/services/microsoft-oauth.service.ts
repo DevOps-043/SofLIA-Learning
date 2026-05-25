@@ -1,4 +1,5 @@
 import { getMicrosoftRedirectUri } from '@/lib/oauth/microsoft';
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 
 export interface MicrosoftTokens {
   access_token: string;
@@ -25,7 +26,7 @@ export class MicrosoftOAuthService {
     const clientSecret = process.env.MICROSOFT_OAUTH_CLIENT_SECRET!;
     const redirectUri = getMicrosoftRedirectUri();
 
-    const res = await fetch(`https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`, {
+    const res = await fetchWithCircuitBreaker(`microsoft-oauth`, `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
@@ -45,7 +46,7 @@ export class MicrosoftOAuthService {
   }
 
   static async getUserProfile(accessToken: string): Promise<MicrosoftProfile> {
-    const res = await fetch('https://graph.microsoft.com/v1.0/me', {
+    const res = await fetchWithCircuitBreaker('microsoft-oauth', 'https://graph.microsoft.com/v1.0/me', {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (!res.ok) {
@@ -55,5 +56,4 @@ export class MicrosoftOAuthService {
     return res.json();
   }
 }
-
 

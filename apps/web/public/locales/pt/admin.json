@@ -12,6 +12,7 @@
     "userStats": "Estatísticas de Usuários",
     "companies": "Empresas",
     "reports": "Relatórios",
+    "security": "Segurança",
     "reviews": "Revisões"
   },
   "dashboard": {
@@ -646,13 +647,285 @@
   "lessonContent": {
     "transcript": "Transcrição",
     "summary": "Resumo",
-    "activities": "Atividades"
+    "activities": "Atividades",
+    "activitiesWithCount": "Atividades ({{count}})",
+    "materialsWithCount": "Materiais ({{count}})",
+    "invalidQuiz": "Dados de quiz invalidos",
+    "invalidScript": "Dados de script invalidos",
+    "passingScore": "Pontuacao minima: {{score}}%",
+    "questionCount": "{{count}} perguntas",
+    "explanation": "Explicacao",
+    "conclusion": "Conclusao",
+    "raw": "Raw",
+    "noSummary": "Nao ha resumo disponivel.",
+    "noTranscript": "Nao ha transcricao disponivel.",
+    "noActivities": "Nao ha atividades criadas.",
+    "noMaterials": "Nao ha materiais adicionais.",
+    "moduleTitle": "Modulo {{order}}: {{title}}",
+    "durationProvider": "{{duration}} seg - {{provider}}"
   },
   "searchPlaceholders": {
     "users": "Buscar por nome, email ou username...",
     "reportes": "Buscar por título ou descrição...",
     "companies": "Buscar por nome, slug ou email...",
     "accessRequests": "Buscar por usuário, email ou comunidade..."
+  },
+  "reportesPage": {
+    "title": "Gestão de Relatórios",
+    "subtitle": "Gerencie relatos de problemas, contexto técnico e acompanhamento operacional de usuários.",
+    "loading": "Carregando relatórios...",
+    "error": "Erro ao carregar relatórios.",
+    "retry": "Tentar novamente",
+    "noValue": "Sem dado",
+    "hasImage": "Com imagem",
+    "stats": {
+      "total": "Total",
+      "pending": "Pendentes",
+      "inProgress": "Em progresso",
+      "resolved": "Resolvidos"
+    },
+    "filters": {
+      "searchPlaceholder": "Buscar por título ou descrição...",
+      "statusAll": "Todos os status",
+      "categoryAll": "Todas as categorias",
+      "priorityAll": "Todas as prioridades",
+      "apply": "Filtrar",
+      "clear": "Limpar"
+    },
+    "status": {
+      "pendiente": "Pendente",
+      "en_revision": "Em revisão",
+      "en_progreso": "Em progresso",
+      "resuelto": "Resolvido",
+      "rechazado": "Rejeitado",
+      "duplicado": "Duplicado"
+    },
+    "category": {
+      "bug": "Bug",
+      "sugerencia": "Sugestão",
+      "contenido": "Conteúdo",
+      "performance": "Performance",
+      "ui-ux": "UI/UX",
+      "otro": "Outro"
+    },
+    "priority": {
+      "critica": "Crítica",
+      "alta": "Alta",
+      "media": "Média",
+      "baja": "Baixa"
+    },
+    "actions": {
+      "view": "Ver relatório",
+      "edit": "Editar relatório",
+      "close": "Fechar",
+      "manage": "Gerenciar relatório",
+      "cancel": "Cancelar",
+      "saving": "Salvando...",
+      "saveChanges": "Salvar alterações"
+    },
+    "empty": {
+      "title": "Nenhum relatório encontrado",
+      "subtitle": "Tente ajustar os filtros de busca."
+    },
+    "table": {
+      "title": "Título",
+      "user": "Usuário"
+    },
+    "errors": {
+      "load_failed": "Não foi possível carregar os relatórios.",
+      "update_failed": "Não foi possível atualizar o relatório."
+    },
+    "viewModal": {
+      "status": "Status",
+      "priority": "Prioridade",
+      "category": "Categoria",
+      "reportedBy": "Reportado por",
+      "createdDate": "Criado",
+      "description": "Descrição",
+      "steps": "Passos para reproduzir",
+      "expected": "Comportamento esperado",
+      "url": "URL",
+      "browser": "Navegador",
+      "resolution": "Resolução",
+      "source": "Origem",
+      "courseLesson": "Curso / Aula",
+      "unknownCourse": "Curso não identificado",
+      "unknownLesson": "Aula não identificada",
+      "irisSync": "Sincronização IRIS",
+      "noExternalIssue": "Sem issue externo vinculado",
+      "evidence": "Evidência",
+      "screenshotAlt": "Captura do relatório",
+      "openImage": "Ver imagem original",
+      "adminNotes": "Notas do administrador"
+    },
+    "editModal": {
+      "title": "Editar relatório",
+      "status": "Status",
+      "priority": "Prioridade",
+      "adminNotes": "Notas do administrador",
+      "notesPlaceholder": "Adicione notas internas sobre este relatório...",
+      "summary": "Resumo do relatório"
+    }
+  },
+  "liaAnalyticsPage": {
+    "title": "SofLIA Analytics Dashboard",
+    "subtitle": "Monitore uso, custos e desempenho do assistente de IA na plataforma.",
+    "lastUpdated": "Última atualização: {{time}}",
+    "period": {
+      "day": "Hoje",
+      "week": "Última semana",
+      "month": "Último mês",
+      "year": "Último ano"
+    },
+    "chart": {
+      "area": "Área",
+      "bar": "Barras"
+    },
+    "actions": {
+      "refresh": "Atualizar",
+      "exportCsv": "Exportar CSV"
+    },
+    "csv": {
+      "date": "Data",
+      "cost": "Custo (USD)",
+      "tokens": "Tokens",
+      "messages": "Mensagens"
+    },
+    "costInfo": {
+      "title": "Informações sobre custos",
+      "description": "Os custos são calculados em tempo real com as tarifas oficiais do modelo selecionado por milhão de tokens. A projeção mensal se baseia na média diária do período selecionado."
+    },
+    "contextDistribution": {
+      "title": "Distribuição por contexto",
+      "subtitle": "{{conversations}} conversas - ${{cost}} total",
+      "empty": "Não há dados de distribuição",
+      "contexts": {
+        "course": "Cursos",
+        "general": "Geral",
+        "workshop": "Workshops",
+        "prompts": "Prompts",
+        "community": "Comunidades",
+        "news": "Notícias"
+      },
+      "tooltip": {
+        "conversations": "Conversas",
+        "cost": "Custo",
+        "tokens": "Tokens",
+        "percentage": "Porcentagem"
+      }
+    }
+  },
+  "userStats": {
+    "title": "Estatísticas de Usuários",
+    "subtitle": "Métricas de aprendizagem, engajamento e detalhe operacional de usuários em toda a plataforma.",
+    "loading": "Carregando estatísticas de usuários...",
+    "errorTitle": "Não foi possível carregar as estatísticas de usuários",
+    "emptyData": "Ainda não há dados suficientes para exibir esta visualização.",
+    "emptyUsers": "Nenhum usuário corresponde aos filtros atuais.",
+    "lastLoginNever": "Nunca",
+    "tabs": {
+      "overview": "Resumo",
+      "learning": "Aprendizagem",
+      "engagement": "Engajamento",
+      "users": "Detalhe de usuários"
+    },
+    "metrics": {
+      "activeUsers30d": "Usuários ativos (30d)",
+      "completionRate": "Taxa de conclusão",
+      "studyHoursMonth": "Horas de estudo (mês)",
+      "certificatesMonth": "Certificados (mês)",
+      "avgTimePerLesson": "Tempo médio por aula",
+      "quizPassRate": "Taxa de aprovação em quiz",
+      "avgSessionsPerWeek": "Sessões médias por usuário",
+      "activationRate": "Taxa de ativação",
+      "weeklyReturn": "Retorno semanal",
+      "avgSatisfaction": "Satisfação média",
+      "inactiveUsers30d": "Sem atividade (30d)"
+    },
+    "charts": {
+      "usersByOrganization": "Usuários por organização",
+      "dailyActivity": "Atividade diária (30d)",
+      "progressDistribution": "Distribuição de progresso",
+      "roleDistribution": "Papéis nas organizações",
+      "topCoursesByTime": "Top cursos por tempo de estudo",
+      "sessionsPlannedVsCompleted": "Sessões planejadas vs concluídas",
+      "timeByContentType": "Distribuição de tempo por conteúdo",
+      "streakDistribution": "Distribuição de sequências",
+      "newVsRecurring": "Novos vs recorrentes",
+      "ratingDistribution": "Distribuição de avaliações",
+      "engagementByOrg": "Engajamento por organização",
+      "usersByCountry": "Usuários por país"
+    },
+    "legend": {
+      "planned": "Planejadas",
+      "completed": "Concluídas",
+      "new": "Novos",
+      "recurring": "Recorrentes"
+    },
+    "ratingLabel": "{{count}} estrela",
+    "ratingLabel_plural": "{{count}} estrelas",
+    "filters": {
+      "searchPlaceholder": "Buscar por nome ou email...",
+      "statusAll": "Todos os status",
+      "statusActive": "Ativos (30d)",
+      "statusInactive": "Inativos (30d)"
+    },
+    "table": {
+      "user": "Usuário",
+      "organization": "Organização",
+      "role": "Papel",
+      "age": "Idade",
+      "courses": "Cursos",
+      "progress": "Progresso",
+      "hours": "Horas",
+      "certificates": "Certificados",
+      "lastLogin": "Último login"
+    },
+    "pagination": {
+      "showing": "Mostrando {{start}}-{{end}} de {{total}}",
+      "pageOf": "Página {{page}} de {{totalPages}}"
+    },
+    "errors": {
+      "overview": "Erro ao carregar os dados de resumo.",
+      "learning": "Erro ao carregar os dados de aprendizagem.",
+      "engagement": "Erro ao carregar os dados de engajamento.",
+      "users": "Erro ao carregar o detalhe dos usuários."
+    },
+    "progressModal": {
+      "title": "Progresso por curso",
+      "enrolledCourses": "{{count}} curso inscrito",
+      "enrolledCourses_plural": "{{count}} cursos inscritos",
+      "na": "N/A",
+      "noCourses": "Este usuário não tem cursos inscritos.",
+      "emptyLessons": "Sem dados de aulas disponíveis.",
+      "quizPassed": "OK",
+      "quizFailed": "Fail",
+      "status": {
+        "active": "Em andamento",
+        "completed": "Concluído",
+        "paused": "Pausado",
+        "cancelled": "Cancelado"
+      },
+      "levels": {
+        "beginner": "Iniciante",
+        "intermediate": "Intermediário",
+        "advanced": "Avançado"
+      },
+      "sidebar": {
+        "courses": "Cursos inscritos",
+        "progress": "Progresso médio",
+        "hours": "Horas de estudo",
+        "certificates": "Certificados",
+        "lastLogin": "Último login"
+      },
+      "courseMeta": {
+        "enrolled": "Inscrito: {{date}}",
+        "completed": "Concluído: {{date}}",
+        "hours": "{{value}}h de estudo",
+        "lessons": "{{completed}}/{{total}} aulas",
+        "certificate": "Certificado ({{date}})"
+      }
+    }
   },
   "learningPathsPage": {
     "badge": "Rotas de aprendizagem",
@@ -797,5 +1070,48 @@
     "noUserAssignments": "Nenhuma atribuição individual registrada.",
     "confirmRevokeOrg": "Revogar o acesso a este curso para TODA a organização?",
     "confirmRevokeUser": "Revogar esta atribuição individual?"
+  },
+  "security": {
+    "eyebrow": "Segurança",
+    "title": "Auditoria de segurança",
+    "subtitle": "Monitore eventos sensíveis, negações, alertas e atividade recente de segurança.",
+    "refresh": "Atualizar",
+    "alertsTitle": "Alertas ativos",
+    "eventsTitle": "Eventos recentes",
+    "empty": "Não há eventos de segurança recentes.",
+    "alertDescription": "{{observed}} eventos para {{group}} em {{window}} min. Limite: {{threshold}}.",
+    "summary": {
+      "success": "Bem-sucedidos",
+      "denied": "Negados",
+      "error": "Erros",
+      "alerts": "Alertas"
+    },
+    "result": {
+      "success": "Sucesso",
+      "denied": "Negado",
+      "error": "Erro"
+    },
+    "severity": {
+      "medium": "Média",
+      "high": "Alta",
+      "critical": "Crítica"
+    },
+    "alertCodes": {
+      "login_failure_burst": "Rajada de falhas de login",
+      "access_denied_burst": "Rajada de acessos negados",
+      "csp_violation_spike": "Pico de violações CSP",
+      "ssrf_probe_burst": "Tentativas SSRF bloqueadas",
+      "upload_rejection_burst": "Rejeições de upload elevadas"
+    },
+    "table": {
+      "time": "Hora",
+      "action": "Ação",
+      "result": "Resultado",
+      "actor": "Ator",
+      "resource": "Recurso"
+    },
+    "errors": {
+      "loadFailed": "Não foi possível carregar a auditoria de segurança."
+    }
   }
 }

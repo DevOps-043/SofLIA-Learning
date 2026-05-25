@@ -61,7 +61,7 @@ function LiaFloatingButtonContent() {
                 width: '100%',
                 height: '100%',
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #00D4B3 0%, #00A893 100%)',
+                background: 'linear-gradient(135deg, var(--color-accent) 0%, var(--color-legacy-00a893) 100%)',
                 boxShadow: '0 4px 20px rgba(0, 212, 179, 0.4)',
                 border: 'none',
                 cursor: 'pointer',
@@ -80,7 +80,7 @@ function LiaFloatingButtonContent() {
                     position: 'absolute',
                     inset: 0,
                     borderRadius: '50%',
-                    backgroundColor: '#00D4B3',
+                    backgroundColor: 'var(--color-accent)',
                     zIndex: 0,
                   }}
                   animate={{

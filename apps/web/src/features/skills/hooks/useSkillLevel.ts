@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react'
 
 export interface SkillLevelInfo {
@@ -43,7 +44,7 @@ export function useSkillLevel(userId: string | null, skillId: string | null) {
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error al cargar nivel')
-        console.error('Error fetching skill level:', err)
+        techDebtLogger.error('Error fetching skill level:', err)
       } finally {
         setIsLoading(false)
       }

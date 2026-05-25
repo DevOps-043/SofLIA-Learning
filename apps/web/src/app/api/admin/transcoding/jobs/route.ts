@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { NextRequest, NextResponse } from 'next/server'
 
+import { parseOffsetPaginationParams } from '@/lib/api/pagination'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 export const runtime = 'nodejs'
@@ -15,9 +16,30 @@ const VALID_STATUSES = [
 ] as const
 type JobStatus = (typeof VALID_STATUSES)[number]
 
+interface TranscodingJobRow {
+  bucket: string
+  completed_at: string | null
+  content_type: string
+  created_at: string
+  error_message: string | null
+  id: string
+  result_path: string | null
+  result_url: string | null
+  size_bytes: number | null
+  source_path: string
+  source_url: string
+  started_at: string | null
+  status: JobStatus
+}
+
+const JOB_SELECT_FIELDS =
+  'id, source_path, source_url, bucket, content_type, size_bytes, status, result_path, result_url, error_message, created_at, started_at, completed_at'
+const DASHBOARD_JOB_SCAN_LIMIT = 5000
+
 /**
- * Lists transcoding jobs with optional status filtering and basic pagination.
- * Used by the /admin/transcoding dashboard which auto-refreshes the table.
+ * Lists the current transcoding state per source video. Reprocess attempts
+ * leave historical rows behind, so the dashboard deduplicates by
+ * bucket/source_path and keeps the newest job for counts and filters.
  */
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin()
@@ -27,49 +49,62 @@ export async function GET(request: NextRequest) {
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!supabaseUrl || !supabaseServiceKey) {
     return NextResponse.json(
-      { error: 'Configuración del servidor incompleta' },
+      { error: 'Configuracion del servidor incompleta' },
       { status: 500 },
     )
   }
 
   const url = new URL(request.url)
   const statusParam = url.searchParams.get('status')
-  const limitParam = url.searchParams.get('limit')
-  const offsetParam = url.searchParams.get('offset')
 
-  const status: JobStatus | null = statusParam && VALID_STATUSES.includes(statusParam as JobStatus)
-    ? (statusParam as JobStatus)
-    : null
-  const limit = Math.min(Math.max(parseInt(limitParam ?? '100', 10) || 100, 1), 200)
-  const offset = Math.max(parseInt(offsetParam ?? '0', 10) || 0, 0)
+  const status: JobStatus | null =
+    statusParam && VALID_STATUSES.includes(statusParam as JobStatus)
+      ? (statusParam as JobStatus)
+      : null
+  const { limit, offset } = parseOffsetPaginationParams(url.searchParams, {
+    defaultLimit: 100,
+  })
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-  let query = supabase
+  const { data, error } = await supabase
     .from('video_transcoding_jobs')
-    .select(
-      'id, source_path, source_url, bucket, content_type, size_bytes, status, result_path, result_url, error_message, created_at, started_at, completed_at',
-      { count: 'exact' },
-    )
+    .select(JOB_SELECT_FIELDS)
     .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1)
+    .limit(DASHBOARD_JOB_SCAN_LIMIT)
 
-  if (status) {
-    query = query.eq('status', status)
-  }
-
-  const { data, error, count } = await query
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // Aggregate counts per status for the dashboard summary tiles.
-  const { data: aggRows, error: aggError } = await supabase
-    .from('video_transcoding_jobs')
-    .select('status')
-    .order('created_at', { ascending: false })
-    .limit(1000) // bounded — sufficient for a dashboard summary
+  const latestJobs = dedupeLatestJobs((data ?? []) as TranscodingJobRow[])
+  const filteredJobs = status
+    ? latestJobs.filter((job) => job.status === status)
+    : latestJobs
+  const paginatedJobs = filteredJobs.slice(offset, offset + limit)
 
+  return NextResponse.json({
+    jobs: paginatedJobs,
+    total: filteredJobs.length,
+    summary: summarizeJobs(latestJobs),
+    pagination: { limit, offset },
+  })
+}
+
+function dedupeLatestJobs(rows: TranscodingJobRow[]): TranscodingJobRow[] {
+  const latestBySource = new Map<string, TranscodingJobRow>()
+
+  for (const row of rows) {
+    const sourceKey = `${row.bucket}:${row.source_path}`
+    if (!latestBySource.has(sourceKey)) {
+      latestBySource.set(sourceKey, row)
+    }
+  }
+
+  return Array.from(latestBySource.values())
+}
+
+function summarizeJobs(rows: TranscodingJobRow[]): Record<JobStatus, number> {
   const summary: Record<JobStatus, number> = {
     queued: 0,
     processing: 0,
@@ -78,18 +113,10 @@ export async function GET(request: NextRequest) {
     skipped: 0,
     disabled: 0,
   }
-  if (!aggError && aggRows) {
-    for (const row of aggRows) {
-      if (row.status && row.status in summary) {
-        summary[row.status as JobStatus] += 1
-      }
-    }
+
+  for (const row of rows) {
+    summary[row.status] += 1
   }
 
-  return NextResponse.json({
-    jobs: data ?? [],
-    total: count ?? 0,
-    summary,
-    pagination: { limit, offset },
-  })
+  return summary
 }

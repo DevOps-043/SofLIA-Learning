@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAdminWorkshops } from './useAdminWorkshops'
@@ -95,7 +96,7 @@ export function useAdminWorkshopsPageLogic() {
       await refetch()
       closeEditModal()
     } catch (error) {
-      console.error('Error updating workshop:', error)
+      techDebtLogger.error('Error updating workshop:', error)
       // En el futuro, implementar sistema de feedback local como en CourseManagement
     } finally {
       setIsUpdating(false)
@@ -112,7 +113,7 @@ export function useAdminWorkshopsPageLogic() {
       await refetch()
       closeDeleteModal()
     } catch (error) {
-      console.error('Error deleting workshop:', error)
+      techDebtLogger.error('Error deleting workshop:', error)
       // En el futuro, implementar sistema de feedback local como en CourseManagement
     }
   }

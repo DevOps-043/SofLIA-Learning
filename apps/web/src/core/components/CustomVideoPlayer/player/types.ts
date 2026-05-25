@@ -7,7 +7,7 @@ import type {
   TouchEvent,
 } from 'react';
 import type { NativeVideoPreload } from '@/lib/media';
-import type { HlsQualityController } from '@/lib/media/useVideoJsHlsPlayback';
+import type { HlsQualityController } from '@/lib/media/useHlsPlayback';
 
 export interface CustomVideoPlayerProps {
   className?: string;

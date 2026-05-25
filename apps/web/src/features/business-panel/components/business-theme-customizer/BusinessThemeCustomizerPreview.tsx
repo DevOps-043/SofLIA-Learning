@@ -45,7 +45,7 @@ export function BusinessThemeCustomizerPreview({
             className="rounded-lg border p-2"
             style={{
               backgroundColor: theme.actionSurface,
-              borderColor: `${theme.actionColor}33`,
+              borderColor: `color-mix(in srgb, ${theme.actionColor} 20%, transparent)`,
             }}
           >
             <ImageIcon className="h-4 w-4" style={{ color: theme.actionColor }} />

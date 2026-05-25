@@ -43,69 +43,107 @@ export interface ResolveOrganizationAccessDependencies {
   logger: OrganizationLoggerLike
 }
 
+export interface RequireOrgAccessDependencies {
+  supabase: SupabaseClient
+  userId: string
+  organizationId?: string
+  organizationSlug?: string
+  isPlatformAdmin: boolean
+  adminFallbackRole: OrganizationRole
+  logger: OrganizationLoggerLike
+}
+
+export async function requireOrgAccess(
+  dependencies: RequireOrgAccessDependencies,
+): Promise<AuthResult<OrganizationAccessContext>> {
+  const {
+    supabase,
+    userId,
+    organizationId,
+    organizationSlug,
+    isPlatformAdmin,
+    adminFallbackRole,
+    logger,
+  } = dependencies
+
+  if (!organizationId && !organizationSlug) {
+    return authFailure(400, 'Organizacion requerida.')
+  }
+
+  let orgQuery = supabase
+    .from('organizations')
+    .select('id, slug')
+    .eq('is_active', true)
+
+  if (organizationId) {
+    orgQuery = orgQuery.eq('id', organizationId)
+  } else if (organizationSlug) {
+    orgQuery = orgQuery.eq('slug', organizationSlug)
+  }
+
+  const { data: requestedOrg, error: orgError } = await orgQuery.single()
+
+  if (orgError || !requestedOrg) {
+    logger.warn('Requested organization not found', {
+      organizationId,
+      organizationSlug,
+    })
+    return authFailure(404, 'Organizacion no encontrada.')
+  }
+
+  const { data: membership, error: membershipError } = await supabase
+    .from('organization_users')
+    .select('role')
+    .eq('organization_id', requestedOrg.id)
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .single()
+
+  if (membershipError || !membership) {
+    if (!isPlatformAdmin) {
+      logger.warn('User not member of requested organization', {
+        userId,
+        organizationId: requestedOrg.id,
+        organizationSlug: requestedOrg.slug,
+      })
+      return authFailure(403, 'No tienes acceso a esta organizacion.')
+    }
+
+    logger.auth('Platform admin accessing organization (not a member)', {
+      userId,
+      organizationId: requestedOrg.id,
+    })
+
+    return authSuccess({
+      organizationId: requestedOrg.id,
+      organizationSlug: requestedOrg.slug,
+      organizationRole: adminFallbackRole,
+      isOrgAdmin: adminFallbackRole === 'owner' || adminFallbackRole === 'admin',
+    })
+  }
+
+  return authSuccess({
+    organizationId: requestedOrg.id,
+    organizationSlug: requestedOrg.slug,
+    organizationRole: membership.role as OrganizationRole,
+    isOrgAdmin: membership.role === 'owner' || membership.role === 'admin',
+  })
+}
+
 export async function resolveOrganizationAccess(
   dependencies: ResolveOrganizationAccessDependencies,
 ): Promise<AuthResult<OrganizationAccessContext>> {
   const { supabase, userId, isPlatformAdmin, options, adminFallbackRole, logger } = dependencies
 
   if (options?.organizationId || options?.organizationSlug) {
-    let orgQuery = supabase
-      .from('organizations')
-      .select('id, slug')
-      .eq('is_active', true)
-
-    if (options.organizationId) {
-      orgQuery = orgQuery.eq('id', options.organizationId)
-    } else if (options.organizationSlug) {
-      orgQuery = orgQuery.eq('slug', options.organizationSlug)
-    }
-
-    const { data: requestedOrg, error: orgError } = await orgQuery.single()
-
-    if (orgError || !requestedOrg) {
-      logger.warn('Requested organization not found', {
-        organizationId: options?.organizationId,
-        organizationSlug: options?.organizationSlug,
-      })
-      return authFailure(404, 'Organización no encontrada.')
-    }
-
-    const { data: membership, error: membershipError } = await supabase
-      .from('organization_users')
-      .select('role')
-      .eq('organization_id', requestedOrg.id)
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .single()
-
-    if (membershipError || !membership) {
-      if (!isPlatformAdmin) {
-        logger.warn('User not member of requested organization', {
-          userId,
-          organizationId: requestedOrg.id,
-          organizationSlug: requestedOrg.slug,
-        })
-        return authFailure(403, 'No tienes acceso a esta organización.')
-      }
-
-      logger.auth('Platform admin accessing organization (not a member)', {
-        userId,
-        organizationId: requestedOrg.id,
-      })
-
-      return authSuccess({
-        organizationId: requestedOrg.id,
-        organizationSlug: requestedOrg.slug,
-        organizationRole: adminFallbackRole,
-        isOrgAdmin: adminFallbackRole === 'owner' || adminFallbackRole === 'admin',
-      })
-    }
-
-    return authSuccess({
-      organizationId: requestedOrg.id,
-      organizationSlug: requestedOrg.slug,
-      organizationRole: membership.role as OrganizationRole,
-      isOrgAdmin: membership.role === 'owner' || membership.role === 'admin',
+    return requireOrgAccess({
+      supabase,
+      userId,
+      organizationId: options.organizationId,
+      organizationSlug: options.organizationSlug,
+      isPlatformAdmin,
+      adminFallbackRole,
+      logger,
     })
   }
 

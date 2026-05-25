@@ -100,7 +100,7 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
         setCourseToDelete(null)
     }
 
-    if (isLoading) return <div className="p-8 text-center text-[#6C757D] dark:text-gray-400">{t('pendingCourses.loading')}</div>
+    if (isLoading) return <div className="p-8 text-center text-gray-500 dark:text-gray-400">{t('pendingCourses.loading')}</div>
     if (error) return <div className="p-8 text-center text-red-500">Error: {error}</div>
 
     return (
@@ -108,10 +108,10 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-[#0A2540] dark:text-white mb-2">
+                    <h1 className="text-3xl font-bold text-primary dark:text-white mb-2">
                         {t('pendingCourses.title')}
                     </h1>
-                    <p className="text-[#6C757D] dark:text-white/60">
+                    <p className="text-gray-500 dark:text-white/60">
                         {t('pendingCourses.subtitle')}
                     </p>
                 </div>
@@ -124,12 +124,12 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                 )}
 
                 {/* Tabs */}
-                <div className="flex items-center gap-4 mb-6 border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
+                <div className="flex items-center gap-4 mb-6 border-b border-gray-200 dark:border-gray-500/30">
                     <button
                         onClick={() => setActiveTab('pending')}
                         className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'pending'
-                            ? 'border-[#00D4B3] text-[#0A2540] dark:text-white'
-                            : 'border-transparent text-[#6C757D] dark:text-white/60 hover:text-[#0A2540] dark:hover:text-white'
+                            ? 'border-accent text-primary dark:text-white'
+                            : 'border-transparent text-gray-500 dark:text-white/60 hover:text-primary dark:hover:text-white'
                             }`}
                     >
                         {t('pendingCourses.tabPending')}
@@ -137,8 +137,8 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                     <button
                         onClick={() => setActiveTab('rejected')}
                         className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'rejected'
-                            ? 'border-[#EF4444] text-[#EF4444]'
-                            : 'border-transparent text-[#6C757D] dark:text-white/60 hover:text-[#EF4444]'
+                            ? 'border-error text-error'
+                            : 'border-transparent text-gray-500 dark:text-white/60 hover:text-error'
                             }`}
                     >
                         {t('pendingCourses.tabRejected')}
@@ -146,16 +146,16 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-4 mb-6 shadow-sm">
+                <div className="bg-white dark:bg-carbon-800 rounded-xl border border-gray-200 dark:border-gray-500/30 p-4 mb-6 shadow-sm">
                     <div className="flex flex-col sm:flex-row gap-4">
                         <div className="flex-1 relative">
-                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#6C757D]" />
+                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
                             <input
                                 type="text"
                                 placeholder={t('pendingCourses.searchPlaceholder')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-transparent border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent"
+                                className="w-full pl-10 pr-4 py-2 bg-transparent border border-gray-200 dark:border-gray-500/30 rounded-lg text-primary dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-accent/40 focus:border-transparent"
                             />
                         </div>
                     </div>
@@ -163,7 +163,7 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
 
                 {/* Grid */}
                 {filteredCourses.length === 0 ? (
-                    <div className="text-center py-12 bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 border-dashed">
+                    <div className="text-center py-12 bg-white dark:bg-carbon-800 rounded-xl border border-gray-200 dark:border-gray-500/30 border-dashed">
                         <InboxIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                             {activeTab === 'pending' ? t('pendingCourses.emptyPending') : t('pendingCourses.emptyRejected')}
@@ -183,26 +183,26 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                             <motion.div
                                 key={course.id}
                                 variants={itemVariants}
-                                className="bg-white dark:bg-[#1E2329] rounded-2xl border border-[#E9ECEF] dark:border-[#6C757D]/30 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                                className="bg-white dark:bg-carbon-800 rounded-2xl border border-gray-200 dark:border-gray-500/30 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                             >
                                 <div className="h-48 relative bg-gray-200 dark:bg-gray-800">
                                     <CourseThumbnail thumbnailUrl={course.thumbnail_url} title={course.title} />
                                     <div className="absolute top-4 right-4 flex flex-col items-end gap-1">
                                         {course.approval_status === 'rejected' ? (
-                                            <span className="backdrop-blur-md bg-[#EF4444]/20 dark:bg-[#EF4444]/30 text-[#EF4444] dark:text-[#FCA5A5] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#EF4444]/30 dark:border-[#EF4444]/40">
+                                            <span className="backdrop-blur-md bg-error/20 dark:bg-error/30 text-error dark:text-[var(--color-legacy-fca5a5)] text-xs font-semibold px-2.5 py-0.5 rounded border border-error/30 dark:border-error/40">
                                                 {t('pendingCourses.statusRejected')}
                                             </span>
                                         ) : (
-                                            <span className="backdrop-blur-md bg-[#F59E0B]/20 dark:bg-[#F59E0B]/30 text-[#F59E0B] dark:text-[#FCD34D] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#F59E0B]/30 dark:border-[#F59E0B]/40">
+                                            <span className="backdrop-blur-md bg-warning/20 dark:bg-warning/30 text-warning dark:text-[var(--color-legacy-fcd34d)] text-xs font-semibold px-2.5 py-0.5 rounded border border-warning/30 dark:border-warning/40">
                                                 {t('pendingCourses.statusPending')}
                                             </span>
                                         )}
                                         {course.is_update ? (
-                                            <span className="backdrop-blur-md bg-[#3B82F6]/20 dark:bg-[#3B82F6]/30 text-[#3B82F6] dark:text-[#93C5FD] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#3B82F6]/30 dark:border-[#3B82F6]/40">
+                                            <span className="backdrop-blur-md bg-info/20 dark:bg-info/30 text-info dark:text-[var(--color-legacy-93c5fd)] text-xs font-semibold px-2.5 py-0.5 rounded border border-info/30 dark:border-info/40">
                                                 {t('pendingCourses.statusUpdate')}
                                             </span>
                                         ) : (
-                                            <span className="backdrop-blur-md bg-[#10B981]/20 dark:bg-[#10B981]/30 text-[#10B981] dark:text-[#6EE7B7] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#10B981]/30 dark:border-[#10B981]/40">
+                                            <span className="backdrop-blur-md bg-success/20 dark:bg-success/30 text-success dark:text-[var(--color-legacy-6ee7b7)] text-xs font-semibold px-2.5 py-0.5 rounded border border-success/30 dark:border-success/40">
                                                 {t('pendingCourses.statusNew')}
                                             </span>
                                         )}
@@ -210,15 +210,15 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                                 </div>
 
                                 <div className="p-5">
-                                    <h3 className="text-lg font-bold text-[#0A2540] dark:text-white mb-2 line-clamp-1">
+                                    <h3 className="text-lg font-bold text-primary dark:text-white mb-2 line-clamp-1">
                                         {course.title}
                                     </h3>
-                                    <div className="flex items-center gap-2 mb-4 text-sm text-[#6C757D] dark:text-gray-400">
+                                    <div className="flex items-center gap-2 mb-4 text-sm text-gray-500 dark:text-gray-400">
                                         <UserCircleIcon className="h-4 w-4" />
                                         <span>{course.instructor_name}</span>
                                     </div>
 
-                                    <div className="flex justify-between items-center text-xs text-[#6C757D] dark:text-gray-500 mb-4 border-t border-[#E9ECEF] dark:border-[#6C757D]/20 pt-3">
+                                    <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-500 mb-4 border-t border-gray-200 dark:border-gray-500/20 pt-3">
                                         <span className="flex items-center gap-1">
                                             <ClockIcon className="h-3 w-3" /> {new Date(course.created_at).toLocaleDateString()}
                                         </span>
@@ -228,7 +228,7 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => setCourseToApprove(course.id)}
-                                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#10B981] hover:bg-[#059669] text-white rounded-lg text-sm font-medium transition-colors"
+                                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-success hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors"
                                             title={t('pendingCourses.tooltipApprove')}
                                         >
                                             <CheckCircleIcon className="h-4 w-4" />
@@ -236,7 +236,7 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                                         </button>
                                         <button
                                             onClick={() => router.push(`${basePath}/${course.id}`)}
-                                            className="px-3 py-2 bg-[#F8F9FA] dark:bg-[#2C3036] hover:bg-[#E9ECEF] dark:hover:bg-[#3A3F45] text-[#495057] dark:text-gray-200 rounded-lg text-sm font-medium transition-colors"
+                                            className="px-3 py-2 bg-gray-50 dark:bg-[var(--color-legacy-2c3036)] hover:bg-gray-200 dark:hover:bg-[var(--color-legacy-3a3f45)] text-[var(--color-legacy-495057)] dark:text-gray-200 rounded-lg text-sm font-medium transition-colors"
                                             title={t('pendingCourses.tooltipDetails')}
                                         >
                                             <EyeIcon className="h-4 w-4" />
@@ -244,7 +244,7 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                                         {activeTab === 'pending' && (
                                             <button
                                                 onClick={() => setCourseToReject(course.id)}
-                                                className="px-3 py-2 bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#EF4444] rounded-lg text-sm font-medium transition-colors"
+                                                className="px-3 py-2 bg-[var(--color-legacy-fef2f2)] hover:bg-[var(--color-legacy-fee2e2)] text-error rounded-lg text-sm font-medium transition-colors"
                                                 title={t('pendingCourses.tooltipReject')}
                                             >
                                                 <XMarkIcon className="h-4 w-4" />
@@ -253,7 +253,7 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                                         {activeTab === 'rejected' && (
                                             <button
                                                 onClick={() => setCourseToDelete(course.id)}
-                                                className="px-3 py-2 bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#EF4444] rounded-lg text-sm font-medium transition-colors border border-[#EF4444]/20"
+                                                className="px-3 py-2 bg-[var(--color-legacy-fef2f2)] hover:bg-[var(--color-legacy-fee2e2)] text-error rounded-lg text-sm font-medium transition-colors border border-error/20"
                                                 title={t('pendingCourses.tooltipDelete')}
                                             >
                                                 <TrashIcon className="h-4 w-4" />

@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * useErrorCapture
  * 
@@ -7,7 +8,7 @@
  * Proporciona información útil para SofLIA cuando el usuario reporta bugs.
  * 
  * Características:
- * - Intercepta console.error
+ * - Intercepta logger.error
  * - Captura errores no manejados (window.onerror)
  * - Captura rechazos de promesas no manejadas
  * - Mantiene un historial de los últimos N errores
@@ -31,7 +32,7 @@ export interface CapturedError {
 interface UseErrorCaptureOptions {
   /** Máximo de errores a mantener en el historial */
   maxErrors?: number;
-  /** Si debe capturar console.error */
+  /** Si debe capturar logger.error */
   captureConsole?: boolean;
   /** Si debe capturar excepciones no manejadas */
   captureExceptions?: boolean;
@@ -54,7 +55,7 @@ const DEFAULT_OPTIONS: UseErrorCaptureOptions = {
 export function useErrorCapture(options: UseErrorCaptureOptions = {}) {
   const config = { ...DEFAULT_OPTIONS, ...options };
   const [errors, setErrors] = useState<CapturedError[]>([]);
-  const originalConsoleError = useRef<typeof console.error | null>(null);
+  const originalConsoleError = useRef<typeof techDebtLogger.error | null>(null);
   const isSetup = useRef(false);
 
   /**
@@ -134,13 +135,18 @@ export function useErrorCapture(options: UseErrorCaptureOptions = {}) {
     if (typeof window === 'undefined' || isSetup.current) return;
     isSetup.current = true;
 
-    // 1. Interceptar console.error
+    // 1. Interceptar logger.error
     if (config.captureConsole) {
-      originalConsoleError.current = console.error;
+      originalConsoleError.current = techDebtLogger.error;
       
-      console.error = (...args: unknown[]) => {
-        // Llamar al console.error original
-        originalConsoleError.current?.apply(console, args);
+      techDebtLogger.error = (...args: unknown[]) => {
+        // Llamar al logger.error original
+        if (args.length === 0) {
+          originalConsoleError.current?.('');
+        } else {
+          const [message, ...rest] = args;
+          originalConsoleError.current?.(message, ...rest);
+        }
 
         // Capturar el error
         const message = args.map(arg => {
@@ -243,10 +249,10 @@ export function useErrorCapture(options: UseErrorCaptureOptions = {}) {
       };
     }
 
-    // Cleanup: restaurar console.error original
+    // Cleanup: restaurar logger.error original
     return () => {
       if (originalConsoleError.current && config.captureConsole) {
-        console.error = originalConsoleError.current;
+        techDebtLogger.error = originalConsoleError.current;
       }
       isSetup.current = false;
     };
@@ -271,8 +277,6 @@ export function useErrorCapture(options: UseErrorCaptureOptions = {}) {
 }
 
 export default useErrorCapture;
-
-
 
 
 

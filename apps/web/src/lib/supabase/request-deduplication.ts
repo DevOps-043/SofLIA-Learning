@@ -157,7 +157,7 @@ export async function dedupedFetch<T = unknown>(
  *
  * @example
  * const courses = await dedupedSupabaseQuery(
- *   () => supabase.from('courses').select('*'),
+ *   () => supabase.from('courses').select('id, title'),
  *   'courses:all'
  * )
  */

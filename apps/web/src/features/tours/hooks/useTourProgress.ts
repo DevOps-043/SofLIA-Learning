@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface TourProgress {
@@ -51,7 +52,8 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
   useEffect(() => {
     const checkTourProgress = async () => {
       try {
-        const response = await fetch(`/api/tours?tourId=${tourId}`, {
+        const response = await fetch(`/api/tours?tourId=${encodeURIComponent(tourId)}`, {
+          cache: 'no-store',
           credentials: 'include',
         });
 
@@ -62,11 +64,11 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
         } else if (response.status === 503) {
           setHasSeenTour(true);
         } else {
-          console.error('[useTourProgress] GET failed:', await response.text());
+          techDebtLogger.error('[useTourProgress] GET failed:', await response.text());
           setHasSeenTour(true);
         }
       } catch (err) {
-        console.error('[useTourProgress] Error al verificar progreso del tour:', err);
+        techDebtLogger.error('[useTourProgress] Error al verificar progreso del tour:', err);
         setHasSeenTour(true);
       } finally {
         setIsLoading(false);
@@ -102,7 +104,7 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
         // (e.g. migration not applied). It's expected, not an incident, so
         // we swallow it without log spam.
         if (response.status !== 503) {
-          console.error(
+          techDebtLogger.error(
             `[useTourProgress] POST action="${action}" failed:`,
             await response.text()
           );
@@ -125,7 +127,7 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
       const progress = await postTourAction('start', 0);
       if (progress) setTourProgress(progress);
     } catch (err) {
-      console.error('[useTourProgress] startTour error:', err);
+      techDebtLogger.error('[useTourProgress] startTour error:', err);
     }
   }, [postTourAction]);
 
@@ -142,7 +144,7 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
           const progress = await postTourAction('step', step);
           if (progress) setTourProgress(progress);
         } catch (err) {
-          console.error('[useTourProgress] updateStep error:', err);
+          techDebtLogger.error('[useTourProgress] updateStep error:', err);
         }
       }, STEP_DEBOUNCE_MS);
     },
@@ -163,7 +165,7 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
         setTourProgress(progress);
       }
     } catch (err) {
-      console.error('[useTourProgress] completeTour error:', err);
+      techDebtLogger.error('[useTourProgress] completeTour error:', err);
     }
   }, [postTourAction]);
 
@@ -181,7 +183,7 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
         setTourProgress(progress);
       }
     } catch (err) {
-      console.error('[useTourProgress] skipTour error:', err);
+      techDebtLogger.error('[useTourProgress] skipTour error:', err);
     }
   }, [postTourAction]);
 

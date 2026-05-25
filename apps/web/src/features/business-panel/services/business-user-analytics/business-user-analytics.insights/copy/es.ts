@@ -1,0 +1,26 @@
+import type { FallbackInsightsText } from '../types'
+
+export const esFallbackText: FallbackInsightsText = {
+  unavailable: 'El feedback con IA no esta configurado en este entorno.',
+  progressMetric: 'Avance del curso',
+  aiMetric: 'Adopcion de SofLIA',
+  planningMetric: 'Cumplimiento del plan',
+  nextStepsTitle: 'Proximos pasos',
+  noCourseStrength: 'Aun no hay cursos con suficiente avance para destacar.',
+  noCourseOpportunity: 'Aun no hay cursos con suficiente evidencia para priorizar.',
+  recommendPlanning: 'Reserva sesiones cortas y recurrentes para sostener el avance semanal.',
+  recommendSoflia: 'Haz preguntas especificas a SofLIA antes y despues de cada actividad.',
+  recommendNotes: 'Convierte tus notas en checklist de repaso antes de quizzes o examenes.',
+  nextStepCourse: 'Elige un curso con menor avance y agenda la siguiente sesion.',
+  nextStepQuestions: 'Formula preguntas con contexto, intento propio y duda concreta.',
+  nextStepReview: 'Revisa actividades con retroalimentacion pendiente antes de avanzar.',
+  summary: (progress, quality) => `Lectura automatica: tu avance promedio es ${progress}% y tu calidad global es ${quality}%.`,
+  progressDetail: (completed, total) => `${completed} de ${total} cursos completados.`,
+  aiDetail: (conversations, score) => `${conversations} conversaciones y calidad de preguntas ${score}%.`,
+  planningDetail: (completed, planned) => `${completed} de ${planned} sesiones completadas.`,
+  strongCourse: (course, progress) => `${course} es tu curso mas fuerte con ${progress}% de avance.`,
+  weakCourse: (course, progress) => `${course} necesita seguimiento: registra ${progress}% de avance.`,
+  activeDays: (days, streak) => `Te conectaste ${days} dias en el periodo; tu mejor racha fue de ${streak} dias.`,
+  notesOpportunity: (rate) => `La adopcion de notas esta en ${rate}%; documentar dudas mejoraria el repaso.`,
+  activitiesOpportunity: (score) => `La calidad media de actividades es ${score}%; revisa instrucciones y evidencia antes de enviar.`,
+}

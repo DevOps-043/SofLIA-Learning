@@ -48,7 +48,7 @@ export function BrandingColorsCard({
           <motion.div
             whileHover={{ rotate: 15, scale: 1.1 }}
             className="p-2.5 rounded-xl"
-            style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}
+            style={{ background: 'linear-gradient(135deg, var(--color-warning), var(--color-legacy-d97706))' }}
           >
             <Palette className="w-4 h-4 text-white" />
           </motion.div>
@@ -73,7 +73,7 @@ export function BrandingColorsCard({
             background:
               'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.08))',
             border: '1px solid rgba(245, 158, 11, 0.25)',
-            color: '#fbbf24',
+            color: 'var(--color-legacy-fbbf24)',
           }}
         >
           {isDetecting ? (
@@ -102,8 +102,8 @@ export function BrandingColorsCard({
             whileHover={{ scale: 1.02 }}
             className="relative overflow-hidden rounded-xl p-4"
             style={{
-              background: `linear-gradient(135deg, ${branding[config.key]}15, ${branding[config.key]}05)`,
-              border: `1px solid ${branding[config.key]}30`,
+              background: `linear-gradient(135deg, color-mix(in srgb, ${branding[config.key]} 8.2%, transparent), color-mix(in srgb, ${branding[config.key]} 2%, transparent))`,
+              border: `1px solid color-mix(in srgb, ${branding[config.key]} 18.8%, transparent)`,
             }}
           >
             <div className="flex items-center gap-3">
@@ -141,13 +141,13 @@ export function BrandingColorsCard({
           className="h-12 rounded-xl overflow-hidden flex items-center justify-center"
           style={{
             background: `linear-gradient(135deg, ${branding.color_primary}, ${branding.color_secondary}, ${branding.color_accent})`,
-            boxShadow: `0 8px 30px ${branding.color_primary}25`,
+            boxShadow: `0 8px 30px color-mix(in srgb, ${branding.color_primary} 14.5%, transparent)`,
           }}
         >
           <span
             className="font-bold text-sm tracking-wide"
             style={{
-              color: '#ffffff',
+              color: 'var(--color-bg-light)',
               textShadow: '0 1px 2px rgba(0,0,0,0.2)',
             }}
           >
@@ -161,7 +161,7 @@ export function BrandingColorsCard({
             className="px-4 py-2 rounded-lg font-medium text-sm shadow-md"
             style={{
               background: `linear-gradient(135deg, ${branding.color_primary}, ${branding.color_secondary})`,
-              color: '#ffffff',
+              color: 'var(--color-bg-light)',
               textShadow: '0 1px 2px rgba(0,0,0,0.1)',
             }}
           >
@@ -183,7 +183,7 @@ export function BrandingColorsCard({
             className="px-4 py-2 rounded-lg font-medium text-sm"
             style={{
               backgroundColor: branding.color_accent,
-              color: '#ffffff',
+              color: 'var(--color-bg-light)',
               textShadow: '0 1px 2px rgba(0,0,0,0.1)',
             }}
           >

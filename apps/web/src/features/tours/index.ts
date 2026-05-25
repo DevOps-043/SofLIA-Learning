@@ -8,3 +8,4 @@ export { useBusinessPanelJoyride } from './hooks/useBusinessPanelJoyride';
 export { useCourseLearnJoyride } from './hooks/useCourseLearnJoyride';
 export { useJoyrideMinitour } from './hooks/useJoyrideMinitour';
 export { JoyrideTooltip } from './components/JoyrideTooltip';
+export { SofliaJoyride } from './components/SofliaJoyride';

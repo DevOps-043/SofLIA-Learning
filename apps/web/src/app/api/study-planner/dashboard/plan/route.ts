@@ -12,9 +12,9 @@ import { createClient as createServiceClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../../lib/supabase/types';
 import { logger } from '../../../../../lib/utils/logger';
 import { createAdminClient as createSharedAdminClient } from '@/lib/supabase/admin';
-import { cacheGet, cacheSet } from '@/lib/cache/ttlCache';
+import { buildUserCacheKey, cache } from '@/lib/cache';
 
-const DASHBOARD_PLAN_CACHE_TTL_MS = 15_000;
+const DASHBOARD_PLAN_CACHE_TTL_SEC = 15;
 
 /**
  * Crea un cliente de Supabase con Service Role Key para bypass de RLS
@@ -111,7 +111,11 @@ async function getDashboardStudyPlan(
 }
 
 function dashboardPlanCacheKey(userId: string, requestedPlanId?: string) {
-  return `api:study-planner:dashboard-plan:${userId}:${requestedPlanId || 'latest'}`;
+  return buildUserCacheKey({
+    userId,
+    resourceType: 'study-planner-dashboard-plan',
+    variant: requestedPlanId || 'latest',
+  });
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse<DashboardPlanResponse>> {
@@ -133,7 +137,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardP
     const supabase = createSharedAdminClient();
     const requestedPlanId = request.nextUrl.searchParams.get('planId') || undefined;
     const cacheKey = dashboardPlanCacheKey(user.id, requestedPlanId);
-    const cached = cacheGet<DashboardPlanResponse>(cacheKey);
+    const cached = await cache.get<DashboardPlanResponse>(cacheKey);
 
     if (cached) {
       return NextResponse.json(cached, {
@@ -247,7 +251,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardP
       },
     };
 
-    cacheSet(cacheKey, response, DASHBOARD_PLAN_CACHE_TTL_MS);
+    await cache.set(cacheKey, response, DASHBOARD_PLAN_CACHE_TTL_SEC);
 
     return NextResponse.json(response, {
       headers: {

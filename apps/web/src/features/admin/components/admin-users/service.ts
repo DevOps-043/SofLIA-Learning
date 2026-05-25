@@ -36,31 +36,31 @@ export function getAdminRoleConfig(
         label: labels.Administrador,
         text: theme.roleColors.admin.text,
         bg: theme.roleColors.admin.bg,
-        border: `${theme.roleColors.admin.text}24`,
+        border: `color-mix(in srgb, ${theme.roleColors.admin.text} 14.1%, transparent)`,
         icon: ShieldCheck,
       }
     case 'Instructor':
       return {
         label: labels.Instructor,
         text: theme.warningColor,
-        bg: `${theme.warningColor}14`,
-        border: `${theme.warningColor}26`,
+        bg: `color-mix(in srgb, ${theme.warningColor} 7.8%, transparent)`,
+        border: `color-mix(in srgb, ${theme.warningColor} 14.9%, transparent)`,
         icon: GraduationCap,
       }
     case 'Business':
       return {
         label: labels.Business,
         text: theme.secondaryColor,
-        bg: `${theme.secondaryColor}14`,
-        border: `${theme.secondaryColor}26`,
+        bg: `color-mix(in srgb, ${theme.secondaryColor} 7.8%, transparent)`,
+        border: `color-mix(in srgb, ${theme.secondaryColor} 14.9%, transparent)`,
         icon: Briefcase,
       }
     case 'Usuario':
       return {
         label: labels.Usuario,
         text: theme.successColor,
-        bg: `${theme.successColor}14`,
-        border: `${theme.successColor}26`,
+        bg: `color-mix(in srgb, ${theme.successColor} 7.8%, transparent)`,
+        border: `color-mix(in srgb, ${theme.successColor} 14.9%, transparent)`,
         icon: UserCircle,
       }
     default:
@@ -83,8 +83,8 @@ export function getAdminStatusConfig(
     return {
       label: labels.verified,
       color: theme.successColor,
-      bg: `${theme.successColor}14`,
-      border: `${theme.successColor}26`,
+      bg: `color-mix(in srgb, ${theme.successColor} 7.8%, transparent)`,
+      border: `color-mix(in srgb, ${theme.successColor} 14.9%, transparent)`,
       icon: CheckCircle,
     }
   }
@@ -92,8 +92,8 @@ export function getAdminStatusConfig(
   return {
     label: labels.pending,
     color: theme.warningColor,
-    bg: `${theme.warningColor}14`,
-    border: `${theme.warningColor}26`,
+    bg: `color-mix(in srgb, ${theme.warningColor} 7.8%, transparent)`,
+    border: `color-mix(in srgb, ${theme.warningColor} 14.9%, transparent)`,
     icon: Clock,
   }
 }

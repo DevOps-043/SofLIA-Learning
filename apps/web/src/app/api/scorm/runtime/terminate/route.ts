@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { clearSessionCache } from '@/lib/scorm/session-cache';
 
-export async function POST(req: NextRequest) {
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { clearSessionCache } from '@/lib/scorm/session-cache';
+import { createClient } from '@/lib/supabase/server';
+
+import { scormAttemptSchema, type ScormAttemptBody } from '../../_schemas';
+
+async function handlePost(_request: NextRequest, body: ScormAttemptBody) {
   try {
     const supabase = await createClient();
     const {
@@ -10,17 +15,10 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: '401' }, { status: 401 });
+      return apiError('UNAUTHENTICATED', 'Unauthorized', 401);
     }
 
-    const { attemptId } = await req.json();
-
-    if (!attemptId) {
-      return NextResponse.json(
-        { error: 'attemptId is required' },
-        { status: 400 }
-      );
-    }
+    const { attemptId } = body;
 
     // Verificar que el attempt pertenece al usuario
     const { data: attempt } = await supabase
@@ -31,13 +29,13 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (!attempt) {
-      return NextResponse.json({ error: '404' }, { status: 404 });
+      return apiError('SCORM_ATTEMPT_NOT_FOUND', 'Not found', 404);
     }
 
-    // Limpiar cache de sesión
+    // Limpiar cache de sesion
     clearSessionCache(attemptId);
 
-    // Actualizar última vez accedido
+    // Actualizar ultima vez accedido
     await supabase
       .from('scorm_attempts')
       .update({ last_accessed_at: new Date().toISOString() })
@@ -46,6 +44,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to terminate' }, { status: 500 });
+    return apiError('SCORM_TERMINATE_FAILED', 'Failed to terminate', 500);
   }
 }
+
+export const POST = withZodBody(scormAttemptSchema, handlePost);

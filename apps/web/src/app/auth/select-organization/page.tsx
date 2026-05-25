@@ -54,15 +54,15 @@ export default function SelectOrganizationPage() {
   });
 
   const ui = {
-    pageBg: isDark ? '#050B14' : '#F4F8FC',
-    orbPrimary: isDark ? '#0A2540' : '#BFDBFE',
-    orbSecondary: isDark ? '#00D4B3' : '#99F6E4',
+    pageBg: isDark ? 'var(--color-legacy-050b14)' : 'var(--color-legacy-f4f8fc)',
+    orbPrimary: isDark ? 'var(--color-primary)' : 'var(--color-legacy-bfdbfe)',
+    orbSecondary: isDark ? 'var(--color-accent)' : 'var(--color-legacy-99f6e4)',
     headerSurface: isDark ? 'rgba(10, 18, 30, 0.58)' : 'rgba(255, 255, 255, 0.74)',
     headerBorder: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(10, 37, 64, 0.08)',
     headerShadow: isDark ? '0 24px 60px rgba(0, 0, 0, 0.28)' : '0 24px 60px rgba(15, 23, 42, 0.08)',
-    heading: isDark ? '#F8FAFC' : '#0A2540',
-    subtitle: isDark ? 'rgba(226, 232, 240, 0.74)' : '#475569',
-    counter: isDark ? '#FFFFFF' : '#0F172A',
+    heading: isDark ? 'var(--color-gray-50)' : 'var(--color-primary)',
+    subtitle: isDark ? 'rgba(226, 232, 240, 0.74)' : 'var(--color-gray-600)',
+    counter: isDark ? 'var(--color-bg-light)' : 'var(--color-legacy-0f172a)',
     cardBg: isDark ? 'rgba(22, 28, 38, 0.84)' : 'rgba(255, 255, 255, 0.92)',
     cardBorder: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(10, 37, 64, 0.12)',
     selectedBg: isDark ? 'rgba(10, 37, 64, 0.45)' : 'rgba(226, 241, 255, 0.94)',
@@ -71,18 +71,18 @@ export default function SelectOrganizationPage() {
       ? '0 18px 44px rgba(0, 212, 179, 0.18), 0 0 0 1px rgba(0, 212, 179, 0.22)'
       : '0 18px 44px rgba(10, 37, 64, 0.12), 0 0 0 1px rgba(10, 37, 64, 0.12)',
     cardShadow: isDark ? '0 18px 40px rgba(0, 0, 0, 0.18)' : '0 14px 34px rgba(15, 23, 42, 0.06)',
-    cardTitle: isDark ? '#F8FAFC' : '#0F172A',
-    cardSlug: isDark ? 'rgba(203, 213, 225, 0.74)' : '#64748B',
-    fallbackLogoBg: isDark ? '#0F1419' : '#EEF4FB',
+    cardTitle: isDark ? 'var(--color-gray-50)' : 'var(--color-legacy-0f172a)',
+    cardSlug: isDark ? 'rgba(203, 213, 225, 0.74)' : 'var(--color-gray-500)',
+    fallbackLogoBg: isDark ? 'var(--color-bg-dark)' : 'var(--color-legacy-eef4fb)',
     fallbackLogoBorder: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(10, 37, 64, 0.1)',
-    fallbackLogoText: isDark ? '#00D4B3' : '#0A2540',
-    actionBg: isDark ? '#00D4B3' : '#0A2540',
-    actionText: isDark ? '#0A1724' : '#FFFFFF',
+    fallbackLogoText: isDark ? 'var(--color-accent)' : 'var(--color-primary)',
+    actionBg: isDark ? 'var(--color-accent)' : 'var(--color-primary)',
+    actionText: isDark ? 'var(--color-legacy-0a1724)' : 'var(--color-bg-light)',
     actionIdleBg: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(10, 37, 64, 0.04)',
-    actionIdleText: isDark ? 'rgba(203, 213, 225, 0.82)' : '#64748B',
+    actionIdleText: isDark ? 'rgba(203, 213, 225, 0.82)' : 'var(--color-gray-500)',
     actionGlow: isDark ? '0 0 24px rgba(0, 212, 179, 0.24)' : '0 0 20px rgba(10, 37, 64, 0.16)',
-    loader: isDark ? '#00D4B3' : '#0A2540',
-    dot: isDark ? '#00D4B3' : '#0A2540',
+    loader: isDark ? 'var(--color-accent)' : 'var(--color-primary)',
+    dot: isDark ? 'var(--color-accent)' : 'var(--color-primary)',
     shimmerMid: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(10, 37, 64, 0.03)',
   };
 
@@ -364,9 +364,9 @@ export default function SelectOrganizationPage() {
             {t('selectOrganization.footer')}
           </p>
           <div className="mt-8 flex justify-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: `${ui.dot}33` }} />
-            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: `${ui.dot}66` }} />
-            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: `${ui.dot}33` }} />
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: `color-mix(in srgb, ${ui.dot} 20%, transparent)` }} />
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: `color-mix(in srgb, ${ui.dot} 40%, transparent)` }} />
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: `color-mix(in srgb, ${ui.dot} 20%, transparent)` }} />
           </div>
         </motion.div>
       </motion.div>

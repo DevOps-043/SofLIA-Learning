@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getPlatformContext } from '../../../../lib/lia/page-metadata';
@@ -146,7 +147,7 @@ export function useAIChatSendMessage(params: SendMessageParams) {
         }
       }
     } catch (error) {
-      console.error('[LIA Agent] ❌ Error detectando intención:', error);
+      techDebtLogger.error('[LIA Agent] ❌ Error detectando intención:', error);
     }
 
     const userMessage: Message = { id: Date.now().toString(), role: 'user', content: inputMessage, timestamp: new Date() };
@@ -244,7 +245,7 @@ export function useAIChatSendMessage(params: SendMessageParams) {
         if (voice.isVoiceEnabled && assistantMessage.content) voice.speakText(assistantMessage.content);
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') console.error('Error en el chat:', error);
+      if (process.env.NODE_ENV === 'development') techDebtLogger.error('Error en el chat:', error);
       const errorMessage: Message = { id: (Date.now() + 1).toString(), role: 'assistant', content: errorGeneric, timestamp: new Date() };
       if (isPromptMode) setPromptMessages(prev => [...prev, errorMessage]);
       else setNormalMessages(prev => [...prev, errorMessage]);

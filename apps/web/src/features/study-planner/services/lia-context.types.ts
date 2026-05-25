@@ -5,6 +5,17 @@
  */
 
 import type { CalendarEvent } from '../types/user-context.types';
+import type {
+  StudyPlannerCourseAnalysis,
+  StudyPlannerCourseContext,
+} from './lia-context-course.types';
+
+export type {
+  StudyPlannerCourseAnalysis,
+  StudyPlannerCourseContext,
+  StudyPlannerLessonContext,
+  StudyPlannerModuleContext,
+} from './lia-context-course.types';
 
 /**
  * Contexto completo para SofLIA del planificador
@@ -37,47 +48,10 @@ export interface StudyPlannerContext {
   }>;
 
   // Cursos
-  courses: Array<{
-    id: string;
-    title: string;
-    category: string;
-    level: string;
-    durationMinutes: number;
-    completionPercentage: number;
-    dueDate?: string; // Solo B2B
-    assignedBy?: string; // Solo B2B
-    modules?: Array<{
-      moduleId: string;
-      moduleTitle: string;
-      moduleOrderIndex: number;
-      lessons: Array<{
-        lessonId: string;
-        lessonTitle: string;
-        lessonOrderIndex: number;
-        durationMinutes: number;
-        isCompleted: boolean;
-      }>;
-    }>;
-  }>;
+  courses: StudyPlannerCourseContext[];
 
   // Análisis de cursos
-  courseAnalysis?: {
-    totalMinutes: number;
-    totalLessons: number;
-    averageComplexity: number;
-    minimumLessonTime: number;
-    // ✅ NUEVO: Análisis detallado para recomendaciones de sesión
-    averageLessonDuration: number; // Promedio de duración de lecciones en minutos
-    maxLessonDuration: number; // Duración máxima de una lección
-    minLessonDuration: number; // Duración mínima de una lección
-    courseType: 'practical' | 'theoretical' | 'mixed'; // Tipo de curso según análisis
-    suggestedSessionDurations: {
-      short: number; // Sesión corta sugerida
-      normal: number; // Sesión normal sugerida
-      long: number; // Sesión larga sugerida
-      reasoning: string; // Explicación de por qué estas duraciones
-    };
-  };
+  courseAnalysis?: StudyPlannerCourseAnalysis;
 
   // Calendario
   calendarConnected: boolean;

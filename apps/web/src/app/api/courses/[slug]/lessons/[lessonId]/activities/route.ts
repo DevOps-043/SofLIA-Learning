@@ -60,7 +60,7 @@ export async function GET(
 
     const { data: activities, error: activitiesError } = await supabase
       .from('lesson_activities')
-      .select('*')
+      .select(SELECT_COLUMNS.lesson_activities)
       .eq('lesson_id', lessonId)
       .order('activity_order_index', { ascending: true })
 

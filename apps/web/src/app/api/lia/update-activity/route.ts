@@ -1,6 +1,10 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { createClient } from '../../../../lib/supabase/server';
 import { SessionService } from '../../../../features/auth/services/session.service';
+import { updateActivitySchema, type UpdateActivityBody } from '../_schemas';
 
 interface LiaActivityUpdatePayload {
   updated_at: string
@@ -16,27 +20,21 @@ interface LiaActivityUpdatePayload {
  * 
  * Actualiza el progreso de una actividad interactiva
  */
-export async function POST(request: NextRequest) {
+async function handlePost(
+  _request: NextRequest,
+  body: UpdateActivityBody,
+  _context: unknown,
+) {
   try {
     // ✅ Usar SessionService para autenticación
     const user = await SessionService.getCurrentUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return apiError('UNAUTHORIZED', 'No autorizado', 401);
     }
 
     // Obtener datos del body
-    const { completionId, currentStep, completedSteps, status, generatedOutput } = await request.json();
-
-    if (!completionId) {
-      return NextResponse.json(
-        { error: 'completionId es requerido' },
-        { status: 400 }
-      );
-    }
+    const { completionId, currentStep, completedSteps, status, generatedOutput } = body;
 
     const supabase = await createClient();
 
@@ -67,10 +65,11 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id);
 
     if (error) {
-      console.error('Error updating activity progress:', error);
-      return NextResponse.json(
-        { error: 'Error al actualizar progreso de actividad' },
-        { status: 500 }
+      techDebtLogger.error('Error updating activity progress:', error);
+      return apiError(
+        'ACTIVITY_UPDATE_FAILED',
+        'Error al actualizar progreso de actividad',
+        500,
       );
     }
 
@@ -80,10 +79,13 @@ export async function POST(request: NextRequest) {
       updated: true
     });
   } catch (error) {
-    console.error('Error updating activity progress:', error);
-    return NextResponse.json(
-      { error: 'Error al actualizar progreso de actividad' },
-      { status: 500 }
+    techDebtLogger.error('Error updating activity progress:', error);
+    return apiError(
+      'ACTIVITY_UPDATE_FAILED',
+      'Error al actualizar progreso de actividad',
+      500,
     );
   }
 }
+
+export const POST = withZodBody(updateActivitySchema, handlePost);

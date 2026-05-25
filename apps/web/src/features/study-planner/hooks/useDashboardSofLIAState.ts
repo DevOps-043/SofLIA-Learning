@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * useDashboardSofLIAState
  *
@@ -105,7 +106,7 @@ export function useDashboardSofLIAState({
     } catch (error: unknown) {
       if (isAbortError(error)) return;
 
-      console.error('Error enviando mensaje:', error);
+      techDebtLogger.error('Error enviando mensaje:', error);
       setState(prev => ({
         ...prev,
         error:

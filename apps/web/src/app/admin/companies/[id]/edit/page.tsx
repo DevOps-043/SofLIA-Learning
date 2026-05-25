@@ -19,7 +19,7 @@ export default function EditCompanyPage() {
   if (!logic.company) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 font-inter text-gray-900 dark:bg-[#0A0D12] dark:text-white">
+    <div className="min-h-screen bg-gray-50 font-inter text-gray-900 dark:bg-carbon-950 dark:text-white">
       <EditCompanyHeader
         companyName={logic.company.name}
         logoUrl={logic.company.brand_logo_url}

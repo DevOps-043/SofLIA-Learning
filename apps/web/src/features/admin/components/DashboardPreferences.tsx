@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react'
 import { Settings, X } from 'lucide-react'
 
@@ -13,11 +14,11 @@ interface DashboardPreferencesProps {
 }
 
 const AVAILABLE_METRICS = [
-  { id: 'users', label: 'Usuarios', color: '#3b82f6' },
-  { id: 'courses', label: 'Talleres', color: '#10b981' },
-  { id: 'communities', label: 'Comunidades', color: '#8b5cf6' },
-  { id: 'prompts', label: 'Prompts', color: '#f97316' },
-  { id: 'aiApps', label: 'Apps de IA', color: '#ec4899' }
+  { id: 'users', label: 'Usuarios', color: 'var(--color-info)' },
+  { id: 'courses', label: 'Talleres', color: 'var(--color-success)' },
+  { id: 'communities', label: 'Comunidades', color: 'var(--color-secondary)' },
+  { id: 'prompts', label: 'Prompts', color: 'var(--color-legacy-f97316)' },
+  { id: 'aiApps', label: 'Apps de IA', color: 'var(--color-legacy-ec4899)' }
 ]
 
 export function DashboardPreferences({ onPreferencesChange }: DashboardPreferencesProps) {
@@ -46,7 +47,7 @@ export function DashboardPreferences({ onPreferencesChange }: DashboardPreferenc
         })
       }
     } catch (error) {
-      console.error('Error fetching preferences:', error)
+      techDebtLogger.error('Error fetching preferences:', error)
     } finally {
       setIsLoading(false)
     }
@@ -71,7 +72,7 @@ export function DashboardPreferences({ onPreferencesChange }: DashboardPreferenc
         setIsOpen(false)
       }
     } catch (error) {
-      console.error('Error saving preferences:', error)
+      techDebtLogger.error('Error saving preferences:', error)
     } finally {
       setIsSaving(false)
     }

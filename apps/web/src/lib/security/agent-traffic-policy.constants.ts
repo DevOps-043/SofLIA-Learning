@@ -1,0 +1,60 @@
+export const AUTOMATED_UA_PATTERNS = [
+  /headless/i,
+  /playwright/i,
+  /puppeteer/i,
+  /selenium/i,
+  /phantomjs/i,
+  /scrapy/i,
+  /curl/i,
+  /wget/i,
+  /python-requests/i,
+  /go-http-client/i,
+  /httpclient/i,
+  /gptbot/i,
+  /chatgpt-user/i,
+  /claude/i,
+  /anthropic/i,
+  /perplexity/i,
+  /bytespider/i,
+  /cohere-ai/i,
+  /facebookexternalhit/i,
+  /crawler/i,
+  /spider/i,
+  /bot/i,
+  /browserless/i,
+  /automation/i,
+  /openai/i,
+  /codex/i,
+  /browser-use/i,
+]
+
+export const SENSITIVE_PATH_PATTERNS = [
+  /^\/api\//,
+  /^\/admin(?:\/|$)/,
+  /^\/auth(?:\/|$)/,
+  /^\/dashboard(?:\/|$)/,
+  /^\/profile(?:\/|$)/,
+  /^\/account-settings(?:\/|$)/,
+  /^\/study-planner(?:\/|$)/,
+  /^\/certificates(?:\/|$)/,
+  /^\/business-panel(?:\/|$)/,
+  /^\/business-user(?:\/|$)/,
+  /^\/[^/]+\/business-panel(?:\/|$)/,
+  /^\/[^/]+\/business-user(?:\/|$)/,
+]
+
+export const PUBLIC_PROTECTION_BYPASS_PATTERNS = [
+  /^\/_next\//,
+  /^\/verification(?:\/|$)/,
+  /^\/api\/security\//,
+  /^\/api\/_agent-trap(?:\/|$)/,
+  /^\/favicon\.ico$/,
+  /^\/icono\.(?:ico|png)$/,
+  /^\/manifest\.json$/,
+  /^\/robots\.txt$/,
+  /^\/llms\.txt$/,
+  /^\/sitemap\.xml$/,
+]
+
+export const STATIC_ASSET_PATTERN =
+  /\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|css|js|mjs|map|txt|woff2?|ttf|eot|json|xml|mp4|webm|mp3|wav)$/i

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * API de LIA Analytics - Detalle por Hora
  * 
@@ -106,7 +107,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (msgError) {
-      console.error('Error fetching messages:', msgError);
+      techDebtLogger.error('Error fetching messages:', msgError);
       return NextResponse.json(
         { success: false, error: 'Error al obtener mensajes' },
         { status: 500 }
@@ -295,7 +296,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error en LIA Analytics Hour Detail:', error);
+    techDebtLogger.error('Error en LIA Analytics Hour Detail:', error);
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

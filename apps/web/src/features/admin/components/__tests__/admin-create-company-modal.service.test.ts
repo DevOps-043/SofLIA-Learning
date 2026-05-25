@@ -25,8 +25,8 @@ describe('admin-create-company-modal.service', () => {
     const form = createInitialCompanyData()
     expect(getSelectedPlan('business').value).toBe('business')
     expect(
-      updateCompanyColor(form, 'brand_color_primary', '#ffffff')
+      updateCompanyColor(form, 'brand_color_primary', 'var(--color-bg-light)')
         .brand_color_primary,
-    ).toBe('#ffffff')
+    ).toBe('var(--color-bg-light)')
   })
 })

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * useDashboardLIAAnalysis
  *
@@ -108,7 +109,7 @@ export function useDashboardLIAAnalysis({
     } catch (error: unknown) {
       if (isAbortError(error)) return;
 
-      console.error('Error enviando mensaje:', error);
+      techDebtLogger.error('Error enviando mensaje:', error);
       setState(prev => ({
         ...prev,
         error: 'Error al comunicarse con LIA. Por favor, intenta de nuevo.',
@@ -161,7 +162,7 @@ export function useDashboardLIAAnalysis({
         throw new Error(result.error || 'Error desconocido');
       }
     } catch (error) {
-      console.error('Error ejecutando acción:', error);
+      techDebtLogger.error('Error ejecutando acción:', error);
       setState(prev => ({
         ...prev,
         error: error instanceof Error ? error.message : 'Error al ejecutar la acción',

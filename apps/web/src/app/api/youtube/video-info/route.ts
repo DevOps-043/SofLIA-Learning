@@ -1,65 +1,76 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
+import { cacheHeaders, withCacheHeaders } from '@/lib/utils/cache-headers'
+
+export const revalidate = 600
 
 export async function GET(request: NextRequest) {
+  const videoId = request.nextUrl.searchParams.get('videoId')
+
+  if (!videoId) {
+    return NextResponse.json(
+      { error: 'Video ID es requerido' },
+      { status: 400 },
+    )
+  }
+
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const videoId = searchParams.get('videoId');
-
-    if (!videoId) {
-      return NextResponse.json(
-        { error: 'Video ID es requerido' },
-        { status: 400 }
-      );
-    }
-
-    // Obtener la API key desde las variables de entorno del servidor
-    const apiKey = process.env.YOUTUBE_API_KEY || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
+    const apiKey = process.env.YOUTUBE_API_KEY || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY
 
     if (!apiKey) {
-      // Si no hay API key, devolver información básica usando el videoId
-      return NextResponse.json({
-        title: 'Video de YouTube',
-        thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
-      });
+      return buildFallbackResponse(videoId)
     }
 
-    // Hacer la llamada a la API de YouTube desde el servidor
-    const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=${apiKey}&part=snippet`
-    );
+    const response = await fetchWithCircuitBreaker(
+      'google-youtube',
+      `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=${apiKey}&part=snippet`,
+    )
 
     if (!response.ok) {
-      // Si falla, devolver información básica
-      return NextResponse.json({
-        title: 'Video de YouTube',
-        thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
-      });
+      return buildFallbackResponse(videoId)
     }
 
-    const data = await response.json();
+    const data = await response.json() as {
+      items?: Array<{
+        snippet?: {
+          title?: string
+          thumbnails?: {
+            maxres?: { url?: string }
+            high?: { url?: string }
+          }
+        }
+      }>
+    }
+    const video = data.items?.[0]
 
-    if (data.items && data.items.length > 0) {
-      const video = data.items[0];
-      return NextResponse.json({
-        title: video.snippet.title,
-        thumbnail: video.snippet.thumbnails.maxres?.url || 
-                   video.snippet.thumbnails.high?.url || 
-                   `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
-      });
+    if (!video?.snippet) {
+      return buildFallbackResponse(videoId)
     }
 
-    // Si no se encuentra el video, devolver información básica
-    return NextResponse.json({
-      title: 'Video de YouTube',
-      thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
-    });
-  } catch (error) {
-    // En caso de error, devolver información básica
-    const videoId = request.nextUrl.searchParams.get('videoId');
-    return NextResponse.json({
-      title: 'Video de YouTube',
-      thumbnail: videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null
-    });
+    return withCacheHeaders(
+      NextResponse.json({
+        title: video.snippet.title || 'Video de YouTube',
+        thumbnail: video.snippet.thumbnails?.maxres?.url
+          || video.snippet.thumbnails?.high?.url
+          || buildThumbnailUrl(videoId),
+      }),
+      cacheHeaders.semiStatic,
+    )
+  } catch {
+    return buildFallbackResponse(videoId)
   }
 }
 
+function buildFallbackResponse(videoId: string) {
+  return withCacheHeaders(
+    NextResponse.json({
+      title: 'Video de YouTube',
+      thumbnail: buildThumbnailUrl(videoId),
+    }),
+    cacheHeaders.semiStatic,
+  )
+}
+
+function buildThumbnailUrl(videoId: string): string {
+  return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+}

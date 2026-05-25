@@ -1,0 +1,2 @@
+export const MAX_MESSAGE_LENGTH = 50000
+export const MAX_HISTORY_LENGTH = 20

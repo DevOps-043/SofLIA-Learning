@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Tests para el Sistema de Contexto de Errores de LIA - Fase 2
  * 
@@ -14,7 +15,7 @@ import { ContextBuilderService, getContextBuilder } from '../services/context-bu
 // TESTS
 // ============================================================================
 
-console.log('\n🧪 === TESTS DEL SISTEMA DE CONTEXTO DE ERRORES DE LIA (FASE 2) ===\n');
+techDebtLogger.log('\n🧪 === TESTS DEL SISTEMA DE CONTEXTO DE ERRORES DE LIA (FASE 2) ===\n');
 
 let passed = 0;
 let failed = 0;
@@ -23,15 +24,15 @@ function test(name: string, fn: () => boolean | Promise<boolean>) {
   return Promise.resolve(fn())
     .then(result => {
       if (result) {
-        console.log(`✅ PASS: ${name}`);
+        techDebtLogger.log(`✅ PASS: ${name}`);
         passed++;
       } else {
-        console.log(`❌ FAIL: ${name}`);
+        techDebtLogger.log(`❌ FAIL: ${name}`);
         failed++;
       }
     })
     .catch(error => {
-      console.log(`❌ ERROR: ${name} - ${error}`);
+      techDebtLogger.log(`❌ ERROR: ${name} - ${error}`);
       failed++;
     });
 }
@@ -67,7 +68,7 @@ async function runTests() {
   await test('ContextBuilderService tiene providers registrados', () => {
     const builder = getContextBuilder();
     const stats = builder.getStats();
-    console.log(`   → Providers registrados: ${stats.providerNames.join(', ')}`);
+    techDebtLogger.log(`   → Providers registrados: ${stats.providerNames.join(', ')}`);
     return stats.registeredProviders >= 2; // page + bug-report
   });
 
@@ -93,10 +94,10 @@ async function runTests() {
         'test-user-id',
         '/test/business-panel/courses'
       );
-      console.log(`   → Contexto generado: ${context.length} caracteres`);
+      techDebtLogger.log(`   → Contexto generado: ${context.length} caracteres`);
       return true;
     } catch (error) {
-      console.log(`   → Error: ${error}`);
+      techDebtLogger.log(`   → Error: ${error}`);
       return false;
     }
   });
@@ -121,10 +122,10 @@ async function runTests() {
           ]
         }
       );
-      console.log(`   → Contexto de bug generado: ${context.length} caracteres`);
+      techDebtLogger.log(`   → Contexto de bug generado: ${context.length} caracteres`);
       return true;
     } catch (error) {
-      console.log(`   → Error: ${error}`);
+      techDebtLogger.log(`   → Error: ${error}`);
       return false;
     }
   });
@@ -188,21 +189,21 @@ async function runTests() {
   // RESUMEN
   // ============================================================================
 
-  console.log('\n📊 === RESUMEN DE TESTS FASE 2 ===\n');
-  console.log(`✅ Tests pasados: ${passed}`);
-  console.log(`❌ Tests fallidos: ${failed}`);
-  console.log(`📈 Porcentaje de éxito: ${Math.round((passed / (passed + failed)) * 100)}%\n`);
+  techDebtLogger.log('\n📊 === RESUMEN DE TESTS FASE 2 ===\n');
+  techDebtLogger.log(`✅ Tests pasados: ${passed}`);
+  techDebtLogger.log(`❌ Tests fallidos: ${failed}`);
+  techDebtLogger.log(`📈 Porcentaje de éxito: ${Math.round((passed / (passed + failed)) * 100)}%\n`);
 
   if (failed === 0) {
-    console.log('🎉 ¡Todos los tests de Fase 2 pasaron! El sistema de contexto de errores está funcionando.\n');
+    techDebtLogger.log('🎉 ¡Todos los tests de Fase 2 pasaron! El sistema de contexto de errores está funcionando.\n');
   } else {
-    console.log('⚠️ Algunos tests fallaron. Revisar la implementación.\n');
+    techDebtLogger.log('⚠️ Algunos tests fallaron. Revisar la implementación.\n');
     process.exit(1);
   }
 }
 
 // Ejecutar tests
-runTests().catch(console.error);
+runTests().catch(techDebtLogger.error);
 
 
 

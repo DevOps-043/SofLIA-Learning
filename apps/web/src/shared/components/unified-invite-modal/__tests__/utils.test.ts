@@ -89,7 +89,7 @@ describe('unified invite modal utils', () => {
       buildInviteStatusConfig(t, 'active', 'muted', 'input-bg')
     ).toMatchObject({
       bgColor: 'rgba(34, 197, 94, 0.1)',
-      color: '#22C55E',
+      color: 'var(--color-legacy-22c55e)',
       label: 'Activo',
     });
 

@@ -40,11 +40,11 @@ interface TokenTooltipProps {
 }
 
 const MODEL_COLORS: Record<string, string> = {
-  'gpt-4o-mini': '#10b981',
-  'gpt-4o': '#6366f1',
-  'gpt-4-turbo': '#f59e0b',
-  'gpt-3.5-turbo': '#3b82f6',
-  default: '#8b5cf6',
+  'gpt-4o-mini': 'var(--color-success)',
+  'gpt-4o': 'var(--color-legacy-6366f1)',
+  'gpt-4-turbo': 'var(--color-warning)',
+  'gpt-3.5-turbo': 'var(--color-info)',
+  default: 'var(--color-secondary)',
 };
 
 export function TokenUsageWidget({ modelUsage, totalTokens, isLoading }: TokenUsageWidgetProps) {
@@ -126,10 +126,10 @@ export function TokenUsageWidget({ modelUsage, totalTokens, isLoading }: TokenUs
                 layout="vertical"
                 margin={{ top: 5, right: 30, left: 60, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} horizontal={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-legacy-374151)" opacity={0.3} horizontal={false} />
                 <XAxis
                   type="number"
-                  stroke="#9ca3af"
+                  stroke="var(--color-legacy-9ca3af)"
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
@@ -138,7 +138,7 @@ export function TokenUsageWidget({ modelUsage, totalTokens, isLoading }: TokenUs
                 <YAxis
                   type="category"
                   dataKey="displayName"
-                  stroke="#9ca3af"
+                  stroke="var(--color-legacy-9ca3af)"
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}

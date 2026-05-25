@@ -1,37 +1,18 @@
 import type { Request, Response } from 'express'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-
-const userMaybeSingleMock = vi.fn()
-const membershipMaybeSingleMock = vi.fn()
-const userEqIdMock = vi.fn(() => ({
-  maybeSingle: userMaybeSingleMock,
-}))
-const userSelectMock = vi.fn(() => ({
-  eq: userEqIdMock,
-}))
-const membershipEqStatusMock = vi.fn(() => ({
-  maybeSingle: membershipMaybeSingleMock,
-}))
-const membershipEqUserMock = vi.fn(() => ({
-  eq: membershipEqStatusMock,
-}))
-const membershipEqOrgMock = vi.fn(() => ({
-  eq: membershipEqUserMock,
-}))
-const membershipSelectMock = vi.fn(() => ({
-  eq: membershipEqOrgMock,
-}))
-const fromMock = vi.fn((table: string) => {
-  if (table === 'users') {
-    return { select: userSelectMock }
-  }
-
-  if (table === 'organization_users') {
-    return { select: membershipSelectMock }
-  }
-
-  throw new Error(`Unexpected table ${table}`)
-})
+import {
+  createRequest,
+  fromMock,
+  membershipEqOrgMock,
+  membershipEqStatusMock,
+  membershipEqUserMock,
+  membershipMaybeSingleMock,
+  membershipSelectMock,
+  resetOrganizationAccessMocks,
+  userEqIdMock,
+  userMaybeSingleMock,
+  userSelectMock,
+} from './organization-access.fixtures'
 
 vi.mock('@/core/supabase/service-client', () => ({
   getServiceClient: () => ({
@@ -39,28 +20,9 @@ vi.mock('@/core/supabase/service-client', () => ({
   }),
 }))
 
-function createRequest(params?: Record<string, string>) {
-  return {
-    params: params ?? {},
-    user: {
-      id: 'user-1',
-      email: 'business@example.com',
-      role: 'business',
-    },
-  } as unknown as Request
-}
-
 describe('organization access middleware', () => {
   beforeEach(() => {
-    fromMock.mockClear()
-    userSelectMock.mockClear()
-    membershipSelectMock.mockClear()
-    userEqIdMock.mockClear()
-    membershipEqOrgMock.mockClear()
-    membershipEqUserMock.mockClear()
-    membershipEqStatusMock.mockClear()
-    userMaybeSingleMock.mockReset()
-    membershipMaybeSingleMock.mockReset()
+    resetOrganizationAccessMocks()
   })
 
   it('allows active organization members', async () => {

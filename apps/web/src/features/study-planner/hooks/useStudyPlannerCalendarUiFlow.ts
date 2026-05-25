@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { Dispatch, SetStateAction } from 'react';
 import type {
   StudyApproach,
@@ -73,7 +74,7 @@ export function useStudyPlannerCalendarUiFlow({
       const data = await response.json();
       if (data.success && data.data?.authUrl) window.location.href = data.data.authUrl;
     } catch (error) {
-      console.error('Error conectando calendario:', error);
+      techDebtLogger.error('Error conectando calendario:', error);
       setIsConnectingCalendar(false);
     }
   };
@@ -152,7 +153,7 @@ export function useStudyPlannerCalendarUiFlow({
         setConversationHistory((prev) => [...prev, { role: 'assistant', content: fallback }]);
       }
     } catch (error) {
-      console.error('Error obteniendo respuesta de SofLIA:', error);
+      techDebtLogger.error('Error obteniendo respuesta de SofLIA:', error);
       setConversationHistory((prev) => [...prev, { role: 'assistant', content: `Perfecto. Has seleccionado **${APPROACH_LABELS[approach]}**. ¿Te gustaria conectar tu calendario para personalizar tu plan?` }]);
     } finally {
       setIsProcessing(false);
@@ -163,7 +164,7 @@ export function useStudyPlannerCalendarUiFlow({
         try {
           await analyze(calendarProvider, resolvedTargetDateText || targetDate || undefined, approach);
         } catch (error) {
-          console.error('Error en analyzeCalendarAndSuggest:', error);
+          techDebtLogger.error('Error en analyzeCalendarAndSuggest:', error);
           setIsProcessing(false);
           setConversationHistory((prev) => [...prev, { role: 'assistant', content: `Tu calendario de ${formatCalendarProvider(calendarProvider)} esta conectado, pero hubo un problema al analizarlo.\n\n¿Que dias de la semana prefieres estudiar? ¿Y en que horario te concentras mejor: **manana**, **tarde** o **noche**?` }]);
         }

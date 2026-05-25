@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useRef } from 'react';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type {
@@ -54,7 +55,7 @@ export function useDashboardLIAData({
           return;
         }
 
-        console.error('Error del servidor:', data.error || response.statusText);
+        techDebtLogger.error('Error del servidor:', data.error || response.statusText);
         throw new Error(data.error || 'Error al cargar el plan de estudios');
       }
 
@@ -77,7 +78,7 @@ export function useDashboardLIAData({
         await loadProactiveAnalysis(plan, setState);
       }
     } catch (error) {
-      console.error('Error cargando plan activo:', error);
+      techDebtLogger.error('Error cargando plan activo:', error);
       setState(prev => ({
         ...prev,
         error: error instanceof Error ? error.message : 'Error al cargar tu plan de estudios',
@@ -131,11 +132,11 @@ export function useDashboardLIAData({
       }));
 
       loadActivePlan().catch(err =>
-        console.error('Error recargando plan despues de cambios:', err),
+        techDebtLogger.error('Error recargando plan despues de cambios:', err),
       );
       appendCalendarChangesMessage(changes, now, setState);
     } catch (error) {
-      console.error('Error verificando calendario:', error);
+      techDebtLogger.error('Error verificando calendario:', error);
     }
   }, [userId, setState, loadActivePlan]);
 
@@ -154,7 +155,7 @@ export function useDashboardLIAData({
 
       await checkCalendarChanges();
     } catch (error) {
-      console.error('Error verificando calendario:', error);
+      techDebtLogger.error('Error verificando calendario:', error);
     }
   }, [userId, setState, checkCalendarChanges]);
 

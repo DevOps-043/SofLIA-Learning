@@ -1,19 +1,8 @@
 'use client'
 
-import type { ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
-
-export interface BusinessPanelStatCardProps {
-  title: string
-  value: number | string
-  icon: ReactNode
-  iconColor: string
-  delay?: number
-  trend?: number
-  onClick?: () => void
-  compact?: boolean
-}
+import type { BusinessPanelStatCardProps } from './business-panel-stat-card.types'
 
 export function BusinessPanelStatCard({
   title,
@@ -53,8 +42,8 @@ export function BusinessPanelStatCard({
             compact ? 'w-10 h-10' : 'w-12 h-12'
           }`}
           style={{
-            background: `linear-gradient(135deg, ${iconColor}15, transparent)`,
-            border: `1px solid ${iconColor}25`,
+            background: `linear-gradient(135deg, color-mix(in srgb, ${iconColor} 8.2%, transparent), transparent)`,
+            border: `1px solid color-mix(in srgb, ${iconColor} 14.5%, transparent)`,
           }}
         >
           <div

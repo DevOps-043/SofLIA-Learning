@@ -215,7 +215,7 @@ export function HistoryOverlay({
                           background: 'none',
                           border: 'none',
                           cursor: deletingConversationId === conv.conversation_id ? 'wait' : 'pointer',
-                          color: deletingConversationId === conv.conversation_id ? themeColors.textSecondary : '#ef4444',
+                          color: deletingConversationId === conv.conversation_id ? themeColors.textSecondary : 'var(--color-error)',
                           padding: 0,
                           opacity: deletingConversationId === conv.conversation_id ? 0.5 : 0.6,
                           display: 'flex',

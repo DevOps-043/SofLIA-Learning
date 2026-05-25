@@ -3,6 +3,10 @@ import {
   buildOrganizationAiContextPromptSection,
   type ResolvedOrganizationAiContext,
 } from '@/lib/lia-context/services/organization-ai-context.service'
+import {
+  CIRCUIT_BREAKER_DEFAULTS,
+  executeWithCircuitBreaker,
+} from '@/lib/resilience/circuit-breaker'
 
 import type {
   DialogueActivityConfig,
@@ -131,24 +135,31 @@ export async function generateDialogueTutorMessage(input: {
   const openai = new OpenAI({ apiKey: openaiApiKey })
 
   try {
-    const completion = await openai.chat.completions.create({
-      max_tokens: 500,
-      messages: [
-        {
-          role: 'system',
-          content:
-            'Eres SofLIA. Genera solo el mensaje visible para el estudiante, sin JSON ni instrucciones internas.',
-        },
-        {
-          role: 'user',
-          content: buildTutorPrompt(input),
-        },
-      ],
-      model: resolveDialogueTutorModel(),
-      temperature: 0.35,
-    }, {
-      signal: AbortSignal.timeout(resolveDialogueTutorTimeoutMs()),
-    })
+    const completion = await executeWithCircuitBreaker(
+      'openai-dialogue-tutor',
+      () => openai.chat.completions.create({
+        max_tokens: 500,
+        messages: [
+          {
+            role: 'system',
+            content:
+              'Eres SofLIA. Genera solo el mensaje visible para el estudiante, sin JSON ni instrucciones internas.',
+          },
+          {
+            role: 'user',
+            content: buildTutorPrompt(input),
+          },
+        ],
+        model: resolveDialogueTutorModel(),
+        temperature: 0.35,
+      }, {
+        signal: AbortSignal.timeout(resolveDialogueTutorTimeoutMs()),
+      }),
+      {
+        ...CIRCUIT_BREAKER_DEFAULTS.openai,
+        timeoutMs: resolveDialogueTutorTimeoutMs(),
+      },
+    )
     const content = completion.choices[0]?.message?.content?.trim() || ''
     return content || fallbackTutorMessage(input)
   } catch {

@@ -18,7 +18,7 @@ export default function BusinessPanelHierarchyPage() {
     { id: 'settings', label: t('hierarchy.tabs.settings'), icon: Settings },
   ];
   const tourSteps = useMemo(() => getAdminHierarchySteps(t), [t]);
-  
+
   const { joyrideProps } = useFeatureTour({
     tourId: ADMIN_HIERARCHY_TOUR_ID,
     steps: tourSteps,
@@ -59,9 +59,9 @@ export default function BusinessPanelHierarchyPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-3 px-8 py-3.5 rounded-xl text-[10px] font-black tracking-[0.2em] transition-all duration-300 ${
-                  isActive 
-                    ? 'bg-[#0A2540] dark:bg-[#00D4B3] shadow-lg shadow-[#00D4B3]/20 !text-white dark:!text-black scale-100' 
-                    : 'text-neutral-400 dark:text-white/30 hover:text-[#0A2540] dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-white/5 scale-95'
+                  isActive
+                    ? 'bg-primary dark:bg-accent shadow-lg shadow-accent/20 !text-white dark:!text-black scale-100'
+                    : 'text-neutral-400 dark:text-white/30 hover:text-primary dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-white/5 scale-95'
                 }`}
               >
                 <Icon className={`w-4 h-4 ${isActive ? '!text-white dark:!text-black' : 'text-current'}`} />
@@ -78,7 +78,7 @@ export default function BusinessPanelHierarchyPage() {
            key={activeTab}
            initial={{ opacity: 0, y: 20 }}
            animate={{ opacity: 1, y: 0 }}
-           className="rounded-[2.5rem] border overflow-hidden shadow-2xl bg-white dark:bg-[#1E2329] border-neutral-200 dark:border-white/5"
+           className="rounded-[2.5rem] border overflow-hidden shadow-2xl bg-white dark:bg-carbon-800 border-neutral-200 dark:border-white/5"
          >
           {activeTab === 'settings' ? (
             <div className="p-8 lg:p-12">

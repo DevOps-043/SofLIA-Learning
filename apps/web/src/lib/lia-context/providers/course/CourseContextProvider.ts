@@ -7,7 +7,7 @@
  */
 
 import { BaseContextProvider } from '../base/BaseContextProvider';
-import type { ContextFragment, ContextBuildOptions } from '../../types';
+import type { ContextFragment, ContextBuildOptions, EnrichedMetadata } from '../../types';
 
 export interface CourseContext {
   courseId?: string;
@@ -76,7 +76,7 @@ export class CourseContextProvider extends BaseContextProvider {
    */
   private extractCourseContext(
     currentPage?: string,
-    enrichedMetadata?: Record<string, unknown>
+    enrichedMetadata?: EnrichedMetadata
   ): CourseContext | null {
     const context: CourseContext = {};
 

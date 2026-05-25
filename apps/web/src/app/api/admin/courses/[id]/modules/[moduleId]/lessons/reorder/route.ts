@@ -1,46 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server'
+
 import { AdminLessonsService } from '@/features/admin/services/adminLessons.service'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { logger } from '@/lib/utils/logger'
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string, moduleId: string }> }
+import {
+  reorderLessonsSchema,
+  type ReorderLessonsBody,
+} from '../schema'
+
+type RouteContext = { params: Promise<{ id: string; moduleId: string }> }
+
+async function handlePost(
+  _request: NextRequest,
+  body: ReorderLessonsBody,
+  context: RouteContext,
 ) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
+
+  const { moduleId } = await context.params
+  if (!moduleId) {
+    return apiError('MODULE_ID_REQUIRED', 'Module ID es requerido', 400)
+  }
+
   try {
-    const auth = await requireAdmin()
-    if (auth instanceof NextResponse) return auth
-    
-    const { moduleId } = await params
-    const { lessons } = await request.json()
-
-    if (!moduleId) {
-      return NextResponse.json(
-        { error: 'Module ID es requerido' },
-        { status: 400 }
-      )
-    }
-
-    if (!lessons || !Array.isArray(lessons)) {
-      return NextResponse.json(
-        { error: 'La lista de lecciones es requerida y debe ser un array' },
-        { status: 400 }
-      )
-    }
-
-    await AdminLessonsService.reorderLessons(moduleId, lessons)
-
+    await AdminLessonsService.reorderLessons(moduleId, body.lessons)
     return NextResponse.json({
       success: true,
-      message: 'Lecciones reordenadas correctamente'
+      message: 'Lecciones reordenadas correctamente',
     })
   } catch (error) {
-    console.error('Error in POST /api/admin/courses/[id]/modules/[moduleId]/lessons/reorder:', error)
-    return NextResponse.json(
-      { 
-        success: false,
-        error: error instanceof Error ? error.message : 'Error al reordenar lecciones' 
-      },
-      { status: 500 }
+    logger.error(
+      'Error in POST /api/admin/courses/[id]/modules/[moduleId]/lessons/reorder',
+      error,
     )
+    return apiError('REORDER_LESSONS_FAILED', 'Error al reordenar lecciones', 500)
   }
 }
+
+export const POST = withZodBody(reorderLessonsSchema, handlePost)

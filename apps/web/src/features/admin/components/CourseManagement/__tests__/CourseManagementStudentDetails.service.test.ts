@@ -10,8 +10,8 @@ describe('CourseManagementStudentDetails.service', () => {
   it('returns the dominant study period when slots exist', () => {
     expect(
       getDominantStudyPeriod([
-        { periodo: 'Manana (6am-12pm)', porcentaje: 30, color: '#F59E0B' },
-        { periodo: 'Noche (6pm-12am)', porcentaje: 60, color: '#10B981' },
+        { periodo: 'Manana (6am-12pm)', porcentaje: 30, color: 'var(--color-warning)' },
+        { periodo: 'Noche (6pm-12am)', porcentaje: 60, color: 'var(--color-success)' },
       ]),
     ).toBe('noche (6pm-12am)')
   })
@@ -28,8 +28,8 @@ describe('CourseManagementStudentDetails.service', () => {
         avgSessionDuration: 42,
         weeklyFrequency: 5,
         preferredTimeSlots: [
-          { periodo: 'Tarde (12pm-6pm)', porcentaje: 55, color: '#00D4B3' },
-          { periodo: 'Noche (6pm-12am)', porcentaje: 45, color: '#10B981' },
+          { periodo: 'Tarde (12pm-6pm)', porcentaje: 55, color: 'var(--color-accent)' },
+          { periodo: 'Noche (6pm-12am)', porcentaje: 45, color: 'var(--color-success)' },
         ],
         activeDays: [],
         lastSession: { hoursAgo: 6 },

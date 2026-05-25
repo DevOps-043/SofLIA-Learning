@@ -1,0 +1,40 @@
+name: Weekly public performance
+
+on:
+  schedule:
+    - cron: '30 8 * * 1'
+  workflow_dispatch:
+
+jobs:
+  public-performance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PUBLIC_PERFORMANCE_BASE_URL: ${{ secrets.PUBLIC_PERFORMANCE_BASE_URL || secrets.LOAD_BASE_URL }}
+      PUBLIC_PERFORMANCE_COURSE_SLUG: ${{ secrets.PUBLIC_PERFORMANCE_COURSE_SLUG || secrets.LOAD_COURSE_SLUG }}
+      PUBLIC_PERFORMANCE_NEWS_SLUG: ${{ secrets.PUBLIC_PERFORMANCE_NEWS_SLUG }}
+      PUBLIC_PERFORMANCE_TTFB_BUDGET_MS: '200'
+      PUBLIC_PERFORMANCE_LIGHTHOUSE_MIN_SCORE: '0.9'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check CDN TTFB and cache headers
+        run: |
+          node scripts/check-public-performance.mjs
+          cat public-performance-results/ttfb.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run Lighthouse CI
+        run: npx @lhci/cli@0.15.1 autorun --config=lighthouserc.cjs
+
+      - name: Upload public performance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-performance-${{ github.run_id }}
+          path: public-performance-results/**

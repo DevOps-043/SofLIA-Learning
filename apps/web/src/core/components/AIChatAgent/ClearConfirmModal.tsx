@@ -26,9 +26,9 @@ export function ClearConfirmModal({ show, normalMessagesCount, onCancel, onConfi
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden border border-gray-200 dark:border-white/10"
+            className="bg-white dark:bg-[var(--color-legacy-1a1a1a)] rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden border border-gray-200 dark:border-white/10"
           >
-            <div className="bg-gradient-to-r from-[#0A2540] to-[#00D4B3] p-6">
+            <div className="bg-gradient-to-r from-primary to-accent p-6">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
                   <Trash2 className="w-6 h-6 text-white" />
@@ -42,7 +42,7 @@ export function ClearConfirmModal({ show, normalMessagesCount, onCancel, onConfi
 
             <div className="p-6">
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                Tienes <span className="font-semibold text-[#00D4B3]">{normalMessagesCount} mensajes</span> guardados en el contexto persistente.
+                Tienes <span className="font-semibold text-accent">{normalMessagesCount} mensajes</span> guardados en el contexto persistente.
               </p>
               <p className="text-gray-600 dark:text-gray-400 text-sm mt-3">
                 ¿Deseas borrar toda la conversación y el contexto guardado?

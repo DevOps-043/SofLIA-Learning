@@ -54,7 +54,7 @@ export async function GET(
     // Obtener materiales de la lección
     const { data: materials, error: materialsError } = await supabase
       .from('lesson_materials')
-      .select('*')
+      .select(SELECT_COLUMNS.lesson_materials)
       .eq('lesson_id', lessonId)
       .order('material_order_index', { ascending: true });
 

@@ -46,7 +46,7 @@ export function StudyPlannerConversationHeader({
   return (
     <div
       id="lia-planner-header"
-      className="z-10 flex-shrink-0 border-b border-[#E9ECEF] bg-white px-3 py-3 backdrop-blur-xl dark:border-[#6C757D]/30 dark:bg-[#0F1419] sm:px-4 sm:py-4"
+      className="z-10 flex-shrink-0 border-b border-gray-200 bg-white px-3 py-3 backdrop-blur-xl dark:border-gray-500/30 dark:bg-carbon-900 sm:px-4 sm:py-4"
     >
       <div className="mx-auto flex max-w-4xl flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
         <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
@@ -54,25 +54,25 @@ export function StudyPlannerConversationHeader({
             onClick={onBack}
             whileHover={{ scale: 1.1, x: -2 }}
             whileTap={{ scale: 0.9 }}
-            className="mr-1 rounded-full p-2 text-[#6C757D] transition-all hover:bg-[#E9ECEF] hover:text-[#0A2540] dark:text-gray-400 dark:hover:bg-[#0A2540]/20 dark:hover:text-white"
+            className="mr-1 rounded-full p-2 text-gray-500 transition-all hover:bg-gray-200 hover:text-primary dark:text-gray-400 dark:hover:bg-primary/20 dark:hover:text-white"
             title="Volver al panel"
           >
             <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
           </motion.button>
 
-          <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full border-2 border-[#0A2540]/20 dark:border-[#00D4B3]/30 sm:h-12 sm:w-12">
+          <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full border-2 border-primary/20 dark:border-accent/30 sm:h-12 sm:w-12">
             <Image src="/lia-avatar.webp" alt="SofLIA" fill sizes="48px" className="object-cover" />
           </div>
 
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-base font-bold text-[#0A2540] dark:text-white sm:text-lg">SofLIA - Planificador</h1>
+            <h1 className="truncate text-base font-bold text-primary dark:text-white sm:text-lg">SofLIA - Planificador</h1>
             {selectedCourseName ? (
-              <p className="flex items-center gap-1.5 truncate text-xs text-[#0A2540] dark:text-[#00D4B3] sm:text-sm">
+              <p className="flex items-center gap-1.5 truncate text-xs text-primary dark:text-accent sm:text-sm">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 {selectedCourseName}
               </p>
             ) : (
-              <p className="truncate text-xs text-[#6C757D] dark:text-gray-400 sm:text-sm">Tu asistente personal</p>
+              <p className="truncate text-xs text-gray-500 dark:text-gray-400 sm:text-sm">Tu asistente personal</p>
             )}
           </div>
         </div>
@@ -108,8 +108,8 @@ export function StudyPlannerConversationHeader({
               onHoverChange={onHoverChange}
               className={`flex flex-shrink-0 items-center rounded-lg p-2 transition-colors disabled:opacity-50 sm:p-2.5 ${
                 isProcessing || showCalendarModal
-                  ? 'cursor-not-allowed bg-[#6C757D] text-gray-400'
-                  : 'border border-[#0A2540]/20 bg-[#0A2540]/10 text-[#0A2540] hover:bg-[#0A2540]/20 dark:border-[#00D4B3]/30 dark:bg-[#0A2540]/20 dark:text-[#00D4B3] dark:hover:bg-[#0A2540]/30'
+                  ? 'cursor-not-allowed bg-gray-500 text-gray-400'
+                  : 'border border-primary/20 bg-primary/10 text-primary hover:bg-primary/20 dark:border-accent/30 dark:bg-primary/20 dark:text-accent dark:hover:bg-primary/30'
               }`}
             >
               <Calendar size={20} />
@@ -126,8 +126,8 @@ export function StudyPlannerConversationHeader({
             onHoverChange={onHoverChange}
             className={`relative flex flex-shrink-0 items-center rounded-lg p-2 transition-colors disabled:opacity-50 sm:p-2.5 ${
               !connectedCalendar || isProcessing
-                ? 'cursor-not-allowed bg-[#6C757D]/50 text-gray-400'
-                : 'border border-[#E9ECEF] bg-[#E9ECEF] text-[#0A2540] hover:bg-[#E9ECEF]/80 dark:border-[#6C757D]/30 dark:bg-[#0A2540]/10 dark:text-white dark:hover:bg-[#0A2540]/20'
+                ? 'cursor-not-allowed bg-gray-500/50 text-gray-400'
+                : 'border border-gray-200 bg-gray-200 text-primary hover:bg-gray-200/80 dark:border-gray-500/30 dark:bg-primary/10 dark:text-white dark:hover:bg-primary/20'
             }`}
           >
             <Settings size={20} />
@@ -149,8 +149,8 @@ export function StudyPlannerConversationHeader({
             onHoverChange={onHoverChange}
             className={`flex flex-shrink-0 items-center rounded-lg p-2 transition-colors disabled:opacity-50 sm:p-2.5 ${
               isProcessing
-                ? 'cursor-not-allowed bg-[#6C757D] text-gray-400'
-                : 'border border-[#E9ECEF] bg-[#E9ECEF] text-[#0A2540] hover:bg-[#E9ECEF]/80 dark:border-[#6C757D]/30 dark:bg-[#0A2540]/10 dark:text-white dark:hover:bg-[#0A2540]/20'
+                ? 'cursor-not-allowed bg-gray-500 text-gray-400'
+                : 'border border-gray-200 bg-gray-200 text-primary hover:bg-gray-200/80 dark:border-gray-500/30 dark:bg-primary/10 dark:text-white dark:hover:bg-primary/20'
             }`}
           >
             <Zap size={20} />
@@ -166,8 +166,8 @@ export function StudyPlannerConversationHeader({
             onHoverChange={onHoverChange}
             className={`flex flex-shrink-0 items-center rounded-lg p-2 transition-colors disabled:opacity-50 sm:p-2.5 ${
               isProcessing
-                ? 'cursor-not-allowed bg-[#6C757D] text-gray-400'
-                : 'border border-[#E9ECEF] bg-[#E9ECEF] text-[#0A2540] hover:bg-[#E9ECEF]/80 dark:border-[#6C757D]/30 dark:bg-[#0A2540]/10 dark:text-white dark:hover:bg-[#0A2540]/20'
+                ? 'cursor-not-allowed bg-gray-500 text-gray-400'
+                : 'border border-gray-200 bg-gray-200 text-primary hover:bg-gray-200/80 dark:border-gray-500/30 dark:bg-primary/10 dark:text-white dark:hover:bg-primary/20'
             }`}
           >
             <HelpCircle size={20} />
@@ -180,8 +180,8 @@ export function StudyPlannerConversationHeader({
             whileTap={{ scale: 0.95 }}
             className={`flex-shrink-0 rounded-lg p-2 transition-colors sm:p-2.5 ${
               isAudioEnabled
-                ? 'bg-[#0A2540] text-white hover:bg-[#0d2f4d] dark:bg-[#0A2540] dark:hover:bg-[#0d2f4d]'
-                : 'bg-[#E9ECEF] text-[#6C757D] hover:bg-[#6C757D]/20 dark:bg-[#6C757D] dark:text-gray-400 dark:hover:bg-[#6C757D]/80'
+                ? 'bg-primary text-white hover:bg-primary dark:bg-primary dark:hover:bg-primary'
+                : 'bg-gray-200 text-gray-500 hover:bg-gray-500/20 dark:bg-gray-500 dark:text-gray-400 dark:hover:bg-gray-500/80'
             }`}
           >
             {isAudioEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}

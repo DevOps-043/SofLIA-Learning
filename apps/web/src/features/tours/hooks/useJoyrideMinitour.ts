@@ -1,12 +1,14 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ACTIONS, type CallBackProps, EVENTS, STATUS, type Step } from 'react-joyride';
+import { ACTIONS, EVENTS, STATUS } from 'react-joyride';
 
 import { useTourRestart } from '../../../core/contexts/TourRestartContext';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourProgress } from './useTourProgress';
+import type { SofliaJoyrideEvent as CallBackProps, SofliaJoyrideStep as Step } from '../types/joyride';
 
 interface UseJoyrideMinitourOptions {
   enabled?: boolean;
@@ -46,7 +48,7 @@ export function useJoyrideMinitour({
     setStepIndex(0);
     setIsFinishedInSession(false);
     startTour().catch((error) =>
-      console.error(`[useJoyrideMinitour:${tourId}] start failed`, error),
+      techDebtLogger.error(`[useJoyrideMinitour:${tourId}] start failed`, error),
     );
     setRun(true);
   }, [startTour, tourId]);
@@ -96,7 +98,7 @@ export function useJoyrideMinitour({
       if (status === STATUS.FINISHED) {
         stopTour();
         completeTour().catch((error) =>
-          console.error(`[useJoyrideMinitour:${tourId}] complete failed`, error),
+          techDebtLogger.error(`[useJoyrideMinitour:${tourId}] complete failed`, error),
         );
         return;
       }
@@ -104,18 +106,29 @@ export function useJoyrideMinitour({
       if (status === STATUS.SKIPPED || action === ACTIONS.SKIP || action === ACTIONS.CLOSE) {
         stopTour();
         skipTour().catch((error) =>
-          console.error(`[useJoyrideMinitour:${tourId}] skip failed`, error),
+          techDebtLogger.error(`[useJoyrideMinitour:${tourId}] skip failed`, error),
         );
         return;
       }
 
-      if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+      // TARGET_NOT_FOUND: el step no encontro su elemento. NO avanzar: si se
+      // trata igual que STEP_AFTER, una pulsacion de "Siguiente" cuyo target
+      // siguiente todavia no esta listo dispara una cascada que recorre todos
+      // los steps en un solo evento y termina el tour de golpe.
+      if (type === EVENTS.TARGET_NOT_FOUND) {
+        techDebtLogger.warn(
+          `[useJoyrideMinitour:${tourId}] TARGET_NOT_FOUND on step ${index}`,
+        );
+        return;
+      }
+
+      if (type === EVENTS.STEP_AFTER) {
         const nextIndex = action === ACTIONS.PREV ? Math.max(0, index - 1) : index + 1;
 
         if (nextIndex >= steps.length) {
           stopTour();
           completeTour().catch((error) =>
-            console.error(`[useJoyrideMinitour:${tourId}] complete failed`, error),
+            techDebtLogger.error(`[useJoyrideMinitour:${tourId}] complete failed`, error),
           );
           return;
         }
@@ -152,7 +165,7 @@ export function useJoyrideMinitour({
       styles: {
         options: {
           zIndex: 999999,
-          arrowColor: '#1E2329',
+          arrowColor: 'var(--color-gray-800)',
         },
         spotlight: {
           borderRadius: 16,

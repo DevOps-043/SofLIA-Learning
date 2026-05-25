@@ -1,6 +1,11 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import { withZodBody } from '@/lib/api/with-validation';
+import { apiError } from '@/lib/api/errors';
+
+import { courseRatingSchema, type CourseRatingInput } from './schema';
 
 /**
  * GET /api/courses/[slug]/rating
@@ -59,7 +64,7 @@ export async function GET(
       rating: review || null,
     });
   } catch (error) {
-    console.error('Error in GET /api/courses/[slug]/rating:', error);
+    techDebtLogger.error('Error in GET /api/courses/[slug]/rating:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -71,42 +76,21 @@ export async function GET(
  * POST /api/courses/[slug]/rating
  * Crea o actualiza el rating de un curso (UPSERT)
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+async function handleRatingUpsert(
+  _request: NextRequest,
+  body: CourseRatingInput,
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
     const { slug } = await params;
     const supabase = await createClient();
 
-    // Obtener usuario actual
     const user = await SessionService.getCurrentUser();
     if (!user) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return apiError('UNAUTHENTICATED', 'No autorizado.', 401);
     }
 
-    // Obtener datos del body
-    const body = await request.json();
     const { rating, review_title, review_content } = body;
-
-    // Validar rating
-    if (!rating || rating < 1 || rating > 5) {
-      return NextResponse.json(
-        { error: 'El rating debe ser un número entre 1 y 5' },
-        { status: 400 }
-      );
-    }
-
-    // Validar que review_content no esté vacío si se proporciona
-    if (review_content !== undefined && review_content !== null && review_content.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'El contenido de la reseña no puede estar vacío' },
-        { status: 400 }
-      );
-    }
 
     // Obtener el curso por slug
     const { data: course, error: courseError } = await supabase
@@ -158,7 +142,7 @@ export async function POST(
       .single();
 
     if (upsertError) {
-      console.error('Error upserting review:', upsertError);
+      techDebtLogger.error('Error upserting review:', upsertError);
       return NextResponse.json(
         { error: 'Error al guardar la calificación' },
         { status: 500 }
@@ -173,7 +157,7 @@ export async function POST(
       .eq('course_id', course.id);
 
     if (reviewsError) {
-      console.error('Error fetching reviews for average:', reviewsError);
+      techDebtLogger.error('Error fetching reviews for average:', reviewsError);
       // No fallar la operación si no podemos actualizar el promedio
     } else if (allReviews && allReviews.length > 0) {
       const averageRating = allReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / allReviews.length;
@@ -190,7 +174,7 @@ export async function POST(
         .eq('id', course.id);
 
       if (updateError) {
-        console.error('Error updating course rating stats:', updateError);
+        techDebtLogger.error('Error updating course rating stats:', updateError);
         // No fallar la operación si no podemos actualizar las estadísticas
       }
     }
@@ -201,11 +185,10 @@ export async function POST(
       message: 'Calificación guardada exitosamente',
     });
   } catch (error) {
-    console.error('Error in POST /api/courses/[slug]/rating:', error);
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    );
+    techDebtLogger.error('Error in POST /api/courses/[slug]/rating:', error);
+    return apiError('INTERNAL_ERROR', 'Error interno del servidor.', 500);
   }
 }
+
+export const POST = withZodBody(courseRatingSchema, handleRatingUpsert);
 

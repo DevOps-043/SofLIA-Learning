@@ -1,87 +1,104 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { logger } from '../../../../lib/logger'
-import { SessionService } from '../../../../features/auth/services/session.service'
-import { createClient } from '../../../../lib/supabase/server'
-import {
-  AuthAccountMethodService,
-  buildOAuthLoginRequiredMessage,
-} from '../../../../features/auth/services/auth-account-method.service'
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function PUT(request: NextRequest) {
+import { logger } from '@/lib/logger';
+import { SessionService } from '@/features/auth/services/session.service';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { createAuthActionClient } from '@/lib/supabase/auth-server';
+import { withZodBody } from '@/lib/api/with-validation';
+import { apiError } from '@/lib/api/errors';
+import { ensureSupabaseAuthUserForLegacyProfile } from '@/features/auth/services/supabase-auth-bridge.service';
+import { validatePasswordIsNotBreached } from '@/features/auth/actions/password-breach-check.server';
+
+import { passwordChangeSchema, type PasswordChangeInput } from './schema';
+
+async function handlePasswordChange(
+  _request: NextRequest,
+  body: PasswordChangeInput,
+) {
   try {
-    const user = await SessionService.getCurrentUser()
-
+    const user = await SessionService.getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return apiError('UNAUTHENTICATED', 'Debes iniciar sesion para continuar.', 401);
     }
 
-    const body = await request.json()
-    const { currentPassword, newPassword } = body
-
-    if (!currentPassword || !newPassword) {
-      return NextResponse.json({ error: 'Contraseñas requeridas' }, { status: 400 })
-    }
-
-    if (/\s/.test(currentPassword) || /\s/.test(newPassword)) {
-      return NextResponse.json({ error: 'Las contraseñas no pueden tener espacios' }, { status: 400 })
-    }
-
-    const supabase = await createClient()
-
-    const { data: userData, error: fetchError } = await supabase
+    const adminSupabase = createAdminClient();
+    const { data: userData, error: fetchError } = await adminSupabase
       .from('users')
-      .select('password_hash, oauth_provider')
+      .select('id, username, email, password_hash, email_verified, cargo_rol, first_name, last_name, display_name, profile_picture_url')
       .eq('id', user.id)
-      .single()
+      .single();
 
     if (fetchError || !userData) {
-      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
+      return apiError('USER_NOT_FOUND', 'Usuario no encontrado.', 404);
     }
 
-    const accountMethodStatus = await AuthAccountMethodService.getAccountMethodStatus({
-      legacyOAuthProvider: userData.oauth_provider,
-      passwordHash: userData.password_hash,
-      supabase,
-      userId: user.id,
-    })
-
-    if (accountMethodStatus.oauthProviders.length > 0) {
-      return NextResponse.json(
-        {
-          error: buildOAuthLoginRequiredMessage(accountMethodStatus.oauthProviders),
-          errorCode: 'oauth_account_password_not_supported',
-          providers: accountMethodStatus.oauthProviders,
-        },
-        { status: 409 },
-      )
+    if (!userData.email) {
+      return apiError('NO_LOCAL_EMAIL', 'La cuenta no tiene email para autenticar.', 400);
     }
 
-    if (!accountMethodStatus.canUseLocalCredentials) {
-      return NextResponse.json({ error: 'La cuenta no tiene contraseña local configurada' }, { status: 400 })
+    const breachError = await validatePasswordIsNotBreached(body.newPassword);
+    if (breachError) {
+      return apiError('PASSWORD_BREACHED', breachError, 400);
     }
 
-    const bcrypt = await import('bcryptjs')
-    const isMatch = await bcrypt.compare(currentPassword, userData.password_hash)
-
-    if (!isMatch) {
-      return NextResponse.json({ error: 'Contraseña actual incorrecta' }, { status: 400 })
+    try {
+      await ensureSupabaseAuthUserForLegacyProfile(userData);
+    } catch (authError) {
+      logger.warn('No se pudo preparar usuario Auth para cambio de contrasena:', authError);
     }
 
-    const newPasswordHash = await bcrypt.hash(newPassword, 12)
+    const authClient = await createAuthActionClient();
+    const signInResult = await authClient.auth.signInWithPassword({
+      email: userData.email,
+      password: body.currentPassword,
+    });
 
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ password_hash: newPasswordHash })
-      .eq('id', user.id)
+    if (signInResult.error || signInResult.data.user?.id !== user.id) {
+      return apiError('INVALID_CURRENT_PASSWORD', 'Contrasena actual incorrecta.', 400);
+    }
+
+    const { error: updateError } = await authClient.auth.updateUser({
+      password: body.newPassword,
+    });
 
     if (updateError) {
-      logger.error('Error actualizando contraseña:', updateError)
-      return NextResponse.json({ error: 'Error al cambiar contraseña' }, { status: 500 })
+      logger.error('Error actualizando contrasena:', updateError);
+      return apiError('PASSWORD_UPDATE_FAILED', 'Error al cambiar contrasena.', 500);
     }
 
-    return NextResponse.json({ success: true, message: 'Contraseña actualizada' })
+    await adminSupabase
+      .from('users')
+      .update({ password_hash: null })
+      .eq('id', user.id);
+    await revokeLegacySessionsAfterPasswordChange(adminSupabase, user.id);
+
+    return NextResponse.json({ success: true, message: 'Contrasena actualizada' });
   } catch (error) {
-    logger.error('API /profile/password PUT Error:', error)
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
+    logger.error('API /profile/password PUT Error:', error);
+    return apiError('INTERNAL_ERROR', 'Error interno del servidor.', 500);
   }
+}
+
+export const PUT = withZodBody(passwordChangeSchema, handlePasswordChange);
+
+async function revokeLegacySessionsAfterPasswordChange(
+  adminSupabase: ReturnType<typeof createAdminClient>,
+  userId: string,
+) {
+  const revokedAt = new Date().toISOString();
+  await Promise.all([
+    adminSupabase
+      .from('refresh_tokens')
+      .update({
+        is_revoked: true,
+        revoked_at: revokedAt,
+        revoked_reason: 'Password changed',
+      })
+      .eq('user_id', userId)
+      .eq('is_revoked', false),
+    adminSupabase
+      .from('user_session')
+      .update({ revoked: true })
+      .eq('user_id', userId),
+  ]);
 }

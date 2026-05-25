@@ -1,4 +1,6 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server';
+import { apiError } from '@/lib/api/errors';
 import { createClient } from '../../../../lib/supabase/server';
 import { resolveOAuthDashboardDestination } from '../../../../features/auth/services/oauth-flow';
 import { SessionService } from '../../../../features/auth/services/session.service';
@@ -21,10 +23,9 @@ export async function GET() {
     const user = await SessionService.getCurrentUser();
 
     if (!user) {
-      return NextResponse.json(
-        { success: false, destination: '/auth' },
-        { status: 401 },
-      );
+      return apiError('UNAUTHENTICATED', 'No autenticado.', 401, {
+        details: { destination: '/auth' },
+      });
     }
 
     const destination = await resolveOAuthDashboardDestination(
@@ -34,7 +35,7 @@ export async function GET() {
 
     return NextResponse.json({ success: true, destination });
   } catch (error) {
-    console.error('Error resolving dashboard destination:', error);
+    techDebtLogger.error('Error resolving dashboard destination:', error);
     return NextResponse.json(
       { success: true, destination: '/dashboard' },
     );

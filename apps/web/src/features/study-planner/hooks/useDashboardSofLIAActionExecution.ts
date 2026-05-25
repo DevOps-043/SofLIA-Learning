@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback } from 'react';
 import type {
   DashboardMessage,
@@ -122,7 +123,7 @@ export function useDashboardSofLIAActionExecution({
         isSending: false,
       }));
     } catch (error: unknown) {
-      console.error('Error ejecutando accion:', error);
+      techDebtLogger.error('Error ejecutando accion:', error);
 
       const errorMessage = getActionExecutionErrorMessage(error);
       const failedActionMessage: DashboardMessage = {

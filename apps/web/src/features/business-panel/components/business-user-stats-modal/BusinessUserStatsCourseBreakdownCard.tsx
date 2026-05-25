@@ -133,7 +133,7 @@ export function BusinessUserStatsCourseBreakdownCard({
       <div className="mt-7">
         <div
           className="relative h-4 overflow-hidden rounded-full"
-          style={{ backgroundColor: `${theme.textColor}14` }}
+          style={{ backgroundColor: `color-mix(in srgb, ${theme.textColor} 7.8%, transparent)` }}
         >
           <motion.div
             initial={{ width: 0 }}
@@ -142,7 +142,7 @@ export function BusinessUserStatsCourseBreakdownCard({
             className="absolute inset-y-0 left-0 rounded-full"
             style={{
               background: `linear-gradient(90deg, ${progressColor}, ${theme.accentColor})`,
-              boxShadow: `0 0 24px ${progressColor}66`,
+              boxShadow: `0 0 24px color-mix(in srgb, ${progressColor} 40%, transparent)`,
             }}
           />
         </div>

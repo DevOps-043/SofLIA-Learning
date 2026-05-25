@@ -64,8 +64,8 @@ export function TourRestartButton({
                   right: `${RESTART_BUTTON_SIZE_PX + TOOLTIP_OFFSET_PX}px`,
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  backgroundColor: '#1E2329',
-                  color: '#FFFFFF',
+                  backgroundColor: 'var(--color-gray-800)',
+                  color: 'var(--color-bg-light)',
                   fontSize: '12px',
                   fontWeight: 500,
                   padding: '6px 10px',
@@ -87,7 +87,7 @@ export function TourRestartButton({
                     height: 0,
                     borderTop: '5px solid transparent',
                     borderBottom: '5px solid transparent',
-                    borderLeft: '5px solid #1E2329',
+                    borderLeft: '5px solid var(--color-gray-800)',
                   }}
                 />
               </motion.div>
@@ -105,14 +105,14 @@ export function TourRestartButton({
               width: `${RESTART_BUTTON_SIZE_PX}px`,
               height: `${RESTART_BUTTON_SIZE_PX}px`,
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)',
+              background: 'linear-gradient(135deg, var(--color-legacy-7c3aed) 0%, var(--color-legacy-5b21b6) 100%)',
               boxShadow: '0 4px 14px rgba(124, 58, 237, 0.45)',
               border: 'none',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#FFFFFF',
+              color: 'var(--color-bg-light)',
             }}
           >
             <Map size={18} strokeWidth={2} />

@@ -54,7 +54,7 @@ export function StudyPlannerDashboardToolbar({
           onMouseEnter={() => setHoveredButton('tour')}
           onMouseLeave={() => setHoveredButton(null)}
           whileTap={{ scale: 0.95 }}
-          className="rounded-lg bg-white dark:bg-[#1E2329] text-[#6C757D] dark:text-gray-400 hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 border border-[#E9ECEF] dark:border-[#6C757D]/30 transition-colors flex items-center overflow-hidden"
+          className="rounded-lg bg-white dark:bg-carbon-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-primary/20 border border-gray-200 dark:border-gray-500/30 transition-colors flex items-center overflow-hidden"
           title="Ver Tour"
         >
           <motion.div
@@ -98,8 +98,8 @@ export function StudyPlannerDashboardToolbar({
           whileTap={{ scale: 0.95 }}
           className={`rounded-lg transition-colors flex items-center overflow-hidden ${
             isCalendarConnected
-              ? 'bg-[#10B981]/10 dark:bg-[#10B981]/20 text-[#10B981] dark:text-[#10B981] hover:bg-[#10B981]/20 dark:hover:bg-[#10B981]/30 border border-[#10B981]/30 dark:border-[#10B981]/40'
-              : 'bg-white dark:bg-[#1E2329] text-[#6C757D] dark:text-gray-400 hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 border border-[#E9ECEF] dark:border-[#6C757D]/30'
+              ? 'bg-success/10 dark:bg-success/20 text-success dark:text-success hover:bg-success/20 dark:hover:bg-success/30 border border-success/30 dark:border-success/40'
+              : 'bg-white dark:bg-carbon-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-primary/20 border border-gray-200 dark:border-gray-500/30'
           }`}
         >
           <motion.div
@@ -144,7 +144,7 @@ export function StudyPlannerDashboardToolbar({
           className={`rounded-lg transition-colors flex items-center overflow-hidden ${
             isCalendarConfigDisabled
               ? 'bg-gray-100 dark:bg-gray-800/50 text-gray-300 dark:text-gray-600 border border-gray-200 dark:border-gray-700 cursor-not-allowed'
-              : 'bg-white dark:bg-[#1E2329] text-[#6C757D] dark:text-gray-400 hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 border border-[#E9ECEF] dark:border-[#6C757D]/30'
+              : 'bg-white dark:bg-carbon-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-primary/20 border border-gray-200 dark:border-gray-500/30'
           }`}
           title="Configuracion de calendarios"
         >

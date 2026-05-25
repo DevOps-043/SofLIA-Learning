@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+import {
+  createHierarchyChatSchema,
+  type CreateHierarchyChatBody,
+} from '@/app/api/business/hierarchy/_schemas';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string }>;
@@ -89,7 +96,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     let baseQuery = supabase
       .from('hierarchy_chats')
-      .select('*')
+      .select(SELECT_COLUMNS.hierarchy_chats)
       .eq('organization_id', auth.organizationId)
       .eq('entity_type', entityType)
       .eq('entity_id', entityId)
@@ -152,35 +159,28 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 /**
  * POST /api/[orgSlug]/business/hierarchy/chats
  */
-export async function POST(request: NextRequest, { params }: RouteContext) {
+async function handlePost(
+  _request: NextRequest,
+  body: CreateHierarchyChatBody,
+  { params }: RouteContext,
+) {
   try {
     const { orgSlug } = await params;
     const auth = await requireBusiness({ organizationSlug: orgSlug });
     if (auth instanceof NextResponse) return auth;
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
-      );
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403);
     }
 
-    const body = await request.json();
     const { entity_type, entity_id, chat_type, name, description } = body;
-
-    if (!entity_type || !entity_id || !chat_type) {
-      return NextResponse.json(
-        { success: false, error: 'entity_type, entity_id y chat_type son requeridos' },
-        { status: 400 }
-      );
-    }
 
     const supabase = createServiceClient();
 
     // Intentar obtener chat existente
     const { data: existingChat } = await supabase
       .from('hierarchy_chats')
-      .select('*')
+      .select(SELECT_COLUMNS.hierarchy_chats)
       .eq('organization_id', auth.organizationId)
       .eq('entity_type', entity_type)
       .eq('entity_id', entity_id)
@@ -224,13 +224,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       .single();
 
     if (createError || !newChat) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Error al crear el chat'
-        },
-        { status: 500 }
-      );
+      return apiError('CREATE_CHAT_FAILED', 'Error al crear el chat', 500);
     }
 
     // Obtener participantes
@@ -285,12 +279,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     });
   } catch (error: unknown) {
     logger.error('Error en POST chats:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: getErrorMessage(error)
-      },
-      { status: 500 }
-    );
+    return apiError('CREATE_CHAT_FAILED', getErrorMessage(error), 500);
   }
 }
+
+export const POST = withZodBody(createHierarchyChatSchema, handlePost);

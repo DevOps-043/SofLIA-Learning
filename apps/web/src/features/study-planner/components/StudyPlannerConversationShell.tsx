@@ -74,10 +74,10 @@ export function StudyPlannerConversationShell({
   }
 
   return (
-    <div className="flex w-full h-[100dvh] overflow-hidden bg-white dark:bg-[#0F1419]">
+    <div className="flex w-full h-[100dvh] overflow-hidden bg-white dark:bg-carbon-900">
       <div 
-        className={`flex h-[100dvh] flex-col overflow-hidden bg-white supports-[height:100dvh]:h-[100dvh] dark:bg-[#0F1419] transition-all duration-500 ease-in-out ${
-          showSchedulePreview ? 'w-full sm:w-1/2 border-r border-[#E9ECEF] dark:border-[#6C757D]/30' : 'w-full'
+        className={`flex h-[100dvh] flex-col overflow-hidden bg-white supports-[height:100dvh]:h-[100dvh] dark:bg-carbon-900 transition-all duration-500 ease-in-out ${
+          showSchedulePreview ? 'w-full sm:w-1/2 border-r border-gray-200 dark:border-gray-500/30' : 'w-full'
         }`} 
         suppressHydrationWarning
       >
@@ -98,7 +98,7 @@ export function StudyPlannerConversationShell({
         onToggleAudio={onToggleAudio}
       />
 
-      <div className="min-h-0 flex-1 overflow-y-auto bg-[#F8F9FA] px-3 py-4 dark:bg-[#0F1419]/50 sm:px-4 sm:py-6">
+      <div className="min-h-0 flex-1 overflow-y-auto bg-gray-50 px-3 py-4 dark:bg-carbon-900/50 sm:px-4 sm:py-6">
         <div className="mx-auto max-w-4xl space-y-4 pb-4 sm:space-y-6">
           <StudyPlannerConversationMessages
             conversationHistory={conversationHistory}

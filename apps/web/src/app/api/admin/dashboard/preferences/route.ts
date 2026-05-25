@@ -1,26 +1,35 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/auth/requireAdmin'
-import { AdminDashboardPreferencesService } from '../../../../../features/admin/services/adminDashboardPreferences.service'
-import { logger } from '@/lib/utils/logger'
+import { NextRequest, NextResponse } from 'next/server';
+
+import { AdminDashboardPreferencesService } from '@/features/admin/services/adminDashboardPreferences.service';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
+import { logger } from '@/lib/utils/logger';
+
+import {
+  adminDashboardPreferencesSchema,
+  type AdminDashboardPreferencesBody,
+} from './schema';
 
 /**
  * GET /api/admin/dashboard/preferences
  * Obtener preferencias del admin
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    const auth = await requireAdmin()
-    if (auth instanceof NextResponse) return auth
-    
-    const preferences = await AdminDashboardPreferencesService.getPreferences(auth.userId)
-    
-    return NextResponse.json({ success: true, preferences })
+    const auth = await requireAdmin();
+    if (auth instanceof NextResponse) return auth;
+
+    const preferences = await AdminDashboardPreferencesService.getPreferences(auth.userId);
+
+    return NextResponse.json({ success: true, preferences });
   } catch (error) {
-    logger.error('Error in dashboard preferences GET:', error)
-    return NextResponse.json(
-      { success: false, error: 'Error al obtener preferencias del dashboard' },
-      { status: 500 }
-    )
+    logger.error('Error in dashboard preferences GET:', error);
+    return apiError(
+      'ADMIN_DASHBOARD_PREFERENCES_FETCH_FAILED',
+      'Error al obtener preferencias del dashboard.',
+      500,
+    );
   }
 }
 
@@ -28,42 +37,30 @@ export async function GET(request: NextRequest) {
  * POST /api/admin/dashboard/preferences
  * Guardar/actualizar preferencias del admin
  */
-export async function POST(request: NextRequest) {
+async function handlePost(_request: NextRequest, body: AdminDashboardPreferencesBody) {
   try {
-    const auth = await requireAdmin()
-    if (auth instanceof NextResponse) return auth
-    
-    const body = await request.json()
-    const { activity_period, growth_chart_metrics } = body
-    
-    // Validar activity_period
-    if (activity_period && !['24h', '7d', '30d'].includes(activity_period)) {
-      return NextResponse.json(
-        { success: false, error: 'Período de actividad inválido' },
-        { status: 400 }
-      )
+    const auth = await requireAdmin();
+    if (auth instanceof NextResponse) return auth;
+
+    const preferencesInput: Parameters<typeof AdminDashboardPreferencesService.savePreferences>[1] = {};
+    if (body.activity_period !== undefined) {
+      preferencesInput.activity_period = body.activity_period;
     }
-    
-    // Validar growth_chart_metrics
-    if (growth_chart_metrics && !Array.isArray(growth_chart_metrics)) {
-      return NextResponse.json(
-        { success: false, error: 'growth_chart_metrics debe ser un array' },
-        { status: 400 }
-      )
+    if (body.growth_chart_metrics !== undefined) {
+      preferencesInput.growth_chart_metrics = body.growth_chart_metrics;
     }
-    
-    const preferences = await AdminDashboardPreferencesService.savePreferences(auth.userId, {
-      activity_period,
-      growth_chart_metrics
-    })
-    
-    return NextResponse.json({ success: true, preferences })
+
+    const preferences = await AdminDashboardPreferencesService.savePreferences(auth.userId, preferencesInput);
+
+    return NextResponse.json({ success: true, preferences });
   } catch (error) {
-    logger.error('Error in dashboard preferences POST:', error)
-    return NextResponse.json(
-      { success: false, error: 'Error al guardar preferencias del dashboard' },
-      { status: 500 }
-    )
+    logger.error('Error in dashboard preferences POST:', error);
+    return apiError(
+      'ADMIN_DASHBOARD_PREFERENCES_SAVE_FAILED',
+      'Error al guardar preferencias del dashboard.',
+      500,
+    );
   }
 }
 
+export const POST = withZodBody(adminDashboardPreferencesSchema, handlePost);

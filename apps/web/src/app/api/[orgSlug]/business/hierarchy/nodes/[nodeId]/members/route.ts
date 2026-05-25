@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import {
+    nodeMemberAssignmentSchema,
+    type NodeMemberAssignmentBody,
+} from '@/app/api/business/hierarchy/_schemas';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string; nodeId: string }>;
@@ -76,8 +82,9 @@ export async function GET(
 /**
  * POST /api/[orgSlug]/business/hierarchy/nodes/[nodeId]/members
  */
-export async function POST(
-    request: NextRequest,
+async function handlePost(
+    _request: NextRequest,
+    body: NodeMemberAssignmentBody,
     { params }: RouteContext
 ) {
     try {
@@ -95,30 +102,16 @@ export async function POST(
             .single();
 
         if (nodeError || !node) {
-            return NextResponse.json(
-                { success: false, error: 'Node not found' },
-                { status: 404 }
-            );
+            return apiError('NODE_NOT_FOUND', 'Node not found', 404);
         }
 
         const isManager = node.manager_id === auth.userId;
 
         if (auth.organizationRole !== 'owner' && auth.organizationRole !== 'admin' && !isManager) {
-            return NextResponse.json(
-                { success: false, error: 'Insufficient permissions' },
-                { status: 403 }
-            );
+            return apiError('FORBIDDEN', 'Insufficient permissions', 403);
         }
 
-        const body = await request.json();
         const { userId, role = 'member', isPrimary = false } = body;
-
-        if (!userId) {
-            return NextResponse.json(
-                { success: false, error: 'User ID is required' },
-                { status: 400 }
-            );
-        }
 
         const { data: orgUser, error: userError } = await supabase
             .from('organization_users')
@@ -129,10 +122,7 @@ export async function POST(
             .single();
 
         if (userError || !orgUser) {
-            return NextResponse.json(
-                { success: false, error: 'User not found in organization' },
-                { status: 404 }
-            );
+            return apiError('USER_NOT_IN_ORG', 'User not found in organization', 404);
         }
 
         const { data: existingAssignment } = await supabase
@@ -154,9 +144,10 @@ export async function POST(
 
         if (existingAssignment) {
             if (existingAssignment.role === role) {
-                return NextResponse.json(
-                    { success: false, error: 'User already assigned with this role' },
-                    { status: 409 }
+                return apiError(
+                    'DUPLICATE_ASSIGNMENT',
+                    'User already assigned with this role',
+                    409,
                 );
             }
 
@@ -198,13 +189,12 @@ export async function POST(
         });
 
     } catch (error: unknown) {
-        return NextResponse.json(
-            {
-                success: false,
-                error: 'Internal server error',
-                details: error instanceof Error ? error.message : String(error)
-            },
-            { status: 500 }
+        return apiError(
+            'INTERNAL_ERROR',
+            error instanceof Error ? error.message : 'Internal server error',
+            500,
         );
     }
 }
+
+export const POST = withZodBody(nodeMemberAssignmentSchema, handlePost);

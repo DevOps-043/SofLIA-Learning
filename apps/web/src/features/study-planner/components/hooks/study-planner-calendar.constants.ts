@@ -4,7 +4,7 @@ import type {
   StudyPlannerCalendarToastState,
 } from './study-planner-calendar.types';
 
-export const DEFAULT_EVENT_COLOR = '#0A2540';
+export const DEFAULT_EVENT_COLOR = 'var(--color-primary)';
 
 export const DEFAULT_EVENT_FORM: StudyPlannerCalendarEventForm = {
   title: '',
@@ -32,16 +32,16 @@ export const DEFAULT_CONFIRM_DIALOG: StudyPlannerCalendarConfirmDialogState = {
 export const STUDY_PLANNER_WEEK_STARTS_ON = 0;
 
 export const STUDY_PLANNER_EVENT_COLORS = [
-  { name: 'Azul Profundo', value: '#0A2540' },
-  { name: 'Aqua', value: '#00D4B3' },
-  { name: 'Verde Suave', value: '#10B981' },
-  { name: 'Ambar', value: '#F59E0B' },
-  { name: 'Azul Claro', value: '#0066CC' },
-  { name: 'Verde', value: '#0B8043' },
-  { name: 'Lavanda', value: '#8E24AA' },
-  { name: 'Rosa', value: '#E67C73' },
-  { name: 'Amarillo', value: '#F6BF26' },
-  { name: 'Naranja', value: '#F4511E' },
+  { name: 'Azul Profundo', value: 'var(--color-primary)' },
+  { name: 'Aqua', value: 'var(--color-accent)' },
+  { name: 'Verde Suave', value: 'var(--color-success)' },
+  { name: 'Ambar', value: 'var(--color-warning)' },
+  { name: 'Azul Claro', value: 'var(--color-legacy-0066cc)' },
+  { name: 'Verde', value: 'var(--color-legacy-0b8043)' },
+  { name: 'Lavanda', value: 'var(--color-legacy-8e24aa)' },
+  { name: 'Rosa', value: 'var(--color-legacy-e67c73)' },
+  { name: 'Amarillo', value: 'var(--color-legacy-f6bf26)' },
+  { name: 'Naranja', value: 'var(--color-legacy-f4511e)' },
 ];
 
 export const STUDY_PLANNER_WEEKDAY_NAMES = [

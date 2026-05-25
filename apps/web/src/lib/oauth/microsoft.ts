@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 const AUTH_BASE = 'https://login.microsoftonline.com';
 const TENANT = process.env.MICROSOFT_TENANT_ID || 'common';
 
@@ -20,7 +21,7 @@ export function getMicrosoftRedirectUri(): string {
     // Si estamos en producción y la variable falla, fallback a la URL conocida del deploy
     // Esto salva el error si la variable de entorno se configuró mal (ej. falta https)
     if (process.env.NODE_ENV === 'production') {
-      console.warn(`[Microsoft OAuth] MICROSOFT_OAUTH_REDIRECT_URI inválida o faltante: "${redirectRaw}". Usando fallback de producción.`);
+      techDebtLogger.warn(`[Microsoft OAuth] MICROSOFT_OAUTH_REDIRECT_URI inválida o faltante: "${redirectRaw}". Usando fallback de producción.`);
       return 'https://soflia.ai/auth/oauth/microsoft/callback';
     }
 

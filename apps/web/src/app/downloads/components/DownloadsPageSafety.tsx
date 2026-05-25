@@ -6,9 +6,9 @@ export function DownloadsPageSafety() {
   const PrimaryIcon = DOWNLOADS_SAFETY_BADGES[0].icon
 
   return (
-    <section className="mt-20 text-center py-12 px-6 rounded-[40px] bg-gradient-to-br from-[#0A2540] to-[#173B63] dark:from-[#1A2332] dark:to-[#0F1419] text-white">
-      <div className="w-16 h-16 bg-[#00D4B3]/20 rounded-full flex items-center justify-center mx-auto mb-8">
-        <PrimaryIcon className="text-[#00D4B3]" size={32} />
+    <section className="mt-20 text-center py-12 px-6 rounded-[40px] bg-gradient-to-br from-primary to-[var(--color-legacy-173b63)] dark:from-[var(--color-legacy-1a2332)] dark:to-carbon-900 text-white">
+      <div className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-8">
+        <PrimaryIcon className="text-accent" size={32} />
       </div>
       <h2 className="text-3xl font-bold mb-4">Seguro y Verificado</h2>
       <p className="max-w-2xl mx-auto text-white/70 mb-12">

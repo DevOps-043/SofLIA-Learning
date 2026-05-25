@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from('scorm_packages')
-      .select('*')
+      .select(SELECT_COLUMNS.scorm_packages)
       .eq('status', 'active')
       .order('created_at', { ascending: false });
 

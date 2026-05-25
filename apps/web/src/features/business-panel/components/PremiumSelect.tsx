@@ -83,7 +83,7 @@ export function PremiumSelect({
           backgroundColor: theme.inputBg,
           borderColor: hasActiveSelection ? theme.primaryColor : theme.borderColor,
           color: theme.textColor,
-          boxShadow: hasActiveSelection ? `0 0 0 1px ${theme.primaryColor}30` : 'none'
+          boxShadow: hasActiveSelection ? `0 0 0 1px color-mix(in srgb, ${theme.primaryColor} 18.8%, transparent)` : 'none'
         }}
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -127,7 +127,7 @@ export function PremiumSelect({
             style={{
               backgroundColor: theme.panelBg,
               borderColor: theme.borderColor,
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              boxShadow: '0 25px 50px -12px color-mix(in srgb, var(--color-black) 50%, transparent)',
               zIndex: 9999
             }}
           >
@@ -159,7 +159,7 @@ export function PremiumSelect({
                       }}
                       className="w-full px-4 py-3 text-left text-sm flex items-center gap-3 transition-all duration-150"
                       style={{
-                        backgroundColor: isSelected ? `${theme.primaryColor}20` : 'transparent',
+                        backgroundColor: isSelected ? `color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent)` : 'transparent',
                         color: isSelected ? theme.textColor : theme.subtextColor
                       }}
                       onMouseEnter={(e) => {

@@ -63,7 +63,7 @@ export function ModernNavbar({
         <div
           className="absolute bottom-0 left-0 right-0 h-px"
           style={{
-            background: `linear-gradient(90deg, transparent, ${colors.accent}30, ${colors.primary}30, transparent)`,
+            background: `linear-gradient(90deg, transparent, color-mix(in srgb, ${colors.accent} 18.8%, transparent), color-mix(in srgb, ${colors.primary} 18.8%, transparent), transparent)`,
           }}
         />
 
@@ -89,7 +89,7 @@ export function ModernNavbar({
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="md:hidden p-2.5 rounded-xl border-2 transition-all duration-300"
                 style={{
-                  backgroundColor: mobileMenuOpen ? `${colors.primary}15` : 'transparent',
+                  backgroundColor: mobileMenuOpen ? `color-mix(in srgb, ${colors.primary} 8.2%, transparent)` : 'transparent',
                   borderColor: mobileMenuOpen ? colors.borderActive : colors.border,
                 }}
                 whileTap={disableHeavyEffects ? undefined : { scale: 0.95 }}
@@ -101,7 +101,7 @@ export function ModernNavbar({
                   {mobileMenuOpen ? (
                     <X className="h-5 w-5" style={{ color: colors.accent }} />
                   ) : (
-                    <Menu className="h-5 w-5" style={{ color: `${colors.text}80` }} />
+                    <Menu className="h-5 w-5" style={{ color: `color-mix(in srgb, ${colors.text} 50.2%, transparent)` }} />
                   )}
                 </motion.div>
               </motion.button>

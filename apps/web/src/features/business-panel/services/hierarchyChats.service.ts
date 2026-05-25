@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Servicio de Chats Jerárquicos
  *
@@ -62,7 +63,7 @@ async function fetchApi<T>(
       message: data.message
     };
   } catch (error) {
-    console.error('API Error:', error);
+    techDebtLogger.error('API Error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Error de conexión'

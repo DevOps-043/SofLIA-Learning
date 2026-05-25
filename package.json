@@ -15,6 +15,9 @@
     "build:web": "npm run build --workspace=apps/web",
     "build:api": "npm run build --workspace=apps/api",
     "build:packages": "npm run build --workspace=@aprende-y-aplica/ui && npm run build --workspace=@aprende-y-aplica/shared",
+    "generate:openapi": "tsx scripts/generate-openapi.ts",
+    "audit:pagination": "tsx scripts/audit-api-pagination.ts",
+    "audit:route-validation": "tsx scripts/audit-route-validation.ts",
     "lint": "npm run lint --workspaces",
     "type-check": "npm run type-check --workspaces && tsc --noEmit",
     "load:seed": "tsx tools/load-testing/seed.ts",
@@ -24,9 +27,19 @@
     "load:spike": "tsx tools/load-testing/run.ts spike",
     "load:soak": "tsx tools/load-testing/run.ts soak",
     "load:metrics": "tsx tools/load-testing/collect-metrics.ts",
+    "load:pool-check": "tsx tools/load-testing/pool-check.ts",
     "load:check": "tsx tools/load-testing/check.ts",
     "load:report": "tsx tools/load-testing/report.ts",
-    "load:cleanup": "tsx tools/load-testing/cleanup.ts"
+    "load:cleanup": "tsx tools/load-testing/cleanup.ts",
+    "load:k6:auth": "k6 run tests/load/auth-login.js",
+    "load:k6:course": "k6 run tests/load/course-view.js",
+    "load:k6:lia": "k6 run tests/load/lia-chat.js",
+    "load:k6:mixed": "k6 run tests/load/mixed.js",
+    "load:k6:dashboard": "node scripts/generate-load-test-dashboard.mjs",
+    "performance:public": "node scripts/check-public-performance.mjs",
+    "performance:lighthouse": "npx @lhci/cli@0.15.1 autorun --config=lighthouserc.cjs",
+    "observability:health-check": "node scripts/check-observability-health.mjs",
+    "auth:migrate-legacy": "tsx scripts/migrate-legacy-users-to-supabase-auth.ts"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.56.1",
@@ -67,7 +80,7 @@
     "express",
     "typescript"
   ],
-  "author": "Equipo Aprende y Aplica",
+  "author": "Equipo SOFLIA",
   "license": "MIT",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

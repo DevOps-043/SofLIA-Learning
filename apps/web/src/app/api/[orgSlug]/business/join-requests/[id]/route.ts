@@ -1,38 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
+import {
+  joinRequestReviewSchema,
+  type JoinRequestReviewBody,
+} from '../../_schemas'
 
 interface RouteParams {
   params: Promise<{ orgSlug: string; id: string }>
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
+async function handlePatch(
+  _request: NextRequest,
+  body: JoinRequestReviewBody,
+  { params }: RouteParams,
+) {
   const { orgSlug, id: requestId } = await params
   const auth = await requireBusiness({ organizationSlug: orgSlug })
   if (auth instanceof NextResponse) return auth
 
   try {
     if (!auth.isOrgAdmin) {
-      return NextResponse.json(
-        { success: false, error: 'Se requiere rol de administrador u owner.' },
-        { status: 403 }
+      return apiError(
+        'FORBIDDEN',
+        'Se requiere rol de administrador u owner.',
+        403,
       )
     }
 
-    const body = await request.json()
     const { action } = body
-
-    if (!action || !['approve', 'reject'].includes(action)) {
-      return NextResponse.json(
-        { success: false, error: 'Acción inválida. Use "approve" o "reject".' },
-        { status: 400 }
-      )
-    }
-
     const supabase = await createClient()
 
-    // Fetch the join request and verify it belongs to this org
     const { data: joinRequest, error: fetchError } = await supabase
       .from('organization_join_requests')
       .select('id, user_id, organization_id, status')
@@ -40,27 +41,21 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .single()
 
     if (fetchError || !joinRequest) {
-      return NextResponse.json(
-        { success: false, error: 'Solicitud no encontrada.' },
-        { status: 404 }
-      )
+      return apiError('JOIN_REQUEST_NOT_FOUND', 'Solicitud no encontrada.', 404)
     }
 
     if (joinRequest.organization_id !== auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes permiso para gestionar esta solicitud.' },
-        { status: 403 }
+      return apiError(
+        'FORBIDDEN',
+        'No tienes permiso para gestionar esta solicitud.',
+        403,
       )
     }
 
     if (joinRequest.status !== 'pending') {
-      return NextResponse.json(
-        { success: false, error: 'Esta solicitud ya fue procesada.' },
-        { status: 409 }
-      )
+      return apiError('JOIN_REQUEST_ALREADY_PROCESSED', 'Esta solicitud ya fue procesada.', 409)
     }
 
-    // Update the join request status
     const { error: updateError } = await supabase
       .from('organization_join_requests')
       .update({
@@ -73,22 +68,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     if (updateError) {
       logger.error('Error updating join request:', updateError)
-      return NextResponse.json(
-        { success: false, error: 'Error al procesar la solicitud.' },
-        { status: 500 }
-      )
+      return apiError('UPDATE_JOIN_REQUEST_FAILED', 'Error al procesar la solicitud.', 500)
     }
 
-    // If approved, add user to organization and update cargo_rol
     if (action === 'approve') {
-      // Get job_title from request
       const { data: fullRequest } = await supabase
         .from('organization_join_requests')
         .select('job_title')
         .eq('id', requestId)
         .single()
 
-      // Add to organization_users
       const { error: memberError } = await supabase
         .from('organization_users')
         .insert({
@@ -102,19 +91,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
       if (memberError) {
         logger.error('Error adding user to organization:', memberError)
-        // Rollback the status change
         await supabase
           .from('organization_join_requests')
           .update({ status: 'pending', reviewed_by: null, reviewed_at: null })
           .eq('id', requestId)
 
-        return NextResponse.json(
-          { success: false, error: 'Error al agregar usuario a la organización.' },
-          { status: 500 }
+        return apiError(
+          'ADD_ORGANIZATION_USER_FAILED',
+          'Error al agregar usuario a la organizacion.',
+          500,
         )
       }
 
-      // Update user's cargo_rol to 'Business'
       const { error: roleError } = await supabase
         .from('users')
         .update({ cargo_rol: 'Business' })
@@ -142,10 +130,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       message: action === 'approve' ? 'Solicitud aprobada.' : 'Solicitud rechazada.',
     })
   } catch (error) {
-    logger.error('Error in PATCH /api/[orgSlug]/business/join-requests/[id]:', error instanceof Error ? error : undefined)
-    return NextResponse.json(
-      { success: false, error: 'Error interno del servidor.' },
-      { status: 500 }
+    logger.error(
+      'Error in PATCH /api/[orgSlug]/business/join-requests/[id]:',
+      error instanceof Error ? error : undefined,
     )
+    return apiError('UPDATE_JOIN_REQUEST_FAILED', 'Error interno del servidor.', 500)
   }
 }
+
+export const PATCH = withZodBody(joinRequestReviewSchema, handlePatch)

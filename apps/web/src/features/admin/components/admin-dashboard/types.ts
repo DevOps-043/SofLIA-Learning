@@ -36,6 +36,7 @@ export interface AdminDashboardPanelStyles {
   card_background?: string | null
   primary_button_color?: string | null
   secondary_button_color?: string | null
+  text_color?: string | null
 }
 
 export interface AdminDashboardActivityUser {

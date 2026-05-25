@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Servicio para manejar cambio de planes de suscripción business
  * Este archivo contiene funciones que requieren acceso al servidor
@@ -102,7 +103,7 @@ export class SubscriptionService {
 
       return true
     } catch (error) {
-      console.error('💥 [SubscriptionService] Error checking subscription:', error)
+      techDebtLogger.error('💥 [SubscriptionService] Error checking subscription:', error)
       return false
     }
   }
@@ -147,7 +148,7 @@ export class SubscriptionService {
 
       return true
     } catch (error) {
-      console.error('Error checking subscription table:', error)
+      techDebtLogger.error('Error checking subscription table:', error)
       return false
     }
   }
@@ -214,20 +215,20 @@ export class SubscriptionService {
 
       const { count, error } = await supabase
         .from('organization_course_purchases')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('organization_id', organizationId)
         .eq('access_status', 'active')
         .gte('purchased_at', billingPeriodStart.toISOString())
         .lt('purchased_at', billingPeriodEnd.toISOString())
 
       if (error) {
-        console.error('Error counting organization courses:', error)
+        techDebtLogger.error('Error counting organization courses:', error)
         return 0
       }
 
       return count || 0
     } catch (error) {
-      console.error('Error in getOrganizationMonthlyCourseCount:', error)
+      techDebtLogger.error('Error in getOrganizationMonthlyCourseCount:', error)
       return 0
     }
   }
@@ -288,7 +289,7 @@ export class SubscriptionService {
         billingPeriod
       }
     } catch (error) {
-      console.error('Error in canOrganizationPurchaseCourse:', error)
+      techDebtLogger.error('Error in canOrganizationPurchaseCourse:', error)
       return {
         canPurchase: false,
         currentCount: 0,

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { fromLoose } from '@/lib/supabase/looseQuery'
 import { createClient } from '@/lib/supabase/server'
 import { determineDefaultScope } from './scope'
@@ -67,7 +68,7 @@ export async function getHierarchyContext(
       .single()
 
     if (orgUserError || !orgUser) {
-      console.warn('Usuario no encontrado en organización:', {
+      techDebtLogger.warn('Usuario no encontrado en organización:', {
         userId,
         organizationId,
         error: orgUserError?.message,
@@ -84,7 +85,7 @@ export async function getHierarchyContext(
       .single()
 
     if (orgError || !org) {
-      console.warn('Organización no encontrada:', organizationId)
+      techDebtLogger.warn('Organización no encontrada:', organizationId)
       return null
     }
 
@@ -182,7 +183,7 @@ export async function getHierarchyContext(
       hasUnlimitedAccess,
     }
   } catch (error) {
-    console.error('Error obteniendo contexto jerárquico:', error)
+    techDebtLogger.error('Error obteniendo contexto jerárquico:', error)
     return null
   }
 }

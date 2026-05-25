@@ -15,10 +15,10 @@ export function buildBusinessUserDashboardColors({
   resolvedTheme,
 }: BusinessUserDashboardStylesProps): BusinessUserDashboardColors {
   const isLightMode = resolvedTheme === 'light'
-  const defaultCardBg = isLightMode ? '#FFFFFF' : '#1E2329'
-  const defaultSidebarBg = isLightMode ? '#F8FAFC' : '#0F1419'
-  const defaultText = isLightMode ? '#0F172A' : '#FFFFFF'
-  const defaultBorder = isLightMode ? '#E2E8F0' : '#334155'
+  const defaultCardBg = isLightMode ? 'var(--color-bg-light)' : 'var(--color-gray-800)'
+  const defaultSidebarBg = isLightMode ? 'var(--color-gray-50)' : 'var(--color-bg-dark)'
+  const defaultText = isLightMode ? 'var(--color-legacy-0f172a)' : 'var(--color-bg-light)'
+  const defaultBorder = isLightMode ? 'var(--color-gray-200)' : 'var(--color-legacy-334155)'
 
   const dbCardBg = userDashboardStyles?.card_background
   const dbSidebarBg = userDashboardStyles?.sidebar_background
@@ -28,19 +28,19 @@ export function buildBusinessUserDashboardColors({
   const dbAccent = userDashboardStyles?.accent_color
 
   return {
-    primary: dbPrimary || '#0A2540',
-    accent: dbAccent || '#00D4B3',
+    primary: dbPrimary || 'var(--color-primary)',
+    accent: dbAccent || 'var(--color-accent)',
     text: dbText || defaultText,
     cardBg: dbCardBg || defaultCardBg,
     sidebarBg: dbSidebarBg || defaultSidebarBg,
     border: dbBorder || defaultBorder,
     isLightMode,
-    textSecondary: isLightMode ? '#64748B' : '#9CA3AF',
-    textMuted: isLightMode ? '#94A3B8' : '#6B7280',
-    iconColor: isLightMode ? (dbPrimary || '#0A2540') : (dbAccent || '#00D4B3'),
+    textSecondary: isLightMode ? 'var(--color-gray-500)' : 'var(--color-legacy-9ca3af)',
+    textMuted: isLightMode ? 'var(--color-gray-400)' : 'var(--color-legacy-6b7280)',
+    iconColor: isLightMode ? (dbPrimary || 'var(--color-primary)') : (dbAccent || 'var(--color-accent)'),
     heroBg: isLightMode
-      ? 'linear-gradient(135deg, #0A2540 0%, #173B63 50%, #0A2540 100%)'
-      : 'linear-gradient(135deg, #0a1628 0%, #0f1e30 50%, #0d1a2a 100%)',
+      ? 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-legacy-173b63) 50%, var(--color-primary) 100%)'
+      : 'linear-gradient(135deg, var(--color-legacy-0a1628) 0%, var(--color-legacy-0f1e30) 50%, var(--color-legacy-0d1a2a) 100%)',
     heroOverlay: isLightMode
       ? 'linear-gradient(to right, rgba(10, 37, 64, 0.95) 0%, rgba(10, 37, 64, 0.7) 50%, transparent 100%)'
       : 'linear-gradient(to right, rgba(10, 22, 40, 0.9) 0%, rgba(10, 22, 40, 0.5) 50%, transparent 100%)',
@@ -145,16 +145,6 @@ export function buildBusinessUserDashboardStats(
       color: 'from-cyan-500 to-teal-500',
       kind: 'analytics',
     },
-  ]
-}
-
-export function buildBusinessUserIntroVideos(supabaseUrl: string | undefined): string[] {
-  if (!supabaseUrl) {
-    return []
-  }
-
-  return [
-    `${supabaseUrl}/storage/v1/object/public/assets/Teaser%20-%20SofLIA%20Nexus.mp4`,
   ]
 }
 

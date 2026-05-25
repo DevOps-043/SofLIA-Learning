@@ -16,6 +16,22 @@ const HIDDEN_STYLE_PATTERNS = [
   /hidden\s*=\s*["']?hidden["']?/gi,
 ]
 
+function replaceUnsafeControlChars(input: string, replacement = ' ') {
+  return Array.from(input)
+    .map((char) => {
+      const code = char.charCodeAt(0)
+      const isUnsafe =
+        code <= 0x08 ||
+        code === 0x0b ||
+        code === 0x0c ||
+        (code >= 0x0e && code <= 0x1f) ||
+        code === 0x7f
+
+      return isUnsafe ? replacement : char
+    })
+    .join('')
+}
+
 function stripMarkupArtifacts(input: string) {
   return MARKUP_PATTERNS.reduce(
     (current, pattern) => current.replace(pattern, ' '),
@@ -36,8 +52,7 @@ export function sanitizeUntrustedString(
 ) {
   const withoutMarkup = stripMarkupArtifacts(input)
   const withoutHiddenHints = stripHiddenStyleHints(withoutMarkup)
-  const normalized = withoutHiddenHints
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, ' ')
+  const normalized = replaceUnsafeControlChars(withoutHiddenHints)
     .replace(/\r\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .replace(/[ \t]{2,}/g, ' ')

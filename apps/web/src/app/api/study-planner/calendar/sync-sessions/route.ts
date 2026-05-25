@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { SessionService } from '../../../../../features/auth/services/session.service'
 import {
   createCalendarAdminClient,
@@ -12,53 +14,33 @@ import {
   syncStudySessionsToCalendar,
 } from './sync-sessions.service'
 import type {
-  SyncSessionsRequestBody,
   SyncSessionsResponse,
 } from './sync-sessions.types'
-import { parseSyncSessionsRequest } from './sync-sessions.utils'
+import { syncSessionsSchema, type SyncSessionsBody } from '../../_schemas'
 
-export async function POST(
-  request: NextRequest,
-): Promise<NextResponse<SyncSessionsResponse>> {
+async function handlePost(
+  _request: NextRequest,
+  payload: SyncSessionsBody,
+): Promise<Response> {
   try {
     const user = await SessionService.getCurrentUser()
 
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'No autenticado' },
-        { status: 401 },
-      )
-    }
-
-    const payload = (await request.json()) as SyncSessionsRequestBody
-    const parsedRequest = parseSyncSessionsRequest(payload)
-
-    if (parsedRequest.error || !parsedRequest.data) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            parsedRequest.error ||
-            'sessionIds es requerido y debe ser un array no vacio',
-        },
-        { status: 400 },
-      )
+      return apiError('UNAUTHENTICATED', 'No autenticado', 401)
     }
 
     const supabase = createCalendarAdminClient()
     const sessions = await getSyncSessionsForUser(
       supabase,
       user.id,
-      parsedRequest.data.sessionIds,
+      payload.sessionIds,
     )
 
     if (sessions.length === 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No se encontraron sesiones para sincronizar',
-        },
-        { status: 404 },
+      return apiError(
+        'SYNC_SESSIONS_NOT_FOUND',
+        'No se encontraron sesiones para sincronizar',
+        404,
       )
     }
 
@@ -95,12 +77,8 @@ export async function POST(
             ? 500
             : 500
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: message,
-      },
-      { status },
-    )
+    return apiError('SYNC_SESSIONS_FAILED', message, status)
   }
 }
+
+export const POST = withZodBody(syncSessionsSchema, handlePost)

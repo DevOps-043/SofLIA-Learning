@@ -68,7 +68,7 @@ export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUser
           className="relative w-full max-w-md overflow-hidden rounded-[28px] border shadow-2xl"
           style={{
             backgroundColor: theme.cardBg,
-            borderColor: `${theme.dangerColor}30`,
+            borderColor: `color-mix(in srgb, ${theme.dangerColor} 18.8%, transparent)`,
           }}
         >
           <div
@@ -83,8 +83,8 @@ export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUser
                 <div
                   className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border"
                   style={{
-                    backgroundColor: `${theme.dangerColor}12`,
-                    borderColor: `${theme.dangerColor}26`,
+                    backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`,
+                    borderColor: `color-mix(in srgb, ${theme.dangerColor} 14.9%, transparent)`,
                     color: theme.dangerColor,
                   }}
                 >
@@ -125,8 +125,8 @@ export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUser
                   exit={{ opacity: 0, y: -8 }}
                   className="rounded-2xl border p-4 text-sm font-semibold"
                   style={{
-                    backgroundColor: `${theme.dangerColor}12`,
-                    borderColor: `${theme.dangerColor}26`,
+                    backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`,
+                    borderColor: `color-mix(in srgb, ${theme.dangerColor} 14.9%, transparent)`,
                     color: theme.dangerColor,
                   }}
                 >
@@ -138,8 +138,8 @@ export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUser
             <div
               className="rounded-[22px] border p-4"
               style={{
-                backgroundColor: `${theme.dangerColor}08`,
-                borderColor: `${theme.dangerColor}22`,
+                backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 3.1%, transparent)`,
+                borderColor: `color-mix(in srgb, ${theme.dangerColor} 13.3%, transparent)`,
               }}
             >
               <p className="text-sm leading-relaxed" style={{ color: theme.subtextColor }}>
@@ -179,8 +179,8 @@ export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUser
             <div
               className="rounded-[22px] border p-4"
               style={{
-                backgroundColor: `${theme.warningColor}10`,
-                borderColor: `${theme.warningColor}24`,
+                backgroundColor: `color-mix(in srgb, ${theme.warningColor} 6.3%, transparent)`,
+                borderColor: `color-mix(in srgb, ${theme.warningColor} 14.1%, transparent)`,
               }}
             >
               <p className="text-xs font-extrabold uppercase tracking-wider" style={{ color: theme.warningColor }}>
@@ -222,7 +222,7 @@ export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUser
                 style={{
                   backgroundColor: theme.dangerColor,
                   color: 'white',
-                  boxShadow: `0 12px 28px ${theme.dangerColor}30`,
+                  boxShadow: `0 12px 28px color-mix(in srgb, ${theme.dangerColor} 18.8%, transparent)`,
                 }}
               >
                 {isLoading ? (

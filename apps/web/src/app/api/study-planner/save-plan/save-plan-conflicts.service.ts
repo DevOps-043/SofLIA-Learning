@@ -1,53 +1,17 @@
-import type { createAdminClient } from './save-plan-organization.service'
 import type { SavePlanSessionInsertRow } from './save-plan.types'
+import {
+  buildConflict,
+  isBlockingSessionStatus,
+  parseTime,
+  windowsOverlap,
+} from './save-plan-conflicts.time'
+import type {
+  ExistingStudySessionRow,
+  SavePlanSessionConflict,
+  SavePlanSupabaseClient,
+} from './save-plan-conflicts.types'
 
-type SavePlanSupabaseClient = ReturnType<typeof createAdminClient>
-
-interface ExistingStudySessionRow {
-  id: string
-  plan_id: string | null
-  title: string | null
-  start_time: string
-  end_time: string
-  status: string | null
-}
-
-export interface SavePlanSessionConflict {
-  candidateTitle: string
-  conflictingTitle: string
-  startTime: string
-  endTime: string
-}
-
-function parseTime(value: string): number {
-  return new Date(value).getTime()
-}
-
-function windowsOverlap(
-  leftStartIso: string,
-  leftEndIso: string,
-  rightStartIso: string,
-  rightEndIso: string,
-): boolean {
-  return parseTime(leftStartIso) < parseTime(rightEndIso)
-    && parseTime(rightStartIso) < parseTime(leftEndIso)
-}
-
-function isBlockingSessionStatus(status: string | null): boolean {
-  return !status || !['cancelled', 'canceled', 'deleted'].includes(status)
-}
-
-function buildConflict(
-  candidate: Pick<SavePlanSessionInsertRow, 'title' | 'start_time' | 'end_time'>,
-  conflictingTitle: string,
-): SavePlanSessionConflict {
-  return {
-    candidateTitle: candidate.title,
-    conflictingTitle,
-    startTime: candidate.start_time,
-    endTime: candidate.end_time,
-  }
-}
+export type { SavePlanSessionConflict } from './save-plan-conflicts.types'
 
 export function findInPayloadSessionConflict(
   sessions: SavePlanSessionInsertRow[],

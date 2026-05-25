@@ -21,7 +21,7 @@ export function AdminUserCardHeader({
       <div className="relative h-[92px] border-b" style={{ borderColor: theme.borderColor, background: `linear-gradient(135deg, ${theme.inputBg}, ${theme.hoverBg})` }}>
         <div className="absolute inset-0 opacity-60" style={{ backgroundImage: `radial-gradient(circle at 2px 2px, ${theme.primaryColor} 1px, transparent 0)`, backgroundSize: '28px 28px' }} />
         <div className="absolute left-6 top-12">
-          <AdminUserAvatar displayName={displayName} imageUrl={imageUrl} size="lg" accentColor={theme.primaryColor} borderColor={theme.cardBg} />
+          <AdminUserAvatar displayName={displayName} imageUrl={imageUrl ?? null} size="lg" accentColor={theme.primaryColor} borderColor={theme.cardBg} />
         </div>
       </div>
       <div className="mb-5 min-w-0">

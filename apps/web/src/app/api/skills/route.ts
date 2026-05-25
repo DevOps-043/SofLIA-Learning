@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('skills')
-      .select('*')
+      .select(SELECT_COLUMNS.skills)
       .order('display_order', { ascending: true })
       .order('name', { ascending: true })
 

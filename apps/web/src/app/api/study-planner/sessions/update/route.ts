@@ -1,49 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SessionService } from '@/features/auth/services/session.service'
-import {
-  parseUpdateSessionRequest,
-} from './study-planner-session-update.utils'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { updateSessionsSchema, type UpdateSessionsBody } from '../../_schemas'
 import {
   updateStudyPlannerSessionsForUser,
 } from './study-planner-session-update.server.service'
 
-export async function PUT(request: NextRequest): Promise<NextResponse> {
+async function handlePut(
+  _request: NextRequest,
+  payload: UpdateSessionsBody,
+): Promise<Response> {
   try {
     const user = await SessionService.getCurrentUser()
 
     if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No autorizado',
-        },
-        { status: 401 },
-      )
+      return apiError('UNAUTHENTICATED', 'No autorizado', 401)
     }
 
-    const payload = parseUpdateSessionRequest(await request.json())
     const result = await updateStudyPlannerSessionsForUser({
       userId: user.id,
       request: payload,
     })
 
     if (result.kind === 'plan_not_found') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Plan no encontrado o no autorizado',
-        },
-        { status: 404 },
+      return apiError(
+        'PLAN_NOT_FOUND',
+        'Plan no encontrado o no autorizado',
+        404,
       )
     }
 
     if (result.kind === 'no_sessions') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No se encontraron sesiones para actualizar',
-        },
-        { status: 404 },
+      return apiError(
+        'NO_SESSIONS_FOUND',
+        'No se encontraron sesiones para actualizar',
+        404,
       )
     }
 
@@ -71,12 +63,8 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
         ? 400
         : 500
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: message,
-      },
-      { status },
-    )
+    return apiError('UPDATE_SESSIONS_FAILED', message, status)
   }
 }
+
+export const PUT = withZodBody(updateSessionsSchema, handlePut)

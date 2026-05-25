@@ -1,7 +1,12 @@
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 
+import {
+  introVideoWatchedSchema,
+  type IntroVideoWatchedBody,
+} from '@/app/api/courses/_schemas'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
 import { requireUser } from '@/lib/auth/requireUser'
 import { logger } from '@/lib/utils/logger'
 
@@ -9,35 +14,25 @@ interface RouteParams {
   params: Promise<{ slug: string }>
 }
 
-const BodySchema = z.object({
-  watchedCourse: z.boolean().optional(),
-  watchedLp: z.boolean().optional(),
-  learningPathId: z.string().uuid().optional(),
-  organizationId: z.string().uuid().optional(),
-})
-
 function isPlatformAdmin(role: string | null | undefined) {
   return role?.toLowerCase().trim() === 'administrador'
 }
 
-export async function POST(request: NextRequest, { params }: RouteParams) {
+async function handlePost(
+  _request: NextRequest,
+  body: IntroVideoWatchedBody,
+  { params }: RouteParams,
+) {
   try {
     const { slug } = await params
     const auth = await requireUser()
     if (auth instanceof NextResponse) return auth
 
-    const body = await request.json()
-    const parsed = BodySchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json({ success: false, error: 'Datos inválidos' }, { status: 400 })
-    }
-
-    const { watchedCourse, watchedLp, learningPathId, organizationId } = parsed.data
+    const { watchedCourse, watchedLp, learningPathId, organizationId } = body
     if (!watchedCourse && !watchedLp) {
       return NextResponse.json({ success: true })
     }
 
-    // Service role: bypasa RLS del auth personalizado
     const supabase = createServiceClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -64,12 +59,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
 
       if (!canUseRequestedOrganization) {
-        return NextResponse.json({ success: false, error: 'Organizacion no permitida' }, { status: 403 })
+        return apiError('ORGANIZATION_FORBIDDEN', 'Organizacion no permitida.', 403)
       }
     }
 
     if (watchedCourse) {
-      // Resolver course_id desde slug
       const { data: course } = await supabase
         .from('courses')
         .select('id')
@@ -97,7 +91,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     if (watchedLp && learningPathId) {
-      // Intentar actualizar registro existente
       const { data: existing } = await supabase
         .from('user_learning_path_progress')
         .select('id')
@@ -117,7 +110,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             }),
         )
       } else {
-        // Crear registro mínimo de progreso para guardar el watched
         const fallbackOrganizationId = organizationId
         let resolvedOrganizationId = fallbackOrganizationId
 
@@ -160,6 +152,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ success: true })
   } catch (error) {
     logger.error('POST intro-videos watched error:', error)
-    return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 })
+    return apiError('INTERNAL_ERROR', 'Error interno.', 500)
   }
 }
+
+export const POST = withZodBody(introVideoWatchedSchema, handlePost)

@@ -1,0 +1,83 @@
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .high-contrast {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Auth page styles */
+.dark .auth-page-enhanced {
+  background: var(--color-bg-dark);
+}
+
+.light .auth-page-enhanced {
+  background: var(--color-gray-50);
+}
+
+/* Auth form styles */
+.dark .auth-input {
+  @apply w-full px-4 py-3 bg-slate-800/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-300 backdrop-blur-sm;
+}
+
+.light .auth-input {
+  @apply w-full px-4 py-3 bg-white/90 border border-gray-300/50 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-300 backdrop-blur-sm;
+}
+
+.dark .auth-input:focus {
+  @apply bg-slate-700/50 border-accent/50 shadow-lg shadow-accent/10;
+  /* Aqua para focus */
+}
+
+.light .auth-input:focus {
+  @apply bg-white border-primary/50 shadow-lg shadow-primary/10;
+  /* Azul Profundo para focus */
+}
+
+.dark .auth-input::placeholder {
+  @apply text-slate-400;
+}
+
+.light .auth-input::placeholder {
+  @apply text-gray-500;
+}
+
+.dark .auth-label {
+  @apply block text-sm font-medium text-slate-200 mb-2;
+}
+
+.light .auth-label {
+  @apply block text-sm font-medium text-gray-700 mb-2;
+}
+
+.dark .auth-error {
+  @apply text-red-400 text-sm mt-1;
+}
+
+.light .auth-error {
+  @apply text-red-600 text-sm mt-1;
+}
+
+.dark .auth-card-enhanced {
+  @apply bg-carbon-800/80 backdrop-blur-xl border border-primary/30 shadow-2xl;
+}
+
+.light .auth-card-enhanced {
+  @apply bg-white/90 backdrop-blur-xl border border-gray-200/50 shadow-2xl;
+}
+
+.dark .bg-glass-enhanced {
+  background: rgba(30, 35, 41, 0.8);
+  /* var(--color-gray-800) con opacidad */
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(10, 37, 64, 0.3);
+  /* var(--color-primary) con opacidad */
+}
+
+.light .bg-glass-enhanced {
+  background: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}

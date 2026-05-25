@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
@@ -9,11 +10,11 @@ import { useOrganizationStyles } from '../../../../../features/business-panel/ho
 import { getBackgroundStyle, generateCSSVariables } from '../../../../../features/business-panel/utils/styles'
 import { useThemeStore } from '../../../../../core/stores/themeStore'
 import { useBusinessUserJoyride } from '../../../../../features/tours/hooks/useBusinessUserJoyride'
+import { usePlatformIntroTeaser } from '../../../../../features/tours/hooks/usePlatformIntroTeaser'
 import { useMobilePerformanceMode } from '../../../../../lib/utils/mobile-performance'
 import {
   buildBusinessUserDashboardColors,
   buildBusinessUserDashboardStats,
-  buildBusinessUserIntroVideos,
   getBusinessUserCertificateRoute,
   getBusinessUserDisplayName,
   getBusinessUserInitials,
@@ -202,10 +203,9 @@ export function useBusinessUserDashboardPageLogic() {
     () => buildBusinessUserDashboardColors({ userDashboardStyles, resolvedTheme }),
     [resolvedTheme, userDashboardStyles]
   )
-  const introVideos = useMemo(
-    () => buildBusinessUserIntroVideos(process.env.NEXT_PUBLIC_SUPABASE_URL),
-    []
-  )
+  // Teaser institucional resuelto a HLS cuando esta transcodificado, para
+  // que el reproductor del tour ofrezca seleccion de resolucion.
+  const introVideos = usePlatformIntroTeaser()
 
   const { joyrideProps, shouldShowTour, startTour: restartTour, showVideoIntro, handleVideoComplete } =
     useBusinessUserJoyride({
@@ -261,7 +261,7 @@ export function useBusinessUserDashboardPageLogic() {
     const measures = performance.getEntriesByName('business-user-dashboard:load-duration')
     const lastMeasure = measures[measures.length - 1]
 
-    console.debug('[business-user-dashboard] load complete', {
+    techDebtLogger.debug('[business-user-dashboard] load complete', {
       assignedCourses: assignedCourses.length,
       disableHeavyEffects,
       isMobileViewport,

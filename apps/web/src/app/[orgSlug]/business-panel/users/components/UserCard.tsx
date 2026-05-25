@@ -114,7 +114,7 @@ function UserCard({ user, index, onEdit, onDelete, onStats, onResend, onSuspend,
               className="absolute -bottom-1 -right-1 p-1 rounded-full border-2 shadow-lg"
               style={{
                 backgroundColor: statusConfig.color,
-                borderColor: theme.isDark ? '#1e2329' : '#fff',
+                borderColor: theme.isDark ? 'var(--color-gray-800)' : 'var(--color-bg-light)',
               }}
             >
               <statusConfig.icon className="w-3 h-3 text-black" />
@@ -213,7 +213,7 @@ function UserCard({ user, index, onEdit, onDelete, onStats, onResend, onSuspend,
             className="flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl font-black text-xs uppercase tracking-[0.1em] transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-95 group/managed"
             style={{
               backgroundColor: theme.accentColor,
-              color: theme.isDark ? '#000000' : '#FFFFFF',
+              color: theme.isDark ? 'var(--color-black)' : 'var(--color-bg-light)',
             }}
           >
             <Activity className="w-4 h-4 group-hover/managed:animate-pulse" />

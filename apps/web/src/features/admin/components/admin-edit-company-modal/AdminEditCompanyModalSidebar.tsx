@@ -23,7 +23,7 @@ export function AdminEditCompanyModalSidebar(props: AdminEditCompanyModalSidebar
   ]
 
   return (
-    <div className="hidden w-[320px] shrink-0 flex-col border-r border-white/5 p-8 lg:flex" style={{ background: `linear-gradient(135deg, ${props.primaryColor}15, ${props.accentColor}10)` }}>
+    <div className="hidden w-[320px] shrink-0 flex-col border-r border-white/5 p-8 lg:flex" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${props.primaryColor} 8.2%, transparent), color-mix(in srgb, ${props.accentColor} 6.3%, transparent))` }}>
       <div className="absolute top-0 right-0 h-64 w-64 -translate-y-1/2 translate-x-1/2 rounded-full bg-white/5 blur-3xl pointer-events-none" />
       <div className="relative z-10 mb-8 text-center"><AdminEditCompanyLogo company={props.company} formData={props.formData} primaryColor={props.primaryColor} accentColor={props.accentColor} /><h3 className="truncate px-2 text-xl font-bold text-white">{props.formData.name || 'Nueva Empresa'}</h3><div className="mt-1 flex items-center justify-center gap-2 opacity-70"><GlobeAltIcon className="h-3 w-3 text-current" style={{ color: props.accentColor }} /><p className="text-xs font-mono text-white/80">{props.formData.slug ? `/${props.formData.slug}` : '/...'}</p></div></div>
       <nav className="relative z-10 flex-1 space-y-2">{navItems.map((item) => <AdminEditCompanyNavItem key={item.id} activeTab={props.activeTab} onClick={() => props.onTabChange(item.id)} {...item} accentColor={props.accentColor} />)}</nav>
@@ -35,7 +35,7 @@ export function AdminEditCompanyModalSidebar(props: AdminEditCompanyModalSidebar
 function AdminEditCompanyLogo(props: { company: AdminCompany; formData: CompanyFormData; primaryColor: string; accentColor: string }) {
   return (
     <motion.div className="relative mb-4 inline-block" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-      <div className="mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border-2 border-white/10 bg-white/5 shadow-2xl backdrop-blur-sm" style={{ background: props.formData.brand_logo_url ? '#fff' : `linear-gradient(135deg, ${props.primaryColor}, ${props.accentColor})` }}>
+      <div className="mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border-2 border-white/10 bg-white/5 shadow-2xl backdrop-blur-sm" style={{ background: props.formData.brand_logo_url ? 'var(--color-bg-light)' : `linear-gradient(135deg, ${props.primaryColor}, ${props.accentColor})` }}>
         {props.formData.brand_logo_url ? <img src={props.formData.brand_logo_url} alt="Logo" className="h-full w-full object-contain p-2" /> : <BuildingOffice2Icon className="h-10 w-10 text-white" />}
       </div>
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-2 -right-2 rounded-full border border-bgSecondary p-1.5 shadow-lg" style={{ backgroundColor: props.formData.is_active ? colors.success : colors.warning }}>

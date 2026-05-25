@@ -40,8 +40,8 @@ export function BusinessUserDashboardError({
           className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium"
           style={{
             background: `linear-gradient(135deg, ${orgColors.primary}, ${orgColors.accent})`,
-            boxShadow: `0 4px 20px ${orgColors.primary}50`,
-            color: '#FFFFFF',
+            boxShadow: `0 4px 20px color-mix(in srgb, ${orgColors.primary} 31.4%, transparent)`,
+            color: 'var(--color-bg-light)',
           }}
         >
           <RefreshCw className="w-4 h-4" />

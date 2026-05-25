@@ -4,8 +4,13 @@ import {
   HarmCategory,
 } from '@google/generative-ai'
 import { calculateCost, logOpenAIUsage } from '@/lib/openai/usage-monitor'
+import {
+  CIRCUIT_BREAKER_DEFAULTS,
+  executeWithCircuitBreaker,
+} from '@/lib/resilience/circuit-breaker'
 import { logger } from '@/lib/utils/logger'
 import { buildGeminiChatHistory } from './chat-request.service'
+import { wrapStudyPlannerUserMessage } from './security-guardrails.service'
 
 const BASE_LIA_INSTRUCTION = `Eres LIA, coach inteligente de estudios.
 TU OBJETIVO: Maximizar el cumplimiento del plan de estudios del usuario.
@@ -210,8 +215,12 @@ export async function sendDashboardChatMessage({
 
   const userMessage = isProactiveInit
     ? 'Hola LIA, acabo de entrar. ¿Hay algo de mi plan que deba atender hoy?'
-    : message!
-  const result = await chatSession.sendMessage(userMessage)
+    : wrapStudyPlannerUserMessage(message!)
+  const result = await executeWithCircuitBreaker(
+    'gemini-study-planner-dashboard',
+    () => chatSession.sendMessage(userMessage),
+    CIRCUIT_BREAKER_DEFAULTS.gemini,
+  )
   const responseText = result.response.text()
   const usage = result.response.usageMetadata
 

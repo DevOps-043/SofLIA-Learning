@@ -1,9 +1,12 @@
 'use server'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '../../../lib/supabase/server'
-import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import crypto from 'crypto'
+import { requireHumanVerification } from '@/lib/security/bot-protection'
+import { recordSecurityEvent } from '@/lib/security/security-events'
 import {
   validateInvitationAction,
   findInvitationByEmailAction,
@@ -17,6 +20,12 @@ import {
   normalizeDateOfBirthForStorage,
   normalizeGenderForStorage,
 } from '../../../lib/schemas/user-demographics.schema'
+import { passwordSchema } from '../../../lib/validation/password-security'
+import { validatePasswordIsNotBreached } from './password-breach-check.server'
+import {
+  createSupabaseAuthUserWithLegacyId,
+  deleteSupabaseAuthUser,
+} from '../services/supabase-auth-bridge.service'
 
 const registerSchema = z.object({
   firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -26,11 +35,7 @@ const registerSchema = z.object({
     .regex(/^[a-zA-Z0-9_]+$/, 'El usuario solo puede contener letras, números y guiones bajos'),
   email: z.string().email('Email inválido'),
   confirmEmail: z.string().email('Email de confirmación inválido'),
-  password: z.string()
-    .min(8, 'La contraseña debe tener al menos 8 caracteres')
-    .regex(/[A-Z]/, 'Debe contener al menos una mayúscula')
-    .regex(/[a-z]/, 'Debe contener al menos una minúscula')
-    .regex(/[0-9]/, 'Debe contener al menos un número'),
+  password: passwordSchema,
   confirmPassword: z.string().min(1, 'Confirma la contraseña'),
   countryCode: z.string().min(1, 'Selecciona un país'),
   phoneNumber: z.string().min(1, 'El teléfono es requerido'),
@@ -50,6 +55,14 @@ const registerSchema = z.object({
 
 export async function registerAction(formData: FormData) {
   try {
+    const humanVerification = await requireHumanVerification(formData)
+    if (!humanVerification.ok) {
+      recordSecurityEvent('registration-failure', {
+        metadata: { reason: 'human_verification_failed' },
+      })
+      return { error: humanVerification.error || 'Verificacion humana requerida' }
+    }
+
     // Convertir FormData a objeto, manejando correctamente los tipos
     const rawData = Object.fromEntries(formData)
 
@@ -60,6 +73,11 @@ export async function registerAction(formData: FormData) {
     }
 
     const parsed = registerSchema.parse(formDataParsed)
+    const breachError = await validatePasswordIsNotBreached(parsed.password)
+
+    if (breachError) {
+      return { error: breachError }
+    }
 
     // Obtener contexto de organización si viene de registro personalizado
     const organizationId = formData.get('organizationId')?.toString()
@@ -163,8 +181,11 @@ export async function registerAction(formData: FormData) {
       }
     }
 
-    // Verificar usuario/email no exista en nuestra tabla (como antes)
-    const { data: existing } = await supabase
+    const adminSupabase = createAdminClient()
+
+    // Verificar usuario/email no exista en nuestra tabla con service role,
+    // porque esta consulta ocurre antes de que exista una sesion Auth.
+    const { data: existing } = await adminSupabase
       .from('users')
       .select('id, username, email')
       .or(`username.eq.${parsed.username},email.eq.${parsed.email}`)
@@ -176,13 +197,10 @@ export async function registerAction(formData: FormData) {
       return { error: `El ${conflict} ya existe` }
     }
 
-    // Hash password (como en tu sistema anterior)
-    const passwordHash = await bcrypt.hash(parsed.password, 12)
-
     // GENERAR ID único para el usuario (como en tu sistema anterior)
     const userId = crypto.randomUUID()
 
-    // Crear usuario directamente en la tabla users (sin Supabase Auth)
+    // Crear primero el usuario en Supabase Auth y luego completar el perfil local.
     // PRIORIDAD: 1. Posición de la invitación, 2. Dato del formulario, 3. 'Usuario'
     const cargoTitulo = invitedPosition || parsed.cargo_titulo?.trim() || 'Usuario';
 
@@ -196,13 +214,29 @@ export async function registerAction(formData: FormData) {
       cargoRol = 'Business'
     }
 
-    const { data: user, error } = await supabase
+    try {
+      await createSupabaseAuthUserWithLegacyId({
+        cargo_rol: cargoRol,
+        display_name: `${parsed.firstName} ${parsed.lastName}`.trim(),
+        email: parsed.email,
+        email_verified: true,
+        first_name: parsed.firstName,
+        id: userId,
+        last_name: parsed.lastName,
+        password: parsed.password,
+        username: parsed.username,
+      })
+    } catch (authError) {
+      techDebtLogger.error('❌ [registerAction] Error creating Supabase Auth user:', authError)
+      return { error: 'Error al crear usuario de autenticacion' }
+    }
+
+    const { data: user, error } = await adminSupabase
       .from('users')
-      .insert({
+      .upsert({
         id: userId, // ID generado por nosotros
         username: parsed.username,
         email: parsed.email,
-        password_hash: passwordHash,
         first_name: parsed.firstName,
         last_name: parsed.lastName,
         display_name: `${parsed.firstName} ${parsed.lastName}`.trim(), // Generar display_name
@@ -212,15 +246,16 @@ export async function registerAction(formData: FormData) {
         gender: normalizeGenderForStorage(parsed.gender),
         cargo_rol: cargoRol, // Rol basado en la invitación (ya no incluye 'Business User')
         // NOTA: type_rol fue eliminado - ahora el cargo/posición va en organization_users.job_title
-        email_verified: false, // Se verificará después con email manual
+        email_verified: true,
+      }, {
+        onConflict: 'id',
       })
       .select()
       .single()
 
     if (error) {
-      console.error('❌ [registerAction] Error creating user profile:', error)
-      // Limpiar cuenta de auth en caso de error
-      // Nota: Esto requeriría service role key, por ahora solo logueamos
+      techDebtLogger.error('❌ [registerAction] Error creating user profile:', error)
+      await deleteSupabaseAuthUser(userId)
       return { error: 'Error al crear perfil de usuario' }
     }
 
@@ -229,7 +264,7 @@ export async function registerAction(formData: FormData) {
     if (organizationId) {
       try {
 
-        const { error: orgUserError } = await supabase
+        const { error: orgUserError } = await adminSupabase
           .from('organization_users')
           .insert({
             organization_id: organizationId,
@@ -241,7 +276,7 @@ export async function registerAction(formData: FormData) {
           })
 
         if (orgUserError) {
-           console.error('❌ [registerAction] Error creating organization_users relation:', orgUserError)
+           techDebtLogger.error('❌ [registerAction] Error creating organization_users relation:', orgUserError)
            // Hacemos throw para que vaya al catch, pero no bloqueamos el registro exitoso del usuario
            throw orgUserError; 
         } else {
@@ -272,14 +307,14 @@ export async function registerAction(formData: FormData) {
         }
       } catch (orgUserError) {
         // No fallar el registro si hay error creando la relación
-        console.error('⚠️ [registerAction] Error no crítico vinculando a organización:', orgUserError)
+        techDebtLogger.error('⚠️ [registerAction] Error no crítico vinculando a organización:', orgUserError)
       }
     }
 
     // Si se proporcionó cargo_titulo, crear perfil inicial en user_perfil
     if (parsed.cargo_titulo && parsed.cargo_titulo.trim()) {
       try {
-        await supabase
+        await adminSupabase
           .from('user_perfil')
           .insert({
             user_id: user.id,
@@ -292,6 +327,12 @@ export async function registerAction(formData: FormData) {
         // El perfil se puede crear después cuando complete el cuestionario
       }
     }
+
+    recordSecurityEvent('registration-success', {
+      actorId: user.id,
+      actorRole: cargoRol,
+      orgId: organizationId || null,
+    })
 
     return {
       success: true,

@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { DashboardLayoutManager } from './DashboardLayoutManager'
 import { DashboardPreferences } from './DashboardPreferences'
@@ -75,7 +76,7 @@ export function AdminStatisticsPage() {
         setLayout(getDefaultLayout())
       }
     } catch (error) {
-      console.error('Error fetching layout:', error)
+      techDebtLogger.error('Error fetching layout:', error)
       // En caso de error, usar layout por defecto
       setLayout(getDefaultLayout())
     } finally {
@@ -95,7 +96,7 @@ export function AdminStatisticsPage() {
         })
       }
     } catch (error) {
-      console.error('Error fetching preferences:', error)
+      techDebtLogger.error('Error fetching preferences:', error)
     }
   }
 
@@ -125,7 +126,7 @@ export function AdminStatisticsPage() {
         })
       })
     } catch (error) {
-      console.error('Error saving layout:', error)
+      techDebtLogger.error('Error saving layout:', error)
     }
   }, [layout])
 

@@ -34,8 +34,8 @@ export function ConfirmationModal({
   const resolvedConfirmText = confirmText ?? t('actions.confirm')
   const resolvedCancelText = cancelText ?? t('actions.cancel')
   const isDark = resolvedTheme === 'dark'
-  const actionColor = isDark ? '#00D4B3' : '#0A2540'
-  const onActionColor = isDark ? '#04130F' : '#FFFFFF'
+  const actionColor = isDark ? 'var(--color-accent)' : 'var(--color-primary)'
+  const onActionColor = isDark ? 'var(--color-legacy-04130f)' : 'var(--color-bg-light)'
   const actionSurface = isDark ? 'rgba(0,212,179,0.14)' : 'rgba(10,37,64,0.08)'
 
   const getIconAndColors = () => {
@@ -50,16 +50,16 @@ export function ConfirmationModal({
       case 'danger':
         return {
           icon: XCircleIcon,
-          iconColor: isDark ? '#FCA5A5' : '#DC2626',
+          iconColor: isDark ? 'var(--color-legacy-fca5a5)' : 'var(--color-legacy-dc2626)',
           iconBg: isDark ? 'rgba(239,68,68,0.18)' : 'rgba(239,68,68,0.08)',
-          confirmBg: '#DC2626'
+          confirmBg: 'var(--color-legacy-dc2626)'
         }
       default:
         return {
           icon: ExclamationTriangleIcon,
-          iconColor: isDark ? '#FCD34D' : '#D97706',
+          iconColor: isDark ? 'var(--color-legacy-fcd34d)' : 'var(--color-legacy-d97706)',
           iconBg: isDark ? 'rgba(245,158,11,0.18)' : 'rgba(245,158,11,0.08)',
-          confirmBg: '#D97706'
+          confirmBg: 'var(--color-legacy-d97706)'
         }
     }
   }
@@ -127,7 +127,7 @@ export function ConfirmationModal({
                     className="inline-flex w-full justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:w-auto"
                     style={{
                       backgroundColor: confirmBg,
-                      color: type === 'success' ? onActionColor : '#FFFFFF',
+                      color: type === 'success' ? onActionColor : 'var(--color-bg-light)',
                       ['--tw-ring-color' as string]: confirmBg,
                     }}
                     onClick={onConfirm}

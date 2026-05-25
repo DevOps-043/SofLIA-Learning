@@ -47,7 +47,7 @@ export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(({
       {label && (
         <label
           htmlFor={id}
-          className="block text-sm font-medium mb-2 text-[#0A2540] dark:text-white/90 transition-colors"
+          className="block text-sm font-medium mb-2 text-primary dark:text-white/90 transition-colors"
         >
           {label}
         </label>
@@ -55,11 +55,11 @@ export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(({
       <motion.div
         className={`relative rounded-xl border transition-all duration-300 overflow-hidden ${
           isFocused
-            ? 'bg-white dark:bg-[#1E2329] border-[#00D4B3] shadow-lg shadow-[#00D4B3]/10'
+            ? 'bg-white dark:bg-carbon-800 border-accent shadow-lg shadow-accent/10'
             : error
-              ? 'bg-white dark:bg-[#1E2329] border-red-500 dark:border-red-500'
-              : 'bg-white dark:bg-[#1E2329] border-[#E9ECEF] dark:border-[#6C757D]/30'
-        } ${isFocused ? 'ring-2 ring-[#00D4B3] ring-opacity-20' : ''}`}
+              ? 'bg-white dark:bg-carbon-800 border-red-500 dark:border-red-500'
+              : 'bg-white dark:bg-carbon-800 border-gray-200 dark:border-gray-500/30'
+        } ${isFocused ? 'ring-2 ring-accent ring-opacity-20' : ''}`}
         animate={{
           scale: isFocused ? 1.01 : 1,
         }}
@@ -70,10 +70,10 @@ export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(({
             <Icon
               className={`w-5 h-5 flex-shrink-0 mr-3 transition-colors duration-200 ${
                 isFocused
-                  ? 'text-[#00D4B3]'
+                  ? 'text-accent'
                   : error
                     ? 'text-red-500'
-                    : 'text-[#6C757D] dark:text-white/50'
+                    : 'text-gray-500 dark:text-white/50'
               }`}
             />
           )}
@@ -81,7 +81,7 @@ export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(({
             ref={ref}
             id={id}
             placeholder={placeholder}
-            className={`flex-1 w-full bg-transparent outline-none placeholder:opacity-50 transition-colors text-sm font-normal font-sans text-[#0A2540] dark:text-white placeholder:text-[#6C757D] dark:placeholder:text-white/50 ${className}`}
+            className={`flex-1 w-full bg-transparent outline-none placeholder:opacity-50 transition-colors text-sm font-normal font-sans text-primary dark:text-white placeholder:text-gray-500 dark:placeholder:text-white/50 ${className}`}
             onFocus={handleFocus}
             onBlur={handleBlur}
             {...inputProps}

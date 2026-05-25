@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, type Dispatch, type SetStateAction } from 'react';
 
 import {
@@ -116,7 +117,7 @@ export function useStudyPlannerWelcomeFlow({
           return;
         }
 
-        console.error('Error generando mensaje de bienvenida:', error);
+        techDebtLogger.error('Error generando mensaje de bienvenida:', error);
 
         setConversationHistory([
           {

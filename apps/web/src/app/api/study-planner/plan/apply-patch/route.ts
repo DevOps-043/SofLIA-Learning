@@ -1,45 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SessionService } from '@/features/auth/services/session.service'
-import { parseStudyPlanApplyPatchRequest } from './study-plan-apply-patch.utils'
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import {
+  studyPlanApplyPatchSchema,
+  type StudyPlanApplyPatchBody,
+} from '../../_schemas'
 import { applyStudyPlanPatchForUser } from './study-plan-apply-patch.server.service'
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+async function handlePost(
+  _request: NextRequest,
+  payload: StudyPlanApplyPatchBody,
+): Promise<Response> {
   try {
     const user = await SessionService.getCurrentUser()
 
     if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No autorizado',
-        },
-        { status: 401 },
-      )
+      return apiError('UNAUTHENTICATED', 'No autorizado', 401)
     }
 
-    const payload = parseStudyPlanApplyPatchRequest(await request.json())
     const result = await applyStudyPlanPatchForUser({
       userId: user.id,
       request: payload,
     })
 
     if (result.kind === 'plan_not_found') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Plan no encontrado o no autorizado',
-        },
-        { status: 404 },
+      return apiError(
+        'PLAN_NOT_FOUND',
+        'Plan no encontrado o no autorizado',
+        404,
       )
     }
 
     if (result.kind === 'no_sessions') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No se encontraron sesiones para actualizar',
-        },
-        { status: 404 },
+      return apiError(
+        'NO_SESSIONS_FOUND',
+        'No se encontraron sesiones para actualizar',
+        404,
       )
     }
 
@@ -64,12 +61,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         ? 400
         : 500
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: message,
-      },
-      { status },
-    )
+    return apiError('APPLY_STUDY_PLAN_PATCH_FAILED', message, status)
   }
 }
+
+export const POST = withZodBody(studyPlanApplyPatchSchema, handlePost)

@@ -72,7 +72,7 @@ export function ChatHeader({
               sizes="32px"
             />
             <motion.div
-              className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#00D4B3] rounded-full border border-white/70"
+              className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-accent rounded-full border border-white/70"
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             />
@@ -105,14 +105,14 @@ export function ChatHeader({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute left-0 top-12 bg-white dark:bg-[#1E2329] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl shadow-xl overflow-hidden z-50 min-w-[280px]"
+                className="absolute left-0 top-12 bg-white dark:bg-carbon-800 border border-gray-200 dark:border-gray-500/30 rounded-xl shadow-xl overflow-hidden z-50 min-w-[280px]"
               >
                 <div className="py-2">
-                  <div className="px-4 py-2 border-b border-[#E9ECEF] dark:border-[#6C757D]/30 flex items-center justify-between">
-                    <div className="text-sm font-semibold text-[#0A2540] dark:text-white">SofLIA</div>
+                  <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-500/30 flex items-center justify-between">
+                    <div className="text-sm font-semibold text-primary dark:text-white">SofLIA</div>
                     <button
                       onClick={() => setModeMenuOpen(false)}
-                      className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-[#F8F9FA] dark:hover:bg-[#1E2329]/50 transition-colors text-[#6C757D] dark:text-white/60"
+                      className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-gray-50 dark:hover:bg-carbon-800/50 transition-colors text-gray-500 dark:text-white/60"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -121,57 +121,57 @@ export function ChatHeader({
                   <div className="py-1">
                     {/* NANOBANA */}
                     <button
-                      className={`w-full text-left px-4 py-3 hover:bg-[#F8F9FA] dark:hover:bg-[#1E2329]/50 transition-colors ${currentMode === 'nanobana' ? 'bg-[#F8F9FA] dark:bg-[#1E2329]/30' : ''}`}
+                      className={`w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-carbon-800/50 transition-colors ${currentMode === 'nanobana' ? 'bg-gray-50 dark:bg-carbon-800/30' : ''}`}
                       onClick={() => { setIsNanoBananaMode(true); setIsPromptMode(false); setUseContextMode(false); setModeMenuOpen(false) }}
                     >
                       <div className="flex items-start gap-3">
                         <div className="mt-0.5 w-2 h-2 rounded-full bg-amber-500" />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <div className="text-sm font-medium text-[#0A2540] dark:text-white">Generador de Imágenes</div>
+                            <div className="text-sm font-medium text-primary dark:text-white">Generador de Imágenes</div>
                             <span className="text-[9px] px-1.5 py-0.5 bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-full font-medium">NEW</span>
-                            {currentMode === 'nanobana' && <CheckCircle2 className="w-4 h-4 text-[#00D4B3] ml-auto" />}
+                            {currentMode === 'nanobana' && <CheckCircle2 className="w-4 h-4 text-accent ml-auto" />}
                           </div>
-                          <div className="text-xs text-[#6C757D] dark:text-white/60">{nanobanaDesc}</div>
+                          <div className="text-xs text-gray-500 dark:text-white/60">{nanobanaDesc}</div>
                         </div>
                       </div>
                     </button>
 
                     {/* PROMPT */}
                     <button
-                      className={`w-full text-left px-4 py-3 hover:bg-[#F8F9FA] dark:hover:bg-[#1E2329]/50 transition-colors ${currentMode === 'prompt' ? 'bg-[#F8F9FA] dark:bg-[#1E2329]/30' : ''}`}
+                      className={`w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-carbon-800/50 transition-colors ${currentMode === 'prompt' ? 'bg-gray-50 dark:bg-carbon-800/30' : ''}`}
                       onClick={() => { setIsPromptMode(true); setIsNanoBananaMode(false); setUseContextMode(false); setModeMenuOpen(false); if (promptMessages.length === 0) handleOpenPromptMode() }}
                     >
                       <div className="flex items-start gap-3">
                         <div className="mt-0.5 w-2 h-2 rounded-full bg-purple-500" />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <div className="text-sm font-medium text-[#0A2540] dark:text-white">{promptModeTitle}</div>
-                            {currentMode === 'prompt' && <CheckCircle2 className="w-4 h-4 text-[#00D4B3] ml-auto" />}
+                            <div className="text-sm font-medium text-primary dark:text-white">{promptModeTitle}</div>
+                            {currentMode === 'prompt' && <CheckCircle2 className="w-4 h-4 text-accent ml-auto" />}
                           </div>
-                          <div className="text-xs text-[#6C757D] dark:text-white/60">{promptModeDesc}</div>
+                          <div className="text-xs text-gray-500 dark:text-white/60">{promptModeDesc}</div>
                         </div>
                       </div>
                     </button>
 
                     {/* CONTEXT MODE */}
                     <button
-                      className={`w-full text-left px-4 py-3 hover:bg-[#F8F9FA] dark:hover:bg-[#1E2329]/50 transition-colors ${currentMode === 'analysis' ? 'bg-[#F8F9FA] dark:bg-[#1E2329]/30' : ''}`}
+                      className={`w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-carbon-800/50 transition-colors ${currentMode === 'analysis' ? 'bg-gray-50 dark:bg-carbon-800/30' : ''}`}
                       onClick={() => { setUseContextMode(true); setIsPromptMode(false); setIsNanoBananaMode(false); setModeMenuOpen(false) }}
                     >
                       <div className="flex items-start gap-3">
-                        <div className="mt-0.5 w-2 h-2 rounded-full bg-[#00D4B3]" />
+                        <div className="mt-0.5 w-2 h-2 rounded-full bg-accent" />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <div className="text-sm font-medium text-[#0A2540] dark:text-white">{contextModeTitle}</div>
+                            <div className="text-sm font-medium text-primary dark:text-white">{contextModeTitle}</div>
                             {normalMessages.length > 0 && useContextMode && (
-                              <span className="text-[10px] px-1.5 py-0.5 bg-[#00D4B3]/20 text-[#00D4B3] rounded-full font-medium">
+                              <span className="text-[10px] px-1.5 py-0.5 bg-accent/20 text-accent rounded-full font-medium">
                                 {normalMessages.length} msg
                               </span>
                             )}
-                            {currentMode === 'analysis' && <CheckCircle2 className="w-4 h-4 text-[#00D4B3] ml-auto" />}
+                            {currentMode === 'analysis' && <CheckCircle2 className="w-4 h-4 text-accent ml-auto" />}
                           </div>
-                          <div className="text-xs text-[#6C757D] dark:text-white/60">{contextModeDesc}</div>
+                          <div className="text-xs text-gray-500 dark:text-white/60">{contextModeDesc}</div>
                         </div>
                       </div>
                     </button>
@@ -203,7 +203,7 @@ export function ChatHeader({
                   transition={{ duration: 0.15, ease: 'easeOut' }}
                   className="absolute right-0 top-full mt-2 rounded-xl border overflow-hidden backdrop-blur-xl z-[100000] min-w-[200px]"
                   style={{
-                    backgroundColor: isDark ? '#1E2329' : '#FFFFFF',
+                    backgroundColor: isDark ? 'var(--color-gray-800)' : 'var(--color-bg-light)',
                     borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
                     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
                   }}
@@ -212,18 +212,18 @@ export function ChatHeader({
                     <button
                       onClick={() => { setIsPersonalizationOpen(true); setIsOptionsMenuOpen(false) }}
                       className="w-full px-4 py-3 text-left text-sm flex items-center gap-3 transition-all duration-150"
-                      style={{ backgroundColor: 'transparent', color: isDark ? '#FFFFFF' : '#0A2540' }}
+                      style={{ backgroundColor: 'transparent', color: isDark ? 'var(--color-bg-light)' : 'var(--color-primary)' }}
                       onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
                       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
                     >
-                      <Settings className="w-4 h-4" style={{ color: isDark ? '#9CA3AF' : '#6C757D' }} />
+                      <Settings className="w-4 h-4" style={{ color: isDark ? 'var(--color-legacy-9ca3af)' : 'var(--color-gray-500)' }} />
                       <span>Personalización</span>
                     </button>
 
                     <button
                       onClick={() => { handleClearConversation(); setIsOptionsMenuOpen(false) }}
                       className="w-full px-4 py-3 text-left text-sm flex items-center gap-3 transition-all duration-150"
-                      style={{ backgroundColor: 'transparent', color: isDark ? '#f87171' : '#ef4444' }}
+                      style={{ backgroundColor: 'transparent', color: isDark ? 'var(--color-legacy-f87171)' : 'var(--color-error)' }}
                       onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = isDark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)' }}
                       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
                     >

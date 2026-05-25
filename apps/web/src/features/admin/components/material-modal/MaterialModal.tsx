@@ -55,15 +55,15 @@ export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialM
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="relative bg-white dark:bg-[#1E2329] rounded-2xl shadow-2xl max-w-4xl w-full border border-[#E9ECEF] dark:border-[#6C757D]/30 max-h-[90vh] overflow-hidden flex flex-col"
+                className="relative bg-white dark:bg-carbon-800 rounded-2xl shadow-2xl max-w-4xl w-full border border-gray-200 dark:border-gray-500/30 max-h-[90vh] overflow-hidden flex flex-col"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header */}
-                <div className="relative bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 dark:from-[#0A2540] dark:to-[#0A2540]/80 px-6 py-4 border-b border-[#0A2540]/20">
+                <div className="relative bg-gradient-to-r from-primary to-primary/90 dark:from-primary dark:to-primary/80 px-6 py-4 border-b border-primary/20">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#00D4B3]/20 flex items-center justify-center">
-                        <FileText className="h-5 w-5 text-[#00D4B3]" />
+                      <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
+                        <FileText className="h-5 w-5 text-accent" />
                       </div>
                       <div>
                         <h3 className="text-lg font-bold text-white">{material ? 'Editar Material' : 'Crear Material'}</h3>
@@ -78,7 +78,7 @@ export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialM
                 </div>
 
                 {/* Tabs */}
-                <div className="flex items-center gap-1 px-6 py-3 bg-[#E9ECEF]/50 dark:bg-[#0A0D12] border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
+                <div className="flex items-center gap-1 px-6 py-3 bg-gray-200/50 dark:bg-carbon-950 border-b border-gray-200 dark:border-gray-500/30">
                   {tabs.map((tab) => {
                     const Icon = tab.icon
                     const isActive = activeTab === tab.id
@@ -86,14 +86,14 @@ export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialM
                       <motion.button key={tab.id} onClick={() => setActiveTab(tab.id)}
                         whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                         className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                          isActive ? 'text-[#00D4B3] bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20' : 'text-[#6C757D] dark:text-white/60 hover:text-[#0A2540] dark:hover:text-white hover:bg-[#E9ECEF] dark:hover:bg-[#1E2329]'
+                          isActive ? 'text-accent bg-accent/10 dark:bg-accent/20' : 'text-gray-500 dark:text-white/60 hover:text-primary dark:hover:text-white hover:bg-gray-200 dark:hover:bg-carbon-800'
                         }`}
                       >
                         <Icon className="h-4 w-4" />
                         <span>{tab.label}</span>
                         {isActive && (
                           <motion.div layoutId="activeTab"
-                            className="absolute inset-0 rounded-xl bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 -z-10"
+                            className="absolute inset-0 rounded-xl bg-accent/10 dark:bg-accent/20 -z-10"
                             transition={{ type: 'spring', stiffness: 500, damping: 30 }} />
                         )}
                       </motion.button>
@@ -137,14 +137,14 @@ export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialM
                   </div>
 
                   {/* Footer */}
-                  <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#E9ECEF] dark:border-[#6C757D]/30 bg-[#E9ECEF]/30 dark:bg-[#0A0D12]">
+                  <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-500/30 bg-gray-200/30 dark:bg-carbon-950">
                     <motion.button type="button" onClick={onClose} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                      className="px-4 py-2 text-sm font-medium text-[#6C757D] dark:text-white/60 bg-white dark:bg-[#1E2329] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 transition-all duration-200">
+                      className="px-4 py-2 text-sm font-medium text-gray-500 dark:text-white/60 bg-white dark:bg-carbon-800 border border-gray-200 dark:border-gray-500/30 rounded-lg hover:bg-gray-200 dark:hover:bg-primary/20 transition-all duration-200">
                       Cancelar
                     </motion.button>
                     <motion.button type="submit" disabled={loading}
                       whileHover={{ scale: loading ? 1 : 1.02, y: loading ? 0 : -1 }} whileTap={{ scale: loading ? 1 : 0.98 }}
-                      className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 hover:from-[#0d2f4d] hover:to-[#0A2540] rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md hover:shadow-lg disabled:shadow-none">
+                      className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary to-primary/90 hover:from-primary hover:to-primary rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md hover:shadow-lg disabled:shadow-none">
                       {loading ? (
                         <><div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div><span>Guardando...</span></>
                       ) : (

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Tests para los Hooks de Frontend de LIA - Fase 3
  * 
@@ -10,7 +11,7 @@
 // Verificamos que los módulos se pueden importar correctamente
 // y que las interfaces están bien definidas
 
-console.log('\n🧪 === TESTS DE HOOKS FRONTEND DE LIA (FASE 3) ===\n');
+techDebtLogger.log('\n🧪 === TESTS DE HOOKS FRONTEND DE LIA (FASE 3) ===\n');
 
 let passed = 0;
 let failed = 0;
@@ -19,14 +20,14 @@ function test(name: string, fn: () => boolean) {
   try {
     const result = fn();
     if (result) {
-      console.log(`✅ PASS: ${name}`);
+      techDebtLogger.log(`✅ PASS: ${name}`);
       passed++;
     } else {
-      console.log(`❌ FAIL: ${name}`);
+      techDebtLogger.log(`❌ FAIL: ${name}`);
       failed++;
     }
   } catch (error) {
-    console.log(`❌ ERROR: ${name} - ${error}`);
+    techDebtLogger.log(`❌ ERROR: ${name} - ${error}`);
     failed++;
   }
 }
@@ -223,45 +224,45 @@ test('Tipo ApiCall tiene campos requeridos', async () => {
 
 // Esperar a que todos los tests async terminen
 setTimeout(() => {
-  console.log('\n📊 === RESUMEN DE TESTS FASE 3 ===\n');
-  console.log(`✅ Tests pasados: ${passed}`);
-  console.log(`❌ Tests fallidos: ${failed}`);
-  console.log(`📈 Porcentaje de éxito: ${Math.round((passed / (passed + failed)) * 100)}%\n`);
+  techDebtLogger.log('\n📊 === RESUMEN DE TESTS FASE 3 ===\n');
+  techDebtLogger.log(`✅ Tests pasados: ${passed}`);
+  techDebtLogger.log(`❌ Tests fallidos: ${failed}`);
+  techDebtLogger.log(`📈 Porcentaje de éxito: ${Math.round((passed / (passed + failed)) * 100)}%\n`);
 
   if (failed === 0) {
-    console.log('🎉 ¡Todos los tests de Fase 3 pasaron!\n');
-    console.log('📌 Nota: Los hooks requieren un entorno React para testing funcional completo.');
-    console.log('   Se recomienda usar @testing-library/react-hooks para tests más completos.\n');
+    techDebtLogger.log('🎉 ¡Todos los tests de Fase 3 pasaron!\n');
+    techDebtLogger.log('📌 Nota: Los hooks requieren un entorno React para testing funcional completo.');
+    techDebtLogger.log('   Se recomienda usar @testing-library/react-hooks para tests más completos.\n');
   } else {
-    console.log('⚠️ Algunos tests fallaron. Revisar la implementación.\n');
+    techDebtLogger.log('⚠️ Algunos tests fallaron. Revisar la implementación.\n');
   }
 
   // ============================================================================
   // DEMO: Estructura de archivos creados
   // ============================================================================
 
-  console.log('📁 === ESTRUCTURA DE ARCHIVOS FASE 3 ===\n');
-  console.log('apps/web/src/lib/lia-context/');
-  console.log('├── hooks/');
-  console.log('│   ├── index.ts                    # Exportaciones de hooks');
-  console.log('│   ├── useErrorCapture.ts          # Captura errores de consola');
-  console.log('│   ├── useActiveComponents.ts      # Detecta componentes en DOM');
-  console.log('│   ├── useApiTracking.ts           # Rastrea llamadas a API');
-  console.log('│   └── useLiaEnrichedContext.ts    # Hook combinado');
-  console.log('│');
-  console.log('├── client/');
-  console.log('│   ├── index.ts                    # Exportaciones de cliente');
-  console.log('│   └── LiaContextProvider.tsx      # Provider de React');
-  console.log('│');
-  console.log('└── __tests__/');
-  console.log('    └── phase3-hooks.test.ts        # Tests de hooks\n');
+  techDebtLogger.log('📁 === ESTRUCTURA DE ARCHIVOS FASE 3 ===\n');
+  techDebtLogger.log('apps/web/src/lib/lia-context/');
+  techDebtLogger.log('├── hooks/');
+  techDebtLogger.log('│   ├── index.ts                    # Exportaciones de hooks');
+  techDebtLogger.log('│   ├── useErrorCapture.ts          # Captura errores de consola');
+  techDebtLogger.log('│   ├── useActiveComponents.ts      # Detecta componentes en DOM');
+  techDebtLogger.log('│   ├── useApiTracking.ts           # Rastrea llamadas a API');
+  techDebtLogger.log('│   └── useLiaEnrichedContext.ts    # Hook combinado');
+  techDebtLogger.log('│');
+  techDebtLogger.log('├── client/');
+  techDebtLogger.log('│   ├── index.ts                    # Exportaciones de cliente');
+  techDebtLogger.log('│   └── LiaContextProvider.tsx      # Provider de React');
+  techDebtLogger.log('│');
+  techDebtLogger.log('└── __tests__/');
+  techDebtLogger.log('    └── phase3-hooks.test.ts        # Tests de hooks\n');
 
   // ============================================================================
   // DEMO: Cómo usar los hooks
   // ============================================================================
 
-  console.log('📖 === EJEMPLO DE USO ===\n');
-  console.log(`
+  techDebtLogger.log('📖 === EJEMPLO DE USO ===\n');
+  techDebtLogger.log(`
 // 1. Envolver la app con el provider (opcional, pero recomendado)
 import { LiaContextProvider } from '@/lib/lia-context/client';
 
@@ -289,7 +290,7 @@ function MyModal() {
     
     // Obtener metadata para enviar a LIA
     const metadata = getEnrichedMetadata();
-    console.log('Metadata:', metadata);
+    logger.log('Metadata:', metadata);
   };
 
   // Marcar el componente para detección

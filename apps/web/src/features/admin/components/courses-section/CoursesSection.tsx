@@ -32,7 +32,7 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => 
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
         <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-10 h-10 border-4 rounded-full" style={{ borderColor: `${colors.accent}20`, borderTopColor: colors.accent }} />
+          className="w-10 h-10 border-4 rounded-full" style={{ borderColor: `color-mix(in srgb, ${colors.accent} 12.5%, transparent)`, borderTopColor: colors.accent }} />
         <p className="text-sm font-medium" style={{ color: colors.grayMedium }}>Preparando catálogo...</p>
       </div>
     )

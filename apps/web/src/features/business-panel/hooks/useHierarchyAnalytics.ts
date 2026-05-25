@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Hook para obtener analíticas de jerarquía con actualización en tiempo real
  * 
@@ -70,7 +71,7 @@ export function useHierarchyAnalytics(
       dedupingInterval: 5000, // Evitar requests duplicados en 5 segundos
       revalidateIfStale: true,
       onError: (error) => {
-        console.error(`Error obteniendo analíticas de ${entityType}:`, error)
+        techDebtLogger.error(`Error obteniendo analíticas de ${entityType}:`, error)
       }
     }
   )

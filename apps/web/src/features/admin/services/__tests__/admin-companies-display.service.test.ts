@@ -22,9 +22,9 @@ const baseCompany: AdminCompany = {
   brand_logo_url: null,
   brand_banner_url: null,
   brand_favicon_url: null,
-  brand_color_primary: '#3b82f6',
-  brand_color_secondary: '#10b981',
-  brand_color_accent: '#8b5cf6',
+  brand_color_primary: 'var(--color-info)',
+  brand_color_secondary: 'var(--color-success)',
+  brand_color_accent: 'var(--color-secondary)',
   brand_font_family: 'Inter',
   contact_email: null,
   contact_phone: null,
@@ -47,18 +47,18 @@ const baseCompany: AdminCompany = {
 }
 
 const displayTheme = {
-  primaryColor: '#0A2540',
-  successColor: '#10B981',
-  warningColor: '#F59E0B',
-  dangerColor: '#EF4444',
-  secondaryColor: '#8B5CF6',
-  mutedTextColor: '#6C757D',
+  primaryColor: 'var(--color-primary)',
+  successColor: 'var(--color-success)',
+  warningColor: 'var(--color-warning)',
+  dangerColor: 'var(--color-error)',
+  secondaryColor: 'var(--color-secondary)',
+  mutedTextColor: 'var(--color-gray-500)',
 }
 
 describe('admin-companies-display.service', () => {
   it('formats known and unknown plans', () => {
-    expect(formatCompanyPlan('business')).toEqual({ label: 'Business', color: '#00D4B3' })
-    expect(formatCompanyPlan('custom')).toEqual({ label: 'custom', color: '#6C757D' })
+    expect(formatCompanyPlan('business')).toEqual({ label: 'Business', color: 'var(--color-accent)' })
+    expect(formatCompanyPlan('custom')).toEqual({ label: 'custom', color: 'var(--color-gray-500)' })
   })
 
   it('resolves status badges and usage percent', () => {
@@ -72,8 +72,8 @@ describe('admin-companies-display.service', () => {
     expect(getAdminCompanyStatusDisplayConfig({ ...baseCompany, subscription_status: 'trial' }, displayTheme)).toMatchObject({
       key: 'trial',
       color: displayTheme.secondaryColor,
-      bg: `${displayTheme.secondaryColor}14`,
-      border: `${displayTheme.secondaryColor}26`,
+      bg: `color-mix(in srgb, ${displayTheme.secondaryColor} 7.8%, transparent)`,
+      border: `color-mix(in srgb, ${displayTheme.secondaryColor} 14.9%, transparent)`,
     })
     expect(getAdminCompanyPlanKey('Enterprise')).toBe('enterprise')
     expect(getAdminCompanyPlanColor('business', displayTheme)).toBe(displayTheme.successColor)

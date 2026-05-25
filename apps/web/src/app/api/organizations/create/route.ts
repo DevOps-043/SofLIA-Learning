@@ -1,34 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireUser } from '@/lib/auth/requireUser'
-import { createClient } from '@/lib/supabase/server'
-import { logger } from '@/lib/logger'
 
-export async function POST(request: NextRequest) {
+import { apiError } from '@/lib/api/errors'
+import { withZodBody } from '@/lib/api/with-validation'
+import { requireUser } from '@/lib/auth/requireUser'
+import { logger } from '@/lib/logger'
+import { createClient } from '@/lib/supabase/server'
+
+import {
+  createOrganizationSchema,
+  type CreateOrganizationBody,
+} from './schema'
+
+async function handlePost(
+  _request: NextRequest,
+  body: CreateOrganizationBody,
+) {
   const auth = await requireUser()
   if (auth instanceof NextResponse) return auth
 
+  if (auth.userRole !== 'Usuario') {
+    return apiError(
+      'INVALID_FLOW',
+      'Este flujo es solo para usuarios sin organización.',
+      403,
+    )
+  }
+
   try {
-    // Only 'Usuario' can create a company through this flow
-    if (auth.userRole !== 'Usuario') {
-      return NextResponse.json(
-        { success: false, error: 'Este flujo es solo para usuarios sin organización.' },
-        { status: 403 }
-      )
-    }
-
-    const body = await request.json()
-    const { name, contact_email, contact_phone, description, website_url } = body
-
-    if (!name || !contact_email) {
-      return NextResponse.json(
-        { success: false, error: 'Nombre y email de contacto son requeridos.' },
-        { status: 400 }
-      )
-    }
-
     const supabase = await createClient()
 
-    // Check user doesn't already have a pending org creation
     const { data: existingOwnership } = await supabase
       .from('organization_users')
       .select('id, organizations!inner(id, is_active)')
@@ -36,13 +36,13 @@ export async function POST(request: NextRequest) {
       .eq('role', 'owner')
 
     if (existingOwnership && existingOwnership.length > 0) {
-      return NextResponse.json(
-        { success: false, error: 'Ya tienes una empresa registrada o pendiente de aprobación.' },
-        { status: 409 }
+      return apiError(
+        'ALREADY_HAS_ORG',
+        'Ya tienes una empresa registrada o pendiente de aprobación.',
+        409,
       )
     }
 
-    // Check user doesn't have a pending join request
     const { data: existingJoinRequest } = await supabase
       .from('organization_join_requests')
       .select('id')
@@ -51,21 +51,20 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (existingJoinRequest) {
-      return NextResponse.json(
-        { success: false, error: 'Ya tienes una solicitud pendiente para unirte a una empresa.' },
-        { status: 409 }
+      return apiError(
+        'HAS_PENDING_JOIN_REQUEST',
+        'Ya tienes una solicitud pendiente para unirte a una empresa.',
+        409,
       )
     }
 
-    // Generate slug from name
-    let slug = name
+    let slug = body.name
       .toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[̀-ͯ]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '')
 
-    // Check slug uniqueness, append random suffix if needed
     const { data: existingOrg } = await supabase
       .from('organizations')
       .select('id')
@@ -76,16 +75,15 @@ export async function POST(request: NextRequest) {
       slug = `${slug}-${Math.random().toString(36).substring(2, 7)}`
     }
 
-    // Create organization (inactive, pending approval)
     const { data: newOrg, error: orgError } = await supabase
       .from('organizations')
       .insert({
-        name,
+        name: body.name,
         slug,
-        description: description || null,
-        contact_email,
-        contact_phone: contact_phone || null,
-        website_url: website_url || null,
+        description: body.description || null,
+        contact_email: body.contact_email,
+        contact_phone: body.contact_phone || null,
+        website_url: body.website_url || null,
         subscription_plan: 'team',
         subscription_status: 'pending',
         max_users: 10,
@@ -96,13 +94,9 @@ export async function POST(request: NextRequest) {
 
     if (orgError || !newOrg) {
       logger.error('Error creating organization:', orgError)
-      return NextResponse.json(
-        { success: false, error: 'Error al crear la empresa.' },
-        { status: 500 }
-      )
+      return apiError('CREATE_ORG_FAILED', 'Error al crear la empresa.', 500)
     }
 
-    // Add user as owner
     const { error: memberError } = await supabase
       .from('organization_users')
       .insert({
@@ -115,11 +109,11 @@ export async function POST(request: NextRequest) {
 
     if (memberError) {
       logger.error('Error adding owner to organization:', memberError)
-      // Rollback: delete the org
       await supabase.from('organizations').delete().eq('id', newOrg.id)
-      return NextResponse.json(
-        { success: false, error: 'Error al registrar como propietario.' },
-        { status: 500 }
+      return apiError(
+        'ASSIGN_OWNER_FAILED',
+        'Error al registrar como propietario.',
+        500,
       )
     }
 
@@ -128,15 +122,14 @@ export async function POST(request: NextRequest) {
       userId: auth.userId,
     })
 
-    return NextResponse.json({
-      success: true,
-      organization: newOrg,
-    })
+    return NextResponse.json({ success: true, organization: newOrg })
   } catch (error) {
-    logger.error('Error in POST /api/organizations/create:', error instanceof Error ? error : undefined)
-    return NextResponse.json(
-      { success: false, error: 'Error interno del servidor.' },
-      { status: 500 }
+    logger.error(
+      'Error in POST /api/organizations/create:',
+      error instanceof Error ? error : undefined,
     )
+    return apiError('INTERNAL_ERROR', 'Error interno del servidor.', 500)
   }
 }
+
+export const POST = withZodBody(createOrganizationSchema, handlePost)

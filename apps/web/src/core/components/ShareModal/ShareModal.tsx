@@ -72,29 +72,29 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
       name: 'Copiar enlace',
       icon: Copy,
       action: copyToClipboard,
-      color: 'text-[#00D4B3]',
-      bgColor: 'bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20',
+      color: 'text-accent',
+      bgColor: 'bg-accent/10 dark:bg-accent/20',
     },
     {
       name: 'Compartir en Twitter',
       icon: Twitter,
       action: shareToTwitter,
-      color: 'text-[#0A2540] dark:text-[#00D4B3]',
-      bgColor: 'bg-[#0A2540]/10 dark:bg-[#00D4B3]/20',
+      color: 'text-primary dark:text-accent',
+      bgColor: 'bg-primary/10 dark:bg-accent/20',
     },
     {
       name: 'Compartir en Facebook',
       icon: Facebook,
       action: shareToFacebook,
-      color: 'text-[#0A2540] dark:text-[#00D4B3]',
-      bgColor: 'bg-[#0A2540]/10 dark:bg-[#00D4B3]/20',
+      color: 'text-primary dark:text-accent',
+      bgColor: 'bg-primary/10 dark:bg-accent/20',
     },
     {
       name: 'Compartir por email',
       icon: Mail,
       action: shareByEmail,
-      color: 'text-[#10B981]',
-      bgColor: 'bg-[#10B981]/10 dark:bg-[#10B981]/20',
+      color: 'text-success',
+      bgColor: 'bg-success/10 dark:bg-success/20',
     },
   ];
 
@@ -108,7 +108,7 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-[#0F1419]/80 backdrop-blur-sm z-[9998]"
+            className="fixed inset-0 bg-carbon-900/80 backdrop-blur-sm z-[9998]"
             onClick={onClose}
           />
 
@@ -123,14 +123,14 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
                 stiffness: 300,
                 damping: 30,
               }}
-              className="bg-white dark:bg-[#1E2329] rounded-xl shadow-2xl max-w-md w-full pointer-events-auto relative overflow-hidden border border-[#E9ECEF] dark:border-[#6C757D]/30"
+              className="bg-white dark:bg-carbon-800 rounded-xl shadow-2xl max-w-md w-full pointer-events-auto relative overflow-hidden border border-gray-200 dark:border-gray-500/30"
             >
               {/* Contenido */}
               <div className="relative p-6 sm:p-8">
                 {/* Botón de cerrar */}
                 <button
                   onClick={onClose}
-                  className="absolute top-4 right-4 p-1.5 text-[#6C757D] dark:text-white/60 hover:text-[#0A2540] dark:hover:text-white transition-colors rounded-lg hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/30"
+                  className="absolute top-4 right-4 p-1.5 text-gray-500 dark:text-white/60 hover:text-primary dark:hover:text-white transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-primary/30"
                   aria-label="Cerrar"
                 >
                   <X className="w-5 h-5" />
@@ -147,7 +147,7 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
                       damping: 15,
                       delay: 0.1,
                     }}
-                    className="w-16 h-16 bg-[#0A2540] dark:bg-[#0A2540] rounded-full flex items-center justify-center shadow-lg mb-4"
+                    className="w-16 h-16 bg-primary dark:bg-primary rounded-full flex items-center justify-center shadow-lg mb-4"
                   >
                     <Share2 className="w-8 h-8 text-white" />
                   </motion.div>
@@ -156,7 +156,7 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="text-2xl font-bold text-center text-[#0A2540] dark:text-white mb-2"
+                    className="text-2xl font-bold text-center text-primary dark:text-white mb-2"
                     style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
                   >
                     Compartir
@@ -167,7 +167,7 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="text-center text-[#6C757D] dark:text-white/80 text-sm"
+                      className="text-center text-gray-500 dark:text-white/80 text-sm"
                       style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                     >
                       {title}
@@ -192,13 +192,13 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
                           setTimeout(() => onClose(), 300);
                         }
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30 transition-colors text-left group border border-[#E9ECEF] dark:border-[#6C757D]/30"
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-200/50 dark:hover:bg-primary/30 transition-colors text-left group border border-gray-200 dark:border-gray-500/30"
                     >
                       <div className={`p-2 rounded-xl ${option.bgColor} group-hover:scale-110 transition-transform`}>
                         <option.icon className={`w-5 h-5 ${option.color}`} />
                       </div>
                       <span 
-                        className="text-[#0A2540] dark:text-white font-medium flex-1"
+                        className="text-primary dark:text-white font-medium flex-1"
                         style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
                       >
                         {option.name}
@@ -207,7 +207,7 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
                         <motion.div
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
-                          className="text-[#10B981]"
+                          className="text-success"
                         >
                           <Check className="w-5 h-5" />
                         </motion.div>
@@ -221,16 +221,16 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="mt-4 p-3 bg-[#E9ECEF]/30 dark:bg-[#0A2540]/20 rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30"
+                  className="mt-4 p-3 bg-gray-200/30 dark:bg-primary/20 rounded-xl border border-gray-200 dark:border-gray-500/30"
                 >
                   <p 
-                    className="text-xs text-[#6C757D] dark:text-white/60 mb-1.5"
+                    className="text-xs text-gray-500 dark:text-white/60 mb-1.5"
                     style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
                   >
                     Enlace:
                   </p>
                   <p 
-                    className="text-sm text-[#0A2540] dark:text-white break-all font-mono"
+                    className="text-sm text-primary dark:text-white break-all font-mono"
                     style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                   >
                     {url}

@@ -17,7 +17,7 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
 
   return (
     <CourseManagementProvider courseId={courseId} state={state}>
-      <div className="min-h-screen bg-gradient-to-br from-[#E9ECEF] via-white to-[#E9ECEF]/50 dark:from-[#0F1419] dark:via-[#0A0D12] dark:to-[#0F1419]">
+      <div className="min-h-screen bg-gradient-to-br from-gray-200 via-white to-gray-200/50 dark:from-carbon-900 dark:via-carbon-950 dark:to-carbon-900">
         <CourseManagementFeedbackToast />
 
         <PageShell spacing="relaxed">

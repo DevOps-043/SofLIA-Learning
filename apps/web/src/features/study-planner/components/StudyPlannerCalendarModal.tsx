@@ -34,11 +34,11 @@ function ProviderButton({ provider, title, description, isConnecting, onConnect 
         disabled={isConnecting}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="relative flex w-full items-center gap-3 overflow-hidden rounded-xl border border-[#E9ECEF] bg-white p-4 shadow-sm transition-all hover:border-blue-500 hover:shadow-md dark:border-[#6C757D]/30 dark:bg-[#0A2540]/20 dark:hover:border-blue-500"
+        className="relative flex w-full items-center gap-3 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-blue-500 hover:shadow-md dark:border-gray-500/30 dark:bg-primary/20 dark:hover:border-blue-500"
       >
         {isConnecting && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 dark:bg-black/50">
-            <Loader2 className="h-6 w-6 animate-spin text-[#0A2540] dark:text-white" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary dark:text-white" />
           </div>
         )}
 
@@ -48,9 +48,9 @@ function ProviderButton({ provider, title, description, isConnecting, onConnect 
 
         <div className="min-w-0 flex-1 text-left">
           <div className="mb-1 flex items-center gap-2">
-            <p className="text-sm font-semibold text-[#0A2540] dark:text-white">{title}</p>
+            <p className="text-sm font-semibold text-primary dark:text-white">{title}</p>
           </div>
-          <p className="text-xs text-[#6C757D] dark:text-gray-400">{description}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
         </div>
       </motion.button>
     </div>
@@ -90,19 +90,19 @@ export function StudyPlannerCalendarModal({
           <motion.div
             initial={{ y: 20 }}
             animate={{ y: 0 }}
-            className="relative w-full max-w-md rounded-xl border border-[#E9ECEF] bg-white p-5 shadow-2xl dark:border-[#6C757D]/30 dark:bg-[#1E2329]"
+            className="relative w-full max-w-md rounded-xl border border-gray-200 bg-white p-5 shadow-2xl dark:border-gray-500/30 dark:bg-carbon-800"
           >
             <div className="mb-5 text-center">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-xl border border-[#0A2540]/20 bg-[#0A2540]/10 shadow-sm dark:border-[#00D4B3]/30 dark:bg-[#0A2540]/20"
+                className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 shadow-sm dark:border-accent/30 dark:bg-primary/20"
               >
-                <Calendar className="h-8 w-8 text-[#0A2540] dark:text-[#00D4B3]" />
+                <Calendar className="h-8 w-8 text-primary dark:text-accent" />
               </motion.div>
-              <h3 className="mb-2 text-xl font-bold text-[#0A2540] dark:text-white">Conecta tu calendario</h3>
-              <p className="mx-auto max-w-sm text-sm text-[#6C757D] dark:text-gray-400">
+              <h3 className="mb-2 text-xl font-bold text-primary dark:text-white">Conecta tu calendario</h3>
+              <p className="mx-auto max-w-sm text-sm text-gray-500 dark:text-gray-400">
                 {userType === 'b2b'
                   ? 'Como usuario empresarial, es necesario conectar tu calendario para adaptar el plan a tus horarios de trabajo y cumplir con los plazos asignados.'
                   : 'Analizo tu calendario para encontrar los mejores horarios para estudiar'}
@@ -131,7 +131,7 @@ export function StudyPlannerCalendarModal({
                 onClick={onSkip}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="rounded-md px-4 py-2 text-xs font-medium text-[#6C757D] transition-colors hover:bg-[#E9ECEF] hover:text-[#0A2540] dark:text-gray-400 dark:hover:bg-[#0A2540]/20 dark:hover:text-white"
+                className="rounded-md px-4 py-2 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-200 hover:text-primary dark:text-gray-400 dark:hover:bg-primary/20 dark:hover:text-white"
               >
                 Continuar sin calendario
               </motion.button>
@@ -141,7 +141,7 @@ export function StudyPlannerCalendarModal({
               onClick={onCloseButtonClick}
               whileHover={{ scale: 1.1, rotate: 90 }}
               whileTap={{ scale: 0.9 }}
-              className="absolute right-4 top-4 rounded-lg p-2 text-[#6C757D] transition-all hover:bg-[#E9ECEF] hover:text-[#0A2540] dark:text-gray-400 dark:hover:bg-[#0A2540]/20 dark:hover:text-white"
+              className="absolute right-4 top-4 rounded-lg p-2 text-gray-500 transition-all hover:bg-gray-200 hover:text-primary dark:text-gray-400 dark:hover:bg-primary/20 dark:hover:text-white"
               title={connectedCalendar ? 'Cerrar y continuar con calendario conectado' : 'Cerrar modal'}
               aria-label="Cerrar"
             >

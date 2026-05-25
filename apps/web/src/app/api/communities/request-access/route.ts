@@ -1,31 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/utils/logger';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
 import { createClient } from '../../../../lib/supabase/server';
 
-export async function POST(request: NextRequest) {
+import { requestCommunityAccessSchema, type RequestCommunityAccessBody } from './schema';
+
+async function handlePost(_request: NextRequest, body: RequestCommunityAccessBody) {
   try {
     const supabase = await createClient();
-    
-    // Obtener el usuario actual usando el sistema de sesiones personalizado
+
     const { SessionService } = await import('../../../../features/auth/services/session.service');
     const user = await SessionService.getCurrentUser();
-    
+
     if (!user) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+      return apiError('UNAUTHORIZED', 'No autorizado', 401);
     }
 
-
-
-    const { communityId, note } = await request.json();
-
-    if (!communityId) {
-      return NextResponse.json({ error: 'ID de comunidad requerido' }, { status: 400 });
-    }
+    const { communityId, note } = body;
 
     // Verificar que la comunidad existe y requiere invitación
     const { data: community, error: communityError } = await supabase
       .from('communities')
-      .select('*')
+      .select(SELECT_COLUMNS.communities)
       .eq('id', communityId)
       .eq('is_active', true)
       .single();
@@ -159,9 +156,8 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logger.error('Error in request access API:', error);
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    );
+    return apiError('REQUEST_ACCESS_FAILED', 'Error interno del servidor', 500);
   }
 }
+
+export const POST = withZodBody(requestCommunityAccessSchema, handlePost);

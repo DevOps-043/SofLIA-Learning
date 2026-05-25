@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 export interface UserGroup {
   id: string
   organization_id: string
@@ -64,7 +65,7 @@ export class UserGroupsService {
 
       return data.groups || []
     } catch (error) {
-      console.error('Error fetching groups:', error)
+      techDebtLogger.error('Error fetching groups:', error)
       return []
     }
   }
@@ -82,7 +83,7 @@ export class UserGroupsService {
 
       return data.group || null
     } catch (error) {
-      console.error('Error fetching group:', error)
+      techDebtLogger.error('Error fetching group:', error)
       return null
     }
   }
@@ -150,7 +151,7 @@ export class UserGroupsService {
 
       return data.members || []
     } catch (error) {
-      console.error('Error fetching group members:', error)
+      techDebtLogger.error('Error fetching group members:', error)
       return []
     }
   }

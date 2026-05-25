@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import {
     OrganizationStructure,
     OrganizationNode,
@@ -42,7 +43,7 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
             data: data.data ?? data,
         };
     } catch (error) {
-        console.error('API Error:', error);
+        techDebtLogger.error('API Error:', error);
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error',

@@ -1,11 +1,24 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import {
+  updateRegionSchema,
+  type UpdateRegionBody,
+} from '@/app/api/business/hierarchy/_schemas';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string; regionId: string }>;
 }
+
+const parseLatLng = (value: number | string | null | undefined) =>
+  value === null || value === undefined || value === ''
+    ? null
+    : typeof value === 'number'
+      ? value
+      : parseFloat(value);
 
 /**
  * GET /api/[orgSlug]/business/hierarchy/regions/[regionId]
@@ -63,27 +76,28 @@ export async function GET(request: Request, { params }: RouteContext) {
  * PUT /api/[orgSlug]/business/hierarchy/regions/[regionId]
  * Actualiza una región
  */
-export async function PUT(request: Request, { params }: RouteContext) {
+async function handlePut(
+  _request: NextRequest,
+  body: UpdateRegionBody,
+  { params }: RouteContext,
+) {
   try {
     const { orgSlug, regionId } = await params;
     const auth = await requireBusiness({ organizationSlug: orgSlug });
     if (auth instanceof NextResponse) return auth;
 
     if (!auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
-      );
+      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403);
     }
 
     if (auth.organizationRole !== 'owner' && auth.organizationRole !== 'admin') {
-      return NextResponse.json(
-        { success: false, error: 'Solo el propietario o administrador puede modificar regiones' },
-        { status: 403 }
+      return apiError(
+        'FORBIDDEN',
+        'Solo el propietario o administrador puede modificar regiones',
+        403,
       );
     }
 
-    const body = await request.json();
     const supabase = await createClient();
 
     // Verificar que la región existe y pertenece a la organización
@@ -95,10 +109,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
       .single();
 
     if (fetchError || !existingRegion) {
-      return NextResponse.json(
-        { success: false, error: 'Región no encontrada' },
-        { status: 404 }
-      );
+      return apiError('REGION_NOT_FOUND', 'Región no encontrada', 404);
     }
 
     // Si se cambia el nombre, verificar unicidad
@@ -111,10 +122,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
         .neq('id', regionId);
 
       if (duplicateCount && duplicateCount > 0) {
-        return NextResponse.json(
-          { success: false, error: 'Ya existe una región con ese nombre' },
-          { status: 400 }
-        );
+        return apiError('DUPLICATE_NAME', 'Ya existe una región con ese nombre', 400);
       }
     }
 
@@ -130,8 +138,8 @@ export async function PUT(request: Request, { params }: RouteContext) {
     if (body.state !== undefined) updateData.state = body.state?.trim() || null;
     if (body.country !== undefined) updateData.country = body.country?.trim() || null;
     if (body.postal_code !== undefined) updateData.postal_code = body.postal_code?.trim() || null;
-    if (body.latitude !== undefined) updateData.latitude = body.latitude !== null && body.latitude !== '' ? parseFloat(body.latitude) : null;
-    if (body.longitude !== undefined) updateData.longitude = body.longitude !== null && body.longitude !== '' ? parseFloat(body.longitude) : null;
+    if (body.latitude !== undefined) updateData.latitude = parseLatLng(body.latitude);
+    if (body.longitude !== undefined) updateData.longitude = parseLatLng(body.longitude);
     // Contacto
     if (body.phone !== undefined) updateData.phone = body.phone?.trim() || null;
     if (body.email !== undefined) updateData.email = body.email?.trim() || null;
@@ -140,10 +148,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
     if (body.metadata !== undefined) updateData.metadata = body.metadata;
 
     if (Object.keys(updateData).length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'No hay datos para actualizar' },
-        { status: 400 }
-      );
+      return apiError('NO_CHANGES', 'No hay datos para actualizar', 400);
     }
 
     const { data: region, error } = await supabase
@@ -155,10 +160,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
 
     if (error) {
       logger.error('Error actualizando región:', error);
-      return NextResponse.json(
-        { success: false, error: 'Error al actualizar la región' },
-        { status: 500 }
-      );
+      return apiError('UPDATE_REGION_FAILED', 'Error al actualizar la región', 500);
     }
 
     logger.info('Región actualizada:', { regionId, changes: Object.keys(updateData) });
@@ -169,12 +171,11 @@ export async function PUT(request: Request, { params }: RouteContext) {
     });
   } catch (error) {
     logger.error('Error en PUT /api/[orgSlug]/business/hierarchy/regions/[regionId]:', error);
-    return NextResponse.json(
-      { success: false, error: 'Error al actualizar la región' },
-      { status: 500 }
-    );
+    return apiError('UPDATE_REGION_FAILED', 'Error al actualizar la región', 500);
   }
 }
+
+export const PUT = withZodBody(updateRegionSchema, handlePut);
 
 /**
  * DELETE /api/[orgSlug]/business/hierarchy/regions/[regionId]

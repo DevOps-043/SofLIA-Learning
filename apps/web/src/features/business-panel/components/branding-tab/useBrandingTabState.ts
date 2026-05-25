@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, useRef, useState } from 'react'
 import { useBranding } from '../../hooks/useBranding'
 import { useOrganizationStylesContext } from '../../contexts/OrganizationStylesContext'
@@ -80,7 +81,7 @@ export function useBrandingTabState() {
           setTimeout(() => setSaveSuccess(null), 5000)
         }
       } catch (err) {
-        console.error('Error detectando colores automáticamente:', err)
+        techDebtLogger.error('Error detectando colores automáticamente:', err)
       } finally {
         setIsDetecting(false)
       }
@@ -148,7 +149,7 @@ export function useBrandingTabState() {
       setSaveSuccess('Colores detectados automáticamente')
       setTimeout(() => setSaveSuccess(null), 5000)
     } catch (err) {
-      console.error('Error detectando colores:', err)
+      techDebtLogger.error('Error detectando colores:', err)
       setTemporaryError(
         err instanceof Error ? err.message : 'Error al detectar colores',
       )

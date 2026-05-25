@@ -1,11 +1,12 @@
 import type { BrandingFormState, BrandingPalette } from './types'
+import { DESIGN_HEX_COLOR } from '@/core/theme/color-tokens'
 
 const DEFAULT_BRANDING_STATE: BrandingFormState = {
   favicon_url: '',
   banner_url: '',
-  color_primary: '#0A2540',
-  color_secondary: '#00D4B3',
-  color_accent: '#FFFFFF',
+  color_primary: DESIGN_HEX_COLOR.primary,
+  color_secondary: DESIGN_HEX_COLOR.accent,
+  color_accent: DESIGN_HEX_COLOR.bgLight,
 }
 
 export function createBrandingFormState(

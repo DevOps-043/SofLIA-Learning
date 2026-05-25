@@ -57,7 +57,7 @@ export function SchedulePreviewHeader({
         </span>
 
         {isLoadingExternal && (
-          <span className="ml-1.5 inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-[#00D4B3]" />
+          <span className="ml-1.5 inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-accent" />
         )}
       </div>
 

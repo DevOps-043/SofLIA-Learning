@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { apiError } from '@/lib/api/errors';
+import { withZodBody } from '@/lib/api/with-validation';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+import {
+  questionnaireAnswerSchema,
+  type QuestionnaireAnswerBody,
+} from './schema';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -27,9 +34,10 @@ export async function GET(
     const questionId = parseInt(id);
 
     if (!supabase) {
-      return NextResponse.json(
-        { error: 'Supabase no configurado. Por favor configura las variables de entorno.' },
-        { status: 500 }
+      return apiError(
+        'SUPABASE_NOT_CONFIGURED',
+        'Supabase no configurado. Por favor configura las variables de entorno.',
+        500,
       );
     }
 
@@ -51,16 +59,17 @@ export async function GET(
       .single();
 
     if (profileError || !userProfile) {
-      return NextResponse.json(
-        { error: 'Perfil de usuario no encontrado. Por favor completa tu perfil profesional primero.' },
-        { status: 404 }
+      return apiError(
+        'USER_PROFILE_NOT_FOUND',
+        'Perfil de usuario no encontrado. Por favor completa tu perfil profesional primero.',
+        404,
       );
     }
 
     // Obtener la pregunta específica
     const { data: question, error: questionError } = await supabase
       .from('preguntas')
-      .select('*')
+      .select(SELECT_COLUMNS.preguntas)
       .eq('id', questionId)
       .single();
 
@@ -98,21 +107,18 @@ export async function GET(
     return NextResponse.json(questionWithAnswer);
 
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    );
+    return apiError('QUESTIONNAIRE_ANSWER_INTERNAL_ERROR', 'Error interno del servidor', 500);
   }
 }
 
-export async function POST(
-  request: NextRequest,
+async function handlePost(
+  _request: NextRequest,
+  body: QuestionnaireAnswerBody,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
     const questionId = parseInt(id);
-    const body = await request.json();
     const { valor } = body;
 
     if (!supabase) {
@@ -147,7 +153,7 @@ export async function POST(
     }
 
     // Verificar si ya existe una respuesta usando user_perfil_id
-    const { data: existingAnswer, error: checkError } = await supabase
+    const { data: existingAnswer } = await supabase
       .from('respuestas')
       .select('id')
       .eq('user_perfil_id', userProfile.id)
@@ -169,10 +175,7 @@ export async function POST(
         .single();
 
       if (error) {
-        return NextResponse.json(
-          { error: 'Error al actualizar la respuesta' },
-          { status: 500 }
-        );
+        return apiError('ANSWER_UPDATE_FAILED', 'Error al actualizar la respuesta', 500);
       }
 
       result = data;
@@ -190,10 +193,7 @@ export async function POST(
         .single();
 
       if (error) {
-        return NextResponse.json(
-          { error: 'Error al guardar la respuesta' },
-          { status: 500 }
-        );
+        return apiError('ANSWER_SAVE_FAILED', 'Error al guardar la respuesta', 500);
       }
 
       result = data;
@@ -212,3 +212,5 @@ export async function POST(
     );
   }
 }
+
+export const POST = withZodBody(questionnaireAnswerSchema, handlePost);

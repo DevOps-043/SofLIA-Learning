@@ -32,11 +32,15 @@
   "media": {
     "tapToPlay": "Tap to play",
     "videoPreview": "Video preview",
+    "videoUnavailable": "Video unavailable",
     "introPlayer": {
       "loadErrorTitle": "Could not load the video",
       "loadErrorDescription": "Check that the file exists and is an MP4 or WebM optimized for the web.",
       "skipToContent": "Continue without video",
-      "slowConnection": "Slow connection - loading..."
+      "slowConnection": "Slow connection - loading...",
+      "quality": "Quality",
+      "qualityAuto": "Auto",
+      "qualityAdaptive": "adaptive"
     }
   },
   "dashboardNav": {
@@ -78,10 +82,46 @@
         "connection": "Connection error. Please check your internet connection and try again.",
         "timeout": "The request took too long. Please try again."
       },
+      "mfa": {
+        "title": "Two-step verification",
+        "subtitle": "Enter the code from your authenticator app or a recovery code.",
+        "codeLabel": "Authentication code",
+        "codePlaceholder": "123456",
+        "verify": "Verify",
+        "verifying": "Verifying...",
+        "back": "Back",
+        "errors": {
+          "verifyFailed": "We could not verify the code. Please try again."
+        }
+      },
       "validation": {
         "emailOrUsernameRequired": "Email or username is required",
         "passwordRequired": "Password is required",
         "noSpaces": "Spaces are not allowed"
+      }
+    },
+    "mfa": {
+      "settings": {
+        "title": "Multi-factor authentication",
+        "description": "Protect Admin and Business accounts with a temporary code in addition to the password.",
+        "status": "Status",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "recoveryRemaining": "Recovery codes left",
+        "lastUsed": "Last used",
+        "neverUsed": "No usage recorded",
+        "startSetup": "Set up MFA",
+        "manualSecret": "Manual key",
+        "recoveryCodes": "Recovery codes",
+        "activationCode": "First app code",
+        "activate": "Activate MFA",
+        "enabledNotice": "MFA is now enabled for this account.",
+        "recoveryCopied": "Recovery codes copied.",
+        "errors": {
+          "status": "Could not load MFA status.",
+          "setup": "Could not start MFA setup.",
+          "activate": "Could not activate MFA. Check the code and try again."
+        }
       }
     },
     "register": {
@@ -103,7 +143,7 @@
       "countryPlaceholder": "Country",
       "phonePlaceholder": "1234567890",
       "passwordLabel": "Password",
-      "passwordPlaceholder": "Minimum 8 characters",
+      "passwordPlaceholder": "Minimum 12 characters",
       "confirmPasswordLabel": "Confirm Password",
       "confirmPasswordPlaceholder": "Repeat your password",
       "acceptTerms": "I accept the <0>terms and conditions</0> and the <1>privacy policy</1>",
@@ -126,7 +166,7 @@
         "phoneMax": "Phone number cannot exceed 15 digits",
         "onlyNumbers": "Only numbers are allowed",
         "invalidEmail": "Enter a valid email",
-        "passwordMin": "Password must be at least 8 characters",
+        "passwordMin": "Password must be at least 12 characters",
         "passwordUppercase": "Must contain at least one uppercase letter",
         "passwordLowercase": "Must contain at least one lowercase letter",
         "passwordNumber": "Must contain at least one number",
@@ -155,7 +195,7 @@
       "title": "New Password",
       "subtitle": "Create a secure password to protect your account.",
       "newPasswordLabel": "New password",
-      "newPasswordPlaceholder": "Minimum 8 characters",
+      "newPasswordPlaceholder": "Minimum 12 characters",
       "confirmPasswordLabel": "Confirm password",
       "confirmPasswordPlaceholder": "Repeat your password",
       "updating": "Updating...",
@@ -180,10 +220,11 @@
         "number": "A number"
       },
       "validation": {
-        "passwordMin": "Password must be at least 8 characters",
+        "passwordMin": "Password must be at least 12 characters",
         "passwordUppercase": "Must contain at least one uppercase letter",
         "passwordLowercase": "Must contain at least one lowercase letter",
         "passwordNumber": "Must contain at least one number",
+        "passwordSpecial": "Must contain at least one special character",
         "passwordsDoNotMatch": "Passwords do not match"
       }
     },
@@ -1130,9 +1171,26 @@
       }
     }
   },
+  "courseSkillsSelector": {
+    "selectedTitle": "Course skills ({{count}})",
+    "addButton": "Add skills",
+    "modalTitle": "Select skills",
+    "modalSubtitle": "Choose the skills learned in this course",
+    "searchPlaceholder": "Search skills...",
+    "allCategories": "All",
+    "loading": "Loading skills...",
+    "noResults": "No skills found",
+    "allSelected": "All skills are already selected"
+  },
+  "datePicker": {
+    "placeholder": "Select date",
+    "clear": "Clear",
+    "today": "Today"
+  },
   "actions": {
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "copy": "Copy",
     "save": "Save",
     "saveChanges": "Save changes",
     "delete": "Delete",
@@ -1155,6 +1213,7 @@
     "show": "Show",
     "hide": "Hide",
     "viewFullImage": "View full image",
+    "download": "Download",
     "downloadImage": "Download image",
     "edited": "edited",
     "refresh": "Refresh",

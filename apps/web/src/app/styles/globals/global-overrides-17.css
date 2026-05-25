@@ -1,0 +1,77 @@
+
+/* Scrollbar invisible para elementos específicos */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari and Opera */
+}
+
+/* Hero Section Text Styles - Theme Aware */
+.hero-title-text {
+  color: var(--color-contrast);
+  transition: color 0.3s ease;
+}
+
+.hero-description-text {
+  color: var(--color-contrast);
+  opacity: 0.9;
+  transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+.hero-benefits-title {
+  color: var(--color-contrast);
+  transition: color 0.3s ease;
+}
+
+.hero-benefit-text {
+  color: var(--color-contrast);
+  transition: color 0.3s ease;
+}
+
+.hero-benefit-description {
+  color: var(--color-contrast);
+  opacity: 0.85;
+  transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Estilos personalizados para Business Panel */
+/* Aplicar backdrop-filter para mejorar legibilidad */
+.business-card {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ========================================
+   BUSINESS PANEL - DARK MODE (default)
+   ======================================== */
+
+/* Aplicar a tarjetas FUERA del flujo del sidebar y header */
+.dark .business-panel-content .bg-carbon-900:not(.no-theme),
+.dark .business-panel-content .bg-carbon-800:not(.no-theme),
+.dark .bg-carbon-900.business-card,
+.dark .bg-carbon-800.business-card {
+  background-color: rgba(var(--org-card-background-rgb, 15, 23, 42), var(--org-card-opacity, 1)) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--org-text-color, var(--color-gray-50));
+}
+

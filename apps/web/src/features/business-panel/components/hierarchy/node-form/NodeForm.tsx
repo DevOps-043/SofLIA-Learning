@@ -322,14 +322,14 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                 style={{
                   backgroundColor: theme.actionColor,
                   color: theme.onActionColor,
-                  boxShadow: `0 16px 30px ${theme.actionColor}24`,
+                  boxShadow: `0 16px 30px color-mix(in srgb, ${theme.actionColor} 14.1%, transparent)`,
                 }}
               >
                 {form.loading ? (
                   <div
                     className="h-4 w-4 animate-spin rounded-full border-2"
                     style={{
-                      borderColor: `${theme.onActionColor}4D`,
+                      borderColor: `color-mix(in srgb, ${theme.onActionColor} 30.2%, transparent)`,
                       borderTopColor: theme.onActionColor,
                     }}
                   />

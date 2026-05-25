@@ -2,6 +2,8 @@ import { cookies, headers } from 'next/headers';
 import crypto from 'crypto';
 import { RefreshTokenService } from '../../../lib/auth/refreshToken.service';
 import { logger } from '../../../lib/logger';
+import { createAuthActionClient } from '../../../lib/supabase/auth-server';
+import { createAdminClient } from '../../../lib/supabase/admin';
 import { createClient } from '../../../lib/supabase/server';
 import {
   buildLegacySessionRecord,
@@ -86,13 +88,21 @@ export class SessionService {
       logger.debug('SessionService: Obteniendo usuario actual');
       const cookieStore = await cookies();
 
-      const accessToken = cookieStore.get('access_token')?.value;
       let userId: string | null = null;
       let resolvedUser: SessionUserRecord | null = null;
+      const supabase = await createClient();
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
 
-      if (accessToken) {
+      if (authUser?.id) {
+        userId = authUser.id;
+        logger.debug('Usando sesion nativa de Supabase Auth', { userId });
+      }
+
+      const accessToken = cookieStore.get('access_token')?.value;
+      if (!userId && accessToken) {
         logger.debug('Usando sistema de refresh tokens');
-        const supabase = await createClient();
         const refreshToken = cookieStore.get('refresh_token')?.value;
 
         if (refreshToken) {
@@ -161,8 +171,8 @@ export class SessionService {
 
       if (!resolvedUser) {
         logger.debug('Buscando usuario con ID', { userId });
-        const supabase = await createClient();
-        const { data: user, error: userError } = await supabase
+        const profileClient = createAdminClient();
+        const { data: user, error: userError } = await profileClient
           .from('users')
           .select(
             'id, username, email, first_name, last_name, display_name, cargo_rol, profile_picture_url, is_banned, signature_url, signature_name'
@@ -231,14 +241,21 @@ export class SessionService {
     try {
       logger.auth('Destruyendo sesion');
       const cookieStore = await cookies();
+      const authClient = await createAuthActionClient();
+      const {
+        data: { user: authUser },
+      } = await authClient.auth.getUser();
 
       const sessionToken = cookieStore.get(this.SESSION_COOKIE_NAME)?.value;
       const refreshToken = cookieStore.get('refresh_token')?.value;
-      let userId: string | null = null;
+      let userId: string | null = authUser?.id ?? null;
 
       if (sessionToken) {
         try {
-          userId = await revokeLegacySession(sessionToken);
+          const legacyUserId = await revokeLegacySession(sessionToken);
+          if (legacyUserId) {
+            userId = legacyUserId;
+          }
         } catch (dbError) {
           logger.warn('Error al revocar sesion legacy:', { error: dbError });
         }
@@ -276,6 +293,8 @@ export class SessionService {
           logger.warn('Error al revocar refresh tokens:', { error: revokeError });
         }
       }
+
+      await authClient.auth.signOut();
 
       const deleteCookieOptions = {
         httpOnly: true,

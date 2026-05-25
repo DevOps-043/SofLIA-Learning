@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
@@ -123,7 +124,7 @@ export async function GET(
         .order('lesson_order_index', { ascending: true });
 
       if (lessonsError) {
-        console.error('[modules/route] ❌ Error obteniendo lecciones:', lessonsError);
+        techDebtLogger.error('[modules/route] ❌ Error obteniendo lecciones:', lessonsError);
       } else {
       }
 

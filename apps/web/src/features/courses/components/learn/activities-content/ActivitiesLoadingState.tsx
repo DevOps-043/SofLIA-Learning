@@ -1,0 +1,27 @@
+import { Activity } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
+export function ActivitiesLoadingState(props: { lessonTitle: string }) {
+  const { t } = useTranslation("learn");
+
+  return (
+    <div className="space-y-6 pb-24 md:pb-6">
+      <div>
+        <h2 className="text-2xl font-bold text-primary dark:text-white mb-2">
+          {t("activities.title")}
+        </h2>
+        <p className="text-gray-500 dark:text-white/80 text-sm">
+          {props.lessonTitle}
+        </p>
+      </div>
+      <div className="bg-white dark:bg-carbon-800 rounded-xl border-2 border-gray-200 dark:border-gray-500/30 p-8 text-center">
+        <div className="w-16 h-16 bg-primary/10 dark:bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Activity className="w-8 h-8 text-primary dark:text-accent animate-pulse" />
+        </div>
+        <p className="text-gray-500 dark:text-white/80">
+          {t("loading.activities")}
+        </p>
+      </div>
+    </div>
+  );
+}

@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, useCallback } from 'react';
 import { MAX_CONTEXT_MESSAGES } from '../types';
 import type { Message } from '../types';
@@ -28,7 +29,7 @@ export function useAIChatPersistence({
       })));
       localStorage.setItem(STORAGE_KEY_CONTEXT_MESSAGES, serialized);
     } catch (error) {
-      console.error('Error guardando mensajes en localStorage:', error);
+      techDebtLogger.error('Error guardando mensajes en localStorage:', error);
     }
   }, []);
 
@@ -39,7 +40,7 @@ export function useAIChatPersistence({
       const parsed = JSON.parse(stored);
       return parsed.map((msg: Record<string, unknown>) => ({ ...msg, timestamp: new Date(msg.timestamp as string) }));
     } catch (error) {
-      console.error('Error cargando mensajes desde localStorage:', error);
+      techDebtLogger.error('Error cargando mensajes desde localStorage:', error);
       return [];
     }
   }, []);
@@ -49,7 +50,7 @@ export function useAIChatPersistence({
       localStorage.removeItem(STORAGE_KEY_CONTEXT_MESSAGES);
       setNormalMessages([]);
     } catch (error) {
-      console.error('Error limpiando mensajes de contexto:', error);
+      techDebtLogger.error('Error limpiando mensajes de contexto:', error);
     }
   }, [setNormalMessages]);
 
@@ -65,7 +66,7 @@ export function useAIChatPersistence({
         localStorage.setItem(STORAGE_KEY_CONTEXT_MODE, 'true');
       }
     } catch (error) {
-      console.error('Error cargando estado de contexto desde localStorage:', error);
+      techDebtLogger.error('Error cargando estado de contexto desde localStorage:', error);
     }
   }, [loadContextMessages]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -78,7 +79,7 @@ export function useAIChatPersistence({
         if (!isOpen) setNormalMessages([]);
       }
     } catch (error) {
-      console.error('Error guardando estado de contexto en localStorage:', error);
+      techDebtLogger.error('Error guardando estado de contexto en localStorage:', error);
     }
   }, [useContextMode, isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 

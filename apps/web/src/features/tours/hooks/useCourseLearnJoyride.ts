@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ACTIONS, CallBackProps, EVENTS, STATUS } from 'react-joyride';
+import { ACTIONS, EVENTS, STATUS } from 'react-joyride';
 
 import type { LearnTab } from '../../courses/components/learn/types';
 import { useTourRestart } from '../../../core/contexts/TourRestartContext';
@@ -14,10 +14,14 @@ import {
 } from '../config/course-learn-joyride-steps';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourProgress } from './useTourProgress';
+import type { SofliaJoyrideEvent as CallBackProps, SofliaJoyrideStep } from '../types/joyride';
 
 const TOUR_START_DELAY_MS = 1500;
 const TOUR_RESTART_DELAY_MS = 120;
 const TOUR_LAYOUT_SYNC_DELAY_MS = 180;
+const TOUR_TARGET_READY_TIMEOUT_MS = 2500;
+const TOUR_TARGET_READY_POLL_MS = 50;
+const TOUR_BEFORE_TIMEOUT_MS = 5000;
 const SCROLLABLE_STEP_INDEXES = new Set<number>([
   COURSE_LEARN_JOYRIDE_STEP_INDEXES.videoPanel,
   COURSE_LEARN_JOYRIDE_STEP_INDEXES.tools,
@@ -46,9 +50,77 @@ function waitForLayoutSync(): Promise<void> {
   });
 }
 
+function resolveStepTargetElement(
+  stepTarget: SofliaJoyrideStep['target'],
+): HTMLElement | null {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  if (typeof stepTarget === 'string') {
+    const element = document.querySelector(stepTarget);
+    return element instanceof HTMLElement ? element : null;
+  }
+
+  if (stepTarget instanceof HTMLElement) {
+    return stepTarget;
+  }
+
+  if (typeof stepTarget === 'function') {
+    const element = stepTarget();
+    return element instanceof HTMLElement ? element : null;
+  }
+
+  if (stepTarget && 'current' in stepTarget) {
+    const element = stepTarget.current;
+    return element instanceof HTMLElement ? element : null;
+  }
+
+  return null;
+}
+
+function isStepTargetReady(stepTarget: SofliaJoyrideStep['target']): boolean {
+  const element = resolveStepTargetElement(stepTarget);
+
+  if (!element) {
+    return false;
+  }
+
+  const { display, visibility } = window.getComputedStyle(element);
+  const rect = element.getBoundingClientRect();
+
+  return display !== 'none' && visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+}
+
+function waitForStepTargetReady(
+  stepTarget: SofliaJoyrideStep['target'],
+): Promise<void> {
+  if (typeof window === 'undefined') {
+    return Promise.resolve();
+  }
+
+  const startedAt = Date.now();
+
+  return new Promise((resolve) => {
+    const checkTarget = () => {
+      if (
+        isStepTargetReady(stepTarget) ||
+        Date.now() - startedAt >= TOUR_TARGET_READY_TIMEOUT_MS
+      ) {
+        resolve();
+        return;
+      }
+
+      window.setTimeout(checkTarget, TOUR_TARGET_READY_POLL_MS);
+    };
+
+    checkTarget();
+  });
+}
+
 function scrollStepTargetIntoView(
   nextStepIndex: number,
-  stepTarget: string | HTMLElement,
+  stepTarget: SofliaJoyrideStep['target'],
 ): void {
   if (
     !SCROLLABLE_STEP_INDEXES.has(nextStepIndex) ||
@@ -57,7 +129,7 @@ function scrollStepTargetIntoView(
     return;
   }
 
-  const element = document.querySelector(stepTarget);
+  const element = resolveStepTargetElement(stepTarget);
 
   if (!(element instanceof HTMLElement)) {
     return;
@@ -123,7 +195,7 @@ export function useCourseLearnJoyride({
     () => (key, interpolation) => t(key, interpolation),
     [t],
   );
-  const steps = useMemo(
+  const baseSteps = useMemo(
     () =>
       buildCourseLearnJoyrideSteps({
         courseTitle,
@@ -147,7 +219,7 @@ export function useCourseLearnJoyride({
   const [stepIndex, setStepIndex] = useState(0);
   const [isTourActive, setIsTourActive] = useState(false);
 
-  const pendingAutoTour = !mobilePerformanceMode && shouldShowTour
+  const pendingAutoTour = !mobilePerformanceMode && shouldShowTour;
   const suppressVideoPlayback =
     enabled && (isLoading || pendingAutoTour || isTourActive);
   const skipVideoAutoplay = enabled && (pendingAutoTour || isTourActive);
@@ -169,7 +241,10 @@ export function useCourseLearnJoyride({
   }, [resetTourState, skipTour]);
 
   const prepareStep = useCallback(
-    async (nextStepIndex: number) => {
+    async (
+      nextStepIndex: number,
+      stepTarget: SofliaJoyrideStep['target'],
+    ) => {
       closeLia();
       setActiveTab('video');
 
@@ -184,37 +259,26 @@ export function useCourseLearnJoyride({
       }
 
       await waitForLayoutSync();
-      const nextStep = steps[nextStepIndex];
-
-      if (nextStep) {
-        scrollStepTargetIntoView(nextStepIndex, nextStep.target);
-        await waitForLayoutSync();
-      }
+      await waitForStepTargetReady(stepTarget);
+      scrollStepTargetIntoView(nextStepIndex, stepTarget);
+      await waitForLayoutSync();
     },
-    [closeLeftPanel, closeLia, isMobile, openLeftPanel, setActiveTab, steps],
+    [closeLeftPanel, closeLia, isMobile, openLeftPanel, setActiveTab],
   );
 
-  const launchTour = useCallback(async () => {
+  const tourSteps = useMemo(
+    () =>
+      baseSteps.map((step, index) => ({
+        ...step,
+        before: () => prepareStep(index, step.target),
+        beforeTimeout: TOUR_BEFORE_TIMEOUT_MS,
+        targetWaitTimeout: TOUR_TARGET_READY_TIMEOUT_MS,
+      })),
+    [baseSteps, prepareStep],
+  );
+
+  const launchTour = useCallback(() => {
     setIsTourActive(true);
-    await prepareStep(COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome);
-
-    // Abort early if the first step target never appears in the DOM.
-    // Without this guard, Joyride silently falls back to its beacon UI,
-    // which is exactly the "black dot" symptom observed in production.
-    const welcomeStep = steps[COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome];
-    const welcomeTarget = welcomeStep?.target;
-    if (typeof welcomeTarget === 'string') {
-      const targetReady = await waitForTargetInDom(welcomeTarget);
-      if (!targetReady) {
-        console.warn(
-          '[useCourseLearnJoyride] welcome target missing in DOM, aborting tour:',
-          welcomeTarget,
-        );
-        setIsTourActive(false);
-        return;
-      }
-    }
-
     setRun(false);
     setStepIndex(COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome);
     void startTour();
@@ -222,7 +286,7 @@ export function useCourseLearnJoyride({
     window.setTimeout(() => {
       setRun(true);
     }, TOUR_RESTART_DELAY_MS);
-  }, [prepareStep, startTour, steps]);
+  }, [startTour]);
 
   useEffect(() => {
     if (!enabled || mobilePerformanceMode || isLoading || !shouldShowTour) {
@@ -293,7 +357,17 @@ export function useCourseLearnJoyride({
         return;
       }
 
-      if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+      // TARGET_NOT_FOUND NO debe avanzar. En react-joyride v3 este evento se
+      // emite cuando un step no encuentra su target a tiempo. Si se trataba
+      // igual que STEP_AFTER, una sola pulsacion de "Siguiente" cascadeaba
+      // TARGET_NOT_FOUND por todos los steps restantes y terminaba el tour en
+      // un instante. Aqui solo registramos y dejamos al tour pausado para que
+      // el usuario pueda cerrar/saltar manualmente.
+      if (type === EVENTS.TARGET_NOT_FOUND) {
+        return;
+      }
+
+      if (type === EVENTS.STEP_AFTER) {
         const nextStepIndex =
           action === ACTIONS.PREV ? index - 1 : index + 1;
 
@@ -301,22 +375,21 @@ export function useCourseLearnJoyride({
           return;
         }
 
-        if (nextStepIndex >= steps.length) {
+        if (nextStepIndex >= tourSteps.length) {
           await finishTour();
           return;
         }
 
-        await prepareStep(nextStepIndex);
         setStepIndex(nextStepIndex);
         updateStep(nextStepIndex); // debounced fire-and-forget
       }
     },
-    [dismissTour, finishTour, prepareStep, steps.length, updateStep],
+    [dismissTour, finishTour, tourSteps.length, updateStep],
   );
 
   const joyrideProps = useMemo(
     () => ({
-      steps,
+      steps: tourSteps,
       run,
       stepIndex,
       callback: handleJoyrideCallback,
@@ -335,7 +408,7 @@ export function useCourseLearnJoyride({
       styles: {
         options: {
           zIndex: 10000,
-          arrowColor: '#1E2329',
+          arrowColor: 'var(--color-gray-800)',
         },
         spotlight: {
           borderRadius: 16,
@@ -365,7 +438,7 @@ export function useCourseLearnJoyride({
         skip: 'Saltar',
       },
     }),
-    [handleJoyrideCallback, isMobile, run, stepIndex, steps],
+    [handleJoyrideCallback, isMobile, run, stepIndex, tourSteps],
   );
 
   return {

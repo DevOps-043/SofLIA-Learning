@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { logger } from '@/lib/logger'
+import { withZodBody } from '@/lib/api/with-validation'
+import {
+  inviteLinkPatchSchema,
+  type InviteLinkPatchBody,
+  type InviteLinkUpdateData,
+} from './schema'
 
 // GET - Get a specific invite link
 export async function GET(
@@ -24,7 +31,7 @@ export async function GET(
 
     const { data: link, error } = await supabase
       .from('bulk_invite_links')
-      .select('*')
+      .select(SELECT_COLUMNS.bulk_invite_links)
       .eq('id', id)
       .eq('organization_id', auth.organizationId)
       .single()
@@ -41,7 +48,7 @@ export async function GET(
       link
     })
   } catch (error) {
-    console.error('Error in GET /api/[orgSlug]/business/invite-links/[id]:', error)
+    logger.error('Error in GET /api/[orgSlug]/business/invite-links/[id]', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }
@@ -50,8 +57,9 @@ export async function GET(
 }
 
 // PATCH - Update an invite link (pause, resume, etc.)
-export async function PATCH(
+async function handlePatch(
   request: NextRequest,
+  body: InviteLinkPatchBody,
   { params }: { params: Promise<{ orgSlug: string; id: string }> }
 ) {
   try {
@@ -74,7 +82,6 @@ export async function PATCH(
       )
     }
 
-    const body = await request.json()
     const { action, name, maxUses, expiresAt } = body
 
     const supabase = await createClient()
@@ -82,7 +89,7 @@ export async function PATCH(
     // First verify the link belongs to this organization
     const { data: existingLink, error: fetchError } = await supabase
       .from('bulk_invite_links')
-      .select('*')
+      .select(SELECT_COLUMNS.bulk_invite_links)
       .eq('id', id)
       .eq('organization_id', auth.organizationId)
       .single()
@@ -94,7 +101,7 @@ export async function PATCH(
       )
     }
 
-    let updateData: Record<string, any> = {}
+    const updateData: InviteLinkUpdateData = {}
 
     // Handle actions
     if (action === 'pause') {
@@ -160,7 +167,11 @@ export async function PATCH(
       .single()
 
     if (updateError) {
-      console.error('Error updating bulk invite link:', updateError)
+      logger.error('Error updating bulk invite link', updateError, {
+        linkId: id,
+        organizationId: auth.organizationId,
+        orgSlug,
+      })
       return NextResponse.json(
         { success: false, error: 'Error al actualizar el enlace' },
         { status: 500 }
@@ -172,13 +183,15 @@ export async function PATCH(
       link
     })
   } catch (error) {
-    console.error('Error in PATCH /api/[orgSlug]/business/invite-links/[id]:', error)
+    logger.error('Error in PATCH /api/[orgSlug]/business/invite-links/[id]', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }
     )
   }
 }
+
+export const PATCH = withZodBody(inviteLinkPatchSchema, handlePatch)
 
 // DELETE - Delete an invite link
 export async function DELETE(
@@ -214,7 +227,11 @@ export async function DELETE(
       .eq('organization_id', auth.organizationId)
 
     if (error) {
-      console.error('Error deleting bulk invite link:', error)
+      logger.error('Error deleting bulk invite link', error, {
+        linkId: id,
+        organizationId: auth.organizationId,
+        orgSlug,
+      })
       return NextResponse.json(
         { success: false, error: 'Error al eliminar el enlace' },
         { status: 500 }
@@ -226,7 +243,7 @@ export async function DELETE(
       message: 'Enlace eliminado correctamente'
     })
   } catch (error) {
-    console.error('Error in DELETE /api/[orgSlug]/business/invite-links/[id]:', error)
+    logger.error('Error in DELETE /api/[orgSlug]/business/invite-links/[id]', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

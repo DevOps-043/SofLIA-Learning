@@ -1,5 +1,6 @@
 'use client';
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { resolveInitialStudyPlannerPlanId } from '../services/study-planner-navigation.service';
@@ -89,7 +90,7 @@ export function useStudyPlannerPlanManagement({
         setSelectedPlanId(nextPlanId);
         syncPlanSelectionInUrl(nextPlanId);
       } catch (error) {
-        console.error('Error cargando planes:', error);
+        techDebtLogger.error('Error cargando planes:', error);
       }
     },
     [selectedPlanIdRef, setAvailablePlans, setSelectedPlanId, syncPlanSelectionInUrl],
@@ -124,7 +125,7 @@ export function useStudyPlannerPlanManagement({
         router.push('/study-planner/create');
       }
     } catch (error) {
-      console.error('Error eliminando plan:', error);
+      techDebtLogger.error('Error eliminando plan:', error);
       setToast({ isOpen: true, message: 'Error al eliminar el plan', type: 'error' });
     } finally {
       setIsDeletingPlan(false);

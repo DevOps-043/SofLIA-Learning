@@ -47,11 +47,11 @@ export function CountrySelector({
   // Default color fallbacks (if no custom styles provided)
   const buttonClassName = customStyles 
     ? "flex items-center gap-2 h-[46px] px-3 rounded-xl transition-all outline-none min-w-[100px] border" 
-    : "flex items-center gap-2 h-[46px] px-3 bg-white dark:bg-[#1E2329] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl hover:border-[#00D4B3] hover:ring-1 hover:ring-[#00D4B3]/20 transition-all outline-none min-w-[100px]";
+    : "flex items-center gap-2 h-[46px] px-3 bg-white dark:bg-carbon-800 border border-gray-200 dark:border-gray-500/30 rounded-xl hover:border-accent hover:ring-1 hover:ring-accent/20 transition-all outline-none min-w-[100px]";
 
   const dropdownClassName = customStyles
     ? "absolute top-full left-0 z-50 mt-1 w-64 max-h-60 overflow-y-auto rounded-xl shadow-xl scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700 border backdrop-blur-xl"
-    : "absolute top-full left-0 z-50 mt-1 w-64 max-h-60 overflow-y-auto bg-white dark:bg-[#1E2329] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl shadow-xl scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700";
+    : "absolute top-full left-0 z-50 mt-1 w-64 max-h-60 overflow-y-auto bg-white dark:bg-carbon-800 border border-gray-200 dark:border-gray-500/30 rounded-xl shadow-xl scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700";
 
   return (
     <div className="relative" ref={containerRef}>
@@ -71,7 +71,7 @@ export function CountrySelector({
         </span>
         <ChevronDown 
           className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
-          style={customStyles ? { color: `${customStyles.textColor}80` } : undefined}
+          style={customStyles ? { color: `color-mix(in srgb, ${customStyles.textColor} 50.2%, transparent)` } : undefined}
         />
       </button>
 
@@ -95,10 +95,10 @@ export function CountrySelector({
                   onClick={() => handleSelect(country)}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                     country.code === selectedCountryCode
-                      ? 'bg-[#00D4B3]/10 text-[#00D4B3]'
+                      ? 'bg-accent/10 text-accent'
                       : customStyles 
                         ? 'hover:bg-white/5' 
-                        : 'hover:bg-gray-50 dark:hover:bg-white/5 text-[#0A2540] dark:text-gray-300'
+                        : 'hover:bg-gray-50 dark:hover:bg-white/5 text-primary dark:text-gray-300'
                   }`}
                   style={customStyles && country.code !== selectedCountryCode ? { color: customStyles.textColor } : undefined}
                 >

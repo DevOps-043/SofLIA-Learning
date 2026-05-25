@@ -1,4 +1,5 @@
 import { logger } from '../../../../../lib/utils/logger'
+import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service'
 import { normalizeCalendarEventId } from './calendar-metrics.service'
 import {
@@ -25,7 +26,8 @@ export async function updateGoogleCalendarEvent(
     })
     const targetCalendarId = calendarId || 'primary'
 
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar-dashboard-chat',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events/${eventId}`,
       {
         method: 'PATCH',
@@ -76,7 +78,8 @@ export async function deleteGoogleCalendarEvent(
   try {
     const cleanEventId = normalizeCalendarEventId(eventId)
     const targetCalendarId = calendarId || 'primary'
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar-dashboard-chat',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events/${encodeURIComponent(cleanEventId)}`,
       {
         method: 'DELETE',
@@ -87,7 +90,8 @@ export async function deleteGoogleCalendarEvent(
     )
 
     if (response.status === 404 && targetCalendarId !== 'primary') {
-      const fallbackResponse = await fetch(
+      const fallbackResponse = await fetchWithCircuitBreaker(
+        'google-calendar-dashboard-chat',
         `https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(cleanEventId)}`,
         {
           method: 'DELETE',
@@ -145,7 +149,8 @@ export async function createGoogleCalendarEvent(
     })
     const targetCalendarId = calendarId || 'primary'
 
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'google-calendar-dashboard-chat',
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`,
       {
         method: 'POST',

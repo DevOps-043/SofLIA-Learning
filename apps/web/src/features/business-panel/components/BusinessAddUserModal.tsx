@@ -177,7 +177,7 @@ export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUse
             <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
                <div className="flex-1 overflow-y-auto px-4 pb-8 pt-6 sm:px-6 lg:px-12 lg:pb-12 space-y-8" style={{ scrollbarWidth: 'thin', scrollbarColor: `${borderColor} transparent` }}>
                   {error ? (
-                    <div className="p-4 rounded-xl border flex items-center gap-3" style={{ backgroundColor: `${theme.dangerColor}10`, borderColor: `${theme.dangerColor}20` }}>
+                    <div className="p-4 rounded-xl border flex items-center gap-3" style={{ backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 6.3%, transparent)`, borderColor: `color-mix(in srgb, ${theme.dangerColor} 12.5%, transparent)` }}>
                       <AlertCircle className="w-5 h-5 shrink-0" style={{ color: theme.dangerColor }} />
                       <span className="text-[10px] font-black uppercase flex-1" style={{ color: theme.dangerColor }}>{error}</span>
                     </div>
@@ -235,7 +235,7 @@ export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUse
                      <button type="button" onClick={onClose} disabled={isLoading} className="flex-1 sm:flex-none px-5 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all" style={{ color: mutedText, backgroundColor: inputBg, borderColor }}>{t('users.buttons.cancel')}</button>
                      <motion.button type="submit" disabled={isLoading} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-[2] sm:flex-none px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg flex items-center justify-center gap-3" style={{ backgroundColor: primaryColor, color: onPrimaryColor }}>
                         {isLoading ? (
-                          <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: `${onPrimaryColor}4D`, borderTopColor: onPrimaryColor }} />
+                          <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: `color-mix(in srgb, ${onPrimaryColor} 30.2%, transparent)`, borderTopColor: onPrimaryColor }} />
                         ) : (
                           <>
                             <span className="font-black">{t('users.buttons.create')}</span>

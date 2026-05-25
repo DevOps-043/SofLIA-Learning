@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { normalizeContentForRenderer } from "@/lib/course-content";
+import { sanitizeRichHtml } from "@/lib/security/sanitize-html";
 
 const READING_FONT_SIZES = [
   {
@@ -42,7 +43,7 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
         type="button"
         onClick={() => setFontSizeIndex((currentIndex) => Math.max(0, currentIndex - 1))}
         disabled={fontSizeIndex === 0}
-        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:border-[#0A2540]/30 hover:text-[#0A2540] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 dark:hover:text-[#00D4B3]"
+        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 dark:hover:text-accent"
         aria-label={t("reading.decreaseFontSize")}
         title={t("reading.decreaseFontSize")}
       >
@@ -59,7 +60,7 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
           )
         }
         disabled={fontSizeIndex === READING_FONT_SIZES.length - 1}
-        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:border-[#0A2540]/30 hover:text-[#0A2540] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 dark:hover:text-[#00D4B3]"
+        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 dark:hover:text-accent"
         aria-label={t("reading.increaseFontSize")}
         title={t("reading.increaseFontSize")}
       >
@@ -69,13 +70,15 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
   );
 
   if (/<[a-z][\s\S]*>/i.test(readingContent)) {
+    const sanitizedReadingContent = sanitizeRichHtml(readingContent);
+
     return (
       <div className="py-2">
         {fontSizeControls}
         <article
           className={`prose prose-slate ${fontSize.proseClassName} dark:prose-invert max-w-none text-gray-900 dark:text-white leading-relaxed overflow-x-auto [&_table]:w-full [&_table]:border-collapse [&_table]:my-6 [&_table]:text-sm [&_th]:border [&_th]:border-gray-300 dark:[&_th]:border-white/20 [&_th]:bg-gray-100 dark:[&_th]:bg-white/10 [&_th]:p-3 [&_th]:font-semibold [&_th]:text-left [&_td]:border [&_td]:border-gray-200 dark:[&_td]:border-white/10 [&_td]:p-3`}
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
-          dangerouslySetInnerHTML={{ __html: readingContent }}
+          dangerouslySetInnerHTML={{ __html: sanitizedReadingContent }}
         />
       </div>
     );

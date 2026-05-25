@@ -1,23 +1,13 @@
+import 'server-only'
 import { createClient } from '../../../lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { fromLoose } from '../../../lib/supabase/looseQuery'
+import { SELECT_COLUMNS } from '../../../lib/supabase/select-types'
 import type { Database } from '../../../lib/supabase/types'
+import { mapAuditLogEntry } from './auditLog.mapper'
+import type { AuditLogEntry } from './auditLog.types'
 
-export interface AuditLogEntry {
-  id?: string
-  user_id: string
-  admin_user_id: string
-  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'VIEW'
-  table_name: string
-  record_id: string
-  old_values?: Record<string, unknown>
-  new_values?: Record<string, unknown>
-  ip_address?: string
-  user_agent?: string
-  created_at?: string
-}
-
-type AuditLogAction = AuditLogEntry['action']
+export type { AuditLogEntry } from './auditLog.types'
 
 function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -33,32 +23,6 @@ function createAdminClient() {
       persistSession: false,
     },
   })
-}
-
-function toAuditLogAction(action: string): AuditLogAction {
-  switch (action) {
-    case 'CREATE':
-    case 'UPDATE':
-    case 'DELETE':
-    case 'VIEW':
-      return action
-    default:
-      return 'VIEW'
-  }
-}
-
-function mapAuditLogEntry(
-  entry: Database['public']['Tables']['audit_logs']['Row'],
-): AuditLogEntry {
-  return {
-    ...entry,
-    action: toAuditLogAction(entry.action),
-    old_values: (entry.old_values as Record<string, unknown> | null) || undefined,
-    new_values: (entry.new_values as Record<string, unknown> | null) || undefined,
-    ip_address: (entry.ip_address as string | null) || undefined,
-    user_agent: entry.user_agent || undefined,
-    created_at: entry.created_at || undefined,
-  }
 }
 
 export class AuditLogService {
@@ -96,7 +60,7 @@ export class AuditLogService {
 
     let query = supabase
       .from('audit_logs')
-      .select('*')
+      .select(SELECT_COLUMNS.audit_logs)
       .order('created_at', { ascending: false })
       .limit(limit)
 

@@ -1,3 +1,4 @@
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { NotificationService } from '../../../../../features/notifications/services/notification.service'
 import { requireAdmin } from '../../../../../lib/auth/requireAdmin'
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
       activities: notifications,
     })
   } catch (error: unknown) {
-    console.error('Error in GET /api/admin/activity/recent:', error)
+    techDebtLogger.error('Error in GET /api/admin/activity/recent:', error)
     return NextResponse.json(
       {
         success: false,

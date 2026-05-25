@@ -1,5 +1,6 @@
 'use client'
 
+import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useMemo } from 'react'
 import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
 import type {
@@ -106,7 +107,7 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
         setMembers(mData.company.members || [])
       }
     } catch (error) {
-      console.error('Error fetching courses data:', error)
+      techDebtLogger.error('Error fetching courses data:', error)
       showToast('Error al cargar la información', 'error')
     } finally {
       setLoading(false)

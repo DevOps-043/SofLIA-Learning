@@ -1,5 +1,5 @@
 import { logger } from '../../../../lib/logger'
-import { getServerClient } from '../auto-notifications-server-client'
+import { getSystemNotificationClient } from '../auto-notifications-server-client'
 import {
   buildNotificationInsertPayload,
   getDuplicateNotificationWindow,
@@ -12,7 +12,7 @@ async function checkDuplicateNotification(
   minutesWindow: number,
 ) {
   try {
-    const supabase = await getServerClient()
+    const supabase = await getSystemNotificationClient()
     const windowStart = new Date(Date.now() - minutesWindow * 60 * 1000)
 
     const { data, error } = await supabase
@@ -38,11 +38,11 @@ async function checkDuplicateNotification(
 export async function createNotification(
   params: CreateNotificationParams,
 ): Promise<Notification> {
-  const supabase = await getServerClient()
-
   if (!params.userId || !params.notificationType || !params.title || !params.message) {
     throw new Error('Faltan campos requeridos para crear la notificacion')
   }
+
+  const supabase = await getSystemNotificationClient()
 
   const duplicateWindow = getDuplicateNotificationWindow(params.notificationType)
   if (duplicateWindow) {
