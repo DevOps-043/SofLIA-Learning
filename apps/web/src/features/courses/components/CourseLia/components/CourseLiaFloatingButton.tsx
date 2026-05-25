@@ -23,6 +23,7 @@ export function CourseLiaFloatingButton() {
       {!isOpen && (
         <div
           data-tour="lia-button"
+          data-tour-id="soflia-floating-button"
           className="hidden md:block"
           style={{
             position: 'fixed',

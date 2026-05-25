@@ -40,6 +40,7 @@ export function LearningPathItemsRow({
 
   return (
     <div
+      data-tour-id="business-user-dashboard--learning-path-row"
       ref={(node) => setScrollerRef(learningPath.id, node)}
       className="flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >

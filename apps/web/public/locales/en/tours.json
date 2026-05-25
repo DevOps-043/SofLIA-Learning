@@ -1,0 +1,177 @@
+{
+  "actions": {
+    "next": "Next",
+    "back": "Back",
+    "skip": "Skip tour",
+    "finish": "Got it!",
+    "restart": "View guided tour",
+    "startTour": "Start tour"
+  },
+  "progress": "{{current}} of {{total}}",
+  "courseLearn": {
+    "welcome": {
+      "title": "Learn With Clarity",
+      "content": "This page brings together everything you need to move through the lesson: video, activities, questions, and support from SofLIA."
+    },
+    "header": {
+      "title": "Course Header",
+      "content": "Here you can see the course name, go back to the previous screen, and restart this tour whenever you need it."
+    },
+    "progress": {
+      "title": "Your Progress",
+      "content": "This indicator summarizes your course progress so you always know how much you have completed."
+    },
+    "sidebar": {
+      "title": "Course Content",
+      "content": "Use this panel to move through modules, lessons, materials, and notes without leaving the learning experience."
+    },
+    "moduleProgress": {
+      "title": "Module Progress",
+      "content": "These labels show how many lessons you have completed in the module and the percentage reached."
+    },
+    "currentLesson": {
+      "title": "Current Lesson",
+      "content": "The highlighted lesson marks where you are. You can switch topics from the list whenever you want to continue elsewhere."
+    },
+    "tabs": {
+      "title": "Work Modes",
+      "content": "Switch between video, activities, and questions depending on what you want to do right now."
+    },
+    "video": {
+      "title": "Lesson Video",
+      "content": "Play the main content, control your progress, and use the built-in navigation to move between lessons."
+    },
+    "resources": {
+      "title": "Transcript and Summary",
+      "content": "Review the full text or the lesson summary and turn them into notes for later study."
+    },
+    "activitiesTab": {
+      "title": "Activities",
+      "content": "Open this tab to practice what you learned, review materials, and complete exercises when they are available."
+    },
+    "activities": {
+      "title": "Guided Practice",
+      "content": "This section shows the lesson activities and supporting materials. If there is no content yet, you will see the matching empty state."
+    },
+    "questionsTab": {
+      "title": "Questions",
+      "content": "Open this area to review course questions or start a conversation with other participants."
+    },
+    "questions": {
+      "title": "Course Conversations",
+      "content": "Search existing questions or create a new one to resolve doubts about the lesson."
+    },
+    "sofliaPanel": {
+      "title": "SofLIA Panel",
+      "content": "When SofLIA is open, this is where suggestions, answers, and the lesson question field appear."
+    },
+    "soflia": {
+      "title": "Your SofLIA Assistant",
+      "content": "SofLIA helps you clarify concepts, generate notes, and connect the content with your course progress."
+    }
+  },
+  "businessUserDashboard": {
+    "welcome": {
+      "title": "Welcome to your panel",
+      "content": "Here you can find your learning paths, assigned courses, and key shortcuts to keep learning."
+    },
+    "topNav": {
+      "title": "Top Bar",
+      "content": "This area confirms the active organization and keeps your main panel shortcuts close at hand."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "content": "Check updates about courses, activities, and important changes so you can stay on track."
+    },
+    "accountMenu": {
+      "title": "Your Account",
+      "content": "Open your profile, statistics, certificates, language, and other personal options from here."
+    },
+    "hero": {
+      "title": "Panel Overview",
+      "content": "The greeting places you in your learning space and summarizes the purpose of this view."
+    },
+    "coursesHeader": {
+      "title": "Your Courses",
+      "content": "This section brings together learning paths and standalone courses assigned to your account."
+    },
+    "viewToggle": {
+      "title": "Course View",
+      "content": "Switch between grid and list view to review your courses in the format that works best for you."
+    },
+    "learningPath": {
+      "title": "Learning Path",
+      "content": "Paths organize courses by priority. Complete each step to unlock or continue the next one."
+    },
+    "introVideo": {
+      "title": "Intro Video",
+      "content": "Play this video to understand the goal of the path before you start or continue."
+    },
+    "courseRail": {
+      "title": "Course Carousel",
+      "content": "Move through the path to see available, locked, and completed courses in order."
+    },
+    "courseCard": {
+      "title": "Course Card",
+      "content": "Each card shows the cover, progress, status, and entry point for the course content."
+    },
+    "certificates": {
+      "title": "Certificates",
+      "content": "When you complete a course with a certificate, this shortcut lets you open it quickly."
+    },
+    "standalone": {
+      "title": "Standalone Courses",
+      "content": "Courses assigned outside a path appear here with their own progress and status."
+    },
+    "soflia": {
+      "title": "Your SofLIA Assistant",
+      "content": "SofLIA can help with questions about your courses, progress, or next steps whenever you need it."
+    }
+  },
+  "businessPanelDashboard": {
+    "welcome": {
+      "title": "Business Panel",
+      "content": "This panel brings together your organization's overall status, key shortcuts, and recent team activity."
+    },
+    "topNav": {
+      "title": "Top Bar",
+      "content": "Confirm the active organization here and quickly reach notifications and account options."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "content": "Review important updates about users, courses, and follow-up events across your organization."
+    },
+    "accountMenu": {
+      "title": "Account Menu",
+      "content": "Use your avatar to switch panels, edit your profile, adjust language, review certificates, or sign out."
+    },
+    "sidebar": {
+      "title": "Side Navigation",
+      "content": "Use this menu to move through users, courses, paths, structure, reports, reviews, and settings."
+    },
+    "sidebarCollapse": {
+      "title": "Adjust Menu",
+      "content": "Collapse or expand the sidebar to gain workspace without losing the main navigation."
+    },
+    "hero": {
+      "title": "Opening Summary",
+      "content": "The header gives you panel context, greets the administrator, and shows the current work date."
+    },
+    "stats": {
+      "title": "General Metrics",
+      "content": "These cards show active users, assigned courses, completions, progress, certificates, engagement, and invitations."
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "content": "Jump straight into frequent tasks such as managing users, assigning courses, opening reports, or configuring the organization."
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "content": "Check the latest team movements to spot progress, changes, or relevant pending work."
+    },
+    "soflia": {
+      "title": "Your SofLIA Assistant",
+      "content": "SofLIA can support you with panel questions, courses, team progress, or next management steps."
+    }
+  }
+}

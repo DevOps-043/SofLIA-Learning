@@ -9,7 +9,7 @@ export function ActivitiesContentShell(props: {
   const { t } = useTranslation("learn");
 
   return (
-    <div className="space-y-6 pb-24 md:pb-6">
+    <div data-tour-id="course-learn--activities-content" className="space-y-6 pb-24 md:pb-6">
       <div className="pb-4 border-b border-gray-200 dark:border-white/5">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>

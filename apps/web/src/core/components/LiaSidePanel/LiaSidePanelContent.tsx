@@ -36,6 +36,7 @@ function LiaSidePanelContent() {
       <AnimatePresence mode="wait">
         {isOpen && (
           <motion.aside
+            data-tour-id="soflia-side-panel"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}

@@ -26,6 +26,7 @@ export function DashboardHero({
 
   return (
     <div
+      data-tour-id="business-user-dashboard--hero"
       className="mb-5 scroll-mt-28 md:mb-8"
     >
       <motion.div

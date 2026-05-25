@@ -1,0 +1,5 @@
+- generic [active] [ref=e1]:
+  - link [ref=e2] [cursor=pointer]:
+    - /url: /api/_agent-trap?source=layout
+    - text: Internal diagnostics
+  - img "Logo de SofLIA Learning" [ref=e14]

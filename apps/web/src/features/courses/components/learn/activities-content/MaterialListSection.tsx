@@ -18,7 +18,7 @@ export function MaterialListSection(props: {
   }
 
   return (
-    <div>
+    <div data-tour-id="course-learn--material-list">
       <SectionCountHeader
         count={props.data.materials.length}
         icon={BookOpen}

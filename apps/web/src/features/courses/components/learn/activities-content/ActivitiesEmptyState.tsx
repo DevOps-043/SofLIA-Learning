@@ -5,7 +5,7 @@ export function ActivitiesEmptyState(props: { lessonTitle: string }) {
   const { t } = useTranslation("learn");
 
   return (
-    <div className="space-y-6 pb-24 md:pb-6">
+    <div data-tour-id="course-learn--activities-content" className="space-y-6 pb-24 md:pb-6">
       <div>
         <h2 className="text-2xl font-bold text-primary dark:text-white mb-2">
           {t("activities.title")}

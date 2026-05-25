@@ -32,6 +32,7 @@ export function CourseLiaPanelShell({
     <AnimatePresence>
       {isOpen && (
         <motion.aside
+          data-tour-id="course-learn--soflia-panel"
           ref={panelRef}
           initial={animationInitial}
           animate={animationAnimate}

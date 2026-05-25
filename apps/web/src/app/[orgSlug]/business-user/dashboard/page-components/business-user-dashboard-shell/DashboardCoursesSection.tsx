@@ -13,7 +13,7 @@ export function DashboardCoursesSection(props: DashboardCoursesSectionProps) {
     props.displayedCourses.length < props.assignedCourses.length
 
   return (
-    <section>
+    <section data-tour-id="business-user-dashboard--courses-section">
       <CourseSectionHeader
         courseView={props.courseView}
         disableHeavyEffects={props.disableHeavyEffects}

@@ -43,7 +43,7 @@ export function LearningPathView({
   }
 
   return (
-    <div className="space-y-12">
+    <div data-tour-id="business-user-dashboard--learning-paths" className="space-y-12">
       {learningPaths.map((learningPath, pathIndex) => (
         <LearningPathSection
           key={learningPath.id}

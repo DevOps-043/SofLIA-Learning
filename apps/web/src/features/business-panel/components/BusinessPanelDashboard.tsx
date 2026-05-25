@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import {
@@ -11,6 +11,8 @@ import {
 } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useBusinessPanelDashboardLogic } from '../hooks/useBusinessPanelDashboardLogic'
+import { useTour, TourTriggerButton } from '@/features/tours'
+import { businessPanelDashboardTour } from '@/features/tours/config/business-panel-dashboard.tour'
 import { StatCard } from './dashboard/StatCard'
 import { QuickAction } from './dashboard/QuickAction'
 import { ActivityItem } from './dashboard/ActivityItem'
@@ -45,11 +47,22 @@ export function BusinessPanelDashboard() {
     getBackgroundStyles,
   } = useBusinessPanelDashboardLogic()
 
+  const { restartTour, autoStartIfNeeded } = useTour(businessPanelDashboardTour)
+
+  useEffect(() => {
+    autoStartIfNeeded()
+  }, [autoStartIfNeeded])
+
   return (
-    <div className="p-3 md:p-6 lg:p-8 min-h-screen" style={getBackgroundStyles()}>
+    <div
+      data-tour-id="business-panel-dashboard--page"
+      className="p-3 md:p-6 lg:p-8 min-h-screen"
+      style={getBackgroundStyles()}
+    >
       {/* Hero Section */}
       <motion.div
         id="tour-hero-section"
+        data-tour-id="business-panel-dashboard--hero"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={interfaceTransition}
@@ -74,6 +87,10 @@ export function BusinessPanelDashboard() {
             <span className="text-[10px] md:text-sm font-medium tracking-wide uppercase" style={{ color: 'var(--color-bg-light)' }}>
               {t('dashboard.title')}
             </span>
+            <TourTriggerButton
+              onStart={restartTour}
+              className="h-7 w-7 text-white/80 hover:text-accent dark:text-white/80 dark:hover:text-accent"
+            />
           </div>
 
           <motion.h1 className="text-xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 leading-tight" style={{ color: 'var(--color-bg-light)' }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition}>
@@ -99,7 +116,7 @@ export function BusinessPanelDashboard() {
         {/* Main Content */}
         <div className="xl:col-span-3 space-y-8">
           {/* Stats Grid */}
-          <section id="tour-stats-section">
+          <section id="tour-stats-section" data-tour-id="business-panel-dashboard--stats-section">
             <motion.div className="flex items-center justify-between mb-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
               <div>
                 <h2 className="text-xl font-bold" style={{ color: themeColors.text }}>{t('dashboard.generalStats')}</h2>
@@ -115,7 +132,10 @@ export function BusinessPanelDashboard() {
               </button>
             </motion.div>
 
-            <div className={!isStatsOpenMobile ? 'hidden md:block' : 'block'}>
+            <div
+              data-tour-id="business-panel-dashboard--stats-grid"
+              className={!isStatsOpenMobile ? 'hidden md:block' : 'block'}
+            >
               {isLoading ? (
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                   {[...Array(4)].map((_, i) => (
@@ -144,7 +164,7 @@ export function BusinessPanelDashboard() {
           </section>
 
           {/* Activity Section */}
-          <section id="tour-activity-section">
+          <section id="tour-activity-section" data-tour-id="business-panel-dashboard--recent-activity">
             <motion.div className="flex items-center justify-between mb-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
               <div>
                 <h2 id="tour-activity-title" className="text-xl font-bold" style={{ color: themeColors.text }}>{t('dashboard.recentActivity.title')}</h2>
@@ -191,7 +211,7 @@ export function BusinessPanelDashboard() {
         </div>
 
         {/* Sidebar - Quick Actions */}
-        <div id="tour-quick-actions" className="xl:col-span-1">
+        <div id="tour-quick-actions" data-tour-id="business-panel-dashboard--quick-actions" className="xl:col-span-1">
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition} className="sticky top-24">
             <div id="tour-quick-actions-list">
               <div className="mb-6">

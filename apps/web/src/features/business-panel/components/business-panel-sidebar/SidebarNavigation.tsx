@@ -23,7 +23,11 @@ interface SidebarNavigationProps {
 
 export function SidebarNavigation(props: SidebarNavigationProps) {
   return (
-    <nav id="tour-sidebar-nav" className="flex-1 overflow-y-auto overflow-x-hidden py-6 px-3 custom-scrollbar relative">
+    <nav
+      id="tour-sidebar-nav"
+      data-tour-id="business-panel-dashboard--sidebar-nav"
+      className="flex-1 overflow-y-auto overflow-x-hidden py-6 px-3 custom-scrollbar relative"
+    >
       <ul className="space-y-1.5">
         {props.navigation.map(item => (
           <SidebarNavigationLink key={item.name} item={item} {...props} />

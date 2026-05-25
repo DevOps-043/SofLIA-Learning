@@ -59,7 +59,7 @@ export function CourseContentTree({
   const sortedModules = sortModules(modules);
 
   return (
-    <div className="mb-8">
+    <div data-tour-id="course-learn--content-tree" className="mb-8">
       <div className="mb-4 flex items-center justify-between gap-2">
         <h3
           className="flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-white/40"

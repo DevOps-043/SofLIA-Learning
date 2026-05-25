@@ -22,7 +22,7 @@ export function ActivityListSection(props: {
   }
 
   return (
-    <div>
+    <div data-tour-id="course-learn--activity-list">
       <SectionCountHeader
         count={props.data.activities.length}
         icon={Activity}

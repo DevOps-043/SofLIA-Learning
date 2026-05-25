@@ -56,7 +56,7 @@ export function VideoContent({
   useVideoProgressSync({ currentTimeRef, lesson, videoPlayerContext });
 
   return (
-    <div className="space-y-6 pb-16 md:pb-6">
+    <div data-tour-id="course-learn--video-content" className="space-y-6 pb-16 md:pb-6">
       <VideoPanel
         finishLabel={t("navigation.completeCourse")}
         handleAdvanceAction={handleAdvanceAction}

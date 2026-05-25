@@ -43,6 +43,7 @@ export function LearningPathCourseTile({
 
   return (
     <article
+      data-tour-id="business-user-dashboard--course-card"
       role={canOpen ? 'button' : undefined}
       tabIndex={canOpen ? 0 : -1}
       onClick={handlers.handleClick}

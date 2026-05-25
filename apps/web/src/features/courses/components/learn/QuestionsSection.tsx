@@ -89,11 +89,12 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
 
   return (
     <motion.div
+      data-tour-id="course-learn--questions-content"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="space-y-6 pb-24 md:pb-6"
     >
-      <div className="flex items-center justify-between">
+      <div data-tour-id="course-learn--questions-header" className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
             <MessageCircle className="w-5 h-5 text-white" />
@@ -108,6 +109,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
           </div>
         </div>
         <motion.button
+          data-tour-id="course-learn--new-question"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setShowCreateForm(true)}
@@ -123,6 +125,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
           <Search className="w-4 h-4" />
         </div>
         <input
+          data-tour-id="course-learn--questions-search"
           type="text"
           placeholder="Buscar en las preguntas..."
           value={searchQuery}
@@ -142,6 +145,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
 
       {questions.length === 0 ? (
         <motion.div
+          data-tour-id="course-learn--questions-empty"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/[0.02] p-12 flex flex-col items-center justify-center"

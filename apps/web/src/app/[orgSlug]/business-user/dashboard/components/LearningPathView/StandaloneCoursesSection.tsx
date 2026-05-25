@@ -45,6 +45,7 @@ export function StandaloneCoursesSection({
 
   return (
     <motion.section
+      data-tour-id="business-user-dashboard--standalone-section"
       key={STANDALONE_PATH_ID}
       initial={disableHeavyEffects ? false : { opacity: 0, y: 12 }}
       animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}

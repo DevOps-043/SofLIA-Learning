@@ -21,6 +21,7 @@ function LiaFloatingButtonContent() {
         {!isOpen ? (
           <div
             data-tour="lia-button"
+            data-tour-id="soflia-floating-button"
             style={{
               position: 'fixed',
               bottom: `${LIA_BUTTON_BOTTOM_PX}px`,
