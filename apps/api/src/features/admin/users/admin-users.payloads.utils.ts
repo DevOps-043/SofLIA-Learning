@@ -1,23 +1,26 @@
+import type { UsersTable } from '@/core/supabase/database/tables/users.table'
 import type {
   AdminUserRoleUpdateInput,
   AdminUserUpdateInput,
 } from './admin-users.types'
 
-export function buildAdminUserUpdatePayload(input: AdminUserUpdateInput) {
-  const nowIso = new Date().toISOString()
-  const payload: Record<string, unknown> = { updated_at: nowIso }
+type UserUpdatePayload = UsersTable['Update']
 
-  setIfPresent(payload, input, 'username')
-  setIfPresent(payload, input, 'email')
-  setIfPresent(payload, input, 'first_name')
-  setIfPresent(payload, input, 'last_name')
-  setIfPresent(payload, input, 'display_name')
-  setIfPresent(payload, input, 'phone')
-  setIfPresent(payload, input, 'bio')
-  setIfPresent(payload, input, 'location')
-  setIfPresent(payload, input, 'profile_picture_url')
-  setIfPresent(payload, input, 'country_code')
-  setIfPresent(payload, input, 'type_rol')
+export function buildAdminUserUpdatePayload(input: AdminUserUpdateInput): UserUpdatePayload {
+  const nowIso = new Date().toISOString()
+  const payload: UserUpdatePayload = { updated_at: nowIso }
+
+  if ('username' in input && input.username !== undefined) payload.username = input.username
+  if ('email' in input && input.email !== undefined) payload.email = input.email
+  if ('first_name' in input) payload.first_name = input.first_name ?? null
+  if ('last_name' in input) payload.last_name = input.last_name ?? null
+  if ('display_name' in input) payload.display_name = input.display_name ?? null
+  if ('phone' in input) payload.phone = input.phone ?? null
+  if ('bio' in input) payload.bio = input.bio ?? null
+  if ('location' in input) payload.location = input.location ?? null
+  if ('profile_picture_url' in input) payload.profile_picture_url = input.profile_picture_url ?? null
+  if ('country_code' in input) payload.country_code = input.country_code ?? null
+  if ('type_rol' in input) payload.type_rol = input.type_rol ?? null
 
   if ('email_verified' in input) {
     payload.email_verified = input.email_verified
@@ -27,8 +30,8 @@ export function buildAdminUserUpdatePayload(input: AdminUserUpdateInput) {
   return payload
 }
 
-export function buildAdminUserRolePayload(input: AdminUserRoleUpdateInput) {
-  const payload: Record<string, unknown> = {
+export function buildAdminUserRolePayload(input: AdminUserRoleUpdateInput): UserUpdatePayload {
+  const payload: UserUpdatePayload = {
     cargo_rol: input.role,
     updated_at: new Date().toISOString(),
   }
@@ -40,7 +43,7 @@ export function buildAdminUserRolePayload(input: AdminUserRoleUpdateInput) {
   return payload
 }
 
-export function buildAdminUserSoftDeletePayload(reason: string) {
+export function buildAdminUserSoftDeletePayload(reason: string): UserUpdatePayload {
   const nowIso = new Date().toISOString()
 
   return {
@@ -48,15 +51,5 @@ export function buildAdminUserSoftDeletePayload(reason: string) {
     banned_at: nowIso,
     ban_reason: reason,
     updated_at: nowIso,
-  }
-}
-
-function setIfPresent<T extends Record<string, unknown>>(
-  target: Record<string, unknown>,
-  source: T,
-  key: keyof T,
-) {
-  if (key in source) {
-    target[String(key)] = source[key]
   }
 }

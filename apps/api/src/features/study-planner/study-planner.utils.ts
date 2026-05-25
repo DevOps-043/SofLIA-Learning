@@ -1,3 +1,4 @@
+import type { StudySessionUpdate } from '@/core/supabase/database/tables/study-sessions.mutations'
 import type { NormalizedSessionListQuery, StudySessionListQuery } from './study-planner.types'
 
 export function normalizeSessionListQuery(
@@ -25,8 +26,8 @@ export function calculateTotalPages(total: number, limit: number): number {
 
 export function buildSessionUpdatePayload(
   data: Partial<{ title: string; startTime: string; endTime: string; status: string; notes: string }>,
-): Record<string, unknown> {
-  const payload: Record<string, unknown> = { updated_at: new Date().toISOString() }
+): StudySessionUpdate {
+  const payload: StudySessionUpdate = { updated_at: new Date().toISOString() }
 
   if (data.title !== undefined) payload.title = data.title
   if (data.startTime !== undefined) payload.start_time = data.startTime
