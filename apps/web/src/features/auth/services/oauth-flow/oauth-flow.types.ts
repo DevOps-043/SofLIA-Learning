@@ -38,6 +38,7 @@ export interface OAuthBulkInviteLinkContext {
   organizationId: string;
   currentUses: number;
   role: string;
+  token: string;
 }
 
 export interface ResolvedOAuthInvitationContext {

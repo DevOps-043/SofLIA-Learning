@@ -586,6 +586,13 @@
     }
   },
   "landing": {
+    "badges": {
+      "aiTutor": "AI Tutor",
+      "available247": "Available 24/7",
+      "completion": "Completion",
+      "mentorship": "Mentorship",
+      "learningAssistant": "Your learning assistant"
+    },
     "nav": {
       "home": "Home",
       "platform": "Platform",
@@ -853,7 +860,14 @@
       "preview": {
         "online": "Online",
         "message": "Hi! 👋 I'm SofLIA, your learning assistant. I'm here to help you reach your training goals. How can I help you today?",
-        "placeholder": "Type your question..."
+        "placeholder": "Type your question...",
+        "userLabel": "You",
+        "chat": {
+          "user1": "Hi SofLIA, what can I do here?",
+          "lia1": "This is your Dashboard. From here you can view your assigned courses, learning progress, earned certificates, and access the communities. How can I help you?",
+          "user2": "How do I view my certificates?",
+          "lia2": "You can view your certificates in the \"My Certificates\" section of the sidebar menu. There you will find all the certificates you have earned by completing courses. You can also download or share them."
+        }
       }
     },
     "security": {

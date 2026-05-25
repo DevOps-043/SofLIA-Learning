@@ -586,6 +586,13 @@
     }
   },
   "landing": {
+    "badges": {
+      "aiTutor": "Tutor IA",
+      "available247": "Disponible 24/7",
+      "completion": "Completitud",
+      "mentorship": "Mentoría",
+      "learningAssistant": "Tu asistente de aprendizaje"
+    },
     "nav": {
       "home": "Inicio",
       "platform": "Plataforma",
@@ -853,7 +860,14 @@
       "preview": {
         "online": "En línea",
         "message": "¡Hola! ðŸ‘‹ Soy SofLIA, tu asistente de aprendizaje. Estoy aquí para ayudarte a alcanzar tus metas de capacitación. ¿En qué puedo ayudarte hoy?",
-        "placeholder": "Escribe tu pregunta..."
+        "placeholder": "Escribe tu pregunta...",
+        "userLabel": "Tú",
+        "chat": {
+          "user1": "Hola SofLIA, ¿qué puedo hacer aquí?",
+          "lia1": "Este es tu Dashboard. Desde aquí puedes ver tus cursos asignados, tu progreso de aprendizaje, certificaciones obtenidas y acceder a las comunidades. ¿En qué te puedo ayudar?",
+          "user2": "¿Cómo veo mis certificados?",
+          "lia2": "Puedes ver tus certificados en la sección \"Mis Certificados\" del menú lateral. Ahí encontrarás todos los certificados que has obtenido al completar cursos. También puedes descargarlos o compartirlos."
+        }
       }
     },
     "security": {

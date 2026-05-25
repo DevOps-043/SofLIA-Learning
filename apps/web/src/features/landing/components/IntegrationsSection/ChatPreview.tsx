@@ -9,9 +9,10 @@ type Translate = (key: string, defaultValue?: string) => string
 interface ChatPreviewProps {
   disableHeavy: boolean
   t: Translate
+  chatMessages?: Array<{ type: 'user' | 'lia'; message: string }>
 }
 
-export function ChatPreview({ disableHeavy, t }: ChatPreviewProps) {
+export function ChatPreview({ disableHeavy, t, chatMessages }: ChatPreviewProps) {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.5 }} className="relative p-6 bg-gradient-to-br from-primary to-[var(--color-legacy-1a3a5c)] rounded-2xl overflow-hidden">
       {!disableHeavy && (
@@ -31,10 +32,16 @@ export function ChatPreview({ disableHeavy, t }: ChatPreviewProps) {
               {t('landing.liaSection.preview.online', 'En línea')}
             </span>
           </div>
-          <p className="text-white/50 text-xs">Tu asistente de aprendizaje</p>
+          <p className="text-white/50 text-xs">{t('landing.badges.learningAssistant', 'Tu asistente de aprendizaje')}</p>
         </div>
       </div>
-      <div className="relative">{disableHeavy ? <StaticChat /> : <AnimatedChat />}</div>
+      <div className="relative">
+        {disableHeavy ? (
+          <StaticChat messages={chatMessages || []} />
+        ) : (
+          <AnimatedChat messages={chatMessages || []} />
+        )}
+      </div>
       <div className="relative mt-4 flex items-center gap-2 p-3 bg-white/10 rounded-xl border border-white/20">
         <span className="text-white/50 text-sm flex-1">
           {t('landing.liaSection.preview.placeholder', 'Escribe tu pregunta...')}

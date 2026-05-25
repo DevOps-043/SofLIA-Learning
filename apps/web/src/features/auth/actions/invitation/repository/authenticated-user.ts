@@ -9,6 +9,11 @@ import {
 export async function resolveAuthenticatedUserId(
   supabase: unknown
 ): Promise<string | null> {
+  const nativeUserId = await resolveNativeAuthUserId(supabase)
+  if (nativeUserId) {
+    return nativeUserId
+  }
+
   const cookieStore = await cookies()
   const sessionCookie = cookieStore.get('aprende-y-aplica-session')
 
@@ -26,6 +31,23 @@ export async function resolveAuthenticatedUserId(
   }
 
   return resolveRefreshTokenUserId(supabase, cookieStore)
+}
+
+async function resolveNativeAuthUserId(supabase: unknown): Promise<string | null> {
+  const authClient = supabase as {
+    auth?: {
+      getUser?: () => Promise<{ data?: { user?: { id?: string } | null } }>
+    }
+  }
+
+  try {
+    const { data } = await (
+      authClient.auth?.getUser?.() ?? Promise.resolve({})
+    )
+    return data?.user?.id ?? null
+  } catch {
+    return null
+  }
 }
 
 async function resolveRefreshTokenUserId(

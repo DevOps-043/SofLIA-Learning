@@ -22,7 +22,7 @@ const createTransporter = () => {
 };
 
 // Email de destino para solicitudes de demo
-const DEMO_REQUEST_EMAIL = 'ernesto.hernandez@ecosdeliderazgo.com';
+const DEMO_REQUEST_EMAIL = 'ernesto.hernandez@pulsehub.mx';
 
 async function handlePost(_request: NextRequest, body: LandingContactBody) {
   const { name, email, company, source, timestamp } = body;

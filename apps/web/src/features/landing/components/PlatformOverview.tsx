@@ -214,8 +214,8 @@ export function PlatformOverview() {
                   <GraduationCap size={24} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-primary dark:text-white">Tutor IA</p>
-                  <p className="text-xs text-accent">Disponible 24/7</p>
+                  <p className="text-sm font-semibold text-primary dark:text-white">{t('landing.badges.aiTutor', 'Tutor IA')}</p>
+                  <p className="text-xs text-accent">{t('landing.badges.available247', 'Disponible 24/7')}</p>
                 </div>
               </div>
             </motion.div>
@@ -233,7 +233,7 @@ export function PlatformOverview() {
                 </div>
                 <div>
                   <p className="text-lg font-bold text-primary dark:text-white">+85%</p>
-                  <p className="text-xs text-gray-500 dark:text-white/50">Completitud</p>
+                  <p className="text-xs text-gray-500 dark:text-white/50">{t('landing.badges.completion', 'Completitud')}</p>
                 </div>
               </div>
             </motion.div>

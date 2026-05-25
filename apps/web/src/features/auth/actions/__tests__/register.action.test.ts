@@ -18,11 +18,14 @@ vi.mock('../../../../lib/supabase/server', () => ({
   createClient: createClientMock,
 }))
 
+vi.mock('server-only', () => ({}))
+
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: createAdminClientMock,
 }))
 
 vi.mock('@/features/auth/services/supabase-auth-bridge.service', () => ({
+  createSupabaseAuthUser: createAuthUserMock,
   createSupabaseAuthUserWithLegacyId: createAuthUserMock,
   deleteSupabaseAuthUser: deleteAuthUserMock,
 }))
@@ -54,7 +57,9 @@ function createRegisterFormData(overrides: Record<string, string> = {}) {
   return formData
 }
 
-function createSupabaseMock() {
+function createSupabaseMock(options: {
+  organizationUserInsertError?: { message: string }
+} = {}) {
   const usersTable = {
     select: vi.fn(() => ({
       or: vi.fn().mockResolvedValue({ data: [], error: null }),
@@ -71,11 +76,64 @@ function createSupabaseMock() {
       }
     }),
   }
+  const organizationsTable = {
+    select: vi.fn(() => ({
+      eq: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          single: vi.fn().mockResolvedValue({
+            data: {
+              id: 'org-1',
+              is_active: true,
+              slug: 'acme',
+              subscription_plan: 'business',
+              subscription_status: 'active',
+            },
+            error: null,
+          }),
+        })),
+      })),
+    })),
+  }
+  const bulkInviteLinksTable = {
+    select: vi.fn(() => ({
+      eq: vi.fn(() => ({
+        single: vi.fn().mockResolvedValue({
+          data: {
+            current_uses: 0,
+            expires_at: '2026-06-01T00:00:00.000Z',
+            id: 'bulk-1',
+            max_uses: 10,
+            organization_id: 'org-1',
+            role: 'member',
+            status: 'active',
+          },
+          error: null,
+        }),
+      })),
+    })),
+  }
+  const organizationUsersTable = {
+    insert: vi.fn().mockResolvedValue({
+      error: options.organizationUserInsertError ?? null,
+    }),
+    upsert: vi.fn().mockResolvedValue({
+      error: options.organizationUserInsertError ?? null,
+    }),
+  }
 
   return {
     from: vi.fn((tableName: string) => {
       if (tableName === 'users') {
         return usersTable
+      }
+      if (tableName === 'organizations') {
+        return organizationsTable
+      }
+      if (tableName === 'bulk_invite_links') {
+        return bulkInviteLinksTable
+      }
+      if (tableName === 'organization_users') {
+        return organizationUsersTable
       }
 
       throw new Error(`Unexpected table ${tableName}`)
@@ -125,5 +183,28 @@ describe('registerAction', () => {
       date_of_birth: null,
       gender: null,
     })
+  })
+
+  it('rolls back auth user when organization membership creation fails', async () => {
+    createClientMock.mockResolvedValue(createSupabaseMock())
+    createAdminClientMock.mockReturnValue(
+      createSupabaseMock({
+        organizationUserInsertError: { message: 'membership failed' },
+      }),
+    )
+    const { registerAction } = await import('../register')
+
+    const result = await registerAction(
+      createRegisterFormData({
+        bulkInviteToken: 'bulk-token',
+        organizationId: 'org-1',
+        organizationSlug: 'acme',
+      }),
+    )
+
+    expect(result).toEqual({
+      error: 'Error al vincular la cuenta con la organizacion',
+    })
+    expect(deleteAuthUserMock).toHaveBeenCalled()
   })
 })

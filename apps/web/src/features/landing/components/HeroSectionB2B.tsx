@@ -234,7 +234,7 @@ export function HeroSectionB2B() {
                   <CheckCircle2 size={20} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-white/50">Completitud</p>
+                  <p className="text-xs text-gray-500 dark:text-white/50">{t('landing.badges.completion', 'Completitud')}</p>
                   <p className="text-lg font-bold text-primary dark:text-white">+85%</p>
                 </div>
               </div>
@@ -251,7 +251,7 @@ export function HeroSectionB2B() {
                   <GraduationCap size={20} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-white/50">Mentoría</p>
+                  <p className="text-xs text-gray-500 dark:text-white/50">{t('landing.badges.mentorship', 'Mentoría')}</p>
                   <p className="text-lg font-bold text-accent">24/7</p>
                 </div>
               </div>

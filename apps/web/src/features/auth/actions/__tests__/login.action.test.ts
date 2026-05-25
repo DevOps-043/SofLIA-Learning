@@ -1,22 +1,30 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { createClientMock } = vi.hoisted(() => ({
-  createClientMock: vi.fn(),
+const { createAdminClientMock, headersMock } = vi.hoisted(() => ({
+  createAdminClientMock: vi.fn(),
+  headersMock: vi.fn(),
 }))
 
-vi.mock('../../../../lib/supabase/server', () => ({
-  createClient: createClientMock,
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: createAdminClientMock,
 }))
+
+vi.mock('server-only', () => ({}))
 
 vi.mock('next/headers', () => ({
   cookies: vi.fn(),
-  headers: vi.fn(),
+  headers: headersMock,
 }))
 
 vi.mock('bcryptjs', () => ({
   default: {
     compare: vi.fn(),
   },
+}))
+
+vi.mock('@/lib/auth/mfa/mfa.service', () => ({
+  getMfaStatusForLogin: vi.fn(async () => ({ enabled: false })),
+  MfaError: class MfaError extends Error {},
 }))
 
 function createLoginFormData(overrides: Record<string, string> = {}) {
@@ -36,41 +44,38 @@ function createLoginFormData(overrides: Record<string, string> = {}) {
 }
 
 function createSupabaseMock(params: {
-  oauthProviders?: Array<{ provider: string | null }>
   user?: Record<string, unknown> | null
 }) {
   const user = params.user ?? {
     ban_reason: null,
     cargo_rol: 'Usuario',
+    display_name: 'Ada',
     email: 'ada@example.com',
     email_verified: true,
+    first_name: 'Ada',
     id: 'user-1',
     is_banned: false,
-    oauth_provider: null,
-    password_hash: '',
+    last_name: 'Lovelace',
+    password_hash: null,
+    profile_picture_url: null,
     username: 'ada',
   }
 
   return {
+    auth: {
+      admin: {
+        getUserById: vi.fn(async () => ({
+          data: { user: null },
+          error: { message: 'not found', status: 404 },
+        })),
+      },
+    },
     from: vi.fn((tableName: string) => {
       if (tableName === 'users') {
         return {
           select: vi.fn(() => ({
-            or: vi.fn(() => ({
+            ilike: vi.fn(() => ({
               maybeSingle: vi.fn().mockResolvedValue({ data: user, error: null }),
-            })),
-          })),
-        }
-      }
-
-      if (tableName === 'oauth_accounts') {
-        return {
-          select: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              in: vi.fn().mockResolvedValue({
-                data: params.oauthProviders ?? [],
-                error: null,
-              }),
             })),
           })),
         }
@@ -84,45 +89,26 @@ function createSupabaseMock(params: {
 describe('loginAction', () => {
   beforeEach(() => {
     vi.resetModules()
-    createClientMock.mockReset()
+    createAdminClientMock.mockReset()
+    headersMock.mockResolvedValue(new Headers())
   })
 
-  it('returns a provider-specific error for OAuth accounts without local password', async () => {
-    createClientMock.mockResolvedValue(
-      createSupabaseMock({
-        oauthProviders: [{ provider: 'google' }],
-      }),
-    )
+  it('returns the legacy account configuration error when no Supabase Auth user or password hash exists', async () => {
+    createAdminClientMock.mockReturnValue(createSupabaseMock({}))
 
     const { loginAction } = await import('../login')
     const result = await loginAction(createLoginFormData())
 
     expect(result).toEqual({
-      error: 'Cuenta registrada con OAuth. Inicia sesion con Google.',
-      errorCode: 'oauth_account_login_required',
-      providers: ['google'],
+      error: 'Error en la configuracion de la cuenta. Por favor, contacta al soporte.',
     })
   })
 
-  it('keeps the existing generic error for non-OAuth accounts without local password', async () => {
-    createClientMock.mockResolvedValue(
+  it('returns invalid credentials when legacy password validation fails', async () => {
+    const bcrypt = await import('bcryptjs')
+    vi.mocked(bcrypt.default.compare).mockResolvedValue(false as never)
+    createAdminClientMock.mockReturnValue(
       createSupabaseMock({
-        oauthProviders: [],
-      }),
-    )
-
-    const { loginAction } = await import('../login')
-    const result = await loginAction(createLoginFormData())
-
-    expect(result).toEqual({
-      error: 'Error en la configuración de la cuenta. Por favor, contacta al soporte.',
-    })
-  })
-
-  it('blocks normal login for linked OAuth accounts even when a password hash exists', async () => {
-    createClientMock.mockResolvedValue(
-      createSupabaseMock({
-        oauthProviders: [{ provider: 'microsoft' }],
         user: {
           ban_reason: null,
           cargo_rol: 'Usuario',
@@ -130,7 +116,6 @@ describe('loginAction', () => {
           email_verified: true,
           id: 'user-1',
           is_banned: false,
-          oauth_provider: null,
           password_hash: '$2a$12$valid-bcrypt-like-value',
           username: 'ada',
         },
@@ -140,10 +125,6 @@ describe('loginAction', () => {
     const { loginAction } = await import('../login')
     const result = await loginAction(createLoginFormData())
 
-    expect(result).toEqual({
-      error: 'Cuenta registrada con OAuth. Inicia sesion con Microsoft.',
-      errorCode: 'oauth_account_login_required',
-      providers: ['microsoft'],
-    })
+    expect(result).toEqual({ error: 'Credenciales invalidas' })
   })
 })

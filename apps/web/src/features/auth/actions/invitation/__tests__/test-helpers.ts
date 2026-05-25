@@ -14,6 +14,7 @@ export function createInvitationRepositoryMock(
     addOrganizationMembership: vi.fn(async () => undefined),
     acceptInvitation: vi.fn(async () => undefined),
     createBulkInviteRegistration: vi.fn(async () => undefined),
+    deleteOrganizationMembership: vi.fn(async () => undefined),
     createInvitation: vi.fn(async () => ({ id: 'inv-1' })),
     findOrganizationMembership: vi.fn(async () => null),
     findPendingInvitationByEmail: vi.fn(async () => null),

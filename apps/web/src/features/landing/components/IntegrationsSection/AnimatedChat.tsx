@@ -2,14 +2,21 @@
 
 import { useEffect, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { ChatMessage } from './ChatMessage'
-import { chatConversation } from './data'
 import { TypingIndicator } from './TypingIndicator'
 
 const MESSAGE_DELAYS = [500, 3500, 7000, 10500]
 const TYPING_DELAYS = [0, 2500, 5500, 9000]
 
-export function AnimatedChat() {
+interface AnimatedChatProps {
+  messages: Array<{ type: 'user' | 'lia'; message: string }>
+}
+
+export function AnimatedChat({ messages }: AnimatedChatProps) {
+  const { t } = useTranslation('common')
+  const userLabel = t('landing.liaSection.preview.userLabel', 'TÚ').toUpperCase()
+
   const [visibleMessages, setVisibleMessages] = useState<number[]>([])
   const [typingMessageIndex, setTypingMessageIndex] = useState<number | null>(null)
   const [showTypingIndicator, setShowTypingIndicator] = useState(false)
@@ -20,7 +27,7 @@ export function AnimatedChat() {
     setTypingMessageIndex(null)
     setShowTypingIndicator(false)
     const timeouts: NodeJS.Timeout[] = []
-    chatConversation.forEach((message, index) => {
+    messages.forEach((message, index) => {
       if (message.type === 'lia') {
         timeouts.push(setTimeout(() => setShowTypingIndicator(true), TYPING_DELAYS[index]))
       }
@@ -32,12 +39,12 @@ export function AnimatedChat() {
     })
     timeouts.push(setTimeout(() => setCycleKey((previous) => previous + 1), 25000))
     return () => timeouts.forEach((timeout) => clearTimeout(timeout))
-  }, [cycleKey])
+  }, [cycleKey, messages])
 
   return (
     <div className="space-y-4 min-h-[280px]">
       <AnimatePresence mode="sync">
-        {chatConversation.map((message, index) =>
+        {messages.map((message, index) =>
           visibleMessages.includes(index) ? (
             <ChatMessage
               key={`${cycleKey}-${index}`}
@@ -46,6 +53,7 @@ export function AnimatedChat() {
               isTyping={typingMessageIndex === index}
               message={message.message}
               type={message.type}
+              userLabel={userLabel}
               onTypingComplete={() => setTypingMessageIndex(null)}
             />
           ) : null

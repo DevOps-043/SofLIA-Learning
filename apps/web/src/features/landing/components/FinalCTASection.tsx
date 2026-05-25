@@ -195,11 +195,10 @@ export function FinalCTASection() {
                   )}
                 </motion.button>
 
-                {/* Secondary Option */}
                 <p className="text-center text-white/40 text-sm">
                   {t('landing.cta.form.alternative', '¿Prefieres contactarnos directamente?')}{' '}
-                  <a href="mailto:ernesto.hernandez@ecosdeliderazgo.com" className="text-accent hover:underline">
-                    ernesto.hernandez@ecosdeliderazgo.com
+                  <a href="mailto:ernesto.hernandez@pulsehub.mx" className="text-accent hover:underline">
+                    ernesto.hernandez@pulsehub.mx
                   </a>
                 </p>
               </form>

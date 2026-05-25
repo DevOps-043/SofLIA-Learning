@@ -1,5 +1,3 @@
-import crypto from 'crypto'
-
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { createClient } from '@/lib/supabase/server'
 import {
@@ -7,9 +5,10 @@ import {
   normalizeGenderForStorage,
 } from '@/lib/schemas/user-demographics.schema'
 import {
-  createSupabaseAuthUserWithLegacyId,
-  deleteSupabaseAuthUser,
-} from '@/features/auth/services/supabase-auth-bridge.service'
+  mapProvisioningError,
+  provisionAuthAccount,
+  rollbackProvisionedAuthAccount,
+} from '@/features/auth/services/auth-account-provisioning.service'
 
 import {
   buildUserDataFromCsvLine,
@@ -102,26 +101,26 @@ export async function importBusinessUsersFromCsv(params: {
 
   const authReadyRows: AuthReadyImportRow[] = []
   for (const row of rowsToCreate) {
-    const userId = crypto.randomUUID()
     try {
-      await createSupabaseAuthUserWithLegacyId({
-        cargo_rol: 'Business User',
-        display_name: row.userData.display_name ||
+      const provisioned = await provisionAuthAccount({
+        cargoRol: 'Business',
+        dateOfBirth: normalizeDateOfBirthForStorage(row.validation.demographics.date_of_birth),
+        displayName: row.userData.display_name ||
           `${row.userData.first_name || ''} ${row.userData.last_name || ''}`.trim() ||
           null,
         email: row.userData.email,
-        email_verified: true,
-        first_name: row.userData.first_name || null,
-        id: userId,
-        last_name: row.userData.last_name || null,
+        emailVerified: true,
+        firstName: row.userData.first_name || null,
+        gender: normalizeGenderForStorage(row.validation.demographics.gender),
+        lastName: row.userData.last_name || null,
         password: row.validation.password,
         username: row.userData.username,
       })
-      authReadyRows.push({ ...row, userId })
+      authReadyRows.push({ ...row, userId: provisioned.userId })
     } catch (error) {
       result.errors.push({
         row: row.rowNumber,
-        error: error instanceof Error ? error.message : 'Error al crear usuario Auth',
+        error: error instanceof Error ? mapProvisioningError(error) : 'Error al crear usuario Auth',
         data: row.userData,
       })
     }
@@ -132,12 +131,12 @@ export async function importBusinessUsersFromCsv(params: {
   }
 
   const usersToInsert = authReadyRows.map((row) =>
-    buildUserInsertData(row, params.organizationId),
+    buildUserInsertData(row),
   )
 
   const { data: createdUsers, error: usersError } = await supabase
     .from('users')
-    .insert(usersToInsert)
+      .upsert(usersToInsert, { onConflict: 'id' })
     .select('id, email, username')
 
   if (usersError || !createdUsers) {
@@ -322,7 +321,6 @@ async function loadExistingMemberships(
 
 function buildUserInsertData(
   row: AuthReadyImportRow,
-  organizationId: string,
 ): UserInsertData {
   const { userData, validation } = row
 
@@ -335,9 +333,7 @@ function buildUserInsertData(
     display_name: userData.display_name ||
       `${userData.first_name || ''} ${userData.last_name || ''}`.trim() ||
       null,
-    cargo_rol: 'Business User',
-    type_rol: 'Business User',
-    organization_id: organizationId,
+    cargo_rol: 'Business',
     date_of_birth: normalizeDateOfBirthForStorage(validation.demographics.date_of_birth),
     gender: normalizeGenderForStorage(validation.demographics.gender),
   }
@@ -382,7 +378,7 @@ async function rollbackCreatedUsers(
 
 async function rollbackAuthUsers(userIds: string[]) {
   for (const userId of userIds) {
-    await deleteSupabaseAuthUser(userId)
+    await rollbackProvisionedAuthAccount(userId)
   }
 }
 

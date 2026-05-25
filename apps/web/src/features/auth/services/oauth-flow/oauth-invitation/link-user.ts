@@ -1,9 +1,9 @@
-import { fromLoose } from '@/lib/supabase/looseQuery';
+import { logger } from '@/lib/logger';
+import { createInvitationRepository } from '@/features/auth/actions/invitation/repository';
+import { finalizeBulkInviteRegistration } from '@/features/auth/actions/invitation/invitation-redemption.service';
 
 import { consumeInvitation } from './membership';
 import type {
-  BulkInviteLinkRow,
-  BulkInviteRegistrationInsert,
   LinkOAuthUserToOrganizationInput,
 } from './types';
 
@@ -44,29 +44,36 @@ export async function linkOAuthUserToOrganization({
     throw new Error('No se pudo vincular el usuario a la organizacion');
   }
 
-  if (bulkInviteLink) {
-    await registerBulkInviteUse({ bulkInviteLink, supabase, userId });
+  if (!bulkInviteLink) {
+    await consumeInvitation(supabase, orgContext.invToken ?? email, orgContext.orgId);
     return;
   }
 
-  await consumeInvitation(supabase, orgContext.invToken ?? email, orgContext.orgId);
-}
+  const repository = createInvitationRepository(supabase);
+  const usageResult = await finalizeBulkInviteRegistration(
+    repository,
+    bulkInviteLink.token,
+    orgContext.orgId,
+    userId,
+  );
 
-async function registerBulkInviteUse(input: {
-  bulkInviteLink: NonNullable<LinkOAuthUserToOrganizationInput['bulkInviteLink']>;
-  supabase: LinkOAuthUserToOrganizationInput['supabase'];
-  userId: string;
-}) {
-  await fromLoose<BulkInviteRegistrationInsert, BulkInviteRegistrationInsert>(
-    input.supabase,
-    'bulk_invite_registrations'
-  ).insert({
-    bulk_invite_link_id: input.bulkInviteLink.id,
-    registered_at: new Date().toISOString(),
-    user_id: input.userId,
-  });
+  if (usageResult.success) {
+    return;
+  }
 
-  await fromLoose<BulkInviteLinkRow>(input.supabase, 'bulk_invite_links')
-    .update({ current_uses: input.bulkInviteLink.currentUses + 1 })
-    .eq('id', input.bulkInviteLink.id);
+  const { error: cleanupError } = await supabase
+    .from('organization_users')
+    .delete()
+    .eq('organization_id', orgContext.orgId)
+    .eq('user_id', userId);
+
+  if (cleanupError) {
+    logger.warn('OAuth invitation membership cleanup failed after bulk use error', {
+      error: cleanupError.message,
+      organizationId: orgContext.orgId,
+      userId,
+    });
+  }
+
+  throw new Error(usageResult.error || 'No se pudo consumir el enlace de invitacion');
 }

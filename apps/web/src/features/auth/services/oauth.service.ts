@@ -9,7 +9,7 @@ import {
   OAuthUserRecord,
 } from '../types/oauth.types';
 import {
-  createSupabaseAuthUserRecordWithLegacyId,
+  createSupabaseAuthUserRecord,
   deleteSupabaseAuthUser,
 } from './supabase-auth-bridge.service';
 
@@ -247,24 +247,24 @@ export class OAuthService {
         ? baseUsername
         : `${baseUsername}${Math.floor(Math.random() * 10000)}`;
 
-      const userId = crypto.randomUUID();
+      let userId = '';
 
       try {
-        await createSupabaseAuthUserRecordWithLegacyId({
+        const authUser = await createSupabaseAuthUserRecord({
           cargo_rol: cargoRol || 'Usuario',
           display_name: `${firstName} ${lastName}`.trim(),
           email,
           email_verified: true,
           first_name: firstName,
-          id: userId,
           last_name: lastName,
           profile_picture_url: profilePicture || null,
           username,
         });
+        userId = authUser.id;
 
         const { data, error } = await supabase
           .from('users')
-          .insert({
+          .upsert({
             id: userId,
             username,
             email,
@@ -275,7 +275,7 @@ export class OAuthService {
             profile_picture_url: profilePicture || null,
             cargo_rol: cargoRol || 'Usuario',
             // NOTA: type_rol fue eliminado - el cargo va en organization_users.job_title
-          })
+          }, { onConflict: 'id' })
           .select()
           .single();
 

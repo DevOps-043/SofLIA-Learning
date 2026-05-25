@@ -110,6 +110,7 @@ describe('invitation-consumption.service', () => {
       success: true,
     })
     expect(repo.addOrganizationMembership).toHaveBeenCalledWith({
+      jobTitle: null,
       joinedAt: '2026-04-02T12:00:00.000Z',
       organizationId: 'org-1',
       role: 'admin',
@@ -124,5 +125,66 @@ describe('invitation-consumption.service', () => {
     )
     expect(repo.setUserBusinessRole).toHaveBeenCalledWith('user-1')
     expect(repo.createBulkInviteRegistration).toHaveBeenCalledWith('link-1', 'user-1')
+  })
+
+  it('does not reserve bulk usage when membership creation fails', async () => {
+    const repo = createInvitationRepositoryMock({
+      addOrganizationMembership: vi.fn(async () => {
+        throw new Error('membership failed')
+      }),
+      getBulkInviteLinkByToken: vi.fn(async () => ({
+        currentUses: 1,
+        expiresAt: '2026-04-03T12:00:00.000Z',
+        id: 'link-1',
+        maxUses: 4,
+        organizationId: 'org-1',
+        role: 'member',
+        status: 'active',
+      })),
+      resolveAuthenticatedUserId: vi.fn(async () => 'user-1'),
+    })
+    const runtime = createInvitationRuntimeMock({ repo })
+
+    await expect(consumeBulkInvitation('token-1', 'user-1', runtime)).resolves.toEqual({
+      error: 'Error interno al procesar invitacion',
+      success: false,
+    })
+    expect(repo.reserveBulkInviteUse).not.toHaveBeenCalled()
+    expect(repo.createBulkInviteRegistration).not.toHaveBeenCalled()
+  })
+
+  it('removes the new membership when bulk usage reservation fails', async () => {
+    const repo = createInvitationRepositoryMock({
+      getBulkInviteLinkByToken: vi
+        .fn()
+        .mockResolvedValueOnce({
+          currentUses: 1,
+          expiresAt: '2026-04-03T12:00:00.000Z',
+          id: 'link-1',
+          maxUses: 2,
+          organizationId: 'org-1',
+          role: 'member',
+          status: 'active',
+        })
+        .mockResolvedValueOnce({
+          currentUses: 2,
+          expiresAt: '2026-04-03T12:00:00.000Z',
+          id: 'link-1',
+          maxUses: 2,
+          organizationId: 'org-1',
+          role: 'member',
+          status: 'active',
+        }),
+      reserveBulkInviteUse: vi.fn(async () => false),
+      resolveAuthenticatedUserId: vi.fn(async () => 'user-1'),
+    })
+    const runtime = createInvitationRuntimeMock({ repo })
+
+    await expect(consumeBulkInvitation('token-1', 'user-1', runtime)).resolves.toEqual({
+      error: 'Este enlace ha alcanzado el limite de registros',
+      success: false,
+    })
+    expect(repo.deleteOrganizationMembership).toHaveBeenCalledWith('user-1', 'org-1')
+    expect(repo.setUserBusinessRole).not.toHaveBeenCalled()
   })
 })
