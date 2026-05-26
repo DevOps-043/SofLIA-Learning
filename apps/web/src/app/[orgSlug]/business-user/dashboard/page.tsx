@@ -16,8 +16,10 @@ export default function BusinessUserDashboardPage() {
 
   useEffect(() => {
     if (!logic.loading && !logic.error) {
-      autoStartIfNeeded()
+      return autoStartIfNeeded()
     }
+
+    return undefined
   }, [autoStartIfNeeded, logic.error, logic.loading])
 
   if (logic.loading) {

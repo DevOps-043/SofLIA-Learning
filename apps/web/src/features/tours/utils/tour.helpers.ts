@@ -10,6 +10,10 @@ export function isMobileViewport(): boolean {
   return window.innerWidth < 768
 }
 
+export function shouldAutoStartTour(): boolean {
+  return !isMobileViewport()
+}
+
 function targetExists(target: string): boolean {
   if (typeof document === 'undefined') {
     return true

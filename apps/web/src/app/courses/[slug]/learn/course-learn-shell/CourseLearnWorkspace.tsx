@@ -18,7 +18,7 @@ export function CourseLearnWorkspace({ logic, shell }: { logic: LearnPageLogicRe
   const { restartTour, autoStartIfNeeded } = useTour(courseLearnTour)
 
   useEffect(() => {
-    autoStartIfNeeded()
+    return autoStartIfNeeded()
   }, [autoStartIfNeeded])
 
   return (

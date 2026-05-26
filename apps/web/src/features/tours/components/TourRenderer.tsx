@@ -86,6 +86,7 @@ export function TourRenderer() {
       }
 
       if (data.status === STATUS.SKIPPED) {
+        markCompleted(activeTourConfig.id)
         stopTour()
         return
       }
@@ -93,6 +94,12 @@ export function TourRenderer() {
       if (data.type === EVENTS.TARGET_NOT_FOUND) {
         if (data.action === ACTIONS.PREV) {
           prevStep()
+          return
+        }
+
+        if (data.index >= data.size - 1) {
+          markCompleted(activeTourConfig.id)
+          stopTour()
           return
         }
 

@@ -50,7 +50,7 @@ export function BusinessPanelDashboard() {
   const { restartTour, autoStartIfNeeded } = useTour(businessPanelDashboardTour)
 
   useEffect(() => {
-    autoStartIfNeeded()
+    return autoStartIfNeeded()
   }, [autoStartIfNeeded])
 
   return (

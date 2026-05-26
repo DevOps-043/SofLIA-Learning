@@ -4,7 +4,7 @@ import { useCallback } from 'react'
 
 import { useTourStore } from '../tour.store'
 import type { TourConfig } from '../types'
-import { resolveSteps, TOUR_AUTOSTART_DELAY_MS } from '../utils/tour.helpers'
+import { resolveSteps, shouldAutoStartTour, TOUR_AUTOSTART_DELAY_MS } from '../utils/tour.helpers'
 
 export function useTour(config: TourConfig): {
   startTour: () => void
@@ -14,7 +14,7 @@ export function useTour(config: TourConfig): {
   currentStep: number
   totalSteps: number
   hasCompleted: boolean
-  autoStartIfNeeded: () => void
+  autoStartIfNeeded: () => (() => void) | undefined
 } {
   const startTourAction = useTourStore((state) => state.startTour)
   const stopTourAction = useTourStore((state) => state.stopTour)
@@ -39,14 +39,26 @@ export function useTour(config: TourConfig): {
   }, [config.id, resetTourAction, startTour, stopTourAction])
 
   const autoStartIfNeeded = useCallback(() => {
-    if (!config.autoStart || hasCompleted || isRunning) {
-      return
+    if (!config.autoStart || hasCompleted || isRunning || !shouldAutoStartTour()) {
+      return undefined
     }
 
-    window.setTimeout(() => {
+    const timeoutId = window.setTimeout(() => {
+      const tourState = useTourStore.getState()
+
+      if (
+        tourState.isRunning ||
+        tourState.completedTours.includes(config.id) ||
+        !shouldAutoStartTour()
+      ) {
+        return
+      }
+
       startTour()
     }, TOUR_AUTOSTART_DELAY_MS)
-  }, [config.autoStart, hasCompleted, isRunning, startTour])
+
+    return () => window.clearTimeout(timeoutId)
+  }, [config.autoStart, config.id, hasCompleted, isRunning, startTour])
 
   return {
     startTour,
