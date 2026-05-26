@@ -1,6 +1,7 @@
 import type { GetUserSkillsFunction } from './get-user-skills.function'
 import type { GetUserWarningHistoryFunction } from './get-user-warning-history.function'
 import type { GetUserWarningsCountFunction } from './get-user-warnings-count.function'
+import type { GetUnreadNotificationsCountFunction } from './get-unread-notifications-count.function'
 import type { IsActiveTeamMemberFunction } from './is-active-team-member.function'
 import type { IsTeamLeaderOrColeaderFunction } from './is-team-leader-or-coleader.function'
 import type { IsUserBannedFunction } from './is-user-banned.function'
@@ -20,6 +21,7 @@ import type { UpdateTokenUsageFunction } from './update-token-usage.function'
 import type { ValidateCertificateFunction } from './validate-certificate.function'
 
 export type PublicFunctionsGroup03 = {
+  get_unread_notifications_count: GetUnreadNotificationsCountFunction
   get_user_skills: GetUserSkillsFunction
   get_user_warning_history: GetUserWarningHistoryFunction
   get_user_warnings_count: GetUserWarningsCountFunction

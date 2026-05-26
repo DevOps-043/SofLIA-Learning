@@ -2,8 +2,6 @@ import { cloneElement, type CSSProperties, type ReactElement } from 'react'
 import { GraduationCap, LayoutGrid, List } from 'lucide-react'
 import { motion, type Transition } from 'framer-motion'
 
-import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '@/core/constants/tourTargets'
-
 import type { BusinessUserDashboardShellProps, CourseViewMode } from './types'
 
 interface CourseSectionHeaderProps {
@@ -53,7 +51,6 @@ export function CourseSectionHeader({
       </div>
       {hasCourses ? (
         <div
-          id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.courseViewSwitcher}
           className="flex shrink-0 items-center rounded-lg border p-1"
           style={{ backgroundColor: `color-mix(in srgb, ${orgColors.cardBg} 50.2%, transparent)`, borderColor: orgColors.border }}
         >

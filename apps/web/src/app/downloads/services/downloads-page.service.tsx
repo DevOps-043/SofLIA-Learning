@@ -110,18 +110,22 @@ export function mapReleaseChangelogs(
   }))
 }
 
-export function getDownloadsErrorMessage(error: unknown): string {
+export function getDownloadsErrorMessage(error: unknown, t?: (key: string) => string): string {
   if (error instanceof Error) {
     if (error.message === 'rate_limit') {
-      return 'Se excedio el limite de peticiones a GitHub. Intenta de nuevo en unos minutos.'
+      return t
+        ? t('downloadsPage.hero.errorRateLimit')
+        : 'Se excedio el limite de peticiones a GitHub. Intenta de nuevo en unos minutos.'
     }
 
     if (error.message === 'not_found') {
-      return 'No se encontraron releases disponibles.'
+      return t ? t('downloadsPage.hero.errorNotFound') : 'No se encontraron releases disponibles.'
     }
   }
 
-  return 'No se pudo conectar con el servidor de descargas. Verifica tu conexion a internet.'
+  return t
+    ? t('downloadsPage.hero.errorGeneric')
+    : 'No se pudo conectar con el servidor de descargas. Verifica tu conexion a internet.'
 }
 
 export function parseReleaseNotes(notes: string): ParsedReleaseNotes {

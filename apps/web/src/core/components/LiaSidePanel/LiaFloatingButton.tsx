@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import { TourRestartButton } from '../tours/TourRestartButton';
-import { SHARED_TOUR_TARGET_IDS } from '../../constants/tourTargets';
 import { useLiaPanel } from '../../contexts/LiaPanelContext';
 import { useMotionSafe } from '../../../lib/utils/motion';
 
@@ -19,20 +17,9 @@ function LiaFloatingButtonContent() {
 
   return (
     <>
-      {!isOpen ? (
-        <TourRestartButton
-          anchor={{
-            bottom: LIA_BUTTON_BOTTOM_PX,
-            right: LIA_BUTTON_RIGHT_PX,
-            size: LIA_BUTTON_SIZE_PX,
-          }}
-        />
-      ) : null}
-
       <AnimatePresence>
         {!isOpen ? (
           <div
-            id={SHARED_TOUR_TARGET_IDS.liaTrigger}
             data-tour="lia-button"
             style={{
               position: 'fixed',

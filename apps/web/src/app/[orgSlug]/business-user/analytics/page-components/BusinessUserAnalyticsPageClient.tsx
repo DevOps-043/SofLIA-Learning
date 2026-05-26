@@ -33,15 +33,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { JoyrideClient } from '@/features/tours/components/JoyrideClient'
 import { useTranslation } from 'react-i18next'
-import { BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS } from '@/core/constants/tourTargets'
 import { cn } from '@/shared/utils/cn'
-import { useJoyrideMinitour } from '@/features/tours/hooks/useJoyrideMinitour'
-import {
-  BUSINESS_USER_ANALYTICS_MINITOUR_ID,
-  buildBusinessUserAnalyticsMinitourSteps,
-} from '@/features/tours/config/business-user-analytics-minitour-steps'
 import type {
   BusinessUserAnalyticsInsights,
   BusinessUserAnalyticsInsightsResponse,
@@ -89,16 +82,6 @@ export function BusinessUserAnalyticsPageClient() {
     (key: string, values?: Record<string, unknown>) => String(t(key, values)),
     [t],
   )
-  const tourSteps = useMemo(
-    () => buildBusinessUserAnalyticsMinitourSteps((key) => String(t(key))),
-    [t],
-  )
-  const analyticsTour = useJoyrideMinitour({
-    enabled: loadState === 'ready' && Boolean(analytics),
-    label: String(t('analytics.actions.restartTour')),
-    steps: tourSteps,
-    tourId: BUSINESS_USER_ANALYTICS_MINITOUR_ID,
-  })
 
   const loadAnalytics = useCallback(async () => {
     if (!orgSlug) return
@@ -210,7 +193,7 @@ export function BusinessUserAnalyticsPageClient() {
   return (
     <main className="min-h-screen bg-[var(--color-bg-light)] text-gray-900 dark:bg-[var(--color-bg-dark)] dark:text-white">
       <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10">
-        <header id={BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS.header} className="flex flex-col gap-4 border-b border-gray-200 pb-5 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
+        <header className="flex flex-col gap-4 border-b border-gray-200 pb-5 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-3">
             <button
               type="button"
@@ -233,7 +216,7 @@ export function BusinessUserAnalyticsPageClient() {
             </div>
           </div>
 
-          <div id={BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS.rangeControls} className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {RANGE_OPTIONS.map((option) => (
               <button
                 key={option}
@@ -271,7 +254,7 @@ export function BusinessUserAnalyticsPageClient() {
           />
         ) : analytics ? (
           <>
-            <section id={BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS.metrics} className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <MetricCard
                 icon={BookOpen}
                 label={t('analytics.metrics.averageProgress')}
@@ -310,7 +293,7 @@ export function BusinessUserAnalyticsPageClient() {
             </section>
 
             <section className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(360px,0.8fr)]">
-              <div id={BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS.courseProgress}>
+              <div>
                 <Panel
                   icon={BarChart3}
                   title={t('analytics.sections.courseProgress')}
@@ -386,7 +369,7 @@ export function BusinessUserAnalyticsPageClient() {
             </section>
 
             <section className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-              <div id={BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS.aiAdoption}>
+              <div>
                 <Panel
                   icon={MessageSquare}
                   title={t('analytics.sections.aiAdoption')}
@@ -480,7 +463,7 @@ export function BusinessUserAnalyticsPageClient() {
               </Panel>
             </section>
 
-            <div id={BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS.feedback}>
+            <div>
               <Panel
                 icon={Sparkles}
                 title={t('analytics.sections.feedback')}
@@ -517,7 +500,7 @@ export function BusinessUserAnalyticsPageClient() {
               </Panel>
             </div>
 
-            <div id={BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS.heatmap}>
+            <div>
               <Panel
                 icon={CalendarCheck}
                 title={t('analytics.sections.heatmap')}
@@ -535,9 +518,6 @@ export function BusinessUserAnalyticsPageClient() {
           </>
         ) : null}
       </div>
-      {analyticsTour.isMounted && analyticsTour.run ? (
-        <JoyrideClient {...analyticsTour.joyrideProps} />
-      ) : null}
     </main>
   )
 }

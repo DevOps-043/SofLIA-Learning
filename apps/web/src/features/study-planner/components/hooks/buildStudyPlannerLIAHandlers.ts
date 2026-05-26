@@ -22,12 +22,10 @@ type PlanningFlowHandlers = Record<PlanningFlowHandlerKey, unknown>
 export function buildStudyPlannerLIAHandlers(params: {
   interactionHandlers: Record<string, unknown>
   planningFlow: PlanningFlowHandlers
-  restartTour: () => void
 }) {
-  const { interactionHandlers, planningFlow, restartTour } = params
+  const { interactionHandlers, planningFlow } = params
 
   return {
-    restartTour,
     ...interactionHandlers,
     analyzeCalendarAndSuggest: planningFlow.analyzeCalendarAndSuggest,
     analyzeCalendarAndSuggestB2B: planningFlow.analyzeCalendarAndSuggestB2B,

@@ -1,17 +1,10 @@
 'use client'
 
-import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { useBusinessUsersPageLogic } from '@/features/business-panel/hooks/useBusinessUsersPageLogic'
-import { JoyrideClient } from '@/features/tours/components/JoyrideClient'
-import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
-import {
-  ADMIN_USERS_TOUR_ID,
-  getAdminUsersSteps,
-} from '@/features/tours/config/business-panel/admin-users-steps'
 
 import { BusinessUsersErrorBanner } from './components/BusinessUsersErrorBanner'
 import { BusinessUsersLoadingState } from './components/BusinessUsersLoadingState'
@@ -25,12 +18,6 @@ export default function BusinessPanelUsersPage() {
   const { t } = useTranslation('business')
   const theme = useBusinessPanelTheme()
   const logic = useBusinessUsersPageLogic()
-  const tourSteps = useMemo(() => getAdminUsersSteps(t), [t])
-  const { joyrideProps } = useFeatureTour({
-    tourId: ADMIN_USERS_TOUR_ID,
-    steps: tourSteps,
-    enabled: !logic.isLoading,
-  })
 
   if (logic.isLoading) {
     return <BusinessUsersLoadingState />
@@ -38,7 +25,6 @@ export default function BusinessPanelUsersPage() {
 
   return (
     <>
-      {joyrideProps.run ? <JoyrideClient {...joyrideProps} /> : null}
       <div
         className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8"
         style={{ color: theme.textColor }}

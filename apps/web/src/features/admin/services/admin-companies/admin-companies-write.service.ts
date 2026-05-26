@@ -1,4 +1,4 @@
-import { createClient } from '../../../../lib/supabase/server'
+import { createAdminClient } from '../../../../lib/supabase/admin'
 import { logger } from '../../../../lib/utils/logger'
 
 import type {
@@ -8,7 +8,7 @@ import type {
 } from '../../types/admin-companies.types'
 import { getAdminCompanyById } from './admin-companies-read.service'
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+type SupabaseServerClient = ReturnType<typeof createAdminClient>
 
 function slugifyCompanyName(value: string): string {
   return value
@@ -85,7 +85,7 @@ async function promotePendingOwnerIfNeeded(
 }
 
 export async function updateAdminCompany(id: string, updates: CompanyUpdatePayload): Promise<AdminCompany> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const updateData = buildUpdateData(updates)
 
   let shouldPromotePendingOwner = false
@@ -123,7 +123,7 @@ export async function updateAdminCompany(id: string, updates: CompanyUpdatePaylo
 }
 
 export async function createAdminCompany(data: CompanyCreatePayload): Promise<AdminCompany> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const slug = data.slug || slugifyCompanyName(data.name)
 
   const { data: existingOrganization } = await supabase

@@ -40,17 +40,13 @@ export interface BusinessUserDashboardShellProps {
   handleLearningPathCourseClick: (slug: string | null | undefined) => void
   handleLogout: () => void
   handleProfileClick: () => void
-  handleVideoComplete: () => void
   initials: string
-  introVideos: string[]
   learningPaths: AssignedLearningPath[]
   myStats: BusinessUserDashboardStatItem[]
   organization: Organization | null
   orgColors: BusinessUserDashboardColors
   orgRole: OrgRole
   orgSlug?: string
-  restartTour: () => void
-  showVideoIntro: boolean
   stats: { certificates: number }
   t: DashboardTranslator
   user: {

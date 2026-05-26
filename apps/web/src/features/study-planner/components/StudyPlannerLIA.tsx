@@ -48,7 +48,6 @@ export function StudyPlannerSofLIA() {
     toggleListening,
     toggleAudio,
     // Handlers
-    restartTour,
     handleNext,
     handlePrevious,
     handleComplete,
@@ -136,7 +135,6 @@ export function StudyPlannerSofLIA() {
         onHoverChange={setHoveredButton}
         onOpenCalendar={() => setShowCalendarModal(true)}
         onOpenCalendarConfig={() => setShowCalendarConfig(true)}
-        onRestartTour={restartTour}
         onAskHowItWorks={() => {
           void handleSendMessage('¿Cómo funciona?');
         }}

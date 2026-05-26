@@ -1,9 +1,30 @@
 'use client'
 
-import { ShieldCheck } from 'lucide-react'
-import { DOWNLOADS_REQUIREMENTS } from '../constants'
+import { Apple, Monitor, ShieldCheck } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export function DownloadsPageRequirements() {
+  const { t } = useTranslation('common')
+
+  const requirementsList = [
+    {
+      os: 'Windows',
+      min: 'Windows 10+ (64-bit)',
+      ram: t('downloadsPage.requirements.ramReconended'),
+      disk: '~300 MB',
+      icon: Monitor,
+      color: 'bg-blue-500/10 text-blue-500',
+    },
+    {
+      os: 'macOS',
+      min: 'macOS 12 Monterey+',
+      ram: t('downloadsPage.requirements.ramReconended'),
+      disk: '~300 MB',
+      icon: Apple,
+      color: 'bg-gray-500/10 text-gray-400',
+    },
+  ]
+
   return (
     <section className="bg-white dark:bg-white/5 rounded-[40px] border border-black/5 dark:border-white/10 p-8 lg:p-12 shadow-2xl shadow-black/5 overflow-hidden relative">
       <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 rotate-12">
@@ -12,11 +33,10 @@ export function DownloadsPageRequirements() {
 
       <div className="relative z-10 mb-12">
         <h2 className="text-3xl font-bold dark:text-white mb-4">
-          Requisitos del Sistema
+          {t('downloadsPage.requirements.title')}
         </h2>
         <p className="text-primary/60 dark:text-white/60">
-          Asegurate de que tu equipo cumple con lo necesario para la mejor
-          experiencia.
+          {t('downloadsPage.requirements.subtitle')}
         </p>
       </div>
 
@@ -25,21 +45,21 @@ export function DownloadsPageRequirements() {
           <thead>
             <tr className="border-b border-black/5 dark:border-white/5">
               <th className="py-4 font-bold text-sm uppercase tracking-wider dark:text-white/40 pr-8">
-                Plataforma
+                {t('downloadsPage.requirements.platform')}
               </th>
               <th className="py-4 font-bold text-sm uppercase tracking-wider dark:text-white/40 pr-8">
-                O.S.
+                {t('downloadsPage.requirements.os')}
               </th>
               <th className="py-4 font-bold text-sm uppercase tracking-wider dark:text-white/40 pr-8">
-                RAM
+                {t('downloadsPage.requirements.ram')}
               </th>
               <th className="py-4 font-bold text-sm uppercase tracking-wider dark:text-white/40">
-                Espacio
+                {t('downloadsPage.requirements.disk')}
               </th>
             </tr>
           </thead>
           <tbody>
-            {DOWNLOADS_REQUIREMENTS.map((requirement) => (
+            {requirementsList.map((requirement) => (
               <tr
                 key={requirement.os}
                 className="border-b border-black/5 dark:border-white/5 last:border-0 group"

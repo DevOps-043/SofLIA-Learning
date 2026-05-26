@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
   BookOpen,
@@ -17,9 +16,6 @@ import { PremiumSelect } from '@/features/business-panel/components/PremiumSelec
 import { CourseStatCard } from './CourseStatCard'
 import { CourseCard } from './CourseCard'
 import { useCoursesPageLogic } from './useCoursesPageLogic'
-import { JoyrideClient } from '@/features/tours/components/JoyrideClient'
-import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
-import { getAdminCoursesSteps, ADMIN_COURSES_TOUR_ID } from '@/features/tours/config/business-panel/admin-courses-steps'
 import { useMotionSafe } from '@/lib/utils/motion'
 import { PrefetchLink } from '@/core/components/PrefetchLink'
 
@@ -53,14 +49,6 @@ export function CoursesPageContent() {
     orgSlug,
   } = useCoursesPageLogic()
 
-  const tourSteps = useMemo(() => getAdminCoursesSteps(t), [t])
-
-  const { joyrideProps } = useFeatureTour({
-    tourId: ADMIN_COURSES_TOUR_ID,
-    steps: tourSteps,
-    enabled: !isLoading,
-  })
-
   if (isLoading) {
     return (
       <div className="p-6 lg:p-8 min-h-screen animate-pulse">
@@ -89,7 +77,6 @@ export function CoursesPageContent() {
 
   return (
     <>
-    {joyrideProps.run ? <JoyrideClient {...joyrideProps} /> : null}
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -98,7 +85,6 @@ export function CoursesPageContent() {
     >
       {/* Hero Section */}
       <motion.div
-        id="tour-courses-hero"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={interfaceTransition}
@@ -155,7 +141,7 @@ export function CoursesPageContent() {
       </motion.div>
 
       {/* Stats Grid - Minimalist Dashboard Pattern */}
-      <div id="tour-courses-stats" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {courseStats.map((stat, index) => (
           <CourseStatCard key={stat.title} {...stat} delay={index} />
         ))}
@@ -180,7 +166,7 @@ export function CoursesPageContent() {
       )}
 
       {/* Filters Section - EXACT Replication of Users Page Style */}
-      <div id="tour-courses-filters" className="flex flex-col lg:flex-row gap-4 mb-8">
+      <div className="flex flex-col lg:flex-row gap-4 mb-8">
         {/* Search Input - Matching Users Page Design */}
         <div className="flex-1 relative group">
           <Search
@@ -296,7 +282,7 @@ export function CoursesPageContent() {
 
           {/* Grid or List View */}
           {viewMode === 'grid' ? (
-            <div id="tour-courses-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
               {filteredCourses.map((course, index) => (
                 <PrefetchLink
                   key={course.id}
@@ -311,7 +297,7 @@ export function CoursesPageContent() {
               ))}
             </div>
           ) : (
-            <div id="tour-courses-list" className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
               {filteredCourses.map((course, index) => (
                 <PrefetchLink
                   key={course.id}

@@ -9632,6 +9632,14 @@ export type Database = {
           next_level_courses_needed: number
         }[]
       }
+      get_unread_notifications_count: {
+        Args: { p_user_id: string }
+        Returns: {
+          critical: number
+          high: number
+          total: number
+        }[]
+      }
       get_user_skills: {
         Args: { p_user_id: string }
         Returns: {

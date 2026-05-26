@@ -1,10 +1,45 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Cpu } from 'lucide-react'
-import { DOWNLOADS_FEATURES } from '../constants'
+import { BarChart3, Bot, Cpu, Layers, MessageCircle, Search, Settings } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export function DownloadsPageFeatures() {
+  const { t } = useTranslation('common')
+
+  const featuresList = [
+    {
+      icon: Bot,
+      title: t('downloadsPage.features.items.lia.title'),
+      desc: t('downloadsPage.features.items.lia.desc'),
+    },
+    {
+      icon: Layers,
+      title: t('downloadsPage.features.items.ecosystem.title'),
+      desc: t('downloadsPage.features.items.ecosystem.desc'),
+    },
+    {
+      icon: MessageCircle,
+      title: t('downloadsPage.features.items.integrations.title'),
+      desc: t('downloadsPage.features.items.integrations.desc'),
+    },
+    {
+      icon: Search,
+      title: t('downloadsPage.features.items.computerControl.title'),
+      desc: t('downloadsPage.features.items.computerControl.desc'),
+    },
+    {
+      icon: BarChart3,
+      title: t('downloadsPage.features.items.productivity.title'),
+      desc: t('downloadsPage.features.items.productivity.desc'),
+    },
+    {
+      icon: Settings,
+      title: t('downloadsPage.features.items.settings.title'),
+      desc: t('downloadsPage.features.items.settings.desc'),
+    },
+  ]
+
   return (
     <section className="mb-20">
       <div className="text-center mb-12">
@@ -16,26 +51,20 @@ export function DownloadsPageFeatures() {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 mb-6">
             <Cpu className="w-4 h-4 text-accent" />
             <span className="text-sm font-medium text-accent">
-              Aplicacion de Escritorio
+              {t('downloadsPage.features.badge')}
             </span>
           </div>
           <h2 className="text-3xl lg:text-4xl font-bold text-primary dark:text-white mb-4">
-            Que es SofLIA Hub?
+            {t('downloadsPage.features.title')}
           </h2>
           <p className="text-lg text-primary/60 dark:text-white/60 max-w-4xl mx-auto leading-relaxed">
-            SofLIA Hub es tu asistente personal definitivo y el conector central
-            con todo nuestro ecosistema. Mucho mas que una aplicacion, te
-            permite integrar SofLIA Learning, ProjectHub y el Area de
-            Productividad directamente en tu sistema operativo. Conectate con
-            WhatsApp, Google y Microsoft, realiza busquedas e interactua con los
-            archivos de tu computadora, y comparte carpetas, proyectos, prompts
-            y chats con todo tu equipo, todo desde un solo lugar.
+            {t('downloadsPage.features.description')}
           </p>
         </motion.div>
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {DOWNLOADS_FEATURES.map((feature, index) => (
+        {featuresList.map((feature, index) => (
           <motion.div
             key={feature.title}
             initial={{ opacity: 0, y: 20 }}

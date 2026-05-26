@@ -1,4 +1,4 @@
-import { createClient } from '../../../../lib/supabase/server'
+import { createAdminClient } from '../../../../lib/supabase/admin'
 import { fromLoose } from '../../../../lib/supabase/looseQuery'
 import { logger } from '../../../../lib/utils/logger'
 
@@ -11,7 +11,7 @@ import {
   type OrganizationRow,
 } from './admin-companies.mapper'
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+type SupabaseServerClient = ReturnType<typeof createAdminClient>
 type UserProfileRow = Omit<AdminCompanyUserProfile, 'email'> & { email: string | null }
 
 const COMPANY_MEMBER_PROFILE_ROLES = ['owner', 'admin']
@@ -50,6 +50,9 @@ const ORGANIZATION_SELECT = `
     joined_at
   )
 `
+
+const USER_INVITATIONS_SELECT = 'id, email, token, role, organization_id, status, expires_at, created_at, created_by, accepted_at, metadata'
+const BULK_INVITE_LINKS_SELECT = 'id, organization_id, created_by, token, name, max_uses, current_uses, role, expires_at, status, metadata, created_at, updated_at'
 
 async function buildUsersMap(
   supabase: SupabaseServerClient,
@@ -113,7 +116,7 @@ function collectOrganizationUserIds(organizations: OrganizationRow[]): string[] 
 }
 
 export async function getAdminCompanies(): Promise<AdminCompany[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('organizations')
     .select(ORGANIZATION_SELECT)
@@ -147,7 +150,7 @@ export async function getAdminCompanies(): Promise<AdminCompany[]> {
 }
 
 export async function getAdminCompanyById(id: string): Promise<AdminCompany | null> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('organizations')
     .select(ORGANIZATION_SELECT)
@@ -177,11 +180,11 @@ export async function getAdminCompanyById(id: string): Promise<AdminCompany | nu
     buildUsersMap(supabase, userIds),
     supabase
       .from('user_invitations')
-      .select(SELECT_COLUMNS.user_invitations)
+      .select(USER_INVITATIONS_SELECT)
       .eq('organization_id', id)
       .eq('status', 'pending'),
     fromLoose<Record<string, unknown>>(supabase, 'bulk_invite_links')
-      .select(SELECT_COLUMNS.bulk_invite_links)
+      .select(BULK_INVITE_LINKS_SELECT)
       .eq('organization_id', id),
   ])
 

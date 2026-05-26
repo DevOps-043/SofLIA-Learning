@@ -1,16 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   getServerClient,
-  getSystemNotificationClient,
 } from '../auto-notifications-server-client'
 import {
   getRecentActivity,
+  getUnreadCount,
   getUserNotifications,
 } from '../notification/query.service'
 
 vi.mock('../auto-notifications-server-client', () => ({
   getServerClient: vi.fn(),
-  getSystemNotificationClient: vi.fn(),
 }))
 
 vi.mock('../../../../lib/logger', () => ({
@@ -68,6 +67,15 @@ function createUsersChain(result: {
   return {
     select: vi.fn().mockReturnThis(),
     in: vi.fn().mockResolvedValue(result),
+  }
+}
+
+function createUnreadCountRpcChain(result: {
+  data: { total?: number; critical?: number; high?: number } | null
+  error: null
+}) {
+  return {
+    single: vi.fn().mockResolvedValue(result),
   }
 }
 
@@ -259,7 +267,7 @@ describe('notification query service', () => {
       error: null,
     })
 
-    vi.mocked(getSystemNotificationClient).mockResolvedValue({
+    vi.mocked(getServerClient).mockResolvedValue({
       from: vi.fn((table: string) => {
         if (table === 'user_notifications') {
           return notificationsChain
@@ -286,5 +294,24 @@ describe('notification query service', () => {
       user_id: 'user-1',
       users: expect.objectContaining({ id: 'user-1', display_name: 'Ana Ruiz' }),
     })
+  })
+
+  it('uses get_unread_notifications_count RPC for unread counters', async () => {
+    const rpcChain = createUnreadCountRpcChain({
+      data: { total: 4, critical: 1, high: 2 },
+      error: null,
+    })
+    const rpc = vi.fn(() => rpcChain)
+
+    vi.mocked(getServerClient).mockResolvedValue({
+      rpc,
+    } as never)
+
+    const result = await getUnreadCount('user-1')
+
+    expect(rpc).toHaveBeenCalledWith('get_unread_notifications_count', {
+      p_user_id: 'user-1',
+    })
+    expect(result).toEqual({ total: 4, critical: 1, high: 2 })
   })
 })

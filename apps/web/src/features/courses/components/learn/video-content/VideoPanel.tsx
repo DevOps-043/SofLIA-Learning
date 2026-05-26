@@ -1,7 +1,6 @@
 "use client";
 
 import { Play } from "lucide-react";
-import { COURSE_LEARN_TOUR_TARGET_IDS } from "@/core/constants/tourTargets";
 import { shouldBlockLessonVideoAdvance } from "@/features/courses/hooks/lessonNavigation.utils";
 import type { LearnLesson } from "../types";
 import type { VideoNavigationState } from "./video-content.types";
@@ -37,7 +36,7 @@ export function VideoPanel({
   const primaryAction = navigationState.isLastLesson ? handleCompletionAction : handleAdvanceAction;
 
   return (
-    <div id={COURSE_LEARN_TOUR_TARGET_IDS.videoPanel} className="relative w-full">
+    <div className="relative w-full">
       {hasVideo ? (
         <div className="aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-500/30 relative bg-gray-900">
           <VideoPlayer

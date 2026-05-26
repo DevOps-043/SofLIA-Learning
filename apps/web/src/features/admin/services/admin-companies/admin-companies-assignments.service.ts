@@ -1,4 +1,4 @@
-import { createClient } from '../../../../lib/supabase/server'
+import { createAdminClient } from '../../../../lib/supabase/admin'
 import { fromLoose } from '../../../../lib/supabase/looseQuery'
 import { logger } from '../../../../lib/utils/logger'
 
@@ -28,7 +28,7 @@ interface HierarchyCourseAssignmentWrite {
 }
 
 export async function getCompanyCourses(id: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await fromLoose<
     HierarchyCourseAssignmentRow,
     HierarchyCourseAssignmentWrite
@@ -59,7 +59,7 @@ export async function getCompanyCourses(id: string) {
 }
 
 export async function assignCourseToCompany(companyId: string, courseId: string, adminId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await fromLoose<
     HierarchyCourseAssignmentRow,
     HierarchyCourseAssignmentWrite
@@ -82,7 +82,7 @@ export async function assignCourseToCompany(companyId: string, courseId: string,
 }
 
 export async function removeCourseFromCompany(companyId: string, courseId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await fromLoose<
     HierarchyCourseAssignmentRow,
     HierarchyCourseAssignmentWrite
@@ -100,7 +100,7 @@ export async function removeCourseFromCompany(companyId: string, courseId: strin
 }
 
 export async function getUserCourseAssignments(companyId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('organization_course_assignments')
     .select(`
@@ -135,7 +135,7 @@ export async function getUserCourseAssignments(companyId: string) {
 }
 
 export async function assignCourseToUser(companyId: string, userId: string, courseId: string, adminId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('organization_course_assignments')
     .insert({
@@ -157,7 +157,7 @@ export async function assignCourseToUser(companyId: string, userId: string, cour
 }
 
 export async function removeCourseFromUser(assignmentId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase
     .from('organization_course_assignments')
     .delete()
@@ -172,7 +172,7 @@ export async function removeCourseFromUser(assignmentId: string) {
 }
 
 export async function getCompanyDetailedStats(companyId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const [assignmentsResponse, sessionsResponse, membersResponse, pendingInvitationsResponse] = await Promise.all([
     supabase
       .from('organization_course_assignments')

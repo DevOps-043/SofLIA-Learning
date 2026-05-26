@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar, HelpCircle, Settings, Volume2, VolumeX, Zap } from 'lucide-react';
+import { ArrowLeft, Calendar, HelpCircle, Settings, Volume2, VolumeX } from 'lucide-react';
 
 import { StudyPlannerCalendarProviderIcon } from './StudyPlannerCalendarProviderIcon';
 import { StudyPlannerHeaderActionButton } from './StudyPlannerHeaderActionButton';
@@ -21,7 +21,6 @@ interface StudyPlannerConversationHeaderProps {
   onHoverChange: (value: string | null) => void;
   onOpenCalendar: () => void;
   onOpenCalendarConfig: () => void;
-  onRestartTour: () => void;
   onAskHowItWorks: () => void;
   onToggleAudio: () => void;
 }
@@ -39,7 +38,6 @@ export function StudyPlannerConversationHeader({
   onHoverChange,
   onOpenCalendar,
   onOpenCalendarConfig,
-  onRestartTour,
   onAskHowItWorks,
   onToggleAudio,
 }: StudyPlannerConversationHeaderProps) {
@@ -137,23 +135,6 @@ export function StudyPlannerConversationHeader({
                 <span className="relative inline-flex h-3 w-3 rounded-full bg-amber-500" />
               </span>
             )}
-          </StudyPlannerHeaderActionButton>
-
-          <StudyPlannerHeaderActionButton
-            label="Ver Tour"
-            hoverKey="tour"
-            isMobile={isMobile}
-            hoveredButton={hoveredButton}
-            disabled={isProcessing}
-            onClick={onRestartTour}
-            onHoverChange={onHoverChange}
-            className={`flex flex-shrink-0 items-center rounded-lg p-2 transition-colors disabled:opacity-50 sm:p-2.5 ${
-              isProcessing
-                ? 'cursor-not-allowed bg-gray-500 text-gray-400'
-                : 'border border-gray-200 bg-gray-200 text-primary hover:bg-gray-200/80 dark:border-gray-500/30 dark:bg-primary/10 dark:text-white dark:hover:bg-primary/20'
-            }`}
-          >
-            <Zap size={20} />
           </StudyPlannerHeaderActionButton>
 
           <StudyPlannerHeaderActionButton

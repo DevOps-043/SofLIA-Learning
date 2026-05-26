@@ -1,14 +1,11 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { HierarchyTree } from '@/features/business-panel/components/hierarchy/HierarchyTree';
 import { HierarchySettings } from '@/features/business-panel/components/hierarchy/HierarchySettings';
 import { Network, Settings, LayoutGrid, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { JoyrideClient } from '@/features/tours/components/JoyrideClient';
-import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour';
-import { getAdminHierarchySteps, ADMIN_HIERARCHY_TOUR_ID } from '@/features/tours/config/business-panel/admin-hierarchy-steps';
 
 export default function BusinessPanelHierarchyPage() {
   const [activeTab, setActiveTab] = useState<'settings' | 'tree'>('tree');
@@ -17,23 +14,16 @@ export default function BusinessPanelHierarchyPage() {
     { id: 'tree', label: t('hierarchy.tabs.treeView'), icon: LayoutGrid },
     { id: 'settings', label: t('hierarchy.tabs.settings'), icon: Settings },
   ];
-  const tourSteps = useMemo(() => getAdminHierarchySteps(t), [t]);
-
-  const { joyrideProps } = useFeatureTour({
-    tourId: ADMIN_HIERARCHY_TOUR_ID,
-    steps: tourSteps,
-  })
 
   return (
     <>
-      {joyrideProps.run ? <JoyrideClient {...joyrideProps} /> : null}
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="w-full space-y-8"
     >
       {/* Premium Header Section */}
-      <div id="tour-hierarchy-header" className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
         <div className="space-y-2">
           <div className="flex items-center gap-3 mb-1">
              <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/5 border border-white/10 shadow-xl">
@@ -50,7 +40,7 @@ export default function BusinessPanelHierarchyPage() {
         </div>
 
         {/* Premium Tab Bar */}
-        <div id="tour-hierarchy-tabs" className="flex p-1.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shrink-0">
+        <div className="flex p-1.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shrink-0">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -73,7 +63,7 @@ export default function BusinessPanelHierarchyPage() {
       </div>
 
       {/* Main Content Panel */}
-      <div id="tour-hierarchy-content" className="px-4 pb-20">
+      <div className="px-4 pb-20">
         <motion.div
            key={activeTab}
            initial={{ opacity: 0, y: 20 }}

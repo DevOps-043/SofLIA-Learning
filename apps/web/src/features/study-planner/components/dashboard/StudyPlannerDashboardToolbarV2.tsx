@@ -8,7 +8,6 @@ import {
   Plus,
   Settings,
   Trash2,
-  Zap,
 } from 'lucide-react';
 import {
   ActionButton,
@@ -43,7 +42,6 @@ interface StudyPlannerDashboardToolbarV2Props {
   onOpenCalendarConfig: () => void;
   onOpenCalendarModal: () => void;
   onRecreatePlan: () => void;
-  onRestartTour: () => void;
   onSelectPlan: (planId: string) => void;
   selectedPlanId: string | null;
   setHoveredButton: (value: string | null) => void;
@@ -62,7 +60,6 @@ export function StudyPlannerDashboardToolbarV2({
   onOpenCalendarConfig,
   onOpenCalendarModal,
   onRecreatePlan,
-  onRestartTour,
   onSelectPlan,
   selectedPlanId,
   setHoveredButton,
@@ -99,34 +96,6 @@ export function StudyPlannerDashboardToolbarV2({
           </select>
           <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
         </div>
-      </div>
-
-      <div className="relative">
-        <motion.button
-          layout
-          onClick={onRestartTour}
-          onMouseEnter={() => setHoveredButton('tour')}
-          onMouseLeave={() => setHoveredButton(null)}
-          whileTap={{ scale: 0.95 }}
-          className="rounded-lg bg-white dark:bg-carbon-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-primary/20 border border-gray-200 dark:border-gray-500/30 transition-colors flex items-center overflow-hidden"
-          title="Ver Tour"
-        >
-          <motion.div
-            className="p-2.5 flex-shrink-0 flex items-center justify-center"
-            animate={hoveredButton === 'tour' ? {
-              scale: [1, 1.1, 1],
-              rotate: [0, -10, 10, 0],
-            } : {}}
-            transition={{
-              duration: 0.5,
-              repeat: hoveredButton === 'tour' ? Infinity : 0,
-              repeatType: 'reverse',
-              ease: 'easeInOut',
-            }}
-          >
-            <Zap className="w-5 h-5" />
-          </motion.div>
-        </motion.button>
       </div>
 
       <div className="relative calendar-menu-container">

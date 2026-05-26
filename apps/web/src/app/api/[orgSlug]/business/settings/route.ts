@@ -13,6 +13,74 @@ interface RouteContext {
   params: Promise<{ orgSlug: string }>
 }
 
+const ORGANIZATION_SETTINGS_SELECT = `
+  billing_cycle,
+  brand_banner_url,
+  brand_color_accent,
+  brand_color_primary,
+  brand_color_secondary,
+  brand_favicon_url,
+  brand_font_family,
+  brand_logo_url,
+  company_country,
+  company_mission,
+  company_size,
+  company_type,
+  contact_email,
+  contact_phone,
+  created_at,
+  description,
+  google_login_enabled,
+  id,
+  industry,
+  is_active,
+  logo_url,
+  max_users,
+  microsoft_login_enabled,
+  name,
+  show_navbar_name,
+  slug,
+  subscription_end_date,
+  subscription_plan,
+  subscription_start_date,
+  subscription_status,
+  updated_at,
+  website_url
+`
+
+interface OrganizationSettingsRow {
+  billing_cycle?: 'monthly' | 'yearly' | null
+  max_users?: number | null
+  subscription_end_date?: string | null
+  subscription_plan?: string | null
+  subscription_start_date?: string | null
+  subscription_status?: string | null
+}
+
+function buildOrganizationSubscriptionSnapshot(organization: OrganizationSettingsRow) {
+  const endDate = organization.subscription_end_date || null
+  const endDateObj = endDate ? new Date(endDate) : null
+  const now = new Date()
+  const isExpired = endDateObj ? endDateObj < now : false
+  const daysUntilExpiration = endDateObj
+    ? Math.ceil((endDateObj.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    : null
+
+  return {
+    plan: organization.subscription_plan?.toLowerCase() || 'team',
+    status: organization.subscription_status || 'active',
+    billing_cycle: organization.billing_cycle || 'yearly',
+    start_date: organization.subscription_start_date || null,
+    end_date: endDate,
+    is_expired: isExpired,
+    days_until_expiration: daysUntilExpiration,
+    is_expiring_soon: daysUntilExpiration !== null && daysUntilExpiration <= 30 && daysUntilExpiration > 0,
+    max_users: organization.max_users || 10,
+    user_subscriptions: [],
+    active_subscription: null,
+  }
+}
+
 /**
  * GET /api/[orgSlug]/business/settings
  * Obtiene los datos de la organizacion especificada por slug
@@ -38,7 +106,7 @@ export async function GET(
 
     const { data: organization, error } = await supabase
       .from('organizations')
-      .select(SELECT_COLUMNS.organizations)
+      .select(ORGANIZATION_SETTINGS_SELECT)
       .eq('slug', orgSlug)
       .single()
 
@@ -57,19 +125,10 @@ export async function GET(
       }, { status: 404 })
     }
 
-    const { data: subscription } = await supabase
-      .from('organization_subscriptions')
-      .select(SELECT_COLUMNS.organization_subscriptions)
-      .eq('organization_id', organization.id)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
-
     return NextResponse.json({
       success: true,
       organization,
-      subscription: subscription || null,
+      subscription: buildOrganizationSubscriptionSnapshot(organization),
       userRole: auth.organizationRole,
     })
   } catch (error) {

@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion'
 import { BookOpen, Briefcase, Calendar, Camera, Check, GraduationCap, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { PROFILE_TOUR_TARGET_IDS } from '../../../../core/constants/tourTargets'
 import type { ProfileColorPalette, UserProfile, UserStats } from '../../types/profile.types'
 
 interface ProfileHeroProps {
@@ -27,14 +26,14 @@ export function ProfileHero({
 }: ProfileHeroProps) {
   const { t } = useTranslation('common')
   return (
-    <div id={PROFILE_TOUR_TARGET_IDS.hero} className="relative overflow-hidden">
+    <div className="relative overflow-hidden">
       <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, color-mix(in srgb, ${colors.accent} 6.3%, transparent) 0%, transparent 100%)` }} />
       <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-[120px]" style={{ backgroundColor: `color-mix(in srgb, ${colors.accent} 12.5%, transparent)` }} />
       <div className="absolute top-0 right-1/4 w-96 h-96 rounded-full blur-[120px]" style={{ backgroundColor: `color-mix(in srgb, ${colors.primary} 12.5%, transparent)` }} />
 
       <div className="relative px-6 lg:px-12 py-12">
         <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
-          <motion.div id={PROFILE_TOUR_TARGET_IDS.avatar} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative group">
+          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative group">
             <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-3xl p-1" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${colors.accent} 18.8%, transparent), color-mix(in srgb, ${colors.primary} 18.8%, transparent))` }}>
               <div className="w-full h-full rounded-[22px] overflow-hidden flex items-center justify-center relative" style={{ backgroundColor: colors.bgSecondary }}>
                 {profile.profile_picture_url && !imageError ? (
@@ -75,7 +74,7 @@ export function ProfileHero({
             </motion.label>
           </motion.div>
 
-          <div id={PROFILE_TOUR_TARGET_IDS.summary} className="flex-1">
+          <div className="flex-1">
             <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
               <h1 className="text-3xl lg:text-4xl font-bold mb-2" style={{ color: colors.text }}>{profile.display_name}</h1>
               <p className="text-lg flex items-center gap-2" style={{ color: colors.textSecondary }}>
@@ -95,7 +94,7 @@ export function ProfileHero({
             </motion.div>
           </div>
 
-          <motion.div id={PROFILE_TOUR_TARGET_IDS.stats} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="flex gap-3 lg:gap-4">
+          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="flex gap-3 lg:gap-4">
             {[
               { icon: <BookOpen className="w-5 h-5" />, value: stats?.completedLessons ?? 0, label: t('profile.hero.stats.lessons'), color: colors.accent },
               { icon: <GraduationCap className="w-5 h-5" />, value: stats?.certificates ?? 0, label: t('profile.hero.stats.certificates'), color: colors.primary }

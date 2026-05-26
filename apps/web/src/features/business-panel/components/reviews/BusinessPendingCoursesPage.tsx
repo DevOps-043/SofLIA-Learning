@@ -1,6 +1,5 @@
 'use client'
 
-import { SofliaJoyride as Joyride } from '@/features/tours/components/SofliaJoyride'
 import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import { ReviewConfirmationModals } from './BusinessPendingCoursesPage/ReviewConfirmationModals'
 import { ReviewEmptyState } from './BusinessPendingCoursesPage/ReviewEmptyState'
@@ -29,7 +28,6 @@ export function BusinessPendingCoursesPage({
 
   return (
     <>
-      {page.joyrideProps.run ? <Joyride {...page.joyrideProps} /> : null}
       <div className="space-y-8">
         <ReviewHeader
           title={page.tReviews('title')}

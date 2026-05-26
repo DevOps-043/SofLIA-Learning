@@ -44,7 +44,7 @@ export function useCourseLiaTheme({
 
     return {
       panelBg: customColors?.panelBg || (isLightTheme ? COURSE_LIA_COLORS.white : COURSE_LIA_COLORS.panelDark),
-      headerBg: customColors?.panelBg || (isLightTheme ? 'var(--color-gray-50)' : COURSE_LIA_COLORS.panelDark),
+      headerBg: customColors?.panelBg || (isLightTheme ? 'var(--color-gray-800)' : COURSE_LIA_COLORS.panelDark),
       borderColor,
       messageBubbleAssistant,
       messageBubbleUser: COURSE_LIA_COLORS.primary,

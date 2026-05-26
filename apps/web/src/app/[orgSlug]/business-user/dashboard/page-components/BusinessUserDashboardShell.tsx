@@ -4,7 +4,6 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, useState } from 'react'
 
 import { TeamRequiredBanner } from '@/features/business-panel/components/hierarchy/TeamRequiredBanner'
-import { OnboardingVideoPlayer } from '@/features/tours/components/OnboardingVideoPlayer'
 import { useMotionSafe } from '@/lib/utils/motion'
 
 import { DashboardCoursesSection } from './business-user-dashboard-shell/DashboardCoursesSection'
@@ -89,12 +88,6 @@ export function BusinessUserDashboardShell(props: BusinessUserDashboardShellProp
           />
         </div>
       </main>
-      {props.showVideoIntro && props.introVideos.length > 0 ? (
-        <OnboardingVideoPlayer
-          videos={props.introVideos}
-          onComplete={props.handleVideoComplete}
-        />
-      ) : null}
     </div>
   )
 }

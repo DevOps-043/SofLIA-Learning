@@ -6,7 +6,6 @@ interface IntroVideoButtonProps {
   intro: IntroVideoState
   orgColors: BusinessUserDashboardColors
   onClick: () => void
-  targetId?: string
   t: LearningPathTranslator
 }
 
@@ -14,13 +13,11 @@ export function IntroVideoButton({
   intro,
   orgColors,
   onClick,
-  targetId,
   t,
 }: IntroVideoButtonProps) {
   return (
     <button
       type="button"
-      id={targetId}
       disabled={intro.loading}
       onClick={onClick}
       className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-55"

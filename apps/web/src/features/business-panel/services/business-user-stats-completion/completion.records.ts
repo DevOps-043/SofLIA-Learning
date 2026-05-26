@@ -31,6 +31,9 @@ export interface BusinessUserStatsLessonProgressRecord {
   quiz_progress_percentage: number | null
   quiz_completed: boolean | null
   quiz_passed: boolean | null
+  video_progress_percentage: number | null
+  required_activities_completed: number | null
+  required_activities_total: number | null
   user_course_enrollments: Relation<BusinessUserStatsEnrollmentCourseRecord>
 }
 
@@ -66,6 +69,7 @@ export interface BusinessUserStatsCertificateRecord {
 export interface BusinessUserStatsLessonRecord {
   lesson_id: string
   lesson_title: string | null
+  lesson_order_index: number | null
   module_id: string | null
   course_modules: Relation<BusinessUserStatsCourseModuleRelationRecord>
 }
@@ -80,6 +84,11 @@ export interface BusinessUserStatsCourseModuleRecord {
 export interface BusinessUserStatsLessonCountRecord {
   lesson_id: string
   module_id: string
+}
+
+export interface BusinessUserStatsLessonActivityCatalogRecord {
+  activity_id: string
+  lesson_id: string | null
 }
 
 export interface BusinessUserStatsInstructorRecord {

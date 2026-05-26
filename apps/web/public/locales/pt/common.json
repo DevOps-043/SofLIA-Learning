@@ -648,9 +648,9 @@
           "title": "Multilíngue",
           "description": "ES, EN, PT"
         },
-        "scorm": {
-          "title": "SCORM",
-          "description": "Compatível"
+        "learningPaths": {
+          "title": "Trilhas",
+          "description": "De aprendizado"
         },
         "certificates": {
           "title": "Certificados",
@@ -671,7 +671,6 @@
       },
       "stats": {
         "languages": "Idiomas",
-        "compatible": "Compatível",
         "lia": "Assistente SofLIA",
         "hash": "Certificados"
       }
@@ -737,16 +736,6 @@
           "title": "White-label",
           "benefit": "Branding corporativo completo",
           "result": "Experiência de marca"
-        },
-        "scorm": {
-          "title": "SCORM",
-          "benefit": "Compatibilidade com padrões e-learning",
-          "result": "Migração sem fricções"
-        },
-        "community": {
-          "title": "Comunidade",
-          "benefit": "Fóruns e colaboração entre funcionários",
-          "result": "Cultura de aprendizado"
         }
       }
     },
@@ -816,7 +805,6 @@
       "description": "Conecte SofLIA com suas ferramentas existentes para uma experiência sem fricções. Implantação ágil com sincronização de calendários, compatibilidade e-learning e opções para integrações personalizadas.",
       "features": {
         "calendar": "Sincronização com Google Calendar e Microsoft Outlook",
-        "elearning": "Compatível com SCORM",
         "api": "Conectividade para CRM, HRIS e sistemas internos",
         "deploy": "Implementação em semanas, não meses"
       },
@@ -1621,6 +1609,101 @@
       "title": "Erro ao carregar",
       "description": "Não foi possível carregar suas anotações. Tente novamente.",
       "retry": "Tentar novamente"
+    }
+  },
+  "downloadsPage": {
+    "hero": {
+      "loading": "Carregando última versão...",
+      "error": "Erro ao obter a versão",
+      "versionAvailable": "Versão {{version}} disponível",
+      "title": "Leve o SofLIA Hub a toda parte",
+      "description": "O aplicativo oficial de desktop do SofLIA. Acesse seu assistente de IA, cursos e ferramentas de produtividade diretamente do seu sistema operacional, sem precisar abrir o navegador.",
+      "downloadWindows": "Baixar para Windows",
+      "downloadMac": "Baixar para macOS",
+      "notAvailable": "Não disponível nesta versão",
+      "windowsCompat": "Compatível com Windows 10 e 11 (64-bit).",
+      "macCompat": "Compatível com Ventura, Sonoma e posteriores.",
+      "size": "Tamanho: {{size}}",
+      "errorRateLimit": "Limite de solicitações excedido. Tente novamente em alguns minutos.",
+      "errorNotFound": "Nenhum lançamento disponível encontrado.",
+      "errorGeneric": "Não foi possível conectar ao servidor de download. Verifique sua conexão com a internet."
+    },
+    "changelog": {
+      "title": "Changelog",
+      "subtitle": "Novidades e melhorias incluídas nesta versão do SofLIA Hub.",
+      "change": "alteração",
+      "changes": "alterações",
+      "sections": {
+        "added": "Melhorias",
+        "fixed": "Correções",
+        "changed": "Alterações",
+        "removed": "Removidos",
+        "security": "Segurança",
+        "notes": "Notas"
+      }
+    },
+    "features": {
+      "badge": "Aplicativo de Desktop",
+      "title": "O que é o SofLIA Hub?",
+      "description": "O SofLIA Hub é o seu assistente pessoal definitivo e o conector central com todo o seu ecossistema. Muito mais do que um aplicativo, permite integrar o SofLIA Learning, ProjectHub e a Área de Produtividade diretamente no seu sistema operacional. Conecte-se com WhatsApp, Google e Microsoft, realize buscas e interaja com os arquivos do seu computador, e compartilhe pastas, projetos, prompts e conversas com toda a sua equipe, tudo em um só lugar.",
+      "items": {
+        "lia": {
+          "title": "Seu Assistente Pessoal de IA",
+          "desc": "A LIA torna-se seu assistente pessoal no desktop. Personalize-a conforme suas necessidades para automatizar fluxos de trabalho, realizar pesquisas profundas e obter respostas instantâneas."
+        },
+        "ecosystem": {
+          "title": "Ecossistema Completo",
+          "desc": "Interaja com todo o ecossistema do SofLIA, do ProjectHub ao SofLIA Learning. Compartilhe conversas, projetos, pastas e prompts diretamente com sua equipe."
+        },
+        "integrations": {
+          "title": "Integrações Poderosas",
+          "desc": "Conexão fluida com WhatsApp, Google Workspace e Microsoft 365, centralizando suas comunicações e ferramentas de trabalho em um só lugar."
+        },
+        "computerControl": {
+          "title": "Controle sobre seu Computador",
+          "desc": "Busque informações em seus arquivos locais e execute comandos do sistema operacional. O SofLIA Hub vive no seu ambiente e ajuda você a controlá-lo de forma inteligente."
+        },
+        "productivity": {
+          "title": "Área de Produtividade",
+          "desc": "Um painel dedicado exclusivamente a maximizar seu desempenho. Monitore sua atividade, otimize seu tempo de foco e gerencie suas tarefas diárias."
+        },
+        "settings": {
+          "title": "Configuração Profunda",
+          "desc": "Personalize todos os aspectos da interação, gerencie integrações, ajuste permissões locais e decida exatamente como deseja que a SofLIA trabalhe para você."
+        }
+      }
+    },
+    "steps": {
+      "download": {
+        "title": "Download",
+        "desc": "Escolha sua plataforma e baixe o instalador oficial."
+      },
+      "install": {
+        "title": "Instalação",
+        "desc": "Execute o assistente e siga as etapas na tela."
+      },
+      "sync": {
+        "title": "Sincronização",
+        "desc": "Faça login e aproveite o SofLIA Hub no seu fluxo diário."
+      }
+    },
+    "requirements": {
+      "title": "Requisitos do Sistema",
+      "subtitle": "Certifique-se de que seu equipamento atende ao necessário para a melhor experiência.",
+      "platform": "Plataforma",
+      "os": "O.S.",
+      "ram": "RAM",
+      "disk": "Espaço",
+      "ramRecomended": "4 GB (8 GB recomendado)"
+    },
+    "safety": {
+      "title": "Seguro e Verificado",
+      "description": "Todos os lançamentos do SofLIA Hub são compilados e assinados de forma segura e automática para garantir a integridade e segurança de cada instalador.",
+      "badges": {
+        "ssl": "Assinatura Digital SSL",
+        "updates": "Atualizações Automáticas",
+        "source": "Código-Fonte Protegido"
+      }
     }
   }
 }

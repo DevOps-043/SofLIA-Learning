@@ -104,6 +104,11 @@ export interface BusinessUserStatsLessonCountRecord {
   module_id: string
 }
 
+export interface BusinessUserStatsLessonActivityCatalogRecord {
+  activity_id: string
+  lesson_id: string | null
+}
+
 interface BusinessUserStatsCourseModuleNestedRecord {
   module_id: string
   course_id: string | null
@@ -211,6 +216,7 @@ export interface BusinessUserStatsQueryData {
   lessons: BusinessUserStatsLessonRecord[]
   courseModules: BusinessUserStatsCourseModuleRecord[]
   lessonCounts: BusinessUserStatsLessonCountRecord[]
+  lessonActivities: BusinessUserStatsLessonActivityCatalogRecord[]
   activityCompletions: BusinessUserStatsActivityCompletionRecord[]
   lessonNotes: BusinessUserStatsLessonNoteRecord[]
   certificates: BusinessUserStatsCertificateRecord[]
@@ -304,6 +310,7 @@ export async function fetchBusinessUserStatsData(
       lessons: completionData.lessons,
       courseModules: completionData.courseModules,
       lessonCounts: completionData.lessonCounts,
+      lessonActivities: completionData.lessonActivities,
       activityCompletions: completionData.activityCompletions,
       lessonNotes: completionData.lessonNotes,
       certificates: completionData.certificates,

@@ -36,7 +36,6 @@ export interface StudyPlannerConversationShellProps {
   onHoverChange: (value: string | null) => void
   onOpenCalendar: () => void
   onOpenCalendarConfig: () => void
-  onRestartTour: () => void
   onAskHowItWorks: () => void
   onToggleAudio: () => void
   onApproachSelect: (approach: StudyApproach) => void

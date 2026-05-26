@@ -12,6 +12,5 @@ export interface StudyPlannerDashboardToolbarProps {
   onOpenCalendarConfig: () => void
   onOpenCalendarModal: () => void
   onRecreatePlan: () => void
-  onRestartTour: () => void
   setHoveredButton: (value: string | null) => void
 }

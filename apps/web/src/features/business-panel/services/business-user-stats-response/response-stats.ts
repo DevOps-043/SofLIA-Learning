@@ -30,8 +30,9 @@ export function buildResponseStats({ certificates, coursesData, coursesWithLesso
     lia_conversations_total: data.liaConversations.length, lia_messages_total: data.liaMessages.length,
     quiz_total: data.quizSubmissions.length, quiz_passed: data.quizSubmissions.filter((submission) => submission.is_passed).length,
     quiz_failed: data.quizSubmissions.filter((submission) => !submission.is_passed).length, quiz_average_score: buildQuizAverageScore(data),
-    lia_activities_completed: data.activityCompletions.filter((activity) => activity.status === 'completed').length,
-    lia_activities_total: data.activityCompletions.length, courses_data: coursesData, courses_with_lessons: coursesWithLessons,
+    lia_activities_completed: coursesData.reduce((sum, course) => sum + (course.activities_completed || 0), 0),
+    lia_activities_total: coursesData.reduce((sum, course) => sum + (course.activities_total || 0), 0),
+    courses_data: coursesData, courses_with_lessons: coursesWithLessons,
     time_by_course: buildTimeByCourse(coursesData), completed_by_month: buildCompletedByMonth(data.enrollments, data.assignments),
     distribution: { completed: completedCourses, in_progress: inProgressCourses, not_started: notStartedCourses },
   }

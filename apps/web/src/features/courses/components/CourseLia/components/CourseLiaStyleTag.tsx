@@ -11,7 +11,7 @@ export function CourseLiaStyleTag({
   isLightTheme,
   themeColors,
 }: CourseLiaStyleTagProps) {
-  const textColor = isLightTheme ? 'var(--color-legacy-1e293b)' : themeColors.textPrimary;
+  const textColor = isLightTheme ? 'var(--color-gray-100)' : themeColors.textPrimary;
   const mutedColor = isLightTheme ? 'var(--color-gray-500)' : themeColors.textSecondary;
 
   return (
@@ -63,9 +63,9 @@ export function CourseLiaStyleTag({
         .lia-msg-assistant-text,
         .lia-chat-input,
         #lia-course-chat-input {
-          color: var(--color-legacy-0f172a) !important;
-          caret-color: var(--color-legacy-0f172a) !important;
-          -webkit-text-fill-color: var(--color-legacy-0f172a) !important;
+          color: var(--color-gray-50) !important;
+          caret-color: var(--color-gray-50) !important;
+          -webkit-text-fill-color: var(--color-gray-50) !important;
         }
         .lia-chat-input::placeholder,
         #lia-course-chat-input::placeholder {
@@ -73,7 +73,7 @@ export function CourseLiaStyleTag({
           -webkit-text-fill-color: var(--color-gray-500) !important;
         }
         .lia-header-title {
-          color: var(--color-legacy-0f172a) !important;
+          color: var(--color-gray-50) !important;
         }
       ` : ''}
     `}</style>

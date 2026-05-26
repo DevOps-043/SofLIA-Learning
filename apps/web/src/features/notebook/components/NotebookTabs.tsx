@@ -2,7 +2,6 @@
 
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/shared/utils/cn'
-import { NOTEBOOK_TOUR_TARGET_IDS } from '@/core/constants/tourTargets'
 import type { NotebookTab } from '../types'
 
 interface NotebookTabsProps {
@@ -27,7 +26,6 @@ export function NotebookTabs({ activeTab, onTabChange }: NotebookTabsProps) {
 
   return (
     <div
-      id={NOTEBOOK_TOUR_TARGET_IDS.tabs}
       className="flex gap-1 p-1 rounded-xl bg-gray-100 dark:bg-gray-800/60 w-fit mb-6"
     >
       {TABS.map((tab) => (

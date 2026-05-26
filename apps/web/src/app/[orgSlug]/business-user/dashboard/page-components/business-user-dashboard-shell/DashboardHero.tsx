@@ -1,7 +1,5 @@
 import { motion, type Transition } from 'framer-motion'
 
-import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '@/core/constants/tourTargets'
-
 import { BusinessUserGreeting } from './BusinessUserGreeting'
 import { HeroBackground } from './HeroBackground'
 import { HeroBorderOverlay, HeroDecorations } from './HeroDecorations'
@@ -28,7 +26,6 @@ export function DashboardHero({
 
   return (
     <div
-      id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.heroSection}
       className="mb-5 scroll-mt-28 md:mb-8"
     >
       <motion.div

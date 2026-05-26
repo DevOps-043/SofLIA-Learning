@@ -1,7 +1,5 @@
 import { Suspense } from 'react'
 
-import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '@/core/constants/tourTargets'
-
 import { ModernStatsCard } from './dynamic-components'
 import type { BusinessUserDashboardShellProps } from './types'
 
@@ -15,13 +13,6 @@ type DashboardStatsGridProps = Pick<
   | 'stats'
   | 'userDashboardStyles'
 >
-
-function getStatTourId(index: number, isAnalytics: boolean) {
-  if (index === 0) return BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statCourses
-  if (index === 3) return BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statCertificates
-  if (isAnalytics) return BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statAnalytics
-  return undefined
-}
 
 export function DashboardStatsGrid({
   disableHeavyEffects,
@@ -61,7 +52,6 @@ export function DashboardStatsGrid({
               isClickable={(isCertificates && stats.certificates > 0) || isAnalytics}
               styles={userDashboardStyles}
               disableHeavyEffects={disableHeavyEffects}
-              id={getStatTourId(index, isAnalytics)}
             />
           )
         })}

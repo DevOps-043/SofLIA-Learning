@@ -48,6 +48,17 @@ export async function resolveAuthenticatedUserId(
     now = () => new Date(),
   } = dependencies
 
+  const {
+    data: { user: nativeUser },
+  } = await supabase.auth.getUser()
+
+  if (nativeUser?.id) {
+    logger.debug(`${logPrefix}: Sesion validada via Supabase Auth`, {
+      userId: nativeUser.id,
+    })
+    return authSuccess(nativeUser.id)
+  }
+
   const accessToken = cookieStore.get('access_token')?.value
   const refreshToken = cookieStore.get('refresh_token')?.value
 

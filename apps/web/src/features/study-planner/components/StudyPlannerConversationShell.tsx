@@ -40,7 +40,6 @@ export function StudyPlannerConversationShell({
   onHoverChange,
   onOpenCalendar,
   onOpenCalendarConfig,
-  onRestartTour,
   onAskHowItWorks,
   onToggleAudio,
   onApproachSelect,
@@ -93,7 +92,6 @@ export function StudyPlannerConversationShell({
         onHoverChange={onHoverChange}
         onOpenCalendar={onOpenCalendar}
         onOpenCalendarConfig={onOpenCalendarConfig}
-        onRestartTour={onRestartTour}
         onAskHowItWorks={onAskHowItWorks}
         onToggleAudio={onToggleAudio}
       />

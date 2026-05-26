@@ -25,6 +25,7 @@ export function createStatsData(
     lessons: [],
     courseModules: [],
     lessonCounts: [],
+    lessonActivities: [],
     activityCompletions: [],
     lessonNotes: [],
     certificates: [],

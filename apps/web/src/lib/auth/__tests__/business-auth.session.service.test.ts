@@ -22,6 +22,7 @@ function createQueryBuilder(result: { data: unknown; error: { message: string } 
 }
 
 function createSupabaseStub(results: {
+  authUser?: { id: string } | null
   refreshTokens: { data: unknown; error: { message: string } | null }
   userSession: { data: unknown; error: { message: string } | null }
 }) {
@@ -30,6 +31,12 @@ function createSupabaseStub(results: {
 
   return {
     client: {
+      auth: {
+        getUser: vi.fn(async () => ({
+          data: { user: results.authUser ?? null },
+          error: null,
+        })),
+      },
       from: vi.fn((table: string) => {
         if (table === 'refresh_tokens') {
           return refreshTokens
@@ -90,6 +97,38 @@ describe('resolveAuthenticatedUserId', () => {
     })
 
     expect(result).toEqual({ ok: true, value: 'user-refresh' })
+    expect(userSession.single).not.toHaveBeenCalled()
+  })
+
+  it('uses the native Supabase Auth session before legacy session fallbacks', async () => {
+    const { client, refreshTokens, userSession } = createSupabaseStub({
+      authUser: { id: 'native-user' },
+      refreshTokens: {
+        data: { user_id: 'user-refresh' },
+        error: null,
+      },
+      userSession: {
+        data: { user_id: 'legacy-user' },
+        error: null,
+      },
+    })
+
+    const result = await resolveAuthenticatedUserId({
+      cookieStore: createCookieStore({
+        access_token: 'access',
+        refresh_token: 'refresh',
+        'aprende-y-aplica-session': 'legacy-session',
+      }),
+      supabase: client,
+      logger,
+      logPrefix: 'requireBusiness',
+      messages,
+      hashToken: async () => 'hashed-refresh',
+      now: () => new Date('2026-04-02T12:00:00.000Z'),
+    })
+
+    expect(result).toEqual({ ok: true, value: 'native-user' })
+    expect(refreshTokens.single).not.toHaveBeenCalled()
     expect(userSession.single).not.toHaveBeenCalled()
   })
 

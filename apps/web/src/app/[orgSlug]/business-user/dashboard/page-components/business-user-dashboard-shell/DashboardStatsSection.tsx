@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import type { Transition } from 'framer-motion'
 
-import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '@/core/constants/tourTargets'
-
 import { DashboardStatsGrid } from './DashboardStatsGrid'
 import { DashboardStatsHeader } from './DashboardStatsHeader'
 import type { BusinessUserDashboardShellProps } from './types'
@@ -26,7 +24,6 @@ export function DashboardStatsSection(props: DashboardStatsSectionProps) {
 
   return (
     <div
-      id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statsSection}
       className="relative hidden scroll-mt-32"
     >
       <section className="mb-6 md:mb-10">

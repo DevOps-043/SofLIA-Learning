@@ -1,4 +1,3 @@
-import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '@/core/constants/tourTargets'
 import type { AssignedLearningPath, BusinessUserDashboardColors } from '../../types'
 import { buildLearningPathPreviewContent } from './preview-content'
 import { IntroVideoButton } from './IntroVideoButton'
@@ -32,9 +31,6 @@ export function LearningPathHeader({
   t,
 }: LearningPathHeaderProps) {
   const hasTour = Boolean(intro.introVideoUrl)
-  const sectionTargetId = pathIndex === 0
-    ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.learningPathIntroVideo
-    : undefined
 
   return (
     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -59,7 +55,6 @@ export function LearningPathHeader({
           intro={intro}
           orgColors={orgColors}
           onClick={onOpenTour}
-          targetId={sectionTargetId}
           t={t}
         />
       ) : null}
