@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { SessionService } from '@/features/auth/services/session.service'
 import { NotificationService } from '@/features/notifications/services/notification.service'
 import { logger } from '@/lib/logger'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { resolveNotificationRequestContext } from '../_lib/request-context'
 
 /**
  * GET /api/notifications/unread-count
@@ -11,8 +10,10 @@ import { createAdminClient } from '@/lib/supabase/admin'
 export async function GET(request: NextRequest) {
   try {
     // Obtener usuario autenticado
-    const user = await SessionService.getCurrentUser()
-    if (!user) {
+    void request
+
+    const context = await resolveNotificationRequestContext()
+    if (!context) {
       return NextResponse.json(
         { error: 'No autenticado' },
         { status: 401 }
@@ -20,8 +21,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Obtener conteo de no leídas
-    const supabase = createAdminClient()
-    const counts = await NotificationService.getUnreadCount(user.id, supabase)
+    const counts = await NotificationService.getUnreadCount(
+      context.userId,
+      context.supabase,
+    )
 
     return NextResponse.json({
       success: true,

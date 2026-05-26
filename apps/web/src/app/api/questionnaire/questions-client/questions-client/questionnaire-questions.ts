@@ -7,6 +7,7 @@ import type {
   QuestionnaireSupabaseClient,
   UserProfileRow,
 } from './questionnaire.types'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function loadProfileQuestions(
   client: QuestionnaireSupabaseClient,

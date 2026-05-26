@@ -1,4 +1,5 @@
 import { createClient } from '../../../lib/supabase/server'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export interface AdminCheckpoint {
   checkpoint_id: string

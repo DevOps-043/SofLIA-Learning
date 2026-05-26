@@ -45,12 +45,14 @@ export function AdminUserListRow({
       initial={{ opacity: 0, x: -12 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.025, duration: 0.25, ease: 'easeOut' }}
-      className="grid gap-4 rounded-[20px] border p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md lg:grid-cols-[minmax(260px,1.5fr)_minmax(220px,1.05fr)_minmax(150px,0.75fr)_minmax(150px,0.75fr)_minmax(150px,0.7fr)_auto] lg:items-center"
+      className="rounded-[20px] border p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md lg:grid lg:grid-cols-[minmax(200px,1.5fr)_minmax(160px,1fr)_130px_auto_auto_auto] lg:items-center lg:gap-4"
       style={{
         backgroundColor: theme.cardBg,
         borderColor: theme.borderColor,
       }}
     >
+      {/* Desktop: Fragment renders 3 direct grid cells (name, email, date).
+          Mobile: each child stacks as a full-width block row. */}
       <AdminUserListInfo
         displayName={displayName}
         username={user.username}
@@ -60,33 +62,37 @@ export function AdminUserListRow({
         t={t}
       />
 
-      <span
-        className="inline-flex min-h-[34px] items-center justify-center gap-1.5 rounded-xl border px-3 text-xs font-bold"
-        style={{
-          color: roleConfig.text,
-          backgroundColor: roleConfig.bg,
-          borderColor: roleConfig.border,
-        }}
-      >
-        <RoleIcon className="h-3.5 w-3.5" />
-        {roleConfig.label}
-      </span>
+      {/* Desktop (lg:contents): role, status, and buttons become direct grid cells.
+          Mobile: flex row — badges on left, buttons on right. */}
+      <div className="mt-3 flex items-center gap-2 lg:mt-0 lg:contents">
+        <span
+          className="inline-flex min-h-[32px] items-center gap-1.5 whitespace-nowrap rounded-xl border px-3 text-xs font-bold"
+          style={{
+            color: roleConfig.text,
+            backgroundColor: roleConfig.bg,
+            borderColor: roleConfig.border,
+          }}
+        >
+          <RoleIcon className="h-3.5 w-3.5 shrink-0" />
+          {roleConfig.label}
+        </span>
 
-      <span
-        className="inline-flex min-h-[34px] items-center justify-center gap-1.5 rounded-xl border px-3 text-xs font-bold"
-        style={{
-          color: statusConfig.color,
-          backgroundColor: statusConfig.bg,
-          borderColor: statusConfig.border,
-        }}
-      >
-        <StatusIcon className="h-3.5 w-3.5" />
-        {statusConfig.label}
-      </span>
+        <span
+          className="inline-flex min-h-[32px] items-center gap-1.5 whitespace-nowrap rounded-xl border px-3 text-xs font-bold"
+          style={{
+            color: statusConfig.color,
+            backgroundColor: statusConfig.bg,
+            borderColor: statusConfig.border,
+          }}
+        >
+          <StatusIcon className="h-3.5 w-3.5 shrink-0" />
+          {statusConfig.label}
+        </span>
 
-      <div className="flex items-center justify-end gap-2">
-        <AdminUserIconButton icon={Edit3} label={tc('actions.edit')} onClick={onEdit} />
-        <AdminUserIconButton icon={Trash2} label={tc('actions.delete')} onClick={onDelete} danger />
+        <div className="ml-auto flex items-center gap-2 lg:ml-0 lg:justify-end">
+          <AdminUserIconButton icon={Edit3} label={tc('actions.edit')} onClick={onEdit} />
+          <AdminUserIconButton icon={Trash2} label={tc('actions.delete')} onClick={onDelete} danger />
+        </div>
       </div>
     </motion.article>
   )

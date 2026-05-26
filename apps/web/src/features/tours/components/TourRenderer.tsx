@@ -7,17 +7,15 @@ import { useTranslation } from 'react-i18next'
 import { useThemeStore } from '@/core/stores/themeStore'
 
 import { useTourStore } from '../tour.store'
+import { translateTourKey } from '../utils/tour.i18n'
 import { isMobileViewport, resolveStepPlacement, resolveSteps } from '../utils/tour.helpers'
 import { TourTooltip } from './TourTooltip'
 
-const TOURS_NAMESPACE_PREFIX = 'tours.'
-
-function resolveTranslationKey(key: string): string {
-  return key.startsWith(TOURS_NAMESPACE_PREFIX) ? key.slice(TOURS_NAMESPACE_PREFIX.length) : key
-}
+const TOUR_OVERLAY_Z_INDEX = 10000
+const TOUR_FLOATER_Z_INDEX = TOUR_OVERLAY_Z_INDEX + 10
 
 export function TourRenderer() {
-  const { t } = useTranslation('tours')
+  const { t, i18n } = useTranslation('tours')
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme)
   const activeTourConfig = useTourStore((state) => state.activeTourConfig)
   const currentStep = useTourStore((state) => state.currentStep)
@@ -28,6 +26,15 @@ export function TourRenderer() {
   const stopTour = useTourStore((state) => state.stopTour)
   const markCompleted = useTourStore((state) => state.markCompleted)
   const [isMobile, setIsMobile] = useState(() => isMobileViewport())
+
+  const completeActiveTour = useCallback(() => {
+    if (!activeTourConfig) {
+      return
+    }
+
+    markCompleted(activeTourConfig.id)
+    stopTour()
+  }, [activeTourConfig, markCompleted, stopTour])
 
   useEffect(() => {
     const updateViewport = () => setIsMobile(isMobileViewport())
@@ -49,13 +56,13 @@ export function TourRenderer() {
     () =>
       resolvedTourSteps.map((step) => ({
         target: step.target,
-        title: t(resolveTranslationKey(step.titleKey)),
-        content: t(resolveTranslationKey(step.contentKey)),
+        title: translateTourKey(t, i18n, step.titleKey),
+        content: translateTourKey(t, i18n, step.contentKey),
         placement: resolveStepPlacement(step, isMobile),
         skipBeacon: step.disableBeacon ?? true,
         blockTargetInteraction: step.spotlightClicks !== true,
       })),
-    [isMobile, resolvedTourSteps, t],
+    [i18n, i18n.language, i18n.resolvedLanguage, isMobile, resolvedTourSteps, t],
   )
 
   useEffect(() => {
@@ -79,15 +86,8 @@ export function TourRenderer() {
         return
       }
 
-      if (data.status === STATUS.FINISHED) {
-        markCompleted(activeTourConfig.id)
-        stopTour()
-        return
-      }
-
-      if (data.status === STATUS.SKIPPED) {
-        markCompleted(activeTourConfig.id)
-        stopTour()
+      if (data.status === STATUS.FINISHED || data.status === STATUS.SKIPPED) {
+        completeActiveTour()
         return
       }
 
@@ -98,8 +98,7 @@ export function TourRenderer() {
         }
 
         if (data.index >= data.size - 1) {
-          markCompleted(activeTourConfig.id)
-          stopTour()
+          completeActiveTour()
           return
         }
 
@@ -112,6 +111,11 @@ export function TourRenderer() {
       }
 
       if (data.action === ACTIONS.NEXT) {
+        if (data.index >= data.size - 1) {
+          completeActiveTour()
+          return
+        }
+
         nextStep()
         return
       }
@@ -120,7 +124,7 @@ export function TourRenderer() {
         prevStep()
       }
     },
-    [activeTourConfig, markCompleted, nextStep, prevStep, stopTour],
+    [activeTourConfig, completeActiveTour, nextStep, prevStep],
   )
 
   if (!isRunning || !activeTourConfig) {
@@ -139,11 +143,11 @@ export function TourRenderer() {
       tooltipComponent={TourTooltip}
       onEvent={handleJoyrideEvent}
       locale={{
-        back: t('actions.back'),
-        close: t('actions.skip'),
-        last: t('actions.finish'),
-        next: t('actions.next'),
-        skip: t('actions.skip'),
+        back: translateTourKey(t, i18n, 'actions.back'),
+        close: translateTourKey(t, i18n, 'actions.skip'),
+        last: translateTourKey(t, i18n, 'actions.finish'),
+        next: translateTourKey(t, i18n, 'actions.next'),
+        skip: translateTourKey(t, i18n, 'actions.skip'),
       }}
       options={{
         arrowColor: isDark ? 'var(--color-gray-800)' : 'var(--color-bg-light)',
@@ -152,17 +156,29 @@ export function TourRenderer() {
         closeButtonAction: 'skip',
         offset: 12,
         overlayClickAction: false,
-        overlayColor: isMobile ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.55)',
+        overlayColor: isDark
+          ? isMobile
+            ? 'rgba(0,0,0,0.62)'
+            : 'rgba(0,0,0,0.72)'
+          : isMobile
+            ? 'rgba(0,0,0,0.55)'
+            : 'rgba(0,0,0,0.65)',
         primaryColor: 'var(--color-accent)',
         scrollOffset: 120,
         showProgress: false,
+        spotlightPadding: 8,
         spotlightRadius: 10,
-        zIndex: 10000,
+        zIndex: TOUR_OVERLAY_Z_INDEX,
       }}
       floatingOptions={{
-        shiftOptions: {
-          padding: 16,
+        flipOptions: {
+          fallbackPlacements: ['right', 'left', 'bottom', 'top'],
+          padding: 24,
         },
+        shiftOptions: {
+          padding: 24,
+        },
+        strategy: 'fixed',
       }}
       styles={{
         beaconInner: {
@@ -174,6 +190,15 @@ export function TourRenderer() {
         },
         floater: {
           filter: 'none',
+          pointerEvents: 'auto',
+          zIndex: TOUR_FLOATER_Z_INDEX,
+        },
+        overlay: {
+          zIndex: TOUR_OVERLAY_Z_INDEX,
+        },
+        spotlight: {
+          stroke: 'var(--color-accent)',
+          strokeWidth: 3,
         },
         tooltip: {
           backgroundColor: 'transparent',

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { commentsTable, createCommunityRouteClient } from './comments.client';
 import { getCurrentCommunityUser } from './comments.auth';
 import { fetchCommentUsersMap, getFallbackUser } from './comments.users';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function handleGetComments(
   request: NextRequest,

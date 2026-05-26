@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function GET(req: NextRequest) {
   try {

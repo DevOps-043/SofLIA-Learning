@@ -1,5 +1,6 @@
 import { createAdminMaterialsClient } from './admin-materials.client'
 import type { AdminMaterial } from './admin-materials.types'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function getLessonMaterials(lessonId: string): Promise<AdminMaterial[]> {
   const supabase = await createAdminMaterialsClient()

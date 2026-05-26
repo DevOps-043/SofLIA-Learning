@@ -7,7 +7,7 @@
     "restart": "View guided tour",
     "startTour": "Start tour"
   },
-  "progress": "{{current}} of {{total}}",
+  "progress": "{{current}}/{{total}}",
   "courseLearn": {
     "welcome": {
       "title": "Learn With Clarity",
@@ -156,6 +156,10 @@
     "hero": {
       "title": "Opening Summary",
       "content": "The header gives you panel context, greets the administrator, and shows the current work date."
+    },
+    "relaunch": {
+      "title": "Guided Tour",
+      "content": "Use this button to relaunch the panel walkthrough whenever you need to locate its main functions."
     },
     "stats": {
       "title": "General Metrics",

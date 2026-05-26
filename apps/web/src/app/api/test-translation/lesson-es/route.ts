@@ -6,6 +6,7 @@ import { LanguageDetectionService } from '../../../../core/services/languageDete
 import { createClient } from '../../../../lib/supabase/server'
 import { SupportedLanguage } from '../../../../core/i18n/i18n'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export const dynamic = 'force-dynamic'
 

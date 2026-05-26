@@ -209,6 +209,7 @@ export function useBusinessPanelDashboardLogic() {
       gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.primary}, color-mix(in srgb, ${themeColors.primary} 80%, transparent))` },
       href: `/${orgSlug}/business-panel/users`,
       icon: UsersIcon,
+      iconColor: themeColors.primary,
     },
     {
       title: t('dashboard.stats.assignedCourses'),
@@ -220,6 +221,7 @@ export function useBusinessPanelDashboardLogic() {
       href: `/${orgSlug}/business-panel/courses`,
       id: 'tour-stat-courses',
       icon: BookOpenIcon,
+      iconColor: themeColors.secondary,
     },
     {
       title: t('dashboard.stats.completed'),
@@ -229,6 +231,7 @@ export function useBusinessPanelDashboardLogic() {
       gradient: `bg-gradient-to-br from-[${themeColors.accent}] to-[${themeColors.accent}]/80`,
       gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.accent}, color-mix(in srgb, ${themeColors.accent} 80%, transparent))` },
       icon: CheckCircleIcon,
+      iconColor: themeColors.accent,
     },
     {
       title: t('dashboard.stats.avgProgress'),
@@ -238,6 +241,7 @@ export function useBusinessPanelDashboardLogic() {
       gradient: 'bg-gradient-to-br from-warning to-warning/80',
       gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-warning), var(--color-legacy-f59e0bcc))' },
       icon: ClockIcon,
+      iconColor: 'var(--color-warning)',
     },
     {
       title: t('dashboard.stats.certificates'),
@@ -248,6 +252,7 @@ export function useBusinessPanelDashboardLogic() {
       gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-secondary), var(--color-legacy-8b5cf6cc))' },
       id: 'tour-stat-certificates',
       icon: AcademicCapIcon,
+      iconColor: 'var(--color-secondary)',
     },
     {
       title: t('dashboard.stats.engagement'),
@@ -257,6 +262,7 @@ export function useBusinessPanelDashboardLogic() {
       gradient: 'bg-gradient-to-br from-pink-500 to-pink-500/80',
       gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-legacy-ec4899), var(--color-legacy-ec4899cc))' },
       icon: ChartBarIcon,
+      iconColor: 'var(--color-legacy-ec4899)',
     },
     {
       title: t('dashboard.stats.invitedUsers', 'Usuarios Invitados'),
@@ -267,6 +273,7 @@ export function useBusinessPanelDashboardLogic() {
       gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-legacy-6366f1), var(--color-legacy-6366f1cc))' },
       href: `/${orgSlug}/business-panel/users?tab=invitations`,
       icon: UsersIcon,
+      iconColor: 'var(--color-legacy-6366f1)',
     },
     {
       title: t('dashboard.stats.inviteLinks', 'Enlaces de Invitacion'),
@@ -280,6 +287,7 @@ export function useBusinessPanelDashboardLogic() {
       gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-success), var(--color-legacy-10b981cc))' },
       href: `/${orgSlug}/business-panel/users?tab=links`,
       icon: LinkIcon,
+      iconColor: 'var(--color-success)',
     },
   ] : [], [stats, themeColors, t, orgSlug]) // eslint-disable-line react-hooks/exhaustive-deps
 

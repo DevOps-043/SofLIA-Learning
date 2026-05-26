@@ -8,6 +8,7 @@ import type {
   HierarchyChatSupabase,
   ListChatsParams,
 } from './types';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function listHierarchyChats({
   auth,

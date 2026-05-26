@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 interface OrganizationRegionRow {
   id: string;

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 // Crear cliente con service_role que bypasea RLS
 function createServiceClient() {

@@ -1,4 +1,3 @@
-import { loadBusinessUserLearningPaths } from '@/features/learning-paths/services/learning-path-dashboard.server'
 import type { AssignedLearningPathDashboard } from '@/features/learning-paths/services/learning-path-dashboard.service'
 import { logger } from '@/lib/utils/logger'
 import type {
@@ -24,6 +23,7 @@ export async function fetchDashboardEnrichment(
   supabase: DashboardSupabaseClient,
   auth: DashboardAuthContext,
   baseData: DashboardBaseData,
+  preloadedLearningPaths?: AssignedLearningPathDashboard[],
 ): Promise<DashboardEnrichmentData> {
   const [enrollmentsResult, instructorsResult, learningPaths] = await Promise.all([
     baseData.courseIds.length > 0
@@ -42,13 +42,9 @@ export async function fetchDashboardEnrichment(
           .in('id', baseData.instructorIds)
           .returns<InstructorRow[]>()
       : Promise.resolve({ data: [] }),
-    loadBusinessUserLearningPaths({
-      userId: auth.userId,
-      organizationId: auth.organizationId,
-    }).catch((err: unknown) => {
-      logger.error('Error preparing learning paths for dashboard:', err)
-      return [] as AssignedLearningPathDashboard[]
-    }),
+    preloadedLearningPaths
+      ? Promise.resolve(preloadedLearningPaths)
+      : Promise.resolve([] as AssignedLearningPathDashboard[]),
   ])
 
   if (enrollmentsResult.error) logger.error('Error fetching enrollments:', enrollmentsResult.error)

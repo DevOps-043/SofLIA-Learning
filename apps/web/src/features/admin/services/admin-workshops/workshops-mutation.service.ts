@@ -7,6 +7,7 @@ import {
   WorkshopDeletionError,
 } from './workshop-deletion.service'
 import type { AdminWorkshop } from './workshops-transform.service'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export class AdminWorkshopsMutationService {
   static async createWorkshop(workshopData: Partial<AdminWorkshop>, adminUserId: string, requestInfo?: { ip?: string, userAgent?: string }): Promise<AdminWorkshop> {

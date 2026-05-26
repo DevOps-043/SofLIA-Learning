@@ -11,6 +11,7 @@ import {
   type CertificateTemplateCreateBody,
   type CertificateTemplateUpdateBody,
 } from './schema'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 /**
  * GET /api/business/certificates/templates

@@ -1,6 +1,7 @@
 import type { CourseActivityContext } from '../../activity-submission.server.service'
 import { DialogueRuntimeError } from '../dialogue-runtime.errors'
 import { dialogueSessionsTable } from '../dialogue-tables'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function getDialogueSessionById(input: {
   client: unknown

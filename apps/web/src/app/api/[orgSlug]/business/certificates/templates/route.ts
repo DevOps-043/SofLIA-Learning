@@ -5,6 +5,7 @@ import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import { requireFeature } from '@/lib/subscription/subscriptionHelper'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 import {
   certificateTemplateCreateSchema,
   certificateTemplateUpdateSchema,

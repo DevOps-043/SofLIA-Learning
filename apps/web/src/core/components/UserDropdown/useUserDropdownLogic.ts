@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../../features/auth/hooks/useAuth'
 import { useUserProfile } from '../../../features/auth/hooks/useUserProfile'
@@ -28,8 +28,10 @@ export function useUserDropdownLogic(userProp?: unknown) {
   const { userProfile } = useUserProfile()
   const { setTheme, resolvedTheme, initializeTheme } = useThemeStore()
   const { language, setLanguage } = useLanguage()
-  const { currentOrganization, isB2B, isOrgAdmin } = useOrganization()
+  const [isOrgSwitcherOpen, setIsOrgSwitcherOpen] = useState(false)
+  const { currentOrganization, organizations, canSwitch, isB2B, isOrgAdmin, switchOrganization } = useOrganization()
   const router = useRouter()
+  const pathname = usePathname()
   const { t } = useTranslation('common')
 
   useEffect(() => { setIsMounted(true); initializeTheme() }, [initializeTheme])
@@ -43,7 +45,7 @@ export function useUserDropdownLogic(userProp?: unknown) {
     function handleClickOutside(event: MouseEvent) {
       const menu = document.getElementById('global-user-dropdown-menu')
       if (dropdownRef.current?.contains(event.target as Node) || menu?.contains(event.target as Node)) return
-      setIsOpen(false); setActiveSubmenu(null)
+      setIsOpen(false); setActiveSubmenu(null); setIsOrgSwitcherOpen(false)
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
@@ -52,11 +54,14 @@ export function useUserDropdownLogic(userProp?: unknown) {
   const isAdmin = useMemo(() => user?.cargo_rol?.toLowerCase() === 'administrador', [user?.cargo_rol])
   const isInstructor = useMemo(() => user?.cargo_rol?.toLowerCase() === 'instructor', [user?.cargo_rol])
   const handleNavigation = useCallback((path: string) => {
-    router.push(path); setIsOpen(false); setActiveSubmenu(null)
+    router.push(path); setIsOpen(false); setActiveSubmenu(null); setIsOrgSwitcherOpen(false)
   }, [router])
   const handleLogout = useCallback(async () => {
-    await logout(); setIsOpen(false)
+    await logout(); setIsOpen(false); setIsOrgSwitcherOpen(false)
   }, [logout])
+  const handleOrganizationSwitch = useCallback((slug: string) => {
+    switchOrganization(slug); setIsOpen(false); setActiveSubmenu(null); setIsOrgSwitcherOpen(false)
+  }, [switchOrganization])
   const handleUserDashboardNavigation = useCallback(() => {
     handleNavigation(currentOrganization?.slug ? getOrganizationUserDashboardPath(currentOrganization.slug) : '/dashboard')
   }, [currentOrganization?.slug, handleNavigation])
@@ -73,11 +78,12 @@ export function useUserDropdownLogic(userProp?: unknown) {
   const accentColor = 'var(--color-accent)'
 
   return {
-    activeSubmenu, accentColor, currentOrganization, displayName, dropdownRef,
-    handleLogout, handleNavigation, handleUserDashboardNavigation, imageError,
-    imageUrl, initials, isAdmin, isB2B, isInstructor, isMounted, isOpen,
-    isOrgAdmin, language, pos, primaryColor, profilePath, resolvedTheme,
-    roleLabel, setActiveSubmenu, setImageError, setIsOpen, setLanguage,
+    activeSubmenu, accentColor, canSwitch, currentOrganization, displayName, dropdownRef,
+    handleLogout, handleNavigation, handleOrganizationSwitch, handleUserDashboardNavigation,
+    imageError, imageUrl, initials, isAdmin, isB2B, isInstructor, isMounted, isOpen,
+    isOrgAdmin, isOrgSwitcherOpen, language, organizations, pathname, pos, primaryColor,
+    profilePath, resolvedTheme, roleLabel, setActiveSubmenu, setImageError, setIsOpen,
+    setIsOrgSwitcherOpen, setLanguage,
     t, toggleTheme: () => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark'),
     userStatsPath,
   }

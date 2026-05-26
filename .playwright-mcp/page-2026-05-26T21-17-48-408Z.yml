@@ -1,0 +1,3 @@
+- link [ref=e2] [cursor=pointer]:
+  - /url: /api/_agent-trap?source=layout
+  - text: Internal diagnostics

@@ -4,6 +4,7 @@ import { createStatisticsSupabaseClient } from './statistics-results/supabase-cl
 import { processAnalysis } from './statistics-results/analysis';
 import { generateRecommendations } from './statistics-results/recommendations';
 import { processRadarData } from './statistics-results/radar';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function GET(_request: NextRequest) {
   try {

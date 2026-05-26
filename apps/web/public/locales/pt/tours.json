@@ -7,7 +7,7 @@
     "restart": "Ver tour guiado",
     "startTour": "Iniciar tour"
   },
-  "progress": "{{current}} de {{total}}",
+  "progress": "{{current}}/{{total}}",
   "courseLearn": {
     "welcome": {
       "title": "Aprenda com clareza",
@@ -156,6 +156,10 @@
     "hero": {
       "title": "Resumo inicial",
       "content": "O cabeçalho contextualiza o painel, cumprimenta o administrador e mostra a data de trabalho."
+    },
+    "relaunch": {
+      "title": "Tour guiado",
+      "content": "Use este botão para iniciar novamente o tour do painel sempre que precisar localizar suas funções principais."
     },
     "stats": {
       "title": "Métricas gerais",

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '../../../lib/supabase/server';
 import { SessionService } from '../../../features/auth/services/session.service';
 import { fromLoose } from '../../../lib/supabase/looseQuery';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 interface LiaConversationInsert {
   user_id: string;

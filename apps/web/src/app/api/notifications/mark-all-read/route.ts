@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { SessionService } from '@/features/auth/services/session.service'
 import { NotificationService } from '@/features/notifications/services/notification.service'
 import { logger } from '@/lib/logger'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { resolveNotificationRequestContext } from '../_lib/request-context'
 
 /**
  * POST /api/notifications/mark-all-read
@@ -13,8 +12,8 @@ export async function POST(request: NextRequest) {
     void request
 
     // Obtener usuario autenticado
-    const user = await SessionService.getCurrentUser()
-    if (!user) {
+    const context = await resolveNotificationRequestContext()
+    if (!context) {
       return NextResponse.json(
         { error: 'No autenticado' },
         { status: 401 }
@@ -22,10 +21,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Marcar todas como leídas
-    const supabase = createAdminClient()
     const { updated } = await NotificationService.markAllAsRead(
-      user.id,
-      supabase,
+      context.userId,
+      context.supabase,
     )
 
     return NextResponse.json({

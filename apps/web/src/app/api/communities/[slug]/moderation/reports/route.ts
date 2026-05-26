@@ -6,6 +6,7 @@ import { SessionService } from '@/features/auth/services/session.service'
 import { canModerateCommunity } from '@/lib/auth/communityPermissions'
 import { logger } from '@/lib/logger'
 import type { Database } from '@/lib/supabase/types'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 /**
  * GET /api/communities/[slug]/moderation/reports

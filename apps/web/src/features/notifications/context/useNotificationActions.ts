@@ -4,6 +4,30 @@ import { useCallback } from 'react'
 
 type RevalidateNotificationState = () => Promise<void>
 
+type MutationErrorResponse = {
+  error?: unknown
+  message?: unknown
+}
+
+async function readMutationError(
+  response: Response,
+  fallbackMessage: string,
+) {
+  try {
+    const data = await response.json() as MutationErrorResponse
+    const responseMessage =
+      typeof data.error === 'string'
+        ? data.error
+        : typeof data.message === 'string'
+          ? data.message
+          : null
+
+    return responseMessage || fallbackMessage
+  } catch {
+    return fallbackMessage
+  }
+}
+
 export function useNotificationActions(
   revalidateNotificationState: RevalidateNotificationState,
 ) {
@@ -12,7 +36,7 @@ export function useNotificationActions(
       const response = await fetch(url, { method, credentials: 'include' })
 
       if (!response.ok) {
-        throw new Error(errorMessage)
+        throw new Error(await readMutationError(response, errorMessage))
       }
 
       await revalidateNotificationState()

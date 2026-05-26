@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { logger } from '../../../lib/logger';
 import { getGoogleAuthUrl } from '../../../lib/oauth/google';
 import { getMicrosoftAuthUrl } from '../../../lib/oauth/microsoft';
+import { createAdminClient } from '../../../lib/supabase/admin';
 import {
   getRequestMetadata,
   writeServerAuthSessionCookies,
@@ -30,6 +31,31 @@ import type {
 } from '../types/oauth.types';
 import type { MicrosoftTokens } from '../services/microsoft-oauth.service';
 
+async function uploadMicrosoftPhotoToStorage(
+  photoBuffer: ArrayBuffer,
+  providerAccountId: string,
+): Promise<string | null> {
+  try {
+    const supabase = createAdminClient();
+    const path = `oauth/microsoft_${providerAccountId}.jpg`;
+    const { error } = await supabase.storage
+      .from('avatars')
+      .upload(path, photoBuffer, {
+        contentType: 'image/jpeg',
+        upsert: true,
+      });
+    if (error) {
+      logger.error('Microsoft OAuth: error uploading photo to storage', error);
+      return null;
+    }
+    const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(path);
+    return publicData.publicUrl ?? null;
+  } catch (err) {
+    logger.error('Microsoft OAuth: unexpected error uploading photo', err);
+    return null;
+  }
+}
+
 const googleOAuthAdapter: OAuthProviderAdapter<OAuthTokens> = {
   exchangeCodeForTokens: GoogleOAuthService.exchangeCodeForTokens,
   getProfile: async (tokens) =>
@@ -44,10 +70,20 @@ const googleOAuthAdapter: OAuthProviderAdapter<OAuthTokens> = {
 
 const microsoftOAuthAdapter: OAuthProviderAdapter<MicrosoftTokens> = {
   exchangeCodeForTokens: MicrosoftOAuthService.exchangeCodeForTokens,
-  getProfile: async (tokens) =>
-    normalizeMicrosoftOAuthProfile(
-      await MicrosoftOAuthService.getUserProfile(tokens.access_token)
-    ),
+  getProfile: async (tokens) => {
+    const [profile, photoBuffer] = await Promise.all([
+      MicrosoftOAuthService.getUserProfile(tokens.access_token),
+      MicrosoftOAuthService.getUserPhoto(tokens.access_token),
+    ]);
+    const normalized = normalizeMicrosoftOAuthProfile(profile);
+    if (photoBuffer) {
+      const pictureUrl = await uploadMicrosoftPhotoToStorage(photoBuffer, normalized.providerAccountId);
+      if (pictureUrl) {
+        return { ...normalized, picture: pictureUrl };
+      }
+    }
+    return normalized;
+  },
   provider: 'microsoft',
   providerLabel: 'Microsoft',
   toOAuthTokens: normalizeMicrosoftOAuthTokens,

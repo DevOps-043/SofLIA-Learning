@@ -2,6 +2,7 @@
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Building2, Menu } from 'lucide-react'
 import { useMemo } from 'react'
@@ -9,6 +10,8 @@ import { useTranslation } from 'react-i18next'
 
 import { NotificationBell } from '@/core/components/NotificationBell'
 import { UserDropdown } from '@/core/components/UserDropdown'
+import { TourTriggerButton, useTour } from '@/features/tours'
+import { businessPanelDashboardTour } from '@/features/tours/config/business-panel-dashboard.tour'
 import { useThemeStore } from '../../../core/stores/themeStore'
 import { useBusinessSettings } from '../hooks/useBusinessSettings'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
@@ -32,8 +35,11 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
   const { data: businessData } = useBusinessSettings()
   const { t } = useTranslation('business')
   const { resolvedTheme } = useThemeStore()
+  const pathname = usePathname()
+  const { restartTour } = useTour(businessPanelDashboardTour)
   const panelTheme = useBusinessPanelTheme()
   const organization = businessData?.organization
+  const canRestartDashboardTour = pathname?.includes('/business-panel/dashboard') ?? false
 
   const navbarStyle = useMemo(() => {
     const panelStyles = effectiveStyles?.panel || styles?.panel
@@ -129,7 +135,8 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                     className="h-10 w-auto max-w-[140px] rounded-lg object-contain sm:h-12 sm:max-w-[180px]"
                     style={{ width: 'auto' }}
                     onError={(event) => {
-                      ;(event.target as HTMLImageElement).src = '/icono.png'
+                      const image = event.target as HTMLImageElement
+                      image.src = '/icono.png'
                     }}
                   />
                 ) : (
@@ -160,6 +167,14 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
           </div>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-4">
+            {canRestartDashboardTour ? (
+              <TourTriggerButton
+                data-tour-id="business-panel-dashboard--tour-trigger"
+                onStart={restartTour}
+                showLabel
+                className="h-9 border-gray-200 bg-white text-gray-700 shadow-sm hover:border-accent hover:text-primary dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+              />
+            ) : null}
             <div data-tour-id="business-panel-dashboard--notifications">
               <NotificationBell />
             </div>

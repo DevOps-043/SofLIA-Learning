@@ -3,6 +3,7 @@ import {
 } from '../../../types/dialogue-runtime'
 import { DialogueRuntimeError } from '../dialogue-runtime.errors'
 import { dialogueEvaluationsTable } from '../dialogue-tables'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function getDialogueEvaluations(client: unknown, sessionId: string) {
   const { data, error } = await dialogueEvaluationsTable(client)

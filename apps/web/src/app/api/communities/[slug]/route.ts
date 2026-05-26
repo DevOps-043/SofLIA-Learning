@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '../../../../lib/supabase/server';
 import { cacheHeaders } from '../../../../lib/utils/cache-headers';
 import { logger } from '../../../../lib/utils/logger';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function GET(
   request: NextRequest,

@@ -4,6 +4,7 @@ import {
   type DialoguePolicyDecision,
 } from '../../../types/dialogue-runtime'
 import { DialogueRuntimeError } from '../dialogue-runtime.errors'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 import {
   dialogueSessionsTable,
   type DialogueSessionRow,

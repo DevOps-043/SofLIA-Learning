@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { withCacheHeaders, cacheHeaders } from '@/lib/utils/cache-headers';
 import { normalizeLessonMaterialRecord } from '@/lib/course-content';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 /**
  * GET /api/courses/[slug]/lessons/[lessonId]/materials

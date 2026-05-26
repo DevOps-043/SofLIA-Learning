@@ -14,8 +14,9 @@ async function ensureNotificationOwnership(
   notificationId: string,
   userId: string,
   select = 'notification_id, status',
+  options?: NotificationActionOptions,
 ) {
-  const supabase = await getServerClient()
+  const supabase = await resolveNotificationClient(options)
   const { data, error } = await supabase
     .from('user_notifications')
     .select(select)
@@ -81,10 +82,13 @@ async function markAllAsReadFallback(
 export async function markNotificationAsRead(
   notificationId: string,
   userId: string,
+  options?: NotificationActionOptions,
 ) {
   const { supabase, notification: existing } = await ensureNotificationOwnership(
     notificationId,
     userId,
+    'notification_id, status',
+    options,
   )
 
   if (existing.status === 'read') {
@@ -120,12 +124,13 @@ export async function markNotificationAsRead(
 export async function markMultipleNotificationsAsRead(
   notificationIds: string[],
   userId: string,
+  options?: NotificationActionOptions,
 ) {
   if (!notificationIds.length) {
     return { updated: 0 }
   }
 
-  const supabase = await getServerClient()
+  const supabase = await resolveNotificationClient(options)
   const { data, error } = await supabase
     .from('user_notifications')
     .update({
@@ -148,11 +153,13 @@ export async function markMultipleNotificationsAsRead(
 export async function archiveNotification(
   notificationId: string,
   userId: string,
+  options?: NotificationActionOptions,
 ) {
   const { supabase } = await ensureNotificationOwnership(
     notificationId,
     userId,
     'notification_id',
+    options,
   )
 
   const { data, error } = await supabase
@@ -174,11 +181,13 @@ export async function archiveNotification(
 export async function deleteNotification(
   notificationId: string,
   userId: string,
+  options?: NotificationActionOptions,
 ) {
   const { supabase } = await ensureNotificationOwnership(
     notificationId,
     userId,
     'notification_id',
+    options,
   )
 
   const { error } = await supabase

@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 interface RouteParams {
   params: Promise<{

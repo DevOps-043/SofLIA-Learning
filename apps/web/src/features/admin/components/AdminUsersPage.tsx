@@ -67,7 +67,7 @@ export function AdminUsersPage() {
   if (error) return <AdminUsersErrorState error={error} isRefreshing={state.isRefreshing} onRetry={handleRefresh} t={t} />
 
   return (
-    <div className="min-h-screen bg-transparent p-4 sm:p-6 lg:p-8">
+    <div>
       <div className="mx-auto max-w-7xl space-y-6">
         <AdminUsersHero filteredCount={state.filteredUsers.length} isRefreshing={state.isRefreshing} onAddClick={() => state.setIsAddModalOpen(true)} onRefresh={handleRefresh} t={t} />
         <AdminUsersStatsGrid stats={stats} t={t} />

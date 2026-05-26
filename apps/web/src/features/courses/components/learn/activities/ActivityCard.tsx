@@ -15,7 +15,7 @@ export function ActivityCard({
   onQuizSubmitted,
   onStartAiChat,
   onToggle,
-  onRequestQuizFeedback,
+  onTriggerLiaFeedback,
   quizStatus,
   slug
 }: ActivityCardProps) {

@@ -10,6 +10,7 @@ import {
   notificationSettingsUpdateSchema,
   type NotificationSettingsUpdateBody,
 } from './schema'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 type NotificationSettingData = {
   organization_id: string

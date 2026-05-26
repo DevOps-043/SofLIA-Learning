@@ -1,6 +1,7 @@
 import { logger } from '../../../../lib/logger'
 import { createAdminActivitiesClient } from './admin-activities.client'
 import type { AdminActivity } from './admin-activities.types'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function getLessonActivities(lessonId: string): Promise<AdminActivity[]> {
   const supabase = await createAdminActivitiesClient()

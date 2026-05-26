@@ -1,5 +1,6 @@
 'use client'
 
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { XMarkIcon, UserIcon, PlusIcon } from '@heroicons/react/24/outline'
@@ -29,16 +30,16 @@ export function AddUserModal({ isOpen, onClose, onSave }: AddUserModalProps) {
     { id: 'additional', label: t('admin:users.addModal.tabs.additional'), icon: GlobeAltIcon }
   ]
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[150] bg-black/60 dark:bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[99999] bg-black/60 dark:bg-black/80 backdrop-blur-sm"
             onClick={onClose}
           />
-          <div className="fixed inset-0 z-[150] overflow-y-auto">
+          <div className="fixed inset-0 z-[99999] overflow-y-auto">
             <div className="flex min-h-screen items-center justify-center p-4">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -129,6 +130,7 @@ export function AddUserModal({ isOpen, onClose, onSave }: AddUserModalProps) {
           </div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

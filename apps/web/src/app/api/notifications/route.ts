@@ -10,6 +10,7 @@ import {
 } from '@/features/notifications/services/notification/api.schemas'
 import { logger } from '@/lib/logger'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { resolveNotificationRequestContext } from './_lib/request-context'
 
 function canCreateNotifications(cargoRol: string | null | undefined) {
   return cargoRol === 'Admin'
@@ -24,8 +25,8 @@ function formatValidationError(error: { issues: Array<{ path: Array<string | num
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await SessionService.getCurrentUser()
-    if (!user) {
+    const context = await resolveNotificationRequestContext()
+    if (!context) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
 
@@ -52,9 +53,12 @@ export async function GET(request: NextRequest) {
       offset,
     }
 
-    const supabase = createAdminClient()
     const { notifications, total, hasMore, nextCursor } =
-      await NotificationService.getUserNotifications(user.id, filters, supabase)
+      await NotificationService.getUserNotifications(
+        context.userId,
+        filters,
+        context.supabase,
+      )
 
     return new NextResponse(
       JSON.stringify({

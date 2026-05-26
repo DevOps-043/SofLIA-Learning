@@ -4,13 +4,15 @@ import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/shared/utils/cn'
 
+import { translateTourKey } from '../utils/tour.i18n'
+
 interface TourProgressProps {
   current: number
   total: number
 }
 
 export function TourProgress({ current, total }: TourProgressProps) {
-  const { t } = useTranslation('tours')
+  const { t, i18n } = useTranslation('tours')
 
   if (total <= 0) {
     return null
@@ -18,8 +20,8 @@ export function TourProgress({ current, total }: TourProgressProps) {
 
   if (total > 8) {
     return (
-      <span className="text-xs text-gray-400 dark:text-gray-500">
-        {t('progress', { current: current + 1, total })}
+      <span className="min-w-10 text-xs font-medium text-gray-400 dark:text-gray-500">
+        {translateTourKey(t, i18n, 'progress', { current: current + 1, total })}
       </span>
     )
   }

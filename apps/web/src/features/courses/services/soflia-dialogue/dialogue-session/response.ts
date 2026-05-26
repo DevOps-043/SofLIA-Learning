@@ -6,6 +6,7 @@ import {
   type DialogueTurnRow,
 } from '../dialogue-tables'
 import { normalizeSessionState } from './session-state'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function getDialogueResult(client: unknown, sessionId: string) {
   const { data, error } = await dialogueResultsTable(client)

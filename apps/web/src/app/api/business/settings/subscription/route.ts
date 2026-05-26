@@ -5,6 +5,7 @@ import { logger } from '@/lib/utils/logger'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { subscriptionUpdateSchema, type SubscriptionUpdateBody } from './schema'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 /**
  * GET /api/business/settings/subscription

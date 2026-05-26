@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { logger } from '@/lib/logger'
 import { withZodBody } from '@/lib/api/with-validation'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 import {
   inviteLinkPatchSchema,
   type InviteLinkPatchBody,

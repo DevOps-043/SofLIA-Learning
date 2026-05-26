@@ -1,4 +1,3 @@
-import { LearningPathDefaultsService } from '@/features/learning-paths/services/learning-path-defaults.server'
 import { logger } from '@/lib/utils/logger'
 import type {
   CertificateRow,
@@ -18,13 +17,6 @@ export async function fetchDashboardBaseData(
   supabase: DashboardSupabaseClient,
   auth: DashboardAuthContext,
 ): Promise<DashboardBaseData> {
-  await LearningPathDefaultsService.applyDefaultRulesForUser({
-    userId: auth.userId,
-    organizationId: auth.organizationId,
-  }).catch((err: unknown) => {
-    logger.error('Error applying default learning paths for dashboard:', err)
-  })
-
   const [assignmentsResult, certificatesResult] = await Promise.all([
     supabase
       .from('organization_course_assignments')

@@ -36,6 +36,7 @@ export interface BusinessUserDashboardShellProps {
   displayName: string
   handleAnalyticsClick: () => void
   handleCertificatesClick: () => void
+  handleNotebookClick: () => void
   handleCourseClick: (course: AssignedCourse, action?: 'start' | 'continue' | 'certificate') => void
   handleLearningPathCourseClick: (slug: string | null | undefined) => void
   handleLogout: () => void
@@ -52,8 +53,10 @@ export interface BusinessUserDashboardShellProps {
   t: DashboardTranslator
   user: {
     display_name?: string
+    email?: string | null
     first_name?: string
     last_name?: string
+    profile_picture_url?: string | null
     username?: string
   } | null
   userDashboardStyles: StyleConfig | null | undefined

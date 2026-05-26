@@ -12,6 +12,7 @@ import {
 import type { ExternalToolKey } from '@/features/courses/types/activity-config'
 import { normalizeLessonActivityRecord } from '@/lib/course-content'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types'
 import { cacheHeaders, withCacheHeaders } from '@/lib/utils/cache-headers'
 
 type LessonActivityRecord = Record<string, unknown> & {

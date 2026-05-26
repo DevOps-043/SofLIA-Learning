@@ -3,6 +3,7 @@ import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { CalendarIntegrationService } from '../../../../../../features/study-planner/services/calendar-integration.service';
 import type { Database } from '../../../../../../lib/supabase/types';
 import { logger } from '../../../../../../lib/utils/logger';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 interface StudySessionRow {
   id: string;

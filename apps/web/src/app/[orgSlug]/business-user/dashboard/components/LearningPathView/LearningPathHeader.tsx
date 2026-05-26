@@ -36,6 +36,7 @@ export function LearningPathHeader({
     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
         <h2
+          data-tour-id="business-user-dashboard--learning-path-title"
           className="inline-block max-w-full cursor-help truncate text-2xl font-bold leading-tight outline-none"
           style={{ color: orgColors.text }}
           tabIndex={0}

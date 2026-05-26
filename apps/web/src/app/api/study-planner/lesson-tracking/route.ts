@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '../../../../features/auth/services/session.service';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../lib/supabase/types';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 // Crear cliente admin
 function createAdminClient() {

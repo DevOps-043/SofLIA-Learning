@@ -17,6 +17,33 @@ import type {
   SessionUserRecord,
 } from './session.types';
 
+// Short-TTL cache to deduplicate parallel users-table queries within the same page-load burst.
+// Keyed by userId; entries expire after 5 s so profile changes propagate quickly.
+interface UserCacheEntry {
+  user: SessionUserRecord;
+  expiresAt: number;
+}
+const _userCache = new Map<string, UserCacheEntry>();
+const USER_CACHE_TTL_MS = 5_000;
+
+function _getCachedUser(userId: string): SessionUserRecord | null {
+  const entry = _userCache.get(userId);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    _userCache.delete(userId);
+    return null;
+  }
+  return entry.user;
+}
+
+function _setCachedUser(userId: string, user: SessionUserRecord): void {
+  _userCache.set(userId, { user, expiresAt: Date.now() + USER_CACHE_TTL_MS });
+}
+
+function _invalidateCachedUser(userId: string): void {
+  _userCache.delete(userId);
+}
+
 function isDynamicServerUsageError(
   error: unknown
 ): error is DynamicServerUsageError {
@@ -170,35 +197,42 @@ export class SessionService {
       }
 
       if (!resolvedUser) {
-        logger.debug('Buscando usuario con ID', { userId });
-        const profileClient = createAdminClient();
-        const { data: user, error: userError } = await profileClient
-          .from('users')
-          .select(
-            'id, username, email, first_name, last_name, display_name, cargo_rol, profile_picture_url, is_banned, signature_url, signature_name'
-          )
-          .eq('id', userId)
-          .single();
+        const cached = _getCachedUser(userId);
+        if (cached) {
+          resolvedUser = cached;
+        } else {
+          logger.debug('Buscando usuario con ID', { userId });
+          const profileClient = createAdminClient();
+          const { data: user, error: userError } = await profileClient
+            .from('users')
+            .select(
+              'id, username, email, first_name, last_name, display_name, cargo_rol, profile_picture_url, is_banned, signature_url, signature_name'
+            )
+            .eq('id', userId)
+            .single();
 
-        if (userError) {
-          logger.error('Error obteniendo usuario de la DB:', {
-            userId,
-            error: userError,
-          });
-          return null;
+          if (userError) {
+            logger.error('Error obteniendo usuario de la DB:', {
+              userId,
+              error: userError,
+            });
+            return null;
+          }
+
+          if (!user) {
+            logger.warn('Usuario no encontrado en la DB', { userId });
+            return null;
+          }
+
+          resolvedUser = user as SessionUserRecord;
+          _setCachedUser(userId, resolvedUser);
         }
-
-        if (!user) {
-          logger.warn('Usuario no encontrado en la DB', { userId });
-          return null;
-        }
-
-        resolvedUser = user as SessionUserRecord;
       }
 
       const sessionUser = resolvedUser;
 
       if (sessionUser.is_banned) {
+        _invalidateCachedUser(sessionUser.id);
         logger.auth('Usuario baneado intentando acceder', {
           userId: sessionUser.id,
           username: sessionUser.username,

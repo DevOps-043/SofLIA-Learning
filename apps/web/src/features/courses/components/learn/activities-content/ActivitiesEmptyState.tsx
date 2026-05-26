@@ -7,7 +7,10 @@ export function ActivitiesEmptyState(props: { lessonTitle: string }) {
   return (
     <div data-tour-id="course-learn--activities-content" className="space-y-6 pb-24 md:pb-6">
       <div>
-        <h2 className="text-2xl font-bold text-primary dark:text-white mb-2">
+        <h2
+          data-tour-id="course-learn--activities-header"
+          className="text-2xl font-bold text-primary dark:text-white mb-2"
+        >
           {t("activities.title")}
         </h2>
         <p className="text-gray-500 dark:text-white/80 text-sm">

@@ -18,6 +18,7 @@ import {
   NotificationLoadingState,
 } from '@/features/notifications/components/notification-ui'
 import type { Notification } from '@/features/notifications/services/notification.service'
+import { logger } from '@/lib/logger'
 import { cn } from '@/shared/utils/cn'
 
 export interface NotificationBellProps {
@@ -92,9 +93,17 @@ export function NotificationBell({
     return t('actions.notificationsPage.unreadCount', { count: unreadCount })
   }, [t, unreadCount])
 
+  const runAction = async (action: () => Promise<void> | void) => {
+    try {
+      await action()
+    } catch (error) {
+      logger.error('Notification action failed', error)
+    }
+  }
+
   const openNotification = async (notification: Notification) => {
     if (notification.status === 'unread') {
-      await markAsRead(notification.notification_id)
+      await runAction(() => markAsRead(notification.notification_id))
     }
 
     const actionUrl = getNotificationActionUrl(notification)
@@ -166,7 +175,9 @@ export function NotificationBell({
                   {unreadCount > 0 && (
                     <button
                       type="button"
-                      onClick={markAllAsRead}
+                      onClick={() => {
+                        void runAction(markAllAsRead)
+                      }}
                       disabled={isLoading}
                       className="rounded-md p-2 text-gray-500 transition-colors hover:bg-success/10 hover:text-success disabled:opacity-50 dark:text-gray-400"
                       title={t('actions.notificationsPage.markAllRead')}

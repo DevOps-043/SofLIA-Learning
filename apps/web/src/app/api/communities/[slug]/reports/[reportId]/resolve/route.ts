@@ -12,6 +12,7 @@ import { canModerateCommunity } from '@/lib/auth/communityPermissions'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { logger } from '@/lib/logger'
 import type { Database } from '@/lib/supabase/types'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 type RouteContext = { params: Promise<{ slug: string; reportId: string }> }
 

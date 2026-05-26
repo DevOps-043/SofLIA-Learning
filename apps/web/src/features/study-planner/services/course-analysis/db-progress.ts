@@ -1,5 +1,6 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../../lib/supabase/server'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 import type {
   CourseLessonCountRow,
   UserCourseProgressRow,

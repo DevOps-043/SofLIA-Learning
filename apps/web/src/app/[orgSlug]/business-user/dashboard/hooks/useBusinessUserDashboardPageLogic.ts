@@ -25,12 +25,6 @@ import type {
   OrgRole,
 } from '../types'
 
-interface OrganizationResponse {
-  success?: boolean
-  organization?: Organization
-  userRole?: OrgRole
-}
-
 interface CertificatesResponse {
   success?: boolean
   certificates?: Array<{ course_id: string; certificate_id: string }>
@@ -42,6 +36,7 @@ interface DashboardResponse {
   stats?: DashboardStats
   courses?: AssignedCourse[]
   learningPaths?: AssignedLearningPath[]
+  organization?: Organization | null
 }
 
 interface BusinessUserDashboardData {
@@ -98,58 +93,39 @@ function sortCoursesByLearningPathPosition(
 async function fetchBusinessUserDashboardData(
   orgSlug: string,
 ): Promise<BusinessUserDashboardData> {
-  const [organizationResponse, dashboardResponse] = await Promise.all([
-    fetch(`/api/${orgSlug}/organization`, {
-      credentials: 'include',
-    }),
-    fetch(`/api/${orgSlug}/business-user/dashboard`, {
-      credentials: 'include',
-    }),
-  ])
+  const response = await fetch(`/api/${orgSlug}/business-user/dashboard`, {
+    credentials: 'include',
+  })
 
-  let organization: Organization | null = null
-  let orgRole: OrgRole = null
-
-  if (organizationResponse.ok) {
-    const organizationData = await readApiJson<OrganizationResponse>(
-      organizationResponse,
-      'Error al cargar datos de la organizacion',
-    )
-    if (organizationData.success && organizationData.organization) {
-      organization = {
-        ...organizationData.organization,
-        slug: orgSlug,
-      }
-      orgRole = organizationData.userRole ?? null
-    }
-  }
-
-  const dashboardData = await readApiJson<DashboardResponse>(
-    dashboardResponse,
+  const data = await readApiJson<DashboardResponse>(
+    response,
     'Error al cargar datos del dashboard',
   )
 
-  if (!dashboardResponse.ok) {
+  if (!response.ok) {
     throw new Error(
-      dashboardData.error || `Error ${dashboardResponse.status}: Error al cargar datos del dashboard`,
+      data.error || `Error ${response.status}: Error al cargar datos del dashboard`,
     )
   }
 
-  if (dashboardData.success || (dashboardData.stats && dashboardData.courses)) {
-    const rawLearningPaths = dashboardData.learningPaths || []
+  if (data.success || (data.stats && data.courses)) {
+    const rawLearningPaths = data.learningPaths || []
+    const organization = data.organization
+      ? { ...data.organization, slug: orgSlug }
+      : null
     return {
       assignedCourses: sortCoursesByLearningPathPosition(
-        dashboardData.courses || [],
+        data.courses || [],
         rawLearningPaths,
       ),
       learningPaths: rawLearningPaths,
       organization,
-      orgRole,
-      stats: dashboardData.stats || EMPTY_DASHBOARD_STATS,
+      orgRole: null,
+      stats: data.stats || EMPTY_DASHBOARD_STATS,
     }
   }
 
-  throw new Error(dashboardData.error || 'Error al obtener datos')
+  throw new Error(data.error || 'Error al obtener datos')
 }
 
 export function useBusinessUserDashboardPageLogic() {

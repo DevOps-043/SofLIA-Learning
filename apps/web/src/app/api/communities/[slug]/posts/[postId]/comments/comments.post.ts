@@ -15,6 +15,7 @@ import { scheduleAiCommentModeration, validateForbiddenCommentContent } from './
 import { schedulePostCommentNotification } from './comments.notifications';
 import { buildCommentUser } from './comments.users';
 import type { CommunityCommentInsertRow } from './comments.types';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function handlePostComment(
   _request: NextRequest,

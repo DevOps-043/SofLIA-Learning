@@ -67,7 +67,7 @@ export function LearningPathSection(props: LearningPathSectionProps) {
       <div className="relative">
         <ScrollArrowButton ariaLabel={props.t('dashboard.learningPaths.previousCourses', 'Cursos anteriores')} direction="left" onClick={() => props.scrollPath(props.learningPath.id, 'left')} orgColors={props.orgColors} />
         <LearningPathItemsRow {...props} />
-        <ScrollArrowButton ariaLabel={props.t('dashboard.learningPaths.nextCourses', 'Mas cursos')} direction="right" onClick={() => props.scrollPath(props.learningPath.id, 'right')} orgColors={props.orgColors} />
+        <ScrollArrowButton ariaLabel={props.t('dashboard.learningPaths.nextCourses', 'Mas cursos')} direction="right" onClick={() => props.scrollPath(props.learningPath.id, 'right')} orgColors={props.orgColors} tourId="business-user-dashboard--learning-path-next" />
       </div>
       {hasHiddenItems ? (
         <ShowMoreButton label={props.t('dashboard.learningPaths.showMoreCourses', 'Ver mas cursos')} onClick={() => props.showMorePathItems(props.learningPath.id, props.learningPath.items.length)} orgColors={props.orgColors} />

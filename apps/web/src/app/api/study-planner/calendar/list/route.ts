@@ -18,6 +18,7 @@ import {
   refreshAccessToken,
   type CalendarIntegrationRow,
 } from './calendar-list-token.service'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 const PLATFORM_CALENDAR_NAME = 'SofLIA - Sesiones de Estudio'
 type CalendarProvider = 'google' | 'microsoft'

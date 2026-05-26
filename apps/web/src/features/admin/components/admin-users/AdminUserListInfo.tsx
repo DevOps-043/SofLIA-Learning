@@ -29,14 +29,14 @@ export function AdminUserListInfo(props: AdminUserListInfoProps) {
           </p>
         </div>
       </div>
-      <div className="min-w-0 rounded-2xl px-3 py-2 lg:bg-transparent lg:px-0 lg:py-0" style={{ backgroundColor: theme.inputBg }}>
+      <div className="min-w-0 rounded-xl bg-black/[0.04] px-3 py-2 dark:bg-white/[0.04] lg:rounded-none lg:bg-transparent lg:px-0 lg:py-0">
         <p className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider lg:hidden" style={{ color: theme.mutedTextColor }}>
           <Mail className="h-3.5 w-3.5" />
           {t('users.page.table.email')}
         </p>
         <p className="truncate text-sm font-semibold" style={{ color: email ? theme.textColor : theme.mutedTextColor }} title={email || t('users.page.noEmail')}>{email || t('users.page.noEmail')}</p>
       </div>
-      <div className="rounded-2xl px-3 py-2 lg:bg-transparent lg:px-0 lg:py-0" style={{ backgroundColor: theme.inputBg }}>
+      <div className="rounded-xl bg-black/[0.04] px-3 py-2 dark:bg-white/[0.04] lg:rounded-none lg:bg-transparent lg:px-0 lg:py-0">
         <p className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider lg:hidden" style={{ color: theme.mutedTextColor }}>
           <CalendarClock className="h-3.5 w-3.5" />
           {t('users.page.table.lastAccess')}

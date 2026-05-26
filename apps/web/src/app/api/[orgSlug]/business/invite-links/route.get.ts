@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 
 import { nanoid } from 'nanoid'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 // GET - List all bulk invite links for the organization
 export async function GET(

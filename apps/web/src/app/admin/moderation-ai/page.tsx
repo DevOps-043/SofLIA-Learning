@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 interface PendingReview {
   log_id: string;

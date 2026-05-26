@@ -9,6 +9,7 @@ import {
   getLatestDialogueSession,
 } from './session-queries'
 import { throwDialogueSessionInsertError } from './session-insert-error'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export { getDialogueSessionById, getActiveDialogueSession, getLatestDialogueSession }
 

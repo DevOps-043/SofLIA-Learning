@@ -6,6 +6,7 @@ interface ScrollArrowButtonProps {
   direction: 'left' | 'right'
   onClick: () => void
   orgColors: BusinessUserDashboardColors
+  tourId?: string
 }
 
 export function ScrollArrowButton({
@@ -13,6 +14,7 @@ export function ScrollArrowButton({
   direction,
   onClick,
   orgColors,
+  tourId,
 }: ScrollArrowButtonProps) {
   const positionClass = direction === 'left'
     ? 'left-0 -translate-x-1/2'
@@ -21,6 +23,7 @@ export function ScrollArrowButton({
 
   return (
     <button
+      data-tour-id={tourId}
       type="button"
       onClick={onClick}
       className={`absolute top-[90px] z-10 hidden h-12 w-12 items-center justify-center rounded-full border shadow-lg transition hover:scale-105 md:flex xl:top-[116px] ${positionClass}`}

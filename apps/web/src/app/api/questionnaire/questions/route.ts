@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/utils/logger';
 import { createClient } from '@/lib/supabase/server';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 type QuestionnaireKey = string | number | null;
 

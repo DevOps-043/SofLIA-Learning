@@ -7,6 +7,7 @@ import { SessionService } from '../../../../../features/auth/services/session.se
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service'
 import { insertEventsSchema, type InsertEventsBody } from '../../_schemas'
 import { buildEventsToInsert } from './insert-events-format.service'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

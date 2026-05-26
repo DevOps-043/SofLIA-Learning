@@ -2,6 +2,7 @@ import type { CourseActivityContext } from '../../activity-submission.server.ser
 import { DialogueRuntimeError } from '../dialogue-runtime.errors'
 import { dialogueSessionsTable } from '../dialogue-tables'
 import { activeDialogueStates } from './session-state'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function getActiveDialogueSession(input: {
   client: unknown

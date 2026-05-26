@@ -2,6 +2,7 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '../../../../../lib/supabase/server';
 import { formatApiError, logError } from '@/core/utils/api-errors';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function GET(
   request: NextRequest,

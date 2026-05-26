@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertTriangle, CheckCircle2, Database, Heart, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -46,7 +47,7 @@ export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUser
     { label: t('users.deleteModal.associatedData'), icon: Database },
   ]
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
         <motion.button
@@ -239,6 +240,7 @@ export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUser
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

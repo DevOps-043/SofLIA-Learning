@@ -88,12 +88,7 @@ export function ModernNavbar({
               ) : null}
 
               <div className="hidden md:block relative" ref={dropdownRef}>
-                <UserDropdown
-                  user={user}
-                  onCertificatesClick={onCertificatesClick}
-                  onAnalyticsClick={onAnalyticsClick}
-                  certificatesCount={certificatesCount}
-                />
+                <UserDropdown user={user} />
               </div>
 
               <motion.button

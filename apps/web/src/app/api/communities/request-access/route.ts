@@ -5,6 +5,7 @@ import { withZodBody } from '@/lib/api/with-validation';
 import { createClient } from '../../../../lib/supabase/server';
 
 import { requestCommunityAccessSchema, type RequestCommunityAccessBody } from './schema';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 async function handlePost(_request: NextRequest, body: RequestCommunityAccessBody) {
   try {

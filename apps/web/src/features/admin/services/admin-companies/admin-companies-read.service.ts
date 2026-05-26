@@ -6,6 +6,7 @@ import type {
   AdminCompany,
   AdminCompanyUserProfile,
 } from '../../types/admin-companies.types'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 import {
   mapOrganizationRow,
   type OrganizationRow,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { SessionService } from '@/features/auth/services/session.service'
 import { NotificationService } from '@/features/notifications/services/notification.service'
 import { logger } from '@/lib/logger'
+import { resolveNotificationRequestContext } from '../_lib/request-context'
 
 /**
  * DELETE /api/notifications/[id]
@@ -13,8 +13,10 @@ export async function DELETE(
 ) {
   try {
     // Obtener usuario autenticado
-    const user = await SessionService.getCurrentUser()
-    if (!user) {
+    void request
+
+    const context = await resolveNotificationRequestContext()
+    if (!context) {
       return NextResponse.json(
         { error: 'No autenticado' },
         { status: 401 }
@@ -36,7 +38,8 @@ export async function DELETE(
     // Eliminar notificación
     await NotificationService.deleteNotification(
       notificationId,
-      user.id
+      context.userId,
+      context.supabase,
     )
 
     return NextResponse.json({
@@ -66,4 +69,3 @@ export async function DELETE(
     )
   }
 }
-

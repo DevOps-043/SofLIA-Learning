@@ -63,9 +63,14 @@
   pointer-events: none !important;
 }
 
-/* Asegurar que el overlay y spotlight de Joyride no sean afectados por transforms del padre */
-.__floater {
-  z-index: 10001 !important;
+/* Asegurar que el tooltip de Joyride quede sobre el overlay en React Joyride v3 */
+.react-joyride__floater {
+  z-index: 10020 !important;
+  pointer-events: auto !important;
+}
+
+.react-joyride__overlay {
+  z-index: 10000 !important;
 }
 
 /* Fix específico para tabs del curso - forzar que el contenedor no afecte el cálculo de posición */

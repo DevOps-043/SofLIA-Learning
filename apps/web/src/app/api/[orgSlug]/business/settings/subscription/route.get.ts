@@ -5,6 +5,7 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 
 import { logger } from '@/lib/utils/logger'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 interface SubscriptionUpdatePayload {
   updated_at: string

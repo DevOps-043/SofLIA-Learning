@@ -9,6 +9,7 @@ import {
 import { getCurrentTimezone } from '../format.utils'
 import { logger } from '../../../../../../lib/utils/logger'
 import type { ActionResult } from '../types'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function executeRecoverMissedSession(
   userId: string,

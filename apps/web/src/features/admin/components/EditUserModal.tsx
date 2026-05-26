@@ -1,6 +1,7 @@
 'use client'
 
 import type { FormEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { AdminUser } from '../services/adminUsers.service'
 import {
@@ -50,7 +51,7 @@ export function EditUserModal({
     return null
   }
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -59,11 +60,11 @@ export function EditUserModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[99999] bg-black/60 dark:bg-black/80 backdrop-blur-sm"
             onClick={onClose}
           />
 
-          <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="fixed inset-0 z-[99999] overflow-y-auto">
             <div className="flex min-h-screen items-center justify-center p-4">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -125,6 +126,7 @@ export function EditUserModal({
           </div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

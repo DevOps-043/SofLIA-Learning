@@ -7,6 +7,7 @@ import { buildDialogueSessionResult } from './dialogue-result-builder.service'
 import { syncDialogueResultToActivitySubmission } from './dialogue-result-submission-sync.service'
 import { DialogueRuntimeError } from './dialogue-runtime.errors'
 import { dialogueResultsTable, type DialogueSessionRow } from './dialogue-tables'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function persistDialogueResult(input: {
   client: unknown

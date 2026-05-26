@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import { getAllowedNotificationChannels } from '@/lib/subscription/subscriptionFeatures'
 import { getOrganizationPlan } from '@/lib/subscription/subscriptionHelper'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 import {
   notificationSettingsUpdateSchema,
   type NotificationSettingsUpdateBody,

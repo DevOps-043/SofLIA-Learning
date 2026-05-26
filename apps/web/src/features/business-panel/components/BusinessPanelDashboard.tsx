@@ -11,7 +11,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
 import { useBusinessPanelDashboardLogic } from '../hooks/useBusinessPanelDashboardLogic'
-import { useTour, TourTriggerButton } from '@/features/tours'
+import { useTour } from '@/features/tours'
 import { businessPanelDashboardTour } from '@/features/tours/config/business-panel-dashboard.tour'
 import { StatCard } from './dashboard/StatCard'
 import { QuickAction } from './dashboard/QuickAction'
@@ -47,7 +47,7 @@ export function BusinessPanelDashboard() {
     getBackgroundStyles,
   } = useBusinessPanelDashboardLogic()
 
-  const { restartTour, autoStartIfNeeded } = useTour(businessPanelDashboardTour)
+  const { autoStartIfNeeded } = useTour(businessPanelDashboardTour)
 
   useEffect(() => {
     return autoStartIfNeeded()
@@ -82,15 +82,11 @@ export function BusinessPanelDashboard() {
         </div>
 
         <div className="relative z-10">
-          <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
+          <div className="mb-1 flex min-w-0 items-center gap-2 md:mb-2 md:gap-3">
             <SparklesIcon className="h-4 w-4 md:h-6 md:w-6" style={{ color: themeColors.accent }} />
-            <span className="text-[10px] md:text-sm font-medium tracking-wide uppercase" style={{ color: 'var(--color-bg-light)' }}>
+            <span className="truncate text-[10px] font-medium uppercase tracking-wide md:text-sm" style={{ color: 'var(--color-bg-light)' }}>
               {t('dashboard.title')}
             </span>
-            <TourTriggerButton
-              onStart={restartTour}
-              className="h-7 w-7 text-white/80 hover:text-accent dark:text-white/80 dark:hover:text-accent"
-            />
           </div>
 
           <motion.h1 className="text-xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 leading-tight" style={{ color: 'var(--color-bg-light)' }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition}>
@@ -117,7 +113,7 @@ export function BusinessPanelDashboard() {
         <div className="xl:col-span-3 space-y-8">
           {/* Stats Grid */}
           <section id="tour-stats-section" data-tour-id="business-panel-dashboard--stats-section">
-            <motion.div className="flex items-center justify-between mb-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
+            <motion.div data-tour-id="business-panel-dashboard--stats-header" className="flex items-center justify-between mb-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
               <div>
                 <h2 className="text-xl font-bold" style={{ color: themeColors.text }}>{t('dashboard.generalStats')}</h2>
                 <p className="text-sm mt-1" style={{ color: themeColors.text, opacity: 0.7 }}>{t('dashboard.keyMetrics')}</p>
@@ -150,6 +146,7 @@ export function BusinessPanelDashboard() {
                       title={stat.title}
                       value={stat.value}
                       change={stat.change}
+                      iconColor={stat.iconColor}
                       backgroundImage={stat.backgroundImage}
                       gradient={stat.gradient}
                       gradientStyle={stat.gradientStyle}
@@ -165,7 +162,7 @@ export function BusinessPanelDashboard() {
 
           {/* Activity Section */}
           <section id="tour-activity-section" data-tour-id="business-panel-dashboard--recent-activity">
-            <motion.div className="flex items-center justify-between mb-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
+            <motion.div data-tour-id="business-panel-dashboard--recent-activity-header" className="flex items-center justify-between mb-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
               <div>
                 <h2 id="tour-activity-title" className="text-xl font-bold" style={{ color: themeColors.text }}>{t('dashboard.recentActivity.title')}</h2>
                 <p className="text-sm mt-1" style={{ color: themeColors.text, opacity: 0.7 }}>{t('dashboard.recentActivity.subtitle')}</p>
@@ -214,7 +211,7 @@ export function BusinessPanelDashboard() {
         <div id="tour-quick-actions" data-tour-id="business-panel-dashboard--quick-actions" className="xl:col-span-1">
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition} className="sticky top-24">
             <div id="tour-quick-actions-list">
-              <div className="mb-6">
+              <div data-tour-id="business-panel-dashboard--quick-actions-header" className="mb-6">
                 <h2 className="text-lg font-bold" style={{ color: themeColors.text }}>{t('dashboard.quickActions.title')}</h2>
                 <p className="text-sm mt-1" style={{ color: themeColors.text, opacity: 0.7 }}>{t('dashboard.quickActions.subtitle')}</p>
               </div>

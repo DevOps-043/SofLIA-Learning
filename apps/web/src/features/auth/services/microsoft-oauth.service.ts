@@ -55,5 +55,21 @@ export class MicrosoftOAuthService {
     }
     return res.json();
   }
+
+  // Returns the raw JPEG bytes of the user's profile photo, or null if none exists.
+  // Many corporate M365 accounts have no photo configured; this is always a best-effort fetch.
+  static async getUserPhoto(accessToken: string): Promise<ArrayBuffer | null> {
+    try {
+      const res = await fetchWithCircuitBreaker(
+        'microsoft-oauth',
+        'https://graph.microsoft.com/v1.0/me/photo/$value',
+        { headers: { Authorization: `Bearer ${accessToken}` } },
+      );
+      if (!res.ok) return null;
+      return res.arrayBuffer();
+    } catch {
+      return null;
+    }
+  }
 }
 

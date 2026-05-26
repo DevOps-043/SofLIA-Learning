@@ -14,6 +14,7 @@ import {
   mapAdminUserCreateError,
   omitDemographicsFromAudit,
 } from './helpers'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 import type {
   AdminUser,
   AdminUserCreateInput,

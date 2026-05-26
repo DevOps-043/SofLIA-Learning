@@ -59,29 +59,49 @@ export class NotificationService {
   static async markAsRead(
     notificationId: string,
     userId: string,
+    supabase?: NotificationSupabaseClient,
   ): Promise<Notification> {
-    return markNotificationAsRead(notificationId, userId)
+    if (!supabase) {
+      return markNotificationAsRead(notificationId, userId)
+    }
+
+    return markNotificationAsRead(notificationId, userId, { supabase })
   }
 
   static async markMultipleAsRead(
     notificationIds: string[],
     userId: string,
+    supabase?: NotificationSupabaseClient,
   ): Promise<{ updated: number }> {
-    return markMultipleNotificationsAsRead(notificationIds, userId)
+    if (!supabase) {
+      return markMultipleNotificationsAsRead(notificationIds, userId)
+    }
+
+    return markMultipleNotificationsAsRead(notificationIds, userId, { supabase })
   }
 
   static async archiveNotification(
     notificationId: string,
     userId: string,
+    supabase?: NotificationSupabaseClient,
   ): Promise<Notification> {
-    return archiveNotification(notificationId, userId)
+    if (!supabase) {
+      return archiveNotification(notificationId, userId)
+    }
+
+    return archiveNotification(notificationId, userId, { supabase })
   }
 
   static async deleteNotification(
     notificationId: string,
     userId: string,
+    supabase?: NotificationSupabaseClient,
   ): Promise<void> {
-    return deleteNotification(notificationId, userId)
+    if (!supabase) {
+      return deleteNotification(notificationId, userId)
+    }
+
+    return deleteNotification(notificationId, userId, { supabase })
   }
 
   static async markAllAsRead(

@@ -30,20 +30,22 @@ html.is-apple-platform * {
    bypassing React portal stacking context limitations.
    ============================================================ */
 
-/* The overlay should be high, but the tooltip must be HIGHER */
+/* Keep the overlay below the floater so custom tooltip controls stay clickable. */
 .react-joyride__overlay {
-  z-index: 999999 !important;
+  z-index: 10000 !important;
 }
 
-/* Target the floater/tooltip container */
+/* Target the actual React Joyride v3 floater/tooltip containers. */
+.react-joyride__floater,
 .react-joyride__tooltip,
 .__floater,
 .__floater__open {
-  z-index: 1000001 !important;
+  z-index: 10020 !important;
+  pointer-events: auto !important;
 }
 
 /* Ensure the custom tooltip component is interactive */
 .joyride-tooltip-container {
-  z-index: 1000002 !important;
+  z-index: 10021 !important;
   pointer-events: auto !important;
 }

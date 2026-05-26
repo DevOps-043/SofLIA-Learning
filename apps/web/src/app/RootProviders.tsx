@@ -14,7 +14,7 @@ import { SWRProvider } from '../core/providers/SWRProvider'
 import { AuthSecurityGuard } from '../features/auth/components/AuthSecurityGuard'
 import { OrganizationStylesProvider } from '../features/business-panel/contexts/OrganizationStylesContext'
 import { NotificationProvider } from '../features/notifications/context/NotificationContext'
-import { TourProvider } from '../features/tours'
+import { TourProvider } from '../features/tours/TourProvider'
 
 export function RootProviders({ children }: { children: ReactNode }) {
   return (

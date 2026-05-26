@@ -6,6 +6,7 @@ import { requireFeature } from '@/lib/subscription/subscriptionHelper'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { dashboardLayoutSchema, type DashboardLayoutBody } from './schema'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 /**
  * GET /api/business/dashboard/layout

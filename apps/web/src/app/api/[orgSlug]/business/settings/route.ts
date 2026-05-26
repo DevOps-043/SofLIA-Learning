@@ -4,6 +4,7 @@ import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 import {
   organizationSettingsUpdateSchema,
   type OrganizationSettingsUpdateBody,

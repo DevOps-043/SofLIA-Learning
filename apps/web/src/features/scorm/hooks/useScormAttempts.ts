@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { ScormAttempt } from '@/lib/scorm/types';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 interface UseScormAttemptsOptions {
   packageId: string;

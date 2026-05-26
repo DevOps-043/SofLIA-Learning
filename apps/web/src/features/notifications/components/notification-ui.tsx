@@ -11,6 +11,7 @@ import {
   getNotificationIcon,
   getNotificationTextColor,
 } from '../utils/notification-categories'
+import { logger } from '@/lib/logger'
 import { cn } from '@/shared/utils/cn'
 
 export function getNotificationActionUrl(notification: Pick<Notification, 'metadata'>): string | null {
@@ -51,7 +52,7 @@ interface NotificationListItemProps {
   formattedTime: string
   layout?: 'compact' | 'comfortable'
   showActions?: boolean
-  onOpen?: (notification: Notification) => void
+  onOpen?: (notification: Notification) => Promise<void> | void
   onMarkAsRead?: (notificationId: string) => Promise<void> | void
   onArchive?: (notificationId: string) => Promise<void> | void
   onDelete?: (notificationId: string) => Promise<void> | void
@@ -77,10 +78,17 @@ export function NotificationListItem({
   const stop = (event: React.MouseEvent) => {
     event.stopPropagation()
   }
+  const runAction = (action: (() => Promise<void> | void) | undefined) => {
+    if (!action) return
+
+    void Promise.resolve(action()).catch((error) => {
+      logger.error('Notification action failed', error)
+    })
+  }
 
   return (
     <article
-      onClick={() => onOpen?.(notification)}
+      onClick={() => runAction(() => onOpen?.(notification))}
       className={cn(
         'group relative flex w-full cursor-pointer gap-3 border bg-white text-left shadow-sm transition-colors dark:bg-gray-800',
         isCompact ? 'items-start rounded-none border-x-0 border-t-0 px-4 py-3' : 'items-center rounded-lg p-4',
@@ -146,7 +154,7 @@ export function NotificationListItem({
               {isUnread && onMarkAsRead && (
                 <button
                   type="button"
-                  onClick={() => onMarkAsRead(notification.notification_id)}
+                  onClick={() => runAction(() => onMarkAsRead(notification.notification_id))}
                   className="rounded-md p-2 text-gray-500 transition-colors hover:bg-success/10 hover:text-success dark:text-gray-400"
                   title={t('actions.markAsRead')}
                   aria-label={t('actions.markAsRead')}
@@ -158,7 +166,7 @@ export function NotificationListItem({
               {onArchive && notification.status !== 'archived' && (
                 <button
                   type="button"
-                  onClick={() => onArchive(notification.notification_id)}
+                  onClick={() => runAction(() => onArchive(notification.notification_id))}
                   className="rounded-md p-2 text-gray-500 transition-colors hover:bg-primary/10 hover:text-primary dark:text-gray-400 dark:hover:text-accent"
                   title={t('actions.archive')}
                   aria-label={t('actions.archive')}
@@ -172,7 +180,7 @@ export function NotificationListItem({
                   <div className="flex items-center gap-1 rounded-md bg-error/10 p-1">
                     <button
                       type="button"
-                      onClick={() => onDelete(notification.notification_id)}
+                      onClick={() => runAction(() => onDelete(notification.notification_id))}
                       className="rounded p-1 text-error transition-colors hover:bg-error/10"
                       title={t('actions.confirm')}
                       aria-label={t('actions.confirm')}

@@ -12,6 +12,7 @@ import type { ActionResult } from '../types'
 import { validateStrictLessonOrder } from './lesson-order-guardrails.service'
 import { validatePlacementAgainstCalendarRules } from './scheduling-guardrails.service'
 import { withTimezoneOffset } from './planning-actions-v2-timezone.service'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 export async function executeRecoverMissedSessionV2(
   userId: string,

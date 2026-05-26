@@ -1,5 +1,6 @@
 import type { createClient as createSupabaseClient } from '@/lib/supabase/server'
 import type { createAdminClient } from '@/lib/supabase/admin'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 import {
   resolveCourseLessonByLanguage,
   type TranslationContext,

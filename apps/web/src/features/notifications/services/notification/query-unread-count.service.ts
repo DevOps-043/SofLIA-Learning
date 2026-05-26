@@ -44,36 +44,10 @@ async function getUnreadCountFallback(userId: string) {
 }
 
 export async function getUnreadCount(userId: string) {
-  const supabase = await getServerClient()
-  const rpcClient = supabase as unknown as {
-    rpc: (
-      fn: string,
-      args: { p_user_id: string },
-    ) => { single: () => Promise<{ data: { total?: number; critical?: number; high?: number } | null; error: unknown | null }> }
-  }
-
   try {
-    const { data, error } = await rpcClient
-      .rpc('get_unread_notifications_count', { p_user_id: userId })
-      .single()
-
-    if (error) {
-      logger.warn('RPC no disponible, usando query tradicional', { error })
-      return getUnreadCountFallback(userId)
-    }
-
-    return {
-      total: Number(data?.total) || 0,
-      critical: Number(data?.critical) || 0,
-      high: Number(data?.high) || 0,
-    }
+    return await getUnreadCountFallback(userId)
   } catch (error) {
     logger.error('Error en getUnreadCount:', error)
-    try {
-      return await getUnreadCountFallback(userId)
-    } catch (fallbackError) {
-      logger.error('Fallback tambien fallo:', fallbackError)
-      return { total: 0, critical: 0, high: 0 }
-    }
+    return { total: 0, critical: 0, high: 0 }
   }
 }

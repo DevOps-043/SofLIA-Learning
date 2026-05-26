@@ -6,7 +6,6 @@ import {
   Area,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   BarChart,
@@ -143,7 +142,6 @@ export function CostOverviewWidget({ data, isLoading, chartType = 'area' }: Cost
                   <stop offset="95%" stopColor="var(--color-success)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-legacy-374151)" opacity={0.3} />
               <XAxis
                 dataKey="date"
                 stroke="var(--color-legacy-9ca3af)"
@@ -170,7 +168,6 @@ export function CostOverviewWidget({ data, isLoading, chartType = 'area' }: Cost
             </AreaChart>
           ) : (
             <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-legacy-374151)" opacity={0.3} />
               <XAxis
                 dataKey="date"
                 stroke="var(--color-legacy-9ca3af)"

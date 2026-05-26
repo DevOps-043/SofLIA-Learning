@@ -1,5 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  Award,
+  BarChart2,
   Building2,
   Check,
   ChevronRight,
@@ -35,11 +37,14 @@ interface ModernNavbarMobileMenuProps {
   router: { push: (href: string) => void };
   setLanguage: (value: 'es' | 'en' | 'pt') => void;
   setTheme: (value: Theme) => void;
-  t: (key: string) => string;
+  t: (key: string, options?: Record<string, unknown>) => string;
   theme: Theme;
   user: ModernNavbarUser | null;
   disableHeavyEffects?: boolean;
   showOrganizations: boolean;
+  onCertificatesClick?: () => void;
+  onAnalyticsClick?: () => void;
+  certificatesCount?: number;
 }
 
 export function ModernNavbarMobileMenu({
@@ -63,6 +68,9 @@ export function ModernNavbarMobileMenu({
   user,
   disableHeavyEffects = false,
   showOrganizations,
+  onCertificatesClick,
+  onAnalyticsClick,
+  certificatesCount = 0,
 }: ModernNavbarMobileMenuProps) {
   const {
     currentOrganization,
