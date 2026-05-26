@@ -44,6 +44,7 @@ export function LearningPathSection(props: LearningPathSectionProps) {
 
   return (
     <motion.section
+      data-tour-id="business-user-dashboard--learning-path-section"
       key={props.learningPath.id}
       initial={props.disableHeavyEffects ? false : { opacity: 0, y: 12 }}
       animate={props.disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}

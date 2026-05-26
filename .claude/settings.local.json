@@ -155,7 +155,11 @@
       "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\Pulse Hub\\\\Soflia Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\features\\\\tours\")",
       "Bash(Remove-Item -Force \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\Pulse Hub\\\\Soflia Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\core\\\\constants\\\\tourTargets.ts\")",
       "Bash(git ls-tree *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(git commit -m 'fix\\(business-user\\): restore LiaSidePanel and LiaFloatingButton in layout *)",
+      "Bash(cd \"C:\\\\Users\\\\fysg5\\\\AppData\\\\Local\\\\Temp\" && npm pack file-type@22.0.1 2>&1 | tail -3)",
+      "Read(//c/Users/fysg5/AppData/Local/Temp/**)",
+      "Bash(tar -xzf file-type-22.0.1.tgz package/source/index.d.ts -O)"
     ],
     "deny": [],
     "ask": []

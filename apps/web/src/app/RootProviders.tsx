@@ -14,6 +14,7 @@ import { SWRProvider } from '../core/providers/SWRProvider'
 import { AuthSecurityGuard } from '../features/auth/components/AuthSecurityGuard'
 import { OrganizationStylesProvider } from '../features/business-panel/contexts/OrganizationStylesContext'
 import { NotificationProvider } from '../features/notifications/context/NotificationContext'
+import { TourProvider } from '../features/tours'
 
 export function RootProviders({ children }: { children: ReactNode }) {
   return (
@@ -26,14 +27,16 @@ export function RootProviders({ children }: { children: ReactNode }) {
                 <OrganizationProvider>
                   <OrganizationStylesProvider>
                     <TourRestartProvider>
-                      <LiaPanelProvider>
-                        <PrefetchManager />
-                        <AutomationSignalsReporter />
-                        <AuthSecurityGuard>
-                          <ContentWrapper>{children}</ContentWrapper>
-                        </AuthSecurityGuard>
-                        <OnboardingAgent />
-                      </LiaPanelProvider>
+                      <TourProvider>
+                        <LiaPanelProvider>
+                          <PrefetchManager />
+                          <AutomationSignalsReporter />
+                          <AuthSecurityGuard>
+                            <ContentWrapper>{children}</ContentWrapper>
+                          </AuthSecurityGuard>
+                          <OnboardingAgent />
+                        </LiaPanelProvider>
+                      </TourProvider>
                     </TourRestartProvider>
                   </OrganizationStylesProvider>
                 </OrganizationProvider>

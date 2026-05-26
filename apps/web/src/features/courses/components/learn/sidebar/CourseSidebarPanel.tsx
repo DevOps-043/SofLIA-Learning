@@ -129,6 +129,7 @@ export function CourseSidebarPanel({
             )}
 
             <motion.div
+              data-tour-id="course-learn--sidebar"
               ref={swipeToCloseRef}
               initial={isMobile ? { x: "-100%" } : { width: 0, opacity: 0 }}
               animate={isMobile ? { x: 0 } : { width: 320, opacity: 1 }}

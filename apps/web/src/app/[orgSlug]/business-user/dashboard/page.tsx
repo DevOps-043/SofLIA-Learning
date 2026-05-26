@@ -1,5 +1,10 @@
 'use client'
 
+import { useEffect } from 'react'
+
+import { useTour } from '@/features/tours'
+import { businessUserDashboardTour } from '@/features/tours/config/business-user-dashboard.tour'
+
 import { BusinessUserDashboardError } from './page-components/BusinessUserDashboardError'
 import { BusinessUserDashboardLoading } from './page-components/BusinessUserDashboardLoading'
 import { BusinessUserDashboardShell } from './page-components/BusinessUserDashboardShell'
@@ -7,6 +12,15 @@ import { useBusinessUserDashboardPageLogic } from './hooks/useBusinessUserDashbo
 
 export default function BusinessUserDashboardPage() {
   const logic = useBusinessUserDashboardPageLogic()
+  const { restartTour, autoStartIfNeeded } = useTour(businessUserDashboardTour)
+
+  useEffect(() => {
+    if (!logic.loading && !logic.error) {
+      return autoStartIfNeeded()
+    }
+
+    return undefined
+  }, [autoStartIfNeeded, logic.error, logic.loading])
 
   if (logic.loading) {
     return (
@@ -52,6 +66,7 @@ export default function BusinessUserDashboardPage() {
         handleNotebookClick={logic.handleNotebookClick}
         handleCourseClick={logic.handleCourseClick}
         handleLearningPathCourseClick={logic.handleLearningPathCourseClick}
+        onRestartTour={restartTour}
         t={logic.translate}
         disableHeavyEffects={logic.disableHeavyEffects}
       />

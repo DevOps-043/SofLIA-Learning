@@ -31,6 +31,7 @@ export function ChatSuggestionsChips({
 
   return (
     <div
+      data-tour-id="course-learn--soflia-suggestions"
       role="region"
       aria-label={t('lia.lessonSuggestions.title')}
       style={{

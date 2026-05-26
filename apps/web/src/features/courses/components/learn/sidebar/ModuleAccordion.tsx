@@ -55,6 +55,9 @@ export function ModuleAccordion({
   const sortedLessons = sortLessons(module.lessons || []);
   const { completedLessons, totalLessons, completionPercentage } =
     getModuleProgress(sortedLessons);
+  const hasCurrentLesson = sortedLessons.some(
+    (lesson) => lesson.lesson_id === currentLessonId
+  );
 
   return (
     <div className="mb-6">
@@ -99,7 +102,10 @@ export function ModuleAccordion({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="mb-4 flex gap-3">
+            <div
+              data-tour-id={hasCurrentLesson ? "course-learn--module-progress" : undefined}
+              className="mb-4 flex gap-3"
+            >
               <span
                 className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-accent/30 dark:bg-accent/20 dark:text-accent"
                 style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}

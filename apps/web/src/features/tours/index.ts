@@ -1,0 +1,5 @@
+export { TourProvider } from './TourProvider'
+export { TourTriggerButton } from './components/TourTriggerButton'
+export { useTour } from './hooks/useTour'
+export { useTourPersistence } from './hooks/useTourPersistence'
+export type { TourId, TourConfig, TourStep, TourPlacement, TourState } from './types'

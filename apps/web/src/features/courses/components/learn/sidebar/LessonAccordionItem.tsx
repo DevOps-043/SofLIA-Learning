@@ -56,6 +56,7 @@ export function LessonAccordionItem({
     <div className="w-full">
       <div className="flex items-start gap-2">
         <motion.button
+          data-tour-id={isActive ? "course-learn--current-lesson" : undefined}
           whileHover={{ x: 4 }}
           onClick={() => {
             void onSelectLesson(lesson);

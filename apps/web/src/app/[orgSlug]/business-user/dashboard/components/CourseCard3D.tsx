@@ -127,6 +127,7 @@ export function CourseCard3D({
   if (viewMode === 'list') {
     return (
       <div
+        data-tour-id="business-user-dashboard--course-card"
         className={`group grid grid-cols-[2.5rem_4rem_minmax(0,1fr)] items-center overflow-hidden rounded-2xl md:grid-cols-[2.5rem_4rem_minmax(0,1fr)_9rem_7.5rem_2.75rem] ${disableHeavyEffects ? '' : 'transition-all duration-200'} ${isLockedInPath ? 'cursor-not-allowed' : 'hover:shadow-md cursor-pointer'}`}
         style={{
           backgroundColor: `rgba(${cardBgRgb}, ${cardOpacity})`,
@@ -218,6 +219,7 @@ export function CourseCard3D({
         <div className="hidden items-center justify-center md:flex">
           {course.has_certificate && course.progress === 100 && onCertificateClick ? (
             <button
+              data-tour-id="business-user-dashboard--certificate-action"
               onClick={(e) => { e.stopPropagation(); onCertificateClick() }}
               className="p-2 rounded-full transition-all duration-200 hover:scale-110"
               style={{ color: 'var(--color-warning)', backgroundColor: isLightMode ? 'var(--color-legacy-fef3c7)' : 'rgba(245,158,11,0.15)' }}
@@ -232,6 +234,7 @@ export function CourseCard3D({
 
   return (
     <div
+      data-tour-id="business-user-dashboard--course-card"
       className={`group relative flex flex-col overflow-hidden rounded-[20px] ${disableHeavyEffects ? '' : 'transition-all duration-300'} ${isLockedInPath ? 'cursor-not-allowed' : 'hover:-translate-y-1 hover:shadow-xl cursor-pointer'}`}
       style={{
         backgroundColor: `rgba(${cardBgRgb}, ${cardOpacity})`,
@@ -270,6 +273,7 @@ export function CourseCard3D({
 
         {course.has_certificate && course.progress === 100 && onCertificateClick && (
           <button
+            data-tour-id="business-user-dashboard--certificate-action"
             onClick={(e) => { e.stopPropagation(); onCertificateClick() }}
             className={`absolute top-3 right-3 p-2 rounded-full bg-white/20 border border-white/40 text-yellow-400 shadow-sm ${disableHeavyEffects ? '' : 'backdrop-blur-md transition-all duration-300 hover:scale-110 hover:bg-white hover:text-yellow-600'}`}
           >

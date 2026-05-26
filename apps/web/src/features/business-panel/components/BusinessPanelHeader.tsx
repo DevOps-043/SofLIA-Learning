@@ -83,6 +83,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
 
   return (
     <motion.header
+      data-tour-id="business-panel-dashboard--top-nav"
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
@@ -159,8 +160,12 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
           </div>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-4">
-            <NotificationBell />
-            <UserDropdown />
+            <div data-tour-id="business-panel-dashboard--notifications">
+              <NotificationBell />
+            </div>
+            <div data-tour-id="business-panel-dashboard--account-menu">
+              <UserDropdown />
+            </div>
           </div>
         </div>
       </div>

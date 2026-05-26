@@ -41,6 +41,7 @@ export interface ModernNavbarProps {
   onCertificatesClick?: () => void;
   onAnalyticsClick?: () => void;
   certificatesCount?: number;
+  onRestartTour?: () => void;
 }
 
 export interface ModernNavbarColors {

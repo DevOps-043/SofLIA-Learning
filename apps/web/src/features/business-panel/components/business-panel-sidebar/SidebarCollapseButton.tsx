@@ -25,6 +25,7 @@ export function SidebarCollapseButton({
       {!isMobile ? (
         <div className={`flex ${!isCollapsed || shouldExpand ? 'justify-end' : 'justify-center'} mb-4`}>
           <button
+            data-tour-id="business-panel-dashboard--sidebar-collapse"
             onClick={onToggleCollapse}
             className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95"
             style={{ backgroundColor: theme.inputBg, border: `1px solid ${theme.borderColor}`, color: theme.textColor, opacity: 0.7 }}

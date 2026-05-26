@@ -12,6 +12,7 @@ type DashboardNavbarProps = Pick<
   | 'handleLogout'
   | 'handleProfileClick'
   | 'initials'
+  | 'onRestartTour'
   | 'organization'
   | 'orgColors'
   | 'orgRole'
@@ -48,6 +49,7 @@ export function DashboardNavbar(props: DashboardNavbarProps) {
         onCertificatesClick={stats.certificates > 0 ? props.handleCertificatesClick : undefined}
         onAnalyticsClick={props.handleAnalyticsClick}
         certificatesCount={stats.certificates}
+        onRestartTour={props.onRestartTour}
       />
     </Suspense>
   )

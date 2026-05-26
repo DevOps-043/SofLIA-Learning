@@ -42,6 +42,7 @@ export interface BusinessUserDashboardShellProps {
   handleProfileClick: () => void
   initials: string
   learningPaths: AssignedLearningPath[]
+  onRestartTour?: () => void
   myStats: BusinessUserDashboardStatItem[]
   organization: Organization | null
   orgColors: BusinessUserDashboardColors

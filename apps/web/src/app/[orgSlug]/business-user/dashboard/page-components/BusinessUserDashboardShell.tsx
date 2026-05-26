@@ -47,6 +47,7 @@ export function BusinessUserDashboardShell(props: BusinessUserDashboardShellProp
 
   return (
     <div
+      data-tour-id="business-user-dashboard--page"
       className="min-h-screen"
       style={{
         ...props.cssVariables,

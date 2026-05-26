@@ -14,6 +14,7 @@ import type { ModernNavbarProps } from './modern-navbar/types';
 import { useModernNavbar } from './modern-navbar/useModernNavbar';
 import { useOrganization } from '../../../../../core/hooks/useOrganization';
 import { NotificationBell } from '@/core/components/NotificationBell';
+import { TourTriggerButton } from '@/features/tours';
 
 export function ModernNavbar({
   organization,
@@ -28,6 +29,7 @@ export function ModernNavbar({
   onCertificatesClick,
   onAnalyticsClick,
   certificatesCount = 0,
+  onRestartTour,
 }: ModernNavbarProps) {
   const canAccessAdminPanel = orgRole === 'owner' || orgRole === 'admin' || orgRole === 'superadmin';
   const { canSwitch } = useOrganization();
@@ -53,6 +55,7 @@ export function ModernNavbar({
   return (
     <>
       <nav
+        data-tour-id="business-user-dashboard--top-nav"
         className={`sticky top-0 z-[120] w-full ${disableHeavyEffects ? '' : 'backdrop-blur-xl'}`}
         style={{
           backgroundColor: colors.navBg,
@@ -69,8 +72,20 @@ export function ModernNavbar({
           <div className="flex h-16 items-center justify-between">
             <ModernNavbarBrand colors={colors} organization={organization} t={t} />
 
-            <div className="flex items-center gap-2 sm:gap-4">
-              <NotificationBell />
+            <div
+              data-tour-id="business-user-dashboard--account-actions"
+              className="flex items-center gap-2 sm:gap-4"
+            >
+              <div data-tour-id="business-user-dashboard--notifications">
+                <NotificationBell />
+              </div>
+
+              {onRestartTour ? (
+                <TourTriggerButton
+                  onStart={onRestartTour}
+                  className="text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-accent"
+                />
+              ) : null}
 
               <div className="hidden md:block relative" ref={dropdownRef}>
                 <UserDropdown

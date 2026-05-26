@@ -17,6 +17,7 @@ export function IntroVideoButton({
 }: IntroVideoButtonProps) {
   return (
     <button
+      data-tour-id="business-user-dashboard--intro-video"
       type="button"
       disabled={intro.loading}
       onClick={onClick}

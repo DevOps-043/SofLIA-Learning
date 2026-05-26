@@ -25,6 +25,7 @@ export function CourseSectionHeader({
 }: CourseSectionHeaderProps) {
   return (
     <motion.div
+      data-tour-id="business-user-dashboard--courses-header"
       initial={disableHeavyEffects ? false : { opacity: 0, y: 10 }}
       animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
       transition={disableHeavyEffects ? undefined : interfaceTransition}
@@ -51,6 +52,7 @@ export function CourseSectionHeader({
       </div>
       {hasCourses ? (
         <div
+          data-tour-id="business-user-dashboard--view-toggle"
           className="flex shrink-0 items-center rounded-lg border p-1"
           style={{ backgroundColor: `color-mix(in srgb, ${orgColors.cardBg} 50.2%, transparent)`, borderColor: orgColors.border }}
         >

@@ -38,7 +38,7 @@ export function VideoPanel({
   return (
     <div className="relative w-full">
       {hasVideo ? (
-        <div className="aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-500/30 relative bg-gray-900">
+        <div data-tour-id="course-learn--video-player" className="aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-500/30 relative bg-gray-900">
           <VideoPlayer
             videoProvider={lesson.video_provider!}
             videoProviderId={lesson.video_provider_id!}
@@ -52,7 +52,7 @@ export function VideoPanel({
           <VideoNavigationOverlay {...navigationState} finishLabel={finishLabel} nextLabel={nextLabel} onNavigatePrevious={onNavigatePrevious} onPrimaryAction={primaryAction} previousLabel={previousLabel} />
         </div>
       ) : (
-        <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl flex items-center justify-center border border-gray-200 dark:border-gray-500/30 relative overflow-hidden group">
+        <div data-tour-id="course-learn--video-player" className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl flex items-center justify-center border border-gray-200 dark:border-gray-500/30 relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/10 to-accent/10 animate-pulse" />
           <div className="text-center relative z-10">
             <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 cursor-pointer hover:bg-primary/90 transition-all transform group-hover:scale-110">

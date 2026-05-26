@@ -31,6 +31,7 @@ export function CourseTileFooter({
       </p>
       {course.has_certificate && isCompleted && onCertificateClick ? (
         <button
+          data-tour-id="business-user-dashboard--certificate-action"
           type="button"
           onClick={(event) => {
             event.stopPropagation()

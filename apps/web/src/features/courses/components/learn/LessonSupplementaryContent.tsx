@@ -39,6 +39,7 @@ type SupplementarySectionProps = {
   isOpen: boolean;
   onToggle: () => void;
   title: string;
+  tourId?: string;
 };
 
 function SupplementarySection({
@@ -50,9 +51,10 @@ function SupplementarySection({
   isOpen,
   onToggle,
   title,
+  tourId,
 }: SupplementarySectionProps) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80 shadow-sm transition-colors dark:border-white/10 dark:bg-white/[0.03]">
+    <div data-tour-id={tourId} className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80 shadow-sm transition-colors dark:border-white/10 dark:bg-white/[0.03]">
       <button
         type="button"
         onClick={onToggle}
@@ -152,9 +154,10 @@ export function LessonSupplementaryContent({
   };
 
   return (
-    <div className="space-y-3 border-t border-gray-200 pt-5 dark:border-gray-500/30">
+    <div data-tour-id="course-learn--lesson-resources" className="space-y-3 border-t border-gray-200 pt-5 dark:border-gray-500/30">
       <SupplementarySection
         id="lesson-transcript-panel"
+        tourId="course-learn--transcript-section"
         title={t("tabs.transcript")}
         description={t("transcript.sectionDescription")}
         icon={ScrollText}
@@ -174,6 +177,7 @@ export function LessonSupplementaryContent({
 
       <SupplementarySection
         id="lesson-summary-panel"
+        tourId="course-learn--summary-section"
         title={t("tabs.summary")}
         description={t("summary.sectionDescription")}
         icon={Sparkles}
