@@ -94,6 +94,7 @@ export interface OrganizationUserWrite {
   role: string
   status: string
   joined_at: string
+  job_title?: string | null
 }
 
 export interface UserRecord {
@@ -164,6 +165,7 @@ export interface CreateInvitationInput {
 }
 
 export interface CreateOrganizationMembershipInput {
+  jobTitle?: string | null
   organizationId: string
   userId: string
   role: string
@@ -213,6 +215,7 @@ export interface InvitationRepository {
   addOrganizationMembership(input: CreateOrganizationMembershipInput): Promise<void>
   acceptInvitation(invitationId: string, acceptedAt: string): Promise<void>
   createBulkInviteRegistration(linkId: string, userId: string): Promise<void>
+  deleteOrganizationMembership(userId: string, organizationId: string): Promise<void>
   createInvitation(input: CreateInvitationInput): Promise<{ id: string }>
   findOrganizationMembership(
     userId: string,

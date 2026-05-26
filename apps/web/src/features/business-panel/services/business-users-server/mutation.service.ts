@@ -1,10 +1,10 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import crypto from 'crypto'
 import { fromLoose } from '../../../../lib/supabase/looseQuery'
 import {
-  createSupabaseAuthUserWithLegacyId,
-  deleteSupabaseAuthUser,
-} from '@/features/auth/services/supabase-auth-bridge.service'
+  mapProvisioningError,
+  provisionAuthAccount,
+  rollbackProvisionedAuthAccount,
+} from '@/features/auth/services/auth-account-provisioning.service'
 import type {
   BusinessUser,
   CreateBusinessUserRequest,
@@ -101,26 +101,28 @@ export async function createOrganizationUser(
   try {
     validateCreateBusinessUserRequest(userData)
 
-    const userId = crypto.randomUUID()
     const password = userData.password?.trim()
     if (!password) {
       throw new Error('La contrasena es requerida')
     }
 
-    await createSupabaseAuthUserWithLegacyId({
-      cargo_rol: 'Business',
-      display_name: userData.display_name ?? null,
+    const provisioned = await provisionAuthAccount({
+      cargoRol: 'Business',
+      dateOfBirth: userData.date_of_birth ?? null,
+      displayName: userData.display_name ?? null,
       email: userData.email,
-      email_verified: true,
-      first_name: userData.first_name ?? null,
-      id: userId,
-      last_name: userData.last_name ?? null,
+      emailVerified: true,
+      firstName: userData.first_name ?? null,
+      gender: userData.gender ?? null,
+      lastName: userData.last_name ?? null,
       password,
       username: userData.username,
+    }).catch((error) => {
+      throw new Error(mapProvisioningError(error))
     })
 
     const userInsertData = buildUserInsertData(
-      userId,
+      provisioned.userId,
       userData,
     ) satisfies UserInsertRow
 
@@ -128,12 +130,12 @@ export async function createOrganizationUser(
       CreatedUserRow,
       UserInsertRow
     >(supabase, 'users')
-      .insert(userInsertData)
+      .upsert(userInsertData, { onConflict: 'id' })
       .select('id')
       .single()
 
     if (userError || !newUser) {
-      await deleteSupabaseAuthUser(userId)
+      await rollbackProvisionedAuthAccount(provisioned.userId)
       throw userError ?? new Error('No se pudo crear el usuario')
     }
 
@@ -157,7 +159,7 @@ export async function createOrganizationUser(
       const { error: rollbackError } = await fromLoose(supabase, 'users')
         .delete()
         .eq('id', newUser.id)
-      await deleteSupabaseAuthUser(newUser.id)
+      await rollbackProvisionedAuthAccount(newUser.id)
 
       if (rollbackError) {
         // Log the orphaned user so it can be manually cleaned up

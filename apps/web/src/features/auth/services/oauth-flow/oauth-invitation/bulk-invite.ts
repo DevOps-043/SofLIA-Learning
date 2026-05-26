@@ -45,6 +45,7 @@ export async function resolveBulkInviteContext({
         id: link.id,
         organizationId: link.organization_id,
         role: link.role || 'member',
+        token: bulkToken,
       },
       invitedRole: link.role || 'member',
     },

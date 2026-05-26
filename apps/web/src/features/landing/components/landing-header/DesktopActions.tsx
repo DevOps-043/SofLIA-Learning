@@ -38,7 +38,7 @@ export function DesktopActions({ state, t }: DesktopActionsProps) {
           {t('landing.nav.clientAccess', 'Acceso clientes')}
         </motion.span>
       </Link>
-      <a href="#contact">
+      <Link href="/contact">
         <motion.span
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
@@ -46,7 +46,7 @@ export function DesktopActions({ state, t }: DesktopActionsProps) {
         >
           {t('landing.nav.scheduleDemo', 'Agendar demo')}
         </motion.span>
-      </a>
+      </Link>
     </div>
   );
 }

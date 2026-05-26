@@ -50,7 +50,7 @@ export function NoteCard({
         >
           <span className="inline-flex items-center gap-1.5">
             {(isGeneratedSummary || isSummaryCandidate) && (
-              <BookMarked className="h-3.5 w-3.5 text-[#00D4B3]" />
+              <BookMarked className="h-3.5 w-3.5 text-accent" />
             )}
             {note.title}
           </span>
@@ -100,12 +100,12 @@ export function NoteCard({
       {isGeneratedSummary || isSummaryCandidate ? (
         <div className="mb-2 flex flex-wrap gap-1.5">
           {isGeneratedSummary && versionLabel ? (
-            <span className="inline-flex items-center rounded-full border border-[#00D4B3]/30 px-2 py-0.5 text-[11px] font-medium text-[#0A2540] dark:text-[#00D4B3]">
+            <span className="inline-flex items-center rounded-full border border-accent/30 px-2 py-0.5 text-[11px] font-medium text-primary dark:text-accent">
               {versionLabel}
             </span>
           ) : null}
           {(isGeneratedSummary || isSummaryCandidate) && note.moduleTitle ? (
-            <span className="inline-flex items-center rounded-full border border-[#E9ECEF] px-2 py-0.5 text-[11px] font-medium text-[#6C757D] dark:border-[#6C757D]/30 dark:text-white/60">
+            <span className="inline-flex items-center rounded-full border border-gray-200 px-2 py-0.5 text-[11px] font-medium text-gray-500 dark:border-gray-500/30 dark:text-white/60">
               {note.moduleTitle}
             </span>
           ) : null}
@@ -120,7 +120,7 @@ export function NoteCard({
 
       {isSummaryCandidate && onGenerateDefaultSummary ? (
         <button
-          className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#00D4B3]/30 px-3 py-2 text-xs font-semibold text-[#0A2540] transition-colors hover:bg-[#00D4B3]/10 disabled:cursor-not-allowed disabled:opacity-50 dark:text-[#00D4B3]"
+          className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-accent/30 px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-50 dark:text-accent"
           disabled={isRegenerating}
           onClick={(event) => {
             event.stopPropagation();

@@ -1,0 +1,281 @@
+{
+  "navigation": {
+    "backHome": "Back to home"
+  },
+  "metadata": {
+    "lastUpdated": "Last updated: {{date}}"
+  },
+  "pages": {
+    "contactLink": "contact us",
+    "footerSuffix": ".",
+    "terms": {
+      "footerPrefix": "If you have questions about these terms, you can"
+    },
+    "privacy": {
+      "footerPrefix": "If you have questions about this policy, you can"
+    }
+  },
+  "modal": {
+    "title": "Legal documents",
+    "close": "Close",
+    "accept": "Accept and continue"
+  },
+  "tabs": {
+    "terms": "Terms and conditions",
+    "privacy": "Privacy policy",
+    "conduct": "Code of conduct"
+  },
+  "documents": {
+    "terms": {
+      "title": "Terms and Conditions of Use",
+      "sections": [
+        {
+          "number": 1,
+          "title": "Acceptance of the Terms",
+          "content": "These Terms and Conditions of Use form a legal agreement between you and SofLIA. By accessing, using, registering for, or interacting with our artificial intelligence training platform, you agree to be bound by these Terms. If you do not agree with any of them, you must not access or use our services."
+        },
+        {
+          "number": 2,
+          "title": "Service Description",
+          "content": "SofLIA is a B2B educational platform that provides enterprise artificial intelligence training services, including but not limited to:",
+          "list": [
+            "Online courses in artificial intelligence, machine learning, and related technologies.",
+            "Interactive educational content, videos, lessons, study materials, and multimedia resources.",
+            "Assessments, verifiable certificates, and progress tracking.",
+            "Learning community, forums, user collaboration, and an AI virtual assistant.",
+            "Study planner with optional calendar integrations.",
+            "Team management, progress reports, and brand customization for organizations."
+          ]
+        },
+        {
+          "number": 3,
+          "title": "Eligibility and Account Registration",
+          "content": "To use our services, you must be of legal age in your jurisdiction, have legal capacity to enter into contracts, provide accurate information during registration, and keep your credentials confidential. You are responsible for all activity under your account."
+        },
+        {
+          "number": 4,
+          "title": "Acceptable Use of the Platform",
+          "content": "You agree to use the Platform only for lawful and educational purposes, and you agree to:",
+          "list": [
+            "Not access restricted areas or other users' accounts.",
+            "Not reverse engineer, perform unauthorized scraping, or extract data automatically.",
+            "Not introduce malware, malicious code, or mechanisms that affect security or availability.",
+            "Not use bots or scripts that overload our systems.",
+            "Not share your account with third parties.",
+            "Not conduct illegal, fraudulent, or rights-infringing activities."
+          ]
+        },
+        {
+          "number": 5,
+          "title": "User Content",
+          "content": "You retain ownership of the content you create, post, or share on the Platform. By posting it, you grant us a worldwide, non-exclusive, royalty-free license to use, reproduce, distribute, and display it in connection with operating the Platform. You are responsible for ensuring your content complies with the law and does not infringe third-party rights."
+        },
+        {
+          "number": 6,
+          "title": "Intellectual Property",
+          "content": "The Platform, its software, structure, design, text, graphics, logos, icons, images, content, and data compilations are owned by SofLIA or its licensors and are protected by intellectual property laws. No implied licenses are granted over those materials."
+        },
+        {
+          "number": 7,
+          "title": "Subscriptions and Payments",
+          "content": "Some services may require subscription fees. Prices, billing terms, and payment methods will be provided during the applicable process. Unless required otherwise by applicable law, fees are non-refundable. We may modify fees with reasonable prior notice."
+        },
+        {
+          "number": 8,
+          "title": "Calendar and Third-Party Service Integrations",
+          "content": "The Platform may offer optional integrations with Google Calendar or Microsoft Outlook to improve study planning. By authorizing them, you agree that we access only availability information, not the content, titles, or details of your events. You can revoke access at any time from your account settings."
+        },
+        {
+          "number": 9,
+          "title": "Privacy and Data Protection",
+          "content": "Our use of your personal information is governed by our Privacy Policy, which forms part of these Terms. We comply with Mexico's Federal Law on Protection of Personal Data Held by Private Parties, the GDPR where applicable, and other relevant data protection rules."
+        },
+        {
+          "number": 10,
+          "title": "Service Changes",
+          "content": "We may modify, suspend, interrupt, or discontinue any aspect of the Platform, with or without prior notice, when necessary for operational, technical, legal, or security reasons. We are not liable for reasonable changes in service availability or functionality."
+        },
+        {
+          "number": 11,
+          "title": "Termination",
+          "content": "We may terminate or suspend your access to the Platform if you breach these Terms, if there is a security risk, or for any cause permitted by law. Upon termination, your right to use the Platform ends, without affecting obligations that by nature should survive."
+        },
+        {
+          "number": 12,
+          "title": "Disclaimer of Warranties",
+          "content": "The Platform is provided as available and without warranties of any kind, express or implied, including warranties of merchantability, fitness for a particular purpose, or non-infringement. We do not guarantee uninterrupted availability or absolute absence of errors."
+        },
+        {
+          "number": 13,
+          "title": "Limitation of Liability",
+          "content": "To the fullest extent permitted by law, SofLIA will not be liable for indirect, incidental, special, consequential, or punitive damages related to the use or inability to use the Platform. Our total liability will not exceed the amount you paid us in the last 12 months."
+        },
+        {
+          "number": 14,
+          "title": "Indemnification",
+          "content": "You agree to indemnify and hold harmless SofLIA, its affiliates, directors, employees, agents, and licensors from claims, damages, losses, liabilities, and expenses arising from your use of the Platform, your breach of these Terms, or your infringement of third-party rights."
+        },
+        {
+          "number": 15,
+          "title": "Governing Law and Jurisdiction",
+          "content": "These Terms are governed by the laws of the United Mexican States. Any dispute related to them will be submitted to the competent courts of Mexico City, unless applicable law provides otherwise for users located in other jurisdictions."
+        },
+        {
+          "number": 16,
+          "title": "General Provisions",
+          "content": "These Terms constitute the entire agreement between you and SofLIA regarding use of the Platform. If any provision is held invalid, the remaining provisions will remain in effect. Failure to exercise a right does not waive that right."
+        },
+        {
+          "number": 17,
+          "title": "Contact Information",
+          "content": "If you have questions about these Terms, you can contact us through our website or available support channels. We may update these Terms and will notify material changes through the Platform or by email."
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "sections": [
+        {
+          "number": 1,
+          "title": "Introduction and Scope",
+          "content": "This Privacy Policy explains how SofLIA collects, uses, stores, shares, and protects your personal information when you use our artificial intelligence training platform. It applies to individual users and organizations, and follows Mexico's LFPDPPP, the GDPR where applicable, and related legislation."
+        },
+        {
+          "number": 2,
+          "title": "Information We Collect",
+          "content": "We collect information needed to provide, protect, and improve our services:",
+          "list": [
+            "Identification data: name, email, phone number, username, and registration details.",
+            "Profile data: photo, biography, location, job title, and preferences.",
+            "Authentication data: encrypted credentials, session tokens, and social login information.",
+            "Learning data: courses, lessons, grades, certificates, notes, and progress.",
+            "Usage data: visited pages, searches, LIA interactions, posts, and comments.",
+            "Technical data: IP address, browser, operating system, device, and cookies.",
+            "Organizational data for B2B users: team, assignments, reports, and corporate settings."
+          ]
+        },
+        {
+          "number": 3,
+          "title": "Calendar Integration",
+          "content": "When you authorize Google Calendar or Microsoft Outlook integrations, we access only availability information to create or adjust your study plan.",
+          "list": [
+            "We do not read or store titles, descriptions, attendees, or event details from personal or work calendars.",
+            "The information is used only to verify available time slots.",
+            "You can revoke access from your account settings.",
+            "The integration follows Google and Microsoft data policies and applicable law."
+          ]
+        },
+        {
+          "number": 4,
+          "title": "How We Use Your Information",
+          "content": "We use your data to:",
+          "list": [
+            "Provide, maintain, and improve educational services.",
+            "Personalize courses, recommendations, and study plans.",
+            "Send operational communications, reminders, and relevant notifications.",
+            "Analyze platform usage and improve features.",
+            "Detect fraud, abuse, or security risks.",
+            "Provide technical support and resolve issues.",
+            "Comply with legal and contractual obligations.",
+            "Generate reports for authorized administrators of B2B organizations."
+          ]
+        },
+        {
+          "number": 5,
+          "title": "LIA Virtual Assistant",
+          "content": "SofLIA includes an artificial intelligence virtual assistant. Conversations may be processed to answer questions, provide recommendations, and improve the educational experience. We do not use conversation content for third-party advertising, and you may request deletion of your history where applicable."
+        },
+        {
+          "number": 6,
+          "title": "Legal Basis for Processing",
+          "content": "We process personal information based on consent, contract performance, legal obligations, and legitimate interests, always considering your rights and applicable regulations."
+        },
+        {
+          "number": 7,
+          "title": "Sharing and Disclosure",
+          "content": "We do not sell your personal information. We may share it with service providers, authorized integrations, your organization's administrators where applicable, competent authorities when legally required, or third parties when you provide explicit consent."
+        },
+        {
+          "number": 8,
+          "title": "Cookies and Tracking Technologies",
+          "content": "We use essential, functional, and analytics cookies to operate the platform, remember preferences, protect sessions, and understand service usage. You may configure cookie preferences when that functionality is available."
+        },
+        {
+          "number": 9,
+          "title": "Data Security",
+          "content": "We implement reasonable security measures, including encryption in transit, secure storage, access controls, secure authentication, monitoring, and response processes. No system is completely infallible, but we apply controls proportional to risk."
+        },
+        {
+          "number": 10,
+          "title": "Your ARCO and GDPR Rights",
+          "content": "You may exercise rights of access, rectification, cancellation, objection, portability, and withdrawal of consent under the LFPDPPP, GDPR, or other applicable rules. We will respond within the relevant legal deadlines."
+        },
+        {
+          "number": 11,
+          "title": "Children's Privacy",
+          "content": "Our services are not directed to individuals under 18. We do not knowingly collect information from minors without verifiable consent from parents or guardians. If we detect improperly collected information, we will take steps to delete it."
+        },
+        {
+          "number": 12,
+          "title": "International Data Transfers",
+          "content": "Your information may be transferred to and processed in countries other than yours. When this occurs, we apply appropriate safeguards to maintain a level of protection consistent with applicable law."
+        },
+        {
+          "number": 13,
+          "title": "Data Retention",
+          "content": "We keep personal information only as long as necessary for the described purposes, to comply with legal obligations, or for periods permitted by law. When it is no longer needed, we will delete or anonymize it securely."
+        },
+        {
+          "number": 14,
+          "title": "Changes to this Policy",
+          "content": "We may update this Policy to reflect legal, operational, or product changes. We will notify material changes through the Platform or by email before they take effect when appropriate."
+        },
+        {
+          "number": 15,
+          "title": "Contact and Rights Requests",
+          "content": "If you have questions or wish to exercise rights related to your personal data, you can contact us through the website or available privacy channels. We will handle your request within the timelines required by law."
+        }
+      ]
+    },
+    "conduct": {
+      "title": "Code of Conduct",
+      "sections": [
+        {
+          "number": 1,
+          "title": "Expected Behavior",
+          "content": "Our community is based on respect, collaboration, and constructive learning. All users must:",
+          "list": [
+            "Treat others with respect, courtesy, and dignity.",
+            "Contribute constructively and share useful knowledge.",
+            "Respect intellectual property and cite sources when appropriate.",
+            "Maintain a positive, professional, and inclusive environment.",
+            "Report inappropriate behavior when necessary."
+          ]
+        },
+        {
+          "number": 2,
+          "title": "Prohibited Behavior",
+          "content": "The following behaviors are prohibited:",
+          "list": [
+            "Harassment, intimidation, discrimination, or abuse.",
+            "Offensive, defamatory, violent, sexually explicit, or illegal content.",
+            "Spam, unauthorized advertising, or promotion without permission.",
+            "Impersonation or intentional disclosure of false information.",
+            "Unauthorized access, security manipulation, or publication of third-party personal data.",
+            "Any activity that violates laws, regulations, or third-party rights."
+          ]
+        },
+        {
+          "number": 3,
+          "title": "Consequences of Non-Compliance",
+          "content": "Violations may result in warnings, content removal, temporary or permanent account suspension, reports to authorities, and other measures needed to protect the community and the Platform."
+        },
+        {
+          "number": 4,
+          "title": "Reporting Process",
+          "content": "If you experience or witness behavior that violates this Code, please report it through Platform tools or available support channels. We will review reports confidentially and take appropriate action."
+        }
+      ]
+    }
+  }
+}

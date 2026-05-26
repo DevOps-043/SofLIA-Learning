@@ -5,6 +5,7 @@ import type {
   BusinessUserStatsCourseModuleRecord,
   BusinessUserStatsEnrollmentRecord,
   BusinessUserStatsInstructorRecord,
+  BusinessUserStatsLessonActivityCatalogRecord,
   BusinessUserStatsLessonCountRecord,
   BusinessUserStatsLessonNoteRecord,
   BusinessUserStatsLessonProgressRecord,
@@ -24,6 +25,7 @@ export interface DerivedCompletionQueryData {
   lessons: BusinessUserStatsLessonRecord[]
   courseModules: BusinessUserStatsCourseModuleRecord[]
   lessonCounts: BusinessUserStatsLessonCountRecord[]
+  lessonActivities: BusinessUserStatsLessonActivityCatalogRecord[]
   instructors: BusinessUserStatsInstructorRecord[]
 }
 

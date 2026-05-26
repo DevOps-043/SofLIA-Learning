@@ -67,7 +67,7 @@ export async function resolveBusinessAccess(
     return sessionResult
   }
 
-  const userResult = await loadAuthenticatedBusinessUser(supabase, sessionResult.value, logger)
+  const userResult = await loadAuthenticatedBusinessUser(supabase, sessionResult.value, logger, mode)
   if (!userResult.ok) {
     return userResult
   }

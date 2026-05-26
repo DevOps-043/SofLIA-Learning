@@ -50,6 +50,15 @@ async function completeBulkInvitationConsumption(
     return { success: false, error: 'Ya perteneces a esta organizacion' }
   }
 
+  await runtime.repo.addOrganizationMembership({
+    jobTitle: null,
+    joinedAt: runtime.now().toISOString(),
+    organizationId: link.organizationId,
+    role: resolveInvitationRole(link.role),
+    status: 'active',
+    userId,
+  })
+
   const usageResult = await finalizeBulkInviteRegistration(
     runtime.repo,
     token,
@@ -59,18 +68,11 @@ async function completeBulkInvitationConsumption(
   )
 
   if (!usageResult.success) {
+    await runtime.repo.deleteOrganizationMembership(userId, link.organizationId)
     return usageResult
   }
 
-  await runtime.repo.addOrganizationMembership({
-    joinedAt: runtime.now().toISOString(),
-    organizationId: link.organizationId,
-    role: resolveInvitationRole(link.role),
-    status: 'active',
-    userId,
-  })
   await runtime.repo.setUserBusinessRole(userId)
-
   const organizationSlug = await runtime.repo.getOrganizationSlug(link.organizationId)
   return { organizationSlug: organizationSlug ?? undefined, success: true }
 }

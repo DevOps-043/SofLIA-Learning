@@ -130,7 +130,7 @@ export function HeroSectionB2B() {
 
             {/* CTA Buttons */}
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 mb-10">
-              <Link href="#contact">
+              <Link href="/contact">
                 <motion.button
                   whileHover={{ scale: 1.03, boxShadow: '0 12px 40px rgba(10, 37, 64, 0.3)' }}
                   whileTap={{ scale: 0.97 }}
@@ -142,7 +142,7 @@ export function HeroSectionB2B() {
                 </motion.button>
               </Link>
               
-              <Link href="#contact">
+              <Link href="/contact">
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
@@ -234,7 +234,7 @@ export function HeroSectionB2B() {
                   <CheckCircle2 size={20} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-white/50">Completitud</p>
+                  <p className="text-xs text-gray-500 dark:text-white/50">{t('landing.badges.completion', 'Completitud')}</p>
                   <p className="text-lg font-bold text-primary dark:text-white">+85%</p>
                 </div>
               </div>
@@ -251,7 +251,7 @@ export function HeroSectionB2B() {
                   <GraduationCap size={20} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-white/50">Mentoría</p>
+                  <p className="text-xs text-gray-500 dark:text-white/50">{t('landing.badges.mentorship', 'Mentoría')}</p>
                   <p className="text-lg font-bold text-accent">24/7</p>
                 </div>
               </div>

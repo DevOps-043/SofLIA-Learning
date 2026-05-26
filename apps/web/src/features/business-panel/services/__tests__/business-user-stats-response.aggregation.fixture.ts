@@ -31,11 +31,15 @@ export function createAggregatedStatsData(): BusinessUserStatsQueryData {
       quiz_progress_percentage: 100,
       quiz_completed: true,
       quiz_passed: true,
+      video_progress_percentage: 100,
+      required_activities_completed: 1,
+      required_activities_total: 1,
       user_course_enrollments: { course_id: 'course-1', courses: { id: 'course-1', title: 'Curso A' } },
     }] as BusinessUserStatsQueryData['lessonProgress'],
     lessons: [{
       lesson_id: 'lesson-1',
       lesson_title: 'Lección 1',
+      lesson_order_index: 1,
       module_id: 'module-1',
       course_modules: { module_id: 'module-1', module_title: 'Módulo 1', module_order_index: 1, course_id: 'course-1' },
     }] as BusinessUserStatsQueryData['lessons'],
@@ -46,6 +50,10 @@ export function createAggregatedStatsData(): BusinessUserStatsQueryData {
     lessonCounts: [
       { lesson_id: 'lesson-1', module_id: 'module-1' },
       { lesson_id: 'lesson-2', module_id: 'module-2' },
+    ],
+    lessonActivities: [
+      { activity_id: 'activity-1', lesson_id: 'lesson-1' },
+      { activity_id: 'activity-2', lesson_id: 'lesson-2' },
     ],
     activityCompletions: [{
       completion_id: 'activity-1',

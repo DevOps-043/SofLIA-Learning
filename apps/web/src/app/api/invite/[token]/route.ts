@@ -9,6 +9,7 @@ import {
 import { fromLoose } from '@/lib/supabase/looseQuery'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types'
 import { acceptInviteSchema, type AcceptInviteBody } from './schema'
 
 interface BulkInviteOrganizationRow {
@@ -59,6 +60,11 @@ function normalizeOrganization(
 async function getAuthenticatedUserId(): Promise<string | null> {
   const cookieStore = await cookies()
   const supabase = await createClient()
+
+  const { data: nativeSession } = await supabase.auth.getUser()
+  if (nativeSession.user?.id) {
+    return nativeSession.user.id
+  }
 
   // SISTEMA 1: Legacy session
   const sessionCookie = cookieStore.get('aprende-y-aplica-session')

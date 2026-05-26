@@ -29,7 +29,7 @@ export function buildBusinessUserStatsResponse(data: BusinessUserStatsQueryData)
 
   applyLiaStats(courseStatsMap, data.liaConversations, data.liaMessages)
   applyQuizStats(courseStatsMap, data.quizSubmissions)
-  applyActivityStats(courseStatsMap, data.activityCompletions)
+  applyActivityStats(courseStatsMap, data.activityCompletions, data.lessonActivities, data.lessonCounts, data.courseModules)
   applyNotesStats(courseStatsMap, data.lessonNotes, courseIdByLessonId)
   applyLessonProgressStats(courseStatsMap, data.lessonProgress, realLessonsByCourse)
   applyModuleStats(courseStatsMap, data.courseModules, data.lessonProgress, lessonInfoById)

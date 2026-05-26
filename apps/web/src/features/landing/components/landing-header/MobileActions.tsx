@@ -24,14 +24,14 @@ export function MobileActions({ t, onNavigate }: MobileActionsProps) {
       >
         {t('landing.nav.downloadHub', 'Descargar Hub')}
       </Link>
-      <a href="#contact" onClick={onNavigate}>
+      <Link href="/contact" onClick={onNavigate}>
         <motion.span
           whileTap={{ scale: 0.98 }}
           className="block w-full cursor-pointer rounded-xl bg-primary px-4 py-3 text-center text-base font-medium text-white shadow-lg"
         >
           {t('landing.nav.scheduleDemo', 'Agendar demo')}
         </motion.span>
-      </a>
+      </Link>
     </>
   );
 }

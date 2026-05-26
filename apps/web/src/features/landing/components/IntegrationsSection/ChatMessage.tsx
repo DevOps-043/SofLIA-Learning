@@ -9,6 +9,7 @@ interface ChatMessageProps {
   message: string
   type: 'user' | 'lia'
   onTypingComplete?: () => void
+  userLabel?: string
 }
 
 export function ChatMessage({
@@ -18,6 +19,7 @@ export function ChatMessage({
   message,
   type,
   onTypingComplete,
+  userLabel,
 }: ChatMessageProps) {
   const isUser = type === 'user'
   return (
@@ -38,7 +40,7 @@ export function ChatMessage({
       </div>
       {isUser && (
         <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
-          <span className="text-xs font-bold text-accent">Tú</span>
+          <span className="text-xs font-bold text-accent">{userLabel || 'Tú'}</span>
         </div>
       )}
     </motion.div>

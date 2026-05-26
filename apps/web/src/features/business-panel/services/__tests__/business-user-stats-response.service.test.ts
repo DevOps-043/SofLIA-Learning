@@ -18,6 +18,7 @@ describe('business-user-stats-response.service', () => {
     expect(response.stats.total_time_spent_hours).toBe(1.5)
     expect(response.stats.quiz_average_score).toBe(80)
     expect(response.stats.lia_activities_completed).toBe(1)
+    expect(response.stats.lia_activities_total).toBe(2)
     expect(response.courses[0]).toMatchObject({
       course_id: 'course-1',
       course_title: 'Curso A',
@@ -25,6 +26,8 @@ describe('business-user-stats-response.service', () => {
       modules_total: 1,
       lessons_total: 1,
       lessons_completed: 1,
+      activities_completed: 1,
+      activities_total: 1,
       lia_conversations_count: 1,
       quiz_total: 1,
     })
@@ -37,6 +40,8 @@ describe('business-user-stats-response.service', () => {
       due_date: '2025-04-01T00:00:00.000Z',
       modules_total: 1,
       lessons_total: 1,
+      activities_completed: 0,
+      activities_total: 1,
     })
     expect(response.certificates[0].instructor_name).toBe('Laura Pérez')
   })

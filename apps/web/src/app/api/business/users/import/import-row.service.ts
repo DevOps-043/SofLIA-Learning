@@ -1,4 +1,3 @@
-import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { createClient } from '@/lib/supabase/server'
 import {
@@ -6,9 +5,10 @@ import {
   normalizeGenderForStorage,
 } from '@/lib/schemas/user-demographics.schema'
 import {
-  createSupabaseAuthUserWithLegacyId,
-  deleteSupabaseAuthUser,
-} from '@/features/auth/services/supabase-auth-bridge.service'
+  mapProvisioningError,
+  provisionAuthAccount,
+  rollbackProvisionedAuthAccount,
+} from '@/features/auth/services/auth-account-provisioning.service'
 import { getExistingUserImportError } from './existing-user.service'
 import { autoAssignUserToDefaultTeam } from './hierarchy'
 import type { ImportContext, ParsedImportUserRow, UserInsertData } from './types'
@@ -34,25 +34,27 @@ export async function importUserRow(params: {
     return { success: false as const, ...existingUserError }
   }
 
-  const userId = crypto.randomUUID()
+  let userId = ''
   try {
-    await createSupabaseAuthUserWithLegacyId({
-      cargo_rol: 'Business User',
-      display_name: userData.display_name ||
+    const provisioned = await provisionAuthAccount({
+      cargoRol: 'Business',
+      dateOfBirth: normalizeDateOfBirthForStorage(validation.demographics.date_of_birth),
+      displayName: userData.display_name ||
         `${userData.first_name || ''} ${userData.last_name || ''}`.trim() ||
         null,
       email: userData.email,
-      email_verified: true,
-      first_name: userData.first_name || null,
-      id: userId,
-      last_name: userData.last_name || null,
+      emailVerified: true,
+      firstName: userData.first_name || null,
+      gender: normalizeGenderForStorage(validation.demographics.gender),
+      lastName: userData.last_name || null,
       password: validation.password,
       username: userData.username,
     })
+    userId = provisioned.userId
   } catch (error) {
     return {
       success: false as const,
-      error: error instanceof Error ? error.message : 'Error al crear usuario Auth',
+      error: error instanceof Error ? mapProvisioningError(error) : 'Error al crear usuario Auth',
     }
   }
 
@@ -65,9 +67,7 @@ export async function importUserRow(params: {
     display_name: userData.display_name ||
       `${userData.first_name || ''} ${userData.last_name || ''}`.trim() ||
       null,
-    cargo_rol: 'Business User',
-    type_rol: 'Business User',
-    organization_id: context.organizationId,
+    cargo_rol: 'Business',
     date_of_birth: normalizeDateOfBirthForStorage(validation.demographics.date_of_birth),
     gender: normalizeGenderForStorage(validation.demographics.gender),
   }
@@ -75,12 +75,12 @@ export async function importUserRow(params: {
   const adminSupabase = createAdminClient()
   const { data: newUser, error: userError } = await adminSupabase
     .from('users')
-    .insert(userInsertData)
+    .upsert(userInsertData, { onConflict: 'id' })
     .select('id')
     .single()
 
   if (userError) {
-    await deleteSupabaseAuthUser(userId)
+    await rollbackProvisionedAuthAccount(userId)
     return { success: false as const, error: userError.message || 'Error al crear usuario' }
   }
 
@@ -97,7 +97,7 @@ export async function importUserRow(params: {
 
   if (orgUserError) {
     await adminSupabase.from('users').delete().eq('id', newUser.id)
-    await deleteSupabaseAuthUser(newUser.id)
+    await rollbackProvisionedAuthAccount(newUser.id)
     return {
       success: false as const,
       error: orgUserError.message || 'Error al agregar usuario a la organizacion',

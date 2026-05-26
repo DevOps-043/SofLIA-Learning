@@ -21,8 +21,16 @@ export interface NewAuthUserInput extends LegacyUserForAuthBridge {
   password: string
 }
 
+export interface NewGeneratedAuthUserInput extends Omit<NewAuthUserInput, 'id'> {
+  id?: never
+}
+
 export interface AuthUserRecordInput extends LegacyUserForAuthBridge {
   email: string
+}
+
+export interface GeneratedAuthUserRecordInput extends Omit<AuthUserRecordInput, 'id'> {
+  id?: never
 }
 
 interface CreateAuthUserOptions {
@@ -117,10 +125,22 @@ export async function createSupabaseAuthUserWithLegacyId(
   return createAuthUserWithLegacyId(input, { password: input.password })
 }
 
+export async function createSupabaseAuthUser(
+  input: NewGeneratedAuthUserInput,
+) {
+  return createAuthUser(input, { password: input.password })
+}
+
 export async function createSupabaseAuthUserRecordWithLegacyId(
   input: AuthUserRecordInput,
 ) {
   return createAuthUserWithLegacyId(input, {})
+}
+
+export async function createSupabaseAuthUserRecord(
+  input: GeneratedAuthUserRecordInput,
+) {
+  return createAuthUser(input, {})
 }
 
 export async function deleteSupabaseAuthUser(userId: string) {
@@ -156,6 +176,23 @@ async function createAuthUserWithLegacyId(
   profile: LegacyUserForAuthBridge,
   options: CreateAuthUserOptions,
 ) {
+  const user = await createAuthUser(profile, options, { id: profile.id })
+
+  if (user.id !== profile.id) {
+    throw new SupabaseAuthBridgeError(
+      'AUTH_USER_ID_MISMATCH',
+      `Supabase Auth devolvio ${user.id} pero se esperaba ${profile.id}.`,
+    )
+  }
+
+  return user
+}
+
+async function createAuthUser(
+  profile: Omit<LegacyUserForAuthBridge, 'id'> & { id?: string },
+  options: CreateAuthUserOptions,
+  overrides: { id?: string } = {},
+) {
   const email = normalizeEmail(profile.email)
   if (!email) {
     throw new SupabaseAuthBridgeError(
@@ -166,7 +203,7 @@ async function createAuthUserWithLegacyId(
 
   const admin = createAdminClient()
   const { data, error } = await admin.auth.admin.createUser({
-    id: profile.id,
+    ...overrides,
     email,
     ...(options.password ? { password: options.password } : {}),
     ...(options.passwordHash ? { password_hash: options.passwordHash } : {}),
@@ -180,23 +217,19 @@ async function createAuthUserWithLegacyId(
       legacy_email_verified: profile.email_verified ?? null,
     },
     app_metadata: {
-      legacy_user_id: profile.id,
+      legacy_user_id: profile.id ?? null,
       migration_source: 'public.users',
       role: profile.cargo_rol ?? 'Usuario',
     },
   })
 
   if (error || !data.user) {
+    logger.warn('Supabase Auth user creation failed', {
+      error: serializeSupabaseAuthError(error),
+    })
     throw new SupabaseAuthBridgeError(
       'AUTH_USER_CREATE_FAILED',
       error?.message || 'No se pudo crear usuario en Supabase Auth.',
-    )
-  }
-
-  if (data.user.id !== profile.id) {
-    throw new SupabaseAuthBridgeError(
-      'AUTH_USER_ID_MISMATCH',
-      `Supabase Auth devolvio ${data.user.id} pero se esperaba ${profile.id}.`,
     )
   }
 
@@ -206,6 +239,18 @@ async function createAuthUserWithLegacyId(
 function normalizeEmail(email: string | null | undefined) {
   const normalized = email?.trim().toLowerCase()
   return normalized || null
+}
+
+function serializeSupabaseAuthError(
+  error: { code?: string; message?: string; status?: number } | null,
+) {
+  if (!error) return null
+
+  return {
+    code: error.code ?? null,
+    message: error.message ?? null,
+    status: error.status ?? null,
+  }
 }
 
 function isMissingAuthUserError(error: { message?: string; status?: number }) {

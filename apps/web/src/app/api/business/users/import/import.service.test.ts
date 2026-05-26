@@ -20,7 +20,10 @@ vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: createAdminClientMock,
 }))
 
+vi.mock('server-only', () => ({}))
+
 vi.mock('@/features/auth/services/supabase-auth-bridge.service', () => ({
+  createSupabaseAuthUser: createAuthUserMock,
   createSupabaseAuthUserWithLegacyId: createAuthUserMock,
   deleteSupabaseAuthUser: deleteAuthUserMock,
 }))
@@ -34,7 +37,7 @@ describe('importBusinessUsersFromCsv', () => {
 
   it('imports 100 CSV rows with batched lookups and inserts under 3 seconds', async () => {
     const supabase = createBulkImportSupabaseMock()
-    mockedCreateAdminClient.mockReturnValueOnce(supabase.client)
+    mockedCreateAdminClient.mockReturnValue(supabase.client)
     const csv = buildCsv(100)
 
     const startedAt = performance.now()
@@ -103,22 +106,33 @@ function createBulkImportSupabaseMock() {
       if (tableName === 'users') {
         return {
           select: () => ({
+            or: async () => ({ data: [], error: null }),
             in: async () => {
               state.userLookupQueries += 1
               return { data: [], error: null }
             },
           }),
-          insert: (rows: Array<Record<string, unknown>>) => {
+          upsert: (values: Record<string, unknown> | Array<Record<string, unknown>>) => {
+            const rows = Array.isArray(values) ? values : [values]
             state.insertedUsers = rows
             return {
-              select: async () => ({
-                data: rows.map((row, index) => ({
-                  id: row.id || `created-user-${index + 1}`,
-                  email: row.email,
-                  username: row.username,
-                })),
-                error: null,
-              }),
+              select: () =>
+                Object.assign(
+                  Promise.resolve({
+                    data: rows.map((row, index) => ({
+                      id: row.id || `created-user-${index + 1}`,
+                      email: row.email,
+                      username: row.username,
+                    })),
+                    error: null,
+                  }),
+                  {
+                    single: async () => ({
+                      data: { id: rows[0].id },
+                      error: null,
+                    }),
+                  },
+                ),
             }
           },
           delete: () => ({

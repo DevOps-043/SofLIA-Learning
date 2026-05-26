@@ -31,6 +31,6 @@ export const footerSections = [
   },
   {
     titleKey: 'company',
-    links: [{ key: 'contact', href: '#contact' }],
+    links: [{ key: 'contact', href: '/contact' }],
   },
 ];

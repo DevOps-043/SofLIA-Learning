@@ -1,11 +1,11 @@
-import crypto from 'crypto'
 import { createClient } from '../../../../lib/supabase/server'
 import { AuditLogService } from '../auditLog.service'
 import { createAdminClient } from './client'
 import {
-  createSupabaseAuthUserWithLegacyId,
-  deleteSupabaseAuthUser,
-} from '@/features/auth/services/supabase-auth-bridge.service'
+  mapProvisioningError,
+  provisionAuthAccount,
+  rollbackProvisionedAuthAccount,
+} from '@/features/auth/services/auth-account-provisioning.service'
 import {
   ADMIN_USER_SELECT_FIELDS,
   buildAdminUserInsertPayload,
@@ -84,28 +84,30 @@ export async function createAdminUser(
   const adminSupabase = createAdminClient()
 
   try {
-    const userId = crypto.randomUUID()
-    await createSupabaseAuthUserWithLegacyId({
-      cargo_rol: userData.cargo_rol,
-      display_name: userData.display_name || null,
+    const provisioned = await provisionAuthAccount({
+      cargoRol: userData.cargo_rol,
+      dateOfBirth: userData.date_of_birth ?? null,
+      displayName: userData.display_name || null,
       email: userData.email,
-      email_verified: true,
-      first_name: userData.first_name || null,
-      id: userId,
-      last_name: userData.last_name || null,
+      emailVerified: true,
+      firstName: userData.first_name || null,
+      gender: userData.gender ?? null,
+      lastName: userData.last_name || null,
       password: userData.password,
-      profile_picture_url: userData.profile_picture_url || null,
+      profilePictureUrl: userData.profile_picture_url || null,
       username: userData.username,
+    }).catch((error) => {
+      throw new Error(mapProvisioningError(error))
     })
 
     const { data, error } = await adminSupabase
       .from('users')
-      .upsert(buildAdminUserInsertPayload(userId, userData), { onConflict: 'id' })
+      .upsert(buildAdminUserInsertPayload(provisioned.userId, userData), { onConflict: 'id' })
       .select(ADMIN_USER_SELECT_FIELDS)
       .single()
 
     if (error) {
-      await deleteSupabaseAuthUser(userId)
+      await rollbackProvisionedAuthAccount(provisioned.userId)
       throw error
     }
 

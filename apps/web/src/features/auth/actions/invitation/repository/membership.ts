@@ -7,19 +7,37 @@ import { organizationUsersTable, usersTable } from './tables'
 
 type MembershipMethods = Pick<
   InvitationRepository,
-  'addOrganizationMembership' | 'findOrganizationMembership' | 'setUserBusinessRole'
+  | 'addOrganizationMembership'
+  | 'deleteOrganizationMembership'
+  | 'findOrganizationMembership'
+  | 'setUserBusinessRole'
 >
 
 export function createMembershipMethods(supabase: unknown): MembershipMethods {
   return {
     async addOrganizationMembership(input: CreateOrganizationMembershipInput) {
-      const { error } = await organizationUsersTable(supabase).insert({
-        joined_at: input.joinedAt,
-        organization_id: input.organizationId,
-        role: input.role,
-        status: input.status,
-        user_id: input.userId,
-      })
+      const { error } = await organizationUsersTable(supabase).upsert(
+        {
+          job_title: input.jobTitle ?? null,
+          joined_at: input.joinedAt,
+          organization_id: input.organizationId,
+          role: input.role,
+          status: input.status,
+          user_id: input.userId,
+        },
+        { onConflict: 'organization_id,user_id' },
+      )
+
+      if (error) {
+        throw error
+      }
+    },
+
+    async deleteOrganizationMembership(userId: string, organizationId: string) {
+      const { error } = await organizationUsersTable(supabase)
+        .delete()
+        .eq('organization_id', organizationId)
+        .eq('user_id', userId)
 
       if (error) {
         throw error
