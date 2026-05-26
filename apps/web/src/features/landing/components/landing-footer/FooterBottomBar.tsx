@@ -27,7 +27,7 @@ export function FooterBottomBar({ currentYear, t }: FooterBottomBarProps) {
             <a href="/terms" className="text-white/40 transition-colors hover:text-white/80">
               {t('landing.footer.legal.terms', 'Terminos')}
             </a>
-            <a href="#contact" className="text-white/40 transition-colors hover:text-white/80">
+            <a href="/contact" className="text-white/40 transition-colors hover:text-white/80">
               {t('landing.footer.legal.contact', 'Contacto')}
             </a>
           </div>

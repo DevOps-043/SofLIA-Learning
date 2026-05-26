@@ -1,0 +1,281 @@
+{
+  "navigation": {
+    "backHome": "Volver al inicio"
+  },
+  "metadata": {
+    "lastUpdated": "Ultima actualizacion: {{date}}"
+  },
+  "pages": {
+    "contactLink": "contactarnos",
+    "footerSuffix": ".",
+    "terms": {
+      "footerPrefix": "Si tiene preguntas sobre estos terminos, puede"
+    },
+    "privacy": {
+      "footerPrefix": "Si tiene preguntas sobre esta politica, puede"
+    }
+  },
+  "modal": {
+    "title": "Documentos legales",
+    "close": "Cerrar",
+    "accept": "Aceptar y continuar"
+  },
+  "tabs": {
+    "terms": "Terminos y condiciones",
+    "privacy": "Politica de privacidad",
+    "conduct": "Codigo de conducta"
+  },
+  "documents": {
+    "terms": {
+      "title": "Terminos y Condiciones de Uso",
+      "sections": [
+        {
+          "number": 1,
+          "title": "Aceptacion de los Terminos",
+          "content": "Estos Terminos y Condiciones de Uso constituyen un acuerdo legal entre usted y SofLIA. Al acceder, utilizar, registrarse o interactuar con nuestra plataforma de capacitacion en inteligencia artificial, usted acepta quedar vinculado por estos Terminos. Si no esta de acuerdo con alguno de ellos, no debe acceder ni utilizar nuestros servicios."
+        },
+        {
+          "number": 2,
+          "title": "Descripcion del Servicio",
+          "content": "SofLIA es una plataforma educativa B2B que ofrece servicios de capacitacion empresarial en inteligencia artificial, incluyendo, entre otros:",
+          "list": [
+            "Cursos en linea de inteligencia artificial, machine learning y tecnologias relacionadas.",
+            "Contenido educativo interactivo, videos, lecciones, materiales de estudio y recursos multimedia.",
+            "Evaluaciones, certificados verificables y seguimiento de progreso.",
+            "Comunidad de aprendizaje, foros, colaboracion entre usuarios y asistente virtual de IA.",
+            "Planificador de estudios con integraciones opcionales de calendario.",
+            "Gestion de equipos, reportes de avance y personalizacion de marca para organizaciones."
+          ]
+        },
+        {
+          "number": 3,
+          "title": "Elegibilidad y Registro de Cuenta",
+          "content": "Para utilizar nuestros servicios, usted debe ser mayor de edad conforme a su jurisdiccion, tener capacidad legal para celebrar contratos, proporcionar informacion precisa durante el registro y mantener la confidencialidad de sus credenciales. Usted es responsable de toda actividad realizada desde su cuenta."
+        },
+        {
+          "number": 4,
+          "title": "Uso Aceptable de la Plataforma",
+          "content": "Usted acepta utilizar la Plataforma solo para fines legales y educativos, y se compromete a:",
+          "list": [
+            "No acceder a areas restringidas ni a cuentas de otros usuarios.",
+            "No realizar ingenieria inversa, scraping no autorizado o extraccion automatizada de datos.",
+            "No introducir malware, codigo malicioso ni mecanismos que afecten la seguridad o disponibilidad.",
+            "No usar bots o scripts que sobrecarguen nuestros sistemas.",
+            "No compartir su cuenta con terceros.",
+            "No realizar actividades ilegales, fraudulentas o que violen derechos de terceros."
+          ]
+        },
+        {
+          "number": 5,
+          "title": "Contenido del Usuario",
+          "content": "Usted conserva la propiedad del contenido que cree, publique o comparta en la Plataforma. Al publicarlo, nos otorga una licencia mundial, no exclusiva y libre de regalias para usarlo, reproducirlo, distribuirlo y mostrarlo en relacion con la operacion de la Plataforma. Usted es responsable de que su contenido cumpla la ley y no vulnere derechos de terceros."
+        },
+        {
+          "number": 6,
+          "title": "Propiedad Intelectual",
+          "content": "La Plataforma, su software, estructura, diseno, textos, graficos, logotipos, iconos, imagenes, contenido y compilaciones de datos son propiedad de SofLIA o de sus licenciantes y estan protegidos por leyes de propiedad intelectual. No se conceden licencias implicitas sobre dichos materiales."
+        },
+        {
+          "number": 7,
+          "title": "Suscripciones y Pagos",
+          "content": "Algunos servicios pueden requerir pago de tarifas de suscripcion. Los precios, condiciones de facturacion y metodos de pago se indicaran durante el proceso correspondiente. Salvo que la ley aplicable exija lo contrario, las tarifas no son reembolsables. Podemos modificar tarifas con aviso previo razonable."
+        },
+        {
+          "number": 8,
+          "title": "Integraciones con Calendarios y Servicios de Terceros",
+          "content": "La Plataforma puede ofrecer integraciones opcionales con Google Calendar o Microsoft Outlook para mejorar la planificacion de estudios. Al autorizarlas, usted acepta que accedemos solo a informacion de disponibilidad, no al contenido, titulos o detalles de sus eventos. Puede revocar el acceso en cualquier momento desde la configuracion de su cuenta."
+        },
+        {
+          "number": 9,
+          "title": "Privacidad y Proteccion de Datos",
+          "content": "El uso de su informacion personal se rige por nuestra Politica de Privacidad, que forma parte de estos Terminos. Cumplimos con la Ley Federal de Proteccion de Datos Personales en Posesion de los Particulares de Mexico, el GDPR cuando aplique y otras normas de proteccion de datos relevantes."
+        },
+        {
+          "number": 10,
+          "title": "Modificaciones del Servicio",
+          "content": "Podemos modificar, suspender, interrumpir o descontinuar cualquier aspecto de la Plataforma, con o sin aviso previo, cuando sea necesario por razones operativas, tecnicas, legales o de seguridad. No seremos responsables por cambios razonables en la disponibilidad o funcionalidad del servicio."
+        },
+        {
+          "number": 11,
+          "title": "Terminacion",
+          "content": "Podemos terminar o suspender su acceso a la Plataforma si incumple estos Terminos, si existe riesgo para la seguridad o por cualquier causa permitida por la ley. Tras la terminacion, cesa su derecho de uso, sin afectar obligaciones que por su naturaleza deban sobrevivir."
+        },
+        {
+          "number": 12,
+          "title": "Renuncia de Garantias",
+          "content": "La Plataforma se proporciona segun disponibilidad y sin garantias de ningun tipo, expresas o implicitas, incluyendo garantias de comerciabilidad, idoneidad para un proposito particular o no infraccion. No garantizamos disponibilidad ininterrumpida ni ausencia absoluta de errores."
+        },
+        {
+          "number": 13,
+          "title": "Limitacion de Responsabilidad",
+          "content": "En la medida maxima permitida por la ley, SofLIA no sera responsable por danos indirectos, incidentales, especiales, consecuenciales o punitivos relacionados con el uso o imposibilidad de uso de la Plataforma. Nuestra responsabilidad total no excedera el monto pagado por usted en los ultimos 12 meses."
+        },
+        {
+          "number": 14,
+          "title": "Indemnizacion",
+          "content": "Usted acepta indemnizar y mantener indemne a SofLIA, sus afiliados, directores, empleados, agentes y licenciantes frente a reclamaciones, danos, perdidas, responsabilidades y gastos derivados de su uso de la Plataforma, su incumplimiento de estos Terminos o la vulneracion de derechos de terceros."
+        },
+        {
+          "number": 15,
+          "title": "Ley Aplicable y Jurisdiccion",
+          "content": "Estos Terminos se regiran por las leyes de los Estados Unidos Mexicanos. Cualquier disputa relacionada con ellos se sometera a los tribunales competentes de la Ciudad de Mexico, salvo que la legislacion aplicable disponga otra cosa para usuarios ubicados en otras jurisdicciones."
+        },
+        {
+          "number": 16,
+          "title": "Disposiciones Generales",
+          "content": "Estos Terminos constituyen el acuerdo completo entre usted y SofLIA respecto del uso de la Plataforma. Si alguna disposicion se considera invalida, las disposiciones restantes continuaran vigentes. La falta de ejercicio de un derecho no implica renuncia al mismo."
+        },
+        {
+          "number": 17,
+          "title": "Informacion de Contacto",
+          "content": "Si tiene preguntas sobre estos Terminos, puede contactarnos a traves de nuestro sitio web o de los canales de soporte disponibles. Podemos actualizar estos Terminos y notificaremos cambios materiales mediante aviso en la Plataforma o por correo electronico."
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Politica de Privacidad",
+      "sections": [
+        {
+          "number": 1,
+          "title": "Introduccion y Alcance",
+          "content": "Esta Politica de Privacidad describe como SofLIA recopila, utiliza, almacena, comparte y protege su informacion personal cuando utiliza nuestra plataforma de capacitacion en inteligencia artificial. Aplica a usuarios individuales y organizaciones, y cumple con la LFPDPPP de Mexico, el GDPR cuando aplique y legislacion relacionada."
+        },
+        {
+          "number": 2,
+          "title": "Informacion que Recopilamos",
+          "content": "Recopilamos informacion necesaria para proporcionar, proteger y mejorar nuestros servicios:",
+          "list": [
+            "Datos de identificacion: nombre, correo electronico, telefono, usuario y datos de registro.",
+            "Datos de perfil: fotografia, biografia, ubicacion, cargo y preferencias.",
+            "Datos de autenticacion: credenciales cifradas, tokens de sesion e informacion de inicio de sesion social.",
+            "Datos academicos: cursos, lecciones, calificaciones, certificados, notas y progreso.",
+            "Datos de uso: paginas visitadas, busquedas, interacciones con LIA, publicaciones y comentarios.",
+            "Datos tecnicos: direccion IP, navegador, sistema operativo, dispositivo y cookies.",
+            "Datos organizacionales para usuarios B2B: equipo, asignaciones, reportes y configuraciones corporativas."
+          ]
+        },
+        {
+          "number": 3,
+          "title": "Integracion con Calendarios",
+          "content": "Cuando autoriza integraciones con Google Calendar o Microsoft Outlook, accedemos unicamente a informacion de disponibilidad para construir o ajustar su plan de estudios.",
+          "list": [
+            "No leemos ni almacenamos titulos, descripciones, asistentes ni detalles de eventos personales o laborales.",
+            "La informacion se usa solo para verificar horarios disponibles.",
+            "Puede revocar el acceso desde la configuracion de su cuenta.",
+            "La integracion respeta las politicas de datos de Google y Microsoft y la normativa aplicable."
+          ]
+        },
+        {
+          "number": 4,
+          "title": "Como Utilizamos su Informacion",
+          "content": "Utilizamos sus datos para:",
+          "list": [
+            "Proporcionar, mantener y mejorar los servicios educativos.",
+            "Personalizar cursos, recomendaciones y planes de estudio.",
+            "Enviar comunicaciones operativas, recordatorios y notificaciones relevantes.",
+            "Analizar el uso de la plataforma y mejorar funcionalidades.",
+            "Detectar fraude, abuso o riesgos de seguridad.",
+            "Brindar soporte tecnico y resolver incidencias.",
+            "Cumplir obligaciones legales y contractuales.",
+            "Generar reportes para administradores autorizados de organizaciones B2B."
+          ]
+        },
+        {
+          "number": 5,
+          "title": "Asistente Virtual LIA",
+          "content": "SofLIA incluye un asistente virtual de inteligencia artificial. Las conversaciones pueden procesarse para responder consultas, ofrecer recomendaciones y mejorar la experiencia educativa. No usamos el contenido de conversaciones con fines publicitarios de terceros y puede solicitar la eliminacion de su historial cuando corresponda."
+        },
+        {
+          "number": 6,
+          "title": "Base Legal para el Procesamiento",
+          "content": "Procesamos informacion personal con base en consentimiento, ejecucion de contrato, cumplimiento de obligaciones legales e intereses legitimos, siempre considerando sus derechos y la normativa aplicable."
+        },
+        {
+          "number": 7,
+          "title": "Compartir y Divulgacion de Informacion",
+          "content": "No vendemos su informacion personal. Podemos compartirla con proveedores de servicios, integraciones autorizadas, administradores de su organizacion cuando aplique, autoridades competentes por obligacion legal o terceros cuando usted otorgue consentimiento explicito."
+        },
+        {
+          "number": 8,
+          "title": "Cookies y Tecnologias de Seguimiento",
+          "content": "Utilizamos cookies esenciales, funcionales y analiticas para operar la plataforma, recordar preferencias, proteger sesiones y entender el uso del servicio. Puede configurar preferencias de cookies cuando la funcionalidad este disponible."
+        },
+        {
+          "number": 9,
+          "title": "Seguridad de Datos",
+          "content": "Implementamos medidas razonables de seguridad, incluyendo cifrado en transito, almacenamiento seguro, controles de acceso, autenticacion segura, monitoreo y procesos para responder a amenazas. Ningun sistema es completamente infalible, pero aplicamos controles proporcionales al riesgo."
+        },
+        {
+          "number": 10,
+          "title": "Sus Derechos ARCO y GDPR",
+          "content": "Usted puede ejercer derechos de acceso, rectificacion, cancelacion, oposicion, portabilidad y retiro de consentimiento, conforme a la LFPDPPP, GDPR u otras normas aplicables. Responderemos dentro de los plazos legales correspondientes."
+        },
+        {
+          "number": 11,
+          "title": "Privacidad de Menores",
+          "content": "Nuestros servicios no estan dirigidos a menores de 18 anos. No recopilamos intencionalmente informacion de menores sin consentimiento verificable de padres o tutores. Si detectamos informacion recopilada indebidamente, tomaremos medidas para eliminarla."
+        },
+        {
+          "number": 12,
+          "title": "Transferencias Internacionales de Datos",
+          "content": "Su informacion puede transferirse y procesarse en paises distintos al suyo. Cuando esto ocurra, aplicaremos salvaguardas adecuadas para mantener un nivel de proteccion acorde con la normativa aplicable."
+        },
+        {
+          "number": 13,
+          "title": "Retencion de Datos",
+          "content": "Conservamos informacion personal solo durante el tiempo necesario para los fines descritos, para cumplir obligaciones legales o durante periodos permitidos por ley. Cuando ya no sea necesaria, la eliminaremos o anonimizaremos de forma segura."
+        },
+        {
+          "number": 14,
+          "title": "Cambios a esta Politica",
+          "content": "Podemos actualizar esta Politica para reflejar cambios legales, operativos o de producto. Notificaremos cambios materiales mediante aviso en la Plataforma o por correo electronico antes de que entren en vigor cuando corresponda."
+        },
+        {
+          "number": 15,
+          "title": "Contacto y Ejercicio de Derechos",
+          "content": "Si tiene preguntas o desea ejercer derechos relacionados con sus datos personales, puede contactarnos a traves del sitio web o de los canales de privacidad disponibles. Atenderemos su solicitud conforme a los plazos requeridos por la ley."
+        }
+      ]
+    },
+    "conduct": {
+      "title": "Codigo de Conducta",
+      "sections": [
+        {
+          "number": 1,
+          "title": "Comportamiento Esperado",
+          "content": "Nuestra comunidad se basa en respeto, colaboracion y aprendizaje constructivo. Todos los usuarios deben:",
+          "list": [
+            "Tratar a otras personas con respeto, cortesia y dignidad.",
+            "Contribuir de forma constructiva y compartir conocimiento util.",
+            "Respetar la propiedad intelectual y citar fuentes cuando corresponda.",
+            "Mantener un ambiente positivo, profesional e inclusivo.",
+            "Reportar comportamientos inapropiados cuando sea necesario."
+          ]
+        },
+        {
+          "number": 2,
+          "title": "Comportamiento Prohibido",
+          "content": "Estan prohibidos los siguientes comportamientos:",
+          "list": [
+            "Acoso, intimidacion, discriminacion o abuso.",
+            "Contenido ofensivo, difamatorio, violento, sexual explicito o ilegal.",
+            "Spam, publicidad no autorizada o promocion sin permiso.",
+            "Suplantacion de identidad o divulgacion de informacion falsa.",
+            "Acceso no autorizado, manipulacion de seguridad o publicacion de datos personales de terceros.",
+            "Cualquier actividad que viole leyes, regulaciones o derechos de terceros."
+          ]
+        },
+        {
+          "number": 3,
+          "title": "Consecuencias del Incumplimiento",
+          "content": "El incumplimiento puede resultar en advertencias, eliminacion de contenido, suspension temporal o permanente de la cuenta, reporte a autoridades y otras medidas necesarias para proteger a la comunidad y la Plataforma."
+        },
+        {
+          "number": 4,
+          "title": "Proceso de Reporte",
+          "content": "Si experimenta o presencia comportamiento que viole este Codigo, le pedimos reportarlo mediante las herramientas de la Plataforma o los canales de soporte disponibles. Revisaremos los reportes de manera confidencial y tomaremos medidas apropiadas."
+        }
+      ]
+    }
+  }
+}

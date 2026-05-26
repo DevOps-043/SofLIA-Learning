@@ -130,7 +130,7 @@ export function HeroSectionB2B() {
 
             {/* CTA Buttons */}
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 mb-10">
-              <Link href="#contact">
+              <Link href="/contact">
                 <motion.button
                   whileHover={{ scale: 1.03, boxShadow: '0 12px 40px rgba(10, 37, 64, 0.3)' }}
                   whileTap={{ scale: 0.97 }}
@@ -142,7 +142,7 @@ export function HeroSectionB2B() {
                 </motion.button>
               </Link>
               
-              <Link href="#contact">
+              <Link href="/contact">
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}

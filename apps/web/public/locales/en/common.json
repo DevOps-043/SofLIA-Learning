@@ -12,6 +12,11 @@
     "label": "Language: {{language}}",
     "active": "Active"
   },
+  "themeSelector": {
+    "label": "Change theme",
+    "light": "Light",
+    "dark": "Dark"
+  },
   "demographics": {
     "sectionTitle": "Demographic data",
     "dateOfBirth": "Date of birth",
@@ -964,6 +969,64 @@
         "noCommitment": "No commitment",
         "demo": "Personalized demo",
         "response": "Response in 24h"
+      },
+      "error": {
+        "description": "We could not send your request. Please try again or email us directly."
+      }
+    },
+    "contactPage": {
+      "eyebrow": "Contact SofLIA",
+      "title": "Let's talk about your AI training strategy",
+      "subtitle": "Tell us what your organization needs and we will prepare a focused conversation: demo, assessment, or Enterprise plan based on your context.",
+      "backHome": "Back to home",
+      "formTitle": "Request an executive demo",
+      "formSubtitle": "Complete the form and our team will contact you to coordinate the next step.",
+      "responseNote": "We usually respond in less than 24 business hours.",
+      "form": {
+        "phone": "Phone or WhatsApp",
+        "companySize": "Company size",
+        "interest": "What would you like to review",
+        "message": "Tell us about your goals, team, or main challenge",
+        "companySizeOptions": {
+          "small": "1-50 employees",
+          "medium": "51-250 employees",
+          "large": "251-1000 employees",
+          "enterprise": "More than 1000 employees"
+        },
+        "interestOptions": {
+          "demo": "Executive demo",
+          "assessment": "Training assessment",
+          "enterprise": "Enterprise plan",
+          "support": "Other inquiry"
+        }
+      },
+      "highlights": {
+        "demo": {
+          "title": "Guided demo",
+          "description": "Explore SofLIA with real use cases for your team."
+        },
+        "assessment": {
+          "title": "Initial assessment",
+          "description": "Identify adoption gaps and priorities."
+        },
+        "enterprise": {
+          "title": "B2B implementation",
+          "description": "Roles, paths, reports, and customization."
+        }
+      },
+      "assurances": {
+        "response": {
+          "title": "Clear follow-up",
+          "description": "We will reply with a proposed agenda and focused questions to make the call useful."
+        },
+        "privacy": {
+          "title": "Protected data",
+          "description": "We use your information only to respond to your commercial or support request."
+        },
+        "fit": {
+          "title": "Useful conversation",
+          "description": "If SofLIA is not the right fit, we will say so clearly and suggest reasonable alternatives."
+        }
       }
     },
     "footer": {

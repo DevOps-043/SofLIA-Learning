@@ -39,6 +39,9 @@ import adminPt from '../../../public/locales/pt/admin.json';
 import toursEs from '../../../public/locales/es/tours.json';
 import toursEn from '../../../public/locales/en/tours.json';
 import toursPt from '../../../public/locales/pt/tours.json';
+import legalEs from '../../../public/locales/es/legal.json';
+import legalEn from '../../../public/locales/en/legal.json';
+import legalPt from '../../../public/locales/pt/legal.json';
 
 export type SupportedLanguage = 'es' | 'en' | 'pt';
 
@@ -56,6 +59,7 @@ const resources: Resource = {
     instructor: instructorEs,
     admin: adminEs,
     tours: toursEs,
+    legal: legalEs,
   },
   en: {
     common: commonEn,
@@ -70,6 +74,7 @@ const resources: Resource = {
     instructor: instructorEn,
     admin: adminEn,
     tours: toursEn,
+    legal: legalEn,
   },
   pt: {
     common: commonPt,
@@ -84,12 +89,13 @@ const resources: Resource = {
     instructor: instructorPt,
     admin: adminPt,
     tours: toursPt,
+    legal: legalPt,
   },
 };
 
 const ALL_NAMESPACES = [
   'common', 'dashboard', 'content', 'learn', 'my-courses',
-  'statistics-results', 'communities', 'news', 'business', 'instructor', 'admin', 'tours',
+  'statistics-results', 'communities', 'news', 'business', 'instructor', 'admin', 'tours', 'legal',
 ] as const;
 
 /** Ensures all resource bundles are present in the singleton, idempotent. */

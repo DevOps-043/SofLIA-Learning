@@ -12,6 +12,11 @@
     "label": "Idioma: {{language}}",
     "active": "Ativo"
   },
+  "themeSelector": {
+    "label": "Mudar tema",
+    "light": "Claro",
+    "dark": "Escuro"
+  },
   "demographics": {
     "sectionTitle": "Dados demograficos",
     "dateOfBirth": "Data de nascimento",
@@ -964,6 +969,64 @@
         "noCommitment": "Sem compromisso",
         "demo": "Demo personalizada",
         "response": "Resposta em 24h"
+      },
+      "error": {
+        "description": "Nao conseguimos enviar sua solicitacao. Tente novamente ou escreva diretamente por email."
+      }
+    },
+    "contactPage": {
+      "eyebrow": "Contato SofLIA",
+      "title": "Vamos falar sobre sua estrategia de capacitacao em IA",
+      "subtitle": "Conte o que sua organizacao precisa e prepararemos uma conversa objetiva: demo, diagnostico ou plano Enterprise conforme seu contexto.",
+      "backHome": "Voltar ao inicio",
+      "formTitle": "Solicite uma demo executiva",
+      "formSubtitle": "Preencha o formulario e nossa equipe entrara em contato para coordenar o proximo passo.",
+      "responseNote": "Normalmente respondemos em menos de 24 horas uteis.",
+      "form": {
+        "phone": "Telefone ou WhatsApp",
+        "companySize": "Tamanho da empresa",
+        "interest": "O que voce quer revisar",
+        "message": "Conte sobre seus objetivos, equipe ou principal desafio",
+        "companySizeOptions": {
+          "small": "1-50 colaboradores",
+          "medium": "51-250 colaboradores",
+          "large": "251-1000 colaboradores",
+          "enterprise": "Mais de 1000 colaboradores"
+        },
+        "interestOptions": {
+          "demo": "Demo executiva",
+          "assessment": "Diagnostico de capacitacao",
+          "enterprise": "Plano Enterprise",
+          "support": "Outra consulta"
+        }
+      },
+      "highlights": {
+        "demo": {
+          "title": "Demo guiada",
+          "description": "Explore a SofLIA com casos reais para sua equipe."
+        },
+        "assessment": {
+          "title": "Diagnostico inicial",
+          "description": "Identifique lacunas e prioridades de adocao."
+        },
+        "enterprise": {
+          "title": "Implementacao B2B",
+          "description": "Papeis, trilhas, relatorios e personalizacao."
+        }
+      },
+      "assurances": {
+        "response": {
+          "title": "Acompanhamento claro",
+          "description": "Responderemos com uma proposta de agenda e perguntas objetivas para aproveitar a chamada."
+        },
+        "privacy": {
+          "title": "Dados protegidos",
+          "description": "Usamos suas informacoes apenas para responder a sua solicitacao comercial ou de suporte."
+        },
+        "fit": {
+          "title": "Conversa util",
+          "description": "Se a SofLIA nao for o melhor encaixe, diremos com clareza e sugeriremos alternativas razoaveis."
+        }
       }
     },
     "footer": {

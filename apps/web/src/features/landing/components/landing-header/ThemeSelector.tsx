@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Moon, Sun } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { Theme } from '@/core/stores/themeStore';
 
 interface ThemeSelectorProps {
@@ -10,9 +11,9 @@ interface ThemeSelectorProps {
   onThemeChange: (theme: Theme) => void;
 }
 
-const themeOptions: Array<{ value: Theme; label: string; icon: typeof Sun }> = [
-  { value: 'light', label: 'Claro', icon: Sun },
-  { value: 'dark', label: 'Oscuro', icon: Moon },
+const themeOptions: Array<{ value: Theme; labelKey: string; icon: typeof Sun }> = [
+  { value: 'light', labelKey: 'themeSelector.light', icon: Sun },
+  { value: 'dark', labelKey: 'themeSelector.dark', icon: Moon },
 ];
 
 export function ThemeSelector({
@@ -22,6 +23,8 @@ export function ThemeSelector({
   onOtherDropdownClose,
   onThemeChange,
 }: ThemeSelectorProps) {
+  const { t } = useTranslation('common');
+
   return (
     <div className="relative theme-dropdown">
       <motion.button
@@ -32,7 +35,7 @@ export function ThemeSelector({
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         className="rounded-xl p-2.5 text-gray-500 transition-all hover:bg-gray-100 hover:text-primary dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
-        aria-label="Cambiar tema"
+        aria-label={t('themeSelector.label')}
       >
         {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
       </motion.button>
@@ -46,7 +49,7 @@ export function ThemeSelector({
             transition={{ duration: 0.2 }}
             className="absolute right-0 top-full z-50 mt-2 w-40 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl dark:border-white/10 dark:bg-carbon-800"
           >
-            {themeOptions.map(({ value, label, icon: Icon }) => {
+            {themeOptions.map(({ value, labelKey, icon: Icon }) => {
               const isSelected = theme === value;
 
               return (
@@ -63,7 +66,7 @@ export function ThemeSelector({
                     }`}
                 >
                   <Icon size={18} />
-                  <span className="text-sm font-medium">{label}</span>
+                  <span className="text-sm font-medium">{t(labelKey)}</span>
                   {isSelected && <Check size={16} className="ml-auto text-accent" />}
                 </motion.button>
               );

@@ -24,8 +24,24 @@ const createTransporter = () => {
 // Email de destino para solicitudes de demo
 const DEMO_REQUEST_EMAIL = 'ernesto.hernandez@pulsehub.mx';
 
+function escapeHtml(value: string | undefined) {
+  return (value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 async function handlePost(_request: NextRequest, body: LandingContactBody) {
-  const { name, email, company, source, timestamp } = body;
+  const { name, email, company, phone, companySize, interest, message, source, timestamp } = body;
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeCompany = escapeHtml(company);
+  const safePhone = escapeHtml(phone);
+  const safeCompanySize = escapeHtml(companySize);
+  const safeInterest = escapeHtml(interest);
+  const safeMessage = escapeHtml(message);
 
   try {
     const supabase = await createClient();
@@ -103,26 +119,42 @@ async function handlePost(_request: NextRequest, body: LandingContactBody) {
                 <table style="width: 100%; border-collapse: collapse;">
                   <tr>
                     <td style="padding: 10px 0; color: rgb(108, 117, 125); font-size: 14px; width: 120px;">Nombre:</td>
-                    <td style="padding: 10px 0; color: rgb(10, 37, 64); font-size: 16px; font-weight: 600;">${name}</td>
+                    <td style="padding: 10px 0; color: rgb(10, 37, 64); font-size: 16px; font-weight: 600;">${safeName}</td>
                   </tr>
                   <tr>
                     <td style="padding: 10px 0; color: rgb(108, 117, 125); font-size: 14px;">Empresa:</td>
-                    <td style="padding: 10px 0; color: rgb(10, 37, 64); font-size: 16px; font-weight: 600;">${company}</td>
+                    <td style="padding: 10px 0; color: rgb(10, 37, 64); font-size: 16px; font-weight: 600;">${safeCompany}</td>
                   </tr>
                   <tr>
                     <td style="padding: 10px 0; color: rgb(108, 117, 125); font-size: 14px;">Correo:</td>
                     <td style="padding: 10px 0;">
-                      <a href="mailto:${email}" style="color: rgb(0, 212, 179); font-size: 16px; font-weight: 600; text-decoration: none;">
-                        ${email}
+                      <a href="mailto:${safeEmail}" style="color: rgb(0, 212, 179); font-size: 16px; font-weight: 600; text-decoration: none;">
+                        ${safeEmail}
                       </a>
                     </td>
                   </tr>
+                  ${phone ? `<tr>
+                    <td style="padding: 10px 0; color: rgb(108, 117, 125); font-size: 14px;">Telefono:</td>
+                    <td style="padding: 10px 0; color: rgb(10, 37, 64); font-size: 16px; font-weight: 600;">${safePhone}</td>
+                  </tr>` : ''}
+                  ${companySize ? `<tr>
+                    <td style="padding: 10px 0; color: rgb(108, 117, 125); font-size: 14px;">Tamano:</td>
+                    <td style="padding: 10px 0; color: rgb(10, 37, 64); font-size: 16px; font-weight: 600;">${safeCompanySize}</td>
+                  </tr>` : ''}
+                  ${interest ? `<tr>
+                    <td style="padding: 10px 0; color: rgb(108, 117, 125); font-size: 14px;">Interes:</td>
+                    <td style="padding: 10px 0; color: rgb(10, 37, 64); font-size: 16px; font-weight: 600;">${safeInterest}</td>
+                  </tr>` : ''}
                   <tr>
                     <td style="padding: 10px 0; color: rgb(108, 117, 125); font-size: 14px;">Fecha:</td>
                     <td style="padding: 10px 0; color: rgb(10, 37, 64); font-size: 14px;">${fechaSolicitud}</td>
                   </tr>
                 </table>
               </div>
+              ${message ? `<div style="background-color: rgb(255, 255, 255); border: 1px solid rgb(233, 236, 239); border-radius: 8px; padding: 20px; margin: 0 0 30px 0;">
+                <h2 style="color: rgb(10, 37, 64); font-size: 16px; margin: 0 0 12px 0;">Mensaje</h2>
+                <p style="color: rgb(51, 51, 51); font-size: 15px; line-height: 1.6; margin: 0; white-space: pre-wrap;">${safeMessage}</p>
+              </div>` : ''}
 
               <!-- CTA Button -->
               <div style="text-align: center; margin: 30px 0;">
@@ -160,6 +192,10 @@ async function handlePost(_request: NextRequest, body: LandingContactBody) {
         - Nombre: ${name}
         - Empresa: ${company}
         - Correo: ${email}
+        ${phone ? `- Telefono: ${phone}` : ''}
+        ${companySize ? `- Tamano de empresa: ${companySize}` : ''}
+        ${interest ? `- Interes: ${interest}` : ''}
+        ${message ? `- Mensaje: ${message}` : ''}
         - Fecha: ${fechaSolicitud}
         
         Por favor, contacta a ${name} lo antes posible para agendar la demo.
