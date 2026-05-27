@@ -18,21 +18,6 @@ import {
   Sparkles,
   Target,
 } from 'lucide-react'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Line,
-  LineChart,
-  PolarAngleAxis,
-  PolarGrid,
-  Radar,
-  RadarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/shared/utils/cn'
 import type {
@@ -51,23 +36,35 @@ type InsightsApiResponse = BusinessUserAnalyticsInsightsResponse | { success: fa
 
 const RANGE_OPTIONS: BusinessUserAnalyticsRange[] = ['30d', '90d', '180d', '365d']
 const COURSE_TITLE_WRAP_LENGTH = 44
-const COURSE_TITLE_LINE_HEIGHT = 14
 const RADAR_KEYS = ['courses', 'activities', 'soflia', 'notes', 'quizzes'] as const
 
-type ChartTooltipPayload = {
-  color?: string
-  dataKey?: string | number
-  name?: string | number
-  payload?: {
-    fullName?: string
-  }
-  value?: number | string
+type EngagementTrendRow = {
+  key: string
+  label: string
+  lessons: number
+  messages: number
+  notes: number
+  quizzes: number
 }
 
-export function BusinessUserAnalyticsPageClient() {
+interface BusinessUserAnalyticsPageClientProps {
+  embedded?: boolean
+  orgSlug?: string
+  showBackButton?: boolean
+  userId?: string
+  onBack?: () => void
+}
+
+export function BusinessUserAnalyticsPageClient({
+  embedded = false,
+  orgSlug: explicitOrgSlug,
+  showBackButton = true,
+  userId,
+  onBack,
+}: BusinessUserAnalyticsPageClientProps = {}) {
   const router = useRouter()
   const params = useParams()
-  const orgSlug = params?.orgSlug as string | undefined
+  const orgSlug = explicitOrgSlug || (params?.orgSlug as string | undefined)
   const { t, i18n } = useTranslation('business')
   const [range, setRange] = useState<BusinessUserAnalyticsRange>('365d')
   const [analytics, setAnalytics] = useState<BusinessUserAnalyticsResponse | null>(null)
@@ -83,8 +80,23 @@ export function BusinessUserAnalyticsPageClient() {
     [t],
   )
 
+  const analyticsUrl = useMemo(() => {
+    if (!orgSlug) return null
+    const baseUrl = userId
+      ? `/api/${orgSlug}/business/users/${userId}/analytics`
+      : `/api/${orgSlug}/business-user/analytics`
+    return `${baseUrl}?range=${range}`
+  }, [orgSlug, range, userId])
+
+  const insightsUrl = useMemo(() => {
+    if (!orgSlug) return null
+    return userId
+      ? `/api/${orgSlug}/business/users/${userId}/analytics/insights`
+      : `/api/${orgSlug}/business-user/analytics/insights`
+  }, [orgSlug, userId])
+
   const loadAnalytics = useCallback(async () => {
-    if (!orgSlug) return
+    if (!analyticsUrl) return
 
     try {
       setLoadState('loading')
@@ -92,7 +104,7 @@ export function BusinessUserAnalyticsPageClient() {
       setInsights(null)
       setInsightError(null)
 
-      const response = await fetch(`/api/${orgSlug}/business-user/analytics?range=${range}`, {
+      const response = await fetch(analyticsUrl, {
         credentials: 'include',
         cache: 'no-store',
       })
@@ -110,20 +122,20 @@ export function BusinessUserAnalyticsPageClient() {
       setLoadState('error')
       setError(loadError instanceof Error ? loadError.message : t('analytics.errors.load'))
     }
-  }, [orgSlug, range, t])
+  }, [analyticsUrl, t])
 
   useEffect(() => {
     void loadAnalytics()
   }, [loadAnalytics])
 
   const generateInsights = useCallback(async () => {
-    if (!orgSlug) return
+    if (!insightsUrl) return
 
     try {
       setInsightState('loading')
       setInsightError(null)
 
-      const response = await fetch(`/api/${orgSlug}/business-user/analytics/insights`, {
+      const response = await fetch(insightsUrl, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -146,7 +158,7 @@ export function BusinessUserAnalyticsPageClient() {
         insightLoadError instanceof Error ? insightLoadError.message : t('analytics.errors.insights'),
       )
     }
-  }, [locale, orgSlug, range, t])
+  }, [insightsUrl, locale, range, t])
 
   const courseChartData = useMemo(() => {
     return (analytics?.learning.courses || [])
@@ -164,9 +176,6 @@ export function BusinessUserAnalyticsPageClient() {
         }
       })
   }, [analytics?.learning.courses])
-  const courseChartMaxTitleLines = Math.max(1, ...courseChartData.map((course) => course.labelLines.length))
-  const courseChartRowHeight = Math.max(68, courseChartMaxTitleLines * COURSE_TITLE_LINE_HEIGHT + 34)
-  const courseChartHeight = Math.max(360, courseChartData.length * courseChartRowHeight + 80)
 
   const engagementTrendData = useMemo(() => {
     if (!analytics) return []
@@ -186,23 +195,33 @@ export function BusinessUserAnalyticsPageClient() {
   }, [analytics?.quality.radar, t])
 
   const goBack = useCallback(() => {
+    if (onBack) {
+      onBack()
+      return
+    }
     if (!orgSlug) return
     router.push(`/${orgSlug}/business-user/dashboard`)
-  }, [orgSlug, router])
+  }, [onBack, orgSlug, router])
 
-  return (
-    <main className="min-h-screen bg-[var(--color-bg-light)] text-gray-900 dark:bg-[var(--color-bg-dark)] dark:text-white">
-      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10">
+  const content = (
+      <div
+        className={cn(
+          'flex w-full flex-col gap-6',
+          embedded ? 'px-0 py-0' : 'mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-10',
+        )}
+      >
         <header className="flex flex-col gap-4 border-b border-gray-200 pb-5 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-3">
-            <button
-              type="button"
-              onClick={goBack}
-              className="mt-1 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-              aria-label={t('analytics.actions.back')}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
+            {showBackButton ? (
+              <button
+                type="button"
+                onClick={goBack}
+                className="mt-1 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                aria-label={t('analytics.actions.back')}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+            ) : null}
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 {t('analytics.eyebrow')}
@@ -300,43 +319,8 @@ export function BusinessUserAnalyticsPageClient() {
                   subtitle={t('analytics.sections.courseProgressSubtitle')}
                 >
                   <div className="overflow-x-auto pb-2">
-                    <div className="min-w-[960px]" style={{ height: courseChartHeight }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={courseChartData}
-                          layout="vertical"
-                          margin={{ top: 12, right: 24, bottom: 8, left: 24 }}
-                          barCategoryGap={18}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                          <XAxis
-                            type="number"
-                            domain={[0, 100]}
-                            tickFormatter={(value) => `${value}%`}
-                            tickMargin={8}
-                            tick={{ fill: 'currentColor', fontSize: 12 }}
-                            className="text-gray-600 dark:text-gray-300"
-                          />
-                          <YAxis
-                            dataKey="name"
-                            type="category"
-                            width={400}
-                            interval={0}
-                            tick={<CourseAxisTick />}
-                          />
-                          <Tooltip
-                            content={
-                              <AnalyticsTooltip
-                                valueFormatter={(value) => formatPercent(Number(value))}
-                                labelFormatter={(label, payload) =>
-                                  String(payload?.[0]?.payload?.fullName || label)
-                                }
-                              />
-                            }
-                          />
-                          <Bar dataKey="progress" fill="var(--color-accent)" radius={[0, 6, 6, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
+                    <div className="min-w-[960px]">
+                      <CourseProgressChart courses={courseChartData} />
                     </div>
                   </div>
                 </Panel>
@@ -381,18 +365,11 @@ export function BusinessUserAnalyticsPageClient() {
                   <SmallStat label={t('analytics.ai.offTopic')} value={formatPercent(analytics.aiAdoption.offTopicRate)} />
                   <SmallStat label={t('analytics.ai.responseTime')} value={t('analytics.values.seconds', { value: formatNumber(analytics.aiAdoption.averageResponseTimeSeconds) })} />
                 </div>
-                <div className="mt-5 h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={engagementTrendData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="label" tick={{ fill: 'currentColor', fontSize: 12 }} className="text-gray-600 dark:text-gray-300" />
-                      <YAxis allowDecimals={false} tick={{ fill: 'currentColor', fontSize: 12 }} className="text-gray-600 dark:text-gray-300" />
-                      <Tooltip content={<AnalyticsTooltip />} />
-                      <Line type="monotone" dataKey="messages" name={t('analytics.chart.messages')} stroke="var(--color-accent)" strokeWidth={2} dot={false} />
-                      <Line type="monotone" dataKey="lessons" name={t('analytics.chart.lessons')} stroke="var(--color-primary)" strokeWidth={2} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                <EngagementLineChart
+                  data={engagementTrendData}
+                  lessonsLabel={t('analytics.chart.lessons')}
+                  messagesLabel={t('analytics.chart.messages')}
+                />
                 </Panel>
               </div>
 
@@ -402,19 +379,7 @@ export function BusinessUserAnalyticsPageClient() {
                 subtitle={t('analytics.sections.qualitySubtitle')}
               >
                 <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart data={radarData}>
-                      <PolarGrid />
-                      <PolarAngleAxis dataKey="label" tick={<RadarAngleTick />} />
-                      <Radar
-                        dataKey="value"
-                        stroke="var(--color-accent)"
-                        fill="var(--color-accent)"
-                        fillOpacity={0.35}
-                      />
-                      <Tooltip content={<AnalyticsTooltip valueFormatter={(value) => formatPercent(Number(value))} />} />
-                    </RadarChart>
-                  </ResponsiveContainer>
+                  <QualityRadarChart data={radarData} />
                 </div>
                 <RadarDescriptions t={translate} />
               </Panel>
@@ -518,6 +483,15 @@ export function BusinessUserAnalyticsPageClient() {
           </>
         ) : null}
       </div>
+  )
+
+  if (embedded) {
+    return <div className="w-full text-gray-900 dark:text-white">{content}</div>
+  }
+
+  return (
+    <main className="min-h-screen bg-[var(--color-bg-light)] text-gray-900 dark:bg-[var(--color-bg-dark)] dark:text-white">
+      {content}
     </main>
   )
 }
@@ -630,73 +604,155 @@ function CourseList({
   )
 }
 
-function CourseAxisTick({
-  x = 0,
-  y = 0,
-  payload,
+function CourseProgressChart({
+  courses,
 }: {
-  x?: number
-  y?: number
-  payload?: {
-    value?: string
-    payload?: {
-      fullName?: string
-      labelLines?: string[]
-    }
-  }
+  courses: Array<{
+    fullName: string
+    labelLines: string[]
+    name: string
+    progress: number
+  }>
 }) {
-  const label = payload?.value || ''
-  const fullName = payload?.payload?.fullName || label
-  const labelLines = payload?.payload?.labelLines?.length
-    ? payload.payload.labelLines
-    : wrapCourseTitle(fullName, COURSE_TITLE_WRAP_LENGTH)
-  const firstLineOffset = -((labelLines.length - 1) * COURSE_TITLE_LINE_HEIGHT) / 2 + 4
-
   return (
-    <g transform={`translate(${x},${y})`}>
-      <title>{fullName}</title>
-      <text
-        x={0}
-        textAnchor="end"
-        fill="currentColor"
-        className="text-xs text-gray-600 dark:text-gray-300"
-      >
-        {labelLines.map((line, index) => (
-          <tspan
-            key={`${line}-${index}`}
-            x={0}
-            dy={index === 0 ? firstLineOffset : COURSE_TITLE_LINE_HEIGHT}
-          >
-            {line}
-          </tspan>
-        ))}
-      </text>
-    </g>
+    <div className="space-y-5">
+      {courses.map((course) => (
+        <div
+          key={course.fullName}
+          className="grid grid-cols-[360px_minmax(360px,1fr)] items-center gap-4"
+          title={`${course.fullName}: ${formatPercent(course.progress)}`}
+        >
+          <div className="text-right text-xs font-medium leading-snug text-gray-600 dark:text-gray-300">
+            {course.labelLines.map((line, index) => (
+              <div key={`${course.fullName}-${line}-${index}`}>{line}</div>
+            ))}
+          </div>
+          <div className="relative h-16 border-l border-gray-300 dark:border-white/20">
+            <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 border-t border-dashed border-gray-200 dark:border-white/10" />
+            <div
+              className="absolute left-0 top-1/2 h-10 -translate-y-1/2 rounded-r-md bg-accent"
+              style={{ width: `${Math.min(100, Math.max(0, course.progress))}%` }}
+            />
+          </div>
+        </div>
+      ))}
+      <div className="grid grid-cols-[360px_minmax(360px,1fr)] items-center gap-4">
+        <div />
+        <div className="flex justify-between text-xs font-medium text-gray-500 dark:text-gray-400">
+          {[0, 25, 50, 75, 100].map((value) => (
+            <span key={value}>{formatPercent(value)}</span>
+          ))}
+        </div>
+      </div>
+    </div>
   )
 }
 
-function RadarAngleTick({
-  x = 0,
-  y = 0,
-  payload,
-  textAnchor,
+function EngagementLineChart({
+  data,
+  lessonsLabel,
+  messagesLabel,
 }: {
-  x?: number
-  y?: number
-  payload?: { value?: string }
-  textAnchor?: 'middle' | 'start' | 'end' | 'inherit'
+  data: EngagementTrendRow[]
+  lessonsLabel: string
+  messagesLabel: string
 }) {
+  const width = 680
+  const height = 260
+  const padding = { top: 20, right: 24, bottom: 42, left: 44 }
+  const plotWidth = width - padding.left - padding.right
+  const plotHeight = height - padding.top - padding.bottom
+  const maxValue = Math.max(1, ...data.map((point) => Math.max(point.lessons, point.messages)))
+  const xFor = (index: number) =>
+    padding.left + (data.length <= 1 ? plotWidth / 2 : (index / (data.length - 1)) * plotWidth)
+  const yFor = (value: number) =>
+    padding.top + plotHeight - (Math.max(0, value) / maxValue) * plotHeight
+  const messagesPath = data.map((point, index) => `${xFor(index)},${yFor(point.messages)}`).join(' ')
+  const lessonsPath = data.map((point, index) => `${xFor(index)},${yFor(point.lessons)}`).join(' ')
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((ratio) => Math.round(maxValue * ratio))
+  const labelStep = Math.max(1, Math.ceil(data.length / 6))
+
   return (
-    <text
-      x={x}
-      y={y}
-      textAnchor={textAnchor || 'middle'}
-      fill="currentColor"
-      className="text-xs text-gray-600 dark:text-gray-300"
-      dy={4}
-    >
-      {payload?.value || ''}
-    </text>
+    <div className="mt-5 h-64">
+      <svg
+        aria-hidden="true"
+        className="h-full w-full overflow-visible text-gray-600 dark:text-gray-300"
+        viewBox={`0 0 ${width} ${height}`}
+      >
+        {yTicks.map((tick) => {
+          const y = yFor(tick)
+
+          return (
+            <g key={tick}>
+              <line
+                stroke="var(--color-gray-200)"
+                strokeDasharray="3 3"
+                strokeWidth="1"
+                x1={padding.left}
+                x2={width - padding.right}
+                y1={y}
+                y2={y}
+                className="dark:opacity-30"
+              />
+              <text
+                dominantBaseline="middle"
+                fill="currentColor"
+                fontSize="11"
+                textAnchor="end"
+                x={padding.left - 10}
+                y={y}
+              >
+                {tick}
+              </text>
+            </g>
+          )
+        })}
+
+        <polyline
+          fill="none"
+          points={messagesPath}
+          stroke="var(--color-accent)"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="3"
+        />
+        <polyline
+          fill="none"
+          points={lessonsPath}
+          stroke="var(--color-primary)"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="3"
+        />
+
+        {data.map((point, index) => {
+          if (index % labelStep !== 0 && index !== data.length - 1) return null
+
+          return (
+            <text
+              key={point.key}
+              fill="currentColor"
+              fontSize="11"
+              textAnchor="middle"
+              x={xFor(index)}
+              y={height - 16}
+            >
+              {point.label}
+            </text>
+          )
+        })}
+      </svg>
+      <div className="mt-2 flex flex-wrap items-center justify-end gap-4 text-xs font-semibold text-gray-600 dark:text-gray-300">
+        <span className="inline-flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-accent" />
+          {messagesLabel}
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-primary" />
+          {lessonsLabel}
+        </span>
+      </div>
+    </div>
   )
 }
 
@@ -721,51 +777,133 @@ function RadarDescriptions({
   )
 }
 
-function AnalyticsTooltip({
-  active,
-  label,
-  labelFormatter,
-  payload,
-  valueFormatter,
+function QualityRadarChart({
+  data,
 }: {
-  active?: boolean
-  label?: string | number
-  labelFormatter?: (label: string | number | undefined, payload: ChartTooltipPayload[]) => string
-  payload?: ChartTooltipPayload[]
-  valueFormatter?: (value: number | string) => string
+  data: Array<{ label: string; value: number }>
 }) {
-  const visiblePayload = (payload || []).filter((item) => item.value !== undefined)
-  if (!active || visiblePayload.length === 0) return null
+  if (data.length === 0) return null
 
-  const resolvedLabel = labelFormatter
-    ? labelFormatter(label, visiblePayload)
-    : label
+  const size = 320
+  const center = size / 2
+  const radius = 92
+  const labelRadius = 136
+  const gridLevels = [20, 40, 60, 80, 100]
+  const radarPoints = buildRadarPoints(data, center, radius)
+  const areaPoints = radarPoints.map((point) => `${point.x},${point.y}`).join(' ')
 
   return (
-    <div className="max-w-xs rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-lg dark:border-white/10 dark:bg-gray-900">
-      {resolvedLabel ? (
-        <p className="mb-2 font-semibold text-gray-900 dark:text-white">
-          {resolvedLabel}
-        </p>
-      ) : null}
-      <div className="space-y-1">
-        {visiblePayload.map((item) => (
-          <div key={`${item.dataKey || item.name}-${item.value}`} className="flex items-center justify-between gap-4">
-            <span className="flex min-w-0 items-center gap-2 text-gray-600 dark:text-gray-300">
-              <span
-                className="h-2 w-2 shrink-0 rounded-full bg-accent"
-                style={item.color ? { backgroundColor: item.color } : undefined}
-              />
-              <span className="truncate">{item.name || item.dataKey}</span>
-            </span>
-            <span className="shrink-0 font-semibold text-gray-900 dark:text-white">
-              {formatTooltipValue(item.value, valueFormatter)}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
+    <svg
+      aria-hidden="true"
+      className="h-full w-full overflow-visible text-gray-600 dark:text-gray-300"
+      viewBox={`0 0 ${size} ${size}`}
+    >
+      {gridLevels.map((level) => (
+        <polygon
+          key={level}
+          fill="none"
+          points={buildRadarPoints(data, center, (radius * level) / 100)
+            .map((point) => `${point.x},${point.y}`)
+            .join(' ')}
+          stroke="var(--color-gray-200)"
+          strokeDasharray={level === 100 ? '0' : '3 3'}
+          strokeWidth="1"
+          className="dark:opacity-30"
+        />
+      ))}
+
+      {data.map((item, index) => {
+        const angle = getRadarAngle(index, data.length)
+        const x = center + Math.cos(angle) * radius
+        const y = center + Math.sin(angle) * radius
+
+        return (
+          <line
+            key={`${item.label}-axis`}
+            stroke="var(--color-gray-200)"
+            strokeWidth="1"
+            x1={center}
+            x2={x}
+            y1={center}
+            y2={y}
+            className="dark:opacity-30"
+          />
+        )
+      })}
+
+      <polygon
+        fill="var(--color-accent)"
+        fillOpacity="0.35"
+        points={areaPoints}
+        stroke="var(--color-accent)"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+
+      {radarPoints.map((point) => (
+        <circle
+          key={`${point.label}-point`}
+          cx={point.x}
+          cy={point.y}
+          fill="var(--color-accent)"
+          r="4"
+          stroke="var(--color-bg-light)"
+          strokeWidth="2"
+          className="dark:stroke-gray-800"
+        >
+          <title>{`${point.label}: ${formatPercent(point.value)}`}</title>
+        </circle>
+      ))}
+
+      {data.map((item, index) => {
+        const angle = getRadarAngle(index, data.length)
+        const x = center + Math.cos(angle) * labelRadius
+        const y = center + Math.sin(angle) * labelRadius
+        const anchor = Math.abs(Math.cos(angle)) < 0.2
+          ? 'middle'
+          : Math.cos(angle) > 0
+            ? 'start'
+            : 'end'
+
+        return (
+          <text
+            key={`${item.label}-label`}
+            dominantBaseline="middle"
+            fill="currentColor"
+            fontSize="12"
+            fontWeight="600"
+            textAnchor={anchor}
+            x={x}
+            y={y}
+          >
+            {item.label}
+          </text>
+        )
+      })}
+    </svg>
   )
+}
+
+function buildRadarPoints(
+  data: Array<{ label: string; value: number }>,
+  center: number,
+  radius: number,
+) {
+  return data.map((item, index) => {
+    const angle = getRadarAngle(index, data.length)
+    const valueRadius = radius * Math.min(1, Math.max(0, item.value / 100))
+
+    return {
+      label: item.label,
+      value: item.value,
+      x: center + Math.cos(angle) * valueRadius,
+      y: center + Math.sin(angle) * valueRadius,
+    }
+  })
+}
+
+function getRadarAngle(index: number, total: number): number {
+  return -Math.PI / 2 + (index * 2 * Math.PI) / total
 }
 
 function StackedFacts({ facts }: { facts: Array<[string, string]> }) {
@@ -893,8 +1031,8 @@ function mergeTrendSeries(input: {
   messages: BusinessUserAnalyticsTrendPoint[]
   notes: BusinessUserAnalyticsTrendPoint[]
   quizzes: BusinessUserAnalyticsTrendPoint[]
-}) {
-  const keys = new Map<string, { key: string; label: string; lessons: number; messages: number; notes: number; quizzes: number }>()
+}): EngagementTrendRow[] {
+  const keys = new Map<string, EngagementTrendRow>()
 
   ;(['lessons', 'messages', 'notes', 'quizzes'] as const).forEach((seriesKey) => {
     input[seriesKey].forEach((point) => {
@@ -912,16 +1050,6 @@ function mergeTrendSeries(input: {
   })
 
   return Array.from(keys.values()).sort((a, b) => a.key.localeCompare(b.key))
-}
-
-function formatTooltipValue(
-  value: number | string | undefined,
-  formatter?: (value: number | string) => string,
-): string {
-  if (value === undefined) return ''
-  if (formatter) return formatter(value)
-  if (typeof value === 'number') return formatNumber(value)
-  return value
 }
 
 function formatPercent(value: number): string {

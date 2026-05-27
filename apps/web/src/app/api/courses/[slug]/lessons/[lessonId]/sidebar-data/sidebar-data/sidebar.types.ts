@@ -7,8 +7,12 @@ import type { LearnLanguage } from '@/app/api/courses/_services/lesson-language-
 import type { buildQuizSubmissionSnapshot } from '@/features/courses/services/quiz-submission.service'
 
 export type SidebarSupabaseClient = ReturnType<typeof createAdminClient>
-export type SidebarCurrentUser = Awaited<ReturnType<typeof SessionService.getCurrentUser>>
-export type SidebarEnrollment = Awaited<ReturnType<typeof resolveCourseEnrollment>>
+export type SidebarCurrentUser = NonNullable<
+  Awaited<ReturnType<typeof SessionService.getCurrentUser>>
+>
+export type SidebarEnrollment = NonNullable<
+  Awaited<ReturnType<typeof resolveCourseEnrollment>>
+>
 export type ResolvedCourseLesson = Awaited<ReturnType<typeof resolveCourseLessonByLanguage>>
 
 export interface SidebarRouteContext {
@@ -26,6 +30,7 @@ export interface SidebarContext {
   supabase: SidebarSupabaseClient
   currentUser: SidebarCurrentUser
   course: CourseRow
+  enrollment: SidebarEnrollment
   organizationId: string | null
   language: LearnLanguage
   resolvedLesson: ResolvedCourseLesson

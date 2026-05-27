@@ -2,17 +2,20 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCurrentOrganizationId } from "@/core/stores/organizationStore";
+import {
+  fetchLessonContentSnapshot,
+  mapActivitiesForSidebar,
+  mapMaterialsForSidebar,
+  type LessonContentSnapshot,
+} from "@/features/courses/services/lesson-content.client";
 
 import type {
   LearnActivityMap,
-  LearnActivitySummary,
   LearnLesson,
   LearnLessonTranslationContextMap,
   LearnLessonQuizStatusMap,
   LearnMaterialMap,
-  LearnMaterialSummary,
   LearnModule,
-  LearnTranslationContext,
 } from "../components/learn/types";
 
 type UseLessonSidebarStateParams = {
@@ -22,38 +25,6 @@ type UseLessonSidebarStateParams = {
   currentLesson: LearnLesson | null;
   isMobile: boolean;
 };
-
-function mapActivities(
-  activities: Array<Record<string, unknown>> | undefined
-): LearnActivitySummary[] {
-  return (activities || []).map((activity) => ({
-    activity_id: String(activity.activity_id || ""),
-    activity_title: String(activity.activity_title || ""),
-    activity_description:
-      typeof activity.activity_description === "string"
-        ? activity.activity_description
-        : undefined,
-    activity_type: String(activity.activity_type || ""),
-    is_required: Boolean(activity.is_required),
-    is_completed: Boolean(activity.is_completed),
-  }));
-}
-
-function mapMaterials(
-  materials: Array<Record<string, unknown>> | undefined
-): LearnMaterialSummary[] {
-  return (materials || []).map((material) => ({
-    material_id: String(material.material_id || ""),
-    material_title: String(material.material_title || ""),
-    material_description:
-      typeof material.material_description === "string"
-        ? material.material_description
-        : undefined,
-    material_type: String(material.material_type || ""),
-    is_required:
-      Boolean(material.is_required) || String(material.material_type) === "quiz",
-  }));
-}
 
 export function useLessonSidebarState({
   slug,
@@ -76,9 +47,13 @@ export function useLessonSidebarState({
     useState<LearnLessonQuizStatusMap>({});
   const [lessonTranslationContexts, setLessonTranslationContexts] =
     useState<LearnLessonTranslationContextMap>({});
+  const [lessonContentSnapshots, setLessonContentSnapshots] = useState<
+    Record<string, LessonContentSnapshot>
+  >({});
 
   const lessonsActivitiesRef = useRef(lessonsActivities);
   const lessonsMaterialsRef = useRef(lessonsMaterials);
+  const lessonContentSnapshotsRef = useRef(lessonContentSnapshots);
 
   useEffect(() => {
     lessonsActivitiesRef.current = lessonsActivities;
@@ -87,6 +62,10 @@ export function useLessonSidebarState({
   useEffect(() => {
     lessonsMaterialsRef.current = lessonsMaterials;
   }, [lessonsMaterials]);
+
+  useEffect(() => {
+    lessonContentSnapshotsRef.current = lessonContentSnapshots;
+  }, [lessonContentSnapshots]);
 
   const openLeftPanel = useCallback(() => {
     setIsLeftPanelOpen(true);
@@ -121,43 +100,37 @@ export function useLessonSidebarState({
 
       const currentActivities = lessonsActivitiesRef.current[lessonId];
       const currentMaterials = lessonsMaterialsRef.current[lessonId];
+      const currentSnapshot = lessonContentSnapshotsRef.current[lessonId];
 
-      if (!forceRefresh && currentActivities !== undefined && currentMaterials !== undefined) {
+      if (
+        !forceRefresh &&
+        currentActivities !== undefined &&
+        currentMaterials !== undefined &&
+        currentSnapshot
+      ) {
         return;
       }
 
       try {
-        const queryParams = new URLSearchParams();
-        queryParams.set("language", selectedLang);
-        if (organizationId) {
-          queryParams.set("orgId", organizationId);
-        }
-        const sidebarDataUrl = `/api/courses/${slug}/lessons/${lessonId}/sidebar-data?${queryParams.toString()}`;
-        const response = await fetch(
-          sidebarDataUrl,
-          { credentials: "include" }
-        );
+        const data = await fetchLessonContentSnapshot({
+          forceRefresh,
+          lessonId,
+          organizationId,
+          selectedLang,
+          slug,
+        });
 
-        if (!response.ok) {
-          setLessonsActivities((previous) => ({ ...previous, [lessonId]: [] }));
-          setLessonsMaterials((previous) => ({ ...previous, [lessonId]: [] }));
-          setLessonsQuizStatus((previous) => ({ ...previous, [lessonId]: null }));
-          setLessonTranslationContexts((previous) => ({
-            ...previous,
-            [lessonId]: null,
-          }));
-          return;
-        }
-
-        const data = await response.json();
-
+        setLessonContentSnapshots((previous) => ({
+          ...previous,
+          [lessonId]: data,
+        }));
         setLessonsActivities((previous) => ({
           ...previous,
-          [lessonId]: mapActivities(data.activities),
+          [lessonId]: mapActivitiesForSidebar(data.activities),
         }));
         setLessonsMaterials((previous) => ({
           ...previous,
-          [lessonId]: mapMaterials(data.materials),
+          [lessonId]: mapMaterialsForSidebar(data.materials),
         }));
         setLessonsQuizStatus((previous) => ({
           ...previous,
@@ -165,7 +138,7 @@ export function useLessonSidebarState({
         }));
         setLessonTranslationContexts((previous) => ({
           ...previous,
-          [lessonId]: (data.translationContext as LearnTranslationContext) ?? null,
+          [lessonId]: data.translationContext ?? null,
         }));
       } catch {
         setLessonsActivities((previous) => ({ ...previous, [lessonId]: [] }));
@@ -267,6 +240,7 @@ export function useLessonSidebarState({
     lessonsActivities,
     lessonsMaterials,
     lessonsQuizStatus,
+    lessonContentSnapshots,
     lessonTranslationContexts,
     loadLessonActivitiesAndMaterials,
     openContentSection,

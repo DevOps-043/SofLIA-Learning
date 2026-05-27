@@ -1,4 +1,5 @@
 import { buildActivitySubmissionSummaryMap } from '@/features/courses/services/activity-submission.server.service'
+import type { ActivitySubmissionSummary } from '@/features/courses/types/activity-config'
 import type { SidebarDataBundle } from './sidebar-results.types'
 import type { LessonActivityRow, QuizProgressRow, SidebarContext } from './sidebar.types'
 
@@ -26,35 +27,41 @@ function collectCompletionIds(
   ])
 }
 
-export async function buildCompletedActivityIds(
+export interface ActivityCompletionState {
+  completedActivityIds: Set<string>
+  submissionSummaryMap: Map<string, ActivitySubmissionSummary>
+}
+
+export async function buildActivityCompletionState(
   context: SidebarContext,
   activities: LessonActivityRow[],
   data: SidebarDataBundle,
-) {
+): Promise<ActivityCompletionState> {
   const completedActivityIds = collectCompletionIds(
     activities.map((activity) => activity.activity_id),
     data,
   )
 
-  if (!context.currentUser || !data.enrollment) return completedActivityIds
-
-  const activitySubmissionSummaryMap = await buildActivitySubmissionSummaryMap(
+  const submissionSummaryMap = await buildActivitySubmissionSummaryMap(
     context.supabase,
     {
       courseId: context.course.id,
       courseTitle: typeof context.course.title === 'string' ? context.course.title : 'Curso',
-      enrollmentId: data.enrollment.enrollment_id,
+      enrollmentId: context.enrollment.enrollment_id,
       instructorId: typeof context.course.instructor_id === 'string' ? context.course.instructor_id : null,
       lessonId: context.resolvedLessonId,
-      organizationId: data.enrollment.organization_id ?? context.organizationId ?? null,
+      organizationId: context.enrollment.organization_id ?? context.organizationId ?? null,
       userId: context.currentUser.id,
     },
     activities,
   )
 
-  activitySubmissionSummaryMap.forEach((summary, activityId) => {
+  submissionSummaryMap.forEach((summary, activityId) => {
     if (summary.completionSatisfied) completedActivityIds.add(activityId)
   })
 
-  return completedActivityIds
+  return {
+    completedActivityIds,
+    submissionSummaryMap,
+  }
 }

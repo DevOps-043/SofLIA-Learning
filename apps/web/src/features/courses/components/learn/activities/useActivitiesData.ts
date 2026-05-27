@@ -9,6 +9,7 @@ import { useLessonFeedback } from './useActivitiesData/useLessonFeedback';
 import type { UseActivitiesDataOptions } from './useActivitiesData/types';
 
 export function useActivitiesData({
+  initialContent,
   lessonId,
   slug,
   selectedLang,
@@ -18,7 +19,13 @@ export function useActivitiesData({
   onLessonContentRefresh,
 }: UseActivitiesDataOptions) {
   const organizationId = useCurrentOrganizationId();
-  const content = useLessonContentState({ lessonId, organizationId, selectedLang, slug });
+  const content = useLessonContentState({
+    initialContent,
+    lessonId,
+    organizationId,
+    selectedLang,
+    slug,
+  });
   const collapse = useActivityCollapseState({
     activities: content.activities,
     lessonId,
@@ -34,7 +41,10 @@ export function useActivitiesData({
   });
 
   const refreshLessonContent = useCallback(async () => {
-    await content.loadLessonContent({ preserveVisibleContent: true });
+    await content.loadLessonContent({
+      forceRefresh: true,
+      preserveVisibleContent: true,
+    });
 
     if (lessonId && onLessonContentRefresh) {
       await onLessonContentRefresh(lessonId, true);

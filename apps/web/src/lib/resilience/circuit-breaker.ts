@@ -126,10 +126,14 @@ class CircuitBreaker {
       this.recordMetrics('success', startedAt)
       return result
     } catch (error) {
-      if (this.options.shouldRecordFailure?.(error) ?? true) {
-        this.recordFailure()
+      // Caller-initiated aborts are not service failures — never penalise the circuit.
+      const isCallerAbort = error instanceof DOMException && error.name === 'AbortError'
+      if (!isCallerAbort) {
+        if (this.options.shouldRecordFailure?.(error) ?? true) {
+          this.recordFailure()
+        }
+        this.recordMetrics('failure', startedAt)
       }
-      this.recordMetrics('failure', startedAt)
       throw error
     } finally {
       this.halfOpenProbeInFlight = false

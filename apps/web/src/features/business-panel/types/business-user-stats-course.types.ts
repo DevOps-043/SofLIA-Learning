@@ -1,4 +1,4 @@
-export type BusinessUserStatsTabId = 'overview' | 'courses' | 'progress' | 'activity' | 'lessons'
+export type BusinessUserStatsTabId = 'analytics' | 'overview' | 'courses' | 'progress' | 'activity' | 'lessons'
 
 export interface LessonDetail {
   lesson_id: string

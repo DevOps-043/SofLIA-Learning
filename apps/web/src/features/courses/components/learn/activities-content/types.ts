@@ -4,6 +4,7 @@ import type {
   LearnLesson,
 } from "../types";
 import type { useActivitiesData } from "../activities/useActivitiesData";
+import type { LessonContentSnapshot } from "../activities/useActivitiesData/types";
 
 export type ActivitiesData = ReturnType<typeof useActivitiesData>;
 export type { LearnActivity };
@@ -13,6 +14,7 @@ export type ActivitiesContentProps = {
   focusedMaterialId?: string | null;
   generateRoleBasedPrompts?: GenerateRoleBasedPrompts;
   hasNextLesson?: boolean;
+  initialContent?: LessonContentSnapshot | null;
   lesson: LearnLesson;
   onActivityFocused?: () => void;
   onCompleteCourse?: () => void | Promise<void>;

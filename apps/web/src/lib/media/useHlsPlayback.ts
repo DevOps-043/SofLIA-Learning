@@ -13,7 +13,7 @@ import type Hls from 'hls.js';
 
 import { resolveBrowserDevicePerformancePolicy } from '../utils/device-performance-policy';
 
-import { HLS_MANIFEST_MIME_TYPE, isHlsManifestUrl } from './hls-source';
+import { isHlsManifestUrl } from './hls-source';
 import { fetchHlsRenditions, type HlsRendition } from './hls-master-parser';
 
 export interface HlsQualityController {
@@ -91,15 +91,12 @@ export function useHlsPlayback(
     }
 
     // Safari / iOS / WebKit: HLS nativo por hardware. No adjuntar hls.js.
+    // Chrome / Brave / Edge / Firefox: usan MSE — preferir hls.js aunque el
+    // navegador declare soporte nativo de HLS (Chrome 130+), porque hls.js
+    // ofrece selección de calidad manual que el native HLS no expone.
     const devicePolicy = resolveBrowserDevicePerformancePolicy();
-    const supportsNativeHls =
-      videoElement.canPlayType(HLS_MANIFEST_MIME_TYPE) !== '';
 
-    if (
-      devicePolicy.isApplePlatform ||
-      devicePolicy.isWebKitLike ||
-      supportsNativeHls
-    ) {
+    if (devicePolicy.isApplePlatform || devicePolicy.isWebKitLike) {
       destroyHls();
       setIsNativeHls(true);
       return;

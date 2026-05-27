@@ -844,6 +844,7 @@
         "loading": "Loading statistics...",
         "error": "Error loading statistics",
         "tabs": {
+          "analytics": "Analytics",
           "overview": "Overview",
           "courses": "Courses",
           "progress": "Progress",

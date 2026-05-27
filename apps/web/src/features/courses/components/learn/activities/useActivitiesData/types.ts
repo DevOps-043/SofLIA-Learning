@@ -1,13 +1,15 @@
 import type {
   GenerateRoleBasedPrompts,
   LearnActivity,
-  LearnMaterial,
-  LessonQuizStatus,
 } from '../../types';
+import type { LessonContentSnapshot } from '../../../../services/lesson-content.client';
+
+export type { LessonContentSnapshot };
 
 export type LessonFeedback = 'like' | 'dislike' | null;
 
 export interface UseActivitiesDataOptions {
+  initialContent?: LessonContentSnapshot | null;
   lessonId?: string;
   slug: string;
   selectedLang: string;
@@ -15,12 +17,6 @@ export interface UseActivitiesDataOptions {
   userRole?: string;
   generateRoleBasedPrompts?: GenerateRoleBasedPrompts;
   onLessonContentRefresh?: (lessonId: string, forceRefresh?: boolean) => void | Promise<void>;
-}
-
-export interface LessonContentSnapshot {
-  activities: LearnActivity[];
-  materials: LearnMaterial[];
-  quizStatus: LessonQuizStatus | null;
 }
 
 export interface PromptSource {

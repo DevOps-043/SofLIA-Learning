@@ -9,13 +9,13 @@ async function translateActivities(
   context: SidebarContext,
   activities: LessonActivityRow[],
 ) {
-  if (activities.length === 0) return activities
+  if (context.language === 'es' || activities.length === 0) return activities
 
   try {
     return (await ContentTranslationService.translateArray(
       'activity',
       activities.map((activity) => ({ ...activity, id: activity.activity_id })),
-      ['activity_title', 'activity_description'],
+      ['activity_title', 'activity_description', 'activity_content', 'ai_prompts'],
       context.language,
       context.supabase,
     )) as LessonActivityRow[]
@@ -28,13 +28,13 @@ async function translateMaterials(
   context: SidebarContext,
   materials: LessonMaterialRow[],
 ) {
-  if (materials.length === 0) return materials
+  if (context.language === 'es' || materials.length === 0) return materials
 
   try {
     return (await ContentTranslationService.translateArray(
       'material',
       materials.map((material) => ({ ...material, id: material.material_id })),
-      ['material_title', 'material_description'],
+      ['material_title', 'material_description', 'content_data'],
       context.language,
       context.supabase,
     )) as LessonMaterialRow[]

@@ -2,8 +2,6 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 import {
   fetchActivities,
-  fetchActivityQuizzes,
-  fetchMaterialQuizzes,
   fetchMaterials,
 } from './sidebar-content.queries'
 import {
@@ -11,7 +9,6 @@ import {
   materialsLoadErrorResponse,
 } from './sidebar-responses'
 import {
-  fetchEnrollment,
   fetchLiaCompletions,
   fetchQuizProgress,
 } from './sidebar-progress.queries'
@@ -24,17 +21,11 @@ export async function loadSidebarData(
   const [
     activitiesResult,
     materialsResult,
-    materialQuizzesResult,
-    activityQuizzesResult,
-    enrollment,
     liaCompletionsResult,
     quizProgressResult,
   ] = await Promise.all([
     fetchActivities(context.supabase, context.resolvedLessonId),
     fetchMaterials(context.supabase, context.resolvedLessonId),
-    fetchMaterialQuizzes(context.supabase, context.resolvedLessonId),
-    fetchActivityQuizzes(context.supabase, context.resolvedLessonId),
-    fetchEnrollment(context),
     fetchLiaCompletions(context),
     fetchQuizProgress(context),
   ])
@@ -49,12 +40,17 @@ export async function loadSidebarData(
     return materialsLoadErrorResponse()
   }
 
+  const rawActivities = activitiesResult.data || []
+  const materials = materialsResult.data || []
+
   return {
-    rawActivities: activitiesResult.data || [],
-    materials: materialsResult.data || [],
-    materialQuizzes: materialQuizzesResult.data || [],
-    activityQuizzes: activityQuizzesResult.data || [],
-    enrollment,
+    rawActivities,
+    materials,
+    materialQuizzes: materials.filter((material) => material.material_type === 'quiz'),
+    activityQuizzes: rawActivities.filter(
+      (activity) => activity.activity_type === 'quiz' && activity.is_required === true,
+    ),
+    enrollment: context.enrollment,
     liaCompletions: liaCompletionsResult.data || [],
     quizProgress: quizProgressResult.data || [],
   }

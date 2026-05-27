@@ -17,6 +17,7 @@ import Image from 'next/image'
 import type { BusinessUser } from '../services/businessUsers.service'
 import { useBusinessUserStatsModalLogic } from '../hooks/useBusinessUserStatsModalLogic'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
+import { BusinessUserAnalyticsPageClient } from './business-user-analytics/BusinessUserAnalyticsPageClient'
 import {
   BusinessUserStatsActivityTab,
   BusinessUserStatsCoursesTab,
@@ -84,6 +85,7 @@ export function BusinessUserStatsModal({
 
   // Simplified Tabs
   const tabs: BusinessUserStatsHeaderTab[] = [
+    { id: 'analytics', label: t('users.modals.stats.tabs.analytics', 'Analítica'), icon: BarChart3 },
     { id: 'overview', label: t('users.modals.stats.tabs.overview', 'Resumen'), icon: BarChart3 },
     { id: 'courses', label: t('users.modals.stats.tabs.courses', 'Cursos'), icon: BookOpen },
     { id: 'lessons', label: t('users.modals.stats.tabs.lessons', 'Lecciones'), icon: GanttChart },
@@ -110,7 +112,7 @@ export function BusinessUserStatsModal({
            animate={{ opacity: 1, scale: 1, y: 0 }}
            exit={{ opacity: 0, scale: 0.95, y: 20 }}
            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-           className="relative w-full max-w-5xl h-full sm:h-[85vh] sm:max-h-[750px] flex flex-col bg-transparent overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] sm:rounded-[2.5rem]"
+           className="relative w-full max-w-[1500px] h-full sm:h-[90vh] sm:max-h-[900px] flex flex-col bg-transparent overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] sm:rounded-[2.5rem]"
            onClick={(event) => event.stopPropagation()}
         >
           <div
@@ -200,7 +202,16 @@ export function BusinessUserStatsModal({
                     scrollbarColor: 'rgba(255,255,255,0.05) transparent',
                   }}
                >
-                  {loading ? (
+                  {safeActiveTab === 'analytics' ? (
+                    <div className="mx-auto w-full max-w-[1400px]">
+                      <BusinessUserAnalyticsPageClient
+                        embedded
+                        orgSlug={orgSlug}
+                        showBackButton={false}
+                        userId={user.id}
+                      />
+                    </div>
+                  ) : loading ? (
                     <div className="flex flex-col items-center justify-center py-24 gap-4">
                       <div
                         className="w-12 h-12 border-[3px] rounded-full animate-spin"

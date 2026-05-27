@@ -4,12 +4,7 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useActivitiesData } from '../useActivitiesData'
-
-vi.mock('../../../../../core/services/contentTranslation.service', () => ({
-  ContentTranslationService: {
-    translateArray: vi.fn(async (_type: string, payload: unknown[]) => payload),
-  },
-}))
+import { clearDeduplicationCache } from '@/lib/supabase/request-deduplication'
 
 vi.mock('../../../../../core/stores/organizationStore', () => ({
   useCurrentOrganizationId: () => null,
@@ -97,15 +92,17 @@ describe('useActivitiesData', () => {
       }
 
       if (!isRefreshPhase) {
-        if (requestUrl.endsWith('/activities')) {
-          return Promise.resolve(createJsonResponse(activitiesPayload))
+        if (requestUrl.includes('/sidebar-data')) {
+          return Promise.resolve(
+            createJsonResponse({
+              activities: activitiesPayload,
+              materials: materialsPayload,
+              quizStatus: quizStatusPayload,
+            }),
+          )
         }
 
-        if (requestUrl.endsWith('/materials')) {
-          return Promise.resolve(createJsonResponse(materialsPayload))
-        }
-
-        return Promise.resolve(createJsonResponse(quizStatusPayload))
+        return Promise.resolve(createJsonResponse({}))
       }
 
       return new Promise<Response>((resolve) => {
@@ -116,6 +113,7 @@ describe('useActivitiesData', () => {
 
   afterEach(() => {
     pendingRefreshResolvers.length = 0
+    clearDeduplicationCache()
     vi.restoreAllMocks()
   })
 
@@ -149,9 +147,13 @@ describe('useActivitiesData', () => {
     expect(result.current.activities).toHaveLength(1)
 
     act(() => {
-      pendingRefreshResolvers[0]?.(createJsonResponse(activitiesPayload))
-      pendingRefreshResolvers[1]?.(createJsonResponse(materialsPayload))
-      pendingRefreshResolvers[2]?.(createJsonResponse(quizStatusPayload))
+      pendingRefreshResolvers[0]?.(
+        createJsonResponse({
+          activities: activitiesPayload,
+          materials: materialsPayload,
+          quizStatus: quizStatusPayload,
+        }),
+      )
     })
 
     await act(async () => {
