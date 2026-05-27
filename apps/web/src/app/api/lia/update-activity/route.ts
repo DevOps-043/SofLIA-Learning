@@ -2,6 +2,7 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/api/errors';
 import { withZodBody } from '@/lib/api/with-validation';
+import type { Json } from '@/lib/supabase/types';
 import { createClient } from '../../../../lib/supabase/server';
 import { SessionService } from '../../../../features/auth/services/session.service';
 import { updateActivitySchema, type UpdateActivityBody } from '../_schemas';
@@ -12,7 +13,15 @@ interface LiaActivityUpdatePayload {
   completed_steps?: number
   status?: string
   completed_at?: string
-  generated_output?: unknown
+  generated_output?: Json | null
+}
+
+function toNullableJson(value: unknown): Json | null {
+  if (value === undefined) {
+    return null;
+  }
+
+  return value as Json;
 }
 
 /**
@@ -55,7 +64,7 @@ async function handlePost(
       }
     }
     if (generatedOutput !== undefined) {
-      updateData.generated_output = generatedOutput;
+      updateData.generated_output = toNullableJson(generatedOutput);
     }
 
     const { error } = await supabase

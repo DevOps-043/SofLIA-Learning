@@ -1,6 +1,29 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { cacheHeaders } from '@/lib/utils/cache-headers'
+import { logger } from '@/lib/utils/logger'
+
+interface OverviewStats {
+  activeUsers30d: number
+  completionRate: number
+  studyHoursMonth: number
+  certificatesMonth: number
+  usersByOrganization: Array<{ name: string; count: number }>
+  dailyActivity: Array<{ date: string; count: number }>
+  progressDistribution: Array<{ range: string; count: number }>
+  roleDistribution: Array<{ role: string; count: number }>
+}
+
+interface UserStatsOverviewRpcClient {
+  rpc(
+    fn: 'get_admin_user_stats_overview',
+    args?: Record<string, never>,
+  ): PromiseLike<{
+    data: OverviewStats | null
+    error: { message?: string } | null
+  }>
+}
 
 export async function GET() {
   try {
@@ -8,6 +31,20 @@ export async function GET() {
     if (auth instanceof NextResponse) return auth
 
     const supabase = createAdminClient()
+    const { data: rpcOverview, error: rpcError } = await (
+      supabase as unknown as UserStatsOverviewRpcClient
+    ).rpc('get_admin_user_stats_overview', {})
+
+    if (!rpcError && rpcOverview) {
+      return NextResponse.json(rpcOverview, { headers: cacheHeaders.privateShort })
+    }
+
+    if (rpcError) {
+      logger.warn('Admin user stats overview RPC unavailable, using fallback', {
+        error: rpcError.message,
+      })
+    }
+
     const now = new Date()
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
@@ -100,16 +137,19 @@ export async function GET() {
       .map(([role, count]) => ({ role, count }))
       .sort((a, b) => b.count - a.count)
 
-    return NextResponse.json({
-      activeUsers30d,
-      completionRate,
-      studyHoursMonth,
-      certificatesMonth,
-      usersByOrganization,
-      dailyActivity,
-      progressDistribution,
-      roleDistribution,
-    })
+    return NextResponse.json(
+      {
+        activeUsers30d,
+        completionRate,
+        studyHoursMonth,
+        certificatesMonth,
+        usersByOrganization,
+        dailyActivity,
+        progressDistribution,
+        roleDistribution,
+      },
+      { headers: cacheHeaders.privateShort },
+    )
   } catch (error) {
     return NextResponse.json(
       { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },

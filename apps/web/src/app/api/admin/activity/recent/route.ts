@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { NotificationService } from '../../../../../features/notifications/services/notification.service'
 import { requireAdmin } from '../../../../../lib/auth/requireAdmin'
 import { createAdminClient } from '../../../../../lib/supabase/admin'
+import { cacheHeaders } from '../../../../../lib/utils/cache-headers'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,10 +31,13 @@ export async function GET(request: NextRequest) {
 
     const notifications = await NotificationService.getRecentActivity(limit, supabase)
 
-    return NextResponse.json({
-      success: true,
-      activities: notifications,
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        activities: notifications,
+      },
+      { headers: cacheHeaders.privateShort },
+    )
   } catch (error: unknown) {
     techDebtLogger.error('Error in GET /api/admin/activity/recent:', error)
     return NextResponse.json(

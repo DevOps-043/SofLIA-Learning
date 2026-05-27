@@ -7,7 +7,7 @@ export type LiaActivityCompletionsTable = {
   completed_at: string | null
   completed_steps: number | null
   completion_id: string
-  conversation_id: string
+  conversation_id: string | null
   created_at: string | null
   current_step: number | null
   generated_output: Json | null
@@ -27,7 +27,7 @@ export type LiaActivityCompletionsTable = {
   completed_at?: string | null
   completed_steps?: number | null
   completion_id?: string
-  conversation_id: string
+  conversation_id?: string | null
   created_at?: string | null
   current_step?: number | null
   generated_output?: Json | null
@@ -47,7 +47,7 @@ export type LiaActivityCompletionsTable = {
   completed_at?: string | null
   completed_steps?: number | null
   completion_id?: string
-  conversation_id?: string
+  conversation_id?: string | null
   created_at?: string | null
   current_step?: number | null
   generated_output?: Json | null

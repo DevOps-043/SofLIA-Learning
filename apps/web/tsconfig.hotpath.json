@@ -1,7 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "incremental": false,
     "noEmit": true,
     "skipLibCheck": true,
@@ -24,8 +23,16 @@
   "files": [
     "src/app/api/[orgSlug]/business/dashboard/activity/route.ts",
     "src/app/api/[orgSlug]/business/dashboard/stats/route.ts",
+    "src/app/api/admin/activity/recent/route.ts",
+    "src/app/api/admin/user-stats/engagement/route.ts",
+    "src/app/api/admin/user-stats/learning/route.ts",
+    "src/app/api/admin/user-stats/overview/route.ts",
+    "src/app/api/lia/complete-activity/route.ts",
+    "src/app/api/lia/start-activity/route.ts",
+    "src/app/api/lia/update-activity/route.ts",
     "src/features/admin/services/admin-companies/admin-companies-read.service.ts",
     "src/features/admin/services/admin-companies/admin-companies-assignments.service.ts",
+    "src/features/admin/services/adminStats.service.ts",
     "src/app/api/profile/route.ts",
     "src/features/profile/services/profile.service.ts",
     "src/features/profile/hooks/useProfile.ts",
