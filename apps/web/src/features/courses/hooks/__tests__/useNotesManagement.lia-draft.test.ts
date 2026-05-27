@@ -69,7 +69,9 @@ describe("useNotesManagement SofLIA drafts", () => {
           note_content: "<p>Idea clave</p>",
           note_tags: ["SofLIA", "Clase"],
           source_type: "manual",
+          organization_id: null,
         }),
+        headers: { "Content-Type": "application/json" },
         method: "POST",
       }),
     );

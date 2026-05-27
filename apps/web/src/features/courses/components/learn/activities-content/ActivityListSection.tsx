@@ -8,6 +8,10 @@ import type { ActivitiesData, LearnActivity } from "./types";
 export function ActivityListSection(props: {
   data: ActivitiesData;
   lessonId: string;
+  onRequestQuizFeedback: (
+    prompt: string,
+    source?: { activityId?: string | null; materialId?: string | null },
+  ) => void | Promise<void>;
   onStartAiChat: (
     activity: LearnActivity,
     onDone: (conversationId?: string | null) => void | Promise<void>
@@ -36,6 +40,7 @@ export function ActivityListSection(props: {
             isCollapsed={props.data.collapsedActivities.has(activity.activity_id)}
             lessonId={props.lessonId}
             onQuizSubmitted={props.data.refreshLessonContent}
+            onRequestQuizFeedback={props.onRequestQuizFeedback}
             onStartAiChat={props.onStartAiChat}
             onToggle={props.data.toggleActivityCollapse}
             onTriggerLiaFeedback={props.onTriggerLiaFeedback}

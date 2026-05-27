@@ -60,11 +60,21 @@ export function useNoteModalState({
     [closeLia, currentLesson?.lesson_id, currentLesson?.lesson_title]
   );
 
+  const openDraftNoteModal = useCallback(
+    (note: LearnEditableNote) => {
+      setEditingNote(note);
+      closeLia();
+      setIsNotesModalOpen(true);
+    },
+    [closeLia]
+  );
+
   return {
     closeNotesModal,
     editingNote,
     isNotesModalOpen,
     openEditNoteModal,
+    openDraftNoteModal,
     openLiaNoteModal,
     openNewNoteModal,
   };

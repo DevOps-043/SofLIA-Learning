@@ -9,6 +9,10 @@ export type QuizRendererProps = {
   slug?: string;
   materialId?: string;
   activityId?: string;
+  onRequestQuizFeedback?: (
+    prompt: string,
+    source?: { activityId?: string | null; materialId?: string | null },
+  ) => void;
   onTriggerLiaFeedback?: (prompt: string) => void;
   onQuizSubmitted?: () => void;
 };
