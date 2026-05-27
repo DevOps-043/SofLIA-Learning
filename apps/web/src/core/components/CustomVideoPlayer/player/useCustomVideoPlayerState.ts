@@ -12,6 +12,7 @@ import type {
 import { useControlsAutoHide } from './hooks/useControlsAutoHide';
 import { useDragInteractions } from './hooks/useDragInteractions';
 import { useFullscreenSync } from './hooks/useFullscreenSync';
+import { useForwardSeekGuard } from './hooks/useForwardSeekGuard';
 import { useInputHandlers } from './hooks/useInputHandlers';
 import { usePlaybackState } from './hooks/usePlaybackState';
 import { useSourceChangeReset } from './hooks/useSourceChangeReset';
@@ -128,6 +129,14 @@ export function useCustomVideoPlayerState(
     setIsLoading: state.setIsLoading,
     setIsBuffering: state.setIsBuffering,
     setHasInitialTimeSet: state.setHasInitialTimeSet,
+  });
+
+  useForwardSeekGuard({
+    duration: state.duration,
+    seekControlsLocked,
+    setCurrentTime: state.setCurrentTime,
+    src,
+    videoRef: refs.videoRef,
   });
 
   useFullscreenSync({

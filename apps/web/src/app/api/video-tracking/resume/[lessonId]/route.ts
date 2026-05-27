@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { logger as techDebtLogger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import { buildSafeResumeCheckpoint } from '../../../lesson-tracking/update-progress/progress-security';
 
 /**
  * GET /api/video-tracking/resume/[lessonId]
@@ -62,11 +63,20 @@ export async function GET(
         // Si no hay tracking previo, retornar valores por defecto
         if (!tracking) {
             if (lessonProgress) {
+                const completionPercentage = lessonProgress.video_progress_percentage || 0;
+                const checkpointSeconds = buildSafeResumeCheckpoint({
+                    checkpoint: lessonProgress.current_time_seconds || 0,
+                    completionPercentage,
+                    isCompleted: Boolean(lessonProgress.is_completed),
+                    maxReached: lessonProgress.current_time_seconds || 0,
+                });
+
                 return NextResponse.json({
-                    checkpointSeconds: lessonProgress.current_time_seconds || 0,
+                    checkpointSeconds,
                     playbackRate: 1.0,
-                    hasWatched: (lessonProgress.video_progress_percentage || 0) > 0,
-                    completionPercentage: lessonProgress.video_progress_percentage || 0,
+                    hasWatched: completionPercentage > 0,
+                    completionPercentage,
+                    maxReachedSeconds: lessonProgress.current_time_seconds || 0,
                     status: lessonProgress.is_completed
                         ? 'completed'
                         : lessonProgress.lesson_status || 'not_started'
@@ -87,12 +97,20 @@ export async function GET(
             ? Math.round((tracking.video_max_seconds / tracking.video_total_duration_seconds) * 100)
             : 0;
         const savedLessonProgressPercentage = lessonProgress?.video_progress_percentage || 0;
+        const effectiveCompletionPercentage = Math.max(completionPercentage, savedLessonProgressPercentage);
+        const checkpointSeconds = buildSafeResumeCheckpoint({
+            checkpoint: tracking.video_checkpoint_seconds || lessonProgress?.current_time_seconds || 0,
+            completionPercentage: effectiveCompletionPercentage,
+            isCompleted: Boolean(lessonProgress?.is_completed),
+            maxReached: tracking.video_max_seconds || 0,
+        });
 
         return NextResponse.json({
-            checkpointSeconds: tracking.video_checkpoint_seconds || lessonProgress?.current_time_seconds || 0,
+            checkpointSeconds,
             playbackRate: tracking.video_playback_rate || 1.0,
             hasWatched: tracking.video_max_seconds > 0 || savedLessonProgressPercentage > 0,
-            completionPercentage: Math.max(completionPercentage, savedLessonProgressPercentage),
+            completionPercentage: effectiveCompletionPercentage,
+            maxReachedSeconds: tracking.video_max_seconds || 0,
             status: lessonProgress?.is_completed ? 'completed' : tracking.status
         });
     } catch (error) {

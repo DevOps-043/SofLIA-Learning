@@ -13,6 +13,7 @@ import {
 } from '../utils/notification-categories'
 import { logger } from '@/lib/logger'
 import { cn } from '@/shared/utils/cn'
+import { useThemeStore } from '@/core/stores/themeStore'
 
 export function getNotificationActionUrl(notification: Pick<Notification, 'metadata'>): string | null {
   const actionUrl = notification.metadata?.action_url
@@ -69,11 +70,18 @@ export function NotificationListItem({
   onDelete,
 }: NotificationListItemProps) {
   const { t } = useTranslation('common')
+  const resolvedTheme = useThemeStore((state) => state.resolvedTheme)
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
   const Icon = getNotificationIcon(notification.notification_type)
   const isUnread = notification.status === 'unread'
   const hasActionUrl = Boolean(getNotificationActionUrl(notification))
   const isCompact = layout === 'compact'
+  const isLightMode = resolvedTheme === 'light'
+  const titleColor = isLightMode
+    ? (isUnread ? 'var(--color-legacy-0f172a)' : 'var(--color-legacy-334155)')
+    : undefined
+  const bodyColor = isLightMode ? 'var(--color-legacy-334155)' : undefined
+  const mutedColor = isLightMode ? 'var(--color-gray-500)' : undefined
 
   const stop = (event: React.MouseEvent) => {
     event.stopPropagation()
@@ -121,6 +129,7 @@ export function NotificationListItem({
                 isCompact ? 'text-sm' : 'text-sm sm:text-base',
                 isUnread ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300',
               )}
+              style={{ color: titleColor }}
             >
               {getNotificationText(notification, notification.title, t)}
             </h3>
@@ -129,12 +138,13 @@ export function NotificationListItem({
                 'mt-1 text-gray-600 dark:text-gray-400',
                 isCompact ? 'line-clamp-2 text-xs' : 'line-clamp-2 text-sm',
               )}
+              style={{ color: bodyColor }}
             >
               {getNotificationText(notification, notification.message, t)}
             </p>
           </div>
 
-          <time className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
+          <time className="shrink-0 text-xs text-gray-500 dark:text-gray-400" style={{ color: mutedColor }}>
             {formattedTime}
           </time>
         </div>
@@ -142,7 +152,7 @@ export function NotificationListItem({
         <div className="mt-2 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className={cn('h-2 w-2 rounded-full border', getNotificationBorderColor(notification.notification_type).replace('border-l-', 'border-'))} />
-            <span className="text-xs font-medium capitalize text-gray-500 dark:text-gray-400">
+            <span className="text-xs font-medium capitalize text-gray-500 dark:text-gray-400" style={{ color: mutedColor }}>
               {t(`actions.notificationsPage.priority.${notification.priority}`, {
                 defaultValue: notification.priority,
               })}

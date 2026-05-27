@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   calculateProgressTime,
   calculateVolumeLevel,
+  clampLockedSeekTarget,
   clampPlaybackTime,
   clampUnitInterval,
   formatVideoTime,
+  isForwardSeekBlocked,
   shouldPauseDetachedPiP,
 } from '../video-player.utils';
 
@@ -31,6 +33,18 @@ describe('video-player.utils', () => {
     expect(clampPlaybackTime(20, 120, 15)).toBe(35);
     expect(clampPlaybackTime(5, 120, -20)).toBe(0);
     expect(clampPlaybackTime(119, 120, 10)).toBe(120);
+  });
+
+  it('clamps locked forward seeks to the maximum watched time', () => {
+    expect(clampLockedSeekTarget(80, 12, 100)).toBe(12);
+    expect(clampLockedSeekTarget(12.5, 12, 100)).toBe(12.5);
+    expect(clampLockedSeekTarget(-5, 12, 100)).toBe(0);
+  });
+
+  it('detects forward seeks beyond the lock tolerance', () => {
+    expect(isForwardSeekBlocked(20, 12)).toBe(true);
+    expect(isForwardSeekBlocked(12.5, 12)).toBe(false);
+    expect(isForwardSeekBlocked(8, 12)).toBe(false);
   });
 
   it('formats video times as mm:ss', () => {

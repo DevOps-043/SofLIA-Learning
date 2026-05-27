@@ -343,4 +343,82 @@ describe('CustomVideoPlayer completion fallback', () => {
     fireEvent.click(forwardButton)
     expect(videoElement.currentTime).toBe(12)
   })
+
+  it('reverts programmatic forward seeks while seeking is locked', async () => {
+    const { container } = render(
+      <CustomVideoPlayer
+        seekControlsLocked
+        src="https://example.com/video.mp4"
+      />
+    )
+    const videoElement = container.querySelector('video')
+
+    expect(videoElement).not.toBeNull()
+
+    if (!videoElement) {
+      return
+    }
+
+    Object.defineProperty(videoElement, 'duration', {
+      configurable: true,
+      value: 100,
+    })
+    Object.defineProperty(videoElement, 'currentTime', {
+      configurable: true,
+      writable: true,
+      value: 12,
+    })
+
+    act(() => {
+      fireEvent(videoElement, new Event('loadedmetadata'))
+      fireEvent(videoElement, new Event('timeupdate'))
+    })
+
+    await waitFor(() => {
+      expect(container.textContent).toContain('0:12')
+    })
+
+    videoElement.currentTime = 90
+
+    act(() => {
+      fireEvent(videoElement, new Event('seeking'))
+    })
+
+    expect(videoElement.currentTime).toBe(12)
+  })
+
+  it('enables forward controls after the first watch lock is lifted', async () => {
+    const { container, rerender } = render(
+      <CustomVideoPlayer
+        seekControlsLocked
+        src="https://example.com/video.mp4"
+      />
+    )
+
+    await waitFor(() => {
+      expect(
+        container.querySelector('[data-video-progress-bar="true"]')
+      ).toHaveAttribute('data-seek-locked', 'true')
+    })
+
+    rerender(
+      <CustomVideoPlayer
+        seekControlsLocked={false}
+        src="https://example.com/video.mp4"
+      />
+    )
+
+    await waitFor(() => {
+      expect(
+        container.querySelector('[data-video-progress-bar="true"]')
+      ).toHaveAttribute('data-seek-locked', 'false')
+    })
+
+    const forwardButton = container.querySelector(
+      '[title="Avanzar 10s"]'
+    ) as HTMLButtonElement | null
+
+    expect(forwardButton).not.toBeNull()
+    expect(forwardButton).not.toBeDisabled()
+  })
 })

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
+import { logger } from '@/lib/logger'
 
 type RevalidateNotificationState = () => Promise<void>
 
@@ -39,7 +40,11 @@ export function useNotificationActions(
         throw new Error(await readMutationError(response, errorMessage))
       }
 
-      await revalidateNotificationState()
+      try {
+        await revalidateNotificationState()
+      } catch (error) {
+        logger.warn('Notification state revalidation failed after mutation', error)
+      }
     },
     [revalidateNotificationState],
   )
