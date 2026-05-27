@@ -38,6 +38,7 @@ async function notifyLessonCompleted({
   courseTitle,
   lessonId,
   lessonTitle,
+  organizationId,
 }: CompletionContext) {
   if (!lessonTitle) {
     return
@@ -52,6 +53,10 @@ async function notifyLessonCompleted({
     courseTitle,
     lessonId,
     lessonTitle,
+    {
+      organization_id: organizationId || undefined,
+      source: 'lesson_progress',
+    },
   )
 }
 
@@ -160,6 +165,7 @@ async function handleCourseCompletion({
   courseId,
   enrollmentId,
   courseTitle,
+  organizationId,
   wasCompleted,
   now,
 }: CompletionContext) {
@@ -183,6 +189,10 @@ async function handleCourseCompletion({
       courseId,
       courseTitle,
       false,
+      {
+        organization_id: organizationId || undefined,
+        source: 'lesson_progress',
+      },
     )
   } catch (error) {
     logger.error('Error ejecutando side effects de curso completado:', error)

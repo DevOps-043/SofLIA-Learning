@@ -22,8 +22,8 @@ function PanelSwitcherGrid({ items, label }: PanelSwitcherProps) {
   const gridClassName = items.length >= 4 ? 'grid-cols-2' : items.length === 3 ? 'grid-cols-3' : 'grid-cols-2'
 
   return (
-    <div className="border-b border-gray-200 px-3.5 py-2.5 dark:border-white/5">
-      <p className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+    <div className="border-b border-gray-200 px-3 py-2 dark:border-white/5">
+      <p className="mb-1 px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
         {label}
       </p>
       <div className={cn('grid gap-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-900/70', gridClassName)}>
@@ -36,7 +36,7 @@ function PanelSwitcherGrid({ items, label }: PanelSwitcherProps) {
               aria-current={item.isActive ? 'page' : undefined}
               onClick={item.onClick}
               className={cn(
-                'flex min-h-10 min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20',
+                'flex min-h-[34px] min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20',
                 item.isActive
                   ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 dark:bg-white/10 dark:text-white dark:ring-white/10'
                   : 'text-gray-600 hover:bg-white/70 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white',

@@ -3,6 +3,7 @@ import { fromLoose } from '../../../../lib/supabase/looseQuery'
 import { logger } from '../../../../lib/utils/logger'
 
 import { buildCompanyDetailedStats } from './admin-companies-detailed-stats.service'
+import type { CompanyDetailedStats } from '../../types/admin-companies.types'
 
 interface HierarchyCourseAssignmentRow {
   id: string
@@ -25,6 +26,16 @@ interface HierarchyCourseAssignmentWrite {
   course_id: string
   assigned_by?: string | null
   status?: string | null
+}
+
+interface AdminCompanyDetailedStatsRpcClient {
+  rpc(
+    fn: 'get_admin_company_detailed_stats',
+    args: { target_organization_id: string },
+  ): PromiseLike<{
+    data: CompanyDetailedStats | null
+    error: { message?: string } | null
+  }>
 }
 
 export async function getCompanyCourses(id: string) {
@@ -173,6 +184,23 @@ export async function removeCourseFromUser(assignmentId: string) {
 
 export async function getCompanyDetailedStats(companyId: string) {
   const supabase = createAdminClient()
+  const { data: aggregatedStats, error: aggregatedStatsError } = await (
+    supabase as unknown as AdminCompanyDetailedStatsRpcClient
+  ).rpc('get_admin_company_detailed_stats', {
+    target_organization_id: companyId,
+  })
+
+  if (!aggregatedStatsError && aggregatedStats) {
+    return aggregatedStats
+  }
+
+  if (aggregatedStatsError) {
+    logger.warn('Admin company detailed stats RPC unavailable, using fallback', {
+      companyId,
+      error: aggregatedStatsError.message,
+    })
+  }
+
   const [assignmentsResponse, sessionsResponse, membersResponse, pendingInvitationsResponse] = await Promise.all([
     supabase
       .from('organization_course_assignments')

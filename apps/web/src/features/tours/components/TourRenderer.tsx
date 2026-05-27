@@ -8,7 +8,12 @@ import { useThemeStore } from '@/core/stores/themeStore'
 
 import { useTourStore } from '../tour.store'
 import { translateTourKey } from '../utils/tour.i18n'
-import { isMobileViewport, resolveStepPlacement, resolveSteps } from '../utils/tour.helpers'
+import {
+  clampTourFloaterToViewport,
+  isMobileViewport,
+  resolveStepPlacement,
+  resolveSteps,
+} from '../utils/tour.helpers'
 import { TourTooltip } from './TourTooltip'
 
 const TOUR_OVERLAY_Z_INDEX = 10000
@@ -79,6 +84,31 @@ export function TourRenderer() {
       goToStep(joyrideSteps.length - 1)
     }
   }, [activeTourConfig, currentStep, goToStep, isRunning, joyrideSteps.length, stopTour])
+
+  useEffect(() => {
+    if (!isRunning || joyrideSteps.length === 0) {
+      return
+    }
+
+    const clampTooltip = () => {
+      window.requestAnimationFrame(() => clampTourFloaterToViewport(isMobile ? 12 : 16))
+    }
+
+    const timers = [
+      window.setTimeout(clampTooltip, 0),
+      window.setTimeout(clampTooltip, 120),
+      window.setTimeout(clampTooltip, 320),
+    ]
+
+    window.addEventListener('resize', clampTooltip)
+    window.addEventListener('scroll', clampTooltip, true)
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer))
+      window.removeEventListener('resize', clampTooltip)
+      window.removeEventListener('scroll', clampTooltip, true)
+    }
+  }, [currentStep, isMobile, isRunning, joyrideSteps.length])
 
   const handleJoyrideEvent = useCallback(
     (data: EventData) => {

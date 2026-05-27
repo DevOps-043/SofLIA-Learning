@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Award, BarChart3, Building2, LayoutDashboard, Moon, Sun, User } from 'lucide-react'
+import { Building2, LayoutDashboard, Moon, Sun, User } from 'lucide-react'
 import { LanguageSubmenu } from './LanguageSubmenu'
 import { MenuItem } from './MenuItem'
 import type { useUserDropdownLogic } from './useUserDropdownLogic'
@@ -22,7 +22,7 @@ export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
   }, [logic.isAdmin, logic.isInstructor, logic.isOrgAdmin, logic.currentOrganization])
 
   return (
-    <div className="py-1.5 space-y-0.5">
+    <div className="py-1 space-y-0.5">
       {!hasPanelSwitcher && (
         <MenuItem icon={LayoutDashboard} label={logic.t('menu.userPanel')} onClick={logic.handleUserDashboardNavigation} />
       )}
@@ -42,10 +42,6 @@ export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
           onClick={() => logic.handleNavigation('/auth/select-organization')}
         />
       )}
-      {logic.userStatsPath && (
-        <MenuItem icon={BarChart3} label={logic.t('menu.stats')} onClick={() => logic.handleNavigation(logic.userStatsPath!)} />
-      )}
-      <MenuItem icon={Award} label={logic.t('menu.certificates')} onClick={() => logic.handleNavigation('/certificates')} />
       <MenuItem icon={User} label={logic.t('menu.profile')} onClick={() => logic.handleNavigation(logic.profilePath)} />
       <MenuItem
         icon={logic.resolvedTheme === 'dark' ? Sun : Moon}

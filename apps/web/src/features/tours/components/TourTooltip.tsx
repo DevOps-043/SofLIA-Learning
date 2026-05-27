@@ -30,7 +30,7 @@ export function TourTooltip({
     <section
       {...tooltipProps}
       className={cn(
-        'joyride-tooltip-container relative max-h-[calc(100vh-48px)] w-[min(calc(100vw-32px),380px)] overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl pointer-events-auto dark:border-white/10 dark:bg-gray-800 sm:p-5',
+        'joyride-tooltip-container pointer-events-auto relative flex max-h-[min(420px,calc(100dvh-96px))] w-[min(calc(100vw-32px),380px)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl dark:border-white/10 dark:bg-gray-800 sm:p-5',
         isMobile && 'max-w-[calc(100vw-32px)] p-4',
       )}
     >
@@ -44,18 +44,18 @@ export function TourTooltip({
         <X className="h-4 w-4" aria-hidden="true" />
       </button>
 
-      <header className="flex items-start gap-2 border-b border-gray-100 pb-3 pr-9 dark:border-white/10">
+      <header className="flex shrink-0 items-start gap-2 border-b border-gray-100 pb-3 pr-9 dark:border-white/10">
         <Sparkles className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
         <h2 className="text-sm font-semibold leading-snug text-gray-900 dark:text-white">
           {step.title}
         </h2>
       </header>
 
-      <div className="py-4 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+      <div className="min-h-0 flex-1 overflow-y-auto py-4 pr-1 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
         {step.content}
       </div>
 
-      <footer className="flex items-center justify-between gap-3 border-t border-gray-100 pt-4 dark:border-white/10">
+      <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-gray-100 pt-4 dark:border-white/10">
         <TourProgress current={index} total={size} />
 
         <div className="flex shrink-0 items-center justify-end gap-2">

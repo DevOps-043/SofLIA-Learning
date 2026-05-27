@@ -6,6 +6,11 @@ import {
 } from './profile.shared'
 import type { UpdateProfileRequest, UserProfile, UserStats } from '../types/profile.types'
 
+interface ProfileBundleResponse {
+  profile?: UserProfile
+  stats?: Partial<UserStats> | null
+}
+
 async function parseJsonResponse(response: Response) {
   try {
     return await response.json()
@@ -33,12 +38,22 @@ function validateUpload(file: File, allowedTypes: readonly string[], invalidType
   }
 }
 
+function buildProfileUrl(
+  organizationId?: string | null,
+  params?: Record<string, string>,
+) {
+  const searchParams = new URLSearchParams(params)
+  if (organizationId) {
+    searchParams.set('org', organizationId)
+  }
+
+  const query = searchParams.toString()
+  return query ? `/api/profile?${query}` : '/api/profile'
+}
+
 export class ProfileService {
   static async getProfile(organizationId?: string | null): Promise<UserProfile> {
-    const url = organizationId
-      ? `/api/profile?org=${encodeURIComponent(organizationId)}`
-      : '/api/profile'
-
+    const url = buildProfileUrl(organizationId)
     const response = await fetch(url, {
       method: 'GET',
       credentials: 'include'
@@ -46,6 +61,30 @@ export class ProfileService {
 
     await ensureOk(response, 'Error al obtener el perfil')
     return await response.json()
+  }
+
+  static async getProfileBundle(
+    organizationId?: string | null,
+  ): Promise<{ profile: UserProfile; stats: UserStats }> {
+    const response = await fetch(
+      buildProfileUrl(organizationId, { includeStats: '1' }),
+      {
+        method: 'GET',
+        credentials: 'include'
+      },
+    )
+
+    await ensureOk(response, 'Error al obtener el perfil')
+
+    const payload = (await response.json()) as ProfileBundleResponse
+    if (!payload.profile) {
+      throw new Error('Error al obtener el perfil')
+    }
+
+    return {
+      profile: payload.profile,
+      stats: normalizeUserStats(payload.stats),
+    }
   }
 
   static async getStats(): Promise<UserStats> {
@@ -62,9 +101,7 @@ export class ProfileService {
   }
 
   static async updateProfile(updates: UpdateProfileRequest, organizationId?: string | null): Promise<UserProfile> {
-    const url = organizationId
-      ? `/api/profile?org=${encodeURIComponent(organizationId)}`
-      : '/api/profile'
+    const url = buildProfileUrl(organizationId)
 
     const response = await fetch(url, {
       method: 'PUT',

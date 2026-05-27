@@ -455,9 +455,13 @@
         "title": "Password updated",
         "message": "Your password has been updated successfully."
       },
+      "system_profile_updated": {
+        "title": "Profile updated",
+        "message": "Your profile was updated: {{changesText}}."
+      },
       "system_login_success": {
-        "title": "Successful login",
-        "message": "A login was detected on your account from {{location}}."
+        "title": "New sign-in",
+        "message": "A sign-in was detected from {{deviceLabel}}. IP: {{ipLabel}}."
       },
       "system_login_failed": {
         "title": "Failed login attempt",
@@ -546,6 +550,10 @@
       "course_enrolled": {
         "title": "Successful enrollment",
         "message": "You have enrolled in \"{{courseTitle}}\". Start now!"
+      },
+      "course_activity_completed": {
+        "title": "Activity completed",
+        "message": "You completed \"{{activityTitle}}\" in \"{{courseTitle}}\"."
       },
       "course_lesson_completed": {
         "title": "Lesson completed",

@@ -49,7 +49,7 @@ export function buildLearnDataResponse({
     _meta: {
       timestamp: new Date().toISOString(),
       executionTime: `${totalTimeMs}ms`,
-      queriesExecuted: 4,
+      queriesExecuted: lessonDataResult ? 4 : 3,
       optimization: 'unified-endpoint',
     },
   }

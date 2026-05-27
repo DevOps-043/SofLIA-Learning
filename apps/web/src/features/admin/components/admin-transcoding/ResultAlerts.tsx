@@ -2,11 +2,12 @@ import { FailureList } from './FailureList'
 import type { DrainResponse, ScanResponse } from './types'
 
 interface ResultAlertsProps {
-  scanResult: ScanResponse | null
   drainResult: DrainResponse | null
+  legacyQueueResult: ScanResponse | null
+  scanResult: ScanResponse | null
 }
 
-export function ResultAlerts({ scanResult, drainResult }: ResultAlertsProps) {
+export function ResultAlerts({ drainResult, legacyQueueResult, scanResult }: ResultAlertsProps) {
   return (
     <>
       {scanResult && (
@@ -19,6 +20,23 @@ export function ResultAlerts({ scanResult, drainResult }: ResultAlertsProps) {
             </p>
           ) : <p>Error: {scanResult.error}</p>}
           <FailureList failures={scanResult.failures} />
+        </div>
+      )}
+      {legacyQueueResult && (
+        <div className={`mb-4 rounded-xl border p-3 text-sm ${
+          legacyQueueResult.success
+            ? 'border-accent/40 bg-accent/10 text-accent'
+            : 'border-error/40 bg-error/10 text-error'
+        }`}>
+          {legacyQueueResult.success ? (
+            <p>
+              Videos legacy: <strong>{legacyQueueResult.totalFound}</strong> únicos encontrados,{' '}
+              <strong>{legacyQueueResult.alreadyDone}</strong> ya procesados,{' '}
+              <strong>{legacyQueueResult.queued}</strong> encolados ahora.{' '}
+              La cola se procesa automáticamente de a 1 función a la vez.
+            </p>
+          ) : <p>Error: {legacyQueueResult.error}</p>}
+          <FailureList failures={legacyQueueResult.failures} />
         </div>
       )}
       {drainResult && <DrainAlert drainResult={drainResult} />}

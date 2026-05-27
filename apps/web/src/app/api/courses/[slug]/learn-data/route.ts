@@ -17,6 +17,7 @@ export async function GET(
     const lessonId = searchParams.get('lessonId')
     const language = searchParams.get('language') || 'es'
     const organizationId = searchParams.get('orgId')
+    const includeLessonData = searchParams.get('includeLessonData') === '1'
     const currentUser = await SessionService.getCurrentUser()
     const supabase = currentUser ? createAdminClient() : await createClient()
 
@@ -27,6 +28,7 @@ export async function GET(
       language,
       currentUser?.id,
       organizationId,
+      includeLessonData,
     )
 
     if (currentUser?.id && payload.course.id) {

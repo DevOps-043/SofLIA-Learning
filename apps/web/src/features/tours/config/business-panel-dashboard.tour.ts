@@ -4,7 +4,7 @@ export const businessPanelDashboardTour: TourConfig = {
   id: 'business-panel-dashboard',
   autoStart: true,
   steps: [
-    { target: '[data-tour-id="business-panel-dashboard--hero"]', titleKey: 'tours.businessPanelDashboard.welcome.title', contentKey: 'tours.businessPanelDashboard.welcome.content', placement: 'bottom', disableBeacon: true },
+    { target: '[data-tour-id="business-panel-dashboard--hero-summary"]', titleKey: 'tours.businessPanelDashboard.welcome.title', contentKey: 'tours.businessPanelDashboard.welcome.content', placement: 'bottom', disableBeacon: true },
     { target: '[data-tour-id="business-panel-dashboard--tour-trigger"]', titleKey: 'tours.businessPanelDashboard.relaunch.title', contentKey: 'tours.businessPanelDashboard.relaunch.content', placement: 'bottom-end', disableBeacon: true, optional: true },
     { target: '[data-tour-id="business-panel-dashboard--top-nav"]', titleKey: 'tours.businessPanelDashboard.topNav.title', contentKey: 'tours.businessPanelDashboard.topNav.content', placement: 'bottom', disableBeacon: true },
     { target: '[data-tour-id="business-panel-dashboard--notifications"]', titleKey: 'tours.businessPanelDashboard.notifications.title', contentKey: 'tours.businessPanelDashboard.notifications.content', placement: 'bottom-end', disableBeacon: true },

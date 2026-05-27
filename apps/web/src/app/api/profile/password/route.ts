@@ -71,6 +71,7 @@ async function handlePasswordChange(
       .update({ password_hash: null })
       .eq('id', user.id);
     await revokeLegacySessionsAfterPasswordChange(adminSupabase, user.id);
+    await notifyPasswordChangedBestEffort(user.id);
 
     return NextResponse.json({ success: true, message: 'Contrasena actualizada' });
   } catch (error) {
@@ -80,6 +81,23 @@ async function handlePasswordChange(
 }
 
 export const PUT = withZodBody(passwordChangeSchema, handlePasswordChange);
+
+async function notifyPasswordChangedBestEffort(userId: string) {
+  try {
+    const { AutoNotificationsService } = await import(
+      '@/features/notifications/services/auto-notifications.service'
+    );
+    await AutoNotificationsService.notifyPasswordChanged(userId, {
+      action_url: '/profile?tab=security',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    logger.warn('No se pudo crear notificacion de cambio de contrasena:', {
+      error: error instanceof Error ? error.message : String(error),
+      userId,
+    });
+  }
+}
 
 async function revokeLegacySessionsAfterPasswordChange(
   adminSupabase: ReturnType<typeof createAdminClient>,

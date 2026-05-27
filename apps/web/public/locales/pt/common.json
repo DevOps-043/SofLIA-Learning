@@ -455,9 +455,13 @@
         "title": "Senha atualizada",
         "message": "Sua senha foi atualizada com sucesso."
       },
+      "system_profile_updated": {
+        "title": "Perfil atualizado",
+        "message": "Seu perfil foi atualizado: {{changesText}}."
+      },
       "system_login_success": {
-        "title": "Login bem-sucedido",
-        "message": "Foi detectado um login na sua conta de {{location}}."
+        "title": "Novo login",
+        "message": "Foi detectado um login de {{deviceLabel}}. IP: {{ipLabel}}."
       },
       "system_login_failed": {
         "title": "Tentativa de login falhou",
@@ -546,6 +550,10 @@
       "course_enrolled": {
         "title": "Inscrição bem-sucedida",
         "message": "Você se inscreveu em \"{{courseTitle}}\". Comece agora!"
+      },
+      "course_activity_completed": {
+        "title": "Atividade concluída",
+        "message": "Você concluiu \"{{activityTitle}}\" em \"{{courseTitle}}\"."
       },
       "course_lesson_completed": {
         "title": "Lição concluída",

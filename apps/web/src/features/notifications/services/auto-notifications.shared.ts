@@ -59,3 +59,12 @@ export async function dispatchNotificationsInChunks(
     await dispatchNotifications(notifications.slice(index, index + batchSize))
   }
 }
+
+export function resolveNotificationOrganizationId(
+  metadata?: NotificationMetadata,
+): string | undefined {
+  const organizationId = metadata?.organizationId ?? metadata?.organization_id
+  return typeof organizationId === 'string' && organizationId.trim()
+    ? organizationId
+    : undefined
+}

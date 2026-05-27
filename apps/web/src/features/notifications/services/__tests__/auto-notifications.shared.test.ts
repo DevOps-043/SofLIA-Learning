@@ -10,6 +10,7 @@ import { NotificationService } from '../notification.service'
 import {
   dispatchNotificationsInChunks,
   resolveNotificationActorName,
+  resolveNotificationOrganizationId,
   truncateNotificationPreview,
 } from '../auto-notifications.shared'
 
@@ -35,6 +36,12 @@ describe('auto-notifications shared helpers', () => {
   it('truncates long previews and keeps short ones intact', () => {
     expect(truncateNotificationPreview('short')).toBe('short')
     expect(truncateNotificationPreview('a'.repeat(110), 100)).toBe(`${'a'.repeat(100)}...`)
+  })
+
+  it('resolves organization ids from supported metadata keys', () => {
+    expect(resolveNotificationOrganizationId({ organizationId: 'org-1' })).toBe('org-1')
+    expect(resolveNotificationOrganizationId({ organization_id: 'org-2' })).toBe('org-2')
+    expect(resolveNotificationOrganizationId({ organizationId: '' })).toBeUndefined()
   })
 
   it('dispatches notifications in deterministic chunks', async () => {

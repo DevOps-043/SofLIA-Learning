@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import useSWR from 'swr'
 import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
@@ -51,9 +51,14 @@ interface DashboardStats {
 
 interface DashboardActivityApiRow {
   action?: string | null
-  user?: string | null
-  time?: string | null
+  createdAt?: string | null
   icon?: string | null
+  message?: string | null
+  metadata?: Record<string, unknown> | null
+  notificationType?: string | null
+  time?: string | null
+  title?: string | null
+  user?: string | null
 }
 
 interface DashboardActivity {
@@ -61,7 +66,7 @@ interface DashboardActivity {
   description: string
   user: string
   timestamp: string
-  type: 'certificate' | 'user' | 'course' | 'progress'
+  type: 'certificate' | 'user' | 'course' | 'progress' | 'system'
 }
 
 interface DashboardStatsResponse {
@@ -115,11 +120,46 @@ function getStatChange(stat: DashboardMetric, fallbackChange: DashboardChange = 
   return parseChange(fallbackChange)
 }
 
+function getActivityType(activity: DashboardActivityApiRow): DashboardActivity['type'] {
+  const notificationType = activity.notificationType || ''
+
+  if (notificationType.includes('certificate')) return 'certificate'
+  if (
+    notificationType.includes('login') ||
+    notificationType.includes('profile') ||
+    notificationType.includes('password') ||
+    notificationType.includes('org_') ||
+    notificationType === 'team_assignment'
+  ) {
+    return 'user'
+  }
+  if (notificationType.includes('course') || notificationType.includes('learning_path')) return 'course'
+
+  if (activity.icon === 'CheckCircle') return 'certificate'
+  if (activity.icon === 'Users') return 'user'
+  if (activity.icon === 'BookOpen') return 'course'
+  return 'progress'
+}
+
+function getNotificationActivityText(
+  activity: DashboardActivityApiRow,
+  value: string | null | undefined,
+  translate: (key: string, options?: Record<string, unknown>) => unknown,
+) {
+  const metadata = activity.metadata || {}
+  const translated = metadata.is_localized && value
+    ? translate(value, metadata)
+    : value || ''
+
+  return typeof translated === 'string' ? translated : value || ''
+}
+
 export function useBusinessPanelDashboardLogic() {
   const { user } = useAuth()
   const params = useParams()
   const orgSlug = params?.orgSlug as string || 'org'
   const { t, i18n } = useTranslation('business')
+  const { t: tc } = useTranslation('common')
   const { effectiveStyles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
   const isDark = resolvedTheme === 'dark'
@@ -179,25 +219,34 @@ export function useBusinessPanelDashboardLogic() {
     return t('dashboard.recentActivity.defaultUser', { defaultValue: 'Usuario' })
   }
 
-  const formatTimestamp = (dateString: string): string => {
+  const formatTimestamp = useCallback((dateString: string): string => {
     return formatTimeAgo(dateString, i18n.language, t)
-  }
+  }, [i18n.language, t])
 
   const activities = useMemo<DashboardActivity[]>(() => (
-    activityRows.map((activity) => ({
-      title: activity.action || t('dashboard.recentActivity.defaultTitle', { defaultValue: 'Actividad' }),
-      description: activity.action || t('dashboard.recentActivity.defaultDesc', { defaultValue: 'Sin descripcion' }),
-      user: activity.user || t('dashboard.recentActivity.defaultUser', { defaultValue: 'Usuario' }),
-      timestamp: activity.time || t('dashboard.recentActivity.defaultTime', { defaultValue: 'Hace un momento' }),
-      type: activity.icon === 'CheckCircle'
-        ? 'certificate'
-        : activity.icon === 'Users'
-          ? 'user'
-          : activity.icon === 'BookOpen'
-            ? 'course'
-            : 'progress',
-    }))
-  ), [activityRows, t])
+    activityRows.map((activity) => {
+      const title = getNotificationActivityText(
+        activity,
+        activity.title || activity.action,
+        tc,
+      )
+      const description = getNotificationActivityText(
+        activity,
+        activity.message || activity.action,
+        tc,
+      )
+
+      return {
+        title: title || t('dashboard.recentActivity.defaultTitle', { defaultValue: 'Actividad' }),
+        description: description || t('dashboard.recentActivity.defaultDesc', { defaultValue: 'Sin descripcion' }),
+        user: activity.user || t('dashboard.recentActivity.defaultUser', { defaultValue: 'Usuario' }),
+        timestamp: activity.createdAt
+          ? formatTimestamp(activity.createdAt)
+          : activity.time || t('dashboard.recentActivity.defaultTime', { defaultValue: 'Hace un momento' }),
+        type: getActivityType(activity),
+      }
+    })
+  ), [activityRows, formatTimestamp, t, tc])
 
   const statsData = useMemo(() => stats ? [
     {

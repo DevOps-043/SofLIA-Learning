@@ -15,6 +15,8 @@ type CompletionStatus = 'completed';
 interface ActivityCompletionRecord {
   activity_id?: string;
   completion_id: string;
+  conversation_id?: string | null;
+  organization_id?: string | null;
   started_at: string | null;
   total_steps: number | null;
   status?: string;
@@ -38,6 +40,16 @@ interface ActivityCompletionInsert extends ActivityCompletionUpdate {
   current_step: number;
   lia_had_to_redirect: number;
   started_at: string;
+}
+
+interface CompletedActivityContext {
+  activityId: string;
+  activityTitle: string;
+  courseId: string;
+  courseSlug: string | null;
+  courseTitle: string;
+  lessonId: string;
+  organizationId: string | null;
 }
 
 async function hasUserMessageInConversation(input: {
@@ -81,6 +93,134 @@ async function hasUserMessageInConversation(input: {
   return (count || 0) > 0;
 }
 
+function firstRow<T>(value: T | T[] | null | undefined): T | null {
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return value ?? null;
+}
+
+async function resolveCompletedActivityContext(input: {
+  activityId: string;
+  conversationId?: string | null;
+  organizationId?: string | null;
+  supabase: ReturnType<typeof createAdminClient>;
+  userId: string;
+}): Promise<CompletedActivityContext | null> {
+  const { data: activity } = await input.supabase
+    .from('lesson_activities')
+    .select('activity_id, activity_title, lesson_id')
+    .eq('activity_id', input.activityId)
+    .maybeSingle();
+
+  if (!activity?.lesson_id) {
+    return null;
+  }
+
+  const { data: lesson } = await input.supabase
+    .from('course_lessons')
+    .select('lesson_id, module_id')
+    .eq('lesson_id', activity.lesson_id)
+    .maybeSingle();
+
+  if (!lesson?.module_id) {
+    return null;
+  }
+
+  const { data: module } = await input.supabase
+    .from('course_modules')
+    .select('course_id')
+    .eq('module_id', lesson.module_id)
+    .maybeSingle();
+
+  if (!module?.course_id) {
+    return null;
+  }
+
+  const [{ data: course }, { data: conversation }, { data: enrollment }] =
+    await Promise.all([
+      input.supabase
+        .from('courses')
+        .select('id, title, slug')
+        .eq('id', module.course_id)
+        .maybeSingle(),
+      input.conversationId
+        ? input.supabase
+            .from('lia_conversations')
+            .select('organization_id')
+            .eq('conversation_id', input.conversationId)
+            .eq('user_id', input.userId)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+      input.supabase
+        .from('user_course_enrollments')
+        .select('organization_id')
+        .eq('user_id', input.userId)
+        .eq('course_id', module.course_id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+  if (!course?.id) {
+    return null;
+  }
+
+  return {
+    activityId: activity.activity_id,
+    activityTitle: activity.activity_title || 'Actividad',
+    courseId: course.id,
+    courseSlug: course.slug || null,
+    courseTitle: course.title || 'Curso',
+    lessonId: activity.lesson_id,
+    organizationId:
+      input.organizationId ||
+      firstRow(conversation)?.organization_id ||
+      firstRow(enrollment)?.organization_id ||
+      null,
+  };
+}
+
+async function notifyLiaActivityCompletedBestEffort(input: {
+  activityId: string;
+  completionId?: string | null;
+  conversationId?: string | null;
+  organizationId?: string | null;
+  supabase: ReturnType<typeof createAdminClient>;
+  userId: string;
+}) {
+  try {
+    const context = await resolveCompletedActivityContext(input);
+    if (!context) {
+      return;
+    }
+
+    const { AutoNotificationsService } = await import(
+      '@/features/notifications/services/auto-notifications.service'
+    );
+
+    await AutoNotificationsService.notifyCourseActivityCompleted(
+      input.userId,
+      context.courseId,
+      context.courseTitle,
+      context.lessonId,
+      context.activityId,
+      context.activityTitle,
+      {
+        action_url: context.courseSlug ? `/courses/${context.courseSlug}/learn` : undefined,
+        completion_id: input.completionId || undefined,
+        conversation_id: input.conversationId || undefined,
+        courseSlug: context.courseSlug || undefined,
+        organization_id: context.organizationId || undefined,
+        source: 'lia_activity_completion',
+      },
+    );
+  } catch (error) {
+    techDebtLogger.warn('No se pudo crear notificacion de actividad LIA completada:', error);
+  }
+}
+
 /**
  * POST /api/lia/complete-activity
  * 
@@ -120,7 +260,7 @@ async function handlePost(
     if (completionId) {
       const { data: activity, error: fetchError } = await supabase
         .from('lia_activity_completions')
-        .select('started_at, total_steps')
+        .select('activity_id, conversation_id, organization_id, started_at, status, total_steps')
         .eq('completion_id', completionId)
         .eq('user_id', user.id)
         .single<ActivityCompletionRecord>();
@@ -158,6 +298,17 @@ async function handlePost(
           'Error al completar actividad',
           500,
         );
+      }
+
+      if (activity.status !== 'completed' && activity.activity_id) {
+        await notifyLiaActivityCompletedBestEffort({
+          activityId: activity.activity_id,
+          completionId,
+          conversationId: activity.conversation_id || conversationId,
+          organizationId: activity.organization_id,
+          supabase,
+          userId: user.id,
+        });
       }
 
       return NextResponse.json({
@@ -268,6 +419,16 @@ async function handlePost(
         'Error al registrar actividad completada',
         500,
       );
+    }
+
+    if (data?.completion_id) {
+      await notifyLiaActivityCompletedBestEffort({
+        activityId: activityType,
+        completionId: data.completion_id,
+        conversationId,
+        supabase,
+        userId: user.id,
+      });
     }
 
     return NextResponse.json({

@@ -17,6 +17,23 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const organizationId = searchParams.get('org') || null
+    const includeStats = searchParams.get('includeStats') === '1'
+
+    if (includeStats) {
+      const [profile, stats, subscriptions] = await Promise.all([
+        ProfileServerService.getProfile(user.id, organizationId),
+        ProfileServerService.getUserStats(user.id),
+        ProfileServerService.getUserSubscriptions(user.id),
+      ])
+
+      return NextResponse.json({
+        profile,
+        stats: {
+          ...stats,
+          subscriptions,
+        },
+      })
+    }
 
     const profile = await ProfileServerService.getProfile(user.id, organizationId)
     return NextResponse.json(profile)

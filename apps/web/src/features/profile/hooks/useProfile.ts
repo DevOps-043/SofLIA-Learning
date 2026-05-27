@@ -31,10 +31,8 @@ export function useProfile(): UseProfileReturn {
       setLoading(true)
       setError(null)
 
-      const [profileData, userStats] = await Promise.all([
-        ProfileService.getProfile(organizationId),
-        ProfileService.getStats()
-      ])
+      const { profile: profileData, stats: userStats } =
+        await ProfileService.getProfileBundle(organizationId)
 
       setProfile(profileData)
       setStats(userStats)
@@ -66,7 +64,7 @@ export function useProfile(): UseProfileReturn {
     } finally {
       setSaving(false)
     }
-  }, [user?.id])
+  }, [user?.id, organizationId])
 
   const uploadProfilePicture = useCallback(async (file: File) => {
     if (!user?.id) {

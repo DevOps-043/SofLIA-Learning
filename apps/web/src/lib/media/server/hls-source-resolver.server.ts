@@ -10,6 +10,16 @@ interface CompletedTranscodingRow {
   source_url: string | null
 }
 
+const HLS_LOOKUP_CACHE_TTL_MS = 5 * 60 * 1000
+
+const hlsLookupCache = new Map<
+  string,
+  {
+    expiresAt: number
+    value: string | null
+  }
+>()
+
 /**
  * Given source MP4/WebM URLs or storage paths, returns a Map of those
  * references to their corresponding HLS master.m3u8 URL when a completed
@@ -38,10 +48,27 @@ export async function resolveHlsUrlsForSources(
     return new Map()
   }
 
+  const cachedMap = new Map<string, string>()
+  const uncachedReferences: string[] = []
+  const now = Date.now()
+
+  for (const reference of references) {
+    const cachedValue = readCachedHlsLookup(reference, now)
+    if (cachedValue === undefined) {
+      uncachedReferences.push(reference)
+    } else if (cachedValue) {
+      cachedMap.set(reference, cachedValue)
+    }
+  }
+
+  if (uncachedReferences.length === 0) {
+    return cachedMap
+  }
+
   const referencesByUrl = new Map<string, string[]>()
   const referencesByPath = new Map<string, string[]>()
 
-  for (const reference of references) {
+  for (const reference of uncachedReferences) {
     if (reference.startsWith('http')) {
       addMapValue(referencesByUrl, reference, reference)
     }
@@ -56,7 +83,16 @@ export async function resolveHlsUrlsForSources(
   const validPaths = Array.from(referencesByPath.keys())
 
   if (validUrls.length === 0 && validPaths.length === 0) {
-    return new Map()
+    for (const reference of uncachedReferences) {
+      writeCachedHlsLookup(reference, null)
+    }
+    return cachedMap
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[hls-resolver] Looking up HLS for', uncachedReferences.length, 'sources')
+    console.log('[hls-resolver] validUrls:', validUrls.slice(0, 2))
+    console.log('[hls-resolver] validPaths:', validPaths.slice(0, 2))
   }
 
   const rows = await loadCompletedTranscodingRows(
@@ -65,15 +101,25 @@ export async function resolveHlsUrlsForSources(
     validPaths,
   )
 
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[hls-resolver] DB rows found:', rows.length)
+    if (rows.length > 0) {
+      console.log('[hls-resolver] First row:', { source_path: rows[0]?.source_path, source_url: rows[0]?.source_url?.slice(0, 80), result_url: rows[0]?.result_url?.slice(0, 80) })
+    }
+  }
+
+  const map = new Map(cachedMap)
   if (rows.length === 0) {
-    return new Map()
+    for (const reference of uncachedReferences) {
+      writeCachedHlsLookup(reference, null)
+    }
+    return map
   }
 
   rows.sort((left, right) =>
     getCompletedAtMs(right.completed_at) - getCompletedAtMs(left.completed_at),
   )
 
-  const map = new Map<string, string>()
   for (const row of rows) {
     if (!row.result_url) continue
 
@@ -94,6 +140,14 @@ export async function resolveHlsUrlsForSources(
         map.set(reference, row.result_url)
       }
     }
+  }
+
+  for (const reference of uncachedReferences) {
+    writeCachedHlsLookup(reference, map.get(reference) ?? null)
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[hls-resolver] Resolved HLS URLs:', map.size, '/', references.length, 'sources')
   }
 
   return map
@@ -121,6 +175,28 @@ function createLookupClient(fallbackClient: SupabaseClient): SupabaseClient {
   } catch {
     return fallbackClient
   }
+}
+
+function readCachedHlsLookup(
+  reference: string,
+  now = Date.now(),
+): string | null | undefined {
+  const cached = hlsLookupCache.get(reference)
+  if (!cached) return undefined
+
+  if (cached.expiresAt <= now) {
+    hlsLookupCache.delete(reference)
+    return undefined
+  }
+
+  return cached.value
+}
+
+function writeCachedHlsLookup(reference: string, value: string | null) {
+  hlsLookupCache.set(reference, {
+    expiresAt: Date.now() + HLS_LOOKUP_CACHE_TTL_MS,
+    value,
+  })
 }
 
 async function loadCompletedTranscodingRows(

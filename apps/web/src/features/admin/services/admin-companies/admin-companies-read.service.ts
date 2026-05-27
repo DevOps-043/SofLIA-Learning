@@ -4,9 +4,15 @@ import { logger } from '../../../../lib/utils/logger'
 
 import type {
   AdminCompany,
+  AdminCompanyMember,
   AdminCompanyUserProfile,
 } from '../../types/admin-companies.types'
-import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+import {
+  DEFAULT_BRAND_ACCENT,
+  DEFAULT_BRAND_FONT,
+  DEFAULT_BRAND_PRIMARY,
+  DEFAULT_BRAND_SECONDARY,
+} from './admin-companies.defaults'
 import {
   mapOrganizationRow,
   type OrganizationRow,
@@ -16,6 +22,49 @@ type SupabaseServerClient = ReturnType<typeof createAdminClient>
 type UserProfileRow = Omit<AdminCompanyUserProfile, 'email'> & { email: string | null }
 
 const COMPANY_MEMBER_PROFILE_ROLES = ['owner', 'admin']
+
+interface AdminCompanyOverviewRow {
+  id: string
+  name: string
+  slug: string | null
+  description: string | null
+  logo_url: string | null
+  brand_logo_url: string | null
+  brand_banner_url: string | null
+  brand_favicon_url: string | null
+  brand_color_primary: string | null
+  brand_color_secondary: string | null
+  brand_color_accent: string | null
+  brand_font_family: string | null
+  contact_email: string | null
+  contact_phone: string | null
+  website_url: string | null
+  subscription_plan: string | null
+  subscription_status: string | null
+  subscription_start_date: string | null
+  subscription_end_date: string | null
+  is_active: boolean | null
+  max_users: number | null
+  google_login_enabled: boolean | null
+  microsoft_login_enabled: boolean | null
+  created_at: string | null
+  updated_at: string | null
+  total_users: number | string | null
+  active_users: number | string | null
+  invited_users: number | string | null
+  suspended_users: number | string | null
+  members: AdminCompanyMember[] | null
+}
+
+interface AdminCompaniesOverviewRpcClient {
+  rpc(
+    fn: 'get_admin_companies_overview',
+    args?: Record<string, never>,
+  ): PromiseLike<{
+    data: AdminCompanyOverviewRow[] | null
+    error: { message?: string } | null
+  }>
+}
 
 const ORGANIZATION_SELECT = `
   id,
@@ -54,6 +103,67 @@ const ORGANIZATION_SELECT = `
 
 const USER_INVITATIONS_SELECT = 'id, email, token, role, organization_id, status, expires_at, created_at, created_by, accepted_at, metadata'
 const BULK_INVITE_LINKS_SELECT = 'id, organization_id, created_by, token, name, max_uses, current_uses, role, expires_at, status, metadata, created_at, updated_at'
+
+function toCount(value: number | string | null | undefined): number {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+  return 0
+}
+
+function mapAdminCompanyOverviewRow(row: AdminCompanyOverviewRow): AdminCompany {
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    description: row.description,
+    logo_url: row.logo_url,
+    brand_logo_url: row.brand_logo_url,
+    brand_banner_url: row.brand_banner_url,
+    brand_favicon_url: row.brand_favicon_url,
+    brand_color_primary: row.brand_color_primary ?? DEFAULT_BRAND_PRIMARY,
+    brand_color_secondary: row.brand_color_secondary ?? DEFAULT_BRAND_SECONDARY,
+    brand_color_accent: row.brand_color_accent ?? DEFAULT_BRAND_ACCENT,
+    brand_font_family: row.brand_font_family ?? DEFAULT_BRAND_FONT,
+    contact_email: row.contact_email,
+    contact_phone: row.contact_phone,
+    website_url: row.website_url,
+    subscription_plan: row.subscription_plan,
+    subscription_status: row.subscription_status,
+    subscription_start_date: row.subscription_start_date,
+    subscription_end_date: row.subscription_end_date,
+    is_active: row.is_active ?? true,
+    max_users: row.max_users,
+    total_users: toCount(row.total_users),
+    active_users: toCount(row.active_users),
+    invited_users: toCount(row.invited_users),
+    suspended_users: toCount(row.suspended_users),
+    google_login_enabled: row.google_login_enabled ?? false,
+    microsoft_login_enabled: row.microsoft_login_enabled ?? false,
+    created_at: row.created_at || new Date().toISOString(),
+    updated_at: row.updated_at || new Date().toISOString(),
+    members: Array.isArray(row.members) ? row.members : [],
+  }
+}
+
+async function loadAdminCompaniesOverview(
+  supabase: SupabaseServerClient,
+): Promise<AdminCompany[] | null> {
+  const { data, error } = await (
+    supabase as unknown as AdminCompaniesOverviewRpcClient
+  ).rpc('get_admin_companies_overview', {})
+
+  if (error) {
+    logger.warn('Admin companies overview RPC unavailable, using fallback', {
+      error: error.message,
+    })
+    return null
+  }
+
+  return (data || []).map(mapAdminCompanyOverviewRow)
+}
 
 async function buildUsersMap(
   supabase: SupabaseServerClient,
@@ -118,6 +228,11 @@ function collectOrganizationUserIds(organizations: OrganizationRow[]): string[] 
 
 export async function getAdminCompanies(): Promise<AdminCompany[]> {
   const supabase = createAdminClient()
+  const companiesOverview = await loadAdminCompaniesOverview(supabase)
+  if (companiesOverview) {
+    return companiesOverview
+  }
+
   const { data, error } = await supabase
     .from('organizations')
     .select(ORGANIZATION_SELECT)

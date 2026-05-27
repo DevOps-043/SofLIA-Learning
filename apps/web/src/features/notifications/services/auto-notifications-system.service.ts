@@ -2,6 +2,48 @@ import type { NotificationMetadata } from './auto-notifications.shared'
 import { createSystemNotification } from './auto-notifications-system-create.service'
 import { buildProfileUpdatedNotification } from './auto-notifications-system-profile.service'
 
+function resolveLoginClient(userAgent?: string) {
+  const normalized = (userAgent || '').toLowerCase()
+  const browser = normalized.includes('edg/')
+    ? 'Microsoft Edge'
+    : normalized.includes('chrome/')
+      ? 'Chrome'
+      : normalized.includes('firefox/')
+        ? 'Firefox'
+        : normalized.includes('safari/')
+          ? 'Safari'
+          : 'Navegador desconocido'
+
+  const operatingSystem = normalized.includes('windows')
+    ? 'Windows'
+    : normalized.includes('mac os')
+      ? 'macOS'
+      : normalized.includes('android')
+        ? 'Android'
+        : normalized.includes('iphone') || normalized.includes('ipad')
+          ? 'iOS'
+          : normalized.includes('linux')
+            ? 'Linux'
+            : 'Sistema desconocido'
+
+  const deviceType = normalized.includes('mobile')
+    ? 'mobile'
+    : normalized.includes('tablet') || normalized.includes('ipad')
+      ? 'tablet'
+      : 'desktop'
+
+  return {
+    browser,
+    deviceLabel: `${browser} (${operatingSystem})`,
+    deviceType,
+    operatingSystem,
+  }
+}
+
+function resolveIpLabel(ip?: string) {
+  return ip && ip !== 'unknown' ? ip : 'IP no disponible'
+}
+
 export class SystemNotificationsService {
   static async notifyPasswordChanged(userId: string, metadata?: NotificationMetadata): Promise<void> {
     await createSystemNotification({
@@ -17,6 +59,7 @@ export class SystemNotificationsService {
     userId: string,
     changes: string[],
     metadata?: NotificationMetadata,
+    organizationId?: string | null,
   ): Promise<void> {
     const profileNotification = buildProfileUpdatedNotification(changes)
 
@@ -27,13 +70,18 @@ export class SystemNotificationsService {
     await createSystemNotification({
       userId,
       notificationType: 'system_profile_updated',
-      title: 'Perfil actualizado',
-      message: profileNotification.message,
+      title: 'notifications.types.system_profile_updated.title',
+      message: 'notifications.types.system_profile_updated.message',
+      isLocalized: true,
       metadata: {
         ...metadata,
+        action_url: '/profile',
         changes: profileNotification.displayableChanges,
+        changesCount: profileNotification.displayableChanges.length,
+        changesText: profileNotification.friendlyNames.join(', '),
         friendly_changes: profileNotification.friendlyNames,
       },
+      organizationId,
       logSuccess: '✅ Notificación de actualización de perfil creada',
       logError: '❌ Error creando notificación de actualización de perfil:',
       logContext: { changes: profileNotification.displayableChanges },
@@ -46,13 +94,30 @@ export class SystemNotificationsService {
     userAgent?: string,
     metadata?: NotificationMetadata,
   ): Promise<void> {
+    const client = resolveLoginClient(userAgent)
+    const ipLabel = resolveIpLabel(ip)
+
     await createSystemNotification({
       userId,
       notificationType: 'system_login_success',
-      metadata: { ...metadata, location: ip || 'Ubicación desconocida', ip, userAgent },
+      metadata: {
+        ...metadata,
+        action_url: '/profile?tab=security',
+        auth_method: metadata?.isOAuth ? 'oauth' : 'password',
+        browser: client.browser,
+        deviceLabel: client.deviceLabel,
+        deviceType: client.deviceType,
+        ip,
+        ipLabel,
+        location: ipLabel,
+        operatingSystem: client.operatingSystem,
+        rememberMe: metadata?.rememberMe ?? false,
+        sessionMode: metadata?.rememberMe ? 'extendida' : 'normal',
+        userAgent,
+      },
       logSuccess: '✅ Notificación de inicio de sesión creada',
       logError: '❌ Error creando notificación de inicio de sesión:',
-      logContext: { ip },
+      logContext: { device: client.deviceLabel, ip },
     })
   }
 
@@ -62,13 +127,25 @@ export class SystemNotificationsService {
     userAgent?: string,
     metadata?: NotificationMetadata,
   ): Promise<void> {
+    const client = resolveLoginClient(userAgent)
+    const ipLabel = resolveIpLabel(ip)
+
     await createSystemNotification({
       userId,
       notificationType: 'system_login_failed',
-      metadata: { ...metadata, location: ip || 'Ubicación desconocida', ip, userAgent },
+      metadata: {
+        ...metadata,
+        browser: client.browser,
+        deviceLabel: client.deviceLabel,
+        ip,
+        ipLabel,
+        location: ipLabel,
+        operatingSystem: client.operatingSystem,
+        userAgent,
+      },
       logSuccess: '✅ Notificación de inicio de sesión fallido creada',
       logError: '❌ Error creando notificación de inicio de sesión fallido:',
-      logContext: { ip },
+      logContext: { device: client.deviceLabel, ip },
     })
   }
 

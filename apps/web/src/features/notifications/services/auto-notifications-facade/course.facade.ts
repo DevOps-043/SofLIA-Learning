@@ -45,6 +45,25 @@ export const courseNotificationFacade = {
       metadata,
     )
   },
+  notifyCourseActivityCompleted(
+    userId: string,
+    courseId: string,
+    courseTitle: string,
+    lessonId: string,
+    activityId: string,
+    activityTitle: string,
+    metadata?: NotificationMetadata,
+  ) {
+    return CourseNotificationsService.notifyCourseActivityCompleted(
+      userId,
+      courseId,
+      courseTitle,
+      lessonId,
+      activityId,
+      activityTitle,
+      metadata,
+    )
+  },
   notifyCourseQuestionAnswered(
     questionId: string,
     questionAuthorId: string,

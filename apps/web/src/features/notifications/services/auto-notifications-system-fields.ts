@@ -15,6 +15,10 @@ const FIELD_DISPLAY_NAMES: Record<string, string> = {
   github_url: 'GitHub',
   website_url: 'Sitio web',
   country_code: 'País',
+  date_of_birth: 'Fecha de nacimiento',
+  gender: 'Genero',
+  job_description: 'Descripcion del puesto',
+  job_title: 'Puesto',
   points: 'Puntos',
 }
 

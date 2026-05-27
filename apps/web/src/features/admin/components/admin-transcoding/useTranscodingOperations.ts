@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react'
 import {
   drainTranscodingQueue,
+  queueLegacyVideos,
   reprocessTranscodingJob,
   scanAndQueueVideos,
 } from './api'
@@ -17,6 +18,8 @@ export function useTranscodingOperations({ fetchJobs }: UseTranscodingOperations
   const [scanResult, setScanResult] = useState<ScanResponse | null>(null)
   const [isDraining, setIsDraining] = useState(false)
   const [drainResult, setDrainResult] = useState<DrainResponse | null>(null)
+  const [isQueuingLegacy, setIsQueuingLegacy] = useState(false)
+  const [legacyQueueResult, setLegacyQueueResult] = useState<ScanResponse | null>(null)
 
   const triggerScan = useCallback(async () => {
     setIsScanning(true)
@@ -58,6 +61,28 @@ export function useTranscodingOperations({ fetchJobs }: UseTranscodingOperations
     }
   }, [fetchJobs])
 
+  const triggerLegacyQueue = useCallback(async () => {
+    setIsQueuingLegacy(true)
+    setLegacyQueueResult(null)
+    try {
+      const body = await queueLegacyVideos()
+      setLegacyQueueResult(body)
+      if (body.success) await fetchJobs()
+    } catch (issue) {
+      setLegacyQueueResult({
+        success: false,
+        totalFound: 0,
+        alreadyDone: 0,
+        queued: 0,
+        invoked: 0,
+        jobIds: [],
+        error: issue instanceof Error ? issue.message : 'Error',
+      })
+    } finally {
+      setIsQueuingLegacy(false)
+    }
+  }, [fetchJobs])
+
   const reprocessJob = useCallback(async (
     sourcePath: string,
     bucket: string,
@@ -74,10 +99,13 @@ export function useTranscodingOperations({ fetchJobs }: UseTranscodingOperations
   return {
     drainResult,
     isDraining,
+    isQueuingLegacy,
     isScanning,
+    legacyQueueResult,
     reprocessJob,
     scanResult,
     triggerDrain,
+    triggerLegacyQueue,
     triggerScan,
   }
 }

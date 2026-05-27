@@ -5,8 +5,10 @@ import {
   type CourseActivitySubmissionBody,
 } from '@/app/api/courses/_schemas'
 import { SessionService } from '@/features/auth/services/session.service'
+import { notifyCourseActivityCompletedBestEffort } from '@/features/courses/services/activity-notifications.server.service'
 import {
   CourseActivityError,
+  getActivitySubmissionDetail,
   resolveCourseActivityContext,
   saveActivitySubmission,
 } from '@/features/courses/services/activity-submission.server.service'
@@ -57,11 +59,19 @@ async function handlePost(
       lessonId,
       activityId,
     )
+    const previousSubmission = await getActivitySubmissionDetail(supabase, context)
     const submission = await saveActivitySubmission(
       supabase,
       context,
       sanitizeActivitySubmissionBody(body),
     )
+
+    await notifyCourseActivityCompletedBestEffort({
+      context,
+      courseSlug: slug,
+      nextSubmission: submission,
+      previousSubmission,
+    })
 
     return NextResponse.json({
       submission,

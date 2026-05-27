@@ -39,6 +39,18 @@ export async function drainTranscodingQueue(): Promise<DrainResponse> {
   return response.json()
 }
 
+export async function queueLegacyVideos(): Promise<ScanResponse> {
+  const response = await fetch('/api/admin/transcoding/scan-and-queue-legacy', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    // concurrency: 1 — encola todo, dispara solo 1 función background de inmediato.
+    // El drain automático procesa el resto de la cola de a uno para minimizar costo.
+    body: JSON.stringify({ concurrency: 1 }),
+  })
+  return response.json()
+}
+
 export async function reprocessTranscodingJob(sourcePath: string, bucket: string, contentType: string) {
   await fetch('/api/admin/transcoding/reprocess', {
     method: 'POST',

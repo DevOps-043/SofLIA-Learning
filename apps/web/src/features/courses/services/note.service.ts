@@ -1,5 +1,4 @@
 import { createClient } from '../../../lib/supabase/server'
-import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
 
@@ -38,6 +37,41 @@ export interface CourseNotesStats {
   lessonsWithNotes: number
   totalLessons: number
   lastUpdate: string | null
+}
+
+interface CourseNotesStatsRpcRow {
+  total_notes: number | string | null
+  lessons_with_notes: number | string | null
+  total_lessons: number | string | null
+  last_update: string | null
+}
+
+interface CourseNotesStatsRpcClient {
+  rpc(
+    fn: 'get_course_notes_stats',
+    args: { p_user_id: string; p_course_id: string },
+  ): PromiseLike<{
+    data: CourseNotesStatsRpcRow[] | CourseNotesStatsRpcRow | null
+    error: { message?: string } | null
+  }>
+}
+
+function toCount(value: number | string | null | undefined): number {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+  return 0
+}
+
+function mapCourseNotesStats(row: CourseNotesStatsRpcRow): CourseNotesStats {
+  return {
+    totalNotes: toCount(row.total_notes),
+    lessonsWithNotes: toCount(row.lessons_with_notes),
+    totalLessons: toCount(row.total_lessons),
+    lastUpdate: row.last_update || null,
+  }
 }
 
 export class NoteService {
@@ -260,6 +294,20 @@ export class NoteService {
     courseId: string,
   ): Promise<CourseNotesStats> {
     try {
+      const { data: rpcData, error: rpcError } = await (
+        supabase as unknown as CourseNotesStatsRpcClient
+      ).rpc('get_course_notes_stats', {
+        p_user_id: userId,
+        p_course_id: courseId,
+      })
+
+      if (!rpcError && rpcData) {
+        const row = Array.isArray(rpcData) ? rpcData[0] : rpcData
+        if (row) {
+          return mapCourseNotesStats(row)
+        }
+      }
+
       const lessonIds = await this.getCourseLessonIds(supabase, courseId)
       const totalLessons = lessonIds.length
 

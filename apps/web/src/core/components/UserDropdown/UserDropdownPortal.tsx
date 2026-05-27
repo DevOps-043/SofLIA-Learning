@@ -33,8 +33,8 @@ export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed w-[336px] max-w-[calc(100vw-2rem)] rounded-2xl border backdrop-blur-xl shadow-2xl overflow-hidden bg-white/95 dark:bg-carbon-800/95 border-gray-200 dark:border-white/10"
-            style={{ zIndex: USER_DROPDOWN_MENU_Z_INDEX, top: logic.pos.top, right: logic.pos.right }}
+            className="fixed w-[308px] max-w-[calc(100vw-2rem)] rounded-2xl border backdrop-blur-xl shadow-2xl overflow-y-auto bg-white/95 dark:bg-carbon-800/95 border-gray-200 dark:border-white/10"
+            style={{ zIndex: USER_DROPDOWN_MENU_Z_INDEX, top: logic.pos.top, right: logic.pos.right, maxHeight: `calc(100vh - ${logic.pos.top}px - 16px)` }}
           >
             <UserDropdownHeader
               accentColor={logic.accentColor}
@@ -51,10 +51,10 @@ export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
             <UserDropdownOrgSection logic={logic} />
             <UserDropdownPanelSwitcher logic={logic} />
             <UserDropdownMenuItems logic={logic} />
-            <div className="px-2 py-2 border-t border-gray-200 dark:border-white/5">
+            <div className="px-2 py-1.5 border-t border-gray-200 dark:border-white/5">
               <motion.button
                 onClick={logic.handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-medium text-red-500 dark:text-red-400 hover:bg-red-500/10 transition-all"
+                className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-sm font-medium text-red-500 dark:text-red-400 hover:bg-red-500/10 transition-all"
                 whileHover={{ x: 3 }}
                 whileTap={{ scale: 0.98 }}
               >

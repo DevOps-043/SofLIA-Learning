@@ -57,6 +57,7 @@ export async function loadLearnDataPayload(
   language: string,
   userId?: string,
   organizationId?: string | null,
+  includeLessonData = false,
 ): Promise<LearnDataQueryPayload> {
   const startedAt = Date.now()
   const course = await loadCourseBySlug(supabase, slug)
@@ -71,7 +72,7 @@ export async function loadLearnDataPayload(
       ),
       loadCourseQuestions(supabase, course.id, userId),
       userId ? loadNotesStats(supabase, course.id, userId) : Promise.resolve(null),
-      lessonId
+      includeLessonData && lessonId
         ? loadLessonData(supabase, course.id, lessonId, language)
         : Promise.resolve(null),
     ])

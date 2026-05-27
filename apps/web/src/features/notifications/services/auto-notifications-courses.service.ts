@@ -2,7 +2,10 @@ import { NotificationService } from './notification.service'
 import { getNotificationPriority } from '../utils/notification-categories'
 import { logger } from '@/lib/logger'
 import { getServerClient } from './auto-notifications-server-client'
-import type { NotificationMetadata } from './auto-notifications.shared'
+import {
+  resolveNotificationOrganizationId,
+  type NotificationMetadata,
+} from './auto-notifications.shared'
 
 /**
  * Notificaciones automáticas relacionadas con cursos.
@@ -83,6 +86,7 @@ export class CourseNotificationsService {
         title: 'notifications.types.course_enrolled.title',
         message: 'notifications.types.course_enrolled.message',
         isLocalized: true,
+        organizationId: resolveNotificationOrganizationId(metadata),
         metadata: {
           ...metadata,
           courseTitle,
@@ -115,6 +119,7 @@ export class CourseNotificationsService {
         title: 'notifications.types.course_lesson_completed.title',
         message: 'notifications.types.course_lesson_completed.message',
         isLocalized: true,
+        organizationId: resolveNotificationOrganizationId(metadata),
         metadata: {
           ...metadata,
           course_id: courseId,
@@ -155,6 +160,7 @@ export class CourseNotificationsService {
         title: `notifications.types.${type}.title`,
         message: `notifications.types.${type}.message`,
         isLocalized: true,
+        organizationId: resolveNotificationOrganizationId(metadata),
         metadata: {
           ...metadata,
           course_id: courseId,
@@ -172,6 +178,53 @@ export class CourseNotificationsService {
       })
     } catch (error) {
       logger.error('❌ Error creando notificación de curso completado:', error)
+    }
+  }
+
+  /**
+   * Crea una notificacion cuando se completa una actividad de una leccion.
+   */
+  static async notifyCourseActivityCompleted(
+    userId: string,
+    courseId: string,
+    courseTitle: string,
+    lessonId: string,
+    activityId: string,
+    activityTitle: string,
+    metadata?: NotificationMetadata
+  ): Promise<void> {
+    try {
+      const courseSlug = typeof metadata?.courseSlug === 'string'
+        ? metadata.courseSlug
+        : null
+
+      await NotificationService.createNotification({
+        userId,
+        notificationType: 'course_activity_completed',
+        title: 'notifications.types.course_activity_completed.title',
+        message: 'notifications.types.course_activity_completed.message',
+        isLocalized: true,
+        organizationId: resolveNotificationOrganizationId(metadata),
+        metadata: {
+          ...metadata,
+          action_url: courseSlug ? `/courses/${courseSlug}/learn` : metadata?.action_url,
+          activity_id: activityId,
+          activityTitle,
+          course_id: courseId,
+          courseTitle,
+          lesson_id: lessonId,
+          timestamp: new Date().toISOString()
+        },
+        priority: getNotificationPriority('course_activity_completed')
+      })
+
+      logger.info('Notificacion de actividad completada creada', {
+        activityId,
+        courseId,
+        userId,
+      })
+    } catch (error) {
+      logger.error('Error creando notificacion de actividad completada:', error)
     }
   }
 

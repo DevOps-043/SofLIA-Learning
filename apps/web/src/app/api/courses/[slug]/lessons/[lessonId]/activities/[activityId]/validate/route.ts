@@ -5,6 +5,7 @@ import {
   type CourseActivityValidationBody,
 } from '@/app/api/courses/_schemas'
 import { SessionService } from '@/features/auth/services/session.service'
+import { notifyCourseActivityCompletedBestEffort } from '@/features/courses/services/activity-notifications.server.service'
 import {
   CourseActivityError,
   getActivitySubmissionDetail,
@@ -156,6 +157,13 @@ async function handlePost(
 
     await recalculateLessonActivityProgress(supabase, context)
     const refreshedSubmission = await getActivitySubmissionDetail(supabase, context)
+
+    await notifyCourseActivityCompletedBestEffort({
+      context,
+      courseSlug: slug,
+      nextSubmission: refreshedSubmission,
+      previousSubmission: currentSubmission,
+    })
 
     return NextResponse.json({
       evaluation: feedback,

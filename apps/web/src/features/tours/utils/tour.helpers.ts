@@ -4,6 +4,7 @@ export const TOUR_AUTOSTART_DELAY_MS = 600
 
 const MIN_TOOLTIP_SIDE_SPACE_PX = 430
 const MIN_TOOLTIP_VERTICAL_SPACE_PX = 260
+const TOOLTIP_VIEWPORT_PADDING_PX = 16
 
 export function isMobileViewport(): boolean {
   if (typeof window === 'undefined') {
@@ -128,4 +129,42 @@ export function resolveStepPlacement(step: TourStep, mobile: boolean): TourPlace
   }
 
   return placement
+}
+
+export function clampTourFloaterToViewport(padding = TOOLTIP_VIEWPORT_PADDING_PX): void {
+  if (typeof document === 'undefined' || typeof window === 'undefined') {
+    return
+  }
+
+  const floater = document.querySelector<HTMLElement>(
+    '.react-joyride__floater, .__floater__open, .__floater',
+  )
+
+  if (!floater) {
+    return
+  }
+
+  floater.style.translate = '0px 0px'
+
+  const rect = floater.getBoundingClientRect()
+  let offsetX = 0
+  let offsetY = 0
+
+  if (rect.right > window.innerWidth - padding) {
+    offsetX = window.innerWidth - padding - rect.right
+  }
+
+  if (rect.left + offsetX < padding) {
+    offsetX += padding - (rect.left + offsetX)
+  }
+
+  if (rect.bottom > window.innerHeight - padding) {
+    offsetY = window.innerHeight - padding - rect.bottom
+  }
+
+  if (rect.top + offsetY < padding) {
+    offsetY += padding - (rect.top + offsetY)
+  }
+
+  floater.style.translate = `${Math.round(offsetX)}px ${Math.round(offsetY)}px`
 }

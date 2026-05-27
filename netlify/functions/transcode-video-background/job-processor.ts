@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { createAdminClient } from './env';
+import { createAdminClient, getEnv } from './env';
 import { resolveFfmpegPath } from './ffmpeg-path';
 import { probeVideo, transcodeRendition, writeMasterPlaylist } from './ffmpeg-workflow';
 import {
@@ -32,7 +32,7 @@ export async function processTranscodeJob(payload: TranscodeJobPayload) {
 
   try {
     await mkdir(workspace.outputRoot, { recursive: true });
-    await downloadSource(supabase, bucket, sourcePath, workspace.inputPath, sizeBytes);
+    await downloadSource(supabase, bucket, sourcePath, payload.sourceUrl, workspace.inputPath, sizeBytes);
     const stream = await probeVideo(ffmpegPath, workspace.inputPath);
     const renditions = resolveRenditions(stream);
     console.log(`[transcode-bg] ${stream.width}x${stream.height} -> ${renditions.map((r) => r.name).join(', ')}`);
@@ -73,14 +73,28 @@ async function downloadSource(
   supabase: ReturnType<typeof createAdminClient>,
   bucket: string,
   sourcePath: string,
+  sourceUrl: string,
   inputPath: string,
   sizeBytes?: number
 ) {
-  const { data: blob, error } = await supabase.storage.from(bucket).download(sourcePath);
-  if (error || !blob) throw new Error(error?.message ?? 'Failed to download source video');
+  const currentProjectUrl = getEnv('NEXT_PUBLIC_SUPABASE_URL') ?? ''
+  const isCurrentProject = currentProjectUrl && sourceUrl.startsWith(currentProjectUrl)
 
-  await writeFile(inputPath, Buffer.from(await blob.arrayBuffer()));
-  console.log(`[transcode-bg] Downloaded source (${((sizeBytes ?? 0) / 1_048_576).toFixed(1)} MB)`);
+  let buffer: Buffer
+
+  if (isCurrentProject || !sourceUrl.startsWith('http')) {
+    const { data: blob, error } = await supabase.storage.from(bucket).download(sourcePath)
+    if (error || !blob) throw new Error(error?.message ?? 'Failed to download source video')
+    buffer = Buffer.from(await blob.arrayBuffer())
+  } else {
+    console.log(`[transcode-bg] Fetching source from external URL: ${sourceUrl.slice(0, 100)}`)
+    const response = await fetch(sourceUrl, { signal: AbortSignal.timeout(300_000) })
+    if (!response.ok) throw new Error(`Failed to fetch source from external URL: HTTP ${response.status}`)
+    buffer = Buffer.from(await response.arrayBuffer())
+  }
+
+  await writeFile(inputPath, buffer)
+  console.log(`[transcode-bg] Downloaded source (${((sizeBytes ?? 0) / 1_048_576).toFixed(1)} MB)`)
 }
 
 async function markJobProcessing(supabase: ReturnType<typeof createAdminClient>, jobId: string) {

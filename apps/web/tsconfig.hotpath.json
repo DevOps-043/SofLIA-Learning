@@ -1,0 +1,40 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "incremental": false,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@aprende-y-aplica/ui": ["../../packages/ui/src"],
+      "@aprende-y-aplica/shared": ["../../packages/shared/src"],
+      "@shared/*": ["../../packages/shared/src/*"],
+      "@/shared/*": ["./src/shared/*"],
+      "@/ui/*": ["../../packages/ui/src/*"],
+      "@/features/*": ["./src/features/*"],
+      "@/core/*": ["./src/core/*"],
+      "@/app/*": ["./src/app/*"],
+      "@/components/*": ["./src/shared/components/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/utils/*": ["./src/shared/utils/*"],
+      "@/hooks/*": ["./src/shared/hooks/*"]
+    }
+  },
+  "files": [
+    "src/app/api/[orgSlug]/business/dashboard/activity/route.ts",
+    "src/app/api/[orgSlug]/business/dashboard/stats/route.ts",
+    "src/features/admin/services/admin-companies/admin-companies-read.service.ts",
+    "src/features/admin/services/admin-companies/admin-companies-assignments.service.ts",
+    "src/app/api/profile/route.ts",
+    "src/features/profile/services/profile.service.ts",
+    "src/features/profile/hooks/useProfile.ts",
+    "src/features/profile/services/profile-server/profile-stats.service.ts",
+    "src/features/courses/services/note.service.ts",
+    "src/app/api/courses/[slug]/learn-data/services/learn-data/learn-data-lessons.service.ts",
+    "src/app/api/courses/[slug]/learn-data/services/learn-data-query.service.ts",
+    "src/app/api/courses/[slug]/learn-data/route.ts",
+    "src/app/api/courses/[slug]/learn-data/services/learn-data-response.service.ts",
+    "src/lib/media/server/hls-source-resolver.server.ts"
+  ]
+}

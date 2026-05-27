@@ -89,9 +89,11 @@ export function hydrateLessonVideoProviderId(lesson: AdminLesson): AdminLesson {
     return lesson
   }
 
-  const videoProviderId = lesson.video_provider_id.includes('/')
-    ? `${supabaseUrl}/storage/v1/object/public/${lesson.video_provider_id}`
-    : `${supabaseUrl}/storage/v1/object/public/course-videos/videos/${lesson.video_provider_id}`
+  const rawId = lesson.video_provider_id
+  const normalizedPath = rawId.includes('/')
+    ? rawId.startsWith('course-videos/') ? rawId : `course-videos/${rawId}`
+    : `course-videos/videos/${rawId}`
+  const videoProviderId = `${supabaseUrl}/storage/v1/object/public/${normalizedPath}`
 
   return {
     ...lesson,

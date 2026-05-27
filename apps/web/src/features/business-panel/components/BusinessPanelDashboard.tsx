@@ -89,7 +89,7 @@ export function BusinessPanelDashboard() {
             </span>
           </div>
 
-          <motion.h1 className="text-xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 leading-tight" style={{ color: 'var(--color-bg-light)' }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition}>
+          <motion.h1 data-tour-id="business-panel-dashboard--hero-summary" className="text-xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 leading-tight" style={{ color: 'var(--color-bg-light)' }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition}>
             <DashboardGreeting getGreeting={getGreeting} userName={getUserName()} />
           </motion.h1>
 

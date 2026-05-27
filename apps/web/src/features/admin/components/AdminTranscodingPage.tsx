@@ -20,13 +20,19 @@ export function AdminTranscodingPage() {
         onRunDiagnostics={state.runDiagnostics}
       />
       <ActionBar
-        isScanning={state.isScanning}
         isDraining={state.isDraining}
-        onScan={state.triggerScan}
+        isQueuingLegacy={state.isQueuingLegacy}
+        isScanning={state.isScanning}
         onDrain={state.triggerDrain}
+        onQueueLegacy={state.triggerLegacyQueue}
         onRefresh={state.fetchJobs}
+        onScan={state.triggerScan}
       />
-      <ResultAlerts scanResult={state.scanResult} drainResult={state.drainResult} />
+      <ResultAlerts
+        drainResult={state.drainResult}
+        legacyQueueResult={state.legacyQueueResult}
+        scanResult={state.scanResult}
+      />
       <StatusTiles summary={state.data?.summary} />
       <JobsTable
         data={state.data}

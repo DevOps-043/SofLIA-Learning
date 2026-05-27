@@ -66,14 +66,18 @@ export async function updateProfile(
       .update({ ...organizationUpdates, updated_at: now })
       .eq('id', oldMembership.id)
       .eq('user_id', userId)
-      .select('id, job_title, job_description')
+      .select('id, organization_id, job_title, job_description')
       .single()
 
     if (error) throw new Error(`Error al actualizar datos laborales: ${error.message}`)
     nextMembership = data as ProfileMembership | null
   }
 
-  await notifyProfileUpdatedBestEffort(userId, [...actualChanges, ...organizationChanges])
+  await notifyProfileUpdatedBestEffort(
+    userId,
+    [...actualChanges, ...organizationChanges],
+    organizationId || oldMembership?.organization_id || null,
+  )
 
   return mapProfileWithMembership(nextProfile, nextMembership)
 }

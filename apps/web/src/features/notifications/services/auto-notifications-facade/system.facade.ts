@@ -5,8 +5,18 @@ export const systemNotificationFacade = {
   notifyPasswordChanged(userId: string, metadata?: NotificationMetadata) {
     return SystemNotificationsService.notifyPasswordChanged(userId, metadata)
   },
-  notifyProfileUpdated(userId: string, changes: string[], metadata?: NotificationMetadata) {
-    return SystemNotificationsService.notifyProfileUpdated(userId, changes, metadata)
+  notifyProfileUpdated(
+    userId: string,
+    changes: string[],
+    metadata?: NotificationMetadata,
+    organizationId?: string | null,
+  ) {
+    return SystemNotificationsService.notifyProfileUpdated(
+      userId,
+      changes,
+      metadata,
+      organizationId,
+    )
   },
   notifyLoginSuccess(
     userId: string,

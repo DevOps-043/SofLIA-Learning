@@ -81,9 +81,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Error updating profile' }, { status: 500 })
     }
 
+    await notifyProfilePictureUpdatedBestEffort(user.id)
+
     return NextResponse.json({ imageUrl: publicUrl })
   } catch (error) {
     logger.error('Error in upload-picture API:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+  }
+}
+
+async function notifyProfilePictureUpdatedBestEffort(userId: string) {
+  try {
+    const { AutoNotificationsService } = await import(
+      '@/features/notifications/services/auto-notifications.service'
+    )
+    await AutoNotificationsService.notifyProfileUpdated(userId, ['profile_picture_url'], {
+      action_url: '/profile',
+      timestamp: new Date().toISOString(),
+    })
+  } catch (error) {
+    logger.warn('No se pudo crear notificacion de foto de perfil:', {
+      error: error instanceof Error ? error.message : String(error),
+      userId,
+    })
   }
 }

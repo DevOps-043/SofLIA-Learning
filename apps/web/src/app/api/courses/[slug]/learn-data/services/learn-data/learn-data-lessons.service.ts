@@ -35,8 +35,8 @@ interface LessonRow {
   video_provider: string | null
   is_published: boolean | null
   module_id: string
-  transcript_content: string | null
-  summary_content: string | null
+  transcript_content?: string | null
+  summary_content?: string | null
 }
 
 interface ProgressRow {
@@ -233,47 +233,50 @@ export async function loadModulesWithProgress(
     }
   }
 
-  let enrollmentId: string | null = null
-  let resolvedOrganizationId: string | null = null
-  if (userId) {
-    const enrollment = await resolveCourseEnrollment(
+  const enrollmentPromise = userId
+    ? resolveCourseEnrollment(
       supabase,
       userId,
       courseId,
       organizationId,
     )
+    : Promise.resolve(null)
 
-    enrollmentId = enrollment?.enrollment_id || null
-    resolvedOrganizationId = enrollment?.organization_id || organizationId || null
-  }
-
-  const { data: baseLessonsData } = await supabase
+  const moduleIds = modules.map((module) => module.module_id)
+  const baseLessonsPromise = supabase
     .from('course_lessons')
     .select(
-      'lesson_id, lesson_title, lesson_description, lesson_order_index, duration_seconds, video_provider_id, video_provider, is_published, module_id, transcript_content, summary_content',
+      'lesson_id, lesson_title, lesson_description, lesson_order_index, duration_seconds, video_provider_id, video_provider, is_published, module_id',
     )
-    .in(
-      'module_id',
-      modules.map((module) => module.module_id),
-    )
+    .in('module_id', moduleIds)
     .order('lesson_order_index', { ascending: true })
 
-  const baseLessons = (baseLessonsData || []) as LessonRow[]
+  const translatedLessonsPromise =
+    requestedLanguage !== 'es'
+      ? supabase
+          .from(getLessonsTableName(requestedLanguage))
+          .select(
+            'lesson_id, lesson_title, lesson_description, lesson_order_index, duration_seconds, video_provider_id, video_provider, is_published, module_id',
+          )
+          .in('module_id', moduleIds)
+          .order('lesson_order_index', { ascending: true })
+      : Promise.resolve({ data: null })
+
+  const [enrollment, baseLessonsResult, translatedLessonsResult] =
+    await Promise.all([
+      enrollmentPromise,
+      baseLessonsPromise,
+      translatedLessonsPromise,
+    ])
+
+  const enrollmentId = enrollment?.enrollment_id || null
+  const resolvedOrganizationId =
+    enrollment?.organization_id || organizationId || null
+  const baseLessons = (baseLessonsResult.data || []) as LessonRow[]
   let translatedLessonsById = new Map<string, LessonRow>()
   if (requestedLanguage !== 'es') {
-    const { data: translatedLessonsData } = await supabase
-      .from(getLessonsTableName(requestedLanguage))
-      .select(
-        'lesson_id, lesson_title, lesson_description, lesson_order_index, duration_seconds, video_provider_id, video_provider, is_published, module_id, transcript_content, summary_content',
-      )
-      .in(
-        'module_id',
-        modules.map((module) => module.module_id),
-      )
-      .order('lesson_order_index', { ascending: true })
-
     translatedLessonsById = new Map(
-      ((translatedLessonsData || []) as LessonRow[]).map((lesson) => [
+      ((translatedLessonsResult.data || []) as LessonRow[]).map((lesson) => [
         lesson.lesson_id,
         lesson,
       ]),
@@ -342,30 +345,70 @@ export async function loadModulesWithProgress(
     if (lesson.video_provider !== 'direct') return raw
     if (raw.startsWith('http')) return raw
     if (!supabaseUrl) return raw
-    return raw.includes('/')
-      ? `${supabaseUrl}/storage/v1/object/public/${raw}`
-      : `${supabaseUrl}/storage/v1/object/public/course-videos/videos/${raw}`
+    if (!raw.includes('/')) {
+      return `${supabaseUrl}/storage/v1/object/public/course-videos/videos/${raw}`
+    }
+    const normalizedPath = raw.startsWith('course-videos/') ? raw : `course-videos/${raw}`
+    return `${supabaseUrl}/storage/v1/object/public/${normalizedPath}`
+  }
+
+  function isStorageVideoEligibleForHls(lesson: LessonRow, absoluteUrl: string): boolean {
+    if (lesson.video_provider === 'direct') return true
+    if (lesson.video_provider === 'custom') {
+      // Current project bucket (may be tagged incorrectly as custom)
+      if (absoluteUrl.includes('/storage/v1/object/public/course-videos/')) return true
+      // Legacy project bucket — transcoding jobs created via scan-and-queue-legacy
+      if (absoluteUrl.includes('/storage/v1/object/public/production-videos/')) return true
+    }
+    return false
   }
 
   const sourceUrlByLessonId = new Map<string, string>()
   for (const lesson of lessons) {
     const absoluteUrl = buildAbsoluteVideoUrl(lesson)
-    if (absoluteUrl && lesson.video_provider === 'direct') {
+    if (absoluteUrl && isStorageVideoEligibleForHls(lesson, absoluteUrl)) {
       sourceUrlByLessonId.set(lesson.lesson_id, absoluteUrl)
     }
   }
-  const hlsBySource = await resolveHlsUrlsForSources(
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[learn-data] HLS-eligible lessons:', sourceUrlByLessonId.size, '/', lessons.length)
+    const sample = Array.from(sourceUrlByLessonId.values()).slice(0, 2)
+    if (sample.length > 0) console.log('[learn-data] Sample source URLs:', sample.map((u) => u.slice(-60)))
+    const excluded = lessons.filter((l) => {
+      const url = buildAbsoluteVideoUrl(l)
+      return !url || !isStorageVideoEligibleForHls(l, url)
+    })
+    if (excluded.length > 0) {
+      console.log('[learn-data] Excluded lessons (provider/url):', excluded.slice(0, 3).map((l) => ({ provider: l.video_provider, id_snippet: l.video_provider_id?.slice(0, 60) })))
+    }
+  }
+
+  const hlsBySourcePromise = resolveHlsUrlsForSources(
     supabase,
     Array.from(sourceUrlByLessonId.values()),
   )
 
-  const translatedModules = await ContentTranslationService.translateArray(
-    'module',
-    modules.map((module) => ({ ...module, id: module.module_id })),
-    ['module_title', 'module_description'],
-    language as SupportedLanguage,
-    supabase,
-  )
+  const translatedModulesPromise =
+    requestedLanguage === 'es'
+      ? Promise.resolve(modules.map((module) => ({ ...module, id: module.module_id })))
+      : ContentTranslationService.translateArray(
+          'module',
+          modules.map((module) => ({ ...module, id: module.module_id })),
+          ['module_title', 'module_description'],
+          requestedLanguage as SupportedLanguage,
+          supabase,
+        )
+
+  const [hlsBySource, translatedModules] = await Promise.all([
+    hlsBySourcePromise,
+    translatedModulesPromise,
+  ])
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[learn-data] HLS URLs resolved:', hlsBySource.size, '/', sourceUrlByLessonId.size)
+  }
+
   const translatedModulesById = new Map(
     translatedModules.map((module) => [module.module_id, module]),
   )
@@ -441,6 +484,7 @@ export async function loadCourseQuestions(
 ) {
   interface QuestionRow extends Record<string, unknown> {
     id: string
+    response_count?: number | null
   }
 
   const { data: questions, error } = await supabase
@@ -470,31 +514,14 @@ export async function loadCourseQuestions(
 
   const questionRows = questions as QuestionRow[]
   const questionIds = questionRows.map((question) => question.id)
-  const [responseCountsResult, userReactionsResult] = await Promise.all([
-    supabase
-      .from('course_question_responses')
-      .select('question_id')
-      .in('question_id', questionIds)
-      .eq('is_deleted', false),
-    userId
-      ? supabase
-          .from('course_question_reactions')
-          .select('question_id, reaction_type')
-          .eq('user_id', userId)
-          .in('question_id', questionIds)
-      : Promise.resolve({ data: null, error: null }),
-  ])
-  const countsMap = new Map<string, number>()
+  const userReactionsResult = userId
+    ? await supabase
+        .from('course_question_reactions')
+        .select('question_id, reaction_type')
+        .eq('user_id', userId)
+        .in('question_id', questionIds)
+    : { data: null }
   const userReactionsMap = new Map<string, string>()
-
-  ;(responseCountsResult.data || []).forEach(
-    (response: { question_id: string }) => {
-      countsMap.set(
-        response.question_id,
-        (countsMap.get(response.question_id) || 0) + 1,
-      )
-    },
-  )
 
   ;(userReactionsResult?.data || []).forEach(
     (reaction: { question_id: string | null; reaction_type: string }) => {
@@ -508,7 +535,7 @@ export async function loadCourseQuestions(
 
   return questionRows.map((question) => ({
     ...question,
-    response_count: countsMap.get(question.id) || 0,
+    response_count: question.response_count || 0,
     user_reaction: userReactionsMap.get(question.id) || null,
   }))
 }
