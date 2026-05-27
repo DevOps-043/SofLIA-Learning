@@ -105,7 +105,9 @@ export async function GET(request: NextRequest) {
 
   const isEligible =
     provider === 'direct' ||
-    (provider === 'custom' && (absoluteUrl ?? '').includes('/storage/v1/object/public/course-videos/'))
+    (provider === 'custom' &&
+      ((absoluteUrl ?? '').includes('/storage/v1/object/public/course-videos/') ||
+       (absoluteUrl ?? '').includes('/storage/v1/object/public/production-videos/')))
 
   let hlsResolution: {
     resolvedUrl: string | null
