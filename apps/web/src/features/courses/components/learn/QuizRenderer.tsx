@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { buildQuizFeedbackPrompt } from "./quiz.utils";
 import { QuizIntro } from "./quiz-renderer/QuizIntro";
+import { QuizQuestionNavigator } from "./quiz-renderer/QuizQuestionNavigator";
 import { QuizQuestionCard } from "./quiz-renderer/QuizQuestionCard";
 import { QuizResultsPanel } from "./quiz-renderer/QuizResultsPanel";
 import { QuizSubmitButton } from "./quiz-renderer/QuizSubmitButton";
@@ -42,6 +43,11 @@ export function QuizRenderer(props: QuizRendererProps) {
     setCurrentQuestionIndex(0);
   }, [normalizedQuizData]);
 
+  const handleRetryQuiz = () => {
+    setCurrentQuestionIndex(0);
+    handleRetry();
+  };
+
   if (totalQuestions === 0) {
     return (
       <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200">
@@ -58,13 +64,22 @@ export function QuizRenderer(props: QuizRendererProps) {
         totalQuestions={totalQuestions}
       />
 
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 dark:text-white/50">
-        <span>
-          {t("activities.quiz.questionProgress", {
-            current: currentQuestionIndex + 1,
-            total: totalQuestions,
-          })}
-        </span>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs text-gray-500 dark:text-white/50">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span>
+            {t("activities.quiz.questionProgress", {
+              current: currentQuestionIndex + 1,
+              total: totalQuestions,
+            })}
+          </span>
+          <QuizQuestionNavigator
+            currentQuestionIndex={currentQuestionIndex}
+            onQuestionChange={setCurrentQuestionIndex}
+            questions={normalizedQuizData}
+            selectedAnswers={selectedAnswers}
+            showResults={showResults}
+          />
+        </div>
         <span>
           {t("activities.quiz.answered", {
             answered: answeredQuestionCount,
@@ -128,7 +143,7 @@ export function QuizRenderer(props: QuizRendererProps) {
 
       {showResults && (
         <QuizResultsPanel
-          onRetry={handleRetry}
+          onRetry={handleRetryQuiz}
           onRequestFeedback={
             feedbackPrompt && props.onRequestQuizFeedback
               ? () => props.onRequestQuizFeedback?.(feedbackPrompt, {

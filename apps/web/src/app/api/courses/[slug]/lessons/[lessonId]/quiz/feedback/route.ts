@@ -28,6 +28,8 @@ Tu objetivo: retroalimentación concisa, directa y útil que aclare el concepto 
 Reglas estrictas:
 - NO incluyas saludos, presentaciones ni frases introductorias. Ve directo a la retroalimentación.
 - Máximo 2-3 oraciones por pregunta incorrecta
+- Cubre todas las preguntas incorrectas incluidas en el prompt
+- Cierra cada idea con una oración completa; no dejes frases inconclusas
 - Confirma la respuesta correcta y explica brevemente por qué es correcta
 - Explica de forma directa por qué la respuesta del alumno es incorrecta
 - Cita minutos del video solo si aparecen explícitamente en la transcripción proporcionada
@@ -82,7 +84,7 @@ async function generateFeedbackWithGemini(params: {
     model: process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp',
     systemInstruction,
     generationConfig: {
-      maxOutputTokens: 2048,
+      maxOutputTokens: 4096,
       temperature: 0.3,
     },
   })

@@ -171,6 +171,7 @@
       "countryCode": "Código de país",
       "bio": "Biografía",
       "bioPlaceholder": "Escribe una breve descripción del usuario...",
+      "role": "Rol",
       "roleType": "Tipo de rol",
       "points": "Puntos",
       "emailVerified": "Email verificado",
