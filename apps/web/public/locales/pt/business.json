@@ -845,6 +845,7 @@
         "loading": "Carregando estatísticas...",
         "error": "Erro ao carregar estatísticas",
         "tabs": {
+          "analytics": "Analytics",
           "overview": "Visão Geral",
           "courses": "Cursos",
           "progress": "Progreso",

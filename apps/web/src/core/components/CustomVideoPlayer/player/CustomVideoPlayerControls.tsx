@@ -1,20 +1,25 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  Check,
   ChevronLeft,
   ChevronRight,
+  Gauge,
   Maximize,
   Minimize,
   Pause,
-  PictureInPicture,
+  PictureInPicture2,
   Play,
   Settings,
+  Sliders,
   Volume2,
   VolumeX,
 } from 'lucide-react';
 import type { CustomVideoPlayerController } from './types';
+
+type SettingsPanel = 'main' | 'quality' | 'speed';
 
 interface CustomVideoPlayerControlsProps {
   controller: CustomVideoPlayerController;
@@ -23,6 +28,28 @@ interface CustomVideoPlayerControlsProps {
 export function CustomVideoPlayerControls({
   controller,
 }: CustomVideoPlayerControlsProps) {
+  const [settingsPanel, setSettingsPanel] = useState<SettingsPanel>('main');
+
+  // Reset to main panel whenever the dropdown closes
+  useEffect(() => {
+    if (!controller.showSettings) {
+      setSettingsPanel('main');
+    }
+  }, [controller.showSettings]);
+
+  const speedLabel =
+    controller.playbackRate === 1 ? 'Normal' : `${controller.playbackRate}×`;
+
+  const qualityLabel =
+    controller.quality.selectedHeight === null
+      ? 'Auto'
+      : `${controller.quality.selectedHeight}p`;
+
+  const hasQualitySelector =
+    controller.quality.isHls &&
+    !controller.quality.isNativeHls &&
+    controller.quality.availableRenditions.length > 0;
+
   return (
     <>
       {controller.isLoading && (
@@ -217,11 +244,14 @@ export function CustomVideoPlayerControls({
                 </div>
 
                 <div className="flex items-center gap-1 sm:gap-2">
+                  {/* Settings */}
                   <div className="relative">
                     <button
                       className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-all duration-200 group"
-                      onClick={() => controller.setShowSettings((current) => !current)}
-                      title="Configuracion"
+                      onClick={() =>
+                        controller.setShowSettings((current) => !current)
+                      }
+                      title="Configuración"
                     >
                       <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:scale-110 transition-transform" />
                     </button>
@@ -230,94 +260,214 @@ export function CustomVideoPlayerControls({
                       {controller.showSettings && (
                         <motion.div
                           animate={{ opacity: 1, scale: 1, y: 0 }}
-                          className="absolute bottom-full right-0 mb-2 w-40 sm:w-48 bg-black/90 backdrop-blur-md rounded-lg shadow-xl border border-white/10 overflow-hidden"
-                          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                          className="absolute bottom-full right-0 mb-2 w-56 rounded-xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.85)] border border-white/[0.07]"
+                          exit={{ opacity: 0, scale: 0.97, y: 4 }}
+                          initial={{ opacity: 0, scale: 0.97, y: 4 }}
+                          style={{ background: '#212121' }}
+                          transition={{ duration: 0.12 }}
                         >
-                          {/*
-                            Quality selector: only rendered when:
-                            - the source is HLS (otherwise there is nothing to switch)
-                            - we are NOT on native HLS (Safari/iOS expose no API to
-                              force a specific rendition; we'd be lying to the user)
-                            - we successfully parsed >= 1 rendition from the master
-                          */}
-                          {controller.quality.isHls &&
-                            !controller.quality.isNativeHls &&
-                            controller.quality.availableRenditions.length > 0 && (
-                              <div className="p-2 border-b border-white/10">
-                                <div className="px-3 py-2 text-xs font-medium text-white/70 uppercase tracking-wider">
-                                  Calidad
-                                </div>
-                                <div className="space-y-1">
+                          <AnimatePresence mode="wait" initial={false}>
+                            {settingsPanel === 'main' && (
+                              <motion.div
+                                key="main"
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -12 }}
+                                initial={{ opacity: 0, x: 12 }}
+                                transition={{ duration: 0.1 }}
+                                className="py-1"
+                              >
+                                {/* Playback speed */}
+                                <button
+                                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors duration-100"
+                                  onClick={() => setSettingsPanel('speed')}
+                                >
+                                  <Gauge className="w-4 h-4 text-white/50 flex-shrink-0" />
+                                  <span className="text-[13px] text-white flex-1 text-left">
+                                    Velocidad
+                                  </span>
+                                  <span className="text-[12px] text-white/40 mr-1">
+                                    {speedLabel}
+                                  </span>
+                                  <ChevronRight className="w-3.5 h-3.5 text-white/30 flex-shrink-0" />
+                                </button>
+
+                                {/* Quality (HLS only) */}
+                                {hasQualitySelector && (
                                   <button
-                                    className={`w-full text-left px-3 py-2 text-sm rounded-md transition-all duration-200 flex items-center justify-between ${
-                                      controller.quality.selectedHeight === null
-                                        ? 'bg-accent/20 text-accent font-medium'
-                                        : 'text-white/80 hover:bg-white/10'
-                                    }`}
-                                    onClick={() =>
-                                      controller.quality.setQualityLevel(null)
-                                    }
+                                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors duration-100"
+                                    onClick={() => setSettingsPanel('quality')}
                                   >
-                                    <span>Auto</span>
-                                    <span className="text-xs text-white/40">
+                                    <Sliders className="w-4 h-4 text-white/50 flex-shrink-0" />
+                                    <span className="text-[13px] text-white flex-1 text-left">
+                                      Calidad
+                                    </span>
+                                    <span className="text-[12px] text-white/40 mr-1">
+                                      {qualityLabel}
+                                    </span>
+                                    <ChevronRight className="w-3.5 h-3.5 text-white/30 flex-shrink-0" />
+                                  </button>
+                                )}
+
+                                {/* Divider before PiP */}
+                                <div className="mx-4 my-1 border-t border-white/[0.06]" />
+
+                                {/* Picture in Picture */}
+                                <button
+                                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors duration-100"
+                                  onClick={() => {
+                                    void controller.togglePictureInPicture();
+                                  }}
+                                >
+                                  <PictureInPicture2 className="w-4 h-4 text-white/50 flex-shrink-0" />
+                                  <span className="text-[13px] text-white flex-1 text-left">
+                                    Imagen en imagen
+                                  </span>
+                                </button>
+                              </motion.div>
+                            )}
+
+                            {settingsPanel === 'speed' && (
+                              <motion.div
+                                key="speed"
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 12 }}
+                                initial={{ opacity: 0, x: -12 }}
+                                transition={{ duration: 0.1 }}
+                              >
+                                {/* Subpanel header */}
+                                <div className="flex items-center gap-1 px-2 py-2 border-b border-white/[0.07]">
+                                  <button
+                                    className="p-1.5 rounded-lg hover:bg-white/[0.07] transition-colors"
+                                    onClick={() => setSettingsPanel('main')}
+                                  >
+                                    <ChevronLeft className="w-4 h-4 text-white" />
+                                  </button>
+                                  <span className="text-[13px] font-medium text-white">
+                                    Velocidad de reproducción
+                                  </span>
+                                </div>
+
+                                <div className="py-1">
+                                  {controller.playbackRates.map((rate) => (
+                                    <button
+                                      key={rate}
+                                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors duration-100"
+                                      onClick={() => {
+                                        controller.changePlaybackRate(rate);
+                                        setSettingsPanel('main');
+                                      }}
+                                    >
+                                      <Check
+                                        className={`w-4 h-4 flex-shrink-0 transition-opacity ${
+                                          controller.playbackRate === rate
+                                            ? 'text-[var(--color-accent)] opacity-100'
+                                            : 'opacity-0'
+                                        }`}
+                                      />
+                                      <span
+                                        className={`text-[13px] ${
+                                          controller.playbackRate === rate
+                                            ? 'text-[var(--color-accent)] font-medium'
+                                            : 'text-white/80'
+                                        }`}
+                                      >
+                                        {rate === 1 ? 'Normal' : `${rate}×`}
+                                      </span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </motion.div>
+                            )}
+
+                            {settingsPanel === 'quality' && (
+                              <motion.div
+                                key="quality"
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 12 }}
+                                initial={{ opacity: 0, x: -12 }}
+                                transition={{ duration: 0.1 }}
+                              >
+                                {/* Subpanel header */}
+                                <div className="flex items-center gap-1 px-2 py-2 border-b border-white/[0.07]">
+                                  <button
+                                    className="p-1.5 rounded-lg hover:bg-white/[0.07] transition-colors"
+                                    onClick={() => setSettingsPanel('main')}
+                                  >
+                                    <ChevronLeft className="w-4 h-4 text-white" />
+                                  </button>
+                                  <span className="text-[13px] font-medium text-white">
+                                    Calidad
+                                  </span>
+                                </div>
+
+                                <div className="py-1">
+                                  {/* Auto */}
+                                  <button
+                                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors duration-100"
+                                    onClick={() => {
+                                      controller.quality.setQualityLevel(null);
+                                      setSettingsPanel('main');
+                                    }}
+                                  >
+                                    <Check
+                                      className={`w-4 h-4 flex-shrink-0 transition-opacity ${
+                                        controller.quality.selectedHeight === null
+                                          ? 'text-[var(--color-accent)] opacity-100'
+                                          : 'opacity-0'
+                                      }`}
+                                    />
+                                    <span
+                                      className={`text-[13px] flex-1 text-left ${
+                                        controller.quality.selectedHeight === null
+                                          ? 'text-[var(--color-accent)] font-medium'
+                                          : 'text-white/80'
+                                      }`}
+                                    >
+                                      Auto
+                                    </span>
+                                    <span className="text-[11px] text-white/25">
                                       adaptativo
                                     </span>
                                   </button>
+
+                                  {/* Renditions */}
                                   {controller.quality.availableRenditions.map(
                                     (rendition) => (
                                       <button
                                         key={rendition.height}
-                                        className={`w-full text-left px-3 py-2 text-sm rounded-md transition-all duration-200 ${
-                                          controller.quality.selectedHeight ===
-                                          rendition.height
-                                            ? 'bg-accent/20 text-accent font-medium'
-                                            : 'text-white/80 hover:bg-white/10'
-                                        }`}
-                                        onClick={() =>
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors duration-100"
+                                        onClick={() => {
                                           controller.quality.setQualityLevel(
                                             rendition.height,
-                                          )
-                                        }
+                                          );
+                                          setSettingsPanel('main');
+                                        }}
                                       >
-                                        {rendition.label}
+                                        <Check
+                                          className={`w-4 h-4 flex-shrink-0 transition-opacity ${
+                                            controller.quality.selectedHeight ===
+                                            rendition.height
+                                              ? 'text-[var(--color-accent)] opacity-100'
+                                              : 'opacity-0'
+                                          }`}
+                                        />
+                                        <span
+                                          className={`text-[13px] ${
+                                            controller.quality.selectedHeight ===
+                                            rendition.height
+                                              ? 'text-[var(--color-accent)] font-medium'
+                                              : 'text-white/80'
+                                          }`}
+                                        >
+                                          {rendition.label}
+                                        </span>
                                       </button>
                                     ),
                                   )}
                                 </div>
-                              </div>
+                              </motion.div>
                             )}
-
-                          <div className="p-2 border-b border-white/10">
-                            <div className="px-3 py-2 text-xs font-medium text-white/70 uppercase tracking-wider">
-                              Velocidad de reproduccion
-                            </div>
-                            <div className="space-y-1">
-                              {controller.playbackRates.map((rate) => (
-                                <button
-                                  className={`w-full text-left px-3 py-2 text-sm rounded-md transition-all duration-200 ${
-                                    controller.playbackRate === rate
-                                      ? 'bg-accent/20 text-accent font-medium'
-                                      : 'text-white/80 hover:bg-white/10'
-                                  }`}
-                                  key={rate}
-                                  onClick={() => controller.changePlaybackRate(rate)}
-                                >
-                                  {rate === 1 ? 'Normal' : `${rate}x`}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <button
-                            className="w-full text-left px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition-all duration-200 flex items-center gap-2"
-                            onClick={() => {
-                              void controller.togglePictureInPicture();
-                            }}
-                          >
-                            <PictureInPicture className="w-4 h-4" />
-                            Imagen en imagen
-                          </button>
+                          </AnimatePresence>
                         </motion.div>
                       )}
                     </AnimatePresence>

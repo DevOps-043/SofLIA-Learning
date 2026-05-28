@@ -2,6 +2,7 @@ import { createHash } from 'crypto'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
 import { SessionService } from '@/features/auth/services/session.service'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
@@ -20,13 +21,20 @@ type QuizFeedbackRequestBody = {
   prompt?: string
 }
 
-type QuizFeedbackLiaResponse = {
-  message?: {
-    content?: string
-  }
-  response?: string
-  error?: string
-}
+const QUIZ_FEEDBACK_SYSTEM_INSTRUCTION = `Eres SofLIA, la asistente de aprendizaje de SofLIA Learning. Estás revisando las respuestas incorrectas de un quiz.
+
+Tu objetivo: retroalimentación concisa, directa y útil que aclare el concepto correcto.
+
+Reglas estrictas:
+- NO incluyas saludos, presentaciones ni frases introductorias. Ve directo a la retroalimentación.
+- Máximo 2-3 oraciones por pregunta incorrecta
+- Confirma la respuesta correcta y explica brevemente por qué es correcta
+- Explica de forma directa por qué la respuesta del alumno es incorrecta
+- Cita minutos del video solo si aparecen explícitamente en la transcripción proporcionada
+- Tono: empático, directo y profesional
+- Idioma: español
+- Formato: párrafos fluidos, sin listas ni viñetas
+- No inventes información que no esté en el material de la lección`
 
 function normalizeOptionalId(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null
@@ -52,70 +60,41 @@ function createQuizFeedbackAdminClient() {
   })
 }
 
-function buildCurrentLessonContext(courseContext?: CourseLessonContext | null) {
-  if (!courseContext) {
-    return undefined
+async function generateFeedbackWithGemini(params: {
+  prompt: string
+  courseContext?: CourseLessonContext | null
+}): Promise<string> {
+  const googleApiKey = process.env.GOOGLE_API_KEY
+  if (!googleApiKey) {
+    throw new Error('GOOGLE_API_KEY no está configurada.')
   }
 
-  return {
-    contextType: courseContext.contextType,
-    courseId: courseContext.courseId,
-    courseSlug: courseContext.courseSlug,
-    courseTitle: courseContext.courseTitle,
-    courseDescription: courseContext.courseDescription,
-    userRole: courseContext.userRole,
-    moduleId: courseContext.moduleId,
-    moduleTitle: courseContext.moduleTitle,
-    lessonId: courseContext.lessonId,
-    lessonTitle: courseContext.lessonTitle,
-    transcript: courseContext.transcriptContent,
-    summary: courseContext.summaryContent,
-    description: courseContext.lessonDescription,
-    durationSeconds: courseContext.durationSeconds,
-    totalDurationMinutes: courseContext.totalDurationMinutes,
-    currentTab: courseContext.currentTab,
-    currentPage: courseContext.currentPage,
-    learningProgress: courseContext.learningProgressContext,
-    activities: courseContext.activitiesContext
-      ? {
-          totalActivities: courseContext.activitiesContext.totalActivities,
-          requiredActivities: courseContext.activitiesContext.requiredActivities,
-          completedActivities: courseContext.activitiesContext.completedActivities,
-          pendingRequiredCount:
-            courseContext.activitiesContext.pendingRequiredCount,
-          pendingRequiredTitles:
-            courseContext.activitiesContext.pendingRequiredTitles,
-          items: courseContext.activitiesContext.activityTypes,
-          currentActivityFocus:
-            courseContext.activitiesContext.currentActivityFocus || undefined,
-        }
-      : undefined,
-    materials: courseContext.materialsContext
-      ? {
-          totalMaterials: courseContext.materialsContext.totalMaterials,
-          requiredMaterials: courseContext.materialsContext.requiredMaterials,
-          items: courseContext.materialsContext.materialTypes,
-        }
-      : undefined,
-    quiz: courseContext.quizContext,
-    userBehaviorContext: courseContext.userBehaviorContext,
-    difficultyDetected: courseContext.difficultyDetected,
-  }
-}
+  let systemInstruction = QUIZ_FEEDBACK_SYSTEM_INSTRUCTION
 
-function buildCurrentActivityContext(courseContext?: CourseLessonContext | null) {
-  const activityFocus = courseContext?.activitiesContext?.currentActivityFocus
-
-  if (!activityFocus) {
-    return undefined
+  const transcript = params.courseContext?.transcriptContent
+  if (transcript) {
+    const excerpt = transcript.slice(0, 3000)
+    systemInstruction += `\n\nTranscripción del video de esta lección (úsala para citar minutos exactos si los menciona):\n${excerpt}`
   }
 
-  return {
-    title: activityFocus.title,
-    type: activityFocus.type,
-    description: activityFocus.description,
-    prompts: activityFocus.prompts,
+  const genAI = new GoogleGenerativeAI(googleApiKey)
+  const model = genAI.getGenerativeModel({
+    model: process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp',
+    systemInstruction,
+    generationConfig: {
+      maxOutputTokens: 2048,
+      temperature: 0.3,
+    },
+  })
+
+  const result = await model.generateContent(params.prompt)
+  const content = result.response.text()
+
+  if (!content) {
+    throw new Error('SofLIA no devolvió retroalimentación.')
   }
+
+  return content
 }
 
 async function validateLessonResource(params: {
@@ -155,82 +134,6 @@ async function validateLessonResource(params: {
   return true
 }
 
-async function requestSofliaFeedback(params: {
-  cookieHeader: string | null
-  request: NextRequest
-  body: QuizFeedbackRequestBody
-  courseId: string
-  lessonId: string
-  prompt: string
-  userId: string
-  organizationId: string | null
-}) {
-  const {
-    body,
-    cookieHeader,
-    courseId,
-    lessonId,
-    organizationId,
-    prompt,
-    request,
-    userId,
-  } = params
-  const courseContext = body.courseContext
-  const fallbackCurrentPage =
-    courseContext?.currentPage || request.nextUrl.pathname
-  const activeTab =
-    courseContext?.currentTab ||
-    courseContext?.learningProgressContext?.currentTab
-
-  const response = await fetch(new URL('/api/lia/chat', request.nextUrl.origin), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(cookieHeader ? { cookie: cookieHeader } : {}),
-    },
-    body: JSON.stringify({
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      context: {
-        userId,
-        organizationId,
-        currentPage: fallbackCurrentPage,
-        currentTab: activeTab,
-        pageType:
-          courseContext?.contextType === 'workshop'
-            ? 'workshop_lesson'
-            : 'course_lesson',
-        currentLessonContext:
-          buildCurrentLessonContext({
-            ...courseContext,
-            courseId: courseContext?.courseId ?? courseId,
-            lessonId: courseContext?.lessonId ?? lessonId,
-          }) || undefined,
-        currentActivityContext: buildCurrentActivityContext(courseContext),
-      },
-      stream: false,
-    }),
-  })
-
-  const payload = (await response.json()) as QuizFeedbackLiaResponse
-
-  if (!response.ok) {
-    throw new Error(payload.error || 'No fue posible generar la retroalimentacion.')
-  }
-
-  const feedbackContent = payload.message?.content || payload.response
-
-  if (!feedbackContent) {
-    throw new Error('SofLIA no devolvio retroalimentacion.')
-  }
-
-  return feedbackContent
-}
-
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string; lessonId: string }> },
@@ -261,34 +164,65 @@ export async function POST(
       )
     }
 
-    const { data: course, error: courseError } = await supabase
-      .from('courses')
-      .select('id')
-      .eq('slug', slug)
-      .maybeSingle()
+    // Phase 1: course lookup + cache check in parallel
+    const promptHash = buildPromptHash(prompt)
+    const supabaseAdmin = createQuizFeedbackAdminClient()
 
-    if (courseError || !course) {
+    const [courseResult, cacheResult] = await Promise.all([
+      supabase.from('courses').select('id').eq('slug', slug).maybeSingle(),
+      supabaseAdmin
+        .from('quiz_feedback_cache')
+        .select('feedback_id, feedback_content, created_at, updated_at')
+        .eq('user_id', currentUser.id)
+        .eq('lesson_id', lessonId)
+        .eq('prompt_hash', promptHash)
+        .maybeSingle(),
+    ])
+
+    if (courseResult.error || !courseResult.data) {
       return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 })
     }
 
-    const { data: lesson, error: lessonError } = await supabase
-      .from('course_lessons')
-      .select('lesson_id, course_modules!inner(course_id)')
-      .eq('lesson_id', lessonId)
-      .eq('course_modules.course_id', course.id)
-      .maybeSingle()
-
-    if (lessonError || !lesson) {
-      return NextResponse.json({ error: 'Leccion no encontrada' }, { status: 404 })
+    if (cacheResult.error) {
+      console.error('[QuizFeedback] Error leyendo cache:', cacheResult.error)
+      return NextResponse.json(
+        { error: 'Error al consultar retroalimentacion guardada.' },
+        { status: 500 },
+      )
     }
 
+    if (cacheResult.data) {
+      return NextResponse.json({
+        feedback: {
+          content: cacheResult.data.feedback_content,
+          createdAt: cacheResult.data.created_at,
+          id: cacheResult.data.feedback_id,
+          promptHash,
+          updatedAt: cacheResult.data.updated_at,
+        },
+        source: 'cache',
+      })
+    }
+
+    const course = courseResult.data
     const requestedOrganizationId = normalizeOptionalId(body.organizationId)
-    const enrollment = await resolveCourseEnrollment(
-      supabase,
-      currentUser.id,
-      course.id,
-      requestedOrganizationId,
-    )
+    const materialId = normalizeOptionalId(body.materialId)
+    const activityId = normalizeOptionalId(body.activityId)
+
+    // Phase 2: lesson lookup + enrollment in parallel
+    const [lessonResult, enrollment] = await Promise.all([
+      supabase
+        .from('course_lessons')
+        .select('lesson_id, course_modules!inner(course_id)')
+        .eq('lesson_id', lessonId)
+        .eq('course_modules.course_id', course.id)
+        .maybeSingle(),
+      resolveCourseEnrollment(supabase, currentUser.id, course.id, requestedOrganizationId),
+    ])
+
+    if (lessonResult.error || !lessonResult.data) {
+      return NextResponse.json({ error: 'Leccion no encontrada' }, { status: 404 })
+    }
 
     if (!enrollment) {
       return NextResponse.json(
@@ -297,8 +231,6 @@ export async function POST(
       )
     }
 
-    const materialId = normalizeOptionalId(body.materialId)
-    const activityId = normalizeOptionalId(body.activityId)
     const hasValidResource = await validateLessonResource({
       activityId,
       lessonId,
@@ -313,46 +245,9 @@ export async function POST(
       )
     }
 
-    const promptHash = buildPromptHash(prompt)
-    const supabaseAdmin = createQuizFeedbackAdminClient()
-    const { data: cachedFeedback, error: cacheReadError } = await supabaseAdmin
-      .from('quiz_feedback_cache')
-      .select('feedback_id, feedback_content, created_at, updated_at')
-      .eq('user_id', currentUser.id)
-      .eq('lesson_id', lessonId)
-      .eq('prompt_hash', promptHash)
-      .maybeSingle()
-
-    if (cacheReadError) {
-      console.error('[QuizFeedback] Error leyendo cache:', cacheReadError)
-      return NextResponse.json(
-        { error: 'Error al consultar retroalimentacion guardada.' },
-        { status: 500 },
-      )
-    }
-
-    if (cachedFeedback) {
-      return NextResponse.json({
-        feedback: {
-          content: cachedFeedback.feedback_content,
-          createdAt: cachedFeedback.created_at,
-          id: cachedFeedback.feedback_id,
-          promptHash,
-          updatedAt: cachedFeedback.updated_at,
-        },
-        source: 'cache',
-      })
-    }
-
-    const feedbackContent = await requestSofliaFeedback({
-      body,
-      cookieHeader: request.headers.get('cookie'),
-      courseId: course.id,
-      lessonId,
-      organizationId: enrollment.organization_id || requestedOrganizationId,
+    const feedbackContent = await generateFeedbackWithGemini({
       prompt,
-      request,
-      userId: currentUser.id,
+      courseContext: body.courseContext,
     })
     const now = new Date().toISOString()
 
@@ -373,7 +268,7 @@ export async function POST(
           organization_id: enrollment.organization_id || requestedOrganizationId,
           prompt_hash: promptHash,
           prompt_text: prompt,
-          source_model: process.env.CHATBOT_MODEL || 'gpt-4o-mini',
+          source_model: process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp',
           updated_at: now,
           user_id: currentUser.id,
         },

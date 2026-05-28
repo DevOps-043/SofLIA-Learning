@@ -118,7 +118,7 @@ export function useBusinessUserStatsModalLogic({
   const [stats, setStats] = useState<BusinessUserStatsData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<BusinessUserStatsTabId>('overview')
+  const [activeTab, setActiveTab] = useState<BusinessUserStatsTabId>('analytics')
 
   const t = (
     key: string,

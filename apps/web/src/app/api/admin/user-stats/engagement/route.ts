@@ -1,6 +1,29 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { cacheHeaders } from '@/lib/utils/cache-headers'
+import { logger } from '@/lib/utils/logger'
+
+interface EngagementStats {
+  activationRate: number
+  weeklyReturn: number
+  avgSatisfaction: number
+  inactiveUsers30d: number
+  newVsRecurring: Array<{ week: string; new: number; recurring: number }>
+  ratingDistribution: Array<{ rating: number; count: number }>
+  engagementByOrg: Array<{ org: string; ratio: number; active: number; total: number }>
+  usersByCountry: Array<{ country: string; count: number }>
+}
+
+interface UserStatsEngagementRpcClient {
+  rpc(
+    fn: 'get_admin_user_stats_engagement',
+    args?: Record<string, never>,
+  ): PromiseLike<{
+    data: EngagementStats | null
+    error: { message?: string } | null
+  }>
+}
 
 export async function GET() {
   try {
@@ -8,6 +31,20 @@ export async function GET() {
     if (auth instanceof NextResponse) return auth
 
     const supabase = createAdminClient()
+    const { data: rpcEngagement, error: rpcError } = await (
+      supabase as unknown as UserStatsEngagementRpcClient
+    ).rpc('get_admin_user_stats_engagement', {})
+
+    if (!rpcError && rpcEngagement) {
+      return NextResponse.json(rpcEngagement, { headers: cacheHeaders.privateShort })
+    }
+
+    if (rpcError) {
+      logger.warn('Admin user engagement stats RPC unavailable, using fallback', {
+        error: rpcError.message,
+      })
+    }
+
     const now = new Date()
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
     const thisWeekStart = getWeekStart(now)
@@ -118,16 +155,19 @@ export async function GET() {
       .map(([country, count]) => ({ country, count }))
       .sort((a, b) => b.count - a.count)
 
-    return NextResponse.json({
-      activationRate,
-      weeklyReturn,
-      avgSatisfaction,
-      inactiveUsers30d,
-      newVsRecurring,
-      ratingDistribution: ratingDist,
-      engagementByOrg,
-      usersByCountry,
-    })
+    return NextResponse.json(
+      {
+        activationRate,
+        weeklyReturn,
+        avgSatisfaction,
+        inactiveUsers30d,
+        newVsRecurring,
+        ratingDistribution: ratingDist,
+        engagementByOrg,
+        usersByCountry,
+      },
+      { headers: cacheHeaders.privateShort },
+    )
   } catch (error) {
     return NextResponse.json(
       { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },

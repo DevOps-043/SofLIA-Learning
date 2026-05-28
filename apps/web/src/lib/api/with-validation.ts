@@ -1,5 +1,4 @@
 import type { NextRequest } from 'next/server';
-import type { ZodSchema } from 'zod';
 import { apiError } from './errors';
 
 export type ValidatedRouteHandler<TBody, TContext = unknown> = (
@@ -12,8 +11,14 @@ type WithZodBodyOptions = {
   emptyBodyFallback?: unknown;
 };
 
+type RequestBodySchema<TBody> = {
+  safeParse(data: unknown):
+    | { success: true; data: TBody }
+    | { success: false; error: { flatten(): unknown } };
+};
+
 export function withZodBody<TBody, TContext = unknown>(
-  schema: ZodSchema<TBody>,
+  schema: RequestBodySchema<TBody>,
   handler: ValidatedRouteHandler<TBody, TContext>,
   options: WithZodBodyOptions = {},
 ) {

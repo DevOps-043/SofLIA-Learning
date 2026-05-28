@@ -105,7 +105,9 @@ export async function GET(request: NextRequest) {
 
   const isEligible =
     provider === 'direct' ||
-    (provider === 'custom' && (absoluteUrl ?? '').includes('/storage/v1/object/public/course-videos/'))
+    (provider === 'custom' &&
+      ((absoluteUrl ?? '').includes('/storage/v1/object/public/course-videos/') ||
+       (absoluteUrl ?? '').includes('/storage/v1/object/public/production-videos/')))
 
   let hlsResolution: {
     resolvedUrl: string | null
@@ -157,6 +159,22 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Simulate exactly what learn-data-lessons.service does to determine
+  // which video URL the player receives for this lesson.
+  const serviceEligible =
+    provider === 'direct' ||
+    (provider === 'custom' &&
+      ((absoluteUrl ?? '').includes('/storage/v1/object/public/course-videos/') ||
+       (absoluteUrl ?? '').includes('/storage/v1/object/public/production-videos/')))
+
+  let serviceResolvedUrl: string | null = null
+  if (absoluteUrl && serviceEligible) {
+    const serviceHlsMap = await resolveHlsUrlsForSources(supabase, [absoluteUrl])
+    serviceResolvedUrl = serviceHlsMap.get(absoluteUrl) ?? null
+  }
+
+  const playerWouldReceive = serviceResolvedUrl ?? absoluteUrl ?? raw
+
   return NextResponse.json({
     lesson: {
       id: lesson.lesson_id,
@@ -170,6 +188,12 @@ export async function GET(request: NextRequest) {
       extractedSourcePath: absoluteUrl ? extractStoragePath(absoluteUrl) : null,
       isEligibleForHls: isEligible,
       hlsResolution,
+    },
+    learnDataSimulation: {
+      serviceEligible,
+      serviceResolvedUrl,
+      playerWouldReceive,
+      playerWouldReceiveIsHls: playerWouldReceive?.endsWith('.m3u8') ?? false,
     },
     env: {
       supabaseUrlSet: Boolean(supabaseUrl),

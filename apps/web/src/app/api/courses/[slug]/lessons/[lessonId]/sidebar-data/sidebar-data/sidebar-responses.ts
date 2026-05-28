@@ -12,6 +12,17 @@ export function lessonNotFoundResponse() {
   )
 }
 
+export function unauthenticatedResponse() {
+  return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+}
+
+export function enrollmentNotFoundResponse() {
+  return NextResponse.json(
+    { error: 'No estas inscrito en este curso' },
+    { status: 404 },
+  )
+}
+
 export function activitiesLoadErrorResponse() {
   return NextResponse.json({ error: 'Error al obtener actividades' }, { status: 500 })
 }

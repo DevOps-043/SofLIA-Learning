@@ -296,6 +296,7 @@ export function useLearnPageLogic() {
     lessonsActivities: sidebar.lessonsActivities,
     lessonsMaterials: sidebar.lessonsMaterials,
     lessonsQuizStatus: sidebar.lessonsQuizStatus,
+    lessonContentSnapshots: sidebar.lessonContentSnapshots,
     lessonTranslationContexts: sidebar.lessonTranslationContexts,
     loadLessonActivitiesAndMaterials: sidebar.loadLessonActivitiesAndMaterials,
     openContentSection: sidebar.openContentSection,

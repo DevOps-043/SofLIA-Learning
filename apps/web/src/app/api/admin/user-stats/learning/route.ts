@@ -1,6 +1,28 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { cacheHeaders } from '@/lib/utils/cache-headers'
+import { logger } from '@/lib/utils/logger'
+
+interface LearningStats {
+  avgTimePerLesson: number
+  quizPassRate: number
+  avgSessionsPerWeek: number
+  topCoursesByTime: Array<{ course: string; minutes: number }>
+  sessionsPlannedVsCompleted: Array<{ week: string; planned: number; completed: number }>
+  timeByContentType: Array<{ type: string; minutes: number }>
+  streakDistribution: Array<{ range: string; count: number }>
+}
+
+interface UserStatsLearningRpcClient {
+  rpc(
+    fn: 'get_admin_user_stats_learning',
+    args?: Record<string, never>,
+  ): PromiseLike<{
+    data: LearningStats | null
+    error: { message?: string } | null
+  }>
+}
 
 export async function GET() {
   try {
@@ -8,6 +30,20 @@ export async function GET() {
     if (auth instanceof NextResponse) return auth
 
     const supabase = createAdminClient()
+    const { data: rpcLearning, error: rpcError } = await (
+      supabase as unknown as UserStatsLearningRpcClient
+    ).rpc('get_admin_user_stats_learning', {})
+
+    if (!rpcError && rpcLearning) {
+      return NextResponse.json(rpcLearning, { headers: cacheHeaders.privateShort })
+    }
+
+    if (rpcError) {
+      logger.warn('Admin user learning stats RPC unavailable, using fallback', {
+        error: rpcError.message,
+      })
+    }
+
     const now = new Date()
     const fourWeeksAgo = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000).toISOString()
 
@@ -105,15 +141,18 @@ export async function GET() {
       count: Array.from(userStreaks.values()).filter(s => s >= bucket.min && s <= bucket.max).length
     }))
 
-    return NextResponse.json({
-      avgTimePerLesson,
-      quizPassRate,
-      avgSessionsPerWeek,
-      topCoursesByTime,
-      sessionsPlannedVsCompleted,
-      timeByContentType,
-      streakDistribution,
-    })
+    return NextResponse.json(
+      {
+        avgTimePerLesson,
+        quizPassRate,
+        avgSessionsPerWeek,
+        topCoursesByTime,
+        sessionsPlannedVsCompleted,
+        timeByContentType,
+        streakDistribution,
+      },
+      { headers: cacheHeaders.privateShort },
+    )
   } catch (error) {
     return NextResponse.json(
       { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },

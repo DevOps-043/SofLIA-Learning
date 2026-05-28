@@ -25,6 +25,7 @@ vi.mock('../../../context/LiaCourseContext', () => ({
 }))
 
 vi.mock('../quiz-feedback', () => ({
+  QuizFeedbackInline: () => null,
   QuizFeedbackPanel: () => null,
   useQuizFeedback: () => ({
     close: vi.fn(),

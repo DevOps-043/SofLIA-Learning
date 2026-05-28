@@ -11,7 +11,8 @@
     "sourceMap": true,
     "composite": true,
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
-    "noEmit": false
+    "noEmit": false,
+    "paths": {}
   },
   "include": [
     "src/**/*"

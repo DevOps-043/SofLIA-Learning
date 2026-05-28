@@ -2,6 +2,7 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/api/errors';
 import { withZodBody } from '@/lib/api/with-validation';
+import type { Json } from '@/lib/supabase/types';
 import { createAdminClient } from '../../../../lib/supabase/admin';
 import { SessionService } from '../../../../features/auth/services/session.service';
 import { resolveActivityCompletionAttempt } from './activity-completion-attempts.service';
@@ -27,7 +28,7 @@ interface ActivityCompletionUpdate {
   completed_steps: number;
   completed_at: string;
   time_to_complete_seconds: number;
-  generated_output: unknown;
+  generated_output: Json | null;
   updated_at: string;
 }
 
@@ -50,6 +51,14 @@ interface CompletedActivityContext {
   courseTitle: string;
   lessonId: string;
   organizationId: string | null;
+}
+
+function toNullableJson(value: unknown): Json | null {
+  if (value === undefined) {
+    return null;
+  }
+
+  return value as Json;
 }
 
 async function hasUserMessageInConversation(input: {
@@ -281,7 +290,7 @@ async function handlePost(
         completed_steps: activity?.total_steps || 1,
         completed_at: new Date().toISOString(),
         time_to_complete_seconds: timeToComplete || 0,
-        generated_output: generatedOutput || null,
+        generated_output: toNullableJson(generatedOutput),
         updated_at: new Date().toISOString()
       };
 
@@ -391,7 +400,7 @@ async function handlePost(
       current_step: 1,
       time_to_complete_seconds: timeSpentSeconds || 0,
       lia_had_to_redirect: 0,
-      generated_output: generatedOutput || null,
+      generated_output: toNullableJson(generatedOutput),
       started_at: new Date().toISOString(),
       completed_at: new Date().toISOString(),
       updated_at: new Date().toISOString()

@@ -21,7 +21,6 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",
     "paths": {
       "@shared/*": ["packages/shared/src/*"],
       "@ui/*": ["packages/ui/src/*"],
@@ -48,4 +47,3 @@
     "build"
   ]
 }
-

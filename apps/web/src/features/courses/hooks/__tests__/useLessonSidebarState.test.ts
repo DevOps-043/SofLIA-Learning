@@ -4,6 +4,7 @@ import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useLessonSidebarState } from "../useLessonSidebarState";
+import { clearDeduplicationCache } from "@/lib/supabase/request-deduplication";
 
 function createJsonResponse(body: unknown, status: number = 200) {
   return new Response(JSON.stringify(body), {
@@ -22,6 +23,7 @@ describe("useLessonSidebarState", () => {
   });
 
   afterEach(() => {
+    clearDeduplicationCache();
     global.fetch = originalFetch;
   });
 
