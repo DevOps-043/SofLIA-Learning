@@ -2,31 +2,33 @@
 
 import { motion } from 'framer-motion'
 import { Award, BarChart3, Book, ClipboardList, Clock, FileText, Flag, Sigma, TrendingUp, Users2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { useCourseManagementContext } from '../CourseManagementContext'
 import { formatDuration } from '../CourseManagement.utils'
 
 export function CourseStatsDetailedStats() {
+  const { t } = useTranslation('admin')
   const {
     state: { modules, userStats },
   } = useCourseManagementContext()
 
   const stats = [
     {
-      label: 'Modulos Publicados',
+      label: t('workshops.editor.stats.details.publishedModules'),
       value: modules.filter((module) => module.is_published).length,
       total: modules.length,
       icon: Book,
       color: 'var(--color-primary)',
     },
     {
-      label: 'Lecciones Totales',
+      label: t('workshops.editor.stats.details.totalLessons'),
       value: userStats?.total_lessons ?? 0,
       icon: FileText,
       color: 'var(--color-accent)',
     },
     {
-      label: 'Duracion Total',
+      label: t('workshops.editor.stats.details.totalDuration'),
       value: formatDuration(
         modules.reduce((total, module) => total + (module.module_duration_minutes || 0), 0),
       ),
@@ -34,37 +36,37 @@ export function CourseStatsDetailedStats() {
       color: 'var(--color-success)',
     },
     {
-      label: 'Materiales',
+      label: t('workshops.editor.stats.details.materials'),
       value: userStats?.total_materials ?? 0,
       icon: ClipboardList,
       color: 'var(--color-warning)',
     },
     {
-      label: 'Actividades',
+      label: t('workshops.editor.stats.details.activities'),
       value: userStats?.total_activities ?? 0,
       icon: Flag,
       color: 'var(--color-primary)',
     },
     {
-      label: 'Tasa de Retencion',
+      label: t('workshops.editor.stats.details.retentionRate'),
       value: userStats?.retention_rate ? `${userStats.retention_rate.toFixed(1)}%` : '0%',
       icon: Users2,
       color: 'var(--color-success)',
     },
     {
-      label: 'Activos 7 dias',
+      label: t('workshops.editor.stats.details.active7d'),
       value: userStats?.active_7d ?? 0,
       icon: TrendingUp,
       color: 'var(--color-accent)',
     },
     {
-      label: 'Activos 30 dias',
+      label: t('workshops.editor.stats.details.active30d'),
       value: userStats?.active_30d ?? 0,
       icon: BarChart3,
       color: 'var(--color-primary)',
     },
     {
-      label: 'Certificados Emitidos',
+      label: t('workshops.editor.stats.details.certificatesIssued'),
       value: userStats?.total_certificates ?? 0,
       icon: Award,
       color: 'var(--color-warning)',
@@ -82,8 +84,12 @@ export function CourseStatsDetailedStats() {
           <Sigma className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-primary dark:text-white">Analisis Detallado</h2>
-          <p className="text-sm text-gray-500 dark:text-white/60">Metricas avanzadas del curso</p>
+          <h2 className="text-2xl font-bold text-primary dark:text-white">
+            {t('workshops.editor.stats.details.title')}
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-white/60">
+            {t('workshops.editor.stats.details.description')}
+          </p>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 export const CONTEXT_COLORS: Record<string, string> = {
   course: 'var(--color-accent)',
+  courses: 'var(--color-accent)',
   general: 'var(--color-primary)',
   workshop: 'var(--color-success)',
   prompts: 'var(--color-warning)',
@@ -10,6 +11,7 @@ export const CONTEXT_COLORS: Record<string, string> = {
 
 export const CONTEXT_LABEL_KEYS: Record<string, string> = {
   course: 'liaAnalyticsPage.contextDistribution.contexts.course',
+  courses: 'liaAnalyticsPage.contextDistribution.contexts.course',
   general: 'liaAnalyticsPage.contextDistribution.contexts.general',
   workshop: 'liaAnalyticsPage.contextDistribution.contexts.workshop',
   prompts: 'liaAnalyticsPage.contextDistribution.contexts.prompts',

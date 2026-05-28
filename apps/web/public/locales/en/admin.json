@@ -320,10 +320,24 @@
         "recalculateButton": "Recalculate Duration",
         "recalculating": "Recalculating...",
         "addModuleButton": "New Module",
+        "editModule": "Edit Module",
+        "createModule": "Create Module",
+        "editModuleDesc": "Modify module information",
+        "createModuleDesc": "Add a new module to the workshop",
         "loading": "Loading modules...",
         "emptyTitle": "No modules",
         "emptyDescription": "Start by adding the first module to organize your content.",
         "createFirstButton": "Create my first module",
+        "emptyLessonsTitle": "There are no lessons in this module",
+        "createFirstLessonButton": "Add your first lesson",
+        "moduleTitleLabel": "Module title *",
+        "moduleTitlePlaceholder": "e.g. AI fundamentals",
+        "moduleDescriptionLabel": "Description",
+        "moduleDescriptionPlaceholder": "Describe the module content...",
+        "requiredLabel": "Required module",
+        "requiredDesc": "Students must complete this module to continue.",
+        "publishedLabel": "Published",
+        "publishedDesc": "The module will be visible to students.",
         "published": "Published",
         "draft": "Draft",
         "lessonCount": "{{count}} lesson",
@@ -359,6 +373,7 @@
           "duration": "Duration",
           "level": "Level",
           "category": "Category",
+          "status": "Status",
           "price": "Price",
           "free": "Free"
         },
@@ -376,6 +391,12 @@
         "createLesson": "Create Lesson",
         "editLessonDesc": "Modify lesson information",
         "createLessonDesc": "Add a new lesson to the module",
+        "byInstructor": "by {{name}}",
+        "moveLesson": "Move Lesson",
+        "moveLessonDesc": "Select the destination module",
+        "currentModule": "Current",
+        "publishedLabel": "Publish lesson",
+        "publishedDesc": "The lesson will be visible to students.",
         "tabs": {
           "basic": "Basic",
           "video": "Video",
@@ -435,7 +456,85 @@
         "rating": "Rating",
         "noReviews": "No reviews",
         "reviewsCount": "{{count}} review",
-        "reviewsCount_plural": "{{count}} reviews"
+        "reviewsCount_plural": "{{count}} reviews",
+        "charts": {
+          "progressDistributionTitle": "Progress distribution",
+          "progressDistributionDescription": "Current student status",
+          "enrollmentTrendTitle": "Enrollment trend",
+          "last7Days": "Last 7 days",
+          "studentStatusTitle": "Student status",
+          "studentStatusDescription": "Progress evolution over time",
+          "completed": "Completed",
+          "inProgress": "In progress",
+          "notStarted": "Not started",
+          "enrollments": "Enrollments",
+          "activeStudents": "Active students",
+          "emptyMonthLabel": "No data",
+          "days": {
+            "monShort": "Mon",
+            "tueShort": "Tue",
+            "wedShort": "Wed",
+            "thuShort": "Thu",
+            "friShort": "Fri",
+            "satShort": "Sat",
+            "sunShort": "Sun"
+          }
+        },
+        "details": {
+          "title": "Detailed analysis",
+          "description": "Advanced workshop metrics",
+          "publishedModules": "Published modules",
+          "totalLessons": "Total lessons",
+          "totalDuration": "Total duration",
+          "materials": "Materials",
+          "activities": "Activities",
+          "retentionRate": "Retention rate",
+          "active7d": "Active 7 days",
+          "active30d": "Active 30 days",
+          "certificatesIssued": "Certificates issued"
+        },
+        "studentsTable": {
+          "student": "Student",
+          "status": "Status",
+          "progress": "Progress",
+          "enrolledAt": "Enrolled",
+          "lastActivity": "Last activity",
+          "actions": "Actions"
+        },
+        "studentDetails": {
+          "close": "Close",
+          "closeLabel": "Close student details",
+          "viewDetails": "View details",
+          "emptyTitle": "No details available",
+          "emptyDescription": "This panel is intended to review the student's progress, activity, SofLIA usage, and study habits when recorded data exists. Detailed information is not available for this user right now.",
+          "statuses": {
+            "completed": "Completed",
+            "active": "Active",
+            "paused": "Paused",
+            "cancelled": "Cancelled",
+            "unknown": "Unknown"
+          },
+          "activity": {
+            "enrollmentStatusTitle": "Enrollment status",
+            "status": "Status:",
+            "enrolledAt": "Enrolled:",
+            "lastActivity": "Last activity:",
+            "never": "Never",
+            "achievementsTitle": "Achievements and certificates",
+            "noAchievements": "No achievements or certificates are registered for this student."
+          },
+          "progressCharts": {
+            "last7Days": "Last 7 days",
+            "weeklyProgress": "Weekly progress",
+            "dailyDistribution": "Distribution by day",
+            "studyTime": "Study time"
+          },
+          "insights": {
+            "title": "SofLIA insights",
+            "empty": "There is not enough data yet to generate personalized insights.",
+            "pattern": "This student shows a {{period}} study pattern. Weekly frequency: {{weeklyFrequency}} days. Average duration: {{avgDuration}} minutes per session. Current streak: {{streak}} consecutive days."
+          }
+        }
       }
     },
     "errors": {
@@ -778,7 +877,8 @@
       "day": "Today",
       "week": "Last week",
       "month": "Last month",
-      "year": "Last year"
+      "year": "Last year",
+      "all": "All history"
     },
     "chart": {
       "area": "Area",
@@ -804,7 +904,9 @@
       "empty": "No distribution data available",
       "contexts": {
         "course": "Courses",
+        "courses": "Courses",
         "general": "General",
+        "activity": "Activities",
         "workshop": "Workshops",
         "prompts": "Prompts",
         "community": "Communities",
@@ -815,6 +917,191 @@
         "cost": "Cost",
         "tokens": "Tokens",
         "percentage": "Percentage"
+      }
+    },
+    "units": {
+      "tokens": "tokens"
+    },
+    "statsCards": {
+      "todayCost": "Cost today",
+      "periodCost": "Total cost (period)",
+      "tokensConsumed": "Tokens consumed",
+      "conversations": "Conversations",
+      "avgTime": "Average time",
+      "activeUsersToday": "Active users today",
+      "messagesPerConversation": "Msgs/conversation",
+      "costPerMessage": "Cost/message",
+      "vsYesterday": "vs yesterday",
+      "monthlyProjection": "Monthly projection: {{value}}",
+      "todayValue": "{{value}} today",
+      "messagesValue": "{{value}} messages",
+      "responseTime": "response time",
+      "interactionAverage": "average interaction",
+      "messageEfficiency": "message efficiency"
+    },
+    "costOverview": {
+      "title": "Costs by period",
+      "total": "Total",
+      "dailyAverage": "Daily average",
+      "seriesCostUsd": "Cost USD",
+      "tooltip": {
+        "cost": "Cost",
+        "tokens": "Tokens",
+        "messages": "Messages"
+      }
+    },
+    "tokenUsage": {
+      "title": "Token usage by model",
+      "total": "Total",
+      "empty": "No token usage data",
+      "tooltip": {
+        "tokens": "Tokens",
+        "cost": "Cost",
+        "calls": "Calls",
+        "percentage": "Percentage"
+      }
+    },
+    "topUsers": {
+      "title": "Top SofLIA users",
+      "empty": "No user data",
+      "error": "Users could not be loaded",
+      "unknownUser": "Unknown user",
+      "sort": {
+        "cost": "By cost",
+        "tokens": "By tokens",
+        "messages": "By messages",
+        "conversations": "By conversations"
+      }
+    },
+    "topQuestions": {
+      "title": "Frequent topics",
+      "analyzedQuestions": "{{value}} questions analyzed",
+      "topCategory": "Top: {{category}}",
+      "empty": "Not enough data",
+      "avgResponseTime": "{{value}}ms avg",
+      "times": "times",
+      "insightLabel": "Insight",
+      "insightPrefix": "Questions about",
+      "insightSuffix": "represent most queries. Consider improving the content in this area."
+    },
+    "courseAnalytics": {
+      "title": "Course performance",
+      "description": "Analyze SofLIA usage and engagement in each course",
+      "error": "Error loading course data",
+      "hideDetails": "Hide details",
+      "showModuleBreakdown": "View module breakdown",
+      "topModules": "Top modules (by cost)",
+      "conversationsShort": "{{count}} conv.",
+      "empty": "No course data for this period",
+      "sort": {
+        "cost": "Cost",
+        "conversations": "Conversations",
+        "users": "Users"
+      },
+      "table": {
+        "course": "Course",
+        "totalCost": "Total cost",
+        "conversations": "Conversations",
+        "messages": "Messages",
+        "uniqueUsers": "Unique users"
+      }
+    },
+    "conversations": {
+      "title": "Recent conversations",
+      "total": "{{count}} total conversations",
+      "fallbackUser": "User",
+      "empty": "No conversations in this period",
+      "pageStatus": "Page {{page}} of {{totalPages}}",
+      "filters": {
+        "all": "All",
+        "courses": "Courses",
+        "workshops": "Workshops",
+        "communities": "Communities"
+      },
+      "table": {
+        "user": "User",
+        "context": "Context",
+        "messages": "Messages",
+        "tokens": "Tokens",
+        "cost": "Cost",
+        "duration": "Duration",
+        "date": "Date"
+      }
+    },
+    "activityPerformance": {
+      "title": "Activity performance",
+      "empty": "No activity data available",
+      "total": "{{count}} total activities",
+      "statusDistribution": "Status distribution",
+      "metrics": {
+        "completionRate": "Completion rate",
+        "abandonRate": "Abandonment rate",
+        "averageTime": "Average time",
+        "averageRedirections": "Average redirects"
+      },
+      "status": {
+        "completed": "Completed",
+        "in_progress": "In progress",
+        "started": "Started",
+        "abandoned": "Abandoned"
+      }
+    },
+    "activityHeatmap": {
+      "title": "Activity heatmap",
+      "totalMessages": "{{value}} messages in this period",
+      "peakHour": "Peak hour",
+      "messagesShort": "{{count}} msgs",
+      "tooltipTime": "{{day}} at {{hour}}:00",
+      "tooltipMessages": "{{count}} messages",
+      "averageTime": "Average time",
+      "clickForDetails": "Click to view details",
+      "cellHint": "Click a cell to view details",
+      "less": "Less",
+      "more": "More",
+      "days": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      }
+    },
+    "heatmapModal": {
+      "title": "{{day}} at {{hour}}",
+      "subtitle": "SofLIA activity detail",
+      "empty": "Data could not be loaded",
+      "footerPeriod": "Period data: {{period}}",
+      "close": "Close",
+      "tabs": {
+        "overview": "Overview",
+        "users": "Users",
+        "questions": "Questions"
+      },
+      "summary": {
+        "messages": "Messages",
+        "users": "Users",
+        "avgResponse": "Avg. resp.",
+        "cost": "Cost"
+      },
+      "overview": {
+        "contextDistribution": "Context distribution",
+        "modelsUsed": "Models used",
+        "activityDates": "Activity dates",
+        "responses": "{{count}} responses",
+        "tokensUsed": "{{tokens}} tokens used across {{conversations}} conversations",
+        "averageTokens": "Average: {{average}} tokens/conversation"
+      },
+      "questions": {
+        "empty": "No questions recorded",
+        "responseTime": "Response in {{time}}ms"
+      },
+      "users": {
+        "empty": "No user data",
+        "messagesShort": "{{count}} msgs",
+        "conversationsShort": "{{count}} conv.",
+        "tokens": "{{value}} tokens"
       }
     }
   },

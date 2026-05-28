@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import type { LearningPath, LpTranslator, SaveMetadata, SetLearningPath } from './types'
 
 interface MetadataCardProps {
@@ -6,6 +7,37 @@ interface MetadataCardProps {
   saving: boolean
   setLearningPath: SetLearningPath
   onSave: SaveMetadata
+}
+
+interface AutoGrowingTextareaProps {
+  onChange: (value: string) => void
+  value: string
+}
+
+const TEXTAREA_MAX_HEIGHT_PX = 192
+
+function AutoGrowingTextarea({ onChange, value }: AutoGrowingTextareaProps) {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+
+  useLayoutEffect(() => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    textarea.style.height = 'auto'
+    const nextHeight = Math.min(textarea.scrollHeight, TEXTAREA_MAX_HEIGHT_PX)
+    textarea.style.height = `${nextHeight}px`
+    textarea.style.overflowY =
+      textarea.scrollHeight > TEXTAREA_MAX_HEIGHT_PX ? 'auto' : 'hidden'
+  }, [value])
+
+  return (
+    <textarea
+      ref={textareaRef}
+      value={value}
+      onChange={event => onChange(event.target.value)}
+      className="max-h-48 min-h-32 w-full resize-none overflow-y-hidden rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-accent)] dark:border-white/10 dark:bg-gray-900 dark:text-white"
+    />
+  )
 }
 
 export function MetadataCard({ learningPath, lp, saving, setLearningPath, onSave }: MetadataCardProps) {
@@ -21,10 +53,9 @@ export function MetadataCard({ learningPath, lp, saving, setLearningPath, onSave
         <MetadataInput label={lp('slugLabel', 'Slug')} value={learningPath.slug || ''} onChange={value => updateField('slug', value)} />
         <label className="block space-y-2">
           <span className="text-sm font-medium text-gray-700 dark:text-white/80">{lp('descriptionLabel', 'Descripcion')}</span>
-          <textarea
+          <AutoGrowingTextarea
             value={learningPath.description || ''}
-            onChange={event => updateField('description', event.target.value)}
-            className="min-h-32 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-accent)] dark:border-white/10 dark:bg-gray-900 dark:text-white"
+            onChange={value => updateField('description', value)}
           />
         </label>
         <div className="flex flex-col gap-3 sm:flex-row">

@@ -91,7 +91,9 @@ export function LessonItem({
                     Math.floor(lesson.duration_seconds / 60),
                 )}
               </span>
-              {lesson.instructor_name && <span>por {lesson.instructor_name}</span>}
+              {lesson.instructor_name && (
+                <span>{ta('workshops.editor.lessons.byInstructor', { name: lesson.instructor_name })}</span>
+              )}
             </div>
           </div>
         </div>

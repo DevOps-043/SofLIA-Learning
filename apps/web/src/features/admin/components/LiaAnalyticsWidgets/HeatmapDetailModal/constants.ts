@@ -8,8 +8,8 @@ export const CONTEXT_COLORS: Record<string, string> = {
   workshop: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
 };
 
-export const HEATMAP_TABS: Array<{ icon: HeroIcon; id: HeatmapTabId; label: string }> = [
-  { id: 'overview', label: 'Resumen', icon: ChartPieIcon },
-  { id: 'users', label: 'Usuarios', icon: UserGroupIcon },
-  { id: 'questions', label: 'Preguntas', icon: ChatBubbleLeftRightIcon },
+export const HEATMAP_TABS: Array<{ icon: HeroIcon; id: HeatmapTabId }> = [
+  { id: 'overview', icon: ChartPieIcon },
+  { id: 'users', icon: UserGroupIcon },
+  { id: 'questions', icon: ChatBubbleLeftRightIcon },
 ];

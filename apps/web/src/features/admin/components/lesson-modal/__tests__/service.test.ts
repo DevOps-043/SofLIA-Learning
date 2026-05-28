@@ -56,6 +56,6 @@ describe('lesson-modal.service', () => {
         is_published: false,
         instructor_id: '',
       }),
-    ).toBe('Debe seleccionar un instructor')
+    ).toBe('instructorRequired')
   })
 })

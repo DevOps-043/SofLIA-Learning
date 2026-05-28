@@ -2,6 +2,7 @@
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   UserCircleIcon,
   ChevronLeftIcon,
@@ -38,15 +39,6 @@ interface ConversationsTableWidgetProps {
   initialContextFilter?: string;
 }
 
-const CONTEXT_LABELS: Record<string, string> = {
-  course: 'Curso',
-  general: 'General',
-  workshop: 'Taller',
-  prompts: 'Prompts',
-  community: 'Comunidad',
-  news: 'Noticias',
-};
-
 const CONTEXT_COLORS: Record<string, string> = {
   course: 'bg-violet-500/20 text-violet-400',
   general: 'bg-indigo-500/20 text-indigo-400',
@@ -60,6 +52,8 @@ export function ConversationsTableWidget({
   period = 'month',
   initialContextFilter 
 }: ConversationsTableWidgetProps) {
+  const { i18n, t } = useTranslation('admin');
+  const locale = i18n.language === 'en' ? 'en-US' : i18n.language === 'pt' ? 'pt-BR' : 'es-ES';
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -80,7 +74,7 @@ export function ConversationsTableWidget({
         params.append('contextType', contextFilter);
       }
 
-      // Calcular fechas según período
+      // Calculate dates according to the selected period.
       const endDate = new Date();
       let startDate = new Date();
       
@@ -142,7 +136,7 @@ export function ConversationsTableWidget({
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString(locale, {
       day: '2-digit',
       month: 'short',
       hour: '2-digit',
@@ -151,14 +145,17 @@ export function ConversationsTableWidget({
   };
 
   const contextOptions = [
-    { value: '', label: 'Todos' },
-    { value: 'course', label: 'Cursos' },
-    { value: 'general', label: 'General' },
-    { value: 'workshop', label: 'Talleres' },
-    { value: 'prompts', label: 'Prompts' },
-    { value: 'community', label: 'Comunidades' },
-    { value: 'news', label: 'Noticias' },
+    { value: '', label: t('liaAnalyticsPage.conversations.filters.all') },
+    { value: 'course', label: t('liaAnalyticsPage.conversations.filters.courses') },
+    { value: 'general', label: t('liaAnalyticsPage.contextDistribution.contexts.general') },
+    { value: 'workshop', label: t('liaAnalyticsPage.conversations.filters.workshops') },
+    { value: 'prompts', label: t('liaAnalyticsPage.contextDistribution.contexts.prompts') },
+    { value: 'community', label: t('liaAnalyticsPage.conversations.filters.communities') },
+    { value: 'news', label: t('liaAnalyticsPage.contextDistribution.contexts.news') },
   ];
+
+  const getContextLabel = (contextType: string) =>
+    t(`liaAnalyticsPage.contextDistribution.contexts.${contextType}`, { defaultValue: contextType });
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -168,10 +165,10 @@ export function ConversationsTableWidget({
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <ChatBubbleLeftRightIcon className="w-5 h-5 text-blue-500" />
-              Conversaciones Recientes
+              {t('liaAnalyticsPage.conversations.title')}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {total} conversaciones en total
+              {t('liaAnalyticsPage.conversations.total', { count: total })}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -226,25 +223,25 @@ export function ConversationsTableWidget({
           <thead className="bg-gray-50 dark:bg-gray-700/50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Usuario
+                {t('liaAnalyticsPage.conversations.table.user')}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Contexto
+                {t('liaAnalyticsPage.conversations.table.context')}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Mensajes
+                {t('liaAnalyticsPage.conversations.table.messages')}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Tokens
+                {t('liaAnalyticsPage.conversations.table.tokens')}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Costo
+                {t('liaAnalyticsPage.conversations.table.cost')}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Duración
+                {t('liaAnalyticsPage.conversations.table.duration')}
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Fecha
+                {t('liaAnalyticsPage.conversations.table.date')}
               </th>
             </tr>
           </thead>
@@ -299,7 +296,7 @@ export function ConversationsTableWidget({
                       )}
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[120px]">
-                          {conv.user?.name || 'Usuario'}
+                          {conv.user?.name || t('liaAnalyticsPage.conversations.fallbackUser')}
                         </p>
                       </div>
                     </div>
@@ -310,7 +307,7 @@ export function ConversationsTableWidget({
                         CONTEXT_COLORS[conv.contextType] || 'bg-gray-500/20 text-gray-400'
                       }`}
                     >
-                      {CONTEXT_LABELS[conv.contextType] || conv.contextType}
+                      {getContextLabel(conv.contextType)}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
@@ -333,7 +330,7 @@ export function ConversationsTableWidget({
             ) : (
               <tr>
                 <td colSpan={7} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                  No hay conversaciones en este período
+                  {t('liaAnalyticsPage.conversations.empty')}
                 </td>
               </tr>
             )}
@@ -345,7 +342,7 @@ export function ConversationsTableWidget({
       {totalPages > 1 && (
         <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Página {page} de {totalPages}
+            {t('liaAnalyticsPage.conversations.pageStatus', { page, totalPages })}
           </p>
           <div className="flex gap-2">
             <button
@@ -368,4 +365,3 @@ export function ConversationsTableWidget({
     </div>
   );
 }
-

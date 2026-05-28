@@ -2,6 +2,7 @@
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { UserCircleIcon, TrophyIcon, UsersIcon } from '@heroicons/react/24/outline';
 
 interface TopUser {
@@ -33,31 +34,53 @@ interface TopUsersWidgetProps {
 type SortBy = 'cost' | 'tokens' | 'messages' | 'conversations';
 
 export function TopUsersWidget({ period = 'month', limit = 10, isLoading: externalLoading }: TopUsersWidgetProps) {
+  const { t } = useTranslation('admin');
   const [users, setUsers] = useState<TopUser[]>([]);
   const [sortBy, setSortBy] = useState<SortBy>('cost');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchTopUsers = async () => {
       setIsLoading(true);
+      setError(null);
       try {
         const response = await fetch(
-          `/api/admin/lia-analytics/top-users?period=${period}&limit=${limit}&sortBy=${sortBy}`
+          `/api/admin/lia-analytics/top-users?period=${period}&limit=${limit}&sortBy=${sortBy}`,
+          { cache: 'no-store', signal: controller.signal },
         );
         const data = await response.json();
         
-        if (data.success) {
-          setUsers(data.data.users);
+        if (!response.ok || !data.success) {
+          setUsers([]);
+          setError(data.error || t('liaAnalyticsPage.topUsers.error'));
+          return;
         }
+
+        setUsers(data.data.users);
       } catch (error) {
-        techDebtLogger.error('Error fetching top users:', error);
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+
+        setUsers([]);
+        setError(t('liaAnalyticsPage.topUsers.error'));
+        techDebtLogger.warn('Top users analytics request failed', {
+          message: error instanceof Error ? error.message : String(error),
+        });
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchTopUsers();
-  }, [period, limit, sortBy]);
+
+    return () => {
+      controller.abort();
+    };
+  }, [period, limit, sortBy, t]);
 
   const formatNumber = (value: number) => {
     if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
@@ -95,10 +118,10 @@ export function TopUsersWidget({ period = 'month', limit = 10, isLoading: extern
   };
 
   const sortOptions: { value: SortBy; label: string }[] = [
-    { value: 'cost', label: 'Por Costo' },
-    { value: 'tokens', label: 'Por Tokens' },
-    { value: 'messages', label: 'Por Mensajes' },
-    { value: 'conversations', label: 'Por Conversaciones' },
+    { value: 'cost', label: t('liaAnalyticsPage.topUsers.sort.cost') },
+    { value: 'tokens', label: t('liaAnalyticsPage.topUsers.sort.tokens') },
+    { value: 'messages', label: t('liaAnalyticsPage.topUsers.sort.messages') },
+    { value: 'conversations', label: t('liaAnalyticsPage.topUsers.sort.conversations') },
   ];
 
   if (isLoading || externalLoading) {
@@ -126,7 +149,7 @@ export function TopUsersWidget({ period = 'month', limit = 10, isLoading: extern
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
           <UsersIcon className="w-5 h-5 text-indigo-500" />
-          Top Usuarios de SofLIA
+          {t('liaAnalyticsPage.topUsers.title')}
         </h3>
         <select
           value={sortBy}
@@ -164,7 +187,7 @@ export function TopUsersWidget({ period = 'month', limit = 10, isLoading: extern
 
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  {item.user?.name || 'Usuario desconocido'}
+                  {item.user?.name || t('liaAnalyticsPage.topUsers.unknownUser')}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                   {item.user?.email}
@@ -176,7 +199,7 @@ export function TopUsersWidget({ period = 'month', limit = 10, isLoading: extern
                   ${item.stats.cost.toFixed(4)}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {formatNumber(item.stats.tokens)} tokens
+                  {formatNumber(item.stats.tokens)} {t('liaAnalyticsPage.units.tokens')}
                 </p>
               </div>
             </div>
@@ -184,10 +207,9 @@ export function TopUsersWidget({ period = 'month', limit = 10, isLoading: extern
         </div>
       ) : (
         <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-          No hay datos de usuarios
+          {error || t('liaAnalyticsPage.topUsers.empty')}
         </div>
       )}
     </div>
   );
 }
-

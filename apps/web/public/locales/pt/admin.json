@@ -320,10 +320,24 @@
         "recalculateButton": "Recalcular Duração",
         "recalculating": "Recalculando...",
         "addModuleButton": "Novo Módulo",
+        "editModule": "Editar Módulo",
+        "createModule": "Criar Módulo",
+        "editModuleDesc": "Modificar informações do módulo",
+        "createModuleDesc": "Adicionar um novo módulo ao workshop",
         "loading": "Carregando módulos...",
         "emptyTitle": "Nenhum módulo",
         "emptyDescription": "Comece adicionando o primeiro módulo para organizar seu conteúdo.",
         "createFirstButton": "Criar seu primeiro módulo",
+        "emptyLessonsTitle": "Não há lições neste módulo",
+        "createFirstLessonButton": "Adicione sua primeira lição",
+        "moduleTitleLabel": "Título do módulo *",
+        "moduleTitlePlaceholder": "Ex: Fundamentos de IA",
+        "moduleDescriptionLabel": "Descrição",
+        "moduleDescriptionPlaceholder": "Descreva o conteúdo do módulo...",
+        "requiredLabel": "Módulo obrigatório",
+        "requiredDesc": "Os alunos devem concluir este módulo para continuar.",
+        "publishedLabel": "Publicado",
+        "publishedDesc": "O módulo ficará visível para os alunos.",
         "published": "Publicado",
         "draft": "Rascunho",
         "lessonCount": "{{count}} lição",
@@ -359,6 +373,7 @@
           "duration": "Duração",
           "level": "Nível",
           "category": "Categoria",
+          "status": "Status",
           "price": "Preço",
           "free": "Grátis"
         },
@@ -367,13 +382,21 @@
         "status": "Status",
         "published": "Publicado",
         "realtimeTitle": "Visualização em Tempo Real",
-        "realtimeDescription": "Esta é uma visualização de como seu curso aparecerá para os alunos."
+        "realtimeDescription": "Esta é uma visualização de como seu curso aparecerá para os alunos.",
+        "notFoundTitle": "Curso não encontrado",
+        "notFoundDescription": "Salve a configuração primeiro para ver a visualização"
       },
       "lessons": {
         "editLesson": "Editar Lição",
         "createLesson": "Criar Lição",
         "editLessonDesc": "Modificar informações da lição",
         "createLessonDesc": "Adicionar uma nova lição ao módulo",
+        "byInstructor": "por {{name}}",
+        "moveLesson": "Mover Lição",
+        "moveLessonDesc": "Selecione o módulo de destino",
+        "currentModule": "Atual",
+        "publishedLabel": "Publicar lição",
+        "publishedDesc": "A lição ficará visível para os alunos.",
         "tabs": {
           "basic": "Básica",
           "video": "Vídeo",
@@ -433,7 +456,85 @@
         "rating": "Avaliação",
         "noReviews": "Sem avaliações",
         "reviewsCount": "{{count}} avaliação",
-        "reviewsCount_plural": "{{count}} avaliações"
+        "reviewsCount_plural": "{{count}} avaliações",
+        "charts": {
+          "progressDistributionTitle": "Distribuição de progresso",
+          "progressDistributionDescription": "Estado atual dos estudantes",
+          "enrollmentTrendTitle": "Tendência de inscrições",
+          "last7Days": "Últimos 7 dias",
+          "studentStatusTitle": "Estado dos estudantes",
+          "studentStatusDescription": "Evolução do progresso ao longo do tempo",
+          "completed": "Concluídos",
+          "inProgress": "Em progresso",
+          "notStarted": "Não iniciados",
+          "enrollments": "Inscrições",
+          "activeStudents": "Estudantes ativos",
+          "emptyMonthLabel": "Sem dados",
+          "days": {
+            "monShort": "Seg",
+            "tueShort": "Ter",
+            "wedShort": "Qua",
+            "thuShort": "Qui",
+            "friShort": "Sex",
+            "satShort": "Sáb",
+            "sunShort": "Dom"
+          }
+        },
+        "details": {
+          "title": "Análise detalhada",
+          "description": "Métricas avançadas do workshop",
+          "publishedModules": "Módulos publicados",
+          "totalLessons": "Lições totais",
+          "totalDuration": "Duração total",
+          "materials": "Materiais",
+          "activities": "Atividades",
+          "retentionRate": "Taxa de retenção",
+          "active7d": "Ativos 7 dias",
+          "active30d": "Ativos 30 dias",
+          "certificatesIssued": "Certificados emitidos"
+        },
+        "studentsTable": {
+          "student": "Estudante",
+          "status": "Estado",
+          "progress": "Progresso",
+          "enrolledAt": "Inscrito",
+          "lastActivity": "Última atividade",
+          "actions": "Ações"
+        },
+        "studentDetails": {
+          "close": "Fechar",
+          "closeLabel": "Fechar detalhes do estudante",
+          "viewDetails": "Ver detalhes",
+          "emptyTitle": "Nenhum detalhe disponível",
+          "emptyDescription": "Este painel foi criado para revisar o progresso, a atividade, o uso da SofLIA e os hábitos de estudo do estudante quando houver dados registrados. As informações detalhadas não estão disponíveis para este usuário no momento.",
+          "statuses": {
+            "completed": "Concluído",
+            "active": "Ativo",
+            "paused": "Pausado",
+            "cancelled": "Cancelado",
+            "unknown": "Desconhecido"
+          },
+          "activity": {
+            "enrollmentStatusTitle": "Estado da inscrição",
+            "status": "Estado:",
+            "enrolledAt": "Inscrito:",
+            "lastActivity": "Última atividade:",
+            "never": "Nunca",
+            "achievementsTitle": "Conquistas e certificados",
+            "noAchievements": "Não há conquistas ou certificados registrados para este estudante."
+          },
+          "progressCharts": {
+            "last7Days": "Últimos 7 dias",
+            "weeklyProgress": "Progresso semanal",
+            "dailyDistribution": "Distribuição por dia",
+            "studyTime": "Tempo de estudo"
+          },
+          "insights": {
+            "title": "Insights da SofLIA",
+            "empty": "Ainda não há dados suficientes para gerar insights personalizados.",
+            "pattern": "Este estudante mostra um padrão de estudo {{period}}. Frequência semanal: {{weeklyFrequency}} dias. Duração média: {{avgDuration}} minutos por sessão. Sequência atual: {{streak}} dias consecutivos."
+          }
+        }
       }
     },
     "errors": {
@@ -776,7 +877,8 @@
       "day": "Hoje",
       "week": "Última semana",
       "month": "Último mês",
-      "year": "Último ano"
+      "year": "Último ano",
+      "all": "Todo o histórico"
     },
     "chart": {
       "area": "Área",
@@ -802,7 +904,9 @@
       "empty": "Não há dados de distribuição",
       "contexts": {
         "course": "Cursos",
+        "courses": "Cursos",
         "general": "Geral",
+        "activity": "Atividades",
         "workshop": "Workshops",
         "prompts": "Prompts",
         "community": "Comunidades",
@@ -813,6 +917,191 @@
         "cost": "Custo",
         "tokens": "Tokens",
         "percentage": "Porcentagem"
+      }
+    },
+    "units": {
+      "tokens": "tokens"
+    },
+    "statsCards": {
+      "todayCost": "Custo hoje",
+      "periodCost": "Custo total (período)",
+      "tokensConsumed": "Tokens consumidos",
+      "conversations": "Conversas",
+      "avgTime": "Tempo médio",
+      "activeUsersToday": "Usuários ativos hoje",
+      "messagesPerConversation": "Msgs/conversa",
+      "costPerMessage": "Custo/mensagem",
+      "vsYesterday": "vs ontem",
+      "monthlyProjection": "Projeção mensal: {{value}}",
+      "todayValue": "{{value}} hoje",
+      "messagesValue": "{{value}} mensagens",
+      "responseTime": "de resposta",
+      "interactionAverage": "média de interação",
+      "messageEfficiency": "eficiência por mensagem"
+    },
+    "costOverview": {
+      "title": "Custos por período",
+      "total": "Total",
+      "dailyAverage": "Média diária",
+      "seriesCostUsd": "Custo USD",
+      "tooltip": {
+        "cost": "Custo",
+        "tokens": "Tokens",
+        "messages": "Mensagens"
+      }
+    },
+    "tokenUsage": {
+      "title": "Uso de tokens por modelo",
+      "total": "Total",
+      "empty": "Não há dados de uso de tokens",
+      "tooltip": {
+        "tokens": "Tokens",
+        "cost": "Custo",
+        "calls": "Chamadas",
+        "percentage": "Porcentagem"
+      }
+    },
+    "topUsers": {
+      "title": "Top usuários da SofLIA",
+      "empty": "Não há dados de usuários",
+      "error": "Não foi possível carregar os usuários",
+      "unknownUser": "Usuário desconhecido",
+      "sort": {
+        "cost": "Por custo",
+        "tokens": "Por tokens",
+        "messages": "Por mensagens",
+        "conversations": "Por conversas"
+      }
+    },
+    "topQuestions": {
+      "title": "Temas frequentes",
+      "analyzedQuestions": "{{value}} perguntas analisadas",
+      "topCategory": "Top: {{category}}",
+      "empty": "Não há dados suficientes",
+      "avgResponseTime": "{{value}}ms méd.",
+      "times": "vezes",
+      "insightLabel": "Insight",
+      "insightPrefix": "As perguntas sobre",
+      "insightSuffix": "representam a maioria das consultas. Considere melhorar o conteúdo nesta área."
+    },
+    "courseAnalytics": {
+      "title": "Desempenho por curso",
+      "description": "Analise o consumo e o engajamento da SofLIA em cada curso",
+      "error": "Erro ao carregar dados dos cursos",
+      "hideDetails": "Ocultar detalhes",
+      "showModuleBreakdown": "Ver detalhamento por módulo",
+      "topModules": "Top módulos (por custo)",
+      "conversationsShort": "{{count}} conv.",
+      "empty": "Não há dados de cursos para este período",
+      "sort": {
+        "cost": "Custo",
+        "conversations": "Conversas",
+        "users": "Usuários"
+      },
+      "table": {
+        "course": "Curso",
+        "totalCost": "Custo total",
+        "conversations": "Conversas",
+        "messages": "Mensagens",
+        "uniqueUsers": "Usuários únicos"
+      }
+    },
+    "conversations": {
+      "title": "Conversas recentes",
+      "total": "{{count}} conversas no total",
+      "fallbackUser": "Usuário",
+      "empty": "Não há conversas neste período",
+      "pageStatus": "Página {{page}} de {{totalPages}}",
+      "filters": {
+        "all": "Todos",
+        "courses": "Cursos",
+        "workshops": "Workshops",
+        "communities": "Comunidades"
+      },
+      "table": {
+        "user": "Usuário",
+        "context": "Contexto",
+        "messages": "Mensagens",
+        "tokens": "Tokens",
+        "cost": "Custo",
+        "duration": "Duração",
+        "date": "Data"
+      }
+    },
+    "activityPerformance": {
+      "title": "Desempenho das atividades",
+      "empty": "Não há dados de atividades disponíveis",
+      "total": "{{count}} atividades no total",
+      "statusDistribution": "Distribuição de status",
+      "metrics": {
+        "completionRate": "Taxa de conclusão",
+        "abandonRate": "Taxa de abandono",
+        "averageTime": "Tempo médio",
+        "averageRedirections": "Redirecionamentos médios"
+      },
+      "status": {
+        "completed": "Concluídas",
+        "in_progress": "Em progresso",
+        "started": "Iniciadas",
+        "abandoned": "Abandonadas"
+      }
+    },
+    "activityHeatmap": {
+      "title": "Mapa de atividade",
+      "totalMessages": "{{value}} mensagens no período",
+      "peakHour": "Horário de pico",
+      "messagesShort": "{{count}} msgs",
+      "tooltipTime": "{{day}} às {{hour}}:00",
+      "tooltipMessages": "{{count}} mensagens",
+      "averageTime": "Tempo médio",
+      "clickForDetails": "Clique para ver detalhes",
+      "cellHint": "Clique em uma célula para ver detalhes",
+      "less": "Menos",
+      "more": "Mais",
+      "days": {
+        "sun": "Dom",
+        "mon": "Seg",
+        "tue": "Ter",
+        "wed": "Qua",
+        "thu": "Qui",
+        "fri": "Sex",
+        "sat": "Sáb"
+      }
+    },
+    "heatmapModal": {
+      "title": "{{day}} às {{hour}}",
+      "subtitle": "Detalhe de atividade da SofLIA",
+      "empty": "Não foi possível carregar os dados",
+      "footerPeriod": "Dados do período: {{period}}",
+      "close": "Fechar",
+      "tabs": {
+        "overview": "Resumo",
+        "users": "Usuários",
+        "questions": "Perguntas"
+      },
+      "summary": {
+        "messages": "Mensagens",
+        "users": "Usuários",
+        "avgResponse": "Resp. méd.",
+        "cost": "Custo"
+      },
+      "overview": {
+        "contextDistribution": "Distribuição por contexto",
+        "modelsUsed": "Modelos utilizados",
+        "activityDates": "Datas com atividade",
+        "responses": "{{count}} respostas",
+        "tokensUsed": "{{tokens}} tokens usados em {{conversations}} conversas",
+        "averageTokens": "Média: {{average}} tokens/conversa"
+      },
+      "questions": {
+        "empty": "Não há perguntas registradas",
+        "responseTime": "Resposta em {{time}}ms"
+      },
+      "users": {
+        "empty": "Não há dados de usuários",
+        "messagesShort": "{{count}} msgs",
+        "conversationsShort": "{{count}} conv.",
+        "tokens": "{{value}} tokens"
       }
     }
   },
