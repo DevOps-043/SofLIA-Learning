@@ -285,7 +285,6 @@
       "no": "No"
     }
   },
-
   "video": {
     "title": "Lección",
     "description": "Descripción",
@@ -486,6 +485,12 @@
     "increaseFontSize": "Aumentar tamano de texto",
     "fontSizeSmall": "Pequeno",
     "fontSizeDefault": "Normal",
-    "fontSizeLarge": "Grande"
+    "fontSizeLarge": "Grande",
+    "voice": {
+      "listen": "Escuchar",
+      "stop": "Detener",
+      "generating": "Generando audio...",
+      "error": "Error de voz"
+    }
   }
 }

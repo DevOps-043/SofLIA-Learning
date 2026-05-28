@@ -10,6 +10,12 @@ export interface TextToSpeechRequestPayload {
   speed?: number;
   optimizeStreamingLatency?: number;
   outputFormat?: string;
+  /**
+   * 'reading'              → full narrator prompt + audio tags (first chunk or single request)
+   * 'reading_continuation' → minimal continuation prompt (subsequent chunks, fewer tokens)
+   * 'chat'                 → SofLIA conversational prompt
+   */
+  context?: 'chat' | 'reading' | 'reading_continuation';
 }
 
 export interface WebSpeechRequestPayload extends WebSpeechVoiceSettings {

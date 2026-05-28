@@ -32,7 +32,8 @@ export function getConfiguredTTSProvider(): TextToSpeechProvider {
     return provider;
   }
 
-  if (process.env.GEMINI_TTS_API_KEY) {
+  // Auto-detect Gemini: accept any of the three key env vars the project uses
+  if (process.env.GEMINI_TTS_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY) {
     return 'gemini';
   }
 

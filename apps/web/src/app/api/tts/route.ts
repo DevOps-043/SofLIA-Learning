@@ -40,10 +40,15 @@ const textToSpeechSchema = z.object({
   speed: z.number().min(0.5).max(2).optional(),
   optimizeStreamingLatency: z.number().int().min(0).max(4).optional().default(DEFAULT_TTS_OPTIMIZE_STREAMING_LATENCY),
   outputFormat: z.string().trim().min(1).max(32).optional().default(DEFAULT_TTS_OUTPUT_FORMAT),
+  context: z.enum(['chat', 'reading', 'reading_continuation']).optional(),
 });
 
+// Reading uses small (~200 char) chunks: a long lesson reflection can produce
+// 20+ chunks in under 60s. Old limit (20/min) caused 502s mid-reading. We now
+// allow 80 req/min — still tight enough to deter abuse, loose enough for a
+// single user reading 2 long activities back-to-back.
 const ttsRateLimit = {
-  maxRequests: 20,
+  maxRequests: 80,
   windowMs: 60 * 1000,
   message: 'Demasiadas solicitudes de voz. Intenta nuevamente en un minuto.',
 };

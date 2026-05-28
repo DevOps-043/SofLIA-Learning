@@ -485,6 +485,12 @@
     "increaseFontSize": "Aumentar tamanho do texto",
     "fontSizeSmall": "Pequeno",
     "fontSizeDefault": "Normal",
-    "fontSizeLarge": "Grande"
+    "fontSizeLarge": "Grande",
+    "voice": {
+      "listen": "Ouvir",
+      "stop": "Parar",
+      "generating": "Gerando áudio...",
+      "error": "Erro de voz"
+    }
   }
 }

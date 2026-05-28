@@ -32,6 +32,14 @@ export async function playAudioBlob(
     options.onFinish?.()
   }
 
+  if (options.onProgress) {
+    audio.ontimeupdate = () => {
+      if (audio.duration > 0) {
+        options.onProgress!(audio.currentTime / audio.duration)
+      }
+    }
+  }
+
   try {
     await audio.play()
   } catch (error) {
