@@ -45,7 +45,7 @@ async function markAllAsReadFallback(
 
   const { count, error: countError } = await supabase
     .from('user_notifications')
-    .select('id', { count: 'exact', head: true })
+    .select('notification_id', { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('status', 'unread')
     .or(activeFilter)

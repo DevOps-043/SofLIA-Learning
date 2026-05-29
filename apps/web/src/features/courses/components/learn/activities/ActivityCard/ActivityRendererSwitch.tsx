@@ -22,6 +22,10 @@ interface ActivityRendererSwitchProps {
   lessonId: string;
   markAiChatActivityCompleted: (conversationId?: string | null) => void | Promise<void>;
   onQuizSubmitted: () => void | Promise<void>;
+  onRequestQuizFeedback: (
+    prompt: string,
+    source?: { activityId?: string | null; materialId?: string | null },
+  ) => void | Promise<void>;
   onStartAiChat: (activity: LearnActivity, callback: (conversationId?: string | null) => void | Promise<void>) => void;
   onTriggerLiaFeedback: (prompt: string) => void | Promise<void>;
   quizInfo?: LessonQuizStatusItem;

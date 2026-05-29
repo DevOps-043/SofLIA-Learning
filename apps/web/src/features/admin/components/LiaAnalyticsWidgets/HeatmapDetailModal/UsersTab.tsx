@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { HourDetailData } from './types';
 
 interface UsersTabProps {
@@ -5,8 +6,10 @@ interface UsersTabProps {
 }
 
 export function UsersTab({ users }: UsersTabProps) {
+  const { t } = useTranslation('admin');
+
   if (users.length === 0) {
-    return <p className="py-8 text-center text-gray-500">No hay datos de usuarios</p>;
+    return <p className="py-8 text-center text-gray-500">{t('liaAnalyticsPage.heatmapModal.users.empty')}</p>;
   }
 
   return (
@@ -29,11 +32,11 @@ export function UsersTab({ users }: UsersTabProps) {
               </div>
               {user.email && <p className="truncate text-xs text-gray-500 dark:text-gray-400">{user.email}</p>}
               <div className="mt-2 flex items-center gap-3 text-xs text-gray-600 dark:text-gray-300">
-                <span>{user.messageCount} msgs</span>
+                <span>{t('liaAnalyticsPage.heatmapModal.users.messagesShort', { count: user.messageCount })}</span>
                 <span>-</span>
-                <span>{user.conversationCount} conv</span>
+                <span>{t('liaAnalyticsPage.heatmapModal.users.conversationsShort', { count: user.conversationCount })}</span>
                 <span>-</span>
-                <span>{user.tokens.toLocaleString()} tokens</span>
+                <span>{t('liaAnalyticsPage.heatmapModal.users.tokens', { value: user.tokens.toLocaleString() })}</span>
                 <span>-</span>
                 <span>${user.cost.toFixed(4)}</span>
               </div>

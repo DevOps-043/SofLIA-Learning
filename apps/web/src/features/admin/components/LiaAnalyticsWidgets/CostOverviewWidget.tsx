@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   AreaChart,
   Area,
@@ -40,6 +41,8 @@ interface CostTooltipProps {
 }
 
 export function CostOverviewWidget({ data, isLoading, chartType = 'area' }: CostOverviewWidgetProps) {
+  const { i18n, t } = useTranslation('admin');
+  const locale = i18n.language === 'en' ? 'en-US' : i18n.language === 'pt' ? 'pt-BR' : 'es-ES';
   const chartData = useMemo(() => {
     return data.map((item) => {
       // Parsear la fecha manualmente para evitar problemas de timezone
@@ -50,7 +53,7 @@ export function CostOverviewWidget({ data, isLoading, chartType = 'area' }: Cost
       
       return {
         ...item,
-        date: date.toLocaleDateString('es-ES', {
+        date: date.toLocaleDateString(locale, {
           day: '2-digit',
           month: 'short',
           timeZone: 'UTC' // Forzar interpretación UTC
@@ -58,7 +61,7 @@ export function CostOverviewWidget({ data, isLoading, chartType = 'area' }: Cost
         costFormatted: `$${item.cost.toFixed(4)}`,
       };
     });
-  }, [data]);
+  }, [data, locale]);
 
   const totalCost = useMemo(() => {
     return data.reduce((sum, item) => sum + item.cost, 0);
@@ -75,12 +78,12 @@ export function CostOverviewWidget({ data, isLoading, chartType = 'area' }: Cost
           <p className="text-gray-300 text-sm font-medium mb-2">{label}</p>
           <div className="space-y-1">
             <p className="text-emerald-400 text-sm">
-              <span className="text-gray-400">Costo:</span>{' '}
+              <span className="text-gray-400">{t('liaAnalyticsPage.costOverview.tooltip.cost')}:</span>{' '}
               <span className="font-semibold">${payload[0]?.value?.toFixed(4)}</span>
             </p>
             {payload[0]?.payload?.tokens && (
               <p className="text-blue-400 text-sm">
-                <span className="text-gray-400">Tokens:</span>{' '}
+                <span className="text-gray-400">{t('liaAnalyticsPage.costOverview.tooltip.tokens')}:</span>{' '}
                 <span className="font-semibold">
                   {payload[0].payload.tokens.toLocaleString()}
                 </span>
@@ -88,7 +91,7 @@ export function CostOverviewWidget({ data, isLoading, chartType = 'area' }: Cost
             )}
             {payload[0]?.payload?.messages && (
               <p className="text-violet-400 text-sm">
-                <span className="text-gray-400">Mensajes:</span>{' '}
+                <span className="text-gray-400">{t('liaAnalyticsPage.costOverview.tooltip.messages')}:</span>{' '}
                 <span className="font-semibold">{payload[0].payload.messages}</span>
               </p>
             )}
@@ -116,18 +119,18 @@ export function CostOverviewWidget({ data, isLoading, chartType = 'area' }: Cost
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <ChartBarIcon className="w-5 h-5 text-emerald-500" />
-            Costos por Período
+            {t('liaAnalyticsPage.costOverview.title')}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Total: <span className="font-semibold text-emerald-500">${totalCost.toFixed(4)}</span>
+            {t('liaAnalyticsPage.costOverview.total')}: <span className="font-semibold text-emerald-500">${totalCost.toFixed(4)}</span>
             {' • '}
-            Promedio diario: <span className="font-semibold">${avgDailyCost.toFixed(4)}</span>
+            {t('liaAnalyticsPage.costOverview.dailyAverage')}: <span className="font-semibold">${avgDailyCost.toFixed(4)}</span>
           </p>
         </div>
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-            <span className="text-gray-500 dark:text-gray-400">Costo USD</span>
+            <span className="text-gray-500 dark:text-gray-400">{t('liaAnalyticsPage.costOverview.seriesCostUsd')}</span>
           </div>
         </div>
       </div>

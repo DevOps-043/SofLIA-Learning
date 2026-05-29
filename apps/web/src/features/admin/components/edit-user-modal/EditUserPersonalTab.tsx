@@ -118,7 +118,7 @@ export function EditUserPersonalTab({
 
         <div>
           <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">
-            {t('demographics.dateOfBirth')}
+            {t('common:demographics.dateOfBirth')}
           </label>
           <input
             type="date"
@@ -133,17 +133,17 @@ export function EditUserPersonalTab({
 
         <div>
           <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">
-            {t('demographics.gender.label')}
+            {t('common:demographics.gender.label')}
           </label>
           <select
             value={formData.gender}
             onChange={(e) => onFieldChange('gender', e.target.value)}
             className="w-full px-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-cyan-400/40 focus:border-transparent transition-all duration-200"
           >
-            <option value="">{t('demographics.gender.placeholder')}</option>
+            <option value="">{t('common:demographics.gender.placeholder')}</option>
             {USER_GENDER_VALUES.map((gender) => (
               <option key={gender} value={gender}>
-                {t(`demographics.gender.options.${gender}`)}
+                {t(`common:demographics.gender.options.${gender}`)}
               </option>
             ))}
           </select>

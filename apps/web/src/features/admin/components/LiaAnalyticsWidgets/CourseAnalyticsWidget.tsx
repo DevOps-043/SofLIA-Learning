@@ -1,7 +1,8 @@
 'use client';
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import { useState, useEffect, useCallback } from 'react';
+import { Fragment, useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   AcademicCapIcon, 
   CurrencyDollarIcon, 
@@ -42,6 +43,7 @@ interface CourseAnalyticsWidgetProps {
 }
 
 export function CourseAnalyticsWidget({ period }: CourseAnalyticsWidgetProps) {
+  const { t } = useTranslation('admin');
   const [data, setData] = useState<CourseMetric[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,12 +65,12 @@ export function CourseAnalyticsWidget({ period }: CourseAnalyticsWidgetProps) {
             setError(result.error);
         }
     } catch (err) {
-        setError('Error al cargar datos de cursos');
+        setError(t('liaAnalyticsPage.courseAnalytics.error'));
         techDebtLogger.error(err);
     } finally {
         setIsLoading(false);
     }
-  }, [period]);
+  }, [period, t]);
 
   useEffect(() => {
     fetchCourseData();
@@ -95,7 +97,7 @@ export function CourseAnalyticsWidget({ period }: CourseAnalyticsWidgetProps) {
         <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <AcademicCapIcon className="w-5 h-5 text-indigo-500" />
-                Rendimiento por Curso
+                {t('liaAnalyticsPage.courseAnalytics.title')}
             </h3>
         </div>
         <div className="animate-pulse space-y-4">
@@ -121,10 +123,10 @@ export function CourseAnalyticsWidget({ period }: CourseAnalyticsWidgetProps) {
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <AcademicCapIcon className="w-5 h-5 text-indigo-500" />
-            Rendimiento por Curso
+            {t('liaAnalyticsPage.courseAnalytics.title')}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Analiza el consumo y engagement de SofLIA en cada curso
+            {t('liaAnalyticsPage.courseAnalytics.description')}
           </p>
         </div>
         
@@ -133,19 +135,19 @@ export function CourseAnalyticsWidget({ period }: CourseAnalyticsWidgetProps) {
                 onClick={() => setSortBy('cost')}
                 className={`px-3 py-1.5 rounded-md transition-all ${sortBy === 'cost' ? 'bg-white dark:bg-gray-600 shadow text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}`}
             >
-                Costo
+                {t('liaAnalyticsPage.courseAnalytics.sort.cost')}
             </button>
             <button 
                 onClick={() => setSortBy('conversations')}
                 className={`px-3 py-1.5 rounded-md transition-all ${sortBy === 'conversations' ? 'bg-white dark:bg-gray-600 shadow text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}`}
             >
-                Conversaciones
+                {t('liaAnalyticsPage.courseAnalytics.sort.conversations')}
             </button>
             <button 
                 onClick={() => setSortBy('users')}
                 className={`px-3 py-1.5 rounded-md transition-all ${sortBy === 'users' ? 'bg-white dark:bg-gray-600 shadow text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}`}
             >
-                Usuarios
+                {t('liaAnalyticsPage.courseAnalytics.sort.users')}
             </button>
         </div>
       </div>
@@ -154,20 +156,19 @@ export function CourseAnalyticsWidget({ period }: CourseAnalyticsWidgetProps) {
         <table className="w-full text-left text-sm">
           <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 font-medium">
             <tr>
-              <th className="px-6 py-3">Curso</th>
-              <th className="px-6 py-3 text-right">Costo Total</th>
-              <th className="px-6 py-3 text-right">Conversaciones</th>
-              <th className="px-6 py-3 text-right">Mensajes</th>
-              <th className="px-6 py-3 text-right">Usuarios Únicos</th>
+              <th className="px-6 py-3">{t('liaAnalyticsPage.courseAnalytics.table.course')}</th>
+              <th className="px-6 py-3 text-right">{t('liaAnalyticsPage.courseAnalytics.table.totalCost')}</th>
+              <th className="px-6 py-3 text-right">{t('liaAnalyticsPage.courseAnalytics.table.conversations')}</th>
+              <th className="px-6 py-3 text-right">{t('liaAnalyticsPage.courseAnalytics.table.messages')}</th>
+              <th className="px-6 py-3 text-right">{t('liaAnalyticsPage.courseAnalytics.table.uniqueUsers')}</th>
               <th className="px-6 py-3 text-right">Tokens</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {sortedData.length > 0 ? (
-                sortedData.map((course) => (
-                <>
+                sortedData.map((course, index) => (
+                <Fragment key={course.courseId || `${course.title}-${index}`}>
                     <tr 
-                        key={course.courseId} 
                         onClick={() => toggleExpand(course.courseId)}
                         className="hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer transition-colors"
                     >
@@ -175,7 +176,7 @@ export function CourseAnalyticsWidget({ period }: CourseAnalyticsWidgetProps) {
                             <div className="font-medium text-gray-900 dark:text-white">{course.title}</div>
                             {course.topModules?.length > 0 && (
                                 <div className="text-xs text-indigo-500 mt-0.5 flex items-center gap-1">
-                                    {expandedCourse === course.courseId ? 'Ocultar detalles' : 'Ver desglose por módulo'}
+                                    {expandedCourse === course.courseId ? t('liaAnalyticsPage.courseAnalytics.hideDetails') : t('liaAnalyticsPage.courseAnalytics.showModuleBreakdown')}
                                 </div>
                             )}
                         </td>
@@ -200,14 +201,14 @@ export function CourseAnalyticsWidget({ period }: CourseAnalyticsWidgetProps) {
                             <td colSpan={6} className="px-6 py-4">
                                 <div className="ml-4 pl-4 border-l-2 border-indigo-200 dark:border-indigo-800">
                                     <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                                        Top Módulos (por costo)
+                                        {t('liaAnalyticsPage.courseAnalytics.topModules')}
                                     </h4>
                                     <div className="space-y-2">
                                         {course.topModules.map(mod => (
                                             <div key={mod.moduleId} className="flex items-center justify-between text-sm">
                                                 <span className="text-gray-700 dark:text-gray-300 truncate max-w-xs">{mod.title}</span>
                                                 <div className="flex items-center gap-4 text-xs">
-                                                    <span className="text-gray-500">{mod.conversations} conv.</span>
+                                                    <span className="text-gray-500">{t('liaAnalyticsPage.courseAnalytics.conversationsShort', { count: mod.conversations })}</span>
                                                     <span className="font-mono text-emerald-600 dark:text-emerald-500">${mod.totalCost.toFixed(4)}</span>
                                                 </div>
                                             </div>
@@ -217,12 +218,12 @@ export function CourseAnalyticsWidget({ period }: CourseAnalyticsWidgetProps) {
                             </td>
                         </tr>
                     )}
-                </>
+                </Fragment>
                 ))
             ) : (
                 <tr>
                     <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                        No hay datos de cursos para este período
+                        {t('liaAnalyticsPage.courseAnalytics.empty')}
                     </td>
                 </tr>
             )}

@@ -13,6 +13,7 @@ export type UseNotesManagementParams = {
   currentLesson: LearnLesson | null;
   isNotesCollapsed: boolean;
   closeLia: () => void;
+  organizationId?: string | null;
 };
 
 export type SaveNoteHandler = (noteData: LearnNoteFormData) => Promise<boolean>;

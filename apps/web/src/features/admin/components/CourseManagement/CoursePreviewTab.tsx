@@ -5,6 +5,7 @@ import { useMotionSafe } from '../../../../lib/utils/motion'
 import { useTranslation } from 'react-i18next'
 import {
   BarChart3,
+  Book,
   Clock,
   DollarSign,
   Eye,
@@ -48,30 +49,35 @@ export function CoursePreviewTab() {
   const { disableHeavy } = useMotionSafe()
   const { workshopPreview, previewLoading } = useCourseManagementContext().state
 
-  const previewStats = [
+  const previewStats: Array<{
+    Icon: typeof Clock
+    label: string
+    gradient: string
+    getValue: (preview: NonNullable<typeof workshopPreview>) => string
+  }> = [
     {
       Icon: Clock,
       label: t('workshops.editor.preview.stats.duration'),
       gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.accent,
-      getValue: (durationTotalMinutes: number) => `${durationTotalMinutes} min`,
+      getValue: (preview) => `${preview.duration_total_minutes} min`,
     },
     {
       Icon: BarChart3,
       label: t('workshops.editor.preview.stats.level'),
       gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.primary,
-      getValue: (_: any, level: string) => t(`workshops.card.level.${level}`),
+      getValue: (preview) => t(`workshops.card.level.${preview.level}`),
     },
     {
       Icon: Target,
       label: t('workshops.editor.preview.stats.category'),
       gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.success,
-      getValue: (_: any, __: any, category: string) => category ? t(`workshops.filters.categories.${category}`) : 'General',
+      getValue: (preview) => preview.category ? t(`workshops.filters.categories.${preview.category}`) : 'General',
     },
     {
       Icon: DollarSign,
       label: t('workshops.editor.preview.stats.price'),
       gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.warning,
-      getValue: (_: any, __: any, ___: any, price: number) => (price > 0 ? `$${price}` : t('workshops.editor.preview.stats.free')),
+      getValue: (preview) => (preview.price > 0 ? `$${preview.price}` : t('workshops.editor.preview.stats.free')),
     },
   ]
 
@@ -245,12 +251,7 @@ export function CoursePreviewTab() {
                             {stat.label}
                           </div>
                           <div className={`text-lg font-bold ${COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS}`}>
-                            {stat.getValue(
-                              workshopPreview.duration_total_minutes,
-                              workshopPreview.level,
-                              workshopPreview.category,
-                              workshopPreview.price
-                            )}
+                            {stat.getValue(workshopPreview)}
                           </div>
                         </div>
                       </div>

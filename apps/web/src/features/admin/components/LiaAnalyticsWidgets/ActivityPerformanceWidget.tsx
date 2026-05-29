@@ -2,6 +2,7 @@
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -33,14 +34,8 @@ interface ActivityPerformanceWidgetProps {
   isLoading?: boolean;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  completed: 'Completadas',
-  in_progress: 'En progreso',
-  started: 'Iniciadas',
-  abandoned: 'Abandonadas',
-};
-
 export function ActivityPerformanceWidget({ period = 'month', isLoading: externalLoading }: ActivityPerformanceWidgetProps) {
+  const { t } = useTranslation('admin');
   const [summary, setSummary] = useState<ActivitySummary | null>(null);
   const [statusData, setStatusData] = useState<StatusData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -93,10 +88,10 @@ export function ActivityPerformanceWidget({ period = 'month', isLoading: externa
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <BoltIcon className="w-5 h-5 text-amber-500" />
-          Rendimiento de Actividades
+          {t('liaAnalyticsPage.activityPerformance.title')}
         </h3>
         <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-          No hay datos de actividades disponibles
+          {t('liaAnalyticsPage.activityPerformance.empty')}
         </p>
       </div>
     );
@@ -104,7 +99,7 @@ export function ActivityPerformanceWidget({ period = 'month', isLoading: externa
 
   const metrics = [
     {
-      label: 'Tasa de Completación',
+      label: t('liaAnalyticsPage.activityPerformance.metrics.completionRate'),
       value: `${summary.completionRate}%`,
       icon: CheckCircleIcon,
       iconColor: 'text-emerald-500',
@@ -112,7 +107,7 @@ export function ActivityPerformanceWidget({ period = 'month', isLoading: externa
       trend: summary.completionRate >= 70 ? 'good' : summary.completionRate >= 50 ? 'neutral' : 'bad',
     },
     {
-      label: 'Tasa de Abandono',
+      label: t('liaAnalyticsPage.activityPerformance.metrics.abandonRate'),
       value: `${summary.abandonRate}%`,
       icon: XCircleIcon,
       iconColor: 'text-red-500',
@@ -120,14 +115,14 @@ export function ActivityPerformanceWidget({ period = 'month', isLoading: externa
       trend: summary.abandonRate <= 20 ? 'good' : summary.abandonRate <= 40 ? 'neutral' : 'bad',
     },
     {
-      label: 'Tiempo Promedio',
+      label: t('liaAnalyticsPage.activityPerformance.metrics.averageTime'),
       value: formatTime(summary.avgCompletionTimeSeconds),
       icon: ClockIcon,
       iconColor: 'text-blue-500',
       bgColor: 'bg-blue-500/10',
     },
     {
-      label: 'Redirecciones Promedio',
+      label: t('liaAnalyticsPage.activityPerformance.metrics.averageRedirections'),
       value: summary.avgRedirections.toFixed(1),
       icon: ArrowPathIcon,
       iconColor: 'text-amber-500',
@@ -142,10 +137,10 @@ export function ActivityPerformanceWidget({ period = 'month', isLoading: externa
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <BoltIcon className="w-5 h-5 text-amber-500" />
-            Rendimiento de Actividades
+            {t('liaAnalyticsPage.activityPerformance.title')}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {summary.totalActivities} actividades en total
+            {t('liaAnalyticsPage.activityPerformance.total', { count: summary.totalActivities })}
           </p>
         </div>
       </div>
@@ -174,7 +169,7 @@ export function ActivityPerformanceWidget({ period = 'month', isLoading: externa
       {statusData.length > 0 && (
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-            Distribución de estados
+            {t('liaAnalyticsPage.activityPerformance.statusDistribution')}
           </p>
           <div className="flex h-4 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
             {statusData.map((status) => (
@@ -185,7 +180,7 @@ export function ActivityPerformanceWidget({ period = 'month', isLoading: externa
                   width: `${status.percentage}%`,
                   backgroundColor: status.color,
                 }}
-                title={`${STATUS_LABELS[status.status] || status.status}: ${status.count} (${status.percentage}%)`}
+                title={`${t(`liaAnalyticsPage.activityPerformance.status.${status.status}`, { defaultValue: status.status })}: ${status.count} (${status.percentage}%)`}
               ></div>
             ))}
           </div>
@@ -197,7 +192,7 @@ export function ActivityPerformanceWidget({ period = 'month', isLoading: externa
                   style={{ backgroundColor: status.color }}
                 ></div>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {STATUS_LABELS[status.status] || status.status}: {status.count}
+                  {t(`liaAnalyticsPage.activityPerformance.status.${status.status}`, { defaultValue: status.status })}: {status.count}
                 </span>
               </div>
             ))}
@@ -207,4 +202,3 @@ export function ActivityPerformanceWidget({ period = 'month', isLoading: externa
     </div>
   );
 }
-

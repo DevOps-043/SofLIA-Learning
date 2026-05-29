@@ -82,7 +82,7 @@ export function useDeleteNoteMutation({
       await loadNotesStats(slug);
       closeDeleteNoteConfirm();
       setNoteError(isAbortError(error)
-        ? "La eliminacion de la nota tardo demasiado. Intenta de nuevo."
+        ? "La eliminacion de la nota tardó demasiado. Intenta de nuevo."
         : "Error al eliminar la nota. Por favor, intenta de nuevo.");
     } finally {
       setIsDeletingNote(false);

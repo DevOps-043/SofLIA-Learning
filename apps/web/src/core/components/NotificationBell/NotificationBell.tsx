@@ -20,6 +20,7 @@ import {
 import type { Notification } from '@/features/notifications/services/notification.service'
 import { logger } from '@/lib/logger'
 import { cn } from '@/shared/utils/cn'
+import { useThemeStore } from '@/core/stores/themeStore'
 
 export interface NotificationBellProps {
   className?: string
@@ -59,9 +60,13 @@ export function NotificationBell({
   } = useNotifications()
   const { t } = useTranslation('common')
   const { language } = useLanguage()
+  const resolvedTheme = useThemeStore((state) => state.resolvedTheme)
   const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
   const currentLocale = dateLocales[language as keyof typeof dateLocales] || es
+  const isLightMode = resolvedTheme === 'light'
+  const headingColor = isLightMode ? 'var(--color-legacy-0f172a)' : undefined
+  const mutedTextColor = isLightMode ? 'var(--color-legacy-334155)' : undefined
 
   useEffect(() => {
     if (!isDropdownOpen) return
@@ -165,10 +170,10 @@ export function NotificationBell({
             >
               <header className="flex items-center justify-between gap-3 border-b border-gray-200 px-4 py-3 dark:border-white/10">
                 <div className="min-w-0">
-                  <h2 className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                  <h2 className="truncate text-sm font-semibold text-gray-900 dark:text-white" style={{ color: headingColor }}>
                     {t('actions.notificationsPage.title')}
                   </h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{unreadLabel}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400" style={{ color: mutedTextColor }}>{unreadLabel}</p>
                 </div>
 
                 <div className="flex items-center gap-1">

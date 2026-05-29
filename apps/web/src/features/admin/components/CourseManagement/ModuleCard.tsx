@@ -201,7 +201,7 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
                     <Plus className="h-6 w-6 text-accent" />
                   </div>
                   <p className="mb-3 text-sm text-gray-500 dark:text-white/60">
-                    No hay lecciones en este modulo
+                    {ta('workshops.editor.modules.emptyLessonsTitle')}
                   </p>
                   <motion.button
                     onClick={() => {
@@ -214,7 +214,7 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
                     className="inline-flex items-center gap-2 text-sm font-medium text-accent transition-colors hover:text-accent/80"
                   >
                     <Plus className="h-4 w-4" />
-                    <span>Agrega tu primera leccion</span>
+                    <span>{ta('workshops.editor.modules.createFirstLessonButton')}</span>
                   </motion.button>
                 </motion.div>
               ) : (

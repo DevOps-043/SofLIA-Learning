@@ -31,18 +31,6 @@ export function ActivitiesContent(props: ActivitiesContentProps) {
     generateRoleBasedPrompts: props.generateRoleBasedPrompts,
     onLessonContentRefresh: props.onLessonContentRefresh,
   });
-
-  useFocusedLessonContent({
-    activities: data.activities,
-    focusActivityOnly: data.focusActivityOnly,
-    focusMaterialOnly: data.focusMaterialOnly,
-    focusedActivityId: props.focusedActivityId,
-    focusedMaterialId: props.focusedMaterialId,
-    loading: data.loading,
-    materials: data.materials,
-    onActivityFocused: props.onActivityFocused,
-  });
-
   const {
     activePrompt,
     close: closeQuizFeedback,
@@ -56,21 +44,41 @@ export function ActivitiesContent(props: ActivitiesContentProps) {
     lessonId: props.lesson.lesson_id,
   });
 
-  const handleQuizFeedback = useCallback(
-    (prompt: string) => {
-      void requestFeedback({ prompt, courseContext: lia.courseContext ?? null });
+  useFocusedLessonContent({
+    activities: data.activities,
+    focusActivityOnly: data.focusActivityOnly,
+    focusMaterialOnly: data.focusMaterialOnly,
+    focusedActivityId: props.focusedActivityId,
+    focusedMaterialId: props.focusedMaterialId,
+    loading: data.loading,
+    materials: data.materials,
+    onActivityFocused: props.onActivityFocused,
+  });
+
+  const requestQuizFeedback = useCallback(
+    async (
+      prompt: string,
+      source?: { activityId?: string | null; materialId?: string | null },
+    ) => {
+      await requestFeedback({
+        activityId: source?.activityId,
+        courseContext: lia.courseContext || null,
+        materialId: source?.materialId,
+        prompt,
+      });
     },
-    [requestFeedback, lia.courseContext],
+    [lia.courseContext, requestFeedback],
   );
 
-  const handleRetryQuizFeedback = useCallback(() => {
+  const retryQuizFeedback = useCallback(() => {
     if (!activePrompt) return;
+
     void requestFeedback({
-      prompt: activePrompt,
+      courseContext: lia.courseContext || null,
       force: true,
-      courseContext: lia.courseContext ?? null,
+      prompt: activePrompt,
     });
-  }, [requestFeedback, activePrompt, lia.courseContext]);
+  }, [activePrompt, lia.courseContext, requestFeedback]);
 
   const handleStartAiChat = useCallback((activity: LearnActivity, onDone: (id?: string | null) => void | Promise<void>) => {
     if (lia.isInteractionBlocked) {
@@ -102,15 +110,15 @@ export function ActivitiesContent(props: ActivitiesContentProps) {
 
   return (
     <ActivitiesContentShell isRefreshing={data.isRefreshing} lessonTitle={props.lesson.lesson_title}>
-      <ActivityListSection data={data} lessonId={props.lesson.lesson_id} onStartAiChat={handleStartAiChat} onTriggerLiaFeedback={handleQuizFeedback} slug={props.slug} />
-      <MaterialListSection data={data} lessonId={props.lesson.lesson_id} onTriggerLiaFeedback={handleQuizFeedback} slug={props.slug} />
+      <ActivityListSection data={data} lessonId={props.lesson.lesson_id} onRequestQuizFeedback={requestQuizFeedback} onStartAiChat={handleStartAiChat} onTriggerLiaFeedback={requestQuizFeedback} slug={props.slug} />
+      <MaterialListSection data={data} lessonId={props.lesson.lesson_id} onRequestQuizFeedback={requestQuizFeedback} slug={props.slug} />
       <QuizFeedbackInline
         content={quizFeedbackContent}
         error={quizFeedbackError}
         isLoading={isQuizFeedbackLoading}
         isOpen={isQuizFeedbackOpen}
         onClose={closeQuizFeedback}
-        onRetry={handleRetryQuizFeedback}
+        onRetry={retryQuizFeedback}
       />
       <ActivitiesInfoBanner />
       <LessonFeedbackAndNavigation data={data} hasNextLesson={props.hasNextLesson} onCompleteCourse={props.onCompleteCourse} onNavigateNext={props.onNavigateNext} />

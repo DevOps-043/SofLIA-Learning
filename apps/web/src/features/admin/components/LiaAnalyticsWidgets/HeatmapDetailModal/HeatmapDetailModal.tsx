@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
+import { useTranslation } from 'react-i18next';
 import { HeatmapFooter } from './HeatmapFooter';
 import { HeatmapHeader } from './HeatmapHeader';
 import { HeatmapTabs } from './HeatmapTabs';
@@ -63,5 +64,7 @@ function HeatmapContent({
 }
 
 function EmptyState() {
-  return <div className="p-8 text-center text-gray-500">No se pudieron cargar los datos</div>;
+  const { t } = useTranslation('admin');
+
+  return <div className="p-8 text-center text-gray-500">{t('liaAnalyticsPage.heatmapModal.empty')}</div>;
 }

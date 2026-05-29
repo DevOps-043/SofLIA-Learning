@@ -23,8 +23,8 @@ export function LessonPublishedToggle({ checked, onChange, t }: LessonPublishedT
           </motion.div>
         </div>
         <div>
-          <span className="text-sm font-medium text-primary dark:text-white">{t('workshops.editor.modules.publishedLabel')}</span>
-          <p className="text-xs text-gray-500 dark:text-white/60 mt-0.5">{t('workshops.editor.modules.publishedDesc')}</p>
+          <span className="text-sm font-medium text-primary dark:text-white">{t('workshops.editor.lessons.publishedLabel')}</span>
+          <p className="text-xs text-gray-500 dark:text-white/60 mt-0.5">{t('workshops.editor.lessons.publishedDesc')}</p>
         </div>
       </label>
     </motion.div>

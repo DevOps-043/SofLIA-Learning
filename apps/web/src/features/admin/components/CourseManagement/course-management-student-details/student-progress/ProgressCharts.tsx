@@ -1,4 +1,5 @@
 import { BarChart3, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import {
   COURSE_MANAGEMENT_ICON_GRADIENT_CLASS,
@@ -10,14 +11,16 @@ import { PanelSection } from './PanelSection';
 import type { ChartRow } from './types';
 
 export function ProgressCharts({ dailyStudyTime, weeklyProgress }: { dailyStudyTime: ChartRow[]; weeklyProgress: ChartRow[] }) {
+  const { t } = useTranslation('admin');
+
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <PanelSection
         className={`p-6 ${COURSE_MANAGEMENT_PANEL_SURFACE_CLASS}`}
         icon={BarChart3}
         iconClassName={`h-10 w-10 ${COURSE_MANAGEMENT_ICON_GRADIENT_CLASS}`}
-        subtitle="Ultimos 7 dias"
-        title="Progreso Semanal"
+        subtitle={t('workshops.editor.stats.studentDetails.progressCharts.last7Days')}
+        title={t('workshops.editor.stats.studentDetails.progressCharts.weeklyProgress')}
       >
         <div className="h-48">
           <ResponsiveContainer height="100%" width="100%">
@@ -35,8 +38,8 @@ export function ProgressCharts({ dailyStudyTime, weeklyProgress }: { dailyStudyT
         className={`p-6 ${COURSE_MANAGEMENT_PANEL_SURFACE_CLASS}`}
         icon={Clock}
         iconClassName={`h-10 w-10 ${COURSE_MANAGEMENT_SUCCESS_ICON_GRADIENT_CLASS}`}
-        subtitle="Distribucion por dia"
-        title="Tiempo de Estudio"
+        subtitle={t('workshops.editor.stats.studentDetails.progressCharts.dailyDistribution')}
+        title={t('workshops.editor.stats.studentDetails.progressCharts.studyTime')}
       >
         <div className="h-48">
           <ResponsiveContainer height="100%" width="100%">

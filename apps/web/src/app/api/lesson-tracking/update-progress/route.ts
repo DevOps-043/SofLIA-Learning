@@ -8,23 +8,24 @@ import {
     updateLessonProgressSchema,
     type UpdateLessonProgressBody,
 } from './schema';
+import { normalizeVideoProgress } from './progress-security';
 
 async function syncUserLessonProgress({
     checkpoint,
     lessonId,
-    maxReached,
     now,
     supabase,
     totalDuration,
     userId,
+    videoProgressPercentage,
 }: {
     checkpoint: number;
     lessonId: string;
-    maxReached: number;
     now: string;
     supabase: ReturnType<typeof createAdminClient>;
     totalDuration: number;
     userId: string;
+    videoProgressPercentage: number;
 }) {
     const { data: progressRow, error: progressLookupError } = await supabase
         .from('user_lesson_progress')
@@ -39,10 +40,6 @@ async function syncUserLessonProgress({
         techDebtLogger.warn('[Update Progress] Unable to sync user_lesson_progress lookup:', progressLookupError);
         return;
     }
-
-    const videoProgressPercentage = totalDuration > 0
-        ? Math.min(100, Math.round((Math.max(checkpoint, maxReached) / totalDuration) * 100))
-        : 0;
 
     if (!progressRow) {
         return;
@@ -111,14 +108,49 @@ async function handlePost(
         const { lessonId, trackingId, checkpoint, maxReached, totalDuration, playbackRate } = body;
 
         const now = new Date().toISOString();
+        const { data: existingProgress } = await supabase
+            .from('user_lesson_progress')
+            .select('current_time_seconds, video_progress_percentage')
+            .eq('user_id', user.id)
+            .eq('lesson_id', lessonId)
+            .order('updated_at', { ascending: false, nullsFirst: false })
+            .limit(1)
+            .maybeSingle();
+
+        const fallbackMaxFromProgress = totalDuration > 0
+            ? Math.round(((existingProgress?.video_progress_percentage || 0) / 100) * totalDuration)
+            : existingProgress?.current_time_seconds || 0;
 
         // Si hay trackingId, intentar actualizar ese registro específico
         if (trackingId) {
+            const { data: trackingRow, error: trackingLookupError } = await supabase
+                .from('lesson_tracking')
+                .select('id, video_max_seconds')
+                .eq('id', trackingId)
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+            if (trackingLookupError) {
+                techDebtLogger.error('[Update Progress] Error loading tracking:', trackingLookupError);
+                return apiError('TRACKING_LOOKUP_FAILED', 'Failed to load tracking', 500);
+            }
+
+            if (!trackingRow) {
+                return apiError('TRACKING_NOT_FOUND', 'Tracking not found', 404);
+            }
+
+            const normalizedProgress = normalizeVideoProgress({
+                checkpoint,
+                currentMaxReached: Math.max(trackingRow.video_max_seconds || 0, fallbackMaxFromProgress),
+                incomingMaxReached: maxReached,
+                totalDuration,
+            });
+
             const { error } = await supabase
                 .from('lesson_tracking')
                 .update({
-                    video_checkpoint_seconds: checkpoint,
-                    video_max_seconds: maxReached,
+                    video_checkpoint_seconds: normalizedProgress.safeCheckpoint,
+                    video_max_seconds: normalizedProgress.safeMaxReached,
                     video_total_duration_seconds: totalDuration,
                     video_playback_rate: playbackRate || 1.0,
                     last_activity_at: now,
@@ -133,13 +165,13 @@ async function handlePost(
             }
 
             await syncUserLessonProgress({
-                checkpoint,
+                checkpoint: normalizedProgress.safeCheckpoint,
                 lessonId,
-                maxReached,
                 now,
                 supabase,
                 totalDuration,
                 userId: user.id,
+                videoProgressPercentage: normalizedProgress.videoProgressPercentage,
             });
 
             return NextResponse.json({ success: true, trackingId });
@@ -159,13 +191,18 @@ async function handlePost(
         if (existingTracking) {
             // Actualizar tracking existente
             // Calcular nuevo máximo (nunca decrece)
-            const newMax = Math.max(existingTracking.video_max_seconds || 0, maxReached);
+            const normalizedProgress = normalizeVideoProgress({
+                checkpoint,
+                currentMaxReached: Math.max(existingTracking.video_max_seconds || 0, fallbackMaxFromProgress),
+                incomingMaxReached: maxReached,
+                totalDuration,
+            });
 
             const { error } = await supabase
                 .from('lesson_tracking')
                 .update({
-                    video_checkpoint_seconds: checkpoint,
-                    video_max_seconds: newMax,
+                    video_checkpoint_seconds: normalizedProgress.safeCheckpoint,
+                    video_max_seconds: normalizedProgress.safeMaxReached,
                     video_total_duration_seconds: totalDuration,
                     video_playback_rate: playbackRate || 1.0,
                     last_activity_at: now,
@@ -183,17 +220,24 @@ async function handlePost(
             }
 
             await syncUserLessonProgress({
-                checkpoint,
+                checkpoint: normalizedProgress.safeCheckpoint,
                 lessonId,
-                maxReached: newMax,
                 now,
                 supabase,
                 totalDuration,
                 userId: user.id,
+                videoProgressPercentage: normalizedProgress.videoProgressPercentage,
             });
 
             return NextResponse.json({ success: true, trackingId: existingTracking.id });
         }
+
+        const normalizedProgress = normalizeVideoProgress({
+            checkpoint,
+            currentMaxReached: fallbackMaxFromProgress,
+            incomingMaxReached: maxReached,
+            totalDuration,
+        });
 
         // Crear nuevo tracking si no existe
         const { data: newTracking, error: insertError } = await supabase
@@ -204,8 +248,8 @@ async function handlePost(
                 status: 'in_progress',
                 started_at: now,
                 video_started_at: now,
-                video_checkpoint_seconds: checkpoint,
-                video_max_seconds: maxReached,
+                video_checkpoint_seconds: normalizedProgress.safeCheckpoint,
+                video_max_seconds: normalizedProgress.safeMaxReached,
                 video_total_duration_seconds: totalDuration,
                 video_playback_rate: playbackRate || 1.0,
                 last_activity_at: now
@@ -219,13 +263,13 @@ async function handlePost(
         }
 
         await syncUserLessonProgress({
-            checkpoint,
+            checkpoint: normalizedProgress.safeCheckpoint,
             lessonId,
-            maxReached,
             now,
             supabase,
             totalDuration,
             userId: user.id,
+            videoProgressPercentage: normalizedProgress.videoProgressPercentage,
         });
 
         return NextResponse.json({ success: true, trackingId: newTracking.id });

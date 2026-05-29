@@ -153,6 +153,7 @@ export function BusinessPanelDashboard() {
                       delay={index}
                       href={stat.href}
                       theme={themeColors}
+                      icon={stat.icon}
                     />
                   ))}
                 </div>

@@ -4,6 +4,7 @@ import {
   CurrencyDollarIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 import type { HourDetailData } from './types';
 
 interface SummaryStatsProps {
@@ -11,10 +12,11 @@ interface SummaryStatsProps {
 }
 
 export function SummaryStats({ summary }: SummaryStatsProps) {
+  const { t } = useTranslation('admin');
   const stats = [
     {
       icon: ChatBubbleLeftRightIcon,
-      label: 'Mensajes',
+      label: t('liaAnalyticsPage.heatmapModal.summary.messages'),
       value: summary.totalMessages,
       className: 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20',
       textClass: 'text-blue-600 dark:text-blue-400',
@@ -22,7 +24,7 @@ export function SummaryStats({ summary }: SummaryStatsProps) {
     },
     {
       icon: UserGroupIcon,
-      label: 'Usuarios',
+      label: t('liaAnalyticsPage.heatmapModal.summary.users'),
       value: summary.uniqueUsers,
       className: 'from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20',
       textClass: 'text-purple-600 dark:text-purple-400',
@@ -30,7 +32,7 @@ export function SummaryStats({ summary }: SummaryStatsProps) {
     },
     {
       icon: ClockIcon,
-      label: 'Resp. Prom',
+      label: t('liaAnalyticsPage.heatmapModal.summary.avgResponse'),
       value: `${summary.avgResponseTime}ms`,
       className: 'from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20',
       textClass: 'text-amber-600 dark:text-amber-400',
@@ -38,7 +40,7 @@ export function SummaryStats({ summary }: SummaryStatsProps) {
     },
     {
       icon: CurrencyDollarIcon,
-      label: 'Costo',
+      label: t('liaAnalyticsPage.heatmapModal.summary.cost'),
       value: `$${summary.totalCost.toFixed(4)}`,
       className: 'from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20',
       textClass: 'text-emerald-600 dark:text-emerald-400',

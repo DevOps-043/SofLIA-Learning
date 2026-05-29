@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface QuizSubmitButtonProps {
   isSubmitting: boolean;
@@ -13,6 +14,8 @@ export function QuizSubmitButton({
   selectedAnswerCount,
   totalQuestions,
 }: QuizSubmitButtonProps) {
+  const { t } = useTranslation("learn");
+
   return (
     <div className="flex justify-end pt-3 border-t border-white/5">
       <button
@@ -23,10 +26,10 @@ export function QuizSubmitButton({
         {isSubmitting ? (
           <>
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            Guardando...
+            {t("activities.quiz.saving")}
           </>
         ) : (
-          "Enviar Respuestas"
+          t("activities.quiz.submit")
         )}
       </button>
     </div>

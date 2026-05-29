@@ -93,10 +93,10 @@ export function QuizFeedbackInline({
             )}
 
             {!isLoading && !error && content && (
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed text-gray-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-white/75">
+              <div className="max-h-[min(60vh,560px)] overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed text-gray-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-white/75">
                 <ReactMarkdown
                   components={{
-                    p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
+                    p: ({ children }) => <p className="mb-3 break-words last:mb-0">{children}</p>,
                     strong: ({ children }) => (
                       <strong className="font-semibold text-gray-900 dark:text-white">{children}</strong>
                     ),

@@ -37,7 +37,7 @@ export function EditUserAccountTab({
 
         <div>
           <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">
-            {t('users.demographics.roleType')}
+            {t('admin:users.demographics.roleType')}
           </label>
           <input
             type="text"
@@ -51,7 +51,7 @@ export function EditUserAccountTab({
 
         <div className="group">
           <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">
-            {t('users.demographics.points')}
+            {t('admin:users.demographics.points')}
           </label>
           <div className="relative">
             <StarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-white/60 group-focus-within:text-accent transition-colors" />
@@ -102,10 +102,10 @@ export function EditUserAccountTab({
           </div>
           <div>
             <span className="text-sm font-medium text-primary dark:text-white">
-              {t('users.demographics.emailVerified')}
+              {t('admin:users.demographics.emailVerified')}
             </span>
             <p className="text-xs text-gray-500 dark:text-white/60 mt-0.5">
-              {t('users.demographics.emailVerifiedDesc')}
+              {t('admin:users.demographics.emailVerifiedDesc')}
             </p>
           </div>
         </label>

@@ -1,12 +1,14 @@
 export function formatCourseStatsDate(
   value: string | null | undefined,
   includeTime: boolean,
+  locale: string,
+  emptyLabel: string,
 ) {
   if (!value) {
-    return includeTime ? 'Nunca' : '--'
+    return includeTime ? emptyLabel : '--'
   }
 
-  return new Date(value).toLocaleDateString('es-ES', {
+  return new Date(value).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

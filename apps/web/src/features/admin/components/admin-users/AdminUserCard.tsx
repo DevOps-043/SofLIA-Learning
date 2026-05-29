@@ -51,7 +51,7 @@ export function AdminUserCard({ user, index, locale, onEdit, onDelete, t, tc }: 
         imageUrl={user.profile_picture_url}
       />
 
-      <div className="flex flex-1 flex-col px-6 pb-5 pt-11">
+      <div className="flex flex-1 flex-col px-6 pb-5">
         <AdminUserCardDetails email={email} lastAccess={lastAccess} roleConfig={roleConfig} statusConfig={statusConfig} t={t} />
         <AdminUserCardActions onEdit={onEdit} onDelete={onDelete} tc={tc} />
       </div>

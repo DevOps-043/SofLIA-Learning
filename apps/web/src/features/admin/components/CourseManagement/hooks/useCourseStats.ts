@@ -19,7 +19,7 @@ export function useCourseStats(
       try {
         setStatsLoading(true)
         if (isNewCourse) return
-        const res = await fetch(`/api/instructor/workshops/${courseId}/stats`)
+        const res = await fetch(`/api/admin/workshops/${courseId}/stats`)
         const data = await res.json()
         if (res.ok && data?.stats) {
           setUserStats(data.stats)

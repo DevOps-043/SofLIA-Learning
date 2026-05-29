@@ -13,6 +13,7 @@ export function ActivityCard({
   isCollapsed,
   lessonId,
   onQuizSubmitted,
+  onRequestQuizFeedback,
   onStartAiChat,
   onToggle,
   onTriggerLiaFeedback,
@@ -78,6 +79,7 @@ export function ActivityCard({
           lessonId={lessonId}
           markAiChatActivityCompleted={markAiChatActivityCompleted}
           onQuizSubmitted={onQuizSubmitted}
+          onRequestQuizFeedback={onRequestQuizFeedback}
           onStartAiChat={onStartAiChat}
           onTriggerLiaFeedback={onTriggerLiaFeedback}
           quizInfo={quizInfo}

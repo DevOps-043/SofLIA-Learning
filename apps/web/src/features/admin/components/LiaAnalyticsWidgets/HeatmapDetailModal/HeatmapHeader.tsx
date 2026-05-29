@@ -1,5 +1,6 @@
 import { DialogTitle } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 import type { HourDetailData } from './types';
 
 interface HeatmapHeaderProps {
@@ -8,14 +9,16 @@ interface HeatmapHeaderProps {
 }
 
 export function HeatmapHeader({ data, onClose }: HeatmapHeaderProps) {
+  const { t } = useTranslation('admin');
+
   return (
     <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-4">
       <div className="flex items-center justify-between">
         <div>
           <DialogTitle className="text-xl font-bold text-white">
-            {data?.slot.dayName} a las {data?.slot.hourFormatted}
+            {t('liaAnalyticsPage.heatmapModal.title', { day: data?.slot.dayName, hour: data?.slot.hourFormatted })}
           </DialogTitle>
-          <p className="mt-1 text-sm text-emerald-100">Detalle de actividad de SofLIA</p>
+          <p className="mt-1 text-sm text-emerald-100">{t('liaAnalyticsPage.heatmapModal.subtitle')}</p>
         </div>
         <button
           className="rounded-lg bg-white/20 p-2 transition-colors hover:bg-white/30"

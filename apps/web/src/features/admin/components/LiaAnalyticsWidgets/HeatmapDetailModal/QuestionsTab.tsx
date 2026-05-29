@@ -1,4 +1,5 @@
 import { formatDate, formatTime } from './formatters';
+import { useTranslation } from 'react-i18next';
 import type { HourDetailData } from './types';
 
 interface QuestionsTabProps {
@@ -6,8 +7,10 @@ interface QuestionsTabProps {
 }
 
 export function QuestionsTab({ questions }: QuestionsTabProps) {
+  const { t } = useTranslation('admin');
+
   if (questions.length === 0) {
-    return <p className="py-8 text-center text-gray-500">No hay preguntas registradas</p>;
+    return <p className="py-8 text-center text-gray-500">{t('liaAnalyticsPage.heatmapModal.questions.empty')}</p>;
   }
 
   return (
@@ -23,7 +26,7 @@ export function QuestionsTab({ questions }: QuestionsTabProps) {
               <>
                 <span>-</span>
                 <span className="text-emerald-600 dark:text-emerald-400">
-                  Respuesta en {question.responseTime}ms
+                  {t('liaAnalyticsPage.heatmapModal.questions.responseTime', { time: question.responseTime })}
                 </span>
               </>
             )}

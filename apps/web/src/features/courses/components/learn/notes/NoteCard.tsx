@@ -62,28 +62,30 @@ export function NoteCard({
           >
             {note.timestamp}
           </span>
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={(event) => {
-                event.stopPropagation();
-                onEdit(note);
-              }}
-              className="p-1 hover:bg-primary/10 dark:hover:bg-accent/20 rounded text-primary dark:text-accent transition-colors"
-              title={editLabel}
-            >
-              <Edit2 className="w-3 h-3" />
-            </button>
-            <button
-              onClick={(event) => {
-                event.stopPropagation();
-                onDelete(note.id);
-              }}
-              className="p-1 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300 transition-colors"
-              title={deleteLabel}
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
-          </div>
+          {!isGeneratedSummary && !isSummaryCandidate ? (
+            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onEdit(note);
+                }}
+                className="p-1 hover:bg-primary/10 dark:hover:bg-accent/20 rounded text-primary dark:text-accent transition-colors"
+                title={editLabel}
+              >
+                <Edit2 className="w-3 h-3" />
+              </button>
+              <button
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDelete(note.id);
+                }}
+                className="p-1 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300 transition-colors"
+                title={deleteLabel}
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
 

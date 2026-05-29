@@ -1,16 +1,18 @@
 import { motion } from 'framer-motion'
 import { Eye } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import {
   getCourseManagementEnrollmentStatusDotTone,
-  getCourseManagementEnrollmentStatusLabel,
   getCourseManagementEnrollmentStatusTone,
 } from '../../CourseManagementStudentDetails.service'
 
 export function StatusBadge({ enrollmentStatus }: { enrollmentStatus: string }) {
+  const { t } = useTranslation('admin')
+
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${getCourseManagementEnrollmentStatusTone(enrollmentStatus)}`}>
       <span className={`h-2 w-2 rounded-full ${getCourseManagementEnrollmentStatusDotTone(enrollmentStatus)}`} />
-      {getCourseManagementEnrollmentStatusLabel(enrollmentStatus)}
+      {t(`workshops.editor.stats.studentDetails.statuses.${enrollmentStatus || 'unknown'}`)}
     </span>
   )
 }
@@ -59,6 +61,8 @@ export function DetailsButton({
   onClick: () => void
   fullWidth?: boolean
 }) {
+  const { t } = useTranslation('admin')
+
   return (
     <motion.button
       className={`flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-primary to-accent px-3 py-2 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:opacity-90 hover:shadow-md ${fullWidth ? 'w-full' : ''}`}
@@ -67,7 +71,7 @@ export function DetailsButton({
       whileTap={{ scale: 0.95 }}
     >
       <Eye className="h-3.5 w-3.5" />
-      Ver Detalles
+      {t('workshops.editor.stats.studentDetails.viewDetails')}
     </motion.button>
   )
 }

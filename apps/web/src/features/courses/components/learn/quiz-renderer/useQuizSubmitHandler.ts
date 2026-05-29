@@ -14,6 +14,10 @@ interface UseQuizSubmitHandlerParams {
   lessonId?: string;
   materialId?: string;
   normalizedQuizData: QuizQuestion[];
+  onRequestQuizFeedback?: (
+    prompt: string,
+    source?: { activityId?: string | null; materialId?: string | null },
+  ) => void;
   onQuizSubmitted?: () => void;
   onTriggerLiaFeedback?: (prompt: string) => void;
   organizationId?: string | null;
@@ -33,6 +37,7 @@ export function useQuizSubmitHandler({
   lessonId,
   materialId,
   normalizedQuizData,
+  onRequestQuizFeedback,
   onQuizSubmitted,
   onTriggerLiaFeedback,
   organizationId,
@@ -63,9 +68,15 @@ export function useQuizSubmitHandler({
       setPointsEarned(results.pointsEarned);
       setShowResults(true);
 
-      if (results.correctCount < normalizedQuizData.length && onTriggerLiaFeedback) {
+      if (results.correctCount < normalizedQuizData.length) {
         const prompt = buildQuizFeedbackPrompt(normalizedQuizData, selectedAnswers);
-        if (prompt) onTriggerLiaFeedback(prompt);
+        if (prompt) {
+          if (onRequestQuizFeedback) {
+            onRequestQuizFeedback(prompt, { activityId, materialId });
+          } else {
+            onTriggerLiaFeedback?.(prompt);
+          }
+        }
       }
 
       if (lessonId && slug) {

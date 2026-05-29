@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PageShell } from '@/core/layout'
 import { ConfirmationModal } from './ConfirmationModal'
@@ -12,6 +12,49 @@ type FormState = {
   title: string
   slug: string
   description: string
+}
+
+interface AutoGrowingTextareaProps {
+  className?: string
+  onChange: (value: string) => void
+  placeholder?: string
+  value: string
+}
+
+const TEXTAREA_MAX_HEIGHT_PX = 192
+
+function AutoGrowingTextarea({
+  className = '',
+  onChange,
+  placeholder,
+  value,
+}: AutoGrowingTextareaProps) {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+
+  const syncTextareaHeight = () => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    textarea.style.height = 'auto'
+    const nextHeight = Math.min(textarea.scrollHeight, TEXTAREA_MAX_HEIGHT_PX)
+    textarea.style.height = `${nextHeight}px`
+    textarea.style.overflowY =
+      textarea.scrollHeight > TEXTAREA_MAX_HEIGHT_PX ? 'auto' : 'hidden'
+  }
+
+  useLayoutEffect(() => {
+    syncTextareaHeight()
+  }, [value])
+
+  return (
+    <textarea
+      ref={textareaRef}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className={`max-h-48 min-h-32 resize-none overflow-y-hidden ${className}`}
+      placeholder={placeholder}
+    />
+  )
 }
 
 const EMPTY_FORM: FormState = {
@@ -196,10 +239,10 @@ export function AdminLearningPathsPage() {
               <span className="text-sm font-medium text-slate-700 dark:text-white/80">
                 {lp('descriptionLabel', 'Descripción')}
               </span>
-              <textarea
+              <AutoGrowingTextarea
                 value={form.description}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, description: event.target.value }))
+                onChange={(description) =>
+                  setForm((current) => ({ ...current, description }))
                 }
                 className="min-h-32 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-accent)] dark:border-white/10 dark:bg-gray-900 dark:text-white"
                 placeholder={lp('descriptionPlaceholder', 'Qué objetivo cubre esta ruta y a quién está dirigida.')}
@@ -261,10 +304,10 @@ export function AdminLearningPathsPage() {
                     key={learningPath.id}
                     className="min-w-0 rounded-3xl border border-slate-200 bg-slate-50 p-5 dark:border-white/10 dark:bg-white/[0.03]"
                   >
-                    <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                    <div className="flex min-w-0 flex-col gap-4 2xl:flex-row 2xl:items-start 2xl:justify-between">
                       <div className="min-w-0 space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="break-words text-lg font-semibold text-slate-900 dark:text-white">
+                          <h3 className="min-w-0 break-words text-lg font-semibold text-slate-900 dark:text-white">
                             {learningPath.title}
                           </h3>
                           <span
@@ -283,13 +326,13 @@ export function AdminLearningPathsPage() {
                         <p className="break-words text-sm text-slate-500 dark:text-white/60">
                           {learningPath.description || lp('noDescription', 'Sin descripción')}
                         </p>
-                        <div className="flex flex-wrap gap-3 text-xs text-slate-500 dark:text-white/50">
+                        <div className="flex min-w-0 flex-wrap gap-3 text-xs text-slate-500 dark:text-white/50">
                           <span>
                             {lp('workshopsCount', '{{count}} talleres', {
                               count: learningPath.item_count,
                             })}
                           </span>
-                          <span>
+                          <span className="min-w-0 break-all">
                             {lp('slugValue', 'Slug: {{slug}}', {
                               slug: learningPath.slug || lp('autoSlug', 'auto'),
                             })}
@@ -302,17 +345,17 @@ export function AdminLearningPathsPage() {
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap gap-2 xl:shrink-0">
+                      <div className="flex flex-wrap gap-2 2xl:shrink-0">
                         <Link
                           href={`/admin/learning-paths/${learningPath.id}`}
-                          className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/10"
+                          className="whitespace-nowrap rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/10"
                         >
                           {lp('manageContent', 'Gestionar contenido')}
                         </Link>
                         <button
                           type="button"
                           onClick={() => void handleToggleActive(learningPath.id, learningPath.is_active)}
-                          className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/10"
+                          className="whitespace-nowrap rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/10"
                         >
                           {learningPath.is_active
                             ? lp('deactivate', 'Desactivar')
@@ -321,7 +364,7 @@ export function AdminLearningPathsPage() {
                         <button
                           type="button"
                           onClick={() => setDeleteTarget(learningPath)}
-                          className="rounded-2xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-500/30 dark:text-red-300 dark:hover:bg-red-500/10"
+                          className="whitespace-nowrap rounded-2xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-500/30 dark:text-red-300 dark:hover:bg-red-500/10"
                         >
                           {lp('delete', 'Eliminar')}
                         </button>
