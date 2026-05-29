@@ -3,6 +3,17 @@
 import { useState } from 'react'
 import { AdminMaterial, CreateMaterialData, UpdateMaterialData } from '../services/adminMaterials.service'
 
+// Extrae el mensaje real del contrato de error de la API ({ error, message, details })
+// para que el modal muestre la causa en lugar de un texto genérico.
+async function extractApiErrorMessage(response: Response, fallback: string): Promise<string> {
+  try {
+    const payload = await response.json()
+    return payload?.message || payload?.error || fallback
+  } catch {
+    return fallback
+  }
+}
+
 interface UseAdminMaterialsReturn {
   materials: AdminMaterial[] // Para compatibilidad
   getMaterialsByLesson: (lessonId: string) => AdminMaterial[] // Nueva función helper
@@ -66,7 +77,7 @@ export function useAdminMaterials(): UseAdminMaterialsReturn {
         body: JSON.stringify(materialData)
       })
 
-      if (!response.ok) throw new Error('Error al crear material')
+      if (!response.ok) throw new Error(await extractApiErrorMessage(response, 'Error al crear material'))
 
       const data = await response.json()
       const newMaterial = data.material
@@ -106,7 +117,7 @@ export function useAdminMaterials(): UseAdminMaterialsReturn {
         body: JSON.stringify(materialData)
       })
 
-      if (!response.ok) throw new Error('Error al actualizar material')
+      if (!response.ok) throw new Error(await extractApiErrorMessage(response, 'Error al actualizar material'))
 
       const data = await response.json()
       const updatedMaterial = data.material

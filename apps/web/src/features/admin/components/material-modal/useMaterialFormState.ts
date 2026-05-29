@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { normalizeQuizQuestions as resolveQuizQuestions } from '@/lib/course-content'
 import type {
   AdminMaterial,
   CreateMaterialData,
@@ -44,7 +45,10 @@ function isQuizQuestion(value: unknown): value is QuizQuestion {
 
 export function getQuizQuestions(contentData: Record<string, unknown> | null): QuizQuestion[] {
   if (!isRecord(contentData) || !Array.isArray(contentData.questions)) return []
-  return contentData.questions.filter(isQuizQuestion)
+  // Resuelve correctAnswer (índices/letras/prefijos) y canoniza V/F al cargar,
+  // para que el editor muestre la respuesta correcta seleccionada.
+  const valid = contentData.questions.filter(isQuizQuestion)
+  return resolveQuizQuestions(valid) as unknown as QuizQuestion[]
 }
 
 export function normalizeQuizQuestions(questions: QuizQuestion[]): QuizQuestion[] {

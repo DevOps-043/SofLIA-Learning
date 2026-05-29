@@ -1,3 +1,5 @@
+import { normalizeQuizQuestions } from '@/lib/course-content'
+
 import type { QuizQuestion } from '../QuizBuilder'
 import type { ActivityValidationRubricItem } from '@/features/courses/types/activity-config'
 
@@ -17,9 +19,15 @@ export function parsePromptList(rawPrompts: string | null | undefined): string[]
 export function parseQuizQuestions(rawContent: string): QuizQuestion[] {
   try {
     const parsed = JSON.parse(rawContent)
-    if (Array.isArray(parsed)) return parsed as QuizQuestion[]
-    if (parsed && typeof parsed === 'object' && Array.isArray(parsed.questions)) {
-      return parsed.questions as QuizQuestion[]
+    const rawQuestions = Array.isArray(parsed)
+      ? parsed
+      : parsed && typeof parsed === 'object' && Array.isArray(parsed.questions)
+        ? parsed.questions
+        : null
+    if (rawQuestions) {
+      // Resuelve correctAnswer (índices/letras/prefijos) y canoniza V/F al cargar,
+      // para que el editor muestre la respuesta correcta seleccionada.
+      return normalizeQuizQuestions(rawQuestions) as unknown as QuizQuestion[]
     }
   } catch {}
   return []

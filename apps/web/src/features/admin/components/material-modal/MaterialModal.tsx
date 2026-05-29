@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { XMarkIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { FileText, Link as LinkIcon, BookOpen, FileQuestion, PenTool } from 'lucide-react'
@@ -22,6 +23,13 @@ export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialM
     loading, error, activeTab, setActiveTab,
     autoCalculatedTime, setAutoCalculatedTime, handleSubmit
   } = useMaterialFormState({ material, onSave, onClose })
+
+  // El recuadro de error se renderiza arriba del formulario; al fallar el guardado
+  // desde el botón (al fondo), lo traemos a la vista para dar feedback claro.
+  const errorRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (error) errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [error])
 
   const getMaterialTypeIcon = () => {
     switch (formData.material_type) {
@@ -105,7 +113,7 @@ export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialM
                 <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
                   <div className="p-6">
                     {error && (
-                      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                      <motion.div ref={errorRef} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
                         className="mb-4 p-4 bg-red-500/10 dark:bg-red-500/20 border border-red-500/20 dark:border-red-500/30 rounded-xl">
                         <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
                       </motion.div>

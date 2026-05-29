@@ -1,3 +1,5 @@
+import { normalizeQuizQuestions } from '@/lib/course-content'
+
 import type { QuizQuestion } from '../../quiz.utils'
 import { parseJsonIfPossible } from './json'
 
@@ -27,7 +29,14 @@ export function resolveQuizPayload(rawContent: unknown): QuizPayload | null {
     (question) => question && typeof question === 'object' && ('question' in question || 'id' in question),
   )
 
-  return hasValidStructure
-    ? { questions: questions as QuizQuestion[], totalPoints }
-    : null
+  if (!hasValidStructure) {
+    return null
+  }
+
+  // Resuelve correctAnswer al texto exacto de la opción (índices/letras/prefijos)
+  // para que la calificación funcione aunque el contenido importado venga inconsistente.
+  return {
+    questions: normalizeQuizQuestions(questions as QuizQuestion[]) as unknown as QuizQuestion[],
+    totalPoints,
+  }
 }

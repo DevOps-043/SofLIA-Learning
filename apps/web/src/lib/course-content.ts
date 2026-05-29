@@ -11,3 +11,9 @@ export {
   normalizeLessonActivityRecord,
   normalizeLessonMaterialRecord,
 } from './course-content/record-normalizers'
+export {
+  normalizeQuizQuestion,
+  normalizeQuizQuestions,
+  type NormalizedQuizQuestion,
+  type RawQuizQuestion,
+} from './course-content/quiz-normalize'
