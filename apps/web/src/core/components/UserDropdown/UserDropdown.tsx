@@ -8,10 +8,21 @@ import type { UserDropdownProps } from './types'
 import { useUserDropdownLogic } from './useUserDropdownLogic'
 
 export const UserDropdown = React.memo(function UserDropdown({
+  certificatesCount = 0,
   className = '',
+  onAnalyticsClick,
+  onCertificatesClick,
+  onLogout,
+  onProfileClick,
   user: userProp,
 }: UserDropdownProps) {
-  const logic = useUserDropdownLogic(userProp)
+  const logic = useUserDropdownLogic(userProp, {
+    certificatesCount,
+    onAnalyticsClick,
+    onCertificatesClick,
+    onLogout,
+    onProfileClick,
+  })
 
   return (
     <div className={`relative ${className}`} ref={logic.dropdownRef}>

@@ -3,6 +3,11 @@ import type { ReactNode } from 'react'
 
 export interface UserDropdownProps {
   className?: string
+  certificatesCount?: number
+  onAnalyticsClick?: () => void
+  onCertificatesClick?: () => void
+  onLogout?: () => void | Promise<void>
+  onProfileClick?: () => void
   user?: unknown
 }
 
@@ -16,3 +21,4 @@ export interface MenuItemProps {
 
 export const USER_DROPDOWN_BACKDROP_Z_INDEX = 1000002
 export const USER_DROPDOWN_MENU_Z_INDEX = 1000003
+export const USER_DROPDOWN_CLOSE_EVENT = 'soflia:user-dropdown-close'

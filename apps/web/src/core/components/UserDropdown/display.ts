@@ -1,6 +1,9 @@
 export interface DropdownUserLike {
   cargo_rol?: string
   display_name?: string
+  email?: string | null
+  first_name?: string | null
+  last_name?: string | null
   profile_picture_url?: string
 }
 
@@ -19,7 +22,10 @@ export function getUserDisplayName(
   if (userProfile?.first_name && userProfile?.last_name) {
     return `${userProfile.first_name} ${userProfile.last_name}`
   }
-  return userProfile?.display_name || user?.display_name || userProfile?.first_name || fallback
+  if (user?.first_name && user?.last_name) {
+    return `${user.first_name} ${user.last_name}`
+  }
+  return userProfile?.display_name || user?.display_name || userProfile?.first_name || user?.first_name || fallback
 }
 
 export function getUserInitials(displayName: string) {

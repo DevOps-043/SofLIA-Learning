@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Building2, LayoutDashboard, Moon, Sun, User } from 'lucide-react'
+import { Award, BarChart2, Building2, LayoutDashboard, Moon, Sun, User } from 'lucide-react'
 import { LanguageSubmenu } from './LanguageSubmenu'
 import { MenuItem } from './MenuItem'
 import type { useUserDropdownLogic } from './useUserDropdownLogic'
@@ -42,7 +42,22 @@ export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
           onClick={() => logic.handleNavigation('/auth/select-organization')}
         />
       )}
-      <MenuItem icon={User} label={logic.t('menu.profile')} onClick={() => logic.handleNavigation(logic.profilePath)} />
+      {logic.showCertificatesAction && (
+        <MenuItem
+          icon={Award}
+          label={logic.t('menu.certificates')}
+          onClick={logic.handleCertificatesClick}
+          rightElement={logic.certificatesCount > 0 ? (
+            <span className="rounded-full bg-accent/10 px-1.5 py-0.5 text-[10px] font-bold text-accent">
+              {logic.certificatesCount}
+            </span>
+          ) : null}
+        />
+      )}
+      {logic.showAnalyticsAction && (
+        <MenuItem icon={BarChart2} label={logic.t('menu.stats')} onClick={logic.handleAnalyticsClick} />
+      )}
+      <MenuItem icon={User} label={logic.t('menu.profile')} onClick={logic.handleProfileClick} />
       <MenuItem
         icon={logic.resolvedTheme === 'dark' ? Sun : Moon}
         label={logic.isMounted ? (logic.resolvedTheme === 'dark' ? logic.t('menu.theme.light') : logic.t('menu.theme.dark')) : '...'}
