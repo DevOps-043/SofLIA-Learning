@@ -1,5 +1,6 @@
 import { CalendarDaysIcon, ChartPieIcon, CpuChipIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CONTEXT_COLORS } from './constants';
 import { formatDate } from './formatters';
 import type { HourDetailData } from './types';
@@ -9,13 +10,14 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ data }: OverviewTabProps) {
+  const { t } = useTranslation('admin');
   const averageTokens = Math.round(
     data.summary.totalTokens / Math.max(data.summary.uniqueConversations, 1),
   );
 
   return (
     <div className="space-y-4">
-      <InfoBlock icon={ChartPieIcon} title="Distribucion por Contexto">
+      <InfoBlock icon={ChartPieIcon} title={t('liaAnalyticsPage.heatmapModal.overview.contextDistribution')}>
         {data.contextDistribution.map((ctx) => (
           <span
             key={ctx.context}
@@ -23,21 +25,21 @@ export function OverviewTab({ data }: OverviewTabProps) {
               CONTEXT_COLORS[ctx.context] || 'bg-gray-100 text-gray-700'
             }`}
           >
-            {ctx.context}: {ctx.count} ({ctx.percentage}%)
+            {t(`liaAnalyticsPage.contextDistribution.contexts.${ctx.context}`, { defaultValue: ctx.context })}: {ctx.count} ({ctx.percentage}%)
           </span>
         ))}
       </InfoBlock>
-      <InfoBlock icon={CpuChipIcon} title="Modelos Utilizados">
+      <InfoBlock icon={CpuChipIcon} title={t('liaAnalyticsPage.heatmapModal.overview.modelsUsed')}>
         {data.modelsUsed.map((model) => (
           <span
             key={model.model}
             className="rounded-full bg-indigo-100 px-3 py-1.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300"
           >
-            {model.model}: {model.count} respuestas
+            {model.model}: {t('liaAnalyticsPage.heatmapModal.overview.responses', { count: model.count })}
           </span>
         ))}
       </InfoBlock>
-      <InfoBlock icon={CalendarDaysIcon} title="Fechas con Actividad">
+      <InfoBlock icon={CalendarDaysIcon} title={t('liaAnalyticsPage.heatmapModal.overview.activityDates')}>
         {data.activityDates.map((date) => (
           <span key={date} className="rounded-lg bg-gray-200 px-3 py-1 text-xs text-gray-700 dark:bg-gray-600 dark:text-gray-200">
             {formatDate(date)}
@@ -49,11 +51,13 @@ export function OverviewTab({ data }: OverviewTabProps) {
           <SparklesIcon className="mt-0.5 h-4 w-4 text-violet-500" />
           <div>
             <p className="text-sm text-gray-700 dark:text-gray-200">
-              <span className="font-semibold">{data.summary.totalTokens.toLocaleString()}</span> tokens utilizados en{' '}
-              <span className="font-semibold">{data.summary.uniqueConversations}</span> conversaciones
+              {t('liaAnalyticsPage.heatmapModal.overview.tokensUsed', {
+                tokens: data.summary.totalTokens.toLocaleString(),
+                conversations: data.summary.uniqueConversations,
+              })}
             </p>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Promedio: {averageTokens} tokens/conversacion
+              {t('liaAnalyticsPage.heatmapModal.overview.averageTokens', { average: averageTokens })}
             </p>
           </div>
         </div>

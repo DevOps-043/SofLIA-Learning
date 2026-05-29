@@ -1,3 +1,5 @@
+import type { Dispatch, SetStateAction } from "react";
+
 import type { DialogueSession } from "./dialogue.types";
 import { DialogueComposer } from "./DialogueComposer";
 import { DialogueErrorMessage } from "./DialogueErrorMessage";
@@ -11,7 +13,7 @@ interface DialogueFooterProps {
   draftMessage: string;
   error: string | null;
   isTerminal: boolean;
-  onDraftMessageChange: (message: string) => void;
+  onDraftMessageChange: Dispatch<SetStateAction<string>>;
   onRetrySession: () => void | Promise<void>;
   onSendMessage: () => void | Promise<void>;
   sending: boolean;

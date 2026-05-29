@@ -12,6 +12,8 @@ export type {
 export { DEFAULT_CONFIG_DATA } from './types/course-config.types'
 export type {
   CourseChartData,
+  CourseEnrollmentTrendPoint,
+  CourseProgressDistributionPoint,
   CourseStudentStatusPoint,
   CourseUserStats,
 } from './types/course-stats.types'

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   BarChart,
   Bar,
@@ -48,6 +49,7 @@ const MODEL_COLORS: Record<string, string> = {
 };
 
 export function TokenUsageWidget({ modelUsage, totalTokens, isLoading }: TokenUsageWidgetProps) {
+  const { t } = useTranslation('admin');
   const chartData = useMemo(() => {
     return modelUsage.map((item) => ({
       ...item,
@@ -70,19 +72,19 @@ export function TokenUsageWidget({ modelUsage, totalTokens, isLoading }: TokenUs
           <p className="text-white font-medium mb-2">{data.displayName}</p>
           <div className="space-y-1 text-sm">
             <p className="text-emerald-400">
-              <span className="text-gray-400">Tokens:</span>{' '}
+              <span className="text-gray-400">{t('liaAnalyticsPage.tokenUsage.tooltip.tokens')}:</span>{' '}
               <span className="font-semibold">{data.tokens.toLocaleString()}</span>
             </p>
             <p className="text-blue-400">
-              <span className="text-gray-400">Costo:</span>{' '}
+              <span className="text-gray-400">{t('liaAnalyticsPage.tokenUsage.tooltip.cost')}:</span>{' '}
               <span className="font-semibold">${data.cost.toFixed(4)}</span>
             </p>
             <p className="text-violet-400">
-              <span className="text-gray-400">Llamadas:</span>{' '}
+              <span className="text-gray-400">{t('liaAnalyticsPage.tokenUsage.tooltip.calls')}:</span>{' '}
               <span className="font-semibold">{data.count}</span>
             </p>
             <p className="text-amber-400">
-              <span className="text-gray-400">Porcentaje:</span>{' '}
+              <span className="text-gray-400">{t('liaAnalyticsPage.tokenUsage.tooltip.percentage')}:</span>{' '}
               <span className="font-semibold">{data.percentage}%</span>
             </p>
           </div>
@@ -109,10 +111,10 @@ export function TokenUsageWidget({ modelUsage, totalTokens, isLoading }: TokenUs
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <BoltIcon className="w-5 h-5 text-amber-500" />
-            Uso de Tokens por Modelo
+            {t('liaAnalyticsPage.tokenUsage.title')}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Total: <span className="font-semibold text-amber-500">{formatTokens(totalTokens)}</span> tokens
+            {t('liaAnalyticsPage.tokenUsage.total')}: <span className="font-semibold text-amber-500">{formatTokens(totalTokens)}</span> {t('liaAnalyticsPage.units.tokens')}
           </p>
         </div>
       </div>
@@ -154,7 +156,7 @@ export function TokenUsageWidget({ modelUsage, totalTokens, isLoading }: TokenUs
             </ResponsiveContainer>
           </div>
 
-          {/* Leyenda con detalles */}
+          {/* Legend with details */}
           <div className="grid grid-cols-2 gap-3">
             {chartData.map((item) => (
               <div
@@ -179,7 +181,7 @@ export function TokenUsageWidget({ modelUsage, totalTokens, isLoading }: TokenUs
         </>
       ) : (
         <div className="h-48 flex items-center justify-center text-gray-500 dark:text-gray-400">
-          No hay datos de uso de tokens
+          {t('liaAnalyticsPage.tokenUsage.empty')}
         </div>
       )}
     </div>

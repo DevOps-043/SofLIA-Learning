@@ -66,7 +66,7 @@ export function RoleSelect({ value, onChange }: RoleSelectProps) {
   return (
     <div className="group" ref={selectRef}>
       <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">
-        {t('users.demographics.role')} *
+        {t('admin:users.demographics.role')} *
       </label>
       <div className="relative">
         <motion.button
@@ -86,7 +86,7 @@ export function RoleSelect({ value, onChange }: RoleSelectProps) {
                 isOpen ? 'text-accent' : 'text-gray-500 dark:text-white/60'
               }`}
             />
-            <span className="font-medium">{t(`users.roles.${selectedRole.value}`)}</span>
+            <span className="font-medium">{t(`admin:users.roles.${selectedRole.value}`)}</span>
           </div>
           <motion.div
             animate={{ rotate: isOpen ? 180 : 0 }}
@@ -162,7 +162,7 @@ export function RoleSelect({ value, onChange }: RoleSelectProps) {
                               }`}
                             />
                           </div>
-                          <span className="font-medium">{t(`users.roles.${role.value}`)}</span>
+                          <span className="font-medium">{t(`admin:users.roles.${role.value}`)}</span>
                         </div>
                         {isSelected && (
                           <motion.div

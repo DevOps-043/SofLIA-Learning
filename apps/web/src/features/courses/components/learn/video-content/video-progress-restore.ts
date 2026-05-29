@@ -1,4 +1,5 @@
 import { shouldBlockLessonVideoAdvance } from "@/features/courses/hooks/lessonNavigation.utils";
+import { ALLOW_NEXT_PROGRAMMATIC_SEEK_EVENT } from "@/core/components/CustomVideoPlayer/player/hooks/useForwardSeekGuard";
 import type { LearnLesson } from "../types";
 import type { CurrentTimeRef, VideoPlayerContextValue } from "./video-content.types";
 import { fetchVideoResumeData } from "./video-resume.service";
@@ -42,6 +43,11 @@ export async function restoreVideoProgress({
   }
 
   if (resumeCheckpoint > 0 && videoElement.currentTime <= 0.5) {
+    videoElement.dispatchEvent(
+      new CustomEvent(ALLOW_NEXT_PROGRAMMATIC_SEEK_EVENT, {
+        detail: { targetTime: resumeCheckpoint },
+      }),
+    );
     videoElement.currentTime = resumeCheckpoint;
     currentTimeRef.current = resumeCheckpoint;
   }

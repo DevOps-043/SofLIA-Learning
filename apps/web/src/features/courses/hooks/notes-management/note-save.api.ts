@@ -31,14 +31,18 @@ export async function updateNoteRequest(
 export async function createNoteRequest(
   slug: string,
   lessonId: string,
-  noteData: LearnNoteFormData
+  noteData: LearnNoteFormData,
+  organizationId?: string | null
 ): Promise<NoteRequestResult> {
   const response = await fetch(
     `/api/courses/${slug}/lessons/${lessonId}/notes`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(normalizeNoteFormData(noteData)),
+      body: JSON.stringify({
+        ...normalizeNoteFormData(noteData),
+        organization_id: organizationId || null,
+      }),
     }
   );
 

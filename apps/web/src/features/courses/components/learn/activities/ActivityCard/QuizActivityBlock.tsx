@@ -8,6 +8,10 @@ interface QuizActivityBlockProps {
   activity: LearnActivity;
   lessonId: string;
   onQuizSubmitted: () => void | Promise<void>;
+  onRequestQuizFeedback: (
+    prompt: string,
+    source?: { activityId?: string | null; materialId?: string | null },
+  ) => void | Promise<void>;
   onTriggerLiaFeedback: (prompt: string) => void | Promise<void>;
   quizInfo?: LessonQuizStatusItem;
   slug: string;
@@ -18,6 +22,7 @@ export function QuizActivityBlock({
   activity,
   lessonId,
   onQuizSubmitted,
+  onRequestQuizFeedback,
   onTriggerLiaFeedback,
   quizInfo,
   slug,
@@ -42,9 +47,12 @@ export function QuizActivityBlock({
       lessonId={lessonId}
       slug={slug}
       activityId={activity.activity_id}
-      onTriggerLiaFeedback={(prompt) => {
-        void onTriggerLiaFeedback(prompt);
+      onRequestQuizFeedback={(prompt) => {
+        void onRequestQuizFeedback(prompt, {
+          activityId: activity.activity_id,
+        });
       }}
+      onTriggerLiaFeedback={onTriggerLiaFeedback}
       onQuizSubmitted={() => {
         void onQuizSubmitted();
       }}

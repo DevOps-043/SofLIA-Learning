@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, type Dispatch, type SetStateAction } from "react";
 import { buildClientTurnId, createRequestController, parseDialogueResponse } from "./dialogue-api";
 import type { DialogueMessageResponse, DialogueSession } from "./dialogue.types";
 
@@ -11,7 +11,7 @@ interface UseDialogueMessageSenderParams {
   onSessionUpdated?: () => void | Promise<void>;
   sending: boolean;
   session: DialogueSession | null;
-  setDraftMessage: (message: string) => void;
+  setDraftMessage: Dispatch<SetStateAction<string>>;
   setError: (message: string | null) => void;
   setSending: (sending: boolean) => void;
   setSession: (session: DialogueSession) => void;

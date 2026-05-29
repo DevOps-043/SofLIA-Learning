@@ -5,6 +5,10 @@ export type ActivityCardProps = {
   isCollapsed: boolean;
   lessonId: string;
   onQuizSubmitted: () => void | Promise<void>;
+  onRequestQuizFeedback: (
+    prompt: string,
+    source?: { activityId?: string | null; materialId?: string | null },
+  ) => void | Promise<void>;
   onStartAiChat: (
     activity: LearnActivity,
     onUserMessageCompleted: (conversationId?: string | null) => void | Promise<void>

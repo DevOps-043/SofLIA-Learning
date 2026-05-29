@@ -1,7 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { BarChart3, LineChart as LineChartIcon, Target, TrendingUp } from 'lucide-react'
+import { LineChart as LineChartIcon, Target, TrendingUp } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import {
   Area,
   AreaChart,
@@ -19,18 +20,14 @@ import {
 } from 'recharts'
 
 import { useCourseManagementContext } from '../CourseManagementContext'
+import type { CourseProgressDistributionPoint } from '../types'
 
-const TREND_DATA = [
-  { dia: 'Lun', inscripciones: 12, activos: 45 },
-  { dia: 'Mar', inscripciones: 19, activos: 52 },
-  { dia: 'Mie', inscripciones: 15, activos: 48 },
-  { dia: 'Jue', inscripciones: 22, activos: 61 },
-  { dia: 'Vie', inscripciones: 28, activos: 58 },
-  { dia: 'Sab', inscripciones: 18, activos: 42 },
-  { dia: 'Dom', inscripciones: 14, activos: 38 },
+const PROGRESS_COLORS = [
+  'var(--color-warning)',
+  'var(--color-accent)',
+  'var(--color-success)',
+  'var(--color-primary)',
 ]
-
-const FALLBACK_STATUS_DATA = [{ mes: 'Nov', completados: 0, enProgreso: 0, noIniciados: 0 }]
 
 const TOOLTIP_STYLE = {
   backgroundColor: 'var(--color-gray-800)',
@@ -40,28 +37,35 @@ const TOOLTIP_STYLE = {
 }
 
 export function CourseStatsChartSections() {
+  const { t } = useTranslation('admin')
   const {
-    state: { chartData, userStats },
+    state: { chartData },
   } = useCourseManagementContext()
 
-  const progressData = [
-    { name: '0-25%', value: userStats?.not_started ?? 0, fill: 'var(--color-warning)' },
+  const emptyTrendData = [
+    { dia: t('workshops.editor.stats.charts.days.monShort'), inscripciones: 0, activos: 0 },
+    { dia: t('workshops.editor.stats.charts.days.tueShort'), inscripciones: 0, activos: 0 },
+    { dia: t('workshops.editor.stats.charts.days.wedShort'), inscripciones: 0, activos: 0 },
+    { dia: t('workshops.editor.stats.charts.days.thuShort'), inscripciones: 0, activos: 0 },
+    { dia: t('workshops.editor.stats.charts.days.friShort'), inscripciones: 0, activos: 0 },
+    { dia: t('workshops.editor.stats.charts.days.satShort'), inscripciones: 0, activos: 0 },
+    { dia: t('workshops.editor.stats.charts.days.sunShort'), inscripciones: 0, activos: 0 },
+  ]
+  const fallbackStatusData = [
     {
-      name: '26-50%',
-      value: Math.floor((userStats?.in_progress ?? 0) * 0.3),
-      fill: 'var(--color-accent)',
-    },
-    {
-      name: '51-75%',
-      value: Math.floor((userStats?.in_progress ?? 0) * 0.4),
-      fill: 'var(--color-success)',
-    },
-    {
-      name: '76-100%',
-      value: (userStats?.completed ?? 0) + Math.floor((userStats?.in_progress ?? 0) * 0.3),
-      fill: 'var(--color-primary)',
+      mes: t('workshops.editor.stats.charts.emptyMonthLabel'),
+      completados: 0,
+      enProgreso: 0,
+      noIniciados: 0,
     },
   ]
+  const progressData = withProgressColors(chartData?.progress_distribution ?? [])
+  const trendData = chartData?.enrollment_trend_7d?.length
+    ? chartData.enrollment_trend_7d
+    : emptyTrendData
+  const studentStatusData = chartData?.student_status_by_month?.length
+    ? chartData.student_status_by_month
+    : fallbackStatusData
 
   return (
     <>
@@ -78,10 +82,10 @@ export function CourseStatsChartSections() {
             </div>
             <div>
               <h3 className="text-lg font-bold text-primary dark:text-white">
-                Distribucion de Progreso
+                {t('workshops.editor.stats.charts.progressDistributionTitle')}
               </h3>
               <p className="text-xs text-gray-500 dark:text-white/60">
-                Estado actual de los estudiantes
+                {t('workshops.editor.stats.charts.progressDistributionDescription')}
               </p>
             </div>
           </div>
@@ -121,14 +125,16 @@ export function CourseStatsChartSections() {
             </div>
             <div>
               <h3 className="text-lg font-bold text-primary dark:text-white">
-                Tendencia de Inscripciones
+                {t('workshops.editor.stats.charts.enrollmentTrendTitle')}
               </h3>
-              <p className="text-xs text-gray-500 dark:text-white/60">Ultimos 7 dias</p>
+              <p className="text-xs text-gray-500 dark:text-white/60">
+                {t('workshops.editor.stats.charts.last7Days')}
+              </p>
             </div>
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={TREND_DATA}>
+              <AreaChart data={trendData}>
                 <defs>
                   <linearGradient id="colorInscripciones" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.8} />
@@ -150,6 +156,7 @@ export function CourseStatsChartSections() {
                   fillOpacity={1}
                   fill="url(#colorInscripciones)"
                   strokeWidth={2}
+                  name={t('workshops.editor.stats.charts.enrollments')}
                 />
                 <Area
                   type="monotone"
@@ -158,6 +165,7 @@ export function CourseStatsChartSections() {
                   fillOpacity={1}
                   fill="url(#colorActivos)"
                   strokeWidth={2}
+                  name={t('workshops.editor.stats.charts.activeStudents')}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -177,16 +185,16 @@ export function CourseStatsChartSections() {
           </div>
           <div>
             <h3 className="text-lg font-bold text-primary dark:text-white">
-              Estado de Estudiantes
+              {t('workshops.editor.stats.charts.studentStatusTitle')}
             </h3>
             <p className="text-xs text-gray-500 dark:text-white/60">
-              Evolucion del progreso en el tiempo
+              {t('workshops.editor.stats.charts.studentStatusDescription')}
             </p>
           </div>
         </div>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData?.student_status_by_month || FALLBACK_STATUS_DATA}>
+            <LineChart data={studentStatusData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-gray-200)" opacity={0.3} />
               <XAxis dataKey="mes" stroke="var(--color-gray-500)" tick={{ fill: 'var(--color-gray-500)', fontSize: 12 }} />
               <YAxis stroke="var(--color-gray-500)" tick={{ fill: 'var(--color-gray-500)', fontSize: 12 }} />
@@ -199,7 +207,7 @@ export function CourseStatsChartSections() {
                 strokeWidth={3}
                 dot={{ fill: 'var(--color-success)', r: 5 }}
                 activeDot={{ r: 7 }}
-                name="Completados"
+                name={t('workshops.editor.stats.charts.completed')}
               />
               <Line
                 type="monotone"
@@ -208,7 +216,7 @@ export function CourseStatsChartSections() {
                 strokeWidth={3}
                 dot={{ fill: 'var(--color-accent)', r: 5 }}
                 activeDot={{ r: 7 }}
-                name="En Progreso"
+                name={t('workshops.editor.stats.charts.inProgress')}
               />
               <Line
                 type="monotone"
@@ -217,7 +225,7 @@ export function CourseStatsChartSections() {
                 strokeWidth={3}
                 dot={{ fill: 'var(--color-warning)', r: 5 }}
                 activeDot={{ r: 7 }}
-                name="No Iniciados"
+                name={t('workshops.editor.stats.charts.notStarted')}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -225,4 +233,11 @@ export function CourseStatsChartSections() {
       </motion.div>
     </>
   )
+}
+
+function withProgressColors(progressData: CourseProgressDistributionPoint[]) {
+  return progressData.map((entry, index) => ({
+    ...entry,
+    fill: PROGRESS_COLORS[index] ?? 'var(--color-gray-500)',
+  }))
 }

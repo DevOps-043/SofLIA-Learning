@@ -1,4 +1,5 @@
 import { HEATMAP_TABS } from './constants';
+import { useTranslation } from 'react-i18next';
 import type { HeatmapTabId } from './types';
 
 interface HeatmapTabsProps {
@@ -7,6 +8,8 @@ interface HeatmapTabsProps {
 }
 
 export function HeatmapTabs({ activeTab, onChange }: HeatmapTabsProps) {
+  const { t } = useTranslation('admin');
+
   return (
     <div className="mb-4 flex gap-2 border-b border-gray-200 dark:border-gray-700">
       {HEATMAP_TABS.map((tab) => (
@@ -21,7 +24,7 @@ export function HeatmapTabs({ activeTab, onChange }: HeatmapTabsProps) {
           type="button"
         >
           <tab.icon className="h-4 w-4" />
-          {tab.label}
+          {t(`liaAnalyticsPage.heatmapModal.tabs.${tab.id}`)}
         </button>
       ))}
     </div>

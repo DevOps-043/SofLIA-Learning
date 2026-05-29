@@ -1,4 +1,5 @@
 import { CheckCircle, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { isQuizAnswerCorrect, type QuizQuestion } from "@/features/courses/components/learn/quiz.utils";
 
 type QuizOptionProps = {
@@ -18,6 +19,7 @@ export function QuizOption({
   selectedAnswer,
   showResults,
 }: QuizOptionProps) {
+  const { t } = useTranslation("learn");
   const optionLetter = String.fromCharCode(65 + optionIndex);
   const isSelected = selectedAnswer === optionIndex || selectedAnswer === option;
   const isCorrectOption = isQuizAnswerCorrect(question, optionIndex);
@@ -52,8 +54,18 @@ export function QuizOption({
       <input type="radio" name={`question-${question.id}`} value={optionIndex} checked={isSelected} onChange={() => onAnswerSelect(question.id, optionIndex)} disabled={showResults} className="hidden" />
       <span className="text-xs font-medium opacity-60 dark:opacity-50 mr-1">({optionLetter})</span>
       <span className="text-sm flex-1">{option}</span>
-      {showResults && isSelected && isCorrectOption && <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0" />}
-      {showResults && isSelected && !isCorrectOption && <X className="w-4 h-4 text-red-500 dark:text-red-400 flex-shrink-0" />}
+      {showResults && isSelected && isCorrectOption && (
+        <CheckCircle
+          aria-label={t("activities.quiz.correct")}
+          className="w-4 h-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0"
+        />
+      )}
+      {showResults && isSelected && !isCorrectOption && (
+        <X
+          aria-label={t("activities.quiz.incorrect")}
+          className="w-4 h-4 text-red-500 dark:text-red-400 flex-shrink-0"
+        />
+      )}
     </label>
   );
 }

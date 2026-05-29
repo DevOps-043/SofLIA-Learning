@@ -2,6 +2,7 @@
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChatBubbleLeftRightIcon, SparklesIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 
 interface TopQuestion {
@@ -28,6 +29,7 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; icon: string }
 };
 
 export function TopQuestionsWidget({ period = 'month', limit = 8, isLoading: externalLoading }: TopQuestionsWidgetProps) {
+  const { t } = useTranslation('admin');
   const [questions, setQuestions] = useState<TopQuestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [totalQuestions, setTotalQuestions] = useState(0);
@@ -89,16 +91,16 @@ export function TopQuestionsWidget({ period = 'month', limit = 8, isLoading: ext
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <ChatBubbleLeftRightIcon className="w-5 h-5 text-violet-500" />
-            Temas Frecuentes
+            {t('liaAnalyticsPage.topQuestions.title')}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {totalQuestions.toLocaleString()} preguntas analizadas
+            {t('liaAnalyticsPage.topQuestions.analyzedQuestions', { value: totalQuestions.toLocaleString() })}
           </p>
         </div>
         {topCategory && (
           <div className={`px-3 py-1.5 rounded-full ${getCategoryStyle(topCategory).bg}`}>
             <span className={`text-xs font-medium ${getCategoryStyle(topCategory).text}`}>
-              {getCategoryStyle(topCategory).icon} Top: {topCategory}
+              {getCategoryStyle(topCategory).icon} {t('liaAnalyticsPage.topQuestions.topCategory', { category: topCategory })}
             </span>
           </div>
         )}
@@ -108,7 +110,7 @@ export function TopQuestionsWidget({ period = 'month', limit = 8, isLoading: ext
       {questions.length === 0 ? (
         <div className="text-center py-8">
           <QuestionMarkCircleIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <p className="text-gray-500 dark:text-gray-400">No hay suficientes datos</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('liaAnalyticsPage.topQuestions.empty')}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -151,7 +153,7 @@ export function TopQuestionsWidget({ period = 'month', limit = 8, isLoading: ext
                       </span>
                       <span className="text-xs text-gray-400">•</span>
                       <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {q.avgResponseTime}ms avg
+                        {t('liaAnalyticsPage.topQuestions.avgResponseTime', { value: q.avgResponseTime })}
                       </span>
                     </div>
                   </div>
@@ -165,7 +167,7 @@ export function TopQuestionsWidget({ period = 'month', limit = 8, isLoading: ext
                       <p className="text-sm font-bold text-gray-900 dark:text-white">
                         {q.count}
                       </p>
-                      <p className="text-xs text-gray-500">veces</p>
+                      <p className="text-xs text-gray-500">{t('liaAnalyticsPage.topQuestions.times')}</p>
                     </div>
                   </div>
                 </div>
@@ -181,9 +183,10 @@ export function TopQuestionsWidget({ period = 'month', limit = 8, isLoading: ext
           <div className="flex items-start gap-2">
             <SparklesIcon className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" />
             <p className="text-xs text-gray-600 dark:text-gray-300">
-              <span className="font-semibold">Insight:</span> Las preguntas sobre{' '}
+              <span className="font-semibold">{t('liaAnalyticsPage.topQuestions.insightLabel')}:</span>{' '}
+              {t('liaAnalyticsPage.topQuestions.insightPrefix')}{' '}
               <span className="text-violet-600 dark:text-violet-400 font-medium">{topCategory}</span>{' '}
-              representan la mayoría de consultas. Considera mejorar el contenido en esta área.
+              {t('liaAnalyticsPage.topQuestions.insightSuffix')}
             </p>
           </div>
         </div>

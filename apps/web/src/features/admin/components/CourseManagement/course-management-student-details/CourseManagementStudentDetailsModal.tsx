@@ -1,20 +1,21 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { Settings } from 'lucide-react'
+import { Info, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useCourseManagementContext } from '../CourseManagementContext'
 import {
   COURSE_MANAGEMENT_LOADING_SPINNER_CLASS,
   COURSE_MANAGEMENT_MODAL_FOOTER_CLASS,
   COURSE_MANAGEMENT_MODAL_HEADER_GRADIENT_CLASS,
   COURSE_MANAGEMENT_MODAL_SHELL_CLASS,
-  COURSE_MANAGEMENT_PRIMARY_BUTTON_CLASS,
   COURSE_MANAGEMENT_SECONDARY_BUTTON_CLASS,
 } from '../courseManagementTheme'
 import { StudentProgressSection } from './StudentProgressSection'
 import { StudentActivitySection } from './StudentActivitySection'
 
 export function CourseManagementStudentDetailsModal() {
+  const { t } = useTranslation('admin')
   const {
     state: {
       showStudentDetailsModal,
@@ -71,9 +72,10 @@ export function CourseManagementStudentDetailsModal() {
                 </div>
                 <button
                   onClick={closeModal}
+                  aria-label={t('workshops.editor.stats.studentDetails.closeLabel')}
                   className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
                 >
-                  <Settings className="h-5 w-5 transition-transform duration-300 hover:rotate-90" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
             </div>
@@ -97,16 +99,25 @@ export function CourseManagementStudentDetailsModal() {
                     selectedStudent={selectedStudent as unknown as Record<string, unknown>}
                   />
                 </div>
-              ) : null}
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                    <Info className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-lg font-bold text-primary dark:text-white">
+                    {t('workshops.editor.stats.studentDetails.emptyTitle')}
+                  </h3>
+                  <p className="mt-2 max-w-xl text-sm text-gray-500 dark:text-white/60">
+                    {t('workshops.editor.stats.studentDetails.emptyDescription')}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className={COURSE_MANAGEMENT_MODAL_FOOTER_CLASS}>
               <div className="flex items-center justify-end gap-3">
                 <button onClick={closeModal} className={COURSE_MANAGEMENT_SECONDARY_BUTTON_CLASS}>
-                  Cerrar
-                </button>
-                <button className={COURSE_MANAGEMENT_PRIMARY_BUTTON_CLASS}>
-                  Enviar Mensaje
+                  {t('workshops.editor.stats.studentDetails.close')}
                 </button>
               </div>
             </div>

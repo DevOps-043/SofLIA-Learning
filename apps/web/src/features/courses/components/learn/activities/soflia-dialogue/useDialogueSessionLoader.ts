@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback } from "react";
-import type { MutableRefObject } from "react";
+import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { createRequestController, parseDialogueResponse } from "./dialogue-api";
 import type { DialogueSession } from "./dialogue.types";
 
 interface UseDialogueSessionLoaderParams {
   endpointBase: string;
   mountedRef: MutableRefObject<boolean>;
-  setDraftMessage: (message: string) => void;
+  setDraftMessage: Dispatch<SetStateAction<string>>;
   setError: (message: string | null) => void;
   setLoading: (loading: boolean) => void;
   setSession: (session: DialogueSession) => void;

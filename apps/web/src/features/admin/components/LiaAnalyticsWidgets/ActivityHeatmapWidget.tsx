@@ -2,6 +2,7 @@
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FireIcon } from '@heroicons/react/24/outline';
 import { HeatmapDetailModal } from './HeatmapDetailModal';
 
@@ -17,10 +18,10 @@ interface ActivityHeatmapWidgetProps {
   isLoading?: boolean;
 }
 
-const DAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
 export function ActivityHeatmapWidget({ period = 'month', isLoading: externalLoading }: ActivityHeatmapWidgetProps) {
+  const { t } = useTranslation('admin');
   const [data, setData] = useState<HeatmapData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hoveredCell, setHoveredCell] = useState<{ day: number; hour: number } | null>(null);
@@ -28,6 +29,15 @@ export function ActivityHeatmapWidget({ period = 'month', isLoading: externalLoa
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [totalMessages, setTotalMessages] = useState(0);
   const [peakHour, setPeakHour] = useState<{ day: string; hour: string; count: number } | null>(null);
+  const days = [
+    t('liaAnalyticsPage.activityHeatmap.days.sun'),
+    t('liaAnalyticsPage.activityHeatmap.days.mon'),
+    t('liaAnalyticsPage.activityHeatmap.days.tue'),
+    t('liaAnalyticsPage.activityHeatmap.days.wed'),
+    t('liaAnalyticsPage.activityHeatmap.days.thu'),
+    t('liaAnalyticsPage.activityHeatmap.days.fri'),
+    t('liaAnalyticsPage.activityHeatmap.days.sat'),
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -100,19 +110,19 @@ export function ActivityHeatmapWidget({ period = 'month', isLoading: externalLoa
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <FireIcon className="w-5 h-5 text-orange-500" />
-            Mapa de Actividad
+            {t('liaAnalyticsPage.activityHeatmap.title')}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {totalMessages.toLocaleString()} mensajes en el período
+            {t('liaAnalyticsPage.activityHeatmap.totalMessages', { value: totalMessages.toLocaleString() })}
           </p>
         </div>
         {peakHour && (
           <div className="text-right">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Hora pico</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('liaAnalyticsPage.activityHeatmap.peakHour')}</p>
             <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
               {peakHour.day} {peakHour.hour}
             </p>
-            <p className="text-xs text-gray-500">{peakHour.count} msgs</p>
+            <p className="text-xs text-gray-500">{t('liaAnalyticsPage.activityHeatmap.messagesShort', { count: peakHour.count })}</p>
           </div>
         )}
       </div>
@@ -137,7 +147,7 @@ export function ActivityHeatmapWidget({ period = 'month', isLoading: externalLoa
           </div>
 
           {/* Grid rows */}
-          {DAYS.map((day, dayIndex) => (
+          {days.map((day, dayIndex) => (
             <div key={day} className="flex items-center mb-1">
               <div className="w-10 flex-shrink-0 text-xs text-gray-500 dark:text-gray-400 pr-2 text-right">
                 {day}
@@ -176,15 +186,15 @@ export function ActivityHeatmapWidget({ period = 'month', isLoading: externalLoa
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {DAYS[hoveredCell.day]} a las {hoveredCell.hour}:00
+                {t('liaAnalyticsPage.activityHeatmap.tooltipTime', { day: days[hoveredCell.day], hour: hoveredCell.hour })}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {heatmapMatrix.matrix[hoveredCell.day][hoveredCell.hour]} mensajes
+                {t('liaAnalyticsPage.activityHeatmap.tooltipMessages', { count: heatmapMatrix.matrix[hoveredCell.day][hoveredCell.hour] })}
               </p>
             </div>
             {getCellData(hoveredCell.day, hoveredCell.hour)?.avgResponseTime && (
               <div className="text-right">
-                <p className="text-xs text-gray-500">Tiempo promedio</p>
+                <p className="text-xs text-gray-500">{t('liaAnalyticsPage.activityHeatmap.averageTime')}</p>
                 <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
                   {Math.round(getCellData(hoveredCell.day, hoveredCell.hour)?.avgResponseTime || 0)}ms
                 </p>
@@ -192,23 +202,23 @@ export function ActivityHeatmapWidget({ period = 'month', isLoading: externalLoa
             )}
           </div>
           <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">
-            💡 Haz clic para ver detalles
+            {t('liaAnalyticsPage.activityHeatmap.clickForDetails')}
           </p>
         </div>
       )}
 
       {/* Legend */}
       <div className="flex items-center justify-between mt-4">
-        <p className="text-xs text-gray-400 italic">Clic en celda = ver detalles</p>
+        <p className="text-xs text-gray-400 italic">{t('liaAnalyticsPage.activityHeatmap.cellHint')}</p>
         <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-          <span>Menos</span>
+          <span>{t('liaAnalyticsPage.activityHeatmap.less')}</span>
           <div className="w-3 h-3 rounded-sm bg-gray-100 dark:bg-gray-800"></div>
           <div className="w-3 h-3 rounded-sm bg-emerald-100 dark:bg-emerald-900/30"></div>
           <div className="w-3 h-3 rounded-sm bg-emerald-200 dark:bg-emerald-800/40"></div>
           <div className="w-3 h-3 rounded-sm bg-emerald-300 dark:bg-emerald-700/50"></div>
           <div className="w-3 h-3 rounded-sm bg-emerald-400 dark:bg-emerald-600/60"></div>
           <div className="w-3 h-3 rounded-sm bg-emerald-500 dark:bg-emerald-500"></div>
-          <span>Más</span>
+          <span>{t('liaAnalyticsPage.activityHeatmap.more')}</span>
         </div>
       </div>
 

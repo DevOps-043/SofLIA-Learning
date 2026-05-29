@@ -1,5 +1,7 @@
 type VideoResumeApiResponse = {
+  completionPercentage?: number;
   checkpointSeconds?: number;
+  maxReachedSeconds?: number;
   playbackRate?: number;
 };
 

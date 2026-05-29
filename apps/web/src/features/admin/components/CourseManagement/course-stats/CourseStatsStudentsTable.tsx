@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { ResponsiveDataTable } from '@/core/layout'
 import { useCourseManagementContext } from '../CourseManagementContext'
 import { MobileStudentCard } from './course-stats-students-table/MobileStudentCard'
@@ -9,6 +10,7 @@ import { buildCourseStatsStudentsColumns } from './course-stats-students-table/t
 import type { CourseStatsStudentRow } from './course-stats-students-table/types'
 
 export function CourseStatsStudentsTable() {
+  const { i18n, t } = useTranslation('admin')
   const {
     state: {
       enrolledUsers,
@@ -24,9 +26,23 @@ export function CourseStatsStudentsTable() {
     await loadStudentDetails(user.user_id)
   }
 
-  const columns = buildCourseStatsStudentsColumns((user) => {
-    void handleOpenDetails(user)
-  })
+  const locale = i18n.language === 'en' ? 'en-US' : i18n.language === 'pt' ? 'pt-BR' : 'es-ES'
+  const tableLabels = {
+    actions: t('workshops.editor.stats.studentsTable.actions'),
+    enrolledAt: t('workshops.editor.stats.studentsTable.enrolledAt'),
+    lastActivity: t('workshops.editor.stats.studentsTable.lastActivity'),
+    never: t('workshops.editor.stats.studentDetails.activity.never'),
+    progress: t('workshops.editor.stats.studentsTable.progress'),
+    status: t('workshops.editor.stats.studentsTable.status'),
+    student: t('workshops.editor.stats.studentsTable.student'),
+  }
+  const columns = buildCourseStatsStudentsColumns(
+    (user) => {
+      void handleOpenDetails(user)
+    },
+    tableLabels,
+    locale,
+  )
 
   return (
     <motion.div
@@ -47,6 +63,8 @@ export function CourseStatsStudentsTable() {
             mobileListClassName="p-3"
             renderMobileCard={(user) => (
               <MobileStudentCard
+                labels={tableLabels}
+                locale={locale}
                 onOpenDetails={(selectedUser) => {
                   void handleOpenDetails(selectedUser)
                 }}

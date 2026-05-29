@@ -10,6 +10,7 @@ import {
   UsersIcon,
   CalculatorIcon,
 } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 
 interface LiaAnalyticsSummary {
   totalConversations: number;
@@ -43,6 +44,7 @@ interface LiaStatsCardsProps {
 }
 
 export function LiaStatsCards({ summary, today, efficiency, projectedMonthlyCost, isLoading }: LiaStatsCardsProps) {
+  const { t } = useTranslation('admin');
   const formatCurrency = (value: number) => {
     if (value < 0.01) return `$${value.toFixed(4)}`;
     if (value < 1) return `$${value.toFixed(3)}`;
@@ -62,68 +64,68 @@ export function LiaStatsCards({ summary, today, efficiency, projectedMonthlyCost
 
   const stats = [
     {
-      name: 'Costo Hoy',
+      name: t('liaAnalyticsPage.statsCards.todayCost'),
       value: formatCurrency(today.cost),
       change: today.costChange,
-      changeLabel: today.costChange >= 0 ? 'vs ayer' : 'vs ayer',
+      changeLabel: t('liaAnalyticsPage.statsCards.vsYesterday'),
       icon: CurrencyDollarIcon,
       iconColor: 'text-emerald-500',
       bgColor: 'bg-emerald-500/10',
     },
     {
-      name: 'Costo Total (Período)',
+      name: t('liaAnalyticsPage.statsCards.periodCost'),
       value: formatCurrency(summary.totalCostUsd),
-      subValue: `Proyección mensual: ${formatCurrency(projectedMonthlyCost)}`,
+      subValue: t('liaAnalyticsPage.statsCards.monthlyProjection', { value: formatCurrency(projectedMonthlyCost) }),
       icon: CurrencyDollarIcon,
       iconColor: 'text-blue-500',
       bgColor: 'bg-blue-500/10',
     },
     {
-      name: 'Tokens Consumidos',
+      name: t('liaAnalyticsPage.statsCards.tokensConsumed'),
       value: formatNumber(summary.totalTokens),
-      subValue: `${formatNumber(today.tokens)} hoy`,
+      subValue: t('liaAnalyticsPage.statsCards.todayValue', { value: formatNumber(today.tokens) }),
       icon: BoltIcon,
       iconColor: 'text-amber-500',
       bgColor: 'bg-amber-500/10',
     },
     {
-      name: 'Conversaciones',
+      name: t('liaAnalyticsPage.statsCards.conversations'),
       value: formatNumber(summary.totalConversations),
-      subValue: `${formatNumber(summary.totalMessages)} mensajes`,
+      subValue: t('liaAnalyticsPage.statsCards.messagesValue', { value: formatNumber(summary.totalMessages) }),
       icon: ChatBubbleLeftRightIcon,
       iconColor: 'text-violet-500',
       bgColor: 'bg-violet-500/10',
     },
     {
-      name: 'Tiempo Promedio',
+      name: t('liaAnalyticsPage.statsCards.avgTime'),
       value: formatTime(summary.avgResponseTimeMs),
-      subValue: 'de respuesta',
+      subValue: t('liaAnalyticsPage.statsCards.responseTime'),
       icon: ClockIcon,
       iconColor: 'text-cyan-500',
       bgColor: 'bg-cyan-500/10',
     },
     {
-      name: 'Usuarios Activos Hoy',
+      name: t('liaAnalyticsPage.statsCards.activeUsersToday'),
       value: formatNumber(today.activeUsers || 0),
       change: today.usersChange || 0,
-      changeLabel: 'vs ayer',
+      changeLabel: t('liaAnalyticsPage.statsCards.vsYesterday'),
       icon: UsersIcon,
       iconColor: 'text-indigo-500',
       bgColor: 'bg-indigo-500/10',
       positiveIsGood: true,
     },
     {
-      name: 'Msgs/Conversación',
+      name: t('liaAnalyticsPage.statsCards.messagesPerConversation'),
       value: (efficiency?.avgMessagesPerConversation || 0).toFixed(1),
-      subValue: 'promedio de interacción',
+      subValue: t('liaAnalyticsPage.statsCards.interactionAverage'),
       icon: ChatBubbleLeftRightIcon,
       iconColor: 'text-teal-500',
       bgColor: 'bg-teal-500/10',
     },
     {
-      name: 'Costo/Mensaje',
+      name: t('liaAnalyticsPage.statsCards.costPerMessage'),
       value: formatCurrency(efficiency?.avgCostPerMessage || 0),
-      subValue: 'eficiencia por mensaje',
+      subValue: t('liaAnalyticsPage.statsCards.messageEfficiency'),
       icon: CalculatorIcon,
       iconColor: 'text-rose-500',
       bgColor: 'bg-rose-500/10',
@@ -198,4 +200,3 @@ export function LiaStatsCards({ summary, today, efficiency, projectedMonthlyCost
     </div>
   );
 }
-

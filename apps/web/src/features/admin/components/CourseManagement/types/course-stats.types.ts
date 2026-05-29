@@ -23,6 +23,19 @@ export interface CourseStudentStatusPoint {
   noIniciados: number
 }
 
+export interface CourseProgressDistributionPoint {
+  name: string
+  value: number
+}
+
+export interface CourseEnrollmentTrendPoint {
+  dia: string
+  inscripciones: number
+  activos: number
+}
+
 export interface CourseChartData {
+  enrollment_trend_7d: CourseEnrollmentTrendPoint[]
+  progress_distribution: CourseProgressDistributionPoint[]
   student_status_by_month: CourseStudentStatusPoint[]
 }

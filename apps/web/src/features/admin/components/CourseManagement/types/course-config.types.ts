@@ -28,6 +28,7 @@ export interface Instructor {
 
 export interface CourseWorkshopPreview extends ConfigData {
   instructor_name?: string | null
+  is_published?: boolean
 }
 
 export const DEFAULT_CONFIG_DATA: ConfigData = {

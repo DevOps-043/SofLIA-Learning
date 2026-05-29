@@ -20,8 +20,8 @@ export function SummaryCard({
         <h2 className="text-base font-semibold" style={{ color: theme.textColor }}>{title}</h2>
       </div>
       <div className="space-y-3">
-        {rows.map(([label, value]) => (
-          <div key={label} className="flex items-start justify-between gap-4 border-b pb-2 last:border-b-0 last:pb-0" style={{ borderColor: theme.dividerColor }}>
+        {rows.map(([label, value], index) => (
+          <div key={`${label}-${index}`} className="flex items-start justify-between gap-4 border-b pb-2 last:border-b-0 last:pb-0" style={{ borderColor: theme.dividerColor }}>
             <span className="min-w-0 text-sm leading-5" style={{ color: theme.subtextColor }}>{label}</span>
             <span className="shrink-0 text-right text-sm font-semibold leading-5" style={{ color: theme.textColor }}>{value}</span>
           </div>

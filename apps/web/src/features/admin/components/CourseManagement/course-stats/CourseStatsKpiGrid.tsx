@@ -1,10 +1,19 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { BarChart3, Star, Target, TrendingUp, Users2 } from 'lucide-react'
+import { BarChart3, Star, Target, TrendingUp, Users2, type LucideIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { useCourseManagementContext } from '../CourseManagementContext'
+
+interface CourseStatsKpi {
+  icon: LucideIcon
+  label: string
+  value: string | number
+  change?: string
+  changeType?: 'neutral'
+  color: string
+}
 
 export function CourseStatsKpiGrid() {
   const { t } = useTranslation('admin')
@@ -12,29 +21,23 @@ export function CourseStatsKpiGrid() {
     state: { userStats },
   } = useCourseManagementContext()
 
-  const kpis = [
+  const kpis: CourseStatsKpi[] = [
     {
       icon: Users2,
       label: t('workshops.editor.stats.enrolledStudents'),
       value: userStats?.total_enrolled ?? 0,
-      change: '+12%',
-      changeType: 'positive' as const,
       color: 'from-primary to-accent',
     },
     {
       icon: TrendingUp,
       label: t('workshops.editor.stats.completionRate'),
       value: userStats?.completion_rate ? `${userStats.completion_rate.toFixed(1)}%` : '0%',
-      change: '+5.2%',
-      changeType: 'positive' as const,
       color: 'from-success to-accent',
     },
     {
       icon: Target,
       label: t('workshops.editor.stats.averageProgress'),
       value: userStats ? `${Math.round(userStats.average_progress)}%` : '0%',
-      change: '+8.1%',
-      changeType: 'positive' as const,
       color: 'from-accent to-success',
     },
     {
@@ -91,7 +94,7 @@ export function CourseStatsKpiGrid() {
                     >
                       <Icon className="h-6 w-6 text-white" />
                     </div>
-                    {kpi.changeType !== 'neutral' && (
+                    {kpi.change && kpi.changeType !== 'neutral' && (
                       <span className="rounded-full bg-success/10 px-2 py-1 text-xs font-semibold text-success">
                         {kpi.change}
                       </span>

@@ -1,4 +1,5 @@
 export const VIDEO_PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+export const LOCKED_SEEK_EPSILON_SECONDS = 0.75;
 
 export function clampUnitInterval(value: number): number {
   return Math.max(0, Math.min(1, value));
@@ -39,6 +40,28 @@ export function clampPlaybackTime(
   }
 
   return Math.max(0, Math.min(duration, currentTime + deltaSeconds));
+}
+
+export function clampLockedSeekTarget(
+  requestedTime: number,
+  maxAllowedTime: number,
+  duration: number
+): number {
+  const safeDuration = duration > 0 ? duration : Number.POSITIVE_INFINITY;
+  const safeMaxAllowedTime = Math.max(0, Math.min(maxAllowedTime, safeDuration));
+
+  if (requestedTime <= safeMaxAllowedTime + LOCKED_SEEK_EPSILON_SECONDS) {
+    return Math.max(0, Math.min(requestedTime, safeDuration));
+  }
+
+  return safeMaxAllowedTime;
+}
+
+export function isForwardSeekBlocked(
+  requestedTime: number,
+  maxAllowedTime: number
+): boolean {
+  return requestedTime > maxAllowedTime + LOCKED_SEEK_EPSILON_SECONDS;
 }
 
 export function formatVideoTime(seconds: number): string {

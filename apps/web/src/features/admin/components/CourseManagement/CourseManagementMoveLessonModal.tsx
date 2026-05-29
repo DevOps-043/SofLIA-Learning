@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRightLeft, Book, ChevronRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { useCourseManagementContext } from './CourseManagementContext'
 
@@ -15,6 +16,8 @@ export function CourseManagementMoveLessonModal() {
       handleMoveLessonToModule,
     },
   } = useCourseManagementContext()
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
 
   return (
     <AnimatePresence>
@@ -38,8 +41,12 @@ export function CourseManagementMoveLessonModal() {
                 <ArrowRightLeft className="h-5 w-5 text-warning" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-primary dark:text-white">Mover Leccion</h3>
-                <p className="text-xs text-gray-500 dark:text-white/60">Selecciona el modulo de destino</p>
+                <h3 className="text-lg font-bold text-primary dark:text-white">
+                  {t('workshops.editor.lessons.moveLesson')}
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-white/60">
+                  {t('workshops.editor.lessons.moveLessonDesc')}
+                </p>
               </div>
             </div>
 
@@ -71,7 +78,9 @@ export function CourseManagementMoveLessonModal() {
                     </span>
                   </div>
                   {module.module_id === movingLesson.module_id ? (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Actual</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                      {t('workshops.editor.lessons.currentModule')}
+                    </span>
                   ) : (
                     <ChevronRight className="h-4 w-4 text-gray-500/30 transition-colors group-hover:text-accent" />
                   )}
@@ -84,7 +93,7 @@ export function CourseManagementMoveLessonModal() {
                 onClick={() => setShowMoveLessonModal(false)}
                 className="px-4 py-2 text-sm font-semibold text-gray-500 transition-colors hover:text-primary dark:text-white/60 dark:hover:text-white"
               >
-                Cancelar
+                {tc('actions.cancel')}
               </button>
             </div>
           </motion.div>

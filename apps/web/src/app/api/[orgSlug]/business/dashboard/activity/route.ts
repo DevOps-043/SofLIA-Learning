@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
 interface RecentActivityRow {
@@ -18,6 +18,60 @@ interface RecentActivityRow {
   user_name: string | null
 }
 
+interface NotificationRow {
+  created_at: string | null
+  message: string
+  metadata: unknown
+  notification_id: string
+  notification_type: string
+  organization_id: string | null
+  priority: string | null
+  status: string | null
+  title: string
+  user_id: string
+}
+
+interface NotificationUserRow {
+  display_name: string | null
+  first_name: string | null
+  id: string
+  last_name: string | null
+}
+
+interface ActivityCourseRow {
+  title: string | null
+}
+
+interface CompletedCourseRow {
+  completed_at: string | null
+  completion_percentage: number | null
+  user: NotificationUserRow | null
+  course: ActivityCourseRow | null
+}
+
+interface NewUserRow {
+  joined_at: string | null
+  user: NotificationUserRow | null
+}
+
+interface StartedCourseRow {
+  assigned_at: string | null
+  completion_percentage: number | null
+  user: NotificationUserRow | null
+  course: ActivityCourseRow | null
+}
+
+interface LegacyActivityRow {
+  action: string
+  createdAt: string | null
+  icon: string
+  message: string
+  time: string
+  timestamp: Date
+  title: string
+  user: string
+}
+
 interface BusinessActivityRpcClient {
   rpc(
     fn: 'get_business_recent_activity',
@@ -28,10 +82,18 @@ interface BusinessActivityRpcClient {
   }>
 }
 
+type BusinessActivityClient = Awaited<ReturnType<typeof createClient>>
+
 function normalizeMetadata(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {}
+}
+
+function getDisplayName(user: NotificationUserRow | undefined): string {
+  return user?.display_name ||
+    `${user?.first_name || ''} ${user?.last_name || ''}`.trim() ||
+    'Usuario'
 }
 
 function formatTimeAgo(dateString: string | null): string {
@@ -60,6 +122,262 @@ function formatTimeAgo(dateString: string | null): string {
   return months <= 1 ? 'hace 1 mes' : `hace ${months} meses`
 }
 
+function mapRecentActivityRow(notification: RecentActivityRow) {
+  return {
+    createdAt: notification.created_at,
+    id: notification.notification_id,
+    message: notification.message,
+    metadata: normalizeMetadata(notification.metadata),
+    notificationType: notification.notification_type,
+    priority: notification.priority || 'medium',
+    status: notification.status || 'unread',
+    time: formatTimeAgo(notification.created_at),
+    title: notification.title,
+    user: notification.user_name || 'Usuario',
+  }
+}
+
+function mapNotificationRow(
+  notification: NotificationRow,
+  usersById: Map<string, NotificationUserRow>,
+) {
+  return {
+    createdAt: notification.created_at,
+    id: notification.notification_id,
+    message: notification.message,
+    metadata: normalizeMetadata(notification.metadata),
+    notificationType: notification.notification_type,
+    priority: notification.priority || 'medium',
+    status: notification.status || 'unread',
+    time: formatTimeAgo(notification.created_at),
+    title: notification.title,
+    user: getDisplayName(usersById.get(notification.user_id)),
+  }
+}
+
+async function loadRecentActivityFromRpc(
+  supabase: BusinessActivityClient,
+  organizationId: string,
+) {
+  const { data, error } = await (
+    supabase as unknown as BusinessActivityRpcClient
+  ).rpc('get_business_recent_activity', {
+    target_organization_id: organizationId,
+    max_rows: 12,
+  })
+
+  if (error) {
+    logger.warn('Business recent activity RPC unavailable, using fallback', {
+      organizationId,
+      error: error.message,
+    })
+    return null
+  }
+
+  return (data || []).slice(0, 12).map(mapRecentActivityRow)
+}
+
+async function loadRecentActivityFallback(
+  supabase: BusinessActivityClient,
+  organizationId: string,
+) {
+  const { data: notifications, error: notificationsError } = await supabase
+    .from('user_notifications')
+    .select(`
+      created_at,
+      message,
+      metadata,
+      notification_id,
+      notification_type,
+      organization_id,
+      priority,
+      status,
+      title,
+      user_id
+    `)
+    .eq('organization_id', organizationId)
+    .order('created_at', { ascending: false })
+    .limit(12)
+    .returns<NotificationRow[]>()
+
+  if (notificationsError) {
+    logger.error('Error fetching business recent notifications fallback:', notificationsError)
+    return []
+  }
+
+  const userIds = Array.from(new Set((notifications || []).map((item) => item.user_id)))
+  const usersById = new Map<string, NotificationUserRow>()
+
+  if (userIds.length > 0) {
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id, display_name, first_name, last_name')
+      .in('id', userIds)
+      .returns<NotificationUserRow[]>()
+
+    if (usersError) {
+      logger.warn('Error fetching business recent activity users:', usersError)
+    }
+
+    for (const user of users || []) {
+      usersById.set(user.id, user)
+    }
+  }
+
+  return (notifications || []).map((notification) =>
+    mapNotificationRow(notification, usersById),
+  )
+}
+
+async function loadLegacyActivityFallback(
+  supabase: BusinessActivityClient,
+  organizationId: string,
+) {
+  const [
+    { data: orgData, error: orgError },
+    { data: completedCourses, error: completedError },
+    { data: newUsers, error: newUsersError },
+    { data: startedCourses, error: startedError },
+  ] = await Promise.all([
+    supabase
+      .from('organizations')
+      .select('name')
+      .eq('id', organizationId)
+      .single(),
+    supabase
+      .from('organization_course_assignments')
+      .select(`
+        completed_at,
+        completion_percentage,
+        user:users!inner (
+          id,
+          first_name,
+          last_name,
+          display_name
+        ),
+        course:courses!inner (
+          title
+        )
+      `)
+      .eq('organization_id', organizationId)
+      .or('status.eq.completed,completion_percentage.gte.100')
+      .not('completed_at', 'is', null)
+      .order('completed_at', { ascending: false })
+      .limit(5)
+      .returns<CompletedCourseRow[]>(),
+    supabase
+      .from('organization_users')
+      .select(`
+        joined_at,
+        user:users!inner (
+          id,
+          first_name,
+          last_name,
+          display_name
+        )
+      `)
+      .eq('organization_id', organizationId)
+      .not('joined_at', 'is', null)
+      .order('joined_at', { ascending: false })
+      .limit(3)
+      .returns<NewUserRow[]>(),
+    supabase
+      .from('organization_course_assignments')
+      .select(`
+        assigned_at,
+        completion_percentage,
+        user:users!inner (
+          id,
+          first_name,
+          last_name,
+          display_name
+        ),
+        course:courses!inner (
+          title
+        )
+      `)
+      .eq('organization_id', organizationId)
+      .gt('completion_percentage', 0)
+      .lt('completion_percentage', 100)
+      .order('assigned_at', { ascending: false })
+      .limit(3)
+      .returns<StartedCourseRow[]>(),
+  ])
+
+  if (orgError) logger.warn('Error fetching organization for recent activity:', orgError)
+  if (completedError) logger.warn('Error fetching completed courses for recent activity:', completedError)
+  if (newUsersError) logger.warn('Error fetching new users for recent activity:', newUsersError)
+  if (startedError) logger.warn('Error fetching started courses for recent activity:', startedError)
+
+  const orgName = orgData?.name || 'tu organizacion'
+  const activities: LegacyActivityRow[] = []
+
+  for (const item of completedCourses || []) {
+    const courseTitle = item.course?.title || 'curso'
+    const action = `completo el curso de ${courseTitle}`
+
+    activities.push({
+      action,
+      createdAt: item.completed_at,
+      icon: 'CheckCircle',
+      message: action,
+      time: formatTimeAgo(item.completed_at),
+      timestamp: new Date(item.completed_at || 0),
+      title: action,
+      user: getDisplayName(item.user || undefined),
+    })
+  }
+
+  for (const item of newUsers || []) {
+    const action = `se unio a ${orgName}`
+
+    activities.push({
+      action,
+      createdAt: item.joined_at,
+      icon: 'Users',
+      message: action,
+      time: formatTimeAgo(item.joined_at),
+      timestamp: new Date(item.joined_at || 0),
+      title: action,
+      user: getDisplayName(item.user || undefined),
+    })
+  }
+
+  for (const item of startedCourses || []) {
+    const courseTitle = item.course?.title || 'curso'
+    const action = `inicio el curso de ${courseTitle}`
+
+    activities.push({
+      action,
+      createdAt: item.assigned_at,
+      icon: 'BookOpen',
+      message: action,
+      time: formatTimeAgo(item.assigned_at),
+      timestamp: new Date(item.assigned_at || 0),
+      title: action,
+      user: getDisplayName(item.user || undefined),
+    })
+  }
+
+  return activities
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    .slice(0, 10)
+    .map(({ timestamp, ...activity }) => activity)
+}
+
+async function loadRecentActivity(
+  supabase: BusinessActivityClient,
+  organizationId: string,
+) {
+  const rpcActivity = await loadRecentActivityFromRpc(supabase, organizationId)
+  if (rpcActivity && rpcActivity.length > 0) return rpcActivity
+
+  const notificationActivity = await loadRecentActivityFallback(supabase, organizationId)
+  if (notificationActivity.length > 0) return notificationActivity
+
+  return loadLegacyActivityFallback(supabase, organizationId)
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ orgSlug: string }> }
@@ -80,43 +398,13 @@ export async function GET(
       )
     }
 
-    const supabase = createAdminClient()
-    const { data: notifications, error: notificationsError } = await (
-      supabase as unknown as BusinessActivityRpcClient
-    ).rpc('get_business_recent_activity', {
-      target_organization_id: auth.organizationId,
-      max_rows: 12,
-    })
-
-    if (notificationsError) {
-      logger.error('Error fetching business recent notifications:', notificationsError)
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Error al obtener actividad reciente',
-          activities: [],
-        },
-        { status: 500 },
-      )
-    }
+    const supabase = await createClient()
+    const activities = await loadRecentActivity(supabase, auth.organizationId)
 
     return NextResponse.json(
       {
         success: true,
-        activities: (notifications || [])
-          .slice(0, 12)
-          .map((notification) => ({
-            createdAt: notification.created_at,
-            id: notification.notification_id,
-            message: notification.message,
-            metadata: normalizeMetadata(notification.metadata),
-            notificationType: notification.notification_type,
-            priority: notification.priority || 'medium',
-            status: notification.status || 'unread',
-            time: formatTimeAgo(notification.created_at),
-            title: notification.title,
-            user: notification.user_name || 'Usuario',
-          })),
+        activities,
       },
       {
         headers: {

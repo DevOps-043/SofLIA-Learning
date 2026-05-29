@@ -17,6 +17,7 @@ interface UseSaveNoteMutationParams {
   editingNote: LearnEditableNote | null;
   loadCourseNotes: CourseNotesLoader;
   loadNotesStats: CourseNotesLoader;
+  organizationId?: string | null;
   setNoteError: (message: string | null) => void;
   slug: string;
   updateNotesStatsOptimized: (operation: "create" | "update", lessonId?: string) => Promise<void>;
@@ -29,6 +30,7 @@ export function useSaveNoteMutation({
   editingNote,
   loadCourseNotes,
   loadNotesStats,
+  organizationId,
   setNoteError,
   slug,
   updateNotesStatsOptimized,
@@ -65,7 +67,7 @@ export function useSaveNoteMutation({
         return false;
       }
 
-      const result = await createNoteRequest(slug, targetLessonId, noteData);
+      const result = await createNoteRequest(slug, targetLessonId, noteData, organizationId);
       if (!result.ok) {
         setNoteError(`Error al guardar la nota: ${result.error}`);
         return false;
@@ -91,6 +93,7 @@ export function useSaveNoteMutation({
     editingNote?.lessonId,
     loadCourseNotes,
     loadNotesStats,
+    organizationId,
     setNoteError,
     slug,
     updateNotesStatsOptimized,
