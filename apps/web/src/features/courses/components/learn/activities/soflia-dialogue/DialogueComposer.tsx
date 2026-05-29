@@ -107,6 +107,8 @@ export function DialogueComposer({
         onDismiss={() => setVoiceError(null)}
       />
       <CourseLiaInputBar
+        inputClassName="lia-input-reset soflia-dialogue-input"
+        inputId="soflia-dialogue-composer-input"
         inputRef={inputRef}
         inputValue={draftMessage}
         isInteractionBlocked={isInteractionBlocked}

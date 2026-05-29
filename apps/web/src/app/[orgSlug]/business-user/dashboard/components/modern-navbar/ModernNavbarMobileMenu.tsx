@@ -11,8 +11,8 @@ import {
   LayoutDashboard,
   LogOut,
   Moon,
+  Pencil,
   Sun,
-  User,
 } from 'lucide-react';
 import type { Theme } from '../../../../../../core/stores/themeStore';
 import { LANGUAGE_OPTIONS, THEME_OPTIONS } from './constants';
@@ -91,6 +91,12 @@ export function ModernNavbarMobileMenu({
     return t(`common:profileDropdown.orgRoles.${role}`);
   };
 
+  const getCompactThemeLabel = (value: Theme) =>
+    t(`common:menu.theme.${value}`)
+      .replace(/^Modo do\s+/i, '')
+      .replace(/^Modo\s+/i, '')
+      .replace(/\s+mode$/i, '');
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -129,6 +135,23 @@ export function ModernNavbarMobileMenu({
                 <p className="text-sm font-semibold truncate" style={{ color: colors.text }}>{getDisplayName()}</p>
                 <p className="text-xs truncate opacity-70" style={{ color: colors.text }}>{user?.email || ''}</p>
               </div>
+              <motion.button
+                type="button"
+                onClick={() => {
+                  onProfileClick();
+                  onClose();
+                }}
+                aria-label={t('business:header.editProfile')}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-colors"
+                whileTap={disableHeavyEffects ? undefined : { scale: 0.95 }}
+                style={{
+                  backgroundColor: `color-mix(in srgb, ${colors.accent} 10%, transparent)`,
+                  borderColor: `color-mix(in srgb, ${colors.accent} 18%, transparent)`,
+                  color: colors.accent,
+                }}
+              >
+                <Pencil className="h-4 w-4" />
+              </motion.button>
             </div>
 
             {showOrganizations && currentOrganization && (
@@ -301,29 +324,6 @@ export function ModernNavbarMobileMenu({
               </motion.button>
             )}
 
-            <motion.button
-              onClick={() => {
-                onProfileClick();
-                onClose();
-              }}
-              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
-              whileTap={disableHeavyEffects ? undefined : { scale: 0.98 }}
-              style={{
-                backgroundColor: `color-mix(in srgb, ${colors.primary} 6.3%, transparent)`,
-                border: `1px solid ${colors.border}`,
-              }}
-            >
-              <div className="p-2 rounded-xl flex-shrink-0" style={{ backgroundColor: `color-mix(in srgb, ${colors.accent} 12.5%, transparent)` }}>
-                <User className="h-4 w-4" style={{ color: colors.accent }} />
-              </div>
-              <div className="text-left flex-1 min-w-0">
-                <span className="font-medium block text-sm" style={{ color: colors.text }}>{t('business:header.editProfile')}</span>
-                <span className="text-xs opacity-70" style={{ color: colors.text }}>{t('business:header.updateInfo')}</span>
-              </div>
-            </motion.button>
-
-
-
             <div className="px-3 py-2">
               <div className="flex items-center gap-2 mb-2 px-1">
                 <Globe className="w-3.5 h-3.5 opacity-70" style={{ color: colors.text }} />
@@ -362,14 +362,16 @@ export function ModernNavbarMobileMenu({
                   {t('common:profileDropdown.theme')}
                 </span>
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1.5">
                 {THEME_OPTIONS.map((option) => {
                   const ThemeIcon = option.icon;
+                  const fullThemeLabel = t(`common:menu.theme.${option.value}`);
                   return (
                     <motion.button
                       key={option.value}
                       onClick={() => setTheme(option.value)}
-                      className="relative overflow-hidden rounded-xl py-2 text-sm font-medium transition-colors border flex items-center justify-center gap-1.5"
+                      aria-label={fullThemeLabel}
+                      className="relative flex min-h-11 min-w-0 flex-col items-center justify-center gap-1 overflow-hidden rounded-lg border px-1 py-1.5 text-[11px] font-semibold leading-tight transition-colors"
                       style={{
                         backgroundColor: theme === option.value ? `color-mix(in srgb, ${colors.accent} 8.2%, transparent)` : 'transparent',
                         borderColor: theme === option.value ? `color-mix(in srgb, ${colors.accent} 18.8%, transparent)` : colors.border,
@@ -378,8 +380,8 @@ export function ModernNavbarMobileMenu({
                       }}
                       whileTap={disableHeavyEffects ? undefined : { scale: 0.95 }}
                     >
-                      <ThemeIcon className="w-3 h-3" />
-                      {t(`common:menu.theme.${option.value}`)}
+                      <ThemeIcon className="h-3.5 w-3.5 shrink-0" />
+                      <span className="max-w-full truncate capitalize">{getCompactThemeLabel(option.value)}</span>
                     </motion.button>
                   );
                 })}
