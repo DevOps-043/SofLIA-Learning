@@ -1,10 +1,24 @@
 import { useMemo } from 'react'
-import { Award, BarChart2, Building2, LayoutDashboard, Moon, Sun, User } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { Award, BarChart2, Building2, Check, Globe, LayoutDashboard, Monitor, Moon, Sun, User, type LucideIcon } from 'lucide-react'
+import { cn } from '@/shared/utils/cn'
 import { LanguageSubmenu } from './LanguageSubmenu'
 import { MenuItem } from './MenuItem'
 import type { useUserDropdownLogic } from './useUserDropdownLogic'
 
 type UserDropdownLogic = ReturnType<typeof useUserDropdownLogic>
+
+const MOBILE_LANGUAGE_OPTIONS = [
+  { value: 'es' as const, labelKey: 'menu.languages.es', shortLabel: 'ES' },
+  { value: 'en' as const, labelKey: 'menu.languages.en', shortLabel: 'EN' },
+  { value: 'pt' as const, labelKey: 'menu.languages.pt', shortLabel: 'PT' },
+]
+
+const MOBILE_THEME_OPTIONS = [
+  { value: 'light' as const, labelKey: 'menu.theme.light', icon: Sun },
+  { value: 'dark' as const, labelKey: 'menu.theme.dark', icon: Moon },
+  { value: 'system' as const, labelKey: 'menu.theme.system', icon: Monitor },
+]
 
 export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
   const businessPanelPath = logic.currentOrganization?.slug
@@ -22,7 +36,8 @@ export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
   }, [logic.isAdmin, logic.isInstructor, logic.isOrgAdmin, logic.currentOrganization])
 
   return (
-    <div className="py-1 space-y-0.5">
+    <div className={cn('py-1 space-y-0.5', logic.isMobileViewport && 'flex h-full flex-col gap-[1.1vh] px-2 py-2')}>
+      <div className={cn(logic.isMobileViewport && 'space-y-0.5')}>
       {!hasPanelSwitcher && (
         <MenuItem icon={LayoutDashboard} label={logic.t('menu.userPanel')} onClick={logic.handleUserDashboardNavigation} />
       )}
@@ -58,19 +73,110 @@ export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
         <MenuItem icon={BarChart2} label={logic.t('menu.stats')} onClick={logic.handleAnalyticsClick} />
       )}
       <MenuItem icon={User} label={logic.t('menu.profile')} onClick={logic.handleProfileClick} />
-      <MenuItem
-        icon={logic.resolvedTheme === 'dark' ? Sun : Moon}
-        label={logic.isMounted ? (logic.resolvedTheme === 'dark' ? logic.t('menu.theme.light') : logic.t('menu.theme.dark')) : '...'}
-        onClick={logic.toggleTheme}
-      />
-      <LanguageSubmenu
-        activeSubmenu={logic.activeSubmenu}
-        isMounted={logic.isMounted}
-        language={logic.language}
-        setActiveSubmenu={logic.setActiveSubmenu}
-        setLanguage={logic.setLanguage}
-        t={logic.t}
-      />
+      </div>
+      {logic.isMobileViewport ? (
+        <MobilePreferenceSections logic={logic} />
+      ) : (
+        <>
+          <MenuItem
+            icon={logic.resolvedTheme === 'dark' ? Sun : Moon}
+            label={logic.isMounted ? (logic.resolvedTheme === 'dark' ? logic.t('menu.theme.light') : logic.t('menu.theme.dark')) : '...'}
+            onClick={logic.toggleTheme}
+          />
+          <LanguageSubmenu
+            activeSubmenu={logic.activeSubmenu}
+            isMounted={logic.isMounted}
+            language={logic.language}
+            setActiveSubmenu={logic.setActiveSubmenu}
+            setLanguage={logic.setLanguage}
+            t={logic.t}
+          />
+        </>
+      )}
     </div>
+  )
+}
+
+function MobilePreferenceSections({ logic }: { logic: UserDropdownLogic }) {
+  return (
+    <div className="grid flex-1 grid-rows-2 gap-[1.1vh] pt-[0.6vh]">
+      <PreferenceGroup
+        icon={logic.resolvedTheme === 'dark' ? Moon : Sun}
+        title={logic.t('profileDropdown.theme')}
+      >
+        <div className="grid h-full grid-cols-3 gap-2">
+          {MOBILE_THEME_OPTIONS.map((option) => {
+            const Icon = option.icon
+            const isActive = logic.theme === option.value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => logic.setTheme(option.value)}
+                aria-pressed={isActive}
+                className={cn(
+                  'flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl border px-1.5 py-2 text-center text-[11px] font-semibold leading-tight transition-colors',
+                  isActive
+                    ? 'border-accent/30 bg-accent/15 text-accent'
+                    : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10',
+                )}
+              >
+                <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-accent' : 'text-gray-400')} />
+                <span className="max-w-full truncate">{logic.t(option.labelKey)}</span>
+                {isActive && <Check className="h-3 w-3 shrink-0" />}
+              </button>
+            )
+          })}
+        </div>
+      </PreferenceGroup>
+
+      <PreferenceGroup icon={Globe} title={logic.t('menu.languages.title')}>
+        <div className="grid h-full grid-cols-3 gap-2">
+          {MOBILE_LANGUAGE_OPTIONS.map((option) => {
+            const isActive = logic.language === option.value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => logic.setLanguage(option.value)}
+                aria-pressed={isActive}
+                className={cn(
+                  'flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl border px-1.5 py-2 text-center text-[11px] font-semibold leading-tight transition-colors',
+                  isActive
+                    ? 'border-accent/30 bg-accent/15 text-accent'
+                    : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10',
+                )}
+              >
+                <span className={cn('text-sm font-bold', isActive ? 'text-accent' : 'text-gray-500 dark:text-gray-300')}>
+                  {option.shortLabel}
+                </span>
+                <span className="max-w-full truncate">{logic.t(option.labelKey)}</span>
+                {isActive && <Check className="h-3 w-3 shrink-0" />}
+              </button>
+            )
+          })}
+        </div>
+      </PreferenceGroup>
+    </div>
+  )
+}
+
+function PreferenceGroup({
+  children,
+  icon: Icon,
+  title,
+}: {
+  children: ReactNode
+  icon: LucideIcon
+  title: string
+}) {
+  return (
+    <section className="flex min-h-0 flex-col rounded-2xl border border-gray-200 bg-white p-2 dark:border-white/10 dark:bg-carbon-800">
+      <div className="mb-2 flex items-center gap-2 px-1 text-xs font-semibold text-gray-600 dark:text-gray-300">
+        <Icon className="h-3.5 w-3.5 text-gray-400" />
+        <span>{title}</span>
+      </div>
+      <div className="min-h-0 flex-1">{children}</div>
+    </section>
   )
 }

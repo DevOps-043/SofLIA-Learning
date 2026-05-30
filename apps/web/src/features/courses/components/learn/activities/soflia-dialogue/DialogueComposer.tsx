@@ -39,14 +39,14 @@ export function DialogueComposer({
       assistantLinkColor: "var(--color-accent)",
       borderColor: isLightTheme ? "var(--color-gray-200)" : "rgba(255,255,255,0.1)",
       headerBg: "transparent",
-      inputBg: isLightTheme ? "var(--color-bg-light)" : "rgba(15,20,25,0.72)",
-      inputBorder: isLightTheme ? "var(--color-gray-200)" : "rgba(255,255,255,0.16)",
+      inputBg: "var(--color-bg-light)",
+      inputBorder: "var(--color-gray-200)",
       messageBubbleAssistant: "transparent",
       messageBubbleUser: "transparent",
       panelBg: "transparent",
       primaryAction: "var(--color-accent)",
-      textPrimary: isLightTheme ? "var(--color-gray-900)" : "var(--color-bg-light)",
-      textSecondary: isLightTheme ? "var(--color-gray-500)" : "rgba(255,255,255,0.55)",
+      textPrimary: "var(--color-legacy-0f172a)",
+      textSecondary: "var(--color-legacy-6b7280)",
     }),
     [isLightTheme],
   );
@@ -101,6 +101,26 @@ export function DialogueComposer({
 
   return (
     <>
+      <style>{`
+        #soflia-dialogue-composer-input.soflia-dialogue-input {
+          color: ${themeColors.textPrimary} !important;
+          caret-color: ${themeColors.textPrimary} !important;
+          -webkit-text-fill-color: ${themeColors.textPrimary} !important;
+          opacity: 1 !important;
+        }
+
+        #soflia-dialogue-composer-input.soflia-dialogue-input::placeholder {
+          color: ${themeColors.textSecondary} !important;
+          -webkit-text-fill-color: ${themeColors.textSecondary} !important;
+          opacity: 1 !important;
+        }
+
+        #soflia-dialogue-composer-input.soflia-dialogue-input:disabled {
+          color: ${themeColors.textSecondary} !important;
+          -webkit-text-fill-color: ${themeColors.textSecondary} !important;
+          opacity: 0.7 !important;
+        }
+      `}</style>
       <VoiceErrorBanner
         isLightTheme={isLightTheme}
         message={voiceError}

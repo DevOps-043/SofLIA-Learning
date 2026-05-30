@@ -84,7 +84,9 @@
     "finishCourse": "Finalizar curso"
   },
   "mobileNav": {
-    "material": "Material"
+    "material": "Material",
+    "note": "Nota",
+    "quickNote": "Criar nota rápida"
   },
   "learningPath": {
     "badge": "Rota de aprendizagem",
