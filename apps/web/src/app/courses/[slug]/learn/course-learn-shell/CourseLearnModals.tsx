@@ -11,7 +11,7 @@ export function CourseLearnModals({ logic, shell }: { logic: LearnPageLogicResul
   return (
     <>
       <DeleteNoteConfirmModal isOpen={logic.isDeleteNoteConfirmOpen} isDeleting={logic.isDeletingNote} onClose={logic.closeDeleteNoteConfirm} onConfirm={logic.confirmDeleteNote} />
-      <NotesModalComponent isOpen={logic.isNotesModalOpen} onClose={logic.closeNotesModal} onSave={logic.handleSaveNote} onDelete={logic.handleDeleteNote} initialNote={logic.editingNote} isEditing={!!logic.editingNote} />
+      <NotesModalComponent isOpen={logic.isNotesModalOpen} onClose={logic.closeNotesModal} onSave={logic.handleSaveNote} onPersist={logic.persistNote} onDelete={logic.handleDeleteNote} initialNote={logic.editingNote} isEditing={!!logic.editingNote} />
       <ModuleLearningSummaryViewerModal
         isOpen={Boolean(logic.viewingGeneratedSummary)}
         isRegenerating={logic.regeneratingSummaryModuleId === logic.viewingGeneratedSummary?.moduleId}

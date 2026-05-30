@@ -48,6 +48,7 @@ type LessonSupplementResponse = Partial<
 >
 
 interface UseLearnPageCourseDataParams {
+  enabled: boolean
   slug: string
   selectedLang: string
   organizationId?: string | null
@@ -132,6 +133,7 @@ async function loadLessonSupplement({
 }
 
 export function useLearnPageCourseData({
+  enabled,
   slug,
   selectedLang,
   organizationId,
@@ -156,6 +158,12 @@ export function useLearnPageCourseData({
   setLearnDataTranslationContext,
 }: UseLearnPageCourseDataParams) {
   useEffect(() => {
+    if (!slug || !enabled) {
+      return
+    }
+
+    const abortController = new AbortController()
+
     async function loadCourse() {
       try {
         setLoading(true)
@@ -168,8 +176,12 @@ export function useLearnPageCourseData({
             language: selectedLang,
             organizationId,
           })}`,
-          { credentials: 'include' },
+          { credentials: 'include', signal: abortController.signal },
         )
+
+        if (abortController.signal.aborted) {
+          return
+        }
 
         setLearningPathBlockState(null)
 
@@ -243,6 +255,15 @@ export function useLearnPageCourseData({
           ).catch(() => null)
         }
       } catch (error) {
+        // Petición abortada (cambió idioma/organización o se desmontó): no
+        // tocamos el estado; el efecto siguiente cargará los datos correctos.
+        if (
+          abortController.signal.aborted ||
+          (error instanceof DOMException && error.name === 'AbortError')
+        ) {
+          return
+        }
+
         if (
           error instanceof LearnDataRequestError &&
           error.status === 423 &&
@@ -272,14 +293,21 @@ export function useLearnPageCourseData({
         setLearningPathBlockState(null)
         setLearnDataTranslationContext(null)
       } finally {
-        setLoading(false)
+        // En una petición abortada NO apagamos el loading: el efecto siguiente
+        // (con idioma/organización ya estables) reinicia la carga.
+        if (!abortController.signal.aborted) {
+          setLoading(false)
+        }
       }
     }
 
-    if (slug) {
-      loadCourse()
+    loadCourse()
+
+    return () => {
+      abortController.abort()
     }
   }, [
+    enabled,
     organizationId,
     selectedLang,
     setCurrentLesson,

@@ -11,6 +11,7 @@ import { useCourseNotes } from "./useCourseNotes";
 import { useDeleteNoteMutation } from "./useDeleteNoteMutation";
 import { useNoteModalState } from "./useNoteModalState";
 import { useNotesStats } from "./useNotesStats";
+import { usePersistNoteMutation } from "./usePersistNoteMutation";
 import { useSaveNoteMutation } from "./useSaveNoteMutation";
 import type { UseNotesManagementParams } from "./types";
 
@@ -71,6 +72,19 @@ export function useNotesManagement({
       lessonId?: string
     ) => Promise<void>,
   }) as (noteData: LearnNoteFormData) => Promise<boolean>;
+  const persistNote = usePersistNoteMutation({
+    addNoteToLocalState: notes.addNoteToLocalState,
+    currentLesson,
+    editingNote: modals.editingNote,
+    loadCourseNotes: notes.loadCourseNotes,
+    organizationId,
+    setNoteError,
+    slug,
+    updateNotesStatsOptimized: stats.updateNotesStatsOptimized as (
+      operation: "create" | "update",
+      lessonId?: string
+    ) => Promise<void>,
+  });
   const deleteNotes = useDeleteNoteMutation({
     closeNotesModal: modals.closeNotesModal,
     currentLesson,
@@ -248,6 +262,7 @@ export function useNotesManagement({
     isNotesModalOpen: modals.isNotesModalOpen,
     noteError,
     notesStats: stats.notesStats,
+    persistNote,
     navigateGeneratedSummary,
     openEditNoteModal,
     openLiaNoteModal: modals.openLiaNoteModal,

@@ -4,7 +4,7 @@ import { useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
-import { useCurrentOrganizationId } from '../../../core/stores/organizationStore'
+import { useCurrentOrganizationId, useOrganizationStore } from '../../../core/stores/organizationStore'
 import { useVideoPlayerOptional } from '../../../app/courses/[slug]/learn/VideoPlayerContext'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useLiaCourse } from '../context/LiaCourseContext'
@@ -57,10 +57,18 @@ export function useLearnPageLogic() {
   } = useLiaCourse()
   const { user } = useAuth()
   const organizationId = useCurrentOrganizationId()
+  // El store de organización hidrata de forma asíncrona: hasta que termina,
+  // `organizationId` es null y dispararía una carga de `learn-data` con el
+  // contexto de organización equivocado (y un segundo fetch al hidratar).
+  const isOrganizationHydrated = useOrganizationStore((store) => store.isHydrated)
   const colors = useCourseTheme()
   const { t, i18n, ready } = useTranslation('learn')
   const selectedLang: Locale =
     i18n.language === 'en' ? 'en' : i18n.language === 'pt' ? 'pt' : 'es'
+  // Solo cargamos los datos del curso cuando los prerequisitos están estables
+  // (traducciones listas + organización hidratada). Así evitamos 2-3 peticiones
+  // pesadas en cascada en el arranque en frío mientras esos valores se asientan.
+  const isCourseDataEnabled = ready && isOrganizationHydrated
 
   const state = useLearnPageLocalState()
   const videoPlayerContext = useVideoPlayerOptional()
@@ -100,6 +108,7 @@ export function useLearnPageLogic() {
   })
 
   useLearnPageCourseData({
+    enabled: isCourseDataEnabled,
     slug,
     selectedLang,
     organizationId,
@@ -326,6 +335,7 @@ export function useLearnPageLogic() {
     navigateGeneratedSummary: notes.navigateGeneratedSummary,
     openEditNoteModal: notes.openEditNoteModal,
     openNewNoteModal: notes.openNewNoteModal,
+    persistNote: notes.persistNote,
     savedNotes: notes.savedNotes,
     regenerateSummary: notes.regenerateSummary,
     regeneratingSummaryModuleId: notes.regeneratingSummaryModuleId,

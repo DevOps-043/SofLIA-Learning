@@ -132,6 +132,11 @@ export function useVideoMediaEvents({
     };
 
     const handleLoadedMetadata = () => {
+      // Con preload="metadata" (móvil/Safari) este es el único evento de carga
+      // que llega antes de que el usuario reproduzca: el vídeo ya está listo
+      // para reproducirse, así que retiramos el spinner en lugar de dejarlo
+      // colgado hasta el primer play.
+      markVideoResponsive();
       setDuration(videoElement.duration);
       applyInitialSettings();
     };
@@ -175,6 +180,16 @@ export function useVideoMediaEvents({
       setIsBuffering(false);
       setIsPlaying(false);
     };
+
+    // Casos en los que `loadedmetadata` podría no llegar (o ya llegó) y
+    // dejarían el spinner colgado:
+    //  - Metadatos ya disponibles al montar (vídeo en caché o re-montaje).
+    //  - preload="none" (saveData / prefers-reduced-motion): el navegador no
+    //    descargará nada hasta el play, así que mostramos ya el botón de play.
+    const HAVE_METADATA = 1; // HTMLMediaElement.HAVE_METADATA
+    if (videoElement.readyState >= HAVE_METADATA || videoElement.preload === 'none') {
+      markVideoResponsive();
+    }
 
     videoElement.addEventListener('timeupdate', updateTime);
     videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);

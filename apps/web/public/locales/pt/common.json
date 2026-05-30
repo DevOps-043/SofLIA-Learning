@@ -1546,6 +1546,11 @@
       "editTitle": "Editar nota",
       "readOnlyTitle": "Anotacao de aprendizagem",
       "deleteTitle": "Excluir nota",
+      "autoSaveHint": "Salvo automaticamente ao fechar",
+      "saveStatus": {
+        "saved": "Salvo",
+        "error": "Nao foi possivel salvar"
+      },
       "exportPdfError": "Erro ao exportar PDF",
       "titlePlaceholder": "Titulo da nota...",
       "contentPlaceholder": "Comece a escrever sua nota aqui...",

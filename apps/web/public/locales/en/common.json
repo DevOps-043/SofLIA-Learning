@@ -1546,6 +1546,11 @@
       "editTitle": "Edit note",
       "readOnlyTitle": "Learning note",
       "deleteTitle": "Delete note",
+      "autoSaveHint": "Saved automatically on close",
+      "saveStatus": {
+        "saved": "Saved",
+        "error": "Couldn't save"
+      },
       "exportPdfError": "Error exporting PDF",
       "titlePlaceholder": "Note title...",
       "contentPlaceholder": "Start writing your note here...",

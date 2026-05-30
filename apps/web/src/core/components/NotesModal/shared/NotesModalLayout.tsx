@@ -4,16 +4,19 @@ import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
+  AlertCircle,
   AlignCenter,
   AlignLeft,
   AlignRight,
   Bold,
+  Check,
   ChevronDown,
   FileDown,
   Italic,
   Link,
   List,
   ListOrdered,
+  Loader2,
   Redo,
   Save,
   Trash2,
@@ -95,6 +98,10 @@ const notesModalVariantClasses: Record<NotesModalVariant, Record<string, string>
       'flex-1 bg-white dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700/80 rounded-xl p-4 min-h-0 overflow-y-auto flex flex-col',
     exportButton:
       'hidden md:flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-700 dark:text-white rounded-xl text-sm font-medium transition-colors border border-gray-200 dark:border-white/10',
+    footer:
+      'flex flex-col md:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900 shrink-0',
+    footerHint:
+      'hidden md:block text-[10px] text-gray-400 dark:text-white/30 uppercase tracking-wider font-medium',
     header:
       'flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-white/10 shrink-0 bg-white dark:bg-slate-900',
     headerIcon:
@@ -138,8 +145,27 @@ export function NotesModalLayout({
 }: NotesModalLayoutProps) {
   const classes = notesModalVariantClasses[variant];
   const { t } = useTranslation('common');
-  const handleClose = () => {
-    void editor.handleSave();
+
+  // Evita que el "click fantasma" del toque que abre el modal en dispositivos
+  // táctiles impacte el overlay y lo cierre de inmediato (síntoma de "las notas
+  // no se abren" en móvil). El overlay solo cierra una vez transcurrido un
+  // breve periodo tras la apertura.
+  const [isOverlayDismissible, setIsOverlayDismissible] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isOpen) {
+      setIsOverlayDismissible(false);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => setIsOverlayDismissible(true), 300);
+    return () => window.clearTimeout(timeoutId);
+  }, [isOpen]);
+
+  // La nota se autoguarda al cerrar: la X, el clic fuera y el botón "Guardar"
+  // persisten y SIEMPRE cierran (nunca queda atrapado por un guardado fallido).
+  const handleSaveAndClose = () => {
+    void editor.saveAndClose();
   };
 
   return (
@@ -152,7 +178,10 @@ export function NotesModalLayout({
           initial={{ opacity: 0 }}
           onClick={(e) => {
             e.stopPropagation();
-            handleClose();
+            if (!isOverlayDismissible) {
+              return;
+            }
+            handleSaveAndClose();
           }}
         >
           <motion.div
@@ -176,11 +205,13 @@ export function NotesModalLayout({
                   </h2>
                 </div>
               </div>
-              <button 
-                className={classes.closeButton} 
+              <button
+                type="button"
+                aria-label={t('actions.close')}
+                className={classes.closeButton}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleClose();
+                  handleSaveAndClose();
                 }}
               >
                 <X className="w-5 h-5 text-gray-700 dark:text-slate-400" />
@@ -342,6 +373,46 @@ export function NotesModalLayout({
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+
+            <div className={classes.footer}>
+              <div
+                className="flex items-center gap-1.5 text-[11px] font-medium"
+                aria-live="polite"
+              >
+                {editor.saveStatus === 'saving' && (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-400 dark:text-white/40" />
+                    <span className="text-gray-500 dark:text-white/50">{t('actions.saving')}</span>
+                  </>
+                )}
+                {editor.saveStatus === 'saved' && (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-gray-500 dark:text-white/50">{t('notes.modal.saveStatus.saved')}</span>
+                  </>
+                )}
+                {editor.saveStatus === 'error' && (
+                  <>
+                    <AlertCircle className="w-3.5 h-3.5 text-red-500" />
+                    <span className="text-red-500">{t('notes.modal.saveStatus.error')}</span>
+                  </>
+                )}
+                {editor.saveStatus === 'idle' && (
+                  <span className={classes.footerHint}>{t('notes.modal.autoSaveHint')}</span>
+                )}
+              </div>
+              <div className="flex w-full items-center justify-end gap-3 md:w-auto">
+                <button
+                  type="button"
+                  className={`${classes.primaryButton} flex-1 md:flex-none`}
+                  disabled={editor.isSaving}
+                  onClick={handleSaveAndClose}
+                >
+                  <Save className="w-4 h-4" />
+                  {editor.isSaving ? t('actions.saving') : t('actions.save')}
+                </button>
               </div>
             </div>
           </motion.div>

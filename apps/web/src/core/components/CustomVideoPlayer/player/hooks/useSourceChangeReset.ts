@@ -38,7 +38,10 @@ export function useSourceChangeReset({
     setIsPlaying(false);
     setCurrentTime(0);
     setDuration(0);
-    setIsLoading(true);
+    // Con preload="none" el navegador no descarga datos hasta el play: evitamos
+    // un spinner que nunca se resolvería y mostramos directamente el botón de
+    // reproducir. En el resto de casos el spinner se limpia al cargar metadatos.
+    setIsLoading(videoElement.preload !== 'none');
     setIsBuffering(false);
     setHasInitialTimeSet(false);
     hasNotifiedCompletionRef.current = false;
