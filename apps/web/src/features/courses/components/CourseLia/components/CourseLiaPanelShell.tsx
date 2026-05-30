@@ -20,13 +20,12 @@ export function CourseLiaPanelShell({
   themeColors,
 }: CourseLiaPanelShellProps) {
   const panelWidth = isMobile ? '100%' : `${PANEL_WIDTH}px`;
-  const panelBottomOffset = isMobile
-    ? 'calc(70px + max(env(safe-area-inset-bottom, 0px), 8px))'
-    : 'max(env(safe-area-inset-bottom, 0px), 0px)';
-  const panelHeight = `calc(100dvh - ${NAVBAR_HEIGHT}px - ${panelBottomOffset})`;
-  const animationInitial = isMobile ? { y: '100%', opacity: 0 } : { x: PANEL_WIDTH };
-  const animationAnimate = isMobile ? { y: 0, opacity: 1 } : { x: 0 };
-  const animationExit = isMobile ? { y: '100%', opacity: 0 } : { x: PANEL_WIDTH };
+  const panelHeight = isMobile ? '100dvh' : `calc(100dvh - ${NAVBAR_HEIGHT}px - max(env(safe-area-inset-bottom, 0px), 0px))`;
+  const panelTop = isMobile ? '0' : `${NAVBAR_HEIGHT}px`;
+  const panelZIndex = isMobile ? 100 : 45;
+  const animationInitial = isMobile ? { y: '100%', opacity: 0 } : { x: '100%', opacity: 0 };
+  const animationAnimate = isMobile ? { y: 0, opacity: 1 } : { x: 0, opacity: 1 };
+  const animationExit = isMobile ? { y: '100%', opacity: 0 } : { x: '100%', opacity: 0 };
 
   return (
     <AnimatePresence>
@@ -40,20 +39,20 @@ export function CourseLiaPanelShell({
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           style={{
             position: 'fixed',
-            top: `${NAVBAR_HEIGHT}px`,
+            top: panelTop,
             right: 0,
             width: panelWidth,
             height: panelHeight,
             backgroundColor: themeColors.panelBg,
             borderLeft: isMobile ? 'none' : `1px solid ${themeColors.borderColor}`,
             borderTop: 'none',
-            borderTopLeftRadius: isMobile ? '20px' : 0,
-            borderTopRightRadius: isMobile ? '20px' : 0,
-            zIndex: 45,
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: 0,
+            zIndex: panelZIndex,
             display: 'flex',
             flexDirection: 'column',
             boxShadow: isMobile
-              ? '0 -8px 32px rgba(0, 0, 0, 0.3)'
+              ? 'none'
               : `-4px 0 20px rgba(0, 0, 0, 0.1), 0 -2px 0 ${themeColors.panelBg}`,
             overflow: 'hidden',
           }}

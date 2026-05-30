@@ -2,16 +2,32 @@ import type { CourseQuestion, CourseQuestionResponse, QuestionReactionResult } f
 import { normalizeResponses } from './question-thread-state';
 import type { QuestionThreadSnapshot } from './types';
 
-export async function fetchQuestionThread(slug: string, questionId: string): Promise<QuestionThreadSnapshot> {
-  const [questionResponse, responsesResponse] = await Promise.all([
-    fetch(`/api/courses/${slug}/questions/${questionId}`),
-    fetch(`/api/courses/${slug}/questions/${questionId}/responses`),
-  ]);
+export async function fetchQuestionThread(
+  slug: string,
+  questionId: string,
+  signal?: AbortSignal
+): Promise<QuestionThreadSnapshot> {
+  try {
+    const response = await fetch(
+      `/api/courses/${slug}/questions/${questionId}?include=responses`,
+      { signal }
+    );
 
-  return {
-    question: questionResponse.ok ? ((await questionResponse.json()) as CourseQuestion) : null,
-    responses: responsesResponse.ok ? normalizeResponses(await responsesResponse.json()) : [],
-  };
+    if (!response.ok) {
+      return { question: null, responses: [] };
+    }
+
+    const data = await response.json();
+    return {
+      question: data.question || null,
+      responses: data.responses ? normalizeResponses(data.responses) : [],
+    };
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw error;
+    }
+    return { question: null, responses: [] };
+  }
 }
 
 export async function fetchQuestionResponses(slug: string, questionId: string): Promise<CourseQuestionResponse[]> {

@@ -234,11 +234,6 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
                       className="cursor-pointer"
                       onClick={() => toggleQuestionSelection(question.id)}
                     >
-                      {question.title && (
-                        <h4 className="text-gray-900 font-medium text-sm mb-1">
-                          {question.title}
-                        </h4>
-                      )}
                       <p className="text-gray-600 text-sm leading-relaxed">
                         {selectedQuestionId === question.id
                           ? question.content
@@ -252,6 +247,15 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
                             Ver más
                           </button>
                         )}
+                      {question.tags && question.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {question.tags.map((tag) => (
+                            <span key={tag} className="text-[10px] font-medium text-primary/70 dark:text-accent/80 bg-primary/5 dark:bg-accent/5 px-2 py-0.5 rounded-full border border-primary/10 dark:border-accent/10">
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

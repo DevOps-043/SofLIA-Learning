@@ -11,7 +11,6 @@ export type CourseQuestionUser = {
 
 export type CourseQuestion = {
   id: string;
-  title?: string | null;
   content: string;
   view_count: number;
   response_count: number;

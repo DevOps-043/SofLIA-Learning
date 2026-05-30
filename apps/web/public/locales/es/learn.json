@@ -84,7 +84,9 @@
     "finishCourse": "Finalizar curso"
   },
   "mobileNav": {
-    "material": "Material"
+    "material": "Material",
+    "note": "Nota",
+    "quickNote": "Crear nota rápida"
   },
   "learningPath": {
     "badge": "Ruta de aprendizaje",
@@ -95,6 +97,7 @@
     "title": "SofLIA",
     "subtitle": "Tu tutora personalizada",
     "openAssistant": "Abrir asistente SofLIA",
+    "warningDisabledActivities": "SofLIA no está disponible en esta pestaña. Resuelve las actividades o usa su chat de IA.",
     "copiedMessage": "Texto copiado",
     "typing": "SofLIA está escribiendo...",
     "placeholder": "Escribe tu mensaje aquí...",

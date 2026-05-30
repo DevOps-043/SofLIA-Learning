@@ -50,9 +50,9 @@ describe('DialogueComposer', () => {
     expect(textarea).not.toHaveClass('lia-chat-input')
     expect(textarea).toHaveValue('Mi respuesta sobre productividad')
     expect(textarea).toHaveStyle({
-      caretColor: 'var(--color-gray-900)',
-      color: 'var(--color-gray-900)',
-      WebkitTextFillColor: 'var(--color-gray-900)',
+      caretColor: 'var(--color-legacy-0f172a)',
+      color: 'var(--color-legacy-0f172a)',
+      WebkitTextFillColor: 'var(--color-legacy-0f172a)',
     })
 
     fireEvent.change(textarea, {

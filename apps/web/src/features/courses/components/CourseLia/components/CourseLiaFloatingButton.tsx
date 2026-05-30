@@ -12,11 +12,7 @@ import {
 
 export function CourseLiaFloatingButton() {
   const { t } = useTranslation('learn');
-  const { isOpen, toggleLia, isInteractionBlocked } = useLiaCourse();
-
-  if (isInteractionBlocked) {
-    return null;
-  }
+  const { isOpen, toggleLia, isInteractionBlocked, setLiaToastMessage } = useLiaCourse();
 
   return (
     <AnimatePresence>
@@ -41,9 +37,9 @@ export function CourseLiaFloatingButton() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={toggleLia}
+            whileHover={isInteractionBlocked ? {} : { scale: 1.05 }}
+            whileTap={isInteractionBlocked ? {} : { scale: 0.95 }}
+            onClick={isInteractionBlocked ? () => setLiaToastMessage(t('lia.warningDisabledActivities')) : toggleLia}
             style={{
               width: '100%',
               height: '100%',
@@ -51,12 +47,13 @@ export function CourseLiaFloatingButton() {
               background: 'var(--color-gray-800)',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
               border: '2px solid rgba(255,255,255,0.1)',
-              cursor: 'pointer',
+              cursor: isInteractionBlocked ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               padding: 0,
               overflow: 'hidden',
+              filter: isInteractionBlocked ? 'grayscale(100%) opacity(0.5)' : 'none',
             }}
             aria-label={t('lia.openAssistant')}
           >

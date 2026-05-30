@@ -98,7 +98,7 @@ export async function GET(
     }
 
     if (search) {
-      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`);
+      query = query.ilike('content', `%${search}%`);
     }
 
     const { data: questions, error: questionsError } = await query;
@@ -118,41 +118,39 @@ export async function GET(
       // Obtener usuario actual primero
       const currentUser = await SessionService.getCurrentUser();
 
-      // PARALELIZAR: Ejecutar response counts + user reactions simultáneamente
-      const queries = [
+      // Solo conteos sin transferir datos
+      const countPromises = questionIds.map((qid) =>
         supabase
           .from('course_question_responses')
-          .select('question_id')
-          .in('question_id', questionIds)
+          .select('*', { count: 'exact', head: true })
+          .eq('question_id', qid)
           .eq('is_deleted', false)
-          .returns<QuestionResponseCountRow[]>()
-      ];
+      );
 
-      // Si hay usuario, agregar query de reacciones
+      // Si hay usuario, query de reacciones
+      let userReactionsPromise: Promise<{ data: QuestionUserReactionRow[] | null; error: any }> | null = null;
       if (currentUser) {
-        queries.push(
-          supabase
-            .from('course_question_reactions')
-            .select('question_id, reaction_type')
-            .eq('user_id', currentUser.id)
-            .in('question_id', questionIds)
-            .returns<QuestionUserReactionRow[]>()
-        );
+        userReactionsPromise = supabase
+          .from('course_question_reactions')
+          .select('question_id, reaction_type')
+          .eq('user_id', currentUser.id)
+          .in('question_id', questionIds)
+          .returns<QuestionUserReactionRow[]>();
       }
 
       // Ejecutar queries en paralelo
-      const results = await Promise.all(queries);
-      const responseCountsResult = results[0];
-      const userReactionsResult = currentUser ? results[1] : null;
+      const [countResults, userReactionsResult] = await Promise.all([
+        Promise.all(countPromises),
+        userReactionsPromise || Promise.resolve({ data: null, error: null })
+      ]);
 
       // Crear un mapa de conteos: questionId -> count
       const countsMap = new Map<string, number>();
-      if (responseCountsResult.data && !responseCountsResult.error) {
-        responseCountsResult.data.forEach((response) => {
-          const questionId = response.question_id;
-          countsMap.set(questionId, (countsMap.get(questionId) || 0) + 1);
-        });
-      }
+      countResults.forEach((res, index) => {
+        if (!res.error) {
+          countsMap.set(questionIds[index], res.count || 0);
+        }
+      });
 
       // Procesar reacciones del usuario
       let userReactionsMap = new Map<string, string>();
@@ -223,7 +221,7 @@ async function handlePost(
       return apiError('COURSE_NOT_FOUND', 'Curso no encontrado.', 404);
     }
 
-    const { title, content, tags, attachment_url, attachment_type, attachment_data } = body;
+    const { content, tags, attachment_url, attachment_type, attachment_data } = body;
     const sanitizedContent = sanitizeHtml(content, {
       level: 'rich',
       maxLength: 50_000,
@@ -239,7 +237,6 @@ async function handlePost(
       .insert({
         course_id: course.id,
         user_id: user.id,
-        title: title?.trim() || null,
         content: sanitizedContent,
         tags: tags || [],
         attachment_url: attachment_url || null,

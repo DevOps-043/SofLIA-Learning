@@ -3,12 +3,16 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification';
+import { useLiaCourse } from '@/features/courses/context/LiaCourseContext';
+
 import { CourseLiaFloatingButton } from './CourseLia/components/CourseLiaFloatingButton';
 import { CourseLiaPanelContent } from './CourseLia/CourseLiaPanelContent';
 import type { CourseLiaProps } from './CourseLia/types';
 
 export function CourseLia(props: CourseLiaProps) {
   const [mounted, setMounted] = useState(false);
+  const { liaToastMessage, setLiaToastMessage } = useLiaCourse();
 
   useEffect(() => {
     setMounted(true);
@@ -22,6 +26,13 @@ export function CourseLia(props: CourseLiaProps) {
     <>
       <CourseLiaPanelContent {...props} />
       <CourseLiaFloatingButton />
+      <ToastNotification
+        isOpen={!!liaToastMessage}
+        onClose={() => setLiaToastMessage(null)}
+        message={liaToastMessage || ''}
+        type="info"
+        duration={3000}
+      />
     </>,
     document.body,
   );
