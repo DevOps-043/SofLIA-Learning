@@ -6,6 +6,8 @@ import { PrimaryActionButton } from './PrimaryActionButton';
 import { VoiceWaveformBars } from './VoiceWaveformBars';
 
 interface CourseLiaInputBarProps {
+  inputClassName?: string;
+  inputId?: string;
   inputRef: RefObject<HTMLTextAreaElement>;
   inputValue: string;
   isInteractionBlocked: boolean;
@@ -22,6 +24,8 @@ interface CourseLiaInputBarProps {
 }
 
 export function CourseLiaInputBar({
+  inputClassName = 'lia-input-reset lia-chat-input',
+  inputId = 'lia-course-chat-input',
   inputRef,
   inputValue,
   isInteractionBlocked,
@@ -55,9 +59,9 @@ export function CourseLiaInputBar({
         placeholder={placeholder}
         disabled={isInteractionBlocked}
         rows={1}
-        style={{ flex: 1, minHeight: '20px', maxHeight: '120px', resize: 'none', backgroundColor: 'transparent', border: 'none', outline: 'none', color: themeColors.textPrimary, fontSize: '14px', lineHeight: '20px', padding: 0, overflowY: 'hidden', display: 'block' }}
-        id="lia-course-chat-input"
-        className="lia-input-reset lia-chat-input"
+        style={{ flex: 1, minHeight: '20px', maxHeight: '120px', resize: 'none', backgroundColor: 'transparent', border: 'none', outline: 'none', color: themeColors.textPrimary, caretColor: themeColors.textPrimary, WebkitTextFillColor: themeColors.textPrimary, fontSize: '14px', lineHeight: '20px', padding: 0, overflowY: 'hidden', display: 'block' }}
+        id={inputId}
+        className={inputClassName}
       />
       <PrimaryActionButton
         disabled={isInteractionBlocked}

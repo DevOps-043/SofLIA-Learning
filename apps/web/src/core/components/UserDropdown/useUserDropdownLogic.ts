@@ -15,8 +15,18 @@ import {
   getUserRoleLabel,
   type DropdownUserLike,
 } from './display'
+import { USER_DROPDOWN_CLOSE_EVENT } from './types'
 
-export function useUserDropdownLogic(userProp?: unknown) {
+interface UserDropdownLogicOptions {
+  certificatesCount?: number
+  onAnalyticsClick?: () => void
+  onCertificatesClick?: () => void
+  onLogout?: () => void | Promise<void>
+  onProfileClick?: () => void
+}
+
+export function useUserDropdownLogic(userProp?: unknown, options: UserDropdownLogicOptions = {}) {
+  const { certificatesCount = 0, onAnalyticsClick, onCertificatesClick, onLogout, onProfileClick } = options
   const [isOpen, setIsOpen] = useState(false)
   const [pos, setPos] = useState({ top: 0, right: 0 })
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
@@ -50,15 +60,39 @@ export function useUserDropdownLogic(userProp?: unknown) {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+  useEffect(() => {
+    const closeDropdown = () => {
+      setIsOpen(false); setActiveSubmenu(null); setIsOrgSwitcherOpen(false)
+    }
+    window.addEventListener(USER_DROPDOWN_CLOSE_EVENT, closeDropdown)
+    return () => window.removeEventListener(USER_DROPDOWN_CLOSE_EVENT, closeDropdown)
+  }, [])
 
   const isAdmin = useMemo(() => user?.cargo_rol?.toLowerCase() === 'administrador', [user?.cargo_rol])
   const isInstructor = useMemo(() => user?.cargo_rol?.toLowerCase() === 'instructor', [user?.cargo_rol])
+  const profilePath = useMemo(() => currentOrganization?.slug ? `/${currentOrganization.slug}/profile` : '/profile', [currentOrganization?.slug])
   const handleNavigation = useCallback((path: string) => {
     router.push(path); setIsOpen(false); setActiveSubmenu(null); setIsOrgSwitcherOpen(false)
   }, [router])
   const handleLogout = useCallback(async () => {
-    await logout(); setIsOpen(false); setIsOrgSwitcherOpen(false)
-  }, [logout])
+    if (onLogout) {
+      await onLogout()
+    } else {
+      await logout()
+    }
+    setIsOpen(false); setActiveSubmenu(null); setIsOrgSwitcherOpen(false)
+  }, [logout, onLogout])
+  const handleProfileClick = useCallback(() => {
+    if (onProfileClick) {
+      onProfileClick(); setIsOpen(false); setActiveSubmenu(null); setIsOrgSwitcherOpen(false)
+      return
+    }
+    handleNavigation(profilePath)
+  }, [handleNavigation, onProfileClick, profilePath])
+  const handleOptionalAction = useCallback((action?: () => void) => {
+    if (!action) return
+    action(); setIsOpen(false); setActiveSubmenu(null); setIsOrgSwitcherOpen(false)
+  }, [])
   const handleOrganizationSwitch = useCallback((slug: string) => {
     switchOrganization(slug); setIsOpen(false); setActiveSubmenu(null); setIsOrgSwitcherOpen(false)
   }, [switchOrganization])
@@ -69,7 +103,6 @@ export function useUserDropdownLogic(userProp?: unknown) {
     if (currentOrganization?.slug) return `/${currentOrganization.slug}/business-user/analytics`
     return isAdmin ? '/admin/statistics' : null
   }, [currentOrganization?.slug, isAdmin])
-  const profilePath = useMemo(() => currentOrganization?.slug ? `/${currentOrganization.slug}/profile` : '/profile', [currentOrganization?.slug])
   const displayName = getUserDisplayName(userProfile, user, t('profileDropdown.userFallback'))
   const initials = getUserInitials(displayName)
   const roleLabel = getUserRoleLabel({ isAdmin, isInstructor, isOrgAdmin, orgAdminLabel: t('profileDropdown.orgRoles.admin'), user })
@@ -79,9 +112,14 @@ export function useUserDropdownLogic(userProp?: unknown) {
 
   return {
     activeSubmenu, accentColor, canSwitch, currentOrganization, displayName, dropdownRef,
-    handleLogout, handleNavigation, handleOrganizationSwitch, handleUserDashboardNavigation,
+    certificatesCount,
+    handleAnalyticsClick: () => handleOptionalAction(onAnalyticsClick),
+    handleCertificatesClick: () => handleOptionalAction(onCertificatesClick),
+    handleLogout, handleNavigation, handleOrganizationSwitch, handleProfileClick, handleUserDashboardNavigation,
     imageError, imageUrl, initials, isAdmin, isB2B, isInstructor, isMounted, isOpen,
     isOrgAdmin, isOrgSwitcherOpen, language, organizations, pathname, pos, primaryColor,
+    showAnalyticsAction: Boolean(onAnalyticsClick),
+    showCertificatesAction: Boolean(onCertificatesClick),
     profilePath, resolvedTheme, roleLabel, setActiveSubmenu, setImageError, setIsOpen,
     setIsOrgSwitcherOpen, setLanguage,
     t, toggleTheme: () => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark'),
