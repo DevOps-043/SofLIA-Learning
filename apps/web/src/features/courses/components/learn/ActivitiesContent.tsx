@@ -81,10 +81,6 @@ export function ActivitiesContent(props: ActivitiesContentProps) {
   }, [activePrompt, lia.courseContext, requestFeedback]);
 
   const handleStartAiChat = useCallback((activity: LearnActivity, onDone: (id?: string | null) => void | Promise<void>) => {
-    if (lia.isInteractionBlocked) {
-      lia.closeLia();
-      return;
-    }
     lia.setActivity({
       id: activity.activity_id,
       title: activity.activity_title,

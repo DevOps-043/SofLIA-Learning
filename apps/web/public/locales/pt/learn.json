@@ -97,6 +97,7 @@
     "title": "SofLIA",
     "subtitle": "Sua tutora personalizada",
     "openAssistant": "Abrir assistente SofLIA",
+    "warningDisabledActivities": "O SofLIA não está disponível nesta aba. Resolva as atividades ou use o chat de IA.",
     "copiedMessage": "Texto copiado",
     "typing": "SofLIA está digitando...",
     "placeholder": "Digite sua mensagem aqui...",

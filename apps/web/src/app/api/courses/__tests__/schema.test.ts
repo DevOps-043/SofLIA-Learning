@@ -14,7 +14,6 @@ describe('courses API schemas', () => {
     expect(
       questionCreateSchema.safeParse({
         content: 'Como aplico esto en mi trabajo?',
-        title: '',
       }).success,
     ).toBe(true)
 

@@ -12,7 +12,7 @@ interface UseLearnPageEffectsOptions {
   activeTab: LearnTab
   setActiveTab: (tab: LearnTab) => void
   closeLia: () => void
-  setLiaInteractionBlocked: (blocked: boolean) => void
+  setLiaInteractionBlocked: (isBlocked: boolean) => void
   currentActivityPrompts: string[]
   prevPromptsLengthRef: MutableRefObject<number>
   setIsPromptsCollapsed: (collapsed: boolean) => void
@@ -66,15 +66,10 @@ export function useLearnPageEffects({
     }
   }, [activeTab, prevPromptsLengthRef, setCurrentActivityPrompts, setIsPromptsCollapsed])
 
-  // 2. Block LIA while the user is working on activities.
+  // 2. Set LIA interaction blocked status when entering/leaving the activities tab.
   useEffect(() => {
-    const shouldBlockLia = activeTab === 'activities'
-    setLiaInteractionBlocked(shouldBlockLia)
-    if (shouldBlockLia) closeLia()
-    return () => {
-      setLiaInteractionBlocked(false)
-    }
-  }, [activeTab, closeLia, setLiaInteractionBlocked])
+    setLiaInteractionBlocked(activeTab === 'activities')
+  }, [activeTab, setLiaInteractionBlocked])
 
   // 3. Auto-expand the prompts panel when a new prompt set arrives.
   useEffect(() => {

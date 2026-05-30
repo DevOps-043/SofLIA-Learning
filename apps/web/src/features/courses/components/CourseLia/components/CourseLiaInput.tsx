@@ -33,7 +33,7 @@ export function CourseLiaInput({
   const { t } = useTranslation('learn');
 
   return (
-    <div data-tour-id="course-learn--soflia-input" style={{ padding: isMobile ? '8px 3% 10px' : '10px 16px 12px', borderTop: `1px solid ${themeColors.borderColor}` }}>
+    <div data-tour-id="course-learn--soflia-input" style={{ padding: isMobile ? '8px 3% calc(8px + env(safe-area-inset-bottom, 0px))' : '10px 16px 12px', borderTop: `1px solid ${themeColors.borderColor}` }}>
       <VoiceErrorBanner
         isLightTheme={isLightTheme}
         message={voiceError}

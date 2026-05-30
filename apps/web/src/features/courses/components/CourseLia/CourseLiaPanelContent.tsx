@@ -11,7 +11,7 @@ import type { CourseLiaProps } from './types';
 
 export function CourseLiaPanelContent(props: CourseLiaProps) {
   const controller = useCourseLiaController(props);
-  const isPanelOpen = controller.isOpen && !controller.isInteractionBlocked;
+  const isPanelOpen = controller.isOpen && (!controller.isInteractionBlocked || controller.currentActivity !== null);
 
   return (
     <CourseLiaPanelShell
@@ -25,6 +25,7 @@ export function CourseLiaPanelContent(props: CourseLiaProps) {
         onClearHistory={controller.clearHistory}
         onClose={controller.closeLia}
         themeColors={controller.themeColors}
+        isMobile={controller.isMobile}
       />
       <CourseLiaMessages
         copiedMessageId={controller.copiedMessageId}
@@ -65,7 +66,7 @@ export function CourseLiaPanelContent(props: CourseLiaProps) {
       <CourseLiaInput
         inputRef={controller.inputRef}
         inputValue={controller.inputValue}
-        isInteractionBlocked={controller.isInteractionBlocked}
+        isInteractionBlocked={controller.isInteractionBlocked && controller.currentActivity === null}
         isLightTheme={controller.isLightTheme}
         isListening={controller.isListening}
         isMobile={controller.isMobile}

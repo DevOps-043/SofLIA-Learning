@@ -68,7 +68,6 @@ export const noteUpdateSchema = z.object({
 export type NoteUpdateBody = z.infer<typeof noteUpdateSchema>
 
 export const questionCreateSchema = z.object({
-  title: optionalShortTextSchema,
   content: contentSchema,
   tags: z.array(tagSchema).max(20).optional().default([]),
   ...attachmentFieldsSchema,
@@ -77,7 +76,6 @@ export const questionCreateSchema = z.object({
 export type QuestionCreateBody = z.infer<typeof questionCreateSchema>
 
 export const questionUpdateSchema = z.object({
-  title: optionalShortTextSchema,
   content: z.string().trim().min(1).max(MAX_CONTENT_LENGTH).optional(),
   tags: z.array(tagSchema).max(20).optional(),
   is_pinned: z.boolean().optional(),

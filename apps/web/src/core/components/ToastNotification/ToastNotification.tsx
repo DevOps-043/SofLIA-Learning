@@ -66,48 +66,41 @@ export function ToastNotification({
   const toastContent = (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, x: 100, scale: 0.9 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          exit={{ opacity: 0, x: 100, scale: 0.9 }}
-          transition={{
-            type: 'spring',
-            stiffness: 300,
-            damping: 30,
-          }}
-          className={`fixed top-4 right-4 z-[99999] max-w-md w-full sm:w-auto pointer-events-auto ${styles.bg} ${styles.border} border rounded-lg shadow-lg p-4 flex items-start gap-3`}
-        >
-          {/* Icono */}
-          <div className="flex-shrink-0 mt-0.5">
-            {styles.icon}
-          </div>
-
-          {/* Mensaje */}
-          <div className="flex-1 min-w-0">
-            <p className={`text-sm font-medium ${styles.text}`}>
-              {message}
-            </p>
-          </div>
-
-          {/* Botón de cerrar */}
-          <button
-            onClick={onClose}
-            className={`flex-shrink-0 p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/10 transition-colors ${styles.text}`}
-            aria-label="Cerrar notificación"
+        <div className="fixed top-4 left-0 right-0 z-[99999] flex justify-center pointer-events-none">
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            transition={{
+              type: 'spring',
+              stiffness: 300,
+              damping: 30,
+            }}
+            className={`pointer-events-auto max-w-md w-[calc(100%-2rem)] sm:w-auto bg-white/95 dark:bg-gray-900/95 backdrop-blur-md ${styles.bg} ${styles.border} border rounded-lg shadow-lg p-4 flex items-center justify-center gap-3 text-center`}
           >
-            <X className="w-4 h-4" />
-          </button>
+            {/* Icono */}
+            <div className="flex-shrink-0">
+              {styles.icon}
+            </div>
 
-          {/* Barra de progreso para el cierre automático */}
-          {duration > 0 && (
-            <motion.div
-              initial={{ width: '100%' }}
-              animate={{ width: '0%' }}
-              transition={{ duration: duration / 1000, ease: 'linear' }}
-              className={`absolute bottom-0 left-0 right-0 h-1 ${type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-accent'} rounded-b-lg`} /* Aqua para info */
-            />
-          )}
-        </motion.div>
+            {/* Mensaje */}
+            <div className="min-w-0">
+              <p className={`text-sm font-medium ${styles.text}`}>
+                {message}
+              </p>
+            </div>
+
+            {/* Barra de progreso para el cierre automático */}
+            {duration > 0 && (
+              <motion.div
+                initial={{ width: '100%' }}
+                animate={{ width: '0%' }}
+                transition={{ duration: duration / 1000, ease: 'linear' }}
+                className={`absolute bottom-0 left-0 right-0 h-1 ${type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-accent'} rounded-b-lg`} /* Aqua para info */
+              />
+            )}
+          </motion.div>
+        </div>
       )}
     </AnimatePresence>
   );

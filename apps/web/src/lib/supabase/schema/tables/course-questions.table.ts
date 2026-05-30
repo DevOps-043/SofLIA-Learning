@@ -18,7 +18,6 @@ export type CourseQuestionsTable = {
   reaction_count: number | null
   response_count: number | null
   tags: string[] | null
-  title: string | null
   updated_at: string
   user_id: string
   view_count: number | null
@@ -40,7 +39,6 @@ export type CourseQuestionsTable = {
   reaction_count?: number | null
   response_count?: number | null
   tags?: string[] | null
-  title?: string | null
   updated_at?: string
   user_id: string
   view_count?: number | null
@@ -62,7 +60,6 @@ export type CourseQuestionsTable = {
   reaction_count?: number | null
   response_count?: number | null
   tags?: string[] | null
-  title?: string | null
   updated_at?: string
   user_id?: string
   view_count?: number | null

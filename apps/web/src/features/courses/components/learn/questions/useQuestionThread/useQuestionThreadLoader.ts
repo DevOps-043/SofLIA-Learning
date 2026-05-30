@@ -26,13 +26,14 @@ export function useQuestionThreadLoader(questionId: string, slug: string) {
   }, [questionId, slug, syncResponseReactionState]);
 
   useEffect(() => {
+    const controller = new AbortController();
     let isActive = true;
 
     async function loadThread() {
       try {
         setLoading(true);
         setLoadingResponses(true);
-        const snapshot = await fetchQuestionThread(slug, questionId);
+        const snapshot = await fetchQuestionThread(slug, questionId, controller.signal);
 
         if (!isActive) {
           return;
@@ -41,6 +42,12 @@ export function useQuestionThreadLoader(questionId: string, slug: string) {
         setQuestion(snapshot.question);
         setResponses(snapshot.responses);
         syncResponseReactionState(snapshot.responses);
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          // Ignore cancellation
+          return;
+        }
+        console.error('Error loading question thread:', err);
       } finally {
         if (isActive) {
           setLoading(false);
@@ -53,6 +60,7 @@ export function useQuestionThreadLoader(questionId: string, slug: string) {
 
     return () => {
       isActive = false;
+      controller.abort();
     };
   }, [questionId, slug, syncResponseReactionState]);
 

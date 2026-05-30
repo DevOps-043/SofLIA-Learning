@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { createClient } from '../../../../../../lib/supabase/client';
 import type { CourseQuestionResponse } from '../types';
 import { removeResponseFromTree, updateResponseInTree } from '../utils';
@@ -17,6 +17,15 @@ export function useQuestionRealtime({
   setResponseReactionCounts,
   setResponses,
 }: UseQuestionRealtimeParams) {
+  const loadResponsesRef = useRef(loadResponses);
+  loadResponsesRef.current = loadResponses;
+
+  const setResponseReactionCountsRef = useRef(setResponseReactionCounts);
+  setResponseReactionCountsRef.current = setResponseReactionCounts;
+
+  const setResponsesRef = useRef(setResponses);
+  setResponsesRef.current = setResponses;
+
   useEffect(() => {
     if (!questionId) {
       return;
@@ -26,13 +35,13 @@ export function useQuestionRealtime({
     const responsesChannel = supabase
       .channel(`question-responses-${questionId}`)
       .on('postgres_changes', responseInsertConfig(questionId), async () => {
-        await loadResponses();
+        await loadResponsesRef.current();
       })
       .on('postgres_changes', responseUpdateConfig(questionId), (payload) => {
         const nextValues = payload.new as Partial<CourseQuestionResponse> & { id?: string };
 
         if (nextValues.id) {
-          setResponses((current) => updateResponseInTree(current, nextValues.id!, (response) => ({
+          setResponsesRef.current((current) => updateResponseInTree(current, nextValues.id!, (response) => ({
             ...response,
             ...nextValues,
           })));
@@ -42,7 +51,7 @@ export function useQuestionRealtime({
         const deletedResponseId = String((payload.old as { id?: string }).id || '');
 
         if (deletedResponseId) {
-          setResponses((current) => removeResponseFromTree(current, deletedResponseId));
+          setResponsesRef.current((current) => removeResponseFromTree(current, deletedResponseId));
         }
       })
       .subscribe();
@@ -50,10 +59,10 @@ export function useQuestionRealtime({
     const responseReactionsChannel = supabase
       .channel(`response-reactions-${questionId}`)
       .on('postgres_changes', reactionInsertConfig(questionId), (payload) => {
-        updateReactionCount(payload.new, setResponseReactionCounts, 1);
+        updateReactionCount(payload.new, setResponseReactionCountsRef.current, 1);
       })
       .on('postgres_changes', reactionDeleteConfig(questionId), (payload) => {
-        updateReactionCount(payload.old, setResponseReactionCounts, -1);
+        updateReactionCount(payload.old, setResponseReactionCountsRef.current, -1);
       })
       .subscribe();
 
@@ -61,7 +70,7 @@ export function useQuestionRealtime({
       void supabase.removeChannel(responsesChannel);
       void supabase.removeChannel(responseReactionsChannel);
     };
-  }, [loadResponses, questionId, setResponseReactionCounts, setResponses]);
+  }, [questionId]);
 }
 
 function responseInsertConfig(questionId: string) {
