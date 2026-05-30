@@ -72,7 +72,6 @@ export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
       {logic.showAnalyticsAction && (
         <MenuItem icon={BarChart2} label={logic.t('menu.stats')} onClick={logic.handleAnalyticsClick} />
       )}
-      <MenuItem icon={User} label={logic.t('menu.profile')} onClick={logic.handleProfileClick} />
       </div>
       {logic.isMobileViewport ? (
         <MobilePreferenceSections logic={logic} />

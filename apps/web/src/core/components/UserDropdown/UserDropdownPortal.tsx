@@ -75,6 +75,7 @@ export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
                   primaryColor={logic.primaryColor}
                   resolvedTheme={logic.resolvedTheme}
                   roleLabel={logic.roleLabel}
+                  onProfileClick={logic.handleProfileClick}
                 />
               </div>
               <div className={cn(logic.isMobileViewport && 'basis-[24%] min-h-[132px]', mobileSectionClassName)}>
