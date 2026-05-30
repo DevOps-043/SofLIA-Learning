@@ -12,3 +12,8 @@ export const DEFAULT_TTS_OUTPUT_FORMAT = 'mp3_22050_32';
 export const DEFAULT_TTS_OPTIMIZE_STREAMING_LATENCY = 4;
 export const DEFAULT_TTS_VOLUME = 0.8;
 export const MAX_TTS_TEXT_LENGTH = 4000;
+
+// Versión de los prompts/voz de síntesis. Forma parte de la clave del caché de
+// audio: incrementar este número invalida el audio cacheado cuando cambian los
+// prompts o la voz, evitando servir audio obsoleto.
+export const TTS_PROMPT_VERSION = 1;

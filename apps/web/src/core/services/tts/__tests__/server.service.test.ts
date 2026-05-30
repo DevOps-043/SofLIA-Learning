@@ -4,6 +4,7 @@ import {
   getConfiguredTTSProvider,
   isConfiguredTTSProviderAvailable,
   isElevenLabsConfigured,
+  resolveTTSCacheDescriptor,
   synthesizeSpeechWithElevenLabs,
   synthesizeSpeechWithConfiguredProvider,
 } from '../server.service'
@@ -202,5 +203,24 @@ describe('tts server service', () => {
       body.generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName
     ).toBe('Sulafat')
     expect(body.contents[0].parts[0].text).toContain('Hola SofLIA')
+  })
+
+  it('resolves the Gemini reading voice/model for reading contexts', () => {
+    process.env.TTS_PROVIDER = 'gemini'
+    process.env.GEMINI_TTS_API_KEY = 'tts-google-key'
+    delete process.env.GEMINI_TTS_MODEL
+    delete process.env.GEMINI_TTS_VOICE
+    delete process.env.GEMINI_TTS_READING_VOICE
+
+    const reading = resolveTTSCacheDescriptor({ text: 'Hola', context: 'reading' })
+    const chat = resolveTTSCacheDescriptor({ text: 'Hola', context: 'chat' })
+
+    expect(reading.provider).toBe('gemini')
+    expect(reading.context).toBe('reading')
+    expect(reading.model).toBe('gemini-2.5-flash-preview-tts')
+    // La voz de lectura difiere de la voz de chat → claves de cache distintas.
+    expect(reading.voice).toBe('Zephyr')
+    expect(chat.voice).toBe('Sulafat')
+    expect(reading.voice).not.toBe(chat.voice)
   })
 })

@@ -1,11 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { normalizeContentForRenderer } from '@/lib/course-content';
 import { isTTSAbortError } from '@/core/services/tts/client/tts-error.utils';
 import { playAudioBlob } from '@/core/services/tts/client/audio-blob-player.service';
 import { requestTTSAudio } from '@/core/services/tts/client/tts-api.service';
-import { MAX_TTS_TEXT_LENGTH } from '@/core/services/tts/shared';
+import { extractPlainText, splitIntoSentenceChunks } from './activity-voice-text';
 
 export type ActivityVoiceStatus = 'idle' | 'loading' | 'playing' | 'error';
 
@@ -17,97 +16,11 @@ export interface UseActivityVoiceReturn {
   stop: () => void;
 }
 
-// ─── Text extraction ──────────────────────────────────────────────────────────
-
-function extractPlainText(content: unknown): string {
-  const raw = normalizeContentForRenderer(content);
-  if (!raw.trim()) return '';
-
-  const stripped = raw
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&nbsp;/g, ' ').replace(/&quot;/g, '"')
-    .replace(/^#{1,6}\s+/gm, '')
-    .replace(/\*\*([^*]+)\*\*/g, '$1').replace(/__([^_]+)__/g, '$1')
-    .replace(/([^*])\*([^*]+)\*([^*])/g, '$1$2$3')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/[ \t]+/g, ' ')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-
-  if (stripped.length <= MAX_TTS_TEXT_LENGTH) return stripped;
-  const truncated = stripped.slice(0, MAX_TTS_TEXT_LENGTH);
-  const lastStop = Math.max(
-    truncated.lastIndexOf('. '), truncated.lastIndexOf('.\n'),
-    truncated.lastIndexOf('! '), truncated.lastIndexOf('? '),
-  );
-  return lastStop > MAX_TTS_TEXT_LENGTH * 0.7 ? truncated.slice(0, lastStop + 1) : truncated.trimEnd();
-}
-
-// ─── Chunking by sentences ────────────────────────────────────────────────────
-//
-// VERY small chunks (~200 chars ≈ ~12s of audio) so synthesis is fast (~5-7s).
-// First audio arrives in ~6-8s instead of waiting 30+ seconds for the full text.
-//
-// Sequential pipeline:
-//   t=0   → fetch(chunk0)
-//   t=6s  → chunk0 ready → START PLAYING + fetch(chunk1) in background
-//   t=18s → chunk0 done (12s playback)  → chunk1 already ready → instant
-//   t=24s → fetch(chunk2) running during chunk1 playback
-//   …seamless transitions.
-
-const MAX_CHUNK_CHARS = 200;
-
-function splitIntoSentenceChunks(text: string): string[] {
-  // Split into sentences first, then group sentences into chunks ≤ MAX_CHUNK_CHARS
-  const sentences = text
-    .split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿¡])/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  const chunks: string[] = [];
-  let current = '';
-
-  for (const sentence of sentences) {
-    // If a single sentence is longer than the limit, hard-split it by commas
-    if (sentence.length > MAX_CHUNK_CHARS) {
-      if (current) { chunks.push(current); current = ''; }
-      const subChunks = hardSplitLongSentence(sentence, MAX_CHUNK_CHARS);
-      chunks.push(...subChunks);
-      continue;
-    }
-
-    const addLen = current ? 1 + sentence.length : sentence.length;
-    if (current && current.length + addLen > MAX_CHUNK_CHARS) {
-      chunks.push(current);
-      current = sentence;
-    } else {
-      current = current ? `${current} ${sentence}` : sentence;
-    }
-  }
-
-  if (current) chunks.push(current);
-  return chunks;
-}
-
-function hardSplitLongSentence(sentence: string, maxLen: number): string[] {
-  const parts = sentence.split(/(?<=,)\s+/);
-  const out: string[] = [];
-  let current = '';
-  for (const part of parts) {
-    if (current && current.length + 1 + part.length > maxLen) {
-      out.push(current);
-      current = part;
-    } else {
-      current = current ? `${current} ${part}` : part;
-    }
-  }
-  if (current) out.push(current);
-  return out;
-}
-
 // ─── Hook ─────────────────────────────────────────────────────────────────────
+//
+// Orquesta la reproducción: extrae el texto, lo trocea (helpers puros en
+// `activity-voice-text.ts`) y reproduce los chunks en secuencia con prefetch del
+// siguiente para transiciones fluidas.
 
 export function useActivityVoice(): UseActivityVoiceReturn {
   const [status, setStatus] = useState<ActivityVoiceStatus>('idle');
@@ -159,7 +72,6 @@ export function useActivityVoice(): UseActivityVoiceReturn {
         acc += len;
       }
     }
-    console.log(`[TTS] Split into ${totalChunks} chunks, avg ${Math.round(text.length / totalChunks)} chars each`);
 
     const controller = new AbortController();
     abortRef.current = controller;

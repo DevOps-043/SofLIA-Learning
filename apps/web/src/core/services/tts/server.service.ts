@@ -6,7 +6,11 @@ import {
   DEFAULT_TTS_OPTIMIZE_STREAMING_LATENCY,
   DEFAULT_TTS_OUTPUT_FORMAT,
 } from './shared';
-import { isGeminiConfigured, synthesizeSpeechWithGemini } from './gemini.service';
+import {
+  isGeminiConfigured,
+  resolveGeminiVoiceAndModel,
+  synthesizeSpeechWithGemini,
+} from './gemini.service';
 
 function getElevenLabsApiKey() {
   return process.env.ELEVENLABS_API_KEY || null;
@@ -82,6 +86,37 @@ export async function synthesizeSpeechWithElevenLabs(payload: TextToSpeechReques
       speed: payload.speed,
     }),
   });
+}
+
+export interface TTSCacheDescriptor {
+  provider: TextToSpeechProvider;
+  voice: string;
+  model: string;
+  context: string;
+}
+
+/**
+ * Describe la voz/modelo que el proveedor configurado usará realmente para este
+ * payload. Es la base de la clave del caché de audio: garantiza que el audio
+ * cacheado corresponda exactamente a la voz/modelo que produciría la síntesis.
+ */
+export function resolveTTSCacheDescriptor(
+  payload: TextToSpeechRequestPayload,
+): TTSCacheDescriptor {
+  const provider = getConfiguredTTSProvider();
+  const context = payload.context ?? 'chat';
+
+  if (provider === 'gemini') {
+    const { voice, model } = resolveGeminiVoiceAndModel(context);
+    return { provider, voice, model, context };
+  }
+
+  return {
+    provider,
+    voice: getElevenLabsVoiceId(payload.voiceId),
+    model: getElevenLabsModelId(payload.modelId),
+    context,
+  };
 }
 
 export async function synthesizeSpeechWithConfiguredProvider(payload: TextToSpeechRequestPayload) {

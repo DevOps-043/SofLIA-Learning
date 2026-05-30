@@ -5,6 +5,11 @@ import {
   DEFAULT_GEMINI_TTS_VOICE_NAME,
 } from './shared';
 import { createWavFromPcm } from './audio-format.service';
+import {
+  buildContinuationSpeechPrompt,
+  buildReadingSpeechPrompt,
+  buildSofliaSpeechPrompt,
+} from './gemini-tts-prompts';
 
 interface GeminiInlineDataPart {
   inlineData?: {
@@ -40,95 +45,9 @@ function getGeminiTTSVoiceName() {
 }
 
 function getGeminiReadingVoiceName() {
-  // Aoede: breezy, natural female voice — ideal for educational narration.
-  // Override via env var if a different voice is preferred.
+  // Voz por defecto: Zephyr (femenina, clara) — ver DEFAULT_GEMINI_TTS_READING_VOICE_NAME.
+  // Configurable con GEMINI_TTS_READING_VOICE si una voz suena mejor en es-MX.
   return process.env.GEMINI_TTS_READING_VOICE || DEFAULT_GEMINI_TTS_READING_VOICE_NAME;
-}
-
-// ─── Audio tag injection ──────────────────────────────────────────────────────
-//
-// Gemini TTS interprets bracketed tags embedded in text to shift delivery.
-// Strategy: rotate through an expressive palette for EVERY paragraph so the
-// voice never sounds flat across consecutive blocks.
-//
-// Rotation sequence (body paragraphs):
-//   1 → [warm]        gentle, welcoming opener
-//   2 → [engaged]     more animated, pulls listener in
-//   3 → (no tag)      natural rest — avoids over-tagging
-//   4 → [thoughtful]  slows down, contemplative
-//   5 → [warm]        cycle repeats
-//
-// Plus inline overrides:
-//   - Section headings   → [sighs]   (natural breath before new topic)
-//   - Questions (?)      → [curious] (rising intonation, not flat)
-//   - Exclamation (!)    → [excited] (emphasis without shouting)
-//
-// Tags must be in English even for Spanish content (Gemini docs requirement).
-
-const BODY_TAG_CYCLE = ['[warm]', '[engaged]', '', '[thoughtful]'] as const;
-
-function addNarrationTags(text: string): string {
-  const blocks = text.split(/\n\n+/);
-  let bodyCount = 0;
-
-  const tagged = blocks.map((block) => {
-    const trimmed = block.trim();
-    if (!trimmed) return '';
-
-    const isHeading =
-      trimmed.length < 100 &&
-      !/[.!?,;:]$/.test(trimmed) &&
-      !/^\d+$/.test(trimmed) &&
-      !/^[-*•]/.test(trimmed);
-
-    if (isHeading && bodyCount > 0) {
-      return `[sighs] ${trimmed}`;
-    }
-
-    const cycleTag = BODY_TAG_CYCLE[bodyCount % BODY_TAG_CYCLE.length];
-    bodyCount++;
-
-    const inlined = injectInlineTags(trimmed);
-    return cycleTag ? `${cycleTag} ${inlined}` : inlined;
-  });
-
-  return tagged.filter(Boolean).join('\n\n');
-}
-
-function injectInlineTags(paragraph: string): string {
-  return paragraph
-    // Questions → curious rising intonation
-    .replace(/([^.!?]*\?)/g, (m) => { const s = m.trim(); return s ? `[curious] ${s}` : m; })
-    // Exclamations → brief excitement
-    .replace(/([^.!?]*!)/g, (m) => { const s = m.trim(); return s && s.length > 4 ? `[excited] ${s}` : m; });
-}
-
-// Continuation chunks: only inline question/exclamation tags.
-// No structural overhead → fewer tokens → faster synthesis.
-function addContinuationTags(text: string): string {
-  return injectInlineTags(text);
-}
-
-// ─── Prompt builders ──────────────────────────────────────────────────────────
-
-function buildSofliaSpeechPrompt(text: string) {
-  return [
-    'Read the following text as SofLIA.',
-    'Voice direction: warm, professional, natural Latin American Spanish when the text is Spanish, clear pacing, friendly but not childish, confident but not exaggerated.',
-    'Avoid sounding robotic, theatrical, rushed, or overly excited.',
-    '',
-    text,
-  ].join('\n');
-}
-
-function buildReadingSpeechPrompt(text: string) {
-  // Short prompt = fewer tokens = faster first-chunk synthesis.
-  // Explicitly request expressive variation to avoid monotone delivery.
-  return `Sweet, expressive female narrator. Vary your energy and tone across sentences — warm, curious, engaged, reflective. Never monotone. Latin American Spanish rhythm when applicable.\n\n${addNarrationTags(text)}`;
-}
-
-function buildContinuationSpeechPrompt(text: string) {
-  return `Same sweet voice, keep varying your expression:\n\n${addContinuationTags(text)}`;
 }
 
 // ─── Audio helpers ────────────────────────────────────────────────────────────
@@ -137,12 +56,15 @@ function getFirstInlineAudio(response: GeminiGenerateContentResponse) {
   const parts = response.candidates?.[0]?.content?.parts ?? [];
 
   for (const part of parts) {
-    const inlineData = part.inlineData ?? part.inline_data;
-    const data = inlineData?.data;
+    // La API devuelve el audio como `inlineData` (camelCase) o `inline_data`
+    // (snake_case) según la versión; normalizamos ambas formas.
+    const camel = part.inlineData;
+    const snake = part.inline_data;
+    const data = camel?.data ?? snake?.data;
     if (data) {
       return {
         data,
-        mimeType: inlineData.mimeType ?? inlineData.mime_type ?? 'audio/pcm',
+        mimeType: camel?.mimeType ?? snake?.mime_type ?? 'audio/pcm',
       };
     }
   }
@@ -177,6 +99,18 @@ function createAudioResponse(base64Audio: string, mimeType: string) {
 
 export function isGeminiConfigured() {
   return Boolean(getGeminiApiKey());
+}
+
+/**
+ * Voz y modelo que se usarán realmente para un contexto dado. Lo usa la clave
+ * del caché de audio para reflejar fielmente lo que se sintetiza.
+ */
+export function resolveGeminiVoiceAndModel(context?: string) {
+  const isReadingContext = context === 'reading' || context === 'reading_continuation';
+  return {
+    model: getGeminiTTSModelId(),
+    voice: isReadingContext ? getGeminiReadingVoiceName() : getGeminiTTSVoiceName(),
+  };
 }
 
 export async function synthesizeSpeechWithGemini(payload: TextToSpeechRequestPayload) {
