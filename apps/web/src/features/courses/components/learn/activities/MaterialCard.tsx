@@ -149,7 +149,7 @@ export function MaterialCard({
                           });
                         }}
                         onQuizSubmitted={() => {
-                          void onQuizSubmitted();
+                          return onQuizSubmitted();
                         }}
                       />
                     );

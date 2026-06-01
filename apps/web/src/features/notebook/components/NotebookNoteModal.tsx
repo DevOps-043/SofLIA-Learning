@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -23,6 +23,10 @@ import type {
   NotebookModalState,
   NotebookUpdateNoteInput,
 } from '../types'
+import {
+  getNotebookPlainText,
+  sanitizeNotebookRichContent,
+} from '../services/notebook-content-rendering.service'
 
 interface NotebookNoteModalProps {
   state: NotebookModalState
@@ -60,8 +64,8 @@ export function NotebookNoteModal({
 
     const textContent =
       state.item.kind === 'manual_note'
-        ? state.item.content
-        : state.item.contentMarkdown || stripHtmlTags(state.item.contentHtml)
+        ? getNotebookPlainText(state.item.content)
+        : state.item.contentMarkdown || getNotebookPlainText(state.item.contentHtml)
 
     try {
       await navigator.clipboard.writeText(textContent)
@@ -189,22 +193,23 @@ function ModalContent({
   t,
 }: ModalContentProps) {
   const isManualNote = item.kind === 'manual_note'
+  const safeContent = useMemo(
+    () =>
+      sanitizeNotebookRichContent(
+        isManualNote ? item.content : item.contentHtml || item.contentMarkdown,
+      ),
+    [isManualNote, item],
+  )
 
   return (
     <div className="flex-1 overflow-y-auto px-5 py-5">
       <NotebookMetadata item={item} t={t} />
 
       <div className="prose prose-sm mb-6 max-w-none dark:prose-invert">
-        {isManualNote ? (
-          <div className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-            {item.content}
-          </div>
-        ) : (
-          <div
-            className="text-gray-700 dark:text-gray-300"
-            dangerouslySetInnerHTML={{ __html: item.contentHtml || item.contentMarkdown }}
-          />
-        )}
+        <div
+          className="text-gray-700 dark:text-gray-300"
+          dangerouslySetInnerHTML={{ __html: safeContent }}
+        />
       </div>
 
       {isManualNote && item.tags.length > 0 ? <ManualNoteTags tags={item.tags} /> : null}
@@ -401,7 +406,3 @@ const primaryButtonClassName =
 
 const secondaryButtonClassName =
   'inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-600 transition-all duration-200 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
-
-function stripHtmlTags(value: string) {
-  return value.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
-}

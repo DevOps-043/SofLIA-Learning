@@ -273,7 +273,7 @@ export function BusinessUserAnalyticsPageClient({
           />
         ) : analytics ? (
           <>
-            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               <MetricCard
                 icon={BookOpen}
                 label={t('analytics.metrics.averageProgress')}
@@ -290,15 +290,6 @@ export function BusinessUserAnalyticsPageClient({
                 detail={t('analytics.metrics.aiDetail', {
                   conversations: analytics.aiAdoption.totalConversations,
                   messages: analytics.aiAdoption.totalMessages,
-                })}
-              />
-              <MetricCard
-                icon={CalendarCheck}
-                label={t('analytics.metrics.planning')}
-                value={formatPercent(analytics.planning.adherenceRate)}
-                detail={t('analytics.metrics.planningDetail', {
-                  completed: analytics.planning.completedSessions,
-                  planned: analytics.planning.plannedSessions,
                 })}
               />
               <MetricCard
@@ -385,17 +376,7 @@ export function BusinessUserAnalyticsPageClient({
               </Panel>
             </section>
 
-            <section className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-4">
-              <Panel icon={CalendarCheck} title={t('analytics.sections.planning')} compact>
-                <StackedFacts
-                  facts={[
-                    [t('analytics.planning.completed'), `${analytics.planning.completedSessions}/${analytics.planning.plannedSessions}`],
-                    [t('analytics.planning.missed'), formatNumber(analytics.planning.missedSessions)],
-                    [t('analytics.planning.rescheduled'), formatNumber(analytics.planning.rescheduledSessions)],
-                    [t('analytics.planning.actualMinutes'), t('analytics.values.minutes', { value: formatNumber(analytics.planning.averageActualMinutes) })],
-                  ]}
-                />
-              </Panel>
+            <section className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">
               <Panel icon={NotebookPen} title={t('analytics.sections.notes')} compact>
                 <StackedFacts
                   facts={[

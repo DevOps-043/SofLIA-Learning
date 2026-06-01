@@ -64,21 +64,6 @@ export function useQuizSubmitHandler({
 
     try {
       const results = calculateQuizResults(normalizedQuizData, selectedAnswers);
-      setScore(results.correctCount);
-      setPointsEarned(results.pointsEarned);
-      setShowResults(true);
-
-      if (results.correctCount < normalizedQuizData.length) {
-        const prompt = buildQuizFeedbackPrompt(normalizedQuizData, selectedAnswers);
-        if (prompt) {
-          if (onRequestQuizFeedback) {
-            onRequestQuizFeedback(prompt, { activityId, materialId });
-          } else {
-            onTriggerLiaFeedback?.(prompt);
-          }
-        }
-      }
-
       if (lessonId && slug) {
         await submitQuizResults({
           activityId,
@@ -93,6 +78,21 @@ export function useQuizSubmitHandler({
           slug,
           totalPoints,
         });
+      }
+
+      setScore(results.correctCount);
+      setPointsEarned(results.pointsEarned);
+      setShowResults(true);
+
+      if (results.correctCount < normalizedQuizData.length) {
+        const prompt = buildQuizFeedbackPrompt(normalizedQuizData, selectedAnswers);
+        if (prompt) {
+          if (onRequestQuizFeedback) {
+            onRequestQuizFeedback(prompt, { activityId, materialId });
+          } else {
+            onTriggerLiaFeedback?.(prompt);
+          }
+        }
       }
     } catch (error) {
       techDebtLogger.error("Error procesando quiz:", error);
