@@ -1,4 +1,5 @@
-import { CheckCircle2, ChevronRight, ThumbsDown, ThumbsUp } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, ChevronRight, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import type { ActivitiesData } from "./types";
@@ -76,14 +77,27 @@ function NavigationButton(props: {
   onClick: () => void | Promise<void>;
 }) {
   const Icon = props.finish ? CheckCircle2 : ChevronRight;
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleClick = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    try {
+      await props.onClick();
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <button
-      onClick={props.onClick}
-      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary dark:bg-accent dark:hover:bg-accent text-white dark:text-[var(--color-legacy-0a1724)] transition-colors"
+      onClick={() => void handleClick()}
+      disabled={isLoading}
+      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary hover:bg-primary dark:bg-accent dark:hover:bg-accent text-white dark:text-[var(--color-legacy-0a1724)] transition-colors disabled:cursor-wait disabled:opacity-70"
     >
       {props.label}
-      <Icon className="w-4 h-4" />
+      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}
     </button>
   );
 }

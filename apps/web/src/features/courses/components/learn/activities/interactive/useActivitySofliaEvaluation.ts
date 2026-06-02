@@ -18,7 +18,7 @@ export function useActivitySofliaEvaluation(input: {
   setFeedbackMessage: (message: string | null) => void;
 }) {
   const [liaEvaluationPending, setLiaEvaluationPending] = useState(false);
-  const { liaChat, openLia, closeLia, courseContext, isLiaChatLoading, isInteractionBlocked } = useLiaCourse();
+  const { liaChat, openLia, courseContext, isLiaChatLoading } = useLiaCourse();
   const canEvaluateWithSoflia = hasActivityResponseForSofliaEvaluation({
     activity: input.activity,
     request: input.requestPayload,
@@ -26,11 +26,6 @@ export function useActivitySofliaEvaluation(input: {
 
   const handleEvaluateWithSoflia = useCallback(async () => {
     input.setFeedbackMessage(null);
-
-    if (isInteractionBlocked) {
-      closeLia();
-      return;
-    }
 
     if (isLiaChatLoading) {
       input.setFeedbackMessage(
@@ -51,7 +46,7 @@ export function useActivitySofliaEvaluation(input: {
       return;
     }
 
-    openLia();
+    openLia(true);
 
     if (!liaChat?.sendMessage) {
       input.setFeedbackMessage(
@@ -73,7 +68,7 @@ export function useActivitySofliaEvaluation(input: {
     } finally {
       setLiaEvaluationPending(false);
     }
-  }, [closeLia, courseContext, input, isInteractionBlocked, isLiaChatLoading, liaChat, openLia]);
+  }, [courseContext, input, isLiaChatLoading, liaChat, openLia]);
 
   return {
     canEvaluateWithSoflia,

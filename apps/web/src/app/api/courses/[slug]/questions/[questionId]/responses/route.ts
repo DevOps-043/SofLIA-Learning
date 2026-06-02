@@ -119,38 +119,37 @@ export async function GET(
       // Obtener usuario actual para cargar sus reacciones
       const user = await SessionService.getCurrentUser();
 
-      // Query paralela: Contar reacciones y obtener reacciones del usuario
-      const reactionsPromises = [
+      // Solo conteos sin transferir datos
+      const reactionCountPromises = responseIds.map((rid) =>
         supabase
           .from('course_question_reactions')
-          .select('response_id')
-          .in('response_id', responseIds)
-          .returns<ResponseReactionCountRow[]>()
-      ];
+          .select('*', { count: 'exact', head: true })
+          .eq('response_id', rid)
+      );
 
-      // Si hay usuario, agregar query para sus reacciones
+      // Si hay usuario, query para sus reacciones
+      let userReactionsPromise: Promise<{ data: ResponseUserReactionRow[] | null; error: any }> | null = null;
       if (user) {
-        reactionsPromises.push(
-          supabase
-            .from('course_question_reactions')
-            .select('response_id, reaction_type')
-            .eq('user_id', user.id)
-            .in('response_id', responseIds)
-            .returns<ResponseUserReactionRow[]>()
-        );
+        userReactionsPromise = supabase
+          .from('course_question_reactions')
+          .select('response_id, reaction_type')
+          .eq('user_id', user.id)
+          .in('response_id', responseIds)
+          .returns<ResponseUserReactionRow[]>();
       }
 
-      const [reactionCountsResult, userReactionsResult] = await Promise.all(reactionsPromises);
+      // Ejecutar queries en paralelo
+      const [reactionCountsResult, userReactionsResult] = await Promise.all([
+        Promise.all(reactionCountPromises),
+        userReactionsPromise || Promise.resolve({ data: null, error: null })
+      ]);
 
       // Procesar contadores de reacciones
-      if (!reactionCountsResult.error && reactionCountsResult.data) {
-        reactionCountsResult.data.forEach((reaction) => {
-          const responseId = reaction.response_id;
-          if (responseId) {
-            reactionCountsMap.set(responseId, (reactionCountsMap.get(responseId) || 0) + 1);
-          }
-        });
-      }
+      reactionCountsResult.forEach((res, index) => {
+        if (!res.error) {
+          reactionCountsMap.set(responseIds[index], res.count || 0);
+        }
+      });
 
       // Procesar reacciones del usuario
       if (userReactionsResult && !userReactionsResult.error && userReactionsResult.data) {

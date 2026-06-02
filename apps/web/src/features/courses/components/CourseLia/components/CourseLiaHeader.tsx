@@ -9,6 +9,7 @@ interface CourseLiaHeaderProps {
   onClearHistory: () => void;
   onClose: () => void;
   themeColors: CourseLiaThemeColors;
+  isMobile?: boolean;
 }
 
 export function CourseLiaHeader({
@@ -16,12 +17,22 @@ export function CourseLiaHeader({
   onClearHistory,
   onClose,
   themeColors,
+  isMobile = false,
 }: CourseLiaHeaderProps) {
   const { t } = useTranslation('learn');
   const { t: tc } = useTranslation('common');
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `1px solid ${themeColors.borderColor}`, backgroundColor: themeColors.headerBg }}>
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: isMobile
+        ? 'calc(16px + env(safe-area-inset-top, 0px)) 20px 16px'
+        : '16px 20px',
+      borderBottom: `1px solid ${themeColors.borderColor}`,
+      backgroundColor: themeColors.headerBg
+    }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <div style={{ position: 'relative' }}>
           <img src={LIA_AVATAR_SRC} alt={t('lia.title')} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${themeColors.accentColor}` }} />

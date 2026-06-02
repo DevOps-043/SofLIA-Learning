@@ -6,9 +6,46 @@ import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
 
+interface ResponseUserRow {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  profile_picture_url: string | null;
+}
+
+interface CourseQuestionResponseRow {
+  id: string;
+  question_id: string;
+  course_id: string;
+  user_id: string;
+  content: string;
+  parent_response_id: string | null;
+  is_deleted: boolean | null;
+  is_approved_answer?: boolean | null;
+  is_instructor_answer?: boolean | null;
+  created_at: string;
+  attachment_url?: string | null;
+  attachment_type?: string | null;
+  attachment_data?: Record<string, unknown> | null;
+  user: ResponseUserRow | null;
+}
+
+interface ResponseUserReactionRow {
+  response_id: string | null;
+  reaction_type: string | null;
+}
+
+interface ResponseTreeNode extends CourseQuestionResponseRow {
+  replies: ResponseTreeNode[];
+  reaction_count: number;
+  user_reaction: string | null;
+}
+
 /**
  * GET /api/courses/[slug]/questions/[questionId]
- * Obtiene una pregunta específica con sus respuestas
+ * Obtiene una pregunta específica con sus respuestas (opcional con include=responses)
  */
 export async function GET(
   request: NextRequest,
@@ -57,13 +94,160 @@ export async function GET(
       );
     }
 
-    // Incrementar contador de visualizaciones
-    await supabase
-      .from('course_questions')
-      .update({ view_count: (question.view_count || 0) + 1 })
-      .eq('id', questionId);
+    // Incrementar contador de visualizaciones de forma atómica en background (fire-and-forget)
+    void (async () => {
+      try {
+        const { error: rpcError } = await supabase.rpc('increment_question_view_count', {
+          target_question_id: questionId,
+        });
+        if (rpcError) {
+          // Fallback en caso de que no exista el RPC
+          await supabase
+            .from('course_questions')
+            .update({ view_count: (question.view_count || 0) + 1 })
+            .eq('id', questionId);
+        }
+      } catch (err) {
+        console.error('Error incrementing view count:', err);
+      }
+    })();
 
-    return NextResponse.json({ ...question, view_count: (question.view_count || 0) + 1 });
+    const updatedQuestion = {
+      ...question,
+      view_count: (question.view_count || 0) + 1
+    };
+
+    // Verificar si se solicitan las respuestas
+    const { searchParams } = new URL(request.url);
+    const include = searchParams.get('include');
+
+    let responses: ResponseTreeNode[] = [];
+    if (include === 'responses') {
+      const { data: allResponses, error: responsesError } = await supabase
+        .from('course_question_responses')
+        .select(`
+          *,
+          user:users!course_question_responses_user_id_fkey(
+            id,
+            username,
+            display_name,
+            first_name,
+            last_name,
+            profile_picture_url
+          )
+        `)
+        .eq('question_id', questionId)
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: true })
+        .returns<CourseQuestionResponseRow[]>();
+
+      if (!responsesError && allResponses && allResponses.length > 0) {
+        const responseIds = allResponses.map((r) => r.id);
+        const user = await SessionService.getCurrentUser();
+
+        // Solo conteos sin transferir datos
+        const reactionCountPromises = responseIds.map((rid) =>
+          supabase
+            .from('course_question_reactions')
+            .select('*', { count: 'exact', head: true })
+            .eq('response_id', rid)
+        );
+
+        // Si hay usuario, query para sus reacciones
+        let userReactionsPromise: Promise<{ data: ResponseUserReactionRow[] | null; error: any }> | null = null;
+        if (user) {
+          userReactionsPromise = supabase
+            .from('course_question_reactions')
+            .select('response_id, reaction_type')
+            .eq('user_id', user.id)
+            .in('response_id', responseIds)
+            .returns<ResponseUserReactionRow[]>();
+        }
+
+        // Ejecutar queries en paralelo
+        const [reactionCountsResult, userReactionsResult] = await Promise.all([
+          Promise.all(reactionCountPromises),
+          userReactionsPromise || Promise.resolve({ data: null, error: null })
+        ]);
+
+        const reactionCountsMap = new Map<string, number>();
+        reactionCountsResult.forEach((res, index) => {
+          if (!res.error) {
+            reactionCountsMap.set(responseIds[index], res.count || 0);
+          }
+        });
+
+        // Procesar reacciones del usuario
+        const userReactionsMap = new Map<string, string>();
+        if (userReactionsResult && !userReactionsResult.error && userReactionsResult.data) {
+          userReactionsResult.data.forEach((reaction) => {
+            if (reaction.response_id && reaction.reaction_type) {
+              userReactionsMap.set(reaction.response_id, reaction.reaction_type);
+            }
+          });
+        }
+
+        // Estructurar el árbol de respuestas
+        const responseMap = new Map<string, ResponseTreeNode>();
+        const topLevelResponses: ResponseTreeNode[] = [];
+
+        allResponses.forEach((response) => {
+          const reactionCount = reactionCountsMap.get(response.id) || 0;
+          const userReaction = userReactionsMap.get(response.id) || null;
+          responseMap.set(response.id, {
+            ...response,
+            replies: [],
+            reaction_count: reactionCount,
+            user_reaction: userReaction
+          });
+        });
+
+        allResponses.forEach((response) => {
+          const responseWithReplies = responseMap.get(response.id)!;
+          if (!response.parent_response_id) {
+            topLevelResponses.push(responseWithReplies);
+          } else {
+            const parent = responseMap.get(response.parent_response_id);
+            if (parent) {
+              if (!parent.replies) {
+                parent.replies = [];
+              }
+              parent.replies.push(responseWithReplies);
+            }
+          }
+        });
+
+        // Ordenar respuestas de nivel superior
+        topLevelResponses.sort((a, b) => {
+          if (a.is_approved_answer && !b.is_approved_answer) return -1;
+          if (!a.is_approved_answer && b.is_approved_answer) return 1;
+          if (a.is_instructor_answer && !b.is_instructor_answer) return -1;
+          if (!a.is_instructor_answer && b.is_instructor_answer) return 1;
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        });
+
+        // Ordenar respuestas anidadas recursivamente
+        const sortRepliesRecursively = (responsesList: ResponseTreeNode[]) => {
+          responsesList.forEach((r) => {
+            if (r.replies && r.replies.length > 0) {
+              sortRepliesRecursively(r.replies);
+            }
+          });
+        };
+        sortRepliesRecursively(topLevelResponses);
+
+        responses = topLevelResponses;
+      }
+    }
+
+    if (include === 'responses') {
+      return NextResponse.json({
+        question: updatedQuestion,
+        responses
+      });
+    }
+
+    return NextResponse.json(updatedQuestion);
   } catch (error) {
     return NextResponse.json(
       { 
@@ -134,11 +318,10 @@ async function handlePut(
       );
     }
 
-    const { title, content, tags, is_pinned, is_resolved } = body;
+    const { content, tags, is_pinned, is_resolved } = body;
 
     // Preparar datos de actualización
     const updateData: Record<string, unknown> = {};
-    if (title !== undefined) updateData.title = title?.trim() || null;
     if (content !== undefined) {
       const sanitizedContent = sanitizeHtml(content, {
         level: 'rich',

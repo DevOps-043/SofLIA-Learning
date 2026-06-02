@@ -14,11 +14,13 @@ import type { CourseLessonContext } from '../../../core/types/lia.types';
 
 interface LiaCourseContextType {
   isOpen: boolean;
-  openLia: () => void;
+  openLia: (force?: boolean) => void;
   closeLia: () => void;
   toggleLia: () => void;
   isInteractionBlocked: boolean;
   setInteractionBlocked: (isBlocked: boolean) => void;
+  liaToastMessage: string | null;
+  setLiaToastMessage: (msg: string | null) => void;
   // Contexto de actividad interactiva
   currentActivity: ActivityContextType | null;
   setActivity: (activity: ActivityContextType | null) => void;
@@ -54,18 +56,26 @@ const LiaCourseContext = createContext<LiaCourseContextType | undefined>(undefin
 export function LiaCourseProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isInteractionBlocked, setIsInteractionBlocked] = useState(false);
+  const [liaToastMessage, setLiaToastMessage] = useState<string | null>(null);
   const [currentActivity, setCurrentActivity] = useState<ActivityContextType | null>(null);
   const [courseContext, setCourseContext] = useState<CourseLessonContext | null>(null);
   const [isLiaChatLoading, setIsLiaChatLoading] = useState(false);
   const liaChatRef = useRef<LiaCourseContextType['liaChat']>(null);
 
-  const openLia = useCallback(() => {
-    setIsOpen(!isInteractionBlocked);
-  }, [isInteractionBlocked]);
-  const closeLia = useCallback(() => setIsOpen(false), []);
+  const openLia = useCallback((force?: boolean) => {
+    setIsOpen(force || currentActivity !== null ? true : !isInteractionBlocked);
+  }, [isInteractionBlocked, currentActivity]);
+
+  const closeLia = useCallback(() => {
+    setIsOpen(false);
+    setCurrentActivity(null);
+  }, []);
+
   const toggleLia = useCallback(() => {
-    setIsOpen((previous) => (isInteractionBlocked ? false : !previous));
-  }, [isInteractionBlocked]);
+    setIsOpen((previous) => {
+      return (isInteractionBlocked && currentActivity === null) ? false : !previous;
+    });
+  }, [isInteractionBlocked, currentActivity]);
 
   const setInteractionBlocked = useCallback((isBlocked: boolean) => {
     setIsInteractionBlocked(isBlocked);
@@ -76,6 +86,9 @@ export function LiaCourseProvider({ children }: { children: React.ReactNode }) {
   }, []);
   const setActivity = useCallback((activity: ActivityContextType | null) => {
     setCurrentActivity(activity);
+    if (activity) {
+      setIsOpen(true);
+    }
   }, []);
 
   const registerLiaChat = useCallback((chat: UseLiaCourseChatReturn | null) => {
@@ -103,6 +116,8 @@ export function LiaCourseProvider({ children }: { children: React.ReactNode }) {
       toggleLia,
       isInteractionBlocked,
       setInteractionBlocked,
+      liaToastMessage,
+      setLiaToastMessage,
       currentActivity,
       setActivity,
       courseContext,
@@ -123,6 +138,8 @@ export function LiaCourseProvider({ children }: { children: React.ReactNode }) {
       setActivity,
       setInteractionBlocked,
       toggleLia,
+      liaToastMessage,
+      setLiaToastMessage,
     ],
   );
 

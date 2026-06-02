@@ -35,7 +35,7 @@ export function CourseLearnWorkspace({ logic, shell }: { logic: LearnPageLogicRe
           />
           <TranslationWarning logic={logic} />
           <CourseLearnBody logic={logic} shell={shell} />
-          <LearnPageMobileNav isVisible={logic.isMobileBottomNavVisible} isLeftPanelOpen={logic.isLeftPanelOpen} hasPreviousLesson={!!logic.getPreviousLesson()} hasNextLesson={!!logic.getNextLesson()} onOpenMaterial={logic.openLeftPanel} onNavigatePrevious={logic.navigateToPreviousLesson} onNavigateNext={logic.navigateToNextLesson} disableHeavyEffects={shell.disableHeavyEffects} />
+          <LearnPageMobileNav isVisible={logic.isMobileBottomNavVisible} isLeftPanelOpen={logic.isLeftPanelOpen} hasPreviousLesson={!!logic.getPreviousLesson()} hasNextLesson={!!logic.getNextLesson()} onOpenMaterial={logic.openLeftPanel} onCreateNote={logic.openNewNoteModal} onNavigatePrevious={logic.navigateToPreviousLesson} onNavigateNext={logic.navigateToNextLesson} disableHeavyEffects={shell.disableHeavyEffects} />
           <NoteErrorToast logic={logic} />
           <CourseLearnLiaPanel logic={logic} shell={shell} />
         </div>

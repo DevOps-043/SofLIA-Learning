@@ -14,7 +14,7 @@ export type QuizRendererProps = {
     source?: { activityId?: string | null; materialId?: string | null },
   ) => void;
   onTriggerLiaFeedback?: (prompt: string) => void;
-  onQuizSubmitted?: () => void;
+  onQuizSubmitted?: () => void | Promise<void>;
 };
 
 export type HydratedQuizState = {
@@ -31,7 +31,7 @@ export type SubmitQuizResultsParams = {
   materialId?: string;
   normalizedQuizData: QuizQuestion[];
   organizationId?: string | null;
-  onQuizSubmitted?: () => void;
+  onQuizSubmitted?: () => void | Promise<void>;
   selectedAnswers: SelectedQuizAnswers;
   setServerMessage: (message: string | null) => void;
   setSubmitError: (error: string | null) => void;

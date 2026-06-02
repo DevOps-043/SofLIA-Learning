@@ -40,7 +40,7 @@ export async function submitQuizResults({
       setServerMessage(result.message);
     }
 
-    onQuizSubmitted?.();
+    await onQuizSubmitted?.();
   } catch (error) {
     techDebtLogger.error("Error al enviar quiz:", error);
     setSubmitError("Error al guardar las respuestas");

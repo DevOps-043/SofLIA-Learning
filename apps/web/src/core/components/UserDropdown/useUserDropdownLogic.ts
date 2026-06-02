@@ -25,18 +25,22 @@ interface UserDropdownLogicOptions {
   onProfileClick?: () => void
 }
 
+const MOBILE_DROPDOWN_TOP_PX = 64
+const MOBILE_DROPDOWN_MEDIA_QUERY = '(max-width: 767px)'
+
 export function useUserDropdownLogic(userProp?: unknown, options: UserDropdownLogicOptions = {}) {
   const { certificatesCount = 0, onAnalyticsClick, onCertificatesClick, onLogout, onProfileClick } = options
   const [isOpen, setIsOpen] = useState(false)
   const [pos, setPos] = useState({ top: 0, right: 0 })
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [isMounted, setIsMounted] = useState(false)
+  const [isMobileViewport, setIsMobileViewport] = useState(false)
   const [imageError, setImageError] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { user: authUser, logout } = useAuth()
   const user = (userProp || authUser) as DropdownUserLike | null
   const { userProfile } = useUserProfile()
-  const { setTheme, resolvedTheme, initializeTheme } = useThemeStore()
+  const { theme, setTheme, resolvedTheme, initializeTheme } = useThemeStore()
   const { language, setLanguage } = useLanguage()
   const [isOrgSwitcherOpen, setIsOrgSwitcherOpen] = useState(false)
   const { currentOrganization, organizations, canSwitch, isB2B, isOrgAdmin, switchOrganization } = useOrganization()
@@ -45,12 +49,25 @@ export function useUserDropdownLogic(userProp?: unknown, options: UserDropdownLo
   const { t } = useTranslation('common')
 
   useEffect(() => { setIsMounted(true); initializeTheme() }, [initializeTheme])
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(MOBILE_DROPDOWN_MEDIA_QUERY)
+    const syncViewport = () => setIsMobileViewport(mediaQuery.matches)
+
+    syncViewport()
+    mediaQuery.addEventListener('change', syncViewport)
+    return () => mediaQuery.removeEventListener('change', syncViewport)
+  }, [])
   useEffect(() => setImageError(false), [userProfile?.profile_picture_url, user?.profile_picture_url])
   useEffect(() => {
-    if (!isOpen || !dropdownRef.current) return
+    if (!isOpen) return
+    if (isMobileViewport) {
+      setPos({ top: MOBILE_DROPDOWN_TOP_PX, right: 0 })
+      return
+    }
+    if (!dropdownRef.current) return
     const rect = dropdownRef.current.getBoundingClientRect()
     setPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right })
-  }, [isOpen])
+  }, [isMobileViewport, isOpen])
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const menu = document.getElementById('global-user-dropdown-menu')
@@ -117,11 +134,11 @@ export function useUserDropdownLogic(userProp?: unknown, options: UserDropdownLo
     handleCertificatesClick: () => handleOptionalAction(onCertificatesClick),
     handleLogout, handleNavigation, handleOrganizationSwitch, handleProfileClick, handleUserDashboardNavigation,
     imageError, imageUrl, initials, isAdmin, isB2B, isInstructor, isMounted, isOpen,
-    isOrgAdmin, isOrgSwitcherOpen, language, organizations, pathname, pos, primaryColor,
+    isMobileViewport, isOrgAdmin, isOrgSwitcherOpen, language, organizations, pathname, pos, primaryColor,
     showAnalyticsAction: Boolean(onAnalyticsClick),
     showCertificatesAction: Boolean(onCertificatesClick),
     profilePath, resolvedTheme, roleLabel, setActiveSubmenu, setImageError, setIsOpen,
-    setIsOrgSwitcherOpen, setLanguage,
+    setIsOrgSwitcherOpen, setLanguage, setTheme, theme,
     t, toggleTheme: () => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark'),
     userStatsPath,
   }

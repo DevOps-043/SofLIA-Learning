@@ -54,7 +54,7 @@ export function QuizActivityBlock({
       }}
       onTriggerLiaFeedback={onTriggerLiaFeedback}
       onQuizSubmitted={() => {
-        void onQuizSubmitted();
+        return onQuizSubmitted();
       }}
     />
   );
