@@ -3,6 +3,7 @@ import type { SofLIAMessage } from '@/core/types/lia.types';
 import type { SofLIAPersonalizationSettings } from '@/core/types/soflia-personalization.types';
 import { useLiaSidePanelDictation } from '../useLiaSidePanelDictation';
 import { useLiaSidePanelVoice } from '../useLiaSidePanelVoice';
+import { useLiaLiveVoice } from '../useLiaLiveVoice';
 
 interface UseLiaSidePanelSpeechParams {
   messages: SofLIAMessage[];
@@ -40,6 +41,10 @@ export function useLiaSidePanelSpeech({
     inputRef,
     setInputValue,
   });
+  const liveVoice = useLiaLiveVoice({
+    isOpen,
+    isEnabled: isVoiceEnabled,
+  });
 
-  return { isSpeaking, isVoiceEnabled, isDictationEnabled, ...dictation };
+  return { isSpeaking, isVoiceEnabled, isDictationEnabled, ...dictation, ...liveVoice };
 }

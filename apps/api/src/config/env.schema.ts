@@ -73,6 +73,9 @@ export const envSchema = z.object({
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(1000),
   GOOGLE_OAUTH_CLIENT_ID: z.string().optional(),
   GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
+  GEMINI_API_KEY: z.string().optional(),
+  GOOGLE_API_KEY: z.string().optional(),
+  GEMINI_LIVE_MODEL: z.string().default('gemini-3.5-flash-live'),
 })
 
 export type ParsedEnv = z.infer<typeof envSchema>

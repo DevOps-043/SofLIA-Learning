@@ -1,5 +1,6 @@
 import { ExpandableText } from "@/core/components/ExpandableText";
 import { LessonSupplementaryContent } from "../LessonSupplementaryContent";
+import { ReadableAudioControl } from "../audio/ReadableAudioControl";
 import type { LearnLesson } from "../types";
 
 interface LessonDetailsPanelProps {
@@ -27,9 +28,20 @@ export function LessonDetailsPanel({
     <div data-tour-id="course-learn--lesson-details" className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-500/30 p-6">
       <div className="space-y-4">
         <div>
-          <h2 className="text-2xl font-bold text-primary dark:text-white" style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}>
-            {lesson.lesson_title}
-          </h2>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <h2 className="text-2xl font-bold text-primary dark:text-white" style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}>
+              {lesson.lesson_title}
+            </h2>
+            {lesson.lesson_description ? (
+              <ReadableAudioControl
+                source={{
+                  sourceKind: "lesson_description",
+                  sourceId: lesson.lesson_id,
+                  content: lesson.lesson_description,
+                }}
+              />
+            ) : null}
+          </div>
           {lesson.lesson_description && (
             <ExpandableText text={lesson.lesson_description} maxLines={2} className="mt-2" />
           )}

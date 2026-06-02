@@ -157,6 +157,10 @@ export function MaterialCard({
 
                   {isReading && (
                     <ReadingContentRenderer
+                      audioSource={{
+                        sourceKind: "material_reading",
+                        sourceId: material.material_id,
+                      }}
                       content={
                         material.content_data || material.material_description
                       }

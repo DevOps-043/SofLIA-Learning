@@ -491,6 +491,8 @@
     "fontSizeLarge": "Grande",
     "voice": {
       "listen": "Ouvir",
+      "pause": "Pausar",
+      "resume": "Retomar",
       "stop": "Parar",
       "generating": "Gerando áudio...",
       "error": "Erro de voz"

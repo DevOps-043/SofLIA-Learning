@@ -1,9 +1,14 @@
 import type React from 'react';
 import type { TFunction } from 'i18next';
-import { Loader2, Square, Volume2, VolumeX, ZoomIn } from 'lucide-react';
+import { ZoomIn } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { FormattedContentRenderer } from '../../ContentRenderers';
 import type { LearnActivity } from '../../types';
-import { useActivityVoice, type ActivityVoiceStatus } from './useActivityVoice';
+import {
+  ReadableAudioButton,
+  getReadableAudioLabel,
+} from '../../audio/ReadableAudioButton';
+import { useReadableAudioPlayback } from '../../audio/useReadableAudioPlayback';
 
 interface ReadingActivityContentProps {
   activity: LearnActivity;
@@ -24,16 +29,24 @@ export function ReadingActivityContent({
   zoomIn,
   zoomOut
 }: ReadingActivityContentProps) {
-  const { status, playbackProgress, speak } = useActivityVoice();
+  const { i18n } = useTranslation();
+  const { status, playbackProgress, speak } = useReadableAudioPlayback({
+    sourceKind: activity.activity_type === 'reflection' ? 'activity_reflection' : 'activity_reading',
+    sourceId: activity.activity_id,
+    language: i18n.language,
+    content: activity.activity_content,
+  });
   const isPlaying = status === 'playing';
 
   return (
     <>
       <div className="mb-2 flex items-center justify-end gap-1.5">
-        <VoiceButton
+        <ReadableAudioButton
           status={status}
-          label={getVoiceLabel(status, t)}
-          onClick={() => speak(activity.activity_content)}
+          label={getReadableAudioLabel(status, t)}
+          onClick={() => {
+            void speak();
+          }}
         />
         <div className="h-3 w-px bg-gray-200 dark:bg-white/10" />
         <ZoomIn className="h-3.5 w-3.5 text-gray-400 dark:text-white/30" />
@@ -53,51 +66,6 @@ export function ReadingActivityContent({
         />
       </div>
     </>
-  );
-}
-
-function getVoiceLabel(status: ActivityVoiceStatus, t: TFunction<'learn'>): string {
-  if (status === 'loading') return t('reading.voice.generating');
-  if (status === 'playing') return t('reading.voice.stop');
-  if (status === 'error') return t('reading.voice.error');
-  return t('reading.voice.listen');
-}
-
-function VoiceButton({
-  label,
-  onClick,
-  status,
-}: {
-  label: string;
-  onClick: () => void;
-  status: ActivityVoiceStatus;
-}) {
-  const isLoading = status === 'loading';
-  const isPlaying = status === 'playing';
-  const isError = status === 'error';
-  const isActive = isPlaying || isLoading;
-
-  return (
-    <button
-      type="button"
-      onClick={(event) => {
-        event.stopPropagation();
-        onClick();
-      }}
-      title={label}
-      aria-label={label}
-      className={`flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold transition-colors
-        ${isError ? 'text-red-500 dark:text-red-400' : ''}
-        ${isActive ? 'bg-accent/10 text-accent dark:bg-accent/15 dark:text-accent' : ''}
-        ${!isActive && !isError ? 'text-gray-500 hover:bg-gray-200 dark:text-white/40 dark:hover:bg-white/10' : ''}
-      `}
-    >
-      {isLoading && <Loader2 className="h-3 w-3 animate-spin" />}
-      {isPlaying && <Square className="h-3 w-3 fill-current" />}
-      {isError && <VolumeX className="h-3 w-3" />}
-      {!isLoading && !isPlaying && !isError && <Volume2 className="h-3 w-3" />}
-      <span>{label}</span>
-    </button>
   );
 }
 

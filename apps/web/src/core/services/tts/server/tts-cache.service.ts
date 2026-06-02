@@ -18,16 +18,24 @@ function storagePath(key: string): string {
   return `tts/${key}`;
 }
 
+export function getTTSStoragePath(key: string): string {
+  return storagePath(key);
+}
+
 /**
  * Devuelve el audio cacheado en Supabase Storage o `null` si no existe (o si el
  * service-role no esta configurado). Nunca lanza: el cache es opcional.
  */
 export async function getCachedAudio(key: string): Promise<CachedAudio | null> {
+  return getCachedAudioByStoragePath(storagePath(key));
+}
+
+export async function getCachedAudioByStoragePath(path: string): Promise<CachedAudio | null> {
   try {
     const supabase = createAdminClient();
     const { data, error } = await supabase.storage
       .from(TTS_AUDIO_BUCKET)
-      .download(storagePath(key));
+      .download(path);
 
     if (error || !data) {
       return null;

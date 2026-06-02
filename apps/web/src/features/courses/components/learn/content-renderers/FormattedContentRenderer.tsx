@@ -151,9 +151,25 @@ function getBlockReadingClass(isActive: boolean, isReading: boolean): string {
   // jumps from block A to block B, transitioning both makes them appear
   // half-highlighted for 200 ms, which reads as "flicker".
   if (isActive) {
-    return "border-l-4 border-accent bg-accent/10 pl-3 rounded-r-md dark:bg-accent/20";
+    return "rounded-md bg-accent/10 ring-1 ring-accent/20 dark:bg-accent/20";
   }
-  return "opacity-60";
+  return "";
+}
+
+function scrollIntoViewIfNeeded(element: HTMLElement) {
+  const rect = element.getBoundingClientRect();
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+  const isVisible = rect.top >= 96 && rect.bottom <= viewportHeight - 48;
+
+  if (isVisible) {
+    return;
+  }
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  element.scrollIntoView({
+    behavior: prefersReducedMotion ? 'auto' : 'smooth',
+    block: 'nearest',
+  });
 }
 
 // ─── HTML content reading hook ────────────────────────────────────────────────
@@ -172,6 +188,9 @@ function useHtmlReadingHighlight(
   playbackProgress: number | undefined,
   isPlaying: boolean,
 ) {
+  const activeIndexRef = useRef(-1);
+  const scrollTimeoutRef = useRef<number | null>(null);
+
   useEffect(() => {
     const el = articleRef.current;
     if (!el) return;
@@ -179,6 +198,7 @@ function useHtmlReadingHighlight(
     // Clear all highlights when not playing
     if (!isPlaying || !playbackProgress) {
       el.querySelectorAll('.tts-reading').forEach((n) => n.classList.remove('tts-reading'));
+      activeIndexRef.current = -1;
       return;
     }
 
@@ -209,16 +229,29 @@ function useHtmlReadingHighlight(
       if (charsTarget <= cumulative) { activeIdx = i; break; }
     }
 
-    nodes.forEach((node, i) => {
-      if (i === activeIdx) {
-        if (!node.classList.contains('tts-reading')) {
-          el.querySelectorAll('.tts-reading').forEach((n) => n.classList.remove('tts-reading'));
-          node.classList.add('tts-reading');
-          (node as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
-    });
+    if (activeIdx === activeIndexRef.current) {
+      return;
+    }
+
+    activeIndexRef.current = activeIdx;
+    el.querySelectorAll('.tts-reading').forEach((n) => n.classList.remove('tts-reading'));
+    const activeNode = nodes[activeIdx] as HTMLElement | undefined;
+    if (!activeNode) return;
+
+    activeNode.classList.add('tts-reading');
+    if (scrollTimeoutRef.current) {
+      window.clearTimeout(scrollTimeoutRef.current);
+    }
+    scrollTimeoutRef.current = window.setTimeout(() => {
+      scrollIntoViewIfNeeded(activeNode);
+    }, 120);
   }, [articleRef, playbackProgress, isPlaying]);
+
+  useEffect(() => () => {
+    if (scrollTimeoutRef.current) {
+      window.clearTimeout(scrollTimeoutRef.current);
+    }
+  }, []);
 }
 
 // ─── HTML content renderer ────────────────────────────────────────────────────
@@ -248,8 +281,8 @@ function HtmlContentRenderer({
           "[&_th]:border [&_th]:border-gray-300 [&_th]:bg-gray-100 [&_th]:p-3 [&_th]:text-left",
           "dark:[&_th]:border-white/20 dark:[&_th]:bg-white/10",
           // Active element styling via DOM class (no transition — see plain path)
-          "[&_.tts-reading]:border-l-4 [&_.tts-reading]:border-accent",
-          "[&_.tts-reading]:bg-accent/10 [&_.tts-reading]:pl-3 [&_.tts-reading]:rounded-r-md",
+          "[&_.tts-reading]:bg-accent/10 [&_.tts-reading]:rounded-md",
+          "[&_.tts-reading]:ring-1 [&_.tts-reading]:ring-accent/20",
           "[&_.tts-reading]:dark:bg-accent/20",
         ].join(" ")}
         dangerouslySetInnerHTML={{ __html: sanitized }}
@@ -290,8 +323,6 @@ export function FormattedContentRenderer({
 
   // ── Plain formatted content ────────────────────────────────────────────────
   const formattedContent = buildFormattedContent(readingContent);
-  const totalBlocks = formattedContent.length;
-
   // Map progress to characters read instead of block index — a long paragraph
   // takes much more audio time than a short title, so a linear block mapping
   // makes the highlight "jump" past short titles too fast.
@@ -326,7 +357,12 @@ function FormattedContentWithScroll({
 }) {
   useEffect(() => {
     if (!isPlaying || activeBlockIndex < 0 || !activeBlockRef.current) return;
-    activeBlockRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    const timeoutId = window.setTimeout(() => {
+      if (activeBlockRef.current) {
+        scrollIntoViewIfNeeded(activeBlockRef.current);
+      }
+    }, 120);
+    return () => window.clearTimeout(timeoutId);
   }, [activeBlockIndex, isPlaying, activeBlockRef]);
 
   return (

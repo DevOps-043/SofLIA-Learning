@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 
 import { normalizeContentForRenderer } from "@/lib/course-content";
 import { sanitizeRichHtml } from "@/lib/security/sanitize-html";
+import { ReadableAudioControl } from "../audio/ReadableAudioControl";
+import type { ReadableAudioSource } from "../audio/useReadableAudioPlayback";
 
 const READING_FONT_SIZES = [
   {
@@ -24,7 +26,13 @@ const READING_FONT_SIZES = [
   },
 ] as const;
 
-export function ReadingContentRenderer({ content }: { content: unknown }) {
+export function ReadingContentRenderer({
+  audioSource,
+  content,
+}: {
+  audioSource?: Omit<ReadableAudioSource, "content">;
+  content: unknown;
+}) {
   const { t } = useTranslation("learn");
   const [fontSizeIndex, setFontSizeIndex] = useState(1);
   const readingContent = normalizeContentForRenderer(content);
@@ -35,37 +43,47 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
   }
 
   const fontSizeControls = (
-    <div className="mb-4 flex items-center justify-end gap-2">
-      <span className="text-xs font-medium text-gray-600 dark:text-white/60">
-        {t("reading.fontSize")}
-      </span>
-      <button
-        type="button"
-        onClick={() => setFontSizeIndex((currentIndex) => Math.max(0, currentIndex - 1))}
-        disabled={fontSizeIndex === 0}
-        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 dark:hover:text-accent"
-        aria-label={t("reading.decreaseFontSize")}
-        title={t("reading.decreaseFontSize")}
-      >
-        A-
-      </button>
-      <span className="min-w-20 text-center text-xs text-gray-600 dark:text-white/60">
-        {t(fontSize.labelKey)}
-      </span>
-      <button
-        type="button"
-        onClick={() =>
-          setFontSizeIndex((currentIndex) =>
-            Math.min(READING_FONT_SIZES.length - 1, currentIndex + 1)
-          )
-        }
-        disabled={fontSizeIndex === READING_FONT_SIZES.length - 1}
-        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 dark:hover:text-accent"
-        aria-label={t("reading.increaseFontSize")}
-        title={t("reading.increaseFontSize")}
-      >
-        A+
-      </button>
+    <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+      {audioSource ? (
+        <ReadableAudioControl
+          source={{
+            ...audioSource,
+            content,
+          }}
+        />
+      ) : null}
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-medium text-gray-600 dark:text-white/60">
+          {t("reading.fontSize")}
+        </span>
+        <button
+          type="button"
+          onClick={() => setFontSizeIndex((currentIndex) => Math.max(0, currentIndex - 1))}
+          disabled={fontSizeIndex === 0}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 dark:hover:text-accent"
+          aria-label={t("reading.decreaseFontSize")}
+          title={t("reading.decreaseFontSize")}
+        >
+          A-
+        </button>
+        <span className="min-w-20 text-center text-xs text-gray-600 dark:text-white/60">
+          {t(fontSize.labelKey)}
+        </span>
+        <button
+          type="button"
+          onClick={() =>
+            setFontSizeIndex((currentIndex) =>
+              Math.min(READING_FONT_SIZES.length - 1, currentIndex + 1)
+            )
+          }
+          disabled={fontSizeIndex === READING_FONT_SIZES.length - 1}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 dark:hover:text-accent"
+          aria-label={t("reading.increaseFontSize")}
+          title={t("reading.increaseFontSize")}
+        >
+          A+
+        </button>
+      </div>
     </div>
   );
 

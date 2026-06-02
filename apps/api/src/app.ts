@@ -14,6 +14,7 @@ import { apiRateLimiter } from '@/core/middleware/rate-limit.middleware'
 import { createAdminUsersRouter } from '@/features/admin/users/admin-users.routes'
 import { createBusinessAnalyticsRouter } from '@/features/business/analytics/analytics.routes'
 import { createCoursesRouter } from '@/features/courses/courses.routes'
+import { createLiaLiveRouter } from '@/features/lia/live/lia-live.routes'
 import { createNotificationsRouter } from '@/features/notifications/notifications.routes'
 import { createProfileRouter } from '@/features/profile/profile.routes'
 import { createStudyPlannerRouter } from '@/features/study-planner/study-planner.routes'
@@ -88,6 +89,7 @@ export function createApp() {
   app.use(`/api/${apiVersion}/admin/users`, createAdminUsersRouter())
   app.use(`/api/${apiVersion}/business`, createBusinessAnalyticsRouter())
   app.use(`/api/${apiVersion}/courses`, createCoursesRouter())
+  app.use(`/api/${apiVersion}/lia/live`, createLiaLiveRouter())
   app.use(`/api/${apiVersion}/profile`, createProfileRouter())
   app.use(`/api/${apiVersion}/study-planner`, createStudyPlannerRouter())
 

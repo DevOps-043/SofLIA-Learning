@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 
 import { createLessonMarkdownComponents } from "@/features/courses/components/learn/markdownComponents";
 import type { LearnLesson } from "@/features/courses/components/learn/types";
+import { ReadableAudioControl } from "./audio/ReadableAudioControl";
 
 const summaryMarkdownComponents = createLessonMarkdownComponents({
   includeCode: true,
@@ -146,6 +147,13 @@ export function SummaryContent({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
+        <ReadableAudioControl
+          source={{
+            sourceKind: "lesson_summary",
+            sourceId: lesson.lesson_id,
+            content: summaryContent || "",
+          }}
+        />
         <div className="flex items-center gap-2 rounded-full border border-primary/10 bg-white px-3 py-1.5 text-sm text-gray-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70">
           <div className="h-1.5 w-1.5 rounded-full bg-primary dark:bg-accent" />
           <span className="font-medium">{summaryWordCount}</span>

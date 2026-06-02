@@ -126,6 +126,9 @@
 [functions."process-module-learning-summaries"]
   schedule = "*/5 * * * *"
 
+[functions."process-tts-audio"]
+  schedule = "*/5 * * * *"
+
 
 # Configuración específica para diferentes contextos (opcional)
 # Si no se especifica, se usa el comando de [build]
