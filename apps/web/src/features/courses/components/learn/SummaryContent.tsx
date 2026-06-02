@@ -7,6 +7,8 @@ import { useTranslation } from "react-i18next";
 
 import { createLessonMarkdownComponents } from "@/features/courses/components/learn/markdownComponents";
 import type { LearnLesson } from "@/features/courses/components/learn/types";
+import { ReadingVoiceButton } from "@/features/courses/components/learn/reading-voice/ReadingVoiceButton";
+import { useReadingVoice } from "@/features/courses/components/learn/reading-voice/useReadingVoice";
 
 const summaryMarkdownComponents = createLessonMarkdownComponents({
   includeCode: true,
@@ -33,6 +35,7 @@ export function SummaryContent({
   summaryContent,
 }: SummaryContentProps) {
   const { t } = useTranslation("learn");
+  const { status: voiceStatus, speak: speakSummary } = useReadingVoice();
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -155,6 +158,9 @@ export function SummaryContent({
           <Clock className="h-3.5 w-3.5 text-primary dark:text-accent" />
           <span className="font-medium">{estimatedReadingTime}</span>
           <span className="text-xs">{t("summary.readTime")}</span>
+        </div>
+        <div className="ml-auto">
+          <ReadingVoiceButton status={voiceStatus} t={t} onClick={() => speakSummary(summaryContent)} />
         </div>
       </div>
 

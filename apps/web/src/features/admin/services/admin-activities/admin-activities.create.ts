@@ -1,4 +1,5 @@
 import { logger } from '../../../../lib/logger'
+import { enqueueActivityReadingAudio } from '@/core/services/tts/server/tts-reading-pregeneration.service'
 import { createAdminActivitiesClient } from './admin-activities.client'
 import { updateModuleDurationFromLesson } from './admin-activities.duration'
 import type { AdminActivity, CreateActivityData } from './admin-activities.types'
@@ -60,5 +61,7 @@ export async function createActivity(
   if (error) throw error
   await translateCreatedActivity(data, userId)
   await updateModuleDurationFromLesson(lessonId)
+  // Pre-generación de audio de lectura (best-effort).
+  await enqueueActivityReadingAudio(data)
   return data
 }

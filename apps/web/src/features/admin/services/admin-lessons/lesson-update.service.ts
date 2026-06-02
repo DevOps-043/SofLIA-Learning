@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { enqueueLessonReadingAudio } from '@/core/services/tts/server/tts-reading-pregeneration.service'
 import { updateModuleDuration } from './duration.service'
 import { enrichSingleLesson } from './lesson-enrichment.service'
 import { buildUpdateLessonPayload } from './lesson-mutation-payloads.service'
@@ -25,6 +26,13 @@ export async function updateLesson(
   if (updatedLesson.module_id) {
     await updateModuleDuration(updatedLesson.module_id)
   }
+
+  // Pre-generación de audio (best-effort): si la edición incluyó transcripción
+  // o resumen, reencola su locución. No bloquea ni rompe el guardado.
+  await enqueueLessonReadingAudio(lessonId, {
+    transcript_content: lessonData.transcript_content,
+    summary_content: lessonData.summary_content,
+  })
 
   return enrichSingleLesson(supabase, updatedLesson)
 }

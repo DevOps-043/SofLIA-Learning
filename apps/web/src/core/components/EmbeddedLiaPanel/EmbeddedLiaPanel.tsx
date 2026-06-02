@@ -1,6 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
+import { LiaLiveVoiceButton } from '../lia-live/LiaLiveVoiceButton';
 import { useEmbeddedLiaPanel } from './embedded-lia-panel';
 import {
   EmbeddedLiaComposer,
@@ -134,6 +135,9 @@ export function EmbeddedLiaPanel(props: EmbeddedLiaPanelProps) {
                   <button onClick={() => setVoiceError(null)} className="ml-2 text-red-400 hover:text-red-300">×</button>
                 </div>
               )}
+              <div className="px-3 pb-1 flex justify-center">
+                <LiaLiveVoiceButton />
+              </div>
               <EmbeddedLiaComposer
                 message={message}
                 setMessage={setMessage}

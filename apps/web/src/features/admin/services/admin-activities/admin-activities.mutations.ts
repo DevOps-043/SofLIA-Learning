@@ -1,4 +1,5 @@
 import { logger } from '../../../../lib/logger'
+import { enqueueActivityReadingAudio } from '@/core/services/tts/server/tts-reading-pregeneration.service'
 import { createAdminActivitiesClient } from './admin-activities.client'
 import { updateModuleDurationFromLesson } from './admin-activities.duration'
 import type { AdminActivity, UpdateActivityData } from './admin-activities.types'
@@ -19,6 +20,9 @@ export async function updateActivity(
   if (activityData.estimated_time_minutes !== undefined) {
     await updateModuleDurationFromLesson(data.lesson_id)
   }
+  // Pre-generación de audio (best-effort): si cambió el contenido de lectura,
+  // reencola; no bloquea ni rompe el guardado ante fallo.
+  await enqueueActivityReadingAudio(data)
   return data
 }
 

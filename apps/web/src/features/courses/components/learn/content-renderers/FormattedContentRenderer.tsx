@@ -3,75 +3,16 @@
 import { useEffect, useRef } from "react";
 import { normalizeContentForRenderer } from "@/lib/course-content";
 import { sanitizeRichHtml } from "@/lib/security/sanitize-html";
+import {
+  buildFormattedContent,
+  isHtmlReadingContent,
+  type FormattedContentItem,
+} from "@/lib/reading/reading-segmentation";
 
-type FormattedContentItem = {
-  content: string;
-  type:
-    | "checklist"
-    | "example"
-    | "highlight"
-    | "list"
-    | "main-title"
-    | "paragraph"
-    | "section-title"
-    | "subsection-title";
-  checked?: boolean;
-};
-
-function buildFormattedContent(readingContent: string): FormattedContentItem[] {
-  const lines = readingContent
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  return lines.map((line, index, allLines) => {
-    const checklistMatch = line.match(/^\[([\sxX])\]\s*(.+)$/);
-    if (checklistMatch) {
-      return {
-        checked: checklistMatch[1].toLowerCase() === "x",
-        content: checklistMatch[2].trim(),
-        type: "checklist",
-      } satisfies FormattedContentItem;
-    }
-
-    if (
-      /^(Introducción|Introduccion|Cuerpo|Cierre|Conclusión|Conclusion|Resumen):?$/iu.test(line)
-    ) {
-      return { content: line.replace(/:$/, ""), type: "main-title" } satisfies FormattedContentItem;
-    }
-
-    if (/^(\d+)[.)]\s+(.+)$/u.test(line) && line.length < 120) {
-      return { content: line, type: "subsection-title" } satisfies FormattedContentItem;
-    }
-
-    if (
-      line.length < 90 &&
-      /^[A-ZÁÉÍÓÚÑ][^.!?]*$/u.test(line) &&
-      !line.includes(":") &&
-      index < allLines.length - 1 &&
-      (allLines[index + 1]?.length || 0) > 50
-    ) {
-      return { content: line, type: "section-title" } satisfies FormattedContentItem;
-    }
-
-    if (/^Ejemplos?:?/iu.test(line) || /por ejemplo/iu.test(line)) {
-      return { content: line, type: "example" } satisfies FormattedContentItem;
-    }
-
-    if (
-      (line.startsWith('"') && line.endsWith('"')) ||
-      (line.startsWith("'") && line.endsWith("'"))
-    ) {
-      return { content: line.slice(1, -1), type: "highlight" } satisfies FormattedContentItem;
-    }
-
-    if (/^[-*•]\s+/u.test(line)) {
-      return { content: line.replace(/^[-*•]\s+/u, ""), type: "list" } satisfies FormattedContentItem;
-    }
-
-    return { content: line, type: "paragraph" } satisfies FormattedContentItem;
-  });
-}
+// El subrayado sigue el SEGMENTO que realmente está sonando (`activeSegmentIndex`),
+// alineado 1:1 con los bloques de `buildFormattedContent` (única fuente de verdad
+// en `lib/reading/reading-segmentation.ts`). Antes se estimaba por proporción de
+// caracteres, lo que desincronizaba el subrayado respecto del audio.
 
 function StaticChecklistItem({ checked, content }: { checked: boolean; content: string }) {
   return (
@@ -92,148 +33,86 @@ function StaticChecklistItem({ checked, content }: { checked: boolean; content: 
   );
 }
 
-// ─── Character-proportional active block calculation ─────────────────────────
+// ─── Scroll suave sin parpadeo ────────────────────────────────────────────────
 //
-// Audio time tracks the SPOKEN char count (without markdown markup), not the
-// raw block text length. `**Cuantificación del Costo Oculto:**` reads as
-// "Cuantificación del Costo Oculto:" — 4 chars shorter. If we count raw block
-// text we get an inflated total → progress × total falls beyond what the
-// audio actually read → highlight runs ahead of the voice.
+// En iOS, llamar `scrollIntoView({block:'center'})` en cada cambio mueve la
+// página constantemente y se percibe como parpadeo. Solo desplazamos cuando el
+// bloque activo está FUERA del viewport, y con `block:'nearest'` (mínimo
+// movimiento). Como el índice activo cambia ~1 vez por párrafo (no ~200 veces),
+// los re-renders se reducen drásticamente.
 
-function countSpokenChars(s: string): number {
-  return s
-    .replace(/<[^>]+>/g, '')                         // strip HTML
-    .replace(/\*\*([^*]+)\*\*/g, '$1')               // strip bold **
-    .replace(/__([^_]+)__/g, '$1')                   // strip bold __
-    .replace(/([^*])\*([^*]+)\*([^*])/g, '$1$2$3')   // strip italic *
-    .replace(/`([^`]+)`/g, '$1')                     // strip inline code
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')         // strip markdown links
-    .length;
+function scrollBlockIntoViewIfNeeded(element: HTMLElement) {
+  const rect = element.getBoundingClientRect();
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+  const isFullyVisible = rect.top >= 0 && rect.bottom <= viewportHeight;
+  if (!isFullyVisible) {
+    element.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
 }
 
-function computeActiveBlockByChars(
-  blocks: FormattedContentItem[],
-  progress: number | undefined,
-  isPlaying: boolean | undefined,
-): number {
-  if (!isPlaying || progress === undefined || progress <= 0 || blocks.length === 0) {
-    return -1;
-  }
-
-  // Pre-compute spoken-char counts once per render (matches what TTS read)
-  const lengths = blocks.map((b) => Math.max(countSpokenChars(b.content), 1));
-  const totalChars = lengths.reduce((a, b) => a + b, 0);
-  if (totalChars === 0) return -1;
-
-  // Bias the highlight 2% behind the audio: TTS reads short words faster than
-  // long ones (a pure char-proportional model can't capture that). A small
-  // lag is far less jarring than the highlight running ahead of the voice.
-  const biasedProgress = Math.max(0, progress - 0.02);
-  const charsTarget = biasedProgress * totalChars;
-  let cumulative = 0;
-  for (let i = 0; i < lengths.length; i++) {
-    cumulative += lengths[i];
-    if (charsTarget <= cumulative) return i;
-  }
-  return blocks.length - 1;
-}
-
-// ─── Block reading styles ─────────────────────────────────────────────────────
+// ─── Estilo del bloque en lectura ─────────────────────────────────────────────
 //
-// IMPORTANT: use Tailwind color names (accent, primary) — NOT CSS variable
-// syntax like bg-[var(--color-accent)] — because Tailwind's opacity modifier
-// (/10, /20…) requires the color to be in RGB format internally.
-// With hex CSS variables, /N opacity silently produces transparent.
+// IMPORTANTE: usar nombres de color de Tailwind (accent, primary), NO
+// `bg-[var(--color-accent)]`, porque el modificador de opacidad (/10, /20)
+// requiere color en formato RGB internamente. Sin transición CSS: al saltar de
+// un bloque a otro, transicionar ambos los deja medio-resaltados ~200 ms (flicker).
 
 function getBlockReadingClass(isActive: boolean, isReading: boolean): string {
   if (!isReading) return "";
-  // No CSS transition between active/inactive states — when the highlight
-  // jumps from block A to block B, transitioning both makes them appear
-  // half-highlighted for 200 ms, which reads as "flicker".
   if (isActive) {
     return "border-l-4 border-accent bg-accent/10 pl-3 rounded-r-md dark:bg-accent/20";
   }
   return "opacity-60";
 }
 
-// ─── HTML content reading hook ────────────────────────────────────────────────
+// ─── Subrayado de contenido HTML ──────────────────────────────────────────────
 //
-// For HTML content we can't split into React elements, so we manipulate the
-// DOM directly via a ref. Every time playbackProgress changes we:
-//   1. Remove the active class from the previous element
-//   2. Add it to the estimated current element (progress × total paragraphs)
-//   3. Scroll it into view
-//
-// The Tailwind arbitrary-variant on the article wrapper
-// `[&_.tts-reading]:...` styles the active element without needing a CSS file.
+// El HTML se renderiza vía innerHTML, así que resaltamos por DOM: marcamos el
+// nodo de bloque número `activeSegmentIndex` (mismo orden que segmenta
+// `segmentReadingContent` en cliente → alineado con el audio que suena).
 
 function useHtmlReadingHighlight(
   articleRef: React.RefObject<HTMLElement | null>,
-  playbackProgress: number | undefined,
+  activeSegmentIndex: number,
   isPlaying: boolean,
 ) {
   useEffect(() => {
     const el = articleRef.current;
     if (!el) return;
 
-    // Clear all highlights when not playing
-    if (!isPlaying || !playbackProgress) {
+    const clearHighlights = () =>
       el.querySelectorAll('.tts-reading').forEach((n) => n.classList.remove('tts-reading'));
+
+    if (!isPlaying || activeSegmentIndex < 0) {
+      clearHighlights();
       return;
     }
 
     const nodes = el.querySelectorAll('p, li, h1, h2, h3, h4, h5, blockquote');
-    if (!nodes.length) return;
+    const activeNode = nodes[activeSegmentIndex] as HTMLElement | undefined;
+    if (!activeNode) return;
 
-    // Character-proportional mapping: audio time is proportional to text length,
-    // not to node count. Normalize whitespace to match the TTS hook's char count
-    // — otherwise newlines/indentation from formatted HTML inflate the total
-    // and cause the highlight to drift ahead of the voice.
-    const lengths: number[] = [];
-    let totalChars = 0;
-    nodes.forEach((node) => {
-      const text = (node.textContent ?? '').replace(/\s+/g, ' ').trim();
-      const len = Math.max(text.length, 1);
-      lengths.push(len);
-      totalChars += len;
-    });
-
-    // 2% bias backward: keeps the highlight slightly behind the voice so
-    // pace variations in the TTS don't make it overshoot.
-    const biased = Math.max(0, playbackProgress - 0.02);
-    const charsTarget = biased * totalChars;
-    let cumulative = 0;
-    let activeIdx = nodes.length - 1;
-    for (let i = 0; i < lengths.length; i++) {
-      cumulative += lengths[i];
-      if (charsTarget <= cumulative) { activeIdx = i; break; }
+    if (!activeNode.classList.contains('tts-reading')) {
+      clearHighlights();
+      activeNode.classList.add('tts-reading');
+      scrollBlockIntoViewIfNeeded(activeNode);
     }
-
-    nodes.forEach((node, i) => {
-      if (i === activeIdx) {
-        if (!node.classList.contains('tts-reading')) {
-          el.querySelectorAll('.tts-reading').forEach((n) => n.classList.remove('tts-reading'));
-          node.classList.add('tts-reading');
-          (node as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
-    });
-  }, [articleRef, playbackProgress, isPlaying]);
+  }, [articleRef, activeSegmentIndex, isPlaying]);
 }
 
 // ─── HTML content renderer ────────────────────────────────────────────────────
 
 function HtmlContentRenderer({
   html,
-  playbackProgress,
+  activeSegmentIndex,
   isPlaying,
 }: {
   html: string;
-  playbackProgress: number | undefined;
+  activeSegmentIndex: number;
   isPlaying: boolean;
 }) {
   const articleRef = useRef<HTMLElement | null>(null);
-  useHtmlReadingHighlight(articleRef, playbackProgress, isPlaying);
+  useHtmlReadingHighlight(articleRef, activeSegmentIndex, isPlaying);
   const sanitized = sanitizeRichHtml(html);
 
   return (
@@ -247,7 +126,6 @@ function HtmlContentRenderer({
           "[&_td]:border [&_td]:border-gray-200 [&_td]:p-3 dark:[&_td]:border-white/10",
           "[&_th]:border [&_th]:border-gray-300 [&_th]:bg-gray-100 [&_th]:p-3 [&_th]:text-left",
           "dark:[&_th]:border-white/20 dark:[&_th]:bg-white/10",
-          // Active element styling via DOM class (no transition — see plain path)
           "[&_.tts-reading]:border-l-4 [&_.tts-reading]:border-accent",
           "[&_.tts-reading]:bg-accent/10 [&_.tts-reading]:pl-3 [&_.tts-reading]:rounded-r-md",
           "[&_.tts-reading]:dark:bg-accent/20",
@@ -264,12 +142,13 @@ function HtmlContentRenderer({
 export function FormattedContentRenderer({
   content,
   activityId: _activityId,
-  playbackProgress,
+  activeSegmentIndex = -1,
   isPlaying,
 }: {
   content: unknown;
   activityId?: string;
-  playbackProgress?: number;
+  /** Índice del segmento que se está reproduciendo (-1 si no hay reproducción). */
+  activeSegmentIndex?: number;
   isPlaying?: boolean;
 }) {
   const readingContent = normalizeContentForRenderer(content);
@@ -277,35 +156,26 @@ export function FormattedContentRenderer({
 
   if (!readingContent.trim()) return null;
 
-  // ── HTML rich content ──────────────────────────────────────────────────────
-  if (/<[a-z][\s\S]*>/i.test(readingContent)) {
+  const reading = isPlaying ?? false;
+  const activeIndex = reading ? activeSegmentIndex : -1;
+
+  if (isHtmlReadingContent(readingContent)) {
     return (
       <HtmlContentRenderer
         html={readingContent}
-        playbackProgress={playbackProgress}
-        isPlaying={isPlaying ?? false}
+        activeSegmentIndex={activeIndex}
+        isPlaying={reading}
       />
     );
   }
 
-  // ── Plain formatted content ────────────────────────────────────────────────
   const formattedContent = buildFormattedContent(readingContent);
-  const totalBlocks = formattedContent.length;
-
-  // Map progress to characters read instead of block index — a long paragraph
-  // takes much more audio time than a short title, so a linear block mapping
-  // makes the highlight "jump" past short titles too fast.
-  const activeBlockIndex = computeActiveBlockByChars(
-    formattedContent,
-    playbackProgress,
-    isPlaying,
-  );
 
   return (
     <FormattedContentWithScroll
       formattedContent={formattedContent}
-      activeBlockIndex={activeBlockIndex}
-      isPlaying={isPlaying ?? false}
+      activeBlockIndex={activeIndex}
+      isPlaying={reading}
       activeBlockRef={activeBlockRef}
     />
   );
@@ -326,7 +196,7 @@ function FormattedContentWithScroll({
 }) {
   useEffect(() => {
     if (!isPlaying || activeBlockIndex < 0 || !activeBlockRef.current) return;
-    activeBlockRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    scrollBlockIntoViewIfNeeded(activeBlockRef.current);
   }, [activeBlockIndex, isPlaying, activeBlockRef]);
 
   return (

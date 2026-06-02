@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      tts_reading_audio_jobs: {
+        Row: {
+          content_hash: string
+          created_at: string
+          error_message: string | null
+          id: string
+          language: string
+          last_error_code: string | null
+          locked_by: string | null
+          locked_until: string | null
+          model: string | null
+          next_retry_at: string
+          processing_finished_at: string | null
+          processing_started_at: string | null
+          prompt_version: number
+          retry_count: number
+          segment_count: number
+          source_id: string
+          source_text: string
+          source_type: string
+          status: string
+          updated_at: string
+          voice: string | null
+        }
+        Insert: {
+          content_hash: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          language?: string
+          last_error_code?: string | null
+          locked_by?: string | null
+          locked_until?: string | null
+          model?: string | null
+          next_retry_at?: string
+          processing_finished_at?: string | null
+          processing_started_at?: string | null
+          prompt_version?: number
+          retry_count?: number
+          segment_count?: number
+          source_id: string
+          source_text: string
+          source_type: string
+          status?: string
+          updated_at?: string
+          voice?: string | null
+        }
+        Update: {
+          content_hash?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          language?: string
+          last_error_code?: string | null
+          locked_by?: string | null
+          locked_until?: string | null
+          model?: string | null
+          next_retry_at?: string
+          processing_finished_at?: string | null
+          processing_started_at?: string | null
+          prompt_version?: number
+          retry_count?: number
+          segment_count?: number
+          source_id?: string
+          source_text?: string
+          source_type?: string
+          status?: string
+          updated_at?: string
+          voice?: string | null
+        }
+        Relationships: []
+      }
       admin_dashboard_layouts: {
         Row: {
           created_at: string | null
