@@ -48,6 +48,23 @@ describe('courses API schemas', () => {
     }
 
     expect(quizSubmitSchema.safeParse(validQuiz).success).toBe(true)
+
+    // Validar con durationSeconds válido
+    expect(
+      quizSubmitSchema.safeParse({
+        ...validQuiz,
+        durationSeconds: 120,
+      }).success,
+    ).toBe(true)
+
+    // Validar con durationSeconds inválido (negativo)
+    expect(
+      quizSubmitSchema.safeParse({
+        ...validQuiz,
+        durationSeconds: -5,
+      }).success,
+    ).toBe(false)
+
     expect(
       quizSubmitSchema.safeParse({
         answers: { q1: 1 },

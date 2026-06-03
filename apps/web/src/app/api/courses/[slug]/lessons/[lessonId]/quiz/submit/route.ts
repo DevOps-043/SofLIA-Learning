@@ -168,6 +168,7 @@ async function handlePost(
       materialId,
       activityId,
       totalPoints,
+      durationSeconds,
     } = body
 
     const { data: lesson, error: lessonError } = await supabase
@@ -265,6 +266,7 @@ async function handlePost(
             completed_at: now,
             organization_id: resolvedOrganizationId,
             updated_at: now,
+            duration_seconds: durationSeconds,
           })
           .eq('submission_id', existingSubmission.submission_id)
           .select()
@@ -299,6 +301,7 @@ async function handlePost(
           percentage_score: percentageScore,
           is_passed: isPassed,
           completed_at: now,
+          duration_seconds: durationSeconds,
         })
         .select()
         .single()

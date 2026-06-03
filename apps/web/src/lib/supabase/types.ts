@@ -7559,6 +7559,7 @@ export type Database = {
           activity_id: string | null
           completed_at: string | null
           created_at: string | null
+          duration_seconds: number | null
           enrollment_id: string
           is_passed: boolean | null
           lesson_id: string
@@ -7576,6 +7577,7 @@ export type Database = {
           activity_id?: string | null
           completed_at?: string | null
           created_at?: string | null
+          duration_seconds?: number | null
           enrollment_id: string
           is_passed?: boolean | null
           lesson_id: string
@@ -7593,6 +7595,7 @@ export type Database = {
           activity_id?: string | null
           completed_at?: string | null
           created_at?: string | null
+          duration_seconds?: number | null
           enrollment_id?: string
           is_passed?: boolean | null
           lesson_id?: string

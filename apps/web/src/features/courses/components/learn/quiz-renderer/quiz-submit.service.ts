@@ -13,6 +13,7 @@ export async function submitQuizResults({
   setSubmitError,
   slug,
   totalPoints,
+  durationSeconds,
 }: SubmitQuizResultsParams): Promise<void> {
   try {
     const response = await fetch(`/api/courses/${slug}/lessons/${lessonId}/quiz/submit`, {
@@ -25,6 +26,7 @@ export async function submitQuizResults({
         activityId: activityId || null,
         organizationId,
         totalPoints,
+        durationSeconds,
       }),
     });
 

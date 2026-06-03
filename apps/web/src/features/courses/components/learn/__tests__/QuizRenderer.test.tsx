@@ -242,4 +242,47 @@ describe('QuizRenderer', () => {
     expect(screen.getByLabelText(/incorrecto/i)).toBeInTheDocument()
     expect(screen.queryByLabelText(/^correcto$/i)).not.toBeInTheDocument()
   })
+
+  it('runs the mobile Kahoot mode workflow and counts timer correctly', async () => {
+    const originalWidth = window.innerWidth
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 375 })
+    window.dispatchEvent(new Event('resize'))
+
+    vi.useFakeTimers()
+
+    render(<QuizRenderer quizData={quizData} totalPoints={2} />)
+
+    expect(screen.getByText(/Cuestionario Listo/i)).toBeInTheDocument()
+    const startButton = screen.getByRole('button', { name: /Comenzar Cuestionario/i })
+    expect(startButton).toBeInTheDocument()
+
+    fireEvent.click(startButton)
+
+    expect(screen.getByText(/Prepárate/i)).toBeInTheDocument()
+    
+    await vi.advanceTimersByTimeAsync(1000) // to 2
+    await vi.advanceTimersByTimeAsync(1000) // to 1
+    await vi.advanceTimersByTimeAsync(1000) // to 0
+    await vi.advanceTimersByTimeAsync(800)  // finish countdown
+
+    expect(screen.queryByText(/Prepárate/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/Que sigla corresponde a Risk Management Framework/i)).toBeInTheDocument()
+
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(screen.getByText('00:05')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('radio', { name: /RMF/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /Siguiente/i }))
+    expect(screen.getByText(/Que practica reduce el riesgo operativo/i)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('radio', { name: /Documentar controles/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /Enviar respuestas/i }))
+
+    expect(screen.getByText(/Aprobado/i)).toBeInTheDocument()
+
+    vi.useRealTimers()
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: originalWidth })
+  })
 })

@@ -6,6 +6,7 @@ interface QuizSubmitButtonProps {
   onSubmit: () => void;
   selectedAnswerCount: number;
   totalQuestions: number;
+  noBorder?: boolean;
 }
 
 export function QuizSubmitButton({
@@ -13,11 +14,12 @@ export function QuizSubmitButton({
   onSubmit,
   selectedAnswerCount,
   totalQuestions,
+  noBorder = false,
 }: QuizSubmitButtonProps) {
   const { t } = useTranslation("learn");
 
   return (
-    <div className="flex justify-end pt-3 border-t border-white/5">
+    <div className={noBorder ? "flex justify-end" : "flex justify-end pt-3 border-t border-gray-200 dark:border-white/5"}>
       <button
         onClick={onSubmit}
         disabled={selectedAnswerCount < totalQuestions || isSubmitting}
