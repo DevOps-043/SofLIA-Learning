@@ -37,4 +37,5 @@ export type SubmitQuizResultsParams = {
   setSubmitError: (error: string | null) => void;
   slug: string;
   totalPoints?: number;
+  durationSeconds?: number;
 };

@@ -51,7 +51,7 @@ export function useQuizSubmitHandler({
   slug,
   totalPoints,
 }: UseQuizSubmitHandlerParams) {
-  return async () => {
+  return async (durationSeconds?: number) => {
     const unansweredQuestions = normalizedQuizData.filter(question => selectedAnswers[question.id] === undefined);
 
     if (unansweredQuestions.length > 0) {
@@ -77,6 +77,7 @@ export function useQuizSubmitHandler({
           setSubmitError,
           slug,
           totalPoints,
+          durationSeconds,
         });
       }
 

@@ -25,7 +25,7 @@ export function QuizQuestionCard({
         ? isCorrect
           ? "border-emerald-500/30 bg-emerald-500/5"
           : "border-red-500/30 bg-red-500/5"
-        : "border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/[0.02]"
+        : "border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.02]"
     }`}>
       <div className="px-4 py-3 border-b border-gray-200 dark:border-white/5 flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 flex-1">

@@ -147,6 +147,7 @@ export const quizSubmitSchema = z
   .object({
     activityId: z.string().trim().min(1).max(120).optional().nullable(),
     answers: quizAnswersSchema,
+    durationSeconds: z.number().int().nonnegative().optional().nullable(),
     materialId: z.string().trim().min(1).max(120).optional().nullable(),
     organizationId: z.string().uuid().optional().nullable(),
     quizData: z.union([

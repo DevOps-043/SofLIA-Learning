@@ -35,6 +35,7 @@ export function useQuizRendererState({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [serverMessage, setServerMessage] = useState<string | null>(null);
   const [hydratedSubmissionKey, setHydratedSubmissionKey] = useState<string | null>(initialState.hydratedSubmissionKey);
+  const [startTime, setStartTime] = useState<number>(() => Date.now());
   const totalQuestions = normalizedQuizData.length;
   const percentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
   const passed = percentage >= PASSING_THRESHOLD;
@@ -65,9 +66,10 @@ export function useQuizRendererState({
     setPointsEarned(0);
     setSubmitError(null);
     setServerMessage(null);
+    setStartTime(Date.now());
   };
 
-  const handleSubmit = useQuizSubmitHandler({
+  const submitHandler = useQuizSubmitHandler({
     activityId,
     lessonId,
     materialId,
@@ -86,6 +88,11 @@ export function useQuizRendererState({
     slug,
     totalPoints,
   });
+
+  const handleSubmit = async () => {
+    const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+    await submitHandler(elapsedSeconds);
+  };
 
   return {
     handleAnswerSelect,
