@@ -1,6 +1,5 @@
-import OpenAI from 'openai'
-
 import { convertNoteMarkdownToHtml } from '@/core/components/NotesModal/shared/notes-markdown-to-html.service'
+import { generateGeminiText, resolveGeminiModel } from '@/lib/gemini/client'
 import { logger } from '@/lib/logger'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
@@ -137,8 +136,8 @@ function getRetryDelayMs(retryCount: number) {
 
 function getErrorCode(error: unknown) {
   if (error instanceof Error) {
-    if (error.message.includes('OPENAI_API_KEY')) {
-      return 'missing_openai_api_key'
+    if (error.message.includes('GEMINI_API_KEY')) {
+      return 'missing_gemini_api_key'
     }
 
     if (error.message.toLowerCase().includes('rate')) {
@@ -455,33 +454,25 @@ function buildPrompt(sourceContext: string) {
 }
 
 async function generateSummaryMarkdown(sourceContext: string) {
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY no esta configurada.')
-  }
-
-  const model = process.env.MODULE_LEARNING_SUMMARY_MODEL || 'gpt-4o-mini'
-  const openai = new OpenAI({ apiKey })
-  const completion = await openai.chat.completions.create({
+  const model = resolveGeminiModel(
+    process.env.MODULE_LEARNING_SUMMARY_MODEL,
+    'gemini-3.5-flash',
+  )
+  const result = await generateGeminiText({
+    circuitBreakerName: 'gemini-module-learning-summary',
+    generationConfig: {
+      maxOutputTokens: 4500,
+      temperature: 0.45,
+    },
     model,
-    messages: [
-      {
-        role: 'system',
-        content:
-          'Responde solo con el contenido Markdown del apunte. No incluyas notas internas.',
-      },
-      {
-        role: 'user',
-        content: buildPrompt(sourceContext),
-      },
-    ],
-    temperature: 0.45,
-    max_tokens: 4500,
+    prompt: buildPrompt(sourceContext),
+    systemInstruction:
+      'Responde solo con el contenido Markdown del apunte. No incluyas notas internas.',
   })
 
-  const content = completion.choices[0]?.message?.content?.trim()
+  const content = result.text.trim()
   if (!content) {
-    throw new Error('OpenAI no devolvio contenido para el apunte.')
+    throw new Error('Gemini no devolvio contenido para el apunte.')
   }
 
   return {
@@ -654,7 +645,7 @@ export class ModuleLearningSummaryService {
         status: 'generating',
         generation_type: generationType,
         source_snapshot: { schemaVersion: 1, generatedFrom: null } as Json,
-        model_provider: 'openai',
+        model_provider: 'gemini',
         prompt_version: MODULE_LEARNING_SUMMARY_PROMPT_VERSION,
       })
       .select(MODULE_LEARNING_SUMMARY_SELECT_FIELDS)

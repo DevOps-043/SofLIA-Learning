@@ -122,7 +122,7 @@ export async function POST(
     if (!note_title || typeof note_title !== 'string' || note_title.trim().length === 0) {
       try {
         const googleApiKey = process.env.GOOGLE_API_KEY;
-        const geminiModel = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+        const geminiModel = process.env.GEMINI_MODEL || "gemini-3.5-flash";
 
         if (googleApiKey) {
           const genAI = new GoogleGenerativeAI(googleApiKey);

@@ -89,9 +89,6 @@
               "database": {
                 "$ref": "#/components/schemas/HealthDependency"
               },
-              "openai": {
-                "$ref": "#/components/schemas/HealthDependency"
-              },
               "gemini": {
                 "$ref": "#/components/schemas/HealthDependency"
               },
@@ -101,7 +98,6 @@
             },
             "required": [
               "database",
-              "openai",
               "gemini",
               "observability"
             ]

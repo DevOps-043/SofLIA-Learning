@@ -1740,6 +1740,57 @@ CREATE TABLE public.transactions (
   CONSTRAINT transactions_payment_method_id_fkey FOREIGN KEY (payment_method_id) REFERENCES public.payment_methods(payment_method_id),
   CONSTRAINT transactions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
+CREATE TABLE public.tts_reading_audio_jobs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  source_type text NOT NULL CHECK (source_type = ANY (ARRAY['activity_reading'::text, 'material_reading'::text, 'lesson_transcript'::text, 'lesson_summary'::text])),
+  source_id uuid NOT NULL,
+  language text NOT NULL DEFAULT 'es'::text CHECK (language = ANY (ARRAY['es'::text, 'en'::text, 'pt'::text])),
+  content_hash text NOT NULL,
+  source_text text NOT NULL,
+  voice text,
+  model text,
+  prompt_version integer NOT NULL DEFAULT 1,
+  segment_count integer NOT NULL DEFAULT 0,
+  status text NOT NULL DEFAULT 'pending'::text,
+  retry_count integer NOT NULL DEFAULT 0,
+  next_retry_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  locked_by text,
+  locked_until timestamp with time zone,
+  last_error_code text,
+  error_message text,
+  processing_started_at timestamp with time zone,
+  processing_finished_at timestamp with time zone,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT tts_reading_audio_jobs_pkey PRIMARY KEY (id),
+  CONSTRAINT tts_reading_audio_jobs_source_unique UNIQUE (source_type, source_id, language, content_hash)
+);
+CREATE TABLE public.tts_reading_audio_assets (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  job_id uuid,
+  source_type text NOT NULL CHECK (source_type = ANY (ARRAY['activity_reading'::text, 'material_reading'::text, 'lesson_transcript'::text, 'lesson_summary'::text])),
+  source_id uuid NOT NULL,
+  lesson_id uuid,
+  language text NOT NULL DEFAULT 'es'::text CHECK (language = ANY (ARRAY['es'::text, 'en'::text, 'pt'::text])),
+  content_hash text NOT NULL,
+  segment_index integer NOT NULL CHECK (segment_index >= 0),
+  segment_context text NOT NULL DEFAULT 'reading_continuation'::text CHECK (segment_context = ANY (ARRAY['reading'::text, 'reading_continuation'::text])),
+  bucket text NOT NULL DEFAULT 'tts-audio'::text,
+  storage_path text NOT NULL,
+  content_type text NOT NULL DEFAULT 'audio/wav'::text,
+  byte_length integer,
+  voice text,
+  model text,
+  prompt_version integer NOT NULL DEFAULT 1,
+  generated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT tts_reading_audio_assets_pkey PRIMARY KEY (id),
+  CONSTRAINT tts_reading_audio_assets_source_unique UNIQUE (source_type, source_id, language, content_hash, segment_index),
+  CONSTRAINT tts_reading_audio_assets_storage_unique UNIQUE (bucket, storage_path),
+  CONSTRAINT tts_reading_audio_assets_job_id_fkey FOREIGN KEY (job_id) REFERENCES public.tts_reading_audio_jobs(id),
+  CONSTRAINT tts_reading_audio_assets_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.course_lessons(lesson_id)
+);
 CREATE TABLE public.user_activity_evaluations (
   evaluation_id uuid NOT NULL DEFAULT gen_random_uuid(),
   submission_id uuid NOT NULL,
@@ -1960,6 +2011,26 @@ CREATE TABLE public.user_lesson_progress (
   CONSTRAINT user_lesson_progress_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.course_lessons(lesson_id),
   CONSTRAINT user_lesson_progress_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
   CONSTRAINT user_lesson_progress_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
+);
+CREATE TABLE public.user_reading_audio_progress (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  organization_id uuid,
+  lesson_id uuid NOT NULL,
+  source_type text NOT NULL CHECK (source_type = ANY (ARRAY['activity_reading'::text, 'material_reading'::text, 'lesson_transcript'::text, 'lesson_summary'::text])),
+  source_id uuid NOT NULL,
+  language text NOT NULL DEFAULT 'es'::text CHECK (language = ANY (ARRAY['es'::text, 'en'::text, 'pt'::text])),
+  content_hash text NOT NULL,
+  segment_index integer NOT NULL DEFAULT 0 CHECK (segment_index >= 0),
+  segment_time_seconds numeric NOT NULL DEFAULT 0 CHECK (segment_time_seconds >= 0),
+  completed boolean NOT NULL DEFAULT false,
+  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT user_reading_audio_progress_pkey PRIMARY KEY (id),
+  CONSTRAINT user_reading_audio_progress_source_unique UNIQUE (user_id, source_type, source_id, language, content_hash),
+  CONSTRAINT user_reading_audio_progress_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT user_reading_audio_progress_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
+  CONSTRAINT user_reading_audio_progress_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.course_lessons(lesson_id)
 );
 CREATE TABLE public.user_notification_preferences (
   preference_id uuid NOT NULL DEFAULT gen_random_uuid(),

@@ -17,11 +17,11 @@ export async function translateAndSaveEntity({
   context,
   userId,
   supabaseClient,
-  requireOpenAiKey,
+  requireGeminiKey,
 }: TranslationEntityConfig): Promise<TranslationResult> {
-  if (requireOpenAiKey && !process.env.OPENAI_API_KEY) {
-    techDebtLogger.error('[CourseTranslation] OPENAI_API_KEY no esta configurada.');
-    return createFailedTranslationResult('OPENAI_API_KEY no esta configurada en las variables de entorno');
+  if (requireGeminiKey && !(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY)) {
+    techDebtLogger.error('[CourseTranslation] GEMINI_API_KEY no esta configurada.');
+    return createFailedTranslationResult('GEMINI_API_KEY no esta configurada en las variables de entorno');
   }
 
   const supabase = supabaseClient || await createClient();

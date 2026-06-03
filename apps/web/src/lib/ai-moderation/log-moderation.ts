@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { OPENAI_MODEL } from './config'
+import { AI_MODERATION_MODEL } from './config'
 import type { AIModerationResult } from './types'
 
 type ModerationRpcClient = {
@@ -29,7 +29,7 @@ export async function logAIModerationAnalysis(
         p_confidence_score: result.confidence,
         p_categories: JSON.stringify(result.categories),
         p_reasoning: result.reasoning,
-        p_model_used: OPENAI_MODEL,
+        p_model_used: AI_MODERATION_MODEL,
         p_api_response: null,
         p_processing_time_ms: result.processingTimeMs,
       },

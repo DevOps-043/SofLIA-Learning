@@ -284,7 +284,7 @@ export async function GET(request: NextRequest) {
           percentage: Math.round((count / conversationIds.length) * 100)
         })),
         modelsUsed: Object.entries(modelCounts).map(([model, count]) => ({
-          model: model.replace('gpt-', '').replace('openai/', ''),
+          model: model.replace('gemini-', 'Gemini '),
           count
         })),
         activityDates,

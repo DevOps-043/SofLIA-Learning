@@ -12,6 +12,7 @@ export const dynamic = 'force-dynamic'
 
 const DEFAULT_BATCH = 100
 const MAX_BATCH = 300
+const TARGET_ACTIVITY_TYPE = 'reflection'
 
 type BackfillResource = 'activities' | 'lessons'
 
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest) {
       const { data, error } = await supabase
         .from('lesson_activities')
         .select('activity_id, activity_type, activity_content')
+        .eq('activity_type', TARGET_ACTIVITY_TYPE)
         .not('activity_content', 'is', null)
         .order('activity_id', { ascending: true })
         .range(offset, offset + limit - 1)

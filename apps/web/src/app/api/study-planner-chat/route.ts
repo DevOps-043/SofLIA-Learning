@@ -53,7 +53,7 @@ async function handlePost(
     logger.info('Usuario:', userName || userId || 'Anonimo');
 
     const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.5-flash',
       safetySettings: [
         {
           category: HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -148,7 +148,7 @@ async function handlePost(
 
     return NextResponse.json({
       response: responseText,
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.5-flash',
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

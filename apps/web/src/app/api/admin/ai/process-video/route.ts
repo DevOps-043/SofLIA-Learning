@@ -83,7 +83,7 @@ async function handlePost(_request: NextRequest, body: ProcessVideoBody) {
 
     const genAI = new GoogleGenerativeAI(googleApiKey)
     const model = genAI.getGenerativeModel({
-      model: process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp',
+      model: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
       generationConfig: { responseMimeType: 'application/json' },
     })
 

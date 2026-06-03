@@ -23,7 +23,6 @@ export const AUTOMATED_UA_PATTERNS = [
   /bot/i,
   /browserless/i,
   /automation/i,
-  /openai/i,
   /codex/i,
   /browser-use/i,
 ]

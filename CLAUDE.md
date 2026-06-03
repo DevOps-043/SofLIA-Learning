@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - State Management: Zustand 5.0.2
 - UI Components: Radix UI, Headless UI, custom components with Framer Motion 12.23.26
 - Data Visualization: Nivo charts (v0.99.0), Recharts 3.x, Tremor
-- AI Integration: OpenAI GPT-4o-mini (SofLIA assistant), Google Gemini 2.5 (Study Planner dashboard chat)
+- AI Integration: Google Gemini (SofLIA assistant and Study Planner dashboard chat)
 - Internationalization: next-i18next, react-i18next (Spanish, English, Portuguese)
 - Calendar: FullCalendar 6.x (Study Planner)
 - Session Recording: rrweb
@@ -135,7 +135,7 @@ shared/    → Cannot import from anywhere (pure infrastructure)
 | `app/` | Next.js App Router pages (Server Components by default) |
 | `features/` | Business domain features (self-contained, 22 modules) |
 | `core/` | Cross-cutting logic: stores (Zustand), providers, services/api.ts (Axios), i18n |
-| `lib/` | Infrastructure: supabase/, openai/, lia/, lia-context/, schemas/, auth/, rate-limit/, oauth/, rrweb/, scorm/, analytics/, cache/, sanitize/, upload/, validation/, middleware/, logger/, subscription/, holidays/, nanobana/ |
+| `lib/` | Infrastructure: supabase/, gemini/, ai/, lia/, lia-context/, schemas/, auth/, rate-limit/, oauth/, rrweb/, scorm/, analytics/, cache/, sanitize/, upload/, validation/, middleware/, logger/, subscription/, holidays/, nanobana/ |
 | `shared/` | Pure infrastructure: generic hooks (useDebounce), utility functions |
 
 ### Backend Organization (apps/api/src/)
@@ -397,7 +397,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 # Backend (.env)
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
-OPENAI_API_KEY=
+GOOGLE_API_KEY=
+GEMINI_API_KEY=
 USER_JWT_SECRET=
 ```
 
@@ -496,10 +497,10 @@ Full org-level analytics for the business admin (`Business` role):
 
 ## SofLIA (AI Assistant)
 
-AI-powered chatbot (formerly "LIA") using OpenAI GPT-4o-mini:
+AI-powered chatbot (formerly "LIA") using Google Gemini:
 - Feature: `features/lia/` (chat UI, history, hooks)
-- Config: `lib/lia/`, `lib/lia-context/`, `lib/openai/`
-- Model settings: `CHATBOT_MODEL`, `CHATBOT_MAX_TOKENS`, `CHATBOT_TEMPERATURE`
+- Config: `lib/lia/`, `lib/lia-context/`, `lib/gemini/`, `lib/ai/`
+- Model settings: `GEMINI_MODEL`, `GEMINI_MAX_TOKENS`, `GEMINI_TEMPERATURE`
 - Multilingual (ES, EN, PT) with automatic language detection
 - Context-aware help: course lessons, study planner, dashboard, general
 - Persistent conversation history with editable titles
@@ -510,7 +511,7 @@ AI-powered chatbot (formerly "LIA") using OpenAI GPT-4o-mini:
 The study planner has been significantly expanded beyond the base module:
 
 **AI Engine:**
-- Dashboard chat uses **Google Gemini 2.5** (`@google/generative-ai`) — NOT OpenAI
+- Dashboard chat uses **Google Gemini 2.5** (`@google/generative-ai`)
 - Anti-hallucination prompt system v2.0 (`prompts/study-planner.prompt.rules.ts`) with REGLA #00 date safety protocol
 - Proactive session actions via `<action>JSON</action>` tags: `rebalance_plan`, `move_session`, `delete_session`, `create_session`, `recover_missed_session`, `reduce_session_load`
 

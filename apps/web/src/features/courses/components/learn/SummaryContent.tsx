@@ -35,7 +35,12 @@ export function SummaryContent({
   summaryContent,
 }: SummaryContentProps) {
   const { t } = useTranslation("learn");
-  const { status: voiceStatus, speak: speakSummary } = useReadingVoice();
+  const { status: voiceStatus, speak: speakSummary } = useReadingVoice({
+    lessonId: lesson.lesson_id,
+    slug,
+    sourceId: lesson.lesson_id,
+    sourceType: "lesson_summary",
+  });
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -160,7 +165,7 @@ export function SummaryContent({
           <span className="text-xs">{t("summary.readTime")}</span>
         </div>
         <div className="ml-auto">
-          <ReadingVoiceButton status={voiceStatus} t={t} onClick={() => speakSummary(summaryContent)} />
+          <ReadingVoiceButton status={voiceStatus} t={t} onClick={() => void speakSummary()} />
         </div>
       </div>
 

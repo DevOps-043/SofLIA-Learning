@@ -15,7 +15,7 @@ import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core'
 async function generateNoteTitle(noteContent: string): Promise<string> {
   try {
     const googleApiKey = process.env.GOOGLE_API_KEY
-    const geminiModel = process.env.GEMINI_MODEL || 'gemini-1.5-flash'
+    const geminiModel = process.env.GEMINI_MODEL || 'gemini-3.5-flash'
 
     if (!googleApiKey) {
       return 'Nota de estudio'

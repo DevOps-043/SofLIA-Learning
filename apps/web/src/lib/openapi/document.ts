@@ -34,7 +34,6 @@ const HealthResponseSchema = registry.register(
     correlationId: z.string(),
     checks: z.object({
       database: HealthDependencySchema,
-      openai: HealthDependencySchema,
       gemini: HealthDependencySchema,
       observability: HealthDependencySchema,
     }),

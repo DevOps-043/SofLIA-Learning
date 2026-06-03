@@ -149,8 +149,8 @@ export async function GET(request: NextRequest) {
         allTranslationsLoaded: Object.values(translationTests).every((translationTest) => translationTest.success)
       },
       environment: {
-        hasOpenAIKey: !!process.env.OPENAI_API_KEY,
-        openAIModel: process.env.OPENAI_MODEL || 'gpt-4o-mini'
+        hasGeminiKey: !!(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY),
+        geminiModel: process.env.GEMINI_MODEL || 'gemini-3.5-flash'
       }
     })
   } catch (error) {

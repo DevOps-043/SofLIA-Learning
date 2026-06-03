@@ -5,6 +5,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSofLIAPersonalization } from '../../../hooks/useSofLIAPersonalization';
 import { getElevenLabsVoiceSettings, getWebSpeechVoiceSettings } from '../../../utils/tts-voice-settings';
 import { isTTSAbortError, playAudioBlob, requestTTSAudio, speakWithWebSpeech } from '../../../services/tts';
+import { chunkSpeechText } from '../../../services/tts/client/speech-chunker';
+import { cleanTextForSpeech } from '../../../services/tts/client/clean-text';
 
 interface SpeechErrorEvent { error: string }
 interface SpeechResultEvent { results: Array<Array<{ transcript: string }>> }
@@ -75,82 +77,86 @@ export function useAIChatVoice(language: string, tCommon: (key: string) => strin
     return () => { stopAllAudio(); };
   }, [stopAllAudio]);
 
-  const cleanTextForTTS = useCallback((text: string): string => {
-    if (!text) return text;
-    let cleaned = text;
-    cleaned = cleaned.replace(/```[\w]*\n?[\s\S]*?```/g, '');
-    cleaned = cleaned.replace(/^#{1,6}\s+/gm, '');
-    cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '$1');
-    cleaned = cleaned.replace(/__([^_]+)__/g, '$1');
-    cleaned = cleaned.replace(/([^*\n])\*([^*\n]+)\*([^*\n])/g, '$1$2$3');
-    cleaned = cleaned.replace(/([^_\n])_([^_\n]+)_([^_\n])/g, '$1$2$3');
-    cleaned = cleaned.replace(/`([^`]+)`/g, '$1');
-    cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
-    cleaned = cleaned.replace(/!\[([^\]]*)\]\([^)]+\)/g, '');
-    cleaned = cleaned.replace(/^>\s+/gm, '');
-    cleaned = cleaned.replace(/^[-*]{3,}$/gm, '');
-    cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
-    cleaned = cleaned.replace(/[ \t]+/g, ' ');
-    return cleaned.trim();
-  }, []);
-
   const speakText = useCallback(async (text: string) => {
     if (!isVoiceEnabled || typeof window === 'undefined') return;
 
-    const cleanedText = cleanTextForTTS(text);
+    const cleanedText = cleanTextForSpeech(text);
     if (!cleanedText || cleanedText.trim().length === 0) return;
 
     stopAllAudio();
 
+    const webSpeechSettings = getWebSpeechVoiceSettings(liaSettings);
+    const elevenLabsSettings = getElevenLabsVoiceSettings(liaSettings);
+    const controller = new AbortController();
+    ttsAbortRef.current = controller;
+
+    // Troceo: sintetizamos y reproducimos el PRIMER fragmento de inmediato
+    // mientras prefetcheamos el siguiente. Así el audio empieza en ~2-4 s en
+    // lugar de esperar a sintetizar toda la respuesta (~15 s).
+    const chunks = chunkSpeechText(cleanedText);
+    if (chunks.length === 0) return;
+
+    const requestChunk = (chunk: string) =>
+      requestTTSAudio({ text: chunk, voiceSettings: elevenLabsSettings, context: 'chat' }, controller.signal);
+
+    let prefetched: Promise<Blob | null> | null = null;
+
     try {
       setIsSpeaking(true);
 
-      const webSpeechSettings = getWebSpeechVoiceSettings(liaSettings);
-      const elevenLabsSettings = getElevenLabsVoiceSettings(liaSettings);
-      const controller = new AbortController();
-      ttsAbortRef.current = controller;
+      for (let i = 0; i < chunks.length; i += 1) {
+        if (controller.signal.aborted) break;
 
-      const audioBlob = await requestTTSAudio(
-        {
-          text: cleanedText,
-          voiceSettings: elevenLabsSettings,
-        },
-        controller.signal
-      );
+        const blobPromise = prefetched ?? requestChunk(chunks[i]);
+        prefetched = null;
 
-      if (ttsAbortRef.current && ttsAbortRef.current.signal.aborted) {
-        ttsAbortRef.current = null;
-        return;
-      }
-
-      if (!audioBlob) {
-        speakWithWebSpeech(
-          cleanedText,
-          utteranceRef,
-          {
-            lang: SPEECH_LANGUAGE_MAP[language] || 'es-ES',
-            ...webSpeechSettings,
-          },
-          () => setIsSpeaking(false)
-        );
-        if (ttsAbortRef.current === controller) {
-          ttsAbortRef.current = null;
+        let blob: Blob | null;
+        try {
+          blob = await blobPromise;
+        } catch (chunkError) {
+          if (isTTSAbortError(chunkError)) break;
+          throw chunkError;
         }
-        return;
+
+        if (controller.signal.aborted || ttsAbortRef.current !== controller) break;
+
+        // Proveedor de TTS no disponible (503): fallback a Web Speech con el
+        // texto completo (solo en el primer fragmento; si ya sonó algo, paramos).
+        if (!blob) {
+          if (i === 0) {
+            speakWithWebSpeech(
+              cleanedText,
+              utteranceRef,
+              { lang: SPEECH_LANGUAGE_MAP[language] || 'es-ES', ...webSpeechSettings },
+              () => setIsSpeaking(false),
+            );
+            if (ttsAbortRef.current === controller) ttsAbortRef.current = null;
+            return;
+          }
+          break;
+        }
+
+        // Prefetch del siguiente fragmento durante la reproducción del actual.
+        if (i + 1 < chunks.length) {
+          prefetched = requestChunk(chunks[i + 1]);
+          prefetched.catch(() => { /* se maneja al await en la próxima iteración */ });
+        }
+
+        await new Promise<void>((resolve) => {
+          playAudioBlob(blob, audioRef, { onFinish: () => resolve() }).catch(() => resolve());
+          if (controller.signal.aborted) { resolve(); return; }
+          controller.signal.addEventListener('abort', () => resolve(), { once: true });
+        });
       }
-
-      await playAudioBlob(audioBlob, audioRef, {
-        onFinish: () => setIsSpeaking(false),
-      });
-
-      if (ttsAbortRef.current === controller) ttsAbortRef.current = null;
     } catch (error: unknown) {
       if (!isTTSAbortError(error)) {
-        techDebtLogger.error('Error en sÃ­ntesis de voz con ElevenLabs:', error);
+        techDebtLogger.error('Error en sintesis de voz:', error);
       }
-      setIsSpeaking(false);
+    } finally {
+      if (!controller.signal.aborted) setIsSpeaking(false);
+      if (ttsAbortRef.current === controller) ttsAbortRef.current = null;
     }
-  }, [isVoiceEnabled, language, stopAllAudio, cleanTextForTTS, liaSettings]);
+  }, [isVoiceEnabled, language, stopAllAudio, liaSettings]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

@@ -55,7 +55,16 @@ export function TranscriptContent({
   transcriptContent,
 }: TranscriptContentProps) {
   const { t } = useTranslation("learn");
-  const { status: voiceStatus, speak: speakTranscript } = useReadingVoice();
+  const { status: voiceStatus, speak: speakTranscript } = useReadingVoice(
+    lesson
+      ? {
+          lessonId: lesson.lesson_id,
+          slug,
+          sourceId: lesson.lesson_id,
+          sourceType: "lesson_transcript",
+        }
+      : null
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -184,7 +193,7 @@ export function TranscriptContent({
           <span className="text-xs">{t("transcript.readTime")}</span>
         </div>
         <div className="ml-auto">
-          <ReadingVoiceButton status={voiceStatus} t={t} onClick={() => speakTranscript(transcriptContent)} />
+          <ReadingVoiceButton status={voiceStatus} t={t} onClick={() => void speakTranscript()} />
         </div>
       </div>
 

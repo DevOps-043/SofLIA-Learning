@@ -1,12 +1,12 @@
-import OpenAI from 'openai'
 import {
   buildOrganizationAiContextPromptSection,
   type ResolvedOrganizationAiContext,
 } from '@/lib/lia-context/services/organization-ai-context.service'
 import {
-  CIRCUIT_BREAKER_DEFAULTS,
-  executeWithCircuitBreaker,
-} from '@/lib/resilience/circuit-breaker'
+  generateGeminiText,
+  getGeminiApiKey,
+  resolveGeminiModel,
+} from '@/lib/gemini/client'
 
 import {
   dialogueEvaluationResultSchema,
@@ -24,12 +24,12 @@ function stripJsonFence(value: string) {
   return value.trim().replace(/^```json\s*|\s*```$/g, '')
 }
 
-function resolveDialogueOpenAIModel(config: DialogueActivityConfig) {
-  return (
+function resolveDialogueGeminiModel(config: DialogueActivityConfig) {
+  return resolveGeminiModel(
     config.evaluator.model ||
-    process.env.SOFLIA_DIALOGUE_MODEL ||
-    process.env.CHATBOT_MODEL ||
-    'gpt-4o-mini'
+      process.env.SOFLIA_DIALOGUE_MODEL ||
+      process.env.GEMINI_MODEL,
+    'gemini-3.5-flash',
   )
 }
 
@@ -123,47 +123,30 @@ export async function evaluateDialogueTurn(input: {
   recentTurns: DialogueTurnRow[]
   studentMessage: string
 }): Promise<{ evaluation: DialogueEvaluationResult; modelName: string }> {
-  const openaiApiKey = process.env.OPENAI_API_KEY
-  const modelName = resolveDialogueOpenAIModel(input.config)
+  const modelName = resolveDialogueGeminiModel(input.config)
 
-  if (!openaiApiKey) {
+  if (!getGeminiApiKey()) {
     throw new DialogueRuntimeError(
       'DIALOGUE_EVALUATION_FAILED',
       503,
-      'La evaluacion SofLIA no esta disponible porque falta OPENAI_API_KEY',
+      'La evaluacion SofLIA no esta disponible porque falta GEMINI_API_KEY',
     )
   }
 
-  const openai = new OpenAI({ apiKey: openaiApiKey })
-
   try {
-    const completion = await executeWithCircuitBreaker(
-      'openai-dialogue-evaluator',
-      () => openai.chat.completions.create({
-        max_tokens: 1800,
-        messages: [
-          {
-            role: 'system',
-            content:
-              'Eres un evaluador estricto de aprendizaje. Responde exclusivamente JSON valido.',
-          },
-          {
-            role: 'user',
-            content: buildEvaluatorPrompt(input),
-          },
-        ],
-        model: modelName,
-        response_format: { type: 'json_object' },
+    const response = await generateGeminiText({
+      circuitBreakerName: 'gemini-dialogue-evaluator',
+      generationConfig: {
+        maxOutputTokens: 1800,
         temperature: 0.15,
-      }, {
-        signal: AbortSignal.timeout(resolveDialogueEvaluationTimeoutMs()),
-      }),
-      {
-        ...CIRCUIT_BREAKER_DEFAULTS.openai,
-        timeoutMs: resolveDialogueEvaluationTimeoutMs(),
       },
-    )
-    const responseText = completion.choices[0]?.message?.content || '{}'
+      model: modelName,
+      prompt: buildEvaluatorPrompt(input),
+      systemInstruction:
+        'Eres un evaluador estricto de aprendizaje. Responde exclusivamente JSON valido.',
+      timeoutMs: resolveDialogueEvaluationTimeoutMs(),
+    })
+    const responseText = response.text || '{}'
     const parsed = JSON.parse(stripJsonFence(responseText))
 
     return {

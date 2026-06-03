@@ -13,7 +13,7 @@ import type { LiaAnalyticsChartType, LiaAnalyticsPeriod, LiaAnalyticsProvider } 
 export function LiaAnalyticsPage() {
   const { t } = useTranslation('admin')
   const [period, setPeriod] = useState<LiaAnalyticsPeriod>('month')
-  const [provider, setProvider] = useState<LiaAnalyticsProvider>('openai')
+  const [provider, setProvider] = useState<LiaAnalyticsProvider>('gemini')
   const [chartType, setChartType] = useState<LiaAnalyticsChartType>('area')
   const { data, isLoading, lastUpdated, refetch } = useLiaAnalyticsData(period, provider)
 

@@ -48,14 +48,16 @@ describe('segmentReadingContent (plain)', () => {
 })
 
 describe('canPregenerateReadingContent', () => {
-  it('allows plain/markdown but not HTML (server-side, no DOM)', () => {
+  it('allows plain/markdown and HTML with readable text', () => {
     expect(canPregenerateReadingContent('Texto plano')).toBe(true)
-    expect(canPregenerateReadingContent('<p>HTML</p>')).toBe(false)
+    expect(canPregenerateReadingContent('<p>HTML</p>')).toBe(true)
     expect(canPregenerateReadingContent('')).toBe(false)
   })
 
-  it('does not segment HTML outside the browser', () => {
-    // En entorno node (sin document) el HTML no se segmenta.
-    expect(segmentReadingContent('<p>Hola</p>')).toEqual([])
+  it('segments HTML outside the browser with a conservative block fallback', () => {
+    expect(segmentReadingContent('<h2>Titulo</h2><p>Hola <strong>mundo</strong></p>')).toEqual([
+      { index: 0, text: 'Titulo' },
+      { index: 1, text: 'Hola mundo' },
+    ])
   })
 })

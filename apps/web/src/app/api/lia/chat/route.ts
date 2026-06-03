@@ -35,19 +35,24 @@ import {
   CIRCUIT_BREAKER_DEFAULTS,
   executeWithCircuitBreaker,
 } from '@/lib/resilience/circuit-breaker';
+import { resolveGeminiModel } from '@/lib/gemini/client';
 import { logger } from '@/lib/logger';
 import {
   buildPendingBugReportPromptSection,
   detectBugReportConfirmationIntent,
   extractBugReportDraftToken,
+  stripBugReportTokens,
   submitConfirmedBugReport,
 } from './lia-report-workflow.service';
+import type { ChatSession } from '@google/generative-ai';
 import {
   getLatestAssistantMessageContent,
   persistConversationTurn,
 } from './lia-chat-history.service';
 import { detectTechnicalBugReportIntent } from './bug-report-intent.service';
 import { liaChatSchema, type LiaChatBody } from '../_schemas';
+
+type SecurityAssessment = ReturnType<typeof evaluatePromptInjectionRisk>;
 
 function buildCurrentMessageParts(
   promptWithContext: string,
@@ -61,7 +66,7 @@ function buildCurrentMessageParts(
 
   parts.push({
     text:
-      'El usuario adjuntó evidencia visual. Usa las imágenes como contexto para entender mejor el problema o la pregunta.',
+      'El usuario adjunto evidencia visual. Usa las imagenes como contexto para entender mejor el problema o la pregunta.',
   });
 
   attachments.forEach((attachment) => {
@@ -126,6 +131,116 @@ function buildAssistantResponse(content: string, shouldStream: boolean) {
   });
 }
 
+/**
+ * Persiste y asegura (defensa en profundidad) el texto COMPLETO ya emitido por
+ * streaming. La protección primaria contra inyección ocurre ANTES de generar
+ * (bloqueo pre-generación); aquí solo se limpian tokens internos y se aplica la
+ * política de seguridad sobre el contenido que se guarda. Best-effort: un fallo
+ * de persistencia no debe afectar la respuesta ya entregada al usuario.
+ */
+async function finalizeStreamedAssistantResponse(params: {
+  fullText: string;
+  body: LiaChatBody;
+  requestContext: ChatRequest['context'];
+  securityAssessment: SecurityAssessment;
+}): Promise<void> {
+  const { fullText, body, requestContext, securityAssessment } = params;
+  try {
+    const cleaned = stripBugReportTokens(fullText);
+    const secured = enforceSecurityResponsePolicy({
+      content: cleaned,
+      assessment: securityAssessment,
+    });
+
+    await persistConversationTurn({
+      conversationId: body.conversationId,
+      userId: requestContext?.userId,
+      requestContext,
+      userMessage: body.messages[body.messages.length - 1],
+      assistantContent: secured,
+    });
+  } catch (persistError) {
+    logger.error('LIA chat: fallo al finalizar respuesta en streaming', persistError);
+  }
+}
+
+/**
+ * Streaming REAL de Gemini: emite cada fragmento de texto al cliente conforme el
+ * modelo lo genera (TTFT de ~1-2 s en lugar de esperar toda la respuesta). Solo
+ * se usa en el flujo común (sin reporte de bug), donde el contenido no requiere
+ * reescritura previa al envío. La persistencia/seguridad se aplican al cerrar.
+ */
+async function streamGeminiResponse(params: {
+  chatSession: ChatSession;
+  parts: Part[];
+  body: LiaChatBody;
+  requestContext: ChatRequest['context'];
+  securityAssessment: SecurityAssessment;
+}): Promise<Response> {
+  const { chatSession, parts, body, requestContext, securityAssessment } = params;
+
+  // La llamada inicial (apertura del stream) puede fallar por billing/red; se
+  // envuelve en el circuit breaker y, si rechaza, propaga al catch de handlePost.
+  const streamResult = await executeWithCircuitBreaker(
+    'gemini-lia-chat',
+    () => chatSession.sendMessageStream(parts),
+    CIRCUIT_BREAKER_DEFAULTS.gemini,
+  );
+
+  const encoder = new TextEncoder();
+  let fullText = '';
+
+  const readable = new ReadableStream({
+    async start(controller) {
+      try {
+        for await (const chunk of streamResult.stream) {
+          const piece = chunk.text();
+          if (!piece) continue;
+          fullText += piece;
+          controller.enqueue(
+            encoder.encode('data: ' + JSON.stringify({ content: piece, done: false }) + '\n\n'),
+          );
+        }
+      } catch (streamError) {
+        logger.error('LIA chat: error durante el streaming de Gemini', streamError);
+        if (!fullText) {
+          const fallback =
+            'En este momento no puedo responder por un problema temporal del servicio de IA. ' +
+            'Por favor intenta de nuevo en unos minutos.';
+          fullText = fallback;
+          controller.enqueue(
+            encoder.encode('data: ' + JSON.stringify({ content: fallback, done: false }) + '\n\n'),
+          );
+        }
+      } finally {
+        controller.enqueue(encoder.encode('data: ' + JSON.stringify({ done: true }) + '\n\n'));
+        controller.close();
+        void finalizeStreamedAssistantResponse({
+          fullText,
+          body,
+          requestContext,
+          securityAssessment,
+        });
+      }
+    },
+  });
+
+  return new Response(readable, {
+    headers: { 'Content-Type': 'text/event-stream' },
+  });
+}
+
+function isGeminiAccessConfigurationError(errorMessage: string): boolean {
+  const normalizedMessage = errorMessage.toLowerCase();
+  return (
+    errorMessage.includes('403') ||
+    normalizedMessage.includes('forbidden') ||
+    normalizedMessage.includes('dunning') ||
+    normalizedMessage.includes('billing') ||
+    normalizedMessage.includes('permission denied')
+  );
+}
+
 // ============================================
 // API HANDLER
 // ============================================
@@ -142,12 +257,12 @@ async function handlePost(
     shouldStream = stream;
 
     // Verify API Key
-    const googleApiKey = process.env.GOOGLE_API_KEY;
+    const googleApiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
     if (!googleApiKey) {
-      logger.error('GOOGLE_API_KEY no esta configurada');
+      logger.error('GEMINI_API_KEY no esta configurada');
       return apiError(
-        'GOOGLE_API_KEY_MISSING',
-        'GOOGLE_API_KEY no está configurada',
+        'GEMINI_API_KEY_MISSING',
+        'GEMINI_API_KEY no esta configurada',
         500,
       );
     }
@@ -279,7 +394,12 @@ async function handlePost(
 
     // Initialize Gemini
     const genAI = new GoogleGenerativeAI(googleApiKey);
-    const modelName = process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp';
+    // Modelo general de SofLIA: usa override dedicado y normaliza aliases viejos.
+    // Si no hay configuracion, usa Gemini 3.5 Flash como fallback estable.
+    const modelName = resolveGeminiModel(
+      process.env.LIA_CHAT_GEMINI_MODEL || 'gemini-3.5-flash',
+      'gemini-3.5-flash',
+    );
 
     const model = genAI.getGenerativeModel({
       model: modelName,
@@ -300,11 +420,27 @@ async function handlePost(
       generationConfig: { maxOutputTokens: 8192, temperature: 0.7 },
     });
 
+    const messageParts = buildCurrentMessageParts(messageWithContext, lastMessage.attachments);
+
+    // Streaming REAL: solo en el flujo común. Los flujos de reporte de bug
+    // requieren reescribir el contenido (token de confirmación) antes de
+    // enviarlo, por lo que se mantienen en modo buffered.
+    const canStreamLive =
+      shouldStream && !bugReportIntent.isBugReport && !activeBugReportDraft;
+
+    if (canStreamLive) {
+      return await streamGeminiResponse({
+        chatSession,
+        parts: messageParts,
+        body,
+        requestContext: sanitizedRequestContext,
+        securityAssessment,
+      });
+    }
+
     const result = await executeWithCircuitBreaker(
       'gemini-lia-chat',
-      () => chatSession.sendMessage(
-        buildCurrentMessageParts(messageWithContext, lastMessage.attachments)
-      ),
+      () => chatSession.sendMessage(messageParts),
       CIRCUIT_BREAKER_DEFAULTS.gemini,
     );
     const finalContent = result.response.text();
@@ -351,14 +487,29 @@ async function handlePost(
       errorMessage = error.message;
     }
 
+    if (isGeminiAccessConfigurationError(errorMessage)) {
+      const configurationMessage =
+        'SofLIA no tiene acceso activo al servicio de Gemini. ' +
+        'Revisa la API key, la facturacion y los permisos del proyecto de Google AI Studio.';
+
+      return buildAssistantResponse(configurationMessage, shouldStream);
+    }
+
     // Handle Rate Limit
     if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('Too Many Requests')) {
-      const politeMessage = "⏳ Lo siento, he alcanzado mi límite de capacidad. Por favor espera unos segundos.";
+      const politeMessage = "Lo siento, he alcanzado mi limite de capacidad. Por favor espera unos segundos.";
 
       return buildAssistantResponse(politeMessage, shouldStream);
     }
 
-    return apiError('LIA_CHAT_ERROR', errorMessage, 500);
+    // Degradacion elegante: ante CUALQUIER fallo del proveedor (billing/403,
+    // modelo no disponible, red, etc.) respondemos un mensaje util en lugar de
+    // un 500 que rompe la UI. El motivo preciso ya quedo en el log de arriba.
+    const fallbackMessage =
+      'En este momento no puedo responder por un problema temporal del servicio de IA. ' +
+      'Por favor intenta de nuevo en unos minutos.';
+
+    return buildAssistantResponse(fallbackMessage, shouldStream);
   }
 }
 

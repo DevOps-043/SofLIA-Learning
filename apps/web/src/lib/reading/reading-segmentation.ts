@@ -134,7 +134,7 @@ function segmentPlainReading(raw: string): ReadingSegment[] {
  */
 function segmentHtmlReadingFromDom(raw: string): ReadingSegment[] {
   if (typeof document === 'undefined') {
-    return [];
+    return segmentHtmlReadingWithoutDom(raw);
   }
 
   const container = document.createElement('div');
@@ -145,6 +145,26 @@ function segmentHtmlReadingFromDom(raw: string): ReadingSegment[] {
     index,
     text: (node.textContent ?? '').replace(/\s+/g, ' ').trim(),
   }));
+}
+
+function segmentHtmlReadingWithoutDom(raw: string): ReadingSegment[] {
+  const blockPattern = /<(p|li|h[1-6]|blockquote)\b[^>]*>([\s\S]*?)<\/\1>/giu;
+  const segments: ReadingSegment[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = blockPattern.exec(raw)) !== null) {
+    const text = toSpokenText(match[2]);
+    if (text) {
+      segments.push({ index: segments.length, text });
+    }
+  }
+
+  if (segments.length > 0) {
+    return segments;
+  }
+
+  const fallbackText = toSpokenText(raw);
+  return fallbackText ? [{ index: 0, text: fallbackText }] : [];
 }
 
 /**
@@ -168,7 +188,9 @@ export function segmentReadingContent(content: unknown): ReadingSegment[] {
  */
 export function canPregenerateReadingContent(content: unknown): boolean {
   const raw = normalizeContentForRenderer(content);
-  return Boolean(raw.trim()) && !isHtmlReadingContent(raw);
+  if (!raw.trim()) return false;
+  if (!isHtmlReadingContent(raw)) return true;
+  return segmentHtmlReadingWithoutDom(raw).some((segment) => segment.text.length > 0);
 }
 
 /**

@@ -22,7 +22,7 @@ import { resolveAiChatConversationId, scheduleAiChatAnalyticsLogging } from './s
 import { buildAiChatContext } from './services/chat-context-builder.service'
 import { persistAiChatHistory } from './services/chat-history.service'
 import { resolveChatUserContext } from './services/chat-user-context.service'
-import { generateAiChatResponse } from './services/openai-request.service'
+import { generateAiChatResponse } from './services/gemini-request.service'
 import { normalizeAiChatRequest, resolveRequestLanguage, type AiChatRequestBody } from './services/request-normalization.service'
 import { aiChatRequestSchema } from './services/request-normalization.schema'
 
@@ -219,7 +219,7 @@ async function handlePost(
 const validatedPost = withZodBody(aiChatRequestSchema, handlePost)
 
 export async function POST(request: NextRequest) {
-  const rateLimit = applyRouteRateLimit(request, AI_CHAT_RATE_LIMIT, 'openai')
+  const rateLimit = applyRouteRateLimit(request, AI_CHAT_RATE_LIMIT, 'gemini')
   if (!rateLimit.success) return rateLimit.response
 
   const response = await validatedPost(request, undefined)

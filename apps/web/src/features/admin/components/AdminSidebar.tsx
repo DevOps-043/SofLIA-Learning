@@ -19,6 +19,7 @@ import {
   Route,
   ShieldCheck,
   Users,
+  Volume2,
   X,
 } from 'lucide-react'
 
@@ -48,6 +49,7 @@ const navigation = [
   { section: 'reports', labelKey: 'navigation.reports', fallbackLabel: 'Reportes', href: '/admin/reportes', icon: FileText },
   { section: 'security', labelKey: 'navigation.security', fallbackLabel: 'Seguridad', href: '/admin/security', icon: ShieldCheck },
   { section: 'transcoding', labelKey: 'navigation.transcoding', fallbackLabel: 'Transcoding de video', href: '/admin/transcoding', icon: Film },
+  { section: 'tts-audio', labelKey: 'navigation.ttsAudio', fallbackLabel: 'Audio TTS', href: '/admin/tts-audio', icon: Volume2 },
   { section: 'reviews', labelKey: 'navigation.reviews', fallbackLabel: 'Revisiones', href: '/admin/courses/pending', icon: ClipboardCheck },
 ]
 

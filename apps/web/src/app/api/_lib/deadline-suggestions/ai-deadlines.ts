@@ -41,7 +41,7 @@ export async function calculateDeadlineOptions(
 
   try {
     const model = new GoogleGenerativeAI(apiKey).getGenerativeModel({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-3.5-flash',
       generationConfig: { responseMimeType: 'application/json' },
     })
     const result = await model.generateContent(buildDeadlinePrompt(context))

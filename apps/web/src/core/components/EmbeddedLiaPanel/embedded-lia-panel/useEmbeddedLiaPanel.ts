@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useLiaChat } from '../../../hooks/useLiaChat';
+import { useLiaGeneralChat } from '../../../hooks/useLiaChat';
+import { useStreamingChatVoice } from '../../../hooks/useStreamingChatVoice';
 import { useAuth } from '../../../../features/auth/hooks/useAuth';
 import { useLanguage } from '../../../providers/I18nProvider';
 import { useOrganizationStylesContext } from '../../../../features/business-panel/contexts/OrganizationStylesContext';
@@ -56,7 +57,10 @@ export function useEmbeddedLiaPanel({
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
   const [currentMode, setCurrentMode] = useState<EmbeddedLiaChatMode>(DEFAULT_EMBEDDED_LIA_MODE);
 
-  const { messages, isLoading, sendMessage, clearHistory } = useLiaChat(initialMessage);
+  const { messages, isLoading, sendMessage, clearHistory } = useLiaGeneralChat(initialMessage);
+  // Voz de salida en STREAMING: locuta cada oración apenas se completa.
+  // Se "arma" al enviar para locutar SOLO la próxima respuesta (no saludo/historial).
+  const { armForNextResponse: armVoice } = useStreamingChatVoice({ messages, isLoading });
 
   const isPanelOpen = isOpen;
   const currentModeData = availableModes.find((mode) => mode.id === currentMode) || availableModes[0];
@@ -108,6 +112,7 @@ export function useEmbeddedLiaPanel({
     }
   }, [message]);
 
+
   useEffect(() => {
     return () => {
       recognitionRef.current?.stop();
@@ -121,6 +126,7 @@ export function useEmbeddedLiaPanel({
 
     const messageToSend = message.trim();
     setMessage('');
+    armVoice();
 
     try {
       await sendMessage(messageToSend);

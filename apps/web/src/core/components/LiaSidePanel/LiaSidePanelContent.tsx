@@ -19,7 +19,7 @@ function LiaSidePanelContent() {
     inputValue, setInputValue, inputRef, messagesEndRef, chatContainerRef,
     handleChatScroll, handleSendMessage, handleQuickAction, handleKeyDown, handleLinkClick, quickActions,
     currentTip, tips,
-    isSpeaking, isVoiceEnabled,
+    isSpeaking, isVoiceEnabled, voiceReveal,
     isDictationEnabled, isDictating, isProcessingDictation, interimTranscript, finalTranscript, dictationError, setDictationError, toggleDictation, stopDictation,
     isOptionsMenuOpen, setIsOptionsMenuOpen, optionsMenuRef,
     isPersonalizationOpen, setIsPersonalizationOpen,
@@ -78,6 +78,7 @@ function LiaSidePanelContent() {
             <MessagesDisplay
               messages={messages}
               isLoading={isLoading}
+              voiceReveal={voiceReveal}
               currentTip={currentTip}
               themeColors={themeColors}
               isLightTheme={isLightTheme}

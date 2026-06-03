@@ -21,7 +21,7 @@ export async function generateBusinessUserAnalyticsInsights({
   locale,
 }: GenerateBusinessUserAnalyticsInsightsParams): Promise<BusinessUserAnalyticsInsights> {
   const apiKey = process.env.GOOGLE_API_KEY
-  const model = process.env.REPORTS_ANALYTICS_GEMINI_MODEL || process.env.GEMINI_MODEL || 'gemini-2.0-flash'
+  const model = process.env.REPORTS_ANALYTICS_GEMINI_MODEL || process.env.GEMINI_MODEL || 'gemini-3.5-flash'
 
   if (!apiKey) {
     return buildUnavailableInsights(locale, model)

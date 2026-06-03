@@ -1,5 +1,5 @@
 export type LiaAnalyticsPeriod = 'day' | 'week' | 'month' | 'year'
-export type LiaAnalyticsProvider = 'openai' | 'gemini'
+export type LiaAnalyticsProvider = 'gemini'
 export type LiaAnalyticsChartType = 'area' | 'bar'
 
 export interface LiaAnalyticsData {

@@ -86,6 +86,87 @@ export type Database = {
         }
         Relationships: []
       }
+      tts_reading_audio_assets: {
+        Row: {
+          bucket: string
+          byte_length: number | null
+          content_hash: string
+          content_type: string
+          created_at: string
+          generated_at: string
+          id: string
+          job_id: string | null
+          language: string
+          lesson_id: string | null
+          model: string | null
+          prompt_version: number
+          segment_context: string
+          segment_index: number
+          source_id: string
+          source_type: string
+          storage_path: string
+          updated_at: string
+          voice: string | null
+        }
+        Insert: {
+          bucket?: string
+          byte_length?: number | null
+          content_hash: string
+          content_type?: string
+          created_at?: string
+          generated_at?: string
+          id?: string
+          job_id?: string | null
+          language?: string
+          lesson_id?: string | null
+          model?: string | null
+          prompt_version?: number
+          segment_context?: string
+          segment_index: number
+          source_id: string
+          source_type: string
+          storage_path: string
+          updated_at?: string
+          voice?: string | null
+        }
+        Update: {
+          bucket?: string
+          byte_length?: number | null
+          content_hash?: string
+          content_type?: string
+          created_at?: string
+          generated_at?: string
+          id?: string
+          job_id?: string | null
+          language?: string
+          lesson_id?: string | null
+          model?: string | null
+          prompt_version?: number
+          segment_context?: string
+          segment_index?: number
+          source_id?: string
+          source_type?: string
+          storage_path?: string
+          updated_at?: string
+          voice?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tts_reading_audio_assets_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "tts_reading_audio_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tts_reading_audio_assets_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "course_lessons"
+            referencedColumns: ["lesson_id"]
+          },
+        ]
+      }
       admin_dashboard_layouts: {
         Row: {
           created_at: string | null
@@ -7245,6 +7326,76 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_user_security_summary"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      user_reading_audio_progress: {
+        Row: {
+          completed: boolean
+          content_hash: string
+          created_at: string
+          id: string
+          language: string
+          lesson_id: string
+          organization_id: string | null
+          segment_index: number
+          segment_time_seconds: number
+          source_id: string
+          source_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          content_hash: string
+          created_at?: string
+          id?: string
+          language?: string
+          lesson_id: string
+          organization_id?: string | null
+          segment_index?: number
+          segment_time_seconds?: number
+          source_id: string
+          source_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          content_hash?: string
+          created_at?: string
+          id?: string
+          language?: string
+          lesson_id?: string
+          organization_id?: string | null
+          segment_index?: number
+          segment_time_seconds?: number
+          source_id?: string
+          source_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_reading_audio_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "course_lessons"
+            referencedColumns: ["lesson_id"]
+          },
+          {
+            foreignKeyName: "user_reading_audio_progress_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_reading_audio_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
           },
         ]
       }

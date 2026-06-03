@@ -1,6 +1,6 @@
 import type { AIModerationContext } from './types'
 
-export function buildGPTModerationUserPrompt(
+export function buildAIModerationUserPrompt(
   content: string,
   context?: AIModerationContext,
 ): string {

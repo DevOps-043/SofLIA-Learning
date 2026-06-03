@@ -3,6 +3,8 @@ import { NextRequest } from 'next/server';
 import { POST } from '../route';
 import { clearAllRateLimits } from '../../../../core/lib/rate-limit';
 
+vi.mock('server-only', () => ({}));
+
 function createRequest(body: unknown) {
   return new NextRequest('http://localhost:3000/api/tts', {
     method: 'POST',
@@ -132,5 +134,24 @@ describe('POST /api/tts', () => {
     expect(response.headers.get('Content-Type')).toBe('audio/wav');
     expect(String.fromCharCode(...audio.slice(0, 4))).toBe('RIFF');
     expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns 204 so the browser can fallback when the provider fails', async () => {
+    process.env.TTS_PROVIDER = 'gemini';
+    process.env.GEMINI_TTS_API_KEY = 'test-google-key';
+    global.fetch = vi.fn().mockResolvedValue(
+      Response.json(
+        {
+          error: 'upstream unavailable',
+        },
+        { status: 502 }
+      )
+    ) as typeof fetch;
+
+    const response = await POST(createRequest({ text: 'Hola SofLIA' }));
+
+    expect(response.status).toBe(204);
+    expect(response.headers.get('X-TTS-Fallback')).toBe('browser');
+    expect(response.headers.get('X-TTS-Provider')).toBe('gemini');
   });
 });

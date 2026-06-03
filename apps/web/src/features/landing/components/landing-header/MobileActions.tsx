@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { warmClientAccess } from './prefetch-auth';
 import type { LandingHeaderTranslator } from './types';
 
 interface MobileActionsProps {
@@ -12,7 +13,10 @@ export function MobileActions({ t, onNavigate }: MobileActionsProps) {
     <>
       <Link
         href="/auth"
+        prefetch
         onClick={onNavigate}
+        onPointerDown={warmClientAccess}
+        onFocus={warmClientAccess}
         className="rounded-xl px-4 py-3 text-base font-medium text-gray-500 transition-colors hover:bg-gray-100 dark:text-white/70 dark:hover:bg-white/5"
       >
         {t('landing.nav.clientAccess', 'Acceso clientes')}

@@ -1,4 +1,4 @@
-export const GPT_MODERATION_SYSTEM_PROMPT = `Eres un moderador de contenido ultra-estricto para una comunidad educativa profesional.
+export const AI_MODERATION_SYSTEM_PROMPT = `Eres un moderador de contenido ultra-estricto para una comunidad educativa profesional.
 Tu objetivo es proteger la comunidad detectando contenido inapropiado aunque este escrito con evasion, leetspeak o simbolos.
 
 Reglas criticas:

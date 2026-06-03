@@ -25,7 +25,7 @@
 - **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS
 - **Backend**: Node.js, Express, TypeScript
 - **Base de Datos**: Supabase (PostgreSQL)
-- **IA**: OpenAI GPT-4o-mini
+- **IA**: Google Gemini
 - **Arquitectura**: Monorepo con npm workspaces
 
 ### Estadísticas del Proyecto
@@ -183,7 +183,7 @@
 
 ## 🤖 Asistente Virtual SofLIA
 
-SofLIA (Learning Intelligence Assistant) es el asistente de IA integrado en toda la plataforma, potenciado por **OpenAI GPT-4o-mini**.
+SofLIA (Learning Intelligence Assistant) es el asistente de IA integrado en toda la plataforma, potenciado por **Google Gemini**.
 
 ### Características Principales
 
@@ -753,7 +753,7 @@ const { theme, toggleTheme } = useTheme();
 | ------------------------- | --------------------------------------- |
 | **Supabase**              | Base de datos PostgreSQL, Auth, Storage |
 | **Supabase Auth**         | Autenticación y gestión de sesiones     |
-| **OpenAI API**            | Asistente virtual LIA (GPT-4o-mini)     |
+| **Google Gemini API**     | Asistente virtual SofLIA                |
 | **Netlify Functions**     | Cron jobs (inactividad de lecciones)    |
 | **Google/Microsoft APIs** | Integración de calendarios              |
 
@@ -808,7 +808,7 @@ SofLIA-Learning/
 │   │       │   └── video-tracking/   # 🆕 Tracking de reproducción de video
 │   │       ├── lib/                  # Infraestructura y utilidades
 │   │       │   ├── supabase/         # Cliente Supabase y types
-│   │       │   ├── openai/           # Cliente OpenAI
+│   │       │   ├── gemini/           # Cliente Gemini
 │   │       │   ├── lia/              # Configuración de SofLIA
 │   │       │   ├── scorm/            # Utilidades SCORM
 │   │       │   ├── oauth/            # Configuración OAuth
@@ -844,7 +844,7 @@ SofLIA-Learning/
 | `app/`      | Next.js App Router (Server Components por defecto)                      |
 | `features/` | Features de dominio (auto-contenidos, screaming architecture) — 22 módulos |
 | `core/`     | Lógica transversal: stores (Zustand), providers, layout, services/api.ts |
-| `lib/`      | Infraestructura: supabase/, openai/, lia/, schemas/, oauth/             |
+| `lib/`      | Infraestructura: supabase/, gemini/, ai/, lia/, schemas/, oauth/        |
 | `shared/`   | Infraestructura pura: hooks genéricos (useDebounce), utilidades         |
 
 ### Reglas de Dependencia
@@ -864,7 +864,7 @@ shared/    → No importa de ningún lado (infraestructura pura)
 - **Node.js**: >= 22.0.0
 - **npm**: >= 10.5.1
 - **Cuenta Supabase**: Para base de datos y autenticación
-- **OpenAI API Key**: Para el asistente SofLIA
+- **Google Gemini API Key**: Para el asistente SofLIA
 
 ### Pasos de Instalación
 
@@ -896,11 +896,14 @@ NEXT_PUBLIC_SUPABASE_URL=tu_url_de_supabase
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key
 SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
 
-# OpenAI (para SofLIA)
-OPENAI_API_KEY=tu_openai_api_key
-CHATBOT_MODEL=gpt-4o-mini
-CHATBOT_MAX_TOKENS=700
-CHATBOT_TEMPERATURE=0.6
+# Gemini (para SofLIA)
+GOOGLE_API_KEY=tu_google_api_key
+GEMINI_API_KEY=tu_gemini_api_key
+GEMINI_MODEL=gemini-3.5-flash
+GEMINI_TTS_MODEL=gemini-3.1-flash-tts-preview
+GEMINI_LIVE_MODEL=gemini-3.1-flash-live-preview
+GEMINI_MAX_TOKENS=700
+GEMINI_TEMPERATURE=0.6
 
 # Autenticación
 JWT_SECRET=tu_jwt_secret_seguro
@@ -1535,7 +1538,7 @@ El proyecto incluye **78 documentos técnicos** en el directorio `docs/`:
 
 #### Integraciones
 
-- **IA**: OpenAI GPT-4o-mini (SofLIA)
+- **IA**: Google Gemini (SofLIA)
 - **Calendarios**: Google Calendar, Microsoft Outlook
 - **Storage**: Supabase Storage (buckets para archivos)
 - **Session Recording**: rrweb para análisis de UX

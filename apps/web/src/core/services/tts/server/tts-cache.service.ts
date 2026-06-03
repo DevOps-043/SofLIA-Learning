@@ -2,7 +2,7 @@ import 'server-only';
 
 import { createAdminClient } from '@/lib/supabase/admin';
 
-const TTS_AUDIO_BUCKET = 'tts-audio';
+export const TTS_AUDIO_BUCKET = 'tts-audio';
 
 export interface CachedAudio {
   bytes: ArrayBuffer;
@@ -14,7 +14,7 @@ export interface CachedAudio {
 // `server-only`).
 export { buildTTSCacheKey } from './tts-cache-key';
 
-function storagePath(key: string): string {
+export function getTTSStoragePath(key: string): string {
   return `tts/${key}`;
 }
 
@@ -27,7 +27,7 @@ export async function getCachedAudio(key: string): Promise<CachedAudio | null> {
     const supabase = createAdminClient();
     const { data, error } = await supabase.storage
       .from(TTS_AUDIO_BUCKET)
-      .download(storagePath(key));
+      .download(getTTSStoragePath(key));
 
     if (error || !data) {
       return null;
@@ -52,14 +52,16 @@ export async function putCachedAudio(
   key: string,
   bytes: ArrayBuffer,
   contentType: string,
-): Promise<void> {
+): Promise<boolean> {
   try {
     const supabase = createAdminClient();
-    await supabase.storage.from(TTS_AUDIO_BUCKET).upload(storagePath(key), bytes, {
+    const { error } = await supabase.storage.from(TTS_AUDIO_BUCKET).upload(getTTSStoragePath(key), bytes, {
       contentType,
       upsert: true,
     });
+    return !error;
   } catch {
     // El cache es opcional; ignoramos errores de escritura.
+    return false;
   }
 }

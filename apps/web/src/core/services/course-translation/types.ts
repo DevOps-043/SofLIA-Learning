@@ -21,5 +21,5 @@ export interface TranslationEntityConfig {
   context: string;
   userId?: string;
   supabaseClient?: ServerSupabaseClient;
-  requireOpenAiKey?: boolean;
+  requireGeminiKey?: boolean;
 }

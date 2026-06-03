@@ -74,14 +74,6 @@ export const CIRCUIT_BREAKER_DEFAULTS = {
     resetTimeoutMs: 30_000,
     maxRetries: 0,
   },
-  openai: {
-    timeoutMs: 30_000,
-    errorThresholdPercentage: 50,
-    resetTimeoutMs: 60_000,
-    maxRetries: 1,
-    retryBaseDelayMs: 500,
-    retryMaxDelayMs: 2_000,
-  },
   gemini: {
     timeoutMs: 30_000,
     errorThresholdPercentage: 50,
@@ -353,7 +345,6 @@ function getCircuitBreaker(options: CircuitBreakerOptions): CircuitBreaker {
 }
 
 function resolveProviderDefaults(provider: string): Omit<CircuitBreakerOptions, 'name'> {
-  if (provider.includes('openai')) return CIRCUIT_BREAKER_DEFAULTS.openai
   if (provider.includes('gemini')) return CIRCUIT_BREAKER_DEFAULTS.gemini
   if (provider.includes('calendar') || provider.includes('google-oauth')) {
     return CIRCUIT_BREAKER_DEFAULTS.googleCalendar

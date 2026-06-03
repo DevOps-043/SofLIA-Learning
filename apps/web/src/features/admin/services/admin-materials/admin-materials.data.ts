@@ -37,7 +37,7 @@ function applyMaterialTypeFields<T extends Record<string, unknown>>(
     data.file_url = materialData.file_url
     data.external_url = null
     data.content_data = null
-  } else if (['quiz', 'exercise'].includes(materialData.material_type || '')) {
+  } else if (['quiz', 'exercise', 'reading'].includes(materialData.material_type || '')) {
     data.content_data = materialData.content_data || {}
     data.file_url = null
     data.external_url = null

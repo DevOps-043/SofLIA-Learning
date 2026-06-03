@@ -5,7 +5,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18.3-61dafb)](https://reactjs.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black)](https://nextjs.org/)
-[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o--mini-412991)](https://openai.com/)
+[![Gemini](https://img.shields.io/badge/Gemini-2.0%20Flash-4285F4)](https://gemini.google.com/)
 
 ---
 
@@ -209,7 +209,7 @@ graph TD
 - **Framer Motion 12.2** (Animations)
 
 ### Backend / APIs
-- **OpenAI GPT-4o-mini** (LIA Conversational AI)
+- **Google Gemini** (LIA Conversational AI)
 - **Google Calendar API v3**
 - **Microsoft Graph API**
 - **Supabase** (PostgreSQL)

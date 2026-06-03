@@ -160,7 +160,7 @@ export async function generateLessonSuggestions(
   const prompt = buildLessonSuggestionsPrompt(snapshot)
   const genAI = new GoogleGenerativeAI(apiKey)
   const model = genAI.getGenerativeModel({
-    model: modelName || process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+    model: modelName || process.env.GEMINI_MODEL || 'gemini-3.5-flash',
     safetySettings: [
       {
         category: HarmCategory.HARM_CATEGORY_HARASSMENT,

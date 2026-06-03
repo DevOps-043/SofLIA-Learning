@@ -36,6 +36,16 @@ const ttsRateLimit = {
 // El audio de lectura cacheado es inmutable (la clave es hash del contenido).
 const TTS_CACHE_CONTROL = 'public, max-age=31536000, immutable';
 
+function shouldUseBrowserFallback(result: {
+  status: number;
+  body: Record<string, unknown>;
+}) {
+  return (
+    result.status >= 500 &&
+    result.body.code === 'TTS_SYNTHESIS_FAILED'
+  );
+}
+
 export async function POST(request: NextRequest) {
   const rateLimitResult = checkRateLimit(request, ttsRateLimit, 'tts');
 
@@ -56,6 +66,20 @@ export async function POST(request: NextRequest) {
     const result = await resolveTTSAudio(payload);
 
     if (result.kind === 'error') {
+      if (shouldUseBrowserFallback(result)) {
+        return withRateHeaders(
+          new NextResponse(null, {
+            status: 204,
+            headers: {
+              'Cache-Control': 'no-store',
+              'X-TTS-Fallback': 'browser',
+              'X-TTS-Error-Code': String(result.body.code || 'TTS_PROVIDER_ERROR'),
+              'X-TTS-Provider': String(result.body.provider || 'unknown'),
+            },
+          })
+        );
+      }
+
       return withRateHeaders(NextResponse.json(result.body, { status: result.status }));
     }
 

@@ -225,7 +225,7 @@ async function generatePreviewWithGemini(input: {
   locale?: string
 }) {
   const apiKey = getGeminiApiKey()
-  const modelName = process.env.LEARNING_PREVIEW_GEMINI_MODEL || process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+  const modelName = process.env.LEARNING_PREVIEW_GEMINI_MODEL || process.env.GEMINI_MODEL || 'gemini-3.5-flash'
 
   if (!apiKey) {
     return {
@@ -365,7 +365,7 @@ async function getPreviewResult(input: {
   const fallback = {
     ...buildFallbackPreview(input),
     source: 'fallback' as const,
-    model: `${process.env.LEARNING_PREVIEW_GEMINI_MODEL || process.env.GEMINI_MODEL || 'gemini-2.5-flash'}:timeout-fallback`,
+    model: `${process.env.LEARNING_PREVIEW_GEMINI_MODEL || process.env.GEMINI_MODEL || 'gemini-3.5-flash'}:timeout-fallback`,
   }
 
   const generated = await withTimeout(

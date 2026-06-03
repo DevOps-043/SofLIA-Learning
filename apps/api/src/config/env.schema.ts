@@ -41,13 +41,11 @@ export const envSchema = z.object({
   SUPABASE_ANON_KEY: z.string().optional(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
 
-  OPENAI_API_KEY: z
-    .string()
-    .min(20, 'OPENAI_API_KEY debe tener al menos 20 caracteres')
-    .optional(),
-  CHATBOT_MODEL: z.string().default('gpt-4o-mini'),
-  CHATBOT_MAX_TOKENS: z.coerce.number().int().positive().max(4000).default(700),
-  CHATBOT_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.6),
+  GOOGLE_API_KEY: z.string().min(20, 'GOOGLE_API_KEY debe tener al menos 20 caracteres').optional(),
+  GEMINI_API_KEY: z.string().min(20, 'GEMINI_API_KEY debe tener al menos 20 caracteres').optional(),
+  GEMINI_MODEL: z.string().default('gemini-3.5-flash'),
+  GEMINI_MAX_TOKENS: z.coerce.number().int().positive().max(8192).default(8192),
+  GEMINI_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.7),
   ASSEMBLYAI_API_KEY: z.string().optional(),
   SENDGRID_API_KEY: z.string().optional(),
   ZOOM_API_KEY: z.string().optional(),

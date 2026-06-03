@@ -1,151 +1,149 @@
 import { NextResponse } from 'next/server'
-import { logger } from '@/lib/utils/logger';
-import { createClient } from '@/lib/supabase/server'
+
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/utils/logger'
 
 export async function POST() {
   try {
     const auth = await requireAdmin()
     if (auth instanceof NextResponse) return auth
-    
+
     const supabase = await createClient()
 
-    // Categorías de IA
     const categoriesData = [
       {
+        color: 'var(--color-info)',
+        description: 'Herramientas de IA para conversacion y asistencia',
+        icon: 'chat-bubble-left-right',
+        is_active: true,
         name: 'Chatbots y Conversacional',
         slug: 'chatbots-conversacional',
-        description: 'Herramientas de IA para conversación y asistencia',
-        icon: 'chat-bubble-left-right',
-        color: 'var(--color-info)',
-        is_active: true
       },
       {
-        name: 'Generación de Imágenes',
-        slug: 'generacion-imagenes',
-        description: 'Herramientas para crear imágenes con IA',
-        icon: 'photo',
         color: 'var(--color-success)',
-        is_active: true
-      }
+        description: 'Herramientas para crear imagenes con IA',
+        icon: 'photo',
+        is_active: true,
+        name: 'Generacion de Imagenes',
+        slug: 'generacion-imagenes',
+      },
     ]
 
-    // Crear categorías primero
     const { data: categories, error: categoriesError } = await supabase
       .from('ai_categories')
       .insert(categoriesData)
       .select()
 
     if (categoriesError) {
-      logger.error('Error creando categorías:', categoriesError)
-      return NextResponse.json({ error: 'Error creando categorías' }, { status: 500 })
+      logger.error('Error creando categorias:', categoriesError)
+      return NextResponse.json({ error: 'Error creando categorias' }, { status: 500 })
     }
 
-    // Datos de apps de IA
+    const findCategoryId = (slug: string) =>
+      categories?.find((category) => category.slug === slug)?.id
+
     const aiAppsData = [
       {
-        name: 'ChatGPT',
-        slug: 'chatgpt',
-        description: 'Asistente de IA conversacional desarrollado por OpenAI',
-        long_description: 'ChatGPT es un modelo de lenguaje avanzado que puede mantener conversaciones naturales, responder preguntas, ayudar con tareas de escritura, programación y más.',
-        category_id: categories.find(cat => cat.slug === 'chatbots-conversacional')?.id,
-        website_url: 'https://chat.openai.com',
-        logo_url: 'https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg',
-        pricing_model: 'freemium',
-        pricing_details: {
-          free: 'Uso limitado gratuito',
-          paid: 'ChatGPT Plus: $20/mes'
-        },
-        features: 'Conversación natural, generación de texto, programación, análisis de datos',
-        use_cases: 'Asistencia general, escritura, programación, educación',
-        advantages: 'Fácil de usar, respuestas coherentes, amplio conocimiento',
-        disadvantages: 'Limitaciones en información reciente, puede generar información incorrecta',
-        alternatives: 'Claude, Gemini, Perplexity',
-        tags: 'chatbot,ai,conversational,openai',
-        supported_languages: 'Múltiples idiomas',
-        integrations: 'API disponible, plugins para navegadores',
+        advantages: 'Capacidades multimodales, integracion con ecosistema Google, respuestas coherentes',
+        alternatives: 'Claude, Perplexity',
         api_available: true,
-        mobile_app: true,
-        desktop_app: false,
         browser_extension: true,
+        category_id: findCategoryId('chatbots-conversacional'),
+        description: 'Asistente de IA conversacional de Google',
+        desktop_app: false,
+        disadvantages: 'Puede generar informacion incorrecta y requiere validacion en temas criticos',
+        features: 'Conversacion natural, generacion de texto, programacion, analisis de datos y capacidades multimodales',
+        integrations: 'API disponible e integraciones de Google',
+        is_active: true,
         is_featured: true,
         is_verified: true,
-        view_count: 0,
         like_count: 0,
+        logo_url: 'https://www.gstatic.com/lamda/images/gemini_sparkle_aurora_33f86dc0c0257da337c63.svg',
+        long_description: 'Gemini es un modelo multimodal avanzado que puede mantener conversaciones naturales, responder preguntas, ayudar con tareas de escritura, programacion y analisis.',
+        mobile_app: true,
+        name: 'Gemini',
+        pricing_details: {
+          free: 'Uso limitado gratuito',
+          paid: 'Planes de Google AI disponibles',
+        },
+        pricing_model: 'freemium',
         rating: 4.8,
         rating_count: 0,
-        is_active: true
+        slug: 'gemini',
+        supported_languages: 'Multiples idiomas',
+        tags: 'chatbot,ai,conversational,gemini,google',
+        use_cases: 'Asistencia general, escritura, programacion, educacion y analisis multimodal',
+        view_count: 0,
+        website_url: 'https://gemini.google.com',
       },
       {
-        name: 'Claude',
-        slug: 'claude',
+        advantages: 'Excelente para analisis de texto, enfoque de seguridad',
+        alternatives: 'Gemini, Perplexity',
+        api_available: true,
+        browser_extension: false,
+        category_id: findCategoryId('chatbots-conversacional'),
         description: 'Asistente de IA de Anthropic con enfoque en seguridad y utilidad',
-        long_description: 'Claude es un modelo de IA desarrollado por Anthropic, diseñado para ser útil, inofensivo y honesto en sus interacciones.',
-        category_id: categories.find(cat => cat.slug === 'chatbots-conversacional')?.id,
-        website_url: 'https://claude.ai',
+        desktop_app: false,
+        disadvantages: 'Menos conocido, limitaciones similares a otros asistentes',
+        features: 'Analisis de documentos, programacion, escritura creativa',
+        integrations: 'API disponible',
+        is_active: true,
+        is_featured: true,
+        is_verified: true,
+        like_count: 0,
         logo_url: 'https://claude.ai/favicon.ico',
-        pricing_model: 'freemium',
+        long_description: 'Claude es un modelo de IA desarrollado por Anthropic, disenado para ser util, inofensivo y honesto en sus interacciones.',
+        mobile_app: false,
+        name: 'Claude',
         pricing_details: {
           free: 'Uso limitado gratuito',
-          paid: 'Claude Pro: $20/mes'
+          paid: 'Claude Pro: $20/mes',
         },
-        features: 'Análisis de documentos, programación, escritura creativa',
-        use_cases: 'Análisis de documentos, programación, escritura',
-        advantages: 'Excelente para análisis de texto, más seguro',
-        disadvantages: 'Menos conocido que ChatGPT, limitaciones similares',
-        alternatives: 'ChatGPT, Gemini, Perplexity',
-        tags: 'chatbot,ai,anthropic,analysis',
-        supported_languages: 'Inglés principalmente',
-        integrations: 'API disponible',
-        api_available: true,
-        mobile_app: false,
-        desktop_app: false,
-        browser_extension: false,
-        is_featured: true,
-        is_verified: true,
-        view_count: 0,
-        like_count: 0,
+        pricing_model: 'freemium',
         rating: 4.7,
         rating_count: 0,
-        is_active: true
+        slug: 'claude',
+        supported_languages: 'Ingles principalmente',
+        tags: 'chatbot,ai,anthropic,analysis',
+        use_cases: 'Analisis de documentos, programacion, escritura',
+        view_count: 0,
+        website_url: 'https://claude.ai',
       },
       {
-        name: 'Midjourney',
-        slug: 'midjourney',
-        description: 'Generador de imágenes con IA especializado en arte digital',
-        long_description: 'Midjourney es una herramienta de generación de imágenes que utiliza inteligencia artificial para crear arte digital de alta calidad a partir de descripciones de texto.',
-        category_id: categories.find(cat => cat.slug === 'generacion-imagenes')?.id,
-        website_url: 'https://midjourney.com',
-        logo_url: 'https://midjourney.com/favicon.ico',
-        pricing_model: 'subscription',
-        pricing_details: {
-          basic: '$10/mes',
-          standard: '$30/mes',
-          pro: '$60/mes'
-        },
-        features: 'Generación de imágenes, estilos artísticos, alta resolución',
-        use_cases: 'Arte digital, marketing visual, conceptos creativos',
-        advantages: 'Calidad artística excepcional, múltiples estilos',
-        disadvantages: 'Solo disponible en Discord, requiere suscripción',
-        alternatives: 'DALL-E, Stable Diffusion, Adobe Firefly',
-        tags: 'image-generation,art,ai,creative',
-        supported_languages: 'Inglés',
-        integrations: 'Discord bot',
+        advantages: 'Alta calidad artistica, comunidad activa',
+        alternatives: 'DALL-E, Stable Diffusion, Leonardo AI',
         api_available: false,
-        mobile_app: false,
-        desktop_app: false,
         browser_extension: false,
+        category_id: findCategoryId('generacion-imagenes'),
+        description: 'Generador de imagenes con IA especializado en arte digital',
+        desktop_app: false,
+        disadvantages: 'Requiere Discord, curva de aprendizaje',
+        features: 'Generacion de imagenes, estilos artisticos, variaciones',
+        integrations: 'Discord',
+        is_active: true,
         is_featured: true,
         is_verified: true,
-        view_count: 0,
         like_count: 0,
-        rating: 4.6,
+        logo_url: 'https://midjourney.com/favicon.ico',
+        long_description: 'Midjourney es una herramienta de generacion de imagenes que utiliza inteligencia artificial para crear arte digital a partir de descripciones de texto.',
+        mobile_app: false,
+        name: 'Midjourney',
+        pricing_details: {
+          paid: 'Desde $10/mes',
+        },
+        pricing_model: 'subscription',
+        rating: 4.9,
         rating_count: 0,
-        is_active: true
-      }
+        slug: 'midjourney',
+        supported_languages: 'Ingles principalmente',
+        tags: 'image-generation,art,creative,design',
+        use_cases: 'Arte digital, ilustraciones, conceptos visuales',
+        view_count: 0,
+        website_url: 'https://midjourney.com',
+      },
     ]
 
-    // Crear apps de IA
     const { data: apps, error: appsError } = await supabase
       .from('ai_apps')
       .insert(aiAppsData)
@@ -157,11 +155,11 @@ export async function POST() {
     }
 
     return NextResponse.json({
-      message: 'Datos de prueba insertados exitosamente',
-      categories: categories.length,
-      apps: apps.length
+      apps: apps?.length || 0,
+      categories: categories?.length || 0,
+      message: 'Apps de IA sembradas correctamente',
+      success: true,
     })
-
   } catch (error) {
     logger.error('Error en seed:', error)
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })

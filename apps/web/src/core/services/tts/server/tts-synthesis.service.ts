@@ -93,7 +93,7 @@ export async function resolveTTSAudio(
 
   if (!providerResponse.ok) {
     const providerError = await readProviderError(providerResponse);
-    console.error('TTS synthesis failed', {
+    console.warn('TTS synthesis failed', {
       provider,
       status: providerResponse.status,
       statusText: providerResponse.statusText,

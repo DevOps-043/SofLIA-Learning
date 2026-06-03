@@ -7,7 +7,7 @@ export function readAnalyticsRequestParams(request: Request): AnalyticsRequestPa
     customEndDate: searchParams.get('endDate'),
     customStartDate: searchParams.get('startDate'),
     period: searchParams.get('period') || 'month',
-    provider: searchParams.get('provider') || 'openai',
+    provider: searchParams.get('provider') || 'gemini',
   }
 }
 

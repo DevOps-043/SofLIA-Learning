@@ -1,6 +1,5 @@
 import {
   callGemini,
-  callOpenAI,
   generateAIResponse,
 } from '../ai-provider.service'
 import { logger } from '../../../../lib/utils/logger'
@@ -34,14 +33,6 @@ export interface GenerateAiChatResponseResult {
   metadata?: AiResponseMetadata
 }
 
-const GEMINI_CONTEXTS = new Set([
-  'study-planner',
-  'study-planner-availability',
-  'general',
-  'course',
-  'workshops',
-])
-
 function resolveAssistantLanguage(
   context: string,
   language: SupportedLanguage,
@@ -52,10 +43,10 @@ function resolveAssistantLanguage(
 }
 
 export function shouldUseGeminiForContext(
-  context: string,
+  _context: string,
   googleApiKey?: string,
 ) {
-  return Boolean(googleApiKey) && GEMINI_CONTEXTS.has(context)
+  return Boolean(googleApiKey)
 }
 
 export async function generateAiChatResponse({
@@ -66,14 +57,12 @@ export async function generateAiChatResponse({
   conversationHistory,
   userId,
   isSystemMessage,
-  hasCourseContext,
 }: GenerateAiChatResponseParams): Promise<GenerateAiChatResponseResult> {
-  const openaiApiKey = process.env.OPENAI_API_KEY
-  const googleApiKey = process.env.GOOGLE_API_KEY
+  const googleApiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY
   const assistantLanguage = resolveAssistantLanguage(context, language)
 
-  if (!openaiApiKey) {
-    logger.warn('No hay OPENAI_API_KEY configurada, usando fallback')
+  if (!shouldUseGeminiForContext(context, googleApiKey)) {
+    logger.warn('No hay GEMINI_API_KEY configurada, usando fallback')
 
     return {
       response: sanitizeAssistantResponse(
@@ -90,25 +79,13 @@ export async function generateAiChatResponse({
 
   try {
     const startedAt = Date.now()
-    const useGemini = shouldUseGeminiForContext(context, googleApiKey)
-    const result = useGemini
-      ? await callGemini(
-          message,
-          contextPrompt,
-          conversationHistory,
-          userId,
-          isSystemMessage,
-        )
-      : await callOpenAI(
-          message,
-          contextPrompt,
-          conversationHistory,
-          hasCourseContext,
-          userId,
-          isSystemMessage,
-          assistantLanguage,
-          context,
-        )
+    const result = await callGemini(
+      message,
+      contextPrompt,
+      conversationHistory,
+      userId,
+      isSystemMessage,
+    )
 
     return {
       response: sanitizeAssistantResponse(result.response),

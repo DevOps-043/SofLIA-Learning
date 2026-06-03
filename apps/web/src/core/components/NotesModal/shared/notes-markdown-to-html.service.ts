@@ -1,5 +1,5 @@
 /**
- * Converts markdown text (as produced by SofLIA/GPT) into semantic HTML
+ * Converts markdown text (as produced by SofLIA/AI) into semantic HTML
  * suitable for the notes WYSIWYG editor and, critically, for the PDF export
  * pipeline (notes-pdf-content-parser.service → notes-pdf-definition.service).
  *
@@ -193,7 +193,7 @@ function parseMarkdownToBlocks(markdown: string): ParsedBlock[] {
  * Converts a markdown string (SofLIA message content) into semantic HTML
  * that can be consumed by the WYSIWYG editor and the PDF export pipeline.
  *
- * @param markdown - Raw markdown text from SofLIA/GPT.
+ * @param markdown - Raw markdown text from SofLIA/AI.
  * @returns        - Semantic HTML string with <h2>, <h3>, <p>, <ul>, <ol>,
  *                   <strong>, <em>, <a>, <code> elements.
  */

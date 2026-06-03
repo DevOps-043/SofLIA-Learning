@@ -144,7 +144,7 @@ export async function evaluateActivitySubmissionWithSoflia(input: {
   }
 
   const genAI = new GoogleGenerativeAI(googleApiKey)
-  const modelName = process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp'
+  const modelName = process.env.GEMINI_MODEL || 'gemini-3.5-flash'
   const model = genAI.getGenerativeModel({
     model: modelName,
     generationConfig: {

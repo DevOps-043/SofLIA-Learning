@@ -3,12 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/api/errors';
 import { withZodBody } from '@/lib/api/with-validation';
 import { logger } from '@/lib/utils/logger';
-import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
 import { SessionService } from '../../../features/auth/services/session.service';
 import {
-  calculateOpenAIMetadata,
-  trackOpenAICall,
-} from '../../../lib/openai/usage-monitor';
+  calculateGeminiMetadata,
+  trackAICall,
+} from '../../../lib/ai/usage-monitor';
+import { generateGeminiText, resolveGeminiModel } from '../../../lib/gemini/client';
 import {
   aiIntentRequestSchema,
   aiIntentResultSchema,
@@ -16,7 +16,7 @@ import {
 } from './schema';
 
 /**
- * Endpoint para deteccion avanzada de intenciones con OpenAI.
+ * Endpoint para deteccion avanzada de intenciones con Gemini.
  * POST /api/ai-intent
  */
 async function handlePost(
@@ -31,21 +31,19 @@ async function handlePost(
 
     const { message } = body;
     const startTime = Date.now();
-    const response = await fetchWithCircuitBreaker(
-      'openai-ai-intent',
-      'https://api.openai.com/v1/chat/completions',
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: `Eres un clasificador de intenciones para una plataforma educativa.
+    const model = resolveGeminiModel(process.env.AI_INTENT_GEMINI_MODEL, 'gemini-3.5-flash');
+    const result = await generateGeminiText({
+      circuitBreakerName: 'gemini-ai-intent',
+      generationConfig: {
+        maxOutputTokens: 200,
+        temperature: 0.2,
+      },
+      model,
+      prompt: `Mensaje del usuario:
+${message}
+
+Devuelve SOLO el JSON solicitado.`,
+      systemInstruction: `Eres un clasificador de intenciones para una plataforma educativa.
 Analiza el mensaje del usuario y devuelve SOLO un JSON con este formato:
 {
   "intent": "create_prompt" | "navigate" | "question" | "feedback" | "general",
@@ -65,36 +63,14 @@ Intenciones:
 - general: Conversacion general
 
 NO incluyas ningun texto adicional, SOLO el JSON.`,
-            },
-            {
-              role: 'user',
-              content: message,
-            },
-          ],
-          temperature: 0.3,
-          max_tokens: 150,
-        }),
-      },
-    );
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      logger.error('Error en OpenAI API:', errorData);
-      return apiError(
-        'AI_INTENT_PROCESSING_ERROR',
-        'Error al procesar la intencion',
-        500,
-      );
-    }
-
-    const data = await response.json();
+    });
     const responseTime = Date.now() - startTime;
 
-    if (data.usage) {
-      await trackOpenAICall(
-        calculateOpenAIMetadata(
-          data.usage,
-          'gpt-4o-mini',
+    if (result.usage) {
+      await trackAICall(
+        calculateGeminiMetadata(
+          result.usage,
+          result.model,
           'ai-intent',
           user.id,
           responseTime,
@@ -104,13 +80,13 @@ NO incluyas ningun texto adicional, SOLO el JSON.`,
 
     let intentResult: unknown;
     try {
-      const content = data?.choices?.[0]?.message?.content;
+      const content = result.text;
       if (typeof content !== 'string') {
-        throw new Error('OpenAI response content is missing');
+        throw new Error('Gemini response content is missing');
       }
-      intentResult = JSON.parse(content);
+      intentResult = JSON.parse(content.trim().replace(/^```json\s*|\s*```$/g, ''));
     } catch (parseError) {
-      logger.error('Error parseando respuesta de OpenAI:', parseError);
+      logger.error('Error parseando respuesta de Gemini:', parseError);
       return apiError(
         'AI_INTENT_RESPONSE_PARSE_ERROR',
         'Error al procesar la respuesta',
@@ -120,7 +96,7 @@ NO incluyas ningun texto adicional, SOLO el JSON.`,
 
     const parsedIntent = aiIntentResultSchema.safeParse(intentResult);
     if (!parsedIntent.success) {
-      logger.warn('Respuesta de OpenAI con formato invalido:', intentResult);
+      logger.warn('Respuesta de Gemini con formato invalido:', intentResult);
       return NextResponse.json({
         intent: 'general',
         confidence: 0.3,

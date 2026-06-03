@@ -13,7 +13,7 @@ create table if not exists public.module_learning_summaries (
   status text not null default 'generating',
   generation_type text not null default 'default',
   source_snapshot jsonb not null default '{}'::jsonb,
-  model_provider text not null default 'openai',
+  model_provider text not null default 'gemini',
   model_name text null,
   prompt_version text not null default 'module-learning-summary-v1',
   error_message text null,

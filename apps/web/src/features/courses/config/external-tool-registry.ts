@@ -15,7 +15,7 @@ export const externalToolRegistry: Record<
     key: 'chatgpt',
     label: 'ChatGPT',
     url: 'https://chatgpt.com/',
-    description: 'Asistente conversacional general de OpenAI.',
+    description: 'Asistente conversacional general.',
   },
   gemini: {
     key: 'gemini',

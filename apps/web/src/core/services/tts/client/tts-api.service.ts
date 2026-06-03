@@ -5,6 +5,7 @@ import { TTS_API_PATH } from '../shared'
 // 503 = provider not configured at all — do NOT retry, return null.
 // Other 4xx/5xx = unrecoverable, throw.
 const RETRYABLE_STATUS = new Set([502, 504])
+const FALLBACK_STATUS = new Set([502, 503, 504])
 const RETRY_DELAY_MS = 500
 
 async function fetchOnce(
@@ -37,7 +38,7 @@ export async function requestTTSAudio(
     response = await fetchOnce(payload, signal)
   }
 
-  if (response.status === 503) {
+  if (response.status === 204 || FALLBACK_STATUS.has(response.status) || response.status >= 500) {
     return null
   }
 

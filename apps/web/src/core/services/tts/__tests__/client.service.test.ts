@@ -28,6 +28,30 @@ describe('tts client service', () => {
     expect(result).toBeNull();
   });
 
+  it('returns null when the server asks the browser to use local speech fallback', async () => {
+    global.fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 })) as typeof fetch;
+
+    const result = await requestTTSAudio({ text: 'Hola' });
+
+    expect(result).toBeNull();
+  });
+
+  it('returns null after retrying a transient TTS provider failure', async () => {
+    global.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          error: 'Unable to synthesize speech',
+        }),
+        { status: 502 }
+      )
+    ) as typeof fetch;
+
+    const result = await requestTTSAudio({ text: 'Hola' });
+
+    expect(result).toBeNull();
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
   it('returns an audio blob when the request succeeds', async () => {
     global.fetch = vi.fn().mockResolvedValue(
       new Response(Uint8Array.from([5, 6, 7]), {

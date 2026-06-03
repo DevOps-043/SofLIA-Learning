@@ -161,7 +161,7 @@ describe('tts server service', () => {
     process.env.TTS_PROVIDER = 'gemini'
     process.env.GEMINI_TTS_API_KEY = 'tts-google-key'
     process.env.GOOGLE_API_KEY = 'chat-google-key'
-    process.env.GEMINI_TTS_MODEL = 'gemini-2.5-flash-preview-tts'
+    process.env.GEMINI_TTS_MODEL = 'gemini-3.1-flash-tts-preview'
     process.env.GEMINI_TTS_VOICE = 'Sulafat'
     global.fetch = vi.fn().mockResolvedValue(
       Response.json({
@@ -196,7 +196,7 @@ describe('tts server service', () => {
     expect(response.status).toBe(200)
     expect(response.headers.get('Content-Type')).toBe('audio/wav')
     expect(String.fromCharCode(...audio.slice(0, 4))).toBe('RIFF')
-    expect(requestUrl.pathname).toBe('/v1beta/models/gemini-2.5-flash-preview-tts:generateContent')
+    expect(requestUrl.pathname).toBe('/v1beta/models/gemini-3.1-flash-tts-preview:generateContent')
     expect(requestUrl.searchParams.get('key')).toBe('tts-google-key')
     expect(body.generationConfig.responseModalities).toEqual(['AUDIO'])
     expect(
@@ -217,7 +217,7 @@ describe('tts server service', () => {
 
     expect(reading.provider).toBe('gemini')
     expect(reading.context).toBe('reading')
-    expect(reading.model).toBe('gemini-2.5-flash-preview-tts')
+    expect(reading.model).toBe('gemini-3.1-flash-tts-preview')
     // La voz de lectura difiere de la voz de chat → claves de cache distintas.
     expect(reading.voice).toBe('Zephyr')
     expect(chat.voice).toBe('Sulafat')

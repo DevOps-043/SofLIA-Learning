@@ -41,10 +41,9 @@ interface TokenTooltipProps {
 }
 
 const MODEL_COLORS: Record<string, string> = {
-  'gpt-4o-mini': 'var(--color-success)',
-  'gpt-4o': 'var(--color-legacy-6366f1)',
-  'gpt-4-turbo': 'var(--color-warning)',
-  'gpt-3.5-turbo': 'var(--color-info)',
+  'gemini-3.5-flash': 'var(--color-success)',
+  'gemini-3.1-pro-preview': 'var(--color-accent)',
+  'gemini-3.1-flash-lite': 'var(--color-info)',
   default: 'var(--color-secondary)',
 };
 
@@ -53,7 +52,7 @@ export function TokenUsageWidget({ modelUsage, totalTokens, isLoading }: TokenUs
   const chartData = useMemo(() => {
     return modelUsage.map((item) => ({
       ...item,
-      displayName: item.model.replace('gpt-', 'GPT-'),
+      displayName: item.model.replace('gemini-', 'Gemini '),
       color: MODEL_COLORS[item.model] || MODEL_COLORS.default,
     }));
   }, [modelUsage]);

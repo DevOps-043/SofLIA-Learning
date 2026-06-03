@@ -79,9 +79,8 @@ export const SOFLIA_DIFFICULTY_LEVELS = [
   'advanced',
 ] as const
 
-export const SOFLIA_OPENAI_CONFIG = {
-  model: 'gpt-4o',
+export const SOFLIA_GEMINI_CONFIG = {
+  model: 'gemini-3.5-flash',
   temperature: 0.7,
   maxTokens: 1000,
-  responseFormat: 'json_object',
 } as const

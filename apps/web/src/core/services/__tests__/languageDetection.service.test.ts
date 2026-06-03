@@ -1,16 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { LanguageDetectionService } from '../languageDetection.service';
 
-// Mock external dependencies that make network calls
-vi.mock('../../../lib/openai/usage-monitor', () => ({
-  trackOpenAICall: vi.fn().mockResolvedValue(undefined),
-  calculateOpenAIMetadata: vi.fn().mockReturnValue({}),
-}));
-
 describe('LanguageDetectionService.detectLanguage', () => {
   beforeEach(() => {
-    // Ensure OPENAI_API_KEY is not set so we use basic detection
-    vi.stubEnv('OPENAI_API_KEY', '');
+    // Ensure Gemini is not set so we use basic detection
+    vi.stubEnv('GOOGLE_API_KEY', '');
+    vi.stubEnv('GEMINI_API_KEY', '');
   });
 
   describe('basic detection (no API key)', () => {

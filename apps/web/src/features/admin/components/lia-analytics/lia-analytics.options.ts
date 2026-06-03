@@ -8,7 +8,6 @@ export const LIA_PERIOD_OPTIONS: Array<{ value: LiaAnalyticsPeriod; labelKey: st
 ]
 
 export const LIA_PROVIDER_OPTIONS: Array<{ value: LiaAnalyticsProvider; label: string }> = [
-  { value: 'openai', label: 'OpenAI' },
   { value: 'gemini', label: 'Gemini' },
 ]
 

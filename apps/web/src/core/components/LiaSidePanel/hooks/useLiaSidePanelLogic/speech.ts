@@ -25,7 +25,7 @@ export function useLiaSidePanelSpeech({
 }: UseLiaSidePanelSpeechParams) {
   const isVoiceEnabled = settings?.voice_enabled ?? true;
   const isDictationEnabled = settings?.dictation_enabled ?? false;
-  const { isSpeaking } = useLiaSidePanelVoice({
+  const { isSpeaking, voiceReveal } = useLiaSidePanelVoice({
     messages,
     isLoading,
     isOpen,
@@ -41,5 +41,5 @@ export function useLiaSidePanelSpeech({
     setInputValue,
   });
 
-  return { isSpeaking, isVoiceEnabled, isDictationEnabled, ...dictation };
+  return { isSpeaking, voiceReveal, isVoiceEnabled, isDictationEnabled, ...dictation };
 }

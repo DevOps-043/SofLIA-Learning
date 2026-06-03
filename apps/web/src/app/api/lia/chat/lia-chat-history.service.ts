@@ -1,8 +1,14 @@
 import 'server-only'
 import { logger as techDebtLogger } from '@/lib/utils/logger'
+import { resolveGeminiModel } from '@/lib/gemini/client'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../lib/supabase/types';
 import type { ChatMessage, ChatRequest } from './platform-context.service';
+
+const LIA_CHAT_MODEL = resolveGeminiModel(
+  process.env.LIA_CHAT_GEMINI_MODEL || 'gemini-3.5-flash',
+  'gemini-3.5-flash',
+);
 
 interface PersistConversationTurnParams {
   conversationId?: string;
@@ -157,7 +163,7 @@ export async function persistConversationTurn({
         conversation_id: conversationId,
         role: 'assistant',
         content: assistantContent,
-        model_used: 'gemini-1.5-flash',
+        model_used: LIA_CHAT_MODEL,
         tokens_used: 0,
         message_sequence: nextSequence + 1,
       });

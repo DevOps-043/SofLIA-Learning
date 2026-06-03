@@ -3,7 +3,7 @@ import {
   HarmBlockThreshold,
   HarmCategory,
 } from '@google/generative-ai'
-import { calculateCost, logOpenAIUsage } from '@/lib/openai/usage-monitor'
+import { calculateCost, logAIUsage } from '@/lib/ai/usage-monitor'
 import {
   CIRCUIT_BREAKER_DEFAULTS,
   executeWithCircuitBreaker,
@@ -69,10 +69,9 @@ REGLAS DE ESTADO DE SESION:
 `
 
 const VALID_MODELS = [
-  'gemini-2.0-flash-exp',
-  'gemini-1.5-flash',
-  'gemini-1.5-pro',
-  'gemini-pro',
+  'gemini-3.5-flash',
+  'gemini-3.1-pro-preview',
+  'gemini-3.1-flash-lite',
 ]
 
 interface SendDashboardChatMessageParams {
@@ -99,10 +98,18 @@ export interface DashboardChatGenerationResult {
 }
 
 function resolveGeminiModelName() {
-  const requestedModel = process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp'
-  return VALID_MODELS.some((model) => requestedModel.includes(model.split('-')[0]))
+  const requestedModel = (process.env.GEMINI_MODEL || 'gemini-3.5-flash').trim()
+  if (/^gemini-(?:1\.5|2\.0|2\.5)(?:-|$)/i.test(requestedModel)) {
+    return 'gemini-3.5-flash'
+  }
+
+  if (requestedModel.toLowerCase() === 'gemini-3-flash-preview') {
+    return 'gemini-3.5-flash'
+  }
+
+  return VALID_MODELS.some((model) => requestedModel.includes(model))
     ? requestedModel
-    : 'gemini-2.0-flash-exp'
+    : 'gemini-3.5-flash'
 }
 
 function buildDashboardSystemInstruction(
@@ -233,7 +240,7 @@ export async function sendDashboardChatMessage({
   const totalTokens = usage.totalTokenCount || 0
   const estimatedCost = calculateCost(promptTokens, completionTokens, modelName)
 
-  logOpenAIUsage({
+  logAIUsage({
     userId,
     timestamp: new Date(),
     model: modelName,

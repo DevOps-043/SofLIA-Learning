@@ -1,12 +1,12 @@
-import OpenAI from 'openai'
 import {
   buildOrganizationAiContextPromptSection,
   type ResolvedOrganizationAiContext,
 } from '@/lib/lia-context/services/organization-ai-context.service'
 import {
-  CIRCUIT_BREAKER_DEFAULTS,
-  executeWithCircuitBreaker,
-} from '@/lib/resilience/circuit-breaker'
+  generateGeminiText,
+  getGeminiApiKey,
+  resolveGeminiModel,
+} from '@/lib/gemini/client'
 
 import type {
   DialogueActivityConfig,
@@ -100,10 +100,10 @@ ${input.recentTurns
 }
 
 function resolveDialogueTutorModel() {
-  return (
+  return resolveGeminiModel(
     process.env.SOFLIA_DIALOGUE_MODEL ||
-    process.env.CHATBOT_MODEL ||
-    'gpt-4o-mini'
+      process.env.GEMINI_MODEL,
+    'gemini-3.5-flash',
   )
 }
 
@@ -127,40 +127,24 @@ export async function generateDialogueTutorMessage(input: {
     return fallbackTutorMessage(input)
   }
 
-  const openaiApiKey = process.env.OPENAI_API_KEY
-  if (!openaiApiKey) {
+  if (!getGeminiApiKey()) {
     return fallbackTutorMessage(input)
   }
 
-  const openai = new OpenAI({ apiKey: openaiApiKey })
-
   try {
-    const completion = await executeWithCircuitBreaker(
-      'openai-dialogue-tutor',
-      () => openai.chat.completions.create({
-        max_tokens: 500,
-        messages: [
-          {
-            role: 'system',
-            content:
-              'Eres SofLIA. Genera solo el mensaje visible para el estudiante, sin JSON ni instrucciones internas.',
-          },
-          {
-            role: 'user',
-            content: buildTutorPrompt(input),
-          },
-        ],
-        model: resolveDialogueTutorModel(),
+    const response = await generateGeminiText({
+      circuitBreakerName: 'gemini-dialogue-tutor',
+      generationConfig: {
+        maxOutputTokens: 500,
         temperature: 0.35,
-      }, {
-        signal: AbortSignal.timeout(resolveDialogueTutorTimeoutMs()),
-      }),
-      {
-        ...CIRCUIT_BREAKER_DEFAULTS.openai,
-        timeoutMs: resolveDialogueTutorTimeoutMs(),
       },
-    )
-    const content = completion.choices[0]?.message?.content?.trim() || ''
+      model: resolveDialogueTutorModel(),
+      prompt: buildTutorPrompt(input),
+      systemInstruction:
+        'Eres SofLIA. Genera solo el mensaje visible para el estudiante, sin JSON ni instrucciones internas.',
+      timeoutMs: resolveDialogueTutorTimeoutMs(),
+    })
+    const content = response.text.trim()
     return content || fallbackTutorMessage(input)
   } catch {
     return fallbackTutorMessage(input)

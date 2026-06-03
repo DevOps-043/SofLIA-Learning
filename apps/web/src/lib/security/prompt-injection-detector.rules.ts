@@ -35,7 +35,7 @@ export const DETECTION_RULES: DetectionRule[] = [
       /\b(describe|explica|detalla|lista|dame|muestrame|cuales son|cual es|que)\b.{0,40}\b(endpoints?|apis?|rutas internas?|base de datos|schema|esquema|entidad relacion|erd|tablas?|campos?|columnas?)\b/i,
       /\b(campos?|columnas?)\b.{0,40}\b(tabla|users|course_lessons|lesson_activities|material_lessons|lia_messages|lia_conversations|organization_users|user_course_enrollments)\b/i,
       /\b(tablas?|schema|esquema|entidad relacion|erd)\b.{0,40}\b(cursos|usuarios|base de datos|db|soflia)\b/i,
-      /\b(que|cual|dime|dame|describe|explica)\b.{0,30}\b(modelo de ia|modelo usas|modelo utilizas|llm|proveedor de ia|openai|claude|gemini)\b/i,
+      /\b(que|cual|dime|dame|describe|explica)\b.{0,30}\b(modelo de ia|modelo usas|modelo utilizas|llm|proveedor de ia|proveedor externo|claude|gemini)\b/i,
       /\b(users|course_lessons|lesson_activities|material_lessons|lia_messages|lia_conversations|organization_users|user_course_enrollments)\b.{0,40}\b(campos?|columnas?|schema|esquema|endpoints?)\b/i,
     ],
   },

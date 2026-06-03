@@ -13,6 +13,8 @@
     "companies": "Empresas",
     "reports": "Reportes",
     "security": "Seguridad",
+    "transcoding": "Transcoding de video",
+    "ttsAudio": "Audio TTS",
     "reviews": "Revisiones"
   },
   "dashboard": {
@@ -74,6 +76,85 @@
     "unpinned": "Menú flotante",
     "expandMenu": "Expandir menú",
     "collapseMenu": "Contraer menú"
+  },
+  "ttsAudio": {
+    "header": {
+      "eyebrow": "Pre-generacion",
+      "title": "Audio TTS de lecturas",
+      "subtitle": "Genera y monitorea audios segmentados para actividades, materiales, transcripciones y resumenes antes de que el usuario los necesite."
+    },
+    "common": {
+      "all": "Todos",
+      "ready": "Listo",
+      "missing": "Pendiente"
+    },
+    "diagnostics": {
+      "title": "Diagnostico del pipeline",
+      "provider": "Proveedor: {{value}}",
+      "bucket": "Bucket: {{value}}",
+      "cron": "Cron: {{value}}",
+      "healthy": "El pipeline esta listo para generar y servir audio privado."
+    },
+    "actions": {
+      "refresh": "Refrescar",
+      "runDiagnostics": "Ejecutar diagnostico",
+      "backfill": "Encolar todo",
+      "drain": "Procesar siguientes",
+      "retryFailed": "Reintentar fallidos",
+      "cleanup": "Limpiar no objetivo",
+      "reprocess": "Reprocesar"
+    },
+    "filters": {
+      "resource": "Alcance",
+      "status": "Estado",
+      "sourceType": "Tipo",
+      "language": "Idioma"
+    },
+    "resources": {
+      "all": "Todo",
+      "activities": "Reflexiones",
+      "materials": "Materiales",
+      "lessons": "Lecciones"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "generating": "Generando",
+      "ready": "Listo",
+      "failed": "Fallido"
+    },
+    "sourceTypes": {
+      "activity_reading": "Actividad",
+      "material_reading": "Material",
+      "lesson_transcript": "Transcripcion",
+      "lesson_summary": "Resumen"
+    },
+    "languages": {
+      "es": "ES",
+      "en": "EN",
+      "pt": "PT"
+    },
+    "results": {
+      "backfill": "{{scanned}} escaneados, {{queued}} encolados.",
+      "drain": "{{processed}} jobs procesados.",
+      "cleanup": "{{deletedJobs}} jobs no objetivo eliminados de {{scanned}} revisados.",
+      "retry": "{{requeued}} jobs fallidos reencolados.",
+      "reprocess": "Job {{jobId}} reencolado.",
+      "error": "Error: {{error}}"
+    },
+    "table": {
+      "source": "Fuente",
+      "status": "Estado",
+      "language": "Idioma",
+      "segments": "Segmentos",
+      "model": "Modelo",
+      "retries": "Reintentos",
+      "updated": "Actualizado",
+      "actions": "Acciones",
+      "autoRefresh": "Refresco automatico cada pocos segundos",
+      "loading": "Actualizando audios...",
+      "empty": "No hay jobs para mostrar.",
+      "promptVersion": "Prompt v{{version}}"
+    }
   },
   "users": {
     "page": {

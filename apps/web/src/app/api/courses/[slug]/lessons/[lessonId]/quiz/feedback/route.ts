@@ -81,7 +81,7 @@ async function generateFeedbackWithGemini(params: {
 
   const genAI = new GoogleGenerativeAI(googleApiKey)
   const model = genAI.getGenerativeModel({
-    model: process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp',
+    model: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
     systemInstruction,
     generationConfig: {
       maxOutputTokens: 4096,
@@ -270,7 +270,7 @@ export async function POST(
           organization_id: enrollment.organization_id || requestedOrganizationId,
           prompt_hash: promptHash,
           prompt_text: prompt,
-          source_model: process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp',
+          source_model: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
           updated_at: now,
           user_id: currentUser.id,
         },

@@ -30,7 +30,6 @@ const outputFileTracingExcludes = {
 const serverExternalPackages = [
   'exceljs',
   'pdfmake',
-  'openai',
   'nodemailer',
   'xml2js',
   'jszip',

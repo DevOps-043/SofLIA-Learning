@@ -5,10 +5,12 @@ import { motion } from 'framer-motion';
 import { parseMarkdownContent } from './utils/parseMarkdown';
 import { LiaThemeColors, LiaQuickAction, LiaMessage } from './types';
 import { LiaQuickActionsChips } from './LiaQuickActionsChips';
+import type { VoiceRevealState } from './hooks/useLiaSidePanelVoice';
 
 interface MessagesDisplayProps {
   messages: LiaMessage[];
   isLoading: boolean;
+  voiceReveal: VoiceRevealState;
   currentTip: string;
   themeColors: LiaThemeColors;
   isLightTheme: boolean;
@@ -24,6 +26,7 @@ interface MessagesDisplayProps {
 export function MessagesDisplay({
   messages,
   isLoading,
+  voiceReveal,
   currentTip,
   themeColors,
   isLightTheme,
@@ -35,6 +38,14 @@ export function MessagesDisplay({
   chatContainerRef,
   handleChatScroll,
 }: MessagesDisplayProps) {
+  // El texto se revela al ritmo del audio (voiceReveal); mantenemos la vista al
+  // final mientras avanza, ya que el contenido visible crece sin cambiar `messages`.
+  React.useEffect(() => {
+    if (voiceReveal.messageId) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [voiceReveal, messagesEndRef]);
+
   return (
     <>
       {/* Messages Area */}
@@ -159,7 +170,13 @@ export function MessagesDisplay({
                   }}
                 >
                   {message.role === 'assistant'
-                    ? parseMarkdownContent(message.content, handleLinkClick, isDarkMode)
+                    ? parseMarkdownContent(
+                        voiceReveal.messageId === message.id
+                          ? message.content.slice(0, voiceReveal.length)
+                          : message.content,
+                        handleLinkClick,
+                        isDarkMode,
+                      )
                     : message.content}
                 </p>
                 <p

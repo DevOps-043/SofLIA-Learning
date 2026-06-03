@@ -86,7 +86,6 @@ function checkConfiguredDependency(envNames: readonly string[]): DependencyHealt
 async function healthHandler(request: NextRequest) {
   const checks = {
     database: await checkDatabase(),
-    openai: checkConfiguredDependency(['OPENAI_API_KEY']),
     gemini: checkConfiguredDependency(['GOOGLE_API_KEY', 'GEMINI_API_KEY']),
     observability: {
       status: isApmConfigured() ? 'ok' : 'degraded',

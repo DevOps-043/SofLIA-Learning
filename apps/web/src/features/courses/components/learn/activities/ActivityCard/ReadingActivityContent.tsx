@@ -11,6 +11,8 @@ interface ReadingActivityContentProps {
   canZoomIn: boolean;
   canZoomOut: boolean;
   contentZoom: number;
+  lessonId: string;
+  slug: string;
   t: TFunction<'learn'>;
   zoomIn: () => void;
   zoomOut: () => void;
@@ -21,18 +23,34 @@ export function ReadingActivityContent({
   canZoomIn,
   canZoomOut,
   contentZoom,
+  lessonId,
+  slug,
   t,
   zoomIn,
   zoomOut
 }: ReadingActivityContentProps) {
-  const { status, activeSegmentIndex, speak } = useReadingVoice();
+  const canListen = activity.activity_type === 'reflection';
+  const { status, activeSegmentIndex, speak } = useReadingVoice(
+    canListen
+      ? {
+          lessonId,
+          slug,
+          sourceId: activity.activity_id,
+          sourceType: 'activity_reading',
+        }
+      : null,
+  );
   const isPlaying = status === 'playing';
 
   return (
     <>
       <div className="mb-2 flex items-center justify-end gap-1.5">
-        <ReadingVoiceButton status={status} t={t} onClick={() => speak(activity.activity_content)} />
-        <div className="h-3 w-px bg-gray-200 dark:bg-white/10" />
+        {canListen ? (
+          <>
+            <ReadingVoiceButton status={status} t={t} onClick={() => void speak()} />
+            <div className="h-3 w-px bg-gray-200 dark:bg-white/10" />
+          </>
+        ) : null}
         <ZoomIn className="h-3.5 w-3.5 text-gray-400 dark:text-white/30" />
         <ZoomButton disabled={!canZoomOut} label={t('reading.decreaseFontSize')} onClick={zoomOut}>
           A-

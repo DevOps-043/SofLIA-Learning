@@ -1,8 +1,8 @@
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { LANDING_LANGUAGE_OPTIONS } from './constants';
 import { LanguageSelector } from './LanguageSelector';
 import { ThemeSelector } from './ThemeSelector';
+import { warmClientAccess } from './prefetch-auth';
 import type { LandingHeaderState, LandingHeaderTranslator } from './types';
 
 interface DesktopActionsProps {
@@ -29,23 +29,21 @@ export function DesktopActions({ state, t }: DesktopActionsProps) {
         onThemeChange={state.setTheme}
       />
       <div className="mx-1 h-6 w-px bg-gray-200 dark:bg-white/10" />
-      <Link href="/auth">
-        <motion.span
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="inline-block cursor-pointer px-4 py-2.5 text-sm font-medium text-primary transition-colors hover:text-accent dark:text-white/80"
-        >
-          {t('landing.nav.clientAccess', 'Acceso clientes')}
-        </motion.span>
+      <Link
+        href="/auth"
+        prefetch
+        onMouseEnter={warmClientAccess}
+        onFocus={warmClientAccess}
+        className="inline-block cursor-pointer px-4 py-2.5 text-sm font-medium text-primary transition-all duration-150 hover:scale-[1.02] active:scale-95 hover:text-accent dark:text-white/80"
+      >
+        {t('landing.nav.clientAccess', 'Acceso clientes')}
       </Link>
-      <Link href="/contact">
-        <motion.span
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          className="inline-block cursor-pointer rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-primary/25 transition-all duration-300 hover:bg-primary/90"
-        >
-          {t('landing.nav.scheduleDemo', 'Agendar demo')}
-        </motion.span>
+      <Link
+        href="/contact"
+        prefetch
+        className="inline-block cursor-pointer rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-primary/25 transition-all duration-300 hover:scale-[1.03] active:scale-95 hover:bg-primary/90"
+      >
+        {t('landing.nav.scheduleDemo', 'Agendar demo')}
       </Link>
     </div>
   );

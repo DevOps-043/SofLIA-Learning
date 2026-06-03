@@ -13,6 +13,8 @@
     "companies": "Companies",
     "reports": "Reports",
     "security": "Security",
+    "transcoding": "Video transcoding",
+    "ttsAudio": "TTS Audio",
     "reviews": "Reviews"
   },
   "dashboard": {
@@ -74,6 +76,85 @@
     "unpinned": "Floating menu",
     "expandMenu": "Expand menu",
     "collapseMenu": "Collapse menu"
+  },
+  "ttsAudio": {
+    "header": {
+      "eyebrow": "Pre-generation",
+      "title": "Reading TTS audio",
+      "subtitle": "Generate and monitor segmented audio for activities, materials, transcripts and summaries before users need it."
+    },
+    "common": {
+      "all": "All",
+      "ready": "Ready",
+      "missing": "Missing"
+    },
+    "diagnostics": {
+      "title": "Pipeline diagnostics",
+      "provider": "Provider: {{value}}",
+      "bucket": "Bucket: {{value}}",
+      "cron": "Cron: {{value}}",
+      "healthy": "The pipeline is ready to generate and serve private audio."
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "runDiagnostics": "Run diagnostics",
+      "backfill": "Queue all",
+      "drain": "Process next",
+      "retryFailed": "Retry failed",
+      "cleanup": "Clean non-target",
+      "reprocess": "Reprocess"
+    },
+    "filters": {
+      "resource": "Scope",
+      "status": "Status",
+      "sourceType": "Type",
+      "language": "Language"
+    },
+    "resources": {
+      "all": "All",
+      "activities": "Reflections",
+      "materials": "Materials",
+      "lessons": "Lessons"
+    },
+    "status": {
+      "pending": "Pending",
+      "generating": "Generating",
+      "ready": "Ready",
+      "failed": "Failed"
+    },
+    "sourceTypes": {
+      "activity_reading": "Activity",
+      "material_reading": "Material",
+      "lesson_transcript": "Transcript",
+      "lesson_summary": "Summary"
+    },
+    "languages": {
+      "es": "ES",
+      "en": "EN",
+      "pt": "PT"
+    },
+    "results": {
+      "backfill": "{{scanned}} scanned, {{queued}} queued.",
+      "drain": "{{processed}} jobs processed.",
+      "cleanup": "{{deletedJobs}} non-target jobs removed from {{scanned}} checked.",
+      "retry": "{{requeued}} failed jobs queued again.",
+      "reprocess": "Job {{jobId}} queued again.",
+      "error": "Error: {{error}}"
+    },
+    "table": {
+      "source": "Source",
+      "status": "Status",
+      "language": "Language",
+      "segments": "Segments",
+      "model": "Model",
+      "retries": "Retries",
+      "updated": "Updated",
+      "actions": "Actions",
+      "autoRefresh": "Auto-refresh every few seconds",
+      "loading": "Updating audio jobs...",
+      "empty": "No jobs to show.",
+      "promptVersion": "Prompt v{{version}}"
+    }
   },
   "users": {
     "page": {

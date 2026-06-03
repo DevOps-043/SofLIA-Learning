@@ -27,6 +27,6 @@ export async function translateCourseOnCreate(
     context: 'Este es un curso de una plataforma educativa sobre inteligencia artificial aplicada.',
     userId,
     supabaseClient,
-    requireOpenAiKey: true,
+    requireGeminiKey: true,
   });
 }

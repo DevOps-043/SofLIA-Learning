@@ -1,301 +1,234 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-/**
- * Servicio de traducción automática usando OpenAI
- * Traduce contenido educativo de español a inglés y portugués
- */
 
-import { SupportedLanguage } from '../i18n/i18n';
-import { trackOpenAICall, calculateOpenAIMetadata } from '../../lib/openai/usage-monitor';
-import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker';
+import type { SupportedLanguage } from '../i18n/i18n'
+import { calculateGeminiMetadata, trackAICall } from '../../lib/ai/usage-monitor'
+import {
+  generateGeminiText,
+  getGeminiApiKey,
+  resolveGeminiModel,
+} from '../../lib/gemini/client'
 
-type TargetLanguage = SupportedLanguage; // 'es' | 'en' | 'pt'
-type SourceLanguage = 'es' | 'en' | 'pt';
+type TargetLanguage = SupportedLanguage
+type SourceLanguage = 'es' | 'en' | 'pt'
 
 interface TranslationOptions {
-  context?: string;
-  preserveFormatting?: boolean;
-  sourceLanguage?: SourceLanguage; // Idioma de origen (opcional, por defecto 'es')
+  context?: string
+  preserveFormatting?: boolean
+  sourceLanguage?: SourceLanguage
 }
 
 export class AutoTranslationService {
-  private static readonly OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-  private static readonly OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
-  private static readonly OPENAI_BASE_URL = 'https://api.openai.com/v1/chat/completions';
-
-  /**
-   * Verifica si el servicio está configurado correctamente
-   */
   private static isConfigured(): boolean {
-    const isConfigured = !!this.OPENAI_API_KEY;
+    const isConfigured = Boolean(getGeminiApiKey())
 
     if (!isConfigured) {
-      techDebtLogger.error('[AutoTranslationService] ❌ OPENAI_API_KEY no está configurada en las variables de entorno');
+      techDebtLogger.error('[AutoTranslationService] GEMINI_API_KEY no esta configurada.')
       techDebtLogger.error('[AutoTranslationService] Variables de entorno disponibles:', {
-        hasOpenAIKey: !!process.env.OPENAI_API_KEY,
-        hasOpenAIModel: !!process.env.OPENAI_MODEL,
-        nodeEnv: process.env.NODE_ENV
-      });
-    } else {
-
+        hasGeminiKey: Boolean(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY),
+        hasGeminiModel: Boolean(process.env.GEMINI_MODEL),
+        nodeEnv: process.env.NODE_ENV,
+      })
     }
-    return isConfigured;
+
+    return isConfigured
   }
 
-  /**
-   * Traduce un texto individual de un idioma a otro
-   * @param text Texto a traducir
-   * @param targetLanguage Idioma destino (es, en, pt)
-   * @param options Opciones incluyendo sourceLanguage (idioma de origen)
-   */
   static async translateText(
     text: string,
     targetLanguage: TargetLanguage,
-    options: TranslationOptions = {}
+    options: TranslationOptions = {},
   ): Promise<string> {
     if (!text || text.trim().length === 0) {
-      return text;
+      return text
     }
 
-    // Obtener idioma de origen (debe ser proporcionado explícitamente)
-    const sourceLanguage = options.sourceLanguage;
+    const sourceLanguage = options.sourceLanguage
     if (!sourceLanguage) {
-      techDebtLogger.error(`[AutoTranslationService] ❌ sourceLanguage no proporcionado en options. Options:`, options);
-      techDebtLogger.warn(`[AutoTranslationService] ⚠️ Asumiendo español por defecto, pero esto puede causar traducciones incorrectas`);
+      techDebtLogger.error('[AutoTranslationService] sourceLanguage no proporcionado en options.', options)
+      techDebtLogger.warn('[AutoTranslationService] Asumiendo espanol por defecto.')
     }
-    
-    const finalSourceLanguage = sourceLanguage || 'es';
-    
+
+    const finalSourceLanguage = sourceLanguage || 'es'
+
     if (finalSourceLanguage === targetLanguage) {
-      return text;
+      return text
     }
 
     if (!this.isConfigured()) {
-      techDebtLogger.warn('[AutoTranslationService] ⚠️ OPENAI_API_KEY no configurada, retornando texto original sin traducir');
-      return text;
+      techDebtLogger.warn('[AutoTranslationService] Gemini no configurado, retornando texto original.')
+      return text
     }
 
     const languageNames: Record<SourceLanguage | TargetLanguage, string> = {
-      es: 'español',
-      en: 'inglés',
-      pt: 'portugués brasileño'
-    };
+      en: 'ingles',
+      es: 'espanol',
+      pt: 'portugues brasileno',
+    }
 
-    const sourceLangName = languageNames[finalSourceLanguage];
-    const targetLangName = languageNames[targetLanguage];
+    const sourceLangName = languageNames[finalSourceLanguage]
+    const targetLangName = languageNames[targetLanguage]
+    const contextPrompt = options.context ? `\n\nContexto: ${options.context}` : ''
 
-    const contextPrompt = options.context 
-      ? `\n\nContexto: ${options.context}`
-      : '';
-
-    const systemPrompt = `Eres un traductor profesional especializado en contenido educativo y tecnológico. 
+    const systemPrompt = `Eres un traductor profesional especializado en contenido educativo y tecnologico.
 Tu tarea es traducir texto del ${sourceLangName} al ${targetLangName} manteniendo:
 - El tono profesional y preciso
-- La terminología técnica correcta
+- La terminologia tecnica correcta
 - El formato y estructura original
-- La claridad y precisión del contenido educativo
+- La claridad y precision del contenido educativo
 
-${options.preserveFormatting ? 'IMPORTANTE: Mantén todos los saltos de línea, numeración, listas y formato del texto original.' : ''}
+${options.preserveFormatting ? 'IMPORTANTE: Manten todos los saltos de linea, numeracion, listas y formato del texto original.' : ''}
 
-Responde ÚNICAMENTE con la traducción, sin explicaciones ni comentarios adicionales.`;
+Responde UNICAMENTE con la traduccion, sin explicaciones ni comentarios adicionales.`
 
     const userPrompt = `Traduce el siguiente texto del ${sourceLangName} al ${targetLangName}.${contextPrompt}
 
 Texto original:
 ${text}
 
-Traducción:`;
+Traduccion:`
 
     try {
-      
-      const startTime = Date.now();
-      const response = await fetchWithCircuitBreaker('openai-auto-translation', this.OPENAI_BASE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.OPENAI_API_KEY}`,
+      const startTime = Date.now()
+      const model = resolveGeminiModel(
+        process.env.AUTO_TRANSLATION_GEMINI_MODEL,
+        'gemini-3.5-flash',
+      )
+      const result = await generateGeminiText({
+        circuitBreakerName: 'gemini-auto-translation',
+        generationConfig: {
+          maxOutputTokens: Math.min(4000, Math.ceil(text.length * 2)),
+          temperature: 0.3,
         },
-        body: JSON.stringify({
-          model: this.OPENAI_MODEL,
-          messages: [
-            {
-              role: 'system',
-              content: systemPrompt
-            },
-            {
-              role: 'user',
-              content: userPrompt
-            }
-          ],
-          temperature: 0.3, // Baja temperatura para traducciones más precisas
-          max_tokens: Math.min(4000, Math.ceil(text.length * 2)), // Aproximadamente 2x el texto original
-        }),
-      });
+        model,
+        prompt: userPrompt,
+        systemInstruction: systemPrompt,
+      })
+      const responseTime = Date.now() - startTime
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = `OpenAI API error: ${response.status} - ${JSON.stringify(errorData)}`;
-        techDebtLogger.error(`[AutoTranslationService] ❌ ${errorMessage}`);
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-      const responseTime = Date.now() - startTime;
-      
-      // ✅ Registrar uso de OpenAI para traducción
-      if (data.usage) {
-        await trackOpenAICall(calculateOpenAIMetadata(
-          data.usage,
-          this.OPENAI_MODEL,
+      if (result.usage) {
+        await trackAICall(calculateGeminiMetadata(
+          result.usage,
+          result.model,
           'auto-translation',
-          undefined, // No tenemos userId en este contexto
-          responseTime
-        ));
+          undefined,
+          responseTime,
+        ))
       }
-      
-      const translatedText = data.choices[0]?.message?.content?.trim() || text;
 
+      const translatedText = result.text.trim() || text
       if (translatedText === text) {
-        techDebtLogger.warn(`[AutoTranslationService] ⚠️ La traducción retornada es igual al texto original (posible error silencioso)`);
-      } else {
+        techDebtLogger.warn('[AutoTranslationService] La traduccion retornada es igual al texto original.')
       }
-      
-      return translatedText;
+
+      return translatedText
     } catch (error) {
-      techDebtLogger.error(`[AutoTranslationService] ❌ Error traduciendo texto a ${targetLanguage}:`, error);
+      techDebtLogger.error(`[AutoTranslationService] Error traduciendo texto a ${targetLanguage}:`, error)
       if (error instanceof Error) {
-        techDebtLogger.error(`[AutoTranslationService] Stack trace:`, error.stack);
+        techDebtLogger.error('[AutoTranslationService] Stack trace:', error.stack)
       }
-      // Retornar texto original en caso de error
-      return text;
+      return text
     }
   }
 
-  /**
-   * Traduce múltiples campos de un objeto
-   */
   static async translateObject(
     obj: Record<string, unknown>,
     fields: string[],
     targetLanguage: TargetLanguage,
-    options: TranslationOptions = {}
+    options: TranslationOptions = {},
   ): Promise<Record<string, unknown>> {
-    const translations: Record<string, unknown> = {};
+    const translations: Record<string, unknown> = {}
 
-    // Traducir cada campo en paralelo para mejor rendimiento
     const translationPromises = fields.map(async (field) => {
-      const value = obj[field];
-      
-      // Solo traducir si el campo existe y tiene contenido
+      const value = obj[field]
+
       if (value === null || value === undefined || value === '') {
-        return { field, translated: value };
+        return { field, translated: value }
       }
 
-      // Si es un array, traducir cada elemento
       if (Array.isArray(value)) {
         const translatedArray = await Promise.all(
           value.map(async (item: unknown) => {
             if (typeof item === 'string' && item.trim().length > 0) {
-              return await this.translateText(item, targetLanguage, {
-                ...options,
-                sourceLanguage: options.sourceLanguage, // Pasar el idioma de origen
-              });
+              return this.translateText(item, targetLanguage, options)
             }
-            return item;
-          })
-        );
-        return { field, translated: translatedArray };
+            return item
+          }),
+        )
+        return { field, translated: translatedArray }
       }
 
-      // Si es un string, traducirlo
       if (typeof value === 'string' && value.trim().length > 0) {
-        const translated = await this.translateText(value, targetLanguage, {
-          ...options,
-          sourceLanguage: options.sourceLanguage, // Pasar el idioma de origen
-        });
-        return { field, translated };
+        const translated = await this.translateText(value, targetLanguage, options)
+        return { field, translated }
       }
 
-      // Para otros tipos, mantener el valor original
-      return { field, translated: value };
-    });
+      return { field, translated: value }
+    })
 
-    const results = await Promise.all(translationPromises);
-    
+    const results = await Promise.all(translationPromises)
     results.forEach(({ field, translated }) => {
-      translations[field] = translated;
-    });
+      translations[field] = translated
+    })
 
-    return translations;
+    return translations
   }
 
-  /**
-   * Traduce una entidad completa (objeto con múltiples campos)
-   * Útil para traducir cursos, módulos, lecciones, etc.
-   */
   static async translateEntity<T extends Record<string, unknown>>(
     entity: T,
     fields: string[],
     targetLanguage: TargetLanguage,
     entityType?: string,
-    options: TranslationOptions = {}
+    options: TranslationOptions = {},
   ): Promise<Record<string, unknown>> {
-    const context = entityType 
+    const context = entityType
       ? `Este es un ${entityType} de una plataforma educativa sobre inteligencia artificial.`
-      : options.context;
+      : options.context
 
-    const result = await this.translateObject(entity, fields, targetLanguage, {
+    return this.translateObject(entity, fields, targetLanguage, {
       ...options,
       context,
-      preserveFormatting: true, // Preservar formato para contenido educativo
-    });
-
-    return result;
+      preserveFormatting: true,
+    })
   }
 
-  /**
-   * Traduce a múltiples idiomas simultáneamente
-   */
   static async translateToMultipleLanguages(
     text: string,
     targetLanguages: TargetLanguage[],
-    options: TranslationOptions = {}
+    options: TranslationOptions = {},
   ): Promise<Record<TargetLanguage, string>> {
     const translations = await Promise.all(
-      targetLanguages.map(async (lang) => {
-        const translated = await this.translateText(text, lang, options);
-        return { lang, translated };
-      })
-    );
+      targetLanguages.map(async (lang) => ({
+        lang,
+        translated: await this.translateText(text, lang, options),
+      })),
+    )
 
-    const result: Record<TargetLanguage, string> = {} as Record<TargetLanguage, string>;
+    const result = {} as Record<TargetLanguage, string>
     translations.forEach(({ lang, translated }) => {
-      result[lang] = translated;
-    });
+      result[lang] = translated
+    })
 
-    return result;
+    return result
   }
 
-  /**
-   * Traduce un objeto a múltiples idiomas simultáneamente
-   */
   static async translateObjectToMultipleLanguages(
     obj: Record<string, unknown>,
     fields: string[],
     targetLanguages: TargetLanguage[],
-    options: TranslationOptions = {}
+    options: TranslationOptions = {},
   ): Promise<Record<TargetLanguage, Record<string, unknown>>> {
     const translations = await Promise.all(
-      targetLanguages.map(async (lang) => {
-        const translated = await this.translateObject(obj, fields, lang, options);
-        return { lang, translated };
-      })
-    );
+      targetLanguages.map(async (lang) => ({
+        lang,
+        translated: await this.translateObject(obj, fields, lang, options),
+      })),
+    )
 
-    const result: Record<TargetLanguage, Record<string, unknown>> = {} as Record<TargetLanguage, Record<string, unknown>>;
+    const result = {} as Record<TargetLanguage, Record<string, unknown>>
     translations.forEach(({ lang, translated }) => {
-      result[lang] = translated;
-    });
+      result[lang] = translated
+    })
 
-    return result;
+    return result
   }
 }

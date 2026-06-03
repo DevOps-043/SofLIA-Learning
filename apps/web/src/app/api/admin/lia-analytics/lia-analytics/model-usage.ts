@@ -7,7 +7,7 @@ export function getModelUsage(assistantMessages: LiaMessageMetricRow[]) {
   >()
 
   assistantMessages.forEach((message) => {
-    const model = message.model_used || 'gpt-4o-mini'
+    const model = message.model_used || 'gemini-3.5-flash'
     const existing = modelCounts.get(model) || { cost: 0, count: 0, tokens: 0 }
     modelCounts.set(model, {
       cost: existing.cost + (message.cost_usd || 0),

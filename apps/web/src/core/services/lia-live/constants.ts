@@ -4,11 +4,11 @@
 export const LIA_LIVE_TOKEN_PATH = '/api/lia/live-token';
 
 /**
- * Modelo Live por defecto. El nativo de audio es el más humano y de menor
- * latencia para voz↔voz. Configurable con GEMINI_LIVE_MODEL (server).
- * Nota: "gemini-3.5-flash-live" no existe; usamos el nativo de audio disponible.
+ * Modelo Live por defecto: Gemini 3.1 Flash Live (alta calidad, baja latencia,
+ * diálogo de voz en tiempo real). Configurable con GEMINI_LIVE_MODEL (server)
+ * si el id de API difiere del nombre del modelo.
  */
-export const DEFAULT_LIA_LIVE_MODEL = 'gemini-2.5-flash-native-audio-preview-09-2025';
+export const DEFAULT_LIA_LIVE_MODEL = 'gemini-3.1-flash-live-preview';
 
 /** Voz prebuilt; el acento es-MX se refuerza vía systemInstruction + languageCode. */
 export const DEFAULT_LIA_LIVE_VOICE = 'Zephyr';

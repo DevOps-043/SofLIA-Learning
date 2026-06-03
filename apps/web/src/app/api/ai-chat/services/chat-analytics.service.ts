@@ -1,6 +1,6 @@
 import { logger } from '@/lib/utils/logger'
 import type { SofLIALogger } from '@/lib/analytics/lia-logger'
-import type { AiResponseMetadata } from './openai-request.service'
+import type { AiResponseMetadata } from './gemini-request.service'
 
 interface AnalyticsPromiseResult {
   liaLogger: SofLIALogger | null
