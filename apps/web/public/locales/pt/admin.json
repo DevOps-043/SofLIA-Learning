@@ -135,7 +135,7 @@
     },
     "results": {
       "backfill": "{{scanned}} verificados, {{queued}} enfileirados.",
-      "drain": "{{processed}} jobs processados.",
+      "drain": "{{processed}} jobs processados. Adiados: {{deferred}}. Falhos: {{failed}}.",
       "cleanup": "{{deletedJobs}} jobs fora do alvo removidos de {{scanned}} verificados.",
       "retry": "{{requeued}} jobs falhos enfileirados novamente.",
       "reprocess": "Job {{jobId}} enfileirado novamente.",

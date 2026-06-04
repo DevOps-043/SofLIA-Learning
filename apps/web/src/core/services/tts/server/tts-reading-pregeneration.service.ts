@@ -20,6 +20,7 @@ import {
 import { resolveTTSAudio } from './tts-synthesis.service';
 
 type ReadingAudioJobRow = Database['public']['Tables']['tts_reading_audio_jobs']['Row'];
+type ReadingAudioJobInsert = Database['public']['Tables']['tts_reading_audio_jobs']['Insert'];
 type ReadingAudioAssetInsert = Database['public']['Tables']['tts_reading_audio_assets']['Insert'];
 type AdminClient = ReturnType<typeof createAdminClient>;
 
@@ -39,14 +40,27 @@ interface EnqueueReadingAudioParams {
   triggerNow?: boolean;
 }
 
+export type EnqueueReadingAudioBatchItem = Omit<EnqueueReadingAudioParams, 'triggerNow'>;
+
 const JOBS_TABLE = 'tts_reading_audio_jobs' as const;
 const JOB_SELECT_FIELDS =
   'id, source_type, source_id, language, content_hash, source_text, voice, model, prompt_version, segment_count, status, retry_count, next_retry_at, locked_by, locked_until, last_error_code, error_message, processing_started_at, processing_finished_at';
 const MAX_RETRIES = 3;
 const LOCK_MS = 10 * 60 * 1000;
+const DEFAULT_PROCESS_TIME_BUDGET_MS = 85_000;
+const MIN_TIME_REMAINING_TO_CLAIM_MS = 65_000;
+const MIN_TIME_REMAINING_TO_START_SEGMENT_MS = 65_000;
+const TIME_BUDGET_DEFER_DELAY_MS = 30_000;
 const RETRY_DELAYS_MS = [2, 5, 15].map((minutes) => minutes * 60 * 1000);
 const TARGET_ACTIVITY_TYPE = 'reflection';
 const processingJobIds = new Set<string>();
+
+class ReadingAudioTimeBudgetExceededError extends Error {
+  constructor() {
+    super('Tiempo de ejecucion agotado; el job se reintentara en la siguiente corrida.');
+    this.name = 'ReadingAudioTimeBudgetExceededError';
+  }
+}
 
 export function computeReadingContentHash(text: string): string {
   return createHash('sha256').update(text.trim()).digest('hex');
@@ -61,11 +75,86 @@ function getRetryDelayMs(retryCount: number): number {
 }
 
 function getErrorCode(error: unknown): string {
+  if (error instanceof ReadingAudioTimeBudgetExceededError) {
+    return 'time_budget_exceeded';
+  }
+
   if (error instanceof Error) {
     if (error.message.toLowerCase().includes('rate')) return 'rate_limit';
     return error.name || 'generation_error';
   }
   return 'unknown_error';
+}
+
+function hasTimeRemaining(deadlineMs: number | undefined, requiredMs: number): boolean {
+  return !deadlineMs || Date.now() + requiredMs <= deadlineMs;
+}
+
+function assertTimeRemaining(deadlineMs: number | undefined, requiredMs: number): void {
+  if (!hasTimeRemaining(deadlineMs, requiredMs)) {
+    throw new ReadingAudioTimeBudgetExceededError();
+  }
+}
+
+function isTimeBudgetExceeded(error: unknown): boolean {
+  return error instanceof ReadingAudioTimeBudgetExceededError;
+}
+
+function buildJobInsertRows(items: EnqueueReadingAudioBatchItem[]): ReadingAudioJobInsert[] {
+  const nowIso = new Date().toISOString();
+  const rows: ReadingAudioJobInsert[] = [];
+
+  for (const item of items) {
+    if (item.sourceType === 'material_reading') continue;
+    if (!canPregenerateReadingContent(item.text)) continue;
+
+    const descriptor = resolveTTSCacheDescriptor({ text: item.text, context: 'reading' });
+
+    rows.push({
+      source_type: item.sourceType,
+      source_id: item.sourceId,
+      language: item.language ?? 'es',
+      content_hash: computeReadingContentHash(item.text),
+      source_text: item.text,
+      voice: descriptor.voice,
+      model: descriptor.model,
+      prompt_version: TTS_PROMPT_VERSION,
+      status: 'pending',
+      retry_count: 0,
+      next_retry_at: nowIso,
+    });
+  }
+
+  return rows;
+}
+
+export async function enqueueReadingAudioBatch(items: EnqueueReadingAudioBatchItem[]): Promise<number> {
+  try {
+    const rows = buildJobInsertRows(items);
+    if (rows.length === 0) return 0;
+
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from(JOBS_TABLE)
+      .upsert(rows, {
+        ignoreDuplicates: true,
+        onConflict: 'source_type,source_id,language,content_hash',
+      })
+      .select('id');
+
+    if (error) {
+      logger.warn('[tts-reading-pregen] no se pudo encolar lote', {
+        error: error.message,
+        rows: rows.length,
+      });
+      return 0;
+    }
+
+    return data?.length ?? 0;
+  } catch (error) {
+    logger.warn('[tts-reading-pregen] enqueue batch fallo (best-effort)', error);
+    return 0;
+  }
 }
 
 export async function enqueueReadingAudio({
@@ -312,7 +401,8 @@ async function upsertReadingAudioAsset(
 async function processClaimedJob(
   supabase: AdminClient,
   job: ReadingAudioJobRow,
-): Promise<'ready' | 'failed' | 'generating' | 'skipped'> {
+  options: { deadlineMs?: number } = {},
+): Promise<'ready' | 'failed' | 'generating' | 'skipped' | 'deferred'> {
   try {
     if (!(await isJobWithinReadingAudioScope(supabase, job))) {
       await deleteOutOfScopeJob(supabase, job);
@@ -324,6 +414,8 @@ async function processClaimedJob(
     const lessonId = await resolveLessonIdForJob(supabase, job);
 
     for (const request of requests) {
+      assertTimeRemaining(options.deadlineMs, MIN_TIME_REMAINING_TO_START_SEGMENT_MS);
+
       const result = await resolveTTSAudio({ text: request.text, context: request.context });
       if (result.kind === 'error') {
         throw new Error(`Sintesis de segmento fallo (status ${result.status})`);
@@ -374,6 +466,26 @@ async function processClaimedJob(
     return 'ready';
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Error desconocido pre-generando audio.';
+
+    if (isTimeBudgetExceeded(error)) {
+      const now = new Date();
+      await supabase
+        .from(JOBS_TABLE)
+        .update({
+          status: 'pending',
+          next_retry_at: new Date(now.getTime() + TIME_BUDGET_DEFER_DELAY_MS).toISOString(),
+          last_error_code: getErrorCode(error),
+          error_message: message,
+          locked_by: null,
+          locked_until: null,
+          processing_finished_at: null,
+        })
+        .eq('id', job.id)
+        .eq('locked_by', job.locked_by ?? '');
+
+      return 'deferred';
+    }
+
     const nextRetryCount = (job.retry_count || 0) + 1;
     const shouldFail = nextRetryCount >= MAX_RETRIES;
     const now = new Date();
@@ -410,19 +522,44 @@ export async function processJob(jobId: string, workerId = buildWorkerId('direct
 
 export async function processPendingReadingAudio({
   limit = 5,
+  maxRuntimeMs = DEFAULT_PROCESS_TIME_BUDGET_MS,
   workerId = buildWorkerId('cron'),
-}: { limit?: number; workerId?: string } = {}): Promise<{ processed: number; failed: number }> {
+}: {
+  limit?: number;
+  maxRuntimeMs?: number;
+  workerId?: string;
+} = {}): Promise<{
+  deferred: number;
+  details: Array<{ jobId: string; status: 'ready' | 'failed' | 'generating' | 'skipped' | 'deferred' }>;
+  failed: number;
+  processed: number;
+  skipped: number;
+  workerId: string;
+}> {
   const supabase = createAdminClient();
+  const deadlineMs = Date.now() + maxRuntimeMs;
+  const details: Array<{ jobId: string; status: 'ready' | 'failed' | 'generating' | 'skipped' | 'deferred' }> = [];
+  let deferred = 0;
   let processed = 0;
   let failed = 0;
+  let skipped = 0;
 
   for (let index = 0; index < limit; index += 1) {
+    if (!hasTimeRemaining(deadlineMs, MIN_TIME_REMAINING_TO_CLAIM_MS)) break;
+
     const claimed = await claimJob(supabase, { workerId });
     if (!claimed) break;
-    const result = await processClaimedJob(supabase, claimed);
+
+    const result = await processClaimedJob(supabase, claimed, { deadlineMs });
     processed += 1;
     if (result === 'failed') failed += 1;
+    if (result === 'skipped') skipped += 1;
+    if (result === 'deferred') deferred += 1;
+
+    details.push({ jobId: claimed.id, status: result });
+
+    if (result === 'deferred') break;
   }
 
-  return { processed, failed };
+  return { deferred, details, failed, processed, skipped, workerId };
 }

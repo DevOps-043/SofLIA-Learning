@@ -40,6 +40,7 @@ export const textToSpeechSchema = z.object({
     .max(32)
     .optional()
     .default(DEFAULT_TTS_OUTPUT_FORMAT),
+  context: z.enum(['chat', 'chat_continuation', 'reading', 'reading_continuation']).optional(),
 });
 
 export type TextToSpeechBody = z.infer<typeof textToSpeechSchema>;

@@ -60,7 +60,10 @@ export function useEmbeddedLiaPanel({
   const { messages, isLoading, sendMessage, clearHistory } = useLiaGeneralChat(initialMessage);
   // Voz de salida en STREAMING: locuta cada oración apenas se completa.
   // Se "arma" al enviar para locutar SOLO la próxima respuesta (no saludo/historial).
-  const { armForNextResponse: armVoice } = useStreamingChatVoice({ messages, isLoading });
+  const { armForNextResponse: armVoice } = useStreamingChatVoice({
+    messages,
+    isLoading,
+  });
 
   const isPanelOpen = isOpen;
   const currentModeData = availableModes.find((mode) => mode.id === currentMode) || availableModes[0];

@@ -2,17 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { logger } from '@/lib/logger'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
-import { createAdminClient } from '@/lib/supabase/admin'
-import {
-  enqueueActivityReadingAudio,
-  enqueueLessonReadingAudio,
-} from '@/core/services/tts/server/tts-reading-pregeneration.service'
+import { backfillReadingAudioJobs } from '@/core/services/tts/server/tts-reading-admin.service'
 
 export const dynamic = 'force-dynamic'
 
 const DEFAULT_BATCH = 100
 const MAX_BATCH = 300
-const TARGET_ACTIVITY_TYPE = 'reflection'
 
 type BackfillResource = 'activities' | 'lessons'
 
@@ -38,57 +33,25 @@ export async function POST(request: NextRequest) {
   const resource = (params.get('resource') === 'lessons' ? 'lessons' : 'activities') as BackfillResource
   const limit = parseBatch(params.get('limit'))
   const offset = Math.max(Number.parseInt(params.get('offset') ?? '0', 10) || 0, 0)
-  const supabase = createAdminClient()
 
   try {
-    let enqueued = 0
-    let scanned = 0
-
-    if (resource === 'activities') {
-      const { data, error } = await supabase
-        .from('lesson_activities')
-        .select('activity_id, activity_type, activity_content')
-        .eq('activity_type', TARGET_ACTIVITY_TYPE)
-        .not('activity_content', 'is', null)
-        .order('activity_id', { ascending: true })
-        .range(offset, offset + limit - 1)
-
-      if (error) throw error
-      scanned = data?.length ?? 0
-
-      for (const activity of data ?? []) {
-        await enqueueActivityReadingAudio(activity, { triggerNow: false })
-        enqueued += 1
-      }
-    } else {
-      const { data, error } = await supabase
-        .from('course_lessons')
-        .select('lesson_id, transcript_content, summary_content')
-        .order('lesson_id', { ascending: true })
-        .range(offset, offset + limit - 1)
-
-      if (error) throw error
-      scanned = data?.length ?? 0
-
-      for (const lesson of data ?? []) {
-        await enqueueLessonReadingAudio(
-          lesson.lesson_id,
-          { transcript_content: lesson.transcript_content, summary_content: lesson.summary_content },
-          'es',
-          { triggerNow: false },
-        )
-        enqueued += 1
-      }
-    }
+    const result = await backfillReadingAudioJobs({
+      allPages: false,
+      language: 'es',
+      limit,
+      offset,
+      resource,
+    })
 
     return NextResponse.json({
       resource,
       offset,
       limit,
-      scanned,
-      enqueued,
-      hasMore: scanned === limit,
-      nextOffset: offset + scanned,
+      scanned: result.scanned,
+      enqueued: result.queued,
+      queued: result.queued,
+      hasMore: result.hasMore,
+      nextOffset: result.nextOffset,
     })
   } catch (error) {
     logger.error('Error en backfill de audio de lecturas:', error)

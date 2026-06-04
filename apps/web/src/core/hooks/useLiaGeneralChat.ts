@@ -6,6 +6,7 @@ import { useAuth } from '../../features/auth/hooks/useAuth';
 import type { SofLIAMessage } from '../types/lia.types';
 import { useLanguage } from '../providers/I18nProvider';
 import { useOrganizationStore } from '../stores/organizationStore';
+import { consumeLiaChatStreamBuffer } from '../services/lia-chat-stream.service';
 
 
 type LegacyAuthUser = {
@@ -37,6 +38,10 @@ function normalizeGeneralMessage(
   message: string
 ): string {
   return message.trim();
+}
+
+function getClientNowMs(): number {
+  return globalThis.performance?.now() ?? Date.now();
 }
 
 export function useLiaGeneralChat(
@@ -74,6 +79,8 @@ export function useLiaGeneralChat(
       const normalizedMessage = normalizeGeneralMessage(message);
 
       if (!normalizedMessage || isLoading) return;
+
+      const requestStartedAtMs = getClientNowMs();
 
       if (!isSystemMessage) {
         const userMessage: SofLIAMessage = {
@@ -139,6 +146,16 @@ export function useLiaGeneralChat(
         const decoder = new TextDecoder();
         let assistantContent = '';
         const assistantId = (Date.now() + 1).toString();
+        const appendAssistantContent = (content: string) => {
+          assistantContent += content;
+          setMessages((prev) =>
+            prev.map((entry) =>
+              entry.id === assistantId
+                ? { ...entry, content: assistantContent }
+                : entry
+            )
+          );
+        };
 
         setMessages((prev) => [
           ...prev,
@@ -147,40 +164,32 @@ export function useLiaGeneralChat(
             role: 'assistant',
             content: '',
             timestamp: new Date(),
+            clientTurnStartedAtMs: requestStartedAtMs,
           },
         ]);
 
         if (reader) {
+          let streamBuffer = '';
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
 
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n');
+            streamBuffer += decoder.decode(value, { stream: true });
+            const parsed = consumeLiaChatStreamBuffer(streamBuffer);
+            streamBuffer = parsed.remainingBuffer;
 
-            for (const line of lines) {
-              if (!line.startsWith('data: ')) {
-                continue;
+            for (const data of parsed.events) {
+              if (data.content) {
+                appendAssistantContent(data.content);
               }
+            }
+          }
 
-              try {
-                const data = JSON.parse(line.slice(6)) as {
-                  content?: string;
-                };
-
-                if (data.content) {
-                  assistantContent += data.content;
-                  setMessages((prev) =>
-                    prev.map((entry) =>
-                      entry.id === assistantId
-                        ? { ...entry, content: assistantContent }
-                        : entry
-                    )
-                  );
-                }
-              } catch {
-                // Ignorar errores de parsing del stream.
-              }
+          streamBuffer += decoder.decode();
+          const parsed = consumeLiaChatStreamBuffer(`${streamBuffer}\n\n`);
+          for (const data of parsed.events) {
+            if (data.content) {
+              appendAssistantContent(data.content);
             }
           }
         }
@@ -250,29 +259,12 @@ export function useLiaGeneralChat(
     }
   }, []);
 
-  const clearHistory = useCallback(async () => {
-    if (conversationIdRef.current && user) {
-      try {
-        await fetch('/api/lia/end-conversation', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            conversationId: conversationIdRef.current,
-            completed: true,
-          }),
-        });
-      } catch (closeError) {
-        techDebtLogger.error(
-          '[SofLIA Analytics] Error cerrando conversación:',
-          closeError
-        );
-      }
+  const clearHistory = useCallback(() => {
+    // Capture and clear the ref before any async work
+    const conversationIdToClose = conversationIdRef.current;
+    conversationIdRef.current = null;
 
-      conversationIdRef.current = null;
-    }
-
+    // Optimistic update: reset UI instantly, no waiting for the network
     setMessages(
       initialMessage !== null &&
         initialMessage !== undefined &&
@@ -288,6 +280,17 @@ export function useLiaGeneralChat(
         : []
     );
     setError(null);
+
+    // Fire analytics update in background — purely for DB bookkeeping, not UI-critical
+    if (conversationIdToClose && user) {
+      fetch('/api/lia/end-conversation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationId: conversationIdToClose, completed: true }),
+      }).catch((closeError: unknown) => {
+        techDebtLogger.error('[SofLIA Analytics] Error cerrando conversación:', closeError);
+      });
+    }
   }, [initialMessage, user]);
 
   useEffect(() => {

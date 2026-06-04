@@ -3,8 +3,7 @@ import 'server-only';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { Json } from '@/lib/supabase/types';
 import {
-  enqueueReadingAudio,
-  processJob,
+  enqueueReadingAudioBatch,
   processPendingReadingAudio,
   type ReadingAudioLanguage,
   type ReadingAudioSourceType,
@@ -172,21 +171,27 @@ async function enqueueActivityBatch(
     activities.map((activity) => activity.activity_id),
   );
 
-  let queued = 0;
+  const items: Array<{
+    language: ReadingAudioLanguage;
+    sourceId: string;
+    sourceType: 'activity_reading';
+    text: string;
+  }> = [];
+
   for (const activity of activities) {
     const text = language === 'es'
       ? activity.activity_content
       : getTextTranslation(translations.get(activity.activity_id), 'activity_content');
     if (!text) continue;
-    const inserted = await enqueueReadingAudio({
+    items.push({
       sourceType: 'activity_reading',
       sourceId: activity.activity_id,
       language,
       text,
-      triggerNow: false,
     });
-    if (inserted) queued += 1;
   }
+
+  const queued = await enqueueReadingAudioBatch(items);
 
   return { scanned: activities.length, queued };
 }
@@ -221,29 +226,34 @@ async function enqueueLessonBatch(
 
   let queued = 0;
   const lessons = (data || []) as LessonRow[];
+  const items: Array<{
+    language: ReadingAudioLanguage;
+    sourceId: string;
+    sourceType: 'lesson_summary' | 'lesson_transcript';
+    text: string;
+  }> = [];
+
   for (const lesson of lessons) {
     if (lesson.transcript_content) {
-      const inserted = await enqueueReadingAudio({
+      items.push({
         sourceType: 'lesson_transcript',
         sourceId: lesson.lesson_id,
         language,
         text: lesson.transcript_content,
-        triggerNow: false,
       });
-      if (inserted) queued += 1;
     }
 
     if (lesson.summary_content) {
-      const inserted = await enqueueReadingAudio({
+      items.push({
         sourceType: 'lesson_summary',
         sourceId: lesson.lesson_id,
         language,
         text: lesson.summary_content,
-        triggerNow: false,
       });
-      if (inserted) queued += 1;
     }
   }
+
+  queued = await enqueueReadingAudioBatch(items);
 
   return { scanned: lessons.length, queued };
 }
@@ -376,7 +386,6 @@ export async function reprocessReadingAudioJob(jobId: string) {
     .eq('id', jobId);
 
   if (error) throw error;
-  await processJob(jobId, `admin-${Date.now()}`);
 }
 
 export async function retryFailedReadingAudioJobs(limit: number) {

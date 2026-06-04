@@ -117,7 +117,12 @@ function buildAssistantStreamResponse(content: string): Response {
   });
 
   return new Response(readable, {
-    headers: { 'Content-Type': 'text/event-stream' },
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    },
   });
 }
 
@@ -179,20 +184,18 @@ async function streamGeminiResponse(params: {
 }): Promise<Response> {
   const { chatSession, parts, body, requestContext, securityAssessment } = params;
 
-  // La llamada inicial (apertura del stream) puede fallar por billing/red; se
-  // envuelve en el circuit breaker y, si rechaza, propaga al catch de handlePost.
-  const streamResult = await executeWithCircuitBreaker(
-    'gemini-lia-chat',
-    () => chatSession.sendMessageStream(parts),
-    CIRCUIT_BREAKER_DEFAULTS.gemini,
-  );
-
   const encoder = new TextEncoder();
   let fullText = '';
 
   const readable = new ReadableStream({
     async start(controller) {
       try {
+        const streamResult = await executeWithCircuitBreaker(
+          'gemini-lia-chat',
+          () => chatSession.sendMessageStream(parts),
+          CIRCUIT_BREAKER_DEFAULTS.gemini,
+        );
+
         for await (const chunk of streamResult.stream) {
           const piece = chunk.text();
           if (!piece) continue;
@@ -226,7 +229,12 @@ async function streamGeminiResponse(params: {
   });
 
   return new Response(readable, {
-    headers: { 'Content-Type': 'text/event-stream' },
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    },
   });
 }
 

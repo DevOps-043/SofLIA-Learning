@@ -135,7 +135,7 @@
     },
     "results": {
       "backfill": "{{scanned}} scanned, {{queued}} queued.",
-      "drain": "{{processed}} jobs processed.",
+      "drain": "{{processed}} jobs processed. Deferred: {{deferred}}. Failed: {{failed}}.",
       "cleanup": "{{deletedJobs}} non-target jobs removed from {{scanned}} checked.",
       "retry": "{{requeued}} failed jobs queued again.",
       "reprocess": "Job {{jobId}} queued again.",

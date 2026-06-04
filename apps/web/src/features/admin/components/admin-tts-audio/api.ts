@@ -11,6 +11,9 @@ import type {
   ReprocessResponse,
 } from './types';
 
+const BACKFILL_PAGE_LIMIT = 50;
+const MAX_BACKFILL_PAGES = 500;
+
 async function readJson<T>(response: Response): Promise<T> {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -51,19 +54,47 @@ export async function backfillReadingAudio(params: {
   language: ReadingAudioLanguage | 'all';
   resource: ReadingAudioResource;
 }): Promise<BackfillResponse> {
-  const response = await fetch('/api/admin/tts/reading-audio/backfill', {
-    body: JSON.stringify({
-      allPages: true,
-      language: params.language,
-      limit: 100,
-      offset: 0,
-      resource: params.resource,
-    }),
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    method: 'POST',
-  });
-  return readJson<BackfillResponse>(response);
+  let offset = 0;
+  let page = 0;
+  let hasMore = false;
+  const aggregate: BackfillResponse = {
+    details: [],
+    hasMore: false,
+    limit: BACKFILL_PAGE_LIMIT,
+    nextOffset: 0,
+    offset: 0,
+    pages: 0,
+    queued: 0,
+    scanned: 0,
+  };
+
+  do {
+    const response = await fetch('/api/admin/tts/reading-audio/backfill', {
+      body: JSON.stringify({
+        allPages: false,
+        language: params.language,
+        limit: BACKFILL_PAGE_LIMIT,
+        offset,
+        resource: params.resource,
+      }),
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
+    const result = await readJson<BackfillResponse>(response);
+
+    aggregate.details.push(...result.details);
+    aggregate.queued += result.queued;
+    aggregate.scanned += result.scanned;
+    aggregate.nextOffset = result.nextOffset;
+    aggregate.pages = page + 1;
+    hasMore = result.hasMore;
+    offset = result.nextOffset ?? offset + BACKFILL_PAGE_LIMIT;
+    page += 1;
+  } while (hasMore && page < MAX_BACKFILL_PAGES);
+
+  aggregate.hasMore = hasMore;
+  return aggregate;
 }
 
 export async function drainReadingAudioQueue(): Promise<DrainResponse> {

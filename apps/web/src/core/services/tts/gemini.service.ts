@@ -8,6 +8,7 @@ import { createWavFromPcm } from './audio-format.service';
 import {
   buildContinuationSpeechPrompt,
   buildReadingSpeechPrompt,
+  buildSofliaContinuationSpeechPrompt,
   buildSofliaSpeechPrompt,
 } from './gemini-tts-prompts';
 
@@ -122,13 +123,16 @@ export async function synthesizeSpeechWithGemini(payload: TextToSpeechRequestPay
 
   const isReading = payload.context === 'reading';
   const isContinuation = payload.context === 'reading_continuation';
+  const isChatContinuation = payload.context === 'chat_continuation';
   const modelId = getGeminiTTSModelId();
   const voiceName = (isReading || isContinuation) ? getGeminiReadingVoiceName() : getGeminiTTSVoiceName();
   const prompt = isContinuation
     ? buildContinuationSpeechPrompt(payload.text)
     : isReading
       ? buildReadingSpeechPrompt(payload.text)
-      : buildSofliaSpeechPrompt(payload.text);
+      : isChatContinuation
+        ? buildSofliaContinuationSpeechPrompt(payload.text)
+        : buildSofliaSpeechPrompt(payload.text);
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelId)}:generateContent?key=${encodeURIComponent(apiKey)}`,

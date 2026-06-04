@@ -95,7 +95,14 @@ export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
       return;
     }
 
-    const supabase = createClient();
+    let supabase;
+    try {
+      supabase = createClient();
+    } catch {
+      // Supabase browser client unavailable (env vars missing or not yet bundled).
+      // Real-time updates disabled — questions still load via reloadQuestions().
+      return;
+    }
 
     const questionsChannel = supabase
       .channel(`course-questions-${courseId}`)
@@ -189,7 +196,7 @@ export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
       .subscribe();
 
     return () => {
-      void supabase.removeChannel(questionsChannel);
+      void supabase?.removeChannel(questionsChannel);
     };
   }, [activeSearchQuery, courseId, reloadQuestions, slug]);
 

@@ -6,6 +6,7 @@ export interface SofLIAMessage {
   role: 'user' | 'assistant'
   content: string
   timestamp: Date
+  clientTurnStartedAtMs?: number
   generatedNanoBanana?: GeneratedNanoBananaData
   attachments?: LiaImageAttachment[]
 }

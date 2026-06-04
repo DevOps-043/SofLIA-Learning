@@ -27,7 +27,7 @@ import type {
 export type TTSAudioOperationResult =
   | { kind: 'backfill'; queued: number; scanned: number }
   | { deletedJobs: number; kind: 'cleanup'; scanned: number }
-  | { kind: 'drain'; processed: number }
+  | { deferred?: number; failed?: number; kind: 'drain'; processed: number }
   | { kind: 'retry'; requeued: number }
   | { jobId: string; kind: 'reprocess' };
 
@@ -87,7 +87,12 @@ export function useAdminTTSAudioPage() {
   };
 
   const showDrainResult = (result: DrainResponse) => {
-    setLastResult({ kind: 'drain', processed: result.processed });
+    setLastResult({
+      deferred: result.deferred,
+      failed: result.failed,
+      kind: 'drain',
+      processed: result.processed,
+    });
   };
 
   const triggerCleanup = useCallback(async () => {

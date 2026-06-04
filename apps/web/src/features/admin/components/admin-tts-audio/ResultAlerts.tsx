@@ -14,7 +14,11 @@ function formatResult(result: TTSAudioOperationResult, t: TFunction<'admin'>) {
     return t('ttsAudio.results.backfill', { queued: result.queued, scanned: result.scanned });
   }
   if (result.kind === 'drain') {
-    return t('ttsAudio.results.drain', { processed: result.processed });
+    return t('ttsAudio.results.drain', {
+      deferred: result.deferred ?? 0,
+      failed: result.failed ?? 0,
+      processed: result.processed,
+    });
   }
   if (result.kind === 'cleanup') {
     return t('ttsAudio.results.cleanup', { deletedJobs: result.deletedJobs, scanned: result.scanned });

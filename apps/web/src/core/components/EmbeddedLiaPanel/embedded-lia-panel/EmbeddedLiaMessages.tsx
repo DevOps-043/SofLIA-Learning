@@ -1,9 +1,10 @@
 'use client';
 
-import type { RefObject } from 'react';
+import { useEffect, type RefObject } from 'react';
 import { motion } from 'framer-motion';
 import { User } from 'lucide-react';
 import type { SofLIAMessage } from '../../../types/lia.types';
+import { useAssistantTypewriterReveal } from '../../../hooks/useAssistantTypewriterReveal';
 import type { EmbeddedLiaColors, EmbeddedLiaModeOption } from './types';
 import { EmbeddedLiaRichText } from './EmbeddedLiaRichText';
 
@@ -32,6 +33,27 @@ export function EmbeddedLiaMessages({
   onNavigate,
   messagesEndRef,
 }: EmbeddedLiaMessagesProps) {
+  const typewriterReveal = useAssistantTypewriterReveal({ messages, isLoading });
+
+  useEffect(() => {
+    if (typewriterReveal.messageId) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [messagesEndRef, typewriterReveal]);
+
+  const getVisibleMessageContent = (message: SofLIAMessage) => {
+    if (message.role !== 'assistant' || typewriterReveal.messageId !== message.id) {
+      return message.content;
+    }
+
+    return message.content.slice(0, typewriterReveal.length);
+  };
+
+  const shouldShowTypewriterCursor = (message: SofLIAMessage) =>
+    message.role === 'assistant' &&
+    typewriterReveal.messageId === message.id &&
+    typewriterReveal.isTyping;
+
   return (
     <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 relative">
       {messages.length === 0 && (
@@ -95,7 +117,19 @@ export function EmbeddedLiaMessages({
                 }}
               >
                 <p className="text-[13px] leading-relaxed whitespace-pre-wrap font-medium">
-                  <EmbeddedLiaRichText text={message.content} onNavigate={onNavigate} />
+                  <EmbeddedLiaRichText
+                    text={getVisibleMessageContent(message)}
+                    onNavigate={onNavigate}
+                  />
+                  {shouldShowTypewriterCursor(message) && (
+                    <motion.span
+                      aria-hidden="true"
+                      animate={{ opacity: [0.2, 1, 0.2] }}
+                      transition={{ duration: 0.9, repeat: Infinity }}
+                      className="inline-block h-[1em] w-px align-[-0.12em]"
+                      style={{ marginLeft: '2px', backgroundColor: colors.accent }}
+                    />
+                  )}
                 </p>
               </div>
             </motion.div>
