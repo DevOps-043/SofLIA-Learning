@@ -12,7 +12,10 @@ export const chunkReloadScript = `
   }
 
   function attemptReload(reason) {
-    logger.warn('Chunk loading failure detected, reloading page...', reason);
+    // This runs as an inline browser script in global scope — only browser globals
+    // exist here. Using a server-side 'logger' threw ReferenceError and aborted the
+    // auto-reload recovery, so the chunk error stuck on screen instead of self-healing.
+    console.warn('Chunk loading failure detected, reloading page...', reason);
     var attempts = parseInt(sessionStorage.getItem(reloadKey) || '0', 10);
     if (attempts < 2) {
       sessionStorage.setItem(reloadKey, String(attempts + 1));
@@ -23,7 +26,7 @@ export const chunkReloadScript = `
     }
 
     sessionStorage.removeItem(reloadKey);
-    logger.error('Multiple automatic reload attempts failed. Please reload manually.');
+    console.error('Multiple automatic reload attempts failed. Please reload manually.');
   }
 
   window.addEventListener('error', function(event) {

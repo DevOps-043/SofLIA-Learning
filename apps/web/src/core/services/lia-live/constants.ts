@@ -2,6 +2,7 @@
 
 /** Endpoint que emite el token efímero de corta vida para conectar a Gemini Live. */
 export const LIA_LIVE_TOKEN_PATH = '/api/lia/live-token';
+export const LIA_LIVE_TRANSCRIPTS_PATH = '/api/lia/live-transcripts';
 
 /**
  * Modelo Live por defecto: Gemini 3.1 Flash Live (alta calidad, baja latencia,

@@ -22,7 +22,7 @@ export function ResponsiveModalViewport({
 }: ResponsiveModalViewportProps) {
   return (
     <div className={cn('fixed inset-0 z-50 overflow-y-auto', className)}>
-      <div className="flex min-h-[100dvh] items-end justify-center p-0 sm:items-center sm:p-4 md:p-6">
+      <div className="flex min-h-app-dynamic items-end justify-center p-0 sm:items-center sm:p-4 md:p-6">
         {children}
       </div>
     </div>
@@ -44,7 +44,7 @@ export function ResponsiveModalPanel({
     <div
       className={cn(
         'relative flex w-full min-w-0 flex-col overflow-hidden border border-gray-200 bg-white shadow-2xl dark:border-gray-500/30 dark:bg-carbon-800',
-        'max-h-[100dvh] rounded-none sm:max-h-[min(92vh,960px)] sm:rounded-[28px]',
+        'max-h-app-dynamic rounded-none sm:max-h-[min(calc(var(--soflia-viewport-height)-2rem),960px)] sm:rounded-[28px]',
         MODAL_SIZE_CLASSNAME[size],
         className,
       )}

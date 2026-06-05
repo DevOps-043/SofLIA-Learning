@@ -12,6 +12,17 @@ export const DEFAULT_TTS_OUTPUT_FORMAT = 'mp3_22050_32';
 export const DEFAULT_TTS_OPTIMIZE_STREAMING_LATENCY = 4;
 export const DEFAULT_TTS_VOLUME = 0.8;
 export const MAX_TTS_TEXT_LENGTH = 4000;
+export const DEFAULT_TTS_SYNTHESIS_TIMEOUT_MS = 20_000;
+
+export function getTTSSynthesisTimeoutMs() {
+  const raw = Number(process.env.TTS_SYNTHESIS_TIMEOUT_MS || DEFAULT_TTS_SYNTHESIS_TIMEOUT_MS);
+
+  if (!Number.isFinite(raw)) {
+    return DEFAULT_TTS_SYNTHESIS_TIMEOUT_MS;
+  }
+
+  return Math.min(Math.max(Math.trunc(raw), 5_000), 55_000);
+}
 
 // Versión de los prompts/voz de síntesis. Forma parte de la clave del caché de
 // audio: incrementar este número invalida el audio cacheado cuando cambian los

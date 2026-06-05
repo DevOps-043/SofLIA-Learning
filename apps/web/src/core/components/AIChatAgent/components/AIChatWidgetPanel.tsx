@@ -31,10 +31,10 @@ export function AIChatWidgetPanel({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.8, opacity: 0, y: 20 }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
-          className="fixed right-6 z-[99999] w-96 max-w-[calc(100vw-3rem)]"
+          className="fixed left-0 right-0 z-[99999] w-full max-w-none px-2 sm:left-auto sm:right-6 sm:w-96 sm:max-w-[calc(100vw-3rem)] sm:px-0"
           style={{ bottom: logic.chatBottomPosition, height: logic.calculateMaxHeight, maxHeight: logic.calculateMaxHeight }}
         >
-          <div className="rounded-3xl shadow-2xl overflow-hidden border border-gray-200 dark:border-primary/30 flex flex-col bg-white dark:bg-carbon-800 h-full">
+          <div className="flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-primary/30 dark:bg-carbon-800 sm:rounded-3xl">
             <ChatHeader
               assistantName={assistantName} assistantAvatar={assistantAvatar} theme={logic.theme}
               modeMenuRef={logic.modeMenuRef} optionsMenuRef={logic.optionsMenuRef}

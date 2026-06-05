@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import {
   getConfiguredTTSProvider,
   isConfiguredTTSProviderAvailable,
+  resolveProviderForContext,
 } from '@/core/services/tts/server.service';
 import { listReadingAudioJobs } from '@/core/services/tts/server/tts-reading-admin.service';
 
@@ -26,10 +27,14 @@ export async function GET() {
     jobsError = error instanceof Error ? error.message : 'Error desconocido';
   }
 
+  // Global provider drives SofLIA chat; reading pregeneration is routed separately
+  // (ElevenLabs when configured) via resolveProviderForContext('reading').
   const provider = getConfiguredTTSProvider();
   const providerReady = isConfiguredTTSProviderAvailable();
+  const readingProvider = resolveProviderForContext('reading');
+  const readingProviderReady = isConfiguredTTSProviderAvailable('reading');
   const problems: string[] = [];
-  if (!providerReady) problems.push('El proveedor TTS no esta configurado.');
+  if (!readingProviderReady) problems.push(`El proveedor de lecturas (${readingProvider}) no esta configurado.`);
   if (!bucketReady) problems.push('El bucket privado tts-audio no existe o no es accesible.');
   if (bucketError) problems.push(`No se pudieron listar buckets: ${bucketError.message}`);
   if (jobsError) problems.push(`No se pudo leer la cola: ${jobsError}`);
@@ -40,6 +45,8 @@ export async function GET() {
     cronSecretReady: Boolean(process.env.CRON_SECRET),
     provider,
     providerReady,
+    readingProvider,
+    readingProviderReady,
     summary: {
       healthy: problems.length === 0,
       problems,

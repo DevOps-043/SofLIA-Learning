@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { logger } from '@/lib/logger';
 import type { TextToSpeechRequestPayload } from '../types';
 import {
   getConfiguredTTSProvider,
@@ -60,7 +61,7 @@ async function readProviderError(response: Response): Promise<unknown> {
 export async function resolveTTSAudio(
   payload: TextToSpeechRequestPayload,
 ): Promise<TTSAudioResult> {
-  if (!isConfiguredTTSProviderAvailable()) {
+  if (!isConfiguredTTSProviderAvailable(payload.context)) {
     return {
       kind: 'error',
       status: 503,
@@ -88,12 +89,34 @@ export async function resolveTTSAudio(
     }
   }
 
-  const { provider, response: providerResponse } =
-    await synthesizeSpeechWithConfiguredProvider(payload);
+  let providerResponse: Response;
+  const provider = getConfiguredTTSProvider();
+
+  try {
+    const response = await synthesizeSpeechWithConfiguredProvider(payload);
+    providerResponse = response.response;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown provider error';
+    logger.warn('TTS synthesis request failed', {
+      provider,
+      error: message,
+    });
+
+    return {
+      kind: 'error',
+      status: 502,
+      body: {
+        error: 'Unable to synthesize speech',
+        code: 'TTS_SYNTHESIS_FAILED',
+        provider,
+        providerStatus: 'request_failed',
+      },
+    };
+  }
 
   if (!providerResponse.ok) {
     const providerError = await readProviderError(providerResponse);
-    console.warn('TTS synthesis failed', {
+    logger.warn('TTS synthesis failed', {
       provider,
       status: providerResponse.status,
       statusText: providerResponse.statusText,

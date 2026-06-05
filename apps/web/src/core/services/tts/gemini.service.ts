@@ -3,6 +3,7 @@ import {
   DEFAULT_GEMINI_TTS_MODEL_ID,
   DEFAULT_GEMINI_TTS_READING_VOICE_NAME,
   DEFAULT_GEMINI_TTS_VOICE_NAME,
+  getTTSSynthesisTimeoutMs,
 } from './shared';
 import { createWavFromPcm } from './audio-format.service';
 import {
@@ -139,8 +140,8 @@ export async function synthesizeSpeechWithGemini(payload: TextToSpeechRequestPay
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      // Hard timeout so the server never hangs indefinitely on a slow/broken model
-      signal: AbortSignal.timeout(60_000),
+      // Hard timeout so serverless routes fail cleanly instead of leaving locks behind.
+      signal: AbortSignal.timeout(getTTSSynthesisTimeoutMs()),
       body: JSON.stringify({
         contents: [
           {

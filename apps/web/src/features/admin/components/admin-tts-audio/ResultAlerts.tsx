@@ -14,10 +14,18 @@ function formatResult(result: TTSAudioOperationResult, t: TFunction<'admin'>) {
     return t('ttsAudio.results.backfill', { queued: result.queued, scanned: result.scanned });
   }
   if (result.kind === 'drain') {
+    if (result.quotaReached) {
+      return t('ttsAudio.results.drainQuotaReached', {
+        limit: result.quotaLimit ?? 0,
+      });
+    }
+
     return t('ttsAudio.results.drain', {
       deferred: result.deferred ?? 0,
       failed: result.failed ?? 0,
+      prepared: result.prepared ?? 0,
       processed: result.processed,
+      quotaRemaining: result.quotaRemaining ?? 0,
     });
   }
   if (result.kind === 'cleanup') {

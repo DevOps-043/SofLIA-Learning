@@ -5,6 +5,7 @@ import {
   DEFAULT_ELEVENLABS_VOICE_ID,
   DEFAULT_TTS_OPTIMIZE_STREAMING_LATENCY,
   DEFAULT_TTS_OUTPUT_FORMAT,
+  getTTSSynthesisTimeoutMs,
 } from './shared';
 import {
   isGeminiConfigured,
@@ -12,8 +13,17 @@ import {
   synthesizeSpeechWithGemini,
 } from './gemini.service';
 
+// Reading pregeneration (transcripts, summaries, reflection activities) runs on
+// ElevenLabs: it synthesizes long text in a single request and has no punishing
+// per-day request cap like Gemini's preview tier. The SofLIA chat voice stays on
+// the globally configured provider (Gemini).
+const READING_CONTEXTS = new Set(['reading', 'reading_continuation']);
+
 function getElevenLabsApiKey() {
-  return process.env.ELEVENLABS_API_KEY || null;
+  // Prefer a server-only key; fall back to the NEXT_PUBLIC one the project already
+  // ships. SECURITY: move the key to a server-only `ELEVENLABS_API_KEY` so it is
+  // not exposed in the browser bundle once on a paid plan.
+  return process.env.ELEVENLABS_API_KEY || process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY || null;
 }
 
 function getElevenLabsVoiceId(voiceId?: string) {
@@ -44,12 +54,24 @@ export function getConfiguredTTSProvider(): TextToSpeechProvider {
   return DEFAULT_TTS_PROVIDER;
 }
 
+/**
+ * Provider for a given synthesis context. Reading pregeneration prefers ElevenLabs
+ * (when configured); everything else uses the globally configured provider. This is
+ * what keeps course reading audio on ElevenLabs while SofLIA chat stays on Gemini.
+ */
+export function resolveProviderForContext(context?: string): TextToSpeechProvider {
+  if (context && READING_CONTEXTS.has(context) && isElevenLabsConfigured()) {
+    return 'elevenlabs';
+  }
+  return getConfiguredTTSProvider();
+}
+
 export function isElevenLabsConfigured() {
   return Boolean(getElevenLabsApiKey());
 }
 
-export function isConfiguredTTSProviderAvailable() {
-  const provider = getConfiguredTTSProvider();
+export function isConfiguredTTSProviderAvailable(context?: string) {
+  const provider = resolveProviderForContext(context);
 
   if (provider === 'gemini') {
     return isGeminiConfigured();
@@ -79,6 +101,7 @@ export async function synthesizeSpeechWithElevenLabs(payload: TextToSpeechReques
       'Content-Type': 'application/json',
       'xi-api-key': apiKey,
     },
+    signal: AbortSignal.timeout(getTTSSynthesisTimeoutMs()),
     body: JSON.stringify({
       text: payload.text,
       model_id: getElevenLabsModelId(payload.modelId),
@@ -103,8 +126,8 @@ export interface TTSCacheDescriptor {
 export function resolveTTSCacheDescriptor(
   payload: TextToSpeechRequestPayload,
 ): TTSCacheDescriptor {
-  const provider = getConfiguredTTSProvider();
   const context = payload.context ?? 'chat';
+  const provider = resolveProviderForContext(context);
 
   if (provider === 'gemini') {
     const { voice, model } = resolveGeminiVoiceAndModel(context);
@@ -120,7 +143,7 @@ export function resolveTTSCacheDescriptor(
 }
 
 export async function synthesizeSpeechWithConfiguredProvider(payload: TextToSpeechRequestPayload) {
-  const provider = getConfiguredTTSProvider();
+  const provider = resolveProviderForContext(payload.context);
 
   if (provider === 'gemini') {
     return {

@@ -159,7 +159,12 @@
       "Bash(git commit -m 'fix\\(business-user\\): restore LiaSidePanel and LiaFloatingButton in layout *)",
       "Bash(cd \"C:\\\\Users\\\\fysg5\\\\AppData\\\\Local\\\\Temp\" && npm pack file-type@22.0.1 2>&1 | tail -3)",
       "Read(//c/Users/fysg5/AppData/Local/Temp/**)",
-      "Bash(tar -xzf file-type-22.0.1.tgz package/source/index.d.ts -O)"
+      "Bash(tar -xzf file-type-22.0.1.tgz package/source/index.d.ts -O)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('/tmp/job_src.json'\\)\\); st=d[0]['source_text']; print\\('type:', type\\(st\\)\\); print\\('len:', len\\(st\\) if isinstance\\(st,str\\) else 'n/a'\\); print\\('preview:', \\(st[:200] if isinstance\\(st,str\\) else json.dumps\\(st\\)[:200]\\)\\)\")",
+      "Bash([ -s C:\\\\\\\\Users\\\\\\\\fysg5\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning\\\\\\\\ec5b36b0-38ba-41f4-a6e8-d204cdda7e9e\\\\\\\\tasks\\\\\\\\b92cxkz4s.output ])",
+      "Bash(grep -q \"HTTP:\" C:\\\\\\\\Users\\\\\\\\fysg5\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning\\\\\\\\ec5b36b0-38ba-41f4-a6e8-d204cdda7e9e\\\\\\\\tasks\\\\\\\\b92cxkz4s.output)",
+      "Bash(grep -qE \"Sin errores|error TS|\\\\$\" C:\\\\\\\\Users\\\\\\\\fysg5\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning\\\\\\\\ec5b36b0-38ba-41f4-a6e8-d204cdda7e9e\\\\\\\\tasks\\\\\\\\bfvqbh678.output)",
+      "Bash(sed -E 's/\\(PASS|PASSWORD|KEY|SECRET\\)=.*/\\\\1=***REDACTED***/I')"
     ],
     "deny": [],
     "ask": []

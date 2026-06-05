@@ -24,7 +24,7 @@ const handler: Handler = async (_event: HandlerEvent, _context: HandlerContext) 
     return { statusCode: 500, body: JSON.stringify({ error: 'URL del sitio no configurada' }) }
   }
 
-  const endpoint = `${siteUrl.replace(/\/$/, '')}/api/cron/process-tts-reading-audio?limit=5&maxRuntimeMs=85000`
+  const endpoint = `${siteUrl.replace(/\/$/, '')}/api/cron/process-tts-reading-audio?limit=1&maxRuntimeMs=24000`
   console.log(`[CRON tts-reading-audio] Llamando a ${endpoint}`)
 
   try {

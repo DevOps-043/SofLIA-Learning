@@ -81,7 +81,7 @@
     "header": {
       "eyebrow": "Pre-generation",
       "title": "Reading TTS audio",
-      "subtitle": "Generate and monitor segmented audio for activities, materials, transcripts and summaries before users need it."
+      "subtitle": "Generate and monitor complete audio for activities, materials, transcripts and summaries before users need it."
     },
     "common": {
       "all": "All",
@@ -135,7 +135,8 @@
     },
     "results": {
       "backfill": "{{scanned}} scanned, {{queued}} queued.",
-      "drain": "{{processed}} jobs processed. Deferred: {{deferred}}. Failed: {{failed}}.",
+      "drain": "{{processed}} job processed. Prepared: {{prepared}}. Deferred: {{deferred}}. Failed: {{failed}}. Remaining quota today: {{quotaRemaining}}.",
+      "drainQuotaReached": "Daily TTS quota reached ({{limit}} requests). No new audio was processed.",
       "cleanup": "{{deletedJobs}} non-target jobs removed from {{scanned}} checked.",
       "retry": "{{requeued}} failed jobs queued again.",
       "reprocess": "Job {{jobId}} queued again.",
@@ -145,7 +146,7 @@
       "source": "Source",
       "status": "Status",
       "language": "Language",
-      "segments": "Segments",
+      "segments": "Audio files",
       "model": "Model",
       "retries": "Retries",
       "updated": "Updated",

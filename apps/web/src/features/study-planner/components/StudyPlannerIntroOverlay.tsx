@@ -47,7 +47,7 @@ export function StudyPlannerIntroOverlay({
             />
           )}
 
-          <div className="fixed inset-0 z-[9999] flex h-[100dvh] items-center justify-center overflow-hidden p-2 pointer-events-none sm:p-3">
+          <div className="pointer-events-none fixed inset-0 z-[9999] flex h-app-dynamic items-center justify-center overflow-hidden p-2 sm:p-3">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}

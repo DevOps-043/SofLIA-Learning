@@ -9,8 +9,27 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 
 import { createClient } from '../../../../lib/supabase/server';
 import type { PlatformContext, ChatRequest } from './platform-context.service';
+import type { CourseWithContent } from './platform-context/context.types';
 import { extractOrganizationSlugFromPage } from './organization-context.service';
 import { detectTechnicalBugReportIntent } from './bug-report-intent.service';
+
+interface AssignedCourseWithContentRow {
+  course?: {
+    description?: string | null;
+    duration_total_minutes?: number | null;
+    level?: string | null;
+    slug?: string | null;
+    title?: string | null;
+  } | null;
+}
+
+function normalizeOptionalString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
+function normalizeOptionalNumber(value: unknown): number | undefined {
+  return typeof value === 'number' ? value : undefined;
+}
 
 /**
  * Builds the full enriched context for a LIA chat request.
@@ -73,16 +92,12 @@ export async function buildFullContext(
         techDebtLogger.error('Error cargando cursos asignados:', error);
       } else if (assignedCourses && assignedCourses.length > 0) {
         fullContext.coursesWithContent = assignedCourses.map(
-          (
-            assignment: Record<string, unknown> & {
-              course?: Record<string, unknown>;
-            }
-          ) => ({
-            title: assignment.course?.title,
-            slug: assignment.course?.slug,
-            description: assignment.course?.description,
-            level: assignment.course?.level,
-            durationMinutes: assignment.course?.duration_total_minutes,
+          (assignment: AssignedCourseWithContentRow): CourseWithContent => ({
+            title: normalizeOptionalString(assignment.course?.title),
+            slug: normalizeOptionalString(assignment.course?.slug),
+            description: normalizeOptionalString(assignment.course?.description),
+            level: normalizeOptionalString(assignment.course?.level),
+            durationMinutes: normalizeOptionalNumber(assignment.course?.duration_total_minutes),
             isAssigned: true,
           })
         );

@@ -36,7 +36,7 @@ export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
   }, [logic.isAdmin, logic.isInstructor, logic.isOrgAdmin, logic.currentOrganization])
 
   return (
-    <div className={cn('py-1 space-y-0.5', logic.isMobileViewport && 'flex h-full flex-col gap-[1.1vh] px-2 py-2')}>
+    <div className={cn('py-1 space-y-0.5', logic.isMobileViewport && 'flex h-full flex-col gap-2 px-2 py-2')}>
       <div className={cn(logic.isMobileViewport && 'space-y-0.5')}>
       {!hasPanelSwitcher && (
         <MenuItem icon={LayoutDashboard} label={logic.t('menu.userPanel')} onClick={logic.handleUserDashboardNavigation} />
@@ -98,7 +98,7 @@ export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
 
 function MobilePreferenceSections({ logic }: { logic: UserDropdownLogic }) {
   return (
-    <div className="grid flex-1 grid-rows-2 gap-[1.1vh] pt-[0.6vh]">
+    <div className="grid flex-1 grid-rows-2 gap-2 pt-1">
       <PreferenceGroup
         icon={logic.resolvedTheme === 'dark' ? Moon : Sun}
         title={logic.t('profileDropdown.theme')}

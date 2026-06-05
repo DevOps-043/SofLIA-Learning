@@ -21,10 +21,10 @@ export function InlinePromptPreviewPanel({ logic, tCommon }: InlinePromptPreview
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.8, opacity: 0, y: 20 }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
-          className="fixed right-6 z-[100000] w-96 max-w-[calc(100vw-3rem)]"
+          className="fixed left-0 right-0 z-[100000] w-full max-w-none px-2 sm:left-auto sm:right-6 sm:w-96 sm:max-w-[calc(100vw-3rem)] sm:px-0"
           style={{ bottom: logic.promptBottomPosition, height: logic.calculateMaxHeight, maxHeight: logic.calculateMaxHeight }}
         >
-          <div className="rounded-3xl shadow-2xl overflow-hidden border border-gray-200 dark:border-primary/30 flex flex-col bg-white dark:bg-carbon-800 h-full">
+          <div className="flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-primary/30 dark:bg-carbon-800 sm:rounded-3xl">
             <PromptPreviewHeader logic={logic} title={tCommon('aiChat.promptMode.viewGenerated')} />
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-neutral-950 min-h-0 overscroll-contain" style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}>
               <PromptInfoCard icon={<Target className="w-4 h-4 text-purple-600 dark:text-purple-400" />} label={tCommon('aiChat.promptMode.titleLabel')} value={logic.generatedPrompt!.title} />

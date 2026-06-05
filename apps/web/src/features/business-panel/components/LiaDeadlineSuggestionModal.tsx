@@ -38,7 +38,10 @@ export function LiaDeadlineSuggestionModal({
   return (
     <DeadlineModalShell theme={theme} onClose={onClose}>
       <DeadlineModalHeader courseTitle={courseTitle} theme={theme} t={t} onClose={onClose} />
-      <div className="max-h-[calc(90vh-180px)] overflow-y-auto p-6">
+      <div
+        className="overflow-y-auto p-6"
+        style={{ maxHeight: 'calc(var(--soflia-viewport-height) - 180px - 1rem)' }}
+      >
         {state.error ? <ErrorAlert error={state.error} theme={theme} /> : null}
         {state.step === 'suggestions' ? (
           <SuggestionsStep

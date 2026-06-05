@@ -99,7 +99,7 @@ export async function backfillReadingAudio(params: {
 
 export async function drainReadingAudioQueue(): Promise<DrainResponse> {
   const response = await fetch('/api/admin/tts/reading-audio/drain', {
-    body: JSON.stringify({ limit: 10 }),
+    body: JSON.stringify({ limit: 1 }),
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     method: 'POST',

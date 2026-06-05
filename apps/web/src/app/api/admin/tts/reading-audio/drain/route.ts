@@ -7,7 +7,7 @@ import { drainReadingAudioQueue } from '@/core/services/tts/server/tts-reading-a
 export const runtime = 'nodejs';
 
 const schema = z.object({
-  limit: z.number().int().min(1).max(20).optional().default(10),
+  limit: z.number().int().min(1).max(1).optional().default(1),
 });
 
 async function readBody(request: NextRequest) {

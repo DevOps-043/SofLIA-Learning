@@ -10,6 +10,7 @@ import { BusinessUsersErrorBanner } from './components/BusinessUsersErrorBanner'
 import { BusinessUsersLoadingState } from './components/BusinessUsersLoadingState'
 import { UsersDynamicModals } from './components/UsersDynamicModals'
 import { UsersFilterSection } from './components/UsersFilterSection'
+import { UsersPageHeader } from './components/UsersPageHeader'
 import { UsersPagination } from './components/UsersPagination'
 import { UsersStatsGrid } from './components/UsersStatsGrid'
 import { UsersTabContent } from './components/UsersTabContent'
@@ -29,6 +30,15 @@ export default function BusinessPanelUsersPage() {
         className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8"
         style={{ color: theme.textColor }}
       >
+        <UsersPageHeader
+          t={t}
+          onExportUsers={() => void downloadUsersCsv()}
+          onImportClick={() => logic.setIsImportModalOpen(true)}
+          onInviteClick={() => logic.setIsUnifiedInviteModalOpen(true)}
+          onAddClick={() => logic.setIsAddModalOpen(true)}
+          onRefresh={logic.refetch}
+          isRefreshing={logic.isLoading}
+        />
         <BusinessUsersErrorBanner error={logic.error} theme={theme} />
         <UsersStatsGrid logic={logic} theme={theme} />
         <UsersFilterSection logic={logic} />
@@ -61,7 +71,7 @@ export default function BusinessPanelUsersPage() {
   )
 }
 
-async function downloadUsersTemplate() {
+async function downloadUsersCsv() {
   const response = await fetch('/api/business/users/template', { credentials: 'include' })
   if (!response.ok) return
 
@@ -69,6 +79,9 @@ async function downloadUsersTemplate() {
   const url = window.URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   anchor.href = url
-  anchor.download = 'plantilla-importacion-usuarios.csv'
+  anchor.download = 'usuarios-organizacion.csv'
+  document.body.appendChild(anchor)
   anchor.click()
+  document.body.removeChild(anchor)
+  window.URL.revokeObjectURL(url)
 }

@@ -63,11 +63,16 @@ export interface DrainResponse {
     status: ReadingAudioJobStatus | 'deferred' | 'skipped';
   }>;
   failed?: number;
+  prepared?: number;
   processed: number;
+  quotaLimit?: number;
+  quotaReached?: boolean;
+  quotaRemaining?: number;
   results?: Array<{
     jobId: string;
     status: ReadingAudioJobStatus | 'deferred' | 'skipped';
   }>;
+  scannedForPreparation?: number;
   skipped?: number;
   workerId?: string;
 }

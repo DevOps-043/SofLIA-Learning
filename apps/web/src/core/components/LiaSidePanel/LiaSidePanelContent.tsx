@@ -8,6 +8,7 @@ import { useLiaSidePanelLogic } from './hooks/useLiaSidePanelLogic';
 import { PanelHeader } from './PanelHeader';
 import { MessagesDisplay } from './MessagesDisplay';
 import { InputArea } from './InputArea';
+import { LiveVoiceStage } from './LiveVoiceStage';
 import { HistoryOverlay } from './HistoryOverlay';
 import { DeleteConversationModal } from './DeleteConversationModal';
 
@@ -21,6 +22,7 @@ function LiaSidePanelContent() {
     currentTip, tips,
     isSpeaking, isVoiceEnabled,
     isDictationEnabled, isDictating, isProcessingDictation, interimTranscript, finalTranscript, dictationError, setDictationError, toggleDictation, stopDictation,
+    liveVoiceStatus, isLiveVoiceActive, isAssistantLiveSpeaking, stopLiveVoice,
     isOptionsMenuOpen, setIsOptionsMenuOpen, optionsMenuRef,
     isPersonalizationOpen, setIsPersonalizationOpen,
     isAvatarExpanded, setIsAvatarExpanded,
@@ -31,11 +33,34 @@ function LiaSidePanelContent() {
     handleNextPage, handlePrevPage, handleSelectConversation, handleStartEdit, handleSaveEdit, handleCancelEdit, handleDeleteClick, handleConfirmDelete, handleCancelDelete,
   } = useLiaSidePanelLogic();
 
+  React.useEffect(() => {
+    if (!isLiveVoiceActive) return;
+    setShowHistory(false);
+    setIsOptionsMenuOpen(false);
+  }, [isLiveVoiceActive, setIsOptionsMenuOpen, setShowHistory]);
+
+  const setShowHistoryFromHeader = React.useCallback(
+    (value: boolean) => {
+      if (isLiveVoiceActive) return;
+      setShowHistory(value);
+    },
+    [isLiveVoiceActive, setShowHistory],
+  );
+
+  const setOptionsMenuFromHeader = React.useCallback(
+    (value: boolean) => {
+      if (isLiveVoiceActive) return;
+      setIsOptionsMenuOpen(value);
+    },
+    [isLiveVoiceActive, setIsOptionsMenuOpen],
+  );
+
   return (
     <>
       <AnimatePresence mode="wait">
         {isOpen && (
           <motion.aside
+            className="lia-side-panel-shell"
             data-tour-id="soflia-side-panel"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -45,9 +70,11 @@ function LiaSidePanelContent() {
               position: 'fixed',
               top: 0,
               right: 0,
-              width: '100%',
-              maxWidth: `${LIA_PANEL_WIDTH}px`,
-              height: '100vh',
+              bottom: 0,
+              width: 'min(100vw, var(--soflia-viewport-width, 100vw))',
+              maxWidth: `min(var(--soflia-viewport-width, 100vw), ${LIA_PANEL_WIDTH}px)`,
+              height: 'var(--soflia-viewport-height, 100dvh)',
+              maxHeight: 'var(--soflia-viewport-height, 100dvh)',
               backgroundColor: themeColors.panelBg,
               borderLeft: `1px solid ${themeColors.borderColor}`,
               borderBottomLeftRadius: '30px',
@@ -55,6 +82,8 @@ function LiaSidePanelContent() {
               zIndex: 130,
               display: 'flex',
               flexDirection: 'column',
+              boxSizing: 'border-box',
+              minHeight: 0,
               boxShadow: isLightTheme ? '-4px 0 24px rgba(0, 0, 0, 0.08)' : '-4px 0 32px rgba(0, 0, 0, 0.4)',
             }}
           >
@@ -62,11 +91,11 @@ function LiaSidePanelContent() {
               t={t}
               themeColors={themeColors}
               isLightTheme={isLightTheme}
-              showHistory={showHistory}
+              showHistory={showHistory && !isLiveVoiceActive}
               closeHistory={closeHistory}
-              setShowHistory={setShowHistory}
-              isOptionsMenuOpen={isOptionsMenuOpen}
-              setIsOptionsMenuOpen={setIsOptionsMenuOpen}
+              setShowHistory={setShowHistoryFromHeader}
+              isOptionsMenuOpen={isOptionsMenuOpen && !isLiveVoiceActive}
+              setIsOptionsMenuOpen={setOptionsMenuFromHeader}
               optionsMenuRef={optionsMenuRef}
               setIsPersonalizationOpen={setIsPersonalizationOpen}
               clearHistory={clearHistory}
@@ -75,40 +104,55 @@ function LiaSidePanelContent() {
               setIsAvatarExpanded={setIsAvatarExpanded}
             />
 
-            <MessagesDisplay
-              messages={messages}
-              isLoading={isLoading}
-              currentTip={currentTip}
-              themeColors={themeColors}
-              isLightTheme={isLightTheme}
-              isDarkMode={isDarkMode}
-              handleLinkClick={handleLinkClick}
-              quickActions={quickActions}
-              handleQuickAction={handleQuickAction}
-              messagesEndRef={messagesEndRef}
-              chatContainerRef={chatContainerRef}
-              handleChatScroll={handleChatScroll}
-            />
+            {isLiveVoiceActive ? (
+              <LiveVoiceStage
+                themeColors={themeColors}
+                isLightTheme={isLightTheme}
+                isConnecting={liveVoiceStatus === 'connecting'}
+                isAssistantSpeaking={isAssistantLiveSpeaking}
+                onStop={stopLiveVoice}
+              />
+            ) : (
+              <>
+                <MessagesDisplay
+                  messages={messages}
+                  isLoading={isLoading}
+                  currentTip={currentTip}
+                  themeColors={themeColors}
+                  isLightTheme={isLightTheme}
+                  isDarkMode={isDarkMode}
+                  handleLinkClick={handleLinkClick}
+                  quickActions={quickActions}
+                  handleQuickAction={handleQuickAction}
+                  messagesEndRef={messagesEndRef}
+                  chatContainerRef={chatContainerRef}
+                  handleChatScroll={handleChatScroll}
+                />
 
-            <InputArea
-              t={t}
-              themeColors={themeColors}
-              isLightTheme={isLightTheme}
-              inputValue={inputValue}
-              setInputValue={setInputValue}
-              inputRef={inputRef}
-              isDictating={isDictating}
-              isDictationEnabled={isDictationEnabled}
-              isProcessingDictation={isProcessingDictation}
-              interimTranscript={interimTranscript}
-              finalTranscript={finalTranscript}
-              stopDictation={stopDictation}
-              toggleDictation={toggleDictation}
-              handleSendMessage={handleSendMessage}
-              isLoading={isLoading}
-            />
+                <InputArea
+                  t={t}
+                  themeColors={themeColors}
+                  isLightTheme={isLightTheme}
+                  inputValue={inputValue}
+                  setInputValue={setInputValue}
+                  inputRef={inputRef}
+                  isDictating={isDictating}
+                  isDictationEnabled={isDictationEnabled}
+                  isVoiceEnabled={isVoiceEnabled}
+                  isLiveVoiceActive={isLiveVoiceActive}
+                  isLiveVoiceConnecting={liveVoiceStatus === 'connecting'}
+                  isProcessingDictation={isProcessingDictation}
+                  interimTranscript={interimTranscript}
+                  finalTranscript={finalTranscript}
+                  stopDictation={stopDictation}
+                  toggleDictation={toggleDictation}
+                  handleSendMessage={handleSendMessage}
+                  isLoading={isLoading}
+                />
+              </>
+            )}
 
-            {dictationError && (
+            {!isLiveVoiceActive && dictationError && (
               <div className="mx-4 mb-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-400 flex items-center justify-between">
                 <span>{dictationError}</span>
                 <button onClick={() => setDictationError(null)} className="ml-2 text-red-400 hover:text-red-300">×</button>
@@ -117,7 +161,7 @@ function LiaSidePanelContent() {
 
             {/* History Overlay */}
             <AnimatePresence>
-              {showHistory && (
+              {showHistory && !isLiveVoiceActive && (
                 <HistoryOverlay
                   themeColors={themeColors}
                   isHistoryLoading={isHistoryLoading}
@@ -142,7 +186,7 @@ function LiaSidePanelContent() {
             </AnimatePresence>
 
             {/* Delete Error */}
-            {deleteError && (
+            {!isLiveVoiceActive && deleteError && (
               <div className="mx-4 mb-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-400 flex items-center justify-between">
                 <span>{deleteError}</span>
                 <button onClick={() => setDeleteError(null)} className="ml-2 text-red-400 hover:text-red-300">×</button>
@@ -151,7 +195,7 @@ function LiaSidePanelContent() {
 
             {/* Delete Confirmation Modal */}
             <AnimatePresence>
-              {showDeleteConfirm && conversationToDelete && (
+              {!isLiveVoiceActive && showDeleteConfirm && conversationToDelete && (
                 <DeleteConversationModal
                   themeColors={themeColors}
                   conversationToDelete={conversationToDelete}
@@ -163,6 +207,24 @@ function LiaSidePanelContent() {
             </AnimatePresence>
 
             <style>{`
+              .lia-side-panel-shell {
+                height: var(--soflia-viewport-height, 100dvh);
+                max-height: var(--soflia-viewport-height, 100dvh);
+              }
+              @supports not (height: 100dvh) {
+                .lia-side-panel-shell {
+                  height: var(--soflia-viewport-height, 100svh);
+                  max-height: var(--soflia-viewport-height, 100svh);
+                }
+              }
+              @media (max-width: 640px) {
+                .lia-side-panel-shell {
+                  width: min(100vw, var(--soflia-viewport-width, 100vw)) !important;
+                  max-width: min(100vw, var(--soflia-viewport-width, 100vw)) !important;
+                  border-left: 0 !important;
+                  border-bottom-left-radius: 0 !important;
+                }
+              }
               @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
               @keyframes liaPulse {
                 0%, 100% { opacity: 0.4; transform: scale(1); }

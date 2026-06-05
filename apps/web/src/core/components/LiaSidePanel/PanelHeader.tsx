@@ -44,9 +44,10 @@ export function PanelHeader({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '20px 24px',
+        padding: 'calc(20px + env(safe-area-inset-top, 0px)) 24px 20px',
         borderBottom: `1px solid ${themeColors.borderColor}`,
         backgroundColor: themeColors.headerBg,
+        flexShrink: 0,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -163,19 +164,21 @@ export function PanelHeader({
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
               style={{
-                position: 'absolute',
-                right: 0,
-                top: '100%',
-                marginTop: '8px',
+                position: 'fixed',
+                right: 'max(12px, env(safe-area-inset-right, 0px))',
+                top: 'calc(72px + env(safe-area-inset-top, 0px))',
                 backgroundColor: isLightTheme ? 'var(--color-bg-light)' : 'var(--color-gray-800)',
                 border: `1px solid ${isLightTheme ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)'}`,
                 borderRadius: '12px',
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                overflow: 'hidden',
+                overflowY: 'auto',
+                overscrollBehavior: 'contain',
                 backdropFilter: 'blur(16px)',
                 WebkitBackdropFilter: 'blur(16px)',
                 zIndex: 100000,
-                minWidth: '200px',
+                minWidth: 'min(200px, calc(100vw - 24px))',
+                maxWidth: 'calc(100vw - 24px)',
+                maxHeight: 'calc(var(--soflia-viewport-height, 100dvh) - 88px - env(safe-area-inset-bottom, 0px))',
               }}
             >
               <div style={{ padding: '8px 0' }}>

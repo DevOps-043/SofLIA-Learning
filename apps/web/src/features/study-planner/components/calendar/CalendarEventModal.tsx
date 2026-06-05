@@ -61,7 +61,7 @@ export function CalendarEventModal({
             className="fixed inset-0 bg-carbon-900/80 backdrop-blur-sm z-50 transition-opacity"
           />
 
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 pointer-events-none">
+          <div className="pointer-events-none fixed inset-0 z-50 flex h-app-dynamic items-end justify-center p-0 sm:items-center sm:p-4">
             <motion.div
               initial={{ y: '100%', opacity: 0, scale: 0.95 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}

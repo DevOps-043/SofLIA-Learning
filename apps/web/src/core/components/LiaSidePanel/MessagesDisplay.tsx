@@ -38,11 +38,25 @@ export function MessagesDisplay({
 }: MessagesDisplayProps) {
   const typewriterReveal = useAssistantTypewriterReveal({ messages, isLoading });
 
+  const isChatNearBottom = React.useCallback(() => {
+    const container = chatContainerRef.current;
+    if (!container) return true;
+    const distanceToBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    return distanceToBottom < 96;
+  }, [chatContainerRef]);
+
   React.useEffect(() => {
-    if (typewriterReveal.messageId) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    if (typewriterReveal.messageId && isChatNearBottom()) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
     }
-  }, [typewriterReveal, messagesEndRef]);
+  }, [
+    isChatNearBottom,
+    messagesEndRef,
+    typewriterReveal.isTyping,
+    typewriterReveal.length,
+    typewriterReveal.messageId,
+  ]);
 
   const getVisibleAssistantContent = (message: LiaMessage) => {
     if (typewriterReveal.messageId !== message.id) {
@@ -72,6 +86,9 @@ export function MessagesDisplay({
           flexDirection: 'column',
           gap: '12px',
           minHeight: 0,
+          overscrollBehavior: 'contain',
+          touchAction: 'pan-y',
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         {messages.length === 0 ? (
@@ -153,11 +170,13 @@ export function MessagesDisplay({
               style={{
                 display: 'flex',
                 justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start',
+                minWidth: 0,
               }}
             >
               <div
                 style={{
-                  maxWidth: '85%',
+                  maxWidth: 'min(85%, calc(100% - 8px))',
+                  minWidth: 0,
                   padding: '12px 16px',
                   borderRadius: message.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                   backgroundColor:

@@ -23,7 +23,7 @@ export function CourseLearnWorkspace({ logic, shell }: { logic: LearnPageLogicRe
   return (
     <>
       <CourseLearnModals logic={logic} shell={shell} />
-      <div data-tour-id="course-learn--workspace" className="fixed inset-0 flex h-screen flex-col overflow-hidden bg-gradient-to-br from-gray-50 via-gray-50 to-gray-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
+      <div data-tour-id="course-learn--workspace" className="fixed inset-0 flex h-app-dynamic flex-col overflow-hidden bg-gradient-to-br from-gray-50 via-gray-50 to-gray-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
         <LearnPageHeader
           courseTitle={shell.courseTitle}
           courseProgress={logic.courseProgress}

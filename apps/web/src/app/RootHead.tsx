@@ -7,6 +7,7 @@ import {
 import { applePlatformScript } from './head-scripts/apple-platform-script'
 import { chunkReloadScript } from './head-scripts/chunk-reload-script'
 import { themePrepaintScript } from './head-scripts/theme-prepaint-script'
+import { viewportHeightScript } from './head-scripts/viewport-height-script'
 
 const agentPolicyJsonScript = JSON.stringify(AGENT_POLICY_JSON).replace(/</g, '\\u003c')
 
@@ -16,6 +17,7 @@ export function RootHead() {
       <script dangerouslySetInnerHTML={{ __html: chunkReloadScript }} />
       <script dangerouslySetInnerHTML={{ __html: applePlatformScript }} />
       <script dangerouslySetInnerHTML={{ __html: themePrepaintScript }} />
+      <script dangerouslySetInnerHTML={{ __html: viewportHeightScript }} />
 
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

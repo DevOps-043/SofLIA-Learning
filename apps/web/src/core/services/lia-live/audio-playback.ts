@@ -5,6 +5,11 @@ import { base64ToInt16, int16ToFloat32 } from './pcm-utils';
 
 type AudioContextCtor = typeof AudioContext;
 
+interface LiaLiveAudioPlayerOptions {
+  onPlaybackStart?: () => void;
+  onPlaybackIdle?: () => void;
+}
+
 function getAudioContextCtor(): AudioContextCtor | null {
   if (typeof window === 'undefined') return null;
   return window.AudioContext || (window as unknown as { webkitAudioContext?: AudioContextCtor }).webkitAudioContext || null;
@@ -19,6 +24,10 @@ export class LiaLiveAudioPlayer {
   private context: AudioContext | null = null;
   private nextStartTime = 0;
   private readonly activeSources = new Set<AudioBufferSourceNode>();
+  private readonly startTimers = new Map<AudioBufferSourceNode, ReturnType<typeof globalThis.setTimeout>>();
+  private isPlaying = false;
+
+  constructor(private readonly options: LiaLiveAudioPlayerOptions = {}) {}
 
   private async ensureContext(): Promise<AudioContext | null> {
     if (this.context) {
@@ -50,16 +59,49 @@ export class LiaLiveAudioPlayer {
     this.nextStartTime = startAt + buffer.duration;
 
     this.activeSources.add(source);
-    source.onended = () => this.activeSources.delete(source);
+    const delayMs = Math.max(0, (startAt - context.currentTime) * 1000);
+    const startTimer = globalThis.setTimeout(() => {
+      this.startTimers.delete(source);
+      this.markPlaybackStart();
+    }, delayMs);
+    this.startTimers.set(source, startTimer);
+
+    source.onended = () => {
+      const pendingStartTimer = this.startTimers.get(source);
+      if (pendingStartTimer) {
+        globalThis.clearTimeout(pendingStartTimer);
+        this.startTimers.delete(source);
+      }
+      this.activeSources.delete(source);
+      this.markPlaybackIdleIfNeeded();
+    };
+  }
+
+  private markPlaybackStart(): void {
+    if (this.isPlaying) return;
+    this.isPlaying = true;
+    this.options.onPlaybackStart?.();
+  }
+
+  private markPlaybackIdleIfNeeded(): void {
+    if (this.activeSources.size > 0 || !this.isPlaying) return;
+    this.isPlaying = false;
+    this.options.onPlaybackIdle?.();
   }
 
   /** Corta toda la reproducción pendiente (barge-in / interrupción del modelo). */
   interrupt(): void {
+    this.startTimers.forEach((timer) => globalThis.clearTimeout(timer));
+    this.startTimers.clear();
     this.activeSources.forEach((source) => {
       try { source.stop(); } catch { /* ya detenido */ }
     });
     this.activeSources.clear();
     this.nextStartTime = 0;
+    if (this.isPlaying) {
+      this.isPlaying = false;
+      this.options.onPlaybackIdle?.();
+    }
   }
 
   async close(): Promise<void> {

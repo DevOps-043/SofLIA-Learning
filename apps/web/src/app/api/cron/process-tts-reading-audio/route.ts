@@ -23,13 +23,13 @@ function readLimit(request: Request) {
 
 function readMaxRuntimeMs(request: Request) {
   const url = new URL(request.url)
-  const rawMaxRuntimeMs = Number(url.searchParams.get('maxRuntimeMs') || 85_000)
+  const rawMaxRuntimeMs = Number(url.searchParams.get('maxRuntimeMs') || 24_000)
 
   if (!Number.isFinite(rawMaxRuntimeMs)) {
-    return 85_000
+    return 24_000
   }
 
-  return Math.min(Math.max(Math.trunc(rawMaxRuntimeMs), 10_000), 90_000)
+  return Math.min(Math.max(Math.trunc(rawMaxRuntimeMs), 10_000), 30_000)
 }
 
 export async function GET(request: Request) {

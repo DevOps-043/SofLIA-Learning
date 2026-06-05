@@ -25,12 +25,13 @@ export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
         bottom: 0,
         left: 0,
         maxHeight: 'none',
+        height: `calc(var(--soflia-viewport-height) - ${logic.pos.top}px)`,
       }
     : {
         zIndex: USER_DROPDOWN_MENU_Z_INDEX,
         top: logic.pos.top,
         right: logic.pos.right,
-        maxHeight: `calc(100vh - ${logic.pos.top}px - 16px)`,
+        maxHeight: `calc(var(--soflia-viewport-height) - ${logic.pos.top}px - 16px)`,
       }
   const mobileSectionClassName = logic.isMobileViewport
     ? 'overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-carbon-800'
@@ -62,7 +63,7 @@ export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
             )}
             style={menuStyle}
           >
-            <div className={cn(logic.isMobileViewport && 'flex min-h-full flex-col gap-[1.4vh] px-[4vw] py-[2vh]')}>
+            <div className={cn(logic.isMobileViewport && 'flex min-h-full flex-col gap-2 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]')}>
               <div className={cn(logic.isMobileViewport && 'basis-[12%] min-h-[72px]', mobileSectionClassName)}>
                 <UserDropdownHeader
                   accentColor={logic.accentColor}

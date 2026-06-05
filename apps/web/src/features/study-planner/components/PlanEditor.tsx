@@ -73,7 +73,7 @@ export function PlanEditor({ plan, onSave, onCancel }: PlanEditorProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex h-app-dynamic items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -90,7 +90,10 @@ export function PlanEditor({ plan, onSave, onCancel }: PlanEditorProps) {
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)] space-y-4">
+        <div
+          className="space-y-4 overflow-y-auto p-6"
+          style={{ maxHeight: 'calc(var(--soflia-viewport-height) - 140px - 1rem)' }}
+        >
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Nombre del plan

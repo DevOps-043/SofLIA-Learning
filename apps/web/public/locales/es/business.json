@@ -638,7 +638,10 @@
     "subtitle": "Administra y gestiona los miembros de tu organización.",
     "buttons": {
       "template": "Plantilla",
+      "exportCsv": "Exportar CSV",
+      "refresh": "Actualizar",
       "import": "Importar",
+      "invite": "Invitar",
       "add": "Agregar Usuario",
       "cancel": "Cancelar",
       "create": "Crear Usuario",

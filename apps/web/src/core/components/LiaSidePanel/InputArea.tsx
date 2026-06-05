@@ -42,6 +42,9 @@ interface InputAreaProps {
   inputRef: React.RefObject<HTMLInputElement>;
   isDictating: boolean;
   isDictationEnabled: boolean;
+  isVoiceEnabled: boolean;
+  isLiveVoiceActive: boolean;
+  isLiveVoiceConnecting: boolean;
   isProcessingDictation: boolean;
   interimTranscript: string;
   finalTranscript: string;
@@ -60,6 +63,9 @@ export function InputArea({
   inputRef,
   isDictating,
   isDictationEnabled,
+  isVoiceEnabled,
+  isLiveVoiceActive,
+  isLiveVoiceConnecting,
   isProcessingDictation,
   interimTranscript,
   finalTranscript,
@@ -79,12 +85,19 @@ export function InputArea({
 
   const canSendMessage =
     Boolean(inputValue.trim()) && !isLoading;
+  const isVoiceInputActive = isDictating || isLiveVoiceActive;
+  const isVoiceInputProcessing = isProcessingDictation || isLiveVoiceConnecting;
+  const shouldShowMicButton = isVoiceEnabled || isDictationEnabled;
 
   return (
     <div
       style={{
-        padding: '12px 16px 16px',
+        padding: '12px 16px calc(16px + env(safe-area-inset-bottom, 0px))',
         borderTop: `1px solid ${themeColors.borderColor}`,
+        flexShrink: 0,
+        position: 'relative',
+        zIndex: 1,
+        backgroundColor: themeColors.panelBg,
       }}
     >
       <div
@@ -131,52 +144,60 @@ export function InputArea({
               border: 'none',
               outline: 'none',
               color: themeColors.textPrimary,
-              fontSize: '14px',
+              fontSize: '16px',
               minWidth: 0,
             }}
           />
         </div>
 
-        {isDictationEnabled && (
+        {shouldShowMicButton && (
           <button
             onClick={toggleDictation}
-            disabled={isProcessingDictation}
-            title={isDictating ? 'Detener dictado' : 'Iniciar dictado'}
+            disabled={isVoiceInputProcessing}
+            title={
+              isVoiceEnabled
+                ? isVoiceInputActive
+                  ? 'Detener voz en vivo'
+                  : 'Iniciar voz en vivo'
+                : isDictating
+                ? 'Detener dictado'
+                : 'Iniciar dictado'
+            }
             style={{
               width: '32px',
               height: '32px',
               borderRadius: '50%',
-              backgroundColor: isDictating
+              backgroundColor: isVoiceInputActive
                 ? 'var(--color-error)'
-                : isProcessingDictation
+                : isVoiceInputProcessing
                 ? isLightTheme
                   ? 'var(--color-gray-300)'
                   : 'var(--color-legacy-374151)'
                 : 'transparent',
               border: `1px solid ${
-                isDictating ? 'var(--color-error)' : themeColors.inputBorder
+                isVoiceInputActive ? 'var(--color-error)' : themeColors.inputBorder
               }`,
-              cursor: isProcessingDictation ? 'not-allowed' : 'pointer',
+              cursor: isVoiceInputProcessing ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'all 0.2s',
-              opacity: isProcessingDictation ? 0.5 : 1,
+              opacity: isVoiceInputProcessing ? 0.5 : 1,
             }}
             onMouseEnter={(e) => {
-              if (!isProcessingDictation && !isDictating) {
+              if (!isVoiceInputProcessing && !isVoiceInputActive) {
                 e.currentTarget.style.backgroundColor = isLightTheme
                   ? 'var(--color-gray-200)'
                   : 'var(--color-legacy-1e2a35)';
               }
             }}
             onMouseLeave={(e) => {
-              if (!isDictating) {
+              if (!isVoiceInputActive) {
                 e.currentTarget.style.backgroundColor = 'transparent';
               }
             }}
           >
-            {isProcessingDictation ? (
+            {isVoiceInputProcessing ? (
               <Loader2
                 style={{
                   width: '16px',
@@ -185,7 +206,7 @@ export function InputArea({
                 }}
                 className="animate-spin"
               />
-            ) : isDictating ? (
+            ) : isVoiceInputActive ? (
               <VoiceWaveform color="var(--color-bg-light)" barCount={4} height={14} />
             ) : (
               <Mic

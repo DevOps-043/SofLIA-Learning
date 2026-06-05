@@ -21,7 +21,7 @@ export function ReporteProblema({
   return (
     <AnimatePresence>
       <div
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+        className="fixed inset-0 z-[9999] flex h-app-dynamic items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
         data-reporte-modal
         onClick={(event) => {
           if (event.target === event.currentTarget) onClose();
@@ -34,7 +34,10 @@ export function ReporteProblema({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
         >
           <ReportModalHeader isSubmitting={form.isSubmitting} onClose={onClose} step={form.step} />
-          <div className="scrollbar-hide max-h-[calc(90vh-140px)] overflow-y-auto p-6">
+          <div
+            className="scrollbar-hide overflow-y-auto p-6"
+            style={{ maxHeight: 'calc(var(--soflia-viewport-height) - 140px - 1rem)' }}
+          >
             {form.step === 'form' ? <ReportForm form={form} onClose={onClose} /> : <SuccessScreen onClose={onClose} />}
           </div>
         </motion.div>

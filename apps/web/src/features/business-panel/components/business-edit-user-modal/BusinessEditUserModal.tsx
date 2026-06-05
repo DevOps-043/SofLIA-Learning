@@ -51,7 +51,7 @@ export function BusinessEditUserModal({ isOpen, onClose, user, onSave }: Busines
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 isolate flex items-center justify-center p-0 sm:p-4" style={{ zIndex: 99999 }}>
+      <div className="fixed inset-0 isolate flex h-app-dynamic items-center justify-center overflow-hidden p-0 sm:p-4" style={{ zIndex: 99999 }}>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -65,7 +65,7 @@ export function BusinessEditUserModal({ isOpen, onClose, user, onSave }: Busines
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative flex h-full w-full max-w-6xl flex-col overflow-hidden shadow-2xl sm:h-[86vh] sm:max-h-[780px] sm:rounded-[2rem] lg:flex-row"
+          className="relative flex h-full w-full max-w-6xl flex-col overflow-hidden shadow-2xl sm:h-[min(calc(var(--soflia-viewport-height)-3rem),780px)] sm:max-h-[780px] sm:rounded-[2rem] lg:flex-row"
           style={{ backgroundColor: theme.panelBg, borderColor: theme.borderColor }}
           onClick={(event) => event.stopPropagation()}
         >
