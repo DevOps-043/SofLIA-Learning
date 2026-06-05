@@ -146,14 +146,14 @@ export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUse
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 isolate flex items-end justify-center p-0 sm:items-center sm:p-4" style={{ zIndex: 99999 }}>
+      <div className="fixed inset-0 isolate flex h-app-dynamic items-end justify-center overflow-hidden p-0 sm:items-center sm:p-4" style={{ zIndex: 99999 }}>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-transparent" />
         <motion.div
            initial={{ opacity: 0, scale: 0.95, y: 20 }}
            animate={{ opacity: 1, scale: 1, y: 0 }}
            exit={{ opacity: 0, scale: 0.95, y: 20 }}
           data-testid="business-add-user-modal-panel"
-          className="relative flex h-[100dvh] w-full max-w-5xl flex-col overflow-hidden bg-transparent shadow-2xl sm:h-[85vh] sm:max-h-[750px] sm:rounded-[2.5rem]"
+          className="relative flex h-full w-full max-w-5xl flex-col overflow-hidden bg-transparent shadow-2xl sm:h-[min(calc(var(--soflia-viewport-height)-3rem),750px)] sm:max-h-[750px] sm:rounded-[2.5rem]"
            onClick={(e) => e.stopPropagation()}
         >
           <div className="flex flex-col h-full overflow-hidden border" style={{ backgroundColor: surfaceColor, borderColor }}>

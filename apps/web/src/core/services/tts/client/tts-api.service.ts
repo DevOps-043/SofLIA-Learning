@@ -1,5 +1,6 @@
 import type { TextToSpeechRequestPayload } from '../types'
 import { TTS_API_PATH } from '../shared'
+import { TTSQuotaExceededError } from './tts-error.utils'
 
 // 502 = Gemini upstream error (transient). Retry once with small backoff.
 // 503 = provider not configured at all — do NOT retry, return null.
@@ -29,6 +30,10 @@ export async function requestTTSAudio(
 ): Promise<Blob | null> {
   let response = await fetchOnce(payload, signal)
 
+  if (response.status === 429) {
+    throw new TTSQuotaExceededError('TTS API rate limit exceeded')
+  }
+
   // Transient Gemini error → retry once
   if (RETRYABLE_STATUS.has(response.status)) {
     await new Promise((r) => setTimeout(r, RETRY_DELAY_MS))
@@ -38,7 +43,18 @@ export async function requestTTSAudio(
     response = await fetchOnce(payload, signal)
   }
 
-  if (response.status === 204 || FALLBACK_STATUS.has(response.status) || response.status >= 500) {
+  if (response.status === 429) {
+    throw new TTSQuotaExceededError('TTS API rate limit exceeded')
+  }
+
+  if (response.status === 204) {
+    if (response.headers.get('X-TTS-Provider-Status') === '429') {
+      throw new TTSQuotaExceededError('TTS provider quota exceeded')
+    }
+    return null
+  }
+
+  if (FALLBACK_STATUS.has(response.status) || response.status >= 500) {
     return null
   }
 

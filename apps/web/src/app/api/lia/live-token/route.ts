@@ -1,21 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI, Modality } from '@google/genai';
 
-import { logger } from '@/lib/logger';
-import { SessionService } from '@/features/auth/services/session.service';
 import { addRateLimitHeaders, checkRateLimit } from '@/core/lib/rate-limit';
 import {
   DEFAULT_LIA_LIVE_MODEL,
   DEFAULT_LIA_LIVE_VOICE,
   LIA_LIVE_LANGUAGE_CODE,
-  LIA_LIVE_SYSTEM_INSTRUCTION,
 } from '@/core/services/lia-live/constants';
+import { SessionService } from '@/features/auth/services/session.service';
+import { withZodBody } from '@/lib/api/with-validation';
+import { logger } from '@/lib/logger';
 
-// Token efímero: corta vida y un solo uso. La API key permanece en el servidor;
-// el navegador abre el WebSocket a Gemini Live solo con este token.
+import { liaLiveTokenSchema, type LiaLiveTokenBody } from './schema';
+import { buildLiaLiveSystemInstruction } from './system-instruction';
+
 const TOKEN_USES = 1;
-const SESSION_START_WINDOW_MS = 2 * 60 * 1000; // nuevas sesiones hasta 2 min
-const TOKEN_EXPIRE_MS = 30 * 60 * 1000; // duración máx. de la sesión: 30 min
+const SESSION_START_WINDOW_MS = 2 * 60 * 1000;
+const TOKEN_EXPIRE_MS = 30 * 60 * 1000;
 
 const liveTokenRateLimit = {
   maxRequests: 20,
@@ -40,7 +41,7 @@ function resolveLiveVoice(): string {
   return process.env.GEMINI_LIVE_VOICE || DEFAULT_LIA_LIVE_VOICE;
 }
 
-export async function POST(request: NextRequest) {
+async function handlePost(request: NextRequest, body: LiaLiveTokenBody) {
   const rateLimitResult = checkRateLimit(request, liveTokenRateLimit, 'lia-live-token');
   if (!rateLimitResult.success) {
     return rateLimitResult.response!;
@@ -49,7 +50,6 @@ export async function POST(request: NextRequest) {
   const withRateHeaders = (response: NextResponse) =>
     addRateLimitHeaders(response, rateLimitResult.limit, rateLimitResult.remaining, rateLimitResult.reset);
 
-  // Solo usuarios autenticados pueden iniciar una sesión de voz en vivo.
   const currentUser = await SessionService.getCurrentUser();
   if (!currentUser) {
     return withRateHeaders(NextResponse.json({ error: 'No autorizado' }, { status: 401 }));
@@ -66,6 +66,8 @@ export async function POST(request: NextRequest) {
   }
 
   const model = resolveLiveModel();
+  const languageCode = LIA_LIVE_LANGUAGE_CODE;
+  const systemInstruction = await buildLiaLiveSystemInstruction(body, currentUser);
   const now = Date.now();
 
   try {
@@ -76,14 +78,13 @@ export async function POST(request: NextRequest) {
         expireTime: new Date(now + TOKEN_EXPIRE_MS).toISOString(),
         newSessionExpireTime: new Date(now + SESSION_START_WINDOW_MS).toISOString(),
         httpOptions: { apiVersion: 'v1alpha' },
-        // Bloquea el modelo y la voz: el cliente no puede cambiarlos con este token.
         liveConnectConstraints: {
           model,
           config: {
             responseModalities: [Modality.AUDIO],
-            systemInstruction: LIA_LIVE_SYSTEM_INSTRUCTION,
+            systemInstruction,
             speechConfig: {
-              languageCode: LIA_LIVE_LANGUAGE_CODE,
+              languageCode,
               voiceConfig: { prebuiltVoiceConfig: { voiceName: resolveLiveVoice() } },
             },
             inputAudioTranscription: {},
@@ -95,12 +96,17 @@ export async function POST(request: NextRequest) {
     });
 
     if (!token.name) {
-      throw new Error('El proveedor no devolvió un token.');
+      throw new Error('El proveedor no devolvio un token.');
     }
 
-    return withRateHeaders(NextResponse.json({ token: token.name, model }));
+    return withRateHeaders(NextResponse.json({
+      token: token.name,
+      model,
+      systemInstruction,
+      languageCode,
+    }));
   } catch (error) {
-    logger.error('[lia-live] error creando token efímero', error);
+    logger.error('[lia-live] error creando token efimero', error);
     return withRateHeaders(
       NextResponse.json(
         { error: 'No se pudo iniciar la voz en vivo', code: 'LIVE_TOKEN_FAILED' },
@@ -109,3 +115,7 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withZodBody(liaLiveTokenSchema, handlePost, {
+  emptyBodyFallback: {},
+});

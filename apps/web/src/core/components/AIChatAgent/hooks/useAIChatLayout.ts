@@ -39,7 +39,9 @@ export function useAIChatLayout() {
       const viewportHeight = window.visualViewport?.height || window.innerHeight;
       const topGap = hasDashboardNavbar ? (!isDesktop ? 78 : 72) + 8 : 24;
       const bottomGap = isCommunitiesPage && !isDesktop ? 88 : 24;
-      const computed = Math.max(viewportHeight - topGap - bottomGap, 360);
+      const availableHeight = viewportHeight - topGap - bottomGap;
+      const mobileMinimumHeight = Math.min(260, Math.max(180, viewportHeight - 16));
+      const computed = Math.max(availableHeight, isDesktop ? 360 : mobileMinimumHeight);
       setWidgetHeight(`${computed}px`);
     };
     updateHeight();
@@ -64,12 +66,12 @@ export function useAIChatLayout() {
 
   const calculateMaxHeight = useMemo(() => {
     if (widgetHeight) return widgetHeight;
-    if (isCommunitiesPage && !isDesktop) return 'calc(100vh - 5.5rem - env(safe-area-inset-bottom, 0px) - 1.5rem)';
+    if (isCommunitiesPage && !isDesktop) return 'calc(var(--soflia-viewport-height) - 5.5rem - env(safe-area-inset-bottom, 0px) - 1.5rem)';
     if (hasDashboardNavbar) {
       const navbarHeight = !isDesktop ? '4.875rem' : '4.5rem';
-      return `calc(100vh - ${navbarHeight} - 1.5rem - env(safe-area-inset-bottom, 0px) - 1.5rem)`;
+      return `calc(var(--soflia-viewport-height) - ${navbarHeight} - 1.5rem - env(safe-area-inset-bottom, 0px) - 1.5rem)`;
     }
-    return 'calc(100vh - 1.5rem - env(safe-area-inset-bottom, 0px) - 1.5rem)';
+    return 'calc(var(--soflia-viewport-height) - 1.5rem - env(safe-area-inset-bottom, 0px) - 1.5rem)';
   }, [isCommunitiesPage, hasDashboardNavbar, isDesktop, widgetHeight]);
 
   return {

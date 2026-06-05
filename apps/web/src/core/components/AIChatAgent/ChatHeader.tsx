@@ -105,7 +105,7 @@ export function ChatHeader({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute left-0 top-12 bg-white dark:bg-carbon-800 border border-gray-200 dark:border-gray-500/30 rounded-xl shadow-xl overflow-hidden z-50 min-w-[280px]"
+                className="absolute left-0 top-12 z-50 max-h-[calc(var(--soflia-viewport-height)-7rem)] min-w-[min(280px,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-500/30 dark:bg-carbon-800"
               >
                 <div className="py-2">
                   <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-500/30 flex items-center justify-between">
@@ -201,7 +201,7 @@ export function ChatHeader({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
                   transition={{ duration: 0.15, ease: 'easeOut' }}
-                  className="absolute right-0 top-full mt-2 rounded-xl border overflow-hidden backdrop-blur-xl z-[100000] min-w-[200px]"
+                  className="absolute right-0 top-full z-[100000] mt-2 max-h-[calc(var(--soflia-viewport-height)-7rem)] min-w-[min(200px,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border backdrop-blur-xl"
                   style={{
                     backgroundColor: isDark ? 'var(--color-gray-800)' : 'var(--color-bg-light)',
                     borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',

@@ -17,8 +17,15 @@ const SOFLIA_VOICE_DIRECTION =
   'voz calida, profesional y natural, ritmo claro, cercana pero no infantil, segura sin ' +
   'exagerar. Evita sonar robotica, teatral o apresurada. Lee el texto tal cual:';
 
+const SOFLIA_CONTINUATION_DIRECTION =
+  'Continua como SofLIA con la misma voz natural en espanol de Mexico. Lee tal cual:';
+
 export function buildSofliaSpeechPrompt(text: string): string {
   return `${SOFLIA_VOICE_DIRECTION}\n\n${text}`;
+}
+
+export function buildSofliaContinuationSpeechPrompt(text: string): string {
+  return `${SOFLIA_CONTINUATION_DIRECTION}\n\n${text}`;
 }
 
 export function inferReadingExpressionTags(text: string): string[] {

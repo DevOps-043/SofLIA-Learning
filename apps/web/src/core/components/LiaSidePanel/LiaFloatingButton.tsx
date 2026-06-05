@@ -24,8 +24,8 @@ function LiaFloatingButtonContent() {
             data-tour-id="soflia-floating-button"
             style={{
               position: 'fixed',
-              bottom: `${LIA_BUTTON_BOTTOM_PX}px`,
-              right: `${LIA_BUTTON_RIGHT_PX}px`,
+              bottom: `calc(${LIA_BUTTON_BOTTOM_PX}px + env(safe-area-inset-bottom, 0px))`,
+              right: `calc(${LIA_BUTTON_RIGHT_PX}px + env(safe-area-inset-right, 0px))`,
               width: `${LIA_BUTTON_SIZE_PX}px`,
               height: `${LIA_BUTTON_SIZE_PX}px`,
               zIndex: 11000,

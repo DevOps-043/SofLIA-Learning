@@ -24,7 +24,7 @@ export function LessonDetailsPanel({
   transcriptContent,
 }: LessonDetailsPanelProps) {
   return (
-    <div data-tour-id="course-learn--lesson-details" className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-500/30 p-6">
+    <div data-tour-id="course-learn--lesson-details" className="bg-white dark:bg-carbon-900 rounded-xl border border-gray-200 dark:border-white/5 p-6">
       <div className="space-y-4">
         <div>
           <h2 className="text-2xl font-bold text-primary dark:text-white" style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}>

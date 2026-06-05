@@ -46,10 +46,15 @@ export function LiaQuickActionsChips(props: LiaQuickActionsChipsProps) {
       role="region"
       aria-label={t('lia.lessonSuggestions.title', 'Sugerencias')}
       style={{
-        padding: '0 20px 12px',
+        padding: '0 clamp(14px, 4vw, 20px) 10px',
         display: 'flex',
         flexDirection: 'column',
         gap: '6px',
+        flexShrink: 0,
+        maxHeight: 'clamp(96px, 28dvh, 168px)',
+        overflowY: 'auto',
+        overscrollBehavior: 'contain',
+        WebkitOverflowScrolling: 'touch',
       }}
     >
       <div
@@ -169,7 +174,10 @@ export function LiaQuickActionsChips(props: LiaQuickActionsChipsProps) {
                               lineHeight: 1.3,
                               cursor: 'pointer',
                               maxWidth: '100%',
+                              minHeight: '36px',
                               textAlign: 'left',
+                              whiteSpace: 'normal',
+                              overflowWrap: 'break-word',
                               transition: 'background-color 160ms ease, border-color 160ms ease',
                             }}
                             onMouseEnter={(event) => {

@@ -7,8 +7,6 @@ import { useTranslation } from "react-i18next";
 
 import { createLessonMarkdownComponents } from "@/features/courses/components/learn/markdownComponents";
 import type { LearnLesson } from "@/features/courses/components/learn/types";
-import { ReadingVoiceButton } from "@/features/courses/components/learn/reading-voice/ReadingVoiceButton";
-import { useReadingVoice } from "@/features/courses/components/learn/reading-voice/useReadingVoice";
 
 const transcriptMarkdownComponents = createLessonMarkdownComponents();
 
@@ -55,16 +53,6 @@ export function TranscriptContent({
   transcriptContent,
 }: TranscriptContentProps) {
   const { t } = useTranslation("learn");
-  const { status: voiceStatus, speak: speakTranscript } = useReadingVoice(
-    lesson
-      ? {
-          lessonId: lesson.lesson_id,
-          slug,
-          sourceId: lesson.lesson_id,
-          sourceType: "lesson_transcript",
-        }
-      : null
-  );
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -142,7 +130,7 @@ export function TranscriptContent({
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-gray-900/40">
+      <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-white/[0.02]">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 dark:bg-accent/10">
             <ScrollText className="h-4 w-4 animate-pulse text-primary dark:text-accent" />
@@ -161,7 +149,7 @@ export function TranscriptContent({
 
   if (!hasTranscript) {
     return (
-      <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-gray-900/40">
+      <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-white/[0.02]">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 dark:bg-accent/10">
             <Info className="h-4 w-4 text-primary dark:text-accent" />
@@ -192,12 +180,9 @@ export function TranscriptContent({
           <span className="font-medium">{estimatedReadingTime}</span>
           <span className="text-xs">{t("transcript.readTime")}</span>
         </div>
-        <div className="ml-auto">
-          <ReadingVoiceButton status={voiceStatus} t={t} onClick={() => void speakTranscript()} />
-        </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-gray-900/50">
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/8 dark:bg-white/[0.03] dark:shadow-none">
         <div className="p-6">
           <div className="divide-y divide-gray-100 dark:divide-white/5">
             {parseTranscriptSegments(transcriptContent || "").map((block, idx) => (

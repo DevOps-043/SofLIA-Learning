@@ -112,7 +112,7 @@ export async function GET(
   });
 }
 
-export async function PUT(
+async function saveProgress(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
@@ -160,3 +160,6 @@ export async function PUT(
     success: true,
   });
 }
+
+export const PUT = saveProgress;
+export const POST = saveProgress;

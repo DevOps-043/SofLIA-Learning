@@ -115,7 +115,7 @@ export function ChatMessagesPanel({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
-          className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+          className={`flex min-w-0 gap-3 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
         >
           <div className={`flex-shrink-0 w-9 h-9 rounded-full overflow-hidden border ${theme.borderUser} relative`}>
             {message.role === 'user' ? (
@@ -131,7 +131,10 @@ export function ChatMessagesPanel({
             )}
           </div>
 
-          <div className={`flex-1 rounded-2xl px-3.5 py-3 shadow-lg ${message.role === 'user' ? 'bg-success text-white' : 'bg-primary text-white dark:bg-primary'}`}>
+          <div
+            className={`min-w-0 rounded-2xl px-3.5 py-3 shadow-lg ${message.role === 'user' ? 'bg-success text-white' : 'bg-primary text-white dark:bg-primary'}`}
+            style={{ maxWidth: 'min(85%, calc(100% - 3rem))' }}
+          >
             <p className="text-[13px] leading-relaxed whitespace-pre-wrap font-medium">
               {renderTextWithLinks(message.content, (url) => onNavigate(url))}
             </p>

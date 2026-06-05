@@ -197,7 +197,7 @@ export function buildUserContextSection(context: PlatformContext): string {
       'Si el usuario pregunta por un curso que no está aquí, dile que no lo tiene asignado.\n\n';
 
     context.coursesWithContent.forEach(
-      (course: Record<string, unknown>, courseIndex: number) => {
+      (course, courseIndex: number) => {
         section += 'CURSO ' + (courseIndex + 1) + ': ' + course.title + '\n';
         section +=
           '   - Descripción: ' + (course.description || 'Sin descripción') + '\n';

@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { logger } from '@/lib/logger';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export const TTS_AUDIO_BUCKET = 'tts-audio';
@@ -59,9 +60,24 @@ export async function putCachedAudio(
       contentType,
       upsert: true,
     });
-    return !error;
-  } catch {
-    // El cache es opcional; ignoramos errores de escritura.
+    if (error) {
+      // Surface the real cause (e.g. file_size_limit exceeded, mime rejected) so
+      // storage failures are diagnosable instead of vanishing into a false return.
+      logger.warn('[tts-cache] no se pudo subir audio a Storage', {
+        path: getTTSStoragePath(key),
+        bytes: bytes.byteLength,
+        contentType,
+        error: error.message,
+      });
+      return false;
+    }
+    return true;
+  } catch (error) {
+    logger.warn('[tts-cache] excepcion subiendo audio a Storage', {
+      path: getTTSStoragePath(key),
+      bytes: bytes.byteLength,
+      error: error instanceof Error ? error.message : String(error),
+    });
     return false;
   }
 }

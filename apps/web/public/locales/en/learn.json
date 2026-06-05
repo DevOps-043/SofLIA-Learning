@@ -496,7 +496,10 @@
       "preparing": "Preparing audio",
       "stop": "Stop",
       "generating": "Generating audio...",
-      "error": "Voice error"
+      "error": "Voice error",
+      "loading": "Loading...",
+      "unavailable": "Audio not available",
+      "seek": "Seek through the audio"
     }
   }
 }

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   isTTSAbortError,
+  isTTSQuotaExceededError,
   requestTTSAudio,
   selectPreferredWebSpeechVoice,
 } from '../client.service';
@@ -34,6 +35,26 @@ describe('tts client service', () => {
     const result = await requestTTSAudio({ text: 'Hola' });
 
     expect(result).toBeNull();
+  });
+
+  it('throws a quota error when the provider fallback was caused by 429', async () => {
+    global.fetch = vi.fn().mockResolvedValue(
+      new Response(null, {
+        status: 204,
+        headers: {
+          'X-TTS-Provider-Status': '429',
+        },
+      }),
+    ) as typeof fetch;
+
+    let thrown: unknown;
+    try {
+      await requestTTSAudio({ text: 'Hola' });
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(isTTSQuotaExceededError(thrown)).toBe(true);
   });
 
   it('returns null after retrying a transient TTS provider failure', async () => {

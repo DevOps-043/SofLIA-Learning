@@ -3,11 +3,13 @@ import {
   DEFAULT_GEMINI_TTS_MODEL_ID,
   DEFAULT_GEMINI_TTS_READING_VOICE_NAME,
   DEFAULT_GEMINI_TTS_VOICE_NAME,
+  getTTSSynthesisTimeoutMs,
 } from './shared';
 import { createWavFromPcm } from './audio-format.service';
 import {
   buildContinuationSpeechPrompt,
   buildReadingSpeechPrompt,
+  buildSofliaContinuationSpeechPrompt,
   buildSofliaSpeechPrompt,
 } from './gemini-tts-prompts';
 
@@ -122,21 +124,24 @@ export async function synthesizeSpeechWithGemini(payload: TextToSpeechRequestPay
 
   const isReading = payload.context === 'reading';
   const isContinuation = payload.context === 'reading_continuation';
+  const isChatContinuation = payload.context === 'chat_continuation';
   const modelId = getGeminiTTSModelId();
   const voiceName = (isReading || isContinuation) ? getGeminiReadingVoiceName() : getGeminiTTSVoiceName();
   const prompt = isContinuation
     ? buildContinuationSpeechPrompt(payload.text)
     : isReading
       ? buildReadingSpeechPrompt(payload.text)
-      : buildSofliaSpeechPrompt(payload.text);
+      : isChatContinuation
+        ? buildSofliaContinuationSpeechPrompt(payload.text)
+        : buildSofliaSpeechPrompt(payload.text);
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelId)}:generateContent?key=${encodeURIComponent(apiKey)}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      // Hard timeout so the server never hangs indefinitely on a slow/broken model
-      signal: AbortSignal.timeout(60_000),
+      // Hard timeout so serverless routes fail cleanly instead of leaving locks behind.
+      signal: AbortSignal.timeout(getTTSSynthesisTimeoutMs()),
       body: JSON.stringify({
         contents: [
           {

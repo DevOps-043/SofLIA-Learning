@@ -73,9 +73,9 @@ export function StudyPlannerConversationShell({
   }
 
   return (
-    <div className="flex w-full h-[100dvh] overflow-hidden bg-white dark:bg-carbon-900">
+    <div className="flex h-app-dynamic w-full overflow-hidden bg-white dark:bg-carbon-900">
       <div 
-        className={`flex h-[100dvh] flex-col overflow-hidden bg-white supports-[height:100dvh]:h-[100dvh] dark:bg-carbon-900 transition-all duration-500 ease-in-out ${
+        className={`flex h-app-dynamic flex-col overflow-hidden bg-white dark:bg-carbon-900 transition-all duration-500 ease-in-out ${
           showSchedulePreview ? 'w-full sm:w-1/2 border-r border-gray-200 dark:border-gray-500/30' : 'w-full'
         }`} 
         suppressHydrationWarning

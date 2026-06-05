@@ -164,7 +164,7 @@ export function BusinessLearningPathVideosModal({
   return (
     <AnimatePresence>
       <div
-        className="fixed inset-0 flex items-center justify-center p-0 sm:p-4 isolate"
+        className="fixed inset-0 isolate flex h-app-dynamic items-center justify-center overflow-hidden p-0 sm:p-4"
         style={{ zIndex: 99999 }}
       >
         {/* Click-away capture */}
@@ -182,7 +182,7 @@ export function BusinessLearningPathVideosModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-3xl h-full sm:h-[85vh] sm:max-h-[750px] flex flex-col bg-transparent overflow-hidden shadow-2xl sm:rounded-[2.5rem]"
+          className="relative flex h-full w-full max-w-3xl flex-col overflow-hidden bg-transparent shadow-2xl sm:h-[min(calc(var(--soflia-viewport-height)-3rem),750px)] sm:max-h-[750px] sm:rounded-[2.5rem]"
           onClick={(e) => e.stopPropagation()}
         >
           <div

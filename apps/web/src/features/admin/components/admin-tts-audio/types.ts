@@ -57,12 +57,24 @@ export interface BackfillResponse {
 }
 
 export interface DrainResponse {
+  deferred?: number;
+  details?: Array<{
+    jobId: string;
+    status: ReadingAudioJobStatus | 'deferred' | 'skipped';
+  }>;
   failed?: number;
+  prepared?: number;
   processed: number;
+  quotaLimit?: number;
+  quotaReached?: boolean;
+  quotaRemaining?: number;
   results?: Array<{
     jobId: string;
-    status: ReadingAudioJobStatus;
+    status: ReadingAudioJobStatus | 'deferred' | 'skipped';
   }>;
+  scannedForPreparation?: number;
+  skipped?: number;
+  workerId?: string;
 }
 
 export interface ReprocessResponse {

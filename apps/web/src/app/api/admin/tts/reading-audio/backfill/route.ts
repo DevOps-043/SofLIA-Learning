@@ -36,7 +36,9 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await backfillReadingAudioJobs(parsed.data);
+    // Endpoint bounded by design: callers must paginate with `hasMore/nextOffset`.
+    // Running every page in one serverless request is what caused 504s in prod.
+    const result = await backfillReadingAudioJobs({ ...parsed.data, allPages: false });
     return NextResponse.json({ success: true, ...result });
   } catch (error) {
     return NextResponse.json(

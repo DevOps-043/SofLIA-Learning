@@ -3,8 +3,8 @@ import type { TFunction } from 'i18next';
 import { ZoomIn } from 'lucide-react';
 import { FormattedContentRenderer } from '../../ContentRenderers';
 import type { LearnActivity } from '../../types';
-import { ReadingVoiceButton } from '../../reading-voice/ReadingVoiceButton';
-import { useReadingVoice } from '../../reading-voice/useReadingVoice';
+import { ReadingAudioPlayer } from '../../reading-voice/ReadingAudioPlayer';
+import { useReadingAudioPlayer } from '../../reading-voice/useReadingAudioPlayer';
 
 interface ReadingActivityContentProps {
   activity: LearnActivity;
@@ -30,7 +30,7 @@ export function ReadingActivityContent({
   zoomOut
 }: ReadingActivityContentProps) {
   const canListen = activity.activity_type === 'reflection';
-  const { status, activeSegmentIndex, speak } = useReadingVoice(
+  const player = useReadingAudioPlayer(
     canListen
       ? {
           lessonId,
@@ -40,14 +40,13 @@ export function ReadingActivityContent({
         }
       : null,
   );
-  const isPlaying = status === 'playing';
 
   return (
     <>
-      <div className="mb-2 flex items-center justify-end gap-1.5">
+      <div className="mb-2 flex flex-wrap items-center justify-end gap-1.5">
         {canListen ? (
           <>
-            <ReadingVoiceButton status={status} t={t} onClick={() => void speak()} />
+            <ReadingAudioPlayer player={player} t={t} />
             <div className="h-3 w-px bg-gray-200 dark:bg-white/10" />
           </>
         ) : null}
@@ -63,8 +62,9 @@ export function ReadingActivityContent({
         <FormattedContentRenderer
           content={activity.activity_content}
           activityId={activity.activity_id}
-          activeSegmentIndex={activeSegmentIndex}
-          isPlaying={isPlaying}
+          currentTime={player.currentTime}
+          duration={player.duration}
+          isAudioActive={player.status === 'playing' || player.status === 'paused'}
         />
       </div>
     </>

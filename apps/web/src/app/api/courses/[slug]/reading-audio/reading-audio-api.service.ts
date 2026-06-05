@@ -6,10 +6,6 @@ import {
 } from '@/app/api/courses/_services/lesson-language-resolution.service';
 import { computeReadingContentHash } from '@/core/services/tts/server/tts-reading-pregeneration.service';
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service';
-import {
-  buildReadingSpeechRequests,
-  segmentReadingContent,
-} from '@/lib/reading/reading-segmentation';
 import type { createAdminClient } from '@/lib/supabase/admin';
 
 export type ReadingAudioSourceType =
@@ -103,9 +99,7 @@ async function loadContentTranslation(
 }
 
 function countExpectedSegments(text: string) {
-  return buildReadingSpeechRequests(segmentReadingContent(text))
-    .filter((request) => request.text.length > 0)
-    .length;
+  return text.trim() ? 1 : 0;
 }
 
 function asTranslatedText(value: unknown): string | null {

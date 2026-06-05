@@ -638,7 +638,10 @@
     "subtitle": "Administre e gerencie os membros da sua organização.",
     "buttons": {
       "template": "Modelo",
+      "exportCsv": "Exportar CSV",
+      "refresh": "Atualizar",
       "import": "Importar",
+      "invite": "Convidar",
       "add": "Adicionar Usuário",
       "cancel": "Cancelar",
       "create": "Criar Usuário",

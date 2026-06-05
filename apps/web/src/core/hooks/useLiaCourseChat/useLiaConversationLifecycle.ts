@@ -40,17 +40,21 @@ export function useLiaConversationLifecycle({
     }
   }, [conversationIdRef, setError, setIsLoading, setMessages]);
 
-  const clearHistory = useCallback(async () => {
-    if (conversationIdRef.current && user) {
-      try {
-        await endLiaConversation(conversationIdRef.current, true);
-      } catch (closeError) {
-        techDebtLogger.error('[SofLIA Analytics] Error cerrando conversación:', closeError);
-      }
-      conversationIdRef.current = null;
-    }
+  const clearHistory = useCallback(() => {
+    // Capture and clear the ref before any async work
+    const conversationIdToClose = conversationIdRef.current;
+    conversationIdRef.current = null;
+
+    // Optimistic update: reset UI instantly, no waiting for the network
     setMessages(createInitialCourseMessages(initialMessage));
     setError(null);
+
+    // Fire analytics update in background — purely for DB bookkeeping, not UI-critical
+    if (conversationIdToClose && user) {
+      endLiaConversation(conversationIdToClose, true).catch((closeError: unknown) => {
+        techDebtLogger.error('[SofLIA Analytics] Error cerrando conversación:', closeError);
+      });
+    }
   }, [conversationIdRef, initialMessage, setError, setMessages, user]);
 
   useEffect(

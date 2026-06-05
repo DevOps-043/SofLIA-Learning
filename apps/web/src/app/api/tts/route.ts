@@ -21,7 +21,7 @@ const textToSpeechSchema = z.object({
   speed: z.number().min(0.5).max(2).optional(),
   optimizeStreamingLatency: z.number().int().min(0).max(4).optional().default(DEFAULT_TTS_OPTIMIZE_STREAMING_LATENCY),
   outputFormat: z.string().trim().min(1).max(32).optional().default(DEFAULT_TTS_OUTPUT_FORMAT),
-  context: z.enum(['chat', 'reading', 'reading_continuation']).optional(),
+  context: z.enum(['chat', 'chat_continuation', 'reading', 'reading_continuation']).optional(),
 });
 
 // Reading uses small chunks: una reflexión larga puede producir 20+ chunks en
@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
               'X-TTS-Fallback': 'browser',
               'X-TTS-Error-Code': String(result.body.code || 'TTS_PROVIDER_ERROR'),
               'X-TTS-Provider': String(result.body.provider || 'unknown'),
+              'X-TTS-Provider-Status': String(result.body.providerStatus || 'unknown'),
             },
           })
         );

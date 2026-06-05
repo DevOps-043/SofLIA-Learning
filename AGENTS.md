@@ -22,6 +22,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## Repository Structure
 
+
 ```
 SofLIA-Learning/
 ├── apps/

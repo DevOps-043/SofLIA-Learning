@@ -62,9 +62,9 @@ export function StudyPlannerDashboardAssistant({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 z-40 flex h-screen w-full max-w-[420px] flex-col overflow-hidden rounded-bl-[30px] rounded-tl-[30px] border-l border-gray-200 bg-white shadow-[-4px_0_32px_rgba(0,0,0,0.1)] dark:border-[var(--color-legacy-1e2a35)] dark:bg-[var(--color-legacy-0a0f14)] dark:shadow-[-4px_0_32px_rgba(0,0,0,0.4)]"
+            className="fixed right-0 top-0 z-40 flex h-app-dynamic w-full max-w-full flex-col overflow-hidden border-l border-gray-200 bg-white shadow-[-4px_0_32px_rgba(0,0,0,0.1)] dark:border-[var(--color-legacy-1e2a35)] dark:bg-[var(--color-legacy-0a0f14)] dark:shadow-[-4px_0_32px_rgba(0,0,0,0.4)] sm:max-w-[420px] sm:rounded-bl-[30px] sm:rounded-tl-[30px]"
           >
-            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-5 dark:border-[var(--color-legacy-1e2a35)] dark:bg-[var(--color-legacy-0a0f14)]">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 pb-5 pt-[calc(1.25rem+env(safe-area-inset-top,0px))] dark:border-[var(--color-legacy-1e2a35)] dark:bg-[var(--color-legacy-0a0f14)]">
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <img
@@ -110,7 +110,7 @@ export function StudyPlannerDashboardAssistant({
               </div>
             </div>
 
-            <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-5 py-4">
+            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-5 py-4">
               {messages.length === 0 ? (
                 <div className="flex flex-1 flex-col items-center justify-center px-5 text-center opacity-80">
                   <motion.div
@@ -187,7 +187,7 @@ export function StudyPlannerDashboardAssistant({
               </div>
             )}
 
-            <div className="border-t border-gray-200 bg-white p-3 pb-4 dark:border-[var(--color-legacy-1e2a35)] dark:bg-[var(--color-legacy-0a0f14)]">
+            <div className="border-t border-gray-200 bg-white p-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] dark:border-[var(--color-legacy-1e2a35)] dark:bg-[var(--color-legacy-0a0f14)]">
               <div className="flex items-center gap-3 rounded-3xl border border-gray-200 bg-gray-50 px-4 py-2.5 dark:border-[var(--color-legacy-374151)] dark:bg-[rgba(255,255,255,0.05)]">
                 <input
                   id="dashboard-chat-input"
@@ -200,7 +200,7 @@ export function StudyPlannerDashboardAssistant({
                     }
                   }}
                   placeholder="Escribe un mensaje a SofLIA..."
-                  className="flex-1 border-none bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400 dark:text-white"
+                  className="flex-1 border-none bg-transparent text-base text-gray-900 outline-none placeholder:text-gray-400 dark:text-white sm:text-sm"
                 />
 
                 <button

@@ -7,8 +7,9 @@ import { useTranslation } from "react-i18next";
 
 import { createLessonMarkdownComponents } from "@/features/courses/components/learn/markdownComponents";
 import type { LearnLesson } from "@/features/courses/components/learn/types";
-import { ReadingVoiceButton } from "@/features/courses/components/learn/reading-voice/ReadingVoiceButton";
-import { useReadingVoice } from "@/features/courses/components/learn/reading-voice/useReadingVoice";
+import { HighlightableReadingText } from "@/features/courses/components/learn/reading-voice/HighlightableReadingText";
+import { ReadingAudioPlayer } from "@/features/courses/components/learn/reading-voice/ReadingAudioPlayer";
+import { useReadingAudioPlayer } from "@/features/courses/components/learn/reading-voice/useReadingAudioPlayer";
 
 const summaryMarkdownComponents = createLessonMarkdownComponents({
   includeCode: true,
@@ -35,12 +36,14 @@ export function SummaryContent({
   summaryContent,
 }: SummaryContentProps) {
   const { t } = useTranslation("learn");
-  const { status: voiceStatus, speak: speakSummary } = useReadingVoice({
+  const summaryPlayer = useReadingAudioPlayer({
     lessonId: lesson.lesson_id,
     slug,
     sourceId: lesson.lesson_id,
     sourceType: "lesson_summary",
   });
+  const isAudioActive =
+    summaryPlayer.status === "playing" || summaryPlayer.status === "paused";
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -114,7 +117,7 @@ export function SummaryContent({
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-gray-900/40">
+      <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-white/[0.02]">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 dark:bg-accent/10">
             <Sparkles className="h-4 w-4 animate-pulse text-primary dark:text-accent" />
@@ -133,7 +136,7 @@ export function SummaryContent({
 
   if (!hasSummary) {
     return (
-      <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-gray-900/40">
+      <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-white/[0.02]">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 dark:bg-accent/10">
             <Info className="h-4 w-4 text-primary dark:text-accent" />
@@ -165,15 +168,24 @@ export function SummaryContent({
           <span className="text-xs">{t("summary.readTime")}</span>
         </div>
         <div className="ml-auto">
-          <ReadingVoiceButton status={voiceStatus} t={t} onClick={() => void speakSummary()} />
+          <ReadingAudioPlayer player={summaryPlayer} t={t} />
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-gray-900/50">
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/8 dark:bg-white/[0.03] dark:shadow-none">
         <div className="prose prose-slate max-w-none p-6 dark:prose-invert">
-          <ReactMarkdown components={summaryMarkdownComponents}>
-            {summaryContent || ""}
-          </ReactMarkdown>
+          {isAudioActive ? (
+            <HighlightableReadingText
+              text={summaryContent || ""}
+              currentTime={summaryPlayer.currentTime}
+              duration={summaryPlayer.duration}
+              isActive={isAudioActive}
+            />
+          ) : (
+            <ReactMarkdown components={summaryMarkdownComponents}>
+              {summaryContent || ""}
+            </ReactMarkdown>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-white/10 dark:bg-white/[0.03]">

@@ -21,13 +21,27 @@ function readLimit(request: Request) {
   return Math.min(Math.max(Math.trunc(rawLimit), 1), 20)
 }
 
+function readMaxRuntimeMs(request: Request) {
+  const url = new URL(request.url)
+  const rawMaxRuntimeMs = Number(url.searchParams.get('maxRuntimeMs') || 24_000)
+
+  if (!Number.isFinite(rawMaxRuntimeMs)) {
+    return 24_000
+  }
+
+  return Math.min(Math.max(Math.trunc(rawMaxRuntimeMs), 10_000), 30_000)
+}
+
 export async function GET(request: Request) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    const result = await processPendingReadingAudio({ limit: readLimit(request) })
+    const result = await processPendingReadingAudio({
+      limit: readLimit(request),
+      maxRuntimeMs: readMaxRuntimeMs(request),
+    })
     return NextResponse.json(result)
   } catch (error) {
     logger.error('Error procesando cola de audio de lecturas:', error)

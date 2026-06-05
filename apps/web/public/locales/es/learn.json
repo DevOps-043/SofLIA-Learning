@@ -496,7 +496,10 @@
       "preparing": "Preparando audio",
       "stop": "Detener",
       "generating": "Generando audio...",
-      "error": "Error de voz"
+      "error": "Error de voz",
+      "loading": "Cargando...",
+      "unavailable": "Audio no disponible",
+      "seek": "Avanzar o retroceder el audio"
     }
   }
 }

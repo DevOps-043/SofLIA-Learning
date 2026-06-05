@@ -181,7 +181,7 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
     <>
         <div
           key={styles?.selectedTheme || 'default-theme'}
-          className="business-panel-layout fixed inset-0 z-0 flex h-screen max-w-full flex-col overflow-hidden transition-all duration-300"
+          className="business-panel-layout fixed inset-0 z-0 flex h-app-dynamic max-w-full flex-col overflow-hidden transition-all duration-300"
           style={{
             ...backgroundStyle,
             ...cssVariables,

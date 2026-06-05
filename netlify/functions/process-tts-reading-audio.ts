@@ -24,7 +24,7 @@ const handler: Handler = async (_event: HandlerEvent, _context: HandlerContext) 
     return { statusCode: 500, body: JSON.stringify({ error: 'URL del sitio no configurada' }) }
   }
 
-  const endpoint = `${siteUrl.replace(/\/$/, '')}/api/cron/process-tts-reading-audio`
+  const endpoint = `${siteUrl.replace(/\/$/, '')}/api/cron/process-tts-reading-audio?limit=1&maxRuntimeMs=24000`
   console.log(`[CRON tts-reading-audio] Llamando a ${endpoint}`)
 
   try {
@@ -33,7 +33,9 @@ const handler: Handler = async (_event: HandlerEvent, _context: HandlerContext) 
       headers: { Authorization: `Bearer ${cronSecret}` },
     })
 
-    const result = await response.json()
+    const result = await response.json().catch(() => ({
+      error: `Respuesta no JSON del endpoint TTS (status ${response.status})`,
+    }))
 
     if (!response.ok) {
       console.error('[CRON tts-reading-audio] Error en endpoint:', result)

@@ -34,6 +34,8 @@ export interface LiaLiveSessionHandle {
 interface ConnectParams extends LiaLiveSessionCallbacks {
   token: string;
   model: string;
+  systemInstruction?: string;
+  languageCode?: string;
 }
 
 /**
@@ -43,6 +45,8 @@ interface ConnectParams extends LiaLiveSessionCallbacks {
 export async function connectLiaLiveSession({
   token,
   model,
+  systemInstruction = LIA_LIVE_SYSTEM_INSTRUCTION,
+  languageCode = LIA_LIVE_LANGUAGE_CODE,
   onAudio,
   onInterrupted,
   onInputTranscript,
@@ -57,8 +61,8 @@ export async function connectLiaLiveSession({
     model,
     config: {
       responseModalities: [Modality.AUDIO],
-      systemInstruction: LIA_LIVE_SYSTEM_INSTRUCTION,
-      speechConfig: { languageCode: LIA_LIVE_LANGUAGE_CODE },
+      systemInstruction,
+      speechConfig: { languageCode },
       inputAudioTranscription: {},
       outputAudioTranscription: {},
     },

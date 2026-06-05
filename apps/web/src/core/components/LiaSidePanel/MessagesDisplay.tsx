@@ -5,12 +5,11 @@ import { motion } from 'framer-motion';
 import { parseMarkdownContent } from './utils/parseMarkdown';
 import { LiaThemeColors, LiaQuickAction, LiaMessage } from './types';
 import { LiaQuickActionsChips } from './LiaQuickActionsChips';
-import type { VoiceRevealState } from './hooks/useLiaSidePanelVoice';
+import { useAssistantTypewriterReveal } from '@/core/hooks/useAssistantTypewriterReveal';
 
 interface MessagesDisplayProps {
   messages: LiaMessage[];
   isLoading: boolean;
-  voiceReveal: VoiceRevealState;
   currentTip: string;
   themeColors: LiaThemeColors;
   isLightTheme: boolean;
@@ -26,7 +25,6 @@ interface MessagesDisplayProps {
 export function MessagesDisplay({
   messages,
   isLoading,
-  voiceReveal,
   currentTip,
   themeColors,
   isLightTheme,
@@ -38,13 +36,40 @@ export function MessagesDisplay({
   chatContainerRef,
   handleChatScroll,
 }: MessagesDisplayProps) {
-  // El texto se revela al ritmo del audio (voiceReveal); mantenemos la vista al
-  // final mientras avanza, ya que el contenido visible crece sin cambiar `messages`.
+  const typewriterReveal = useAssistantTypewriterReveal({ messages, isLoading });
+
+  const isChatNearBottom = React.useCallback(() => {
+    const container = chatContainerRef.current;
+    if (!container) return true;
+    const distanceToBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    return distanceToBottom < 96;
+  }, [chatContainerRef]);
+
   React.useEffect(() => {
-    if (voiceReveal.messageId) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    if (typewriterReveal.messageId && isChatNearBottom()) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
     }
-  }, [voiceReveal, messagesEndRef]);
+  }, [
+    isChatNearBottom,
+    messagesEndRef,
+    typewriterReveal.isTyping,
+    typewriterReveal.length,
+    typewriterReveal.messageId,
+  ]);
+
+  const getVisibleAssistantContent = (message: LiaMessage) => {
+    if (typewriterReveal.messageId !== message.id) {
+      return message.content;
+    }
+
+    return message.content.slice(0, typewriterReveal.length);
+  };
+
+  const shouldShowTypewriterCursor = (message: LiaMessage) =>
+    message.role === 'assistant' &&
+    typewriterReveal.messageId === message.id &&
+    typewriterReveal.isTyping;
 
   return (
     <>
@@ -61,6 +86,9 @@ export function MessagesDisplay({
           flexDirection: 'column',
           gap: '12px',
           minHeight: 0,
+          overscrollBehavior: 'contain',
+          touchAction: 'pan-y',
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         {messages.length === 0 ? (
@@ -142,11 +170,13 @@ export function MessagesDisplay({
               style={{
                 display: 'flex',
                 justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start',
+                minWidth: 0,
               }}
             >
               <div
                 style={{
-                  maxWidth: '85%',
+                  maxWidth: 'min(85%, calc(100% - 8px))',
+                  minWidth: 0,
                   padding: '12px 16px',
                   borderRadius: message.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                   backgroundColor:
@@ -170,12 +200,29 @@ export function MessagesDisplay({
                   }}
                 >
                   {message.role === 'assistant'
-                    ? parseMarkdownContent(
-                        voiceReveal.messageId === message.id
-                          ? message.content.slice(0, voiceReveal.length)
-                          : message.content,
-                        handleLinkClick,
-                        isDarkMode,
+                    ? (
+                        <>
+                          {parseMarkdownContent(
+                            getVisibleAssistantContent(message),
+                            handleLinkClick,
+                            isDarkMode,
+                          )}
+                          {shouldShowTypewriterCursor(message) && (
+                            <motion.span
+                              aria-hidden="true"
+                              animate={{ opacity: [0.2, 1, 0.2] }}
+                              transition={{ duration: 0.9, repeat: Infinity }}
+                              style={{
+                                display: 'inline-block',
+                                width: '1px',
+                                height: '1em',
+                                marginLeft: '2px',
+                                verticalAlign: '-0.12em',
+                                backgroundColor: themeColors.accentColor,
+                              }}
+                            />
+                          )}
+                        </>
                       )
                     : message.content}
                 </p>

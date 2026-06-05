@@ -16,6 +16,8 @@ export function useLiaSidePanelLogic() {
     isLoading: environment.isLoading,
     isOpen: environment.isOpen,
     language: environment.language,
+    pageContext: environment.pageContext,
+    currentConversationId: environment.currentConversationId,
     settings: environment.liaSettings,
     inputRef: state.inputRef,
     setInputValue: state.setInputValue,

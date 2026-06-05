@@ -637,7 +637,10 @@
     "subtitle": "Administer and manage members of your organization.",
     "buttons": {
       "template": "Template",
+      "exportCsv": "Export CSV",
+      "refresh": "Refresh",
       "import": "Import",
+      "invite": "Invite",
       "add": "Add User",
       "cancel": "Cancel",
       "create": "Create User",

@@ -31,7 +31,7 @@ export function ChatFloatingButton({
   return (
     <div
       className="fixed right-6 z-40 flex flex-col gap-2 items-end bottom-6 md:bottom-6"
-      style={{ bottom: bottomPosition }}
+      style={{ bottom: bottomPosition, right: 'calc(1.5rem + env(safe-area-inset-right, 0px))' }}
     >
       <AnimatePresence>
         {areButtonsExpanded && (

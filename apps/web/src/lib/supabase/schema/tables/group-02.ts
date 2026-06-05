@@ -12,6 +12,8 @@ import type { LessonTrackingTable } from './lesson-tracking.table'
 import type { LiaActivityCompletionsTable } from './lia-activity-completions.table'
 import type { LiaCommonQuestionsTable } from './lia-common-questions.table'
 import type { LiaConversationsTable } from './lia-conversations.table'
+import type { LiaLiveSessionsTable } from './lia-live-sessions.table'
+import type { LiaLiveTranscriptEntriesTable } from './lia-live-transcript-entries.table'
 import type { LiaMessagesTable } from './lia-messages.table'
 import type { LiaMessagesTokensTmpTable } from './lia-messages-tokens-tmp.table'
 import type { LiaUserFeedbackTable } from './lia-user-feedback.table'
@@ -34,6 +36,8 @@ export type PublicTablesGroup02 = {
   lia_activity_completions: LiaActivityCompletionsTable
   lia_common_questions: LiaCommonQuestionsTable
   lia_conversations: LiaConversationsTable
+  lia_live_sessions: LiaLiveSessionsTable
+  lia_live_transcript_entries: LiaLiveTranscriptEntriesTable
   lia_messages: LiaMessagesTable
   lia_messages_tokens_tmp: LiaMessagesTokensTmpTable
   lia_user_feedback: LiaUserFeedbackTable

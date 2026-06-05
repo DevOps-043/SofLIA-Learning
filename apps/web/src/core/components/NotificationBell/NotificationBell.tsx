@@ -203,7 +203,7 @@ export function NotificationBell({
                 </div>
               </header>
 
-              <div className="max-h-[min(28rem,calc(100vh-12rem))] overflow-y-auto scrollbar-thin">
+              <div className="scrollbar-thin max-h-[min(28rem,calc(var(--soflia-viewport-height)-12rem))] overflow-y-auto">
                 {isLoading && notifications.length === 0 ? (
                   <NotificationLoadingState label={t('actions.notificationsPage.loading')} compact />
                 ) : notifications.length === 0 ? (

@@ -81,7 +81,7 @@
     "header": {
       "eyebrow": "Pre-geracao",
       "title": "Audio TTS de leituras",
-      "subtitle": "Gere e monitore audios segmentados para atividades, materiais, transcricoes e resumos antes que os usuarios precisem deles."
+      "subtitle": "Gere e monitore audios completos para atividades, materiais, transcricoes e resumos antes que os usuarios precisem deles."
     },
     "common": {
       "all": "Todos",
@@ -135,7 +135,8 @@
     },
     "results": {
       "backfill": "{{scanned}} verificados, {{queued}} enfileirados.",
-      "drain": "{{processed}} jobs processados.",
+      "drain": "{{processed}} job processado. Preparados: {{prepared}}. Adiados: {{deferred}}. Falhos: {{failed}}. Cota restante hoje: {{quotaRemaining}}.",
+      "drainQuotaReached": "Cota diaria de TTS atingida ({{limit}} solicitacoes). Nenhum novo audio foi processado.",
       "cleanup": "{{deletedJobs}} jobs fora do alvo removidos de {{scanned}} verificados.",
       "retry": "{{requeued}} jobs falhos enfileirados novamente.",
       "reprocess": "Job {{jobId}} enfileirado novamente.",
@@ -145,7 +146,7 @@
       "source": "Fonte",
       "status": "Status",
       "language": "Idioma",
-      "segments": "Segmentos",
+      "segments": "Audios",
       "model": "Modelo",
       "retries": "Tentativas",
       "updated": "Atualizado",

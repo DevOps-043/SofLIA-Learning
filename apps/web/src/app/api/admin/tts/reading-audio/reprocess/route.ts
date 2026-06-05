@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { requireAdmin } from '@/lib/auth/requireAdmin';
 import {
   reprocessReadingAudioJob,
+  resetStuckGeneratingJobs,
   retryFailedReadingAudioJobs,
 } from '@/core/services/tts/server/tts-reading-admin.service';
 
@@ -11,10 +12,11 @@ export const runtime = 'nodejs';
 
 const schema = z.object({
   jobId: z.string().uuid().optional(),
+  limit: z.number().int().min(1).max(1000).optional().default(500),
+  resetStuck: z.boolean().optional().default(false),
   retryFailed: z.boolean().optional().default(false),
-  limit: z.number().int().min(1).max(100).optional().default(25),
-}).refine((value) => value.jobId || value.retryFailed, {
-  message: 'Se requiere jobId o retryFailed',
+}).refine((value) => value.jobId || value.retryFailed || value.resetStuck, {
+  message: 'Se requiere jobId, retryFailed o resetStuck',
 });
 
 async function readBody(request: NextRequest) {
@@ -39,6 +41,11 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    if (parsed.data.resetStuck) {
+      const result = await resetStuckGeneratingJobs(parsed.data.limit);
+      return NextResponse.json({ success: true, ...result });
+    }
+
     if (parsed.data.retryFailed) {
       const result = await retryFailedReadingAudioJobs(parsed.data.limit);
       return NextResponse.json({ success: true, ...result });

@@ -37,7 +37,7 @@ export function AIChatAgentModals({ logic }: AIChatAgentModalsProps) {
       </AnimatePresence>
 
       {logic.nanoBananaSchema && logic.isNanoBananaPanelOpen ? (
-        <div className="fixed right-4 top-20 z-[100001]" style={{ width: 'min(400px, calc(100vw - 2rem))', maxHeight: 'calc(100vh - 6rem)' }}>
+        <div className="fixed right-4 top-20 z-[100001]" style={{ width: 'min(400px, calc(100vw - 2rem))', maxHeight: 'calc(var(--soflia-viewport-height) - 6rem)' }}>
           <NanoBananaPreviewPanel
             schema={logic.nanoBananaSchema}
             jsonString={logic.nanoBananaJsonString}

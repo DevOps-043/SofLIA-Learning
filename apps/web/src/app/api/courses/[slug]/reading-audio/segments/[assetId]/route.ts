@@ -68,10 +68,16 @@ export async function GET(
     );
   }
 
-  return new NextResponse(await audio.arrayBuffer(), {
+  const buffer = await audio.arrayBuffer();
+
+  return new NextResponse(buffer, {
     headers: {
+      // Content-Length + Accept-Ranges let the browser resolve the clip duration up
+      // front, which the player's seek bar needs to render and scrub reliably.
+      'Accept-Ranges': 'bytes',
       'Cache-Control': 'private, max-age=3600',
-      'Content-Type': row.content_type || 'audio/wav',
+      'Content-Length': String(buffer.byteLength),
+      'Content-Type': row.content_type || 'audio/mpeg',
     },
   });
 }

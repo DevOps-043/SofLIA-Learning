@@ -3,8 +3,7 @@ import 'server-only';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { Json } from '@/lib/supabase/types';
 import {
-  enqueueReadingAudio,
-  processJob,
+  enqueueReadingAudioBatch,
   processPendingReadingAudio,
   type ReadingAudioLanguage,
   type ReadingAudioSourceType,
@@ -52,6 +51,10 @@ const LANGUAGES: ReadingAudioLanguage[] = ['es', 'en', 'pt'];
 const TARGET_ACTIVITY_TYPE = 'reflection';
 const JOB_LIST_SCAN_LIMIT = 5000;
 const MAX_BACKFILL_PAGES = 500;
+const MANUAL_DRAIN_SCAN_MULTIPLIER = 5;
+const MANUAL_DRAIN_MIN_SCAN_LIMIT = 500;
+const MANUAL_DRAIN_MAX_RETRIES = 3;
+const MANUAL_DRAIN_LIMIT = 1;
 
 const JOB_SELECT_FIELDS =
   'id, source_type, source_id, language, content_hash, source_text, voice, model, prompt_version, segment_count, status, retry_count, next_retry_at, locked_by, locked_until, last_error_code, error_message, processing_started_at, processing_finished_at, created_at, updated_at';
@@ -68,6 +71,12 @@ type CleanupCandidate = {
   id: string;
   source_id: string;
   source_type: ReadingAudioSourceType;
+};
+
+type DrainPreparationCandidate = {
+  id: string;
+  retry_count: number | null;
+  status: string;
 };
 
 function chunkArray<T>(items: T[], size: number): T[][] {
@@ -124,11 +133,71 @@ function effectiveJobStatus(job: {
   locked_until: string | null;
   status: string;
 }): ReadingAudioJobStatus {
-  if (job.status === 'pending' && job.locked_until && new Date(job.locked_until).getTime() > Date.now()) {
+  const isActivelyLocked = Boolean(
+    job.locked_until && new Date(job.locked_until).getTime() > Date.now(),
+  );
+
+  if ((job.status === 'pending' || job.status === 'generating') && isActivelyLocked) {
     return 'generating';
   }
   if (job.status === 'ready' || job.status === 'failed') return job.status;
   return 'pending';
+}
+
+function isDrainPreparationCandidateRecoverable(job: DrainPreparationCandidate): boolean {
+  if (job.status === 'ready' || job.status === 'failed') return false;
+  if ((job.retry_count ?? 0) >= MANUAL_DRAIN_MAX_RETRIES) return false;
+  return true;
+}
+
+async function prepareReadingAudioQueueForManualDrain(limit: number) {
+  const supabase = createAdminClient();
+  const now = new Date();
+  const scanLimit = Math.max(
+    MANUAL_DRAIN_MIN_SCAN_LIMIT,
+    limit * MANUAL_DRAIN_SCAN_MULTIPLIER,
+  );
+
+  const { data, error } = await supabase
+    .from('tts_reading_audio_jobs')
+    .select('id, status, retry_count')
+    .not('status', 'eq', 'ready')
+    .not('status', 'eq', 'failed')
+    .order('created_at', { ascending: true })
+    .limit(scanLimit);
+
+  if (error) throw error;
+
+  const candidates = ((data || []) as DrainPreparationCandidate[])
+    .filter((job) => isDrainPreparationCandidateRecoverable(job))
+    .slice(0, limit);
+  const ids = candidates.map((job) => job.id);
+
+  if (ids.length === 0) {
+    return { prepared: 0, scanned: (data || []).length };
+  }
+
+  const { data: preparedRows, error: updateError } = await supabase
+    .from('tts_reading_audio_jobs')
+    .update({
+      locked_by: null,
+      locked_until: null,
+      next_retry_at: now.toISOString(),
+      processing_finished_at: null,
+      processing_started_at: null,
+      status: 'pending',
+    })
+    .in('id', ids)
+    .not('status', 'eq', 'ready')
+    .not('status', 'eq', 'failed')
+    .select('id');
+
+  if (updateError) throw updateError;
+
+  return {
+    prepared: preparedRows?.length ?? 0,
+    scanned: (data || []).length,
+  };
 }
 
 async function loadTranslations(
@@ -172,21 +241,27 @@ async function enqueueActivityBatch(
     activities.map((activity) => activity.activity_id),
   );
 
-  let queued = 0;
+  const items: Array<{
+    language: ReadingAudioLanguage;
+    sourceId: string;
+    sourceType: 'activity_reading';
+    text: string;
+  }> = [];
+
   for (const activity of activities) {
     const text = language === 'es'
       ? activity.activity_content
       : getTextTranslation(translations.get(activity.activity_id), 'activity_content');
     if (!text) continue;
-    const inserted = await enqueueReadingAudio({
+    items.push({
       sourceType: 'activity_reading',
       sourceId: activity.activity_id,
       language,
       text,
-      triggerNow: false,
     });
-    if (inserted) queued += 1;
   }
+
+  const queued = await enqueueReadingAudioBatch(items);
 
   return { scanned: activities.length, queued };
 }
@@ -221,29 +296,28 @@ async function enqueueLessonBatch(
 
   let queued = 0;
   const lessons = (data || []) as LessonRow[];
-  for (const lesson of lessons) {
-    if (lesson.transcript_content) {
-      const inserted = await enqueueReadingAudio({
-        sourceType: 'lesson_transcript',
-        sourceId: lesson.lesson_id,
-        language,
-        text: lesson.transcript_content,
-        triggerNow: false,
-      });
-      if (inserted) queued += 1;
-    }
+  const items: Array<{
+    language: ReadingAudioLanguage;
+    sourceId: string;
+    sourceType: 'lesson_summary';
+    text: string;
+  }> = [];
 
+  for (const lesson of lessons) {
+    // Transcripts are excluded on purpose: they are verbatim the lesson video's
+    // audio, so synthesizing TTS for them duplicates content and wastes quota.
+    // Only summaries (and reflection activities elsewhere) get reading audio.
     if (lesson.summary_content) {
-      const inserted = await enqueueReadingAudio({
+      items.push({
         sourceType: 'lesson_summary',
         sourceId: lesson.lesson_id,
         language,
         text: lesson.summary_content,
-        triggerNow: false,
       });
-      if (inserted) queued += 1;
     }
   }
+
+  queued = await enqueueReadingAudioBatch(items);
 
   return { scanned: lessons.length, queued };
 }
@@ -355,7 +429,18 @@ export async function listReadingAudioJobs({
 }
 
 export async function drainReadingAudioQueue(limit: number) {
-  return processPendingReadingAudio({ limit });
+  const drainLimit = Math.min(Math.max(1, Math.trunc(limit)), MANUAL_DRAIN_LIMIT);
+  const preparation = await prepareReadingAudioQueueForManualDrain(drainLimit);
+  const result = await processPendingReadingAudio({
+    limit: drainLimit,
+    workerId: `admin-tts-drain-${Date.now()}`,
+  });
+
+  return {
+    ...result,
+    prepared: preparation.prepared,
+    scannedForPreparation: preparation.scanned,
+  };
 }
 
 export async function reprocessReadingAudioJob(jobId: string) {
@@ -376,7 +461,6 @@ export async function reprocessReadingAudioJob(jobId: string) {
     .eq('id', jobId);
 
   if (error) throw error;
-  await processJob(jobId, `admin-${Date.now()}`);
 }
 
 export async function retryFailedReadingAudioJobs(limit: number) {
@@ -409,6 +493,51 @@ export async function retryFailedReadingAudioJobs(limit: number) {
 
   if (updateError) throw updateError;
   return { requeued: ids.length };
+}
+
+/**
+ * Resets ALL jobs stuck in 'generating' status back to 'pending' with retry_count = 0.
+ *
+ * Jobs become stuck when the post-generation status update fails silently (now fixed),
+ * leaving them in 'generating' with retry_count >= MAX_RETRIES — invisible to the
+ * normal cron and drain. This function force-unblocks them regardless of retry count.
+ */
+export async function resetStuckGeneratingJobs(limit = 500) {
+  const supabase = createAdminClient();
+  const now = new Date().toISOString();
+
+  // Reset both:
+  // 1. Jobs with status='generating' (failed silent status update — core bug)
+  // 2. Jobs with status='pending' AND locked_by IS NOT NULL (orphaned lock from aborted processing)
+  // Both appear as "GENERANDO" in the UI via computeEffectiveJobStatus.
+  const { data, error } = await supabase
+    .from('tts_reading_audio_jobs')
+    .select('id')
+    .in('status', ['generating', 'pending'])
+    .not('locked_by', 'is', null)
+    .order('updated_at', { ascending: true })
+    .limit(limit);
+
+  if (error) throw error;
+  const ids = (data || []).map((row) => row.id);
+  if (ids.length === 0) return { reset: 0 };
+
+  const { error: updateError } = await supabase
+    .from('tts_reading_audio_jobs')
+    .update({
+      error_message: null,
+      last_error_code: null,
+      locked_by: null,
+      locked_until: null,
+      next_retry_at: now,
+      processing_finished_at: null,
+      retry_count: 0,
+      status: 'pending',
+    })
+    .in('id', ids);
+
+  if (updateError) throw updateError;
+  return { reset: ids.length };
 }
 
 export async function cleanupNonTargetReadingAudioJobs() {

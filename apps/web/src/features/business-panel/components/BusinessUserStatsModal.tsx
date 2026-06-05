@@ -96,7 +96,7 @@ export function BusinessUserStatsModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 flex items-center justify-center p-0 sm:p-4 isolate" style={{ zIndex: 99999 }}>
+      <div className="fixed inset-0 isolate flex h-app-dynamic items-center justify-center overflow-hidden p-0 sm:p-4" style={{ zIndex: 99999 }}>
         {/* Backdrop - COMPLETELY TRANSPARENT */}
         <motion.div
           animate={{ opacity: 1 }}
@@ -112,7 +112,7 @@ export function BusinessUserStatsModal({
            animate={{ opacity: 1, scale: 1, y: 0 }}
            exit={{ opacity: 0, scale: 0.95, y: 20 }}
            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-           className="relative w-full max-w-[1500px] h-full sm:h-[90vh] sm:max-h-[900px] flex flex-col bg-transparent overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] sm:rounded-[2.5rem]"
+           className="relative flex h-full w-full max-w-[1500px] flex-col overflow-hidden bg-transparent shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] sm:h-[min(calc(var(--soflia-viewport-height)-2rem),900px)] sm:max-h-[900px] sm:rounded-[2.5rem]"
            onClick={(event) => event.stopPropagation()}
         >
           <div
