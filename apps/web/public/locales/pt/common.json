@@ -591,10 +591,16 @@
     },
     "header": {
       "title": "SofLIA",
-      "subtitle": "Assistente de IA"
+      "subtitle": "Assistente de IA",
+      "speaking": "Falando…"
+    },
+    "voice": {
+      "enable": "Ativar modo de voz",
+      "disable": "Desativar modo de voz"
     },
     "chat": {
       "inputPlaceholder": "Escreva uma mensagem para a SofLIA...",
+      "responding": "A SofLIA está respondendo…",
       "cleanHistory": "Limpar conversa"
     }
   },

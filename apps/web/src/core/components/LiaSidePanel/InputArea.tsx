@@ -52,6 +52,8 @@ interface InputAreaProps {
   toggleDictation: () => void;
   handleSendMessage: () => void;
   isLoading: boolean;
+  /** SofLIA está generando o aún escribiendo en pantalla: bloquea la entrada. */
+  isResponding: boolean;
 }
 
 export function InputArea({
@@ -73,6 +75,7 @@ export function InputArea({
   toggleDictation,
   handleSendMessage,
   isLoading,
+  isResponding,
 }: InputAreaProps) {
   const composedInputValue =
     inputValue +
@@ -84,10 +87,12 @@ export function InputArea({
       : '');
 
   const canSendMessage =
-    Boolean(inputValue.trim()) && !isLoading;
+    Boolean(inputValue.trim()) && !isResponding;
   const isVoiceInputActive = isDictating || isLiveVoiceActive;
   const isVoiceInputProcessing = isProcessingDictation || isLiveVoiceConnecting;
   const shouldShowMicButton = isVoiceEnabled || isDictationEnabled;
+  // Mientras SofLIA responde se bloquea la caja de texto (no el dictado en curso).
+  const isInputBlocked = isResponding && !isDictating;
 
   return (
     <div
@@ -119,14 +124,19 @@ export function InputArea({
             ref={inputRef}
             type="text"
             value={composedInputValue}
+            disabled={isInputBlocked}
+            aria-disabled={isInputBlocked}
             onChange={(e) => {
-              if (!isDictating) {
+              if (!isDictating && !isInputBlocked) {
                 setInputValue(e.target.value);
               }
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
+                if (isInputBlocked) {
+                  return;
+                }
                 if (isDictating) {
                   stopDictation();
                 }
@@ -134,7 +144,9 @@ export function InputArea({
               }
             }}
             placeholder={
-              isDictating
+              isInputBlocked
+                ? t('lia.chat.responding')
+                : isDictating
                 ? 'Escuchando...'
                 : t('lia.chat.inputPlaceholder')
             }
@@ -146,6 +158,8 @@ export function InputArea({
               color: themeColors.textPrimary,
               fontSize: '16px',
               minWidth: 0,
+              cursor: isInputBlocked ? 'not-allowed' : 'text',
+              opacity: isInputBlocked ? 0.6 : 1,
             }}
           />
         </div>
@@ -153,7 +167,7 @@ export function InputArea({
         {shouldShowMicButton && (
           <button
             onClick={toggleDictation}
-            disabled={isVoiceInputProcessing}
+            disabled={isVoiceInputProcessing || isInputBlocked}
             title={
               isVoiceEnabled
                 ? isVoiceInputActive
@@ -177,15 +191,15 @@ export function InputArea({
               border: `1px solid ${
                 isVoiceInputActive ? 'var(--color-error)' : themeColors.inputBorder
               }`,
-              cursor: isVoiceInputProcessing ? 'not-allowed' : 'pointer',
+              cursor: isVoiceInputProcessing || isInputBlocked ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'all 0.2s',
-              opacity: isVoiceInputProcessing ? 0.5 : 1,
+              opacity: isVoiceInputProcessing || isInputBlocked ? 0.5 : 1,
             }}
             onMouseEnter={(e) => {
-              if (!isVoiceInputProcessing && !isVoiceInputActive) {
+              if (!isVoiceInputProcessing && !isVoiceInputActive && !isInputBlocked) {
                 e.currentTarget.style.backgroundColor = isLightTheme
                   ? 'var(--color-gray-200)'
                   : 'var(--color-legacy-1e2a35)';

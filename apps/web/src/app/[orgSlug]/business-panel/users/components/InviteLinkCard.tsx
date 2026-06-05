@@ -19,10 +19,11 @@ function InviteLinkCard({ link, index, onToggleStatus, onDelete }: InviteLinkCar
 
   const getLinkStatusConfig = (status: string) => {
     switch (status) {
-      case 'active':  return { label: t('users.card.active'),  color: theme.statusColors.active,    bg: 'rgba(0,212,179,0.1)' }
-      case 'paused':  return { label: t('users.card.paused'),  color: theme.statusColors.invited,   bg: 'rgba(245,158,11,0.1)' }
-      case 'expired': return { label: t('users.card.expired'), color: theme.statusColors.suspended, bg: 'rgba(239,68,68,0.1)' }
-      default:        return { label: status,                  color: theme.subtextColor,           bg: 'rgba(0,0,0,0.05)' }
+      case 'active':    return { label: t('users.card.active'),    color: theme.statusColors.active,    bg: 'rgba(0,212,179,0.1)' }
+      case 'paused':    return { label: t('users.card.paused'),    color: theme.statusColors.invited,   bg: 'rgba(245,158,11,0.1)' }
+      case 'expired':   return { label: t('users.card.expired'),   color: theme.statusColors.suspended, bg: 'rgba(239,68,68,0.1)' }
+      case 'exhausted': return { label: t('users.card.exhausted'), color: theme.subtextColor,           bg: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }
+      default:          return { label: status,                    color: theme.subtextColor,           bg: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }
     }
   }
 

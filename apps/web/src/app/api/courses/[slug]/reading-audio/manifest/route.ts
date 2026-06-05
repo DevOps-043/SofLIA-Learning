@@ -35,9 +35,6 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  const user = await SessionService.getCurrentUser();
-  if (!user) return unauthorizedResponse();
-
   const { slug } = await params;
   const searchParams = request.nextUrl.searchParams;
   const lessonId = searchParams.get('lessonId');
@@ -50,10 +47,19 @@ export async function GET(
   }
 
   const supabase = createAdminClient();
-  const courseId = await loadCourseIdBySlug(supabase, slug);
+
+  // Sesion y resolucion de curso son independientes -> en paralelo.
+  const [user, courseId] = await Promise.all([
+    SessionService.getCurrentUser(),
+    loadCourseIdBySlug(supabase, slug),
+  ]);
+
+  if (!user) return unauthorizedResponse();
   if (!courseId) {
     return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
   }
+  // Authz antes de la resolucion (mas pesada) de la fuente: fail-fast y no
+  // ejecutamos trabajo de lectura para quien no tiene acceso al curso.
   if (!(await assertUserCanAccessCourse(supabase, user.id, courseId))) {
     return NextResponse.json({ error: 'Audio no disponible' }, { status: 403 });
   }
@@ -71,28 +77,34 @@ export async function GET(
     return NextResponse.json({ error: 'Fuente de audio no encontrada' }, { status: 404 });
   }
 
-  const { data: assets, error: assetsError } = await supabase
-    .from('tts_reading_audio_assets')
-    .select('id, segment_index, content_type, byte_length')
-    .eq('source_type', source.sourceType)
-    .eq('source_id', source.sourceId)
-    .eq('language', source.language)
-    .eq('content_hash', source.contentHash)
-    .order('segment_index', { ascending: true });
+  // Segmentos y progreso del usuario son consultas independientes sobre la misma
+  // fuente -> en paralelo para no encadenar otro round trip.
+  const [assetsResult, progressResult] = await Promise.all([
+    supabase
+      .from('tts_reading_audio_assets')
+      .select('id, segment_index, content_type, byte_length')
+      .eq('source_type', source.sourceType)
+      .eq('source_id', source.sourceId)
+      .eq('language', source.language)
+      .eq('content_hash', source.contentHash)
+      .order('segment_index', { ascending: true }),
+    supabase
+      .from('user_reading_audio_progress')
+      .select('segment_index, segment_time_seconds, completed')
+      .eq('user_id', user.id)
+      .eq('source_type', source.sourceType)
+      .eq('source_id', source.sourceId)
+      .eq('language', source.language)
+      .eq('content_hash', source.contentHash)
+      .maybeSingle(),
+  ]);
 
+  const { data: assets, error: assetsError } = assetsResult;
   if (assetsError) {
     return NextResponse.json({ error: assetsError.message }, { status: 500 });
   }
 
-  const { data: progress } = await supabase
-    .from('user_reading_audio_progress')
-    .select('segment_index, segment_time_seconds, completed')
-    .eq('user_id', user.id)
-    .eq('source_type', source.sourceType)
-    .eq('source_id', source.sourceId)
-    .eq('language', source.language)
-    .eq('content_hash', source.contentHash)
-    .maybeSingle();
+  const { data: progress } = progressResult;
 
   const rows = (assets ?? []) as SegmentRow[];
   const ready = source.expectedSegments > 0 && rows.length >= source.expectedSegments;

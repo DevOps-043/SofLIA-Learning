@@ -33,7 +33,18 @@ export function UserAvatar({
       {!isMounted ? (
         <span className="text-white text-xs font-bold tracking-wider">U</span>
       ) : imageUrl && !imageError ? (
-        <img src={imageUrl} alt="Avatar" className="w-full h-full object-cover" onError={onImageError} />
+        // `referrerPolicy="no-referrer"`: las fotos de Google
+        // (lh3.googleusercontent.com) devuelven 403/429 al hotlinkearse con el
+        // header Referer de otro origen. Sin enviar referrer, Google sirve la
+        // imagen. No afecta a avatares propios (Supabase).
+        <img
+          src={imageUrl}
+          alt="Avatar"
+          className="w-full h-full object-cover"
+          referrerPolicy="no-referrer"
+          loading="lazy"
+          onError={onImageError}
+        />
       ) : (
         <span className="text-white text-xs font-bold tracking-wider">{initials}</span>
       )}

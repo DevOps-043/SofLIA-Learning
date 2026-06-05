@@ -43,6 +43,9 @@ export function AdminUserAvatar({
           fill
           sizes={size === 'lg' ? '64px' : size === 'md' ? '56px' : '40px'}
           className="object-cover"
+          // Evita el 403/429 de Google al hotlinkear fotos de perfil
+          // (lh3.googleusercontent.com) cuando se envia el header Referer.
+          referrerPolicy="no-referrer"
           unoptimized
         />
       ) : (
