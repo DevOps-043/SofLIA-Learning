@@ -62,6 +62,9 @@ export function ReadingActivityContent({
         <FormattedContentRenderer
           content={activity.activity_content}
           activityId={activity.activity_id}
+          currentTime={player.currentTime}
+          duration={player.duration}
+          isAudioActive={player.status === 'playing' || player.status === 'paused'}
         />
       </div>
     </>

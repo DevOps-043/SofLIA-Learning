@@ -3,6 +3,13 @@ set -e  # Exit on error
 
 echo "🚀 Starting Netlify build for Aprende y Aplica monorepo..."
 
+# Make npm resilient to Netlify's intermittent registry network blips (ECONNRESET).
+# Without retries a single dropped connection during install fails the whole deploy.
+npm config set fetch-retries 5
+npm config set fetch-retry-mintimeout 20000
+npm config set fetch-retry-maxtimeout 120000
+npm config set fetch-timeout 300000
+
 # FFmpeg binary is NOT committed to git (would exceed Netlify's 250 MB bundle limit).
 # Downloaded here only when VIDEO_TRANSCODING_ENABLED=true.
 # We deliberately do NOT bundle ffprobe — video dimensions are read by parsing

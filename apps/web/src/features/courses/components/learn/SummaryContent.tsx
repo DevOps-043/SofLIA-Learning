@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 
 import { createLessonMarkdownComponents } from "@/features/courses/components/learn/markdownComponents";
 import type { LearnLesson } from "@/features/courses/components/learn/types";
+import { HighlightableReadingText } from "@/features/courses/components/learn/reading-voice/HighlightableReadingText";
 import { ReadingAudioPlayer } from "@/features/courses/components/learn/reading-voice/ReadingAudioPlayer";
 import { useReadingAudioPlayer } from "@/features/courses/components/learn/reading-voice/useReadingAudioPlayer";
 
@@ -41,6 +42,8 @@ export function SummaryContent({
     sourceId: lesson.lesson_id,
     sourceType: "lesson_summary",
   });
+  const isAudioActive =
+    summaryPlayer.status === "playing" || summaryPlayer.status === "paused";
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -171,9 +174,18 @@ export function SummaryContent({
 
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/8 dark:bg-white/[0.03] dark:shadow-none">
         <div className="prose prose-slate max-w-none p-6 dark:prose-invert">
-          <ReactMarkdown components={summaryMarkdownComponents}>
-            {summaryContent || ""}
-          </ReactMarkdown>
+          {isAudioActive ? (
+            <HighlightableReadingText
+              text={summaryContent || ""}
+              currentTime={summaryPlayer.currentTime}
+              duration={summaryPlayer.duration}
+              isActive={isAudioActive}
+            />
+          ) : (
+            <ReactMarkdown components={summaryMarkdownComponents}>
+              {summaryContent || ""}
+            </ReactMarkdown>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-white/10 dark:bg-white/[0.03]">
