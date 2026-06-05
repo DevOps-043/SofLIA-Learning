@@ -7,8 +7,16 @@ const LIA_SHORT_TEXT_MAX_LENGTH = 500;
 const LIA_ID_MAX_LENGTH = 120;
 
 const looseIdSchema = z.string().min(1).max(LIA_ID_MAX_LENGTH);
+// El cliente de SofLIA en cursos arma `context` con valores de perfil/organizacion
+// que pueden llegar como `null` (usuario sin puesto, organizationId sin resolver,
+// columnas nullable de BD). Aceptamos `null` en el borde y lo colapsamos a
+// `undefined` para que el tipo de salida siga siendo `string | undefined` y los
+// consumidores aguas abajo (resolveActiveOrganizationContext, etc.) no cambien.
+const nullToUndefined = <T>(value: T | null | undefined): T | undefined =>
+  value ?? undefined;
+const optionalIdSchema = looseIdSchema.nullish().transform(nullToUndefined);
 const optionalTextSchema = (maxLength = LIA_SHORT_TEXT_MAX_LENGTH) =>
-  z.string().max(maxLength).optional();
+  z.string().max(maxLength).nullish().transform(nullToUndefined);
 
 const liaImageAttachmentSchema = z
   .object({
@@ -64,11 +72,11 @@ const platformContextSchema = z
     userRole: optionalTextSchema(200),
     userJobTitle: optionalTextSchema(200),
     userJobDescription: optionalTextSchema(4_000),
-    userId: looseIdSchema.optional(),
+    userId: optionalIdSchema,
     currentPage: optionalTextSchema(2_000),
     currentTab: optionalTextSchema(120),
     pageType: optionalTextSchema(120),
-    organizationId: looseIdSchema.optional(),
+    organizationId: optionalIdSchema,
     organizationName: optionalTextSchema(300),
     organizationSlug: optionalTextSchema(200),
     organizationIndustry: optionalTextSchema(200),

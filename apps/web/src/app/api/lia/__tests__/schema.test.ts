@@ -29,6 +29,32 @@ describe('lia api schemas', () => {
     expect(result.success).toBe(true)
   })
 
+  it('accepts null optional context fields and normalizes them to undefined', () => {
+    // Regresion: SofLIA dentro del panel de cursos enviaba campos opcionales del
+    // contexto como `null` (perfil sin puesto, organizationId sin resolver). Antes
+    // producia VALIDATION_ERROR -> {context: ["Expected string, received null"]}.
+    const result = liaChatSchema.safeParse({
+      messages: [{ role: 'user', content: 'hola' }],
+      context: {
+        userId: 'user-123',
+        userName: null,
+        userJobTitle: null,
+        organizationId: null,
+        currentPage: null,
+        currentTab: null,
+        pageType: null,
+      },
+      stream: false,
+    })
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.context?.userName).toBeUndefined()
+      expect(result.data.context?.organizationId).toBeUndefined()
+      expect(result.data.context?.currentTab).toBeUndefined()
+    }
+  })
+
   it('rejects oversized chat message content', () => {
     const result = liaChatSchema.safeParse({
       messages: [{ role: 'user', content: 'a'.repeat(50_001) }],
