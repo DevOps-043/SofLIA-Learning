@@ -55,12 +55,6 @@ export const BUCKET_UPLOAD_POLICIES = {
     allowedExtensions: ['mp4', 'webm'],
     maxSizeBytes: 2 * GB,
   },
-  'scorm-packages': {
-    allowedMimeTypes: ['application/zip'],
-    allowedExtensions: ['zip'],
-    maxSizeBytes: 100 * MB,
-    requiresAntimalware: true,
-  },
   courses: {
     allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
     allowedExtensions: ['png', 'jpg', 'jpeg', 'gif', 'webp'],

@@ -157,8 +157,13 @@ export async function middleware(request: NextRequest) {
   
   // console.log('🚀 Middleware ejecutándose para:', pathname);
   
-  // Actualizar sesión de Supabase
-  let response = await updateSession(request);
+  // Actualizar sesión de Supabase. `updateSession` ya ejecuta `auth.getUser()`
+  // (refresca cookies) y nos devuelve el usuario nativo: lo reutilizamos abajo en
+  // la validación de rol y el chequeo de suspensión en lugar de re-validar el JWT
+  // contra el Auth server en cada paso (antes: 3 round trips; ahora: 1).
+  const { response: sessionResponse, user: nativeSessionUser } = await updateSession(request);
+  let response = sessionResponse;
+  const preResolvedUserId = nativeSessionUser?.id ?? null;
 
   // SECURITY: Descomponer el path para detectar rutas con orgSlug dinámico.
   // Las rutas /{orgSlug}/business-panel/* y /{orgSlug}/business-user/* NO empiezan
@@ -316,16 +321,16 @@ export async function middleware(request: NextRequest) {
 
     if (isAdminRoute) {
       // console.log('🔐 Validando acceso de Administrador');
-      roleValidationResponse = await validateAdminAccess(request);
+      roleValidationResponse = await validateAdminAccess(request, preResolvedUserId);
     } else if (isInstructorRoute) {
       // console.log('🔐 Validando acceso de Instructor');
-      roleValidationResponse = await validateInstructorAccess(request);
+      roleValidationResponse = await validateInstructorAccess(request, preResolvedUserId);
     } else if (isBusinessRoute) {
       // console.log('🔐 Validando acceso de Business');
-      roleValidationResponse = await validateBusinessAccess(request);
+      roleValidationResponse = await validateBusinessAccess(request, preResolvedUserId);
     } else if (isUserRoute) {
       // console.log('🔐 Validando acceso de Usuario');
-      roleValidationResponse = await validateUserAccess(request);
+      roleValidationResponse = await validateUserAccess(request, preResolvedUserId);
     }
 
     // Si la validación de rol devuelve una respuesta, significa que el acceso fue denegado
@@ -352,12 +357,9 @@ export async function middleware(request: NextRequest) {
         );
 
         const orgSlug = pathParts[0];
-        let authenticatedUserId: string | null = null;
-        const {
-          data: { user: nativeUser },
-        } = await supabaseForSuspension.auth.getUser();
-
-        authenticatedUserId = nativeUser?.id ?? null;
+        // Reutilizamos el usuario nativo ya validado por `updateSession`; solo si
+        // no existe (sesión legacy) recurrimos al lookup por cookie de sesión.
+        let authenticatedUserId: string | null = preResolvedUserId;
 
         if (!authenticatedUserId) {
           const sessionCookieVal = request.cookies.get('aprende-y-aplica-session')?.value;

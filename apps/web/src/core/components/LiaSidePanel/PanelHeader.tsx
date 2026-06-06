@@ -2,13 +2,17 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { X, Clock, MoreVertical, Settings, Trash2 } from 'lucide-react';
+import { X, Clock, MoreVertical, Settings, Trash2, Volume2, VolumeX } from 'lucide-react';
 import { LiaThemeColors, LiaMessage } from './types';
 
 interface PanelHeaderProps {
   t: (key: string) => string;
   themeColors: LiaThemeColors;
   isLightTheme: boolean;
+  isSpeaking: boolean;
+  isVoiceEnabled: boolean;
+  toggleVoiceEnabled: () => void;
+  isVoiceTogglePending: boolean;
   showHistory: boolean;
   closeHistory: () => void;
   setShowHistory: (v: boolean) => void;
@@ -26,6 +30,10 @@ export function PanelHeader({
   t,
   themeColors,
   isLightTheme,
+  isSpeaking,
+  isVoiceEnabled,
+  toggleVoiceEnabled,
+  isVoiceTogglePending,
   showHistory,
   closeHistory,
   setShowHistory,
@@ -53,12 +61,41 @@ export function PanelHeader({
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         {/* Avatar de LIA */}
         <div style={{ position: 'relative' }}>
+          {/* Anillo pulsante mientras SofLIA habla (modo texto a voz activo) */}
+          {isSpeaking && (
+            <motion.span
+              aria-hidden="true"
+              animate={{ scale: [1, 1.35, 1], opacity: [0.55, 0, 0.55] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+              style={{
+                position: 'absolute',
+                inset: '-4px',
+                borderRadius: '50%',
+                border: `2px solid ${themeColors.accentColor}`,
+                pointerEvents: 'none',
+                zIndex: 0,
+              }}
+            />
+          )}
           <motion.img
             layoutId="lia-avatar-header"
             src="/lia-avatar.webp"
             alt="SofLIA"
             onClick={() => setIsAvatarExpanded(true)}
             whileHover={{ scale: 1.05 }}
+            animate={
+              isSpeaking
+                ? {
+                    scale: [1, 1.06, 1],
+                    boxShadow: [
+                      `0 0 0 color-mix(in srgb, ${themeColors.accentColor} 0%, transparent)`,
+                      `0 0 18px color-mix(in srgb, ${themeColors.accentColor} 55%, transparent)`,
+                      `0 0 0 color-mix(in srgb, ${themeColors.accentColor} 0%, transparent)`,
+                    ],
+                  }
+                : { scale: 1, boxShadow: `0 0 0 color-mix(in srgb, ${themeColors.accentColor} 0%, transparent)` }
+            }
+            transition={{ duration: 1.2, repeat: isSpeaking ? Infinity : 0, ease: 'easeInOut' }}
             style={{
               width: '40px',
               height: '40px',
@@ -66,6 +103,8 @@ export function PanelHeader({
               objectFit: 'cover',
               border: `2px solid ${themeColors.accentColor}`,
               cursor: 'zoom-in',
+              position: 'relative',
+              zIndex: 1,
             }}
           />
           <div
@@ -78,6 +117,7 @@ export function PanelHeader({
               backgroundColor: 'var(--color-legacy-22c55e)',
               borderRadius: '50%',
               border: `2px solid ${themeColors.panelBg}`,
+              zIndex: 2,
             }}
           />
         </div>
@@ -86,14 +126,57 @@ export function PanelHeader({
           <h2 style={{ color: themeColors.textPrimary, fontSize: '16px', fontWeight: 600, margin: 0, lineHeight: 1.2 }}>
             {t('lia.header.title')}
           </h2>
-          <p style={{ color: themeColors.accentColor, fontSize: '12px', fontWeight: 500, margin: 0 }}>
-            {t('lia.header.subtitle')}
+          <p
+            aria-live="polite"
+            style={{ color: themeColors.accentColor, fontSize: '12px', fontWeight: 500, margin: 0 }}
+          >
+            {isSpeaking ? t('lia.header.speaking') : t('lia.header.subtitle')}
           </p>
         </div>
       </div>
 
-      {/* Acciones: historial, opciones, cerrar */}
+      {/* Acciones: voz, historial, opciones, cerrar */}
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        {/* Botón de voz: activa/desactiva el modo de voz (TTS) de SofLIA */}
+        <button
+          onClick={toggleVoiceEnabled}
+          disabled={isVoiceTogglePending}
+          title={isVoiceEnabled ? t('lia.voice.disable') : t('lia.voice.enable')}
+          aria-label={isVoiceEnabled ? t('lia.voice.disable') : t('lia.voice.enable')}
+          aria-pressed={isVoiceEnabled}
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '8px',
+            backgroundColor: isVoiceEnabled
+              ? (isLightTheme ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.1)')
+              : 'transparent',
+            border: 'none',
+            cursor: isVoiceTogglePending ? 'wait' : 'pointer',
+            opacity: isVoiceTogglePending ? 0.6 : 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background-color 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            if (!isVoiceEnabled) {
+              e.currentTarget.style.backgroundColor = isLightTheme ? 'var(--color-gray-200)' : 'var(--color-legacy-1e2a35)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isVoiceEnabled) {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }
+          }}
+        >
+          {isVoiceEnabled ? (
+            <Volume2 style={{ width: '18px', height: '18px' }} color={themeColors.accentColor} />
+          ) : (
+            <VolumeX style={{ width: '18px', height: '18px' }} color={themeColors.textSecondary} />
+          )}
+        </button>
+
         {/* Botón de historial */}
         <button
           onClick={() => {

@@ -14,15 +14,17 @@ export type { SecurityEvent, ValidRole };
 
 export async function validateAdminAccess(
   request: NextRequest,
+  preResolvedUserId?: string | null,
 ): Promise<NextResponse | null> {
-  const result = await validateRoleAccess(request, 'Administrador');
+  const result = await validateRoleAccess(request, 'Administrador', preResolvedUserId);
   return result.isValid ? null : buildAccessFailureResponse(request, result);
 }
 
 export async function validateInstructorAccess(
   request: NextRequest,
+  preResolvedUserId?: string | null,
 ): Promise<NextResponse | null> {
-  const result = await validateRoleAccess(request);
+  const result = await validateRoleAccess(request, undefined, preResolvedUserId);
 
   if (!result.isValid) {
     return buildAccessFailureResponse(request, result);
@@ -35,15 +37,17 @@ export async function validateInstructorAccess(
 
 export async function validateUserAccess(
   request: NextRequest,
+  preResolvedUserId?: string | null,
 ): Promise<NextResponse | null> {
-  const result = await validateRoleAccess(request);
+  const result = await validateRoleAccess(request, undefined, preResolvedUserId);
   return result.isValid ? null : buildAccessFailureResponse(request, result);
 }
 
 export async function validateBusinessAccess(
   request: NextRequest,
+  preResolvedUserId?: string | null,
 ): Promise<NextResponse | null> {
-  const result = await validateRoleAccess(request);
+  const result = await validateRoleAccess(request, undefined, preResolvedUserId);
 
   if (!result.isValid) {
     return buildAccessFailureResponse(request, result);

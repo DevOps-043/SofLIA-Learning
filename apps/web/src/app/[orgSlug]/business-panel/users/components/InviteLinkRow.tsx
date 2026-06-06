@@ -60,9 +60,10 @@ function InviteLinkRow({ link, index, onToggleStatus, onDelete }: InviteLinkRowP
           <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
             link.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' :
             link.status === 'paused' ? 'bg-amber-500/10 text-amber-500' :
-            'bg-red-500/10 text-red-500'
+            link.status === 'expired' ? 'bg-red-500/10 text-red-500' :
+            'bg-gray-500/10 text-gray-500'
           }`}>
-            {link.status === 'active' ? t('users.card.active') : link.status === 'paused' ? t('users.card.paused') : t('users.card.expired')}
+            {t(`users.card.${link.status}`)}
           </span>
         </div>
       </div>

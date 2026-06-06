@@ -1,7 +1,10 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Dispatch, RefObject, SetStateAction } from 'react';
 import type { SofLIAMessage } from '@/core/types/lia.types';
-import type { SofLIAPersonalizationSettings } from '@/core/types/soflia-personalization.types';
+import type {
+  SofLIAPersonalizationSettings,
+  SofLIAPersonalizationSettingsInput,
+} from '@/core/types/soflia-personalization.types';
 import { useLiaLiveVoice } from '../../../lia-live/useLiaLiveVoice';
 import { useLiaSidePanelDictation } from '../useLiaSidePanelDictation';
 import { useLiaSidePanelVoice } from '../useLiaSidePanelVoice';
@@ -44,6 +47,7 @@ interface UseLiaSidePanelSpeechParams {
   pageContext: Record<string, unknown> | null;
   currentConversationId: string | null;
   settings: SofLIAPersonalizationSettings | null | undefined;
+  updateSettings: (input: SofLIAPersonalizationSettingsInput) => Promise<void>;
   inputRef: RefObject<HTMLInputElement>;
   setInputValue: Dispatch<SetStateAction<string>>;
 }
@@ -56,11 +60,13 @@ export function useLiaSidePanelSpeech({
   pageContext,
   currentConversationId,
   settings,
+  updateSettings,
   inputRef,
   setInputValue,
 }: UseLiaSidePanelSpeechParams) {
   const isVoiceEnabled = settings?.voice_enabled ?? true;
   const isDictationEnabled = settings?.dictation_enabled ?? false;
+  const [isVoiceTogglePending, setIsVoiceTogglePending] = useState(false);
 
   const liveVoice = useLiaLiveVoice({
     conversationId: currentConversationId,
@@ -130,12 +136,35 @@ export function useLiaSidePanelSpeech({
     [clearLiveVoiceError, dictation],
   );
 
+  // Activa/desactiva el modo de voz (TTS) persistiendo `voice_enabled`.
+  // Permite alternarlo desde el header sin abrir Personalización.
+  const toggleVoiceEnabled = useCallback(async () => {
+    if (isVoiceTogglePending) return;
+    const next = !isVoiceEnabled;
+    setIsVoiceTogglePending(true);
+    try {
+      // Al apagar la voz, corta de inmediato cualquier sesión de voz en vivo
+      // o dictado en curso para que la UI quede consistente con el ajuste.
+      if (!next) {
+        stopLiveVoice();
+        dictation.stopDictation();
+      }
+      await updateSettings({ voice_enabled: next });
+    } catch {
+      // El hook de personalización conserva el valor previo si la petición falla.
+    } finally {
+      setIsVoiceTogglePending(false);
+    }
+  }, [dictation, isVoiceEnabled, isVoiceTogglePending, stopLiveVoice, updateSettings]);
+
   const liveVoiceError = resolveLiveVoiceErrorMessage(liveVoiceRawError);
 
   return {
     isSpeaking: isLiveVoiceActive ? isAssistantLiveSpeaking : isSpeaking,
     voiceReveal,
     isVoiceEnabled,
+    toggleVoiceEnabled,
+    isVoiceTogglePending,
     isDictationEnabled: isVoiceEnabled || isDictationEnabled,
     isDictating: isVoiceEnabled ? isLiveVoiceActive : dictation.isDictating,
     isProcessingDictation: isVoiceEnabled

@@ -1,6 +1,5 @@
 import React from 'react'
-import { LiaSidePanel } from '@/core/components/LiaSidePanel'
-import { LiaFloatingButton } from '@/core/components/LiaSidePanel/LiaFloatingButton'
+import { LiaPanelMount } from '@/core/components/LiaSidePanel/LiaPanelMount'
 
 export default function BusinessUserLayout({
   children,
@@ -10,8 +9,7 @@ export default function BusinessUserLayout({
   return (
     <>
       {children}
-      <LiaSidePanel />
-      <LiaFloatingButton />
+      <LiaPanelMount />
     </>
   )
 }

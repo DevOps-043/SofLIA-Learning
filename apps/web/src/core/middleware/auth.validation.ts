@@ -14,6 +14,7 @@ import type { AuthUserRow, ValidRole, ValidationResult } from './auth.types';
 export async function validateRoleAccess(
   request: NextRequest,
   requiredRole?: ValidRole,
+  preResolvedUserId?: string | null,
 ): Promise<ValidationResult> {
   const pathname = request.nextUrl.pathname;
   const clientIp = getClientIp(request);
@@ -21,34 +22,45 @@ export async function validateRoleAccess(
 
   try {
     const supabase = createRequestSupabaseClient(request);
-    const resolvedUser = await resolveAuthenticatedUserId({
-      request,
-      supabase,
-      pathname,
-      clientIp,
-    });
 
-    if (!resolvedUser.userId) {
-      const resolvedUserError = 'error' in resolvedUser ? resolvedUser.error : undefined;
+    // Si el middleware ya valido la sesion nativa (auth.getUser una sola vez),
+    // reutilizamos ese userId y evitamos un segundo round trip al Auth server.
+    // Cuando no viene pre-resuelto (p. ej. sesiones legacy), resolvemos como antes
+    // para preservar el fallback de cookie/refresh-token y su logging de seguridad.
+    let userId = preResolvedUserId ?? null;
 
-      if (!resolvedUserError) {
-        await logSecurityEvent('UNAUTHORIZED_ACCESS_ATTEMPT', {
-          path: pathname,
-          ip: clientIp,
-          userAgent,
-        });
+    if (!userId) {
+      const resolvedUser = await resolveAuthenticatedUserId({
+        request,
+        supabase,
+        pathname,
+        clientIp,
+      });
+
+      if (!resolvedUser.userId) {
+        const resolvedUserError = 'error' in resolvedUser ? resolvedUser.error : undefined;
+
+        if (!resolvedUserError) {
+          await logSecurityEvent('UNAUTHORIZED_ACCESS_ATTEMPT', {
+            path: pathname,
+            ip: clientIp,
+            userAgent,
+          });
+        }
+        return { isValid: false, error: resolvedUserError || 'No session found' };
       }
-      return { isValid: false, error: resolvedUserError || 'No session found' };
+
+      userId = resolvedUser.userId;
     }
 
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('id, cargo_rol, email, username')
-      .eq('id', resolvedUser.userId)
+      .eq('id', userId)
       .single();
 
     if (userError || !userData) {
-      await logSecurityEvent('USER_NOT_FOUND', { userId: resolvedUser.userId, path: pathname });
+      await logSecurityEvent('USER_NOT_FOUND', { userId, path: pathname });
       return { isValid: false, error: 'User not found' };
     }
 

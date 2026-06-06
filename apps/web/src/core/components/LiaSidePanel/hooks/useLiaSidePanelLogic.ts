@@ -1,5 +1,6 @@
 'use client';
 
+import { useAssistantTypewriterReveal } from '@/core/hooks/useAssistantTypewriterReveal';
 import { useLiaSidePanelChatHandlers } from './useLiaSidePanelLogic/chat-handlers';
 import { useLiaSidePanelEffects } from './useLiaSidePanelLogic/effects';
 import { useLiaSidePanelEnvironment } from './useLiaSidePanelLogic/environment';
@@ -19,9 +20,20 @@ export function useLiaSidePanelLogic() {
     pageContext: environment.pageContext,
     currentConversationId: environment.currentConversationId,
     settings: environment.liaSettings,
+    updateSettings: environment.updateLiaSettings,
     inputRef: state.inputRef,
     setInputValue: state.setInputValue,
   });
+
+  // Fuente única del revelado "máquina de escribir": MessagesDisplay lo usa para
+  // mostrar el texto y el InputArea para bloquearse mientras SofLIA escribe.
+  const typewriterReveal = useAssistantTypewriterReveal({
+    messages: environment.messages,
+    isLoading: environment.isLoading,
+  });
+  // SofLIA "está respondiendo" mientras genera el texto o aún lo revela en pantalla.
+  const isResponding = environment.isLoading || typewriterReveal.isTyping;
+
   const history = useLiaSidePanelHistory(
     environment.loadConversation,
     environment.clearHistory,
@@ -63,5 +75,7 @@ export function useLiaSidePanelLogic() {
     ...history,
     ...quickActions,
     ...chatHandlers,
+    typewriterReveal,
+    isResponding,
   };
 }

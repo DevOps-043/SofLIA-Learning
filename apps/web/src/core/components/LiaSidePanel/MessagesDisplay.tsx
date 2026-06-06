@@ -5,11 +5,13 @@ import { motion } from 'framer-motion';
 import { parseMarkdownContent } from './utils/parseMarkdown';
 import { LiaThemeColors, LiaQuickAction, LiaMessage } from './types';
 import { LiaQuickActionsChips } from './LiaQuickActionsChips';
-import { useAssistantTypewriterReveal } from '@/core/hooks/useAssistantTypewriterReveal';
+import type { AssistantTypewriterRevealState } from '@/core/hooks/useAssistantTypewriterReveal';
 
 interface MessagesDisplayProps {
   messages: LiaMessage[];
   isLoading: boolean;
+  /** Estado del revelado "máquina de escribir" gestionado por useLiaSidePanelLogic. */
+  typewriterReveal: AssistantTypewriterRevealState;
   currentTip: string;
   themeColors: LiaThemeColors;
   isLightTheme: boolean;
@@ -25,6 +27,7 @@ interface MessagesDisplayProps {
 export function MessagesDisplay({
   messages,
   isLoading,
+  typewriterReveal,
   currentTip,
   themeColors,
   isLightTheme,
@@ -36,7 +39,6 @@ export function MessagesDisplay({
   chatContainerRef,
   handleChatScroll,
 }: MessagesDisplayProps) {
-  const typewriterReveal = useAssistantTypewriterReveal({ messages, isLoading });
 
   const isChatNearBottom = React.useCallback(() => {
     const container = chatContainerRef.current;

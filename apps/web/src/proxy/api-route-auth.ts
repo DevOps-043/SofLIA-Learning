@@ -59,7 +59,6 @@ const AUTHENTICATED_PREFIXES = [
   '/api/my-courses',
   '/api/notifications',
   '/api/profile',
-  '/api/scorm',
   '/api/study-planner',
   '/api/study-planner-chat',
   '/api/tours',

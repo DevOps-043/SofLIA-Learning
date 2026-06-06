@@ -28,7 +28,7 @@ export function useLiaSidePanelEnvironment() {
     : orgStyles?.panel;
   const themeColors = getLiaThemeColors(isLightTheme, activeStyles);
   const chat = useLiaGeneralChat();
-  const { settings: liaSettings } = useSofLIAPersonalization();
+  const { settings: liaSettings, updateSettings: updateLiaSettings } = useSofLIAPersonalization();
   const { language } = useLanguage();
   const tips = (t('lia.tips', { returnObjects: true }) as string[]) || [];
 
@@ -45,6 +45,7 @@ export function useLiaSidePanelEnvironment() {
     language,
     tips,
     liaSettings,
+    updateLiaSettings,
     messages: chat.messages,
     isLoading: chat.isLoading,
     sendMessage: chat.sendMessage,

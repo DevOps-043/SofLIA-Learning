@@ -51,7 +51,8 @@ interface InputAreaProps {
   stopDictation: () => void;
   toggleDictation: () => void;
   handleSendMessage: () => void;
-  isLoading: boolean;
+  /** SofLIA está generando o aún escribiendo en pantalla: bloquea la entrada. */
+  isResponding: boolean;
 }
 
 export function InputArea({
@@ -72,7 +73,7 @@ export function InputArea({
   stopDictation,
   toggleDictation,
   handleSendMessage,
-  isLoading,
+  isResponding,
 }: InputAreaProps) {
   const composedInputValue =
     inputValue +
@@ -84,10 +85,12 @@ export function InputArea({
       : '');
 
   const hasText = Boolean(inputValue.trim());
-  const canSendMessage = hasText && !isLoading;
+  const canSendMessage = hasText && !isResponding;
   const isVoiceInputActive = isDictating || isLiveVoiceActive;
   const isVoiceInputProcessing = isProcessingDictation || isLiveVoiceConnecting;
   const shouldShowMicButton = isVoiceEnabled || isDictationEnabled;
+  // Mientras SofLIA responde se bloquea la caja de texto (no el dictado en curso).
+  const isInputBlocked = isResponding && !isDictating;
 
   // Boton unificado estilo WhatsApp: un solo control que cambia de funcion
   // segun el estado. El orden de prioridad importa (processing > stop > send > mic).
@@ -99,8 +102,12 @@ export function InputArea({
     ? 'send'
     : 'mic';
 
+  // Mientras SofLIA responde se bloquea iniciar voz o enviar, pero NUNCA
+  // detener una sesion en curso (el usuario siempre puede cortar).
   const isButtonDisabled =
-    buttonMode === 'processing' || (buttonMode === 'send' && !canSendMessage);
+    buttonMode === 'processing' ||
+    (buttonMode === 'send' && !canSendMessage) ||
+    (buttonMode === 'mic' && isInputBlocked);
 
   const handleUnifiedButtonClick = () => {
     if (buttonMode === 'stop') {
@@ -173,14 +180,19 @@ export function InputArea({
             ref={inputRef}
             type="text"
             value={composedInputValue}
+            disabled={isInputBlocked}
+            aria-disabled={isInputBlocked}
             onChange={(e) => {
-              if (!isDictating) {
+              if (!isDictating && !isInputBlocked) {
                 setInputValue(e.target.value);
               }
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
+                if (isInputBlocked) {
+                  return;
+                }
                 if (isDictating) {
                   stopDictation();
                 }
@@ -188,7 +200,9 @@ export function InputArea({
               }
             }}
             placeholder={
-              isDictating
+              isInputBlocked
+                ? t('lia.chat.responding')
+                : isDictating
                 ? 'Escuchando...'
                 : t('lia.chat.inputPlaceholder')
             }
@@ -200,6 +214,8 @@ export function InputArea({
               color: themeColors.textPrimary,
               fontSize: '16px',
               minWidth: 0,
+              cursor: isInputBlocked ? 'not-allowed' : 'text',
+              opacity: isInputBlocked ? 0.6 : 1,
             }}
           />
         </div>

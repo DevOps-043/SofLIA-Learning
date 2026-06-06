@@ -13,8 +13,7 @@ import {
   Shield,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { LiaFloatingButton } from '@/core/components/LiaSidePanel/LiaFloatingButton'
-import { LiaSidePanel } from '@/core/components/LiaSidePanel'
+import { LiaPanelMount } from '@/core/components/LiaSidePanel/LiaPanelMount'
 import { useCurrentOrganizationSlug } from '@/core/stores/organizationStore'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { CertificateDocument } from '@/features/certificates/components/CertificateDocument'
@@ -238,8 +237,7 @@ export default function CertificatesPage() {
         </div>
       ) : null}
 
-      <LiaSidePanel />
-      <LiaFloatingButton />
+      <LiaPanelMount />
     </div>
   )
 }
