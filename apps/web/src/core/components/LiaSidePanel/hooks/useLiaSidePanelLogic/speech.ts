@@ -6,6 +6,36 @@ import { useLiaLiveVoice } from '../../../lia-live/useLiaLiveVoice';
 import { useLiaSidePanelDictation } from '../useLiaSidePanelDictation';
 import { useLiaSidePanelVoice } from '../useLiaSidePanelVoice';
 
+/**
+ * Traduce el codigo/mensaje crudo de la sesion de voz en vivo a un mensaje
+ * accionable. Solo se culpa al permiso de microfono cuando el fallo proviene
+ * realmente de `getUserMedia`; los fallos de token/servidor (502) NO son un
+ * problema de permisos y deben mostrar un mensaje acorde.
+ */
+function resolveLiveVoiceErrorMessage(rawError: string | null): string | null {
+  if (!rawError) return null;
+
+  const normalized = rawError.toLowerCase();
+
+  // Permiso de microfono denegado o sin dispositivo (errores de getUserMedia).
+  if (
+    normalized.includes('notallowed') ||
+    normalized.includes('permission') ||
+    normalized.includes('notfound') ||
+    normalized.includes('permiso')
+  ) {
+    return 'Necesitamos acceso al microfono para hablar con SofLIA. Permitelo en tu navegador e intenta de nuevo.';
+  }
+
+  // Voz en vivo no configurada en el servidor (sin API key disponible).
+  if (normalized.includes('live_provider_unavailable')) {
+    return 'La voz en vivo no esta disponible por ahora. Intenta mas tarde.';
+  }
+
+  // Fallo de token (502) o de sesion: problema del servicio, no del microfono.
+  return 'No se pudo iniciar la voz en vivo. Intentalo de nuevo en un momento.';
+}
+
 interface UseLiaSidePanelSpeechParams {
   messages: SofLIAMessage[];
   isLoading: boolean;
@@ -100,9 +130,7 @@ export function useLiaSidePanelSpeech({
     [clearLiveVoiceError, dictation],
   );
 
-  const liveVoiceError = liveVoiceRawError
-    ? 'No se pudo iniciar la voz en vivo. Verifica permisos de microfono e intenta de nuevo.'
-    : null;
+  const liveVoiceError = resolveLiveVoiceErrorMessage(liveVoiceRawError);
 
   return {
     isSpeaking: isLiveVoiceActive ? isAssistantLiveSpeaking : isSpeaking,

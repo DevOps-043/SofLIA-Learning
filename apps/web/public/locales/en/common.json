@@ -595,7 +595,8 @@
     },
     "chat": {
       "inputPlaceholder": "Type a message to SofLIA...",
-      "cleanHistory": "Clear conversation"
+      "cleanHistory": "Clear conversation",
+      "send": "Send"
     }
   },
   "landing": {

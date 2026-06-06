@@ -83,11 +83,65 @@ export function InputArea({
         interimTranscript
       : '');
 
-  const canSendMessage =
-    Boolean(inputValue.trim()) && !isLoading;
+  const hasText = Boolean(inputValue.trim());
+  const canSendMessage = hasText && !isLoading;
   const isVoiceInputActive = isDictating || isLiveVoiceActive;
   const isVoiceInputProcessing = isProcessingDictation || isLiveVoiceConnecting;
   const shouldShowMicButton = isVoiceEnabled || isDictationEnabled;
+
+  // Boton unificado estilo WhatsApp: un solo control que cambia de funcion
+  // segun el estado. El orden de prioridad importa (processing > stop > send > mic).
+  const buttonMode: 'processing' | 'stop' | 'send' | 'mic' = isVoiceInputProcessing
+    ? 'processing'
+    : isVoiceInputActive
+    ? 'stop'
+    : hasText || !shouldShowMicButton
+    ? 'send'
+    : 'mic';
+
+  const isButtonDisabled =
+    buttonMode === 'processing' || (buttonMode === 'send' && !canSendMessage);
+
+  const handleUnifiedButtonClick = () => {
+    if (buttonMode === 'stop') {
+      stopDictation();
+      return;
+    }
+    if (buttonMode === 'send') {
+      if (isDictating) stopDictation();
+      handleSendMessage();
+      return;
+    }
+    if (buttonMode === 'mic') {
+      toggleDictation();
+    }
+  };
+
+  const buttonBackgroundColor =
+    buttonMode === 'stop'
+      ? 'var(--color-error)'
+      : buttonMode === 'processing'
+      ? isLightTheme
+        ? 'var(--color-gray-300)'
+        : 'var(--color-legacy-374151)'
+      : buttonMode === 'send'
+      ? canSendMessage
+        ? themeColors.accentColor
+        : isLightTheme
+        ? 'var(--color-gray-300)'
+        : 'var(--color-legacy-374151)'
+      : 'transparent'; // mic
+
+  const buttonTitle =
+    buttonMode === 'stop'
+      ? isVoiceEnabled
+        ? 'Detener voz en vivo'
+        : 'Detener dictado'
+      : buttonMode === 'send'
+      ? t('lia.chat.send')
+      : isVoiceEnabled
+      ? 'Iniciar voz en vivo'
+      : 'Iniciar dictado';
 
   return (
     <div
@@ -150,107 +204,57 @@ export function InputArea({
           />
         </div>
 
-        {shouldShowMicButton && (
-          <button
-            onClick={toggleDictation}
-            disabled={isVoiceInputProcessing}
-            title={
-              isVoiceEnabled
-                ? isVoiceInputActive
-                  ? 'Detener voz en vivo'
-                  : 'Iniciar voz en vivo'
-                : isDictating
-                ? 'Detener dictado'
-                : 'Iniciar dictado'
-            }
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              backgroundColor: isVoiceInputActive
-                ? 'var(--color-error)'
-                : isVoiceInputProcessing
-                ? isLightTheme
-                  ? 'var(--color-gray-300)'
-                  : 'var(--color-legacy-374151)'
-                : 'transparent',
-              border: `1px solid ${
-                isVoiceInputActive ? 'var(--color-error)' : themeColors.inputBorder
-              }`,
-              cursor: isVoiceInputProcessing ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s',
-              opacity: isVoiceInputProcessing ? 0.5 : 1,
-            }}
-            onMouseEnter={(e) => {
-              if (!isVoiceInputProcessing && !isVoiceInputActive) {
-                e.currentTarget.style.backgroundColor = isLightTheme
-                  ? 'var(--color-gray-200)'
-                  : 'var(--color-legacy-1e2a35)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isVoiceInputActive) {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
-            {isVoiceInputProcessing ? (
-              <Loader2
-                style={{
-                  width: '16px',
-                  height: '16px',
-                  color: themeColors.textSecondary,
-                }}
-                className="animate-spin"
-              />
-            ) : isVoiceInputActive ? (
-              <VoiceWaveform color="var(--color-bg-light)" barCount={4} height={14} />
-            ) : (
-              <Mic
-                style={{
-                  width: '16px',
-                  height: '16px',
-                  color: themeColors.textSecondary,
-                }}
-              />
-            )}
-          </button>
-        )}
-
+        {/* Boton unico estilo WhatsApp: micro cuando el campo esta vacio,
+            enviar cuando hay texto, y detener mientras la voz esta activa. */}
         <button
-          onClick={handleSendMessage}
-          disabled={!canSendMessage}
+          onClick={handleUnifiedButtonClick}
+          disabled={isButtonDisabled}
+          title={buttonTitle}
+          aria-label={buttonTitle}
           style={{
             width: '36px',
             height: '36px',
             borderRadius: '50%',
-            backgroundColor: canSendMessage
-              ? themeColors.accentColor
-              : isLightTheme
-              ? 'var(--color-gray-300)'
-              : 'var(--color-legacy-374151)',
-            border: 'none',
-            cursor: canSendMessage ? 'pointer' : 'not-allowed',
+            flexShrink: 0,
+            backgroundColor: buttonBackgroundColor,
+            border:
+              buttonMode === 'mic'
+                ? `1px solid ${themeColors.inputBorder}`
+                : buttonMode === 'stop'
+                ? '1px solid var(--color-error)'
+                : 'none',
+            cursor: isButtonDisabled ? 'not-allowed' : 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'background-color 0.2s',
+            transition: 'all 0.2s',
+            opacity: buttonMode === 'processing' ? 0.6 : 1,
           }}
         >
-          <Send
-            style={{
-              width: '16px',
-              height: '16px',
-              color: canSendMessage
-                ? 'var(--color-bg-light)'
-                : isLightTheme
-                ? 'var(--color-legacy-6b7280)'
-                : 'var(--color-legacy-9ca3af)',
-            }}
-          />
+          {buttonMode === 'processing' ? (
+            <Loader2
+              style={{ width: '16px', height: '16px', color: themeColors.textSecondary }}
+              className="animate-spin"
+            />
+          ) : buttonMode === 'stop' ? (
+            <VoiceWaveform color="var(--color-bg-light)" barCount={4} height={14} />
+          ) : buttonMode === 'send' ? (
+            <Send
+              style={{
+                width: '16px',
+                height: '16px',
+                color: canSendMessage
+                  ? 'var(--color-bg-light)'
+                  : isLightTheme
+                  ? 'var(--color-legacy-6b7280)'
+                  : 'var(--color-legacy-9ca3af)',
+              }}
+            />
+          ) : (
+            <Mic
+              style={{ width: '18px', height: '18px', color: themeColors.textSecondary }}
+            />
+          )}
         </button>
       </div>
     </div>

@@ -41,6 +41,31 @@ function resolveLiveVoice(): string {
   return process.env.GEMINI_LIVE_VOICE || DEFAULT_LIA_LIVE_VOICE;
 }
 
+/**
+ * Extrae el estado HTTP y el mensaje del proveedor (Gemini) desde un error
+ * desconocido sin exponer stack traces ni secretos. El SDK `@google/genai`
+ * lanza `ApiError` con `status` (numero) y `message`; otros errores se
+ * degradan a un texto plano.
+ */
+function describeProviderError(error: unknown): { status?: number; message: string } {
+  if (error && typeof error === 'object') {
+    const candidate = error as { status?: unknown; code?: unknown; message?: unknown };
+    const status =
+      typeof candidate.status === 'number'
+        ? candidate.status
+        : typeof candidate.code === 'number'
+        ? candidate.code
+        : undefined;
+    const message =
+      typeof candidate.message === 'string' && candidate.message.trim()
+        ? candidate.message
+        : 'Error desconocido del proveedor de voz en vivo.';
+    return { status, message };
+  }
+
+  return { message: typeof error === 'string' ? error : 'Error desconocido del proveedor de voz en vivo.' };
+}
+
 async function handlePost(request: NextRequest, body: LiaLiveTokenBody) {
   const rateLimitResult = checkRateLimit(request, liveTokenRateLimit, 'lia-live-token');
   if (!rateLimitResult.success) {
@@ -106,10 +131,24 @@ async function handlePost(request: NextRequest, body: LiaLiveTokenBody) {
       languageCode,
     }));
   } catch (error) {
-    logger.error('[lia-live] error creando token efimero', error);
+    const providerError = describeProviderError(error);
+    logger.error('[lia-live] error creando token efimero', {
+      providerStatus: providerError.status,
+      providerMessage: providerError.message,
+      model,
+    });
     return withRateHeaders(
       NextResponse.json(
-        { error: 'No se pudo iniciar la voz en vivo', code: 'LIVE_TOKEN_FAILED' },
+        {
+          error: 'No se pudo iniciar la voz en vivo',
+          code: 'LIVE_TOKEN_FAILED',
+          // Diagnostico del proveedor (Gemini): el mensaje de error de la API
+          // no contiene la API key ni secretos, pero si la causa real
+          // (p. ej. 403 = la key no tiene acceso a Live/tokens efimeros,
+          // 404 = modelo inexistente, 429 = cuota agotada).
+          providerStatus: providerError.status,
+          detail: providerError.message,
+        },
         { status: 502 },
       ),
     );
