@@ -53,6 +53,33 @@ function resolveLiveVoice(): string {
 }
 
 /**
+ * Diagnostico SEGURO (sin secretos) para entender, desde la respuesta o los
+ * logs, por que el minado del token falla en un entorno y no en otro. Reporta
+ * solo presencia (booleans) de variables que el SDK `@google/genai` usa para
+ * autodetectar Vertex AI, y metadatos no sensibles de la API key.
+ */
+function buildLiveTokenDiagnostics(apiKey: string | null) {
+  return {
+    // Si alguno es true y aun asi falla con vertexai:false, el modo Vertex
+    // NO es la causa. Si todos son false, Vertex queda descartado de entrada.
+    vertexEnv: {
+      USE_VERTEXAI: Boolean(process.env.GOOGLE_GENAI_USE_VERTEXAI),
+      GOOGLE_CLOUD_PROJECT: Boolean(process.env.GOOGLE_CLOUD_PROJECT),
+      GCLOUD_PROJECT: Boolean(process.env.GCLOUD_PROJECT),
+      GOOGLE_CLOUD_LOCATION: Boolean(process.env.GOOGLE_CLOUD_LOCATION),
+      GOOGLE_APPLICATION_CREDENTIALS: Boolean(process.env.GOOGLE_APPLICATION_CREDENTIALS),
+    },
+    // Metadatos no sensibles: prefijo universal de claves Google (AIza) y
+    // longitud, para detectar key vacia, truncada o con espacios invisibles.
+    apiKey: {
+      present: Boolean(apiKey),
+      prefix: apiKey ? apiKey.slice(0, 4) : null,
+      length: apiKey ? apiKey.length : 0,
+    },
+  };
+}
+
+/**
  * Extrae el estado HTTP y el mensaje del proveedor (Gemini) desde un error
  * desconocido sin exponer stack traces ni secretos. El SDK `@google/genai`
  * lanza `ApiError` con `status` (numero) y `message`; otros errores se
@@ -149,10 +176,12 @@ async function handlePost(request: NextRequest, body: LiaLiveTokenBody) {
     }));
   } catch (error) {
     const providerError = describeProviderError(error);
+    const diagnostics = buildLiveTokenDiagnostics(apiKey);
     logger.error('[lia-live] error creando token efimero', {
       providerStatus: providerError.status,
       providerMessage: providerError.message,
       model,
+      diagnostics,
     });
     return withRateHeaders(
       NextResponse.json(
@@ -165,6 +194,8 @@ async function handlePost(request: NextRequest, body: LiaLiveTokenBody) {
           // 404 = modelo inexistente, 429 = cuota agotada).
           providerStatus: providerError.status,
           detail: providerError.message,
+          // Solo presencia/booleans y metadatos no sensibles. Ver helper.
+          diagnostics,
         },
         { status: 502 },
       ),
