@@ -24,13 +24,14 @@ const liveTokenRateLimit = {
   message: 'Demasiadas solicitudes de voz en vivo. Intenta de nuevo en un minuto.',
 };
 
+/**
+ * Usa la MISMA API key de Gemini que el resto de SofLIA (chat, TTS, traduccion):
+ * `GOOGLE_API_KEY` con `GEMINI_API_KEY` como respaldo. No se usa una key
+ * dedicada de voz en vivo para evitar configurar/rotar claves extra y para que
+ * una `GEMINI_LIVE_API_KEY` mal configurada no rompa esta ruta.
+ */
 function resolveGeminiApiKey(): string | null {
-  return (
-    process.env.GEMINI_LIVE_API_KEY ||
-    process.env.GOOGLE_API_KEY ||
-    process.env.GEMINI_API_KEY ||
-    null
-  );
+  return process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || null;
 }
 
 function resolveLiveModel(): string {
