@@ -24,22 +24,32 @@ const liveTokenRateLimit = {
   message: 'Demasiadas solicitudes de voz en vivo. Intenta de nuevo en un minuto.',
 };
 
+/** Lee una env var y la normaliza: recorta espacios/saltos de linea que se
+ * cuelan al pegar valores en paneles como Netlify y rompen la autenticacion. */
+function readEnv(name: string): string | undefined {
+  const value = process.env[name];
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
 /**
  * Usa la MISMA API key de Gemini que el resto de SofLIA (chat, TTS, traduccion):
  * `GOOGLE_API_KEY` con `GEMINI_API_KEY` como respaldo. No se usa una key
  * dedicada de voz en vivo para evitar configurar/rotar claves extra y para que
- * una `GEMINI_LIVE_API_KEY` mal configurada no rompa esta ruta.
+ * una `GEMINI_LIVE_API_KEY` mal configurada no rompa esta ruta. El `.trim()`
+ * evita el fallo "misma key pero 401" por espacios/saltos invisibles.
  */
 function resolveGeminiApiKey(): string | null {
-  return process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || null;
+  return readEnv('GOOGLE_API_KEY') || readEnv('GEMINI_API_KEY') || null;
 }
 
 function resolveLiveModel(): string {
-  return process.env.GEMINI_LIVE_MODEL || DEFAULT_LIA_LIVE_MODEL;
+  return readEnv('GEMINI_LIVE_MODEL') || DEFAULT_LIA_LIVE_MODEL;
 }
 
 function resolveLiveVoice(): string {
-  return process.env.GEMINI_LIVE_VOICE || DEFAULT_LIA_LIVE_VOICE;
+  return readEnv('GEMINI_LIVE_VOICE') || DEFAULT_LIA_LIVE_VOICE;
 }
 
 /**

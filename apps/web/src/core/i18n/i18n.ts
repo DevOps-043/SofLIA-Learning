@@ -142,3 +142,4 @@ export const initI18n = () => {
 };
 
 // Force re-compile to pick up new JSON translations (voice reading feature)
+// Bump: lia.header.speaking + lia.chat.send/responding + lia.voice.* (2026-06)
