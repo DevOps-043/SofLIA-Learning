@@ -55,7 +55,9 @@ export async function connectLiaLiveSession({
   onError,
   onClose,
 }: ConnectParams): Promise<LiaLiveSessionHandle> {
-  const ai = new GoogleGenAI({ apiKey: token, httpOptions: { apiVersion: 'v1alpha' } });
+  // `vertexai: false` fuerza el modo Gemini Developer API (token efimero) y evita
+  // que el SDK intente autodetectar Vertex AI. Ver nota en la ruta del token.
+  const ai = new GoogleGenAI({ apiKey: token, vertexai: false, httpOptions: { apiVersion: 'v1alpha' } });
 
   const session: Session = await ai.live.connect({
     model,

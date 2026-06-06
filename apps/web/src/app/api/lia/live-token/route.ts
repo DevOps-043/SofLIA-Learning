@@ -107,7 +107,13 @@ async function handlePost(request: NextRequest, body: LiaLiveTokenBody) {
   const now = Date.now();
 
   try {
-    const ai = new GoogleGenAI({ apiKey, httpOptions: { apiVersion: 'v1alpha' } });
+    // `vertexai: false` fuerza el modo Gemini Developer API (autenticacion por
+    // API key). Sin esto, el SDK `@google/genai` autodetecta el entorno y, si
+    // encuentra variables de Google Cloud (GOOGLE_GENAI_USE_VERTEXAI,
+    // GOOGLE_APPLICATION_CREDENTIALS, GOOGLE_CLOUD_PROJECT...), cambia a modo
+    // Vertex AI, ignora `apiKey` e intenta usar credenciales OAuth/ADC -> 401.
+    // Esto ocurria en Netlify (con env de OAuth) pero no en local.
+    const ai = new GoogleGenAI({ apiKey, vertexai: false, httpOptions: { apiVersion: 'v1alpha' } });
     const token = await ai.authTokens.create({
       config: {
         uses: TOKEN_USES,
