@@ -22,7 +22,13 @@ function createNextConfig(appDir) {
     outputFileTracingRoot: path.resolve(appDir, '../../'),
     experimental: {
       externalDir: true,
-      optimizePackageImports: ['lucide-react'],
+      // Transforma imports de barril en imports directos -> menos JS por ruta y
+      // mejor tree-shaking. Solo `framer-motion` (animacion) como adicion a lo que
+      // ya cubre el default de Next (lucide-react, heroicons, date-fns...).
+      // `recharts` se deja FUERA de forma conservadora: la libreria ya emite un
+      // warning interno propio (`selectPolarChartLayout`, preexistente y ajeno a
+      // esta opcion), asi que no la incluimos para no sumar variables sobre charts.
+      optimizePackageImports: ['lucide-react', 'framer-motion'],
     },
     outputFileTracingExcludes,
     serverExternalPackages,

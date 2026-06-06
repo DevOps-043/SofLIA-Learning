@@ -7,7 +7,6 @@ export const JSON_BODY_LIMIT_BYTES = 1_048_576
 const METHODS_WITH_BODY = new Set(['PATCH', 'POST', 'PUT'])
 const BODY_SIZE_EXEMPT_PATH_SEGMENTS = [
   '/import',
-  '/scorm/upload',
   '/upload',
   '/uploads',
 ]
