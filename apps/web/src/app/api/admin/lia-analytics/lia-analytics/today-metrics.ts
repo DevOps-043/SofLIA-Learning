@@ -1,4 +1,8 @@
 import { getActiveUsersChange } from './today-active-users'
+import {
+  resolveLiaMessageCost,
+  resolveLiaMessageTokens,
+} from './message-metrics'
 import { fetchMessagesForRange } from './today-message-ranges'
 import { getTodayComparisonRange } from './today-ranges'
 import type { LiaAnalyticsSupabaseClient } from './types'
@@ -26,9 +30,12 @@ export async function getTodayMetrics(
     }),
   ])
 
-  const todayCost = todayMessages.reduce((sum, item) => sum + (item.cost_usd || 0), 0)
+  const todayCost = todayMessages.reduce(
+    (sum, item) => sum + resolveLiaMessageCost(item),
+    0
+  )
   const yesterdayCost = yesterdayMessages.reduce(
-    (sum, item) => sum + (item.cost_usd || 0),
+    (sum, item) => sum + resolveLiaMessageCost(item),
     0
   )
 
@@ -40,7 +47,10 @@ export async function getTodayMetrics(
         ? Number((((todayCost - yesterdayCost) / yesterdayCost) * 100).toFixed(1))
         : 0,
     messages: todayMessages.length,
-    tokens: todayMessages.reduce((sum, item) => sum + (item.tokens_used || 0), 0),
+    tokens: todayMessages.reduce(
+      (sum, item) => sum + resolveLiaMessageTokens(item),
+      0
+    ),
     usersChange: activeUsers.usersChange,
   }
 }

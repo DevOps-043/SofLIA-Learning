@@ -217,7 +217,7 @@ export function NotesModalLayout({
                   disabled={editor.isSaving || !editor.hasContent}
                   onClick={(e) => {
                     e.stopPropagation();
-                    void editor.handleSave();
+                    void editor.saveNote();
                   }}
                   type="button"
                 >
@@ -225,7 +225,6 @@ export function NotesModalLayout({
                   <span>{editor.isSaving ? t('actions.saving') : t('actions.save')}</span>
                 </button>
                 <button
-                  type="button"
                   aria-label={t('actions.close')}
                   className={classes.closeButton}
                   onClick={(e) => {

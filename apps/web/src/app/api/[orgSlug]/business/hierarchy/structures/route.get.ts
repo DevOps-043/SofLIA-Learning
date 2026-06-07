@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       );
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const { data: structures, error } = await supabase
       .from('organization_structures')

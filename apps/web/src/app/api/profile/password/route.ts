@@ -6,7 +6,10 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createAuthActionClient } from '@/lib/supabase/auth-server';
 import { withZodBody } from '@/lib/api/with-validation';
 import { apiError } from '@/lib/api/errors';
-import { ensureSupabaseAuthUserForLegacyProfile } from '@/features/auth/services/supabase-auth-bridge.service';
+import {
+  ensureSupabaseAuthUserForLegacyProfile,
+  revokeSupabaseAuthSessions,
+} from '@/features/auth/services/supabase-auth-bridge.service';
 import { validatePasswordIsNotBreached } from '@/features/auth/actions/password-breach-check.server';
 
 import { passwordChangeSchema, type PasswordChangeInput } from './schema';
@@ -57,7 +60,7 @@ async function handlePasswordChange(
       return apiError('INVALID_CURRENT_PASSWORD', 'Contrasena actual incorrecta.', 400);
     }
 
-    const { error: updateError } = await authClient.auth.updateUser({
+    const { error: updateError } = await adminSupabase.auth.admin.updateUserById(user.id, {
       password: body.newPassword,
     });
 
@@ -68,8 +71,9 @@ async function handlePasswordChange(
 
     await adminSupabase
       .from('users')
-      .update({ password_hash: null })
+      .update({ password_hash: null, updated_at: new Date().toISOString() })
       .eq('id', user.id);
+    await revokeSupabaseAuthSessions(user.id);
     await revokeLegacySessionsAfterPasswordChange(adminSupabase, user.id);
     await notifyPasswordChangedBestEffort(user.id);
 

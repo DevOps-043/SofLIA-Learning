@@ -25,6 +25,38 @@ export interface TrackingStatus {
   startedAt: string | null;
 }
 
+type LessonTrackingVideoRow = {
+  id: string
+  video_max_seconds?: number | null
+}
+type LessonTrackingVideoError = { message: string } | null
+type LessonTrackingVideoSelectQuery = {
+  eq(column: 'lesson_id' | 'status' | 'user_id', value: string): LessonTrackingVideoSelectQuery
+  limit(count: number): LessonTrackingVideoSelectQuery
+  order(column: 'last_activity_at', options?: { ascending?: boolean }): LessonTrackingVideoSelectQuery
+  single(): PromiseLike<{ data: LessonTrackingVideoRow | null; error: LessonTrackingVideoError }>
+}
+type LessonTrackingVideoUpdateQuery = {
+  eq(column: 'id', value: string): PromiseLike<{ error: LessonTrackingVideoError }>
+}
+type LessonTrackingVideoTable = {
+  select(columns: string): LessonTrackingVideoSelectQuery
+  update(payload: {
+    last_activity_at: string
+    video_checkpoint_seconds: number
+    video_max_seconds: number
+    video_playback_rate: number
+    video_total_duration_seconds: number
+  }): LessonTrackingVideoUpdateQuery
+}
+type LessonTrackingVideoClient = {
+  from(table: 'lesson_tracking'): LessonTrackingVideoTable
+}
+
+function lessonTrackingVideoTable(supabase: unknown): LessonTrackingVideoTable {
+  return (supabase as LessonTrackingVideoClient).from('lesson_tracking')
+}
+
 /**
  * Obtiene los tiempos estimados para una lección
  */
@@ -121,7 +153,7 @@ export async function lessonHasQuiz(lessonId: string): Promise<boolean> {
       .eq('activity_type', 'quiz')
       .limit(1);
 
-    return activities && activities.length > 0;
+    return Boolean(activities && activities.length > 0);
   } catch (error) {
     techDebtLogger.error('Error verificando quiz:', error);
     return false;
@@ -142,7 +174,7 @@ export async function lessonHasLiaActivity(lessonId: string): Promise<boolean> {
       .eq('activity_type', 'ai_chat')
       .limit(1);
 
-    return activities && activities.length > 0;
+    return Boolean(activities && activities.length > 0);
   } catch (error) {
     techDebtLogger.error('Error verificando actividad LIA:', error);
     return false;
@@ -203,8 +235,7 @@ export async function updateVideoProgress(
     if (!user) return false;
 
     // Buscar tracking activo
-    const { data: tracking } = await supabase
-      .from('lesson_tracking')
+    const { data: tracking } = await lessonTrackingVideoTable(supabase)
       .select('id, video_max_seconds')
       .eq('user_id', user.id)
       .eq('lesson_id', lessonId)
@@ -220,8 +251,7 @@ export async function updateVideoProgress(
     const newMax = Math.max(currentMax, maxReached);
 
     // Actualizar
-    const { error } = await supabase
-      .from('lesson_tracking')
+    const { error } = await lessonTrackingVideoTable(supabase)
       .update({
         video_checkpoint_seconds: checkpoint,
         video_max_seconds: newMax,

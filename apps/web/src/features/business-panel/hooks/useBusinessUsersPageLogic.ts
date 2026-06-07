@@ -59,7 +59,6 @@ export function useBusinessUsersPageLogic() {
   const theme = useBusinessUsersTheme()
 
   return {
-    orgSlug: tabs.orgSlug,
     users: usersState.users,
     invitations: usersState.invitations,
     inviteLinks: usersState.inviteLinks,

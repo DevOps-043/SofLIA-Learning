@@ -119,7 +119,7 @@ function getNearestDeadlineDate(
 
   return [...coursesWithDueDates].sort(
     (left, right) => new Date(left.dueDate!).getTime() - new Date(right.dueDate!).getTime(),
-  )[0].dueDate
+  )[0].dueDate ?? undefined
 }
 
 function buildAlternativesContext(alternatives: DeterministicPlanAlternative[]): string {

@@ -4,7 +4,7 @@ import {
 } from './organization-planner-config.defaults'
 import type { OrganizationPlannerConfig } from './organization-planner-config.types'
 
-interface PlannerConfigRow {
+export interface PlannerConfigRow {
   work_start_time: string | null
   work_end_time: string | null
   work_days: number[] | null

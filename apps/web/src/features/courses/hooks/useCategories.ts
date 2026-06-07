@@ -74,6 +74,8 @@ export function useCategories(): UseCategoriesReturn {
     categories,
     loading: isLoading,
     error: error?.message || null,
-    refetch: mutate
+    refetch: async () => {
+      await mutate()
+    },
   }
 }

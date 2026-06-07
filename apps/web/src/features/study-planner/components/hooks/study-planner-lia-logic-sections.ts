@@ -1,26 +1,30 @@
 import type { useStudyPlannerSessionStorage } from '../../hooks/useStudyPlannerSessionStorage';
 import { useMessageProcessor } from './useMessageProcessor';
+import type { createPlannerRedirectScheduler } from './planner-redirect.utils';
 import { useResponseHandler } from './useResponseHandler';
 import { useStudyPlannerLIAViewState } from './useStudyPlannerLIAViewState';
 import { useStudyPlannerSchedulePreviewState } from './useStudyPlannerSchedulePreviewState';
+import type { useStudyPlannerVoiceBridge } from './useStudyPlannerVoiceBridge';
 
-type LogicGroup = Record<string, unknown>;
+type LogicGroup = object;
+type StudyPlannerSessionStorageWithRedirect =
+  ReturnType<typeof useStudyPlannerSessionStorage> & {
+    scheduleStudyPlannerRedirect: ReturnType<typeof createPlannerRedirectScheduler>;
+  };
 
 interface BuildStudyPlannerLIALogicSectionsParams<
-  TVoice extends LogicGroup,
   THandlers extends LogicGroup,
 > {
   handlers: THandlers;
   messageProcessor: ReturnType<typeof useMessageProcessor>;
   responseHandler: ReturnType<typeof useResponseHandler>;
   schedulePreview: ReturnType<typeof useStudyPlannerSchedulePreviewState>;
-  sessionStorage: ReturnType<typeof useStudyPlannerSessionStorage>;
+  sessionStorage: StudyPlannerSessionStorageWithRedirect;
   viewState: ReturnType<typeof useStudyPlannerLIAViewState>;
-  voice: TVoice;
+  voice: ReturnType<typeof useStudyPlannerVoiceBridge>;
 }
 
 export function buildStudyPlannerLIALogicSections<
-  TVoice extends LogicGroup,
   THandlers extends LogicGroup,
 >({
   handlers,
@@ -30,7 +34,7 @@ export function buildStudyPlannerLIALogicSections<
   sessionStorage,
   viewState,
   voice,
-}: BuildStudyPlannerLIALogicSectionsParams<TVoice, THandlers>) {
+}: BuildStudyPlannerLIALogicSectionsParams<THandlers>) {
   return {
     state: {
       isVisible: viewState.isVisible,

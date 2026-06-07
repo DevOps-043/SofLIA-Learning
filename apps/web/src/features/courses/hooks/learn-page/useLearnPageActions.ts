@@ -8,14 +8,9 @@ import type {
   LearnModule,
   LearnTab,
 } from '../../components/learn/types'
+import type { ValidationModalState } from '../useLessonCompletion/types'
 
-interface ValidationModalArgs {
-  title: string
-  message: string
-  type: 'video' | 'activities' | 'quiz'
-  lessonId: string
-  redirectTab: LearnTab
-}
+type ValidationModalArgs = Omit<ValidationModalState, 'isOpen'>
 
 interface UseLearnPageActionsOptions {
   setModules: (updater: (prev: LearnModule[]) => LearnModule[]) => void

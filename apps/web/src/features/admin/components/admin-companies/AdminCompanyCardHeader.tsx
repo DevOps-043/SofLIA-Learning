@@ -29,7 +29,7 @@ export function AdminCompanyCardHeader(props: AdminCompanyCardHeaderProps) {
     <div className="relative border-b px-6 py-5" style={{ borderColor: props.themeColors.borderColor, background: `linear-gradient(135deg, ${theme.inputBg}, ${theme.hoverBg})` }}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-4">
-          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border shadow-sm" style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor, color: theme.primaryColor }}>
+          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border bg-white shadow-sm" style={{ borderColor: theme.borderColor, color: theme.primaryColor }}>
             {props.logoUrl ? <Image src={props.logoUrl} alt={props.company.name} fill sizes="64px" className="object-contain p-2" unoptimized /> : <Building2 className="h-8 w-8" />}
           </div>
           <div className="min-w-0">

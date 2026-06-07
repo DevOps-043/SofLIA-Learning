@@ -68,7 +68,7 @@ export async function getOrganizationBySlug(slug: string): Promise<Organization 
       return null;
     }
 
-    return data as Organization;
+    return data as unknown as Organization;
   } catch (error) {
     return null;
   }
@@ -88,7 +88,7 @@ export async function getPublicAuthOrganizationBySlug(slug: string): Promise<Org
       return null;
     }
 
-    return data as Organization;
+    return data as unknown as Organization;
   } catch {
     return null;
   }
@@ -113,7 +113,7 @@ export async function getOrganizationById(id: string): Promise<Organization | nu
       return null;
     }
 
-    return data as Organization;
+    return data as unknown as Organization;
   } catch (error) {
     return null;
   }

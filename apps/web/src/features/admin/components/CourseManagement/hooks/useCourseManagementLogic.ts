@@ -6,8 +6,8 @@ import { useAdminModules } from '../../../hooks/useAdminModules'
 import { useAdminLessons } from '../../../hooks/useAdminLessons'
 import { useAdminMaterials } from '../../../hooks/useAdminMaterials'
 import { useAdminActivities } from '../../../hooks/useAdminActivities'
-import { AdminModule } from '../../../services/adminModules.service'
-import { AdminLesson } from '../../../services/adminLessons.service'
+import { AdminModule, CreateModuleData, UpdateModuleData } from '../../../services/adminModules.service'
+import { AdminLesson, CreateLessonData } from '../../../services/adminLessons.service'
 import { AdminMaterial } from '../../../services/adminMaterials.service'
 import { AdminActivity } from '../../../services/adminActivities.service'
 import { useCourseStats } from './useCourseStats'
@@ -150,7 +150,7 @@ export function useCourseManagementLogic(courseId: string) {
   }
 
   // ── CRUD handlers ──────────────────────────────────────────────────────────
-  const handleCreateModule = async (data: Record<string, unknown>) => {
+  const handleCreateModule = async (data: CreateModuleData) => {
     try {
       await createModule(courseId, data)
       showFeedbackMessage('success', 'Módulo creado correctamente')
@@ -162,7 +162,7 @@ export function useCourseManagementLogic(courseId: string) {
     }
   }
 
-  const handleEditModule = async (moduleId: string, data: Record<string, unknown>) => {
+  const handleEditModule = async (moduleId: string, data: UpdateModuleData) => {
     try {
       await updateModule(moduleId, data)
       showFeedbackMessage('success', 'Módulo actualizado correctamente')
@@ -174,7 +174,7 @@ export function useCourseManagementLogic(courseId: string) {
     }
   }
 
-  const handleCreateLesson = async (data: Record<string, unknown>) => {
+  const handleCreateLesson = async (data: CreateLessonData) => {
     if (!editingModuleId) {
       showFeedbackMessage('error', 'Selecciona un módulo antes de crear una lección')
       return

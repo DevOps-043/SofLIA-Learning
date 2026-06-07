@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { createAdminClient } from '@/lib/supabase/admin'
-import type { Json, TablesInsert } from '@/lib/supabase/types'
+import type { Json } from '@/lib/supabase/types'
 import { logger } from '@/lib/logger'
 
 export type SecurityAuditResult = 'success' | 'denied' | 'error'
@@ -28,9 +28,30 @@ const SENSITIVE_METADATA_KEYS = [
   'token',
 ] as const
 
+type SecurityAuditLogInsert = {
+  action: string
+  actor_id: string | null
+  actor_role: string | null
+  resource_type: string | null
+  resource_id: string | null
+  ip: string | null
+  user_agent: string | null
+  org_id: string | null
+  result: SecurityAuditResult
+  metadata: Json
+}
+
+type SecurityAuditLogClient = {
+  from(table: 'security_audit_log'): {
+    insert(payload: SecurityAuditLogInsert): PromiseLike<{
+      error: { message: string } | null
+    }>
+  }
+}
+
 export async function writeSecurityAuditLog(input: SecurityAuditLogInput) {
   const supabase = createAdminClient()
-  const payload: TablesInsert<'security_audit_log'> = {
+  const payload: SecurityAuditLogInsert = {
     action: input.action,
     actor_id: input.actorId ?? null,
     actor_role: input.actorRole ?? null,
@@ -43,7 +64,9 @@ export async function writeSecurityAuditLog(input: SecurityAuditLogInput) {
     metadata: sanitizeAuditMetadata(input.metadata ?? {}),
   }
 
-  const { error } = await supabase.from('security_audit_log').insert(payload)
+  const { error } = await (supabase as unknown as SecurityAuditLogClient)
+    .from('security_audit_log')
+    .insert(payload)
   if (error) {
     logger.warn('Security audit log insert failed', {
       action: input.action,

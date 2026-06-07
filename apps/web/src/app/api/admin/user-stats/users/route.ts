@@ -2,6 +2,23 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { calculateAgeFromDateOfBirth } from '@/lib/schemas/user-demographics.schema'
+import { logger } from '@/lib/utils/logger'
+import {
+  buildStudyMinutesByUser,
+  type CourseLessonTimeRow,
+  type LessonProgressTimeRow,
+  type LessonTrackingTimeRow,
+} from '../study-time'
+
+const MAX_SEARCH_LENGTH = 80
+
+function normalizeAdminUserSearch(value: string | null): string {
+  return (value || '')
+    .trim()
+    .replace(/[,%*_()[\]{}"'\\;]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .slice(0, MAX_SEARCH_LENGTH)
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     const supabase = createAdminClient()
     const { searchParams } = new URL(request.url)
-    const search = searchParams.get('search') || ''
+    const search = normalizeAdminUserSearch(searchParams.get('search'))
     const orgFilter = searchParams.get('org') || ''
     const statusFilter = searchParams.get('status') || ''
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
@@ -37,7 +54,8 @@ export async function GET(request: NextRequest) {
     const { data: users, count: totalCount, error: usersError } = await userQuery
 
     if (usersError) {
-      return NextResponse.json({ error: 'Failed to fetch users', details: usersError.message }, { status: 500 })
+      logger.error('Failed to fetch admin user stats users', { error: usersError.message })
+      return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
     }
 
     if (!users || users.length === 0) {
@@ -47,11 +65,22 @@ export async function GET(request: NextRequest) {
     const userIds = users.map(u => u.id)
 
     // Fetch related data for these users in parallel
-    const [orgUsersRes, enrollmentsRes, certificatesRes, studyMinutesRes] = await Promise.all([
+    const [
+      orgUsersRes,
+      enrollmentsRes,
+      certificatesRes,
+      studyMinutesRes,
+      lessonProgressRes,
+      lessonTrackingRes,
+      courseLessonsRes,
+    ] = await Promise.all([
       supabase.from('organization_users').select('user_id, role, organizations(name)').in('user_id', userIds).eq('status', 'active'),
       supabase.from('user_course_enrollments').select('user_id, overall_progress_percentage').in('user_id', userIds),
       supabase.from('user_course_certificates').select('user_id').in('user_id', userIds),
       supabase.from('daily_progress').select('user_id, study_minutes').in('user_id', userIds),
+      supabase.from('user_lesson_progress').select('user_id, lesson_id, time_spent_minutes, is_completed, lesson_status, completed_at').in('user_id', userIds),
+      supabase.from('lesson_tracking').select('user_id, lesson_id, status, started_at, completed_at, t_lesson_minutes, t_video_minutes, t_materials_minutes').in('user_id', userIds),
+      supabase.from('course_lessons').select('lesson_id, duration_seconds, total_duration_minutes'),
     ])
 
     // Build lookup maps
@@ -83,6 +112,11 @@ export async function GET(request: NextRequest) {
     for (const dp of (studyMinutesRes.data || [])) {
       studyMinutesMap.set(dp.user_id, (studyMinutesMap.get(dp.user_id) || 0) + (dp.study_minutes || 0))
     }
+    const computedStudyMinutesMap = buildStudyMinutesByUser({
+      courseLessons: (courseLessonsRes.data || []) as CourseLessonTimeRow[],
+      lessonProgress: (lessonProgressRes.data || []) as LessonProgressTimeRow[],
+      lessonTracking: (lessonTrackingRes.data || []) as LessonTrackingTimeRow[],
+    })
 
     // Filter by org if requested
     let filteredUsers = users
@@ -98,6 +132,10 @@ export async function GET(request: NextRequest) {
     const result = filteredUsers.map(u => {
       const orgInfo = orgUserMap.get(u.id)
       const enrollInfo = enrollmentMap.get(u.id)
+      const persistedStudyMinutes = studyMinutesMap.get(u.id) || 0
+      const resolvedStudyMinutes = persistedStudyMinutes > 0
+        ? persistedStudyMinutes
+        : computedStudyMinutesMap.get(u.id) || 0
       return {
         id: u.id,
         username: u.username,
@@ -111,7 +149,7 @@ export async function GET(request: NextRequest) {
         orgRole: orgInfo?.role || null,
         coursesEnrolled: enrollInfo?.count || 0,
         avgProgress: enrollInfo?.avgProgress || 0,
-        studyHours: Math.round(((studyMinutesMap.get(u.id) || 0) / 60) * 10) / 10,
+        studyHours: Math.round((resolvedStudyMinutes / 60) * 10) / 10,
         lastLogin: u.last_login_at,
         certificates: certCountMap.get(u.id) || 0,
       }
@@ -124,8 +162,9 @@ export async function GET(request: NextRequest) {
       limit,
     })
   } catch (error) {
+    logger.error('Unexpected error in admin user stats users route', { error })
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

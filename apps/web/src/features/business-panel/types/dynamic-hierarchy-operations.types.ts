@@ -52,4 +52,5 @@ export interface NodeDetails {
     node: OrganizationNode;
     children: OrganizationNode[];
     courses: NodeCourseAssignment[];
+    path?: Array<Pick<OrganizationNode, 'id' | 'name'>>;
 }

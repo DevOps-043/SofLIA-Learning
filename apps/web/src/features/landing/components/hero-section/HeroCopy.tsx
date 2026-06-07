@@ -44,7 +44,7 @@ export function HeroCopy({ content, disableHeavy }: HeroCopyProps) {
           </motion.div>
         </HeroButton>
 
-        <HeroButton href="/conocer-lia" variant="outline">
+        <HeroButton href="/conocer-lia" variant="secondary">
           Conoce al Tutor
           <motion.div
             animate={disableHeavy ? {} : { rotate: [0, 15, -15, 0] }}
@@ -65,7 +65,7 @@ function HeroButton({
 }: {
   children: ReactNode;
   href: string;
-  variant: 'outline' | 'primary';
+  variant: 'secondary' | 'primary';
 }) {
   const isPrimary = variant === 'primary';
   const className = isPrimary

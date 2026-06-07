@@ -151,12 +151,20 @@ function getErrorCode(error: unknown) {
 }
 
 function isUniqueConstraintError(error: unknown) {
-  return (
-    Boolean(error) &&
-    typeof error === 'object' &&
-    'code' in error &&
-    (error as { code?: string }).code === '23505'
-  )
+  if (!error || typeof error !== 'object') {
+    return false
+  }
+
+  return 'code' in error && (error as { code?: string }).code === '23505'
+}
+
+function applyLockedByFilter<TQuery extends {
+  eq(column: 'locked_by', value: string): TQuery
+  is(column: 'locked_by', value: null): TQuery
+}>(query: TQuery, lockedBy: string | null): TQuery {
+  return lockedBy === null
+    ? query.is('locked_by', null)
+    : query.eq('locked_by', lockedBy)
 }
 
 async function loadModuleLessons(
@@ -768,7 +776,7 @@ export class ModuleLearningSummaryService {
       const { markdown, model } = await generateSummaryMarkdown(context)
       const contentHtml = convertNoteMarkdownToHtml(markdown)
       const now = new Date().toISOString()
-      const { data: updated, error: updateError } = await supabase
+      const updateSummaryQuery = supabase
         .from('module_learning_summaries')
         .update({
           content_html: contentHtml,
@@ -786,7 +794,11 @@ export class ModuleLearningSummaryService {
         })
         .eq('summary_id', summaryRow.summary_id)
         .eq('status', 'generating')
-        .eq('locked_by', summaryRow.locked_by)
+
+      const { data: updated, error: updateError } = await applyLockedByFilter(
+        updateSummaryQuery,
+        summaryRow.locked_by,
+      )
         .select(MODULE_LEARNING_SUMMARY_SELECT_FIELDS)
         .maybeSingle()
 
@@ -814,7 +826,7 @@ export class ModuleLearningSummaryService {
       const nextRetryAt = shouldFail
         ? null
         : new Date(now.getTime() + getRetryDelayMs(nextRetryCount - 1)).toISOString()
-      const { data: failed } = await supabase
+      const failSummaryQuery = supabase
         .from('module_learning_summaries')
         .update({
           status: shouldFail ? 'failed' : 'generating',
@@ -829,7 +841,11 @@ export class ModuleLearningSummaryService {
         })
         .eq('summary_id', summaryRow.summary_id)
         .eq('status', 'generating')
-        .eq('locked_by', summaryRow.locked_by)
+
+      const { data: failed } = await applyLockedByFilter(
+        failSummaryQuery,
+        summaryRow.locked_by,
+      )
         .select(MODULE_LEARNING_SUMMARY_SELECT_FIELDS)
         .maybeSingle()
 

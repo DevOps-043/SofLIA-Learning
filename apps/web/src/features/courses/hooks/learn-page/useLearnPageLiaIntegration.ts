@@ -5,10 +5,13 @@ import { useCallback } from 'react'
 
 import type { CourseLessonContext } from '../../../../core/types/lia.types'
 import type {
+  LearnActivitySummary,
   LearnCourseData,
   LearnLesson,
+  LearnMaterialSummary,
   LearnModule,
   LearnTab,
+  LessonQuizStatus,
 } from '../../components/learn/types'
 import { buildLearnLessonContext } from './learn-page.service'
 
@@ -37,9 +40,9 @@ interface UseLearnPageLiaIntegrationOptions {
   liaTranscript: string | null
   liaSummary: string | null
   activeTab: LearnTab
-  lessonsActivities: Record<string, unknown[] | undefined>
-  lessonsMaterials: Record<string, unknown[] | undefined>
-  lessonsQuizStatus: Record<string, unknown>
+  lessonsActivities: Record<string, LearnActivitySummary[] | undefined>
+  lessonsMaterials: Record<string, LearnMaterialSummary[] | undefined>
+  lessonsQuizStatus: Record<string, LessonQuizStatus | null | undefined>
   currentActivityPrompts: string[]
 }
 

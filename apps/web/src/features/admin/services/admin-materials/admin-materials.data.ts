@@ -1,11 +1,20 @@
+import type { Json, TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CreateMaterialData, UpdateMaterialData } from './admin-materials.types'
+
+type MaterialMutableFields = {
+  content_data?: Json | null
+  external_url?: string | null
+  file_url?: string | null
+}
+type MaterialInsertData = TablesInsert<'lesson_materials'> & MaterialMutableFields
+type MaterialUpdateData = TablesUpdate<'lesson_materials'> & MaterialMutableFields
 
 export function buildMaterialInsertData(
   lessonId: string,
   materialData: CreateMaterialData,
   orderIndex: number,
-): Record<string, unknown> {
-  const insertData: Record<string, unknown> = {
+): TablesInsert<'lesson_materials'> {
+  const insertData: MaterialInsertData = {
     lesson_id: lessonId,
     material_title: materialData.material_title,
     material_description: materialData.material_description,
@@ -21,11 +30,15 @@ export function buildMaterialInsertData(
 
 export function buildMaterialUpdateData(
   materialData: UpdateMaterialData,
-): Record<string, unknown> {
-  return applyMaterialTypeFields({ ...materialData }, materialData)
+): TablesUpdate<'lesson_materials'> {
+  const updateData: MaterialUpdateData = {
+    ...materialData,
+    content_data: materialData.content_data as Json | undefined,
+  }
+  return applyMaterialTypeFields(updateData, materialData)
 }
 
-function applyMaterialTypeFields<T extends Record<string, unknown>>(
+function applyMaterialTypeFields<T extends MaterialInsertData | MaterialUpdateData>(
   data: T,
   materialData: CreateMaterialData | UpdateMaterialData,
 ): T {
@@ -38,7 +51,7 @@ function applyMaterialTypeFields<T extends Record<string, unknown>>(
     data.external_url = null
     data.content_data = null
   } else if (['quiz', 'exercise', 'reading'].includes(materialData.material_type || '')) {
-    data.content_data = materialData.content_data || {}
+    data.content_data = (materialData.content_data || {}) as Json
     data.file_url = null
     data.external_url = null
   }

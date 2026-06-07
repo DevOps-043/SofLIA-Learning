@@ -20,7 +20,10 @@ export function TeamRequiredBanner({ orgSlug }: TeamRequiredBannerProps) {
     useEffect(() => {
         const checkTeam = async () => {
             try {
-                const res = await fetch('/api/business/hierarchy/check-team', {
+                const apiBase = orgSlug
+                    ? `/api/${encodeURIComponent(orgSlug)}/business/hierarchy`
+                    : '/api/business/hierarchy'
+                const res = await fetch(`${apiBase}/check-team`, {
                     credentials: 'include'
                 })
                 if (res.ok) {
@@ -37,7 +40,7 @@ export function TeamRequiredBanner({ orgSlug }: TeamRequiredBannerProps) {
         }
 
         checkTeam()
-    }, [])
+    }, [orgSlug])
 
     if (loading || !showBanner || dismissed) return null
 

@@ -1,6 +1,5 @@
 'use client'
 
-import type { CSSProperties } from 'react'
 import { motion, type MotionValue } from 'framer-motion'
 
 interface TestimonialsBackgroundProps {
@@ -19,7 +18,7 @@ export function TestimonialsBackground({
   return (
     <motion.div
       className="absolute inset-0"
-      style={{ opacity: opacity as CSSProperties['opacity'] }}
+      style={{ opacity }}
     >
       <motion.div
         animate={disableHeavy ? {} : { scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}

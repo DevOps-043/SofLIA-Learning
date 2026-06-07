@@ -7,16 +7,17 @@ export function SubmissionStatusBadges(props: {
   activityConfig: NonNullable<LearnActivity["activity_config"]>;
 }) {
   const summary = props.activity.latest_submission_summary;
+  const validation = "validation" in props.activityConfig ? props.activityConfig.validation : null;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       {summary && <SubmissionStatusBadge activity={props.activity} />}
-      {props.activityConfig.validation.enabled && (
+      {validation?.enabled && (
         <span className="rounded-full bg-fuchsia-100 px-2.5 py-1 text-[11px] font-medium text-fuchsia-700 dark:bg-fuchsia-500/10 dark:text-fuchsia-300">
           SofLIA disponible
         </span>
       )}
-      {props.activityConfig.validation.requiredForCompletion && (
+      {validation?.requiredForCompletion && (
         <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
           Validacion obligatoria
         </span>

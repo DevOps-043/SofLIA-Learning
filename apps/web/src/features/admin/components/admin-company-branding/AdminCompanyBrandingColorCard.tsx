@@ -1,5 +1,10 @@
 'use client'
 
+import {
+  DEFAULT_BRAND_PRIMARY,
+  normalizeBrandHexColor,
+} from '../../services/admin-companies/admin-company-brand-colors'
+
 interface AdminCompanyBrandingColorCardProps {
   label: string
   value: string
@@ -20,6 +25,7 @@ export function AdminCompanyBrandingColorCard({
   const inputClass = dark
     ? 'text-white focus:border-white/30'
     : 'text-gray-900 focus:border-gray-300'
+  const colorInputValue = normalizeBrandHexColor(value, DEFAULT_BRAND_PRIMARY)
 
   return (
     <div className={`rounded-xl border p-3 transition-colors ${containerClass}`}>
@@ -28,7 +34,7 @@ export function AdminCompanyBrandingColorCard({
         <div className={`relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border shadow-lg ${swatchClass}`}>
           <input
             type="color"
-            value={value}
+            value={colorInputValue}
             onChange={(event) => onChange(event.target.value)}
             className="absolute inset-0 h-full w-full scale-150 cursor-pointer border-none p-0"
           />

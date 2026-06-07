@@ -23,10 +23,10 @@ interface StudyPlannerDashboardAssistantProps {
   isCollapsed: boolean;
   isOpen: boolean;
   isSending: boolean;
-  liaPanelRef: RefObject<HTMLDivElement | null>;
+  liaPanelRef: RefObject<HTMLElement>;
   message: string;
   messages: DashboardMessage[];
-  messagesEndRef: RefObject<HTMLDivElement | null>;
+  messagesEndRef: RefObject<HTMLDivElement>;
   onExecuteAction: (action: StudyPlannerAction, data: Record<string, unknown>) => Promise<void>;
   onMessageChange: (value: string) => void;
   onOpen: () => void;

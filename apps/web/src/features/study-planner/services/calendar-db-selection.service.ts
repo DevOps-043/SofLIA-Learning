@@ -28,7 +28,14 @@ async function getCalendarSelectionRow(
     .limit(1)
     .maybeSingle();
 
-  return data ?? null;
+  if (!data) {
+    return null;
+  }
+
+  return {
+    id: data.id,
+    metadata: (data.metadata ?? null) as CalendarIntegrationMetadata | null,
+  };
 }
 
 export async function getSelectedCalendarIds(

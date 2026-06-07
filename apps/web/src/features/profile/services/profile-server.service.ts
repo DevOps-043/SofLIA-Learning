@@ -4,7 +4,7 @@ import type {
   UserSubscription,
 } from '../types/profile.types'
 import { getProfile } from './profile-server/profile-query.service'
-import { getUserStats } from './profile-server/profile-stats.service'
+import { getOrganizationUserStats, getUserStats } from './profile-server/profile-stats.service'
 import { getUserSubscriptions } from './profile-server/profile-subscriptions.service'
 import { updateProfile } from './profile-server/profile-update.service'
 
@@ -21,12 +21,16 @@ export class ProfileServerService {
     return updateProfile(userId, updates, organizationId)
   }
 
-  static getUserStats(userId: string): Promise<{
+  static getUserStats(userId: string, organizationId?: string | null): Promise<{
     completedCourses: number
     completedLessons: number
     certificates: number
     coursesInProgress: number
   }> {
+    if (organizationId) {
+      return getOrganizationUserStats(userId, organizationId)
+    }
+
     return getUserStats(userId)
   }
 

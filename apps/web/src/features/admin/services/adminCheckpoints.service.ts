@@ -1,5 +1,8 @@
 import { createClient } from '../../../lib/supabase/server'
 import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+import type { Tables } from '../../../lib/supabase/types'
+
+type LessonCheckpointRow = Tables<'lesson_checkpoints'>
 
 export interface AdminCheckpoint {
   checkpoint_id: string
@@ -26,6 +29,19 @@ export interface UpdateCheckpointData {
   is_required_completion?: boolean
 }
 
+function mapAdminCheckpoint(row: LessonCheckpointRow): AdminCheckpoint {
+  return {
+    checkpoint_id: row.checkpoint_id,
+    checkpoint_time_seconds: row.checkpoint_time_seconds,
+    checkpoint_label: row.checkpoint_label,
+    checkpoint_description: row.checkpoint_description,
+    is_required_completion: row.is_required_completion ?? false,
+    checkpoint_order_index: row.checkpoint_order_index ?? 0,
+    lesson_id: row.lesson_id,
+    created_at: row.created_at ?? '',
+  }
+}
+
 export class AdminCheckpointsService {
   static async getLessonCheckpoints(lessonId: string): Promise<AdminCheckpoint[]> {
     const supabase = await createClient()
@@ -41,7 +57,7 @@ export class AdminCheckpointsService {
         throw error
       }
 
-      return data || []
+      return (data || []).map(mapAdminCheckpoint)
     } catch (error) {
       throw error
     }
@@ -61,7 +77,7 @@ export class AdminCheckpointsService {
         throw error
       }
 
-      return data
+      return data ? mapAdminCheckpoint(data) : null
     } catch (error) {
       return null
     }
@@ -97,7 +113,7 @@ export class AdminCheckpointsService {
         throw error
       }
 
-      return data
+      return mapAdminCheckpoint(data)
     } catch (error) {
       throw error
     }
@@ -118,7 +134,7 @@ export class AdminCheckpointsService {
         throw error
       }
 
-      return data
+      return mapAdminCheckpoint(data)
     } catch (error) {
       throw error
     }
@@ -141,4 +157,3 @@ export class AdminCheckpointsService {
     }
   }
 }
-

@@ -1,4 +1,8 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
+import {
+  resolveLiaMessageCost,
+  resolveLiaMessageTokens,
+} from './message-metrics'
 import { applyProviderFilter } from './provider-filter'
 import type {
   DailyCostRow,
@@ -34,7 +38,7 @@ async function fetchDailyCosts(
   while (hasMore) {
     let query = supabase
       .from('lia_messages')
-      .select('created_at, cost_usd, tokens_used, model_used')
+      .select('content, created_at, cost_usd, tokens_used, model_used, role')
       .gte('created_at', input.startDateUTC.toISOString())
       .lte('created_at', input.nowISO)
       .order('created_at', { ascending: true })
@@ -71,9 +75,9 @@ function groupCostsByDay(rows: DailyCostRow[]) {
     const date = getUtcDateKey(row.created_at)
     const existing = costsByDay.get(date) || { cost: 0, messages: 0, tokens: 0 }
     costsByDay.set(date, {
-      cost: existing.cost + (Number(row.cost_usd) || 0),
+      cost: existing.cost + resolveLiaMessageCost(row),
       messages: existing.messages + 1,
-      tokens: existing.tokens + (Number(row.tokens_used) || 0),
+      tokens: existing.tokens + resolveLiaMessageTokens(row),
     })
   })
 

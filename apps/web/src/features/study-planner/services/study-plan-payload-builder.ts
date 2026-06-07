@@ -9,6 +9,7 @@ import type {
   StudyPlanPreferredTimeBlock,
   StudyPlanSavePayload,
   StudyPlanSessionLessonPayload,
+  StudyPlanSessionPayload,
   StudyPlannerSessionType,
 } from './study-plan-persistence.types';
 
@@ -175,12 +176,11 @@ export function buildStudyPlanPayload(params: BuildStudyPlanPayloadParams): Stud
         ?? '',
     );
 
-    return {
+    const sessionPayload: StudyPlanSessionPayload = {
       clientReferenceId: slot.clientReferenceId,
       title: buildSessionTitle(courseTitle),
       description: buildSessionDescription(slot.lessons),
       courseId: resolvedCourseId,
-      lessonId: firstLesson?.lessonId ?? undefined,
       plannedLessons: sanitizePlannedLessons(slot.lessons, resolvedCourseId),
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
@@ -188,6 +188,12 @@ export function buildStudyPlanPayload(params: BuildStudyPlanPayloadParams): Stud
       isAiGenerated: true as const,
       sessionType: sessionPreferences.preferredSessionType as StudyPlannerSessionType,
     };
+
+    if (firstLesson?.lessonId) {
+      sessionPayload.lessonId = firstLesson.lessonId;
+    }
+
+    return sessionPayload;
   });
 
   if (sessions.length === 0) throw new Error('No hay sesiones para guardar');

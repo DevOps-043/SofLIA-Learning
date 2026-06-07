@@ -10,6 +10,26 @@ interface OrganizationHolidayRow {
   is_recurring: boolean
 }
 
+type OrganizationHolidayError = { message: string }
+type OrganizationHolidayQuery = PromiseLike<{
+  data: OrganizationHolidayRow[] | null
+  error: OrganizationHolidayError | null
+}> & {
+  eq(column: 'is_recurring' | 'organization_id', value: boolean | string): OrganizationHolidayQuery
+  gte(column: 'holiday_date', value: string): OrganizationHolidayQuery
+  lte(column: 'holiday_date', value: string): OrganizationHolidayQuery
+}
+type OrganizationHolidayTable = {
+  select(columns: string): OrganizationHolidayQuery
+}
+type OrganizationHolidayClient = {
+  from(table: 'organization_holidays'): OrganizationHolidayTable
+}
+
+function organizationHolidaysTable(supabase: unknown): OrganizationHolidayTable {
+  return (supabase as OrganizationHolidayClient).from('organization_holidays')
+}
+
 function mapHoliday(row: OrganizationHolidayRow, date: string): OrganizationHoliday {
   return {
     id: row.id,
@@ -49,15 +69,13 @@ export async function getOrganizationHolidays(
   const isoStart = startDate.toISOString().split('T')[0]
   const isoEnd = endDate.toISOString().split('T')[0]
   const [fixedResult, recurringResult] = await Promise.all([
-    supabase
-      .from('organization_holidays')
+    organizationHolidaysTable(supabase)
       .select('id, holiday_date, name, type, is_recurring')
       .eq('organization_id', organizationId)
       .eq('is_recurring', false)
       .gte('holiday_date', isoStart)
       .lte('holiday_date', isoEnd),
-    supabase
-      .from('organization_holidays')
+    organizationHolidaysTable(supabase)
       .select('id, holiday_date, name, type, is_recurring')
       .eq('organization_id', organizationId)
       .eq('is_recurring', true),

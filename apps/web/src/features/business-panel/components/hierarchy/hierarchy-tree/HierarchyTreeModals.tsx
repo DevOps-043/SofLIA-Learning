@@ -34,7 +34,11 @@ export function HierarchyTreeModals({ onSaveStructure, state }: HierarchyTreeMod
           onClose={() => state.setIsMemberModalOpen(false)}
           nodeId={state.memberModalNodeId}
           nodeName={state.memberModalNodeName}
-          onSuccess={() => {}}
+          onSuccess={() => {
+            if (state.selectedStructureId) {
+              void state.loadNodes(state.selectedStructureId);
+            }
+          }}
         />
       )}
     </>

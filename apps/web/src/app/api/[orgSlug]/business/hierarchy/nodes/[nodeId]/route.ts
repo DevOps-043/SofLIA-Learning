@@ -1,9 +1,8 @@
-import { createClient } from '@/lib/supabase/server';
-import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/api/errors';
 import { withZodBody } from '@/lib/api/with-validation';
+import { createAdminClient } from '@/lib/supabase/admin';
 import {
     updateNodeSchema,
     type UpdateNodeBody,
@@ -45,7 +44,7 @@ export async function GET(
         const auth = await requireBusiness({ organizationSlug: orgSlug });
         if (auth instanceof NextResponse) return auth;
 
-        const supabase = await createClient();
+        const supabase = createAdminClient();
 
         if (!nodeId) {
             return apiError('NODE_ID_REQUIRED', 'Node ID is required', 400);
@@ -81,12 +80,7 @@ export async function GET(
             profile_picture_url: node.manager.profile_picture_url,
         } : null;
 
-        const adminClient = createServiceClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
-        );
-
-        const { data: children, error: childrenError } = await adminClient
+        const { data: children, error: childrenError } = await supabase
             .from('organization_nodes')
             .select(`
         id,
@@ -106,6 +100,10 @@ export async function GET(
             .eq('parent_id', nodeId)
             .eq('organization_id', auth.organizationId)
             .order('created_at', { ascending: true });
+
+        if (childrenError) {
+            return apiError('FETCH_NODE_CHILDREN_FAILED', 'Failed to fetch node children', 500);
+        }
 
         const formattedChildren = children?.map((child: NodeChildRow) => {
             const manager = Array.isArray(child.manager) ? child.manager[0] : child.manager;
@@ -170,7 +168,7 @@ async function handlePut(
             return apiError('NO_ORGANIZATION', 'Organization ID required', 403);
         }
 
-        const supabase = await createClient();
+        const supabase = createAdminClient();
 
         const { data, error } = await supabase
             .from('organization_nodes')
@@ -228,7 +226,7 @@ export async function DELETE(
         const auth = await requireBusiness({ organizationSlug: orgSlug });
         if (auth instanceof NextResponse) return auth;
 
-        const supabase = await createClient();
+        const supabase = createAdminClient();
 
         const { error } = await supabase
             .from('organization_nodes')

@@ -1,6 +1,7 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server'
 import { ADMIN_STATS_MONTH_NAMES } from './constants'
+import { statsTable } from './stats-query.client'
 import type { MonthlyGrowthData } from './types'
 
 interface CreatedAtRow {
@@ -18,11 +19,11 @@ export async function getMonthlyGrowth(
     startDate.setMonth(startDate.getMonth() - period)
 
     const [users, courses, communities, prompts, aiApps] = await Promise.all([
-      supabase.from('users').select('created_at').gte('created_at', startDate.toISOString()),
-      supabase.from('courses').select('created_at').gte('created_at', startDate.toISOString()).eq('is_active', true),
-      supabase.from('communities').select('created_at').gte('created_at', startDate.toISOString()),
-      supabase.from('ai_prompts').select('created_at').gte('created_at', startDate.toISOString()).eq('is_active', true),
-      supabase.from('ai_apps').select('created_at').gte('created_at', startDate.toISOString()),
+      statsTable<CreatedAtRow>(supabase, 'users').select('created_at').gte('created_at', startDate.toISOString()),
+      statsTable<CreatedAtRow>(supabase, 'courses').select('created_at').gte('created_at', startDate.toISOString()).eq('is_active', true),
+      statsTable<CreatedAtRow>(supabase, 'communities').select('created_at').gte('created_at', startDate.toISOString()),
+      statsTable<CreatedAtRow>(supabase, 'ai_prompts').select('created_at').gte('created_at', startDate.toISOString()).eq('is_active', true),
+      statsTable<CreatedAtRow>(supabase, 'ai_apps').select('created_at').gte('created_at', startDate.toISOString()),
     ])
 
     const monthMap = buildEmptyMonthMap(period)

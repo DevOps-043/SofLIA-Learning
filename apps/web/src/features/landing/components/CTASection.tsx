@@ -30,7 +30,7 @@ export function CTASection() {
       {/* Animated Background Effects */}
       <motion.div
         className="absolute inset-0"
-        style={{ opacity: opacity as React.CSSProperties['opacity'] }}
+        style={{ opacity }}
       >
         {/* Gradient Orbs — static on mobile, animated on desktop */}
         <motion.div
@@ -127,13 +127,16 @@ export function CTASection() {
             <Link href="/auth">
               <motion.button
                 className="group relative px-12 py-5 lg:px-16 lg:py-6 bg-gradient-to-r from-primary via-primary to-accent text-white rounded-2xl font-bold text-lg lg:text-xl overflow-hidden shadow-2xl shadow-accent/30"
-                style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 700,
+                  boxShadow: '0 20px 60px rgba(0, 212, 179, 0.35)',
+                }}
                 whileHover={{
                   scale: 1.05,
                   boxShadow: '0 20px 60px rgba(0, 212, 179, 0.4)'
                 }}
                 whileTap={{ scale: 0.98 }}
-                style={{ boxShadow: '0 20px 60px rgba(0, 212, 179, 0.35)' }}
               >
                 {/* Hover gradient — CSS only, no JS animation */}
                 <div className="absolute inset-0 bg-gradient-to-r from-accent via-success to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

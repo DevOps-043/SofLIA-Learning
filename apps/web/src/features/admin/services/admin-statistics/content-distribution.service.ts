@@ -1,6 +1,7 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server'
 import { ADMIN_STATS_COLORS } from './constants'
+import { statsTable } from './stats-query.client'
 import type { ContentDistribution } from './types'
 
 export async function getContentDistribution(): Promise<ContentDistribution[]> {
@@ -12,10 +13,10 @@ export async function getContentDistribution(): Promise<ContentDistribution[]> {
       { count: promptsCount },
       { count: aiAppsCount },
     ] = await Promise.all([
-      supabase.from('courses').select('id', { count: 'exact', head: true }).eq('is_active', true),
-      supabase.from('communities').select('id', { count: 'exact', head: true }),
-      supabase.from('ai_prompts').select('prompt_id', { count: 'exact', head: true }).eq('is_active', true),
-      supabase.from('ai_apps').select('app_id', { count: 'exact', head: true }),
+      statsTable<unknown>(supabase, 'courses').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      statsTable<unknown>(supabase, 'communities').select('id', { count: 'exact', head: true }),
+      statsTable<unknown>(supabase, 'ai_prompts').select('prompt_id', { count: 'exact', head: true }).eq('is_active', true),
+      statsTable<unknown>(supabase, 'ai_apps').select('app_id', { count: 'exact', head: true }),
     ])
 
     const counts = {

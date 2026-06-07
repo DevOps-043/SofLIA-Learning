@@ -10,6 +10,22 @@ import { useLiaSidePanelDictation } from '../useLiaSidePanelDictation';
 import { useLiaSidePanelVoice } from '../useLiaSidePanelVoice';
 
 /**
+ * `true` si el fallo de la voz en vivo proviene realmente de `getUserMedia`
+ * (permiso de microfono denegado o sin dispositivo). Estos errores los resuelve
+ * el usuario y NO deben disparar el fallback a dictado.
+ */
+function isMicPermissionError(rawError: string | null): boolean {
+  if (!rawError) return false;
+  const normalized = rawError.toLowerCase();
+  return (
+    normalized.includes('notallowed') ||
+    normalized.includes('permission') ||
+    normalized.includes('notfound') ||
+    normalized.includes('permiso')
+  );
+}
+
+/**
  * Traduce el codigo/mensaje crudo de la sesion de voz en vivo a un mensaje
  * accionable. Solo se culpa al permiso de microfono cuando el fallo proviene
  * realmente de `getUserMedia`; los fallos de token/servidor (502) NO son un
@@ -18,20 +34,13 @@ import { useLiaSidePanelVoice } from '../useLiaSidePanelVoice';
 function resolveLiveVoiceErrorMessage(rawError: string | null): string | null {
   if (!rawError) return null;
 
-  const normalized = rawError.toLowerCase();
-
   // Permiso de microfono denegado o sin dispositivo (errores de getUserMedia).
-  if (
-    normalized.includes('notallowed') ||
-    normalized.includes('permission') ||
-    normalized.includes('notfound') ||
-    normalized.includes('permiso')
-  ) {
+  if (isMicPermissionError(rawError)) {
     return 'Necesitamos acceso al microfono para hablar con SofLIA. Permitelo en tu navegador e intenta de nuevo.';
   }
 
   // Voz en vivo no configurada en el servidor (sin API key disponible).
-  if (normalized.includes('live_provider_unavailable')) {
+  if (rawError.toLowerCase().includes('live_provider_unavailable')) {
     return 'La voz en vivo no esta disponible por ahora. Intenta mas tarde.';
   }
 
@@ -68,6 +77,13 @@ export function useLiaSidePanelSpeech({
   const isDictationEnabled = settings?.dictation_enabled ?? false;
   const [isVoiceTogglePending, setIsVoiceTogglePending] = useState(false);
 
+  // Fallback a dictado: si la voz en vivo (Live API) falla por algo que NO es
+  // permiso de microfono (p. ej. la Live API esta bloqueada desde el servidor
+  // en produccion), la marcamos como no disponible para esta sesion y la
+  // entrada de voz pasa a usar dictado (Web Speech API). El TTS de SofLIA sigue
+  // funcionando para las respuestas habladas.
+  const [liveVoiceUnavailable, setLiveVoiceUnavailable] = useState(false);
+
   const liveVoice = useLiaLiveVoice({
     conversationId: currentConversationId,
     contextType: pageContext?.currentLessonContext ? 'course' : 'general',
@@ -85,6 +101,12 @@ export function useLiaSidePanelSpeech({
   } = liveVoice;
   const isLiveVoiceActive = liveVoiceStatus === 'connecting' || liveVoiceStatus === 'live';
 
+  // Modo de entrada efectivo: voz en vivo solo si esta habilitada Y disponible.
+  // En cuanto Live falla (no por permisos), se cae a dictado de forma sticky.
+  const useLiveVoiceInput = isVoiceEnabled && !liveVoiceUnavailable;
+  // Dictado como fallback de la voz en vivo no disponible en este entorno.
+  const isDictationFallbackActive = isVoiceEnabled && liveVoiceUnavailable;
+
   const { isSpeaking, voiceReveal } = useLiaSidePanelVoice({
     messages,
     isLoading,
@@ -95,7 +117,9 @@ export function useLiaSidePanelSpeech({
   });
   const dictation = useLiaSidePanelDictation({
     isOpen,
-    isDictationEnabled: !isVoiceEnabled && isDictationEnabled,
+    // Habilitado cuando el dictado es el modo elegido, o como fallback cuando la
+    // voz en vivo no esta disponible aunque el modo voz este activo.
+    isDictationEnabled: (!isVoiceEnabled && isDictationEnabled) || isDictationFallbackActive,
     language,
     inputRef,
     setInputValue,
@@ -107,24 +131,32 @@ export function useLiaSidePanelSpeech({
     }
   }, [isOpen, isVoiceEnabled, stopLiveVoice]);
 
+  // Detecta el fallo de la voz en vivo y activa el fallback a dictado, salvo que
+  // sea un problema de permisos de microfono (que el usuario debe resolver).
+  useEffect(() => {
+    if (liveVoiceStatus === 'error' && !isMicPermissionError(liveVoiceRawError)) {
+      setLiveVoiceUnavailable(true);
+    }
+  }, [liveVoiceStatus, liveVoiceRawError]);
+
   const toggleVoiceInput = useCallback(async () => {
-    if (isVoiceEnabled) {
+    if (useLiveVoiceInput) {
       dictation.stopDictation();
       await toggleLiveVoice();
       return;
     }
 
     dictation.toggleDictation();
-  }, [dictation, isVoiceEnabled, toggleLiveVoice]);
+  }, [dictation, useLiveVoiceInput, toggleLiveVoice]);
 
   const stopVoiceInput = useCallback(() => {
-    if (isVoiceEnabled) {
+    if (useLiveVoiceInput) {
       stopLiveVoice();
       return;
     }
 
     dictation.stopDictation();
-  }, [dictation, isVoiceEnabled, stopLiveVoice]);
+  }, [dictation, useLiveVoiceInput, stopLiveVoice]);
 
   const setVoiceInputError = useCallback(
     (value: string | null) => {
@@ -157,7 +189,16 @@ export function useLiaSidePanelSpeech({
     }
   }, [dictation, isVoiceEnabled, isVoiceTogglePending, stopLiveVoice, updateSettings]);
 
-  const liveVoiceError = resolveLiveVoiceErrorMessage(liveVoiceRawError);
+  // Cuando caemos a dictado, guiamos al usuario a usar el microfono. El aviso se
+  // oculta apenas empieza a dictar o ya hay texto capturado, para no estorbar.
+  const fallbackToDictationNotice =
+    isDictationFallbackActive && !dictation.isDictating && !dictation.finalTranscript
+      ? 'La voz en vivo no esta disponible aqui. Toca el microfono para dictar tu mensaje.'
+      : null;
+
+  const liveVoiceError = liveVoiceUnavailable
+    ? fallbackToDictationNotice
+    : resolveLiveVoiceErrorMessage(liveVoiceRawError);
 
   return {
     isSpeaking: isLiveVoiceActive ? isAssistantLiveSpeaking : isSpeaking,
@@ -166,12 +207,12 @@ export function useLiaSidePanelSpeech({
     toggleVoiceEnabled,
     isVoiceTogglePending,
     isDictationEnabled: isVoiceEnabled || isDictationEnabled,
-    isDictating: isVoiceEnabled ? isLiveVoiceActive : dictation.isDictating,
-    isProcessingDictation: isVoiceEnabled
+    isDictating: useLiveVoiceInput ? isLiveVoiceActive : dictation.isDictating,
+    isProcessingDictation: useLiveVoiceInput
       ? liveVoiceStatus === 'connecting'
       : dictation.isProcessingDictation,
-    interimTranscript: isVoiceEnabled ? '' : dictation.interimTranscript,
-    finalTranscript: isVoiceEnabled ? '' : dictation.finalTranscript,
+    interimTranscript: useLiveVoiceInput ? '' : dictation.interimTranscript,
+    finalTranscript: useLiveVoiceInput ? '' : dictation.finalTranscript,
     dictationError: dictation.dictationError || liveVoiceError,
     setDictationError: setVoiceInputError,
     toggleDictation: toggleVoiceInput,

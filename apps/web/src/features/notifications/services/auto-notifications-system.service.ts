@@ -103,6 +103,7 @@ export class SystemNotificationsService {
       metadata: {
         ...metadata,
         action_url: '/profile?tab=security',
+        account_scope: 'current_user',
         auth_method: metadata?.isOAuth ? 'oauth' : 'password',
         browser: client.browser,
         deviceLabel: client.deviceLabel,
@@ -135,6 +136,7 @@ export class SystemNotificationsService {
       notificationType: 'system_login_failed',
       metadata: {
         ...metadata,
+        account_scope: 'current_user',
         browser: client.browser,
         deviceLabel: client.deviceLabel,
         ip,

@@ -11,7 +11,7 @@ export async function getLessonMaterials(lessonId: string): Promise<AdminMateria
     .order('material_order_index', { ascending: true })
 
   if (error) throw error
-  return data || []
+  return (data || []) as AdminMaterial[]
 }
 
 export async function getMaterialById(materialId: string): Promise<AdminMaterial | null> {
@@ -25,7 +25,7 @@ export async function getMaterialById(materialId: string): Promise<AdminMaterial
       .single()
 
     if (error) throw error
-    return data
+    return data as AdminMaterial
   } catch {
     return null
   }

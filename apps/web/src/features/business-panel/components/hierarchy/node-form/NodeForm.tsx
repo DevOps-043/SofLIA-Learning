@@ -3,6 +3,7 @@
 import React from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Building2, ChevronDown, Plus, Sparkles, X } from 'lucide-react'
+import { useParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
 import type { OrganizationNode, OrganizationNodeProperties } from '../../../types/dynamicHierarchy.types'
@@ -31,6 +32,8 @@ export const NodeForm: React.FC<NodeFormProps> = ({
   const theme = useBusinessPanelTheme()
   const { t } = useTranslation('business')
   const { t: tc } = useTranslation('common')
+  const params = useParams()
+  const orgSlug = params?.orgSlug as string | undefined
   const form = useNodeFormState(isOpen, mode, onSave, onClose, parentNode, nodeToEdit)
 
   const { handleGeocode, handleReverseGeocode, isGeocoding, geocodeError } = useGeocoding(
@@ -55,7 +58,8 @@ export const NodeForm: React.FC<NodeFormProps> = ({
       setZipCode: form.setZipCode,
       setLatitude: form.setLatitude,
       setLongitude: form.setLongitude,
-    }
+    },
+    orgSlug,
   )
 
   if (!isOpen) {

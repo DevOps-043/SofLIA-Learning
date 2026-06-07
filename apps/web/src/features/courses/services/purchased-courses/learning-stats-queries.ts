@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import { fromLoose } from "@/lib/supabase/looseQuery";
 import type { LearningStatsEnrollmentRow, LearningStatsPurchaseRow } from "./learning-stats.types";
 
 export async function queryLearningStatsPurchases(userId: string) {
   const supabase = await createClient();
-  return supabase
-    .from("course_purchases")
+  return fromLoose<LearningStatsPurchaseRow>(supabase, "course_purchases")
     .select(`
       purchase_id,
       enrollment_id,
@@ -14,7 +14,6 @@ export async function queryLearningStatsPurchases(userId: string) {
         duration_total_minutes
       )
     `)
-    .returns<LearningStatsPurchaseRow[]>()
     .eq("user_id", userId)
     .eq("access_status", "active");
 }
@@ -24,7 +23,7 @@ export async function queryLearningStatsEnrollments(userId: string, courseIds: s
   return supabase
     .from("user_course_enrollments")
     .select("enrollment_id, enrollment_status, overall_progress_percentage, course_id")
-    .returns<LearningStatsEnrollmentRow[]>()
     .eq("user_id", userId)
-    .in("course_id", courseIds);
+    .in("course_id", courseIds)
+    .returns<LearningStatsEnrollmentRow[]>();
 }

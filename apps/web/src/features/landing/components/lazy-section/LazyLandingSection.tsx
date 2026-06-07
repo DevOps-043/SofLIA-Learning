@@ -41,9 +41,13 @@ function useLazyActivation(rootMargin: string) {
       return
     }
 
-    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
-      const fallbackTimer = window.setTimeout(() => setShouldRender(true), 1)
-      return () => window.clearTimeout(fallbackTimer)
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    if (!('IntersectionObserver' in window)) {
+      const fallbackTimer = globalThis.setTimeout(() => setShouldRender(true), 1)
+      return () => globalThis.clearTimeout(fallbackTimer)
     }
 
     const observer = new IntersectionObserver(

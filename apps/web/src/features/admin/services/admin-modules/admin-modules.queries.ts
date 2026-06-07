@@ -1,4 +1,5 @@
 import { createAdminModulesClient } from './admin-modules.client'
+import { mapAdminModule } from './admin-modules.mapper'
 import type { AdminModule } from './admin-modules.types'
 import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
@@ -22,7 +23,7 @@ export async function getCourseModules(courseId: string): Promise<AdminModule[]>
     .order('module_order_index', { ascending: true })
 
   if (error) throw error
-  return data || []
+  return (data || []).map(mapAdminModule)
 }
 
 export async function getModuleById(moduleId: string): Promise<AdminModule | null> {
@@ -36,7 +37,7 @@ export async function getModuleById(moduleId: string): Promise<AdminModule | nul
       .single()
 
     if (error) throw error
-    return data
+    return mapAdminModule(data)
   } catch {
     return null
   }

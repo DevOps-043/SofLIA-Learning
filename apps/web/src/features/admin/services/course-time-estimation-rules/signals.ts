@@ -42,6 +42,12 @@ export function buildTargetRuleSignals(
 ): TargetRuleSignals {
   const activityConfig = normalizeActivityConfig(target.activityConfig)
   const plainText = getTargetPlainText(target)
+  const submission = activityConfig && 'submission' in activityConfig
+    ? activityConfig.submission
+    : null
+  const toolTask = activityConfig && 'toolTask' in activityConfig
+    ? activityConfig.toolTask
+    : null
   const fieldCount =
     activityConfig?.interactionType === 'inline_answers'
       ? activityConfig.submission.fields.length
@@ -59,10 +65,10 @@ export function buildTargetRuleSignals(
     fieldCount,
     checklistItemCount,
     requireEvidence:
-      Boolean(activityConfig?.submission.requireEvidence) ||
+      Boolean(submission?.requireEvidence) ||
       Boolean(target.requiresSofliaValidation),
     hasExternalTool:
-      Boolean(activityConfig?.toolTask?.toolKey) || Boolean(target.externalUrl),
+      Boolean(toolTask?.toolKey) || Boolean(target.externalUrl),
     plainTextExcerpt:
       plainText.length > 800 ? `${plainText.slice(0, 797)}...` : plainText,
   }

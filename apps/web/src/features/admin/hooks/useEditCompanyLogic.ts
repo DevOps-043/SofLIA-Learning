@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { getAdminApiErrorMessage } from '../services/admin-api-errors'
 
 // ============================================
 // TYPES (re-exported for page consumption)
@@ -87,16 +88,17 @@ export function useEditCompanyLogic() {
     // Load company data
     const loadCompany = useCallback(async () => {
         setLoading(true)
+        setError(null)
         try {
             const res = await fetch(`/api/admin/companies/${companyId}`)
-            const data = await res.json()
+            const data = await res.json().catch(() => null)
 
-            if (data.success && data.company) {
+            if (res.ok && data?.success && data.company) {
                 setCompany(data.company)
             } else {
-                setError('No se pudo cargar la empresa')
+                setError(getAdminApiErrorMessage(data, 'No se pudo cargar la empresa'))
             }
-        } catch (err) {
+        } catch {
             setError('Error al cargar la empresa')
         } finally {
             setLoading(false)
@@ -114,6 +116,7 @@ export function useEditCompanyLogic() {
 
         setSaving(true)
         setSaveSuccess(false)
+        setError(null)
 
         try {
             const res = await fetch(`/api/admin/companies/${companyId}`, {
@@ -122,15 +125,18 @@ export function useEditCompanyLogic() {
                 body: JSON.stringify(company)
             })
 
-            const data = await res.json()
+            const data = await res.json().catch(() => null)
 
-            if (data.success) {
+            if (res.ok && data?.success) {
+                if (data.company) {
+                    setCompany(data.company)
+                }
                 setSaveSuccess(true)
                 setTimeout(() => setSaveSuccess(false), 3000)
             } else {
-                setError(data.error || 'Error al guardar')
+                setError(getAdminApiErrorMessage(data, 'Error al guardar'))
             }
-        } catch (err) {
+        } catch {
             setError('Error al guardar los cambios')
         } finally {
             setSaving(false)

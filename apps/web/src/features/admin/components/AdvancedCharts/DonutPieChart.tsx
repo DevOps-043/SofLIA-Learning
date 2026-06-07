@@ -34,7 +34,7 @@ export function DonutPieChart({ data, title, darkMode = true }: DonutPieChartPro
         <PieChart>
           <Tooltip
             contentStyle={getTooltipStyle(theme)}
-            formatter={(value: number, name: string) => [`${value}`, name]}
+            formatter={(value, name) => [`${value}`, `${name}`]}
           />
           <Legend wrapperStyle={{ color: theme.tickColor }} />
           <Pie

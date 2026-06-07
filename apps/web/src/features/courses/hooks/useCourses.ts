@@ -73,7 +73,7 @@ export function useCourses(): UseCoursesReturn {
     courses,
     loading: isLoading,
     error: error?.message || null,
-    refetch: mutate,
+    refetch: async () => { await mutate() },
     filteredCourses,
     setFilter,
     activeFilter,
@@ -108,6 +108,6 @@ export function useCoursesByCategory(category: string): UseCoursesByCategoryRetu
     courses,
     loading: isLoading,
     error: error?.message || null,
-    refetch: mutate
+    refetch: async () => { await mutate() }
   }
 }

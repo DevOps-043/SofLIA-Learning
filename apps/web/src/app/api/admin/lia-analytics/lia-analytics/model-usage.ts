@@ -1,4 +1,5 @@
 import type { LiaMessageMetricRow } from './types'
+import { normalizeLiaMessageMetrics } from './message-metrics'
 
 export function getModelUsage(assistantMessages: LiaMessageMetricRow[]) {
   const modelCounts = new Map<
@@ -7,12 +8,13 @@ export function getModelUsage(assistantMessages: LiaMessageMetricRow[]) {
   >()
 
   assistantMessages.forEach((message) => {
-    const model = message.model_used || 'gemini-3.5-flash'
+    const metrics = normalizeLiaMessageMetrics(message)
+    const model = metrics.model
     const existing = modelCounts.get(model) || { cost: 0, count: 0, tokens: 0 }
     modelCounts.set(model, {
-      cost: existing.cost + (message.cost_usd || 0),
+      cost: existing.cost + metrics.cost,
       count: existing.count + 1,
-      tokens: existing.tokens + (message.tokens_used || 0),
+      tokens: existing.tokens + metrics.tokens,
     })
   })
 

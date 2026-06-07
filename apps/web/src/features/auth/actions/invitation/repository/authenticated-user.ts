@@ -41,9 +41,12 @@ async function resolveNativeAuthUserId(supabase: unknown): Promise<string | null
   }
 
   try {
-    const { data } = await (
-      authClient.auth?.getUser?.() ?? Promise.resolve({})
-    )
+    const getUser = authClient.auth?.getUser
+    if (!getUser) {
+      return null
+    }
+
+    const { data } = await getUser()
     return data?.user?.id ?? null
   } catch {
     return null

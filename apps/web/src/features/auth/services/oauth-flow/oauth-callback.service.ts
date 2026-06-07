@@ -23,6 +23,7 @@ import type {
   OAuthProviderAdapter,
   ProcessOAuthCallbackResult,
 } from './oauth-flow.types';
+import type { TablesUpdate } from '../../../../lib/supabase/types';
 
 interface ProcessOAuthCallbackInput<TProviderTokens> {
   orgContextCookie?: string;
@@ -106,7 +107,7 @@ export async function processOAuthCallback<TProviderTokens>({
     if (existingUser) {
       userId = existingUser.id;
 
-      const profileUpdates: Record<string, unknown> = {};
+      const profileUpdates: TablesUpdate<'users'> = {};
 
       if (orgContext.orgId && invitedRole) {
         profileUpdates.cargo_rol = 'Business';

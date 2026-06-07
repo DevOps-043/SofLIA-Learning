@@ -8,6 +8,7 @@ import {
   PlusCircleIcon,
 } from '@heroicons/react/24/outline';
 import type { CourseDiff, DiffLesson, DiffModule, DiffStatus, FieldChange } from '../../../../lib/courseDiff';
+import type { PendingCourseLesson } from './types';
 import { PendingCourseLessonDetails } from './lesson-content/PendingCourseLessonDetails';
 import { getFieldLabel, truncateFieldValue } from './utils';
 
@@ -47,6 +48,25 @@ function FieldChangeRow({ change }: { change: FieldChange }) {
   );
 }
 
+type CourseDiffLessonSnapshot = NonNullable<DiffLesson['proposed']>
+
+function toPendingCourseLesson(snapshot: CourseDiffLessonSnapshot): PendingCourseLesson {
+  const record = snapshot as Record<string, unknown>
+  return {
+    lesson_id: typeof record.lesson_id === 'string'
+      ? record.lesson_id
+      : `${snapshot.lesson_order_index ?? snapshot.lesson_title ?? 'lesson'}`,
+    lesson_title: snapshot.lesson_title ?? 'Sin titulo',
+    duration_seconds: snapshot.duration_seconds ?? 0,
+    video_provider: typeof record.video_provider === 'string' ? record.video_provider : 'custom',
+    video_provider_id: snapshot.video_provider_id ?? '',
+    transcript_content: snapshot.transcript_content ?? null,
+    summary_content: snapshot.summary_content ?? null,
+    activities: Array.isArray(record.activities) ? record.activities as PendingCourseLesson['activities'] : [],
+    materials: Array.isArray(record.materials) ? record.materials as PendingCourseLesson['materials'] : [],
+  }
+}
+
 function DiffLessonItem({ diffLesson }: { diffLesson: DiffLesson }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const color = diffColors[diffLesson.status];
@@ -56,6 +76,7 @@ function DiffLessonItem({ diffLesson }: { diffLesson: DiffLesson }) {
   if (!displayLesson) {
     return null;
   }
+  const pendingLesson = toPendingCourseLesson(displayLesson);
 
   return (
     <div className={`border-b border-gray-100 dark:border-gray-800 last:border-0 ${isRemoved ? 'opacity-60' : ''}`}>
@@ -90,7 +111,7 @@ function DiffLessonItem({ diffLesson }: { diffLesson: DiffLesson }) {
             <p className="text-[10px] text-gray-400 italic">antes: {diffLesson.original_title}</p>
           )}
           <p className="text-xs text-gray-500">
-            {displayLesson.duration_seconds} seg • {displayLesson.video_provider}
+            {pendingLesson.duration_seconds} seg • {pendingLesson.video_provider}
           </p>
         </div>
         <DiffBadge status={diffLesson.status} />
@@ -106,7 +127,7 @@ function DiffLessonItem({ diffLesson }: { diffLesson: DiffLesson }) {
               ))}
             </div>
           )}
-          <PendingCourseLessonDetails lesson={displayLesson} />
+          <PendingCourseLessonDetails lesson={pendingLesson} />
         </div>
       )}
     </div>

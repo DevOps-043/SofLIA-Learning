@@ -3,7 +3,7 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import type { CourseSkill } from '../../../../../courses/components/CourseSkillsSelector'
+import type { CourseSkill } from '../../../../courses/components/CourseSkillsSelector'
 import type { ConfigData, CourseWorkshopPreview } from '../types'
 import { DEFAULT_CONFIG_DATA } from '../types'
 

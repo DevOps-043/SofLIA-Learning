@@ -56,7 +56,7 @@ export function buildFallbackActivityConfig(content: string): ActivityConfig {
   if (checklistItems.length > 0) {
     return {
       interactionType: 'checklist',
-      submission: { checklistItems },
+      submission: { checklistItems, requireEvidence: false },
       validation: defaultActivityValidationConfig,
     }
   }
@@ -65,7 +65,7 @@ export function buildFallbackActivityConfig(content: string): ActivityConfig {
   if (fields.length > 0) {
     return {
       interactionType: 'inline_answers',
-      submission: { fields },
+      submission: { fields, requireEvidence: false },
       validation: defaultActivityValidationConfig,
     }
   }
@@ -73,6 +73,7 @@ export function buildFallbackActivityConfig(content: string): ActivityConfig {
   return {
     interactionType: 'long_text',
     submission: {
+      requireEvidence: false,
       responsePlaceholder: 'Escribe aqui tu respuesta, hallazgos o lo que realizaste en la actividad.',
       evidencePlaceholder: 'Opcional: pega evidencia, enlaces o notas complementarias.',
     },

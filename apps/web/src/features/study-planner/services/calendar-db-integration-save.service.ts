@@ -5,6 +5,7 @@ import type {
   CalendarIntegrationMetadata,
 } from '../types/user-context.types';
 import { CALENDAR_INTEGRATION_PUBLIC_SELECT } from './calendar-db.constants';
+import type { Json } from '@/lib/supabase/types';
 
 interface CalendarTokenPayload {
   access_token: string;
@@ -32,8 +33,22 @@ export async function saveCalendarIntegrationRecord(
     .single();
 
   const result = existing
-    ? await updateCalendarIntegrationRecord(existing, provider, tokens, expiresAt, calendarEmail)
+    ? await updateCalendarIntegrationRecord(
+        {
+          id: existing.id,
+          refresh_token: existing.refresh_token,
+          metadata: parseCalendarIntegrationMetadata(existing.metadata),
+        },
+        provider,
+        tokens,
+        expiresAt,
+        calendarEmail,
+      )
     : await createCalendarIntegrationRecord(userId, provider, tokens, expiresAt, calendarEmail);
+
+  if (!result) {
+    return null;
+  }
 
   return {
     id: result.id,
@@ -42,6 +57,22 @@ export async function saveCalendarIntegrationRecord(
     isConnected: true,
     expiresAt: result.expires_at || undefined,
     scope: result.scope || undefined,
+  };
+}
+
+function parseCalendarIntegrationMetadata(value: Json): CalendarIntegrationMetadata {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+
+  const metadata = value as Record<string, unknown>;
+  return {
+    account_email: typeof metadata.account_email === 'string' ? metadata.account_email : undefined,
+    provider_account_id: typeof metadata.provider_account_id === 'string' ? metadata.provider_account_id : undefined,
+    secondary_calendar_id: typeof metadata.secondary_calendar_id === 'string' ? metadata.secondary_calendar_id : undefined,
+    selected_calendar_ids: Array.isArray(metadata.selected_calendar_ids)
+      ? metadata.selected_calendar_ids.filter((calendarId): calendarId is string => typeof calendarId === 'string')
+      : undefined,
   };
 }
 

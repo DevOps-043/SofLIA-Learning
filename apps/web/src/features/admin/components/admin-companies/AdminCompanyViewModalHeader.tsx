@@ -37,7 +37,7 @@ export function AdminCompanyViewModalHeader(props: AdminCompanyViewModalHeaderPr
           <X className="h-5 w-5" />
         </button>
         <div className="absolute -bottom-12 left-6">
-          <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-[24px] border-4 shadow-lg" style={{ backgroundColor: props.themeColors.cardBackground, borderColor: props.themeColors.cardBackground, color: theme.primaryColor }}>
+          <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-[24px] border-4 bg-white shadow-lg" style={{ borderColor: props.themeColors.cardBackground, color: theme.primaryColor }}>
             {props.logoUrl ? <Image src={props.logoUrl} alt={props.company.name} fill sizes="96px" className="object-contain p-3" unoptimized /> : <Building2 className="h-12 w-12" />}
           </div>
         </div>

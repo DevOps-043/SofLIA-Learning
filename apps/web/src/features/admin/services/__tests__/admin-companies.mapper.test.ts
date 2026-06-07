@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { mapOrganizationRow, type OrganizationRow } from '../admin-companies/admin-companies.mapper'
+import { DEFAULT_BRAND_PRIMARY } from '../admin-companies/admin-company-brand-colors'
 
 describe('admin-companies.mapper', () => {
   it('maps organization rows with defaults, pending invitations and resolved users', () => {
@@ -66,7 +67,7 @@ describe('admin-companies.mapper', () => {
       ]),
     })
 
-    expect(company.brand_color_primary).toBe('var(--color-info)')
+    expect(company.brand_color_primary).toBe(DEFAULT_BRAND_PRIMARY)
     expect(company.brand_font_family).toBe('Inter')
     expect(company.active_users).toBe(1)
     expect(company.invited_users).toBe(3)

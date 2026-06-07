@@ -10,6 +10,7 @@ import {
 describe('admin-create-company-modal.service', () => {
   it('genera slug estable desde el nombre', () => {
     expect(createCompanySlug('Acme Corp 2026!')).toBe('acme-corp-2026')
+    expect(createCompanySlug('Compañía Ágil')).toBe('compania-agil')
   })
 
   it('valida el formulario minimo requerido', () => {

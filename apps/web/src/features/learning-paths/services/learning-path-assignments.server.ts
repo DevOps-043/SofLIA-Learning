@@ -8,6 +8,7 @@ export async function loadAssignedLearningPathIds(
 ) {
   const supabase = await createClient()
   const assignedIds = new Set<string>()
+  const explicitlyRevokedIds = new Set<string>()
 
   if (organizationId) {
     const { data, error } = await supabase
@@ -26,20 +27,32 @@ export async function loadAssignedLearningPathIds(
 
   const userQuery = supabase
     .from('user_learning_path_assignments')
-    .select('learning_path_id')
+    .select('learning_path_id, status')
     .eq('user_id', userId)
-    .eq('status', 'assigned')
 
   if (organizationId) userQuery.eq('organization_id', organizationId)
 
   const { data: userAssignments, error: userError } =
-    await userQuery.returns<{ learning_path_id: string }[]>()
+    await userQuery.returns<{ learning_path_id: string; status: 'assigned' | 'revoked' }[]>()
 
   if (userError) {
     if (isMissingLearningPathInfrastructureError(userError)) return []
     handleAssignmentError(userError)
   }
-  for (const row of userAssignments || []) assignedIds.add(row.learning_path_id)
+  for (const row of userAssignments || []) {
+    if (row.status === 'revoked') {
+      explicitlyRevokedIds.add(row.learning_path_id)
+      continue
+    }
+
+    if (row.status === 'assigned') {
+      assignedIds.add(row.learning_path_id)
+    }
+  }
+
+  for (const learningPathId of explicitlyRevokedIds) {
+    assignedIds.delete(learningPathId)
+  }
 
   return [...assignedIds]
 }

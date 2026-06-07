@@ -1,7 +1,13 @@
 import { SOFLIA_ADMIN_COLORS } from '../../constants/admin-color-tokens'
+import {
+  DEFAULT_BRAND_ACCENT,
+  DEFAULT_BRAND_PRIMARY,
+  DEFAULT_BRAND_SECONDARY,
+} from '../../services/admin-companies/admin-company-brand-colors'
 import type { CreateCompanyData, PlanOption } from './types'
 
 const colors = SOFLIA_ADMIN_COLORS
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export const PLAN_OPTIONS: PlanOption[] = [
   {
@@ -38,9 +44,9 @@ export function createInitialCompanyData(): CreateCompanyData {
     brand_logo_url: '',
     brand_banner_url: '',
     brand_favicon_url: '',
-    brand_color_primary: colors.primary,
-    brand_color_secondary: colors.bgSecondary,
-    brand_color_accent: colors.accent,
+    brand_color_primary: DEFAULT_BRAND_PRIMARY,
+    brand_color_secondary: DEFAULT_BRAND_SECONDARY,
+    brand_color_accent: DEFAULT_BRAND_ACCENT,
     brand_font_family: 'Inter',
     google_login_enabled: false,
     microsoft_login_enabled: false,
@@ -52,6 +58,8 @@ export function createInitialCompanyData(): CreateCompanyData {
 export function createCompanySlug(name: string): string {
   return name
     .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
@@ -66,7 +74,7 @@ export function isCreateCompanyFormValid(formData: CreateCompanyData): boolean {
   return (
     formData.name.trim().length > 0 &&
     Boolean(formData.owner_email) &&
-    formData.owner_email!.includes('@')
+    EMAIL_PATTERN.test(formData.owner_email!.trim())
   )
 }
 

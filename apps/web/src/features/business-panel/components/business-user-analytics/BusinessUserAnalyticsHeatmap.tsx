@@ -81,6 +81,10 @@ export function BusinessUserAnalyticsHeatmap({
           </div>
         </div>
 
+        <p className="mt-3 max-w-2xl text-xs leading-5 text-gray-500 dark:text-gray-400">
+          {t('analytics.heatmap.description')}
+        </p>
+
         <div className="mt-4 flex items-center justify-end gap-2 text-xs text-gray-500 dark:text-gray-400">
           <span>{t('analytics.heatmap.less')}</span>
           {LEVEL_CLASSES.map((className, index) => (

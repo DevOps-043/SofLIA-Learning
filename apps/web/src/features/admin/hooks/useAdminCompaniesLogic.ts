@@ -20,6 +20,7 @@ export function useAdminCompaniesLogic() {
   const [isSaving, setIsSaving] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const theme = useAdminPanelTheme()
 
@@ -69,14 +70,24 @@ export function useAdminCompaniesLogic() {
     }
   }
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      await refetch()
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
   return {
     companies,
     stats,
     isLoading,
     error,
-    refetch,
+    refetch: handleRefresh,
     updatingId,
     actionError,
+    isRefreshing,
     searchTerm, setSearchTerm,
     planFilter, setPlanFilter,
     statusFilter, setStatusFilter,

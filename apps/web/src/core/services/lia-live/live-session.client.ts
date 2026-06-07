@@ -8,9 +8,11 @@ import {
 } from '@google/genai';
 
 import {
+  DEFAULT_LIA_LIVE_VOICE,
   LIA_LIVE_INPUT_MIME_TYPE,
   LIA_LIVE_LANGUAGE_CODE,
   LIA_LIVE_SYSTEM_INSTRUCTION,
+  isNativeAudioLiveModel,
 } from './constants';
 
 export interface LiaLiveSessionCallbacks {
@@ -36,6 +38,7 @@ interface ConnectParams extends LiaLiveSessionCallbacks {
   model: string;
   systemInstruction?: string;
   languageCode?: string;
+  voiceName?: string;
 }
 
 /**
@@ -47,6 +50,7 @@ export async function connectLiaLiveSession({
   model,
   systemInstruction = LIA_LIVE_SYSTEM_INSTRUCTION,
   languageCode = LIA_LIVE_LANGUAGE_CODE,
+  voiceName = DEFAULT_LIA_LIVE_VOICE,
   onAudio,
   onInterrupted,
   onInputTranscript,
@@ -58,13 +62,16 @@ export async function connectLiaLiveSession({
   // `vertexai: false` fuerza el modo Gemini Developer API (token efimero) y evita
   // que el SDK intente autodetectar Vertex AI. Ver nota en la ruta del token.
   const ai = new GoogleGenAI({ apiKey: token, vertexai: false, httpOptions: { apiVersion: 'v1alpha' } });
+  const speechConfig = isNativeAudioLiveModel(model)
+    ? { voiceConfig: { prebuiltVoiceConfig: { voiceName } } }
+    : { languageCode, voiceConfig: { prebuiltVoiceConfig: { voiceName } } };
 
   const session: Session = await ai.live.connect({
     model,
     config: {
       responseModalities: [Modality.AUDIO],
       systemInstruction,
-      speechConfig: { languageCode },
+      speechConfig,
       inputAudioTranscription: {},
       outputAudioTranscription: {},
     },

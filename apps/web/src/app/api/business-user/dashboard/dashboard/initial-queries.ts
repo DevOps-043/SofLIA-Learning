@@ -28,6 +28,7 @@ export async function fetchInitialDashboardData(
       .from('user_course_certificates')
       .select('certificate_id, course_id')
       .eq('user_id', userId)
+      .eq('organization_id', organizationId)
       .limit(100),
   ])
 

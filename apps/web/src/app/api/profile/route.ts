@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     if (includeStats) {
       const [profile, stats, subscriptions] = await Promise.all([
         ProfileServerService.getProfile(user.id, organizationId),
-        ProfileServerService.getUserStats(user.id),
+        ProfileServerService.getUserStats(user.id, organizationId),
         ProfileServerService.getUserSubscriptions(user.id),
       ])
 

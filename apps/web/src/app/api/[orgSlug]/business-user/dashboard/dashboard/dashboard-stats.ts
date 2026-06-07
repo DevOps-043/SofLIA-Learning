@@ -5,7 +5,7 @@ function getAssignmentProgress(
   enrollmentsMap: Map<string, EnrollmentRow>,
 ) {
   const enrollment = enrollmentsMap.get(assignment.course_id)
-  return enrollment?.overall_progress_percentage || assignment.completion_percentage || 0
+  return enrollment?.overall_progress_percentage ?? assignment.completion_percentage ?? 0
 }
 
 export function buildDashboardStats(

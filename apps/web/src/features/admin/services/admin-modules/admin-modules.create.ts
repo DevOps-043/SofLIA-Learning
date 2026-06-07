@@ -1,5 +1,6 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createAdminModulesClient } from './admin-modules.client'
+import { mapAdminModule } from './admin-modules.mapper'
 import type { AdminModule, CreateModuleData } from './admin-modules.types'
 
 function extractModuleNumber(title: string): number | null {
@@ -63,6 +64,7 @@ export async function createModule(
     .single()
 
   if (error) throw error
-  await translateCreatedModule(data, userId)
-  return data
+  const createdModule = mapAdminModule(data)
+  await translateCreatedModule(createdModule, userId)
+  return createdModule
 }

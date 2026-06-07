@@ -29,6 +29,7 @@ export interface OrganizationNode {
     type: string;
     code?: string | null;
     manager_id?: string | null;
+    is_active?: boolean;
     properties: OrganizationNodeProperties;
     path: string;
     depth: number;

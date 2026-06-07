@@ -11,6 +11,17 @@ export async function calculateLessonsTimeRealtime(
   supabase: SupabaseServerClient,
   interactionTimeMinutes: number,
 ): Promise<LessonTimeEstimate[]> {
+  const { data: modules } = await supabase
+    .from('course_modules')
+    .select('module_id')
+    .eq('course_id', courseId)
+
+  const moduleIds = (modules || [])
+    .map((module) => module.module_id)
+    .filter((moduleId): moduleId is string => typeof moduleId === 'string' && moduleId.length > 0)
+
+  if (moduleIds.length === 0) return []
+
   const { data: lessons } = await supabase
     .from('course_lessons')
     .select(`
@@ -23,8 +34,8 @@ export async function calculateLessonsTimeRealtime(
         module_title
       )
     `)
-    .eq('course_id', courseId)
-    .order('lesson_order', { ascending: true })
+    .in('module_id', moduleIds)
+    .order('lesson_order_index', { ascending: true })
 
   if (!lessons || lessons.length === 0) return []
 

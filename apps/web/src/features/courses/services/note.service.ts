@@ -1,6 +1,11 @@
 import { createClient } from '../../../lib/supabase/server'
+import type { Json, Tables, TablesUpdate } from '../../../lib/supabase/types'
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+type LessonNoteRow = Tables<'user_lesson_notes'>
+type LessonNoteRowLike = Omit<LessonNoteRow, 'organization_id'> & {
+  organization_id?: string | null
+}
 
 const NOTE_SELECT_COLUMNS =
   'note_id, note_title, note_content, note_tags, is_auto_generated, source_type, created_at, updated_at, user_id, lesson_id'
@@ -54,6 +59,35 @@ interface CourseNotesStatsRpcClient {
     data: CourseNotesStatsRpcRow[] | CourseNotesStatsRpcRow | null
     error: { message?: string } | null
   }>
+}
+
+function parseNoteTags(value: Json): string[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.filter((tag): tag is string => typeof tag === 'string')
+}
+
+function parseNoteSource(value: string | null): LessonNote['source_type'] {
+  return value === 'chat' || value === 'import' || value === 'manual'
+    ? value
+    : 'manual'
+}
+
+function mapLessonNote(row: LessonNoteRowLike): LessonNote {
+  return {
+    note_id: row.note_id,
+    note_title: row.note_title,
+    note_content: row.note_content,
+    note_tags: parseNoteTags(row.note_tags),
+    is_auto_generated: row.is_auto_generated ?? false,
+    source_type: parseNoteSource(row.source_type),
+    created_at: row.created_at ?? '',
+    updated_at: row.updated_at ?? '',
+    user_id: row.user_id,
+    lesson_id: row.lesson_id,
+  }
 }
 
 function toCount(value: number | string | null | undefined): number {
@@ -129,7 +163,7 @@ export class NoteService {
         throw new Error(`Error al obtener notas: ${error.message}`)
       }
 
-      return data || []
+      return (data || []).map(mapLessonNote)
     } catch (error) {
       throw error
     }
@@ -171,7 +205,7 @@ export class NoteService {
         throw new Error(`Error al obtener notas: ${error.message}`)
       }
 
-      return data || []
+      return (data || []).map(mapLessonNote)
     } catch (error) {
       throw error
     }
@@ -207,7 +241,7 @@ export class NoteService {
         throw new Error(`Error al crear nota: ${error.message}`)
       }
 
-      return data
+      return mapLessonNote(data)
     } catch (error) {
       throw error
     }
@@ -224,7 +258,7 @@ export class NoteService {
     try {
       const supabase = await createClient()
 
-      const updateData: Record<string, unknown> = {
+      const updateData: TablesUpdate<'user_lesson_notes'> = {
         updated_at: new Date().toISOString(),
       }
 
@@ -250,7 +284,7 @@ export class NoteService {
         throw new Error(`Error al actualizar nota: ${error.message}`)
       }
 
-      return data
+      return mapLessonNote(data)
     } catch (error) {
       throw error
     }

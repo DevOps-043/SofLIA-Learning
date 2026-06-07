@@ -26,7 +26,7 @@ export interface StudyPlanSessionPayload {
   title: string;
   description: string;
   courseId: string;
-  lessonId: undefined;
+  lessonId?: string;
   plannedLessons: StudyPlanSessionLessonPayload[];
   startTime: string;
   endTime: string;

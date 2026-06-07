@@ -12,7 +12,7 @@ interface StudyPlannerPanelStyles {
   text_color?: string | null
 }
 
-export function useStudyPlannerLIAViewState(styles?: { panel?: StudyPlannerPanelStyles } | null) {
+export function useStudyPlannerLIAViewState(styles?: { panel?: StudyPlannerPanelStyles | null } | null) {
   const performanceMode = useDevicePerformanceMode()
   const [isVisible, setIsVisible] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)

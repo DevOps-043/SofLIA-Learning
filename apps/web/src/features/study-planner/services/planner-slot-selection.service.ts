@@ -1,5 +1,6 @@
 import { HolidayService } from '../../../lib/holidays';
 import type { SelectStudyPlannerFinalSlotsInput, SelectStudyPlannerFinalSlotsResult } from './planner-slot-selection.types';
+import type { StudyPlannerCalendarFreeSlotWithDay } from '../types/planner-schedule.types';
 import {
   MIN_SLOT_DURATION,
   USER_COUNTRY,

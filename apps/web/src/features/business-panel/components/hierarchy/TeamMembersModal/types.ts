@@ -1,5 +1,5 @@
-import type { BusinessUser } from '../../services/businessUsers.service'
-import type { UserWithHierarchy } from '../../types/hierarchy.types'
+import type { BusinessUser } from '../../../services/businessUsers.service'
+import type { UserWithHierarchy } from '../../../types/hierarchy.types'
 
 export interface TeamMembersModalProps {
   isOpen: boolean

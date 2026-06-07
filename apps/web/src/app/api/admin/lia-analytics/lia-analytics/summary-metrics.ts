@@ -1,4 +1,8 @@
 import { applyProviderFilter } from './provider-filter'
+import {
+  resolveLiaMessageCost,
+  resolveLiaMessageTokens,
+} from './message-metrics'
 import type {
   LiaAnalyticsSupabaseClient,
   LiaMessageMetricRow,
@@ -16,7 +20,7 @@ export async function getSummaryMetrics(
 
   let messagesQuery = supabase
     .from('lia_messages')
-    .select('tokens_used, cost_usd, response_time_ms, model_used, role')
+    .select('content, tokens_used, cost_usd, response_time_ms, model_used, role')
     .gte('created_at', input.startDate.toISOString())
     .lte('created_at', input.nowISO)
 
@@ -26,8 +30,14 @@ export async function getSummaryMetrics(
   const assistantMessages = messages.filter((message) => message.role === 'assistant')
 
   const totalMessages = messages.length
-  const totalTokens = messages.reduce((sum, message) => sum + (message.tokens_used || 0), 0)
-  const totalCostUsd = messages.reduce((sum, message) => sum + (message.cost_usd || 0), 0)
+  const totalTokens = messages.reduce(
+    (sum, message) => sum + resolveLiaMessageTokens(message),
+    0
+  )
+  const totalCostUsd = messages.reduce(
+    (sum, message) => sum + resolveLiaMessageCost(message),
+    0
+  )
 
   const { count: completedActivities } = await supabase
     .from('lia_activity_completions')

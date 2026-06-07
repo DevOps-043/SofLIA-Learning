@@ -6,7 +6,7 @@ import { getUnknownErrorMessage, parseLessonProgressApiResponse } from "./parser
 import { handleProgressFailure } from "./progress-failure";
 import { checkLessonQuizStatus } from "./quiz-status";
 import { saveLessonProgress } from "./save-progress";
-import type { LearnTranslate, UseLessonCompletionParams, ValidationModalState } from "./types";
+import type { LearnTranslate, LessonProgressApiResponse, UseLessonCompletionParams, ValidationModalState } from "./types";
 
 interface UseLessonCompletionWorkflowParams extends UseLessonCompletionParams {
   organizationId?: string | null;
@@ -46,7 +46,7 @@ export function useLessonCompletionWorkflow(params: UseLessonCompletionWorkflowP
         return false;
       }
 
-      let responseData = {};
+      let responseData: LessonProgressApiResponse = {};
       try {
         responseData = parseLessonProgressApiResponse(await saveResponse.json());
       } catch {

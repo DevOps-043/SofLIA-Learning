@@ -16,7 +16,7 @@ export function buildUserResponse(
   return {
     id: user.id,
     username: user.username,
-    email: user.email,
+    email: user.email ?? '',
     display_name:
       user.display_name ||
       `${user.first_name || ''} ${user.last_name || ''}`.trim() ||

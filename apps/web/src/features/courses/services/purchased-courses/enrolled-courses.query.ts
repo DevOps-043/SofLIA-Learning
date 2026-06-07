@@ -32,10 +32,10 @@ export async function getUserEnrolledCourses(userId: string): Promise<PurchasedC
         )
       )
     `)
-    .returns<EnrolledCourseRow[]>()
     .eq("user_id", userId)
     .neq("enrollment_status", "cancelled")
-    .order("enrolled_at", { ascending: false });
+    .order("enrolled_at", { ascending: false })
+    .returns<EnrolledCourseRow[]>();
 
   if (error) throw error;
 

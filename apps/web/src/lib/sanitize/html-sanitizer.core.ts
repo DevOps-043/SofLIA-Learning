@@ -31,10 +31,13 @@ export function sanitizeHtml(
 
     if (DOMPurify) {
       const clean = DOMPurify.sanitize(content, config)
-      return typeof clean === 'string' ? clean : String(clean)
+      return basicServerSanitize(
+        typeof clean === 'string' ? clean : String(clean),
+        config,
+      )
     }
 
-    return basicServerSanitize(content, config.ALLOWED_TAGS || [])
+    return basicServerSanitize(content, config)
   } catch {
     return content.replace(/<[^>]*>/g, '')
   }

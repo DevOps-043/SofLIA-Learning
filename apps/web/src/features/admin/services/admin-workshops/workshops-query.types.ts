@@ -1,6 +1,6 @@
 import type { AdminWorkshop } from './workshops-transform.service'
 
-export interface CourseWorkshopRow extends AdminWorkshop {
+export type CourseWorkshopRow = Omit<AdminWorkshop, 'instructor_id'> & {
   instructor_id: string | null
 }
 

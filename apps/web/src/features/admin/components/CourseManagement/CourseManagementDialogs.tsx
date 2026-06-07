@@ -8,6 +8,7 @@ import { ModuleModal } from '../ModuleModal'
 import { useCourseManagementContext } from './CourseManagementContext'
 import { CourseManagementMoveLessonModal } from './CourseManagementMoveLessonModal'
 import { CourseManagementStudentDetailsModal } from './CourseManagementStudentDetailsModal'
+import type { CreateMaterialData, UpdateMaterialData } from '../../services/adminMaterials.service'
 
 export function CourseManagementDialogs() {
   const { courseId, state } = useCourseManagementContext()
@@ -113,10 +114,10 @@ export function CourseManagementDialogs() {
           }}
           onSave={async (data) => {
             if (editingMaterial) {
-              await updateMaterial(editingMaterial.material_id, data)
+              await updateMaterial(editingMaterial.material_id, data as UpdateMaterialData)
               await fetchMaterials(editingLessonId)
             } else {
-              await createMaterial(editingLessonId, data)
+              await createMaterial(editingLessonId, data as CreateMaterialData)
               await fetchMaterials(editingLessonId)
             }
 

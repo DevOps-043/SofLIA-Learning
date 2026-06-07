@@ -85,6 +85,24 @@ export function useProfile(): UseProfileReturn {
     }
   }, [user?.id])
 
+  const removeProfilePicture = useCallback(async () => {
+    if (!user?.id) {
+      throw new Error('Usuario no autenticado')
+    }
+
+    try {
+      setSaving(true)
+      setError(null)
+      await ProfileService.removeProfilePicture()
+      setProfile(prev => (prev ? { ...prev, profile_picture_url: '' } : null))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido')
+      throw err
+    } finally {
+      setSaving(false)
+    }
+  }, [user?.id])
+
   const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
     if (!user?.id) {
       throw new Error('Usuario no autenticado')
@@ -114,6 +132,7 @@ export function useProfile(): UseProfileReturn {
     saving,
     updateProfile,
     uploadProfilePicture,
+    removeProfilePicture,
     changePassword,
     refetch: fetchProfile
   }

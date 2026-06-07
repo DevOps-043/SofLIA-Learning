@@ -43,7 +43,7 @@ export function ProgressDistributionChart({
                 data={data}
                 dataKey="value"
                 innerRadius="50%"
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                 labelLine={false}
                 nameKey="name"
                 outerRadius="80%"

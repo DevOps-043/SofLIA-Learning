@@ -29,9 +29,16 @@ interface GeocodingSetters {
   setLongitude: (v: string) => void
 }
 
-export function useGeocoding(state: GeocodingState, setters: GeocodingSetters) {
+export function useGeocoding(
+  state: GeocodingState,
+  setters: GeocodingSetters,
+  orgSlug?: string,
+) {
   const [isGeocoding, setIsGeocoding] = useState(false)
   const [geocodeError, setGeocodeError] = useState<string | null>(null)
+  const apiBase = orgSlug
+    ? `/api/${encodeURIComponent(orgSlug)}/business/hierarchy`
+    : '/api/business/hierarchy'
 
   const handleGeocode = async () => {
     const { street, externalNumber, neighborhood, city, nodeState, country, zipCode } = state
@@ -45,7 +52,7 @@ export function useGeocoding(state: GeocodingState, setters: GeocodingSetters) {
     setGeocodeError(null)
     setIsGeocoding(true)
     try {
-      const res = await fetch('/api/business/hierarchy/geocode', {
+      const res = await fetch(`${apiBase}/geocode`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -84,7 +91,8 @@ export function useGeocoding(state: GeocodingState, setters: GeocodingSetters) {
     setGeocodeError(null)
     setIsGeocoding(true)
     try {
-      const res = await fetch(`/api/business/hierarchy/geocode?lat=${latitude}&lon=${longitude}`)
+      const params = new URLSearchParams({ lat: latitude, lon: longitude })
+      const res = await fetch(`${apiBase}/geocode?${params.toString()}`)
 
       if (!res.ok) {
         const errText = await res.text()

@@ -17,7 +17,7 @@ export function AdminCompanyBrandingImageState({
     <>
       <img
         src={imageUrl}
-        className={`relative z-10 h-full w-full ${objectFit === 'cover' ? 'object-cover' : 'object-contain'}`}
+        className={`relative z-10 h-full w-full ${objectFit === 'cover' ? 'object-cover' : 'bg-white object-contain p-3'}`}
         alt={actionLabel}
       />
       <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-black/60 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">

@@ -460,12 +460,12 @@
         "message": "Seu perfil foi atualizado: {{changesText}}."
       },
       "system_login_success": {
-        "title": "Novo login",
-        "message": "Foi detectado um login de {{deviceLabel}}. IP: {{ipLabel}}."
+        "title": "Login na sua conta",
+        "message": "Sua conta fez login a partir de {{deviceLabel}}. IP: {{ipLabel}}."
       },
       "system_login_failed": {
-        "title": "Tentativa de login falhou",
-        "message": "Foi detectada uma tentativa de login falha de {{location}}."
+        "title": "Tentativa falha na sua conta",
+        "message": "Foi detectada uma tentativa falha de acesso à sua conta a partir de {{location}}."
       },
       "system_email_verified": {
         "title": "E-mail verificado",
@@ -1198,6 +1198,10 @@
       "noRole": "Sem cargo definido",
       "memberSince": "Membro desde",
       "emailVerified": "E-mail verificado",
+      "emailUnverified": "E-mail não verificado",
+      "avatarAlt": "Foto de perfil",
+      "uploadPhoto": "Enviar foto de perfil",
+      "removePhoto": "Remover foto de perfil",
       "stats": {
         "lessons": "Lições",
         "certificates": "Certificados"
@@ -1227,6 +1231,11 @@
       "updating": "Atualizando...",
       "updatePassword": "Atualizar Senha",
       "passwordUpdated": "Senha atualizada!",
+      "passwordChangeError": "Erro ao alterar a senha",
+      "completePasswordFields": "Preencha todos os campos",
+      "emailUnavailable": "E-mail indisponível",
+      "emailVerified": "E-mail verificado",
+      "emailUnverified": "E-mail não verificado",
       "error": "Erro"
     },
     "skills": {

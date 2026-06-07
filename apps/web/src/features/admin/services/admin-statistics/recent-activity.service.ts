@@ -1,11 +1,12 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server'
 import { ADMIN_STATS_COLORS } from './constants'
+import { statsTable } from './stats-query.client'
 import { getTimeAgo } from './time-ago'
 import type { RecentActivity } from './types'
 
 type ActivityPeriod = '24h' | '7d' | '30d'
-type ActivityRow = Record<string, string>
+type ActivityRow = Record<string, string | null>
 
 export async function getRecentActivity(
   period: string = '24h',
@@ -15,11 +16,11 @@ export async function getRecentActivity(
     const startDateISO = getActivityStartDate(period as ActivityPeriod).toISOString()
     const [newUsers, newCourses, newCommunities, newPrompts, newApps] =
       await Promise.all([
-        supabase.from('users').select('id, created_at').gte('created_at', startDateISO).order('created_at', { ascending: false }).limit(100),
-        supabase.from('courses').select('id, created_at').gte('created_at', startDateISO).eq('is_active', true).order('created_at', { ascending: false }).limit(100),
-        supabase.from('communities').select('id, created_at').gte('created_at', startDateISO).order('created_at', { ascending: false }).limit(100),
-        supabase.from('ai_prompts').select('prompt_id, created_at').gte('created_at', startDateISO).eq('is_active', true).order('created_at', { ascending: false }).limit(100),
-        supabase.from('ai_apps').select('app_id, created_at').gte('created_at', startDateISO).order('created_at', { ascending: false }).limit(100),
+        statsTable<ActivityRow>(supabase, 'users').select('id, created_at').gte('created_at', startDateISO).order('created_at', { ascending: false }).limit(100),
+        statsTable<ActivityRow>(supabase, 'courses').select('id, created_at').gte('created_at', startDateISO).eq('is_active', true).order('created_at', { ascending: false }).limit(100),
+        statsTable<ActivityRow>(supabase, 'communities').select('id, created_at').gte('created_at', startDateISO).order('created_at', { ascending: false }).limit(100),
+        statsTable<ActivityRow>(supabase, 'ai_prompts').select('prompt_id, created_at').gte('created_at', startDateISO).eq('is_active', true).order('created_at', { ascending: false }).limit(100),
+        statsTable<ActivityRow>(supabase, 'ai_apps').select('app_id, created_at').gte('created_at', startDateISO).order('created_at', { ascending: false }).limit(100),
       ])
 
     return [
@@ -59,11 +60,11 @@ function buildActivity(
   const copy = ACTIVITY_COPY[scope]
   const first = rows[0]
   return {
-    id: `${scope}-${first[idKey]}`,
+    id: `${scope}-${first[idKey] || 'unknown'}`,
     type,
     description: rows.length > 1 ? `${rows.length} ${copy.plural}` : `1 ${copy.singular}`,
-    timestamp: first.created_at,
-    timeAgo: getTimeAgo(first.created_at),
+    timestamp: first.created_at || new Date().toISOString(),
+    timeAgo: getTimeAgo(first.created_at || new Date().toISOString()),
     color: copy.color,
   }
 }

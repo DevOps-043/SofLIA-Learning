@@ -13,7 +13,7 @@ export function useHierarchyTreeCommands(state: HierarchyTreeState, t: BusinessT
     const node = state.pendingDeleteNode;
     state.setPendingDeleteNode(null);
 
-    DynamicHierarchyService.deleteNode(node.id)
+    DynamicHierarchyService.deleteNode(node.id, state.orgSlug)
       .then((res) => {
         if (res.success && state.selectedStructureId) {
           state.loadNodes(state.selectedStructureId);
@@ -24,7 +24,7 @@ export function useHierarchyTreeCommands(state: HierarchyTreeState, t: BusinessT
 
   const saveStructure = async (name: string) => {
     try {
-      const res = await DynamicHierarchyService.createStructure(name);
+      const res = await DynamicHierarchyService.createStructure(name, state.orgSlug);
 
       if (res.success) {
         await state.loadStructures();
@@ -38,10 +38,14 @@ export function useHierarchyTreeCommands(state: HierarchyTreeState, t: BusinessT
   };
 
   const openRootMembers = async () => {
-    if (!state.selectedStructureId) return;
+    if (!state.selectedStructureId) {
+      state.setNodeActionError(t('hierarchy.selectStructureFirst'));
+      state.setShowStructureModal(true);
+      return;
+    }
 
     try {
-      const rootNode = await findRootNode(state.selectedStructureId, state.nodes);
+      const rootNode = await findRootNode(state.selectedStructureId, state.nodes, state.orgSlug);
 
       if (!rootNode) {
         state.setNodeActionError(t('hierarchy.noRootNode'));
@@ -58,14 +62,22 @@ export function useHierarchyTreeCommands(state: HierarchyTreeState, t: BusinessT
   };
 
   const initializeRootNode = async () => {
-    if (!state.selectedStructureId) return;
+    if (!state.selectedStructureId) {
+      state.setNodeActionError(t('hierarchy.selectStructureFirst'));
+      state.setShowStructureModal(true);
+      return;
+    }
 
-    await DynamicHierarchyService.createNode({
+    const result = await DynamicHierarchyService.createNode({
       structure_id: state.selectedStructureId,
       name: t('hierarchy.defaultRootName'),
       type: 'root',
       parent_id: null,
-    });
+    }, state.orgSlug);
+    if (!result.success) {
+      state.setNodeActionError(result.error || t('hierarchy.saveNodeError'));
+      return;
+    }
     await state.loadNodes(state.selectedStructureId);
   };
 

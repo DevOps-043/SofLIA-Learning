@@ -16,6 +16,8 @@ export function ActivityActionButtons(props: {
   setFeedbackMessage: (message: string | null) => void;
 }) {
   const disabledBase = props.loading || props.saving || props.liaEvaluationPending;
+  const canShowLiaEvaluation =
+    "validation" in props.activityConfig && props.activityConfig.validation.enabled;
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -27,7 +29,7 @@ export function ActivityActionButtons(props: {
         {props.saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         Enviar actividad
       </button>
-      {props.activityConfig.validation.enabled && (
+      {canShowLiaEvaluation && (
         <button type="button" onClick={() => void props.onEvaluateWithSoflia()} disabled={disabledBase || props.isLiaBusy || !props.isSubmissionStructurallyComplete || !props.canEvaluateWithSoflia} className="inline-flex items-center gap-2 rounded-lg border border-[color-mix(in_srgb,var(--color-legacy-6e57b5)_20%,transparent)] bg-[var(--color-legacy-f7f4ff)] px-4 py-2 text-sm font-medium text-[var(--color-legacy-4c3a85)] transition hover:bg-[var(--color-legacy-efe8ff)] disabled:cursor-not-allowed disabled:opacity-60 dark:border-[color-mix(in_srgb,var(--color-legacy-7e67ba)_30%,transparent)] dark:bg-[var(--color-legacy-171127)] dark:text-[var(--color-legacy-d7cbff)] dark:hover:bg-[var(--color-legacy-211937)]">
           {props.liaEvaluationPending || props.isLiaBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
           Evaluar con SofLIA

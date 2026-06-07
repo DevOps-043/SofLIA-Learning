@@ -205,11 +205,12 @@ export async function loadStudyPlannerCalendarEvents(params: {
 
   const seenKeys = new Set<string>();
   return [...filteredStudySessions, ...uniqueCalendarEvents, ...customEvents].filter((event) => {
-    if (seenKeys.has(event.canonicalEventKey)) {
+    const eventKey = event.canonicalEventKey ?? event.id;
+    if (seenKeys.has(eventKey)) {
       return false;
     }
 
-    seenKeys.add(event.canonicalEventKey);
+    seenKeys.add(eventKey);
     return true;
   });
 }

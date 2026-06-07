@@ -1,7 +1,7 @@
 import type { StudyMode } from './study-strategy.service';
 import type { BreakSchedule } from './session-validator.service';
 import type { LearningRoute } from './learning-route.service';
-import type { B2BAssignment } from './user-context.service';
+import type { B2BAssignment } from './session-validator.types';
 
 export interface StudyPlanConfig {
   userId: string;

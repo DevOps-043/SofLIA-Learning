@@ -619,7 +619,8 @@
       "cellTitle": "{{date}}: {{count}} interações",
       "less": "Menos",
       "more": "Mais",
-      "levelLabel": "Nível {{level}}"
+      "levelLabel": "Nível {{level}}",
+      "description": "Cada quadrado representa um dia do período selecionado. A intensidade mostra interações de aprendizagem registradas, como lições, notas, quizzes e uso da SofLIA."
     },
     "values": {
       "minutes": "{{value}} min",
@@ -1602,6 +1603,7 @@
     "emptyStructureDesc": "Esta estrutura não contém níveis organizacionais definidos atualmente.",
     "initializeGeneral": "Inicializar 'Geral'",
     "noRootNode": "Nenhum nó raiz encontrado. Crie um nó 'Geral' primeiro.",
+    "selectStructureFirst": "Crie ou selecione uma estrutura antes de inicializar o nó Geral.",
     "saveStructureError": "Erro ao criar a estrutura",
     "loadStructuresError": "Erro ao carregar estruturas",
     "loadHierarchyError": "Erro ao carregar hierarquia",

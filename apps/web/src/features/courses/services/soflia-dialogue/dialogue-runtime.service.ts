@@ -32,6 +32,10 @@ import {
 } from './dialogue-session.service'
 import { generateDialogueTutorMessage } from './dialogue-tutor.service'
 import type { DialogueSessionRow } from './dialogue-tables'
+import {
+  buildDialogueEvaluationRecoveryMessage,
+  isRecoverableDialogueEvaluationError,
+} from './dialogue-technical-recovery.service'
 
 function toDialogueState(value: string): DialogueState {
   const states: DialogueState[] = [
@@ -234,19 +238,76 @@ export async function processDialogueMessage(input: {
     session.session_id,
   )
   const recentTurns = [...existingTurns, userTurn]
-  const evaluationWithModel =
-    risk.action === 'block'
-      ? {
-          evaluation: buildSecurityEvaluation(config),
-          modelName: 'security-guardrail',
-        }
-      : await evaluateDialogueTurn({
-          config,
-          organizationAiContext: input.context.organizationAiContext,
-          previousEvaluations,
-          recentTurns,
-          studentMessage: sanitizedMessage,
-        })
+  let evaluationWithModel: {
+    evaluation: DialogueEvaluationResult
+    modelName: string
+  }
+
+  try {
+    evaluationWithModel =
+      risk.action === 'block'
+        ? {
+            evaluation: buildSecurityEvaluation(config),
+            modelName: 'security-guardrail',
+          }
+        : await evaluateDialogueTurn({
+            config,
+            organizationAiContext: input.context.organizationAiContext,
+            previousEvaluations,
+            recentTurns,
+            studentMessage: sanitizedMessage,
+          })
+  } catch (error) {
+    if (!isRecoverableDialogueEvaluationError(error)) {
+      throw error
+    }
+
+    await recordDialogueEvent(input.client, {
+      activityId: input.context.activity.activity_id,
+      eventType: 'evaluation_failed',
+      payload: {
+        code: error.code,
+        status: error.status,
+      },
+      sessionId: session.session_id,
+      userId: input.context.userId,
+    })
+
+    const assistantMessage = buildDialogueEvaluationRecoveryMessage()
+    const currentState = toDialogueState(session.state)
+
+    await insertDialogueTurn({
+      client: input.client,
+      content: assistantMessage,
+      metadata: {
+        technicalRecovery: {
+          code: error.code,
+        },
+      },
+      role: 'assistant',
+      session,
+      stateAfter: currentState,
+      stateBefore: currentState,
+      turnNumber: existingTurns.length + 2,
+    })
+
+    const responseSession = await buildResponse({
+      client: input.client,
+      session,
+    })
+
+    return {
+      assistantMessage,
+      evaluationSummary: {
+        criteriaMet: session.criteria_met,
+        criteriaMissing: session.criteria_missing,
+        score: session.current_score,
+      },
+      result: null,
+      session: responseSession,
+      state: currentState,
+    }
+  }
 
   const evaluationRow = await insertDialogueEvaluation({
     client: input.client,
@@ -297,7 +358,7 @@ export async function processDialogueMessage(input: {
     content: assistantMessage,
     metadata: {
       evaluationId: evaluationRow.evaluation_id,
-    policy,
+      policy,
     },
     role: 'assistant',
     session: updatedSession,

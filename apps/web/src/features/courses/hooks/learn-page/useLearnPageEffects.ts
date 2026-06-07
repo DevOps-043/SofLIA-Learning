@@ -7,6 +7,7 @@ import {
   isLessonVideoCompleted,
 } from '../lessonNavigation.utils'
 import type { LearnLesson, LearnTab } from '../../components/learn/types'
+import type { LearnActivitySummary } from '../../components/learn/types'
 
 interface UseLearnPageEffectsOptions {
   activeTab: LearnTab
@@ -18,7 +19,7 @@ interface UseLearnPageEffectsOptions {
   setIsPromptsCollapsed: (collapsed: boolean) => void
   setCurrentActivityPrompts: (prompts: string[]) => void
   currentLesson: LearnLesson | null
-  lessonsActivities: Record<string, Array<{ is_completed?: boolean }>>
+  lessonsActivities: Record<string, LearnActivitySummary[] | undefined>
   checkedAutoRedirectRef: MutableRefObject<string | null>
   pendingVideoTransitionLessonId: string | null
   setPendingVideoTransitionLessonId: (id: string | null) => void

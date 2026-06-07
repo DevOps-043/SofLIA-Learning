@@ -8,6 +8,58 @@ import {
 } from './workshop-deletion.service'
 import type { AdminWorkshop } from './workshops-transform.service'
 import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+import type { Json, Tables, TablesInsert, TablesUpdate } from '@/lib/supabase/types'
+
+type CourseRow = Tables<'courses'>
+
+function parseLearningObjectives(value: Json | AdminWorkshop['learning_objectives']): string[] | null {
+  if (!Array.isArray(value)) {
+    return null
+  }
+
+  const objectives = value.filter((objective): objective is string => typeof objective === 'string') as string[]
+  return objectives.length > 0 ? objectives : null
+}
+
+function approvalStatusFromRow(value: string | null): AdminWorkshop['approval_status'] {
+  return value === 'approved' || value === 'rejected' || value === 'pending'
+    ? value
+    : undefined
+}
+
+function toAdminWorkshop(row: CourseRow): AdminWorkshop {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description ?? '',
+    category: row.category,
+    level: row.level,
+    duration_total_minutes: row.duration_total_minutes ?? 0,
+    instructor_id: row.instructor_id ?? '',
+    is_active: row.is_active ?? false,
+    thumbnail_url: row.thumbnail_url ?? undefined,
+    slug: row.slug,
+    price: row.price ?? undefined,
+    average_rating: row.average_rating ?? undefined,
+    student_count: row.student_count ?? 0,
+    review_count: row.review_count ?? 0,
+    learning_objectives: parseLearningObjectives(row.learning_objectives),
+    approval_status: approvalStatusFromRow(row.approval_status),
+    approved_by: row.approved_by ?? undefined,
+    approved_at: row.approved_at ?? undefined,
+    rejection_reason: row.rejection_reason ?? undefined,
+    created_at: row.created_at ?? '',
+    updated_at: row.updated_at ?? '',
+  }
+}
+
+function auditValues(value: unknown): Record<string, unknown> | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return undefined
+  }
+
+  return value as Record<string, unknown>
+}
 
 export class AdminWorkshopsMutationService {
   static async createWorkshop(workshopData: Partial<AdminWorkshop>, adminUserId: string, requestInfo?: { ip?: string, userAgent?: string }): Promise<AdminWorkshop> {
@@ -36,26 +88,28 @@ export class AdminWorkshopsMutationService {
         return !!data;
       });
 
+      const insertData: TablesInsert<'courses'> = {
+        title: workshopData.title ?? '',
+        description: workshopData.description,
+        category: workshopData.category,
+        level: workshopData.level,
+        duration_total_minutes: workshopData.duration_total_minutes,
+        instructor_id: workshopData.instructor_id,
+        is_active: workshopData.is_active || false,
+        thumbnail_url: workshopData.thumbnail_url,
+        slug,
+        price: workshopData.price,
+        average_rating: 0,
+        student_count: 0,
+        review_count: 0,
+        learning_objectives: workshopData.learning_objectives,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+
       const { data, error } = await supabase
         .from('courses')
-        .insert({
-          title: workshopData.title,
-          description: workshopData.description,
-          category: workshopData.category,
-          level: workshopData.level,
-          duration_total_minutes: workshopData.duration_total_minutes,
-          instructor_id: workshopData.instructor_id,
-          is_active: workshopData.is_active || false,
-          thumbnail_url: workshopData.thumbnail_url,
-          slug,
-          price: workshopData.price,
-          average_rating: 0,
-          student_count: 0,
-          review_count: 0,
-          learning_objectives: workshopData.learning_objectives,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
+        .insert(insertData)
         .select(`
           id,
           title,
@@ -72,6 +126,10 @@ export class AdminWorkshopsMutationService {
           student_count,
           review_count,
           learning_objectives,
+          approval_status,
+          approved_by,
+          approved_at,
+          rejection_reason,
           created_at,
           updated_at
         `)
@@ -89,7 +147,7 @@ export class AdminWorkshopsMutationService {
         table_name: 'courses',
         record_id: data.id,
         old_values: undefined,
-        new_values: workshopData,
+        new_values: auditValues(workshopData),
         ip_address: requestInfo?.ip,
         user_agent: requestInfo?.userAgent
       })
@@ -103,7 +161,7 @@ export class AdminWorkshopsMutationService {
         const courseDataForTranslation = {
           title: data.title || '',
           description: data.description || null,
-          learning_objectives: data.learning_objectives || null
+          learning_objectives: parseLearningObjectives(data.learning_objectives)
         };
 
         const translationResult = await translateCourseOnCreate(
@@ -134,7 +192,7 @@ export class AdminWorkshopsMutationService {
         }
       }
 
-      return data
+      return toAdminWorkshop(data)
     } catch (error) {
       throw error
     }
@@ -152,7 +210,7 @@ export class AdminWorkshopsMutationService {
         .single()
 
       // Preparar datos de actualizacion
-      const updateData: Record<string, unknown> = {
+      const updateData: TablesUpdate<'courses'> = {
         updated_at: new Date().toISOString()
       }
 
@@ -234,13 +292,13 @@ export class AdminWorkshopsMutationService {
         action: 'UPDATE',
         table_name: 'courses',
         record_id: workshopId,
-        old_values: oldData,
-        new_values: workshopData,
+        old_values: auditValues(oldData),
+        new_values: auditValues(workshopData),
         ip_address: requestInfo?.ip,
         user_agent: requestInfo?.userAgent
       })
 
-      return data
+      return toAdminWorkshop(data)
     } catch (error) {
       throw error
     }

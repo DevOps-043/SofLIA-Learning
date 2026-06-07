@@ -1,5 +1,10 @@
 'use client'
 
+import {
+  DEFAULT_BRAND_PRIMARY,
+  normalizeBrandHexColor,
+} from '@/features/admin/services/admin-companies/admin-company-brand-colors'
+
 export function CustomizationColorField({
   label,
   value,
@@ -9,13 +14,15 @@ export function CustomizationColorField({
   value: string
   onChange: (value: string) => void
 }) {
+  const colorInputValue = normalizeBrandHexColor(value, DEFAULT_BRAND_PRIMARY)
+
   return (
     <div>
       <label className="mb-2 block text-xs font-medium text-gray-600 dark:text-white/70">{label}</label>
       <div className="flex items-center gap-3">
         <input
           type="color"
-          value={value}
+          value={colorInputValue}
           onChange={(event) => onChange(event.target.value)}
           className="h-10 w-14 cursor-pointer rounded-lg border-0"
           style={{ backgroundColor: 'transparent' }}

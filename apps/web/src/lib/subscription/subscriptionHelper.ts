@@ -16,7 +16,6 @@ export async function getOrganizationPlan(organizationId: string): Promise<Subsc
   try {
     const supabase = await createClient()
 
-    // Primero intentar desde organizations
     const { data: organization, error: orgError } = await supabase
       .from('organizations')
       .select('subscription_plan')
@@ -31,20 +30,6 @@ export async function getOrganizationPlan(organizationId: string): Promise<Subsc
     }
 
     // Si no está en organizations, buscar en subscriptions (usar plan_id si está disponible)
-    const { data: subscription, error: subError } = await supabase
-      .from('subscriptions')
-      .select('plan_id')
-      .eq('organization_id', organizationId)
-      .eq('subscription_status', 'active')
-      .maybeSingle()
-
-    if (!subError && subscription?.plan_id) {
-      const plan = subscription.plan_id.toLowerCase()
-      if (['team', 'business', 'enterprise'].includes(plan)) {
-        return plan as SubscriptionPlan
-      }
-    }
-
     logger.warn('No se pudo determinar el plan de la organización', { organizationId })
     return null
   } catch (error) {

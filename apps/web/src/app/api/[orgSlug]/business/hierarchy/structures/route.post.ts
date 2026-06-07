@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { apiError } from '@/lib/api/errors';
 import { withZodBody } from '@/lib/api/with-validation';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 
@@ -34,7 +34,7 @@ async function handlePost(
       return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403);
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const { data: structure, error } = await supabase
       .from('organization_structures')

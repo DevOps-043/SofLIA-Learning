@@ -13,8 +13,8 @@ interface DirectVideoUploadProps {
   uploadProgress: number;
   disabled: boolean;
   dragActive: boolean;
-  fileInputRef: RefObject<HTMLInputElement | null>;
-  videoRef: RefObject<HTMLVideoElement | null>;
+  fileInputRef: RefObject<HTMLInputElement>;
+  videoRef: RefObject<HTMLVideoElement>;
   onFileInputChange: ChangeEventHandler<HTMLInputElement>;
   onRemoveVideo: () => void;
   onOpenFileDialog: () => void;

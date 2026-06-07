@@ -1,5 +1,6 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../lib/supabase/server'
+import type { Json, Tables } from '../../../lib/supabase/types'
 
 interface CourseInstructor {
   id: string
@@ -9,25 +10,7 @@ interface CourseInstructor {
   profile_picture_url?: string | null
 }
 
-interface CourseRow {
-  id: string
-  title: string
-  description: string
-  slug: string
-  category: string
-  level: string
-  instructor_id: string
-  duration_total_minutes: number
-  thumbnail_url?: string | null
-  is_active: boolean
-  created_at: string
-  updated_at: string
-  price?: number | null
-  average_rating?: number | null
-  student_count: number
-  review_count: number
-  learning_objectives?: string[] | null
-  approval_status?: string | null
+type CourseRow = Tables<'courses'> & {
   instructor?: CourseInstructor | null
 }
 
@@ -56,6 +39,49 @@ export interface AdminCourse {
   // Campos calculados para mostrar
   instructor_name?: string
   duration_hours?: number
+}
+
+function parseLearningObjectives(value: Json): string[] | null {
+  if (!Array.isArray(value)) {
+    return null
+  }
+
+  const objectives = value.filter((objective): objective is string => typeof objective === 'string')
+  return objectives.length > 0 ? objectives : null
+}
+
+function getInstructorName(instructor?: CourseInstructor | null): string {
+  return instructor
+    ? (instructor.display_name ||
+      `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim() ||
+      'Instructor')
+    : 'Instructor no encontrado'
+}
+
+function mapAdminCourse(course: CourseRow): AdminCourse {
+  const durationMinutes = course.duration_total_minutes ?? 0
+
+  return {
+    id: course.id,
+    title: course.title,
+    description: course.description ?? '',
+    slug: course.slug,
+    category: course.category,
+    level: course.level,
+    instructor_id: course.instructor_id ?? '',
+    duration_total_minutes: durationMinutes,
+    thumbnail_url: course.thumbnail_url ?? undefined,
+    is_active: course.is_active ?? false,
+    created_at: course.created_at ?? '',
+    updated_at: course.updated_at ?? '',
+    price: course.price ?? undefined,
+    average_rating: course.average_rating ?? undefined,
+    student_count: course.student_count ?? 0,
+    review_count: course.review_count ?? 0,
+    learning_objectives: parseLearningObjectives(course.learning_objectives),
+    instructor_name: getInstructorName(course.instructor),
+    duration_hours: Math.round(durationMinutes / 60 * 10) / 10,
+  }
 }
 
 export class AdminCoursesService {
@@ -101,36 +127,7 @@ export class AdminCoursesService {
 
 
       // Mapear datos con instructor ya incluido
-      const courses = (data || []).map((course: CourseRow) => {
-        const instructor = course.instructor
-        const instructorName = instructor
-          ? (instructor.display_name ||
-            `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim() ||
-            'Instructor')
-          : 'Instructor no encontrado'
-
-        return {
-          id: course.id,
-          title: course.title,
-          description: course.description,
-          slug: course.slug,
-          category: course.category,
-          level: course.level,
-          instructor_id: course.instructor_id,
-          duration_total_minutes: course.duration_total_minutes,
-          thumbnail_url: course.thumbnail_url,
-          is_active: course.is_active,
-          created_at: course.created_at,
-          updated_at: course.updated_at,
-          price: course.price,
-          average_rating: course.average_rating,
-          student_count: course.student_count,
-          review_count: course.review_count,
-          learning_objectives: course.learning_objectives,
-          instructor_name: instructorName,
-          duration_hours: Math.round(course.duration_total_minutes / 60 * 10) / 10,
-        }
-      })
+      const courses = ((data || []) as unknown as CourseRow[]).map(mapAdminCourse)
 
       return courses
     } catch (error) {
@@ -181,36 +178,7 @@ export class AdminCoursesService {
 
 
       // Mapear datos con instructor ya incluido
-      const courses = (data || []).map((course: CourseRow) => {
-        const instructor = course.instructor
-        const instructorName = instructor
-          ? (instructor.display_name ||
-            `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim() ||
-            'Instructor')
-          : 'Instructor no encontrado'
-
-        return {
-          id: course.id,
-          title: course.title,
-          description: course.description,
-          slug: course.slug,
-          category: course.category,
-          level: course.level,
-          instructor_id: course.instructor_id,
-          duration_total_minutes: course.duration_total_minutes,
-          thumbnail_url: course.thumbnail_url,
-          is_active: course.is_active,
-          created_at: course.created_at,
-          updated_at: course.updated_at,
-          price: course.price,
-          average_rating: course.average_rating,
-          student_count: course.student_count,
-          review_count: course.review_count,
-          learning_objectives: course.learning_objectives,
-          instructor_name: instructorName,
-          duration_hours: Math.round(course.duration_total_minutes / 60 * 10) / 10,
-        }
-      })
+      const courses = ((data || []) as unknown as CourseRow[]).map(mapAdminCourse)
 
       return courses
     } catch (error) {
@@ -259,20 +227,7 @@ export class AdminCoursesService {
         return []
       }
 
-      return (data || []).map((course: CourseRow) => {
-        const instructor = course.instructor
-        const instructorName = instructor
-          ? (instructor.display_name ||
-            `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim() ||
-            'Instructor')
-          : 'Instructor no encontrado'
-
-        return {
-          ...course,
-          instructor_name: instructorName,
-          duration_hours: Math.round(course.duration_total_minutes / 60 * 10) / 10,
-        }
-      })
+      return ((data || []) as unknown as CourseRow[]).map(mapAdminCourse)
     } catch (error) {
       techDebtLogger.error('Error in AdminCoursesService.getPendingCourses:', error)
       return []
@@ -367,9 +322,10 @@ export class AdminCoursesService {
     }
 
     // Ordenar jerarquía
-    if (data.modules) {
-      data.modules.sort((a: ModuleRow, b: ModuleRow) => a.module_order_index - b.module_order_index)
-      data.modules.forEach((mod: ModuleRow) => {
+    const courseDetails = data as unknown as CourseRow & { modules?: ModuleRow[] }
+    if (courseDetails.modules) {
+      courseDetails.modules.sort((a: ModuleRow, b: ModuleRow) => a.module_order_index - b.module_order_index)
+      courseDetails.modules.forEach((mod: ModuleRow) => {
         if (mod.lessons) {
           mod.lessons.sort((a: LessonRow, b: LessonRow) => a.lesson_order_index - b.lesson_order_index)
           mod.lessons.forEach((lesson: LessonRow) => {
@@ -381,6 +337,6 @@ export class AdminCoursesService {
       })
     }
 
-    return data
+    return courseDetails
   }
 }

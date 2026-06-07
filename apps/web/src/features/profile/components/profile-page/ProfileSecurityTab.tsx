@@ -4,8 +4,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { AlertCircle, CheckCircle2, Lock, Mail, Shield } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useMotionSafe } from '../../../../lib/utils/motion'
-import { PremiumInput, PremiumPassword } from './ProfilePremiumFields'
-import type { ProfileColorPalette, UpdateProfileRequest } from '../../types/profile.types'
+import { PremiumPassword } from './ProfilePremiumFields'
+import type { ProfileColorPalette, UserProfile } from '../../types/profile.types'
 
 interface PasswordErrors {
   current_password?: { message?: string }
@@ -14,8 +14,7 @@ interface PasswordErrors {
 }
 
 interface ProfileSecurityTabProps {
-  formData: UpdateProfileRequest
-  handleInputChange: (field: keyof UpdateProfileRequest, value: string) => void
+  profile: UserProfile
   colors: ProfileColorPalette
   passwordChangeSuccess: string | null
   passwordChangeError: string | null
@@ -35,8 +34,7 @@ interface ProfileSecurityTabProps {
 }
 
 export function ProfileSecurityTab({
-  formData,
-  handleInputChange,
+  profile,
   colors,
   passwordChangeSuccess,
   passwordChangeError,
@@ -57,6 +55,7 @@ export function ProfileSecurityTab({
   const isPasswordSubmitDisabled = isChangingPassword || !currentPassword || !newPassword || !confirmPassword
   const { t } = useTranslation('common')
   const { interfaceTransition } = useMotionSafe()
+  const emailStatusColor = profile.email_verified ? colors.success : colors.warning
 
   return (
     <motion.div key="security" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={interfaceTransition} className="space-y-6">
@@ -101,7 +100,25 @@ export function ProfileSecurityTab({
       </AnimatePresence>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        <PremiumInput label={t('profile.security.email')} value={formData.email || ''} onChange={value => handleInputChange('email', value)} icon={<Mail className="w-4 h-4" />} type="email" colors={colors} />
+        <div className="relative overflow-hidden rounded-2xl border-2 p-5" style={{ backgroundColor: `color-mix(in srgb, ${colors.bgSecondary} 80%, transparent)`, borderColor: colors.border }}>
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `color-mix(in srgb, ${colors.accent} 8.2%, transparent)`, color: colors.accent }}>
+              <Mail className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em]" style={{ color: colors.textSecondary }}>
+                {t('profile.security.email')}
+              </p>
+              <p className="mt-1 truncate text-base font-semibold" style={{ color: colors.text }}>
+                {profile.email || t('profile.security.emailUnavailable')}
+              </p>
+              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold" style={{ backgroundColor: `color-mix(in srgb, ${emailStatusColor} 10%, transparent)`, color: emailStatusColor }}>
+                {profile.email_verified ? <CheckCircle2 className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5" />}
+                {profile.email_verified ? t('profile.security.emailVerified') : t('profile.security.emailUnverified')}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="pt-4 flex items-center gap-4">

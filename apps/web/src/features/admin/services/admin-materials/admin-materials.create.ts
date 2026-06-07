@@ -22,7 +22,7 @@ async function translateCreatedMaterial(material: AdminMaterial, userId?: string
       {
         material_title: material.material_title,
         material_description: material.material_description,
-        content_data: material.content_data,
+        content_data: material.content_data ?? undefined,
       },
       userId,
     )
@@ -45,7 +45,8 @@ export async function createMaterial(
   const { data, error } = await supabase.from('lesson_materials').insert(insertData).select().single()
 
   if (error) throw error
-  await translateCreatedMaterial(data, userId)
+  const createdMaterial = data as AdminMaterial
+  await translateCreatedMaterial(createdMaterial, userId)
   await updateModuleDurationFromLesson(lessonId)
-  return data
+  return createdMaterial
 }

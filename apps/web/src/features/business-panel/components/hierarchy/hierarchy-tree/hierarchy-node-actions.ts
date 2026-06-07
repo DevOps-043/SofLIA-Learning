@@ -6,6 +6,7 @@ interface SaveHierarchyNodeParams {
   managerId?: string;
   mode: HierarchyNodeModalMode;
   name: string;
+  orgSlug?: string | null;
   properties?: OrganizationNodeProperties;
   selectedStructureId: string;
   targetNode?: OrganizationNode;
@@ -16,13 +17,18 @@ export async function saveHierarchyNode({
   managerId,
   mode,
   name,
+  orgSlug,
   properties,
   selectedStructureId,
   targetNode,
   type,
 }: SaveHierarchyNodeParams): Promise<void> {
   if (mode === 'edit' && targetNode) {
-    await DynamicHierarchyService.updateNode(targetNode.id, { name, type, properties, manager_id: managerId });
+    await DynamicHierarchyService.updateNode(
+      targetNode.id,
+      { name, type, properties, manager_id: managerId },
+      orgSlug,
+    );
     return;
   }
 
@@ -33,12 +39,13 @@ export async function saveHierarchyNode({
     type,
     properties,
     manager_id: managerId,
-  });
+  }, orgSlug);
 }
 
 export async function findRootNode(
   selectedStructureId: string,
-  nodes: OrganizationNode[]
+  nodes: OrganizationNode[],
+  orgSlug?: string | null,
 ): Promise<OrganizationNode | undefined> {
   const existingRoot = nodes.find((node) => !node.parent_id);
 
@@ -46,6 +53,6 @@ export async function findRootNode(
     return existingRoot;
   }
 
-  const fetchedNodes = await DynamicHierarchyService.getTree(selectedStructureId);
+  const fetchedNodes = await DynamicHierarchyService.getTree(selectedStructureId, orgSlug);
   return fetchedNodes.find((node) => !node.parent_id);
 }

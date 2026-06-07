@@ -460,12 +460,12 @@
         "message": "Se actualizó tu perfil: {{changesText}}."
       },
       "system_login_success": {
-        "title": "Nuevo inicio de sesión",
-        "message": "Se detectó un inicio de sesión desde {{deviceLabel}}. IP: {{ipLabel}}."
+        "title": "Inicio de sesión en tu cuenta",
+        "message": "Tu cuenta inició sesión desde {{deviceLabel}}. IP: {{ipLabel}}."
       },
       "system_login_failed": {
-        "title": "Intento de inicio de sesión fallido",
-        "message": "Se detectó un intento de inicio de sesión fallido desde {{location}}."
+        "title": "Intento fallido en tu cuenta",
+        "message": "Se detectó un intento fallido de acceso a tu cuenta desde {{location}}."
       },
       "system_email_verified": {
         "title": "Email verificado",
@@ -1198,6 +1198,10 @@
       "noRole": "Sin rol definido",
       "memberSince": "Miembro desde",
       "emailVerified": "Email verificado",
+      "emailUnverified": "Email sin verificar",
+      "avatarAlt": "Foto de perfil",
+      "uploadPhoto": "Subir foto de perfil",
+      "removePhoto": "Eliminar foto de perfil",
       "stats": {
         "lessons": "Lecciones",
         "certificates": "Certificados"
@@ -1227,6 +1231,11 @@
       "updating": "Actualizando...",
       "updatePassword": "Actualizar Contraseña",
       "passwordUpdated": "¡Contraseña actualizada!",
+      "passwordChangeError": "Error al cambiar la contraseña",
+      "completePasswordFields": "Completa todos los campos",
+      "emailUnavailable": "Email no disponible",
+      "emailVerified": "Email verificado",
+      "emailUnverified": "Email sin verificar",
       "error": "Error"
     },
     "skills": {

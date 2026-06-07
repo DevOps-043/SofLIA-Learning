@@ -1,4 +1,4 @@
-import type { MutableRefObject } from 'react';
+import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type { useStudyPlannerCourseSelectionFlow } from '../../hooks/useStudyPlannerCourseSelectionFlow';
 import type { useStudyPlannerCalendarUiFlow } from '../../hooks/useStudyPlannerCalendarUiFlow';
 import type { useStudyPlanPersistence } from '../../hooks/useStudyPlanPersistence';
@@ -15,6 +15,8 @@ import type {
   StudyPlannerStoredLessonDistribution,
 } from '../../types/planner-schedule.types';
 import type { useStudyPlannerCalendarActions } from './useStudyPlannerCalendarActions';
+
+type StateSetter<T> = Dispatch<SetStateAction<T>>;
 
 export interface UseStudyPlannerLIAPlanningFlowParams {
   assignedCourses: StudyPlannerAssignedCourse[];
@@ -43,7 +45,7 @@ export interface UseStudyPlannerLIAPlanningFlowParams {
   setIsConnectingCalendar: Parameters<typeof useStudyPlannerCalendarUiFlow>[0]['setIsConnectingCalendar'];
   setIsLoadingCourses: Parameters<typeof useStudyPlannerCourseSelectionFlow>[0]['setIsLoadingCourses'];
   setIsProcessing: Parameters<typeof useStudyPlannerCalendarUiFlow>[0]['setIsProcessing'];
-  setIsVisible: (value: boolean) => void;
+  setIsVisible: StateSetter<boolean>;
   setPendingLessonsWithNames: Parameters<typeof useStudyPlannerCalendarActions>[0]['setPendingLessonsWithNames'];
   setSavedCalendarData: Parameters<typeof useStudyPlannerCalendarActions>[0]['setSavedCalendarData'];
   setSavedLessonDistribution: Parameters<typeof useStudyPlanPersistence>[0]['setSavedLessonDistribution'];

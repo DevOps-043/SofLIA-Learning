@@ -5,13 +5,12 @@ export const LIA_LIVE_TOKEN_PATH = '/api/lia/live-token';
 export const LIA_LIVE_TRANSCRIPTS_PATH = '/api/lia/live-transcripts';
 
 /**
- * Modelo Live por defecto: Gemini 3.1 Flash Live (alta calidad, baja latencia,
- * diálogo de voz en tiempo real). Configurable con GEMINI_LIVE_MODEL (server)
- * si el id de API difiere del nombre del modelo.
+ * Modelo Live nativo por defecto. Se mantiene configurable con GEMINI_LIVE_MODEL
+ * porque los IDs preview pueden cambiar sin esperar un release de la app.
  */
-export const DEFAULT_LIA_LIVE_MODEL = 'gemini-3.1-flash-live-preview';
+export const DEFAULT_LIA_LIVE_MODEL = 'gemini-2.5-flash-native-audio-preview-12-2025';
 
-/** Voz prebuilt; el acento es-MX se refuerza vía systemInstruction + languageCode. */
+/** Voz prebuilt; el acento es-MX se refuerza vía systemInstruction. */
 export const DEFAULT_LIA_LIVE_VOICE = 'Zephyr';
 export const LIA_LIVE_LANGUAGE_CODE = 'es-US';
 
@@ -19,6 +18,10 @@ export const LIA_LIVE_LANGUAGE_CODE = 'es-US';
 export const LIA_LIVE_INPUT_SAMPLE_RATE = 16000;
 export const LIA_LIVE_OUTPUT_SAMPLE_RATE = 24000;
 export const LIA_LIVE_INPUT_MIME_TYPE = `audio/pcm;rate=${LIA_LIVE_INPUT_SAMPLE_RATE}`;
+
+export function isNativeAudioLiveModel(model: string): boolean {
+  return model.toLowerCase().includes('native-audio');
+}
 
 /** Persona/dirección de voz de SofLIA para la sesión en vivo. */
 export const LIA_LIVE_SYSTEM_INSTRUCTION = [

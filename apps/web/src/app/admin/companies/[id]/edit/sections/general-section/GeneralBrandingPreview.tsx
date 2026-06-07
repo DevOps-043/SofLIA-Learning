@@ -23,9 +23,9 @@ export function GeneralBrandingPreview({
         }}
       >
         <div className="absolute -bottom-5 left-4">
-          <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border-white bg-white dark:border-carbon-800 dark:bg-carbon-800" style={{ borderWidth: '3px' }}>
+          <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border-white bg-white dark:border-carbon-800" style={{ borderWidth: '3px' }}>
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="h-full w-full object-contain" />
+              <img src={logoUrl} alt="Logo" className="h-full w-full object-contain p-1" />
             ) : (
               <BuildingOffice2Icon className="h-7 w-7 text-gray-400 dark:text-muted" />
             )}

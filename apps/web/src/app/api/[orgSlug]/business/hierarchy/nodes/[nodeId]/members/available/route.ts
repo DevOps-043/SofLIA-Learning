@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string; nodeId: string }>;
@@ -20,9 +20,7 @@ interface AvailableUserRow {
   username: string | null;
 }
 
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'Internal server error';
-}
+const MAX_SEARCH_QUERY_LENGTH = 80;
 
 /**
  * GET /api/[orgSlug]/business/hierarchy/nodes/[nodeId]/members/available
@@ -37,10 +35,24 @@ export async function GET(
         if (auth instanceof NextResponse) return auth;
 
         const { searchParams } = new URL(request.url);
-        const query = searchParams.get('query') || '';
+        const query = normalizeSearchQuery(searchParams.get('query'));
         const includeCurrentMembers = searchParams.get('includeCurrentMembers') === 'true';
 
-        const supabase = await createClient();
+        const supabase = createAdminClient();
+
+        const { data: node, error: nodeError } = await supabase
+            .from('organization_nodes')
+            .select('id')
+            .eq('id', nodeId)
+            .eq('organization_id', auth.organizationId)
+            .single();
+
+        if (nodeError || !node) {
+            return NextResponse.json(
+                { success: false, error: 'Node not found or access denied' },
+                { status: 404 }
+            );
+        }
 
         let excludedUserIds: string[] = [];
 
@@ -66,7 +78,7 @@ export async function GET(
             return NextResponse.json({ success: false, error: 'Failed to fetch organization members' }, { status: 500 });
         }
 
-        const orgUserIds = orgMembers.map((member) => member.user_id);
+        const orgUserIds = (orgMembers || []).map((member) => member.user_id);
 
         if (orgUserIds.length === 0) {
             return NextResponse.json({ success: true, users: [] });
@@ -86,7 +98,7 @@ export async function GET(
 
         if (usersError) {
             logger.error('Error fetching user details:', usersError);
-            return NextResponse.json({ success: false, error: `Failed to fetch user details: ${usersError.message}` }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to fetch user details' }, { status: 500 });
         }
 
         const availableUsers = (users || []).filter((user) => !excludedUserIds.includes(user.id));
@@ -99,8 +111,16 @@ export async function GET(
     } catch (error: unknown) {
         logger.error('Error in GET /api/[orgSlug]/business/hierarchy/nodes/[nodeId]/members/available:', error);
         return NextResponse.json(
-            { success: false, error: `Internal server error: ${getErrorMessage(error)}` },
+            { success: false, error: 'Internal server error' },
             { status: 500 }
         );
     }
+}
+
+function normalizeSearchQuery(value: string | null): string {
+    return (value || '')
+        .trim()
+        .replace(/[,%*_()]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .slice(0, MAX_SEARCH_QUERY_LENGTH);
 }

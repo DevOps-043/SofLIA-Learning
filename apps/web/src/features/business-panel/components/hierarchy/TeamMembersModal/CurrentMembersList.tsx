@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { Crown, Loader2, UserMinus, Users } from 'lucide-react'
-import type { UserWithHierarchy } from '../../types/hierarchy.types'
+import type { UserWithHierarchy } from '../../../types/hierarchy.types'
 
 interface CurrentMembersListProps {
   currentMembers: UserWithHierarchy[]

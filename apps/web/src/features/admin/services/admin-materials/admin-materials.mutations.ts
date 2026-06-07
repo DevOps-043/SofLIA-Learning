@@ -16,10 +16,11 @@ export async function updateMaterial(
     .single()
 
   if (error) throw error
+  const updatedMaterial = data as AdminMaterial
   if (materialData.estimated_time_minutes !== undefined) {
-    await updateModuleDurationFromLesson(data.lesson_id)
+    await updateModuleDurationFromLesson(updatedMaterial.lesson_id)
   }
-  return data
+  return updatedMaterial
 }
 
 export async function deleteMaterial(materialId: string): Promise<void> {

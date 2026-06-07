@@ -16,7 +16,7 @@ export async function getLessonActivities(lessonId: string): Promise<AdminActivi
     throw error
   }
 
-  return data || []
+  return (data || []) as AdminActivity[]
 }
 
 export async function getActivityById(activityId: string): Promise<AdminActivity | null> {
@@ -30,7 +30,7 @@ export async function getActivityById(activityId: string): Promise<AdminActivity
       .single()
 
     if (error) throw error
-    return data
+    return data as AdminActivity
   } catch (error) {
     logger.error('Error fetching activity', {
       error: error instanceof Error ? error.message : String(error),

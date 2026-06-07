@@ -15,7 +15,7 @@ export type CalendarEvent = SharedCalendarEvent & {
   planId?: string;
   sessionId?: string;
   calendarId?: string;
-  canonicalEventKey: string;
+  canonicalEventKey?: string;
   linkedStudySessionId?: string;
   isDetachedStudySession?: boolean;
   calendarSync?: {

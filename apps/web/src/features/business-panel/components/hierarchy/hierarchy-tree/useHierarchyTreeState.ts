@@ -6,7 +6,11 @@ import { buildTreeFromFlat } from './buildTreeFromFlat';
 import { findRootNode, saveHierarchyNode } from './hierarchy-node-actions';
 import type { BusinessTranslator, HierarchyNodeModalMode, HierarchyNodeSavePayload } from './types';
 
-export function useHierarchyTreeState(initialStructureId: string | undefined, t: BusinessTranslator) {
+export function useHierarchyTreeState(
+  initialStructureId: string | undefined,
+  t: BusinessTranslator,
+  orgSlug?: string | null,
+) {
   const [structures, setStructures] = useState<OrganizationStructure[]>([]);
   const [selectedStructureId, setSelectedStructureId] = useState<string | null>(initialStructureId || null);
   const [nodes, setNodes] = useState<OrganizationNode[]>([]);
@@ -26,7 +30,7 @@ export function useHierarchyTreeState(initialStructureId: string | undefined, t:
 
   const loadStructures = useCallback(async () => {
     try {
-      const data = await DynamicHierarchyService.getStructures();
+      const data = await DynamicHierarchyService.getStructures(orgSlug);
       setStructures(data);
 
       if (data.length > 0) {
@@ -37,13 +41,13 @@ export function useHierarchyTreeState(initialStructureId: string | undefined, t:
       setError(t('hierarchy.loadStructuresError'));
       techDebtLogger.error(err);
     }
-  }, [t]);
+  }, [orgSlug, t]);
 
   const loadNodes = useCallback(async (structureId: string) => {
     setIsLoading(true);
 
     try {
-      const data = await DynamicHierarchyService.getTree(structureId);
+      const data = await DynamicHierarchyService.getTree(structureId, orgSlug);
       setNodes(data);
       setTreeRoots(buildTreeFromFlat(data));
     } catch (err) {
@@ -52,7 +56,7 @@ export function useHierarchyTreeState(initialStructureId: string | undefined, t:
     } finally {
       setIsLoading(false);
     }
-  }, [t]);
+  }, [orgSlug, t]);
 
   useEffect(() => {
     void loadStructures();
@@ -74,7 +78,7 @@ export function useHierarchyTreeState(initialStructureId: string | undefined, t:
     if (!selectedStructureId) return;
 
     try {
-      await saveHierarchyNode({ managerId, mode: nodeModalMode, name, properties, selectedStructureId, targetNode, type });
+      await saveHierarchyNode({ managerId, mode: nodeModalMode, name, orgSlug, properties, selectedStructureId, targetNode, type });
       await loadNodes(selectedStructureId);
       setShowNodeModal(false);
     } catch (err) {
@@ -85,7 +89,7 @@ export function useHierarchyTreeState(initialStructureId: string | undefined, t:
 
   return {
     error, handleNodeSave, isDropdownOpen, isLoading, isMemberModalOpen, loadNodes, loadStructures,
-    memberModalNodeId, memberModalNodeName, nodeActionError, nodeModalMode, nodes,
+    memberModalNodeId, memberModalNodeName, nodeActionError, nodeModalMode, nodes, orgSlug,
     openNodeModal, pendingDeleteNode, selectedStructureId, setIsDropdownOpen,
     setIsMemberModalOpen, setMemberModalNodeId, setMemberModalNodeName, setNodeActionError,
     setPendingDeleteNode, setSelectedStructureId, setShowNodeModal, setShowStructureModal, showNodeModal, showStructureModal,

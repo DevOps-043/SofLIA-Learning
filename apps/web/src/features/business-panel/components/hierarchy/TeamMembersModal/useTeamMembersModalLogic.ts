@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useThemeStore } from '@/core/stores/themeStore'
-import { useBusinessUsers } from '../../hooks/useBusinessUsers'
-import { useOrganizationStylesContext } from '../../contexts/OrganizationStylesContext'
-import { HierarchyService } from '../../services/hierarchy.service'
+import { useBusinessUsers } from '../../../hooks/useBusinessUsers'
+import { useOrganizationStylesContext } from '../../../contexts/OrganizationStylesContext'
+import { HierarchyService } from '../../../services/hierarchy.service'
 import type { TeamMembersModalProps } from './types'
 
 export function useTeamMembersModalLogic({
@@ -50,7 +50,7 @@ export function useTeamMembersModalLogic({
     return matchesSearch &&
       !currentMemberIds.has(user.id) &&
       (user.org_status === 'active' || !user.org_status) &&
-      user.role !== 'owner'
+      user.org_role !== 'owner'
   }), [currentMemberIds, searchTerm, users])
 
   const toggleUser = (userId: string) => {

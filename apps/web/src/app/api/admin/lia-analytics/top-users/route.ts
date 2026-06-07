@@ -8,6 +8,11 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireAdmin } from '@/lib/auth/requireAdmin';
+import {
+  resolveLiaMessageCost,
+  resolveLiaMessageTokens,
+} from '../lia-analytics/message-metrics'
+import type { LiaMessageMetricRow } from '../lia-analytics/types'
 
 export const dynamic = 'force-dynamic';
 
@@ -80,16 +85,17 @@ export async function GET(request: NextRequest) {
     
     const { data: messages } = await supabase
       .from('lia_messages')
-      .select('conversation_id, tokens_used, cost_usd')
+      .select('conversation_id, content, tokens_used, cost_usd, model_used, role')
       .in('conversation_id', conversationIds);
     
     // Crear mapa de métricas por conversación
     const metricsMap = new Map<string, { tokens: number; cost: number }>();
-    messages?.forEach(m => {
+    ;((messages || []) as LiaMessageMetricRow[]).forEach(m => {
+      if (!m.conversation_id) return
       const existing = metricsMap.get(m.conversation_id) || { tokens: 0, cost: 0 };
       metricsMap.set(m.conversation_id, {
-        tokens: existing.tokens + (m.tokens_used || 0),
-        cost: existing.cost + (m.cost_usd || 0)
+        tokens: existing.tokens + resolveLiaMessageTokens(m),
+        cost: existing.cost + resolveLiaMessageCost(m)
       });
     });
     

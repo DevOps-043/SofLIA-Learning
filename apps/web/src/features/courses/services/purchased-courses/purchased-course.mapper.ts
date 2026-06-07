@@ -57,7 +57,7 @@ export function mapPurchaseToPurchasedCourse(purchase: PurchasedCourseRow): Purc
     access_status: purchase.access_status,
     purchased_at: purchase.purchased_at,
     access_granted_at: purchase.access_granted_at,
-    expires_at: purchase.expires_at,
+    expires_at: purchase.expires_at ?? undefined,
     enrollment_id: purchase.enrollment_id || "",
     enrollment_status: enrollment?.enrollment_status || "active",
     progress_percentage: enrollment?.overall_progress_percentage || 0,

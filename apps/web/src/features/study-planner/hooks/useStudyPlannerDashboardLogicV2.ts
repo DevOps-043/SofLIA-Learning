@@ -34,7 +34,7 @@ export function useStudyPlannerDashboardLogicV2() {
 
   const [isLiaPanelOpen, setIsLiaPanelOpen] = useState(true);
   const [isLiaCollapsed, setIsLiaCollapsed] = useState(false);
-  const liaPanelRef = useRef<HTMLDivElement>(null);
+  const liaPanelRef = useRef<HTMLElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);

@@ -17,6 +17,7 @@ import {
   mergeNotebookSourcesPage,
   type NotebookCursor,
 } from './notebook-pagination.service'
+import { getNotebookEditableText } from './notebook-content-rendering.service'
 
 type SupabaseServerClient =
   | Awaited<ReturnType<typeof createClient>>
@@ -90,10 +91,26 @@ interface CourseModuleRow {
 interface CourseLessonRow {
   lesson_id: string
   module_id: string
+  lesson_order_index?: number | null
 }
 
 function stripHtmlTags(html: string): string {
-  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&(amp|apos|gt|lt|nbsp|quot);/g, (entity) => {
+      const entities: Record<string, string> = {
+        '&amp;': '&',
+        '&apos;': "'",
+        '&gt;': '>',
+        '&lt;': '<',
+        '&nbsp;': ' ',
+        '&quot;': '"',
+      }
+      return entities[entity] ?? entity
+    })
+    .trim()
 }
 
 function truncatePreview(text: string, maxLength: number = PREVIEW_LENGTH): string {
@@ -191,7 +208,7 @@ async function fetchLessonsForModules(
 
   const { data, error } = await supabase
     .from('course_lessons')
-    .select('lesson_id, module_id')
+    .select('lesson_id, module_id, lesson_order_index')
     .in('module_id', moduleIds)
 
   if (error) {
@@ -655,9 +672,9 @@ export async function duplicateSofliaSummaryAsNote(
 
   const { data: moduleLessons, error: moduleLessonsError } = await supabase
     .from('course_lessons')
-    .select('lesson_id')
+    .select('lesson_id, lesson_order_index')
     .eq('module_id', summary.module_id)
-    .order('lesson_order_index', { ascending: false })
+    .order('lesson_order_index', { ascending: true })
 
   if (moduleLessonsError) {
     logger.error('Notebook: error resolving summary lessons', {
@@ -683,14 +700,10 @@ export async function duplicateSofliaSummaryAsNote(
     .order('completed_at', { ascending: false })
     .limit(1)
 
-  const targetLessonId = progress?.[0]?.lesson_id || null
-
-  if (!targetLessonId) {
-    return {
-      success: false,
-      error: 'Necesitas completar al menos una leccion del modulo para duplicar el apunte.',
-    }
-  }
+  const targetLessonId = progress?.[0]?.lesson_id || lessonIds[0]
+  const duplicatedContent = (
+    summary.content_markdown?.trim() || getNotebookEditableText(summary.content_html || '')
+  ).slice(0, MAX_CONTENT_LENGTH)
 
   const now = new Date().toISOString()
   const { data: newNote, error: insertError } = await supabase
@@ -700,7 +713,7 @@ export async function duplicateSofliaSummaryAsNote(
       lesson_id: targetLessonId,
       organization_id: organizationId,
       note_title: `${summary.title} (copia)`,
-      note_content: summary.content_html || summary.content_markdown || '',
+      note_content: duplicatedContent,
       source_type: 'import',
       is_auto_generated: false,
       note_tags: ['SofLIA', 'duplicado'],

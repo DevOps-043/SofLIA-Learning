@@ -4,22 +4,32 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useOrganizationStyles } from '../../business-panel/hooks/useOrganizationStyles'
 import { ChangePasswordSchema, type ChangePasswordInput } from '../../../lib/schemas/user.schema'
 import { buildAuthLoginPath } from '@/lib/auth/auth-routes'
 import { useProfile } from './useProfile'
-import { ProfileService } from '../services/profile.service'
 import { createProfileUpdateRequest, formatProfileDate, resolveProfileColors } from '../services/profile.shared'
 import type { ProfileTabId, UpdateProfileRequest } from '../types/profile.types'
 
 export function useProfilePageLogic() {
   const router = useRouter()
+  const { t } = useTranslation('common')
   const { user } = useAuth()
   const { effectiveStyles } = useOrganizationStyles()
   const colors = useMemo(() => resolveProfileColors(effectiveStyles?.userDashboard), [effectiveStyles])
 
-  const { profile, stats, loading, saving, updateProfile, uploadProfilePicture } = useProfile()
+  const {
+    profile,
+    stats,
+    loading,
+    saving,
+    updateProfile,
+    uploadProfilePicture,
+    removeProfilePicture,
+    changePassword,
+  } = useProfile()
 
   const [formData, setFormData] = useState<UpdateProfileRequest>({})
   const [activeTab, setActiveTab] = useState<ProfileTabId>('personal')
@@ -31,6 +41,7 @@ export function useProfilePageLogic() {
   const [passwordChangeError, setPasswordChangeError] = useState<string | null>(null)
   const [passwordChangeSuccess, setPasswordChangeSuccess] = useState<string | null>(null)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [isRemovingProfilePicture, setIsRemovingProfilePicture] = useState(false)
 
   const {
     formState: { errors: passwordErrors },
@@ -79,9 +90,20 @@ export function useProfilePageLogic() {
     await uploadProfilePicture(file)
   }
 
+  const handleProfilePictureRemove = async () => {
+    setImageError(false)
+    setIsRemovingProfilePicture(true)
+
+    try {
+      await removeProfilePicture()
+    } finally {
+      setIsRemovingProfilePicture(false)
+    }
+  }
+
   const handleChangePassword = async () => {
     if (!user?.id || !currentPassword || !newPassword) {
-      setPasswordChangeError('Completa todos los campos')
+      setPasswordChangeError(t('profile.security.completePasswordFields'))
       return
     }
 
@@ -90,12 +112,12 @@ export function useProfilePageLogic() {
     setPasswordChangeSuccess(null)
 
     try {
-      await ProfileService.changePassword(user.id, currentPassword, newPassword)
-      setPasswordChangeSuccess('¡Contraseña actualizada!')
+      await changePassword(currentPassword, newPassword)
+      setPasswordChangeSuccess(t('profile.security.passwordUpdated'))
       resetPasswordForm()
       window.setTimeout(() => setPasswordChangeSuccess(null), 5000)
     } catch (error) {
-      setPasswordChangeError(error instanceof Error ? error.message : 'Error al cambiar la contraseña')
+      setPasswordChangeError(error instanceof Error ? error.message : t('profile.security.passwordChangeError'))
     } finally {
       setIsChangingPassword(false)
     }
@@ -113,6 +135,7 @@ export function useProfilePageLogic() {
     showSaveSuccess,
     imageError,
     setImageError,
+    isRemovingProfilePicture,
     passwordErrors,
     currentPassword,
     newPassword,
@@ -130,6 +153,7 @@ export function useProfilePageLogic() {
     handleInputChange,
     handleSave,
     handleProfilePictureUpload,
+    handleProfilePictureRemove,
     handleChangePassword,
     goBack: () => router.back(),
     goToLogin: () => router.push(buildAuthLoginPath('session_expired')),

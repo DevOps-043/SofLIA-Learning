@@ -8,11 +8,12 @@ import { AdminCompaniesHeaderActions } from './AdminCompaniesHeaderActions'
 import { AdminCompaniesHeaderBadge } from './AdminCompaniesHeaderBadge'
 
 interface AdminCompaniesHeaderProps {
+  isRefreshing: boolean
   onRefresh: () => void
   onCreate: () => void
 }
 
-export function AdminCompaniesHeader({ onRefresh, onCreate }: AdminCompaniesHeaderProps) {
+export function AdminCompaniesHeader({ isRefreshing, onRefresh, onCreate }: AdminCompaniesHeaderProps) {
   const { t } = useTranslation('admin')
   const theme = useAdminPanelTheme()
 
@@ -62,7 +63,7 @@ export function AdminCompaniesHeader({ onRefresh, onCreate }: AdminCompaniesHead
           </p>
         </div>
 
-        <AdminCompaniesHeaderActions onRefresh={onRefresh} onCreate={onCreate} />
+        <AdminCompaniesHeaderActions isRefreshing={isRefreshing} onRefresh={onRefresh} onCreate={onCreate} />
       </div>
       <AdminCompaniesHeaderBadge />
     </motion.header>

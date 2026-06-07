@@ -22,6 +22,7 @@ export function ProfilePageContent(logic: ProfilePageLogic) {
     showSaveSuccess,
     imageError,
     setImageError,
+    isRemovingProfilePicture,
     passwordErrors,
     currentPassword,
     newPassword,
@@ -40,13 +41,16 @@ export function ProfilePageContent(logic: ProfilePageLogic) {
     handleInputChange,
     handleSave,
     handleProfilePictureUpload,
+    handleProfilePictureRemove,
     handleChangePassword,
     goBack,
     formatDate
   } = logic
 
   const hasOAuthAuthProvider = Boolean(profile?.auth_providers?.length)
-  const canEditCredentials = Boolean(profile) && !hasOAuthAuthProvider && profile.can_edit_credentials
+  const canEditCredentials = profile
+    ? !hasOAuthAuthProvider && profile.can_edit_credentials
+    : false
 
   useEffect(() => {
     if (!canEditCredentials && activeTab === 'security') {
@@ -69,7 +73,9 @@ export function ProfilePageContent(logic: ProfilePageLogic) {
           colors={colors}
           imageError={imageError}
           setImageError={setImageError}
+          isRemovingProfilePicture={isRemovingProfilePicture}
           handleProfilePictureUpload={handleProfilePictureUpload}
+          handleProfilePictureRemove={handleProfilePictureRemove}
           formatDate={formatDate}
         />
 
@@ -83,8 +89,7 @@ export function ProfilePageContent(logic: ProfilePageLogic) {
               </div>
             ) : (
               <ProfileSecurityTab
-                formData={formData}
-                handleInputChange={handleInputChange}
+                profile={profile}
                 colors={colors}
                 passwordChangeSuccess={passwordChangeSuccess}
                 passwordChangeError={passwordChangeError}

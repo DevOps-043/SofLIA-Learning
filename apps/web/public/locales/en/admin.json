@@ -725,7 +725,13 @@
       "view": "View",
       "edit": "Edit",
       "activate": "Activate",
-      "pause": "Pause"
+      "pause": "Pause",
+      "saving": "Saving...",
+      "saveChanges": "Save changes",
+      "saved": "Changes saved"
+    },
+    "edit": {
+      "headerSubtitle": "Company management"
     },
     "filters": {
       "allPlans": "All plans",

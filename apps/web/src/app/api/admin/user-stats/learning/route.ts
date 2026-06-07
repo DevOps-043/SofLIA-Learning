@@ -3,6 +3,13 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { cacheHeaders } from '@/lib/utils/cache-headers'
 import { logger } from '@/lib/utils/logger'
+import {
+  buildStudyMinutesByUserLesson,
+  parseUserLessonKey,
+  type CourseLessonTimeRow,
+  type LessonProgressTimeRow,
+  type LessonTrackingTimeRow,
+} from '../study-time'
 
 interface LearningStats {
   avgTimePerLesson: number
@@ -22,6 +29,16 @@ interface UserStatsLearningRpcClient {
     data: LearningStats | null
     error: { message?: string } | null
   }>
+}
+
+type LearningLessonProgressRow = LessonProgressTimeRow & {
+  quiz_completed?: boolean | null
+  quiz_passed?: boolean | null
+}
+
+type CourseLessonWithCourseRow = CourseLessonTimeRow & {
+  module_id?: string | null
+  course_modules?: { course_id?: string | null } | null
 }
 
 export async function GET() {
@@ -55,21 +72,27 @@ export async function GET() {
       courseLessonsRes,
       coursesRes,
     ] = await Promise.all([
-      supabase.from('user_lesson_progress').select('time_spent_minutes, quiz_completed, quiz_passed, lesson_id'),
+      supabase.from('user_lesson_progress').select('user_id, lesson_id, time_spent_minutes, is_completed, lesson_status, completed_at, quiz_completed, quiz_passed'),
       supabase.from('study_sessions').select('id, user_id, status, start_time, completed_at, actual_duration_minutes').gte('start_time', fourWeeksAgo),
-      supabase.from('lesson_tracking').select('t_video_minutes, t_materials_minutes'),
+      supabase.from('lesson_tracking').select('user_id, lesson_id, status, started_at, completed_at, t_lesson_minutes, t_video_minutes, t_materials_minutes'),
       supabase.from('daily_progress').select('streak_count, user_id').gt('streak_count', 0),
-      supabase.from('course_lessons').select('lesson_id, module_id, course_modules(course_id)'),
+      supabase.from('course_lessons').select('lesson_id, module_id, duration_seconds, total_duration_minutes, course_modules(course_id)'),
       supabase.from('courses').select('id, title'),
     ])
 
-    const lessonProgress = lessonProgressRes.data || []
+    const lessonProgress = (lessonProgressRes.data || []) as LearningLessonProgressRow[]
     const sessions = sessionsRes.data || []
+    const courseLessons = (courseLessonsRes.data || []) as CourseLessonWithCourseRow[]
+    const studyMinutesByUserLesson = buildStudyMinutesByUserLesson({
+      courseLessons,
+      lessonProgress,
+      lessonTracking: (trackingRes.data || []) as LessonTrackingTimeRow[],
+    })
 
     // Avg time per lesson
-    const lessonsWithTime = lessonProgress.filter(lp => (lp.time_spent_minutes || 0) > 0)
+    const lessonsWithTime = Array.from(studyMinutesByUserLesson.values()).filter(minutes => minutes > 0)
     const avgTimePerLesson = lessonsWithTime.length > 0
-      ? Math.round(lessonsWithTime.reduce((s, lp) => s + (lp.time_spent_minutes || 0), 0) / lessonsWithTime.length)
+      ? Math.round(lessonsWithTime.reduce((sum, minutes) => sum + minutes, 0) / lessonsWithTime.length)
       : 0
 
     // Quiz pass rate
@@ -84,17 +107,18 @@ export async function GET() {
     // Top courses by study time — build lesson→course map
     const coursesMap = new Map((coursesRes.data || []).map(c => [c.id, c.title]))
     const lessonToCourse = new Map<string, string>()
-    for (const cl of (courseLessonsRes.data || [])) {
+    for (const cl of courseLessons) {
       const courseId = (cl.course_modules as { course_id?: string | null } | null)?.course_id
       if (courseId) lessonToCourse.set(cl.lesson_id, courseId)
     }
     const courseTimeMap = new Map<string, number>()
-    for (const lp of lessonProgress) {
-      const courseId = lessonToCourse.get(lp.lesson_id)
-      if (courseId && lp.time_spent_minutes) {
-        courseTimeMap.set(courseId, (courseTimeMap.get(courseId) || 0) + lp.time_spent_minutes)
+    studyMinutesByUserLesson.forEach((minutes, key) => {
+      const { lessonId } = parseUserLessonKey(key)
+      const courseId = lessonToCourse.get(lessonId)
+      if (courseId && minutes > 0) {
+        courseTimeMap.set(courseId, (courseTimeMap.get(courseId) || 0) + minutes)
       }
-    }
+    })
     const topCoursesByTime = Array.from(courseTimeMap.entries())
       .map(([id, minutes]) => ({ course: coursesMap.get(id) || 'Curso desconocido', minutes }))
       .sort((a, b) => b.minutes - a.minutes)
@@ -154,8 +178,9 @@ export async function GET() {
       { headers: cacheHeaders.privateShort },
     )
   } catch (error) {
+    logger.error('Unexpected error in admin user stats learning route', { error })
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

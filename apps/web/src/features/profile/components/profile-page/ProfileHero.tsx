@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { BookOpen, Briefcase, Calendar, Camera, Check, GraduationCap, User } from 'lucide-react'
+import { AlertCircle, BookOpen, Briefcase, Calendar, Camera, Check, GraduationCap, Mail, Trash2, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { ProfileColorPalette, UserProfile, UserStats } from '../../types/profile.types'
 
@@ -11,7 +11,9 @@ interface ProfileHeroProps {
   colors: ProfileColorPalette
   imageError: boolean
   setImageError: (value: boolean) => void
+  isRemovingProfilePicture: boolean
   handleProfilePictureUpload: (file: File) => Promise<void>
+  handleProfilePictureRemove: () => Promise<void>
   formatDate: (dateString: string) => string
 }
 
@@ -21,10 +23,16 @@ export function ProfileHero({
   colors,
   imageError,
   setImageError,
+  isRemovingProfilePicture,
   handleProfilePictureUpload,
+  handleProfilePictureRemove,
   formatDate
 }: ProfileHeroProps) {
   const { t } = useTranslation('common')
+  const hasProfilePicture = Boolean(profile.profile_picture_url && !imageError)
+  const EmailStatusIcon = profile.email_verified ? Check : AlertCircle
+  const emailStatusColor = profile.email_verified ? colors.success : colors.warning
+
   return (
     <div className="relative overflow-hidden">
       <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, color-mix(in srgb, ${colors.accent} 6.3%, transparent) 0%, transparent 100%)` }} />
@@ -36,10 +44,10 @@ export function ProfileHero({
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative group">
             <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-3xl p-1" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${colors.accent} 18.8%, transparent), color-mix(in srgb, ${colors.primary} 18.8%, transparent))` }}>
               <div className="w-full h-full rounded-[22px] overflow-hidden flex items-center justify-center relative" style={{ backgroundColor: colors.bgSecondary }}>
-                {profile.profile_picture_url && !imageError ? (
+                {hasProfilePicture ? (
                   <img
                     src={profile.profile_picture_url}
-                    alt="Profile"
+                    alt={t('profile.hero.avatarAlt')}
                     className="w-full h-full object-cover"
                     onError={() => setImageError(true)}
                   />
@@ -65,6 +73,8 @@ export function ProfileHero({
             />
             <motion.label
               htmlFor="avatar-upload"
+              aria-label={t('profile.hero.uploadPhoto')}
+              title={t('profile.hero.uploadPhoto')}
               className="absolute -bottom-2 -right-2 w-12 h-12 rounded-2xl flex items-center justify-center cursor-pointer transition-transform hover:scale-110 active:scale-95 z-10"
               style={{ backgroundColor: colors.accent, boxShadow: `0 10px 30px color-mix(in srgb, ${colors.accent} 25.1%, transparent)` }}
               whileHover={{ scale: 1.1 }}
@@ -72,6 +82,21 @@ export function ProfileHero({
             >
               <Camera className="w-5 h-5" style={{ color: colors.primary }} />
             </motion.label>
+            {hasProfilePicture ? (
+              <motion.button
+                aria-label={t('profile.hero.removePhoto')}
+                className="absolute -bottom-2 -left-2 z-10 flex h-12 w-12 items-center justify-center rounded-2xl transition-transform hover:scale-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isRemovingProfilePicture}
+                onClick={() => void handleProfilePictureRemove()}
+                style={{ backgroundColor: colors.error, boxShadow: `0 10px 30px color-mix(in srgb, ${colors.error} 20%, transparent)` }}
+                title={t('profile.hero.removePhoto')}
+                type="button"
+                whileHover={isRemovingProfilePicture ? undefined : { scale: 1.1 }}
+                whileTap={isRemovingProfilePicture ? undefined : { scale: 0.95 }}
+              >
+                <Trash2 className="h-5 w-5 text-white" />
+              </motion.button>
+            ) : null}
           </motion.div>
 
           <div className="flex-1">
@@ -86,9 +111,15 @@ export function ProfileHero({
                   <Calendar className="w-3.5 h-3.5" />
                   {t('profile.hero.memberSince')} {formatDate(profile.created_at)}
                 </span>
-                <span className="flex items-center gap-1.5" style={{ color: colors.success }}>
-                  <Check className="w-3.5 h-3.5" />
-                  {t('profile.hero.emailVerified')}
+                {profile.email ? (
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5 shrink-0" />
+                    <span className="max-w-[240px] truncate">{profile.email}</span>
+                  </span>
+                ) : null}
+                <span className="flex items-center gap-1.5" style={{ color: emailStatusColor }}>
+                  <EmailStatusIcon className="w-3.5 h-3.5" />
+                  {profile.email_verified ? t('profile.hero.emailVerified') : t('profile.hero.emailUnverified')}
                 </span>
               </div>
             </motion.div>

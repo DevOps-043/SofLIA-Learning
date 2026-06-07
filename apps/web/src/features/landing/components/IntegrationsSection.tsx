@@ -13,6 +13,8 @@ interface IntegrationsSectionProps {
 export function IntegrationsSection({ className = '' }: IntegrationsSectionProps) {
   const { t } = useTranslation('common')
   const { disableHeavy } = useMotionSafe()
+  const translate = (key: string, defaultValue?: string) =>
+    defaultValue === undefined ? t(key) : t(key, defaultValue)
 
   const localizedConversation = [
     {
@@ -45,10 +47,10 @@ export function IntegrationsSection({ className = '' }: IntegrationsSectionProps
       className={`py-20 lg:py-28 bg-gradient-to-b from-gray-200/30 to-white dark:from-primary/30 dark:to-carbon-900 ${className}`}
     >
       <div className="container mx-auto px-4 lg:px-8">
-        <IntegrationsHeader t={t} />
+        <IntegrationsHeader t={translate} />
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-          <CapabilitiesGrid t={t} />
-          <ActionsPanel t={t} disableHeavy={disableHeavy} chatMessages={localizedConversation} />
+          <CapabilitiesGrid t={translate} />
+          <ActionsPanel t={translate} disableHeavy={disableHeavy} chatMessages={localizedConversation} />
         </div>
       </div>
     </section>

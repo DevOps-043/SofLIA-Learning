@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { DESIGN_HEX_COLOR } from '@/core/theme/color-tokens'
 
 import {
   AdminCompaniesService,
   type CompanyUpdatePayload,
 } from '@/features/admin/services/adminCompanies.service'
+import {
+  DEFAULT_BRAND_ACCENT,
+  DEFAULT_BRAND_PRIMARY,
+  DEFAULT_BRAND_SECONDARY,
+} from '@/features/admin/services/admin-companies/admin-company-brand-colors'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
@@ -28,7 +32,9 @@ function buildPayload(body: UpdateCompanyBody): CompanyUpdatePayload {
   }
 
   if (body.name !== undefined) payload.name = String(body.name)
-  if (body.slug !== undefined) payload.slug = body.slug ? String(body.slug) : null
+  if (body.slug !== undefined && body.slug !== null && body.slug !== '') {
+    payload.slug = String(body.slug)
+  }
   if (body.description !== undefined)
     payload.description = body.description ? String(body.description) : null
   if (body.contact_email !== undefined)
@@ -48,15 +54,15 @@ function buildPayload(body: UpdateCompanyBody): CompanyUpdatePayload {
   if (body.brand_color_primary !== undefined)
     payload.brand_color_primary = body.brand_color_primary
       ? String(body.brand_color_primary)
-      : DESIGN_HEX_COLOR.info
+      : DEFAULT_BRAND_PRIMARY
   if (body.brand_color_secondary !== undefined)
     payload.brand_color_secondary = body.brand_color_secondary
       ? String(body.brand_color_secondary)
-      : DESIGN_HEX_COLOR.success
+      : DEFAULT_BRAND_SECONDARY
   if (body.brand_color_accent !== undefined)
     payload.brand_color_accent = body.brand_color_accent
       ? String(body.brand_color_accent)
-      : DESIGN_HEX_COLOR.secondary
+      : DEFAULT_BRAND_ACCENT
   if (body.brand_font_family !== undefined)
     payload.brand_font_family = body.brand_font_family ?? 'Inter'
 

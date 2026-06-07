@@ -17,13 +17,14 @@ export async function updateActivity(
     .single()
 
   if (error) throw error
+  const updatedActivity = data as AdminActivity
   if (activityData.estimated_time_minutes !== undefined) {
-    await updateModuleDurationFromLesson(data.lesson_id)
+    await updateModuleDurationFromLesson(updatedActivity.lesson_id)
   }
   // Pre-generación de audio (best-effort): si cambió el contenido de lectura,
   // reencola; no bloquea ni rompe el guardado ante fallo.
-  await enqueueActivityReadingAudio(data)
-  return data
+  await enqueueActivityReadingAudio(updatedActivity)
+  return updatedActivity
 }
 
 export async function deleteActivity(activityId: string): Promise<void> {

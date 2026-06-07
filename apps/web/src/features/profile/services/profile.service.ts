@@ -133,6 +133,15 @@ export class ProfileService {
     return payload.imageUrl
   }
 
+  static async removeProfilePicture(): Promise<void> {
+    const response = await fetch('/api/profile/upload-picture', {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+
+    await ensureOk(response, 'Error al eliminar imagen')
+  }
+
   static async changePassword(_userId: string, currentPassword: string, newPassword: string): Promise<void> {
     const response = await fetch('/api/profile/password', {
       method: 'PUT',

@@ -23,8 +23,8 @@ export function SSOSettingsCard({
         <div><h3 className="text-lg font-bold text-gray-900 dark:text-white">Inicio de Sesion Social (SSO)</h3><p className="text-sm text-gray-500 dark:text-gray-400">Permite a tus usuarios iniciar sesion con sus cuentas de Google o Microsoft</p></div>
       </div>
       <div className="space-y-4">
-        <SocialLoginToggle description="Permitir inicio de sesion con Google" enabled={organization.google_login_enabled} icon={<GoogleLogo />} isUpdating={state.isUpdatingGoogle} name="Google" onToggle={() => state.handleToggleSSO('google', !organization.google_login_enabled)} />
-        <SocialLoginToggle description="Permitir inicio de sesion con Microsoft" enabled={organization.microsoft_login_enabled} icon={<MicrosoftLogo />} isUpdating={state.isUpdatingMicrosoft} name="Microsoft" onToggle={() => state.handleToggleSSO('microsoft', !organization.microsoft_login_enabled)} />
+        <SocialLoginToggle description="Permitir inicio de sesion con Google" enabled={organization.google_login_enabled ?? false} icon={<GoogleLogo />} isUpdating={state.isUpdatingGoogle} name="Google" onToggle={() => state.handleToggleSSO('google', !organization.google_login_enabled)} />
+        <SocialLoginToggle description="Permitir inicio de sesion con Microsoft" enabled={organization.microsoft_login_enabled ?? false} icon={<MicrosoftLogo />} isUpdating={state.isUpdatingMicrosoft} name="Microsoft" onToggle={() => state.handleToggleSSO('microsoft', !organization.microsoft_login_enabled)} />
       </div>
     </motion.div>
   )

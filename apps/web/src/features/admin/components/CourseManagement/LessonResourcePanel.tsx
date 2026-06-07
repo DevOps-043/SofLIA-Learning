@@ -20,6 +20,7 @@ export function LessonResourcePanel({ lessonId, materials, activities }: LessonR
     setShowActivityModal, setEditingActivity,
     deleteMaterial, fetchMaterials,
     deleteActivity, fetchActivities,
+    showFeedbackMessage,
   } = useCourseManagementContext().state
   const { t } = useTranslation('common')
   const { t: ta } = useTranslation('admin')

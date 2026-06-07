@@ -13,12 +13,12 @@ export function calculateDashboardStats(
 ): DashboardStats {
   const inProgress = combinedAssignments.filter((assignment) => {
     const enrollment = enrollmentsMap.get(assignment.course_id)
-    const progress = enrollment?.overall_progress_percentage || assignment.completion_percentage || 0
+    const progress = enrollment?.overall_progress_percentage ?? assignment.completion_percentage ?? 0
     return progress > 0 && progress < 100
   }).length
   const completed = combinedAssignments.filter((assignment) => {
     const enrollment = enrollmentsMap.get(assignment.course_id)
-    const progress = enrollment?.overall_progress_percentage || assignment.completion_percentage || 0
+    const progress = enrollment?.overall_progress_percentage ?? assignment.completion_percentage ?? 0
     return progress >= 100 ||
       assignment.status === 'completed' ||
       enrollment?.enrollment_status === 'completed'

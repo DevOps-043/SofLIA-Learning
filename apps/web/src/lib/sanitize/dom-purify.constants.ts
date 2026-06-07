@@ -22,6 +22,7 @@ export const EVENT_HANDLERS = [
 ];
 
 export const ALLOWED_CSS_CLASSES = [
+  /^text-(left|center|right|justify)$/,
   /^text-(xs|sm|base|lg|xl|\d+xl)$/,
   /^text-(gray|blue|red|green|yellow)-\d{3}$/,
   /^font-(thin|extralight|light|normal|medium|semibold|bold|extrabold|black)$/,

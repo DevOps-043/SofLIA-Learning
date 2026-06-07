@@ -32,7 +32,7 @@ export function CompletionRateChart({
           <YAxis stroke={theme.axisColor} tick={{ fill: theme.tickColor }} domain={[0, 100]} style={{ fontSize: '12px' }} />
           <Tooltip
             contentStyle={getTooltipStyle(theme)}
-            formatter={(value: number) => `${value.toFixed(1)}%`}
+            formatter={(value) => `${Number(value).toFixed(1)}%`}
           />
           <Legend wrapperStyle={{ color: theme.tickColor }} />
           <Line type="monotone" dataKey="enrollment_rate" name="Tasa de Inscripcion" stroke={CHART_COLORS.primary} strokeWidth={2} dot={{ fill: CHART_COLORS.primary, r: 4 }} />

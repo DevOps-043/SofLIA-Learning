@@ -8,6 +8,11 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireAdmin } from '@/lib/auth/requireAdmin';
+import {
+  resolveLiaMessageCost,
+  resolveLiaMessageModel,
+  resolveLiaMessageTokens,
+} from '../lia-analytics/message-metrics'
 
 export const dynamic = 'force-dynamic';
 
@@ -168,8 +173,8 @@ export async function GET(request: NextRequest) {
     const userMessages = filteredMessages.filter(m => m.role === 'user');
     const assistantMessages = filteredMessages.filter(m => m.role === 'assistant');
     
-    const totalTokens = filteredMessages.reduce((sum, m) => sum + (m.tokens_used || 0), 0);
-    const totalCost = filteredMessages.reduce((sum, m) => sum + (m.cost_usd || 0), 0);
+    const totalTokens = filteredMessages.reduce((sum, m) => sum + resolveLiaMessageTokens(m), 0);
+    const totalCost = filteredMessages.reduce((sum, m) => sum + resolveLiaMessageCost(m), 0);
     const avgResponseTime = assistantMessages.length > 0
       ? Math.round(assistantMessages.reduce((sum, m) => sum + (m.response_time_ms || 0), 0) / assistantMessages.length)
       : 0;
@@ -192,8 +197,8 @@ export async function GET(request: NextRequest) {
       };
 
       existing.messageCount++;
-      existing.tokens += msg.tokens_used || 0;
-      existing.cost += msg.cost_usd || 0;
+      existing.tokens += resolveLiaMessageTokens(msg);
+      existing.cost += resolveLiaMessageCost(msg);
 
       if (!existing.conversations.includes(msg.conversation_id)) {
         existing.conversations.push(msg.conversation_id);
@@ -245,7 +250,7 @@ export async function GET(request: NextRequest) {
     // Modelos usados
     const modelCounts: Record<string, number> = {};
     assistantMessages.forEach(msg => {
-      const model = msg.model_used || 'unknown';
+      const model = resolveLiaMessageModel(msg);
       modelCounts[model] = (modelCounts[model] || 0) + 1;
     });
 

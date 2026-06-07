@@ -16,9 +16,9 @@ export async function getUserLearningStatsFromEnrollments(userId: string): Promi
         duration_total_minutes
       )
     `)
-    .returns<EnrolledCourseStatsRow[]>()
     .eq("user_id", userId)
-    .neq("enrollment_status", "cancelled");
+    .neq("enrollment_status", "cancelled")
+    .returns<EnrolledCourseStatsRow[]>();
 
   if (error) throw error;
 

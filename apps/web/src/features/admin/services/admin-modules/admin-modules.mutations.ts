@@ -1,4 +1,5 @@
 import { createAdminModulesClient } from './admin-modules.client'
+import { mapAdminModule } from './admin-modules.mapper'
 import type { AdminModule, UpdateModuleData } from './admin-modules.types'
 
 export async function updateModule(
@@ -14,7 +15,7 @@ export async function updateModule(
     .single()
 
   if (error) throw error
-  return data
+  return mapAdminModule(data)
 }
 
 export async function deleteModule(moduleId: string): Promise<void> {
@@ -83,5 +84,5 @@ export async function toggleModulePublished(moduleId: string): Promise<AdminModu
     .single()
 
   if (error) throw error
-  return data
+  return mapAdminModule(data)
 }

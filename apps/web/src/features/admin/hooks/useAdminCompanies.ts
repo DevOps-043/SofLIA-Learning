@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import useSWR from 'swr'
+import { getAdminApiErrorMessage } from '../services/admin-api-errors'
 import type { AdminCompany, CompanyCreatePayload, CompanyStats } from '../types/admin-companies.types'
 
 interface AdminCompaniesResponse {
@@ -9,6 +10,8 @@ interface AdminCompaniesResponse {
   companies?: AdminCompany[]
   stats?: CompanyStats | null
   error?: string
+  message?: string
+  details?: unknown
 }
 
 interface UseAdminCompaniesReturn {
@@ -16,7 +19,7 @@ interface UseAdminCompaniesReturn {
   stats: CompanyStats | null
   isLoading: boolean
   error: string | null
-  refetch: () => void
+  refetch: () => Promise<void>
   updatingId: string | null
   updateCompany: (companyId: string, payload: Partial<Pick<AdminCompany, 'is_active' | 'subscription_plan' | 'subscription_status' | 'max_users'>>) => Promise<void>
   createCompany: (payload: CompanyCreatePayload) => Promise<void>
@@ -28,7 +31,7 @@ async function fetchAdminCompanies(url: string): Promise<AdminCompaniesResponse>
   const data = (await response.json().catch(() => null)) as AdminCompaniesResponse | null
 
   if (!response.ok || !data?.success) {
-    throw new Error(data?.error || 'Error al obtener empresas')
+    throw new Error(getAdminApiErrorMessage(data, 'Error al obtener empresas'))
   }
 
   return data
@@ -51,8 +54,8 @@ export function useAdminCompanies(): UseAdminCompaniesReturn {
     revalidateOnReconnect: true,
   })
 
-  const fetchCompanies = useCallback(() => {
-    void mutate()
+  const fetchCompanies = useCallback(async () => {
+    await mutate()
   }, [mutate])
 
   const updateCompany = useCallback(
@@ -70,7 +73,7 @@ export function useAdminCompanies(): UseAdminCompaniesReturn {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}))
-          throw new Error(errorData.error || 'Error al actualizar la empresa')
+          throw new Error(getAdminApiErrorMessage(errorData, 'Error al actualizar la empresa'))
         }
 
         await mutate()
@@ -99,7 +102,7 @@ export function useAdminCompanies(): UseAdminCompaniesReturn {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}))
-          throw new Error(errorData.error || 'Error al crear la empresa')
+          throw new Error(getAdminApiErrorMessage(errorData, 'Error al crear la empresa'))
         }
 
         await mutate()

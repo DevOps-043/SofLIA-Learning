@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { fromLoose } from "@/lib/supabase/looseQuery";
 import {
   isMissingCoursePurchasesError,
   markCoursePurchasesUnavailable,
@@ -13,8 +14,7 @@ export async function isCoursePurchased(userId: string, courseId: string): Promi
     }
 
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("course_purchases")
+    const { data, error } = await fromLoose<{ purchase_id: string }>(supabase, "course_purchases")
       .select("purchase_id")
       .eq("user_id", userId)
       .eq("course_id", courseId)

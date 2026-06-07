@@ -76,13 +76,10 @@ async function resolveUserProfileId(
   return (profile as UserProfileRow | null)?.id ?? null
 }
 
-function getLatestTimestamp(
-  rows: Array<Record<string, string | null>>,
-  key: string,
-): string | null {
+function getLatestTimestamp<T extends object>(rows: T[], key: keyof T): string | null {
   return rows.reduce<string | null>((latest, row) => {
     const candidate = row[key]
-    if (!candidate) {
+    if (typeof candidate !== 'string' || candidate === '') {
       return latest
     }
 

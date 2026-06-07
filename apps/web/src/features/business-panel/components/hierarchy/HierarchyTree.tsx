@@ -1,4 +1,5 @@
 import React from 'react';
+import { useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { HierarchyActions } from './hierarchy-tree/HierarchyActions';
 import { HierarchyInlineAlerts } from './hierarchy-tree/HierarchyInlineAlerts';
@@ -15,7 +16,9 @@ interface HierarchyTreeProps {
 export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId }) => {
   const { t } = useTranslation('business');
   const { t: tc } = useTranslation('common');
-  const state = useHierarchyTreeState(initialStructureId, t);
+  const params = useParams();
+  const orgSlug = params?.orgSlug as string | undefined;
+  const state = useHierarchyTreeState(initialStructureId, t, orgSlug);
   const commands = useHierarchyTreeCommands(state, t);
 
   return (

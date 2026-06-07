@@ -90,6 +90,94 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function DELETE() {
+  try {
+    const user = await SessionService.getCurrentUser()
+
+    if (!user) {
+      logger.error('Auth error: No user found in session')
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json({ error: 'Storage no configurado' }, { status: 500 })
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const { data: currentProfile, error: fetchError } = await supabase
+      .from('users')
+      .select('profile_picture_url')
+      .eq('id', user.id)
+      .single()
+
+    if (fetchError) {
+      logger.error('Error fetching profile picture before delete:', fetchError)
+      return NextResponse.json({ error: 'Error fetching profile' }, { status: 500 })
+    }
+
+    const currentUrl = currentProfile?.profile_picture_url || ''
+    const storagePath = resolveAvatarStoragePath(currentUrl)
+
+    if (storagePath) {
+      const { error: storageError } = await supabase.storage
+        .from('avatars')
+        .remove([storagePath])
+
+      if (storageError) {
+        logger.warn('Profile picture storage delete failed:', {
+          error: storageError.message,
+          storagePath,
+          userId: user.id,
+        })
+      }
+    }
+
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        profile_picture_url: '',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id)
+
+    if (updateError) {
+      logger.error('Error clearing profile picture:', updateError)
+      return NextResponse.json({ error: 'Error updating profile' }, { status: 500 })
+    }
+
+    await notifyProfilePictureUpdatedBestEffort(user.id)
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    logger.error('Error in delete upload-picture API:', error)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+  }
+}
+
+function resolveAvatarStoragePath(imageUrl: string): string | null {
+  if (!imageUrl) return null
+
+  const publicObjectMarker = '/storage/v1/object/public/avatars/'
+
+  try {
+    const parsedUrl = new URL(imageUrl)
+    const markerIndex = parsedUrl.pathname.indexOf(publicObjectMarker)
+    if (markerIndex >= 0) {
+      return decodeURIComponent(parsedUrl.pathname.slice(markerIndex + publicObjectMarker.length))
+    }
+  } catch {
+    const markerIndex = imageUrl.indexOf(publicObjectMarker)
+    if (markerIndex >= 0) {
+      return decodeURIComponent(imageUrl.slice(markerIndex + publicObjectMarker.length))
+    }
+  }
+
+  return imageUrl.startsWith('profile-pictures/') ? imageUrl : null
+}
+
 async function notifyProfilePictureUpdatedBestEffort(userId: string) {
   try {
     const { AutoNotificationsService } = await import(

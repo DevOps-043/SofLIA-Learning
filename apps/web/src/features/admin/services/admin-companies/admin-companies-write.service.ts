@@ -1,4 +1,5 @@
 import { createAdminClient } from '../../../../lib/supabase/admin'
+import type { Database } from '../../../../lib/supabase/types'
 import { logger } from '../../../../lib/utils/logger'
 
 import type {
@@ -6,9 +7,16 @@ import type {
   CompanyCreatePayload,
   CompanyUpdatePayload,
 } from '../../types/admin-companies.types'
+import {
+  DEFAULT_BRAND_ACCENT,
+  DEFAULT_BRAND_PRIMARY,
+  DEFAULT_BRAND_SECONDARY,
+  normalizeBrandHexColor,
+} from './admin-company-brand-colors'
 import { getAdminCompanyById } from './admin-companies-read.service'
 
 type SupabaseServerClient = ReturnType<typeof createAdminClient>
+type OrganizationUpdateData = Database['public']['Tables']['organizations']['Update']
 
 function slugifyCompanyName(value: string): string {
   return value
@@ -19,13 +27,13 @@ function slugifyCompanyName(value: string): string {
     .replace(/(^-|-$)/g, '')
 }
 
-function buildUpdateData(updates: CompanyUpdatePayload): Record<string, unknown> {
-  const updateData: Record<string, unknown> = {
+function buildUpdateData(updates: CompanyUpdatePayload): OrganizationUpdateData {
+  const updateData: OrganizationUpdateData = {
     updated_at: new Date().toISOString(),
   }
 
   if (updates.name !== undefined) updateData.name = updates.name
-  if (updates.slug !== undefined) updateData.slug = updates.slug
+  if (updates.slug !== undefined && updates.slug !== null) updateData.slug = updates.slug
   if (updates.description !== undefined) updateData.description = updates.description
   if (updates.contact_email !== undefined) updateData.contact_email = updates.contact_email
   if (updates.contact_phone !== undefined) updateData.contact_phone = updates.contact_phone
@@ -34,9 +42,24 @@ function buildUpdateData(updates: CompanyUpdatePayload): Record<string, unknown>
   if (updates.brand_logo_url !== undefined) updateData.brand_logo_url = updates.brand_logo_url
   if (updates.brand_banner_url !== undefined) updateData.brand_banner_url = updates.brand_banner_url
   if (updates.brand_favicon_url !== undefined) updateData.brand_favicon_url = updates.brand_favicon_url
-  if (updates.brand_color_primary !== undefined) updateData.brand_color_primary = updates.brand_color_primary
-  if (updates.brand_color_secondary !== undefined) updateData.brand_color_secondary = updates.brand_color_secondary
-  if (updates.brand_color_accent !== undefined) updateData.brand_color_accent = updates.brand_color_accent
+  if (updates.brand_color_primary !== undefined) {
+    updateData.brand_color_primary = normalizeBrandHexColor(
+      updates.brand_color_primary,
+      DEFAULT_BRAND_PRIMARY,
+    )
+  }
+  if (updates.brand_color_secondary !== undefined) {
+    updateData.brand_color_secondary = normalizeBrandHexColor(
+      updates.brand_color_secondary,
+      DEFAULT_BRAND_SECONDARY,
+    )
+  }
+  if (updates.brand_color_accent !== undefined) {
+    updateData.brand_color_accent = normalizeBrandHexColor(
+      updates.brand_color_accent,
+      DEFAULT_BRAND_ACCENT,
+    )
+  }
   if (updates.brand_font_family !== undefined) updateData.brand_font_family = updates.brand_font_family
   if (updates.is_active !== undefined) updateData.is_active = updates.is_active
   if (updates.subscription_status !== undefined) updateData.subscription_status = updates.subscription_status
@@ -150,9 +173,9 @@ export async function createAdminCompany(data: CompanyCreatePayload): Promise<Ad
     brand_logo_url: data.brand_logo_url || null,
     brand_banner_url: data.brand_banner_url || null,
     brand_favicon_url: data.brand_favicon_url || null,
-    brand_color_primary: data.brand_color_primary || 'var(--color-info)',
-    brand_color_secondary: data.brand_color_secondary || 'var(--color-success)',
-    brand_color_accent: data.brand_color_accent || 'var(--color-secondary)',
+    brand_color_primary: normalizeBrandHexColor(data.brand_color_primary, DEFAULT_BRAND_PRIMARY),
+    brand_color_secondary: normalizeBrandHexColor(data.brand_color_secondary, DEFAULT_BRAND_SECONDARY),
+    brand_color_accent: normalizeBrandHexColor(data.brand_color_accent, DEFAULT_BRAND_ACCENT),
     brand_font_family: data.brand_font_family || 'Inter',
     google_login_enabled: data.google_login_enabled ?? false,
     microsoft_login_enabled: data.microsoft_login_enabled ?? false,

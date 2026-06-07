@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createProxySupabaseClient } from './supabase'
 import { normalizeRole, redirectByNormalizedRole } from './role-redirect'
+import { redirectBusinessRoleByActiveOrganization } from './business-organization-redirect'
 import type { ProxyLogger } from './logger'
 import type { ProxySessionCookies } from './session-cookies'
 
@@ -17,8 +18,7 @@ export async function handleAuthenticatedAuthRouteRedirect(request: NextRequest,
     const normalizedRole = normalizeRole(userData?.cargo_rol)
     logger.log('???? Usuario autenticado en ruta auth, redirigiendo seg??n cargo_rol:', normalizedRole)
     if (normalizedRole === 'business' || normalizedRole === 'business user') {
-      const { data: userOrg } = await supabase.from('organization_users').select('organization_id').eq('user_id', userId).eq('status', 'active').single()
-      return userOrg ? redirectByNormalizedRole(request, normalizedRole) : NextResponse.redirect(new URL('/dashboard', request.url))
+      return redirectBusinessRoleByActiveOrganization(request, supabase, userId, normalizedRole)
     }
     return redirectByNormalizedRole(request, normalizedRole)
   } catch (error) {

@@ -2,7 +2,13 @@
 
 import { useState } from 'react'
 import type { AdminCompany } from '../../types/admin-companies.types'
-import { colors, CompanyFormData, BrandingColorKey, THEME_PRESETS, EditTab } from './company-form.constants'
+import {
+  DEFAULT_BRAND_ACCENT,
+  DEFAULT_BRAND_PRIMARY,
+  DEFAULT_BRAND_SECONDARY,
+  normalizeBrandHexColor,
+} from '../../services/admin-companies/admin-company-brand-colors'
+import { CompanyFormData, BrandingColorKey, EditTab } from './company-form.constants'
 import { useCompanyImageUpload } from './useCompanyImageUpload'
 
 export function useCompanyFormState(company: AdminCompany) {
@@ -20,9 +26,9 @@ export function useCompanyFormState(company: AdminCompany) {
     brand_logo_url: company.brand_logo_url || '',
     brand_banner_url: company.brand_banner_url || '',
     brand_favicon_url: company.brand_favicon_url || '',
-    brand_color_primary: company.brand_color_primary || colors.primary,
-    brand_color_secondary: company.brand_color_secondary || colors.bgSecondary,
-    brand_color_accent: company.brand_color_accent || colors.accent,
+    brand_color_primary: normalizeBrandHexColor(company.brand_color_primary, DEFAULT_BRAND_PRIMARY),
+    brand_color_secondary: normalizeBrandHexColor(company.brand_color_secondary, DEFAULT_BRAND_SECONDARY),
+    brand_color_accent: normalizeBrandHexColor(company.brand_color_accent, DEFAULT_BRAND_ACCENT),
     brand_font_family: company.brand_font_family || 'Inter',
   })
   const [isPlanOpen, setIsPlanOpen] = useState(false)
@@ -38,7 +44,7 @@ export function useCompanyFormState(company: AdminCompany) {
       setFormData((prev) => ({ ...prev, brand_banner_url: bannerUrl })),
   })
 
-  const applyThemePreset = (preset: typeof THEME_PRESETS[0]) => {
+  const applyThemePreset = (preset: { accent: string; primary: string; secondary: string }) => {
     setFormData(prev => ({
       ...prev,
       brand_color_primary: preset.primary,

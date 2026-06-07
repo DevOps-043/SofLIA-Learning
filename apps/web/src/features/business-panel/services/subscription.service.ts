@@ -7,6 +7,7 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 
 import 'server-only'
 
+import { fromLoose } from '@/lib/supabase/looseQuery'
 import type { BusinessPlanId, BillingCycle } from './subscription.utils'
 
 /**
@@ -117,8 +118,11 @@ export class SubscriptionService {
       const supabase = await createClient()
 
       // Buscar suscripción activa en la tabla subscriptions
-      const { data: subscription, error: subError } = await supabase
-        .from('subscriptions')
+      const { data: subscription, error: subError } = await fromLoose<{
+        end_date: string | null
+        plan_id: string | null
+        subscription_status: string | null
+      }>(supabase, 'subscriptions')
         .select('plan_id, subscription_status, end_date')
         .eq('organization_id', organizationId)
         .eq('subscription_status', 'active')

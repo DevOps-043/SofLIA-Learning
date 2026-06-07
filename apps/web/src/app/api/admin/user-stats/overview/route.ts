@@ -3,6 +3,12 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { cacheHeaders } from '@/lib/utils/cache-headers'
 import { logger } from '@/lib/utils/logger'
+import {
+  buildStudyMinutesByUser,
+  type CourseLessonTimeRow,
+  type LessonProgressTimeRow,
+  type LessonTrackingTimeRow,
+} from '../study-time'
 
 interface OverviewStats {
   activeUsers30d: number
@@ -58,6 +64,9 @@ export async function GET() {
       orgUsersRes,
       dailyActivityRes,
       progressRes,
+      lessonProgressRes,
+      lessonTrackingRes,
+      courseLessonsRes,
     ] = await Promise.all([
       // Active users (30d)
       supabase.from('users').select('id', { count: 'exact', head: true }).gte('last_login_at', thirtyDaysAgo),
@@ -73,6 +82,16 @@ export async function GET() {
       supabase.from('daily_progress').select('progress_date, had_activity').gte('progress_date', thirtyDaysAgo.split('T')[0]).eq('had_activity', true),
       // Progress distribution
       supabase.from('user_course_enrollments').select('overall_progress_percentage').not('overall_progress_percentage', 'is', null),
+      // Fallback study minutes when daily_progress has not been populated.
+      supabase
+        .from('user_lesson_progress')
+        .select('user_id, lesson_id, time_spent_minutes, is_completed, lesson_status, completed_at')
+        .or(`updated_at.gte.${monthStart},completed_at.gte.${monthStart},last_accessed_at.gte.${monthStart}`),
+      supabase
+        .from('lesson_tracking')
+        .select('user_id, lesson_id, status, started_at, completed_at, t_lesson_minutes, t_video_minutes, t_materials_minutes')
+        .or(`updated_at.gte.${monthStart},completed_at.gte.${monthStart},last_activity_at.gte.${monthStart},started_at.gte.${monthStart}`),
+      supabase.from('course_lessons').select('lesson_id, duration_seconds, total_duration_minutes'),
     ])
 
     // Active users count
@@ -84,7 +103,13 @@ export async function GET() {
     const completionRate = enrollments.length > 0 ? Math.round((completedCount / enrollments.length) * 100) : 0
 
     // Study hours this month
-    const totalMinutes = (studyMinutesRes.data || []).reduce((sum, d) => sum + (d.study_minutes || 0), 0)
+    const persistedStudyMinutes = (studyMinutesRes.data || []).reduce((sum, d) => sum + (d.study_minutes || 0), 0)
+    const computedStudyMinutes = Array.from(buildStudyMinutesByUser({
+      courseLessons: (courseLessonsRes.data || []) as CourseLessonTimeRow[],
+      lessonProgress: (lessonProgressRes.data || []) as LessonProgressTimeRow[],
+      lessonTracking: (lessonTrackingRes.data || []) as LessonTrackingTimeRow[],
+    }).values()).reduce((sum, minutes) => sum + minutes, 0)
+    const totalMinutes = persistedStudyMinutes > 0 ? persistedStudyMinutes : computedStudyMinutes
     const studyHoursMonth = Math.round((totalMinutes / 60) * 10) / 10
 
     // Certificates this month
@@ -151,8 +176,9 @@ export async function GET() {
       { headers: cacheHeaders.privateShort },
     )
   } catch (error) {
+    logger.error('Unexpected error in admin user stats overview route', { error })
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

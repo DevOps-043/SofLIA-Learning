@@ -4,12 +4,12 @@ import type {
 import type { ShowBusinessUsersToast } from './types'
 
 interface UseBusinessUsersPrimaryActionsParams {
-  createUser: (userData: CreateBusinessUserRequest) => Promise<void>
+  createUser: (userData: CreateBusinessUserRequest) => Promise<unknown>
   resendInvitation: (id: string) => Promise<void>
   suspendUser: (id: string) => Promise<void>
   activateUser: (id: string) => Promise<void>
   deleteUser: (id: string) => Promise<void>
-  updateInviteLinkStatus: (id: string, action: 'pause' | 'resume') => Promise<void>
+  updateInviteLinkStatus: (id: string, action: 'pause' | 'resume') => Promise<unknown>
   deleteInviteLink: (id: string) => Promise<void>
   showToast: ShowBusinessUsersToast
   setIsAddModalOpen: (isOpen: boolean) => void

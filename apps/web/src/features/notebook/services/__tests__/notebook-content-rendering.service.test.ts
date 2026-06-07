@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  getNotebookEditableText,
   getNotebookPlainText,
   sanitizeNotebookRichContent,
 } from '../notebook-content-rendering.service'
@@ -35,7 +36,7 @@ describe('notebook-content-rendering.service', () => {
 
     expect(result).toContain('<strong>Fundamentos de IA Generativa</strong>')
     expect(result).toContain(
-      '<a href="/org/business-user/dashboard">Dashboard</a>',
+      '<a href="/org/business-user/dashboard" target="_blank" rel="noopener noreferrer">Dashboard</a>',
     )
     expect(result).not.toContain('**Fundamentos de IA Generativa**')
     expect(result).not.toContain('[Dashboard]')
@@ -44,6 +45,15 @@ describe('notebook-content-rendering.service', () => {
   it('extracts readable plain text for copy fallbacks', () => {
     expect(getNotebookPlainText('<p>Hola <strong>equipo</strong></p>')).toBe(
       'Hola equipo',
+    )
+  })
+
+  it('converts stored html to editable text without flattening plain notes', () => {
+    expect(getNotebookEditableText('<h2>Sintesis</h2><p>Lee <strong>esto</strong></p>')).toBe(
+      'Sintesis\nLee esto',
+    )
+    expect(getNotebookEditableText('Nota manual **con markdown**')).toBe(
+      'Nota manual **con markdown**',
     )
   })
 })

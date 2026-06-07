@@ -38,17 +38,35 @@ export function useAdminUser() {
   const { user: authUser, isLoading: authLoading, mutate } = useAuth()
 
   // Mapear al formato esperado por componentes admin
-  const user: AdminUser | null = authUser ? {
-    id: authUser.id,
-    first_name: authUser.first_name,
-    last_name: authUser.last_name,
-    email: authUser.email,
-    profile_picture_url: authUser.profile_picture_url,
-    cargo_rol: authUser.cargo_rol,
-    created_at: authUser.created_at,
-    updated_at: authUser.updated_at,
-    organization: authUser.organization
-  } : null
+  const user: AdminUser | null = authUser
+    ? {
+        id: authUser.id,
+        first_name: authUser.first_name ?? '',
+        last_name: authUser.last_name ?? '',
+        email: authUser.email ?? '',
+        ...(authUser.profile_picture_url
+          ? { profile_picture_url: authUser.profile_picture_url }
+          : {}),
+        cargo_rol: authUser.cargo_rol ?? '',
+        created_at: authUser.created_at ?? '',
+        updated_at: authUser.updated_at ?? '',
+        ...(authUser.organization
+          ? {
+              organization: {
+                id: authUser.organization.id,
+                name: authUser.organization.name ?? '',
+                ...(authUser.organization.logo_url
+                  ? { logo_url: authUser.organization.logo_url }
+                  : {}),
+                ...(authUser.organization.favicon_url
+                  ? { favicon_url: authUser.organization.favicon_url }
+                  : {}),
+                slug: authUser.organization.slug ?? '',
+              },
+            }
+          : {}),
+      }
+    : null
 
   return {
     user,

@@ -13,12 +13,12 @@ export interface CalendarIntegration {
 export interface CalendarEvent {
   id: string;
   title: string;
-  description?: string;
+  description?: string | undefined;
   startTime: string;
   endTime: string;
   isAllDay: boolean;
   isRecurring: boolean;
-  location?: string;
+  location?: string | undefined;
   status: 'confirmed' | 'tentative' | 'cancelled';
   calendarId?: string;
 }

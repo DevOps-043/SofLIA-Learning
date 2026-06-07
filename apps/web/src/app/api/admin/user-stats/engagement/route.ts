@@ -169,8 +169,9 @@ export async function GET() {
       { headers: cacheHeaders.privateShort },
     )
   } catch (error) {
+    logger.error('Unexpected error in admin user stats engagement route', { error })
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

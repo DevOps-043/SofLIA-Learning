@@ -5,6 +5,7 @@ import {
   DEFAULT_BRAND_PRIMARY,
   DEFAULT_BRAND_SECONDARY,
 } from './admin-companies.defaults'
+import { normalizeBrandHexColor } from './admin-company-brand-colors'
 import type {
   MapOrganizationOptions,
   OrganizationRow,
@@ -32,9 +33,9 @@ export function mapOrganizationRow(
     brand_logo_url: row.brand_logo_url,
     brand_banner_url: row.brand_banner_url,
     brand_favicon_url: row.brand_favicon_url,
-    brand_color_primary: row.brand_color_primary ?? DEFAULT_BRAND_PRIMARY,
-    brand_color_secondary: row.brand_color_secondary ?? DEFAULT_BRAND_SECONDARY,
-    brand_color_accent: row.brand_color_accent ?? DEFAULT_BRAND_ACCENT,
+    brand_color_primary: normalizeBrandHexColor(row.brand_color_primary, DEFAULT_BRAND_PRIMARY),
+    brand_color_secondary: normalizeBrandHexColor(row.brand_color_secondary, DEFAULT_BRAND_SECONDARY),
+    brand_color_accent: normalizeBrandHexColor(row.brand_color_accent, DEFAULT_BRAND_ACCENT),
     brand_font_family: row.brand_font_family ?? DEFAULT_BRAND_FONT,
     contact_email: row.contact_email,
     contact_phone: row.contact_phone,

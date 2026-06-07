@@ -1,33 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+import { buildOrganizationUsersCsvExport } from '@/features/business-panel/services/business-users-export.service'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/utils/logger'
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ orgSlug: string }> },
 ) {
   try {
     const { orgSlug } = await params
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
 
-    const supabase = await createClient()
+    if (!auth.organizationId) {
+      return NextResponse.json(
+        { success: false, error: 'No tienes una organizacion asignada' },
+        { status: 403 },
+      )
+    }
 
-    const { data: orgUsers, error } = await supabase
-      .from('organization_users')
-      .select(`
-        role,
-        job_title,
-        users:users!organization_users_user_id_fkey (
-          username, email, first_name, last_name, display_name, date_of_birth, gender
-        )
-      `)
-      .eq('organization_id', auth.organizationId)
-
-    // ... (Construcción del CSV idéntica a la original)
-    
-    const csvContent = '\uFEFF' + 'username,email,first_name,last_name,display_name,date_of_birth,gender,job_title,org_role,password\n'
-    // (Aquí iría la lógica de mapeo de orgUsers a filas CSV)
+    const csvContent = await buildOrganizationUsersCsvExport(auth.organizationId)
 
     return new NextResponse(csvContent, {
       headers: {
@@ -36,6 +29,10 @@ export async function GET(
       },
     })
   } catch (error) {
-    return NextResponse.json({ success: false, error: 'Error al generar plantilla' }, { status: 500 })
+    logger.error('Error in /api/[orgSlug]/business/users/template:', error)
+    return NextResponse.json(
+      { success: false, error: 'Error al generar plantilla' },
+      { status: 500 },
+    )
   }
 }

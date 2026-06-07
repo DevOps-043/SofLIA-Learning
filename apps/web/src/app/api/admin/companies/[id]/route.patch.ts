@@ -1,10 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-
-import { requireAdmin } from '@/lib/auth/requireAdmin'
-
-import { logger } from '@/lib/utils/logger'
-
-import { AdminCompaniesService, CompanyUpdatePayload } from '@/features/admin/services/adminCompanies.service'
+import { NextRequest } from 'next/server'
+import { PUT } from './route.put'
 
 interface RouteParams {
   params: Promise<{

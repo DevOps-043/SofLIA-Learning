@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
+import { statsTable } from './admin-statistics/stats-query.client'
 import type { AdminStats, AdminStatsWithChanges } from './admin-stats.types'
 
 export type { AdminStats, AdminStatsWithChanges } from './admin-stats.types'
@@ -156,28 +157,28 @@ export class AdminStatsService {
         favoritesGrowthResult,
         activeUsersResult,
       ] = await Promise.all([
-        supabase.from('users').select('id', { count: 'exact', head: true }),
-        supabase.from('users').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgoIso),
+        statsTable<unknown>(supabase, 'users').select('id', { count: 'exact', head: true }),
+        statsTable<unknown>(supabase, 'users').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgoIso),
 
-        supabase.from('courses').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('courses').select('id', { count: 'exact', head: true }).eq('is_active', true).gte('created_at', thirtyDaysAgoIso),
+        statsTable<unknown>(supabase, 'courses').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        statsTable<unknown>(supabase, 'courses').select('id', { count: 'exact', head: true }).eq('is_active', true).gte('created_at', thirtyDaysAgoIso),
 
-        supabase.from('organizations').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('organizations').select('id', { count: 'exact', head: true }).eq('is_active', true).gte('created_at', thirtyDaysAgoIso),
+        statsTable<unknown>(supabase, 'organizations').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        statsTable<unknown>(supabase, 'organizations').select('id', { count: 'exact', head: true }).eq('is_active', true).gte('created_at', thirtyDaysAgoIso),
 
-        supabase.from('ai_apps').select('app_id', { count: 'exact', head: true }),
-        supabase.from('ai_apps').select('app_id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgoIso),
+        statsTable<unknown>(supabase, 'ai_apps').select('app_id', { count: 'exact', head: true }),
+        statsTable<unknown>(supabase, 'ai_apps').select('app_id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgoIso),
 
-        supabase.from('news').select('id', { count: 'exact', head: true }),
-        supabase.from('news').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgoIso),
+        statsTable<unknown>(supabase, 'news').select('id', { count: 'exact', head: true }),
+        statsTable<unknown>(supabase, 'news').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgoIso),
 
-        supabase.from('reels').select('id', { count: 'exact', head: true }),
-        supabase.from('reels').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgoIso),
+        statsTable<unknown>(supabase, 'reels').select('id', { count: 'exact', head: true }),
+        statsTable<unknown>(supabase, 'reels').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgoIso),
 
-        supabase.from('user_favorites').select('id', { count: 'exact', head: true }),
-        supabase.from('user_favorites').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgoIso),
+        statsTable<unknown>(supabase, 'user_favorites').select('id', { count: 'exact', head: true }),
+        statsTable<unknown>(supabase, 'user_favorites').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgoIso),
 
-        supabase.from('user_session').select('user_id', { head: false }).gte('issued_at', sevenDaysAgoIso).eq('revoked', false),
+        statsTable<ActiveSessionRow>(supabase, 'user_session').select('user_id', { head: false }).gte('issued_at', sevenDaysAgoIso).eq('revoked', false),
       ])
 
       const totalUsers = readCount(usersTotalResult as CountQueryResult)

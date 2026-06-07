@@ -1,6 +1,54 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../lib/supabase/server'
 
+type UserFavoriteColumn = 'course_id' | 'id' | 'user_id'
+type UserFavoriteError = { code?: string; message: string }
+type UserFavoriteRow = {
+  course_id: string
+  id: string
+  user_id: string
+}
+type UserFavoritePayload = Pick<UserFavoriteRow, 'course_id' | 'user_id'>
+
+type UserFavoritesSelectBuilder<TRow> = PromiseLike<{
+  data: TRow[] | null
+  error: UserFavoriteError | null
+}> & {
+  eq(column: UserFavoriteColumn, value: string): UserFavoritesSelectBuilder<TRow>
+  maybeSingle(): PromiseLike<{
+    data: TRow | null
+    error: UserFavoriteError | null
+  }>
+}
+
+type UserFavoritesDeleteBuilder = PromiseLike<{
+  error: UserFavoriteError | null
+}> & {
+  eq(column: UserFavoriteColumn, value: string): UserFavoritesDeleteBuilder
+  select(columns: string): PromiseLike<{
+    data: Pick<UserFavoriteRow, 'id'>[] | null
+    error: UserFavoriteError | null
+  }>
+}
+
+type UserFavoritesTable = {
+  delete(): UserFavoritesDeleteBuilder
+  insert(payload: UserFavoritePayload): PromiseLike<{ error: UserFavoriteError | null }>
+  select(columns: string): UserFavoritesSelectBuilder<UserFavoriteRow>
+  upsert(
+    payload: UserFavoritePayload,
+    options: { ignoreDuplicates: boolean; onConflict: string },
+  ): PromiseLike<{ error: UserFavoriteError | null }>
+}
+
+type UserFavoritesClient = {
+  from(table: 'user_favorites'): UserFavoritesTable
+}
+
+function userFavoritesTable(supabase: unknown): UserFavoritesTable {
+  return (supabase as UserFavoritesClient).from('user_favorites')
+}
+
 export class FavoritesService {
   /**
    * Obtiene los favoritos de un usuario
@@ -9,8 +57,7 @@ export class FavoritesService {
     try {
       const supabase = await createClient()
       
-      const { data, error } = await supabase
-        .from('user_favorites')
+      const { data, error } = await userFavoritesTable(supabase)
         .select('course_id')
         .eq('user_id', userId)
 
@@ -43,8 +90,7 @@ export class FavoritesService {
       const normalizedCourseId = String(courseId).trim()
 
       // Insertar directamente — manejar duplicado con ON CONFLICT
-      const { error } = await supabase
-        .from('user_favorites')
+      const { error } = await userFavoritesTable(supabase)
         .upsert(
           { user_id: userId, course_id: normalizedCourseId },
           { onConflict: 'user_id, course_id', ignoreDuplicates: true }
@@ -69,8 +115,7 @@ export class FavoritesService {
       const normalizedCourseId = String(courseId).trim()
 
       // Eliminar directamente — idempotente si no existe
-      const { error } = await supabase
-        .from('user_favorites')
+      const { error } = await userFavoritesTable(supabase)
         .delete()
         .eq('user_id', userId)
         .eq('course_id', normalizedCourseId)
@@ -93,8 +138,7 @@ export class FavoritesService {
       // Normalizar courseId para evitar problemas de comparación
       const normalizedCourseId = String(courseId).trim()
       
-      const { data, error } = await supabase
-        .from('user_favorites')
+      const { data, error } = await userFavoritesTable(supabase)
         .select('id')
         .eq('user_id', userId)
         .eq('course_id', normalizedCourseId)
@@ -143,8 +187,7 @@ export class FavoritesService {
       const normalizedCourseId = String(courseId).trim()
 
       // Intentar eliminar primero — si devuelve filas, el favorito existía
-      const { data: deleted, error: deleteError } = await supabase
-        .from('user_favorites')
+      const { data: deleted, error: deleteError } = await userFavoritesTable(supabase)
         .delete()
         .eq('user_id', userId)
         .eq('course_id', normalizedCourseId)
@@ -160,8 +203,7 @@ export class FavoritesService {
       }
 
       // No existía — insertar como nuevo favorito
-      const { error: insertError } = await supabase
-        .from('user_favorites')
+      const { error: insertError } = await userFavoritesTable(supabase)
         .insert({ user_id: userId, course_id: normalizedCourseId })
 
       if (insertError) {

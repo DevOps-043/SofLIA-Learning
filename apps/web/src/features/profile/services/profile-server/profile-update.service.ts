@@ -1,4 +1,5 @@
 import { createClient } from '../../../../lib/supabase/server'
+import type { TablesUpdate } from '../../../../lib/supabase/types'
 import { resolveUserPrimaryMembership } from '../../../../lib/services/user-org-context.service'
 import type {
   UpdateProfileRequest,
@@ -44,9 +45,10 @@ export async function updateProfile(
   const now = new Date().toISOString()
 
   if (actualChanges.length > 0) {
+    const userUpdates: TablesUpdate<'users'> = { ...safeUpdates, updated_at: now }
     const { data, error } = await supabase
       .from('users')
-      .update({ ...safeUpdates, updated_at: now })
+      .update(userUpdates)
       .eq('id', userId)
       .select(PROFILE_USER_SELECT)
       .single()

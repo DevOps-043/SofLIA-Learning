@@ -15,6 +15,8 @@ export interface AnalyticsDateRange {
 }
 
 export interface LiaMessageMetricRow {
+  content: string | null
+  conversation_id?: string | null
   cost_usd: number | null
   model_used: string | null
   response_time_ms: number | null
@@ -23,8 +25,10 @@ export interface LiaMessageMetricRow {
 }
 
 export interface DailyCostRow {
+  content: string | null
   cost_usd: number | null
   created_at: string
   model_used: string | null
+  role: string | null
   tokens_used: number | null
 }

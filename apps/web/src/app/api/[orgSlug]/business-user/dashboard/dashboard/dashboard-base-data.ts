@@ -34,6 +34,7 @@ export async function fetchDashboardBaseData(
       .from('user_course_certificates')
       .select('certificate_id, course_id')
       .eq('user_id', auth.userId)
+      .eq('organization_id', auth.organizationId)
       .returns<CertificateRow[]>()
       .limit(100),
   ])

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { fromLoose } from "@/lib/supabase/looseQuery";
 import {
   isMissingCoursePurchasesError,
   markCoursePurchasesUnavailable,
@@ -14,8 +15,7 @@ export async function getUserPurchasedCourses(userId: string): Promise<Purchased
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("course_purchases")
+  const { data, error } = await fromLoose<PurchasedCourseRow>(supabase, "course_purchases")
     .select(`
       purchase_id,
       access_status,
@@ -47,7 +47,6 @@ export async function getUserPurchasedCourses(userId: string): Promise<Purchased
         started_at
       )
     `)
-    .returns<PurchasedCourseRow[]>()
     .eq("user_id", userId)
     .eq("access_status", "active")
     .order("purchased_at", { ascending: false });

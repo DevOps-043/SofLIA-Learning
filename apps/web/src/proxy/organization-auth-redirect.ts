@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createProxySupabaseClient } from './supabase'
 import { normalizeRole, redirectByNormalizedRole } from './role-redirect'
+import { loadActiveBusinessOrganizationRedirectTargets } from './business-organization-redirect'
 import type { ProxyLogger } from './logger'
 
 const allowedPlans = ['team', 'business', 'enterprise']
@@ -16,12 +17,23 @@ export async function handleOrganizationAuthRedirect(request: NextRequest, logge
     if (!userId) return null
 
     const { data: user } = await supabase.from('users').select('cargo_rol').eq('id', userId).single()
-    const { data: orgUser } = await supabase.from('organization_users').select('organization_id').eq('user_id', userId).eq('status', 'active').single()
-    const customLoginRedirect = await getCustomLoginRedirect(request, orgUser?.organization_id || null, supabase)
+    const activeOrganizations = await loadActiveBusinessOrganizationRedirectTargets(supabase, userId)
+    const singleOrganizationId = activeOrganizations.length === 1
+      ? activeOrganizations[0].organizationId
+      : null
+    const customLoginRedirect = await getCustomLoginRedirect(request, singleOrganizationId, supabase)
     if (customLoginRedirect) return customLoginRedirect
     if (user) {
       const normalizedRole = normalizeRole(user.cargo_rol)
       logger.log('???? Usuario autenticado en /auth sin organizaci??n v??lida, redirigiendo seg??n rol:', normalizedRole)
+      if (normalizedRole === 'business' || normalizedRole === 'business user') {
+        if (activeOrganizations.length !== 1) {
+          return NextResponse.redirect(new URL('/auth/select-organization', request.url))
+        }
+
+        return redirectByNormalizedRole(request, normalizedRole, activeOrganizations[0])
+      }
+
       return redirectByNormalizedRole(request, normalizedRole)
     }
   } catch (error) {

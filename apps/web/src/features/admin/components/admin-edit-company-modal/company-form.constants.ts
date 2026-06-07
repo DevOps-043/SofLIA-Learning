@@ -1,6 +1,15 @@
+import { DESIGN_HEX_COLOR } from '@/core/theme/color-tokens'
 import { SOFLIA_ADMIN_COLORS } from '../../constants/admin-color-tokens'
+import {
+  DEFAULT_BRAND_ACCENT,
+  DEFAULT_BRAND_PRIMARY,
+  DEFAULT_BRAND_SECONDARY,
+  resolveBrandHexColor,
+} from '../../services/admin-companies/admin-company-brand-colors'
 
 const colors = SOFLIA_ADMIN_COLORS
+const legacyColor = (token: string, fallback: string) =>
+  resolveBrandHexColor(token) ?? fallback
 
 export { colors }
 
@@ -33,12 +42,54 @@ export const PLAN_OPTIONS = [
 ]
 
 export const THEME_PRESETS = [
-  { id: 'SOFLIA', name: 'SOFLIA Default', primary: colors.primary, secondary: colors.bgSecondary, accent: colors.accent, description: 'Tema profesional' },
-  { id: 'modern-blue', name: 'Moderno Azul', primary: 'var(--color-legacy-1e40af)', secondary: 'var(--color-legacy-1e3a8a)', accent: colors.info, description: 'Azul corporativo' },
-  { id: 'emerald', name: 'Esmeralda', primary: 'var(--color-legacy-065f46)', secondary: 'var(--color-legacy-064e3b)', accent: colors.success, description: 'Verde empresarial' },
-  { id: 'purple', name: 'Violeta', primary: 'var(--color-legacy-4c1d95)', secondary: 'var(--color-legacy-5b21b6)', accent: colors.purple, description: 'Morado elegante' },
-  { id: 'rose', name: 'Rosa', primary: 'var(--color-legacy-9f1239)', secondary: 'var(--color-legacy-881337)', accent: 'var(--color-legacy-f43f5e)', description: 'Rosa vibrante' },
-  { id: 'amber', name: 'Ámbar', primary: 'var(--color-legacy-92400e)', secondary: 'var(--color-legacy-78350f)', accent: colors.warning, description: 'Naranja cálido' },
+  {
+    id: 'SOFLIA',
+    name: 'SOFLIA Default',
+    primary: DEFAULT_BRAND_PRIMARY,
+    secondary: DEFAULT_BRAND_SECONDARY,
+    accent: DEFAULT_BRAND_ACCENT,
+    description: 'Tema profesional',
+  },
+  {
+    id: 'modern-blue',
+    name: 'Moderno Azul',
+    primary: DESIGN_HEX_COLOR.blue800,
+    secondary: DESIGN_HEX_COLOR.blue900,
+    accent: DESIGN_HEX_COLOR.info,
+    description: 'Azul corporativo',
+  },
+  {
+    id: 'emerald',
+    name: 'Esmeralda',
+    primary: legacyColor('var(--color-legacy-065f46)', DESIGN_HEX_COLOR.success),
+    secondary: legacyColor('var(--color-legacy-064e3b)', DESIGN_HEX_COLOR.success),
+    accent: DESIGN_HEX_COLOR.success,
+    description: 'Verde empresarial',
+  },
+  {
+    id: 'purple',
+    name: 'Violeta',
+    primary: legacyColor('var(--color-legacy-4c1d95)', DESIGN_HEX_COLOR.secondary),
+    secondary: legacyColor('var(--color-legacy-5b21b6)', DESIGN_HEX_COLOR.secondary),
+    accent: DESIGN_HEX_COLOR.secondary,
+    description: 'Morado elegante',
+  },
+  {
+    id: 'rose',
+    name: 'Rosa',
+    primary: legacyColor('var(--color-legacy-9f1239)', DESIGN_HEX_COLOR.error),
+    secondary: legacyColor('var(--color-legacy-881337)', DESIGN_HEX_COLOR.error),
+    accent: legacyColor('var(--color-legacy-f43f5e)', DESIGN_HEX_COLOR.error),
+    description: 'Rosa vibrante',
+  },
+  {
+    id: 'amber',
+    name: 'Ambar',
+    primary: legacyColor('var(--color-legacy-92400e)', DESIGN_HEX_COLOR.warning),
+    secondary: legacyColor('var(--color-legacy-78350f)', DESIGN_HEX_COLOR.warning),
+    accent: DESIGN_HEX_COLOR.warning,
+    description: 'Naranja calido',
+  },
 ]
 
 export const BRANDING_COLOR_FIELDS: Array<{ k: BrandingColorKey; l: string }> = [

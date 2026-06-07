@@ -1,4 +1,3 @@
-import { UserProfile } from './user-context.service';
 import {
   AREA_MULTIPLIERS,
   AVAILABILITY_BY_LEVEL,
@@ -7,6 +6,20 @@ import {
   MANAGEMENT_PATTERNS,
   SENIOR_PATTERNS,
 } from './availability-calculator.config';
+
+export interface UserProfile {
+  id?: string;
+  email?: string;
+  full_name?: string;
+  rol: string | null;
+  nivel: string | null;
+  cargo_titulo: string | null;
+  area: string | null;
+  tamano_empresa: {
+    nombre: string;
+    max_empleados: number | null;
+  } | null;
+}
 
 // Tipos para disponibilidad
 export interface AvailabilityEstimate {

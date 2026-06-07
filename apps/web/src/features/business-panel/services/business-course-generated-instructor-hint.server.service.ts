@@ -6,7 +6,7 @@ import {
 
 export async function resolveInstructorHint(
   supabase: BusinessCourseDetailSupabaseClient,
-  hint: { instructorId?: string; email?: string },
+  hint: { instructorId?: string | null; email?: string | null },
   visitedIds: Set<string>,
   visitedEmails: Set<string>,
 ) {

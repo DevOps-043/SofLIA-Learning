@@ -19,10 +19,13 @@ type PlanningFlowHandlerKey =
 
 type PlanningFlowHandlers = Record<PlanningFlowHandlerKey, unknown>
 
-export function buildStudyPlannerLIAHandlers(params: {
-  interactionHandlers: Record<string, unknown>
-  planningFlow: PlanningFlowHandlers
-}) {
+export function buildStudyPlannerLIAHandlers<
+  TInteractionHandlers extends Record<string, unknown>,
+  TPlanningFlow extends PlanningFlowHandlers,
+>(params: {
+  interactionHandlers: TInteractionHandlers
+  planningFlow: TPlanningFlow
+}): TInteractionHandlers & Pick<TPlanningFlow, PlanningFlowHandlerKey> {
   const { interactionHandlers, planningFlow } = params
 
   return {
@@ -44,5 +47,5 @@ export function buildStudyPlannerLIAHandlers(params: {
     loadUserCourses: planningFlow.loadUserCourses,
     skipCalendarConnection: planningFlow.skipCalendarConnection,
     toggleCourseSelection: planningFlow.toggleCourseSelection,
-  }
+  } as TInteractionHandlers & Pick<TPlanningFlow, PlanningFlowHandlerKey>
 }

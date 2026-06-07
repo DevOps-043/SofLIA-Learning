@@ -22,8 +22,10 @@ export default function EditCompanyPage() {
     <div className="min-h-screen bg-gray-50 font-inter text-gray-900 dark:bg-carbon-950 dark:text-white">
       <EditCompanyHeader
         companyName={logic.company.name}
+        error={logic.error}
         logoUrl={logic.company.brand_logo_url}
         saving={logic.saving}
+        saveSuccess={logic.saveSuccess}
         onBack={() => logic.router.back()}
         onSave={logic.handleSave}
       />

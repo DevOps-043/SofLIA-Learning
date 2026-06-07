@@ -1,4 +1,5 @@
 import { normalizeDirectVideoProviderId } from './shared'
+import type { TablesUpdate } from '@/lib/supabase/types'
 import type { CreateLessonData, UpdateLessonData } from './types'
 
 export function assertCreateLessonDuration(lessonData: CreateLessonData) {
@@ -40,11 +41,12 @@ export function buildCreateLessonPayload(
   }
 }
 
-export function buildUpdateLessonPayload(lessonData: UpdateLessonData) {
-  const updateData: Record<string, unknown> = {
+export function buildUpdateLessonPayload(lessonData: UpdateLessonData): TablesUpdate<'course_lessons'> {
+  const updateData: TablesUpdate<'course_lessons'> = {
     updated_at: new Date().toISOString(),
   }
 
+  if (lessonData.module_id !== undefined) updateData.module_id = lessonData.module_id
   if (lessonData.lesson_title !== undefined) updateData.lesson_title = lessonData.lesson_title
   if (lessonData.lesson_description !== undefined) updateData.lesson_description = lessonData.lesson_description
   if (lessonData.video_provider_id !== undefined) {

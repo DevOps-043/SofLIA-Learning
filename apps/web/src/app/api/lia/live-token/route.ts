@@ -6,6 +6,7 @@ import {
   DEFAULT_LIA_LIVE_MODEL,
   DEFAULT_LIA_LIVE_VOICE,
   LIA_LIVE_LANGUAGE_CODE,
+  isNativeAudioLiveModel,
 } from '@/core/services/lia-live/constants';
 import { SessionService } from '@/features/auth/services/session.service';
 import { withZodBody } from '@/lib/api/with-validation';
@@ -69,11 +70,10 @@ function buildLiveTokenDiagnostics(apiKey: string | null) {
       GOOGLE_CLOUD_LOCATION: Boolean(process.env.GOOGLE_CLOUD_LOCATION),
       GOOGLE_APPLICATION_CREDENTIALS: Boolean(process.env.GOOGLE_APPLICATION_CREDENTIALS),
     },
-    // Metadatos no sensibles: prefijo universal de claves Google (AIza) y
-    // longitud, para detectar key vacia, truncada o con espacios invisibles.
+    // Metadatos no sensibles: solo presencia y longitud para detectar key
+    // vacia, truncada o con espacios invisibles sin exponer identificadores.
     apiKey: {
       present: Boolean(apiKey),
-      prefix: apiKey ? apiKey.slice(0, 4) : null,
       length: apiKey ? apiKey.length : 0,
     },
   };
@@ -130,8 +130,12 @@ async function handlePost(request: NextRequest, body: LiaLiveTokenBody) {
 
   const model = resolveLiveModel();
   const languageCode = LIA_LIVE_LANGUAGE_CODE;
+  const voiceName = resolveLiveVoice();
   const systemInstruction = await buildLiaLiveSystemInstruction(body, currentUser);
   const now = Date.now();
+  const speechConfig = isNativeAudioLiveModel(model)
+    ? { voiceConfig: { prebuiltVoiceConfig: { voiceName } } }
+    : { languageCode, voiceConfig: { prebuiltVoiceConfig: { voiceName } } };
 
   try {
     // `vertexai: false` fuerza el modo Gemini Developer API (autenticacion por
@@ -152,10 +156,7 @@ async function handlePost(request: NextRequest, body: LiaLiveTokenBody) {
           config: {
             responseModalities: [Modality.AUDIO],
             systemInstruction,
-            speechConfig: {
-              languageCode,
-              voiceConfig: { prebuiltVoiceConfig: { voiceName: resolveLiveVoice() } },
-            },
+            speechConfig,
             inputAudioTranscription: {},
             outputAudioTranscription: {},
           },
@@ -173,6 +174,7 @@ async function handlePost(request: NextRequest, body: LiaLiveTokenBody) {
       model,
       systemInstruction,
       languageCode,
+      voiceName,
     }));
   } catch (error) {
     const providerError = describeProviderError(error);

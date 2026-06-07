@@ -50,7 +50,7 @@ export function HeroBusinessCopy({ content }: HeroBusinessCopyProps) {
         <Link href="/business/plans" className="flex-1">
           <Button
             size="lg"
-            variant="outline"
+            variant="secondary"
             className="w-full border-primary text-primary hover:bg-primary/10 dark:border-accent dark:text-accent dark:hover:bg-accent/10"
           >
             Ver Precios

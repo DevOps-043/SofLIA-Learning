@@ -460,12 +460,12 @@
         "message": "Your profile was updated: {{changesText}}."
       },
       "system_login_success": {
-        "title": "New sign-in",
-        "message": "A sign-in was detected from {{deviceLabel}}. IP: {{ipLabel}}."
+        "title": "Sign-in to your account",
+        "message": "Your account signed in from {{deviceLabel}}. IP: {{ipLabel}}."
       },
       "system_login_failed": {
-        "title": "Failed login attempt",
-        "message": "A failed login attempt was detected from {{location}}."
+        "title": "Failed attempt on your account",
+        "message": "A failed access attempt to your account was detected from {{location}}."
       },
       "system_email_verified": {
         "title": "Email verified",
@@ -1198,6 +1198,10 @@
       "noRole": "No role defined",
       "memberSince": "Member since",
       "emailVerified": "Email verified",
+      "emailUnverified": "Email not verified",
+      "avatarAlt": "Profile photo",
+      "uploadPhoto": "Upload profile photo",
+      "removePhoto": "Remove profile photo",
       "stats": {
         "lessons": "Lessons",
         "certificates": "Certificates"
@@ -1227,6 +1231,11 @@
       "updating": "Updating...",
       "updatePassword": "Update Password",
       "passwordUpdated": "Password updated!",
+      "passwordChangeError": "Error changing password",
+      "completePasswordFields": "Complete all fields",
+      "emailUnavailable": "Email unavailable",
+      "emailVerified": "Email verified",
+      "emailUnverified": "Email not verified",
       "error": "Error"
     },
     "skills": {

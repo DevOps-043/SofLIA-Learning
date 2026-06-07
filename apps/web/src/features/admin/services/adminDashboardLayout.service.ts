@@ -1,6 +1,7 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../lib/supabase/server'
 import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+import type { Json } from '@/lib/supabase/types'
 
 export interface DashboardLayout {
   id: string | null
@@ -18,6 +19,74 @@ export interface DashboardLayout {
     }>
   }
   is_default: boolean
+}
+
+type DashboardLayoutConfig = DashboardLayout['layout_config']
+
+function isWidgetPosition(value: unknown): value is DashboardLayoutConfig['widgets'][number]['position'] {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const position = value as Record<string, unknown>
+  return (
+    typeof position.x === 'number'
+    && typeof position.y === 'number'
+    && typeof position.w === 'number'
+    && typeof position.h === 'number'
+  )
+}
+
+function parseLayoutConfig(value: Json): DashboardLayoutConfig {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return AdminDashboardLayoutService.getDefaultLayout().layout_config
+  }
+
+  const widgets = (value as { widgets?: unknown }).widgets
+  if (!Array.isArray(widgets)) {
+    return AdminDashboardLayoutService.getDefaultLayout().layout_config
+  }
+
+  const parsedWidgets = widgets
+    .map((widget): DashboardLayoutConfig['widgets'][number] | null => {
+      if (!widget || typeof widget !== 'object' || Array.isArray(widget)) {
+        return null
+      }
+
+      const candidate = widget as Record<string, unknown>
+      if (
+        typeof candidate.id !== 'string'
+        || typeof candidate.type !== 'string'
+        || !isWidgetPosition(candidate.position)
+      ) {
+        return null
+      }
+
+      return {
+        id: candidate.id,
+        type: candidate.type,
+        position: candidate.position,
+      }
+    })
+    .filter((widget): widget is DashboardLayoutConfig['widgets'][number] => widget !== null)
+
+  return parsedWidgets.length > 0
+    ? { widgets: parsedWidgets }
+    : AdminDashboardLayoutService.getDefaultLayout().layout_config
+}
+
+function mapDashboardLayout(layout: {
+  id: string
+  name: string
+  layout_config: Json
+  is_default: boolean | null
+}): DashboardLayout {
+  return {
+    id: layout.id,
+    name: layout.name,
+    layout_config: parseLayoutConfig(layout.layout_config),
+    is_default: layout.is_default ?? false
+  }
 }
 
 export class AdminDashboardLayoutService {
@@ -41,12 +110,7 @@ export class AdminDashboardLayoutService {
       }
       
       if (layout) {
-        return {
-          id: layout.id,
-          name: layout.name,
-          layout_config: layout.layout_config,
-          is_default: layout.is_default
-        }
+        return mapDashboardLayout(layout)
       }
       
       // Retornar layout por defecto si no existe uno personalizado
@@ -91,12 +155,7 @@ export class AdminDashboardLayoutService {
           throw updateError
         }
         
-        return {
-          id: updatedLayout.id,
-          name: updatedLayout.name,
-          layout_config: updatedLayout.layout_config,
-          is_default: updatedLayout.is_default
-        }
+        return mapDashboardLayout(updatedLayout)
       } else {
         // Crear nuevo layout
         const { data: newLayout, error: createError } = await supabase
@@ -114,12 +173,7 @@ export class AdminDashboardLayoutService {
           throw createError
         }
         
-        return {
-          id: newLayout.id,
-          name: newLayout.name,
-          layout_config: newLayout.layout_config,
-          is_default: newLayout.is_default
-        }
+        return mapDashboardLayout(newLayout)
       }
     } catch (error) {
       techDebtLogger.error('Error saving layout:', error)
@@ -149,7 +203,7 @@ export class AdminDashboardLayoutService {
   /**
    * Obtener layout por defecto
    */
-  private static getDefaultLayout(): DashboardLayout {
+  static getDefaultLayout(): DashboardLayout {
     return {
       id: null,
       name: 'Dashboard por Defecto',
@@ -165,4 +219,3 @@ export class AdminDashboardLayoutService {
     }
   }
 }
-

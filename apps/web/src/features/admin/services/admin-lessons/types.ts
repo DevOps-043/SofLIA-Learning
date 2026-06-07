@@ -30,6 +30,7 @@ export interface CreateLessonData {
 }
 
 export interface UpdateLessonData {
+  module_id?: string
   lesson_title?: string
   lesson_description?: string
   video_provider_id?: string

@@ -92,6 +92,7 @@ export interface UseProfileReturn {
   saving: boolean
   updateProfile: (updates: UpdateProfileRequest) => Promise<void>
   uploadProfilePicture: (file: File) => Promise<string>
+  removeProfilePicture: () => Promise<void>
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   refetch: () => Promise<void>
 }

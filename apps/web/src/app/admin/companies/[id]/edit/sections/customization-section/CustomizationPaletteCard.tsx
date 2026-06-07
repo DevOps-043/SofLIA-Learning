@@ -1,14 +1,20 @@
 'use client'
 
 import { SwatchIcon } from '@heroicons/react/24/outline'
+import {
+  DEFAULT_BRAND_ACCENT,
+  DEFAULT_BRAND_PRIMARY,
+  DEFAULT_BRAND_SECONDARY,
+  normalizeBrandHexColor,
+} from '@/features/admin/services/admin-companies/admin-company-brand-colors'
 import { Card, colors } from '../shared'
 import { CustomizationColorField } from './CustomizationColorField'
 import type { CustomizationSectionProps } from './types'
 
 export function CustomizationPaletteCard({ company, setCompany }: CustomizationSectionProps) {
-  const primaryColor = company.brand_color_primary || 'var(--color-info)'
-  const secondaryColor = company.brand_color_secondary || 'var(--color-success)'
-  const accentColor = company.brand_color_accent || 'var(--color-secondary)'
+  const primaryColor = normalizeBrandHexColor(company.brand_color_primary, DEFAULT_BRAND_PRIMARY)
+  const secondaryColor = normalizeBrandHexColor(company.brand_color_secondary, DEFAULT_BRAND_SECONDARY)
+  const accentColor = normalizeBrandHexColor(company.brand_color_accent, DEFAULT_BRAND_ACCENT)
 
   return (
     <Card title="Paleta de Colores" description="Personaliza los colores de la marca" icon={SwatchIcon} iconColor={colors.pink}>

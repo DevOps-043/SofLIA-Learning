@@ -38,8 +38,10 @@ function contentSuggestsExternalToolInteraction(value: string): boolean {
 }
 
 export function detectExternalToolKey(input: ExternalToolDetectionInput): ExternalToolKey | null {
+  const toolTask =
+    input.rawConfig && 'toolTask' in input.rawConfig ? input.rawConfig.toolTask : undefined
   const explicitToolKey =
-    input.rawConfig?.toolTask?.toolKey ??
+    normalizeExternalToolKey(toolTask?.toolKey) ??
     normalizeExternalToolKey(input.rawExternalToolKey)
 
   if (explicitToolKey) return explicitToolKey

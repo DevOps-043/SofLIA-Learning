@@ -1,5 +1,5 @@
 import type { OrganizationInvitationViewModel } from './email-template.types'
-import { ORGANIZATION_INVITATION_EMAIL_STYLES } from './organization-invitation.styles'
+import { organizationInvitationEmailStyles } from './organization-invitation.styles'
 
 function renderOrganizationHeader(viewModel: OrganizationInvitationViewModel) {
   if (viewModel.safeOrgLogoUrl) {
@@ -27,7 +27,7 @@ export function buildOrganizationInvitationHtml(
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Invitación - ${viewModel.safeOrganizationName}</title>
-      <style>${ORGANIZATION_INVITATION_EMAIL_STYLES}</style>
+      <style>${organizationInvitationEmailStyles}</style>
     </head>
     <body>
       <div class="container">

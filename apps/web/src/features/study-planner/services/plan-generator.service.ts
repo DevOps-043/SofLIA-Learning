@@ -1,4 +1,4 @@
-import { type UserStudyContext, type B2BAssignment } from './user-context.service';
+import type { B2BAssignment } from './session-validator.types';
 import { type AvailabilityEstimate } from './availability-calculator.service';
 import { type LearningRoute } from './learning-route.service';
 import { SessionValidatorService } from './session-validator.service';
@@ -15,6 +15,13 @@ import type {
 } from './plan-generator.types';
 
 export type { StudyPlanConfig, TimeBlock, GeneratedPlan, PlannedSession, SessionBreak, PlanSummary, B2BValidationResult };
+
+interface UserStudyContext {
+  userId: string;
+  userType: 'b2b' | 'b2c';
+  organizationId?: string | null;
+  assignments?: B2BAssignment[];
+}
 
 export class PlanGeneratorService {
   static async generatePlan(config: StudyPlanConfig): Promise<GeneratedPlan> {
@@ -75,7 +82,7 @@ export class PlanGeneratorService {
       if (!canMeet) canMeetAllDeadlines = false;
       deadlineStatus.push({
         courseId: assignment.course_id,
-        courseTitle: assignment.course_title,
+        courseTitle: assignment.course_title || assignment.course_id,
         deadline,
         canMeet,
         estimatedCompletion: summary.estimatedEndDate,

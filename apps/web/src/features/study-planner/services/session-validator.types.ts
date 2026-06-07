@@ -13,6 +13,7 @@ export interface SessionTimeValidation extends ValidationResult {
 
 export interface B2BAssignment {
   course_id: string
+  course_title?: string | null
   due_date: string | null
   status: string
   completion_percentage: number

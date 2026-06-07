@@ -81,14 +81,15 @@ export function getChangedSessionUpdates(
       ) {
         return null;
       }
-      return {
-        sessionId: original.sessionId,
-        clientReferenceId: original.clientReferenceId,
+      const update: PlannerSessionTimeUpdate = {
         dateStr: slot.dateStr,
         originalStartTime: original.startTime,
         newStartTime: slot.startTime,
         newEndTime: slot.endTime,
       };
+      if (original.sessionId) update.sessionId = original.sessionId;
+      if (original.clientReferenceId) update.clientReferenceId = original.clientReferenceId;
+      return update;
     })
     .filter((update): update is PlannerSessionTimeUpdate => update !== null);
 }

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { apiError } from '@/lib/api/errors';
 import { withZodBody } from '@/lib/api/with-validation';
@@ -7,6 +6,7 @@ import {
     nodeMemberAssignmentSchema,
     type NodeMemberAssignmentBody,
 } from '@/app/api/business/hierarchy/_schemas';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string; nodeId: string }>;
@@ -24,7 +24,7 @@ export async function GET(
         const auth = await requireBusiness({ organizationSlug: orgSlug });
         if (auth instanceof NextResponse) return auth;
 
-        const supabase = await createClient();
+        const supabase = createAdminClient();
 
         const { data: node, error: nodeError } = await supabase
             .from('organization_nodes')
@@ -92,7 +92,7 @@ async function handlePost(
         const auth = await requireBusiness({ organizationSlug: orgSlug });
         if (auth instanceof NextResponse) return auth;
 
-        const supabase = await createClient();
+        const supabase = createAdminClient();
 
         const { data: node, error: nodeError } = await supabase
             .from('organization_nodes')

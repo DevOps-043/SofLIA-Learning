@@ -11,7 +11,7 @@ type Locale = 'es' | 'en' | 'pt'
 
 interface UseLearnTranslationWarningOptions {
   currentLesson: LearnLesson | null
-  lessonTranslationContexts: Record<string, LearnTranslationContext>
+  lessonTranslationContexts: Record<string, LearnTranslationContext | null>
   learnDataTranslationContext: LearnTranslationContext | null
   selectedLang: Locale
 }

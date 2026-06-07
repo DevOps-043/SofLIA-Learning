@@ -9,22 +9,23 @@ export function ToolTaskActions(props: {
   message: string | null;
   setMessage: (message: string | null) => void;
 }) {
-  const promptText = props.activityConfig.toolTask?.promptTemplate?.trim() || "";
+  const toolTask = "toolTask" in props.activityConfig ? props.activityConfig.toolTask : null;
+  const promptText = toolTask?.promptTemplate?.trim() || "";
 
-  if (!props.activityConfig.toolTask) {
+  if (!toolTask) {
     return null;
   }
 
   return (
     <div className="rounded-xl border border-[var(--color-legacy-b6e5db)] bg-[var(--color-legacy-f1fbf8)] px-4 py-3 dark:border-accent/20 dark:bg-[var(--color-legacy-08201b)]">
       <div className="flex flex-wrap items-center gap-2">
-        {props.activityConfig.toolTask.showCopyButton && promptText && (
+        {toolTask.showCopyButton && promptText && (
           <button type="button" onClick={() => copyPrompt(promptText, props.setMessage)} className="inline-flex items-center gap-2 rounded-lg border border-primary/10 bg-white px-3 py-2 text-xs font-medium text-primary transition hover:border-primary/20 hover:bg-primary/5 dark:border-white/10 dark:bg-white/5 dark:text-white">
             <Clipboard className="h-3.5 w-3.5" />
             Copiar prompt
           </button>
         )}
-        {props.activity.external_tool?.url && props.activityConfig.toolTask.openInNewTab && (
+        {props.activity.external_tool?.url && toolTask.openInNewTab && (
           <button type="button" onClick={() => openExternalTool(props.activity, props.setMessage)} className="inline-flex items-center gap-2 rounded-lg border border-primary/10 bg-white px-3 py-2 text-xs font-medium text-primary transition hover:border-primary/20 hover:bg-primary/5 dark:border-white/10 dark:bg-white/5 dark:text-white">
             <ExternalLink className="h-3.5 w-3.5" />
             Abrir {props.activity.external_tool?.label || "herramienta"}

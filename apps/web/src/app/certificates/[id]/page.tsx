@@ -129,15 +129,30 @@ export default function CertificateDetailPage() {
     setTimeout(() => setHashCopied(false), 3000)
   }
 
-  function shareCertificate(): void {
+  async function shareCertificate(): Promise<void> {
     if (!certificate) {
       return
     }
 
+    const url = getFullUrl(`/certificates/verify/${certificate.certificateHash}`)
+    const title = t('certificates.shareTitle', { title: certificate.courseTitle })
+    const text = t('certificates.shareText', { title: certificate.courseTitle })
+
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title, text, url })
+        return
+      } catch (shareError) {
+        if (shareError instanceof DOMException && shareError.name === 'AbortError') {
+          return
+        }
+      }
+    }
+
     openShareModal({
-      url: getFullUrl(`/certificates/verify/${certificate.certificateHash}`),
-      title: t('certificates.shareTitle', { title: certificate.courseTitle }),
-      text: t('certificates.shareText', { title: certificate.courseTitle }),
+      url,
+      title,
+      text,
       description: t('certificates.shareDescription', { issuer: certificate.issuerName }),
     })
   }
@@ -401,7 +416,7 @@ export default function CertificateDetailPage() {
                   {t('certificates.verifyPublic')}
                 </button>
                 <button
-                  onClick={shareCertificate}
+                  onClick={() => void shareCertificate()}
                   className="inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold"
                   style={{
                     backgroundColor: theme.cardBg,

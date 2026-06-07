@@ -74,7 +74,7 @@ export const NodeItem: React.FC<NodeItemProps> = ({
     <div className="flex flex-col">
       <motion.div
         whileHover={{ backgroundColor: theme.hoverBg }}
-        className="group flex items-center py-2 px-4 rounded-2xl transition-all duration-300 relative"
+        className="group relative flex items-start gap-3 rounded-2xl px-3 py-3 transition-all duration-300 sm:items-center sm:px-4"
         style={{
           marginLeft: `${paddingLeft}px`,
           backgroundColor: isRootExpanded ? theme.inputBg : 'transparent'
@@ -99,7 +99,7 @@ export const NodeItem: React.FC<NodeItemProps> = ({
           )}
         </button>
 
-        <div className="flex-1 flex items-center gap-4 min-w-0">
+        <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center sm:gap-4">
           <div
             className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center border transition-all"
             style={{
@@ -111,11 +111,11 @@ export const NodeItem: React.FC<NodeItemProps> = ({
             <nodeTypeStyle.Icon size={18} style={{ color: nodeTypeStyle.color }} />
           </div>
 
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-3">
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
               <Link
                 href={`/${params?.orgSlug}/business-panel/hierarchy/node/${node.id}`}
-                className="text-sm font-black transition-colors truncate tracking-tight"
+                className="min-w-0 max-w-full truncate text-sm font-black tracking-tight transition-colors"
                 style={{ color: theme.textColor }}
               >
                 {node.name}
@@ -134,15 +134,15 @@ export const NodeItem: React.FC<NodeItemProps> = ({
               ) : null}
             </div>
 
-            <div className="flex items-center gap-3 text-[10px] font-medium truncate" style={{ color: theme.mutedTextColor }}>
-              <span className="uppercase tracking-[0.1em] font-black">{t(`hierarchy.types.${node.type}`)}</span>
+            <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-medium" style={{ color: theme.mutedTextColor }}>
+              <span className="shrink-0 uppercase tracking-[0.1em] font-black">{t(`hierarchy.types.${node.type}`)}</span>
               {node.manager ? (
-                <div className="flex items-center gap-1.5 pl-3 border-l" style={{ borderColor: theme.borderColor }}>
+                <div className="flex min-w-0 items-center gap-1.5 border-l pl-3" style={{ borderColor: theme.borderColor }}>
                   <User size={10} style={{ color: theme.primaryColor }} />
                   <span className="truncate">{t('hierarchy.leaderLabel')}: {node.manager.first_name}</span>
                 </div>
               ) : null}
-              <div className="flex items-center gap-1.5 pl-3 border-l" style={{ borderColor: theme.borderColor }}>
+              <div className="flex shrink-0 items-center gap-1.5 border-l pl-3" style={{ borderColor: theme.borderColor }}>
                 <Users size={10} />
                 <span>{t('hierarchy.membersCount', { count: node.members_count || 0 })}</span>
               </div>
@@ -150,7 +150,7 @@ export const NodeItem: React.FC<NodeItemProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100">
+        <div className="ml-auto flex shrink-0 items-center gap-1 opacity-100 transition-all sm:scale-90 sm:opacity-0 sm:group-hover:scale-100 sm:group-hover:opacity-100 sm:group-focus-within:scale-100 sm:group-focus-within:opacity-100">
           <button
             onClick={() => onAddChild && onAddChild(node)}
             className="p-2 rounded-xl transition-all"

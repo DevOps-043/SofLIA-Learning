@@ -24,6 +24,7 @@ import type {
   NotebookUpdateNoteInput,
 } from '../types'
 import {
+  getNotebookEditableText,
   getNotebookPlainText,
   sanitizeNotebookRichContent,
 } from '../services/notebook-content-rendering.service'
@@ -59,6 +60,30 @@ export function NotebookNoteModal({
     setIsMounted(true)
   }, [])
 
+  const copyTextToClipboard = useCallback(async (text: string): Promise<boolean> => {
+    if (!text.trim()) return false
+
+    try {
+      await navigator.clipboard.writeText(text)
+      return true
+    } catch {
+      const textarea = document.createElement('textarea')
+      textarea.value = text
+      textarea.setAttribute('readonly', 'true')
+      textarea.style.position = 'fixed'
+      textarea.style.left = '-9999px'
+      textarea.style.top = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+
+      try {
+        return document.execCommand('copy')
+      } finally {
+        document.body.removeChild(textarea)
+      }
+    }
+  }, [])
+
   const handleCopyContent = useCallback(async () => {
     if (!state.item) return
 
@@ -67,14 +92,14 @@ export function NotebookNoteModal({
         ? getNotebookPlainText(state.item.content)
         : state.item.contentMarkdown || getNotebookPlainText(state.item.contentHtml)
 
-    try {
-      await navigator.clipboard.writeText(textContent)
+    if (await copyTextToClipboard(textContent)) {
       setIsCopied(true)
       window.setTimeout(() => setIsCopied(false), 2000)
-    } catch {
-      setIsCopied(false)
+      return
     }
-  }, [state.item])
+
+    setIsCopied(false)
+  }, [copyTextToClipboard, state.item])
 
   const modal = (
     <AnimatePresence>
@@ -221,7 +246,7 @@ function ModalContent({
       ) : null}
 
       <div className="flex flex-wrap items-center gap-2 border-t border-gray-100 pt-4 dark:border-white/5">
-        <button className={secondaryButtonClassName} onClick={onCopy} type="button">
+        <button className={secondaryButtonClassName} onClick={() => void onCopy()} type="button">
           {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           {isCopied ? t('notebook.modal.copied') : t('notebook.modal.copyButton')}
         </button>
@@ -318,12 +343,12 @@ function ManualNoteEditForm({
   t,
 }: ManualNoteEditFormProps) {
   const [title, setTitle] = useState(item.title)
-  const [content, setContent] = useState(item.content)
+  const [content, setContent] = useState(() => getNotebookEditableText(item.content))
   const [tagsText, setTagsText] = useState(item.tags.join(', '))
 
   useEffect(() => {
     setTitle(item.title)
-    setContent(item.content)
+    setContent(getNotebookEditableText(item.content))
     setTagsText(item.tags.join(', '))
   }, [item])
 

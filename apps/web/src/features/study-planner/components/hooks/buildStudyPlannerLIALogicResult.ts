@@ -1,4 +1,4 @@
-type ResultGroup = Record<string, unknown>;
+type ResultGroup = object;
 
 interface BuildStudyPlannerLIALogicResultParams<
   TState extends ResultGroup,

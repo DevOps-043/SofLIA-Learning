@@ -2,6 +2,8 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import type { Dispatch, SetStateAction } from 'react';
 import type {
   ActiveStudyPlan,
+  DashboardMessage,
+  StudyPlannerAction,
   StudyPlannerDashboardState,
 } from './useStudyPlannerDashboardLIA';
 import {
@@ -10,6 +12,46 @@ import {
 } from './dashboard-soflia-chat-response.service';
 import { createDashboardWelcomeMessage } from './dashboard-lia-initial-messages';
 import type { DashboardChatSuccessPayload } from './useDashboardSofLIAState.types';
+
+const legacyActionTypes = new Set<StudyPlannerAction>([
+  'move_session',
+  'delete_session',
+  'resize_session',
+  'create_session',
+  'update_session',
+  'reschedule_week',
+  'analyze_calendar',
+  'suggest_adjustments',
+  'get_plan_summary',
+]);
+
+function isLegacyAction(value: unknown): value is StudyPlannerAction {
+  return typeof value === 'string' && legacyActionTypes.has(value as StudyPlannerAction);
+}
+
+function isLegacyStatus(value: unknown): value is DashboardMessage['actionStatus'] {
+  return value === 'pending' || value === 'success' || value === 'error';
+}
+
+function toLegacyDashboardMessage(message: {
+  id: string;
+  role: DashboardMessage['role'];
+  content: string;
+  timestamp: Date;
+  actionType?: unknown;
+  actionData?: Record<string, unknown>;
+  actionStatus?: unknown;
+}): DashboardMessage {
+  return {
+    id: message.id,
+    role: message.role,
+    content: message.content,
+    timestamp: message.timestamp,
+    ...(isLegacyAction(message.actionType) ? { actionType: message.actionType } : {}),
+    ...(message.actionData ? { actionData: message.actionData } : {}),
+    ...(isLegacyStatus(message.actionStatus) ? { actionStatus: message.actionStatus } : {}),
+  };
+}
 
 export async function loadProactiveAnalysis(
   plan: ActiveStudyPlan,
@@ -35,10 +77,12 @@ export async function loadProactiveAnalysis(
     setState(prev => ({
       ...prev,
       messages: [
-        buildDashboardAssistantMessage({
-          idPrefix: 'proactive',
-          payload: chatData,
-        }),
+        toLegacyDashboardMessage(
+          buildDashboardAssistantMessage({
+            idPrefix: 'proactive',
+            payload: chatData,
+          }),
+        ),
       ],
     }));
 

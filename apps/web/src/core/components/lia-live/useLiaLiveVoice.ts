@@ -43,6 +43,7 @@ interface TokenResponse {
   model?: string;
   systemInstruction?: string;
   languageCode?: string;
+  voiceName?: string;
   code?: string;
 }
 
@@ -205,6 +206,7 @@ export function useLiaLiveVoice({
         model: payload.model,
         systemInstruction: payload.systemInstruction,
         languageCode: payload.languageCode,
+        voiceName: payload.voiceName,
         onAudio: (base64Pcm) => { void player.enqueue(base64Pcm); },
         onInterrupted: () => {
           transcriptBufferRef.current.markInterrupted();

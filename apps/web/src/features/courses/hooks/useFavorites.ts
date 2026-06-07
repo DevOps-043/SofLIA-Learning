@@ -125,6 +125,8 @@ export function useFavorites(): UseFavoritesReturn {
     error: error?.message || null,
     toggleFavorite,
     isFavorite,
-    refetch: mutate
+    refetch: async () => {
+      await mutate()
+    },
   }
 }

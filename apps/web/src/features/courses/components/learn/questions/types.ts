@@ -20,6 +20,7 @@ export type CourseQuestion = {
   created_at: string;
   updated_at: string;
   course_id?: string | null;
+  tags?: string[];
   user_reaction?: string | null;
   user: CourseQuestionUser;
 };

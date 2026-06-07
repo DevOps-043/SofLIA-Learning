@@ -16,8 +16,8 @@ export function NodePerformanceCard({ state, t }: NodeDashboardCommonProps) {
 
 function buildPerformanceStats(state: NodeDashboardCommonProps['state'], t: NodeDashboardCommonProps['t']) {
   return [
-    { label: t('hierarchy.dashboard.performance.avgProgress'), value: `${state.analytics?.progress || 0}%`, delta: '+2.4%' },
-    { label: t('hierarchy.dashboard.performance.completedCourses'), value: state.analytics?.completed_courses || 0 },
-    { label: t('hierarchy.dashboard.performance.learningHours'), value: `${state.analytics?.learning_hours || 0}h` },
+    { label: t('hierarchy.dashboard.performance.avgProgress'), value: `${state.analytics?.avg_completion || 0}%`, delta: '+2.4%' },
+    { label: t('hierarchy.dashboard.performance.completedCourses'), value: state.analytics?.courses_completed || 0 },
+    { label: t('hierarchy.dashboard.performance.learningHours'), value: `${state.analytics?.total_hours || 0}h` },
   ]
 }

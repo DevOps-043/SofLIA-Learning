@@ -87,15 +87,15 @@ export class CalendarMicrosoftService {
       const mapMicrosoftEvent = (event: MicrosoftCalendarEventRow, calId?: string): CalendarEvent => ({
         id: event.id,
         title: event.subject || 'Sin título',
-        description: event.bodyPreview,
-        startTime: event.start?.dateTime,
-        endTime: event.end?.dateTime,
-        isAllDay: event.isAllDay,
+        description: event.bodyPreview ?? undefined,
+        startTime: event.start?.dateTime ?? startDate.toISOString(),
+        endTime: event.end?.dateTime ?? endDate.toISOString(),
+        isAllDay: event.isAllDay ?? false,
         isRecurring: !!event.seriesMasterId,
-        location: event.location?.displayName,
+        location: event.location?.displayName ?? undefined,
         status: event.showAs === 'busy' ? 'confirmed' :
           event.showAs === 'tentative' ? 'tentative' : 'cancelled',
-        calendarId: calId,
+        calendarId: calId ?? undefined,
       });
 
       // Si hay calendarios seleccionados, obtener eventos por calendario individual

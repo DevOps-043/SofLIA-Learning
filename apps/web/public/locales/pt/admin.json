@@ -725,7 +725,13 @@
       "view": "Ver",
       "edit": "Editar",
       "activate": "Ativar",
-      "pause": "Pausar"
+      "pause": "Pausar",
+      "saving": "Salvando...",
+      "saveChanges": "Salvar alteracoes",
+      "saved": "Alteracoes salvas"
+    },
+    "edit": {
+      "headerSubtitle": "Gestao da empresa"
     },
     "filters": {
       "allPlans": "Todos os planos",

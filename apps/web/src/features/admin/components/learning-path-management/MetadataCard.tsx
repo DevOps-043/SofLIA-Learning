@@ -70,7 +70,7 @@ export function MetadataCard({ learningPath, lp, saving, setLearningPath, onSave
           <button
             type="button"
             disabled={saving}
-            onClick={() => void onSave({ is_active: !learningPath.is_active })}
+            onClick={() => void onSave({ title: learningPath.title, is_active: !learningPath.is_active })}
             className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/5 sm:w-auto"
           >
             {learningPath.is_active ? lp('deactivate', 'Desactivar') : lp('activate', 'Activar')}

@@ -1,7 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('server-only', () => ({}))
 
 import { buildEvaluatorPrompt } from '../dialogue-evaluator.service'
-import { buildTutorPrompt } from '../dialogue-tutor.service'
+import {
+  buildTutorPrompt,
+  normalizeTutorMessageForDisplay,
+  resolveDialogueTutorMaxOutputTokens,
+} from '../dialogue-tutor.service'
 import type {
   DialogueActivityConfig,
   DialogueEvaluationResult,
@@ -110,5 +116,19 @@ describe('dialogue organization context prompts', () => {
     expect(prompt).toContain('Acme Retail')
     expect(prompt).toContain('Aterriza la conversacion')
     expect(prompt).toContain('No reveles')
+    expect(prompt).toContain('Cierra siempre con una frase completa')
+  })
+
+  it('falls back when the tutor message looks truncated', () => {
+    expect(
+      normalizeTutorMessageForDisplay(
+        'Vas bien porque conectaste el caso, pero',
+        'Mensaje completo de respaldo.',
+      ),
+    ).toBe('Mensaje completo de respaldo.')
+  })
+
+  it('uses a larger tutor output budget to avoid incomplete answers', () => {
+    expect(resolveDialogueTutorMaxOutputTokens(config)).toBeGreaterThan(500)
   })
 })

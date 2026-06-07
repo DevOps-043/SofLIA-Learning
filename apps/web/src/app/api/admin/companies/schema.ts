@@ -1,12 +1,24 @@
 import { z } from 'zod'
+import { resolveBrandHexColor } from '@/features/admin/services/admin-companies/admin-company-brand-colors'
 
 const optionalNullableString = (max: number) =>
   z.union([z.string().max(max), z.null()]).optional()
 
 const optionalUrl = z.union([z.string().url().max(2_000), z.literal(''), z.null()]).optional()
-const optionalHexColor = z
-  .union([z.string().regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/), z.null()])
-  .optional()
+const optionalHexColor = z.preprocess(
+  (value) => {
+    if (value === undefined) return undefined
+    if (value === null) return null
+    if (typeof value !== 'string') return value
+
+    if (!value.trim()) return null
+    const normalizedColor = resolveBrandHexColor(value)
+    return normalizedColor ?? value.trim()
+  },
+  z
+    .union([z.string().regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/), z.null()])
+    .optional(),
+)
 
 export const createCompanySchema = z.object({
   name: z.string().min(1).max(200),

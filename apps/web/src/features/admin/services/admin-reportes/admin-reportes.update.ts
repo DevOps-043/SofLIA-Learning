@@ -1,8 +1,9 @@
 import { createAdminReportesClient } from './admin-reportes.client'
+import type { TablesUpdate } from '@/lib/supabase/types'
 import type { AdminReporte, ReporteUpdateData } from './admin-reportes.types'
 
-function buildReporteUpdateData(updates: ReporteUpdateData): Record<string, unknown> {
-  const updateData: Record<string, unknown> = {
+function buildReporteUpdateData(updates: ReporteUpdateData): TablesUpdate<'reportes_problemas'> {
+  const updateData: TablesUpdate<'reportes_problemas'> = {
     updated_at: new Date().toISOString(),
   }
 

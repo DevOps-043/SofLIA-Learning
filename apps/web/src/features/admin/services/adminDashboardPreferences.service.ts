@@ -1,12 +1,44 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../lib/supabase/server'
 import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+import type { Json } from '@/lib/supabase/types'
 
 export interface AdminDashboardPreferences {
   id?: string
   user_id: string
   activity_period: '24h' | '7d' | '30d'
   growth_chart_metrics: string[]
+}
+
+type ActivityPeriod = AdminDashboardPreferences['activity_period']
+
+function parseActivityPeriod(value: string | null): ActivityPeriod {
+  return value === '7d' || value === '30d' || value === '24h'
+    ? value
+    : '24h'
+}
+
+function parseGrowthChartMetrics(value: Json): string[] {
+  if (!Array.isArray(value)) {
+    return ['users']
+  }
+
+  const metrics = value.filter((metric): metric is string => typeof metric === 'string')
+  return metrics.length > 0 ? metrics : ['users']
+}
+
+function mapDashboardPreferences(preferences: {
+  id: string
+  user_id: string
+  activity_period: string | null
+  growth_chart_metrics: Json
+}): AdminDashboardPreferences {
+  return {
+    id: preferences.id,
+    user_id: preferences.user_id,
+    activity_period: parseActivityPeriod(preferences.activity_period),
+    growth_chart_metrics: parseGrowthChartMetrics(preferences.growth_chart_metrics)
+  }
 }
 
 export class AdminDashboardPreferencesService {
@@ -28,12 +60,7 @@ export class AdminDashboardPreferencesService {
       }
       
       if (preferences) {
-        return {
-          id: preferences.id,
-          user_id: preferences.user_id,
-          activity_period: preferences.activity_period || '24h',
-          growth_chart_metrics: preferences.growth_chart_metrics || ['users']
-        }
+        return mapDashboardPreferences(preferences)
       }
       
       // Retornar preferencias por defecto
@@ -87,12 +114,7 @@ export class AdminDashboardPreferencesService {
           throw updateError
         }
         
-        return {
-          id: updatedPreferences.id,
-          user_id: updatedPreferences.user_id,
-          activity_period: updatedPreferences.activity_period,
-          growth_chart_metrics: updatedPreferences.growth_chart_metrics
-        }
+        return mapDashboardPreferences(updatedPreferences)
       } else {
         // Crear nuevas preferencias
         const { data: newPreferences, error: createError } = await supabase
@@ -105,12 +127,7 @@ export class AdminDashboardPreferencesService {
           throw createError
         }
         
-        return {
-          id: newPreferences.id,
-          user_id: newPreferences.user_id,
-          activity_period: newPreferences.activity_period,
-          growth_chart_metrics: newPreferences.growth_chart_metrics
-        }
+        return mapDashboardPreferences(newPreferences)
       }
     } catch (error) {
       techDebtLogger.error('Error saving preferences:', error)
@@ -118,4 +135,3 @@ export class AdminDashboardPreferencesService {
     }
   }
 }
-
