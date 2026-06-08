@@ -15,14 +15,14 @@ export type ModuleLearningSummaryGenerationType =
   | 'default'
   | 'manual_regeneration'
 
-export const MODULE_LEARNING_SUMMARY_MAX_VERSIONS = 4
 export const MODULE_LEARNING_SUMMARY_PROMPT_VERSION =
   'module-learning-summary-v2'
 
 const MODULE_LEARNING_SUMMARY_SELECT_FIELDS =
   'summary_id, user_id, course_id, module_id, organization_id, version, title, content_html, content_markdown, status, generation_type, source_snapshot, model_provider, model_name, prompt_version, error_message, generated_at, created_at, updated_at, processing_started_at, processing_finished_at, retry_count, next_retry_at, locked_until, locked_by, last_error_code'
 const MODULE_LEARNING_SUMMARY_MAX_RETRIES = 3
-const MODULE_LEARNING_SUMMARY_LOCK_MS = 10 * 60 * 1000
+const MODULE_LEARNING_SUMMARY_LOCK_MS = 3 * 60 * 1000
+const MODULE_LEARNING_SUMMARY_DEFAULT_TIMEOUT_MS = 120 * 1000
 const processingSummaryIds = new Set<string>()
 
 interface CreateModuleLearningSummaryParams {
@@ -98,7 +98,18 @@ async function loadModuleTitle(
   return module.module_title || null
 }
 
+function hasExhaustedGenerationRetries(summary: ModuleLearningSummaryRow) {
+  return (
+    summary.status === 'generating' &&
+    (summary.retry_count || 0) >= MODULE_LEARNING_SUMMARY_MAX_RETRIES
+  )
+}
+
 function getSummaryPublicFields(summary: ModuleLearningSummaryRow) {
+  const publicStatus = hasExhaustedGenerationRetries(summary)
+    ? 'failed'
+    : summary.status
+
   return {
     summary_id: summary.summary_id,
     user_id: summary.user_id,
@@ -109,13 +120,13 @@ function getSummaryPublicFields(summary: ModuleLearningSummaryRow) {
     title: summary.title,
     content_html: summary.content_html,
     content_markdown: summary.content_markdown,
-    status: summary.status,
+    status: publicStatus,
     generation_type: summary.generation_type,
     model_provider: summary.model_provider,
     model_name: summary.model_name,
     prompt_version: summary.prompt_version,
     error_message:
-      summary.status === 'failed'
+      publicStatus === 'failed'
         ? 'No fue posible generar este apunte. Intenta regenerarlo mas tarde.'
         : null,
     generated_at: summary.generated_at,
@@ -148,6 +159,20 @@ function getErrorCode(error: unknown) {
   }
 
   return 'unknown_error'
+}
+
+function resolveGenerationTimeoutMs() {
+  const rawTimeout = Number(process.env.MODULE_LEARNING_SUMMARY_TIMEOUT_MS)
+  return Number.isFinite(rawTimeout) && rawTimeout > 0
+    ? Math.trunc(rawTimeout)
+    : MODULE_LEARNING_SUMMARY_DEFAULT_TIMEOUT_MS
+}
+
+function resolveGenerationMaxOutputTokens() {
+  const rawTokens = Number(process.env.MODULE_LEARNING_SUMMARY_MAX_OUTPUT_TOKENS)
+  return Number.isFinite(rawTokens) && rawTokens > 0
+    ? Math.trunc(rawTokens)
+    : 8192
 }
 
 function isUniqueConstraintError(error: unknown) {
@@ -469,13 +494,14 @@ async function generateSummaryMarkdown(sourceContext: string) {
   const result = await generateGeminiText({
     circuitBreakerName: 'gemini-module-learning-summary',
     generationConfig: {
-      maxOutputTokens: 4500,
+      maxOutputTokens: resolveGenerationMaxOutputTokens(),
       temperature: 0.45,
     },
     model,
     prompt: buildPrompt(sourceContext),
     systemInstruction:
       'Responde solo con el contenido Markdown del apunte. No incluyas notas internas.',
+    timeoutMs: resolveGenerationTimeoutMs(),
   })
 
   const content = result.text.trim()
@@ -486,13 +512,6 @@ async function generateSummaryMarkdown(sourceContext: string) {
   return {
     markdown: content,
     model,
-  }
-}
-
-export class ModuleLearningSummaryLimitError extends Error {
-  constructor() {
-    super('Ya alcanzaste el limite de 4 apuntes para este modulo.')
-    this.name = 'ModuleLearningSummaryLimitError'
   }
 }
 
@@ -528,9 +547,10 @@ export class ModuleLearningSummaryService {
       throw new Error(`Error al obtener apuntes del modulo: ${error.message}`)
     }
 
-    return ((data || []) as ModuleLearningSummaryRow[]).map((summary) =>
-      this.toPublicSummary(summary),
-    )
+    const summaries = (data || []) as ModuleLearningSummaryRow[]
+    this.triggerGeneratingSummaries(summaries)
+
+    return summaries.map((summary) => this.toPublicSummary(summary))
   }
 
   static async listCourseSummaries(
@@ -566,9 +586,10 @@ export class ModuleLearningSummaryService {
       throw new Error(`Error al obtener apuntes del curso: ${error.message}`)
     }
 
-    return ((data || []) as ModuleLearningSummaryRow[]).map((summary) =>
-      this.toPublicSummary(summary),
-    )
+    const summaries = (data || []) as ModuleLearningSummaryRow[]
+    this.triggerGeneratingSummaries(summaries)
+
+    return summaries.map((summary) => this.toPublicSummary(summary))
   }
 
   static async createSummary({
@@ -622,7 +643,9 @@ export class ModuleLearningSummaryService {
     }
 
     const processingSummary = (existingRows || []).find(
-      (row) => row.status === 'generating',
+      (row) =>
+        row.status === 'generating' &&
+        !hasExhaustedGenerationRetries(row as ModuleLearningSummaryRow),
     )
 
     if (processingSummary) {
@@ -634,10 +657,6 @@ export class ModuleLearningSummaryService {
         (maxVersion, row) => Math.max(maxVersion, row.version || 0),
         0,
       ) + 1
-
-    if (nextVersion > MODULE_LEARNING_SUMMARY_MAX_VERSIONS) {
-      throw new ModuleLearningSummaryLimitError()
-    }
 
     const moduleTitle = await loadModuleTitle(supabase, courseId, moduleId)
     const title = buildSummaryTitle(moduleTitle, nextVersion)
@@ -695,6 +714,18 @@ export class ModuleLearningSummaryService {
     })
   }
 
+  private static triggerGeneratingSummaries(summaries: ModuleLearningSummaryRow[]) {
+    summaries
+      .filter(
+        (summary) =>
+          summary.status === 'generating' &&
+          !hasExhaustedGenerationRetries(summary),
+      )
+      .forEach((summary) => {
+        this.triggerSummaryGeneration(summary.summary_id)
+      })
+  }
+
   private static async claimSummaryForProcessing(
     supabase: ReturnType<typeof createAdminClient>,
     params: {
@@ -704,6 +735,9 @@ export class ModuleLearningSummaryService {
   ) {
     const now = new Date()
     const nowIso = now.toISOString()
+    const staleStartedIso = new Date(
+      now.getTime() - MODULE_LEARNING_SUMMARY_LOCK_MS,
+    ).toISOString()
     const lockUntilIso = new Date(
       now.getTime() + MODULE_LEARNING_SUMMARY_LOCK_MS,
     ).toISOString()
@@ -714,7 +748,9 @@ export class ModuleLearningSummaryService {
       .eq('status', 'generating')
       .lte('next_retry_at', nowIso)
       .lt('retry_count', MODULE_LEARNING_SUMMARY_MAX_RETRIES)
-      .or(`locked_until.is.null,locked_until.lt.${nowIso}`)
+      .or(
+        `locked_until.is.null,locked_until.lt.${nowIso},processing_started_at.lt.${staleStartedIso}`,
+      )
       .order('created_at', { ascending: true })
       .limit(10)
 
@@ -741,7 +777,9 @@ export class ModuleLearningSummaryService {
         .eq('status', 'generating')
         .lte('next_retry_at', nowIso)
         .lt('retry_count', MODULE_LEARNING_SUMMARY_MAX_RETRIES)
-        .or(`locked_until.is.null,locked_until.lt.${nowIso}`)
+        .or(
+          `locked_until.is.null,locked_until.lt.${nowIso},processing_started_at.lt.${staleStartedIso}`,
+        )
         .select(MODULE_LEARNING_SUMMARY_SELECT_FIELDS)
         .maybeSingle()
 

@@ -21,6 +21,7 @@ export interface BrowserSpeechRecognition {
   continuous: boolean;
   interimResults: boolean;
   lang: string;
+  onend: (() => void) | null;
   onerror: ((event: BrowserSpeechRecognitionErrorEvent) => void) | null;
   onresult: ((event: BrowserSpeechRecognitionEvent) => void) | null;
   start: () => void;

@@ -53,11 +53,11 @@
       "generatedSummaryBadge": "Anotacao SofLIA",
       "generateSummary": "Gerar anotacao",
       "regenerateSummary": "Regenerar anotacao",
-      "summaryVersion": "Versao {{version}} de {{total}}",
+      "summaryVersion": "Versao {{version}}",
       "summaryMissing": "Modulo concluido. A SofLIA pode gerar sua anotacao de aprendizagem.",
       "summaryGenerating": "A SofLIA esta gerando esta anotacao.",
       "summaryFailed": "Nao foi possivel gerar esta anotacao.",
-      "summaryLimitReached": "Limite de regeneracoes atingido",
+      "summaryLimitReached": "Regenerar anotacao",
       "previousSummary": "Anotacao anterior",
       "nextSummary": "Proxima anotacao"
     }

@@ -1,14 +1,16 @@
 import { motion } from 'framer-motion'
 import { BookOpen, CheckCircle2, Route, Users } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { BusinessLearningPathsLogic } from './types'
 
 export function BusinessLearningPathStats({ logic }: { logic: BusinessLearningPathsLogic }) {
+  const { t } = useTranslation('business')
   const { primaryColor, accentColor, textColor, mutedTextColor, borderColor, inputBg } = logic.theme
   const stats = [
-    { icon: Route, label: 'Rutas activas', value: logic.learningPaths.length },
-    { icon: BookOpen, label: 'Talleres', value: logic.totalWorkshops },
-    { icon: Users, label: 'Con ruta asignada', value: logic.totalAssignedUsers },
-    { icon: CheckCircle2, label: 'Asignaciones activas', value: logic.assignments.length },
+    { icon: Route, label: t('learningPathsPage.stats.paths'), value: logic.learningPaths.length },
+    { icon: BookOpen, label: t('learningPathsPage.stats.workshops'), value: logic.totalWorkshops },
+    { icon: Users, label: t('learningPathsPage.stats.assignedUsers'), value: logic.totalAssignedUsers },
+    { icon: CheckCircle2, label: t('learningPathsPage.stats.activeAssignments'), value: logic.assignments.length },
   ]
 
   return (

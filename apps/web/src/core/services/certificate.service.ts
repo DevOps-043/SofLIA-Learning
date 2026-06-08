@@ -299,19 +299,23 @@ export class CertificateService {
 
       certificateUrl = ensuredPdf.publicUrl
     } catch (pdfError) {
-      logger.error('Error asegurando PDF de certificado', {
+      // El PDF server-side se renderiza con Playwright/Chromium headless, que NO
+      // esta disponible en entornos serverless (p. ej. Netlify Functions). Hacerlo
+      // OBLIGATORIO rompia toda la emision con un 500 (CERTIFICATE_GENERATION_FAILED)
+      // aunque el registro del certificado YA quedo persistido en BD.
+      //
+      // Es best-effort: el certificado ya existe y el usuario puede descargar el PDF
+      // desde el cliente (html2canvas). El PDF en Storage se regenerara de forma
+      // diferida (al abrir la descarga server-side cuando Chromium este disponible).
+      // Por eso NO propagamos el error: preferimos un certificado emitido sin PDF
+      // cacheado que un fallo total de emision.
+      logger.error('No se pudo generar el PDF en Storage (best-effort, se continua)', {
         certificateId,
         courseId,
         userId,
+        forcedRegenerate: shouldRegeneratePdf,
         error: pdfError instanceof Error ? pdfError.message : 'Error desconocido',
       })
-
-      if (shouldRegeneratePdf) {
-        // El PDF es obligatorio para certificados nuevos o regenerados.
-        // Propagar para evitar un estado inconsistente donde el registro existe en BD
-        // pero el archivo no está en Storage.
-        throw pdfError
-      }
     }
 
     return {

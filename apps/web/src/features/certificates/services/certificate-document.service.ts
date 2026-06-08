@@ -66,8 +66,21 @@ function normalizeAssetUrl(url: string | null | undefined): string | null {
   return url
 }
 
+// Caracteres que NO deben aparecer en el texto de un certificado y que, si se
+// arrastran desde SSO/importaciones, se renderizan como artefactos visibles
+// (p. ej. una raya bajo el nombre). Cubre: controles C0/C1, invisibles de ancho
+// cero, y marcas combinantes DECORATIVAS (subrayado U+0332, doble subrayado,
+// tachados/overlays). NO incluye marcas de acento (á, í, ñ, ü…), que se conservan.
+const DECORATIVE_TEXT_ARTIFACTS =
+  /[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF\u0332\u0333\u0336\u0337\u0338]/g
+
 function normalizeText(value: string | null | undefined, fallback: string): string {
-  const normalized = value?.trim()
+  // `normalize('NFC')` compone los acentos descompuestos (base + combinante) en un
+  // unico glifo precompuesto, que html2canvas renderiza de forma mas fiable.
+  const normalized = value
+    ?.replace(DECORATIVE_TEXT_ARTIFACTS, '')
+    .normalize('NFC')
+    .trim()
   return normalized && normalized.length > 0 ? normalized : fallback
 }
 

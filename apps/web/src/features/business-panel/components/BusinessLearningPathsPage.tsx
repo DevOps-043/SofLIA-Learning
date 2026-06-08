@@ -36,10 +36,7 @@ export function BusinessLearningPathsPage() {
         className="min-h-screen p-5 lg:p-8 space-y-6"
         style={{ backgroundColor: panelBg }}
       >
-        <div
-          className="relative overflow-hidden rounded-[2rem] border px-8 py-8 lg:py-10"
-          style={{ borderColor, backgroundColor: inputBg }}
-        >
+        <div className="space-y-6">
           <BusinessLearningPathsHero theme={logic.theme} />
           <BusinessLearningPathStats logic={logic} />
           <BusinessLearningPathsFeedback logic={logic} />

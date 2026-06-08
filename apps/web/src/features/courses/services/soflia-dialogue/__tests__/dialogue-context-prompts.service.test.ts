@@ -2,9 +2,11 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('server-only', () => ({}))
 
-import { buildEvaluatorPrompt } from '../dialogue-evaluator.service'
+import { buildDialogueEvaluationRecoveryMessage } from '../dialogue-technical-recovery.service'
+import { buildEvaluatorPrompt, evaluateDialogueTurn } from '../dialogue-evaluator.service'
 import {
   buildTutorPrompt,
+  generateDialogueTutorMessage,
   normalizeTutorMessageForDisplay,
   resolveDialogueTutorMaxOutputTokens,
 } from '../dialogue-tutor.service'
@@ -119,6 +121,48 @@ describe('dialogue organization context prompts', () => {
     expect(prompt).toContain('Cierra siempre con una frase completa')
   })
 
+  it('asks the evaluator for student-facing feedback to avoid a second tutor call', () => {
+    const prompt = buildEvaluatorPrompt({
+      config,
+      organizationAiContext,
+      previousEvaluations: [],
+      recentTurns: [],
+      studentMessage: 'Usaria IA para segmentar clientes.',
+    })
+
+    expect(prompt).toContain('feedbackForTutor debe ser un mensaje visible para el estudiante')
+    expect(prompt).toContain('maximo 2 frases')
+    expect(prompt).toContain('siguiente paso concreto')
+  })
+
+  it('classifies evasive short answers locally without calling Gemini', async () => {
+    await expect(
+      evaluateDialogueTurn({
+        config,
+        organizationAiContext,
+        previousEvaluations: [],
+        recentTurns: [],
+        studentMessage: 'no sé',
+      }),
+    ).resolves.toMatchObject({
+      evaluation: {
+        decision: 'low_evidence',
+        flags: { evasiveAnswer: true },
+        overallScore: 0,
+        recommendedNextState: 'HINT',
+      },
+      modelName: 'local-low-evidence-classifier',
+    })
+  })
+
+  it('keeps the recovery message pedagogical instead of technical', () => {
+    const message = buildDialogueEvaluationRecoveryMessage()
+
+    expect(message).toContain('necesito un poco mas de evidencia')
+    expect(message).not.toContain('fallo tecnico')
+    expect(message).not.toContain('evaluacion automatica')
+  })
+
   it('falls back when the tutor message looks truncated', () => {
     expect(
       normalizeTutorMessageForDisplay(
@@ -126,9 +170,42 @@ describe('dialogue organization context prompts', () => {
         'Mensaje completo de respaldo.',
       ),
     ).toBe('Mensaje completo de respaldo.')
+
+    expect(
+      normalizeTutorMessageForDisplay(
+        'Es muy cierto que esos factores presionan fuertemente los margenes en el',
+        'Mensaje completo de respaldo.',
+      ),
+    ).toBe('Mensaje completo de respaldo.')
   })
 
   it('uses a larger tutor output budget to avoid incomplete answers', () => {
     expect(resolveDialogueTutorMaxOutputTokens(config)).toBeGreaterThan(500)
+  })
+
+  it('uses the evaluator feedback locally by default instead of calling the tutor model', async () => {
+    const previousFlag = process.env.SOFLIA_DIALOGUE_TUTOR_USE_MODEL
+    delete process.env.SOFLIA_DIALOGUE_TUTOR_USE_MODEL
+
+    try {
+      await expect(
+        generateDialogueTutorMessage({
+          config,
+          evaluation: {
+            ...evaluation,
+            feedbackForTutor: 'Debes aterrizar el impacto operativo en una decision concreta.',
+          },
+          organizationAiContext,
+          policy,
+          recentTurns: [],
+        }),
+      ).resolves.toContain('aterrizar el impacto operativo')
+    } finally {
+      if (previousFlag === undefined) {
+        delete process.env.SOFLIA_DIALOGUE_TUTOR_USE_MODEL
+      } else {
+        process.env.SOFLIA_DIALOGUE_TUTOR_USE_MODEL = previousFlag
+      }
+    }
   })
 })

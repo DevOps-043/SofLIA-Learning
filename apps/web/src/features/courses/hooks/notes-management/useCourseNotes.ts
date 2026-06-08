@@ -74,12 +74,17 @@ export function useCourseNotes({
   const [summariesLoaded, setSummariesLoaded] = useState(false);
   const loadedCourseSlugRef = useRef<string | null>(null);
   const loadedModulesKeyRef = useRef<string>("");
+  const loadRequestIdRef = useRef(0);
   const modulesKey = useMemo(
     () => modules.map((module) => module.module_id).join(","),
     [modules]
   );
 
   const loadCourseNotes = useCallback(async (courseSlug: string) => {
+    const requestId = loadRequestIdRef.current + 1;
+    loadRequestIdRef.current = requestId;
+    const isCurrentRequest = () => loadRequestIdRef.current === requestId;
+
     setSummariesLoaded(false);
     const moduleIds = modules.map((module) => module.module_id).filter(Boolean);
     const summaryParams = new URLSearchParams();
@@ -106,18 +111,25 @@ export function useCourseNotes({
             lessonTitle: lessonTitleById.get(note.lessonId),
           }));
 
-        setManualNotes(mappedNotes);
-        loadedCourseSlugRef.current = courseSlug;
-        loadedModulesKeyRef.current = modulesKey;
+        if (isCurrentRequest()) {
+          setManualNotes(mappedNotes);
+          loadedCourseSlugRef.current = courseSlug;
+          loadedModulesKeyRef.current = modulesKey;
+        }
       }
 
-      if (notesResponse.status === 401 || notesResponse.status === 404) {
+      if (
+        isCurrentRequest() &&
+        (notesResponse.status === 401 || notesResponse.status === 404)
+      ) {
         setManualNotes([]);
         loadedCourseSlugRef.current = courseSlug;
         loadedModulesKeyRef.current = modulesKey;
       }
     } catch {
-      setManualNotes([]);
+      if (isCurrentRequest()) {
+        setManualNotes([]);
+      }
     }
 
     try {
@@ -139,14 +151,23 @@ export function useCourseNotes({
           )
           .sort((left, right) => left.version - right.version);
 
-        setGeneratedSummaryVersions(summaries);
-      } else if (summariesResponse.status === 401 || summariesResponse.status === 404) {
+        if (isCurrentRequest()) {
+          setGeneratedSummaryVersions(summaries);
+        }
+      } else if (
+        isCurrentRequest() &&
+        (summariesResponse.status === 401 || summariesResponse.status === 404)
+      ) {
         setGeneratedSummaryVersions([]);
       }
     } catch {
-      setGeneratedSummaryVersions([]);
+      if (isCurrentRequest()) {
+        setGeneratedSummaryVersions([]);
+      }
     } finally {
-      setSummariesLoaded(true);
+      if (isCurrentRequest()) {
+        setSummariesLoaded(true);
+      }
     }
   }, [lessonTitleById, moduleTitleById, modules, modulesKey, organizationId]);
 
@@ -203,6 +224,7 @@ export function useCourseNotes({
   const ensureCourseNotesLoaded = useCallback(
     (slug: string, isNotesCollapsed: boolean) => {
       if (!slug) {
+        loadRequestIdRef.current += 1;
         setManualNotes([]);
         setGeneratedSummaryVersions([]);
         setSummariesLoaded(false);
@@ -218,6 +240,7 @@ export function useCourseNotes({
         loadedModulesKeyRef.current !== modulesKey;
 
       if (hasLoadedDifferentCourse || hasLoadedDifferentModules) {
+        loadRequestIdRef.current += 1;
         setManualNotes([]);
         setGeneratedSummaryVersions([]);
         setSummariesLoaded(false);
@@ -243,5 +266,6 @@ export function useCourseNotes({
     },
     setGeneratedSummaryVersions,
     savedNotes,
+    summariesLoaded,
   };
 }

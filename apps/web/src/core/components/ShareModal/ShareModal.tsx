@@ -123,10 +123,10 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
                 stiffness: 300,
                 damping: 30,
               }}
-              className="bg-white dark:bg-carbon-800 rounded-xl shadow-2xl max-w-md w-full pointer-events-auto relative overflow-hidden border border-gray-200 dark:border-gray-500/30"
+              className="bg-white dark:bg-carbon-800 rounded-xl shadow-2xl max-w-md w-full pointer-events-auto relative max-h-[90vh] overflow-y-auto overflow-x-hidden border border-gray-200 dark:border-gray-500/30"
             >
               {/* Contenido */}
-              <div className="relative p-6 sm:p-8">
+              <div className="relative p-5 sm:p-8">
                 {/* Botón de cerrar */}
                 <button
                   onClick={onClose}
@@ -137,7 +137,7 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
                 </button>
 
                 {/* Icono y título */}
-                <div className="flex flex-col items-center mb-6">
+                <div className="flex flex-col items-center mb-4 sm:mb-6">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -147,16 +147,16 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
                       damping: 15,
                       delay: 0.1,
                     }}
-                    className="w-16 h-16 bg-primary dark:bg-primary rounded-full flex items-center justify-center shadow-lg mb-4"
+                    className="w-14 h-14 sm:w-16 sm:h-16 bg-primary dark:bg-primary rounded-full flex items-center justify-center shadow-lg mb-3 sm:mb-4"
                   >
-                    <Share2 className="w-8 h-8 text-white" />
+                    <Share2 className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
                   </motion.div>
 
                   <motion.h3
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="text-2xl font-bold text-center text-primary dark:text-white mb-2"
+                    className="text-xl sm:text-2xl font-bold text-center text-primary dark:text-white mb-2"
                     style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
                   >
                     Compartir

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -24,7 +24,6 @@ import type {
   NotebookUpdateNoteInput,
 } from '../types'
 import {
-  getNotebookEditableText,
   getNotebookPlainText,
   sanitizeNotebookRichContent,
 } from '../services/notebook-content-rendering.service'
@@ -343,14 +342,37 @@ function ManualNoteEditForm({
   t,
 }: ManualNoteEditFormProps) {
   const [title, setTitle] = useState(item.title)
-  const [content, setContent] = useState(() => getNotebookEditableText(item.content))
+  const [content, setContent] = useState(item.content)
   const [tagsText, setTagsText] = useState(item.tags.join(', '))
+  const editorRef = useRef<HTMLDivElement>(null)
 
+  // Initialize and sync the contentEditable div with the note HTML content.
   useEffect(() => {
     setTitle(item.title)
-    setContent(getNotebookEditableText(item.content))
+    setContent(item.content)
     setTagsText(item.tags.join(', '))
   }, [item])
+
+  // Sync contentEditable innerHTML when content state changes from outside
+  // (e.g. when the item changes). Avoid overwriting while the user is typing.
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== content) {
+      editorRef.current.innerHTML = sanitizeNotebookRichContent(content)
+    }
+  }, [content])
+
+  const handleContentInput = useCallback(() => {
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML)
+    }
+  }, [])
+
+  const hasContent = useMemo(() => {
+    if (!content) return false
+    // Strip HTML tags and check if there's actual text
+    const textOnly = content.replace(/<[^>]*>/g, '').trim()
+    return textOnly.length > 0
+  }, [content])
 
   const handleSave = async () => {
     await onSave({
@@ -379,16 +401,19 @@ function ManualNoteEditForm({
           />
         </label>
 
-        <label className="block">
+        <div className="block">
           <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
             {t('notebook.modal.contentLabel')}
           </span>
-          <textarea
-            className="min-h-[260px] w-full resize-y rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-teal-400 dark:border-white/10 dark:bg-gray-800 dark:text-white"
-            onChange={(event) => setContent(event.target.value)}
-            value={content}
+          <div
+            ref={editorRef}
+            className="prose prose-sm min-h-[260px] max-w-none w-full resize-y rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-teal-400 dark:prose-invert dark:border-white/10 dark:bg-gray-800 dark:text-white overflow-y-auto"
+            contentEditable
+            onInput={handleContentInput}
+            style={{ lineHeight: '1.7' }}
+            suppressContentEditableWarning
           />
-        </label>
+        </div>
 
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -414,7 +439,7 @@ function ManualNoteEditForm({
         </button>
         <button
           className={primaryButtonClassName}
-          disabled={isSaving || !content.trim()}
+          disabled={isSaving || !hasContent}
           onClick={() => void handleSave()}
           type="button"
         >

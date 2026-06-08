@@ -129,25 +129,18 @@ export default function CertificateDetailPage() {
     setTimeout(() => setHashCopied(false), 3000)
   }
 
-  async function shareCertificate(): Promise<void> {
+  function shareCertificate(): void {
     if (!certificate) {
       return
     }
 
+    // Usamos SIEMPRE el modal propio (marca consistente y comportamiento
+    // predecible). Antes se priorizaba `navigator.share` (Web Share API), que en
+    // Windows abre el panel nativo del SO y en algunos navegadores de Mac no
+    // despliega nada, dando la sensacion de que el boton no responde.
     const url = getFullUrl(`/certificates/verify/${certificate.certificateHash}`)
     const title = t('certificates.shareTitle', { title: certificate.courseTitle })
     const text = t('certificates.shareText', { title: certificate.courseTitle })
-
-    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-      try {
-        await navigator.share({ title, text, url })
-        return
-      } catch (shareError) {
-        if (shareError instanceof DOMException && shareError.name === 'AbortError') {
-          return
-        }
-      }
-    }
 
     openShareModal({
       url,

@@ -15,6 +15,59 @@ import type {
 } from '../../types/dialogue-runtime'
 import type { DialogueTurnRow } from './dialogue-tables'
 
+function getFirstMissingCriterion(input: {
+  config: DialogueActivityConfig
+  evaluation: DialogueEvaluationResult
+}) {
+  const missingId = input.evaluation.criteriaMissing[0]
+  if (!missingId) return null
+
+  return (
+    input.config.successCriteria.find((criterion) => criterion.id === missingId) ||
+    null
+  )
+}
+
+function ensureCompleteSentence(content: string) {
+  const trimmed = content.trim()
+  if (!trimmed) return ''
+
+  return /[.!?)]$/.test(trimmed) ? trimmed : `${trimmed}.`
+}
+
+function buildProbeForMissingCriterion(input: {
+  config: DialogueActivityConfig
+  evaluation: DialogueEvaluationResult
+}) {
+  const challengePrompt = input.config.challengePrompts[0]?.trim()
+  if (challengePrompt && !isLikelyIncompleteTutorMessage(challengePrompt)) {
+    return ensureCompleteSentence(challengePrompt)
+  }
+
+  const criterion = getFirstMissingCriterion(input)
+  if (criterion) {
+    return `Para avanzar, aterriza ${criterion.label}: explica que decision concreta tomarias, por que y que consecuencia esperas en este escenario.`
+  }
+
+  return 'Para avanzar, conecta tu idea con una decision concreta, su razon y su consecuencia dentro del escenario.'
+}
+
+function normalizeStudentFacingFeedback(content: string) {
+  const normalized = content
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/\s+/g, ' ')
+    .replace(/^el estudiante debe\s+/i, '')
+    .replace(/^debes\s+/i, '')
+    .replace(/^debe\s+/i, '')
+    .trim()
+
+  if (!normalized || isLikelyIncompleteTutorMessage(normalized)) {
+    return ''
+  }
+
+  return ensureCompleteSentence(normalized)
+}
+
 function fallbackTutorMessage(input: {
   config: DialogueActivityConfig
   evaluation: DialogueEvaluationResult
@@ -35,26 +88,33 @@ function fallbackTutorMessage(input: {
   }
 
   if (policy.nextState === 'RESCUE') {
-    return `Modelo de referencia: ${config.rescueContent}`
+    return `Modelo de referencia: ${ensureCompleteSentence(config.rescueContent)}`
   }
 
   if (policy.nextState === 'HINT' && policy.hintToUse) {
-    return policy.hintToUse.content
+    return ensureCompleteSentence(policy.hintToUse.content)
   }
 
-  const missing = evaluation.criteriaMissing[0]
-  const criterion = config.successCriteria.find((item) => item.id === missing)
-  return criterion
-    ? `Vas encaminado, pero falta precisar ${criterion.label}. ¿Como lo conectas con el escenario?`
-    : 'Vas encaminado, pero necesito una conexion mas clara entre tu decision, la razon y la consecuencia.'
+  const feedback = normalizeStudentFacingFeedback(evaluation.feedbackForTutor)
+  const probe = buildProbeForMissingCriterion({ config, evaluation })
+
+  if (!feedback) {
+    return probe
+  }
+
+  if (feedback.toLocaleLowerCase().includes(probe.toLocaleLowerCase())) {
+    return feedback
+  }
+
+  return `${feedback} ${probe}`
 }
 
 function clampTutorMaxOutputTokens(rawValue: number): number {
   if (!Number.isFinite(rawValue)) {
-    return 1200
+    return 1600
   }
 
-  return Math.max(700, Math.min(Math.trunc(rawValue), 2400))
+  return Math.max(1100, Math.min(Math.trunc(rawValue), 3200))
 }
 
 export function resolveDialogueTutorMaxOutputTokens(
@@ -73,13 +133,16 @@ export function isLikelyIncompleteTutorMessage(content: string) {
   if (!trimmed) return true
   if (trimmed.endsWith('...')) return true
   if (/[,;:]$/.test(trimmed)) return true
-  if (/\b(y|o|pero|porque|para|con|de|que|si|cuando|aunque)$/i.test(trimmed)) {
+  if (/\b(y|e|o|u|pero|porque|para|por|con|de|del|a|al|en|entre|sobre|hacia|hasta|desde|que|si|cuando|aunque|and|or|but|because|for|with|of|to|in|on|the|a|an|ou|mas|pois|com|do|da|dos|das|no|na|nos|nas)$/i.test(trimmed)) {
+    return true
+  }
+  if (/\b(?:a|con|de|desde|en|entre|hacia|hasta|para|por|sobre|to|with|of|from|in|on|for|about|em|com|do|da)\s+(?:el|la|los|las|un|una|unos|unas|the|a|an|o|os|as|um|uma)$/i.test(trimmed)) {
     return true
   }
 
   const finalCharacter = trimmed.at(-1) || ''
   const wordCount = trimmed.split(/\s+/).filter(Boolean).length
-  return wordCount >= 30 && !/[.!?)]/.test(finalCharacter)
+  return wordCount >= 12 && !/[.!?)]/.test(finalCharacter)
 }
 
 export function normalizeTutorMessageForDisplay(
@@ -130,7 +193,7 @@ Contexto visible:
 - Accion backend: ${input.policy.nextAction}
 - Estado siguiente: ${input.policy.nextState}
 - Criterios pendientes visibles: ${JSON.stringify(safeCriteria)}
-- Feedback interno breve: ${input.evaluation.feedbackForTutor}
+- Feedback breve para el estudiante: ${input.evaluation.feedbackForTutor}
 - Pista autorizada: ${input.policy.hintToUse?.content || ''}
 - Rescate autorizado: ${input.policy.nextState === 'RESCUE' ? input.config.rescueContent : ''}
 
@@ -154,7 +217,14 @@ function resolveDialogueTutorModel() {
 
 function resolveDialogueTutorTimeoutMs() {
   const rawTimeout = Number(process.env.SOFLIA_DIALOGUE_TUTOR_TIMEOUT_MS)
-  return Number.isFinite(rawTimeout) && rawTimeout > 0 ? rawTimeout : 15000
+  return Number.isFinite(rawTimeout) && rawTimeout > 0 ? rawTimeout : 8000
+}
+
+function shouldUseDialogueTutorModel() {
+  const rawValue = process.env.SOFLIA_DIALOGUE_TUTOR_USE_MODEL
+  if (!rawValue) return false
+
+  return ['1', 'true', 'yes'].includes(rawValue.trim().toLowerCase())
 }
 
 export async function generateDialogueTutorMessage(input: {
@@ -172,12 +242,17 @@ export async function generateDialogueTutorMessage(input: {
     return fallbackTutorMessage(input)
   }
 
+  const fallbackMessage = fallbackTutorMessage(input)
+
+  if (!shouldUseDialogueTutorModel()) {
+    return fallbackMessage
+  }
+
   if (!getGeminiApiKey()) {
-    return fallbackTutorMessage(input)
+    return fallbackMessage
   }
 
   try {
-    const fallbackMessage = fallbackTutorMessage(input)
     const response = await generateGeminiText({
       circuitBreakerName: 'gemini-dialogue-tutor',
       generationConfig: {
@@ -192,6 +267,6 @@ export async function generateDialogueTutorMessage(input: {
     })
     return normalizeTutorMessageForDisplay(response.text, fallbackMessage)
   } catch {
-    return fallbackTutorMessage(input)
+    return fallbackMessage
   }
 }

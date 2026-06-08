@@ -1,35 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Clock, Info, Save, ScrollText } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useTranslation } from "react-i18next";
 
 import { createLessonMarkdownComponents } from "@/features/courses/components/learn/markdownComponents";
+import {
+  alignTranscriptSegmentTimes,
+  parseTranscriptSegments,
+} from "@/features/courses/components/learn/transcript-segments";
 import type { LearnLesson } from "@/features/courses/components/learn/types";
 
 const transcriptMarkdownComponents = createLessonMarkdownComponents();
 
-function parseTranscriptSegments(text: string) {
-  if (!text) return [];
-  // Detects timestamps like [00:00], (1:23:45) at the start of lines
-  const regex = /(?:^|\n)\s*[\[\(](\d{1,2}:\d{2}(?::\d{2})?)[\]\)]\s*/;
-  const parts = text.split(regex);
-  const blocks: { time: string | null; content: string }[] = [];
-  
-  if (parts[0] && parts[0].trim()) {
-    blocks.push({ time: null, content: parts[0].trim() });
+function resolveVideoDurationSeconds(lesson: LearnLesson | null): number {
+  if (!lesson) return 0;
+  if (typeof lesson.duration_seconds === "number" && lesson.duration_seconds > 0) {
+    return lesson.duration_seconds;
   }
-  
-  for (let i = 1; i < parts.length; i += 2) {
-    const time = parts[i];
-    const content = parts[i + 1]?.trim() || "";
-    if (time || content) {
-      blocks.push({ time, content });
-    }
+  if (typeof lesson.total_duration_minutes === "number" && lesson.total_duration_minutes > 0) {
+    return Math.round(lesson.total_duration_minutes * 60);
   }
-  
-  return blocks;
+  return 0;
 }
 
 type TranscriptContentProps = {
@@ -63,6 +56,13 @@ export function TranscriptContent({
   const estimatedReadingTime = transcriptContent
     ? Math.ceil(transcriptContent.split(/\s+/).length / 200)
     : 0;
+
+  // Segmentos con marcas de tiempo realineadas a la duracion real del video
+  // (las transcripciones auto-generadas suelen traer marcas que no corresponden).
+  const transcriptSegments = useMemo(() => {
+    const segments = parseTranscriptSegments(transcriptContent || "");
+    return alignTranscriptSegmentTimes(segments, resolveVideoDurationSeconds(lesson));
+  }, [transcriptContent, lesson]);
 
   const handleSaveToNotes = async () => {
     if (!transcriptContent || !lesson) {
@@ -185,7 +185,7 @@ export function TranscriptContent({
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/8 dark:bg-white/[0.03] dark:shadow-none">
         <div className="p-6">
           <div className="divide-y divide-gray-100 dark:divide-white/5">
-            {parseTranscriptSegments(transcriptContent || "").map((block, idx) => (
+            {transcriptSegments.map((block, idx) => (
               <div key={idx} className="flex flex-col sm:flex-row gap-3 sm:gap-6 py-5 first:pt-0 last:pb-0">
                 {/* Time column */}
                 <div className="sm:w-28 shrink-0">

@@ -53,11 +53,11 @@
       "generatedSummaryBadge": "SofLIA note",
       "generateSummary": "Generate note",
       "regenerateSummary": "Regenerate note",
-      "summaryVersion": "Version {{version}} of {{total}}",
+      "summaryVersion": "Version {{version}}",
       "summaryMissing": "Module completed. SofLIA can generate your learning note.",
       "summaryGenerating": "SofLIA is generating this note.",
       "summaryFailed": "Could not generate this note.",
-      "summaryLimitReached": "Regeneration limit reached",
+      "summaryLimitReached": "Regenerate note",
       "previousSummary": "Previous note",
       "nextSummary": "Next note"
     }

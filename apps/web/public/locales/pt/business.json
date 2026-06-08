@@ -1798,9 +1798,13 @@
       "noCategory": "Sem categoria",
       "noLevel": "Sem nivel",
       "workshopsCountLabel": "Workshops",
+      "workshopsCount_one": "1 workshop",
+      "workshopsCount_other": "{{count}} workshops",
       "assignedUsersLabel": "Usuarios",
-      "assignedUsers": "{{count}} usuarios atribuidos",
-      "assignUsers": "Atribuir usuarios"
+      "assignedUsers_one": "1 usuário atribuído",
+      "assignedUsers_other": "{{count}} usuários atribuídos",
+      "assignUsers": "Atribuir",
+      "contentTitle": "Conteúdo"
     },
     "assignmentsTitle": "Atribuicoes ativas",
     "assignmentsDescription": "Revise quais usuarios possuem cada rota e revogue acessos individuais quando necessario.",

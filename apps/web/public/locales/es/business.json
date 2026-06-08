@@ -1798,9 +1798,13 @@
       "noCategory": "Sin categoria",
       "noLevel": "Sin nivel",
       "workshopsCountLabel": "Talleres",
+      "workshopsCount_one": "1 taller",
+      "workshopsCount_other": "{{count}} talleres",
       "assignedUsersLabel": "Usuarios",
-      "assignedUsers": "{{count}} usuarios asignados",
-      "assignUsers": "Asignar usuarios"
+      "assignedUsers_one": "1 usuario asignado",
+      "assignedUsers_other": "{{count}} usuarios asignados",
+      "assignUsers": "Asignar",
+      "contentTitle": "Contenido"
     },
     "assignmentsTitle": "Asignaciones activas",
     "assignmentsDescription": "Revisa que usuarios tienen cada ruta y revoca accesos individuales cuando haga falta.",

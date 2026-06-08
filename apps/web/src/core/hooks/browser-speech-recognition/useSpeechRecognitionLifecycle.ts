@@ -24,6 +24,19 @@ interface SpeechRecognitionLifecycleConfig {
   setVoiceError: Dispatch<SetStateAction<string | null>>;
 }
 
+function extractTranscript(event: { results: ArrayLike<{ 0?: { transcript?: string } }> }) {
+  const parts: string[] = [];
+
+  for (let index = 0; index < event.results.length; index += 1) {
+    const transcript = event.results[index]?.[0]?.transcript?.trim();
+    if (transcript) {
+      parts.push(transcript);
+    }
+  }
+
+  return parts.join(" ").replace(/\s+/g, " ").trim();
+}
+
 export function useSpeechRecognitionLifecycle({
   disabledRef,
   langRef,
@@ -53,7 +66,7 @@ export function useSpeechRecognitionLifecycle({
     recognition.interimResults = false;
 
     recognition.onresult = (event) => {
-      const transcript = event.results[0]?.[0]?.transcript?.trim() || "";
+      const transcript = extractTranscript(event);
 
       if (!transcript) {
         setIsListening(false);
@@ -86,6 +99,12 @@ export function useSpeechRecognitionLifecycle({
       setVoiceError(getSpeechRecognitionStartErrorMessage(messagesRef.current));
     };
 
+    recognition.onend = () => {
+      if (!pendingTimeoutRef.current) {
+        setIsListening(false);
+      }
+    };
+
     recognitionRef.current = recognition;
 
     return () => {
@@ -94,6 +113,9 @@ export function useSpeechRecognitionLifecycle({
         pendingTimeoutRef.current = null;
       }
 
+      recognition.onend = null;
+      recognition.onerror = null;
+      recognition.onresult = null;
       stopSpeechRecognitionSafely(recognition);
       recognitionRef.current = null;
     };

@@ -35,8 +35,13 @@ export async function downloadCertificatePdf({
   element,
   fileName,
 }: DownloadCertificatePdfParams): Promise<void> {
+  // Usamos `html2canvas-pro` (fork mantenido) en vez de `html2canvas@1.4.1`, que
+  // esta sin mantenimiento y tiene bugs conocidos de renderizado de texto: el
+  // baseline se desplaza hacia abajo (el texto se "desacopla" de sus lineas) y los
+  // espacios/letras se colapsan. El fork corrige esto y conserva la misma API +
+  // `useCORS` para los logos remotos.
   const [{ default: html2canvas }, { default: JsPDF }] = await Promise.all([
-    import('html2canvas'),
+    import('html2canvas-pro'),
     import('jspdf'),
   ])
 

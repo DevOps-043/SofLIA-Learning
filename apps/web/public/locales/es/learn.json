@@ -53,11 +53,11 @@
       "generatedSummaryBadge": "Apunte SofLIA",
       "generateSummary": "Generar apunte",
       "regenerateSummary": "Regenerar apunte",
-      "summaryVersion": "Version {{version}} de {{total}}",
+      "summaryVersion": "Version {{version}}",
       "summaryMissing": "Modulo completado. SofLIA puede generar tu apunte de aprendizaje.",
       "summaryGenerating": "SofLIA esta generando este apunte.",
       "summaryFailed": "No fue posible generar este apunte.",
-      "summaryLimitReached": "Limite de regeneraciones alcanzado",
+      "summaryLimitReached": "Regenerar apunte",
       "previousSummary": "Apunte anterior",
       "nextSummary": "Siguiente apunte"
     }

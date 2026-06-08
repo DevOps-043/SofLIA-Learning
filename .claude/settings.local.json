@@ -166,7 +166,8 @@
       "Bash(grep -qE \"Sin errores|error TS|\\\\$\" C:\\\\\\\\Users\\\\\\\\fysg5\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning\\\\\\\\ec5b36b0-38ba-41f4-a6e8-d204cdda7e9e\\\\\\\\tasks\\\\\\\\bfvqbh678.output)",
       "Bash(sed -E 's/\\(PASS|PASSWORD|KEY|SECRET\\)=.*/\\\\1=***REDACTED***/I')",
       "Bash(grep -iE \"^GEMINI_LIVE_MODEL=|^GEMINI_LIVE_VOICE=|^GEMINI_MODEL=\" apps/web/.env.local)",
-      "Bash(grep -iE \"^GEMINI_LIVE_MODEL=|^GEMINI_LIVE_VOICE=|^GEMINI_MODEL=\" .env.local)"
+      "Bash(grep -iE \"^GEMINI_LIVE_MODEL=|^GEMINI_LIVE_VOICE=|^GEMINI_MODEL=\" .env.local)",
+      "Bash(grep -rniE \"\\\\[00:00\\\\]|timestamp|00:45|marca de tiempo|HH:MM|mm:ss|\\\\\\\\d:\\\\\\\\d\\\\\\\\d\" apps/web/src/features/admin/services/admin-lessons)"
     ],
     "deny": [],
     "ask": []

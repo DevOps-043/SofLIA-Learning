@@ -1797,9 +1797,13 @@
       "noCategory": "No category",
       "noLevel": "No level",
       "workshopsCountLabel": "Workshops",
+      "workshopsCount_one": "1 workshop",
+      "workshopsCount_other": "{{count}} workshops",
       "assignedUsersLabel": "Users",
-      "assignedUsers": "{{count}} assigned users",
-      "assignUsers": "Assign users"
+      "assignedUsers_one": "1 assigned user",
+      "assignedUsers_other": "{{count}} assigned users",
+      "assignUsers": "Assign",
+      "contentTitle": "Content"
     },
     "assignmentsTitle": "Active assignments",
     "assignmentsDescription": "Review which users have each path and revoke individual access when needed.",

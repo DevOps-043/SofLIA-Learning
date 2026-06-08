@@ -22,7 +22,7 @@ export function BusinessLearningPathCard({ path, index, logic, t, onOpenVideos }
             <Layers className="h-5 w-5" strokeWidth={2.5} />
           </div>
           <div className="px-2.5 py-1 rounded-xl border text-[9px] font-black uppercase tracking-wider" style={{ backgroundColor: panelBg, borderColor, color: mutedTextColor }}>
-            {path.item_count} {path.item_count === 1 ? 'taller' : 'talleres'}
+            {t('learningPathsPage.cards.workshopsCount', { count: path.item_count })}
           </div>
         </div>
         {defaultRulesCount > 0 ? (
@@ -35,11 +35,11 @@ export function BusinessLearningPathCard({ path, index, logic, t, onOpenVideos }
       </div>
       {path.items.length > 0 && (
         <div className="px-6 py-4 space-y-2 border-b flex-1" style={{ borderColor }}>
-          <p className="text-[9px] font-black uppercase tracking-widest mb-3" style={{ color: mutedTextColor }}>Contenido</p>
+          <p className="text-[9px] font-black uppercase tracking-widest mb-3" style={{ color: mutedTextColor }}>{t('learningPathsPage.cards.contentTitle')}</p>
           {path.items.slice(0, 3).map((item) => (
             <div key={item.id} className="flex items-center gap-2.5 rounded-2xl border px-4 py-2.5" style={{ backgroundColor: panelBg, borderColor }}>
               <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg text-[9px] font-black" style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 12.5%, transparent)`, color: primaryColor }}>{item.position}</span>
-              <p className="truncate text-xs font-medium" style={{ color: textColor }}>{item.course?.title ?? 'Taller sin título'}</p>
+              <p className="truncate text-xs font-medium" style={{ color: textColor }}>{item.course?.title ?? t('learningPathsPage.cards.noCourseTitle')}</p>
               {item.position === 1 ? null : <Lock className="ml-auto h-3 w-3 shrink-0 opacity-30" style={{ color: textColor }} />}
             </div>
           ))}
@@ -47,16 +47,16 @@ export function BusinessLearningPathCard({ path, index, logic, t, onOpenVideos }
         </div>
       )}
       <div className="p-5 flex flex-col gap-2.5">
-        <p className="text-xs" style={{ color: mutedTextColor }}>{assignedCount} {assignedCount === 1 ? 'usuario asignado' : 'usuarios asignados'}</p>
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => onOpenVideos(path.id)} className="flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-all hover:opacity-80" style={{ backgroundColor: panelBg, borderColor, color: mutedTextColor }}>
+        <p className="text-xs" style={{ color: mutedTextColor }}>{t('learningPathsPage.cards.assignedUsers', { count: assignedCount })}</p>
+        <div className="grid grid-cols-2 gap-2">
+          <button type="button" onClick={() => onOpenVideos(path.id)} className="flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-[9px] font-black uppercase tracking-widest transition-all hover:opacity-80" style={{ backgroundColor: panelBg, borderColor, color: mutedTextColor }}>
             <Film className="h-3.5 w-3.5" />{t('learningPathsPage.introVideos.manageVideos')}
           </button>
-          <button type="button" onClick={() => logic.setDefaultConfigLearningPathId(path.id)} className="flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-all hover:opacity-80" style={{ backgroundColor: panelBg, borderColor, color: mutedTextColor }}>
+          <button type="button" onClick={() => logic.setDefaultConfigLearningPathId(path.id)} className="flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-[9px] font-black uppercase tracking-widest transition-all hover:opacity-80" style={{ backgroundColor: panelBg, borderColor, color: mutedTextColor }}>
             <Sparkles className="h-3.5 w-3.5" />{t('learningPathsPage.defaults.configure')}
           </button>
-          <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => logic.setSelectedLearningPathId(path.id)} className="flex flex-1 items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-[9px] font-black uppercase tracking-widest shadow-lg transition-all" style={{ backgroundColor: primaryColor, color: onPrimaryColor }}>
-            <Users className="h-3.5 w-3.5" />Asignar<ChevronRight className="h-3.5 w-3.5" strokeWidth={3} />
+          <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => logic.setSelectedLearningPathId(path.id)} className="col-span-2 flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-[9px] font-black uppercase tracking-widest shadow-lg transition-all" style={{ backgroundColor: primaryColor, color: onPrimaryColor }}>
+            <Users className="h-3.5 w-3.5" />{t('learningPathsPage.cards.assignUsers')}<ChevronRight className="h-3.5 w-3.5" strokeWidth={3} />
           </motion.button>
         </div>
       </div>

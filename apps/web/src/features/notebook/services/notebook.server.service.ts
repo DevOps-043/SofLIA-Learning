@@ -98,6 +98,10 @@ function stripHtmlTags(html: string): string {
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
+    // Insert a space before block-level closing tags so text from adjacent
+    // blocks doesn't merge (e.g. "<h1>A</h1><h2>B</h2>" → "A B" not "AB").
+    .replace(/<\/(?:p|div|section|article|li|h[1-6]|blockquote|tr|td|th|dt|dd|figcaption|summary|details)>/gi, ' ')
+    .replace(/<br\s*\/?>/gi, ' ')
     .replace(/<[^>]*>/g, '')
     .replace(/&(amp|apos|gt|lt|nbsp|quot);/g, (entity) => {
       const entities: Record<string, string> = {
@@ -390,24 +394,35 @@ async function fetchSofliaSummaries(params: FetchNotesParams): Promise<NotebookS
     (coursesResult.data || []).map((course) => [course.id, course.title || '']),
   )
 
-  return rows.map((row) => ({
-    kind: 'soflia_summary',
-    summaryId: row.summary_id,
-    title: row.title,
-    contentPreview: truncatePreview(row.content_html || row.content_markdown),
-    contentHtml: row.content_html,
-    contentMarkdown: row.content_markdown,
-    status: row.status === 'generating' ? 'generating' : 'ready',
-    version: row.version,
-    moduleId: row.module_id,
-    moduleTitle: moduleMap.get(row.module_id) || '',
-    courseId: row.course_id,
-    courseTitle: courseMap.get(row.course_id) || '',
-    organizationId: row.organization_id,
-    generatedAt: row.generated_at,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  }))
+  return rows.map((row) => {
+    // Auto-heal stuck summaries: if status is 'generating' but content already
+    // exists, treat it as 'ready' so the UI doesn't show a perpetual spinner.
+    const hasContent = Boolean(
+      (row.content_html && row.content_html.trim()) ||
+      (row.content_markdown && row.content_markdown.trim()),
+    )
+    const effectiveStatus =
+      row.status === 'generating' && hasContent ? 'ready' : (row.status === 'generating' ? 'generating' : 'ready')
+
+    return {
+      kind: 'soflia_summary',
+      summaryId: row.summary_id,
+      title: row.title,
+      contentPreview: truncatePreview(row.content_html || row.content_markdown),
+      contentHtml: row.content_html,
+      contentMarkdown: row.content_markdown,
+      status: effectiveStatus,
+      version: row.version,
+      moduleId: row.module_id,
+      moduleTitle: moduleMap.get(row.module_id) || '',
+      courseId: row.course_id,
+      courseTitle: courseMap.get(row.course_id) || '',
+      organizationId: row.organization_id,
+      generatedAt: row.generated_at,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }
+  })
 }
 
 async function ensureCourseAccess(params: {

@@ -11,7 +11,7 @@ export function isRecoverableDialogueEvaluationError(
 
 export function buildDialogueEvaluationRecoveryMessage() {
   return [
-    'Recibi tu respuesta, pero la evaluacion automatica no pudo completarse en este momento.',
-    'Para no cerrar la actividad por un fallo tecnico, continua con una version breve que incluya tu decision, la razon principal y un ejemplo aplicado al caso.',
+    'Recibi tu respuesta. Para poder ayudarte a avanzar, necesito un poco mas de evidencia.',
+    'Continua con una version breve que incluya tu decision, la razon principal y un ejemplo aplicado al caso.',
   ].join(' ')
 }

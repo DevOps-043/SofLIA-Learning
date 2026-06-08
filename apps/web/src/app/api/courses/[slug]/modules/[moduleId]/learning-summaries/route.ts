@@ -6,7 +6,6 @@ import {
   resolveLearningSummaryModuleAccess,
 } from '@/features/courses/services/module-learning-summary-access.server'
 import {
-  ModuleLearningSummaryLimitError,
   ModuleLearningSummaryService,
   type ModuleLearningSummaryGenerationType,
 } from '@/features/courses/services/module-learning-summary.service'
@@ -107,10 +106,6 @@ export async function POST(
       { status: summary?.status === 'generating' ? 202 : 201 },
     )
   } catch (error) {
-    if (error instanceof ModuleLearningSummaryLimitError) {
-      return NextResponse.json({ error: error.message }, { status: 409 })
-    }
-
     logger.error('Error al generar apunte de aprendizaje del modulo:', error)
 
     return NextResponse.json(

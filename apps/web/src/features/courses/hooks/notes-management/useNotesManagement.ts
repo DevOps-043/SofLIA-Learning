@@ -106,6 +106,13 @@ export function useNotesManagement({
   }, [isNotesCollapsed, notes.ensureCourseNotesLoaded, slug]);
 
   const generatedSummaryVersions = notes.generatedSummaryVersions;
+  const hasGeneratingSummaries = useMemo(
+    () =>
+      generatedSummaryVersions.some(
+        (summary) => summary.status === "generating"
+      ),
+    [generatedSummaryVersions]
+  );
   const viewingGeneratedSummary = useMemo(
     () =>
       generatedSummaryVersions.find(
@@ -128,11 +135,16 @@ export function useNotesManagement({
       )
     : -1;
 
+  const refreshSummaries = useCallback(async () => {
+    await notes.loadCourseNotes(slug);
+  }, [notes.loadCourseNotes, slug]);
+
   const openEditNoteModal = useCallback(
     (note: LearnNoteListItem) => {
       if (note.kind === "module_learning_summary") {
         setViewingGeneratedSummaryId(note.id);
         closeLia();
+        void refreshSummaries();
         return;
       }
 
@@ -142,7 +154,7 @@ export function useNotesManagement({
 
       modals.openEditNoteModal(note as LearnSavedNote);
     },
-    [closeLia, modals]
+    [closeLia, modals, refreshSummaries]
   );
 
   const closeGeneratedSummaryViewer = useCallback(() => {
@@ -162,9 +174,37 @@ export function useNotesManagement({
     [modals]
   );
 
-  const refreshSummaries = useCallback(async () => {
-    await notes.loadCourseNotes(slug);
-  }, [notes.loadCourseNotes, slug]);
+  useEffect(() => {
+    if (!viewingGeneratedSummaryId || !notes.summariesLoaded) {
+      return;
+    }
+
+    const stillExists = generatedSummaryVersions.some(
+      (summary) => summary.id === viewingGeneratedSummaryId
+    );
+
+    if (!stillExists) {
+      setViewingGeneratedSummaryId(null);
+    }
+  }, [
+    generatedSummaryVersions,
+    notes.summariesLoaded,
+    viewingGeneratedSummaryId,
+  ]);
+
+  useEffect(() => {
+    if (!hasGeneratingSummaries || !slug) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      void refreshSummaries();
+    }, 5000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [hasGeneratingSummaries, refreshSummaries, slug]);
 
   const requestModuleSummary = useCallback(
     async (

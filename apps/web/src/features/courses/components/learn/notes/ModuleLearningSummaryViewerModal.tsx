@@ -39,10 +39,7 @@ export function ModuleLearningSummaryViewerModal({
   const { t: tl } = useTranslation("learn");
   const [pdfError, setPdfError] = useState<string | null>(null);
 
-  const canRegenerate =
-    Boolean(summary?.canRegenerate) && summary?.status !== "generating";
-  const canNavigatePrevious = Boolean(onNavigatePrevious);
-  const canNavigateNext = Boolean(onNavigateNext);
+  const isGenerating = summary?.status === "generating";
   const safeContent = useMemo(
     () =>
       sanitizeHtml(summary?.fullContent || "", {
@@ -50,9 +47,13 @@ export function ModuleLearningSummaryViewerModal({
       }),
     [summary?.fullContent]
   );
+  const hasReadyContent = summary?.status === "ready" && Boolean(safeContent);
+  const canRegenerate = Boolean(summary?.canRegenerate) && !isGenerating;
+  const canNavigatePrevious = Boolean(onNavigatePrevious);
+  const canNavigateNext = Boolean(onNavigateNext);
 
   const handleExportPdf = async () => {
-    if (!summary) {
+    if (!summary || !hasReadyContent) {
       return;
     }
 
@@ -113,7 +114,6 @@ export function ModuleLearningSummaryViewerModal({
                   <span className="text-xs text-gray-500 dark:text-white/50">
                     {tl("leftPanel.notesSection.summaryVersion", {
                       version: summary.version,
-                      total: 4,
                     })}
                   </span>
                   {summaryPosition && summaryPosition.total > 1 ? (
@@ -158,7 +158,8 @@ export function ModuleLearningSummaryViewerModal({
 
             <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-b border-gray-200 bg-gray-50 px-6 py-3 dark:border-white/10 dark:bg-gray-900">
               <button
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+                disabled={!hasReadyContent}
                 onClick={onDuplicate}
                 type="button"
               >
@@ -166,7 +167,8 @@ export function ModuleLearningSummaryViewerModal({
                 {t("notes.modal.toolbar.duplicateNote")}
               </button>
               <button
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+                disabled={!hasReadyContent}
                 onClick={handleExportPdf}
                 type="button"
               >
@@ -181,11 +183,13 @@ export function ModuleLearningSummaryViewerModal({
                   type="button"
                 >
                   <RefreshCw
-                    className={`h-4 w-4 ${isRegenerating ? "animate-spin" : ""}`}
+                    className={`h-4 w-4 ${
+                      isRegenerating || isGenerating ? "animate-spin" : ""
+                    }`}
                   />
-                  {canRegenerate
-                    ? tl("leftPanel.notesSection.regenerateSummary")
-                    : tl("leftPanel.notesSection.summaryLimitReached")}
+                  {isGenerating
+                    ? tl("leftPanel.notesSection.summaryGenerating")
+                    : tl("leftPanel.notesSection.regenerateSummary")}
                 </button>
               ) : null}
             </div>

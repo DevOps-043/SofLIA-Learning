@@ -270,7 +270,7 @@ export function mapApiSummaryToGeneratedNote(
     generationType:
       generationType === "manual_regeneration" ? generationType : "default",
     errorMessage,
-    canRegenerate: version < 4 && normalizedStatus !== "generating",
+    canRegenerate: normalizedStatus !== "generating",
   };
 }
 
