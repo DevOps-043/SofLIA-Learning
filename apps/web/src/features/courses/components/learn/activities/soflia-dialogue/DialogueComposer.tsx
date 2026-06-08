@@ -101,24 +101,48 @@ export function DialogueComposer({
 
   return (
     <>
+      {/*
+        El color del texto se deriva de la clase `.dark` en <html> (mismo
+        mecanismo que el fondo `dark:bg-gray-900` del contenedor de la
+        actividad). Así el texto y el fondo nunca pueden desincronizarse
+        durante SSR/hidratación, evitando el caso de texto blanco sobre
+        fondo blanco. No usar `resolvedTheme` (JS) aquí: es una segunda
+        fuente de verdad que puede quedar desfasada.
+      */}
       <style>{`
         #soflia-dialogue-composer-input.soflia-dialogue-input {
-          color: ${themeColors.textPrimary} !important;
-          caret-color: ${themeColors.textPrimary} !important;
-          -webkit-text-fill-color: ${themeColors.textPrimary} !important;
+          color: var(--color-gray-900) !important;
+          caret-color: var(--color-gray-900) !important;
+          -webkit-text-fill-color: var(--color-gray-900) !important;
           opacity: 1 !important;
         }
 
         #soflia-dialogue-composer-input.soflia-dialogue-input::placeholder {
-          color: ${themeColors.textSecondary} !important;
-          -webkit-text-fill-color: ${themeColors.textSecondary} !important;
+          color: var(--color-gray-500) !important;
+          -webkit-text-fill-color: var(--color-gray-500) !important;
           opacity: 1 !important;
         }
 
         #soflia-dialogue-composer-input.soflia-dialogue-input:disabled {
-          color: ${themeColors.textSecondary} !important;
-          -webkit-text-fill-color: ${themeColors.textSecondary} !important;
+          color: var(--color-gray-500) !important;
+          -webkit-text-fill-color: var(--color-gray-500) !important;
           opacity: 0.7 !important;
+        }
+
+        .dark #soflia-dialogue-composer-input.soflia-dialogue-input {
+          color: var(--color-gray-50) !important;
+          caret-color: var(--color-gray-50) !important;
+          -webkit-text-fill-color: var(--color-gray-50) !important;
+        }
+
+        .dark #soflia-dialogue-composer-input.soflia-dialogue-input::placeholder {
+          color: rgba(255, 255, 255, 0.58) !important;
+          -webkit-text-fill-color: rgba(255, 255, 255, 0.58) !important;
+        }
+
+        .dark #soflia-dialogue-composer-input.soflia-dialogue-input:disabled {
+          color: rgba(255, 255, 255, 0.58) !important;
+          -webkit-text-fill-color: rgba(255, 255, 255, 0.58) !important;
         }
       `}</style>
       <VoiceErrorBanner
