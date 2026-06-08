@@ -524,9 +524,16 @@ export class ModuleLearningSummaryService {
     userId: string,
     courseId: string,
     moduleId: string,
+    organizationId?: string | null,
   ) {
     const supabase = await createClient()
-    return this.listSummariesWithClient(supabase, userId, courseId, moduleId)
+    return this.listSummariesWithClient(
+      supabase,
+      userId,
+      courseId,
+      moduleId,
+      organizationId,
+    )
   }
 
   static async listSummariesWithClient(
@@ -534,13 +541,20 @@ export class ModuleLearningSummaryService {
     userId: string,
     courseId: string,
     moduleId: string,
+    organizationId?: string | null,
   ) {
-    const { data, error } = await supabase
+    let query = supabase
       .from('module_learning_summaries')
       .select(MODULE_LEARNING_SUMMARY_SELECT_FIELDS)
       .eq('user_id', userId)
       .eq('course_id', courseId)
       .eq('module_id', moduleId)
+
+    query = organizationId
+      ? query.eq('organization_id', organizationId)
+      : query.is('organization_id', null)
+
+    const { data, error } = await query
       .order('version', { ascending: false })
 
     if (error) {
@@ -556,16 +570,24 @@ export class ModuleLearningSummaryService {
   static async listCourseSummaries(
     userId: string,
     courseId: string,
+    organizationId?: string | null,
     moduleIds?: string[],
   ) {
     const supabase = await createClient()
-    return this.listCourseSummariesWithClient(supabase, userId, courseId, moduleIds)
+    return this.listCourseSummariesWithClient(
+      supabase,
+      userId,
+      courseId,
+      organizationId,
+      moduleIds,
+    )
   }
 
   static async listCourseSummariesWithClient(
     supabase: SupabaseServerClient,
     userId: string,
     courseId: string,
+    organizationId?: string | null,
     moduleIds?: string[],
   ) {
     let query = supabase
@@ -575,6 +597,10 @@ export class ModuleLearningSummaryService {
       .eq('course_id', courseId)
       .order('module_id', { ascending: true })
       .order('version', { ascending: false })
+
+    query = organizationId
+      ? query.eq('organization_id', organizationId)
+      : query.is('organization_id', null)
 
     if (moduleIds && moduleIds.length > 0) {
       query = query.in('module_id', moduleIds)
@@ -625,12 +651,18 @@ export class ModuleLearningSummaryService {
       userId,
     }: CreateModuleLearningSummaryParams,
   ) {
-    const { data: existingRows, error: existingError } = await supabase
+    let existingQuery = supabase
       .from('module_learning_summaries')
       .select(MODULE_LEARNING_SUMMARY_SELECT_FIELDS)
       .eq('user_id', userId)
       .eq('course_id', courseId)
       .eq('module_id', moduleId)
+
+    existingQuery = organizationId
+      ? existingQuery.eq('organization_id', organizationId)
+      : existingQuery.is('organization_id', null)
+
+    const { data: existingRows, error: existingError } = await existingQuery
       .order('version', { ascending: false })
 
     if (existingError) {
@@ -680,12 +712,18 @@ export class ModuleLearningSummaryService {
 
     if (insertError || !inserted) {
       if (isUniqueConstraintError(insertError)) {
-        const { data: latest, error: latestError } = await supabase
+        let latestQuery = supabase
           .from('module_learning_summaries')
           .select(MODULE_LEARNING_SUMMARY_SELECT_FIELDS)
           .eq('user_id', userId)
           .eq('course_id', courseId)
           .eq('module_id', moduleId)
+
+        latestQuery = organizationId
+          ? latestQuery.eq('organization_id', organizationId)
+          : latestQuery.is('organization_id', null)
+
+        const { data: latest, error: latestError } = await latestQuery
           .order('version', { ascending: false })
           .limit(1)
           .maybeSingle()
@@ -989,12 +1027,18 @@ export class ModuleLearningSummaryService {
       return null
     }
 
-    const { data: existing } = await supabase
+    let existingQuery = supabase
       .from('module_learning_summaries')
       .select('summary_id')
       .eq('user_id', userId)
       .eq('course_id', courseId)
       .eq('module_id', moduleId)
+
+    existingQuery = organizationId
+      ? existingQuery.eq('organization_id', organizationId)
+      : existingQuery.is('organization_id', null)
+
+    const { data: existing } = await existingQuery
       .limit(1)
 
     if (existing && existing.length > 0) {

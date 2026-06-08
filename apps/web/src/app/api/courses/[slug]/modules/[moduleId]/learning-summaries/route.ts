@@ -43,6 +43,7 @@ export async function GET(
       currentUser.id,
       access.courseId,
       moduleId,
+      access.organizationId,
     )
 
     return withCacheHeaders(

@@ -56,6 +56,7 @@ export async function GET(
       createAdminClient(),
       currentUser.id,
       access.courseId,
+      access.organizationId,
       moduleIds,
     )
 
