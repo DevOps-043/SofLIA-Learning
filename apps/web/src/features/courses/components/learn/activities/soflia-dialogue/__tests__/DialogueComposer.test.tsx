@@ -55,10 +55,13 @@ describe('DialogueComposer', () => {
     expect(textarea).toHaveClass('soflia-dialogue-input')
     expect(textarea).not.toHaveClass('lia-chat-input')
     expect(textarea).toHaveValue('Mi respuesta sobre productividad')
+    // En modo claro el texto usa `--color-contrast` (token de texto estable de la
+    // app: oscuro sobre fondo claro), no la paleta gris invertida que podia
+    // resolver a blanco y dejar el texto invisible sobre el input blanco.
     expect(textarea).toHaveStyle({
-      caretColor: 'var(--color-gray-900)',
-      color: 'var(--color-gray-900)',
-      WebkitTextFillColor: 'var(--color-gray-900)',
+      caretColor: 'var(--color-contrast)',
+      color: 'var(--color-contrast)',
+      WebkitTextFillColor: 'var(--color-contrast)',
     })
 
     fireEvent.change(textarea, {
@@ -87,10 +90,12 @@ describe('DialogueComposer', () => {
       backgroundColor: 'rgba(255,255,255,0.06)',
       border: '1px solid rgba(255,255,255,0.14)',
     })
+    // En modo oscuro el texto usa `--color-bg-light` (blanco en ambos modos),
+    // garantizando contraste sobre la superficie oscura del input.
     expect(textarea).toHaveStyle({
-      caretColor: 'var(--color-gray-50)',
-      color: 'var(--color-gray-50)',
-      WebkitTextFillColor: 'var(--color-gray-50)',
+      caretColor: 'var(--color-bg-light)',
+      color: 'var(--color-bg-light)',
+      WebkitTextFillColor: 'var(--color-bg-light)',
     })
   })
 })

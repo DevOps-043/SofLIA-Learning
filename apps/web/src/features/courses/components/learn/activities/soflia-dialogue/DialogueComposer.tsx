@@ -33,6 +33,13 @@ export function DialogueComposer({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const isLightTheme = resolvedTheme === "light";
   const isInteractionBlocked = sending || isTerminal;
+  // Color del texto del input. Se decide con `isLightTheme` (tema real resuelto
+  // por el store, fuente de verdad) en lugar de apoyarse en la paleta gris
+  // invertida `--color-gray-50`, que segun el contexto/cascada podia resolver a
+  // claro y dejar texto blanco invisible sobre fondo claro (ver el comentario en
+  // `course-theme-css-base.ts`). `--color-contrast` es el token de texto estable
+  // de la app (oscuro sobre claro) y `--color-bg-light` es blanco en ambos modos.
+  const inputTextColor = isLightTheme ? "var(--color-contrast)" : "var(--color-bg-light)";
   const themeColors = useMemo<CourseLiaThemeColors>(
     () => ({
       accentColor: "var(--color-accent)",
@@ -45,10 +52,10 @@ export function DialogueComposer({
       messageBubbleUser: "transparent",
       panelBg: "transparent",
       primaryAction: "var(--color-accent)",
-      textPrimary: isLightTheme ? "var(--color-gray-900)" : "var(--color-gray-50)",
-      textSecondary: isLightTheme ? "var(--color-gray-500)" : "rgba(255,255,255,0.58)",
+      textPrimary: inputTextColor,
+      textSecondary: "var(--color-gray-500)",
     }),
-    [isLightTheme],
+    [isLightTheme, inputTextColor],
   );
   const {
     isListening,
@@ -102,18 +109,18 @@ export function DialogueComposer({
   return (
     <>
       {/*
-        El color del texto se deriva de la clase `.dark` en <html> (mismo
-        mecanismo que el fondo `dark:bg-gray-900` del contenedor de la
-        actividad). Así el texto y el fondo nunca pueden desincronizarse
-        durante SSR/hidratación, evitando el caso de texto blanco sobre
-        fondo blanco. No usar `resolvedTheme` (JS) aquí: es una segunda
-        fuente de verdad que puede quedar desfasada.
+        Color del texto del input. Se inyecta `inputTextColor` (calculado con el
+        tema real del store: `--color-contrast` en claro, `--color-bg-light` en
+        oscuro) con `!important` + especificidad de id para ganar a cualquier
+        regla global. NO se usa la paleta gris invertida `--color-gray-50`: segun
+        el contexto podia resolver a claro y dejar texto blanco invisible sobre
+        fondo claro (ver `course-theme-css-base.ts`).
       */}
       <style>{`
         #soflia-dialogue-composer-input.soflia-dialogue-input {
-          color: var(--color-gray-900) !important;
-          caret-color: var(--color-gray-900) !important;
-          -webkit-text-fill-color: var(--color-gray-900) !important;
+          color: ${inputTextColor} !important;
+          caret-color: ${inputTextColor} !important;
+          -webkit-text-fill-color: ${inputTextColor} !important;
           opacity: 1 !important;
         }
 
@@ -127,22 +134,6 @@ export function DialogueComposer({
           color: var(--color-gray-500) !important;
           -webkit-text-fill-color: var(--color-gray-500) !important;
           opacity: 0.7 !important;
-        }
-
-        .dark #soflia-dialogue-composer-input.soflia-dialogue-input {
-          color: var(--color-gray-50) !important;
-          caret-color: var(--color-gray-50) !important;
-          -webkit-text-fill-color: var(--color-gray-50) !important;
-        }
-
-        .dark #soflia-dialogue-composer-input.soflia-dialogue-input::placeholder {
-          color: rgba(255, 255, 255, 0.58) !important;
-          -webkit-text-fill-color: rgba(255, 255, 255, 0.58) !important;
-        }
-
-        .dark #soflia-dialogue-composer-input.soflia-dialogue-input:disabled {
-          color: rgba(255, 255, 255, 0.58) !important;
-          -webkit-text-fill-color: rgba(255, 255, 255, 0.58) !important;
         }
       `}</style>
       <VoiceErrorBanner

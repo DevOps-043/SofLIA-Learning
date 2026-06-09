@@ -118,7 +118,7 @@ export function DashboardHero({
               animate={motionAnimate}
               transition={motionTransition}
             >
-              {t('dashboard.subtitle')}
+              {t('dashboard.userSubtitle')}
             </motion.p>
           </div>
           <motion.div

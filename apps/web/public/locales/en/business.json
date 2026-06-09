@@ -361,6 +361,7 @@
   "dashboard": {
     "title": "Business Panel",
     "subtitle": "Manage your team's learning and oversee their progress.",
+    "userSubtitle": "Continue your learning and track your progress.",
     "systemActive": "System Active",
     "generalStats": "General Statistics",
     "keyMetrics": "Key metrics of your team",

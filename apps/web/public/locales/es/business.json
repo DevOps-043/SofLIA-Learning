@@ -361,6 +361,7 @@
   "dashboard": {
     "title": "Panel Empresarial",
     "subtitle": "Gestiona el aprendizaje de tu equipo y supervisa su progreso.",
+    "userSubtitle": "Continúa tu aprendizaje y revisa tu progreso.",
     "systemActive": "Sistema Activo",
     "generalStats": "Estadísticas Generales",
     "keyMetrics": "Métricas clave de tu equipo",

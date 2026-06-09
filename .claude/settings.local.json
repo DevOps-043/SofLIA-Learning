@@ -167,7 +167,11 @@
       "Bash(sed -E 's/\\(PASS|PASSWORD|KEY|SECRET\\)=.*/\\\\1=***REDACTED***/I')",
       "Bash(grep -iE \"^GEMINI_LIVE_MODEL=|^GEMINI_LIVE_VOICE=|^GEMINI_MODEL=\" apps/web/.env.local)",
       "Bash(grep -iE \"^GEMINI_LIVE_MODEL=|^GEMINI_LIVE_VOICE=|^GEMINI_MODEL=\" .env.local)",
-      "Bash(grep -rniE \"\\\\[00:00\\\\]|timestamp|00:45|marca de tiempo|HH:MM|mm:ss|\\\\\\\\d:\\\\\\\\d\\\\\\\\d\" apps/web/src/features/admin/services/admin-lessons)"
+      "Bash(grep -rniE \"\\\\[00:00\\\\]|timestamp|00:45|marca de tiempo|HH:MM|mm:ss|\\\\\\\\d:\\\\\\\\d\\\\\\\\d\" apps/web/src/features/admin/services/admin-lessons)",
+      "Bash(find apps/web/src/features/notebook apps/web/src/app -type d -iname \"*notebook*\")",
+      "Bash(ls apps/web/src/features/notebook/hooks)",
+      "Bash(ls apps/web/src/features/notebook/components)",
+      "Bash(find apps/web/src/app/api -ipath \"*notebook*\" -name \"*.ts\")"
     ],
     "deny": [],
     "ask": []
