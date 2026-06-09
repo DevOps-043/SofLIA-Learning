@@ -53,19 +53,15 @@ export function BusinessSettings() {
     return (
       <div className="min-h-screen p-6 lg:p-8">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
           className="text-center py-20"
         >
-          <motion.div
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <XCircle
-              className="w-20 h-20 mx-auto mb-6"
-              style={{ color: theme.dangerColor }}
-            />
-          </motion.div>
+          <XCircle
+            className="w-20 h-20 mx-auto mb-6"
+            style={{ color: theme.dangerColor }}
+          />
           <p
             className="text-xl font-semibold mb-4"
             style={{ color: theme.dangerColor }}
@@ -96,9 +92,9 @@ export function BusinessSettings() {
     <div className="min-h-screen p-6 lg:p-8 space-y-8">
       <div>
       <motion.div
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, type: 'spring', stiffness: 100 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
         className="relative overflow-hidden rounded-3xl p-8 shadow-xl border"
         style={{
           background: theme.heroBackground,
@@ -165,9 +161,9 @@ export function BusinessSettings() {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
         className="rounded-2xl border overflow-hidden backdrop-blur-xl"
         style={{
           backgroundColor: theme.cardBg,
@@ -178,18 +174,15 @@ export function BusinessSettings() {
           className="flex border-b overflow-x-auto"
           style={{ borderColor: theme.dividerColor }}
         >
-          {tabs.map((tab, index) => {
+          {tabs.map((tab) => {
             const Icon = tab.icon
             const isActive = activeTab === tab.id
 
             return (
-              <motion.button
+              <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.08 * index }}
-                className="relative px-6 py-5 font-medium transition-all duration-300 whitespace-nowrap flex items-center gap-3 group"
+                className="relative px-6 py-5 font-medium transition-colors duration-200 whitespace-nowrap flex items-center gap-3"
                 style={{
                   color: isActive ? tab.color : theme.subtextColor,
                   backgroundColor: isActive ? `color-mix(in srgb, ${tab.color} 6.3%, transparent)` : 'transparent',
@@ -204,31 +197,22 @@ export function BusinessSettings() {
                   />
                 )}
 
-                <motion.div whileHover={{ scale: 1.06, rotate: 4 }} className="relative">
-                  <Icon className="w-5 h-5" />
-                </motion.div>
+                <Icon className="w-5 h-5" />
 
                 <span className={isActive ? 'font-semibold' : 'font-medium'}>
                   {tab.label}
                 </span>
-
-                <motion.div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                  style={{
-                    background: `linear-gradient(to right, transparent, color-mix(in srgb, ${tab.color} 6.3%, transparent), transparent)`,
-                  }}
-                />
-              </motion.button>
+              </button>
             )
           })}
         </div>
 
         <motion.div
           key={activeTab}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
           className="p-8"
         >
           {activeTab === 'organization' && (
@@ -259,19 +243,15 @@ export function BusinessSettings() {
 
           {activeTab === 'branding' && !canUseBranding && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
               className="text-center py-20"
             >
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <AlertCircle
-                  className="w-20 h-20 mx-auto mb-6"
-                  style={{ color: theme.warningColor }}
-                />
-              </motion.div>
+              <AlertCircle
+                className="w-20 h-20 mx-auto mb-6"
+                style={{ color: theme.warningColor }}
+              />
               <p
                 className="text-xl font-semibold mb-3"
                 style={{ color: theme.warningColor }}
