@@ -89,17 +89,22 @@ async function handlePut(
         ? undefined
         : body.note_title.trim()
 
-    if (body.note_title !== undefined && !noteTitle) {
-      let contentForAi = noteContent
+    // El usuario envió un título vacío. NO regeneramos el título por IA en cada
+    // guardado (eso lo volvía inestable —cambiaba en cada pulsación— y gastaba
+    // cuota de Gemini por keystroke durante el autoguardado). El título se genera
+    // una sola vez al crear la nota; aquí conservamos el existente y solo
+    // generamos por IA si, por algún motivo, la nota aún no tuviera título.
+    if (body.note_title !== undefined && body.note_title !== null && !noteTitle) {
+      const notes = await NoteService.getNotesByLesson(currentUser.id, lessonId)
+      const existingNote = notes.find((note) => note.note_id === noteId)
+      const existingTitle = existingNote?.note_title?.trim()
 
-      if (!contentForAi) {
-        const notes = await NoteService.getNotesByLesson(currentUser.id, lessonId)
-        const existingNote = notes.find((note) => note.note_id === noteId)
-        contentForAi = existingNote?.note_content
-      }
-
-      if (contentForAi) {
-        noteTitle = await generateNoteTitle(contentForAi)
+      if (existingTitle) {
+        // La nota ya tiene título: no lo sobrescribimos ni lo regeneramos.
+        noteTitle = undefined
+      } else {
+        const contentForAi = noteContent || existingNote?.note_content
+        noteTitle = contentForAi ? await generateNoteTitle(contentForAi) : undefined
       }
     }
 

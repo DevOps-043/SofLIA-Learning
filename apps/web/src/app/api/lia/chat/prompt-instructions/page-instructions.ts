@@ -1,3 +1,4 @@
+import { buildCurrentPageCapabilitiesSection } from '@/lib/lia-context/services/page-capabilities.service'
 import { buildInteractiveActivitySection } from './activity-focus'
 import { buildLessonContextSection } from './lesson-context'
 import { buildSystemEventsSection } from './system-events'
@@ -11,6 +12,11 @@ export function buildPageInstructionsSection(context: PlatformContext): string {
   if (context.userJobTitle || context.currentLessonContext || context.currentActivityContext) {
     section += buildUniversalUserRoleSection(context, context.currentLessonContext)
   }
+
+  // Que puede hacer el usuario EN ESTA pagina (resuelto desde la ruta actual).
+  // Da prioridad a la pagina activa para que "que puedes hacer" se responda de
+  // forma especifica en lugar de generica.
+  section += buildCurrentPageCapabilitiesSection(context.currentPage)
 
   section += buildTeamDetailSection(context)
   section += buildInteractiveActivitySection(context)

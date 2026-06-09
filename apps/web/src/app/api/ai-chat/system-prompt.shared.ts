@@ -1,5 +1,6 @@
 import type { CourseLessonContext } from '../../../core/types/lia.types'
 import type { PageContext, SupportedLanguage } from './system-prompt.types'
+import { buildCurrentPageCapabilitiesSection } from '@/lib/lia-context/services/page-capabilities.service'
 import { generateHelpInstructions } from './services/help-instructions.service'
 
 export const URL_INSTRUCTIONS = `
@@ -162,6 +163,12 @@ export function buildPageInfo(pageContext?: PageContext): string {
   if (pageContext.mainText) {
     pageInfo += `\n- Contenido visible en la pagina:\n"${pageContext.mainText}"`
   }
+
+  // Seccion enfocada: que puede hacer el usuario EN ESTA pagina. Se resuelve en
+  // el servidor desde el pathname (independiente del DOM), por lo que funciona
+  // incluso si la extraccion de contenido fallo. Va ANTES del volcado generico
+  // de plataforma para que tenga prioridad al responder "que puedes hacer".
+  pageInfo += buildCurrentPageCapabilitiesSection(pageContext.pathname)
 
   if (pageContext.platformContext) {
     pageInfo += `\n\n${pageContext.platformContext}`

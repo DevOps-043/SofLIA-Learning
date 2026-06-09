@@ -10,6 +10,32 @@ import {
 } from './schema';
 import { normalizeVideoProgress } from './progress-security';
 
+/**
+ * Tiempo real (segundos) transcurrido entre el último reporte registrado y ahora.
+ *
+ * Es la base anti-cheat del avance permitido: el "máximo alcanzado" solo puede
+ * crecer en proporción al tiempo que realmente ha pasado. Devuelve `undefined`
+ * cuando no hay marca previa o es inválida, para que el normalizador caiga en su
+ * comportamiento por defecto (solo colchón fijo).
+ */
+function elapsedSecondsSince(
+    lastActivityAt: string | null | undefined,
+    nowIso: string,
+): number | undefined {
+    if (!lastActivityAt) {
+        return undefined;
+    }
+
+    const previousMs = new Date(lastActivityAt).getTime();
+    const nowMs = new Date(nowIso).getTime();
+
+    if (!Number.isFinite(previousMs) || !Number.isFinite(nowMs)) {
+        return undefined;
+    }
+
+    return Math.max(0, (nowMs - previousMs) / 1000);
+}
+
 async function syncUserLessonProgress({
     checkpoint,
     lessonId,
@@ -105,7 +131,7 @@ async function handlePost(
         // Use admin client after SessionService auth to avoid RLS/session drift.
         const supabase = createAdminClient();
 
-        const { lessonId, trackingId, checkpoint, maxReached, totalDuration, playbackRate } = body;
+        const { lessonId, trackingId, checkpoint, maxReached, totalDuration, playbackRate, reachedEnd } = body;
 
         const now = new Date().toISOString();
         const { data: existingProgress } = await supabase
@@ -125,7 +151,7 @@ async function handlePost(
         if (trackingId) {
             const { data: trackingRow, error: trackingLookupError } = await supabase
                 .from('lesson_tracking')
-                .select('id, video_max_seconds')
+                .select('id, video_max_seconds, last_activity_at')
                 .eq('id', trackingId)
                 .eq('user_id', user.id)
                 .maybeSingle();
@@ -144,6 +170,9 @@ async function handlePost(
                 currentMaxReached: Math.max(trackingRow.video_max_seconds || 0, fallbackMaxFromProgress),
                 incomingMaxReached: maxReached,
                 totalDuration,
+                elapsedSeconds: elapsedSecondsSince(trackingRow.last_activity_at, now),
+                playbackRate,
+                reachedEnd,
             });
 
             const { error } = await supabase
@@ -180,7 +209,7 @@ async function handlePost(
         // Si no hay trackingId, buscar o crear tracking
         const { data: existingTracking } = await supabase
             .from('lesson_tracking')
-            .select('id, video_max_seconds')
+            .select('id, video_max_seconds, last_activity_at')
             .eq('user_id', user.id)
             .eq('lesson_id', lessonId)
             .eq('status', 'in_progress')
@@ -196,6 +225,9 @@ async function handlePost(
                 currentMaxReached: Math.max(existingTracking.video_max_seconds || 0, fallbackMaxFromProgress),
                 incomingMaxReached: maxReached,
                 totalDuration,
+                elapsedSeconds: elapsedSecondsSince(existingTracking.last_activity_at, now),
+                playbackRate,
+                reachedEnd,
             });
 
             const { error } = await supabase
@@ -232,11 +264,15 @@ async function handlePost(
             return NextResponse.json({ success: true, trackingId: existingTracking.id });
         }
 
+        // Tracking nuevo: no hay actividad previa, así que el avance permitido se
+        // limita al colchón fijo (sin componente de tiempo transcurrido).
         const normalizedProgress = normalizeVideoProgress({
             checkpoint,
             currentMaxReached: fallbackMaxFromProgress,
             incomingMaxReached: maxReached,
             totalDuration,
+            playbackRate,
+            reachedEnd,
         });
 
         // Crear nuevo tracking si no existe

@@ -212,18 +212,9 @@ export function NotesModalLayout({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  className={classes.primaryButton}
-                  disabled={editor.isSaving || !editor.hasContent}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    void editor.saveNote();
-                  }}
-                  type="button"
-                >
-                  <Save className="h-4 w-4" />
-                  <span>{editor.isSaving ? t('actions.saving') : t('actions.save')}</span>
-                </button>
+                {/* El guardado es automático (autoguardado mientras se escribe y
+                    al cerrar). Mantenemos una única acción explícita de "Guardar"
+                    en el pie del modal para no duplicar botones. Aquí solo cerrar. */}
                 <button
                   aria-label={t('actions.close')}
                   className={classes.closeButton}

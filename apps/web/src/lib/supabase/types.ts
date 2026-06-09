@@ -2443,8 +2443,12 @@ export type Database = {
           t_video_minutes: number | null
           updated_at: string
           user_id: string
+          video_checkpoint_seconds: number | null
           video_ended_at: string | null
+          video_max_seconds: number | null
+          video_playback_rate: number | null
           video_started_at: string | null
+          video_total_duration_seconds: number | null
         }
         Insert: {
           completed_at?: string | null
@@ -2469,8 +2473,12 @@ export type Database = {
           t_video_minutes?: number | null
           updated_at?: string
           user_id: string
+          video_checkpoint_seconds?: number | null
           video_ended_at?: string | null
+          video_max_seconds?: number | null
+          video_playback_rate?: number | null
           video_started_at?: string | null
+          video_total_duration_seconds?: number | null
         }
         Update: {
           completed_at?: string | null
@@ -2495,8 +2503,12 @@ export type Database = {
           t_video_minutes?: number | null
           updated_at?: string
           user_id?: string
+          video_checkpoint_seconds?: number | null
           video_ended_at?: string | null
+          video_max_seconds?: number | null
+          video_playback_rate?: number | null
           video_started_at?: string | null
+          video_total_duration_seconds?: number | null
         }
         Relationships: [
           {

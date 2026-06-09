@@ -63,7 +63,9 @@ export function useSaveNoteMutation({
       }
 
       if (!targetLessonId) {
-        setNoteError("Debe seleccionar una leccion para guardar la nota");
+        setNoteError(
+          "Selecciona una lección antes de tomar notas: aún no se está guardando."
+        );
         return false;
       }
 

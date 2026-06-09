@@ -29,6 +29,46 @@ const MAX_CONSECUTIVE_FAILURES = 3;
 const UPDATE_PROGRESS_ENDPOINT = '/api/lesson-tracking/update-progress';
 
 /**
+ * Intervalo de debounce para `timeupdate` (ms).
+ *
+ * `timeupdate` se dispara varias veces por segundo; agrupamos sus reportes para
+ * no saturar el backend.
+ */
+const PROGRESS_DEBOUNCE_MS = 5000;
+
+/**
+ * Flush forzado del debounce (ms).
+ *
+ * Sin `maxWait`, como `timeupdate` llega de forma continua durante la
+ * reproducción, cada llamada reiniciaba el temporizador y el envío diferido
+ * **nunca** se ejecutaba: el progreso intermedio jamás llegaba a la base de
+ * datos y solo se guardaba en eventos discretos (play/pause/ended). Esto, junto
+ * con el límite anti-salto del backend, hacía que un video visto completo se
+ * persistiera con un máximo muy por debajo del real. `maxWait` garantiza un
+ * envío al menos cada {@link PROGRESS_MAX_WAIT_MS}, manteniendo el máximo
+ * alcanzado al día durante la reproducción continua.
+ */
+const PROGRESS_MAX_WAIT_MS = 5000;
+
+/** Opciones internas para los eventos terminales del reproductor. */
+interface UpdateProgressOptions {
+    /**
+     * Ignora la deduplicación in-flight. Reservado para el evento `ended`, que
+     * es terminal y transporta la posición final del video: no debe perderse si
+     * coincide con otro envío en curso.
+     */
+    bypassInFlight?: boolean;
+    /**
+     * Marca que el navegador emitió `ended`: prueba autoritativa de que la
+     * reproducción llegó al final (el guard de avance impide alcanzarlo
+     * saltando). El backend usa esta señal para registrar la completitud sin
+     * depender del límite anti-salto basado en velocidad, garantizando que un
+     * video visto completo nunca quede por debajo del umbral de completitud.
+     */
+    reachedEnd?: boolean;
+}
+
+/**
  * Hook personalizado para tracking de progreso de video.
  *
  * Registra eventos de video (play, pause, ended, etc.) y actualiza el progreso
@@ -84,11 +124,16 @@ export function useVideoTracking({
      * desactivado por fallos, o ya hay una petición en vuelo.
      */
     const updateProgress = useCallback(
-        async (currentTime: number, duration: number, playbackRate: number) => {
+        async (
+            currentTime: number,
+            duration: number,
+            playbackRate: number,
+            options?: UpdateProgressOptions
+        ) => {
             if (!lessonId) return;
             if (!isMountedRef.current) return;
             if (trackingDisabledRef.current) return;
-            if (inFlightRef.current) return;
+            if (inFlightRef.current && !options?.bypassInFlight) return;
 
             inFlightRef.current = true;
             maxSecondsReached.current = Math.max(
@@ -106,7 +151,8 @@ export function useVideoTracking({
                         checkpoint: Math.floor(currentTime),
                         maxReached: Math.floor(maxSecondsReached.current),
                         totalDuration: Math.floor(duration),
-                        playbackRate
+                        playbackRate,
+                        reachedEnd: options?.reachedEnd ?? false
                     }),
                     // Permite que un último envío sobreviva a la navegación
                     // sin necesidad de mantener viva la página.
@@ -145,9 +191,13 @@ export function useVideoTracking({
 
     /**
      * Versión con debouncing para actualizaciones frecuentes (timeupdate).
-     * Se ejecuta máximo cada 5 segundos.
+     * Agrupa los reportes cada {@link PROGRESS_DEBOUNCE_MS} y, gracias a
+     * `maxWait`, garantiza un envío al menos cada {@link PROGRESS_MAX_WAIT_MS}
+     * aunque `timeupdate` llegue de forma ininterrumpida.
      */
-    const debouncedUpdate = useDebouncedCallback(updateProgress, 5000);
+    const debouncedUpdate = useDebouncedCallback(updateProgress, PROGRESS_DEBOUNCE_MS, {
+        maxWait: PROGRESS_MAX_WAIT_MS,
+    });
 
     /** Cancela debounces pendientes al desmontar (además de {@link cleanup}). */
     useEffect(() => {
@@ -173,11 +223,20 @@ export function useVideoTracking({
         [updateProgress, debouncedUpdate]
     );
 
-    /** Handler para 'ended': actualiza con la duración completa. */
+    /**
+     * Handler para 'ended': actualiza con la duración completa.
+     *
+     * Es el evento terminal y el más importante para registrar la completitud,
+     * por lo que ignora la deduplicación in-flight: si justo coincide con un
+     * envío diferido en curso, igual debe persistir la posición final.
+     */
     const handleEnded = useCallback(
         (_currentTime: number, duration: number, playbackRate: number) => {
-            void updateProgress(duration, duration, playbackRate);
             debouncedUpdate.cancel();
+            void updateProgress(duration, duration, playbackRate, {
+                bypassInFlight: true,
+                reachedEnd: true,
+            });
         },
         [updateProgress, debouncedUpdate]
     );

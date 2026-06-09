@@ -61,6 +61,15 @@ describe('notes-modal.utils', () => {
     expect(hasNoteContent('   ')).toBe(false);
   });
 
+  it('ignores empty HTML markup when checking note content', () => {
+    expect(hasNoteContent('<br>')).toBe(false);
+    expect(hasNoteContent('<div><br></div>')).toBe(false);
+    expect(hasNoteContent('<p>&nbsp;</p>')).toBe(false);
+    expect(hasNoteContent('<ul><li></li></ul>')).toBe(false);
+    expect(hasNoteContent('<div>hola</div>')).toBe(true);
+    expect(hasNoteContent('<a href="https://x.com">enlace</a>')).toBe(true);
+  });
+
   it('builds deterministic PDF file names from the note title', () => {
     expect(
       buildNotePdfFileName(

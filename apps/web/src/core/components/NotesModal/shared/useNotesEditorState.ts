@@ -126,15 +126,12 @@ export function useNotesEditorState({
     }
   }, [initialNote, isOpen]);
 
-  useEffect(() => {
-    if (!editorRef.current) {
-      return;
-    }
-
-    if (editorRef.current.innerHTML !== content) {
-      editorRef.current.innerHTML = content;
-    }
-  }, [content]);
+  // Nota: NO sincronizamos `content` -> `editorRef.innerHTML` en un efecto.
+  // El DOM del editor ya es la fuente de verdad mientras se escribe: cada cambio
+  // que parte del estado (apertura de nota, undo/redo) escribe el innerHTML de
+  // forma directa. Un efecto reactivo sobre `content` reescribía el innerHTML en
+  // medio de la escritura rápida, reseteando el caret y descartando pulsaciones,
+  // lo que provocaba que la nota se guardara con contenido incompleto o alterado.
 
   useEffect(() => {
     if (typeof document === 'undefined') {

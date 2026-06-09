@@ -171,7 +171,8 @@
       "Bash(find apps/web/src/features/notebook apps/web/src/app -type d -iname \"*notebook*\")",
       "Bash(ls apps/web/src/features/notebook/hooks)",
       "Bash(ls apps/web/src/features/notebook/components)",
-      "Bash(find apps/web/src/app/api -ipath \"*notebook*\" -name \"*.ts\")"
+      "Bash(find apps/web/src/app/api -ipath \"*notebook*\" -name \"*.ts\")",
+      "Bash(npx jest *)"
     ],
     "deny": [],
     "ask": []

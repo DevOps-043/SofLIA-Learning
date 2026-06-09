@@ -55,20 +55,32 @@ export function usePersistNoteMutation({
       options: PersistNoteOptions = {}
     ): Promise<string | null> => {
       const { silent = false } = options;
+      // Fallos transitorios (red/servidor): en autoguardado silencioso no
+      // interrumpimos al usuario.
       const reportError = (message: string) => {
         if (!silent) {
           setNoteError(message);
         }
       };
+      // Errores de precondición (sin curso/lección): son deterministas, la nota
+      // NUNCA se podrá guardar. Se notifican SIEMPRE —incluido el autoguardado
+      // silencioso— para que el usuario no pierda la nota sin enterarse.
+      const reportPreconditionError = (message: string) => {
+        setNoteError(message);
+      };
 
       if (!slug) {
-        reportError("No se pudo determinar el curso para guardar la nota");
+        reportPreconditionError(
+          "No se pudo determinar el curso para guardar la nota"
+        );
         return null;
       }
 
       const targetLessonId = editingNote?.lessonId || currentLesson?.lesson_id;
       if (!targetLessonId) {
-        reportError("Debe seleccionar una leccion para guardar la nota");
+        reportPreconditionError(
+          "Selecciona una lección antes de tomar notas: aún no se está guardando."
+        );
         return null;
       }
 
