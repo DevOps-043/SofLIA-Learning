@@ -36,7 +36,10 @@ export function VideoPanel({
   const primaryAction = navigationState.isLastLesson ? handleCompletionAction : handleAdvanceAction;
 
   return (
-    <div className="relative w-full">
+    // Acota el alto del reproductor al viewport disponible (restando header, tabs y
+    // padding del shell) manteniendo el ratio 16:9 vía max-width, para que los
+    // controles inferiores queden visibles sin necesidad de scroll.
+    <div className="relative mx-auto w-full max-w-[calc((100dvh-13rem)*16/9)]">
       {hasVideo ? (
         <div data-tour-id="course-learn--video-player" className="aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-500/30 relative bg-gray-900">
           <VideoPlayer
