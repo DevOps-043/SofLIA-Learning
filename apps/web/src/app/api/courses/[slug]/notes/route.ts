@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { SessionService } from '@/features/auth/services/session.service'
 import { CourseService } from '@/features/courses/services/course.service'
 import { NoteService } from '@/features/courses/services/note.service'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { cacheHeaders, withCacheHeaders } from '@/lib/utils/cache-headers'
 
 /**
@@ -30,7 +30,7 @@ export async function GET(
       )
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const notes = await NoteService.getNotesByCourseWithClient(
       supabase,
       currentUser.id,

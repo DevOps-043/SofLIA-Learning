@@ -3,7 +3,7 @@ import { NoteService } from '@/features/courses/services/note.service'
 import { CourseService } from '@/features/courses/services/course.service'
 import { SessionService } from '@/features/auth/services/session.service'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
 
 /**
@@ -84,7 +84,7 @@ export async function POST(
       typeof body?.organization_id === 'string' && body.organization_id.trim()
         ? body.organization_id.trim()
         : null
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     if (requestedOrganizationId) {
       const { data: membership, error: membershipError } = await supabase

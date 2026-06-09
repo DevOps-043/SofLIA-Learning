@@ -1,7 +1,10 @@
 import { createClient } from '../../../lib/supabase/server'
+import { createAdminClient } from '../../../lib/supabase/admin'
 import type { Json, Tables, TablesUpdate } from '../../../lib/supabase/types'
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+type SupabaseServerClient =
+  | Awaited<ReturnType<typeof createClient>>
+  | ReturnType<typeof createAdminClient>
 type LessonNoteRow = Tables<'user_lesson_notes'>
 type LessonNoteRowLike = Omit<LessonNoteRow, 'organization_id'> & {
   organization_id?: string | null
@@ -148,7 +151,7 @@ export class NoteService {
     lessonId: string,
   ): Promise<LessonNote[]> {
     try {
-      const supabase = await createClient()
+      const supabase = createAdminClient()
 
       const { data, error } = await supabase
         .from('user_lesson_notes')
@@ -176,7 +179,7 @@ export class NoteService {
     userId: string,
     courseId: string,
   ): Promise<LessonNote[]> {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     return this.getNotesByCourseWithClient(supabase, userId, courseId)
   }
 
@@ -220,7 +223,7 @@ export class NoteService {
     noteData: CreateNoteInput,
   ): Promise<LessonNote> {
     try {
-      const supabase = await createClient()
+      const supabase = createAdminClient()
 
       const { data, error } = await supabase
         .from('user_lesson_notes')
@@ -256,7 +259,7 @@ export class NoteService {
     noteData: UpdateNoteInput,
   ): Promise<LessonNote> {
     try {
-      const supabase = await createClient()
+      const supabase = createAdminClient()
 
       const updateData: TablesUpdate<'user_lesson_notes'> = {
         updated_at: new Date().toISOString(),
@@ -295,7 +298,7 @@ export class NoteService {
    */
   static async deleteNote(userId: string, noteId: string): Promise<void> {
     try {
-      const supabase = await createClient()
+      const supabase = createAdminClient()
 
       const { error } = await supabase
         .from('user_lesson_notes')
@@ -318,7 +321,7 @@ export class NoteService {
     userId: string,
     courseId: string,
   ): Promise<CourseNotesStats> {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     return this.getNotesStatsWithClient(supabase, userId, courseId)
   }
 
