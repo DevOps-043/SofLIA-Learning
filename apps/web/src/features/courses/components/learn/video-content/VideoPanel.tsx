@@ -36,12 +36,9 @@ export function VideoPanel({
   const primaryAction = navigationState.isLastLesson ? handleCompletionAction : handleAdvanceAction;
 
   return (
-    // Acota el alto del reproductor al viewport disponible (restando header, tabs y
-    // padding del shell) manteniendo el ratio 16:9 vía max-width, para que los
-    // controles inferiores queden visibles sin necesidad de scroll.
-    <div className="relative mx-auto w-full max-w-[calc((100dvh-13rem)*16/9)]">
+    <div className="relative w-full">
       {hasVideo ? (
-        <div data-tour-id="course-learn--video-player" className="aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-500/30 relative bg-gray-900">
+        <div data-tour-id="course-learn--video-player" className="aspect-video max-h-[calc(100dvh-13rem)] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-500/30 relative bg-gray-900">
           <VideoPlayer
             videoProvider={lesson.video_provider!}
             videoProviderId={lesson.video_provider_id!}
@@ -55,7 +52,7 @@ export function VideoPanel({
           <VideoNavigationOverlay {...navigationState} finishLabel={finishLabel} nextLabel={nextLabel} onNavigatePrevious={onNavigatePrevious} onPrimaryAction={primaryAction} previousLabel={previousLabel} />
         </div>
       ) : (
-        <div data-tour-id="course-learn--video-player" className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl flex items-center justify-center border border-gray-200 dark:border-gray-500/30 relative overflow-hidden group">
+        <div data-tour-id="course-learn--video-player" className="aspect-video max-h-[calc(100dvh-13rem)] bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl flex items-center justify-center border border-gray-200 dark:border-gray-500/30 relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/10 to-accent/10 animate-pulse" />
           <div className="text-center relative z-10">
             <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 cursor-pointer hover:bg-primary/90 transition-all transform group-hover:scale-110">
