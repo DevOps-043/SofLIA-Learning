@@ -13,7 +13,7 @@ import {
 } from './service'
 import type { AdminUserCardProps } from './types'
 
-export function AdminUserCard({ user, index, locale, onEdit, onDelete, t, tc }: AdminUserCardProps) {
+export function AdminUserCard({ user, index, locale, onEdit, onDelete, onViewStats, t, tc }: AdminUserCardProps) {
   const theme = useAdminPanelTheme()
   const { displayName, email, role } = getAdminUserDisplayConfig(user)
   const roleConfig = getAdminRoleConfig(role, theme, {
@@ -53,7 +53,7 @@ export function AdminUserCard({ user, index, locale, onEdit, onDelete, t, tc }: 
 
       <div className="flex flex-1 flex-col px-6 pb-5">
         <AdminUserCardDetails email={email} lastAccess={lastAccess} roleConfig={roleConfig} statusConfig={statusConfig} t={t} />
-        <AdminUserCardActions onEdit={onEdit} onDelete={onDelete} tc={tc} />
+        <AdminUserCardActions onEdit={onEdit} onDelete={onDelete} onViewStats={onViewStats} t={t} tc={tc} />
       </div>
     </motion.article>
   )

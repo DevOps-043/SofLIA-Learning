@@ -171,6 +171,9 @@
       },
       "searchPlaceholder": "Buscar por nome, e-mail ou nome de usuário...",
       "filterRoleAll": "Todos os cargos",
+      "filterCompanyAll": "Todas as empresas",
+      "filterCourseAll": "Todos os cursos",
+      "filterLearningPathAll": "Todas as trilhas",
       "noEmail": "Sem e-mail",
       "view": {
         "cards": "Visualização em cartões",
@@ -203,6 +206,17 @@
         "deleteFailed": "Erro ao excluir usuário",
         "createFailed": "Erro ao criar usuário"
       }
+    },
+    "actions": {
+      "viewStats": "Estatísticas"
+    },
+    "stats": {
+      "modalEyebrow": "Painel pessoal",
+      "modalTitle": "Estatísticas de {{name}}",
+      "exportPdf": "Exportar PDF",
+      "exporting": "Exportando...",
+      "exportError": "Não foi possível gerar o PDF. Tente novamente.",
+      "close": "Fechar"
     },
     "roles": {
       "Usuario": "Usuário",

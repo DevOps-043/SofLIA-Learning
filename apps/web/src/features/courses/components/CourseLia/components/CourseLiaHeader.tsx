@@ -1,4 +1,4 @@
-import { Trash2, X } from 'lucide-react';
+import { Trash2, Volume2, VolumeX, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { COURSE_LIA_COLORS, LIA_AVATAR_SRC } from '../constants';
@@ -6,16 +6,24 @@ import type { CourseLiaThemeColors } from '../types';
 
 interface CourseLiaHeaderProps {
   isLightTheme: boolean;
+  isSpeaking: boolean;
+  isVoiceEnabled: boolean;
+  isVoiceTogglePending: boolean;
   onClearHistory: () => void;
   onClose: () => void;
+  onToggleVoice: () => void;
   themeColors: CourseLiaThemeColors;
   isMobile?: boolean;
 }
 
 export function CourseLiaHeader({
   isLightTheme,
+  isSpeaking,
+  isVoiceEnabled,
+  isVoiceTogglePending,
   onClearHistory,
   onClose,
+  onToggleVoice,
   themeColors,
   isMobile = false,
 }: CourseLiaHeaderProps) {
@@ -42,10 +50,45 @@ export function CourseLiaHeader({
           <h2 className="lia-header-title" style={{ color: themeColors.textPrimary, fontSize: '16px', fontWeight: 600, margin: 0, lineHeight: 1.2 }}>
             {t('lia.title')}
           </h2>
+          {isSpeaking && (
+            <p aria-live="polite" style={{ color: themeColors.accentColor, fontSize: '12px', fontWeight: 500, margin: 0 }}>
+              {tc('lia.header.speaking')}
+            </p>
+          )}
         </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Botón de voz: activa/desactiva el modo de voz (TTS) de SofLIA */}
+        <button
+          type="button"
+          onClick={onToggleVoice}
+          disabled={isVoiceTogglePending}
+          title={isVoiceEnabled ? tc('lia.voice.disable') : tc('lia.voice.enable')}
+          aria-label={isVoiceEnabled ? tc('lia.voice.disable') : tc('lia.voice.enable')}
+          aria-pressed={isVoiceEnabled}
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '8px',
+            backgroundColor: isVoiceEnabled
+              ? (isLightTheme ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.1)')
+              : 'transparent',
+            border: 'none',
+            cursor: isVoiceTogglePending ? 'wait' : 'pointer',
+            opacity: isVoiceTogglePending ? 0.6 : 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background-color 0.2s',
+          }}
+        >
+          {isVoiceEnabled ? (
+            <Volume2 style={{ width: '18px', height: '18px' }} color={themeColors.accentColor} />
+          ) : (
+            <VolumeX style={{ width: '18px', height: '18px' }} color={themeColors.textSecondary} />
+          )}
+        </button>
         <button
           type="button"
           onClick={onClearHistory}

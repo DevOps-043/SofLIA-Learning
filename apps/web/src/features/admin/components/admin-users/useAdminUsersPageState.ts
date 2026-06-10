@@ -11,6 +11,7 @@ export function useAdminUsersPageState(users: AdminUser[]) {
   const [viewMode, setViewMode] = useState<AdminUsersViewMode>('cards')
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
   const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null)
+  const [statsUser, setStatsUser] = useState<AdminUser | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -38,6 +39,7 @@ export function useAdminUsersPageState(users: AdminUser[]) {
     viewMode,
     editingUser,
     deletingUser,
+    statsUser,
     isEditModalOpen,
     isDeleteModalOpen,
     isAddModalOpen,
@@ -47,6 +49,7 @@ export function useAdminUsersPageState(users: AdminUser[]) {
     setViewMode,
     setEditingUser,
     setDeletingUser,
+    setStatsUser,
     setIsEditModalOpen,
     setIsDeleteModalOpen,
     setIsAddModalOpen,

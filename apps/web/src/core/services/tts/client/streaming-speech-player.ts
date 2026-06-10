@@ -34,7 +34,13 @@ function getNowMs(): number {
   return globalThis.performance?.now() ?? Date.now();
 }
 
-const MAX_SPEECH_CHUNKS_PER_TURN = 4;
+// Válvula de seguridad para evitar encolar fragmentos sin límite en respuestas
+// patológicamente largas. NO es el regulador real del ritmo de síntesis: ese
+// papel lo cumple `MAX_CONCURRENT_TTS_SYNTHESIS` (solo 2 síntesis a la vez) más
+// la reproducción serializada. Una respuesta de chat realista (~1.5k caracteres)
+// usa ~8 fragmentos, muy por debajo de este tope; respuestas largas se locutan
+// completas en lugar de cortarse al cuarto fragmento.
+const MAX_SPEECH_CHUNKS_PER_TURN = 48;
 const MAX_CONCURRENT_TTS_SYNTHESIS = 2;
 
 export class StreamingSpeechPlayer {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
+import { getUserTeamAssignment } from '@/lib/auth/hierarchical-access';
 import { logger } from '@/lib/utils/logger';
 
 interface RouteContext {
@@ -19,19 +20,8 @@ interface OrganizationHierarchyRow {
 interface OrganizationUserCheckRow {
   organization_id: string;
   role: string;
+  team_id: string | null;
   organizations: OrganizationHierarchyRow;
-}
-
-interface NodeReferenceRow {
-  id: string;
-  name: string;
-  type: string;
-}
-
-interface NodeAssignmentRow {
-  id: string;
-  node_id: string;
-  organization_nodes: NodeReferenceRow;
 }
 
 /**
@@ -62,8 +52,9 @@ async function checkTeamForUser(supabase: SupabaseServerClient, userId: string, 
     const { data: orgUser } = await supabase
         .from('organization_users')
         .select(`
-          organization_id, 
+          organization_id,
           role,
+          team_id,
           organizations!inner (
             id,
             slug,
@@ -105,26 +96,8 @@ async function checkTeamForUser(supabase: SupabaseServerClient, userId: string, 
         });
     }
 
-    // Check if user has a team assignment in organization_node_users
-    const { data: nodeAssignment } = await supabase
-        .from('organization_node_users')
-        .select(`
-          id,
-          node_id,
-          organization_nodes!inner (
-            id,
-            name,
-            type
-          )
-        `)
-        .eq('user_id', userId)
-        .limit(1)
-        .maybeSingle<NodeAssignmentRow>();
-
-    const hasTeam = !!nodeAssignment;
-    const teamName = hasTeam
-        ? nodeAssignment.organization_nodes?.name || undefined
-        : undefined;
+    // Team requirement is active: resolve assignment across both hierarchy systems.
+    const { hasTeam, teamName } = await getUserTeamAssignment(supabase, userId, orgUser.team_id);
 
     return NextResponse.json({
         success: true,

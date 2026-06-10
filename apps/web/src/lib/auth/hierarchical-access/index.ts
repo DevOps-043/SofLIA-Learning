@@ -10,6 +10,8 @@ export {
 } from './permissions'
 export { applyHierarchyFilters, getAccessibleTeamIds } from './query-filters'
 export { determineDefaultScope } from './scope'
+export { getUserTeamAssignment } from './team-assignment.service'
+export type { TeamAssignmentResult } from './team-assignment.service'
 export type {
   AccessResult,
   HierarchyContext,

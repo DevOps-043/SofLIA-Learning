@@ -53,6 +53,17 @@ interface BusinessUserAnalyticsPageClientProps {
   showBackButton?: boolean
   userId?: string
   onBack?: () => void
+  /**
+   * Ruta base de la API de analytics. Si se provee, tiene prioridad sobre la
+   * resolución basada en `orgSlug`/`userId`: el dataset se consulta en
+   * `${apiBasePath}?range=` y los insights en `${apiBasePath}/insights`.
+   * Usado por el panel del superadministrador (`/api/admin/users/<id>/analytics`).
+   */
+  apiBasePath?: string
+  /** Notifica el dataset cargado (para exportaciones externas, p.ej. PDF). */
+  onAnalyticsLoaded?: (data: BusinessUserAnalyticsResponse) => void
+  /** Notifica los insights de IA generados (para incluirlos en exportaciones). */
+  onInsightsLoaded?: (insights: BusinessUserAnalyticsInsights) => void
 }
 
 export function BusinessUserAnalyticsPageClient({
@@ -61,6 +72,9 @@ export function BusinessUserAnalyticsPageClient({
   showBackButton = true,
   userId,
   onBack,
+  apiBasePath,
+  onAnalyticsLoaded,
+  onInsightsLoaded,
 }: BusinessUserAnalyticsPageClientProps = {}) {
   const router = useRouter()
   const params = useParams()
@@ -81,19 +95,21 @@ export function BusinessUserAnalyticsPageClient({
   )
 
   const analyticsUrl = useMemo(() => {
+    if (apiBasePath) return `${apiBasePath}?range=${range}`
     if (!orgSlug) return null
     const baseUrl = userId
       ? `/api/${orgSlug}/business/users/${userId}/analytics`
       : `/api/${orgSlug}/business-user/analytics`
     return `${baseUrl}?range=${range}`
-  }, [orgSlug, range, userId])
+  }, [apiBasePath, orgSlug, range, userId])
 
   const insightsUrl = useMemo(() => {
+    if (apiBasePath) return `${apiBasePath}/insights`
     if (!orgSlug) return null
     return userId
       ? `/api/${orgSlug}/business/users/${userId}/analytics/insights`
       : `/api/${orgSlug}/business-user/analytics/insights`
-  }, [orgSlug, userId])
+  }, [apiBasePath, orgSlug, userId])
 
   const loadAnalytics = useCallback(async () => {
     if (!analyticsUrl) return
@@ -117,12 +133,13 @@ export function BusinessUserAnalyticsPageClient({
 
       setAnalytics(data)
       setLoadState('ready')
+      onAnalyticsLoaded?.(data)
     } catch (loadError) {
       setAnalytics(null)
       setLoadState('error')
       setError(loadError instanceof Error ? loadError.message : t('analytics.errors.load'))
     }
-  }, [analyticsUrl, t])
+  }, [analyticsUrl, onAnalyticsLoaded, t])
 
   useEffect(() => {
     void loadAnalytics()
@@ -152,13 +169,14 @@ export function BusinessUserAnalyticsPageClient({
 
       setInsights(data.insights)
       setInsightState('ready')
+      onInsightsLoaded?.(data.insights)
     } catch (insightLoadError) {
       setInsightState('error')
       setInsightError(
         insightLoadError instanceof Error ? insightLoadError.message : t('analytics.errors.insights'),
       )
     }
-  }, [insightsUrl, locale, range, t])
+  }, [insightsUrl, locale, onInsightsLoaded, range, t])
 
   const courseChartData = useMemo(() => {
     return (analytics?.learning.courses || [])

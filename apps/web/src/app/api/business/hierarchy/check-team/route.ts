@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { getUserTeamAssignment } from '@/lib/auth/hierarchical-access';
 import { logger } from '@/lib/utils/logger';
 
 /**
@@ -59,7 +60,7 @@ async function checkTeamForUser(supabase: Awaited<ReturnType<typeof createClient
     // Find user's organization
     const { data: orgUser } = await supabase
         .from('organization_users')
-        .select('organization_id, role')
+        .select('organization_id, role, team_id')
         .eq('user_id', userId)
         .eq('status', 'active')
         .single();
@@ -99,26 +100,8 @@ async function checkTeamForUser(supabase: Awaited<ReturnType<typeof createClient
         });
     }
 
-    // Check if user has a team assignment in organization_node_users
-    const { data: nodeAssignment } = await supabase
-        .from('organization_node_users')
-        .select(`
-      id,
-      node_id,
-      organization_nodes!inner (
-        id,
-        name,
-        type
-      )
-    `)
-        .eq('user_id', userId)
-        .limit(1)
-        .maybeSingle();
-
-    const hasTeam = !!nodeAssignment;
-    const teamName = hasTeam
-        ? (nodeAssignment.organization_nodes as { name?: string } | null)?.name || undefined
-        : undefined;
+    // Team requirement is active: resolve assignment across both hierarchy systems.
+    const { hasTeam, teamName } = await getUserTeamAssignment(supabase, userId, orgUser.team_id);
 
     return NextResponse.json({
         success: true,

@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSofLIAPersonalization } from './useSofLIAPersonalization';
 import { cleanTextForSpeech } from '../services/tts/client/clean-text';
+import { StreamingSpeechPlayer } from '../services/tts/client/streaming-speech-player';
 import {
-  StreamingSpeechPlayer,
-  findFirstSpeakableBoundary,
-} from '../services/tts/client/streaming-speech-player';
+  STREAM_LOOKAHEAD_CHUNKS,
+  nextFinalChunkLength,
+  nextStreamingChunkLength,
+} from '../services/tts/client/speech-chunker';
 import { LiaVoiceMetricsTracker } from '../services/lia-voice-metrics.client';
 import type { SofLIAMessage } from '../types/lia.types';
 
@@ -34,10 +36,6 @@ interface UseStreamingChatVoiceReturn {
 
 const NO_REVEAL: StreamingVoiceRevealState = { messageId: null, length: 0 };
 const REVEAL_GRACE_AFTER_AUDIO_SLOT_MS = 900;
-const FIRST_SPEECH_BOUNDARY = { minChars: 12, softCap: 56 };
-const REST_SPEECH_BOUNDARY = { minChars: 80, softCap: 220 };
-const STREAMING_CHUNKS_BEFORE_FINAL = 3;
-const MAX_TTS_CHUNKS_PER_TURN = 4;
 
 /**
  * Speaks a streamed assistant answer chunk by chunk, while exposing how much
@@ -62,10 +60,12 @@ export function useStreamingChatVoice({
     messageId: string | null;
     consumed: number;
     queuedChunks: number;
+    startedChunks: number;
   }>({
     messageId: null,
     consumed: 0,
     queuedChunks: 0,
+    startedChunks: 0,
   });
   const revealTimersRef = useRef<Set<ReturnType<typeof globalThis.setTimeout>>>(
     new Set(),
@@ -85,6 +85,19 @@ export function useStreamingChatVoice({
     );
   }, []);
 
+  // Marca que un fragmento ya "arrancó" (audio sonando o revelado por gracia) y
+  // revela su texto. `startedChunks` alimenta el look-ahead del streaming. Se
+  // invoca una sola vez por fragmento (las rutas audio/gracia son excluyentes).
+  const markChunkStarted = useCallback(
+    (messageId: string, endIndex: number) => {
+      if (stateRef.current.messageId === messageId) {
+        stateRef.current.startedChunks += 1;
+      }
+      revealTextThrough(messageId, endIndex);
+    },
+    [revealTextThrough],
+  );
+
   const scheduleGraceReveal = useCallback(
     (
       messageId: string,
@@ -95,7 +108,7 @@ export function useStreamingChatVoice({
         revealTimersRef.current.delete(timer);
         clearTimerRef.current = null;
         metricsTrackerRef.current.recordGraceReveal();
-        revealTextThrough(messageId, endIndex);
+        markChunkStarted(messageId, endIndex);
       }, REVEAL_GRACE_AFTER_AUDIO_SLOT_MS);
 
       revealTimersRef.current.add(timer);
@@ -104,14 +117,14 @@ export function useStreamingChatVoice({
         revealTimersRef.current.delete(timer);
       };
     },
-    [revealTextThrough],
+    [markChunkStarted],
   );
 
   const stop = useCallback(() => {
     clearRevealTimers();
     playerRef.current?.stop();
     playerRef.current = null;
-    stateRef.current = { messageId: null, consumed: 0, queuedChunks: 0 };
+    stateRef.current = { messageId: null, consumed: 0, queuedChunks: 0, startedChunks: 0 };
     armedRef.current = false;
     isPlayingRef.current = false;
     streamFinishedRef.current = false;
@@ -129,15 +142,21 @@ export function useStreamingChatVoice({
     }
   }, []);
 
+  // Devuelve `true` si el reproductor aceptó el fragmento. Si no (sin player,
+  // texto vacío o tope de seguridad), revela el texto igualmente para que la
+  // transcripción no quede incompleta.
   const enqueueWithReveal = useCallback(
-    (messageId: string, chunk: string, endIndex: number) => {
+    (messageId: string, chunk: string, endIndex: number): boolean => {
       const player = playerRef.current;
-      if (!player) return;
+      if (!player) {
+        revealTextThrough(messageId, endIndex);
+        return false;
+      }
 
       const clean = cleanTextForSpeech(chunk);
       if (!clean) {
         revealTextThrough(messageId, endIndex);
-        return;
+        return true;
       }
 
       const clearGraceTimerRef: { current: (() => void) | null } = { current: null };
@@ -145,7 +164,7 @@ export function useStreamingChatVoice({
         clearGraceTimerRef.current?.();
         clearGraceTimerRef.current = null;
         metricsTrackerRef.current.recordChunkStarted(event.audioAvailable);
-        revealTextThrough(messageId, endIndex);
+        markChunkStarted(messageId, endIndex);
       };
 
       const accepted = player.enqueue(
@@ -160,16 +179,20 @@ export function useStreamingChatVoice({
       if (accepted) {
         metricsTrackerRef.current.recordChunkQueued();
         stateRef.current.queuedChunks += 1;
+        return true;
       }
+
+      revealTextThrough(messageId, endIndex);
+      return false;
     },
-    [revealTextThrough, scheduleGraceReveal],
+    [markChunkStarted, revealTextThrough, scheduleGraceReveal],
   );
 
   const armForNextResponse = useCallback(() => {
     clearRevealTimers();
     playerRef.current?.stop();
     playerRef.current = null;
-    stateRef.current = { messageId: null, consumed: 0, queuedChunks: 0 };
+    stateRef.current = { messageId: null, consumed: 0, queuedChunks: 0, startedChunks: 0 };
     setIsSpeaking(false);
     setVoiceReveal(NO_REVEAL);
     isPlayingRef.current = false;
@@ -203,7 +226,12 @@ export function useStreamingChatVoice({
       playerRef.current = new StreamingSpeechPlayer({
         onPlayingChange: handlePlayingChange,
       });
-      stateRef.current = { messageId: lastMessage.id, consumed: 0, queuedChunks: 0 };
+      stateRef.current = {
+        messageId: lastMessage.id,
+        consumed: 0,
+        queuedChunks: 0,
+        startedChunks: 0,
+      };
       streamFinishedRef.current = false;
       metricsTrackerRef.current.attachMessage(lastMessage.id);
       setVoiceReveal({ messageId: lastMessage.id, length: 0 });
@@ -213,40 +241,37 @@ export function useStreamingChatVoice({
       metricsTrackerRef.current.markFirstText();
     }
 
-    const pending = content.slice(stateRef.current.consumed);
-
     if (isLoading) {
-      if (stateRef.current.queuedChunks >= STREAMING_CHUNKS_BEFORE_FINAL) {
-        return;
-      }
-
-      const boundary = stateRef.current.consumed === 0
-        ? findFirstSpeakableBoundary(pending, FIRST_SPEECH_BOUNDARY)
-        : findFirstSpeakableBoundary(pending, REST_SPEECH_BOUNDARY);
-
-      if (boundary > 0) {
+      // Drena las oraciones COMPLETAS ya recibidas manteniendo solo un pequeño
+      // look-ahead por delante de la reproducción, para que el audio fluya de
+      // forma continua incluso en respuestas largas sin pre-sintetizar todo.
+      let pending = content.slice(stateRef.current.consumed);
+      while (
+        stateRef.current.queuedChunks - stateRef.current.startedChunks <
+        STREAM_LOOKAHEAD_CHUNKS
+      ) {
+        const boundary = nextStreamingChunkLength(pending, stateRef.current.consumed === 0);
+        if (boundary <= 0) break; // aún conviene esperar más texto
         const endIndex = stateRef.current.consumed + boundary;
         enqueueWithReveal(lastMessage.id, pending.slice(0, boundary), endIndex);
         stateRef.current.consumed = endIndex;
+        pending = content.slice(stateRef.current.consumed);
       }
       return;
     }
 
-    let finalPending = pending;
-    while (
-      finalPending.trim() &&
-      stateRef.current.queuedChunks < MAX_TTS_CHUNKS_PER_TURN
-    ) {
-      const slotsLeft = MAX_TTS_CHUNKS_PER_TURN - stateRef.current.queuedChunks;
-      const boundary = slotsLeft <= 1
-        ? finalPending.length
-        : findFirstSpeakableBoundary(finalPending, REST_SPEECH_BOUNDARY);
-      const chunkLength = boundary > 0 ? boundary : finalPending.length;
+    // Fin de la respuesta: locuta/revela TODO el remanente en fragmentos por
+    // oración (sin tope de número de chunks) para que las respuestas largas se
+    // lean completas en lugar de cortarse al cuarto fragmento.
+    let finalPending = content.slice(stateRef.current.consumed);
+    while (finalPending.trim()) {
+      const chunkLength = nextFinalChunkLength(finalPending, stateRef.current.consumed === 0);
       const endIndex = stateRef.current.consumed + chunkLength;
 
-      enqueueWithReveal(lastMessage.id, finalPending.slice(0, chunkLength), endIndex);
+      const accepted = enqueueWithReveal(lastMessage.id, finalPending.slice(0, chunkLength), endIndex);
       stateRef.current.consumed = endIndex;
       finalPending = content.slice(stateRef.current.consumed);
+      if (!accepted) break; // tope de seguridad del reproductor; texto ya revelado
     }
     metricsTrackerRef.current.completeStream(content.length);
     streamFinishedRef.current = true;

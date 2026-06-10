@@ -11,7 +11,7 @@ export const adminUsersApis: ApiInfo[] = [
         ]
       },
       {
-        endpoint: '/api/admin/users/[userId]',
+        endpoint: '/api/admin/users/[id]',
         method: 'PUT',
         description: 'Actualiza datos de un usuario',
         commonErrors: [
@@ -20,7 +20,7 @@ export const adminUsersApis: ApiInfo[] = [
         ]
       },
       {
-        endpoint: '/api/admin/users/[userId]',
+        endpoint: '/api/admin/users/[id]',
         method: 'DELETE',
         description: 'Elimina un usuario y sus datos',
         commonErrors: [

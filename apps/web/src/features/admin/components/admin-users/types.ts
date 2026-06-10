@@ -37,6 +37,7 @@ export interface AdminUserCardProps {
   locale: string
   onEdit: () => void
   onDelete: () => void
+  onViewStats: () => void
   t: TFunction<'admin'>
   tc: TFunction<'common'>
 }

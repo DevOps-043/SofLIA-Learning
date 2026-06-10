@@ -51,6 +51,7 @@ import {
 } from './lia-chat-history.service';
 import { detectTechnicalBugReportIntent } from './bug-report-intent.service';
 import { liaChatSchema, type LiaChatBody } from '../_schemas';
+import { SessionService } from '@/features/auth/services/session.service';
 
 type SecurityAssessment = ReturnType<typeof evaluatePromptInjectionRisk>;
 
@@ -282,6 +283,22 @@ async function handlePost(
     const sanitizedRequestContext = requestContext
       ? sanitizeContextPayload(requestContext)
       : requestContext;
+
+    // Atribución autoritativa del usuario desde la sesión del servidor.
+    // No se confía en `context.userId` del cliente: si llega vacío, el turno NO
+    // se persistía (uso de SofLIA sin contabilizar en las estadísticas); si se
+    // falsifica, se atribuía a otro usuario. Tomamos el id de la sesión real y,
+    // como respaldo, conservamos el del cliente si no hay sesión disponible.
+    const sessionUser = await SessionService.getCurrentUser().catch(() => null);
+    const authoritativeUserId =
+      sessionUser?.id ||
+      (typeof sanitizedRequestContext?.userId === 'string'
+        ? sanitizedRequestContext.userId
+        : undefined);
+    if (sanitizedRequestContext && authoritativeUserId) {
+      sanitizedRequestContext.userId = authoritativeUserId;
+    }
+
     const sanitizedLastMessage = sanitizedMessages[sanitizedMessages.length - 1];
     const securityAssessment = evaluatePromptInjectionRisk({
       message: sanitizedLastMessage?.content || '',

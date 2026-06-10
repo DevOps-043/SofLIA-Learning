@@ -12,12 +12,39 @@ import {
   resolveGeminiVoiceAndModel,
   synthesizeSpeechWithGemini,
 } from './gemini.service';
+import {
+  isGoogleCloudTTSConfigured,
+  resolveGoogleCloudVoiceAndModel,
+  synthesizeSpeechWithGoogleCloud,
+} from './google-cloud-tts.service';
 
-// Reading pregeneration (transcripts, summaries, reflection activities) runs on
-// ElevenLabs: it synthesizes long text in a single request and has no punishing
-// per-day request cap like Gemini's preview tier. The SofLIA chat voice stays on
-// the globally configured provider (Gemini).
+// La lectura de cursos prefiere ElevenLabs cuando está configurado: sintetiza
+// texto largo en una sola petición y no tiene el "punishing per-day request cap"
+// del tier preview de Gemini TTS.
 const READING_CONTEXTS = new Set(['reading', 'reading_continuation']);
+
+// Voz del chat de SofLIA. Se sacó de Gemini preview (síntesis no-streaming,
+// latencia alta y rate-limit que cortaban las respuestas largas) y es configurable
+// por env para balancear costo/latencia sin tocar código.
+const CHAT_CONTEXTS = new Set(['chat', 'chat_continuation']);
+
+/**
+ * Proveedor para la voz del chat. Configurable con `CHAT_TTS_PROVIDER`
+ * (`elevenlabs` | `google-cloud` | `gemini`). Por defecto prefiere ElevenLabs si
+ * está configurado y, si no, cae al proveedor global. Permite, p. ej., usar
+ * Google Cloud TTS (Neural2/Chirp3: barato, baja latencia, free tier) solo con
+ * cambiar la variable de entorno.
+ */
+function getChatTTSProvider(): TextToSpeechProvider {
+  const explicit = (process.env.CHAT_TTS_PROVIDER || '').trim().toLowerCase();
+  if (explicit === 'elevenlabs' || explicit === 'google-cloud' || explicit === 'gemini') {
+    return explicit;
+  }
+  if (isElevenLabsConfigured()) {
+    return 'elevenlabs';
+  }
+  return getConfiguredTTSProvider();
+}
 
 function getElevenLabsApiKey() {
   // Prefer a server-only key; fall back to the NEXT_PUBLIC one the project already
@@ -42,7 +69,7 @@ function getElevenLabsModelId(modelId?: string) {
 export function getConfiguredTTSProvider(): TextToSpeechProvider {
   const provider = (process.env.TTS_PROVIDER || '').trim().toLowerCase();
 
-  if (provider === 'gemini' || provider === 'elevenlabs') {
+  if (provider === 'gemini' || provider === 'elevenlabs' || provider === 'google-cloud') {
     return provider;
   }
 
@@ -55,13 +82,16 @@ export function getConfiguredTTSProvider(): TextToSpeechProvider {
 }
 
 /**
- * Provider for a given synthesis context. Reading pregeneration prefers ElevenLabs
- * (when configured); everything else uses the globally configured provider. This is
- * what keeps course reading audio on ElevenLabs while SofLIA chat stays on Gemini.
+ * Proveedor para un contexto de síntesis. La lectura de cursos prefiere ElevenLabs;
+ * la voz del chat usa el proveedor configurable (`getChatTTSProvider`); cualquier
+ * otro contexto usa el proveedor global.
  */
 export function resolveProviderForContext(context?: string): TextToSpeechProvider {
   if (context && READING_CONTEXTS.has(context) && isElevenLabsConfigured()) {
     return 'elevenlabs';
+  }
+  if (context && CHAT_CONTEXTS.has(context)) {
+    return getChatTTSProvider();
   }
   return getConfiguredTTSProvider();
 }
@@ -75,6 +105,10 @@ export function isConfiguredTTSProviderAvailable(context?: string) {
 
   if (provider === 'gemini') {
     return isGeminiConfigured();
+  }
+
+  if (provider === 'google-cloud') {
+    return isGoogleCloudTTSConfigured();
   }
 
   return isElevenLabsConfigured();
@@ -134,6 +168,11 @@ export function resolveTTSCacheDescriptor(
     return { provider, voice, model, context };
   }
 
+  if (provider === 'google-cloud') {
+    const { voice, model } = resolveGoogleCloudVoiceAndModel();
+    return { provider, voice, model, context };
+  }
+
   return {
     provider,
     voice: getElevenLabsVoiceId(payload.voiceId),
@@ -149,6 +188,13 @@ export async function synthesizeSpeechWithConfiguredProvider(payload: TextToSpee
     return {
       provider,
       response: await synthesizeSpeechWithGemini(payload),
+    };
+  }
+
+  if (provider === 'google-cloud') {
+    return {
+      provider,
+      response: await synthesizeSpeechWithGoogleCloud(payload),
     };
   }
 

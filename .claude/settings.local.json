@@ -172,7 +172,22 @@
       "Bash(ls apps/web/src/features/notebook/hooks)",
       "Bash(ls apps/web/src/features/notebook/components)",
       "Bash(find apps/web/src/app/api -ipath \"*notebook*\" -name \"*.ts\")",
-      "Bash(npx jest *)"
+      "Bash(npx jest *)",
+      "Bash(:)",
+      "Bash(grep -rn \"Blob\\(\\\\[.*\\\\], { type: 'application/pdf'\" apps/web/src)",
+      "Bash(cd \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/Soflia Learning/SofLIA-Learning\" && until [ -s /tmp/tsc_done.flag ]; do sleep 2; done; echo \"tsc finished\"; cat /tmp/tsc_done.flag 2>/dev/null | head)",
+      "Bash(cd \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/Soflia Learning/SofLIA-Learning\" && npx tsc --noEmit -p apps/web/tsconfig.json > /tmp/tsc_web.log 2>&1; echo \"EXIT=$?\"; grep -E \"tts/|speech-chunker|google-cloud|server.service\" /tmp/tsc_web.log | head -20; echo \"---total errors---\"; grep -cE \"error TS\" /tmp/tsc_web.log)",
+      "Bash(NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit -p apps/web/tsconfig.json)",
+      "PowerShell(Start-Process \"$env:TEMP\\\\soflia-test.mp3\"; Write-Output \"Reproduciendo soflia-test.mp3 en tu reproductor predeterminado\")",
+      "Bash(cat)",
+      "Bash(K=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ycW5ubXVja3pudnVranZma2x5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NzczNDUyMSwiZXhwIjoyMDgzMzEwNTIxfQ.BGR8J66Aou16S1hor4L--HJkrzffc0PZmSPf-0rWtD4\" node ./lia-diag3.mjs)",
+      "Bash(rm -f ./lia-diag3.mjs)",
+      "Bash(K=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ycW5ubXVja3pudnVranZma2x5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NzczNDUyMSwiZXhwIjoyMDgzMzEwNTIxfQ.BGR8J66Aou16S1hor4L--HJkrzffc0PZmSPf-0rWtD4\" node ./lia-diag4.mjs)",
+      "Bash(rm -f ./lia-diag4.mjs)",
+      "Bash(grep -rn \"'/api/\\\\|\\\\\"/api/\\\\|\\\\`/api/\" src/core/components/LiaSidePanel src/features/lia src/core/hooks/useStreamingChatVoice.ts)",
+      "Bash(K=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ycW5ubXVja3pudnVranZma2x5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NzczNDUyMSwiZXhwIjoyMDgzMzEwNTIxfQ.BGR8J66Aou16S1hor4L--HJkrzffc0PZmSPf-0rWtD4\" node ./lia-diag7.mjs)",
+      "Bash(rm -f ./lia-diag7.mjs)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -Method Head -TimeoutSec 8 -UseBasicParsing -ErrorAction Stop; Write-Output \"DEV_SERVER_UP status=$\\($r.StatusCode\\)\" } catch { Write-Output \"DEV_SERVER_DOWN: $\\($_.Exception.Message\\)\" })"
     ],
     "deny": [],
     "ask": []

@@ -3,10 +3,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { SofLIAMessage } from '../../../types/lia.types';
 import type { SofLIAPersonalizationSettings } from '../../../types/soflia-personalization.types';
+import { StreamingSpeechPlayer } from '../../../services/tts/client/streaming-speech-player';
 import {
-  StreamingSpeechPlayer,
-  findFirstSpeakableBoundary,
-} from '../../../services/tts/client/streaming-speech-player';
+  STREAM_LOOKAHEAD_CHUNKS,
+  nextFinalChunkLength,
+  nextStreamingChunkLength,
+} from '../../../services/tts/client/speech-chunker';
 import { LiaVoiceMetricsTracker } from '../../../services/lia-voice-metrics.client';
 import { cleanTextForLiaTTS } from '../services/lia-side-panel-voice.service';
 
@@ -31,10 +33,6 @@ export interface VoiceRevealState {
 
 const NO_REVEAL: VoiceRevealState = { messageId: null, length: 0 };
 const REVEAL_GRACE_AFTER_AUDIO_SLOT_MS = 900;
-const FIRST_SPEECH_BOUNDARY = { minChars: 12, softCap: 56 };
-const REST_SPEECH_BOUNDARY = { minChars: 80, softCap: 220 };
-const STREAMING_CHUNKS_BEFORE_FINAL = 3;
-const MAX_TTS_CHUNKS_PER_TURN = 4;
 
 /**
  * Voz de salida del panel SofLIA en STREAMING con sincronía estilo "karaoke":
@@ -64,14 +62,19 @@ export function useLiaSidePanelVoice({
   const isPlayingRef = useRef(false);
   const streamFinishedRef = useRef(false);
   // Estado de la respuesta que se está presenciando en streaming.
+  // `startedChunks` cuenta los fragmentos que ya llegaron a reproducirse (o cuyo
+  // texto ya se reveló); `queuedChunks - startedChunks` es el "look-ahead" que
+  // regula cuánto pre-sintetizamos durante el streaming.
   const streamRef = useRef<{
     messageId: string | null;
     consumed: number;
     queuedChunks: number;
+    startedChunks: number;
   }>({
     messageId: null,
     consumed: 0,
     queuedChunks: 0,
+    startedChunks: 0,
   });
 
   const clearRevealTimers = useCallback(() => {
@@ -83,7 +86,7 @@ export function useLiaSidePanelVoice({
     clearRevealTimers();
     playerRef.current?.stop();
     playerRef.current = null;
-    streamRef.current = { messageId: null, consumed: 0, queuedChunks: 0 };
+    streamRef.current = { messageId: null, consumed: 0, queuedChunks: 0, startedChunks: 0 };
     isPlayingRef.current = false;
     streamFinishedRef.current = false;
     metricsTrackerRef.current.flush('stopped');
@@ -100,15 +103,26 @@ export function useLiaSidePanelVoice({
     }
   }, []);
 
+  // Revela el texto de un fragmento hasta `endIndex` (si sigue siendo el mensaje
+  // en curso) y contabiliza que ese fragmento ya "arrancó" para el look-ahead.
+  const revealChunk = useCallback((messageId: string, endIndex: number) => {
+    if (streamRef.current.messageId === messageId) {
+      streamRef.current.startedChunks += 1;
+    }
+    setVoiceReveal((prev) =>
+      prev.messageId === messageId ? { messageId, length: endIndex } : prev,
+    );
+  }, []);
+
   // Encola un fragmento y programa revelar su texto cuando empiece a sonar.
+  // Devuelve `true` si el reproductor lo aceptó. Si no (texto vacío o tope de
+  // seguridad alcanzado), revela el texto igualmente para que no quede oculto.
   const enqueueWithReveal = useCallback(
-    (messageId: string, chunk: string, endIndex: number) => {
+    (messageId: string, chunk: string, endIndex: number): boolean => {
       const cleaned = cleanTextForLiaTTS(chunk);
       if (!cleaned) {
-        setVoiceReveal((prev) =>
-          prev.messageId === messageId ? { messageId, length: endIndex } : prev,
-        );
-        return;
+        revealChunk(messageId, endIndex);
+        return true;
       }
 
       let clearGraceTimer: (() => void) | null = null;
@@ -116,9 +130,7 @@ export function useLiaSidePanelVoice({
         clearGraceTimer?.();
         clearGraceTimer = null;
         metricsTrackerRef.current.recordChunkStarted(event.audioAvailable);
-        setVoiceReveal((prev) =>
-          prev.messageId === messageId ? { messageId, length: endIndex } : prev,
-        );
+        revealChunk(messageId, endIndex);
       };
 
       const accepted = playerRef.current?.enqueue(
@@ -144,9 +156,15 @@ export function useLiaSidePanelVoice({
       if (accepted) {
         metricsTrackerRef.current.recordChunkQueued();
         streamRef.current.queuedChunks += 1;
+        return true;
       }
+
+      // Rechazado por el reproductor (tope de seguridad): no habrá audio, pero
+      // revelamos el texto para mantener la transcripción completa y consistente.
+      revealChunk(messageId, endIndex);
+      return false;
     },
-    [],
+    [revealChunk],
   );
 
   useEffect(() => {
@@ -171,7 +189,12 @@ export function useLiaSidePanelVoice({
         playerRef.current = new StreamingSpeechPlayer({
           onPlayingChange: handlePlayingChange,
         });
-        streamRef.current = { messageId: lastMessage.id, consumed: 0, queuedChunks: 0 };
+        streamRef.current = {
+          messageId: lastMessage.id,
+          consumed: 0,
+          queuedChunks: 0,
+          startedChunks: 0,
+        };
         streamFinishedRef.current = false;
         metricsTrackerRef.current.attachMessage(lastMessage.id);
         setVoiceReveal({ messageId: lastMessage.id, length: 0 });
@@ -183,51 +206,47 @@ export function useLiaSidePanelVoice({
 
       if (!playerRef.current) return;
 
-      if (streamRef.current.queuedChunks >= STREAMING_CHUNKS_BEFORE_FINAL) {
-        return;
-      }
-
-      const consumed = streamRef.current.consumed;
-      const pending = content.slice(consumed);
-      // El PRIMER fragmento arranca cuanto antes (cláusula corta) para reducir
-      // el desfase inicial; los siguientes se cortan por oración completa.
-      const boundary =
-        consumed === 0
-          ? findFirstSpeakableBoundary(pending, FIRST_SPEECH_BOUNDARY)
-          : findFirstSpeakableBoundary(pending, REST_SPEECH_BOUNDARY);
-      if (boundary > 0) {
-        const endIndex = consumed + boundary;
+      // Drena las oraciones COMPLETAS ya recibidas, manteniendo solo un pequeño
+      // look-ahead por delante de la reproducción. Así el audio fluye de forma
+      // continua incluso en respuestas largas, sin pre-sintetizar todo de golpe.
+      let pending = content.slice(streamRef.current.consumed);
+      while (
+        streamRef.current.queuedChunks - streamRef.current.startedChunks <
+        STREAM_LOOKAHEAD_CHUNKS
+      ) {
+        const boundary = nextStreamingChunkLength(pending, streamRef.current.consumed === 0);
+        if (boundary <= 0) break; // aún conviene esperar más texto
+        const endIndex = streamRef.current.consumed + boundary;
         enqueueWithReveal(lastMessage.id, pending.slice(0, boundary), endIndex);
         streamRef.current.consumed = endIndex;
+        pending = content.slice(streamRef.current.consumed);
       }
       return;
     }
 
     // isLoading === false
     if (streamRef.current.messageId === lastMessage.id && playerRef.current) {
-      // Fin de una respuesta que sí presenciamos: locuta/revela el resto.
+      // Fin de una respuesta que sí presenciamos: locuta/revela TODO el resto en
+      // fragmentos por oración (sin tope de número de chunks), de modo que las
+      // respuestas largas se leen completas en lugar de cortarse.
       let pending = content.slice(streamRef.current.consumed);
-      while (
-        pending.trim() &&
-        streamRef.current.queuedChunks < MAX_TTS_CHUNKS_PER_TURN
-      ) {
-        const slotsLeft = MAX_TTS_CHUNKS_PER_TURN - streamRef.current.queuedChunks;
-        const boundary = slotsLeft <= 1
-          ? pending.length
-          : findFirstSpeakableBoundary(pending, REST_SPEECH_BOUNDARY);
-        const chunkLength = boundary > 0 ? boundary : pending.length;
+      while (pending.trim()) {
+        const chunkLength = nextFinalChunkLength(pending, streamRef.current.consumed === 0);
         const endIndex = streamRef.current.consumed + chunkLength;
 
-        enqueueWithReveal(lastMessage.id, pending.slice(0, chunkLength), endIndex);
+        const accepted = enqueueWithReveal(lastMessage.id, pending.slice(0, chunkLength), endIndex);
         streamRef.current.consumed = endIndex;
         pending = content.slice(streamRef.current.consumed);
+        // Si el reproductor rechaza (tope de seguridad), dejamos de sintetizar:
+        // el texto restante ya quedó revelado por `enqueueWithReveal`.
+        if (!accepted) break;
       }
       metricsTrackerRef.current.completeStream(content.length);
       streamFinishedRef.current = true;
       if (!isPlayingRef.current) {
         metricsTrackerRef.current.flush('completed');
       }
-      streamRef.current = { messageId: null, consumed: 0, queuedChunks: 0 };
+      streamRef.current = { messageId: null, consumed: 0, queuedChunks: 0, startedChunks: 0 };
     }
     // Si no la presenciamos (saludo/historial/ya cerrada) → no se locuta/revela.
   }, [messages, isLoading, isVoiceEnabled, enqueueWithReveal, handlePlayingChange]);

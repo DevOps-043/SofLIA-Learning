@@ -18,6 +18,16 @@ describe('lia-side-panel-voice.service', () => {
     expect(cleanTextForLiaTTS(text)).toBe('Titulo\n\nTexto con enlace y codigo.\n\ncita');
   });
 
+  it('strips stray/split markdown markers so TTS does not read them aloud', () => {
+    // En streaming, un par **negrita** puede quedar partido entre fragmentos:
+    // el limpiador por-fragmento no lo reconoce como par, así que antes la voz
+    // leía los asteriscos sueltos. Ahora se eliminan los marcadores residuales.
+    expect(cleanTextForLiaTTS('Hola **mun')).toBe('Hola mun');
+    expect(cleanTextForLiaTTS('do** importante')).toBe('do importante');
+    expect(cleanTextForLiaTTS('texto _enfati')).toBe('texto enfati');
+    expect(cleanTextForLiaTTS('- primer punto')).toBe('primer punto');
+  });
+
   it('maps supported languages and falls back to spanish', () => {
     expect(getLiaSpeechLanguage('en')).toBe('en-US');
     expect(getLiaSpeechLanguage('pt')).toBe('pt-BR');

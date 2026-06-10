@@ -5,6 +5,7 @@ import {
   normalizeUsersPagination,
 } from './helpers'
 import type { GetUsersOptions, GetUsersResult, UserStats } from './types'
+import { resolveFilteredUserIds } from './user-filter.service'
 
 export async function getAdminUsers(
   options: GetUsersOptions = {},
@@ -12,9 +13,24 @@ export async function getAdminUsers(
   const supabase = createAdminClient()
   const { page, limit, from, to, search } = normalizeUsersPagination(options)
 
+  const filteredUserIds = await resolveFilteredUserIds(supabase, {
+    organizationId: options.organizationId,
+    courseId: options.courseId,
+    learningPathId: options.learningPathId,
+  })
+
+  // Hay filtros activos pero ningún usuario coincide: evita un full scan.
+  if (filteredUserIds !== null && filteredUserIds.length === 0) {
+    return { users: [], total: 0, page, totalPages: 0 }
+  }
+
   let query = supabase
     .from('users')
     .select(ADMIN_USER_LIST_SELECT_FIELDS, { count: 'exact' })
+
+  if (filteredUserIds !== null) {
+    query = query.in('id', filteredUserIds)
+  }
 
   if (search) {
     query = query.or(

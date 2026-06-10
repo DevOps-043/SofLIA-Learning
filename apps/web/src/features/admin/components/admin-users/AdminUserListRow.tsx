@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Edit3, Trash2 } from 'lucide-react'
+import { BarChart3, Edit3, Trash2 } from 'lucide-react'
 import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 import { AdminUserIconButton } from './AdminUserIconButton'
 import { AdminUserListInfo } from './AdminUserListInfo'
@@ -19,6 +19,7 @@ export function AdminUserListRow({
   locale,
   onEdit,
   onDelete,
+  onViewStats,
   t,
   tc,
 }: AdminUserListRowProps) {
@@ -90,6 +91,7 @@ export function AdminUserListRow({
         </span>
 
         <div className="ml-auto flex items-center gap-2 lg:ml-0 lg:justify-end">
+          <AdminUserIconButton icon={BarChart3} label={t('users.actions.viewStats')} onClick={onViewStats} />
           <AdminUserIconButton icon={Edit3} label={tc('actions.edit')} onClick={onEdit} />
           <AdminUserIconButton icon={Trash2} label={tc('actions.delete')} onClick={onDelete} danger />
         </div>

@@ -7,6 +7,9 @@ interface UseAdminUsersOptions {
   page?: number
   limit?: number
   search?: string
+  organizationId?: string
+  courseId?: string
+  learningPathId?: string
 }
 
 interface UseAdminUsersReturn {
@@ -40,13 +43,20 @@ const fetcher = async (url: string): Promise<AdminUsersResponse> => {
 }
 
 export function useAdminUsers(options: UseAdminUsersOptions = {}): UseAdminUsersReturn {
-  const { page = 1, limit = 50, search } = options
+  const { page = 1, search, organizationId, courseId, learningPathId } = options
+  const hasDirectoryFilters = Boolean(organizationId || courseId || learningPathId)
+  // Con filtros server-side se amplía el límite para no truncar coincidencias
+  // (la página carga una sola página; ver nota de paginación en el plan).
+  const limit = options.limit ?? (hasDirectoryFilters ? 200 : 50)
 
   // Construir URL con parámetros de query
   const params = new URLSearchParams()
   if (page) params.set('page', page.toString())
   if (limit) params.set('limit', limit.toString())
   if (search) params.set('search', search)
+  if (organizationId) params.set('organizationId', organizationId)
+  if (courseId) params.set('courseId', courseId)
+  if (learningPathId) params.set('learningPathId', learningPathId)
 
   const url = `/api/admin/users?${params.toString()}`
 

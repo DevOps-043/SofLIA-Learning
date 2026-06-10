@@ -25,6 +25,13 @@ export function cleanTextForLiaTTS(text: string): string {
   cleaned = cleaned.replace(/!\[([^\]]*)\]\([^)]+\)/g, '');
   cleaned = cleaned.replace(/^>\s+/gm, '');
   cleaned = cleaned.replace(/^[-*]{3,}$/gm, '');
+  // Viñetas de lista al inicio de línea ("- ", "* ", "+ ").
+  cleaned = cleaned.replace(/^\s*[-*+]\s+/gm, '');
+  // Marcadores de formato SOBRANTES (negritas/itálicas/código cuyo par quedó
+  // partido entre fragmentos del streaming). Sin esto la voz pronuncia
+  // "asterisco", "guion bajo", etc. Solo alimenta la síntesis: el texto visible
+  // del chat no se ve afectado.
+  cleaned = cleaned.replace(/[*_`]/g, '');
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
   cleaned = cleaned.replace(/[ \t]+/g, ' ');
   return cleaned.trim();

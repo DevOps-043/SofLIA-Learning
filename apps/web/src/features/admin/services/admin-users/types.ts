@@ -40,6 +40,9 @@ export interface GetUsersOptions {
   page?: number
   limit?: number
   search?: string
+  organizationId?: string
+  courseId?: string
+  learningPathId?: string
 }
 
 export interface GetUsersResult {

@@ -16,12 +16,13 @@ interface AdminUsersResultsProps {
   onClearFilters: () => void
   onEditUser: (user: AdminUser) => void
   onDeleteUser: (user: AdminUser) => void
+  onViewStats: (user: AdminUser) => void
   t: TFunction<'admin'>
   tc: TFunction<'common'>
 }
 
 export function AdminUsersResults(props: AdminUsersResultsProps) {
-  const { users, hasFilters, viewMode, locale, onAddClick, onClearFilters, onEditUser, onDeleteUser, t, tc } = props
+  const { users, hasFilters, viewMode, locale, onAddClick, onClearFilters, onEditUser, onDeleteUser, onViewStats, t, tc } = props
   if (users.length === 0) {
     return <AdminUsersEmptyState hasFilters={hasFilters} onClearFilters={onClearFilters} onAddClick={onAddClick} t={t} />
   }
@@ -30,7 +31,7 @@ export function AdminUsersResults(props: AdminUsersResultsProps) {
     return (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {users.map((user, index) => (
-          <AdminUserCard key={user.id} user={user} index={index} locale={locale} onEdit={() => onEditUser(user)} onDelete={() => onDeleteUser(user)} t={t} tc={tc} />
+          <AdminUserCard key={user.id} user={user} index={index} locale={locale} onEdit={() => onEditUser(user)} onDelete={() => onDeleteUser(user)} onViewStats={() => onViewStats(user)} t={t} tc={tc} />
         ))}
       </div>
     )
@@ -39,7 +40,7 @@ export function AdminUsersResults(props: AdminUsersResultsProps) {
   return (
     <div className="space-y-3">
       {users.map((user, index) => (
-        <AdminUserListRow key={user.id} user={user} index={index} locale={locale} onEdit={() => onEditUser(user)} onDelete={() => onDeleteUser(user)} t={t} tc={tc} />
+        <AdminUserListRow key={user.id} user={user} index={index} locale={locale} onEdit={() => onEditUser(user)} onDelete={() => onDeleteUser(user)} onViewStats={() => onViewStats(user)} t={t} tc={tc} />
       ))}
     </div>
   )

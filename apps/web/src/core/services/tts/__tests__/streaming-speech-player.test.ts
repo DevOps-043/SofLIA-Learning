@@ -34,19 +34,20 @@ describe('StreamingSpeechPlayer', () => {
     vi.clearAllMocks();
   });
 
-  it('keeps all accepted speech chunks on Gemini TTS and caps the turn at four chunks', async () => {
+  it('speaks long answers beyond four chunks instead of cutting off', async () => {
+    // Antes existía un tope duro de 4 fragmentos por respuesta: en respuestas
+    // largas el audio se cortaba. Ahora una respuesta troceada en muchos
+    // fragmentos se sintetiza completa (el throttle real es la concurrencia).
     requestTTSAudioMock.mockResolvedValue(new Blob(['audio']));
     const player = new StreamingSpeechPlayer();
 
-    expect(player.enqueue('Primer fragmento.')).toBe(true);
-    expect(player.enqueue('Segundo fragmento.')).toBe(true);
-    expect(player.enqueue('Tercer fragmento.')).toBe(true);
-    expect(player.enqueue('Cuarto fragmento.')).toBe(true);
-    expect(player.enqueue('Quinto fragmento.')).toBe(false);
+    for (let i = 0; i < 12; i += 1) {
+      expect(player.enqueue(`Fragmento ${i}.`)).toBe(true);
+    }
 
-    await flushMicrotasks();
+    await flushMicrotasks(80);
 
-    expect(requestTTSAudioMock).toHaveBeenCalledTimes(4);
+    expect(requestTTSAudioMock).toHaveBeenCalledTimes(12);
     expect(requestTTSAudioMock).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({ context: 'chat' }),
@@ -57,17 +58,24 @@ describe('StreamingSpeechPlayer', () => {
       expect.objectContaining({ context: 'chat_continuation' }),
       expect.any(AbortSignal),
     );
-    expect(requestTTSAudioMock).toHaveBeenNthCalledWith(
-      3,
-      expect.objectContaining({ context: 'chat_continuation' }),
-      expect.any(AbortSignal),
-    );
-    expect(requestTTSAudioMock).toHaveBeenNthCalledWith(
-      4,
-      expect.objectContaining({ context: 'chat_continuation' }),
-      expect.any(AbortSignal),
-    );
 
+    player.stop();
+  });
+
+  it('rejects chunks past the per-turn safety ceiling', async () => {
+    requestTTSAudioMock.mockResolvedValue(new Blob(['audio']));
+    const player = new StreamingSpeechPlayer();
+
+    // El tope de seguridad (48) evita encolar sin límite en casos patológicos.
+    let accepted = 0;
+    for (let i = 0; i < 60; i += 1) {
+      if (player.enqueue(`Fragmento ${i}.`)) accepted += 1;
+    }
+
+    expect(accepted).toBe(48);
+    expect(player.enqueue('Uno más.')).toBe(false);
+
+    await flushMicrotasks(120);
     player.stop();
   });
 });

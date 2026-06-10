@@ -14,11 +14,21 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '50')
     const search = searchParams.get('search') || undefined
+    const organizationId = searchParams.get('organizationId') || undefined
+    const courseId = searchParams.get('courseId') || undefined
+    const learningPathId = searchParams.get('learningPathId') || undefined
 
-    logger.log('🔄 Cargando usuarios desde API...', { page, limit, search })
+    logger.log('🔄 Cargando usuarios desde API...', {
+      page,
+      limit,
+      search,
+      organizationId,
+      courseId,
+      learningPathId,
+    })
 
     const [result, stats] = await Promise.all([
-      AdminUsersService.getUsers({ page, limit, search }),
+      AdminUsersService.getUsers({ page, limit, search, organizationId, courseId, learningPathId }),
       AdminUsersService.getUserStats()
     ])
 

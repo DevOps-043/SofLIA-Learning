@@ -8,6 +8,14 @@ export const DEFAULT_GEMINI_TTS_MODEL_ID = 'gemini-3.1-flash-tts-preview';
 export const DEFAULT_GEMINI_TTS_VOICE_NAME = 'Sulafat';
 // Zephyr (Bright) — female voice, high-pitched, clear and sweet, ideal for educational narration
 export const DEFAULT_GEMINI_TTS_READING_VOICE_NAME = 'Zephyr';
+// Google Cloud Text-to-Speech (distinto del "Gemini TTS preview"): API REST
+// `texttospeech.googleapis.com`, voces Neural2/Chirp3, MP3 comprimido, baja
+// latencia y free tier mensual. `es-US` es el español latinoamericano de Google.
+// Override con GOOGLE_CLOUD_TTS_VOICE / GOOGLE_CLOUD_TTS_LANGUAGE. Para máxima
+// naturalidad puede usarse una voz Chirp3-HD, p. ej. 'es-US-Chirp3-HD-Aoede'.
+export const DEFAULT_GOOGLE_CLOUD_TTS_LANGUAGE = 'es-US';
+export const DEFAULT_GOOGLE_CLOUD_TTS_VOICE = 'es-US-Neural2-A';
+
 export const DEFAULT_TTS_OUTPUT_FORMAT = 'mp3_22050_32';
 export const DEFAULT_TTS_OPTIMIZE_STREAMING_LATENCY = 4;
 export const DEFAULT_TTS_VOLUME = 0.8;

@@ -22,8 +22,12 @@ export function CourseLiaPanelContent(props: CourseLiaProps) {
     >
       <CourseLiaHeader
         isLightTheme={controller.isLightTheme}
+        isSpeaking={controller.isSpeaking}
+        isVoiceEnabled={controller.isVoiceEnabled}
+        isVoiceTogglePending={controller.isVoiceTogglePending}
         onClearHistory={controller.clearHistory}
         onClose={controller.closeLia}
+        onToggleVoice={controller.toggleVoiceEnabled}
         themeColors={controller.themeColors}
         isMobile={controller.isMobile}
       />
