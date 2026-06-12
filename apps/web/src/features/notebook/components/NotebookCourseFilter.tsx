@@ -15,7 +15,7 @@ interface NotebookCourseFilterProps {
  * NotebookCourseFilter
  *
  * Horizontal scrollable course pills for the "By course" tab.
- * Includes an "All" pill and one per course, with note/summary counts.
+ * Includes an "All" pill and one per course, with note counts.
  */
 export function NotebookCourseFilter({
   courses,
@@ -59,7 +59,7 @@ export function NotebookCourseFilter({
 
       {courses.map((course) => {
         const isActive = selectedCourseId === course.courseId
-        const totalCount = course.notesCount + course.summariesCount
+        const totalCount = course.notesCount
 
         return (
           <button

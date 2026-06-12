@@ -50,6 +50,7 @@ export interface LessonProgressApiResponse {
 
 export interface UseLessonCompletionParams {
   slug: string;
+  organizationId?: string | null;
   currentLesson: Lesson | null;
   modules: Module[];
   setModules: Dispatch<SetStateAction<Module[]>>;

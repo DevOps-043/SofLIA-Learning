@@ -4,14 +4,11 @@ import { createClient } from '@/lib/supabase/server';
 
 import {
   formatLiaLiveStudyMemorySection,
-  type LiveLearningSummary,
   type LiveLessonNote,
 } from './live-study-memory.formatter';
 
 const RECENT_NOTES_LIMIT = 8;
-const RECENT_SUMMARIES_LIMIT = 5;
 const NOTE_PREVIEW_LENGTH = 260;
-const SUMMARY_PREVIEW_LENGTH = 360;
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -21,16 +18,6 @@ interface NoteRow {
   note_title: string;
   source_type: string | null;
   updated_at: string | null;
-}
-
-interface SummaryRow {
-  content_html: string;
-  content_markdown: string;
-  course_id: string;
-  module_id: string;
-  status: string;
-  title: string;
-  updated_at: string;
 }
 
 interface LessonRow {
@@ -139,43 +126,6 @@ async function resolveLessonMaps(
   };
 }
 
-async function resolveSummaryMaps(
-  supabase: SupabaseServerClient,
-  summaries: SummaryRow[],
-) {
-  const moduleIds = uniqueValues(summaries.map((summary) => summary.module_id));
-  const courseIds = uniqueValues(summaries.map((summary) => summary.course_id));
-
-  const [modulesResult, coursesResult] = await Promise.all([
-    moduleIds.length
-      ? supabase
-          .from('course_modules')
-          .select('module_id, module_title, course_id')
-          .in('module_id', moduleIds)
-      : Promise.resolve({ data: [], error: null }),
-    courseIds.length
-      ? supabase.from('courses').select('id, title').in('id', courseIds)
-      : Promise.resolve({ data: [], error: null }),
-  ]);
-
-  if (modulesResult.error) {
-    logger.warn('[lia-live] no se pudieron resolver modulos de resumenes', {
-      error: modulesResult.error.message,
-    });
-  }
-
-  if (coursesResult.error) {
-    logger.warn('[lia-live] no se pudieron resolver cursos de resumenes', {
-      error: coursesResult.error.message,
-    });
-  }
-
-  return {
-    coursesById: new Map(((coursesResult.data || []) as CourseRow[]).map((course) => [course.id, course])),
-    modulesById: new Map(((modulesResult.data || []) as ModuleRow[]).map((module) => [module.module_id, module])),
-  };
-}
-
 async function fetchRecentLessonNotes(params: {
   organizationId?: string | null;
   supabase: SupabaseServerClient;
@@ -221,64 +171,15 @@ async function fetchRecentLessonNotes(params: {
     .filter((note) => note.contentPreview || note.title);
 }
 
-async function fetchRecentLearningSummaries(params: {
-  organizationId?: string | null;
-  supabase: SupabaseServerClient;
-  userId: string;
-}): Promise<LiveLearningSummary[]> {
-  const { organizationId, supabase, userId } = params;
-  let query = supabase
-    .from('module_learning_summaries')
-    .select('title, content_html, content_markdown, status, module_id, course_id, updated_at')
-    .eq('user_id', userId)
-    .eq('status', 'ready');
-
-  query = applyOrganizationScope(query, organizationId);
-
-  const { data, error } = await query
-    .order('updated_at', { ascending: false })
-    .limit(RECENT_SUMMARIES_LIMIT);
-
-  if (error) {
-    logger.warn('[lia-live] no se pudieron cargar resumenes recientes', {
-      error: error.message,
-    });
-    return [];
-  }
-
-  const rows = (data || []) as SummaryRow[];
-  const maps = await resolveSummaryMaps(supabase, rows);
-
-  return rows
-    .map((row) => {
-      const module = maps.modulesById.get(row.module_id);
-      const course = maps.coursesById.get(row.course_id);
-      const sourceContent = row.content_markdown || row.content_html;
-
-      return {
-        contentPreview: normalizeRichText(sourceContent, SUMMARY_PREVIEW_LENGTH),
-        courseTitle: course?.title || null,
-        moduleTitle: module?.module_title || null,
-        status: row.status,
-        title: sanitizeUntrustedString(row.title || 'Resumen SofLIA', 140),
-        updatedAt: row.updated_at,
-      };
-    })
-    .filter((summary) => summary.contentPreview || summary.title);
-}
-
 export async function buildLiaLiveStudyMemorySection(params: {
   organizationId?: string | null;
   userId: string;
 }): Promise<string> {
   try {
     const supabase = await createClient();
-    const [notes, summaries] = await Promise.all([
-      fetchRecentLessonNotes({ ...params, supabase }),
-      fetchRecentLearningSummaries({ ...params, supabase }),
-    ]);
+    const notes = await fetchRecentLessonNotes({ ...params, supabase });
 
-    return formatLiaLiveStudyMemorySection({ notes, summaries });
+    return formatLiaLiveStudyMemorySection({ notes });
   } catch (error) {
     logger.warn('[lia-live] no se pudo construir memoria academica', error);
     return '';

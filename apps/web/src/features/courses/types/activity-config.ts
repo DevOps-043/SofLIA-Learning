@@ -199,6 +199,7 @@ const unknownRecordSchema = z.record(z.string(), z.unknown())
 
 export const activitySubmissionRequestSchema = z
   .object({
+    organizationId: z.string().uuid().nullable().optional(),
     status: z.enum(['draft', 'submitted']).default('draft'),
     responseText: z.string().max(20000).nullable().optional(),
     responsePayload: unknownRecordSchema.default({}),
@@ -212,6 +213,7 @@ export type ActivitySubmissionRequest = z.infer<
 
 export const activityValidationRequestSchema = z
   .object({
+    organizationId: z.string().uuid().nullable().optional(),
     responseText: z.string().max(20000).nullable().optional(),
     responsePayload: unknownRecordSchema.optional(),
     evidencePayload: unknownRecordSchema.nullable().optional(),

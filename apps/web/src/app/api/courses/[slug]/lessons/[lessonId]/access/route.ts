@@ -1,174 +1,117 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { SessionService } from '@/features/auth/services/session.service';
-import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service';
+import { NextRequest, NextResponse } from 'next/server'
+
+import { ensureCourseEnrollmentScope } from '@/features/courses/services/course-enrollment.server.service'
+import { SessionService } from '@/features/auth/services/session.service'
+import { createClient } from '@/lib/supabase/server'
 
 function normalizeOrganizationId(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0
     ? value.trim()
-    : null;
+    : null
 }
 
 async function readOrganizationIdFromRequest(request: NextRequest) {
-  const bodyText = await request.text();
+  const bodyText = await request.text()
 
   if (bodyText.trim().length === 0) {
-    return null;
+    return null
   }
 
   try {
-    const payload = JSON.parse(bodyText) as { organizationId?: unknown };
-    return normalizeOrganizationId(payload.organizationId);
+    const payload = JSON.parse(bodyText) as { organizationId?: unknown }
+    return normalizeOrganizationId(payload.organizationId)
   } catch {
-    return null;
+    return null
   }
 }
 
 /**
  * POST /api/courses/[slug]/lessons/[lessonId]/access
- * Actualiza last_accessed_at cuando el usuario accede a una lección
+ * Updates last_accessed_at when the user opens a lesson in a validated scope.
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string; lessonId: string }> }
+  { params }: { params: Promise<{ slug: string; lessonId: string }> },
 ) {
   try {
-    const { slug, lessonId } = await params;
-    const supabase = await createClient();
-    const organizationId = await readOrganizationIdFromRequest(request);
+    const { slug, lessonId } = await params
+    const supabase = await createClient()
+    const organizationId = await readOrganizationIdFromRequest(request)
+    const currentUser = await SessionService.getCurrentUser()
 
-    // Verificar autenticación
-    const currentUser = await SessionService.getCurrentUser();
     if (!currentUser) {
-      return NextResponse.json(
-        { error: 'No autenticado' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
 
-    // Obtener el curso por slug
     const { data: course, error: courseError } = await supabase
       .from('courses')
       .select('id')
       .eq('slug', slug)
-      .single();
+      .single()
 
     if (courseError || !course) {
-      return NextResponse.json(
-        { error: 'Curso no encontrado' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 })
     }
 
-    const courseId = course.id;
-
-    // Obtener o crear enrollment del usuario
-    let enrollment = await resolveCourseEnrollment(
+    const enrollment = await ensureCourseEnrollmentScope(
       supabase,
       currentUser.id,
-      courseId,
+      course.id,
       organizationId,
-    );
+    )
 
-    // Si no existe enrollment, crearlo
     if (!enrollment) {
-      const now = new Date().toISOString();
-      const { data: newEnrollment, error: createError } = await supabase
-        .from('user_course_enrollments')
-        .insert({
-          user_id: currentUser.id,
-          course_id: courseId,
-          organization_id: organizationId,
-          enrollment_status: 'active',
-          overall_progress_percentage: 0,
-          enrolled_at: now,
-          started_at: now,
-          last_accessed_at: now,
-        })
-        .select('enrollment_id')
-        .single();
-
-      if (createError || !newEnrollment) {
-        return NextResponse.json(
-          { error: 'Error al crear inscripción' },
-          { status: 500 }
-        );
-      }
-
-      enrollment = {
-        ...newEnrollment,
-        organization_id: organizationId,
-        overall_progress_percentage: 0,
-        enrollment_status: 'active',
-        enrolled_at: now,
-        last_accessed_at: now,
-      };
+      return NextResponse.json(
+        { error: 'No tienes acceso a este curso en este contexto' },
+        { status: organizationId ? 403 : 404 },
+      )
     }
 
-    const enrollmentId = enrollment.enrollment_id;
-    const now = new Date().toISOString();
-
-    // Verificar si existe progreso de la lección
+    const now = new Date().toISOString()
     const { data: existingProgress } = await supabase
       .from('user_lesson_progress')
       .select('progress_id, lesson_status')
-      .eq('enrollment_id', enrollmentId)
+      .eq('enrollment_id', enrollment.enrollment_id)
       .eq('lesson_id', lessonId)
-      .single();
+      .maybeSingle()
 
     if (existingProgress) {
-      // Actualizar last_accessed_at y lesson_status si es necesario
       const updateData: Record<string, unknown> = {
         last_accessed_at: now,
         updated_at: now,
-      };
-
-      // Si la lección no ha sido iniciada, marcarla como in_progress
-      if (existingProgress.lesson_status === 'not_started') {
-        updateData.lesson_status = 'in_progress';
-        updateData.started_at = now;
       }
 
-      const { error: updateError } = await supabase
+      if (existingProgress.lesson_status === 'not_started') {
+        updateData.lesson_status = 'in_progress'
+        updateData.started_at = now
+      }
+
+      await supabase
         .from('user_lesson_progress')
         .update(updateData)
-        .eq('progress_id', existingProgress.progress_id);
-
-      if (updateError) {
-        // No retornar error, es solo tracking
-        return NextResponse.json({ success: true });
-      }
+        .eq('progress_id', existingProgress.progress_id)
     } else {
-      // Crear nuevo progreso si no existe
-      const { error: insertError } = await supabase
-        .from('user_lesson_progress')
-        .insert({
-          user_id: currentUser.id,
-          lesson_id: lessonId,
-          enrollment_id: enrollmentId,
-          lesson_status: 'in_progress',
-          video_progress_percentage: 0,
-          current_time_seconds: 0,
-          is_completed: false,
-          started_at: now,
-          last_accessed_at: now,
-        });
-
-      if (insertError) {
-        // No retornar error, es solo tracking
-        return NextResponse.json({ success: true });
-      }
+      await supabase.from('user_lesson_progress').insert({
+        current_time_seconds: 0,
+        enrollment_id: enrollment.enrollment_id,
+        is_completed: false,
+        last_accessed_at: now,
+        lesson_id: lessonId,
+        lesson_status: 'in_progress',
+        organization_id: enrollment.organization_id,
+        started_at: now,
+        user_id: currentUser.id,
+        video_progress_percentage: 0,
+      })
     }
 
-    // Actualizar last_accessed_at del enrollment
     await supabase
       .from('user_course_enrollments')
       .update({ last_accessed_at: now })
-      .eq('enrollment_id', enrollmentId);
+      .eq('enrollment_id', enrollment.enrollment_id)
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    // No retornar error, es solo tracking
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ success: true })
   }
 }

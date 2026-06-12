@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { logger as techDebtLogger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import { resolveVideoLessonEnrollmentScope } from '@/features/video-tracking/services/video-tracking-scope.server';
 import { buildSafeResumeCheckpoint } from '../../../lesson-tracking/update-progress/progress-security';
 
 /**
@@ -36,11 +37,31 @@ export async function GET(
             return NextResponse.json({ error: 'lessonId is required' }, { status: 400 });
         }
 
+        const organizationId =
+            request.nextUrl.searchParams.get('orgId') ??
+            request.nextUrl.searchParams.get('organizationId');
+        const enrollmentId = request.nextUrl.searchParams.get('enrollmentId');
+        const enrollment = await resolveVideoLessonEnrollmentScope({
+            enrollmentId,
+            lessonId,
+            organizationId,
+            supabase,
+            userId: user.id,
+        });
+
+        if (!enrollment) {
+            return NextResponse.json(
+                { error: 'Course enrollment scope not found' },
+                { status: organizationId || enrollmentId ? 403 : 404 },
+            );
+        }
+
         // Buscar el tracking más reciente para esta lección y usuario
         const { data: tracking, error } = await supabase
             .from('lesson_tracking')
             .select('video_checkpoint_seconds, video_playback_rate, status, video_total_duration_seconds, video_max_seconds')
             .eq('user_id', user.id)
+            .eq('enrollment_id', enrollment.enrollment_id)
             .eq('lesson_id', lessonId)
             .order('last_activity_at', { ascending: false })
             .limit(1)
@@ -55,6 +76,7 @@ export async function GET(
             .from('user_lesson_progress')
             .select('current_time_seconds, video_progress_percentage, lesson_status, is_completed')
             .eq('user_id', user.id)
+            .eq('enrollment_id', enrollment.enrollment_id)
             .eq('lesson_id', lessonId)
             .order('updated_at', { ascending: false, nullsFirst: false })
             .limit(1)

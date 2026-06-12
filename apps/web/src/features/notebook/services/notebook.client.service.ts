@@ -73,15 +73,3 @@ export async function updateNotebookNote(
     },
   )
 }
-
-export async function duplicateNotebookSummary(
-  orgSlug: string,
-  summaryId: string,
-): Promise<NotebookMutationResponse> {
-  return fetchJson<NotebookMutationResponse>(
-    `/api/${orgSlug}/business-user/notebook/summaries/${summaryId}/duplicate`,
-    {
-      method: 'POST',
-    },
-  )
-}

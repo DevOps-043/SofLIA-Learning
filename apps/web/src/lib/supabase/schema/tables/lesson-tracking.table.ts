@@ -3,6 +3,7 @@ export type LessonTrackingTable = {
   completed_at: string | null
   created_at: string
   end_trigger: string | null
+  enrollment_id: string | null
   id: string
   last_activity_at: string | null
   lesson_id: string
@@ -33,6 +34,7 @@ export type LessonTrackingTable = {
   completed_at?: string | null
   created_at?: string
   end_trigger?: string | null
+  enrollment_id?: string | null
   id?: string
   last_activity_at?: string | null
   lesson_id: string
@@ -63,6 +65,7 @@ export type LessonTrackingTable = {
   completed_at?: string | null
   created_at?: string
   end_trigger?: string | null
+  enrollment_id?: string | null
   id?: string
   last_activity_at?: string | null
   lesson_id?: string
@@ -90,6 +93,7 @@ export type LessonTrackingTable = {
   video_total_duration_seconds?: number | null
 }
   Relationships: [
+    { foreignKeyName: "lesson_tracking_enrollment_id_fkey"; columns: ["enrollment_id"]; isOneToOne: false; referencedRelation: "user_course_enrollments"; referencedColumns: ["enrollment_id"] },
     { foreignKeyName: "lesson_tracking_lesson_id_fkey"; columns: ["lesson_id"]; isOneToOne: false; referencedRelation: "course_lessons"; referencedColumns: ["lesson_id"] },
     { foreignKeyName: "lesson_tracking_lesson_id_fkey"; columns: ["lesson_id"]; isOneToOne: false; referencedRelation: "v_incomplete_lesson_times"; referencedColumns: ["lesson_id"] },
     { foreignKeyName: "lesson_tracking_lesson_id_fkey"; columns: ["lesson_id"]; isOneToOne: false; referencedRelation: "v_lessons_by_session_type_compatibility"; referencedColumns: ["lesson_id"] },

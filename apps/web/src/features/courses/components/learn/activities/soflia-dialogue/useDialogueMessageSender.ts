@@ -9,6 +9,7 @@ interface UseDialogueMessageSenderParams {
   endpointBase: string;
   isTerminal: boolean;
   onSessionUpdated?: () => void | Promise<void>;
+  organizationId?: string | null;
   sending: boolean;
   session: DialogueSession | null;
   setDraftMessage: Dispatch<SetStateAction<string>>;
@@ -23,6 +24,7 @@ export function useDialogueMessageSender({
   endpointBase,
   isTerminal,
   onSessionUpdated,
+  organizationId,
   sending,
   session,
   setDraftMessage,
@@ -42,7 +44,12 @@ export function useDialogueMessageSender({
 
       try {
         const response = await fetch(`${endpointBase}/message`, {
-          body: JSON.stringify({ clientTurnId: buildClientTurnId(), message: trimmedMessage, sessionId: session?.sessionId }),
+          body: JSON.stringify({
+            clientTurnId: buildClientTurnId(),
+            message: trimmedMessage,
+            organizationId,
+            sessionId: session?.sessionId,
+          }),
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           method: "POST",
@@ -68,5 +75,5 @@ export function useDialogueMessageSender({
     } finally {
       setSending(false);
     }
-  }, [draftMessage, endpointBase, isTerminal, onSessionUpdated, sending, session?.sessionId, setDraftMessage, setError, setSending, setSession, t]);
+  }, [draftMessage, endpointBase, isTerminal, onSessionUpdated, organizationId, sending, session?.sessionId, setDraftMessage, setError, setSending, setSession, t]);
 }

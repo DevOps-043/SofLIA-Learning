@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSofLIAPersonalization } from './useSofLIAPersonalization';
 import { cleanTextForSpeech } from '../services/tts/client/clean-text';
 import { StreamingSpeechPlayer } from '../services/tts/client/streaming-speech-player';
+import { registerAudioUnlock } from '../services/tts/client/ios-audio-unlock';
 import {
   STREAM_LOOKAHEAD_CHUNKS,
   nextFinalChunkLength,
@@ -204,6 +205,10 @@ export function useStreamingChatVoice({
       metricsTrackerRef.current.flush('stopped');
     }
   }, [clearRevealTimers, isVoiceEnabled]);
+
+  // Activa los listeners de gesto que desbloquean el audio en iOS/WebKit ANTES de
+  // que el usuario envíe su primer mensaje (ver `ios-audio-unlock`). Idempotente.
+  useEffect(() => { registerAudioUnlock(); }, []);
 
   useEffect(() => () => { stop(); }, [stop]);
 

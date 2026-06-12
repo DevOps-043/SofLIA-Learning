@@ -10,15 +10,19 @@ import { useVideoTracking } from '../../../../features/video-tracking';
 const TRACKING_TIMEUPDATE_THROTTLE_MS = 1000;
 
 interface UseCustomVideoPlayerTrackingInput {
+  enrollmentId?: string | null;
   lessonId?: string;
   onTrackingError?: (error: Error) => void;
+  organizationId?: string | null;
   trackingId?: string;
   videoRef: RefObject<HTMLVideoElement | null>;
 }
 
 export function useCustomVideoPlayerTracking({
+  enrollmentId,
   lessonId,
   onTrackingError,
+  organizationId,
   trackingId,
   videoRef,
 }: UseCustomVideoPlayerTrackingInput): void {
@@ -29,8 +33,10 @@ export function useCustomVideoPlayerTracking({
   // efecto de listeners de abajo no engancha nada (está protegido por
   // `if (!videoElement || !lessonId) return;`).
   const tracking = useVideoTracking({
+    enrollmentId,
     lessonId: lessonId ?? '',
     onError: onTrackingError,
+    organizationId,
     trackingId,
   });
 

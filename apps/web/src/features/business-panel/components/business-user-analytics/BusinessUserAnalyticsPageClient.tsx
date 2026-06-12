@@ -418,10 +418,10 @@ export function BusinessUserAnalyticsPageClient({
               <Panel icon={Award} title={t('analytics.sections.quizzes')} compact>
                 <StackedFacts
                   facts={[
-                    [t('analytics.quizzes.attempts'), formatNumber(analytics.quizzes.attempts)],
-                    [t('analytics.quizzes.passRate'), formatPercent(analytics.quizzes.passRate)],
+                    [t('analytics.quizzes.taken'), `${formatNumber(analytics.quizzes.quizzesTaken)} / ${formatNumber(analytics.quizzes.lessonsWithQuiz)}`],
+                    [t('analytics.quizzes.passed'), formatNumber(analytics.quizzes.quizzesPassed)],
                     [t('analytics.quizzes.average'), formatPercent(analytics.quizzes.averageScore)],
-                    [t('analytics.quizzes.latest'), formatPercent(analytics.quizzes.latestScore)],
+                    [t('analytics.quizzes.totalAttempts'), formatNumber(analytics.quizzes.totalAttempts)],
                   ]}
                 />
               </Panel>
@@ -678,11 +678,11 @@ function EngagementLineChart({
         className="h-full w-full overflow-visible text-gray-600 dark:text-gray-300"
         viewBox={`0 0 ${width} ${height}`}
       >
-        {yTicks.map((tick) => {
+        {yTicks.map((tick, tickIndex) => {
           const y = yFor(tick)
 
           return (
-            <g key={tick}>
+            <g key={tickIndex}>
               <line
                 stroke="var(--color-gray-200)"
                 strokeDasharray="3 3"

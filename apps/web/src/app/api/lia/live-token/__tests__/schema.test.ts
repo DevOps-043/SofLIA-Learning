@@ -51,21 +51,11 @@ describe('lia live token schema', () => {
           updatedAt: '2026-06-04T17:00:00.000Z',
         },
       ],
-      summaries: [
-        {
-          contentPreview: 'Resumen del modulo con conceptos principales.',
-          courseTitle: 'IA Aplicada',
-          moduleTitle: 'Fundamentos',
-          status: 'ready',
-          title: 'Apunte SofLIA',
-          updatedAt: '2026-06-04T17:30:00.000Z',
-        },
-      ],
     });
 
     expect(section).toContain('Memoria academica reciente del usuario');
     expect(section).toContain('Idea clave sobre automatizacion con IA');
-    expect(section).toContain('Resumenes SofLIA listos');
+    expect(section).toContain('Notas recientes del usuario');
     expect(section).not.toContain('lia_messages');
   });
 });

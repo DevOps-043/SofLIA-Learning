@@ -45,7 +45,10 @@ type Locale = 'es' | 'en' | 'pt'
 export function useLearnPageLogic() {
   const params = useParams()
   const router = useRouter()
-  const slug = params.slug as string
+  const routeOrgSlug = params?.orgSlug
+  const orgSlug = typeof routeOrgSlug === 'string' ? routeOrgSlug : undefined
+  const routeSlug = params?.slug
+  const slug = typeof routeSlug === 'string' ? routeSlug : ''
 
   const {
     isOpen: isLiaOpen,
@@ -56,7 +59,9 @@ export function useLearnPageLogic() {
     setInteractionBlocked: setLiaInteractionBlocked,
   } = useLiaCourse()
   const { user } = useAuth()
-  const organizationId = useCurrentOrganizationId()
+  const currentOrganizationId = useCurrentOrganizationId()
+  const organizationId = orgSlug ? currentOrganizationId : null
+  const currentOrganization = useOrganizationStore((store) => store.currentOrganization)
   // El store de organización hidrata de forma asíncrona: hasta que termina,
   // `organizationId` es null y dispararía una carga de `learn-data` con el
   // contexto de organización equivocado (y un segundo fetch al hidratar).
@@ -65,10 +70,10 @@ export function useLearnPageLogic() {
   const { t, i18n, ready } = useTranslation('learn')
   const selectedLang: Locale =
     i18n.language === 'en' ? 'en' : i18n.language === 'pt' ? 'pt' : 'es'
-  // Solo cargamos los datos del curso cuando los prerequisitos están estables
-  // (traducciones listas + organización hidratada). Así evitamos 2-3 peticiones
-  // pesadas en cascada en el arranque en frío mientras esos valores se asientan.
-  const isCourseDataEnabled = ready && isOrganizationHydrated
+  // En B2B el aprendizaje siempre vive dentro de una organizacion. La ruta
+  // legacy sin slug de empresa queda solo para resolver a que organizacion se
+  // debe mover el progreso historico, por eso no carga learn-data.
+  const isCourseDataEnabled = ready && isOrganizationHydrated && Boolean(orgSlug)
 
   const state = useLearnPageLocalState()
   const videoPlayerContext = useVideoPlayerOptional()
@@ -146,6 +151,7 @@ export function useLearnPageLogic() {
   const { markLessonAsCompleted, openValidationModal, validationModal, setValidationModal } =
     useLessonCompletion({
       slug,
+      organizationId,
       currentLesson: state.currentLesson,
       modules: state.modules,
       setModules: state.setModules,
@@ -254,6 +260,7 @@ export function useLearnPageLogic() {
   })
 
   return {
+    orgSlug,
     slug,
     router,
     user,
@@ -265,6 +272,8 @@ export function useLearnPageLogic() {
     translationFallbackWarning,
     mounted: state.mounted,
     course: state.course,
+    organizationId,
+    organizationName: orgSlug && state.course?.organization_id ? currentOrganization?.name ?? null : null,
     modules: state.modules,
     currentLesson: state.currentLesson,
     setCurrentLesson: state.setCurrentLesson,
@@ -317,13 +326,9 @@ export function useLearnPageLogic() {
     toggleNotesCollapsed: sidebar.toggleNotesCollapsed,
     addNoteToLocalState: notes.addNoteToLocalState,
     closeDeleteNoteConfirm: notes.closeDeleteNoteConfirm,
-    closeGeneratedSummaryViewer: notes.closeGeneratedSummaryViewer,
     closeNotesModal: notes.closeNotesModal,
     confirmDeleteNote: notes.confirmDeleteNote,
-    duplicateGeneratedSummary: notes.duplicateGeneratedSummary,
     editingNote: notes.editingNote,
-    generatedSummaryVersions: notes.generatedSummaryVersions,
-    generateDefaultSummary: notes.generateDefaultSummary,
     handleDeleteNote: notes.handleDeleteNote,
     handleSaveNote: notes.handleSaveNote,
     isDeleteNoteConfirmOpen: notes.isDeleteNoteConfirmOpen,
@@ -332,17 +337,11 @@ export function useLearnPageLogic() {
     noteError: notes.noteError,
     setNoteError: notes.setNoteError,
     notesStats: notes.notesStats,
-    navigateGeneratedSummary: notes.navigateGeneratedSummary,
     openEditNoteModal: notes.openEditNoteModal,
     openNewNoteModal: notes.openNewNoteModal,
     persistNote: notes.persistNote,
     savedNotes: notes.savedNotes,
-    regenerateSummary: notes.regenerateSummary,
-    regeneratingSummaryModuleId: notes.regeneratingSummaryModuleId,
     updateNotesStatsOptimized: notes.updateNotesStatsOptimized,
-    viewingGeneratedSummary: notes.viewingGeneratedSummary,
-    viewingSummaryIndex: notes.viewingSummaryIndex,
-    viewingSummaryVersions: notes.viewingSummaryVersions,
     getPreviousLesson: navigation.getPreviousLesson,
     getNextLesson: navigation.getNextLesson,
     handleActivityShortcut: navigation.handleActivityShortcut,

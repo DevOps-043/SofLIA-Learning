@@ -1589,7 +1589,6 @@
         "exportPdf": "Exportar como PDF",
         "copy": "Copiar apunte",
         "copyShort": "Copiar",
-        "duplicateNote": "Duplicar Nota",
         "regenerate": "Regenerar"
       }
     },
@@ -1659,12 +1658,8 @@
     },
     "card": {
       "manualNote": "Nota manual",
-      "sofliaSummary": "Apunte SofLIA",
       "lesson": "Lección",
-      "module": "Módulo",
       "course": "Taller",
-      "version": "Versión {{version}}",
-      "generating": "Generando...",
       "lastUpdate": "Última actualización"
     },
     "modal": {
@@ -1675,10 +1670,6 @@
       "copied": "Copiado",
       "saveButton": "Guardar cambios",
       "cancelButton": "Cancelar",
-      "duplicateButton": "Duplicar como nota editable",
-      "duplicating": "Duplicando...",
-      "duplicateSuccess": "Apunte duplicado como nota editable.",
-      "duplicateError": "No se pudo duplicar el apunte.",
       "saveError": "No se pudo guardar la nota.",
       "saving": "Guardando...",
       "titleLabel": "Título",
@@ -1688,8 +1679,7 @@
     "courseFilter": {
       "selectCourse": "Selecciona un taller",
       "allCourses": "Todos los talleres",
-      "notesCount": "{{count}} notas",
-      "summariesCount": "{{count}} apuntes SofLIA"
+      "notesCount": "{{count}} notas"
     },
     "empty": {
       "title": "Sin apuntes todavía",

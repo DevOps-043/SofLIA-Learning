@@ -121,6 +121,16 @@ export function TourRenderer() {
         return
       }
 
+      // Pressing Escape (or any explicit close) fires ACTIONS.CLOSE. In
+      // controlled mode Joyride only flips its internal lifecycle to COMPLETE
+      // without changing `run`, so the tooltip vanishes but the dimming overlay
+      // stays mounted and keeps the screen blocked. We must tear the tour down
+      // ourselves to release the UI.
+      if (data.action === ACTIONS.CLOSE) {
+        completeActiveTour()
+        return
+      }
+
       if (data.type === EVENTS.TARGET_NOT_FOUND) {
         if (data.action === ACTIONS.PREV) {
           prevStep()

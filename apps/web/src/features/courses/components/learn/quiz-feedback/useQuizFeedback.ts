@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
 
 import { useOrganizationStore } from "@/core/stores/organizationStore";
 
@@ -138,9 +139,12 @@ function persistStoredFeedback(
 }
 
 export function useQuizFeedback({ courseSlug, lessonId }: UseQuizFeedbackOptions = {}) {
+  const params = useParams();
   const currentOrganization = useOrganizationStore(
     (state) => state.currentOrganization
   );
+  const routeOrgSlug = params?.orgSlug;
+  const organizationId = routeOrgSlug ? currentOrganization?.id ?? null : null;
   const abortControllersRef = useRef(new Map<string, AbortController>());
   const [activePromptId, setActivePromptId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -232,7 +236,7 @@ export function useQuizFeedback({ courseSlug, lessonId }: UseQuizFeedbackOptions
             activityId,
             courseContext,
             materialId,
-            organizationId: currentOrganization?.id,
+            organizationId,
             prompt: normalizedPrompt,
           }),
           signal: abortController.signal,
@@ -297,7 +301,7 @@ export function useQuizFeedback({ courseSlug, lessonId }: UseQuizFeedbackOptions
         }
       }
     },
-    [courseSlug, currentOrganization?.id, feedbackByPromptId, lessonId]
+    [courseSlug, feedbackByPromptId, lessonId, organizationId]
   );
 
   const activeFeedback = activePromptId ? feedbackByPromptId[activePromptId] : null;

@@ -598,6 +598,10 @@
     },
     "quizzes": {
       "attempts": "Attempts",
+      "taken": "Taken",
+      "passed": "Passed",
+      "totalAttempts": "Total attempts",
+      "retries": "Retries",
       "passRate": "Pass rate",
       "average": "Average",
       "latest": "Latest result"

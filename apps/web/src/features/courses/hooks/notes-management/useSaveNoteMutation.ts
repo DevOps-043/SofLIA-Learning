@@ -50,7 +50,7 @@ export function useSaveNoteMutation({
           return false;
         }
 
-        const result = await updateNoteRequest(slug, targetLessonId, editingNote.id, noteData);
+        const result = await updateNoteRequest(slug, targetLessonId, editingNote.id, noteData, organizationId);
         if (!result.ok) {
           setNoteError(`Error al actualizar la nota: ${result.error}`);
           return false;

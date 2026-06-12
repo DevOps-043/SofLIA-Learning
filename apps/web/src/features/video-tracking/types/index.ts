@@ -4,6 +4,8 @@
 export interface VideoTrackingOptions {
     /** ID de la lección que se está viendo */
     lessonId: string;
+    enrollmentId?: string | null;
+    organizationId?: string | null;
     /** ID del tracking activo (opcional) */
     trackingId?: string;
     /** Callback para manejar errores */
@@ -32,6 +34,8 @@ export interface VideoResumeData {
 export interface UpdateProgressPayload {
     /** ID de la lección */
     lessonId: string;
+    enrollmentId?: string | null;
+    organizationId?: string | null;
     /** ID del tracking (opcional) */
     trackingId?: string;
     /** Posición actual en segundos */

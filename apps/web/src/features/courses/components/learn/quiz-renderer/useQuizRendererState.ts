@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import { useCurrentOrganizationId } from "@/core/stores/organizationStore";
 import { normalizeQuizQuestions, type SelectedQuizAnswers } from "@/features/courses/components/learn/quiz.utils";
 import { buildHydratedQuizState, getLatestSubmissionKey } from "./quiz-hydration";
@@ -21,7 +22,10 @@ export function useQuizRendererState({
   slug,
   totalPoints,
 }: QuizRendererProps) {
-  const organizationId = useCurrentOrganizationId();
+  const params = useParams();
+  const currentOrganizationId = useCurrentOrganizationId();
+  const routeOrgSlug = params?.orgSlug;
+  const organizationId = routeOrgSlug ? currentOrganizationId : null;
   const normalizedQuizData = useMemo(() => normalizeQuizQuestions(quizData), [quizData]);
   const initialState = useMemo(
     () => buildHydratedQuizState(normalizedQuizData, quizStatusItem),

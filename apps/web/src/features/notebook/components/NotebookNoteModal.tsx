@@ -10,15 +10,11 @@ import {
   Copy,
   FileText,
   GraduationCap,
-  Layers,
   Pencil,
   Save,
-  Sparkles,
   X,
 } from 'lucide-react'
-import { cn } from '@/shared/utils/cn'
 import type {
-  NotebookItem,
   NotebookManualNote,
   NotebookModalState,
   NotebookUpdateNoteInput,
@@ -31,11 +27,9 @@ import {
 interface NotebookNoteModalProps {
   state: NotebookModalState
   errorMessage: string | null
-  isDuplicatingSummary: boolean
   isSavingNote: boolean
   onCancelEdit: () => void
   onClose: () => void
-  onDuplicateSummary: () => Promise<boolean>
   onEdit: () => void
   onSaveManualNote: (payload: NotebookUpdateNoteInput) => Promise<boolean>
 }
@@ -43,11 +37,9 @@ interface NotebookNoteModalProps {
 export function NotebookNoteModal({
   state,
   errorMessage,
-  isDuplicatingSummary,
   isSavingNote,
   onCancelEdit,
   onClose,
-  onDuplicateSummary,
   onEdit,
   onSaveManualNote,
 }: NotebookNoteModalProps) {
@@ -86,12 +78,7 @@ export function NotebookNoteModal({
   const handleCopyContent = useCallback(async () => {
     if (!state.item) return
 
-    const textContent =
-      state.item.kind === 'manual_note'
-        ? getNotebookPlainText(state.item.content)
-        : state.item.contentMarkdown || getNotebookPlainText(state.item.contentHtml)
-
-    if (await copyTextToClipboard(textContent)) {
+    if (await copyTextToClipboard(getNotebookPlainText(state.item.content))) {
       setIsCopied(true)
       window.setTimeout(() => setIsCopied(false), 2000)
       return
@@ -122,7 +109,7 @@ export function NotebookNoteModal({
           >
             <ModalHeader item={state.item} onClose={onClose} t={t} />
 
-            {state.mode === 'edit' && state.item.kind === 'manual_note' ? (
+            {state.mode === 'edit' ? (
               <ManualNoteEditForm
                 errorMessage={errorMessage}
                 isSaving={isSavingNote}
@@ -135,10 +122,8 @@ export function NotebookNoteModal({
               <ModalContent
                 errorMessage={errorMessage}
                 isCopied={isCopied}
-                isDuplicatingSummary={isDuplicatingSummary}
                 item={state.item}
                 onCopy={handleCopyContent}
-                onDuplicateSummary={onDuplicateSummary}
                 onEdit={onEdit}
                 t={t}
               />
@@ -157,27 +142,18 @@ export function NotebookNoteModal({
 }
 
 interface ModalHeaderProps {
-  item: NotebookItem
+  item: NotebookManualNote
   onClose: () => void
   t: (key: string) => string
 }
 
 function ModalHeader({ item, onClose, t }: ModalHeaderProps) {
-  const isManualNote = item.kind === 'manual_note'
-
   return (
     <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-white/10">
       <div className="flex min-w-0 items-center gap-3">
-        <span
-          className={cn(
-            'inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium',
-            isManualNote
-              ? 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'
-              : 'bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400',
-          )}
-        >
-          {isManualNote ? <FileText className="h-3 w-3" /> : <Sparkles className="h-3 w-3" />}
-          {isManualNote ? t('notebook.card.manualNote') : t('notebook.card.sofliaSummary')}
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+          <FileText className="h-3 w-3" />
+          {t('notebook.card.manualNote')}
         </span>
         <h2 className="truncate text-lg font-semibold text-gray-900 dark:text-white">
           {item.title}
@@ -196,12 +172,10 @@ function ModalHeader({ item, onClose, t }: ModalHeaderProps) {
 }
 
 interface ModalContentProps {
-  item: NotebookItem
+  item: NotebookManualNote
   errorMessage: string | null
   isCopied: boolean
-  isDuplicatingSummary: boolean
   onCopy: () => void
-  onDuplicateSummary: () => Promise<boolean>
   onEdit: () => void
   t: (key: string, opts?: Record<string, unknown>) => string
 }
@@ -210,19 +184,13 @@ function ModalContent({
   item,
   errorMessage,
   isCopied,
-  isDuplicatingSummary,
   onCopy,
-  onDuplicateSummary,
   onEdit,
   t,
 }: ModalContentProps) {
-  const isManualNote = item.kind === 'manual_note'
   const safeContent = useMemo(
-    () =>
-      sanitizeNotebookRichContent(
-        isManualNote ? item.content : item.contentHtml || item.contentMarkdown,
-      ),
-    [isManualNote, item],
+    () => sanitizeNotebookRichContent(item.content),
+    [item],
   )
 
   return (
@@ -236,7 +204,7 @@ function ModalContent({
         />
       </div>
 
-      {isManualNote && item.tags.length > 0 ? <ManualNoteTags tags={item.tags} /> : null}
+      {item.tags.length > 0 ? <ManualNoteTags tags={item.tags} /> : null}
 
       {errorMessage ? (
         <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-500/10 dark:text-red-300">
@@ -250,24 +218,10 @@ function ModalContent({
           {isCopied ? t('notebook.modal.copied') : t('notebook.modal.copyButton')}
         </button>
 
-        {isManualNote ? (
-          <button className={primaryButtonClassName} onClick={onEdit} type="button">
-            <Pencil className="h-4 w-4" />
-            {t('notebook.modal.editButton')}
-          </button>
-        ) : (
-          <button
-            className={primaryButtonClassName}
-            disabled={isDuplicatingSummary || item.status !== 'ready'}
-            onClick={() => void onDuplicateSummary()}
-            type="button"
-          >
-            <Pencil className="h-4 w-4" />
-            {isDuplicatingSummary
-              ? t('notebook.modal.duplicating')
-              : t('notebook.modal.duplicateButton')}
-          </button>
-        )}
+        <button className={primaryButtonClassName} onClick={onEdit} type="button">
+          <Pencil className="h-4 w-4" />
+          {t('notebook.modal.editButton')}
+        </button>
       </div>
     </div>
   )
@@ -277,11 +231,9 @@ function NotebookMetadata({
   item,
   t,
 }: {
-  item: NotebookItem
+  item: NotebookManualNote
   t: (key: string, opts?: Record<string, unknown>) => string
 }) {
-  const isManualNote = item.kind === 'manual_note'
-
   return (
     <div className="mb-5 flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400">
       <span className="flex items-center gap-1.5">
@@ -289,22 +241,10 @@ function NotebookMetadata({
         {t('notebook.card.course')}: {item.courseTitle}
       </span>
 
-      {isManualNote ? (
-        <span className="flex items-center gap-1.5">
-          <BookOpenCheck className="h-3.5 w-3.5" />
-          {t('notebook.card.lesson')}: {item.lessonTitle}
-        </span>
-      ) : (
-        <>
-          <span className="flex items-center gap-1.5">
-            <Layers className="h-3.5 w-3.5" />
-            {t('notebook.card.module')}: {item.moduleTitle}
-          </span>
-          <span className="text-gray-400 dark:text-gray-500">
-            {t('notebook.card.version', { version: item.version })}
-          </span>
-        </>
-      )}
+      <span className="flex items-center gap-1.5">
+        <BookOpenCheck className="h-3.5 w-3.5" />
+        {t('notebook.card.lesson')}: {item.lessonTitle}
+      </span>
     </div>
   )
 }

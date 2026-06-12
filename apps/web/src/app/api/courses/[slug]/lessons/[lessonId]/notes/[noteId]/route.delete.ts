@@ -1,54 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { NoteService } from '@/features/courses/services/note.service'
-
-import { CourseService } from '@/features/courses/services/course.service'
-
 import { SessionService } from '@/features/auth/services/session.service'
+import { CourseService } from '@/features/courses/services/course.service'
+import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
+import { NoteService } from '@/features/courses/services/note.service'
+import { apiError } from '@/lib/api/errors'
+import { createAdminClient } from '@/lib/supabase/admin'
 
-import { GoogleGenerativeAI } from '@google/generative-ai'
-
-/**
- * DELETE /api/courses/[slug]/lessons/[lessonId]/notes/[noteId]
- * Elimina una nota
- */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string; lessonId: string; noteId: string }> }
+  { params }: { params: Promise<{ slug: string; lessonId: string; noteId: string }> },
 ) {
   try {
     const { slug, noteId } = await params
 
-    // Obtener usuario autenticado usando el sistema de sesiones personalizado
     const currentUser = await SessionService.getCurrentUser()
-
     if (!currentUser) {
-      return NextResponse.json(
-        { error: 'No autenticado' },
-        { status: 401 }
-      )
+      return apiError('UNAUTHENTICATED', 'No autenticado.', 401)
     }
 
-    // Verificar que el curso existe (opcional, para validación)
     const course = await CourseService.getCourseBySlug(slug, currentUser.id)
-    
     if (!course) {
-      return NextResponse.json(
-        { error: 'Curso no encontrado' },
-        { status: 404 }
+      return apiError('COURSE_NOT_FOUND', 'Curso no encontrado.', 404)
+    }
+
+    const organizationId = request.nextUrl.searchParams.get('orgId')
+    const enrollment = await resolveCourseEnrollment(
+      createAdminClient(),
+      currentUser.id,
+      course.id,
+      organizationId,
+    )
+
+    if (!enrollment) {
+      return apiError(
+        'ENROLLMENT_NOT_FOUND',
+        'No tienes acceso a esta nota en este contexto.',
+        organizationId ? 403 : 404,
       )
     }
 
-    await NoteService.deleteNote(currentUser.id, noteId)
+    await NoteService.deleteNote(currentUser.id, noteId, enrollment.enrollment_id)
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Error interno del servidor',
-        message: error instanceof Error ? error.message : 'Error desconocido'
-      },
-      { status: 500 }
-    )
+    return apiError('INTERNAL_ERROR', 'Error interno del servidor.', 500, {
+      details: error instanceof Error ? error.message : 'Error desconocido',
+    })
   }
 }

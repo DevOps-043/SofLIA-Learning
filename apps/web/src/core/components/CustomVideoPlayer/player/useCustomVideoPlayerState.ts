@@ -40,6 +40,7 @@ export function useCustomVideoPlayerState(
 ): Omit<CustomVideoPlayerController, 'quality'> {
   const {
     className = '',
+    enrollmentId,
     initialPlaybackRate = 1,
     initialTime = 0,
     lessonId,
@@ -47,6 +48,7 @@ export function useCustomVideoPlayerState(
     onPiPChange,
     onProgress,
     onTrackingError,
+    organizationId,
     pauseWhenHidden = true,
     pauseWhenOutsideViewport = false,
     preload = 'metadata',
@@ -60,8 +62,10 @@ export function useCustomVideoPlayerState(
   const state = usePlaybackState(initialTime, initialPlaybackRate);
 
   useCustomVideoPlayerTracking({
+    enrollmentId,
     lessonId,
     onTrackingError,
+    organizationId,
     trackingId,
     videoRef: refs.videoRef,
   });

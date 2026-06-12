@@ -18,17 +18,22 @@ export async function parseResponse(response: Response) {
 export function buildSubmissionUrl(
   slug: string,
   lessonId: string,
-  activity: LearnActivity
+  activity: LearnActivity,
+  organizationId?: string | null,
 ) {
-  return `/api/courses/${slug}/lessons/${lessonId}/activities/${activity.activity_id}/submission`;
+  const query = new URLSearchParams();
+  if (organizationId) query.set('orgId', organizationId);
+  const queryString = query.toString();
+  return `/api/courses/${slug}/lessons/${lessonId}/activities/${activity.activity_id}/submission${queryString ? `?${queryString}` : ''}`;
 }
 
 export async function fetchActivitySubmission(
   slug: string,
   lessonId: string,
-  activity: LearnActivity
+  activity: LearnActivity,
+  organizationId?: string | null,
 ) {
-  const response = await fetch(buildSubmissionUrl(slug, lessonId, activity), {
+  const response = await fetch(buildSubmissionUrl(slug, lessonId, activity, organizationId), {
     cache: 'no-store',
     credentials: 'include'
   });

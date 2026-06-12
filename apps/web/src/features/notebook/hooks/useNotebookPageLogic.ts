@@ -11,7 +11,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useCurrentOrganizationSlug } from '@/core/stores/organizationStore'
 import {
-  duplicateNotebookSummary,
   getNotebookCourses,
   getNotebookNotes,
   updateNotebookNote,
@@ -45,7 +44,6 @@ export interface UseNotebookPageLogicReturn {
   errorMessage: string | null
   mutationError: string | null
   isSavingNote: boolean
-  isDuplicatingSummary: boolean
 
   // Actions
   setActiveTab: (tab: NotebookTab) => void
@@ -55,7 +53,6 @@ export interface UseNotebookPageLogicReturn {
   setModalEditMode: () => void
   setModalReadMode: () => void
   saveManualNote: (payload: NotebookUpdateNoteInput) => Promise<boolean>
-  duplicateSummary: () => Promise<boolean>
   loadMore: () => void
   retryFetch: () => void
 }
@@ -92,7 +89,6 @@ export function useNotebookPageLogic({
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [mutationError, setMutationError] = useState<string | null>(null)
   const [isSavingNote, setIsSavingNote] = useState(false)
-  const [isDuplicatingSummary, setIsDuplicatingSummary] = useState(false)
 
   // Prevent double-fetch in React strict mode
   const fetchedRef = useRef(false)
@@ -215,22 +211,10 @@ export function useNotebookPageLogic({
 
   const replaceNotebookItem = useCallback((nextItem: NotebookItem) => {
     setItems((previousItems) =>
-      previousItems.map((item) => {
-        if (
-          item.kind === 'manual_note' &&
-          nextItem.kind === 'manual_note' &&
-          item.noteId === nextItem.noteId
-        ) {
-          return nextItem
-        }
-
-        return item
-      }),
+      previousItems.map((item) =>
+        item.noteId === nextItem.noteId ? nextItem : item,
+      ),
     )
-  }, [])
-
-  const prependNotebookItem = useCallback((nextItem: NotebookItem) => {
-    setItems((previousItems) => [nextItem, ...previousItems])
   }, [])
 
   const saveManualNote = useCallback(
@@ -266,35 +250,6 @@ export function useNotebookPageLogic({
     [fetchCourses, modalState.item, orgSlug, replaceNotebookItem, t],
   )
 
-  const duplicateSummary = useCallback(async () => {
-    if (!orgSlug || modalState.item?.kind !== 'soflia_summary') return false
-
-    setIsDuplicatingSummary(true)
-    setMutationError(null)
-
-    try {
-      const result = await duplicateNotebookSummary(
-        orgSlug,
-        modalState.item.summaryId,
-      )
-
-      if (!result.success || !result.item) {
-        setMutationError(result.error || t('notebook.modal.duplicateError'))
-        return false
-      }
-
-      prependNotebookItem(result.item)
-      setModalState({ isOpen: true, item: result.item, mode: 'edit' })
-      void fetchCourses()
-      return true
-    } catch {
-      setMutationError(t('notebook.modal.duplicateError'))
-      return false
-    } finally {
-      setIsDuplicatingSummary(false)
-    }
-  }, [fetchCourses, modalState.item, orgSlug, prependNotebookItem, t])
-
   const loadMore = useCallback(() => {
     if (!nextCursor || isLoadingMore) return
     fetchNotes(
@@ -327,7 +282,6 @@ export function useNotebookPageLogic({
     errorMessage,
     mutationError,
     isSavingNote,
-    isDuplicatingSummary,
     setActiveTab: handleSetActiveTab,
     setSelectedCourseId: handleSetSelectedCourseId,
     openModal,
@@ -335,7 +289,6 @@ export function useNotebookPageLogic({
     setModalEditMode,
     setModalReadMode,
     saveManualNote,
-    duplicateSummary,
     loadMore,
     retryFetch,
   }

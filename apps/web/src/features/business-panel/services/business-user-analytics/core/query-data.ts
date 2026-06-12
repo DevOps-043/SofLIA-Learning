@@ -4,6 +4,9 @@ import { ActivitySubmissionRecord } from './activity-submission-record'
 import { AssignmentRecord } from './assignment-record'
 import { CertificateRecord } from './certificate-record'
 import { CourseLessonRecord } from './course-lesson-record'
+import { DialogueResultRecord } from './dialogue-result-record'
+import { DialogueSessionRecord } from './dialogue-session-record'
+import { DialogueTurnRecord } from './dialogue-turn-record'
 import { EnrollmentRecord } from './enrollment-record'
 import { LessonActivityRecord } from './lesson-activity-record'
 import { LessonNoteRecord } from './lesson-note-record'
@@ -11,6 +14,7 @@ import { LessonProgressRecord } from './lesson-progress-record'
 import { LessonTrackingRecord } from './lesson-tracking-record'
 import { LiaConversationRecord } from './lia-conversation-record'
 import { LiaMessageRecord } from './lia-message-record'
+import { QuizAttemptRecord } from './quiz-attempt-record'
 import { QuizSubmissionRecord } from './quiz-submission-record'
 import { StudySessionRecord } from './study-session-record'
 import { UserSessionRecord } from './user-session-record'
@@ -24,11 +28,16 @@ export interface QueryData {
   activitySubmissions: ActivitySubmissionRecord[]
   activityCompletions: ActivityCompletionRecord[]
   activityEvaluations: ActivityEvaluationRecord[]
+  dialogueResults: DialogueResultRecord[]
+  dialogueSessions: DialogueSessionRecord[]
+  dialogueTurns: DialogueTurnRecord[]
   liaConversations: LiaConversationRecord[]
   liaMessages: LiaMessageRecord[]
   studySessions: StudySessionRecord[]
   lessonNotes: LessonNoteRecord[]
   quizSubmissions: QuizSubmissionRecord[]
+  quizAttempts: QuizAttemptRecord[]
+  quizLessonIds: string[]
   certificates: CertificateRecord[]
   userSessions: UserSessionRecord[]
   lessonTracking: LessonTrackingRecord[]

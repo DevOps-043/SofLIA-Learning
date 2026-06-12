@@ -14,6 +14,8 @@ export interface CustomVideoPlayerProps {
   initialPlaybackRate?: number;
   initialTime?: number;
   lessonId?: string;
+  enrollmentId?: string | null;
+  organizationId?: string | null;
   onComplete?: () => void;
   onPiPChange?: (isPiP: boolean) => void;
   onProgress?: (progress: number) => void;

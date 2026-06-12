@@ -230,38 +230,7 @@ export type LearnSavedNote = {
   tags?: string[];
 };
 
-export type LearnGeneratedModuleSummary = {
-  kind: "module_learning_summary";
-  id: string;
-  moduleId: string;
-  moduleTitle?: string;
-  title: string;
-  content: string;
-  fullContent: string;
-  timestamp: string;
-  updatedAt?: string;
-  version: number;
-  status: "generating" | "ready" | "failed";
-  generationType: "default" | "manual_regeneration";
-  errorMessage?: string | null;
-  canRegenerate: boolean;
-};
-
-export type LearnModuleSummaryCandidate = {
-  kind: "module_learning_summary_candidate";
-  id: string;
-  moduleId: string;
-  moduleTitle: string;
-  title: string;
-  content: string;
-  fullContent?: string;
-  timestamp: string;
-};
-
-export type LearnNoteListItem =
-  | LearnSavedNote
-  | LearnGeneratedModuleSummary
-  | LearnModuleSummaryCandidate;
+export type LearnNoteListItem = LearnSavedNote;
 
 export type LearnNotesStats = {
   totalNotes: number;

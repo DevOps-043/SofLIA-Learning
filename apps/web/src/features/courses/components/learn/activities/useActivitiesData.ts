@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import { useCurrentOrganizationId } from '../../../../../core/stores/organizationStore';
 import { useActivityCollapseState } from './useActivitiesData/useActivityCollapseState';
 import { useActivityPrompts } from './useActivitiesData/useActivityPrompts';
@@ -18,7 +19,10 @@ export function useActivitiesData({
   generateRoleBasedPrompts,
   onLessonContentRefresh,
 }: UseActivitiesDataOptions) {
-  const organizationId = useCurrentOrganizationId();
+  const params = useParams();
+  const currentOrganizationId = useCurrentOrganizationId();
+  const routeOrgSlug = params?.orgSlug;
+  const organizationId = routeOrgSlug ? currentOrganizationId : null;
   const content = useLessonContentState({
     initialContent,
     lessonId,

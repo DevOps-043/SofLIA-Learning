@@ -15,9 +15,16 @@ interface CourseAccessState {
  * Hook para verificar si el usuario tiene acceso a un curso
  * Verifica que el usuario esté autenticado y que haya comprado el curso
  */
-export function useCourseAccess(courseSlug: string): CourseAccessState {
+export function useCourseAccess(
+    courseSlug: string,
+    organizationId?: string | null,
+    enabled = true,
+): CourseAccessState {
     const { user, loading: authLoading } = useAuth();
     const currentOrganization = useOrganizationStore(state => state.currentOrganization);
+    const scopedOrganizationId = organizationId === undefined
+        ? currentOrganization?.id ?? null
+        : organizationId;
     const [state, setState] = useState<CourseAccessState>({
         hasAccess: null,
         isLoading: true,
@@ -26,6 +33,15 @@ export function useCourseAccess(courseSlug: string): CourseAccessState {
 
     useEffect(() => {
         async function checkAccess() {
+            if (!enabled || !courseSlug) {
+                setState({
+                    hasAccess: false,
+                    isLoading: false,
+                    error: null,
+                });
+                return;
+            }
+
             // Esperar a que termine la autenticación
             if (authLoading) {
                 return;
@@ -44,8 +60,8 @@ export function useCourseAccess(courseSlug: string): CourseAccessState {
             try {
                 // Construir URL con el ID de la organización activa si existe
                 let url = `/api/courses/${courseSlug}/check-purchase`;
-                if (currentOrganization?.id) {
-                    url += `?orgId=${currentOrganization.id}`;
+                if (scopedOrganizationId) {
+                    url += `?orgId=${scopedOrganizationId}`;
                 }
 
                 // Verificar si el usuario ha comprado el curso o lo tiene asignado
@@ -75,7 +91,7 @@ export function useCourseAccess(courseSlug: string): CourseAccessState {
         }
 
         checkAccess();
-    }, [courseSlug, user, authLoading, currentOrganization?.id]);
+    }, [courseSlug, user, authLoading, scopedOrganizationId, enabled]);
 
     return state;
 }

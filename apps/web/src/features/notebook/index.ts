@@ -1,8 +1,8 @@
 /**
  * Notebook Feature — Barrel Exports
  *
- * The Notebook ("Libro de Apuntes") feature aggregates user lesson notes and
- * SofLIA module summaries into a single, browsable, org-scoped collection.
+ * The Notebook ("Libro de Apuntes") feature lists the user's manual lesson
+ * notes as a browsable, org-scoped collection.
  */
 
 // Components
@@ -19,7 +19,6 @@ export { useNotebookPageLogic } from './hooks/useNotebookPageLogic'
 
 // Services (client)
 export {
-  duplicateNotebookSummary,
   getNotebookNotes,
   getNotebookCourses,
   updateNotebookNote,
@@ -29,7 +28,6 @@ export {
 export type {
   NotebookItem,
   NotebookManualNote,
-  NotebookSofliaSummary,
   NotebookCourse,
   NotebookNotesResponse,
   NotebookCoursesResponse,

@@ -8,6 +8,8 @@ import { useDebouncedCallback } from 'use-debounce';
 interface VideoTrackingOptions {
     /** ID de la lección que se está viendo */
     lessonId: string;
+    enrollmentId?: string | null;
+    organizationId?: string | null;
     /** ID del tracking activo (opcional) */
     trackingId?: string;
     /** Callback para manejar errores */
@@ -88,7 +90,9 @@ interface UpdateProgressOptions {
  * ```
  */
 export function useVideoTracking({
+    enrollmentId,
     lessonId,
+    organizationId,
     trackingId,
     onError
 }: VideoTrackingOptions) {
@@ -148,6 +152,8 @@ export function useVideoTracking({
                     body: JSON.stringify({
                         lessonId,
                         trackingId,
+                        enrollmentId,
+                        organizationId,
                         checkpoint: Math.floor(currentTime),
                         maxReached: Math.floor(maxSecondsReached.current),
                         totalDuration: Math.floor(duration),
@@ -186,7 +192,7 @@ export function useVideoTracking({
                 inFlightRef.current = false;
             }
         },
-        [lessonId, trackingId, onError]
+        [lessonId, enrollmentId, organizationId, trackingId, onError]
     );
 
     /**

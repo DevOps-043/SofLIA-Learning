@@ -3,6 +3,7 @@ import type { Json } from '../json'
 export type UserLessonNotesTable = {
   Row: {
   created_at: string | null
+  enrollment_id: string | null
   is_auto_generated: boolean | null
   lesson_id: string
   note_content: string
@@ -16,6 +17,7 @@ export type UserLessonNotesTable = {
 }
   Insert: {
   created_at?: string | null
+  enrollment_id?: string | null
   is_auto_generated?: boolean | null
   lesson_id: string
   note_content: string
@@ -29,6 +31,7 @@ export type UserLessonNotesTable = {
 }
   Update: {
   created_at?: string | null
+  enrollment_id?: string | null
   is_auto_generated?: boolean | null
   lesson_id?: string
   note_content?: string
@@ -41,6 +44,7 @@ export type UserLessonNotesTable = {
   user_id?: string
 }
   Relationships: [
+    { foreignKeyName: "user_lesson_notes_enrollment_id_fkey"; columns: ["enrollment_id"]; isOneToOne: false; referencedRelation: "user_course_enrollments"; referencedColumns: ["enrollment_id"] },
     { foreignKeyName: "user_lesson_notes_lesson_id_fkey"; columns: ["lesson_id"]; isOneToOne: false; referencedRelation: "course_lessons"; referencedColumns: ["lesson_id"] },
     { foreignKeyName: "user_lesson_notes_lesson_id_fkey"; columns: ["lesson_id"]; isOneToOne: false; referencedRelation: "v_incomplete_lesson_times"; referencedColumns: ["lesson_id"] },
     { foreignKeyName: "user_lesson_notes_lesson_id_fkey"; columns: ["lesson_id"]; isOneToOne: false; referencedRelation: "v_lessons_by_session_type_compatibility"; referencedColumns: ["lesson_id"] },

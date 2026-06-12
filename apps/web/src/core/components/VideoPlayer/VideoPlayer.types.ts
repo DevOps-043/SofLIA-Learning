@@ -5,12 +5,14 @@ import type { CustomVideoPlayerRef } from '../CustomVideoPlayer/CustomVideoPlaye
 
 export interface VideoPlayerProps {
   className?: string;
+  enrollmentId?: string | null;
   initialPlaybackRate?: number;
   initialTime?: number;
   lessonId?: string;
   onComplete?: () => void;
   onPiPChange?: (isPiP: boolean) => void;
   onProgress?: (progress: number) => void;
+  organizationId?: string | null;
   playbackContext?: MediaPlaybackContext;
   seekControlsLocked?: boolean;
   title?: string;

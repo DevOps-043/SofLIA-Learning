@@ -1,5 +1,6 @@
 export interface LessonTrackingRecord {
   id: string
+  enrollment_id: string | null
   lesson_id: string
   organization_id: string | null
   status: string

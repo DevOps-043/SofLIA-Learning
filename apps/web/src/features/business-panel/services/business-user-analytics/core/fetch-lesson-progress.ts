@@ -13,7 +13,7 @@ export async function fetchLessonProgress(
 
   const { data, error } = await supabase
     .from('user_lesson_progress')
-    .select('progress_id, enrollment_id, lesson_id, organization_id, lesson_status, is_completed, time_spent_minutes, completed_at, started_at, last_activity_submission_at, last_accessed_at, updated_at, activity_progress_percentage, quiz_progress_percentage, required_activities_completed, required_activities_total')
+    .select('progress_id, enrollment_id, lesson_id, organization_id, lesson_status, is_completed, time_spent_minutes, completed_at, started_at, last_activity_submission_at, last_accessed_at, updated_at, activity_progress_percentage, quiz_progress_percentage, quiz_completed, quiz_passed, required_activities_completed, required_activities_total')
     .eq('user_id', userId)
     .in('enrollment_id', Array.from(scope.enrollmentIds))
     .limit(PAGE_LIMIT)

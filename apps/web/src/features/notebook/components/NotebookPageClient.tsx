@@ -36,7 +36,6 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
     isLoadingCourses,
     isLoadingMore,
     isSavingNote,
-    isDuplicatingSummary,
     hasMore,
     errorMessage,
     mutationError,
@@ -47,7 +46,6 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
     setModalEditMode,
     setModalReadMode,
     saveManualNote,
-    duplicateSummary,
     loadMore,
     retryFetch,
   } = useNotebookPageLogic({ orgSlug })
@@ -157,21 +155,14 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
           <div
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
           >
-            {items.map((item, index) => {
-              const key =
-                item.kind === 'manual_note'
-                  ? `note-${item.noteId}`
-                  : `summary-${item.summaryId}`
-
-              return (
-                <NotebookNoteCard
-                  key={key}
-                  item={item}
-                  index={index}
-                  onClick={openModal}
-                />
-              )
-            })}
+            {items.map((item, index) => (
+              <NotebookNoteCard
+                key={`note-${item.noteId}`}
+                item={item}
+                index={index}
+                onClick={openModal}
+              />
+            ))}
           </div>
 
           {/* Load more */}
@@ -204,11 +195,9 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
       <NotebookNoteModal
         state={modalState}
         errorMessage={mutationError}
-        isDuplicatingSummary={isDuplicatingSummary}
         isSavingNote={isSavingNote}
         onCancelEdit={setModalReadMode}
         onClose={closeModal}
-        onDuplicateSummary={duplicateSummary}
         onEdit={setModalEditMode}
         onSaveManualNote={saveManualNote}
       />

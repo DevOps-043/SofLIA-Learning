@@ -8,6 +8,7 @@ import type { DialogueSession } from "./dialogue.types";
 interface UseDialogueSessionLoaderParams {
   endpointBase: string;
   mountedRef: MutableRefObject<boolean>;
+  organizationId?: string | null;
   setDraftMessage: Dispatch<SetStateAction<string>>;
   setError: (message: string | null) => void;
   setLoading: (loading: boolean) => void;
@@ -18,6 +19,7 @@ interface UseDialogueSessionLoaderParams {
 export function useDialogueSessionLoader({
   endpointBase,
   mountedRef,
+  organizationId,
   setDraftMessage,
   setError,
   setLoading,
@@ -34,7 +36,11 @@ export function useDialogueSessionLoader({
       if (showLoading && mountedRef.current) setLoading(true);
       if (mountedRef.current) setError(null);
 
-      const response = await fetch(`${endpointBase}/session${restart ? "?restart=1" : ""}`, {
+      const params = new URLSearchParams();
+      if (restart) params.set("restart", "1");
+      if (organizationId) params.set("orgId", organizationId);
+      const query = params.toString();
+      const response = await fetch(`${endpointBase}/session${query ? `?${query}` : ""}`, {
         cache: "no-store",
         credentials: "include",
         signal: request.controller.signal,
@@ -59,5 +65,5 @@ export function useDialogueSessionLoader({
       request.clear();
       if (showLoading && mountedRef.current) setLoading(false);
     }
-  }, [endpointBase, mountedRef, setDraftMessage, setError, setLoading, setSession, t]);
+  }, [endpointBase, mountedRef, organizationId, setDraftMessage, setError, setLoading, setSession, t]);
 }

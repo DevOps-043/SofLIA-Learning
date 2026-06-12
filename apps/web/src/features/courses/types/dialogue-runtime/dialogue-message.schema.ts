@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const dialogueMessageRequestSchema = z
   .object({
     sessionId: z.string().uuid().optional(),
+    organizationId: z.string().uuid().nullable().optional(),
     message: z.string().trim().min(1).max(6000),
     clientTurnId: z.string().trim().min(1).max(120).optional(),
   })

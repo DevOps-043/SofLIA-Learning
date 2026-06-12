@@ -10,11 +10,12 @@ import { buildOptimisticNotesStats } from "./notes-stats.helpers";
 import type { NotesStatsOperation } from "./types";
 
 interface UseNotesStatsParams {
+  organizationId?: string | null;
   slug: string;
   totalLessons: number;
 }
 
-export function useNotesStats({ slug, totalLessons }: UseNotesStatsParams) {
+export function useNotesStats({ organizationId, slug, totalLessons }: UseNotesStatsParams) {
   const [notesStats, setNotesStats] = useState<LearnNotesStats>({
     totalNotes: 0,
     lessonsWithNotes: "0/0",
@@ -41,7 +42,10 @@ export function useNotesStats({ slug, totalLessons }: UseNotesStatsParams) {
     const defaultStats = getDefaultNotesStats(totalLessons);
 
     try {
-      const response = await fetch(`/api/courses/${courseSlug}/notes/stats`, {
+      const query = new URLSearchParams();
+      if (organizationId) query.set("orgId", organizationId);
+      const queryString = query.toString();
+      const response = await fetch(`/api/courses/${courseSlug}/notes/stats${queryString ? `?${queryString}` : ""}`, {
         cache: "no-store",
         credentials: "include",
       });
@@ -69,7 +73,7 @@ export function useNotesStats({ slug, totalLessons }: UseNotesStatsParams) {
     } catch {
       setNotesStats(defaultStats);
     }
-  }, [totalLessons]);
+  }, [organizationId, totalLessons]);
 
   const scheduleNotesStatsRefresh = useCallback(() => {
     if (!slug) return;

@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  compareNotebookItems,
+  buildNotebookNotesPage,
   decodeNotebookCursor,
-  mergeNotebookSourcesPage,
 } from '../notebook-pagination.service'
-import type { NotebookManualNote, NotebookSofliaSummary } from '../../types'
+import type { NotebookManualNote } from '../../types'
 
 function manualNote(id: string, updatedAt: string): NotebookManualNote {
   return {
@@ -28,58 +27,35 @@ function manualNote(id: string, updatedAt: string): NotebookManualNote {
   }
 }
 
-function summary(id: string, updatedAt: string): NotebookSofliaSummary {
-  return {
-    kind: 'soflia_summary',
-    summaryId: id,
-    title: `Summary ${id}`,
-    contentPreview: '',
-    contentHtml: '',
-    contentMarkdown: '',
-    status: 'ready',
-    version: 1,
-    moduleId: 'module-1',
-    moduleTitle: 'Module',
-    courseId: 'course-1',
-    courseTitle: 'Course',
-    organizationId: 'org-1',
-    generatedAt: updatedAt,
-    createdAt: updatedAt,
-    updatedAt,
-  }
-}
-
 describe('notebook.server.service pagination helpers', () => {
-  it('sorts mixed notebook items deterministically by updatedAt and identity', () => {
-    const items = [
+  it('sorts notebook notes deterministically by updatedAt and identity', () => {
+    const notes = [
       manualNote('b', '2026-05-20T10:00:00.000Z'),
-      summary('a', '2026-05-20T11:00:00.000Z'),
+      manualNote('c', '2026-05-20T11:00:00.000Z'),
       manualNote('a', '2026-05-20T10:00:00.000Z'),
     ]
 
-    expect([...items].sort(compareNotebookItems).map((item) => item.title)).toEqual([
-      'Summary a',
+    const page = buildNotebookNotesPage(notes, 10)
+
+    expect(page.items.map((item) => item.title)).toEqual([
+      'Note c',
       'Note b',
       'Note a',
     ])
   })
 
   it('returns an opaque cursor that resumes after the last item on the page', () => {
-    const manualNotes = [
+    const notes = [
       manualNote('n-1', '2026-05-20T12:00:00.000Z'),
-      manualNote('n-2', '2026-05-20T10:00:00.000Z'),
+      manualNote('n-2', '2026-05-20T11:00:00.000Z'),
+      manualNote('n-3', '2026-05-20T10:00:00.000Z'),
     ]
-    const summaries = [summary('s-1', '2026-05-20T11:00:00.000Z')]
 
-    const firstPage = mergeNotebookSourcesPage(manualNotes, summaries, 2, null)
+    const firstPage = buildNotebookNotesPage(notes, 2)
     const cursor = decodeNotebookCursor(firstPage.nextCursor || undefined)
-    const secondPage = mergeNotebookSourcesPage(manualNotes, summaries, 2, cursor)
 
-    expect(firstPage.items.map((item) => item.title)).toEqual([
-      'Note n-1',
-      'Summary s-1',
-    ])
-    expect(secondPage.items.map((item) => item.title)).toEqual(['Note n-2'])
-    expect(secondPage.nextCursor).toBeNull()
+    expect(firstPage.items.map((item) => item.title)).toEqual(['Note n-1', 'Note n-2'])
+    expect(cursor?.id).toBe('n-2')
+    expect(firstPage.nextCursor).not.toBeNull()
   })
 })

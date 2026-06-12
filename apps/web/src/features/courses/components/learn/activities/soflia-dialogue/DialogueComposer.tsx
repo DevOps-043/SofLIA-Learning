@@ -158,9 +158,11 @@ export function DialogueComposer({
         primaryActionMode={primaryActionMode}
         themeColors={themeColors}
       />
-      <p className="text-[11px] leading-relaxed text-gray-500 dark:text-white/40">
-        {isTerminal ? t("activities.dialogue.closedHelper") : t("activities.dialogue.helper")}
-      </p>
+      {isTerminal && (
+        <p className="text-[11px] leading-relaxed text-gray-500 dark:text-white/40">
+          {t("activities.dialogue.closedHelper")}
+        </p>
+      )}
     </>
   );
 }

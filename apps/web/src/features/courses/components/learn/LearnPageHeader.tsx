@@ -10,6 +10,7 @@ interface LearnPageHeaderProps {
   courseTitle: string;
   courseProgress: number;
   onBack: () => void;
+  organizationName?: string | null;
   tourAction?: ReactNode;
   disableHeavyEffects?: boolean;
 }
@@ -18,6 +19,7 @@ export function LearnPageHeader({
   courseTitle,
   courseProgress,
   onBack,
+  organizationName,
   tourAction,
   disableHeavyEffects = false,
 }: LearnPageHeaderProps) {
@@ -47,6 +49,11 @@ export function LearnPageHeader({
             >
               {courseTitle}
             </h1>
+            {organizationName ? (
+              <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-white/60">
+                {t("header.organizationContext", { organizationName })}
+              </p>
+            ) : null}
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">

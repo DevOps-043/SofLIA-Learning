@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+import { useCurrentOrganizationId } from "@/core/stores/organizationStore";
 import { getActivitySubmissionRequirementIssues } from "@/features/courses/services/activity-submission-requirements.service";
 import { buildInitialState, buildSubmissionRequest } from "./useActivitySubmission/activity-submission-state";
 import { useActivitySubmissionActions } from "./useActivitySubmission/useActivitySubmissionActions";
@@ -12,8 +14,13 @@ export function useActivitySubmission({
   activity,
   lessonId,
   onSubmissionSaved,
+  organizationId: explicitOrganizationId,
   slug,
 }: UseActivitySubmissionParams) {
+  const params = useParams();
+  const currentOrganizationId = useCurrentOrganizationId();
+  const routeOrgSlug = params?.orgSlug;
+  const organizationId = explicitOrganizationId ?? (routeOrgSlug ? currentOrganizationId : null);
   const [submission, setSubmission] = useState<LearnActivitySubmission | null>(null);
   const [state, setState] = useState<ActivityFormState>(() => buildInitialState(activity));
   const [loading, setLoading] = useState(true);
@@ -30,9 +37,16 @@ export function useActivitySubmission({
     setState,
     setSubmission,
     slug,
+    organizationId,
   });
 
-  const requestPayload = useMemo(() => buildSubmissionRequest(activity, state), [activity, state]);
+  const requestPayload = useMemo(
+    () => ({
+      ...buildSubmissionRequest(activity, state),
+      organizationId,
+    }),
+    [activity, organizationId, state],
+  );
   const submissionRequirementIssues = useMemo(() => {
     if (!activity.activity_config) return [];
     return getActivitySubmissionRequirementIssues(activity.activity_config, requestPayload);

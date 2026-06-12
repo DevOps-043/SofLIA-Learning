@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { NoteService } from '@/features/courses/services/note.service'
 import { CourseService } from '@/features/courses/services/course.service'
 import { SessionService } from '@/features/auth/services/session.service'
+import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { withCacheHeaders, cacheHeaders } from '@/lib/utils/cache-headers'
 
 /**
@@ -35,7 +37,27 @@ export async function GET(
       )
     }
 
-    const stats = await NoteService.getNotesStats(currentUser.id, course.id)
+    const supabase = createAdminClient()
+    const organizationId = request.nextUrl.searchParams.get('orgId')
+    const enrollment = await resolveCourseEnrollment(
+      supabase,
+      currentUser.id,
+      course.id,
+      organizationId,
+    )
+    const stats = enrollment
+      ? await NoteService.getNotesStatsWithClient(
+          supabase,
+          currentUser.id,
+          course.id,
+          enrollment.enrollment_id,
+        )
+      : {
+          totalNotes: 0,
+          lessonsWithNotes: 0,
+          totalLessons: 0,
+          lastUpdate: null,
+        }
 
     // Las estadísticas de notas son privadas por usuario y no deben cachearse compartidamente.
     return withCacheHeaders(

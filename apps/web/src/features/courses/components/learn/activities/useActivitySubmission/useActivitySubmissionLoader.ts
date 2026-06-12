@@ -8,6 +8,7 @@ import type { ActivityFormState } from './types';
 interface UseActivitySubmissionLoaderParams {
   activity: LearnActivity;
   lessonId: string;
+  organizationId?: string | null;
   setError: Dispatch<SetStateAction<string | null>>;
   setLoading: Dispatch<SetStateAction<boolean>>;
   setState: Dispatch<SetStateAction<ActivityFormState>>;
@@ -18,6 +19,7 @@ interface UseActivitySubmissionLoaderParams {
 export function useActivitySubmissionLoader({
   activity,
   lessonId,
+  organizationId,
   setError,
   setLoading,
   setState,
@@ -36,7 +38,12 @@ export function useActivitySubmissionLoader({
       try {
         setLoading(true);
         setError(null);
-        const payload = await fetchActivitySubmission(slug, lessonId, activity);
+        const payload = await fetchActivitySubmission(
+          slug,
+          lessonId,
+          activity,
+          organizationId,
+        );
         if (!isMounted) return;
         setSubmission(payload.submission || null);
         setState(applySubmissionToState(activity, payload.submission || null));
@@ -55,7 +62,7 @@ export function useActivitySubmissionLoader({
     return () => {
       isMounted = false;
     };
-  }, [activity, lessonId, setError, setLoading, setState, setSubmission, slug]);
+  }, [activity, lessonId, organizationId, setError, setLoading, setState, setSubmission, slug]);
 }
 
 function resetLocalSubmission(

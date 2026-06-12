@@ -22,7 +22,7 @@ type RouteParams = {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<RouteParams> },
 ) {
   try {
@@ -32,6 +32,7 @@ export async function GET(
     }
 
     const { slug, lessonId, activityId } = await params
+    const organizationId = request.nextUrl.searchParams.get('orgId')
     const supabase = createAdminClient()
     const context = await resolveCourseActivityContext(
       supabase,
@@ -39,6 +40,7 @@ export async function GET(
       slug,
       lessonId,
       activityId,
+      organizationId,
     )
     const submission = await getActivitySubmissionDetail(supabase, context)
 

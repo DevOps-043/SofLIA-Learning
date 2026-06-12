@@ -32,7 +32,7 @@ export function SofliaDialogueActivityRenderer({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-900">
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/[0.03]">
       <DialogueHeader
         canPracticeAgain={dialogue.canPracticeAgain}
         canRetry={dialogue.canRetry}

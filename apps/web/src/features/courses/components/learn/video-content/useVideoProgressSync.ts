@@ -9,7 +9,9 @@ import { scheduleVideoRestore } from "./video-ready";
 
 interface UseVideoProgressSyncParams {
   currentTimeRef: CurrentTimeRef;
+  enrollmentId?: string | null;
   lesson: LearnLesson;
+  organizationId?: string | null;
   videoPlayerContext?: VideoPlayerContextValue | null;
 }
 
@@ -18,7 +20,9 @@ const findVideoElement = () =>
 
 export function useVideoProgressSync({
   currentTimeRef,
+  enrollmentId,
   lesson,
+  organizationId,
   videoPlayerContext,
 }: UseVideoProgressSyncParams) {
   const videoPlayerContextRef = useRef(videoPlayerContext);
@@ -42,20 +46,20 @@ export function useVideoProgressSync({
       isSetup = true;
 
       if (lesson.lesson_id) {
-        scheduleVideoRestore(videoElement, () =>
-          {
-            const context = videoPlayerContextRef.current;
-            if (!context) return Promise.resolve();
+        scheduleVideoRestore(videoElement, () => {
+          const context = videoPlayerContextRef.current;
+          if (!context) return Promise.resolve();
 
-            return restoreVideoProgress({
-              context,
-              currentTimeRef,
-              isDisposed: () => isDisposed,
-              lesson,
-              videoElement,
-            });
-          },
-        );
+          return restoreVideoProgress({
+            context,
+            currentTimeRef,
+            enrollmentId,
+            isDisposed: () => isDisposed,
+            lesson,
+            organizationId,
+            videoElement,
+          });
+        });
       }
 
       cleanupFn = attachVideoPlaybackListeners({
@@ -89,5 +93,5 @@ export function useVideoProgressSync({
         currentVideoElement.pause();
       }
     };
-  }, [currentTimeRef, lesson]);
+  }, [currentTimeRef, enrollmentId, lesson, organizationId]);
 }

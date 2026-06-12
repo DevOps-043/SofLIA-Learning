@@ -7,10 +7,12 @@ import {
 } from '@/app/api/courses/_schemas'
 import { SessionService } from '@/features/auth/services/session.service'
 import { CourseService } from '@/features/courses/services/course.service'
+import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
 import { NoteService } from '@/features/courses/services/note.service'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 async function generateNoteTitle(noteContent: string): Promise<string> {
   try {
@@ -68,6 +70,23 @@ async function handlePut(
       return apiError('COURSE_NOT_FOUND', 'Curso no encontrado.', 404)
     }
 
+    const supabase = createAdminClient()
+    const organizationId = _request.nextUrl.searchParams.get('orgId')
+    const enrollment = await resolveCourseEnrollment(
+      supabase,
+      currentUser.id,
+      course.id,
+      organizationId,
+    )
+
+    if (!enrollment) {
+      return apiError(
+        'ENROLLMENT_NOT_FOUND',
+        'No tienes acceso a esta nota en este contexto.',
+        organizationId ? 403 : 404,
+      )
+    }
+
     const noteContent =
       body.note_content === undefined || body.note_content === null
         ? undefined
@@ -95,7 +114,11 @@ async function handlePut(
     // una sola vez al crear la nota; aquí conservamos el existente y solo
     // generamos por IA si, por algún motivo, la nota aún no tuviera título.
     if (body.note_title !== undefined && body.note_title !== null && !noteTitle) {
-      const notes = await NoteService.getNotesByLesson(currentUser.id, lessonId)
+      const notes = await NoteService.getNotesByLesson(
+        currentUser.id,
+        lessonId,
+        enrollment.enrollment_id,
+      )
       const existingNote = notes.find((note) => note.note_id === noteId)
       const existingTitle = existingNote?.note_title?.trim()
 
@@ -112,7 +135,7 @@ async function handlePut(
       note_title: noteTitle,
       note_content: noteContent,
       note_tags: body.note_tags,
-    })
+    }, enrollment.enrollment_id)
 
     return NextResponse.json(note)
   } catch (error) {

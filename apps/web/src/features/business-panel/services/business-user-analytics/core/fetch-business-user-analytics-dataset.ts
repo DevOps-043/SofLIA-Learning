@@ -27,9 +27,10 @@ export async function fetchBusinessUserAnalyticsDataset({
   userId,
   organizationId,
   range,
+  includeAllUserEnrollments = false,
 }: FetchBusinessUserAnalyticsParams): Promise<BusinessUserAnalyticsDataset> {
   const period = buildBusinessUserAnalyticsPeriod(range)
-  const data = await fetchQueryData(supabase, userId, organizationId, period)
+  const data = await fetchQueryData(supabase, userId, organizationId, period, includeAllUserEnrollments)
   const courseTitleById = buildCourseTitleMap(data.assignments)
   const enrollmentCourseById = new Map(data.enrollments.map((enrollment) => [enrollment.enrollment_id, enrollment.course_id]))
   const contributionDates = collectContributionDates(data, period)

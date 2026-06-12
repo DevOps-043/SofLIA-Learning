@@ -8,6 +8,7 @@ import { VideoNavigationOverlay } from "./VideoNavigationOverlay";
 import { VideoPlayer } from "./VideoPlayerDynamic";
 
 interface VideoPanelProps {
+  enrollmentId?: string | null;
   finishLabel: string;
   handleAdvanceAction: () => void | Promise<void>;
   handleCompletionAction: () => void | Promise<void>;
@@ -16,11 +17,13 @@ interface VideoPanelProps {
   navigationState: VideoNavigationState;
   nextLabel: string;
   onNavigatePrevious: () => void;
+  organizationId?: string | null;
   previousLabel: string;
   unavailableLabel: string;
 }
 
 export function VideoPanel({
+  enrollmentId,
   finishLabel,
   handleAdvanceAction,
   handleCompletionAction,
@@ -29,6 +32,7 @@ export function VideoPanel({
   navigationState,
   nextLabel,
   onNavigatePrevious,
+  organizationId,
   previousLabel,
   unavailableLabel,
 }: VideoPanelProps) {
@@ -45,6 +49,8 @@ export function VideoPanel({
             title={lesson.lesson_title}
             className="w-full h-full"
             lessonId={lesson.lesson_id}
+            enrollmentId={enrollmentId}
+            organizationId={organizationId}
             playbackContext="lesson"
             seekControlsLocked={shouldBlockLessonVideoAdvance(lesson)}
             onComplete={handleVideoComplete}

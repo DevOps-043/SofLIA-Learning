@@ -39,6 +39,9 @@ export async function GET(
       userId,
       organizationId,
       range,
+      // Vista de superadmin: estadísticas COMPLETAS del usuario (puede pertenecer a
+      // varias organizaciones / tener enrollments personales), no acotadas a una org.
+      includeAllUserEnrollments: true,
     })
     const { aiSamples: _aiSamples, dataHash: _dataHash, ...publicDataset } = dataset
 

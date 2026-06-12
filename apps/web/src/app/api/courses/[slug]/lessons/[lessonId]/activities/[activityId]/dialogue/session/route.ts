@@ -25,12 +25,16 @@ export async function GET(
 
     const { activityId, lessonId, slug } = await params
     const supabase = await createClient()
+    const organizationId =
+      request.nextUrl.searchParams.get('orgId') ??
+      request.nextUrl.searchParams.get('organizationId')
     const context = await resolveCourseActivityContext(
       supabase,
       currentUser.id,
       slug,
       lessonId,
       activityId,
+      organizationId,
     )
 
     const adminClient = createAdminClient()

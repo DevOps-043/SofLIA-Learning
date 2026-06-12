@@ -55,12 +55,14 @@ async function handlePost(
     const sanitizedBody = sanitizeActivityValidationBody(body)
     const { slug, lessonId, activityId } = await params
     const supabase = createAdminClient()
+    const organizationId = sanitizedBody.organizationId ?? null
     const context = await resolveCourseActivityContext(
       supabase,
       currentUser.id,
       slug,
       lessonId,
       activityId,
+      organizationId,
     )
 
     const currentSubmission = await getActivitySubmissionDetail(supabase, context)

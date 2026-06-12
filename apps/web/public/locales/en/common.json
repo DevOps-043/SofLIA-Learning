@@ -1589,7 +1589,6 @@
         "exportPdf": "Export as PDF",
         "copy": "Copy note",
         "copyShort": "Copy",
-        "duplicateNote": "Duplicate Note",
         "regenerate": "Regenerate"
       }
     },
@@ -1659,12 +1658,8 @@
     },
     "card": {
       "manualNote": "Manual note",
-      "sofliaSummary": "SofLIA summary",
       "lesson": "Lesson",
-      "module": "Module",
       "course": "Workshop",
-      "version": "Version {{version}}",
-      "generating": "Generating...",
       "lastUpdate": "Last update"
     },
     "modal": {
@@ -1675,10 +1670,6 @@
       "copied": "Copied",
       "saveButton": "Save changes",
       "cancelButton": "Cancel",
-      "duplicateButton": "Duplicate as editable note",
-      "duplicating": "Duplicating...",
-      "duplicateSuccess": "Summary duplicated as editable note.",
-      "duplicateError": "Could not duplicate the summary.",
       "saveError": "Could not save the note.",
       "saving": "Saving...",
       "titleLabel": "Title",
@@ -1688,8 +1679,7 @@
     "courseFilter": {
       "selectCourse": "Select a workshop",
       "allCourses": "All workshops",
-      "notesCount": "{{count}} notes",
-      "summariesCount": "{{count}} SofLIA summaries"
+      "notesCount": "{{count}} notes"
     },
     "empty": {
       "title": "No notes yet",

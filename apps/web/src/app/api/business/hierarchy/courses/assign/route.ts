@@ -45,7 +45,7 @@ interface OrganizationCourseAssignmentUpsert {
   completion_percentage: number
 }
 
-interface UserCourseEnrollmentUpsert {
+interface UserCourseEnrollmentInsert {
   user_id: string
   course_id: string
   organization_id: string
@@ -217,23 +217,40 @@ async function handlePost(_request: NextRequest, body: AssignCoursesBody) {
             onConflict: 'organization_id, user_id, course_id',
           })
 
-        const enrollmentsToUpsert: UserCourseEnrollmentUpsert[] = user_ids.map(
-          (uid) => ({
+        const { data: existingEnrollments, error: existingEnrollmentsError } = await supabase
+          .from('user_course_enrollments')
+          .select('user_id')
+          .eq('course_id', courseId)
+          .eq('organization_id', organizationId)
+          .in('user_id', user_ids)
+
+        if (existingEnrollmentsError) {
+          logger.warn('Error checking existing scoped enrollments:', existingEnrollmentsError)
+        }
+
+        const enrolledUserIds = new Set(
+          ((existingEnrollments || []) as { user_id: string }[]).map((enrollment) => enrollment.user_id),
+        )
+        const enrollmentsToCreate: UserCourseEnrollmentInsert[] = user_ids
+          .filter((uid) => !enrolledUserIds.has(uid))
+          .map((uid) => ({
             user_id: uid,
             course_id: courseId,
             organization_id: organizationId,
             enrollment_status: 'active',
             enrolled_at: nowISO,
             last_accessed_at: nowISO,
-          }),
-        )
+          }))
 
-        await supabase
-          .from('user_course_enrollments')
-          .upsert(enrollmentsToUpsert, {
-            onConflict: 'user_id, course_id',
-            ignoreDuplicates: true,
-          })
+        if (enrollmentsToCreate.length > 0) {
+          const { error: enrollmentError } = await supabase
+            .from('user_course_enrollments')
+            .insert(enrollmentsToCreate)
+
+          if (enrollmentError) {
+            logger.warn('Error creating scoped enrollments:', enrollmentError)
+          }
+        }
       }
 
       results.push({

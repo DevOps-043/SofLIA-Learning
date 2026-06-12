@@ -13,6 +13,7 @@
   },
   "header": {
     "backButton": "Go back",
+    "organizationContext": "Company: {{organizationName}}",
     "progress": "Progress"
   },
   "leftPanel": {
@@ -49,17 +50,7 @@
       "notesCreated": "Notes created",
       "lessonsWithNotes": "Lessons with notes",
       "lastUpdate": "Last update",
-      "viewNotes": "View notes",
-      "generatedSummaryBadge": "SofLIA note",
-      "generateSummary": "Generate note",
-      "regenerateSummary": "Regenerate note",
-      "summaryVersion": "Version {{version}}",
-      "summaryMissing": "Module completed. SofLIA can generate your learning note.",
-      "summaryGenerating": "SofLIA is generating this note.",
-      "summaryFailed": "Could not generate this note.",
-      "summaryLimitReached": "Regenerate note",
-      "previousSummary": "Previous note",
-      "nextSummary": "Next note"
+      "viewNotes": "View notes"
     }
   },
   "tabs": {
@@ -92,6 +83,28 @@
     "badge": "Learning path",
     "blockedTitle": "This workshop is locked by sequence",
     "availableCta": "Go to the next available workshop"
+  },
+  "legacyProgress": {
+    "eyebrow": "Company context",
+    "title": "Choose the company to continue",
+    "titleWithProgress": "Choose where to keep your progress",
+    "description": "This platform works by company. Select the organization where you will take this course.",
+    "descriptionWithProgress": "We found previous progress without an assigned company. To protect separation between organizations, choose which company should keep that progress.",
+    "existingEnrollment": "An enrollment already exists in this company: {{progress}}% progress",
+    "newEnrollment": "The course enrollment will be created for this company",
+    "noCompaniesTitle": "We could not find a valid company for this course",
+    "noCompaniesDescription": "This course must be opened from an active company. Choose your organization again to continue in the correct context.",
+    "backToOrganizationSelector": "Choose company",
+    "metrics": {
+      "progress": "Progress",
+      "notes": "Notes",
+      "activities": "Activities",
+      "quizzes": "Quizzes"
+    },
+    "errors": {
+      "LEGACY_PROGRESS_RESOLUTION_FAILED": "We could not load the available companies. Try again.",
+      "LEGACY_PROGRESS_CLAIM_FAILED": "We could not move your progress to that company. Try again."
+    }
   },
   "lia": {
     "title": "SofLIA",

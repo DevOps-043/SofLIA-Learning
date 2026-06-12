@@ -61,7 +61,7 @@ export async function loadLearnDataPayload(
 ): Promise<LearnDataQueryPayload> {
   const startedAt = Date.now()
   const course = await loadCourseBySlug(supabase, slug)
-  const [modulesResult, questionsResult, notesStatsResult, lessonDataResult] =
+  const [modulesResult, questionsResult, lessonDataResult] =
     await Promise.all([
       loadModulesWithProgress(
         supabase,
@@ -71,11 +71,18 @@ export async function loadLearnDataPayload(
         organizationId,
       ),
       loadCourseQuestions(supabase, course.id, userId),
-      userId ? loadNotesStats(supabase, course.id, userId) : Promise.resolve(null),
       includeLessonData && lessonId
         ? loadLessonData(supabase, course.id, lessonId, language)
         : Promise.resolve(null),
     ])
+  const notesStatsResult = userId
+    ? await loadNotesStats(
+        supabase,
+        course.id,
+        userId,
+        modulesResult.enrollmentId,
+      )
+    : null
 
   return {
     course,

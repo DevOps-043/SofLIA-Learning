@@ -52,12 +52,14 @@ async function handlePost(
 
     const { slug, lessonId, activityId } = await params
     const supabase = createAdminClient()
+    const organizationId = body.organizationId ?? null
     const context = await resolveCourseActivityContext(
       supabase,
       currentUser.id,
       slug,
       lessonId,
       activityId,
+      organizationId,
     )
     const previousSubmission = await getActivitySubmissionDetail(supabase, context)
     const submission = await saveActivitySubmission(

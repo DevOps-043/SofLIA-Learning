@@ -122,7 +122,7 @@ async function handlePost(
       .eq('organization_id', organizationId)
       .eq('course_id', courseId)
       .in('user_id', user_ids)
-      .in('status', ['assigned', 'in_progress'])
+      .or('status.is.null,status.in.(assigned,in_progress)')
 
     const existingUserIds = existingAssignments?.map(a => a.user_id) || []
     const newUserIds = user_ids.filter(id => !existingUserIds.includes(id))
@@ -168,6 +168,7 @@ async function handlePost(
       .from('user_course_enrollments')
       .select('user_id')
       .eq('course_id', courseId)
+      .eq('organization_id', organizationId)
       .in('user_id', newUserIds)
 
     if (existingEnrollmentsError) {
@@ -180,6 +181,7 @@ async function handlePost(
       .map(userId => ({
         user_id: userId,
         course_id: courseId,
+        organization_id: organizationId,
         enrollment_status: 'active',
         overall_progress_percentage: 0,
         enrolled_at: now,

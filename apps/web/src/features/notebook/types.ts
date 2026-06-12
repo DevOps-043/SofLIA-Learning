@@ -1,17 +1,9 @@
 /**
  * Notebook Feature Types
  *
- * Defines the unified domain model for the notebook page, which aggregates
- * manual lesson notes (user_lesson_notes) and SofLIA module summaries
- * (module_learning_summaries) into a single, browsable collection.
+ * Defines the domain model for the notebook page, which lists the user's
+ * manual lesson notes (user_lesson_notes) as a browsable collection.
  */
-
-// ---------------------------------------------------------------------------
-// Discriminated union: each notebook item is either a manual note or a SofLIA
-// summary, distinguished by `kind`.
-// ---------------------------------------------------------------------------
-
-export type NotebookItemKind = 'manual_note' | 'soflia_summary'
 
 export interface NotebookManualNote {
   kind: 'manual_note'
@@ -32,26 +24,7 @@ export interface NotebookManualNote {
   updatedAt: string
 }
 
-export interface NotebookSofliaSummary {
-  kind: 'soflia_summary'
-  summaryId: string
-  title: string
-  contentPreview: string
-  contentHtml: string
-  contentMarkdown: string
-  status: 'generating' | 'ready' | 'failed'
-  version: number
-  moduleId: string
-  moduleTitle: string
-  courseId: string
-  courseTitle: string
-  organizationId: string | null
-  generatedAt: string | null
-  createdAt: string
-  updatedAt: string
-}
-
-export type NotebookItem = NotebookManualNote | NotebookSofliaSummary
+export type NotebookItem = NotebookManualNote
 
 // ---------------------------------------------------------------------------
 // API response shapes
@@ -80,7 +53,6 @@ export interface NotebookCourse {
   courseTitle: string
   courseThumbnail: string | null
   notesCount: number
-  summariesCount: number
 }
 
 export interface NotebookCoursesResponse {

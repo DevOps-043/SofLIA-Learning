@@ -5,12 +5,32 @@ type VideoResumeApiResponse = {
   playbackRate?: number;
 };
 
-export async function fetchVideoResumeData(lessonId: string): Promise<{
+interface VideoResumeScope {
+  enrollmentId?: string | null;
+  organizationId?: string | null;
+}
+
+function buildVideoResumeUrl(lessonId: string, scope?: VideoResumeScope) {
+  const params = new URLSearchParams();
+
+  if (scope?.organizationId) {
+    params.set("orgId", scope.organizationId);
+  }
+
+  if (scope?.enrollmentId) {
+    params.set("enrollmentId", scope.enrollmentId);
+  }
+
+  const query = params.toString();
+  return `/api/video-tracking/resume/${lessonId}${query ? `?${query}` : ""}`;
+}
+
+export async function fetchVideoResumeData(lessonId: string, scope?: VideoResumeScope): Promise<{
   checkpointSeconds: number;
   playbackRate: number;
 }> {
   try {
-    const response = await fetch(`/api/video-tracking/resume/${lessonId}`, {
+    const response = await fetch(buildVideoResumeUrl(lessonId, scope), {
       credentials: "include",
     });
 

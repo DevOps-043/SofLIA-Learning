@@ -1,5 +1,6 @@
 export interface LiaConversationRecord {
   conversation_id: string
+  enrollment_id: string | null
   course_id: string | null
   organization_id: string | null
   context_type: string

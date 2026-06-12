@@ -7,16 +7,20 @@ import { fetchVideoResumeData } from "./video-resume.service";
 interface RestoreVideoProgressParams {
   context: VideoPlayerContextValue;
   currentTimeRef: CurrentTimeRef;
+  enrollmentId?: string | null;
   isDisposed: () => boolean;
   lesson: LearnLesson;
+  organizationId?: string | null;
   videoElement: HTMLVideoElement;
 }
 
 export async function restoreVideoProgress({
   context,
   currentTimeRef,
+  enrollmentId,
   isDisposed,
   lesson,
+  organizationId,
   videoElement,
 }: RestoreVideoProgressParams) {
   if (!lesson.lesson_id) {
@@ -27,7 +31,10 @@ export async function restoreVideoProgress({
   let resumePlaybackRate = 1;
 
   if (resumeCheckpoint <= 0 && shouldBlockLessonVideoAdvance(lesson)) {
-    const resumeData = await fetchVideoResumeData(lesson.lesson_id);
+    const resumeData = await fetchVideoResumeData(lesson.lesson_id, {
+      enrollmentId,
+      organizationId,
+    });
     if (isDisposed()) return;
 
     resumeCheckpoint = resumeData.checkpointSeconds;

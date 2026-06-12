@@ -31,6 +31,8 @@ export function DirectVideoContent(props: DirectVideoContentProps) {
       preload={props.playbackPolicy.nativeVideoPreload}
       seekControlsLocked={props.seekControlsLocked ?? false}
       lessonId={props.lessonId}
+      enrollmentId={props.enrollmentId}
+      organizationId={props.organizationId}
       trackingId={props.trackingId}
     />
   );

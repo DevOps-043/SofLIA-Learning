@@ -13,6 +13,7 @@
   },
   "header": {
     "backButton": "Volver atrás",
+    "organizationContext": "Empresa: {{organizationName}}",
     "progress": "Progreso"
   },
   "leftPanel": {
@@ -49,17 +50,7 @@
       "notesCreated": "Notas creadas",
       "lessonsWithNotes": "Lecciones con notas",
       "lastUpdate": "Última actualización",
-      "viewNotes": "Ver notas",
-      "generatedSummaryBadge": "Apunte SofLIA",
-      "generateSummary": "Generar apunte",
-      "regenerateSummary": "Regenerar apunte",
-      "summaryVersion": "Version {{version}}",
-      "summaryMissing": "Modulo completado. SofLIA puede generar tu apunte de aprendizaje.",
-      "summaryGenerating": "SofLIA esta generando este apunte.",
-      "summaryFailed": "No fue posible generar este apunte.",
-      "summaryLimitReached": "Regenerar apunte",
-      "previousSummary": "Apunte anterior",
-      "nextSummary": "Siguiente apunte"
+      "viewNotes": "Ver notas"
     }
   },
   "tabs": {
@@ -92,6 +83,28 @@
     "badge": "Ruta de aprendizaje",
     "blockedTitle": "Este taller está bloqueado por secuencia",
     "availableCta": "Ir al siguiente taller disponible"
+  },
+  "legacyProgress": {
+    "eyebrow": "Contexto de empresa",
+    "title": "Elige la empresa para continuar",
+    "titleWithProgress": "Elige donde conservar tu avance",
+    "description": "Esta plataforma funciona por empresa. Selecciona en que organizacion vas a tomar este curso.",
+    "descriptionWithProgress": "Encontramos avance anterior sin empresa asignada. Para proteger la separacion entre organizaciones, elige en que empresa debe quedarse ese progreso.",
+    "existingEnrollment": "Ya existe inscripcion en esta empresa: {{progress}}% de avance",
+    "newEnrollment": "Se creara la inscripcion de este curso en esta empresa",
+    "noCompaniesTitle": "No encontramos una empresa valida para este curso",
+    "noCompaniesDescription": "Este curso necesita abrirse desde una empresa activa. Vuelve a elegir tu organizacion para continuar con el contexto correcto.",
+    "backToOrganizationSelector": "Elegir empresa",
+    "metrics": {
+      "progress": "Avance",
+      "notes": "Notas",
+      "activities": "Actividades",
+      "quizzes": "Quizzes"
+    },
+    "errors": {
+      "LEGACY_PROGRESS_RESOLUTION_FAILED": "No fue posible cargar las empresas disponibles. Intenta de nuevo.",
+      "LEGACY_PROGRESS_CLAIM_FAILED": "No fue posible mover tu progreso a esa empresa. Intenta de nuevo."
+    }
   },
   "lia": {
     "title": "SofLIA",

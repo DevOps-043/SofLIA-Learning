@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { quizSubmitSchema, type QuizSubmitBody } from '@/app/api/courses/_schemas'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
+import { recordQuizAttempt } from '@/features/courses/services/quiz/record-quiz-attempt.service'
 import { SessionService } from '@/features/auth/services/session.service'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { apiError } from '@/lib/api/errors'
@@ -317,6 +318,23 @@ async function handlePost(
 
       submissionResult = data
     }
+
+    // Historial append-only: registra ESTE intento (cada envío), independientemente de
+    // si la submission "mejor/actual" se actualizó. Best-effort, no bloquea el envío.
+    await recordQuizAttempt(supabase, {
+      userId: currentUser.id,
+      lessonId,
+      enrollmentId,
+      materialId: materialId || null,
+      activityId: activityId || null,
+      organizationId: resolvedOrganizationId,
+      score: correctAnswers,
+      totalPoints: calculatedTotalPoints,
+      percentageScore,
+      isPassed,
+      durationSeconds,
+      completedAt: now,
+    })
 
     const [materialQuizzes, activityQuizzes] = await Promise.all([
       supabase

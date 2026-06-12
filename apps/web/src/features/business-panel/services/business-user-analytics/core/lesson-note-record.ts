@@ -1,5 +1,6 @@
 export interface LessonNoteRecord {
   note_id: string
+  enrollment_id: string | null
   lesson_id: string
   organization_id: string | null
   note_title: string

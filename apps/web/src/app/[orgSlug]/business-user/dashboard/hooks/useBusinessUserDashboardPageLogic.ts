@@ -2,7 +2,7 @@
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, usePathname, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import { useAuth } from '../../../../../features/auth/hooks/useAuth'
@@ -59,6 +59,27 @@ const EMPTY_DASHBOARD_STATS: DashboardStats = {
   in_progress: 0,
   completed: 0,
   certificates: 0,
+}
+
+function resolveOrgSlugFromRoute(
+  routeOrgSlug: string | string[] | undefined,
+  pathname: string | null,
+): string | undefined {
+  if (typeof routeOrgSlug === 'string' && routeOrgSlug.trim().length > 0) {
+    return routeOrgSlug
+  }
+
+  const firstSegment = pathname?.split('/').filter(Boolean)[0]
+
+  return firstSegment && firstSegment !== 'business-user'
+    ? firstSegment
+    : undefined
+}
+
+function buildOrgCourseLearnPath(orgSlug: string | undefined, courseSlug: string) {
+  return orgSlug
+    ? `/${orgSlug}/courses/${courseSlug}/learn`
+    : '/auth/select-organization'
 }
 
 /**
@@ -131,7 +152,8 @@ async function fetchBusinessUserDashboardData(
 export function useBusinessUserDashboardPageLogic() {
   const router = useRouter()
   const params = useParams()
-  const orgSlug = params?.orgSlug as string | undefined
+  const pathname = usePathname()
+  const orgSlug = resolveOrgSlugFromRoute(params?.orgSlug, pathname)
   const { user, logout } = useAuth()
   const { t, i18n } = useTranslation('business')
   const { effectiveStyles } = useOrganizationStyles()
@@ -249,17 +271,17 @@ export function useBusinessUserDashboardPageLogic() {
         return
       }
 
-      router.push(`/courses/${course.slug}/learn`)
+      router.push(buildOrgCourseLearnPath(orgSlug, course.slug))
     },
-    [router]
+    [orgSlug, router]
   )
 
   const handleLearningPathCourseClick = useCallback(
     (slug: string | null | undefined) => {
       if (!slug) return
-      router.push(`/courses/${slug}/learn`)
+      router.push(buildOrgCourseLearnPath(orgSlug, slug))
     },
-    [router]
+    [orgSlug, router]
   )
 
   const handleLogout = useCallback(async () => {

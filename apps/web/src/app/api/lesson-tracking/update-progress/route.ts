@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { logger as techDebtLogger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import { resolveVideoLessonEnrollmentScope } from '@/features/video-tracking/services/video-tracking-scope.server';
 import { apiError } from '@/lib/api/errors';
 import { withZodBody } from '@/lib/api/with-validation';
 import {
@@ -38,16 +39,20 @@ function elapsedSecondsSince(
 
 async function syncUserLessonProgress({
     checkpoint,
+    enrollmentId,
     lessonId,
     now,
+    organizationId,
     supabase,
     totalDuration,
     userId,
     videoProgressPercentage,
 }: {
     checkpoint: number;
+    enrollmentId: string;
     lessonId: string;
     now: string;
+    organizationId: string | null;
     supabase: ReturnType<typeof createAdminClient>;
     totalDuration: number;
     userId: string;
@@ -57,6 +62,7 @@ async function syncUserLessonProgress({
         .from('user_lesson_progress')
         .select('progress_id, lesson_status, is_completed')
         .eq('user_id', userId)
+        .eq('enrollment_id', enrollmentId)
         .eq('lesson_id', lessonId)
         .order('updated_at', { ascending: false, nullsFirst: false })
         .limit(1)
@@ -75,11 +81,13 @@ async function syncUserLessonProgress({
         current_time_seconds: number;
         last_accessed_at: string;
         lesson_status?: string;
+        organization_id: string | null;
         updated_at: string;
         video_progress_percentage: number;
     } = {
         current_time_seconds: checkpoint,
         last_accessed_at: now,
+        organization_id: organizationId,
         updated_at: now,
         video_progress_percentage: videoProgressPercentage,
     };
@@ -131,13 +139,43 @@ async function handlePost(
         // Use admin client after SessionService auth to avoid RLS/session drift.
         const supabase = createAdminClient();
 
-        const { lessonId, trackingId, checkpoint, maxReached, totalDuration, playbackRate, reachedEnd } = body;
+        const {
+            enrollmentId,
+            lessonId,
+            organizationId,
+            trackingId,
+            checkpoint,
+            maxReached,
+            totalDuration,
+            playbackRate,
+            reachedEnd,
+        } = body;
+
+        const enrollment = await resolveVideoLessonEnrollmentScope({
+            enrollmentId,
+            lessonId,
+            organizationId,
+            supabase,
+            userId: user.id,
+        });
+
+        if (!enrollment) {
+            return apiError(
+                'ENROLLMENT_SCOPE_NOT_FOUND',
+                'Course enrollment scope not found',
+                organizationId || enrollmentId ? 403 : 404,
+            );
+        }
+
+        const scopedEnrollmentId = enrollment.enrollment_id;
+        const scopedOrganizationId = enrollment.organization_id;
 
         const now = new Date().toISOString();
         const { data: existingProgress } = await supabase
             .from('user_lesson_progress')
             .select('current_time_seconds, video_progress_percentage')
             .eq('user_id', user.id)
+            .eq('enrollment_id', scopedEnrollmentId)
             .eq('lesson_id', lessonId)
             .order('updated_at', { ascending: false, nullsFirst: false })
             .limit(1)
@@ -154,6 +192,7 @@ async function handlePost(
                 .select('id, video_max_seconds, last_activity_at')
                 .eq('id', trackingId)
                 .eq('user_id', user.id)
+                .eq('enrollment_id', scopedEnrollmentId)
                 .maybeSingle();
 
             if (trackingLookupError) {
@@ -183,9 +222,11 @@ async function handlePost(
                     video_total_duration_seconds: totalDuration,
                     video_playback_rate: playbackRate || 1.0,
                     last_activity_at: now,
+                    organization_id: scopedOrganizationId,
                     updated_at: now
                 })
                 .eq('id', trackingId)
+                .eq('enrollment_id', scopedEnrollmentId)
                 .eq('user_id', user.id); // Seguridad: solo actualizar si es del usuario
 
             if (error) {
@@ -195,8 +236,10 @@ async function handlePost(
 
             await syncUserLessonProgress({
                 checkpoint: normalizedProgress.safeCheckpoint,
+                enrollmentId: scopedEnrollmentId,
                 lessonId,
                 now,
+                organizationId: scopedOrganizationId,
                 supabase,
                 totalDuration,
                 userId: user.id,
@@ -211,6 +254,7 @@ async function handlePost(
             .from('lesson_tracking')
             .select('id, video_max_seconds, last_activity_at')
             .eq('user_id', user.id)
+            .eq('enrollment_id', scopedEnrollmentId)
             .eq('lesson_id', lessonId)
             .eq('status', 'in_progress')
             .order('last_activity_at', { ascending: false })
@@ -238,9 +282,11 @@ async function handlePost(
                     video_total_duration_seconds: totalDuration,
                     video_playback_rate: playbackRate || 1.0,
                     last_activity_at: now,
+                    organization_id: scopedOrganizationId,
                     updated_at: now
                 })
-                .eq('id', existingTracking.id);
+                .eq('id', existingTracking.id)
+                .eq('enrollment_id', scopedEnrollmentId);
 
             if (error) {
                 techDebtLogger.error('[Update Progress] Error updating existing tracking:', error);
@@ -253,8 +299,10 @@ async function handlePost(
 
             await syncUserLessonProgress({
                 checkpoint: normalizedProgress.safeCheckpoint,
+                enrollmentId: scopedEnrollmentId,
                 lessonId,
                 now,
+                organizationId: scopedOrganizationId,
                 supabase,
                 totalDuration,
                 userId: user.id,
@@ -281,6 +329,8 @@ async function handlePost(
             .insert({
                 user_id: user.id,
                 lesson_id: lessonId,
+                enrollment_id: scopedEnrollmentId,
+                organization_id: scopedOrganizationId,
                 status: 'in_progress',
                 started_at: now,
                 video_started_at: now,
@@ -300,8 +350,10 @@ async function handlePost(
 
         await syncUserLessonProgress({
             checkpoint: normalizedProgress.safeCheckpoint,
+            enrollmentId: scopedEnrollmentId,
             lessonId,
             now,
+            organizationId: scopedOrganizationId,
             supabase,
             totalDuration,
             userId: user.id,

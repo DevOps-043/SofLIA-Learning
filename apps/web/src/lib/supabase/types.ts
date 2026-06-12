@@ -899,6 +899,81 @@ export type Database = {
           },
         ]
       }
+      course_legacy_progress_claims: {
+        Row: {
+          claim_id: string
+          claim_source: string
+          claimed_at: string
+          claimed_by: string
+          course_id: string
+          metadata: Json
+          source_enrollment_id: string | null
+          target_enrollment_id: string
+          target_organization_id: string
+          user_id: string
+        }
+        Insert: {
+          claim_id?: string
+          claim_source?: string
+          claimed_at?: string
+          claimed_by: string
+          course_id: string
+          metadata?: Json
+          source_enrollment_id?: string | null
+          target_enrollment_id: string
+          target_organization_id: string
+          user_id: string
+        }
+        Update: {
+          claim_id?: string
+          claim_source?: string
+          claimed_at?: string
+          claimed_by?: string
+          course_id?: string
+          metadata?: Json
+          source_enrollment_id?: string | null
+          target_enrollment_id?: string
+          target_organization_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_legacy_progress_claims_claimed_by_fkey"
+            columns: ["claimed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_legacy_progress_claims_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_legacy_progress_claims_target_enrollment_id_fkey"
+            columns: ["target_enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "user_course_enrollments"
+            referencedColumns: ["enrollment_id"]
+          },
+          {
+            foreignKeyName: "course_legacy_progress_claims_target_organization_id_fkey"
+            columns: ["target_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_legacy_progress_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_lessons: {
         Row: {
           created_at: string | null
@@ -2424,6 +2499,7 @@ export type Database = {
           completed_at: string | null
           created_at: string
           end_trigger: string | null
+          enrollment_id: string | null
           id: string
           last_activity_at: string | null
           lesson_id: string
@@ -2454,6 +2530,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           end_trigger?: string | null
+          enrollment_id?: string | null
           id?: string
           last_activity_at?: string | null
           lesson_id: string
@@ -2484,6 +2561,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           end_trigger?: string | null
+          enrollment_id?: string | null
           id?: string
           last_activity_at?: string | null
           lesson_id?: string
@@ -2511,6 +2589,13 @@ export type Database = {
           video_total_duration_seconds?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "lesson_tracking_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "user_course_enrollments"
+            referencedColumns: ["enrollment_id"]
+          },
           {
             foreignKeyName: "lesson_tracking_lesson_id_fkey"
             columns: ["lesson_id"]
@@ -7204,6 +7289,7 @@ export type Database = {
       user_lesson_notes: {
         Row: {
           created_at: string | null
+          enrollment_id: string | null
           is_auto_generated: boolean | null
           lesson_id: string
           note_content: string
@@ -7217,6 +7303,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          enrollment_id?: string | null
           is_auto_generated?: boolean | null
           lesson_id: string
           note_content: string
@@ -7230,6 +7317,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          enrollment_id?: string | null
           is_auto_generated?: boolean | null
           lesson_id?: string
           note_content?: string
@@ -7242,6 +7330,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "user_lesson_notes_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "user_course_enrollments"
+            referencedColumns: ["enrollment_id"]
+          },
           {
             foreignKeyName: "user_lesson_notes_lesson_id_fkey"
             columns: ["lesson_id"]
@@ -9804,6 +9899,15 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      claim_legacy_course_progress: {
+        Args: {
+          p_claimed_by?: string
+          p_course_id: string
+          p_target_organization_id: string
+          p_user_id: string
+        }
+        Returns: Json
       }
       check_b2b_deadlines: {
         Args: { p_user_id: string; p_weekly_study_minutes: number }

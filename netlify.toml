@@ -122,10 +122,6 @@
 [functions."process-inbox"]
   schedule = "*/5 * * * *"
 
-# Funcion programada: Procesar apuntes SofLIA por modulo cada 5 minutos
-[functions."process-module-learning-summaries"]
-  schedule = "*/5 * * * *"
-
 # Funcion programada: Pre-generar audio de lecturas (reflexiones, transcripciones, resumenes)
 [functions."process-tts-reading-audio"]
   schedule = "*/5 * * * *"

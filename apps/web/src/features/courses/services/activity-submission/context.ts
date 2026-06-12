@@ -23,10 +23,16 @@ export async function resolveCourseLessonContext(
   userId: string,
   slug: string,
   lessonId: string,
+  organizationId?: string | null,
 ): Promise<CourseLessonContext> {
   const course = await resolveCourseBySlug(supabase, slug)
   await ensureLessonBelongsToCourse(supabase, course.id, lessonId)
-  const enrollment = await resolveEnrollment(supabase, userId, course.id)
+  const enrollment = await resolveEnrollment(
+    supabase,
+    userId,
+    course.id,
+    organizationId,
+  )
 
   return {
     courseId: course.id,
@@ -45,8 +51,15 @@ export async function resolveCourseActivityContext(
   slug: string,
   lessonId: string,
   activityId: string,
+  organizationId?: string | null,
 ): Promise<CourseActivityContext> {
-  const lessonContext = await resolveCourseLessonContext(supabase, userId, slug, lessonId)
+  const lessonContext = await resolveCourseLessonContext(
+    supabase,
+    userId,
+    slug,
+    lessonId,
+    organizationId,
+  )
   const { data: activity, error } = await supabase
     .from('lesson_activities')
     .select(

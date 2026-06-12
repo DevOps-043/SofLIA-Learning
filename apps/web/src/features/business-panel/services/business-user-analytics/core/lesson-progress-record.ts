@@ -13,6 +13,8 @@ export interface LessonProgressRecord {
   updated_at: string | null
   activity_progress_percentage: number | null
   quiz_progress_percentage: number | null
+  quiz_completed: boolean | null
+  quiz_passed: boolean | null
   required_activities_completed: number | null
   required_activities_total: number | null
 }

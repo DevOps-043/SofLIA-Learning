@@ -7,23 +7,20 @@ import { PAGE_LIMIT } from './page_limit'
 export async function fetchLessonTracking(
   supabase: BusinessUserAnalyticsSupabaseClient,
   userId: string,
-  organizationId: string,
+  _organizationId: string,
   scope: AnalyticsScope,
 ) {
-  if (scope.lessonIds.size === 0) return []
+  if (scope.enrollmentIds.size === 0) return []
 
   const { data, error } = await supabase
     .from('lesson_tracking')
-    .select('id, lesson_id, organization_id, status, started_at, completed_at, last_activity_at, t_lesson_minutes, t_video_minutes, t_materials_minutes, updated_at')
+    .select('id, enrollment_id, lesson_id, organization_id, status, started_at, completed_at, last_activity_at, t_lesson_minutes, t_video_minutes, t_materials_minutes, updated_at')
     .eq('user_id', userId)
-    .in('lesson_id', Array.from(scope.lessonIds))
+    .in('enrollment_id', Array.from(scope.enrollmentIds))
     .limit(PAGE_LIMIT)
     .returns<LessonTrackingRecord[]>()
 
   logQueryError('business user lesson tracking', error)
-  return (data || []).filter((tracking) =>
-    tracking.organization_id === organizationId ||
-    tracking.organization_id === null ||
-    scope.lessonIds.has(tracking.lesson_id),
-  )
+  // El scope por `enrollment_id` ya garantiza la organización; no se re-filtra por org.
+  return data || []
 }

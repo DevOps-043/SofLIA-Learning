@@ -6,6 +6,8 @@ export type VideoPlayerContextValue = NonNullable<ReturnType<typeof useVideoPlay
 
 export type VideoContentProps = {
   lesson: LearnLesson;
+  enrollmentId?: string | null;
+  organizationId?: string | null;
   onNavigatePrevious: () => void;
   onNavigateNext: () => void | Promise<void>;
   onVideoCompleted: (lessonId: string) => void;

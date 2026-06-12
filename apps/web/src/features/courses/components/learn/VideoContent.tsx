@@ -15,6 +15,7 @@ import type { VideoContentProps } from "./video-content/video-content.types";
 export function VideoContent({
   activities,
   canCompleteLesson,
+  enrollmentId,
   getNextLesson,
   getPreviousLesson,
   hasActivities,
@@ -29,6 +30,7 @@ export function VideoContent({
   onNoteCreated,
   onStatsUpdate,
   onVideoCompleted,
+  organizationId,
   setActiveTab,
   slug,
   summaryContent,
@@ -53,12 +55,19 @@ export function VideoContent({
   });
 
   useVideoAutoplayGuards({ lessonId: lesson.lesson_id, suppressVideoPlayback, videoPlayerContext });
-  useVideoProgressSync({ currentTimeRef, lesson, videoPlayerContext });
+  useVideoProgressSync({
+    currentTimeRef,
+    enrollmentId,
+    lesson,
+    organizationId,
+    videoPlayerContext,
+  });
 
   return (
     <div data-tour-id="course-learn--video-content" className="space-y-6 pb-16 md:pb-6">
       <VideoPanel
         finishLabel={t("navigation.completeCourse")}
+        enrollmentId={enrollmentId}
         handleAdvanceAction={handleAdvanceAction}
         handleCompletionAction={handleCompletionAction}
         handleVideoComplete={handleVideoComplete}
@@ -66,6 +75,7 @@ export function VideoContent({
         navigationState={navigationState}
         nextLabel={t("navigation.next")}
         onNavigatePrevious={onNavigatePrevious}
+        organizationId={organizationId}
         previousLabel={t("navigation.previous")}
         unavailableLabel={t("video.unavailable")}
       />

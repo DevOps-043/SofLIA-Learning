@@ -4,7 +4,10 @@ import { CourseService } from '@/features/courses/services/course.service'
 import { SessionService } from '@/features/auth/services/session.service'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
+import {
+  ensureCourseEnrollmentScope,
+  resolveCourseEnrollment,
+} from '@/features/courses/services/course-enrollment.server.service'
 
 /**
  * GET /api/courses/[slug]/lessons/[lessonId]/notes
@@ -37,7 +40,21 @@ export async function GET(
       )
     }
 
-    const notes = await NoteService.getNotesByLesson(currentUser.id, lessonId)
+    const supabase = createAdminClient()
+    const organizationId = request.nextUrl.searchParams.get('orgId')
+    const enrollment = await resolveCourseEnrollment(
+      supabase,
+      currentUser.id,
+      course.id,
+      organizationId,
+    )
+    const notes = enrollment
+      ? await NoteService.getNotesByLesson(
+          currentUser.id,
+          lessonId,
+          enrollment.enrollment_id,
+        )
+      : []
 
     return NextResponse.json(notes)
   } catch (error) {
@@ -86,29 +103,18 @@ export async function POST(
         : null
     const supabase = createAdminClient()
 
-    if (requestedOrganizationId) {
-      const { data: membership, error: membershipError } = await supabase
-        .from('organization_users')
-        .select('organization_id')
-        .eq('organization_id', requestedOrganizationId)
-        .eq('user_id', currentUser.id)
-        .eq('status', 'active')
-        .maybeSingle()
-
-      if (membershipError || !membership) {
-        return NextResponse.json(
-          { error: 'No tienes acceso a esta organizacion' },
-          { status: 403 }
-        )
-      }
-    }
-
-    const enrollment = await resolveCourseEnrollment(
+    const enrollment = await ensureCourseEnrollmentScope(
       supabase,
       currentUser.id,
       course.id,
       requestedOrganizationId,
     )
+    if (!enrollment) {
+      return NextResponse.json(
+        { error: 'No tienes acceso a este curso en este contexto' },
+        { status: requestedOrganizationId ? 403 : 404 },
+      )
+    }
 
     // Validaciones
     if (!note_content || typeof note_content !== 'string' || note_content.trim().length === 0) {
@@ -168,7 +174,8 @@ export async function POST(
       note_title: note_title.trim(),
       note_content: note_content.trim(),
       note_tags: note_tags && Array.isArray(note_tags) ? note_tags.filter((tag: string) => tag.trim().length > 0) : [],
-      organization_id: requestedOrganizationId || enrollment?.organization_id || null,
+      enrollment_id: enrollment.enrollment_id,
+      organization_id: enrollment.organization_id,
       source_type: source_type || 'manual'
     })
     return NextResponse.json(note, { status: 201 })

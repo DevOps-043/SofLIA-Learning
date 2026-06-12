@@ -38,6 +38,7 @@ async function handlePost(
       slug,
       lessonId,
       activityId,
+      body.organizationId ?? null,
     )
 
     const adminClient = createAdminClient()

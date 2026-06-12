@@ -57,9 +57,22 @@ export interface BusinessUserAnalyticsActivities {
 }
 
 export interface BusinessUserAnalyticsQuizzes {
-  attempts: number
-  passed: number
+  /** Lecciones del scope que tienen quiz (denominador de contexto). */
+  lessonsWithQuiz: number
+  /** Quizzes presentados (lecciones con quiz_completed). */
+  quizzesTaken: number
+  /** Quizzes aprobados (lecciones con quiz_passed). */
+  quizzesPassed: number
+  /** quizzesPassed / quizzesTaken. */
   passRate: number
+  /** Intentos totales registrados (filas en user_quiz_attempts). */
+  totalAttempts: number
+  /** Intentos extra más allá del primero (attempt_number > 1). */
+  retries: number
+  /** Aprobación al primer intento, sobre los intentos registrados. */
+  firstTryPassRate: number
+  /** Nº de quizzes con calificación detallada registrada (submissions). */
+  scoredCount: number
   averageScore: number
   bestScore: number
   latestScore: number

@@ -599,6 +599,10 @@
     },
     "quizzes": {
       "attempts": "Tentativas",
+      "taken": "Apresentados",
+      "passed": "Aprovados",
+      "totalAttempts": "Tentativas totais",
+      "retries": "Repetições",
       "passRate": "Aprovação",
       "average": "Média",
       "latest": "Último resultado"

@@ -38,8 +38,8 @@ export function DialogueMessagesList({
           />
         ))
       ) : (
-        <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
-          <Sparkles className="mx-auto h-5 w-5 text-gray-400 dark:text-white/40" />
+        <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/70 px-4 py-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
+          <Sparkles className="mx-auto h-5 w-5 text-accent" />
           <p className="mt-2 text-sm font-medium text-gray-900 dark:text-white">{t("activities.dialogue.emptyTitle")}</p>
           <p className="mt-1 text-xs text-gray-500 dark:text-white/40">{t("activities.dialogue.emptyDescription")}</p>
         </div>

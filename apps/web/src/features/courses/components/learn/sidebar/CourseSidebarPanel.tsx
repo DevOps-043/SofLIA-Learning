@@ -13,7 +13,6 @@ import type {
   LearnModule,
   LearnNoteListItem,
   LearnNotesStats,
-  LearnSavedNote,
 } from "../types";
 import { CollapsedSidebarRail } from "./CollapsedSidebarRail";
 import { CourseContentTree } from "./CourseContentTree";
@@ -49,9 +48,6 @@ type CourseSidebarPanelProps = {
   onCreateNote: () => void;
   onEditNote: (note: LearnNoteListItem) => void;
   onDeleteNote: (noteId: string) => void;
-  onRegenerateSummary: (moduleId: string) => void;
-  onGenerateDefaultSummary: (moduleId: string) => void;
-  regeneratingSummaryModuleId: string | null;
   onOpenSidebar: () => void;
   onOpenContentSection: () => void;
   onOpenNotesSection: () => void;
@@ -83,9 +79,6 @@ export function CourseSidebarPanel({
   onCreateNote,
   onEditNote,
   onDeleteNote,
-  onRegenerateSummary,
-  onGenerateDefaultSummary,
-  regeneratingSummaryModuleId,
   onOpenSidebar,
   onOpenContentSection,
   onOpenNotesSection,
@@ -178,9 +171,6 @@ export function CourseSidebarPanel({
                     onCreateNote={onCreateNote}
                     onEditNote={onEditNote}
                     onDeleteNote={onDeleteNote}
-                    onRegenerateSummary={onRegenerateSummary}
-                    onGenerateDefaultSummary={onGenerateDefaultSummary}
-                    regeneratingSummaryModuleId={regeneratingSummaryModuleId}
                   />
                 </div>
               </div>

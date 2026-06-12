@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { SessionService } from '@/features/auth/services/session.service'
 import { CourseService } from '@/features/courses/services/course.service'
+import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
 import { NoteService } from '@/features/courses/services/note.service'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { cacheHeaders, withCacheHeaders } from '@/lib/utils/cache-headers'
@@ -10,7 +11,7 @@ import { cacheHeaders, withCacheHeaders } from '@/lib/utils/cache-headers'
  * Obtiene todas las notas del usuario para el curso completo.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
@@ -31,10 +32,23 @@ export async function GET(
     }
 
     const supabase = createAdminClient()
+    const organizationId = new URL(request.url).searchParams.get('orgId')
+    const enrollment = await resolveCourseEnrollment(
+      supabase,
+      currentUser.id,
+      course.id,
+      organizationId,
+    )
+
+    if (!enrollment) {
+      return withCacheHeaders(NextResponse.json([]), cacheHeaders.private)
+    }
+
     const notes = await NoteService.getNotesByCourseWithClient(
       supabase,
       currentUser.id,
       course.id,
+      enrollment.enrollment_id,
     )
 
     return withCacheHeaders(NextResponse.json(notes), cacheHeaders.private)

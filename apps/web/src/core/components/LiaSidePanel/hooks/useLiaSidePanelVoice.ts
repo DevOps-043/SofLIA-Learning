@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import type { SofLIAMessage } from '../../../types/lia.types';
 import type { SofLIAPersonalizationSettings } from '../../../types/soflia-personalization.types';
 import { StreamingSpeechPlayer } from '../../../services/tts/client/streaming-speech-player';
+import { registerAudioUnlock } from '../../../services/tts/client/ios-audio-unlock';
 import {
   STREAM_LOOKAHEAD_CHUNKS,
   nextFinalChunkLength,
@@ -250,6 +251,10 @@ export function useLiaSidePanelVoice({
     }
     // Si no la presenciamos (saludo/historial/ya cerrada) → no se locuta/revela.
   }, [messages, isLoading, isVoiceEnabled, enqueueWithReveal, handlePlayingChange]);
+
+  // Activa los listeners de gesto que desbloquean el audio en iOS/WebKit ANTES de
+  // que el usuario envíe su primer mensaje (ver `ios-audio-unlock`). Idempotente.
+  useEffect(() => { registerAudioUnlock(); }, []);
 
   // Si se desactiva la voz, libera el revelado (muestra el texto completo).
   useEffect(() => {

@@ -10,10 +10,14 @@ export async function updateNoteRequest(
   slug: string,
   lessonId: string,
   noteId: string,
-  noteData: LearnNoteFormData
+  noteData: LearnNoteFormData,
+  organizationId?: string | null
 ): Promise<NoteRequestResult> {
+  const query = new URLSearchParams();
+  if (organizationId) query.set("orgId", organizationId);
+  const queryString = query.toString();
   const response = await fetch(
-    `/api/courses/${slug}/lessons/${lessonId}/notes/${noteId}`,
+    `/api/courses/${slug}/lessons/${lessonId}/notes/${noteId}${queryString ? `?${queryString}` : ""}`,
     {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

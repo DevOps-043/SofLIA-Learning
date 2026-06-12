@@ -161,23 +161,44 @@ async function handlePost(
             completion_percentage: 0
           }))
 
-          const enrollmentsToUpsert = user_ids.map((uid: string) => ({
-            user_id: uid,
-            course_id: courseId,
-            organization_id: organizationId,
-            enrollment_status: 'active',
-            enrolled_at: new Date().toISOString(),
-            last_accessed_at: new Date().toISOString()
-          }))
+          await supabase
+            .from('organization_course_assignments')
+            .upsert(assignmentsToUpsert, { onConflict: 'organization_id, user_id, course_id' })
 
-          await Promise.all([
-            supabase
-              .from('organization_course_assignments')
-              .upsert(assignmentsToUpsert, { onConflict: 'organization_id, user_id, course_id' }),
-            supabase
+          const { data: existingEnrollments, error: existingEnrollmentsError } = await supabase
+            .from('user_course_enrollments')
+            .select('user_id')
+            .eq('course_id', courseId)
+            .eq('organization_id', organizationId)
+            .in('user_id', user_ids)
+
+          if (existingEnrollmentsError) {
+            logger.warn('Error checking existing scoped enrollments:', existingEnrollmentsError)
+          }
+
+          const enrolledUserIds = new Set(
+            (existingEnrollments || []).map((enrollment: { user_id: string }) => enrollment.user_id),
+          )
+          const enrollmentsToCreate = user_ids
+            .filter((uid: string) => !enrolledUserIds.has(uid))
+            .map((uid: string) => ({
+              user_id: uid,
+              course_id: courseId,
+              organization_id: organizationId,
+              enrollment_status: 'active',
+              enrolled_at: new Date().toISOString(),
+              last_accessed_at: new Date().toISOString()
+            }))
+
+          if (enrollmentsToCreate.length > 0) {
+            const { error: enrollmentError } = await supabase
               .from('user_course_enrollments')
-              .upsert(enrollmentsToUpsert, { onConflict: 'user_id, course_id', ignoreDuplicates: true }),
-          ])
+              .insert(enrollmentsToCreate)
+
+            if (enrollmentError) {
+              logger.warn('Error creating scoped enrollments:', enrollmentError)
+            }
+          }
         }
 
         return { course_id: courseId, course_title: courseTitle, success: true }

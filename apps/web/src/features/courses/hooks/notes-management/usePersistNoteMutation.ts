@@ -86,7 +86,7 @@ export function usePersistNoteMutation({
 
       try {
         if (noteId.trim()) {
-          const result = await updateNoteRequest(slug, targetLessonId, noteId, noteData);
+          const result = await updateNoteRequest(slug, targetLessonId, noteId, noteData, organizationId);
           if (!result.ok) {
             reportError(`Error al actualizar la nota: ${result.error}`);
             return null;

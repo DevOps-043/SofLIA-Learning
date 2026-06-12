@@ -11,6 +11,7 @@ interface UseDeleteNoteMutationParams {
   editingNote: LearnEditableNote | null;
   loadCourseNotes: CourseNotesLoader;
   loadNotesStats: CourseNotesLoader;
+  organizationId?: string | null;
   removeNoteFromLocalState: NoteRemoval;
   savedNotes: LearnSavedNote[];
   setNoteError: (message: string | null) => void;
@@ -24,6 +25,7 @@ export function useDeleteNoteMutation({
   editingNote,
   loadCourseNotes,
   loadNotesStats,
+  organizationId,
   removeNoteFromLocalState,
   savedNotes,
   setNoteError,
@@ -65,7 +67,10 @@ export function useDeleteNoteMutation({
       removeNoteFromLocalState(noteToDelete.id);
       await updateNotesStatsOptimized("delete", targetLessonId);
 
-      const response = await fetchWithTimeout(`/api/courses/${slug}/lessons/${targetLessonId}/notes/${noteToDelete.id}`, {
+      const query = new URLSearchParams();
+      if (organizationId) query.set("orgId", organizationId);
+      const queryString = query.toString();
+      const response = await fetchWithTimeout(`/api/courses/${slug}/lessons/${targetLessonId}/notes/${noteToDelete.id}${queryString ? `?${queryString}` : ""}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -95,6 +100,7 @@ export function useDeleteNoteMutation({
     loadCourseNotes,
     loadNotesStats,
     noteToDelete,
+    organizationId,
     removeNoteFromLocalState,
     setNoteError,
     slug,

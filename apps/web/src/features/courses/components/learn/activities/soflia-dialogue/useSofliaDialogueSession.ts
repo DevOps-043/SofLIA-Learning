@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { useCurrentOrganizationId } from "@/core/stores/organizationStore";
 import { getDialogueMetrics, isDialogueTerminal } from "./dialogue-state";
 import type { DialogueSession } from "./dialogue.types";
 import { useDialogueMessageSender } from "./useDialogueMessageSender";
@@ -21,6 +23,10 @@ export function useSofliaDialogueSession({
   slug,
 }: UseSofliaDialogueSessionParams) {
   const { t } = useTranslation("learn");
+  const params = useParams();
+  const currentOrganizationId = useCurrentOrganizationId();
+  const routeOrgSlug = params?.orgSlug;
+  const organizationId = routeOrgSlug ? currentOrganizationId : null;
   const [draftMessage, setDraftMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,12 +38,12 @@ export function useSofliaDialogueSession({
     () => `/api/courses/${slug}/lessons/${lessonId}/activities/${activityId}/dialogue`,
     [activityId, lessonId, slug],
   );
-  const loadSession = useDialogueSessionLoader({ endpointBase, mountedRef, setDraftMessage, setError, setLoading, setSession, t });
+  const loadSession = useDialogueSessionLoader({ endpointBase, mountedRef, organizationId, setDraftMessage, setError, setLoading, setSession, t });
   const canRetry = session?.state === "FAIL_OR_RETRY" && session.result?.activityResult === "needs_retry";
   const canPracticeAgain = session?.result?.activityResult === "completed";
   const canStartNewAttempt = Boolean(canRetry || canPracticeAgain);
   const isTerminal = isDialogueTerminal(session, Boolean(canRetry));
-  const sendMessage = useDialogueMessageSender({ draftMessage, endpointBase, isTerminal, onSessionUpdated, sending, session, setDraftMessage, setError, setSending, setSession, t });
+  const sendMessage = useDialogueMessageSender({ draftMessage, endpointBase, isTerminal, onSessionUpdated, organizationId, sending, session, setDraftMessage, setError, setSending, setSession, t });
   const retrySession = useCallback(async () => {
     if (!canStartNewAttempt || loading || sending) return;
 

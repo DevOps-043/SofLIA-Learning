@@ -94,23 +94,40 @@ export function useVideoActions({
     const videoElement = videoRef.current;
     if (!containerElement || !videoElement) return;
 
+    const webkitVideo = videoElement as HTMLVideoElement & {
+      webkitEnterFullscreen?: () => void;
+      webkitExitFullscreen?: () => void;
+    };
+
+    const enterNativeVideoFullscreen = () => {
+      if (typeof webkitVideo.webkitEnterFullscreen === 'function') {
+        webkitVideo.webkitEnterFullscreen();
+      }
+    };
+
     try {
       if (!isFullscreen) {
-        if (containerElement.requestFullscreen) {
-          await containerElement.requestFullscreen();
-        } else {
-          const webkitContainer = containerElement as HTMLDivElement & {
-            webkitRequestFullscreen?: () => Promise<void>;
-          };
-          if (webkitContainer.webkitRequestFullscreen) {
-            await webkitContainer.webkitRequestFullscreen();
+        try {
+          if (containerElement.requestFullscreen) {
+            await containerElement.requestFullscreen();
           } else {
-            // iOS iPhone fallback: native video element fullscreen.
-            const webkitVideo = videoElement as HTMLVideoElement & {
-              webkitEnterFullscreen?: () => void;
+            const webkitContainer = containerElement as HTMLDivElement & {
+              webkitRequestFullscreen?: () => Promise<void>;
             };
-            webkitVideo.webkitEnterFullscreen?.();
+            if (webkitContainer.webkitRequestFullscreen) {
+              await webkitContainer.webkitRequestFullscreen();
+            } else {
+              // iOS iPhone fallback: native video element fullscreen.
+              enterNativeVideoFullscreen();
+            }
           }
+        } catch {
+          // The browser can reject element fullscreen (request not tied to a
+          // user gesture, embedded in an iframe without `allow="fullscreen"`,
+          // or a restrictive Permissions-Policy). Fall back to native <video>
+          // fullscreen so the user still gets a maximized view instead of a
+          // silent failure / unhandled promise rejection.
+          enterNativeVideoFullscreen();
         }
       } else if (document.exitFullscreen) {
         await document.exitFullscreen();
@@ -121,12 +138,12 @@ export function useVideoActions({
         if (webkitDocument.webkitExitFullscreen) {
           await webkitDocument.webkitExitFullscreen();
         } else {
-          const webkitVideo = videoElement as HTMLVideoElement & {
-            webkitExitFullscreen?: () => void;
-          };
           webkitVideo.webkitExitFullscreen?.();
         }
       }
+    } catch {
+      // Exiting fullscreen can also reject; the actual state is re-synced from
+      // the browser in the `finally` block below, so swallow and recover.
     } finally {
       setIsFullscreen(Boolean(document.fullscreenElement));
       setShowControls(true);

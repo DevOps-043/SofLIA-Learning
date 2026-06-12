@@ -39,7 +39,7 @@ describe('course-enrollment.server.service', () => {
     expect(enrollment?.enrollment_id).toBe('board-ready')
   })
 
-  it('falls back to the legacy enrollment when the active organization entry is empty', () => {
+  it('keeps the exact organization enrollment even when legacy progress is higher', () => {
     const enrollment = selectPreferredCourseEnrollment(
       [
         buildEnrollment({
@@ -55,7 +55,26 @@ describe('course-enrollment.server.service', () => {
       'board-ready-org',
     )
 
-    expect(enrollment?.enrollment_id).toBe('legacy')
+    expect(enrollment?.enrollment_id).toBe('board-ready')
+  })
+
+  it('returns null when the requested organization has no exact enrollment', () => {
+    const enrollment = selectPreferredCourseEnrollment(
+      [
+        buildEnrollment({
+          enrollment_id: 'legacy',
+          overall_progress_percentage: 96.88,
+        }),
+        buildEnrollment({
+          enrollment_id: 'pulse-hub',
+          organization_id: 'pulse-hub-org',
+          overall_progress_percentage: 80,
+        }),
+      ],
+      'board-ready-org',
+    )
+
+    expect(enrollment).toBeNull()
   })
 
   it('keeps the exact organization enrollment when there is no legacy fallback', () => {
@@ -124,6 +143,6 @@ describe('course-enrollment.server.service', () => {
     )
 
     expect(enrollmentMap.get('course-a')?.enrollment_id).toBe('course-a-org')
-    expect(enrollmentMap.get('course-b')?.enrollment_id).toBe('course-b-legacy')
+    expect(enrollmentMap.has('course-b')).toBe(false)
   })
 })

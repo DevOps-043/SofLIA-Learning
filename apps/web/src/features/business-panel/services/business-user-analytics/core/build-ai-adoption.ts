@@ -9,6 +9,21 @@ import { roundNumber } from './round-number'
 export function buildAiAdoption(data: QueryData, period: BusinessUserAnalyticsPeriod) {
   const userMessages = data.liaMessages.filter((message) => message.role === 'user')
   const liaMessages = data.liaMessages.filter((message) => message.role !== 'user')
+
+  // El motor nuevo de "Conversación guiada con SofLIA" escribe en `soflia_dialogue_*`,
+  // no en `lia_messages`/`lia_conversations`. Si no se cuenta, un usuario que SOLO usa
+  // las actividades de diálogo aparece con 0% de adopción aunque sí interactúa con
+  // SofLIA. Se suman al uso: cada sesión con turnos de usuario = una conversación, y
+  // cada turno = un mensaje. Las métricas de señal (preguntas, off-topic, sentimiento)
+  // se mantienen sobre `lia_messages`, que son las únicas con esos campos.
+  const dialogueUserTurns = data.dialogueTurns.filter((turn) => turn.role === 'user')
+  const dialogueConversationIds = new Set(dialogueUserTurns.map((turn) => turn.session_id))
+  const dialogueConversations = dialogueConversationIds.size
+  const dialogueMessages = data.dialogueTurns.length
+
+  const totalConversations = data.liaConversations.length + dialogueConversations
+  const totalMessages = data.liaMessages.length + dialogueMessages
+  const totalUserMessages = userMessages.length + dialogueUserTurns.length
   const questions = userMessages.filter(hasQuestionSignal).length
   const offTopic = userMessages.filter((message) => message.is_off_topic).length
   const redirects = data.liaMessages.filter((message) => message.lia_redirected).length
@@ -34,11 +49,11 @@ export function buildAiAdoption(data: QueryData, period: BusinessUserAnalyticsPe
   data.liaConversations.forEach((conversation) => incrementMap(contextCounts, conversation.context_type || 'general'))
 
   return {
-    totalConversations: data.liaConversations.length,
-    totalMessages: data.liaMessages.length,
-    userMessages: userMessages.length,
+    totalConversations,
+    totalMessages,
+    userMessages: totalUserMessages,
     liaMessages: liaMessages.length,
-    adoptionScore: calculatePercentage(data.liaConversations.length, Math.max(1, data.assignments.length)),
+    adoptionScore: calculatePercentage(totalConversations, Math.max(1, data.assignments.length)),
     questionRate,
     offTopicRate,
     redirectRate,
@@ -46,6 +61,9 @@ export function buildAiAdoption(data: QueryData, period: BusinessUserAnalyticsPe
     averageSentiment,
     questionQualityScore,
     contextBreakdown: buildBreakdown(contextCounts, data.liaConversations.length),
-    messagesTrend: buildTrend(data.liaMessages.map((message) => message.created_at).filter((value): value is string => Boolean(value)), period),
+    messagesTrend: buildTrend([
+      ...data.liaMessages.map((message) => message.created_at),
+      ...data.dialogueTurns.map((turn) => turn.created_at),
+    ].filter((value): value is string => Boolean(value)), period),
   }
 }

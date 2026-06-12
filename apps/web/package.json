@@ -47,6 +47,7 @@
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tooltip": "^1.0.7",
+    "@react-pdf/renderer": "^4.5.1",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "9.4.2",
     "@supabase/ssr": "^0.8.0",

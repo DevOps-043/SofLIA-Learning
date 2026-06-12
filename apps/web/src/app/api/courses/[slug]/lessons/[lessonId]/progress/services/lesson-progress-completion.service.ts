@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { createAdminClient } from '@/lib/supabase/admin'
 import { calculateCourseProgress } from '@/lib/utils/lesson-progress'
 import { computeLessonActivityProgress } from '@/features/courses/services/activity-submission.server.service'
-import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
+import { ensureCourseEnrollmentScope } from '@/features/courses/services/course-enrollment.server.service'
 import {
   hasPassedRequiredQuizzes,
   LessonProgressError,
@@ -97,7 +97,7 @@ async function ensureEnrollment(
   courseId: string,
   organizationId?: string | null,
 ) {
-  const enrollment = await resolveCourseEnrollment(
+  const enrollment = await ensureCourseEnrollmentScope(
     supabase,
     userId,
     courseId,
@@ -108,31 +108,13 @@ async function ensureEnrollment(
     return enrollment
   }
 
-  const now = new Date().toISOString()
-  const { data: createdEnrollment, error: createError } = await supabase
-    .from('user_course_enrollments')
-    .insert({
-      user_id: userId,
-      course_id: courseId,
-      organization_id: organizationId ?? null,
-      enrollment_status: 'active',
-      overall_progress_percentage: 0,
-      enrolled_at: now,
-      started_at: now,
-      last_accessed_at: now,
-    })
-    .select('enrollment_id, overall_progress_percentage, enrollment_status')
-    .single()
-
-  if (createError || !createdEnrollment) {
-    throw new LessonProgressError(
-      'ENROLLMENT_CREATE_FAILED',
-      500,
-      'Error al crear inscripcion',
-    )
-  }
-
-  return createdEnrollment
+  throw new LessonProgressError(
+    'ENROLLMENT_SCOPE_FORBIDDEN',
+    organizationId ? 403 : 404,
+    organizationId
+      ? 'No tienes acceso a este curso dentro de esta organizacion'
+      : 'No estas inscrito en este curso',
+  )
 }
 
 async function loadCourseAndLessons(
@@ -308,6 +290,7 @@ async function validateRequiredActivities(
   instructorId: string | null,
   lessonId: string,
   enrollmentId: string,
+  organizationId: string | null,
 ) {
   const activityProgress = await computeLessonActivityProgress(supabase, {
     courseId,
@@ -315,7 +298,7 @@ async function validateRequiredActivities(
     enrollmentId,
     instructorId,
     lessonId,
-    organizationId: null,
+    organizationId,
     userId,
   })
 
@@ -344,6 +327,7 @@ async function upsertLessonProgress(
   userId: string,
   lessonId: string,
   enrollmentId: string,
+  organizationId: string | null,
   now: string,
 ) {
   const { data: existingProgress } = await supabase
@@ -378,6 +362,7 @@ async function upsertLessonProgress(
       user_id: userId,
       lesson_id: lessonId,
       enrollment_id: enrollmentId,
+      organization_id: organizationId,
       is_completed: true,
       lesson_status: 'completed',
       video_progress_percentage: 100,
@@ -511,6 +496,7 @@ export async function completeLessonProgress(
     course.instructor_id,
     lessonId,
     enrollment.enrollment_id,
+    enrollment.organization_id,
   )
 
   const now = new Date().toISOString()
@@ -519,6 +505,7 @@ export async function completeLessonProgress(
     userId,
     lessonId,
     enrollment.enrollment_id,
+    enrollment.organization_id,
     now,
   )
 

@@ -187,7 +187,16 @@
       "Bash(grep -rn \"'/api/\\\\|\\\\\"/api/\\\\|\\\\`/api/\" src/core/components/LiaSidePanel src/features/lia src/core/hooks/useStreamingChatVoice.ts)",
       "Bash(K=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ycW5ubXVja3pudnVranZma2x5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NzczNDUyMSwiZXhwIjoyMDgzMzEwNTIxfQ.BGR8J66Aou16S1hor4L--HJkrzffc0PZmSPf-0rWtD4\" node ./lia-diag7.mjs)",
       "Bash(rm -f ./lia-diag7.mjs)",
-      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -Method Head -TimeoutSec 8 -UseBasicParsing -ErrorAction Stop; Write-Output \"DEV_SERVER_UP status=$\\($r.StatusCode\\)\" } catch { Write-Output \"DEV_SERVER_DOWN: $\\($_.Exception.Message\\)\" })"
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -Method Head -TimeoutSec 8 -UseBasicParsing -ErrorAction Stop; Write-Output \"DEV_SERVER_UP status=$\\($r.StatusCode\\)\" } catch { Write-Output \"DEV_SERVER_DOWN: $\\($_.Exception.Message\\)\" })",
+      "Bash(npx vitest *)",
+      "Bash(grep -v \":0$\")",
+      "Bash(sed -n '1588,1594p' apps/web/public/locales/pt/common.json)",
+      "Bash(sed -n '1659,1693p' apps/web/public/locales/pt/common.json)",
+      "Bash(NODE_OPTIONS=--max-old-space-size=4096 npx vitest run apps/web/src/features/notebook/services/__tests__/notebook.server.service.test.ts apps/web/src/features/courses/hooks/__tests__/useNotesManagement.test.ts apps/web/src/app/api/lia/live-token/__tests__/schema.test.ts apps/web/src/features/courses/hooks/__tests__/useNotesManagement.delete.test.ts apps/web/src/features/courses/hooks/__tests__/useNotesManagement.lia-draft.test.ts apps/web/src/features/courses/hooks/__tests__/useNotesManagement.load-update.test.ts apps/web/src/features/courses/hooks/__tests__/useNotesManagement.timeout.test.ts)",
+      "Bash(cat \"C:/Users/fysg5/AppData/Local/Temp/claude/c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning/a2ea32cb-1967-4cb9-ab60-aafe67612dc7/tasks/blw4329rq.output\")",
+      "Bash(powershell.exe -NoProfile -Command 'Get-Process node -ErrorAction SilentlyContinue | Where-Object { $_.WorkingSet64 -gt 500MB } | Select-Object Id,@{N='\\\\''MB'\\\\'';E={[int]\\($_.WorkingSet64/1MB\\)}} | Format-Table -AutoSize')",
+      "Bash(powershell.exe -NoProfile -Command 'Get-CimInstance Win32_Process -Filter \"Name='\\\\''node.exe'\\\\''\" | Where-Object { $_.CommandLine -match '\\\\''tsc'\\\\'' } | ForEach-Object { Write-Output \\(\"killing \" + $_.ProcessId\\); Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }')",
+      "Bash(powershell.exe -NoProfile -Command 'Get-Process node -ErrorAction SilentlyContinue | Where-Object { $_.WorkingSet64 -gt 400MB } | Select-Object Id,@{N='\\\\''MB'\\\\'';E={[int]\\($_.WorkingSet64/1MB\\)}} | Format-Table -AutoSize')"
     ],
     "deny": [],
     "ask": []

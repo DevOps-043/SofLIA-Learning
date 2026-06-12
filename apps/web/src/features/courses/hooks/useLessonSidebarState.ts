@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
 import { useCurrentOrganizationId } from "@/core/stores/organizationStore";
 import {
   fetchLessonContentSnapshot,
@@ -33,7 +34,10 @@ export function useLessonSidebarState({
   currentLesson,
   isMobile,
 }: UseLessonSidebarStateParams) {
-  const organizationId = useCurrentOrganizationId();
+  const params = useParams();
+  const currentOrganizationId = useCurrentOrganizationId();
+  const routeOrgSlug = params?.orgSlug;
+  const organizationId = routeOrgSlug ? currentOrganizationId : null;
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(false);
   const [isMaterialCollapsed, setIsMaterialCollapsed] = useState(false);
   const [isNotesCollapsed, setIsNotesCollapsed] = useState(false);

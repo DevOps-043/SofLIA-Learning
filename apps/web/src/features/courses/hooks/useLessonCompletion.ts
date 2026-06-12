@@ -14,7 +14,10 @@ export type { ValidationModalState } from "./useLessonCompletion/types";
 
 export function useLessonCompletion(params: UseLessonCompletionParams) {
   const { t } = useTranslation("learn");
-  const organizationId = useCurrentOrganizationId();
+  const currentOrganizationId = useCurrentOrganizationId();
+  const organizationId = params.organizationId === undefined
+    ? currentOrganizationId
+    : params.organizationId;
   const [validationModal, setValidationModal] = useState<ValidationModalState>({
     isOpen: false,
     title: "",

@@ -13,7 +13,7 @@ export function DialogueAvatar({
 }: DialogueAvatarProps) {
   if (role !== "user") {
     return (
-      <div className="mt-1 h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border border-accent/30 bg-accent/10">
+      <div className="mt-1 h-8 w-8 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-accent/30">
         <img src="/lia-avatar.webp" alt="SofLIA" className="h-full w-full object-cover" />
       </div>
     );

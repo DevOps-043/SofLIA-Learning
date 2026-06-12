@@ -9,7 +9,7 @@ export async function fetchCertificates(
 ) {
   const { data, error } = await supabase
     .from('user_course_certificates')
-    .select('certificate_id, course_id, organization_id')
+    .select('certificate_id, enrollment_id, course_id, organization_id')
     .eq('user_id', userId)
     .limit(PAGE_LIMIT)
     .returns<CertificateRecord[]>()

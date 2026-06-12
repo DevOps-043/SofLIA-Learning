@@ -1,5 +1,6 @@
 export interface StudySessionRecord {
   id: string
+  enrollment_id: string | null
   course_id: string | null
   organization_id: string | null
   status: string

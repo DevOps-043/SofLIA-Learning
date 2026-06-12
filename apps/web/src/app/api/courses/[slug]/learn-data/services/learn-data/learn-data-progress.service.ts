@@ -16,11 +16,13 @@ export async function loadNotesStats(
   supabase: SupabaseServerClient,
   courseId: string,
   userId: string,
+  enrollmentId?: string | null,
 ): Promise<NotesStats> {
   const notesStats = await NoteService.getNotesStatsWithClient(
     supabase,
     userId,
     courseId,
+    enrollmentId,
   )
 
   return {

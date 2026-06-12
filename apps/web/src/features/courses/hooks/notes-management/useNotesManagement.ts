@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type {
-  LearnGeneratedModuleSummary,
   LearnNoteFormData,
   LearnNoteListItem,
   LearnSavedNote,
@@ -24,10 +23,6 @@ export function useNotesManagement({
   organizationId,
 }: UseNotesManagementParams) {
   const [noteError, setNoteError] = useState<string | null>(null);
-  const [regeneratingSummaryModuleId, setRegeneratingSummaryModuleId] =
-    useState<string | null>(null);
-  const [viewingGeneratedSummaryId, setViewingGeneratedSummaryId] =
-    useState<string | null>(null);
   const totalLessons = useMemo(
     () => modules.reduce((count, module) => count + module.lessons.length, 0),
     [modules]
@@ -41,21 +36,13 @@ export function useNotesManagement({
     });
     return nextLessonTitleById;
   }, [modules]);
-  const moduleTitleById = useMemo(() => {
-    const nextModuleTitleById = new Map<string, string>();
-    modules.forEach(module => {
-      nextModuleTitleById.set(module.module_id, module.module_title);
-    });
-    return nextModuleTitleById;
-  }, [modules]);
 
   const notes = useCourseNotes({
     lessonTitleById,
-    moduleTitleById,
     modules,
     organizationId,
   });
-  const stats = useNotesStats({ slug, totalLessons });
+  const stats = useNotesStats({ organizationId, slug, totalLessons });
   const modals = useNoteModalState({ closeLia, currentLesson });
   const handleSaveNote = useSaveNoteMutation({
     addNoteToLocalState: notes.addNoteToLocalState,
@@ -94,6 +81,7 @@ export function useNotesManagement({
     removeNoteFromLocalState: notes.removeNoteFromLocalState,
     savedNotes: notes.manualNotes,
     setNoteError,
+    organizationId,
     slug,
     updateNotesStatsOptimized: stats.updateNotesStatsOptimized as (
       operation: "delete",
@@ -105,195 +93,20 @@ export function useNotesManagement({
     notes.ensureCourseNotesLoaded(slug, isNotesCollapsed);
   }, [isNotesCollapsed, notes.ensureCourseNotesLoaded, slug]);
 
-  const generatedSummaryVersions = notes.generatedSummaryVersions;
-  const hasGeneratingSummaries = useMemo(
-    () =>
-      generatedSummaryVersions.some(
-        (summary) => summary.status === "generating"
-      ),
-    [generatedSummaryVersions]
-  );
-  const viewingGeneratedSummary = useMemo(
-    () =>
-      generatedSummaryVersions.find(
-        (summary) => summary.id === viewingGeneratedSummaryId
-      ) || null,
-    [generatedSummaryVersions, viewingGeneratedSummaryId]
-  );
-  const viewingSummaryVersions = useMemo(() => {
-    if (!viewingGeneratedSummary) {
-      return [];
-    }
-
-    return generatedSummaryVersions.filter(
-      (summary) => summary.moduleId === viewingGeneratedSummary.moduleId
-    );
-  }, [generatedSummaryVersions, viewingGeneratedSummary]);
-  const viewingSummaryIndex = viewingGeneratedSummary
-    ? viewingSummaryVersions.findIndex(
-        (summary) => summary.id === viewingGeneratedSummary.id
-      )
-    : -1;
-
-  const refreshSummaries = useCallback(async () => {
-    await notes.loadCourseNotes(slug);
-  }, [notes.loadCourseNotes, slug]);
-
   const openEditNoteModal = useCallback(
     (note: LearnNoteListItem) => {
-      if (note.kind === "module_learning_summary") {
-        setViewingGeneratedSummaryId(note.id);
-        closeLia();
-        void refreshSummaries();
-        return;
-      }
-
-      if (note.kind === "module_learning_summary_candidate") {
-        return;
-      }
-
       modals.openEditNoteModal(note as LearnSavedNote);
     },
-    [closeLia, modals, refreshSummaries]
-  );
-
-  const closeGeneratedSummaryViewer = useCallback(() => {
-    setViewingGeneratedSummaryId(null);
-  }, []);
-
-  const duplicateGeneratedSummary = useCallback(
-    (summary: LearnGeneratedModuleSummary) => {
-      modals.openDraftNoteModal({
-        id: "",
-        title: summary.title,
-        content: summary.fullContent,
-        tags: ["SofLIA", "Apunte"],
-      });
-      setViewingGeneratedSummaryId(null);
-    },
     [modals]
-  );
-
-  useEffect(() => {
-    if (!viewingGeneratedSummaryId || !notes.summariesLoaded) {
-      return;
-    }
-
-    const stillExists = generatedSummaryVersions.some(
-      (summary) => summary.id === viewingGeneratedSummaryId
-    );
-
-    if (!stillExists) {
-      setViewingGeneratedSummaryId(null);
-    }
-  }, [
-    generatedSummaryVersions,
-    notes.summariesLoaded,
-    viewingGeneratedSummaryId,
-  ]);
-
-  useEffect(() => {
-    if (!hasGeneratingSummaries || !slug) {
-      return undefined;
-    }
-
-    const intervalId = window.setInterval(() => {
-      void refreshSummaries();
-    }, 5000);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [hasGeneratingSummaries, refreshSummaries, slug]);
-
-  const requestModuleSummary = useCallback(
-    async (
-      moduleId: string,
-      generationType: "default" | "manual_regeneration"
-    ) => {
-      setRegeneratingSummaryModuleId(moduleId);
-      setNoteError(null);
-
-      try {
-        const response = await fetch(
-          `/api/courses/${slug}/modules/${moduleId}/learning-summaries`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({
-              generationType,
-              organizationId: organizationId || null,
-            }),
-          }
-        );
-        const payload = (await response.json().catch(() => ({}))) as {
-          summary?: unknown;
-          error?: string;
-        };
-
-        if (!response.ok) {
-          throw new Error(payload.error || "No fue posible generar el apunte.");
-        }
-
-        await refreshSummaries();
-      } catch (error) {
-        setNoteError(
-          error instanceof Error
-            ? error.message
-            : "No fue posible generar el apunte."
-        );
-      } finally {
-        setRegeneratingSummaryModuleId(null);
-      }
-    },
-    [organizationId, refreshSummaries, slug]
-  );
-
-  const generateDefaultSummary = useCallback(
-    (moduleId: string) => {
-      void requestModuleSummary(moduleId, "default");
-    },
-    [requestModuleSummary]
-  );
-
-  const regenerateSummary = useCallback(
-    (moduleId: string) => {
-      void requestModuleSummary(moduleId, "manual_regeneration");
-    },
-    [requestModuleSummary]
-  );
-
-  const navigateGeneratedSummary = useCallback(
-    (direction: "previous" | "next") => {
-      if (viewingSummaryIndex < 0) {
-        return;
-      }
-
-      const nextIndex =
-        direction === "previous"
-          ? viewingSummaryIndex - 1
-          : viewingSummaryIndex + 1;
-      const nextSummary = viewingSummaryVersions[nextIndex];
-
-      if (nextSummary) {
-        setViewingGeneratedSummaryId(nextSummary.id);
-      }
-    },
-    [viewingSummaryIndex, viewingSummaryVersions]
   );
 
   return {
     addNoteToLocalState: notes.addNoteToLocalState,
     applyServerNotesStats: stats.applyServerNotesStats,
-    closeGeneratedSummaryViewer,
     closeDeleteNoteConfirm: deleteNotes.closeDeleteNoteConfirm,
     closeNotesModal: modals.closeNotesModal,
     confirmDeleteNote: deleteNotes.confirmDeleteNote,
     editingNote: modals.editingNote,
-    duplicateGeneratedSummary,
-    generatedSummaryVersions,
-    generateDefaultSummary,
     handleDeleteNote: deleteNotes.handleDeleteNote,
     handleSaveNote,
     initializeNotesStats: stats.initializeNotesStats,
@@ -303,17 +116,11 @@ export function useNotesManagement({
     noteError,
     notesStats: stats.notesStats,
     persistNote,
-    navigateGeneratedSummary,
     openEditNoteModal,
     openLiaNoteModal: modals.openLiaNoteModal,
     openNewNoteModal: modals.openNewNoteModal,
     savedNotes: notes.savedNotes,
-    regenerateSummary,
-    regeneratingSummaryModuleId,
     setNoteError,
     updateNotesStatsOptimized: stats.updateNotesStatsOptimized,
-    viewingGeneratedSummary,
-    viewingSummaryIndex,
-    viewingSummaryVersions,
   };
 }

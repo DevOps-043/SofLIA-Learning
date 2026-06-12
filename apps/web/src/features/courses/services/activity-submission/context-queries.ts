@@ -1,4 +1,5 @@
 import { CourseActivityError } from './error'
+import { ensureCourseEnrollmentScope } from '../course-enrollment.server.service'
 import type {
   CourseRow,
   EnrollmentRow,
@@ -56,18 +57,19 @@ export async function resolveEnrollment(
   supabase: SupabaseServerClient,
   userId: string,
   courseId: string,
+  organizationId?: string | null,
 ) {
-  const { data: enrollment, error } = await supabase
-    .from('user_course_enrollments')
-    .select('enrollment_id, organization_id')
-    .eq('user_id', userId)
-    .eq('course_id', courseId)
-    .single()
+  const enrollment = await ensureCourseEnrollmentScope(
+    supabase,
+    userId,
+    courseId,
+    organizationId,
+  )
 
-  if (error || !enrollment) {
+  if (!enrollment) {
     throw new CourseActivityError(
       'ENROLLMENT_NOT_FOUND',
-      404,
+      organizationId ? 403 : 404,
       'No estas inscrito en este curso',
     )
   }

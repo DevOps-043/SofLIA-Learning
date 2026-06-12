@@ -2,7 +2,7 @@
 
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { Clock, FileText, GraduationCap, Sparkles } from 'lucide-react'
+import { Clock, FileText, GraduationCap } from 'lucide-react'
 import { cn } from '@/shared/utils/cn'
 import type { NotebookItem } from '../types'
 
@@ -15,14 +15,11 @@ interface NotebookNoteCardProps {
 /**
  * NotebookNoteCard
  *
- * Displays a notebook item (manual note or SofLIA summary) as a card.
- * Shows the kind badge, title, content preview, source info, and timestamp.
+ * Displays a manual lesson note as a card. Shows the kind badge, title,
+ * content preview, source info, and timestamp.
  */
 export function NotebookNoteCard({ item, index, onClick }: NotebookNoteCardProps) {
   const { t } = useTranslation('common')
-
-  const isManualNote = item.kind === 'manual_note'
-  const isGenerating = !isManualNote && item.status === 'generating'
 
   const formattedDate = formatRelativeDate(item.updatedAt)
 
@@ -43,29 +40,10 @@ export function NotebookNoteCard({ item, index, onClick }: NotebookNoteCardProps
     >
       {/* Kind badge */}
       <div className="flex items-center justify-between mb-3">
-        <span
-          className={cn(
-            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium',
-            isManualNote
-              ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
-              : 'bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400',
-          )}
-        >
-          {isManualNote ? (
-            <FileText className="w-3 h-3" />
-          ) : (
-            <Sparkles className="w-3 h-3" />
-          )}
-          {isManualNote
-            ? t('notebook.card.manualNote')
-            : t('notebook.card.sofliaSummary')}
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
+          <FileText className="w-3 h-3" />
+          {t('notebook.card.manualNote')}
         </span>
-
-        {isGenerating && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 animate-pulse">
-            {t('notebook.card.generating')}
-          </span>
-        )}
       </div>
 
       {/* Title */}
@@ -91,8 +69,8 @@ export function NotebookNoteCard({ item, index, onClick }: NotebookNoteCardProps
         </span>
       </div>
 
-      {/* Tags (manual notes only) */}
-      {isManualNote && item.tags.length > 0 && (
+      {/* Tags */}
+      {item.tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-3">
           {item.tags.slice(0, 3).map((tag) => (
             <span

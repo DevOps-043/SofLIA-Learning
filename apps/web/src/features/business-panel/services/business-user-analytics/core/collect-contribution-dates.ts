@@ -3,8 +3,10 @@ import { isWithinPeriod } from './is-within-period'
 import { QueryData } from './query-data'
 
 export function collectContributionDates(data: QueryData, period: BusinessUserAnalyticsPeriod): string[] {
+  // Los "días activos" / racha se derivan SOLO de actividad scopeada por enrollment
+  // (progreso, notas, quizzes, diálogo, etc.), no del login global (`user_session`),
+  // para que la racha refleje la actividad DENTRO de la organización consultada.
   const dates = [
-    ...data.userSessions.map((session) => session.issued_at),
     ...data.lessonProgress.flatMap((progress) => [
       progress.started_at,
       progress.last_activity_submission_at,
