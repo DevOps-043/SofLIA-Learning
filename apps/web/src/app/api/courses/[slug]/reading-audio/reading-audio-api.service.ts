@@ -5,7 +5,10 @@ import {
   type LearnLanguage,
 } from '@/app/api/courses/_services/lesson-language-resolution.service';
 import { computeReadingContentHash } from '@/core/services/tts/server/tts-reading-pregeneration.service';
-import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service';
+import {
+  loadCourseEnrollments,
+  resolveCourseEnrollment,
+} from '@/features/courses/services/course-enrollment.server.service';
 import type { createAdminClient } from '@/lib/supabase/admin';
 
 export type ReadingAudioSourceType =
@@ -72,8 +75,19 @@ export async function assertUserCanAccessCourse(
   courseId: string,
   organizationId: string | null = null,
 ): Promise<boolean> {
-  const enrollment = await resolveCourseEnrollment(supabase, userId, courseId, organizationId);
-  return Boolean(enrollment);
+  // Con organización: resolución scopeada estricta.
+  if (organizationId) {
+    const enrollment = await resolveCourseEnrollment(supabase, userId, courseId, organizationId);
+    return Boolean(enrollment);
+  }
+
+  // Sin contexto de organización (p. ej. el reproductor de audio de lectura): basta
+  // con que el usuario tenga ALGÚN enrollment del curso, en cualquier organización o
+  // personal. Tras el org-scoping (migración 20260611120000) los enrollments dejaron
+  // de tener `organization_id = null`, así que filtrar por null ya no encontraba nada
+  // y bloqueaba el acceso a contenido del curso al que el usuario sí está inscrito.
+  const enrollments = await loadCourseEnrollments(supabase, userId, courseId);
+  return enrollments.length > 0;
 }
 
 async function loadContentTranslation(
