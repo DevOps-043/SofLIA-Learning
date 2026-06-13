@@ -235,7 +235,26 @@ Vista para empleados de una organización que usan la plataforma.
 - **Fechas límite**: Deadlines de cursos obligatorios
 - **Certificados obtenidos**: Diplomas descargables
 
-**2. SCORM (/business-user/scorm)**
+**2. MIS ESTADÍSTICAS (/{orgSlug}/business-user/analytics)**
+- **Vista de analíticas personales del empleado** (botón "Mis estadísticas" en el dashboard).
+- **Tarjetas de resumen**: Progreso promedio, Adopción de IA (uso de SofLIA) y Calidad del aprendizaje.
+- **Progreso por curso**: Gráfico con el avance en cada curso asignado.
+- **Resumen de aprendizaje**: Lecciones completadas, tiempo invertido, certificados y estado de cada curso.
+- **Adopción de IA**: Tasa y calidad de preguntas a SofLIA, preguntas fuera de tema y tendencia de participación.
+- **Radar de calidad**: Comparativa entre cursos, actividades, SofLIA, notas y quizzes.
+- **Notas, actividades y quizzes**: Métricas resumidas de cada dimensión.
+- **Retroalimentación con IA**: Botón para que SofLIA genere fortalezas, oportunidades, recomendaciones y próximos pasos.
+- **Mapa de actividad (heatmap)**: Calendario con los días de actividad de aprendizaje.
+- **Filtros de rango**: 30, 90, 180 o 365 días, con botón para actualizar datos.
+
+**3. LIBRO DE APUNTES (/{orgSlug}/business-user/notebook)**
+- **Vista de apuntes del empleado** (botón "Libro de apuntes" en el dashboard).
+- **Pestañas**: "Todas" (todos los apuntes) y "Por curso" (agrupados por curso, con filtro).
+- **Tarjetas de apunte**: Resúmenes de lecciones y notas manuales; al pulsar se abre el detalle.
+- **Detalle de apunte**: Leer el apunte completo y editar las notas manuales.
+- **Cargar más**: Paginación para ver apuntes adicionales.
+
+**4. SCORM (/business-user/scorm)**
 - Visor de contenido SCORM
 - Cursos de terceros integrados
 

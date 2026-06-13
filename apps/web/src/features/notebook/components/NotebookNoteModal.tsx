@@ -107,6 +107,7 @@ export function NotebookNoteModal({
             initial={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
           >
+            <div className="h-1 w-full shrink-0 bg-gradient-to-r from-teal-500 to-emerald-500" />
             <ModalHeader item={state.item} onClose={onClose} t={t} />
 
             {state.mode === 'edit' ? (
@@ -151,7 +152,7 @@ function ModalHeader({ item, onClose, t }: ModalHeaderProps) {
   return (
     <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-white/10">
       <div className="flex min-w-0 items-center gap-3">
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-teal-500/10 px-2.5 py-1 text-xs font-medium text-teal-700 ring-1 ring-inset ring-teal-500/20 dark:text-teal-300">
           <FileText className="h-3 w-3" />
           {t('notebook.card.manualNote')}
         </span>
@@ -392,7 +393,7 @@ function ManualNoteEditForm({
 }
 
 const primaryButtonClassName =
-  'inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:shadow-lg hover:shadow-teal-500/20 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-500 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:shadow-lg hover:shadow-teal-500/20 disabled:cursor-not-allowed disabled:opacity-50'
 
 const secondaryButtonClassName =
   'inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-600 transition-all duration-200 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'

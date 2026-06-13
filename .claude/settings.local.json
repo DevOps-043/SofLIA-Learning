@@ -196,7 +196,9 @@
       "Bash(cat \"C:/Users/fysg5/AppData/Local/Temp/claude/c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning/a2ea32cb-1967-4cb9-ab60-aafe67612dc7/tasks/blw4329rq.output\")",
       "Bash(powershell.exe -NoProfile -Command 'Get-Process node -ErrorAction SilentlyContinue | Where-Object { $_.WorkingSet64 -gt 500MB } | Select-Object Id,@{N='\\\\''MB'\\\\'';E={[int]\\($_.WorkingSet64/1MB\\)}} | Format-Table -AutoSize')",
       "Bash(powershell.exe -NoProfile -Command 'Get-CimInstance Win32_Process -Filter \"Name='\\\\''node.exe'\\\\''\" | Where-Object { $_.CommandLine -match '\\\\''tsc'\\\\'' } | ForEach-Object { Write-Output \\(\"killing \" + $_.ProcessId\\); Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }')",
-      "Bash(powershell.exe -NoProfile -Command 'Get-Process node -ErrorAction SilentlyContinue | Where-Object { $_.WorkingSet64 -gt 400MB } | Select-Object Id,@{N='\\\\''MB'\\\\'';E={[int]\\($_.WorkingSet64/1MB\\)}} | Format-Table -AutoSize')"
+      "Bash(powershell.exe -NoProfile -Command 'Get-Process node -ErrorAction SilentlyContinue | Where-Object { $_.WorkingSet64 -gt 400MB } | Select-Object Id,@{N='\\\\''MB'\\\\'';E={[int]\\($_.WorkingSet64/1MB\\)}} | Format-Table -AutoSize')",
+      "Bash(Select-String -Pattern \"activity-order|ActivityListSection\")",
+      "Bash(Select-Object -First 20)"
     ],
     "deny": [],
     "ask": []

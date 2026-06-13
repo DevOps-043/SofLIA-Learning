@@ -101,6 +101,42 @@ describe('decideDialogueNextState', () => {
     expect(decision.hintToUse?.id).toBe('hint-1')
   })
 
+  it('rescues (no loop) when hints are exhausted and there is no progress, even with needs_hint', () => {
+    const decision = decideDialogueNextState({
+      config,
+      currentState: 'CHALLENGE_OR_PROBE',
+      evaluation: evaluation({
+        decision: 'needs_hint',
+        overallScore: 0,
+        criteriaMet: [],
+        criteriaMissing: ['risk', 'mitigation'],
+      }),
+      hintsUsed: 2, // agotadas (maxHints = 2)
+      lowEvidenceTurns: 0, // needs_hint no incrementa lowEvidenceTurns
+      turnsCount: 5,
+    })
+
+    expect(decision.nextState).toBe('RESCUE')
+  })
+
+  it('keeps probing (not rescue) when hints are exhausted but the student is making progress', () => {
+    const decision = decideDialogueNextState({
+      config,
+      currentState: 'CHALLENGE_OR_PROBE',
+      evaluation: evaluation({
+        decision: 'needs_hint',
+        overallScore: 40,
+        criteriaMet: ['risk'],
+        criteriaMissing: ['mitigation'],
+      }),
+      hintsUsed: 2,
+      lowEvidenceTurns: 0,
+      turnsCount: 5,
+    })
+
+    expect(decision.nextState).toBe('CHALLENGE_OR_PROBE')
+  })
+
   it('blocks completion when security flags are present', () => {
     const decision = decideDialogueNextState({
       config,

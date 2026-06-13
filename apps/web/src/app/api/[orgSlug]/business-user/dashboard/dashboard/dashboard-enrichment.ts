@@ -29,8 +29,9 @@ export async function fetchDashboardEnrichment(
     baseData.courseIds.length > 0
       ? supabase
           .from('user_course_enrollments')
-          .select('enrollment_id, course_id, overall_progress_percentage, enrollment_status, completed_at')
+          .select('enrollment_id, course_id, organization_id, overall_progress_percentage, enrollment_status, completed_at')
           .eq('user_id', auth.userId)
+          .eq('organization_id', auth.organizationId)
           .in('course_id', baseData.courseIds)
           .returns<EnrollmentRow[]>()
           .limit(100)

@@ -21,7 +21,7 @@ export function NotebookHeader() {
       className="mb-8"
     >
       <div className="flex items-center gap-3 mb-2">
-        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 shadow-lg shadow-teal-500/20">
+        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-500 shadow-lg shadow-teal-500/20">
           <BookOpen className="w-5 h-5 text-white" />
         </div>
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">

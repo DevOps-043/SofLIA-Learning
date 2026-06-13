@@ -116,7 +116,7 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
           </p>
           <button
             onClick={retryFetch}
-            className="mt-2 px-4 py-2 text-sm font-medium rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:shadow-lg hover:shadow-teal-500/20 transition-all duration-200"
+            className="mt-2 px-4 py-2 text-sm font-medium rounded-lg bg-gradient-to-r from-teal-500 to-emerald-500 text-white hover:shadow-lg hover:shadow-teal-500/20 transition-all duration-200"
           >
             {t('notebook.error.retry')}
           </button>

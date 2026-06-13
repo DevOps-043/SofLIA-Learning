@@ -40,7 +40,7 @@ export function NotebookNoteCard({ item, index, onClick }: NotebookNoteCardProps
     >
       {/* Kind badge */}
       <div className="flex items-center justify-between mb-3">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-teal-500/10 text-teal-700 ring-1 ring-inset ring-teal-500/20 dark:text-teal-300">
           <FileText className="w-3 h-3" />
           {t('notebook.card.manualNote')}
         </span>

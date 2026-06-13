@@ -1,7 +1,9 @@
+import { useMemo } from "react";
 import { Activity } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { ActivityCard } from "../activities/ActivityCard";
+import { sortActivitiesByDisplayOrder } from "../activities/utils";
 import { SectionCountHeader } from "./SectionCountHeader";
 import type { ActivitiesData, LearnActivity } from "./types";
 
@@ -21,19 +23,24 @@ export function ActivityListSection(props: {
 }) {
   const { t } = useTranslation("learn");
 
-  if (props.data.activities.length === 0) {
+  const orderedActivities = useMemo(
+    () => sortActivitiesByDisplayOrder(props.data.activities),
+    [props.data.activities],
+  );
+
+  if (orderedActivities.length === 0) {
     return null;
   }
 
   return (
     <div data-tour-id="course-learn--activity-list">
       <SectionCountHeader
-        count={props.data.activities.length}
+        count={orderedActivities.length}
         icon={Activity}
         label={t("activities.title")}
       />
       <div className="space-y-2">
-        {props.data.activities.map((activity) => (
+        {orderedActivities.map((activity) => (
           <ActivityCard
             key={activity.activity_id}
             activity={activity}

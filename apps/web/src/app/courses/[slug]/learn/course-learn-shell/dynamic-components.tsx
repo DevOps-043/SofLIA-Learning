@@ -6,7 +6,10 @@ import type { NotesModalProps } from '@/core/components/NotesModal'
 import type { CourseLia } from '@/features/courses/components/CourseLia'
 
 const NotesModal = dynamic(
-  () => import('@/core/components/NotesModal/NotesModalPdfMake').then((mod) => ({ default: mod.NotesModalPdfMake })),
+  // Import directo del componente real (antes pasaba por el shim re-export
+  // `NotesModalPdfMake.tsx`, una capa de indirección 'use client' innecesaria que
+  // aparecía en el stack del error de carga del chunk).
+  () => import('@/core/components/NotesModal/NotesModalWithLibraries').then((mod) => ({ default: mod.NotesModalWithLibraries })),
   { loading: () => <div className="flex items-center justify-center p-8">Cargando notas...</div>, ssr: false },
 )
 

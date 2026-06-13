@@ -32,7 +32,9 @@ export function SofliaDialogueActivityRenderer({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/[0.03]">
+    // `-m-3` cancela el padding de la tarjeta contenedora (ActivityCardBody) para que
+    // el diálogo la llene de borde a borde: una sola capa, sin "card dentro de card".
+    <div className="-m-3 overflow-hidden rounded-lg">
       <DialogueHeader
         canPracticeAgain={dialogue.canPracticeAgain}
         canRetry={dialogue.canRetry}

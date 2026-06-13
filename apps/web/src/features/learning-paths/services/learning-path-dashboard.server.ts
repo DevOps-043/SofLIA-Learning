@@ -171,12 +171,14 @@ export async function loadBusinessUserLearningPaths(params: {
       .from('user_course_enrollments')
       .select('course_id, organization_id, overall_progress_percentage, enrollment_status, completed_at')
       .eq('user_id', userId)
+      .eq('organization_id', organizationId)
       .in('course_id', courseIds)
       .returns<LearningPathDashboardEnrollmentRow[]>(),
     supabase
       .from('user_course_certificates')
       .select('course_id')
       .eq('user_id', userId)
+      .eq('organization_id', organizationId)
       .in('course_id', courseIds)
       .returns<LearningPathDashboardCertificateRow[]>(),
   ])

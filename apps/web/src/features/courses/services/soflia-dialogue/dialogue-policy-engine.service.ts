@@ -106,14 +106,26 @@ export function decideDialogueNextState(
     }
   }
 
+  // El estudiante está estancado si la última evaluación no muestra avance real
+  // (sin puntaje y sin criterios cubiertos). Antes el RESCUE exigía además
+  // `lowEvidenceTurns >= N`, pero el evaluador suele devolver `needs_hint` (que NO
+  // incrementa lowEvidenceTurns), así que el rescate nunca llegaba y la conversación
+  // se quedaba en bucle de CHALLENGE_OR_PROBE. Ahora, agotadas las pistas y sin
+  // criterios obligatorios cubiertos, rescatamos cuando hay baja evidencia repetida
+  // O cuando no hay ningún progreso: damos el modelo de referencia y redirigimos al
+  // video en lugar de seguir sondeando indefinidamente.
+  const isMakingProgress =
+    evaluation.overallScore > 0 || evaluation.criteriaMet.length > 0
+
   if (
-    input.lowEvidenceTurns >= policy.rescueAfterLowEvidenceTurns &&
-    input.hintsUsed >= policy.maxHints
+    input.hintsUsed >= policy.maxHints &&
+    !requiredCriteriaMet &&
+    (input.lowEvidenceTurns >= policy.rescueAfterLowEvidenceTurns || !isMakingProgress)
   ) {
     return {
       nextState: 'RESCUE',
       nextAction: 'explain_rescue_model',
-      reason: 'Hay baja evidencia repetida y ya se agotaron las pistas disponibles.',
+      reason: 'Se agotaron las pistas y el estudiante sigue sin avanzar; conviene rescatar.',
       shouldComplete: false,
       shouldPersistResult: false,
       hintToUse: null,

@@ -31,11 +31,48 @@ import {
   updateDialogueSessionAfterTurn,
 } from './dialogue-session.service'
 import { generateDialogueTutorMessage } from './dialogue-tutor.service'
-import type { DialogueSessionRow } from './dialogue-tables'
+import type { DialogueSessionRow, DialogueTurnRow } from './dialogue-tables'
 import {
-  buildDialogueEvaluationRecoveryMessage,
+  buildDialogueTechnicalRecovery,
   isRecoverableDialogueEvaluationError,
 } from './dialogue-technical-recovery.service'
+
+/**
+ * Reintenta la evaluación UNA vez ante un fallo recuperable (timeouts/errores
+ * transitorios de la IA). Si el segundo intento también falla, propaga el error para
+ * que el runtime entre en la recuperación escalada (pista → rescate → video).
+ */
+async function evaluateDialogueTurnWithRetry(
+  params: Parameters<typeof evaluateDialogueTurn>[0],
+) {
+  try {
+    return await evaluateDialogueTurn(params)
+  } catch (error) {
+    if (!isRecoverableDialogueEvaluationError(error)) throw error
+    await new Promise((resolve) => setTimeout(resolve, 600))
+    return await evaluateDialogueTurn(params)
+  }
+}
+
+/**
+ * Cuenta cuántos mensajes de recuperación técnica consecutivos lleva SofLIA (mirando
+ * los turnos de asistente más recientes hacia atrás). Sirve para ESCALAR la guía en
+ * vez de repetir el mismo texto: 1er fallo pide reenvío, 2do da pista, 3er+ rescata.
+ */
+function countConsecutiveTechnicalRecoveries(turns: DialogueTurnRow[]): number {
+  let count = 0
+  for (let index = turns.length - 1; index >= 0; index -= 1) {
+    const turn = turns[index]
+    if (turn.role !== 'assistant') continue
+    const metadata = turn.metadata as { technicalRecovery?: unknown } | null | undefined
+    if (metadata?.technicalRecovery) {
+      count += 1
+    } else {
+      break
+    }
+  }
+  return count
+}
 
 function toDialogueState(value: string): DialogueState {
   const states: DialogueState[] = [
@@ -250,7 +287,7 @@ export async function processDialogueMessage(input: {
             evaluation: buildSecurityEvaluation(config),
             modelName: 'security-guardrail',
           }
-        : await evaluateDialogueTurn({
+        : await evaluateDialogueTurnWithRetry({
             config,
             organizationAiContext: input.context.organizationAiContext,
             previousEvaluations,
@@ -273,7 +310,10 @@ export async function processDialogueMessage(input: {
       userId: input.context.userId,
     })
 
-    const assistantMessage = buildDialogueEvaluationRecoveryMessage()
+    // Recuperación ESCALADA: en vez de repetir siempre el mismo texto, escala según
+    // cuántos fallos técnicos consecutivos van (reenvío → pista → rescate + video).
+    const recoveryAttempt = countConsecutiveTechnicalRecoveries(existingTurns) + 1
+    const assistantMessage = buildDialogueTechnicalRecovery({ config, attempt: recoveryAttempt })
     const currentState = toDialogueState(session.state)
 
     await insertDialogueTurn({

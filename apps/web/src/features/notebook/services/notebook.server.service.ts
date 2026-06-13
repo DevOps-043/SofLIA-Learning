@@ -291,7 +291,7 @@ async function fetchManualNotes(params: FetchNotesParams): Promise<NotebookManua
     `,
     )
     .eq('user_id', userId)
-    .or(`organization_id.eq.${organizationId},organization_id.is.null`)
+    .eq('organization_id', organizationId)
     .in('lesson_id', lessonIdsForFilter)
     .order('updated_at', { ascending: false })
     .order('note_id', { ascending: false })
@@ -395,7 +395,7 @@ export async function fetchNotebookCourses(
           .from('user_lesson_notes')
           .select('note_id, lesson_id')
           .eq('user_id', userId)
-          .or(`organization_id.eq.${organizationId},organization_id.is.null`)
+          .eq('organization_id', organizationId)
           .in('lesson_id', lessonIds)
       : { data: [], error: null }
 
@@ -457,7 +457,7 @@ async function fetchNotebookManualNoteById(params: {
     )
     .eq('note_id', noteId)
     .eq('user_id', userId)
-    .or(`organization_id.eq.${organizationId},organization_id.is.null`)
+    .eq('organization_id', organizationId)
     .maybeSingle()
 
   if (error) {
@@ -503,7 +503,7 @@ export async function updateNotebookManualNote(
     })
     .eq('note_id', noteId)
     .eq('user_id', userId)
-    .or(`organization_id.eq.${organizationId},organization_id.is.null`)
+    .eq('organization_id', organizationId)
 
   if (error) {
     logger.error('Notebook: error updating manual note', {

@@ -55,6 +55,7 @@ export interface CertificateRow {
 export interface EnrollmentRow {
   enrollment_id: string
   course_id: string
+  organization_id: string | null
   overall_progress_percentage: number | null
   enrollment_status: string | null
   completed_at: string | null

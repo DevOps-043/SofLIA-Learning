@@ -974,6 +974,78 @@ export type Database = {
           },
         ]
       }
+      course_scope_consolidation_runs: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          migrated_by: string | null
+          moved_counts: Json
+          run_id: string
+          source_enrollment_ids: string[]
+          target_enrollment_id: string | null
+          target_organization_id: string
+          user_id: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          migrated_by?: string | null
+          moved_counts?: Json
+          run_id?: string
+          source_enrollment_ids?: string[]
+          target_enrollment_id?: string | null
+          target_organization_id: string
+          user_id: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          migrated_by?: string | null
+          moved_counts?: Json
+          run_id?: string
+          source_enrollment_ids?: string[]
+          target_enrollment_id?: string | null
+          target_organization_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_scope_consolidation_runs_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_scope_consolidation_runs_migrated_by_fkey"
+            columns: ["migrated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_scope_consolidation_runs_target_enrollment_id_fkey"
+            columns: ["target_enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "user_course_enrollments"
+            referencedColumns: ["enrollment_id"]
+          },
+          {
+            foreignKeyName: "course_scope_consolidation_runs_target_organization_id_fkey"
+            columns: ["target_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_scope_consolidation_runs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_lessons: {
         Row: {
           created_at: string | null
@@ -9906,6 +9978,26 @@ export type Database = {
           p_course_id: string
           p_target_organization_id: string
           p_user_id: string
+        }
+        Returns: Json
+      }
+      consolidate_user_course_learning_scope: {
+        Args: {
+          p_course_id?: string | null
+          p_delete_source_enrollments?: boolean
+          p_migrated_by?: string | null
+          p_target_organization_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      consolidate_user_course_learning_scope_by_slug: {
+        Args: {
+          p_course_slug?: string | null
+          p_delete_source_enrollments?: boolean
+          p_migrated_by?: string | null
+          p_target_organization_slug: string
+          p_user_email: string
         }
         Returns: Json
       }

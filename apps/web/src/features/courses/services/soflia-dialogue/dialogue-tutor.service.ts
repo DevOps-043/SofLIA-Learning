@@ -88,7 +88,7 @@ function fallbackTutorMessage(input: {
   }
 
   if (policy.nextState === 'RESCUE') {
-    return `Modelo de referencia: ${ensureCompleteSentence(config.rescueContent)}`
+    return `Modelo de referencia: ${ensureCompleteSentence(config.rescueContent)} Si quieres reforzar la idea, vuelve al video de la leccion y retomalo desde ahi antes de continuar.`
   }
 
   if (policy.nextState === 'HINT' && policy.hintToUse) {

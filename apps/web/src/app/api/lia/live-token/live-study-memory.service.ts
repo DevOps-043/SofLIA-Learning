@@ -58,12 +58,15 @@ function uniqueValues(values: Array<string | null | undefined>): string[] {
   return Array.from(new Set(values.filter((value): value is string => Boolean(value))));
 }
 
-function applyOrganizationScope<T extends { or: (filters: string) => T; is: (column: string, value: null) => T }>(
+function applyOrganizationScope<T extends {
+  eq: (column: string, value: string) => T;
+  is: (column: string, value: null) => T;
+}>(
   query: T,
   organizationId: string | null | undefined,
 ): T {
   if (organizationId) {
-    return query.or(`organization_id.eq.${organizationId},organization_id.is.null`);
+    return query.eq('organization_id', organizationId);
   }
 
   return query.is('organization_id', null);

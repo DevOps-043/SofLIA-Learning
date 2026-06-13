@@ -50,7 +50,7 @@ export function NotebookCourseFilter({
         className={cn(
           'flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border',
           !selectedCourseId
-            ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-transparent shadow-md shadow-teal-500/20'
+            ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white border-transparent shadow-md shadow-teal-500/20'
             : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-teal-300 dark:hover:border-teal-700',
         )}
       >
@@ -68,7 +68,7 @@ export function NotebookCourseFilter({
             className={cn(
               'flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border flex items-center gap-2',
               isActive
-                ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-transparent shadow-md shadow-teal-500/20'
+                ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white border-transparent shadow-md shadow-teal-500/20'
                 : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-teal-300 dark:hover:border-teal-700',
             )}
           >

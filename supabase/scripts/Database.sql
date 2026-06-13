@@ -1270,6 +1270,23 @@ CREATE TABLE public.course_legacy_progress_claims (
   CONSTRAINT course_legacy_progress_claims_target_organization_id_fkey FOREIGN KEY (target_organization_id) REFERENCES public.organizations(id) ON DELETE CASCADE,
   CONSTRAINT course_legacy_progress_claims_claimed_by_fkey FOREIGN KEY (claimed_by) REFERENCES public.users(id) ON DELETE CASCADE
 );
+CREATE TABLE public.course_scope_consolidation_runs (
+  run_id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  target_organization_id uuid NOT NULL,
+  course_id uuid,
+  migrated_by uuid,
+  source_enrollment_ids uuid[] NOT NULL DEFAULT '{}'::uuid[],
+  target_enrollment_id uuid,
+  moved_counts jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT course_scope_consolidation_runs_pkey PRIMARY KEY (run_id),
+  CONSTRAINT course_scope_consolidation_runs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE,
+  CONSTRAINT course_scope_consolidation_runs_target_organization_id_fkey FOREIGN KEY (target_organization_id) REFERENCES public.organizations(id) ON DELETE CASCADE,
+  CONSTRAINT course_scope_consolidation_runs_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id) ON DELETE CASCADE,
+  CONSTRAINT course_scope_consolidation_runs_migrated_by_fkey FOREIGN KEY (migrated_by) REFERENCES public.users(id) ON DELETE SET NULL,
+  CONSTRAINT course_scope_consolidation_runs_target_enrollment_id_fkey FOREIGN KEY (target_enrollment_id) REFERENCES public.user_course_enrollments(enrollment_id) ON DELETE SET NULL
+);
 CREATE TABLE public.user_invitations (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   email text NOT NULL,
