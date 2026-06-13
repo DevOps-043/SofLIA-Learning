@@ -1,75 +1,122 @@
 /**
- * Notebook Client Service
+ * Notebook — Client Service
  *
- * HTTP client for the notebook API endpoints.
- * All requests are org-scoped via the orgSlug path parameter.
+ * Thin fetch wrappers around the org-scoped Notebook API routes. All requests
+ * use `credentials: 'include'` so the Supabase session cookie is sent; the
+ * server resolves the org from the slug and enforces isolation.
  */
 
 import type {
-  NotebookMutationResponse,
-  NotebookCoursesResponse,
-  NotebookUpdateNoteInput,
-  NotebookNotesQueryParams,
-  NotebookNotesResponse,
+  CreateNotebookNoteInput,
+  NotebookCourseOption,
+  NotebookCourseOptionsResponse,
+  NotebookNoteDetail,
+  NotebookNoteResponse,
+  NotebookTree,
+  NotebookTreeResponse,
+  UpdateNotebookNoteInput,
 } from '../types'
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+function base(orgSlug: string): string {
+  return `/api/${encodeURIComponent(orgSlug)}/business-user/notebook`
+}
 
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
+async function parseError(response: Response, fallback: string): Promise<never> {
+  let message = fallback
+  try {
+    const body = (await response.json()) as { error?: string }
+    if (body?.error) message = body.error
+  } catch {
+    // ignore non-JSON bodies
+  }
+  throw new Error(message)
+}
+
+export async function fetchNotebookTree(orgSlug: string): Promise<NotebookTree> {
+  const response = await fetch(`${base(orgSlug)}/tree`, {
+    credentials: 'include',
+    cache: 'no-store',
+  })
+  if (!response.ok) {
+    return parseError(response, 'No se pudo cargar el libro de apuntes.')
+  }
+  const data = (await response.json()) as NotebookTreeResponse
+  return data.tree
+}
+
+export async function fetchNotebookCourseOptions(
+  orgSlug: string,
+): Promise<NotebookCourseOption[]> {
+  const response = await fetch(`${base(orgSlug)}/courses`, {
+    credentials: 'include',
+    cache: 'no-store',
+  })
+  if (!response.ok) {
+    return parseError(response, 'No se pudieron cargar los cursos.')
+  }
+  const data = (await response.json()) as NotebookCourseOptionsResponse
+  return data.courses
+}
+
+export async function fetchNotebookNote(
+  orgSlug: string,
+  noteId: string,
+): Promise<NotebookNoteDetail> {
+  const response = await fetch(`${base(orgSlug)}/notes/${noteId}`, {
+    credentials: 'include',
+    cache: 'no-store',
+  })
+  if (!response.ok) {
+    return parseError(response, 'No se pudo cargar la nota.')
+  }
+  const data = (await response.json()) as NotebookNoteResponse
+  return data.note
+}
+
+export async function createNotebookNote(
+  orgSlug: string,
+  input: CreateNotebookNoteInput,
+): Promise<NotebookNoteDetail> {
+  const response = await fetch(`${base(orgSlug)}/notes`, {
+    method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    ...init,
+    body: JSON.stringify(input),
   })
-
   if (!response.ok) {
-    const body = await response.json().catch(() => ({}))
-    throw new Error(body.error || `HTTP ${response.status}`)
+    return parseError(response, 'No se pudo crear la nota.')
   }
-
-  return response.json()
-}
-
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
-
-export async function getNotebookNotes(
-  orgSlug: string,
-  params?: NotebookNotesQueryParams,
-): Promise<NotebookNotesResponse> {
-  const searchParams = new URLSearchParams()
-
-  if (params?.courseId) searchParams.set('courseId', params.courseId)
-  if (params?.cursor) searchParams.set('cursor', params.cursor)
-  if (params?.limit) searchParams.set('limit', String(params.limit))
-
-  const queryString = searchParams.toString()
-  const url = `/api/${orgSlug}/business-user/notebook/notes${queryString ? `?${queryString}` : ''}`
-
-  return fetchJson<NotebookNotesResponse>(url)
-}
-
-export async function getNotebookCourses(
-  orgSlug: string,
-): Promise<NotebookCoursesResponse> {
-  return fetchJson<NotebookCoursesResponse>(
-    `/api/${orgSlug}/business-user/notebook/courses`,
-  )
+  const data = (await response.json()) as NotebookNoteResponse
+  return data.note
 }
 
 export async function updateNotebookNote(
   orgSlug: string,
   noteId: string,
-  payload: NotebookUpdateNoteInput,
-): Promise<NotebookMutationResponse> {
-  return fetchJson<NotebookMutationResponse>(
-    `/api/${orgSlug}/business-user/notebook/notes/${noteId}`,
-    {
-      method: 'PUT',
-      body: JSON.stringify(payload),
-    },
-  )
+  input: UpdateNotebookNoteInput,
+): Promise<NotebookNoteDetail> {
+  const response = await fetch(`${base(orgSlug)}/notes/${noteId}`, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+  if (!response.ok) {
+    return parseError(response, 'No se pudo guardar la nota.')
+  }
+  const data = (await response.json()) as NotebookNoteResponse
+  return data.note
+}
+
+export async function deleteNotebookNote(
+  orgSlug: string,
+  noteId: string,
+): Promise<void> {
+  const response = await fetch(`${base(orgSlug)}/notes/${noteId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  })
+  if (!response.ok) {
+    await parseError(response, 'No se pudo eliminar la nota.')
+  }
 }

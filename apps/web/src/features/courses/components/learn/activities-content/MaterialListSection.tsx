@@ -8,6 +8,7 @@ import type { ActivitiesData } from "./types";
 export function MaterialListSection(props: {
   data: ActivitiesData;
   lessonId: string;
+  onQuizSubmitted: () => void | Promise<void>;
   onRequestQuizFeedback: (
     prompt: string,
     source?: { activityId?: string | null; materialId?: string | null },
@@ -34,7 +35,7 @@ export function MaterialListSection(props: {
             isCollapsed={props.data.collapsedMaterials.has(material.material_id)}
             lessonId={props.lessonId}
             material={material}
-            onQuizSubmitted={props.data.refreshLessonContent}
+            onQuizSubmitted={props.onQuizSubmitted}
             onRequestQuizFeedback={props.onRequestQuizFeedback}
             onToggle={props.data.toggleMaterialCollapse}
             quizStatus={props.data.quizStatus}

@@ -2,35 +2,46 @@ import type { UserFlow } from '../../types';
 
 export const businessUserNotebookUserFlows: UserFlow[] = [
   {
-    name: 'Consultar tus apuntes y resúmenes de las lecciones',
+    name: 'Explorar apuntes por curso y lección',
     steps: [
-      '1. Abrir el libro de apuntes',
-      '2. Revisar las tarjetas con tus apuntes en la pestaña "Todas"',
-      '3. Pulsar una tarjeta para leer el apunte completo',
+      '1. Abrir el árbol lateral de cursos',
+      '2. Expandir un curso para ver sus lecciones',
+      '3. Seleccionar una lección para ver solo sus apuntes',
     ],
-    commonBreakpoints: ['Paso 2: si aún no tienes apuntes verás el estado vacío'],
+    commonBreakpoints: ['Paso 1: el árbol está vacío si aún no creaste apuntes'],
   },
   {
-    name: 'Filtrar tus apuntes por curso',
+    name: 'Previsualizar un apunte sin abrirlo',
     steps: [
-      '1. Cambiar a la pestaña "Por curso"',
-      '2. Seleccionar el curso en el filtro',
-      '3. Ver solo los apuntes de ese curso',
+      '1. Pasar el cursor sobre la tarjeta de un apunte',
+      '2. Leer su contenido en la ventana flotante de vista previa',
     ],
     commonBreakpoints: [],
   },
   {
-    name: 'Leer y editar una nota manual',
+    name: 'Editar un apunte en su página completa',
     steps: [
-      '1. Pulsar la tarjeta de una nota manual',
-      '2. En el detalle, activar el modo edición',
-      '3. Modificar el contenido y guardar',
+      '1. Hacer clic en la tarjeta del apunte',
+      '2. Editar título, contenido (editor enriquecido) y etiquetas',
+      '3. Los cambios se guardan automáticamente',
     ],
-    commonBreakpoints: ['Paso 3: error al guardar por fallo de red o de la API'],
+    commonBreakpoints: ['Paso 3: revisa el indicador de estado si el guardado falla'],
   },
   {
-    name: 'Cargar más apuntes',
-    steps: ['1. Bajar al final de la lista', '2. Pulsar "Cargar más" para ver más apuntes'],
+    name: 'Crear un nuevo apunte',
+    steps: [
+      '1. Pulsar "Nuevo apunte"',
+      '2. Elegir el curso y la lección',
+      '3. Crear y empezar a escribir en el editor',
+    ],
+    commonBreakpoints: ['Paso 2: necesitas estar inscrito en al menos un curso con lecciones'],
+  },
+  {
+    name: 'Buscar apuntes',
+    steps: [
+      '1. Escribir en el buscador (título, curso, lección o etiqueta)',
+      '2. Revisar los resultados filtrados',
+    ],
     commonBreakpoints: [],
   },
 ];

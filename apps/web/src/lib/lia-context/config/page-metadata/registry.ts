@@ -4,6 +4,7 @@ import { businessPanelUsersMetadata } from './routes/business-panel-users/metada
 import { businessUserDashboardMetadata } from './routes/business-user-dashboard/metadata';
 import { businessUserAnalyticsMetadata } from './routes/business-user-analytics/metadata';
 import { businessUserNotebookMetadata } from './routes/business-user-notebook/metadata';
+import { businessUserNotebookEditorMetadata } from './routes/business-user-notebook-editor/metadata';
 import { courseLearnMetadata } from './routes/course-learn/metadata';
 import { studyPlannerDashboardMetadata } from './routes/study-planner-dashboard/metadata';
 import { businessPanelDashboardMetadata } from './routes/business-panel-dashboard/metadata';
@@ -47,6 +48,7 @@ export const PAGE_METADATA_BY_ROUTE = {
   '/[orgSlug]/business-user/dashboard': businessUserDashboardMetadata,
   '/[orgSlug]/business-user/analytics': businessUserAnalyticsMetadata,
   '/[orgSlug]/business-user/notebook': businessUserNotebookMetadata,
+  '/[orgSlug]/business-user/notebook/[noteId]': businessUserNotebookEditorMetadata,
   '/courses/[slug]/learn': courseLearnMetadata,
   '/study-planner/dashboard': studyPlannerDashboardMetadata,
   '/[orgSlug]/business-panel/dashboard': businessPanelDashboardMetadata,

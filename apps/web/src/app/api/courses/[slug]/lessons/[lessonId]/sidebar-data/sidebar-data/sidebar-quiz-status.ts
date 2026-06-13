@@ -1,11 +1,11 @@
-import { buildQuizSubmissionSnapshot } from '@/features/courses/services/quiz-submission.service'
+import {
+  buildRequiredQuizStatus,
+  toRequiredQuizResources,
+} from '@/features/courses/services/quiz/required-quiz-status.service'
 import type { SidebarDataBundle, QuizStatusResponse } from './sidebar-results.types'
 import type {
-  LessonActivityRow,
-  LessonMaterialRow,
-  QuizSubmissionRow,
-  QuizStatusItem,
   SidebarContext,
+  QuizSubmissionRow,
 } from './sidebar.types'
 
 const EMPTY_QUIZ_STATUS: QuizStatusResponse = {
@@ -15,53 +15,6 @@ const EMPTY_QUIZ_STATUS: QuizStatusResponse = {
   passedQuizzes: 0,
   allQuizzesPassed: true,
   quizzes: [],
-}
-
-function buildMaterialQuizStatus(
-  quiz: LessonMaterialRow,
-  submissions: QuizSubmissionRow[],
-): QuizStatusItem {
-  const submission = submissions.find((item) => item.material_id === quiz.material_id)
-
-  return {
-    id: quiz.material_id,
-    title: quiz.material_title,
-    type: 'material',
-    isCompleted: !!submission,
-    isPassed: submission?.is_passed || false,
-    latestSubmission: buildQuizSubmissionSnapshot({
-      completedAt: submission?.completed_at,
-      score: submission?.score,
-      submissionId: submission?.submission_id,
-      userAnswers: submission?.user_answers,
-    }),
-    percentage: submission?.percentage_score || 0,
-    completedAt: submission?.completed_at || null,
-  }
-}
-
-function buildActivityQuizStatus(
-  quiz: LessonActivityRow,
-  submissions: QuizSubmissionRow[],
-): QuizStatusItem {
-  const submission = submissions.find((item) => item.activity_id === quiz.activity_id)
-
-  return {
-    id: quiz.activity_id,
-    title: quiz.activity_title,
-    type: 'activity',
-    isRequired: quiz.is_required,
-    isCompleted: !!submission,
-    isPassed: submission?.is_passed || false,
-    latestSubmission: buildQuizSubmissionSnapshot({
-      completedAt: submission?.completed_at,
-      score: submission?.score,
-      submissionId: submission?.submission_id,
-      userAnswers: submission?.user_answers,
-    }),
-    percentage: submission?.percentage_score || 0,
-    completedAt: submission?.completed_at || null,
-  }
 }
 
 async function fetchQuizSubmissions(
@@ -87,19 +40,18 @@ export async function buildQuizStatus(
   if (totalRequiredQuizzes === 0) return EMPTY_QUIZ_STATUS
 
   const submissions = await fetchQuizSubmissions(context, context.enrollment.enrollment_id)
-  const quizzes = [
-    ...data.materialQuizzes.map((quiz) => buildMaterialQuizStatus(quiz, submissions)),
-    ...data.activityQuizzes.map((quiz) => buildActivityQuizStatus(quiz, submissions)),
-  ]
-  const completedQuizzes = quizzes.filter((quiz) => quiz.isCompleted).length
-  const passedQuizzes = quizzes.filter((quiz) => quiz.isPassed).length
-
-  return {
-    hasRequiredQuizzes: true,
-    totalRequiredQuizzes,
-    completedQuizzes,
-    passedQuizzes,
-    allQuizzesPassed: quizzes.every((quiz) => quiz.isPassed),
-    quizzes,
-  }
+  return buildRequiredQuizStatus({
+    quizzes: toRequiredQuizResources({
+      activityQuizzes: data.activityQuizzes.map((quiz) => ({
+        activity_id: quiz.activity_id,
+        activity_title: quiz.activity_title,
+        is_required: quiz.is_required,
+      })),
+      materialQuizzes: data.materialQuizzes.map((quiz) => ({
+        material_id: quiz.material_id,
+        material_title: quiz.material_title,
+      })),
+    }),
+    submissions,
+  })
 }

@@ -1,42 +1,32 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-import { requireBusinessUser } from '@/lib/auth/requireBusiness'
-import { logger } from '@/lib/utils/logger'
-import { fetchNotebookCourses } from '@/features/notebook/services/notebook.server.service'
+import { fetchNotebookCourseOptions } from '@/features/notebook/services/notebook.server.service'
+import type { NotebookCourseOptionsResponse } from '@/features/notebook/types'
+import { notebookErrorResponse, resolveNotebookAuth } from '../_shared'
 
 /**
  * GET /api/[orgSlug]/business-user/notebook/courses
- *
- * Returns the list of courses that have at least one note or SofLIA summary
- * for the authenticated user within the current organization.
+ * Lists the user's enrolled courses (in this org) with their lessons, used by
+ * the "New note" picker.
  */
 export async function GET(
-  _request: NextRequest,
+  _request: Request,
   { params }: { params: Promise<{ orgSlug: string }> },
 ) {
   try {
     const { orgSlug } = await params
-    const auth = await requireBusinessUser({ organizationSlug: orgSlug })
-
+    const auth = await resolveNotebookAuth(orgSlug)
     if (auth instanceof NextResponse) return auth
-    if (!auth.userId || !auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'Acceso denegado.' },
-        { status: 403 },
-      )
-    }
 
-    const courses = await fetchNotebookCourses(auth.userId, auth.organizationId)
+    const courses = await fetchNotebookCourseOptions({
+      userId: auth.userId,
+      organizationId: auth.organizationId,
+    })
 
-    return NextResponse.json(
-      { courses },
-      { headers: { 'Cache-Control': 'no-store, max-age=0' } },
-    )
+    return NextResponse.json({ courses } satisfies NotebookCourseOptionsResponse, {
+      headers: { 'Cache-Control': 'no-store, max-age=0' },
+    })
   } catch (error) {
-    logger.error('Notebook courses GET failed', error)
-    return NextResponse.json(
-      { success: false, error: 'Error al obtener talleres del libro de apuntes.' },
-      { status: 500 },
-    )
+    return notebookErrorResponse(error, 'courses GET')
   }
 }

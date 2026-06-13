@@ -248,11 +248,11 @@ Vista para empleados de una organización que usan la plataforma.
 - **Filtros de rango**: 30, 90, 180 o 365 días, con botón para actualizar datos.
 
 **3. LIBRO DE APUNTES (/{orgSlug}/business-user/notebook)**
-- **Vista de apuntes del empleado** (botón "Libro de apuntes" en el dashboard).
-- **Pestañas**: "Todas" (todos los apuntes) y "Por curso" (agrupados por curso, con filtro).
-- **Tarjetas de apunte**: Resúmenes de lecciones y notas manuales; al pulsar se abre el detalle.
-- **Detalle de apunte**: Leer el apunte completo y editar las notas manuales.
-- **Cargar más**: Paginación para ver apuntes adicionales.
+- **Apuntes organizados por curso y, dentro de cada curso, por lección** (árbol lateral navegable).
+- **Vista previa al pasar el cursor**: ventana flotante de solo lectura con el contenido del apunte.
+- **Editor tipo Word**: al hacer clic en un apunte se abre en su propia página con un editor enriquecido (negrita, cursiva, subrayado, encabezados, listas, citas, enlaces, alineación) y autoguardado.
+- **Nuevo apunte**: se crea eligiendo curso y lección.
+- **Aislamiento por organización**: solo se muestran los apuntes de la organización actual del usuario; nunca los de otra organización.
 
 **4. SCORM (/business-user/scorm)**
 - Visor de contenido SCORM

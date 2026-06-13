@@ -2,19 +2,36 @@ import type { CommonIssue } from '../../types';
 
 export const businessUserNotebookCommonIssues: CommonIssue[] = [
   {
-    description: 'No aparecen apuntes',
+    description: 'No aparecen apuntes en el libro',
     possibleCauses: [
-      'El usuario aún no ha generado resúmenes ni creado notas en sus lecciones',
-      'El filtro por curso está activo y ese curso no tiene apuntes',
+      'Aún no has creado apuntes en esta organización',
+      'Los apuntes pertenecen a otra organización en la que también participas',
     ],
     solutions: [
-      'Tomar lecciones y crear notas para que aparezcan aquí',
-      'Quitar el filtro de curso o cambiar a la pestaña "Todas"',
+      'Crear un apunte nuevo o tomar notas desde una lección',
+      'Verificar que estás en la organización correcta (los apuntes no se comparten entre organizaciones)',
     ],
   },
   {
-    description: 'Error al guardar una nota manual',
-    possibleCauses: ['Problema de conexión a internet', 'Error temporal de la API'],
-    solutions: ['Verificar la conexión y reintentar', 'Esperar unos segundos y volver a guardar'],
+    description: 'No puedo crear un apunte nuevo',
+    possibleCauses: [
+      'No estás inscrito en ningún curso con lecciones disponibles',
+      'No tienes acceso al curso seleccionado en esta organización',
+    ],
+    solutions: [
+      'Confirmar que tienes cursos asignados con lecciones publicadas',
+      'Seleccionar un curso al que tengas acceso en tu organización',
+    ],
+  },
+  {
+    description: 'Mis cambios no se guardan',
+    possibleCauses: [
+      'Conexión inestable durante el autoguardado',
+      'La sesión expiró',
+    ],
+    solutions: [
+      'Pulsar "Guardar" manualmente y revisar el indicador de estado',
+      'Recargar la página e iniciar sesión nuevamente si es necesario',
+    ],
   },
 ];

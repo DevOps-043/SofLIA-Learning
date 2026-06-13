@@ -439,7 +439,6 @@
     "viewTour": "View Tour",
     "restartTour": "Restart Tour",
     "userPanel": "User Panel",
-    "notebook": "Notebook",
     "logout": "Sign out",
     "myCourses": "My courses",
     "profile": "Edit profile"
@@ -1623,76 +1622,6 @@
       "admin": "Admin",
       "member": "Member"
     }
-  },
-  "notebookTour": {
-    "restart": "Notebook tour",
-    "steps": {
-      "toolbar": {
-        "title": "Navigation",
-        "content": "Use Back to return to the dashboard and the user menu to switch context or adjust your account."
-      },
-      "header": {
-        "title": "Notebook",
-        "content": "This page brings together your manual notes and SofLIA summaries from your workshops."
-      },
-      "tabs": {
-        "title": "Notebook views",
-        "content": "Switch between all notes or a workshop-organized view to find content faster."
-      },
-      "courseFilter": {
-        "title": "Workshop filter",
-        "content": "When you use the workshop view, these filters help you focus on a specific course."
-      },
-      "notesGrid": {
-        "title": "Note cards",
-        "content": "Open any card to read, edit manual notes, or duplicate SofLIA summaries when available."
-      }
-    }
-  },
-  "notebook": {
-    "pageTitle": "Notebook",
-    "pageSubtitle": "All your notes and SofLIA summaries in one place",
-    "tabs": {
-      "all": "All",
-      "byCourse": "By workshop"
-    },
-    "card": {
-      "manualNote": "Manual note",
-      "lesson": "Lesson",
-      "course": "Workshop",
-      "lastUpdate": "Last update"
-    },
-    "modal": {
-      "readTitle": "Reading view",
-      "editTitle": "Edit note",
-      "editButton": "Edit",
-      "copyButton": "Copy",
-      "copied": "Copied",
-      "saveButton": "Save changes",
-      "cancelButton": "Cancel",
-      "saveError": "Could not save the note.",
-      "saving": "Saving...",
-      "titleLabel": "Title",
-      "contentLabel": "Content",
-      "tagsLabel": "Tags"
-    },
-    "courseFilter": {
-      "selectCourse": "Select a workshop",
-      "allCourses": "All workshops",
-      "notesCount": "{{count}} notes"
-    },
-    "empty": {
-      "title": "No notes yet",
-      "description": "Your manual notes and SofLIA summaries will appear here when you create them from a workshop.",
-      "courseEmpty": "No notes for this workshop."
-    },
-    "loading": "Loading notes...",
-    "loadMore": "Load more",
-    "error": {
-      "title": "Error loading",
-      "description": "We could not load your notes. Please try again.",
-      "retry": "Retry"
-     }
   },
   "downloadsPage": {
     "hero": {

@@ -54,7 +54,7 @@ export const noteCreateSchema = z.object({
   note_title: optionalShortTextSchema,
   note_content: contentSchema,
   note_tags: z.array(tagSchema).max(20).optional(),
-  source_type: z.enum(['manual', 'chat', 'import']).optional(),
+  source_type: z.enum(['manual', 'chat', 'import', 'lesson_auto_note']).optional(),
 })
 
 export type NoteCreateBody = z.infer<typeof noteCreateSchema>

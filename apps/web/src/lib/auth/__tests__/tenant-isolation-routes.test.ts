@@ -7,6 +7,7 @@ const GUARDED_PATTERNS = [
   'requireBusiness(',
   'requireBusinessUser(',
   'resolveDashboardAuth(',
+  'resolveNotebookAuth(',
   'handleDeadlineSuggestionsRequest(',
 ]
 

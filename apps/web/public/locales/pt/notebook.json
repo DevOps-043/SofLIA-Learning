@@ -1,0 +1,112 @@
+{
+  "pageTitle": "Caderno de anotações",
+  "pageSubtitle": "Organize suas anotações por curso e aula",
+  "backToDashboard": "Voltar ao painel",
+  "search": {
+    "placeholder": "Buscar por título, curso, aula ou etiqueta..."
+  },
+  "tree": {
+    "aria": "Navegação de anotações por curso e aula",
+    "allNotes": "Todas as anotações",
+    "collapse": "Recolher",
+    "expand": "Expandir",
+    "toggle": "Cursos e aulas"
+  },
+  "card": {
+    "aiGenerated": "Gerado pela SofLIA",
+    "updatedAt": "Atualizado em {{date}}"
+  },
+  "preview": {
+    "loading": "Carregando pré-visualização...",
+    "openHint": "Clique para editar"
+  },
+  "empty": {
+    "title": "Você ainda não tem anotações",
+    "description": "Crie sua primeira anotação escolhendo um curso e uma aula, ou faça anotações a partir das suas aulas.",
+    "filteredTitle": "Sem resultados",
+    "filteredDescription": "Não encontramos anotações que correspondam à sua busca ou filtro.",
+    "aria": "Nenhuma anotação para exibir"
+  },
+  "error": {
+    "retry": "Tentar novamente"
+  },
+  "newNote": {
+    "button": "Nova anotação",
+    "title": "Criar nova anotação",
+    "subtitle": "Escolha o curso e a aula da anotação",
+    "close": "Fechar",
+    "loadingCourses": "Carregando cursos...",
+    "noCourses": "Você não tem cursos com aulas disponíveis para criar anotações.",
+    "courseLabel": "Curso",
+    "coursePlaceholder": "Selecione um curso",
+    "lessonLabel": "Aula",
+    "lessonPlaceholder": "Selecione uma aula",
+    "titleLabel": "Título (opcional)",
+    "titlePlaceholder": "Ex.: Conceitos-chave",
+    "cancel": "Cancelar",
+    "create": "Criar anotação",
+    "loadError": "Não foi possível carregar os cursos.",
+    "createError": "Não foi possível criar a anotação."
+  },
+  "editor": {
+    "back": "Voltar",
+    "backToNotebook": "Voltar ao caderno de anotações",
+    "loading": "Carregando anotação...",
+    "notFound": "Anotação não encontrada ou você não tem acesso a ela.",
+    "save": "Salvar",
+    "delete": "Excluir",
+    "confirmDelete": "Excluir",
+    "confirmDeletePrompt": "Excluir esta anotação? Esta ação não pode ser desfeita.",
+    "cancel": "Cancelar",
+    "locationLabel": "Localização",
+    "actionsLabel": "Ações",
+    "titlePlaceholder": "Título da anotação",
+    "contentPlaceholder": "Comece a escrever sua anotação...",
+    "tagsLabel": "Etiquetas",
+    "tagPlaceholder": "Adicionar etiqueta",
+    "removeTag": "Remover etiqueta {{tag}}",
+    "status": {
+      "saving": "Salvando...",
+      "saved": "Salvo",
+      "error": "Erro ao salvar"
+    },
+    "toolbar": {
+      "bold": "Negrito",
+      "italic": "Itálico",
+      "underline": "Sublinhado",
+      "strike": "Tachado",
+      "heading1": "Título 1",
+      "heading2": "Título 2",
+      "heading3": "Título 3",
+      "bulletList": "Lista com marcadores",
+      "orderedList": "Lista numerada",
+      "blockquote": "Citação",
+      "inlineCode": "Código em linha",
+      "code": "Bloco de código",
+      "horizontalRule": "Linha horizontal",
+      "clearFormat": "Limpar formatação",
+      "fontFamily": "Fonte",
+      "fontSize": "Tamanho da fonte",
+      "fontDefault": "Fonte",
+      "sizeDefault": "Tamanho",
+      "default": "Padrão",
+      "textColor": "Cor do texto",
+      "highlight": "Realce",
+      "removeColor": "Remover cor",
+      "lineHeight": "Entrelinhas",
+      "lineHeightDefault": "Entrelinhas",
+      "subscript": "Subscrito",
+      "superscript": "Sobrescrito",
+      "taskList": "Lista de tarefas",
+      "alignLeft": "Alinhar à esquerda",
+      "alignCenter": "Centralizar",
+      "alignRight": "Alinhar à direita",
+      "link": "Inserir link",
+      "unlink": "Remover link",
+      "undo": "Desfazer",
+      "redo": "Refazer",
+      "applyLink": "Aplicar",
+      "cancelLink": "Cancelar"
+    }
+  }
+}

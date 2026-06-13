@@ -1,5 +1,8 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import type { SubmitQuizResultsParams } from "./quiz-renderer.types";
+import type {
+  LessonAutoNoteSubmitResult,
+  SubmitQuizResultsParams,
+} from "./quiz-renderer.types";
 
 export async function submitQuizResults({
   activityId,
@@ -30,7 +33,11 @@ export async function submitQuizResults({
       }),
     });
 
-    const result = (await response.json()) as { error?: string; message?: string };
+    const result = (await response.json()) as {
+      error?: string;
+      lessonAutoNote?: LessonAutoNoteSubmitResult;
+      message?: string;
+    };
 
     if (!response.ok) {
       techDebtLogger.error("Error guardando quiz:", result.error);
@@ -42,7 +49,7 @@ export async function submitQuizResults({
       setServerMessage(result.message);
     }
 
-    await onQuizSubmitted?.();
+    await onQuizSubmitted?.(result.lessonAutoNote);
   } catch (error) {
     techDebtLogger.error("Error al enviar quiz:", error);
     setSubmitError("Error al guardar las respuestas");

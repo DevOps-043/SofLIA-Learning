@@ -439,7 +439,6 @@
     "viewTour": "Ver Tour",
     "restartTour": "Ver Tour",
     "userPanel": "Panel Usuario",
-    "notebook": "Libro de apuntes",
     "logout": "Cerrar sesión",
     "myCourses": "Mis cursos",
     "profile": "Editar perfil"
@@ -1622,76 +1621,6 @@
       "owner": "Propietario",
       "admin": "Admin",
       "member": "Miembro"
-    }
-  },
-  "notebookTour": {
-    "restart": "Tour de libro de apuntes",
-    "steps": {
-      "toolbar": {
-        "title": "Navegacion",
-        "content": "Usa Volver para regresar al panel y el menu de usuario para cambiar de contexto o ajustar tu cuenta."
-      },
-      "header": {
-        "title": "Libro de apuntes",
-        "content": "Aqui se reunen tus notas manuales y los apuntes generados por SofLIA en tus talleres."
-      },
-      "tabs": {
-        "title": "Vistas de apuntes",
-        "content": "Cambia entre todos tus apuntes o una vista organizada por taller para encontrar contenido mas rapido."
-      },
-      "courseFilter": {
-        "title": "Filtro por taller",
-        "content": "Cuando uses la vista por taller, estos filtros te permiten enfocarte en un curso especifico."
-      },
-      "notesGrid": {
-        "title": "Tarjetas de apuntes",
-        "content": "Abre cualquier tarjeta para leer, editar notas manuales o duplicar apuntes SofLIA cuando este disponible."
-      }
-    }
-  },
-  "notebook": {
-    "pageTitle": "Libro de apuntes",
-    "pageSubtitle": "Todas tus notas y apuntes SofLIA en un solo lugar",
-    "tabs": {
-      "all": "Todas",
-      "byCourse": "Por taller"
-    },
-    "card": {
-      "manualNote": "Nota manual",
-      "lesson": "Lección",
-      "course": "Taller",
-      "lastUpdate": "Última actualización"
-    },
-    "modal": {
-      "readTitle": "Vista de lectura",
-      "editTitle": "Editar nota",
-      "editButton": "Editar",
-      "copyButton": "Copiar",
-      "copied": "Copiado",
-      "saveButton": "Guardar cambios",
-      "cancelButton": "Cancelar",
-      "saveError": "No se pudo guardar la nota.",
-      "saving": "Guardando...",
-      "titleLabel": "Título",
-      "contentLabel": "Contenido",
-      "tagsLabel": "Etiquetas"
-    },
-    "courseFilter": {
-      "selectCourse": "Selecciona un taller",
-      "allCourses": "Todos los talleres",
-      "notesCount": "{{count}} notas"
-    },
-    "empty": {
-      "title": "Sin apuntes todavía",
-      "description": "Tus notas manuales y apuntes SofLIA aparecerán aquí cuando los crees desde un taller.",
-      "courseEmpty": "No hay apuntes para este taller."
-    },
-    "loading": "Cargando apuntes...",
-    "loadMore": "Ver más",
-    "error": {
-      "title": "Error al cargar",
-      "description": "No pudimos cargar tus apuntes. Intenta de nuevo.",
-      "retry": "Reintentar"
     }
   },
   "downloadsPage": {

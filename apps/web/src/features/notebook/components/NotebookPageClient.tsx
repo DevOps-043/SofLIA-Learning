@@ -1,207 +1,205 @@
 'use client'
 
-import { useTranslation } from 'react-i18next'
+import { useCallback, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { AlertTriangle, ArrowLeft, Loader2 } from 'lucide-react'
-import { UserDropdown } from '@/core/components/UserDropdown'
-import { useNotebookPageLogic } from '../hooks/useNotebookPageLogic'
-import { NotebookHeader } from './NotebookHeader'
-import { NotebookTabs } from './NotebookTabs'
-import { NotebookCourseFilter } from './NotebookCourseFilter'
-import { NotebookNoteCard } from './NotebookNoteCard'
-import { NotebookNoteModal } from './NotebookNoteModal'
-import { NotebookEmptyState } from './NotebookEmptyState'
+import { useTranslation } from 'react-i18next'
+import { AlertCircle, ArrowLeft, Loader2, PanelLeft, Plus, Search } from 'lucide-react'
 
-/**
- * NotebookPageClient
- *
- * Main client component for the Libro de Apuntes page.
- * Orchestrates the tab UI, course filter, notes grid, modal, and pagination.
- */
+import { cn } from '@/utils/cn'
+import { useNotebookTree } from '../hooks/useNotebookTree'
+import { useNotePreviewCache } from '../hooks/useNotePreviewCache'
+import { NotebookTree } from './NotebookTree'
+import { NotebookNoteCard } from './NotebookNoteCard'
+import { NotebookEmptyState } from './NotebookEmptyState'
+import { NewNoteModal } from './NewNoteModal'
+
 interface NotebookPageClientProps {
-  orgSlug?: string
+  orgSlug: string
 }
 
 export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation('notebook')
   const router = useRouter()
   const {
-    items,
-    courses,
-    activeTab,
-    selectedCourseId,
-    modalState,
-    isLoadingNotes,
-    isLoadingCourses,
-    isLoadingMore,
-    isSavingNote,
-    hasMore,
-    errorMessage,
-    mutationError,
-    setActiveTab,
-    setSelectedCourseId,
-    openModal,
-    closeModal,
-    setModalEditMode,
-    setModalReadMode,
-    saveManualNote,
-    loadMore,
-    retryFetch,
-  } = useNotebookPageLogic({ orgSlug })
+    tree,
+    isLoading,
+    error,
+    reload,
+    selection,
+    setSelection,
+    searchQuery,
+    setSearchQuery,
+    expandedCourses,
+    toggleCourse,
+    visibleNotes,
+    totalNotes,
+  } = useNotebookTree(orgSlug)
+  const { previews, loadingId, requestPreview } = useNotePreviewCache(orgSlug)
 
-  const handleBack = () => {
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      router.back()
-      return
-    }
+  const [isNewNoteOpen, setIsNewNoteOpen] = useState(false)
+  const [showTreeMobile, setShowTreeMobile] = useState(false)
 
-    if (orgSlug) {
-      router.push(`/${orgSlug}/business-user/dashboard`)
-      return
-    }
+  const openNote = useCallback(
+    (noteId: string) => {
+      router.push(`/${orgSlug}/business-user/notebook/${noteId}`)
+    },
+    [orgSlug, router],
+  )
 
-    router.push('/dashboard')
-  }
+  const goToDashboard = useCallback(() => {
+    router.push(`/${orgSlug}/business-user/dashboard`)
+  }, [orgSlug, router])
+
+  const handleCreated = useCallback(
+    (noteId: string) => {
+      setIsNewNoteOpen(false)
+      // Refresh the tree so the new note is present when the user returns.
+      void reload()
+      openNote(noteId)
+    },
+    [openNote, reload],
+  )
+
+  const hasNotes = totalNotes > 0
 
   return (
-    <div className="min-h-screen bg-gray-50/40 dark:bg-gray-950">
-      <div
-        className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-gray-900/90"
-      >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-8 lg:px-12">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 sm:px-6">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
           <button
-            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:border-teal-300 hover:text-teal-600 dark:border-white/10 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-teal-600 dark:hover:text-teal-300"
-            onClick={handleBack}
             type="button"
+            onClick={goToDashboard}
+            aria-label={t('backToDashboard')}
+            title={t('backToDashboard')}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10"
           >
             <ArrowLeft className="h-4 w-4" />
-            {t('actions.back')}
           </button>
-
-          <UserDropdown />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {t('pageTitle')}
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {t('pageSubtitle')}
+            </p>
+          </div>
         </div>
+        <button
+          type="button"
+          onClick={() => setIsNewNoteOpen(true)}
+          className="inline-flex items-center justify-center gap-2 self-start rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+        >
+          <Plus className="h-4 w-4" />
+          {t('newNote.button')}
+        </button>
+      </header>
+
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder={t('search.placeholder')}
+          className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm text-gray-900 outline-none focus:border-[var(--color-accent)] dark:border-white/10 dark:bg-white/5 dark:text-white"
+        />
       </div>
 
-      <main className="mx-auto max-w-6xl px-4 py-8 md:px-8 lg:px-12">
-        <NotebookHeader />
-
-        <NotebookTabs activeTab={activeTab} onTabChange={setActiveTab} />
-
-      {/* Course filter (visible on "By course" tab) */}
-        {activeTab === 'by_course' && (
-          <NotebookCourseFilter
-            courses={courses}
-            selectedCourseId={selectedCourseId}
-            onSelect={setSelectedCourseId}
-            isLoading={isLoadingCourses}
-          />
-        )}
-
-      {/* Error state */}
-        {errorMessage && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center gap-3 py-12 text-center"
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
+        {/* Mobile tree toggle */}
+        <button
+          type="button"
+          onClick={() => setShowTreeMobile((value) => !value)}
+          className="flex items-center gap-2 self-start rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 lg:hidden dark:border-white/10 dark:text-gray-300"
         >
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-red-50 dark:bg-red-500/10">
-            <AlertTriangle className="w-6 h-6 text-red-500" />
-          </div>
-          <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300">
-            {t('notebook.error.title')}
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">
-            {errorMessage}
-          </p>
-          <button
-            onClick={retryFetch}
-            className="mt-2 px-4 py-2 text-sm font-medium rounded-lg bg-gradient-to-r from-teal-500 to-emerald-500 text-white hover:shadow-lg hover:shadow-teal-500/20 transition-all duration-200"
-          >
-            {t('notebook.error.retry')}
-          </button>
-        </motion.div>
-        )}
+          <PanelLeft className="h-4 w-4" />
+          {t('tree.toggle')}
+        </button>
 
-      {/* Loading state */}
-        {isLoadingNotes && !errorMessage && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={`skeleton-${i}`}
-              className="rounded-2xl border border-gray-200 dark:border-white/10 p-5 animate-pulse"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-6 w-24 rounded-full bg-gray-200 dark:bg-gray-700" />
-              </div>
-              <div className="h-5 w-3/4 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
-              <div className="space-y-1.5 mb-4">
-                <div className="h-3.5 w-full bg-gray-100 dark:bg-gray-800 rounded" />
-                <div className="h-3.5 w-5/6 bg-gray-100 dark:bg-gray-800 rounded" />
-                <div className="h-3.5 w-4/6 bg-gray-100 dark:bg-gray-800 rounded" />
-              </div>
-              <div className="flex gap-4">
-                <div className="h-3 w-24 bg-gray-100 dark:bg-gray-800 rounded" />
-                <div className="h-3 w-16 bg-gray-100 dark:bg-gray-800 rounded" />
-              </div>
+        <aside
+          className={cn(
+            'rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/[0.03] lg:block',
+            showTreeMobile ? 'block' : 'hidden',
+          )}
+        >
+          {isLoading ? (
+            <div className="flex items-center justify-center py-10 text-gray-400">
+              <Loader2 className="h-5 w-5 animate-spin" />
             </div>
-          ))}
-        </div>
-        )}
+          ) : (
+            <NotebookTree
+              tree={tree}
+              selection={selection}
+              onSelect={(next) => {
+                setSelection(next)
+                setShowTreeMobile(false)
+              }}
+              expandedCourses={expandedCourses}
+              onToggleCourse={toggleCourse}
+            />
+          )}
+        </aside>
 
-      {/* Notes grid */}
-        {!isLoadingNotes && !errorMessage && items.length > 0 && (
-        <>
-          <div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-          >
-            {items.map((item, index) => (
-              <NotebookNoteCard
-                key={`note-${item.noteId}`}
-                item={item}
-                index={index}
-                onClick={openModal}
-              />
-            ))}
-          </div>
-
-          {/* Load more */}
-          {hasMore && (
-            <div className="flex justify-center mt-8">
+        <main className="min-h-[320px]">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20 text-gray-400">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-[var(--color-error)]/30 bg-[var(--color-error)]/5 px-6 py-12 text-center">
+              <AlertCircle className="h-7 w-7 text-[var(--color-error)]" />
+              <p className="text-sm text-gray-700 dark:text-gray-200">{error}</p>
               <button
-                onClick={loadMore}
-                disabled={isLoadingMore}
-                className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-teal-300 dark:hover:border-teal-700 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 disabled:opacity-50"
+                type="button"
+                onClick={() => void reload()}
+                className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
               >
-                {isLoadingMore ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : null}
-                {t('notebook.loadMore')}
+                {t('error.retry')}
               </button>
             </div>
+          ) : !hasNotes ? (
+            <NotebookEmptyState
+              title={t('empty.title')}
+              description={t('empty.description')}
+              action={
+                <button
+                  type="button"
+                  onClick={() => setIsNewNoteOpen(true)}
+                  className="mt-2 inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                >
+                  <Plus className="h-4 w-4" />
+                  {t('newNote.button')}
+                </button>
+              }
+            />
+          ) : visibleNotes.length === 0 ? (
+            <NotebookEmptyState
+              title={t('empty.filteredTitle')}
+              description={t('empty.filteredDescription')}
+            />
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {visibleNotes.map((item) => (
+                <NotebookNoteCard
+                  key={item.note.noteId}
+                  item={item}
+                  preview={previews[item.note.noteId]}
+                  isPreviewLoading={loadingId === item.note.noteId}
+                  onOpen={openNote}
+                  onRequestPreview={requestPreview}
+                />
+              ))}
+            </div>
           )}
-        </>
-        )}
+        </main>
+      </div>
 
-      {/* Empty state */}
-        {!isLoadingNotes && !errorMessage && items.length === 0 && (
-          <div>
-            <NotebookEmptyState isCourseFiltered={!!selectedCourseId} />
-          </div>
-        )}
-      </main>
-
-      {/* Modal */}
-      <NotebookNoteModal
-        state={modalState}
-        errorMessage={mutationError}
-        isSavingNote={isSavingNote}
-        onCancelEdit={setModalReadMode}
-        onClose={closeModal}
-        onEdit={setModalEditMode}
-        onSaveManualNote={saveManualNote}
+      <NewNoteModal
+        orgSlug={orgSlug}
+        isOpen={isNewNoteOpen}
+        onClose={() => setIsNewNoteOpen(false)}
+        onCreated={handleCreated}
       />
-
     </div>
   )
 }

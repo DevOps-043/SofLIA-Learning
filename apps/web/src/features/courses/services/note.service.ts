@@ -20,7 +20,7 @@ export interface LessonNote {
   note_content: string
   note_tags?: string[]
   is_auto_generated?: boolean
-  source_type?: 'manual' | 'chat' | 'import'
+  source_type?: LessonNoteSource
   created_at: string
   updated_at: string
   user_id: string
@@ -31,11 +31,12 @@ export interface LessonNote {
 
 export interface CreateNoteInput {
   enrollment_id?: string | null
+  is_auto_generated?: boolean
   note_title: string
   note_content: string
   note_tags?: string[]
   organization_id?: string | null
-  source_type?: 'manual' | 'chat' | 'import'
+  source_type?: LessonNoteSource
 }
 
 export interface UpdateNoteInput {
@@ -68,6 +69,8 @@ interface CourseNotesStatsRpcClient {
   }>
 }
 
+export type LessonNoteSource = 'manual' | 'chat' | 'import' | 'lesson_auto_note'
+
 function parseNoteTags(value: Json): string[] {
   if (!Array.isArray(value)) {
     return []
@@ -77,7 +80,10 @@ function parseNoteTags(value: Json): string[] {
 }
 
 function parseNoteSource(value: string | null): LessonNote['source_type'] {
-  return value === 'chat' || value === 'import' || value === 'manual'
+  return value === 'chat' ||
+    value === 'import' ||
+    value === 'manual' ||
+    value === 'lesson_auto_note'
     ? value
     : 'manual'
 }
@@ -261,7 +267,7 @@ export class NoteService {
           note_content: noteData.note_content,
           note_tags: noteData.note_tags || [],
           source_type: noteData.source_type || 'manual',
-          is_auto_generated: false,
+          is_auto_generated: noteData.is_auto_generated ?? false,
         })
         .select()
         .single()

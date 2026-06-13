@@ -340,6 +340,7 @@ export function useLearnPageLogic() {
     openEditNoteModal: notes.openEditNoteModal,
     openNewNoteModal: notes.openNewNoteModal,
     persistNote: notes.persistNote,
+    refreshNotesAfterQuiz: notes.refreshNotesAfterQuiz,
     savedNotes: notes.savedNotes,
     updateNotesStatsOptimized: notes.updateNotesStatsOptimized,
     getPreviousLesson: navigation.getPreviousLesson,

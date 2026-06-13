@@ -3,8 +3,8 @@ import type { createAdminClient } from '@/lib/supabase/admin'
 import { calculateCourseProgress } from '@/lib/utils/lesson-progress'
 import { computeLessonActivityProgress } from '@/features/courses/services/activity-submission.server.service'
 import { ensureCourseEnrollmentScope } from '@/features/courses/services/course-enrollment.server.service'
+import { fetchRequiredLessonQuizStatus } from '@/features/courses/services/quiz/required-quiz-status.service'
 import {
-  hasPassedRequiredQuizzes,
   LessonProgressError,
   sortLessonsForCourse,
 } from './lesson-progress.shared'
@@ -36,10 +36,6 @@ interface ProgressSummaryRow {
   lesson_id: string
   video_progress_percentage: number | null
   quiz_passed: boolean | null
-}
-
-interface QuizSubmissionRow {
-  is_passed: boolean | null
 }
 
 type LessonProgressSideEffectHandler = (
@@ -219,67 +215,26 @@ async function validateRequiredQuizzes(
   lessonId: string,
   enrollmentId: string,
 ) {
-  const [materialQuizzes, activityQuizzes] = await Promise.all([
-    supabase
-      .from('lesson_materials')
-      .select('material_id')
-      .eq('lesson_id', lessonId)
-      .eq('material_type', 'quiz'),
-    supabase
-      .from('lesson_activities')
-      .select('activity_id')
-      .eq('lesson_id', lessonId)
-      .eq('activity_type', 'quiz')
-      .eq('is_required', true),
-  ])
+  const quizStatus = await fetchRequiredLessonQuizStatus(supabase, {
+    enrollmentId,
+    lessonId,
+    userId,
+  })
 
-  const materialIds = (materialQuizzes.data || []).map((quiz) => quiz.material_id)
-  const activityIds = (activityQuizzes.data || []).map((quiz) => quiz.activity_id)
-  const totalRequiredQuizzes = materialIds.length + activityIds.length
-
-  if (totalRequiredQuizzes === 0) {
+  if (!quizStatus.hasRequiredQuizzes || quizStatus.allQuizzesPassed) {
     return
   }
 
-  let submissionsQuery = supabase
-    .from('user_quiz_submissions')
-    .select('is_passed')
-    .eq('user_id', userId)
-    .eq('lesson_id', lessonId)
-    .eq('enrollment_id', enrollmentId)
-
-  if (materialIds.length > 0 && activityIds.length > 0) {
-    submissionsQuery = submissionsQuery.or(
-      `material_id.in.(${materialIds.join(',')}),activity_id.in.(${activityIds.join(',')})`,
-    )
-  } else if (materialIds.length > 0) {
-    submissionsQuery = submissionsQuery.in('material_id', materialIds)
-  } else if (activityIds.length > 0) {
-    submissionsQuery = submissionsQuery.in('activity_id', activityIds)
-  }
-
-  const { data: submissions } = await submissionsQuery
-  if (
-    !hasPassedRequiredQuizzes(
-      totalRequiredQuizzes,
-      (submissions || []) as QuizSubmissionRow[],
-    )
-  ) {
-    const passedSubmissions = (submissions || []).filter(
-      (submission) => submission.is_passed,
-    ).length
-
-    throw new LessonProgressError(
-      'REQUIRED_QUIZ_NOT_PASSED',
-      400,
-      'Hace falta realizar actividad',
-      {
-        totalRequired: totalRequiredQuizzes,
-        passed: passedSubmissions,
-        message: `Debes completar y aprobar todos los quizzes obligatorios (${passedSubmissions}/${totalRequiredQuizzes} completados)`,
-      },
-    )
-  }
+  throw new LessonProgressError(
+    'REQUIRED_QUIZ_NOT_PASSED',
+    400,
+    'Hace falta realizar actividad',
+    {
+      totalRequired: quizStatus.totalRequiredQuizzes,
+      passed: quizStatus.passedQuizzes,
+      message: `Debes completar y aprobar todos los quizzes obligatorios (${quizStatus.passedQuizzes}/${quizStatus.totalRequiredQuizzes} completados)`,
+    },
+  )
 }
 
 async function validateRequiredActivities(

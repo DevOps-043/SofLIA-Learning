@@ -1,0 +1,112 @@
+{
+  "pageTitle": "Libro de apuntes",
+  "pageSubtitle": "Organiza tus apuntes por curso y lección",
+  "backToDashboard": "Volver al panel",
+  "search": {
+    "placeholder": "Buscar por título, curso, lección o etiqueta..."
+  },
+  "tree": {
+    "aria": "Navegación de apuntes por curso y lección",
+    "allNotes": "Todos los apuntes",
+    "collapse": "Contraer",
+    "expand": "Expandir",
+    "toggle": "Cursos y lecciones"
+  },
+  "card": {
+    "aiGenerated": "Generado por SofLIA",
+    "updatedAt": "Actualizado el {{date}}"
+  },
+  "preview": {
+    "loading": "Cargando vista previa...",
+    "openHint": "Clic para editar"
+  },
+  "empty": {
+    "title": "Aún no tienes apuntes",
+    "description": "Crea tu primer apunte eligiendo un curso y una lección, o toma notas desde tus lecciones.",
+    "filteredTitle": "Sin resultados",
+    "filteredDescription": "No encontramos apuntes que coincidan con tu búsqueda o filtro.",
+    "aria": "No hay apuntes para mostrar"
+  },
+  "error": {
+    "retry": "Reintentar"
+  },
+  "newNote": {
+    "button": "Nuevo apunte",
+    "title": "Crear nuevo apunte",
+    "subtitle": "Elige el curso y la lección del apunte",
+    "close": "Cerrar",
+    "loadingCourses": "Cargando cursos...",
+    "noCourses": "No tienes cursos con lecciones disponibles para crear apuntes.",
+    "courseLabel": "Curso",
+    "coursePlaceholder": "Selecciona un curso",
+    "lessonLabel": "Lección",
+    "lessonPlaceholder": "Selecciona una lección",
+    "titleLabel": "Título (opcional)",
+    "titlePlaceholder": "Ej. Conceptos clave",
+    "cancel": "Cancelar",
+    "create": "Crear apunte",
+    "loadError": "No se pudieron cargar los cursos.",
+    "createError": "No se pudo crear el apunte."
+  },
+  "editor": {
+    "back": "Volver",
+    "backToNotebook": "Volver al libro de apuntes",
+    "loading": "Cargando apunte...",
+    "notFound": "No se encontró la nota o no tienes acceso a ella.",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "confirmDelete": "Eliminar",
+    "confirmDeletePrompt": "¿Eliminar este apunte? Esta acción no se puede deshacer.",
+    "cancel": "Cancelar",
+    "locationLabel": "Ubicación",
+    "actionsLabel": "Acciones",
+    "titlePlaceholder": "Título del apunte",
+    "contentPlaceholder": "Empieza a escribir tu apunte...",
+    "tagsLabel": "Etiquetas",
+    "tagPlaceholder": "Agregar etiqueta",
+    "removeTag": "Quitar etiqueta {{tag}}",
+    "status": {
+      "saving": "Guardando...",
+      "saved": "Guardado",
+      "error": "Error al guardar"
+    },
+    "toolbar": {
+      "bold": "Negrita",
+      "italic": "Cursiva",
+      "underline": "Subrayado",
+      "strike": "Tachado",
+      "heading1": "Título 1",
+      "heading2": "Título 2",
+      "heading3": "Título 3",
+      "bulletList": "Lista con viñetas",
+      "orderedList": "Lista numerada",
+      "blockquote": "Cita",
+      "inlineCode": "Código en línea",
+      "code": "Bloque de código",
+      "horizontalRule": "Línea horizontal",
+      "clearFormat": "Limpiar formato",
+      "fontFamily": "Fuente",
+      "fontSize": "Tamaño de letra",
+      "fontDefault": "Fuente",
+      "sizeDefault": "Tamaño",
+      "default": "Predeterminado",
+      "textColor": "Color de letra",
+      "highlight": "Resaltado",
+      "removeColor": "Quitar color",
+      "lineHeight": "Interlineado",
+      "lineHeightDefault": "Interlineado",
+      "subscript": "Subíndice",
+      "superscript": "Superíndice",
+      "taskList": "Lista de tareas",
+      "alignLeft": "Alinear a la izquierda",
+      "alignCenter": "Centrar",
+      "alignRight": "Alinear a la derecha",
+      "link": "Insertar enlace",
+      "unlink": "Quitar enlace",
+      "undo": "Deshacer",
+      "redo": "Rehacer",
+      "applyLink": "Aplicar",
+      "cancelLink": "Cancelar"
+    }
+  }
+}

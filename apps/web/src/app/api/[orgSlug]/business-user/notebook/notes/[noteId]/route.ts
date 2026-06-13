@@ -1,61 +1,93 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { requireBusinessUser } from '@/lib/auth/requireBusiness'
-import { logger } from '@/lib/utils/logger'
-import { updateNotebookManualNote } from '@/features/notebook/services/notebook.server.service'
-import type { NotebookUpdateNoteInput } from '@/features/notebook/types'
+import {
+  deleteNotebookNote,
+  fetchNotebookNote,
+  updateNotebookNote,
+} from '@/features/notebook/services/notebook.server.service'
+import type { NotebookNoteResponse } from '@/features/notebook/types'
+import {
+  notebookErrorResponse,
+  resolveNotebookAuth,
+  updateNoteSchema,
+} from '../../_shared'
 
-function isValidNotePayload(value: unknown): value is NotebookUpdateNoteInput {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return false
-  }
+type RouteContext = { params: Promise<{ orgSlug: string; noteId: string }> }
 
-  const record = value as Record<string, unknown>
-  return (
-    typeof record.title === 'string' &&
-    typeof record.content === 'string' &&
-    Array.isArray(record.tags) &&
-    record.tags.every((tag) => typeof tag === 'string')
-  )
-}
-
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string; noteId: string }> },
-) {
+/**
+ * GET /api/[orgSlug]/business-user/notebook/notes/[noteId]
+ * Returns the full note (HTML content) if it belongs to the user's org.
+ */
+export async function GET(_request: NextRequest, { params }: RouteContext) {
   try {
     const { orgSlug, noteId } = await params
-    const auth = await requireBusinessUser({ organizationSlug: orgSlug })
-
+    const auth = await resolveNotebookAuth(orgSlug)
     if (auth instanceof NextResponse) return auth
-    if (!auth.userId || !auth.organizationId) {
-      return NextResponse.json(
-        { success: false, error: 'Acceso denegado.' },
-        { status: 403 },
-      )
-    }
 
-    const body = await request.json().catch(() => null)
-    if (!isValidNotePayload(body)) {
-      return NextResponse.json(
-        { success: false, error: 'Payload invalido.' },
-        { status: 400 },
-      )
-    }
-
-    const result = await updateNotebookManualNote(
-      auth.userId,
-      auth.organizationId,
+    const note = await fetchNotebookNote({
+      userId: auth.userId,
+      organizationId: auth.organizationId,
       noteId,
-      body,
-    )
+    })
 
-    return NextResponse.json(result, { status: result.success ? 200 : 400 })
+    return NextResponse.json({ note } satisfies NotebookNoteResponse, {
+      headers: { 'Cache-Control': 'no-store, max-age=0' },
+    })
   } catch (error) {
-    logger.error('Notebook note PUT failed', error)
-    return NextResponse.json(
-      { success: false, error: 'Error al actualizar la nota.' },
-      { status: 500 },
-    )
+    return notebookErrorResponse(error, 'note GET')
+  }
+}
+
+/**
+ * PUT /api/[orgSlug]/business-user/notebook/notes/[noteId]
+ * Updates title/content/tags of a note owned by the user in this org.
+ */
+export async function PUT(request: NextRequest, { params }: RouteContext) {
+  try {
+    const { orgSlug, noteId } = await params
+    const auth = await resolveNotebookAuth(orgSlug)
+    if (auth instanceof NextResponse) return auth
+
+    const json = await request.json().catch(() => null)
+    const parsed = updateNoteSchema.safeParse(json)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Datos de actualización inválidos.' },
+        { status: 422 },
+      )
+    }
+
+    const note = await updateNotebookNote({
+      userId: auth.userId,
+      organizationId: auth.organizationId,
+      noteId,
+      input: parsed.data,
+    })
+
+    return NextResponse.json({ note } satisfies NotebookNoteResponse)
+  } catch (error) {
+    return notebookErrorResponse(error, 'note PUT')
+  }
+}
+
+/**
+ * DELETE /api/[orgSlug]/business-user/notebook/notes/[noteId]
+ * Deletes a note owned by the user in this org.
+ */
+export async function DELETE(_request: NextRequest, { params }: RouteContext) {
+  try {
+    const { orgSlug, noteId } = await params
+    const auth = await resolveNotebookAuth(orgSlug)
+    if (auth instanceof NextResponse) return auth
+
+    await deleteNotebookNote({
+      userId: auth.userId,
+      organizationId: auth.organizationId,
+      noteId,
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    return notebookErrorResponse(error, 'note DELETE')
   }
 }

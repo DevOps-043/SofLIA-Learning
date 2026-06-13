@@ -10,6 +10,7 @@ import type { ActivitiesData, LearnActivity } from "./types";
 export function ActivityListSection(props: {
   data: ActivitiesData;
   lessonId: string;
+  onQuizSubmitted: () => void | Promise<void>;
   onRequestQuizFeedback: (
     prompt: string,
     source?: { activityId?: string | null; materialId?: string | null },
@@ -46,7 +47,7 @@ export function ActivityListSection(props: {
             activity={activity}
             isCollapsed={props.data.collapsedActivities.has(activity.activity_id)}
             lessonId={props.lessonId}
-            onQuizSubmitted={props.data.refreshLessonContent}
+            onQuizSubmitted={props.onQuizSubmitted}
             onRequestQuizFeedback={props.onRequestQuizFeedback}
             onStartAiChat={props.onStartAiChat}
             onToggle={props.data.toggleActivityCollapse}

@@ -93,6 +93,17 @@ export function useNotesManagement({
     notes.ensureCourseNotesLoaded(slug, isNotesCollapsed);
   }, [isNotesCollapsed, notes.ensureCourseNotesLoaded, slug]);
 
+  const refreshNotesAfterQuiz = useCallback(async () => {
+    if (!slug || isNotesCollapsed) {
+      return;
+    }
+
+    await Promise.all([
+      notes.loadCourseNotes(slug),
+      stats.loadNotesStats(slug),
+    ]);
+  }, [isNotesCollapsed, notes.loadCourseNotes, slug, stats.loadNotesStats]);
+
   const openEditNoteModal = useCallback(
     (note: LearnNoteListItem) => {
       modals.openEditNoteModal(note as LearnSavedNote);
@@ -119,6 +130,7 @@ export function useNotesManagement({
     openEditNoteModal,
     openLiaNoteModal: modals.openLiaNoteModal,
     openNewNoteModal: modals.openNewNoteModal,
+    refreshNotesAfterQuiz,
     savedNotes: notes.savedNotes,
     setNoteError,
     updateNotesStatsOptimized: stats.updateNotesStatsOptimized,

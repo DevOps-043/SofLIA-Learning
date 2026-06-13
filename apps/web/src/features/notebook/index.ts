@@ -1,42 +1,41 @@
 /**
  * Notebook Feature — Barrel Exports
  *
- * The Notebook ("Libro de Apuntes") feature lists the user's manual lesson
- * notes as a browsable, org-scoped collection.
+ * The Notebook ("Libro de Apuntes") organizes a user's lesson notes by
+ * Course -> Lesson, with a TipTap rich-text editor and a dedicated note page.
+ * All data is strictly scoped to the user's current organization.
  */
 
-// Components
+// Page-level clients
 export { NotebookPageClient } from './components/NotebookPageClient'
-export { NotebookHeader } from './components/NotebookHeader'
-export { NotebookTabs } from './components/NotebookTabs'
-export { NotebookNoteCard } from './components/NotebookNoteCard'
-export { NotebookNoteModal } from './components/NotebookNoteModal'
-export { NotebookEmptyState } from './components/NotebookEmptyState'
-export { NotebookCourseFilter } from './components/NotebookCourseFilter'
+export { NoteEditorPageClient } from './components/NoteEditorPageClient'
+
+// Reusable building blocks
+export { RichTextEditor } from './components/editor/RichTextEditor'
+export { NoteContentView } from './components/NoteContentView'
 
 // Hooks
-export { useNotebookPageLogic } from './hooks/useNotebookPageLogic'
+export { useNotebookTree } from './hooks/useNotebookTree'
+export { useNoteEditor } from './hooks/useNoteEditor'
 
-// Services (client)
+// Client service
 export {
-  getNotebookNotes,
-  getNotebookCourses,
+  fetchNotebookTree,
+  fetchNotebookNote,
+  fetchNotebookCourseOptions,
+  createNotebookNote,
   updateNotebookNote,
+  deleteNotebookNote,
 } from './services/notebook.client.service'
 
 // Types
 export type {
-  NotebookItem,
-  NotebookManualNote,
-  NotebookCourse,
-  NotebookNotesResponse,
-  NotebookCoursesResponse,
-  NotebookNotesQueryParams,
-  NotebookUpdateNoteInput,
-  NotebookMutationResponse,
-  NotebookTab,
-  NotebookModalMode,
-  NotebookModalState,
+  NotebookTree,
+  NotebookCourseNode,
+  NotebookLessonNode,
+  NotebookNoteSummary,
+  NotebookNoteDetail,
+  NotebookCourseOption,
+  CreateNotebookNoteInput,
+  UpdateNotebookNoteInput,
 } from './types'
-
-export { NOTEBOOK_DEFAULT_PAGE_SIZE, NOTEBOOK_MAX_PAGE_SIZE } from './types'

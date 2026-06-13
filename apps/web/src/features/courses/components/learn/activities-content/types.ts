@@ -24,6 +24,7 @@ export type ActivitiesContentProps = {
   ) => void | Promise<void>;
   onNavigateNext?: () => void | Promise<void>;
   onPromptsChange?: (prompts: string[]) => void;
+  onQuizSubmitted?: () => void | Promise<void>;
   selectedLang: string;
   slug: string;
   userRole?: string;

@@ -3,7 +3,12 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { quizSubmitSchema, type QuizSubmitBody } from '@/app/api/courses/_schemas'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
+import {
+  generateLessonAutoNote,
+  type LessonAutoNoteResult,
+} from '@/features/courses/services/lesson-auto-note.service'
 import { recordQuizAttempt } from '@/features/courses/services/quiz/record-quiz-attempt.service'
+import { fetchRequiredLessonQuizStatus } from '@/features/courses/services/quiz/required-quiz-status.service'
 import { SessionService } from '@/features/auth/services/session.service'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { apiError } from '@/lib/api/errors'
@@ -23,14 +28,6 @@ interface QuizQuestionRow {
   points?: number
   question_id?: string
   questionType?: string
-}
-
-interface QuizSubmissionMatch {
-  activity_id?: string
-  enrollment_id: string
-  lesson_id: string
-  material_id?: string
-  user_id: string
 }
 
 function normalizeOption(text: string): string {
@@ -137,7 +134,7 @@ async function handlePost(
 
     const { data: course, error: courseError } = await supabase
       .from('courses')
-      .select('id')
+      .select('id, title')
       .eq('slug', slug)
       .single()
 
@@ -223,24 +220,22 @@ async function handlePost(
       )
     const now = new Date().toISOString()
 
-    const submissionQuery: QuizSubmissionMatch = {
-      user_id: currentUser.id,
-      lesson_id: lessonId,
-      enrollment_id: enrollmentId,
-    }
+    let existingSubmissionQuery = supabase
+      .from('user_quiz_submissions')
+      .select('submission_id, percentage_score, is_passed')
+      .eq('user_id', currentUser.id)
+      .eq('lesson_id', lessonId)
+      .eq('enrollment_id', enrollmentId)
 
     if (materialId) {
-      submissionQuery.material_id = materialId
+      existingSubmissionQuery = existingSubmissionQuery.eq('material_id', materialId)
     }
 
     if (activityId) {
-      submissionQuery.activity_id = activityId
+      existingSubmissionQuery = existingSubmissionQuery.eq('activity_id', activityId)
     }
 
-    const { data: existingSubmission } = await supabase
-      .from('user_quiz_submissions')
-      .select('submission_id, percentage_score, is_passed')
-      .match(submissionQuery)
+    const { data: existingSubmission } = await existingSubmissionQuery
       .single<ExistingQuizSubmissionRow>()
 
     const previousScore = existingSubmission?.percentage_score || 0
@@ -332,29 +327,20 @@ async function handlePost(
       totalPoints: calculatedTotalPoints,
       percentageScore,
       isPassed,
-      durationSeconds,
+      durationSeconds: durationSeconds ?? null,
       completedAt: now,
     })
 
-    const [materialQuizzes, activityQuizzes] = await Promise.all([
-      supabase
-        .from('lesson_materials')
-        .select('material_id')
-        .eq('lesson_id', lessonId)
-        .eq('material_type', 'quiz'),
-      supabase
-        .from('lesson_activities')
-        .select('activity_id')
-        .eq('lesson_id', lessonId)
-        .eq('activity_type', 'quiz')
-        .eq('is_required', true),
-    ])
+    const quizStatus = await fetchRequiredLessonQuizStatus(supabase, {
+      enrollmentId,
+      lessonId,
+      userId: currentUser.id,
+    })
 
-    const hasQuizzes =
-      ((materialQuizzes.data?.length || 0) + (activityQuizzes.data?.length || 0)) >
-      0
-
-    if (hasQuizzes && (!existingSubmission || isPassed || didImproveBestScore)) {
+    if (
+      quizStatus.hasRequiredQuizzes &&
+      (!existingSubmission || isPassed || didImproveBestScore)
+    ) {
       const progressClient = createAdminClient()
       const { data: existingProgress } = await progressClient
         .from('user_lesson_progress')
@@ -416,6 +402,22 @@ async function handlePost(
       }
     }
 
+    let lessonAutoNote: LessonAutoNoteResult | undefined
+
+    if (isPassed && quizStatus.allQuizzesPassed) {
+      lessonAutoNote = await generateLessonAutoNote({
+        allowUpdate: !existingSubmission || !previousPassed || didImproveBestScore,
+        courseId: course.id,
+        courseTitle: course.title || slug,
+        enrollmentId,
+        lessonId,
+        organizationId: resolvedOrganizationId,
+        quizStatus,
+        supabase: createAdminClient(),
+        userId: currentUser.id,
+      })
+    }
+
     let message = ''
     if (!shouldPersistAttempt && existingSubmission) {
       message = `Ya habias aprobado este quiz con ${previousScore}%. Este intento no reemplazo tu intento aprobado.`
@@ -447,6 +449,7 @@ async function handlePost(
         submission: submissionResult,
         bestScore,
       },
+      lessonAutoNote,
     })
   } catch (error) {
     techDebtLogger.error(

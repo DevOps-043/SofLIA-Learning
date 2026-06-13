@@ -67,19 +67,47 @@ export async function resolveBusinessAccess(
     return sessionResult
   }
 
-  const userResult = await loadAuthenticatedBusinessUser(supabase, sessionResult.value, logger, mode)
+  // Load the user row and resolve organization access concurrently: both only
+  // need the authenticated userId (the user row id equals the session id), so
+  // they don't depend on each other in the common case. We resolve the org
+  // optimistically as a NON platform-admin; the only behavior that depends on
+  // `isPlatformAdmin` is the rare "not a member" fallback, handled below.
+  const userId = sessionResult.value
+  const [userResult, optimisticOrgResult] = await Promise.all([
+    loadAuthenticatedBusinessUser(supabase, userId, logger, mode),
+    resolveOrganizationAccess({
+      supabase,
+      userId,
+      isPlatformAdmin: false,
+      options,
+      adminFallbackRole: config.adminFallbackRole,
+      logger,
+    }),
+  ])
+
   if (!userResult.ok) {
     return userResult
   }
 
-  const organizationResult = await resolveOrganizationAccess({
-    supabase,
-    userId: userResult.value.id,
-    isPlatformAdmin: userResult.value.isPlatformAdmin,
-    options,
-    adminFallbackRole: config.adminFallbackRole,
-    logger,
-  })
+  // Platform-admin fallback: if the optimistic (non-admin) resolution denied
+  // access (403) but the user is actually a platform admin, re-resolve with
+  // admin privileges. This preserves the exact original behavior while keeping
+  // the fast path (members) down to a single round of parallel queries.
+  let organizationResult = optimisticOrgResult
+  if (
+    !organizationResult.ok &&
+    organizationResult.error.status === 403 &&
+    userResult.value.isPlatformAdmin
+  ) {
+    organizationResult = await resolveOrganizationAccess({
+      supabase,
+      userId: userResult.value.id,
+      isPlatformAdmin: true,
+      options,
+      adminFallbackRole: config.adminFallbackRole,
+      logger,
+    })
+  }
 
   if (!organizationResult.ok) {
     return organizationResult

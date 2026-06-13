@@ -93,6 +93,11 @@ export function ActivitiesContent(props: ActivitiesContentProps) {
     lia.openLia();
   }, [lia]);
 
+  const handleQuizSubmitted = useCallback(async () => {
+    await data.refreshLessonContent();
+    await props.onQuizSubmitted?.();
+  }, [data.refreshLessonContent, props.onQuizSubmitted]);
+
   const hasActivities = data.activities.length > 0;
   const hasMaterials = data.materials.length > 0;
 
@@ -106,8 +111,8 @@ export function ActivitiesContent(props: ActivitiesContentProps) {
 
   return (
     <ActivitiesContentShell isRefreshing={data.isRefreshing} lessonTitle={props.lesson.lesson_title}>
-      <ActivityListSection data={data} lessonId={props.lesson.lesson_id} onRequestQuizFeedback={requestQuizFeedback} onStartAiChat={handleStartAiChat} onTriggerLiaFeedback={requestQuizFeedback} slug={props.slug} />
-      <MaterialListSection data={data} lessonId={props.lesson.lesson_id} onRequestQuizFeedback={requestQuizFeedback} slug={props.slug} />
+      <ActivityListSection data={data} lessonId={props.lesson.lesson_id} onQuizSubmitted={handleQuizSubmitted} onRequestQuizFeedback={requestQuizFeedback} onStartAiChat={handleStartAiChat} onTriggerLiaFeedback={requestQuizFeedback} slug={props.slug} />
+      <MaterialListSection data={data} lessonId={props.lesson.lesson_id} onQuizSubmitted={handleQuizSubmitted} onRequestQuizFeedback={requestQuizFeedback} slug={props.slug} />
       <QuizFeedbackInline
         content={quizFeedbackContent}
         error={quizFeedbackError}

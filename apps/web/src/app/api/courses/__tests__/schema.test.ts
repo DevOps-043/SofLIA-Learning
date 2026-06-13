@@ -90,6 +90,12 @@ describe('courses API schemas', () => {
         source_type: 'manual',
       }).success,
     ).toBe(true)
+    expect(
+      noteCreateSchema.safeParse({
+        note_content: '<p>Apunte generado</p>',
+        source_type: 'lesson_auto_note',
+      }).success,
+    ).toBe(true)
 
     expect(noteCreateSchema.safeParse({ note_content: '' }).success).toBe(false)
     expect(

@@ -42,6 +42,9 @@ import toursPt from '../../../public/locales/pt/tours.json';
 import legalEs from '../../../public/locales/es/legal.json';
 import legalEn from '../../../public/locales/en/legal.json';
 import legalPt from '../../../public/locales/pt/legal.json';
+import notebookEs from '../../../public/locales/es/notebook.json';
+import notebookEn from '../../../public/locales/en/notebook.json';
+import notebookPt from '../../../public/locales/pt/notebook.json';
 
 export type SupportedLanguage = 'es' | 'en' | 'pt';
 
@@ -60,6 +63,7 @@ const resources: Resource = {
     admin: adminEs,
     tours: toursEs,
     legal: legalEs,
+    notebook: notebookEs,
   },
   en: {
     common: commonEn,
@@ -75,6 +79,7 @@ const resources: Resource = {
     admin: adminEn,
     tours: toursEn,
     legal: legalEn,
+    notebook: notebookEn,
   },
   pt: {
     common: commonPt,
@@ -90,12 +95,13 @@ const resources: Resource = {
     admin: adminPt,
     tours: toursPt,
     legal: legalPt,
+    notebook: notebookPt,
   },
 };
 
 const ALL_NAMESPACES = [
   'common', 'dashboard', 'content', 'learn', 'my-courses',
-  'statistics-results', 'communities', 'news', 'business', 'instructor', 'admin', 'tours', 'legal',
+  'statistics-results', 'communities', 'news', 'business', 'instructor', 'admin', 'tours', 'legal', 'notebook',
 ] as const;
 
 /** Ensures all resource bundles are present in the singleton, idempotent. */
