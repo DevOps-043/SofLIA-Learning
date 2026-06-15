@@ -1,8 +1,10 @@
 import type { TourConfig } from '@/features/tours'
+import { PLATFORM_TOUR_VIDEO_B2C } from './platform-tour-videos'
 
 export const businessUserDashboardTour: TourConfig = {
   id: 'business-user-dashboard',
   autoStart: true,
+  introVideoUrl: PLATFORM_TOUR_VIDEO_B2C || undefined,
   steps: [
     { target: '[data-tour-id="business-user-dashboard--hero"]', titleKey: 'tours.businessUserDashboard.welcome.title', contentKey: 'tours.businessUserDashboard.welcome.content', placement: 'bottom', disableBeacon: true },
     { target: '[data-tour-id="business-user-dashboard--top-nav"]', titleKey: 'tours.businessUserDashboard.topNav.title', contentKey: 'tours.businessUserDashboard.topNav.content', placement: 'bottom', disableBeacon: true },

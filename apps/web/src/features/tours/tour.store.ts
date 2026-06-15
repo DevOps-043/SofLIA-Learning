@@ -9,7 +9,11 @@ const initialSessionState = {
   activeTourConfig: null,
   currentStep: 0,
   isRunning: false,
-} satisfies Pick<TourState, 'activeTourConfig' | 'currentStep' | 'isRunning'>
+  introVideoUrl: null,
+} satisfies Pick<
+  TourState,
+  'activeTourConfig' | 'currentStep' | 'isRunning' | 'introVideoUrl'
+>
 
 export const useTourStore = create<TourState>()(
   persist(
@@ -18,7 +22,21 @@ export const useTourStore = create<TourState>()(
       completedTours: [],
 
       startTour: (config: TourConfig) => {
-        if (get().isRunning || config.steps.length === 0) {
+        const state = get()
+        // Guard re-entry during both the Joyride phase and the video phase.
+        if (state.isRunning || state.introVideoUrl || config.steps.length === 0) {
+          return
+        }
+
+        // When the tour has an intro video, enter the video phase first; the
+        // Joyride steps start once the video completes (completeIntroVideo).
+        if (config.introVideoUrl) {
+          set({
+            activeTourConfig: config,
+            currentStep: 0,
+            isRunning: false,
+            introVideoUrl: config.introVideoUrl,
+          })
           return
         }
 
@@ -26,6 +44,20 @@ export const useTourStore = create<TourState>()(
           activeTourConfig: config,
           currentStep: 0,
           isRunning: true,
+          introVideoUrl: null,
+        })
+      },
+
+      completeIntroVideo: () => {
+        const { activeTourConfig } = get()
+        if (!activeTourConfig) {
+          return
+        }
+
+        set({
+          isRunning: true,
+          introVideoUrl: null,
+          currentStep: 0,
         })
       },
 

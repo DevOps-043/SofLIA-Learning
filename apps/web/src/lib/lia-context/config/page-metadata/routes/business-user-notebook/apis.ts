@@ -15,7 +15,7 @@ export const businessUserNotebookApis: ApiInfo[] = [
     endpoint: '/api/[orgSlug]/business-user/notebook/courses',
     method: 'GET',
     description:
-      'Lista los cursos inscritos del usuario en la organización con sus lecciones, para crear nuevos apuntes.',
+      'Lista los cursos asignados al usuario en la organización (asignación directa o por ruta de aprendizaje) con sus lecciones, para crear nuevos apuntes.',
     commonErrors: ['403 Forbidden: el usuario no pertenece a esta organización'],
   },
   {

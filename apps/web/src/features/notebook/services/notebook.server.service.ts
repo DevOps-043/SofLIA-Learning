@@ -16,7 +16,10 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core'
 import { NoteService } from '@/features/courses/services/note.service'
-import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
+import { ensureCourseEnrollmentScope } from '@/features/courses/services/course-enrollment.server.service'
+// Reused to resolve learning-path course access exactly like the dashboard does,
+// so the "New note" picker only offers courses the user is really assigned.
+import { loadBusinessUserLearningPaths } from '@/features/learning-paths/services/learning-path-dashboard.server'
 import type { TablesUpdate } from '@/lib/supabase/types'
 import {
   NOTEBOOK_EMPTY_CONTENT,
@@ -171,10 +174,13 @@ export async function createNotebookNote(params: {
   const supabase = createAdminClient()
   const { courseId, lessonId } = params.input
 
-  // Independent reads → run in parallel to cut latency on note creation.
+  // Independent operations → run in parallel to cut latency on note creation.
+  // ensureCourseEnrollmentScope verifies real access (direct assignment, learning
+  // path or purchase) and resolves-or-creates the enrollment; it returns null
+  // when the user has no legitimate access, so a non-assigned course is rejected.
   const [, enrollment] = await Promise.all([
     assertLessonBelongsToCourse(supabase, lessonId, courseId),
-    resolveCourseEnrollment(
+    ensureCourseEnrollmentScope(
       supabase,
       params.userId,
       courseId,
@@ -287,28 +293,59 @@ export async function deleteNotebookNote(params: {
   }
 }
 
-interface CourseOptionRow {
-  course_id: string
-  courses: {
-    id: string
-    title: string
-    slug: string | null
-    is_active: boolean | null
-    course_modules: Array<{
-      module_order_index: number | null
-      course_lessons: Array<{
-        lesson_id: string
-        lesson_title: string
-        lesson_order_index: number | null
-        is_published: boolean | null
-      }>
+interface CourseRow {
+  id: string
+  title: string
+  slug: string | null
+  is_active: boolean | null
+  course_modules: Array<{
+    module_order_index: number | null
+    course_lessons: Array<{
+      lesson_id: string
+      lesson_title: string
+      lesson_order_index: number | null
+      is_published: boolean | null
     }>
-  } | null
+  }>
 }
 
 /**
- * Lists the user's enrolled courses (in this org) with their lessons, for the
- * "New note" picker. Scoped via user_course_enrollments.organization_id.
+ * Resolves the course IDs the user actually has assigned in this organization:
+ * direct assignments (organization_course_assignments) UNION learning-path
+ * courses. This mirrors the dashboard's source of truth — raw enrollments are
+ * NOT used, because an enrollment can exist for a course that is no longer
+ * assigned (which would otherwise leak into the "New note" picker).
+ */
+async function resolveAssignedCourseIds(
+  supabase: AdminClient,
+  userId: string,
+  organizationId: string,
+): Promise<Set<string>> {
+  const [directAssignments, learningPaths] = await Promise.all([
+    supabase
+      .from('organization_course_assignments')
+      .select('course_id')
+      .eq('user_id', userId)
+      .eq('organization_id', organizationId)
+      .in('status', ['assigned', 'in_progress', 'completed']),
+    loadBusinessUserLearningPaths({ userId, organizationId }).catch(() => []),
+  ])
+
+  const courseIds = new Set<string>()
+  for (const row of directAssignments.data ?? []) {
+    if (row.course_id) courseIds.add(row.course_id)
+  }
+  for (const path of learningPaths) {
+    for (const item of path.items) {
+      if (item.courseId) courseIds.add(item.courseId)
+    }
+  }
+  return courseIds
+}
+
+/**
+ * Lists the courses the user is assigned in this org (direct + learning path),
+ * with their published lessons, for the "New note" picker.
  */
 export async function fetchNotebookCourseOptions(params: {
   userId: string
@@ -316,35 +353,38 @@ export async function fetchNotebookCourseOptions(params: {
 }): Promise<NotebookCourseOption[]> {
   const supabase = createAdminClient()
 
+  const assignedCourseIds = await resolveAssignedCourseIds(
+    supabase,
+    params.userId,
+    params.organizationId,
+  )
+  if (assignedCourseIds.size === 0) {
+    return []
+  }
+
   const { data, error } = await supabase
-    .from('user_course_enrollments')
+    .from('courses')
     .select(
       `
-      course_id,
-      courses!inner(
-        id, title, slug, is_active,
-        course_modules(
-          module_order_index,
-          course_lessons( lesson_id, lesson_title, lesson_order_index, is_published )
-        )
+      id, title, slug, is_active,
+      course_modules(
+        module_order_index,
+        course_lessons( lesson_id, lesson_title, lesson_order_index, is_published )
       )
     `,
     )
-    .eq('user_id', params.userId)
-    .eq('organization_id', params.organizationId)
+    .in('id', Array.from(assignedCourseIds))
+    .eq('is_active', true)
 
   if (error) {
     throw new Error(`Error al obtener cursos: ${error.message}`)
   }
 
-  const rows = (data ?? []) as unknown as CourseOptionRow[]
-  const seen = new Set<string>()
+  const rows = (data ?? []) as unknown as CourseRow[]
   const options: NotebookCourseOption[] = []
 
-  for (const row of rows) {
-    const course = row.courses
-    if (!course || course.is_active === false || seen.has(course.id)) continue
-    seen.add(course.id)
+  for (const course of rows) {
+    if (course.is_active === false) continue
 
     const lessons = (course.course_modules ?? [])
       .flatMap((module) =>

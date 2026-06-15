@@ -40,17 +40,27 @@ export interface TourConfig {
   id: TourId
   steps: TourStep[]
   autoStart?: boolean
+  /**
+   * Optional platform onboarding video shown BEFORE the Joyride steps the first
+   * time the tour runs (and on every manual "Ver tour" replay). When set, the
+   * tour enters a "video phase" first, then starts the spotlight steps.
+   */
+  introVideoUrl?: string
 }
 
 export interface TourStoreState {
   activeTourConfig: TourConfig | null
   currentStep: number
   isRunning: boolean
+  /** URL of the intro video currently playing before the tour (video phase). */
+  introVideoUrl: string | null
   completedTours: TourId[]
 }
 
 export interface TourStoreActions {
   startTour: (config: TourConfig) => void
+  /** Ends the intro-video phase and starts the Joyride steps. */
+  completeIntroVideo: () => void
   stopTour: () => void
   nextStep: () => void
   prevStep: () => void

@@ -29,7 +29,7 @@ export function CourseLearnWorkspace({ logic, shell }: { logic: LearnPageLogicRe
           courseProgress={logic.courseProgress}
           onBack={() => logic.router.back()}
           organizationName={logic.organizationName}
-          tourAction={<TourTriggerButton onStart={restartTour} className="text-primary/70 hover:text-primary dark:text-white/70 dark:hover:text-accent" />}
+          tourAction={<TourTriggerButton onStart={() => shell.restartWithIntroVideos(restartTour)} className="text-primary/70 hover:text-primary dark:text-white/70 dark:hover:text-accent" />}
           disableHeavyEffects={shell.disableHeavyEffects}
         />
         <TranslationWarning logic={logic} />

@@ -5,6 +5,7 @@ import { ACTIONS, EVENTS, Joyride, STATUS, type EventData, type Step } from 'rea
 import { useTranslation } from 'react-i18next'
 
 import { useThemeStore } from '@/core/stores/themeStore'
+import { OnboardingVideoPlayer } from '@/features/courses/components/onboarding-video-player/OnboardingVideoPlayer'
 
 import { useTourStore } from '../tour.store'
 import { translateTourKey } from '../utils/tour.i18n'
@@ -25,6 +26,8 @@ export function TourRenderer() {
   const activeTourConfig = useTourStore((state) => state.activeTourConfig)
   const currentStep = useTourStore((state) => state.currentStep)
   const isRunning = useTourStore((state) => state.isRunning)
+  const introVideoUrl = useTourStore((state) => state.introVideoUrl)
+  const completeIntroVideo = useTourStore((state) => state.completeIntroVideo)
   const nextStep = useTourStore((state) => state.nextStep)
   const prevStep = useTourStore((state) => state.prevStep)
   const goToStep = useTourStore((state) => state.goToStep)
@@ -166,6 +169,16 @@ export function TourRenderer() {
     },
     [activeTourConfig, completeActiveTour, nextStep, prevStep],
   )
+
+  // Video phase: play the platform onboarding video before the Joyride steps.
+  if (activeTourConfig && introVideoUrl && !isRunning) {
+    return (
+      <OnboardingVideoPlayer
+        videos={[introVideoUrl]}
+        onComplete={completeIntroVideo}
+      />
+    )
+  }
 
   if (!isRunning || !activeTourConfig) {
     return null

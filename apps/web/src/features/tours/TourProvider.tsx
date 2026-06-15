@@ -7,7 +7,9 @@ import { useTourStore } from './tour.store'
 
 export function TourProvider({ children }: { children: ReactNode }) {
   const shouldRenderTour = useTourStore(
-    (state) => state.isRunning && Boolean(state.activeTourConfig),
+    (state) =>
+      (state.isRunning || Boolean(state.introVideoUrl)) &&
+      Boolean(state.activeTourConfig),
   )
 
   return (
