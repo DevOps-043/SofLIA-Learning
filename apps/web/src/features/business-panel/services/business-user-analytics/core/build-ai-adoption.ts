@@ -42,7 +42,14 @@ export function buildAiAdoption(data: QueryData, period: BusinessUserAnalyticsPe
   const redirectRate = calculatePercentage(redirects, data.liaMessages.length)
   const averageSentiment = sentimentScores.length > 0 ? roundNumber(calculateAverage(sentimentScores), 2) : 0
   const sentimentScore = clampPercentage(50 + averageSentiment * 50)
-  const questionQualityScore = userMessages.length > 0
+  // Calidad de la interacción con SofLIA. Se considera "hubo interacción" si el
+  // usuario participó por CUALQUIER vía: `lia_messages` o el motor de diálogo
+  // guiado (`dialogueUserTurns`). De lo contrario, un usuario que solo usa los
+  // diálogos guiados aparecía con adopción 100% pero calidad 0% (inconsistente),
+  // porque las señales finas (preguntas, off-topic, sentimiento) solo existen en
+  // `lia_messages`. Sin esas señales, la fórmula cae a su línea base neutral en
+  // lugar de un 0 engañoso.
+  const questionQualityScore = totalUserMessages > 0
     ? clampPercentage(60 + questionRate * 0.25 - offTopicRate * 0.45 - redirectRate * 0.2 + sentimentScore * 0.25)
     : 0
   const contextCounts = new Map<string, number>()

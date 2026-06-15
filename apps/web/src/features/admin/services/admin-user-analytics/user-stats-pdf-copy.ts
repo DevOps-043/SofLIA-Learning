@@ -69,6 +69,10 @@ export interface UserStatsPdfCopy {
     time: string
     status: string
   }
+  /** Etiqueta legible por estado de curso (`resolveCourseStatus`). */
+  courseStatus: Record<string, string>
+  /** Etiqueta legible por dimensión del radar de calidad (`quality.radar[].key`). */
+  radar: Record<string, string>
   insights: {
     summary: string
     strengths: string
@@ -152,6 +156,19 @@ const ES: UserStatsPdfCopy = {
     lessons: 'Lecciones',
     time: 'Tiempo (min)',
     status: 'Estado',
+  },
+  courseStatus: {
+    completed: 'Completado',
+    in_progress: 'En progreso',
+    assigned: 'Asignado',
+    not_started: 'No iniciado',
+  },
+  radar: {
+    courses: 'Cursos',
+    activities: 'Actividades',
+    soflia: 'SofLIA',
+    notes: 'Notas',
+    quizzes: 'Quizzes',
   },
   insights: {
     summary: 'Resumen',
@@ -237,6 +254,19 @@ const EN: UserStatsPdfCopy = {
     time: 'Time (min)',
     status: 'Status',
   },
+  courseStatus: {
+    completed: 'Completed',
+    in_progress: 'In progress',
+    assigned: 'Assigned',
+    not_started: 'Not started',
+  },
+  radar: {
+    courses: 'Courses',
+    activities: 'Activities',
+    soflia: 'SofLIA',
+    notes: 'Notes',
+    quizzes: 'Quizzes',
+  },
   insights: {
     summary: 'Summary',
     strengths: 'Strengths',
@@ -320,6 +350,19 @@ const PT: UserStatsPdfCopy = {
     lessons: 'Lições',
     time: 'Tempo (min)',
     status: 'Status',
+  },
+  courseStatus: {
+    completed: 'Concluído',
+    in_progress: 'Em andamento',
+    assigned: 'Atribuído',
+    not_started: 'Não iniciado',
+  },
+  radar: {
+    courses: 'Cursos',
+    activities: 'Atividades',
+    soflia: 'SofLIA',
+    notes: 'Notas',
+    quizzes: 'Quizzes',
   },
   insights: {
     summary: 'Resumo',

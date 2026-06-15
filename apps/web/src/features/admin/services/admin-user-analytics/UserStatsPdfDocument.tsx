@@ -232,7 +232,7 @@ export function UserStatsPdfDocument({
                   <Text style={[styles.tableCell, { width: COURSE_COLS[1] }]}>{round(course.progress)}%</Text>
                   <Text style={[styles.tableCell, { width: COURSE_COLS[2] }]}>{String(course.lessonsCompleted)}</Text>
                   <Text style={[styles.tableCell, { width: COURSE_COLS[3] }]}>{Math.round(course.timeSpentMinutes)}</Text>
-                  <Text style={[styles.tableCell, { width: COURSE_COLS[4] }]}>{course.status}</Text>
+                  <Text style={[styles.tableCell, { width: COURSE_COLS[4] }]}>{copy.courseStatus[course.status] ?? course.status}</Text>
                 </View>
               ))}
             </View>
@@ -244,7 +244,7 @@ export function UserStatsPdfDocument({
           <View wrap={false}>
             <SectionTitle>{copy.sections.quality}</SectionTitle>
             {quality.radar.map((item, index) => (
-              <Bar key={index} label={item.label} value={item.value} />
+              <Bar key={index} label={copy.radar[item.key] ?? item.label} value={item.value} />
             ))}
           </View>
         ) : null}
