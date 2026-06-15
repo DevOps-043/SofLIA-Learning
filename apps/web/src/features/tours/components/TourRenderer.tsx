@@ -176,6 +176,7 @@ export function TourRenderer() {
       <OnboardingVideoPlayer
         videos={[introVideoUrl]}
         onComplete={completeIntroVideo}
+        skipOnError
       />
     )
   }

@@ -1,15 +1,23 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { OnboardingVideoPlayerProps } from './types';
 import { OnboardingVideoStage } from './OnboardingVideoStage';
 import { useOnboardingVideoPlayer } from './useOnboardingVideoPlayer';
 
-export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }: OnboardingVideoPlayerProps) {
+export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true, skipOnError = false }: OnboardingVideoPlayerProps) {
   const { t } = useTranslation('common');
   const player = useOnboardingVideoPlayer({ onComplete, videos });
 
+  // Optional onboarding/tour videos must never block the experience: if the
+  // file can't load, continue automatically instead of showing the error modal.
+  useEffect(() => {
+    if (skipOnError && player.hasError) onComplete();
+  }, [skipOnError, player.hasError, onComplete]);
+
   if (!videos || videos.length === 0) return null;
+  if (skipOnError && player.hasError) return null;
 
   return (
     <OnboardingVideoStage
