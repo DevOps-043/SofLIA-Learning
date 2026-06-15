@@ -61,7 +61,13 @@ export async function syncCourseAccessForUser(
           enrolled_at: new Date().toISOString(),
           last_accessed_at: new Date().toISOString(),
         },
-        { onConflict: 'user_id,course_id', ignoreDuplicates: true },
+        // La inscripción ahora está aislada por organización: la migración
+        // `organization_scoped_course_progress` eliminó la constraint única
+        // `(user_id, course_id)` y la reemplazó por el índice único
+        // `user_course_enrollments_org_scope_unique_idx (user_id, course_id,
+        // organization_id)`. El `onConflict` debe coincidir con ese índice; si
+        // no, Postgres responde 42P10 y la asignación de la ruta falla con 500.
+        { onConflict: 'user_id,course_id,organization_id', ignoreDuplicates: true },
       )
 
     if (enrollmentInsert.error) {
