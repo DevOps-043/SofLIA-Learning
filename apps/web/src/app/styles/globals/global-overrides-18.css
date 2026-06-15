@@ -76,8 +76,12 @@
   opacity: 0.5;
 }
 
-/* Textos dentro de tarjetas */
-.dark .business-panel-layout [class~="text-white"],
+/* Textos dentro de tarjetas.
+   `:not(.no-theme)`: los controles que gestionan su PROPIO contraste (botones de
+   marca con fondo de color, donde `text-white` es intencional) se marcan con
+   `no-theme` para que el color de texto de la organización NO los pise y los deje
+   ilegibles (texto oscuro sobre fondo de color). Resto del texto sin cambios. */
+.dark .business-panel-layout [class~="text-white"]:not(.no-theme),
 .dark .business-panel-layout .text-carbon-200,
 .dark .business-panel-layout .text-carbon-300 {
   color: var(--org-text-color, var(--color-gray-50)) !important;

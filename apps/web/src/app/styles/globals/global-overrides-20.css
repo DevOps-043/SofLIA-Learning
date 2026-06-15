@@ -13,8 +13,11 @@
   opacity: 0.7;
 }
 
-/* Textos dentro de tarjetas - modo claro */
-.light .business-panel-layout [class~="text-white"],
+/* Textos dentro de tarjetas - modo claro.
+   `:not(.no-theme)`: igual que en dark mode, los botones de marca con fondo de
+   color (donde `text-white` es intencional) se excluyen para que el color de
+   texto de la organización no los deje ilegibles. */
+.light .business-panel-layout [class~="text-white"]:not(.no-theme),
 .light .business-panel-layout .text-carbon-200,
 .light .business-panel-layout .text-carbon-300 {
   color: var(--org-text-color, var(--color-legacy-1e293b)) !important;

@@ -260,7 +260,9 @@ export function BusinessUserAnalyticsPageClient({
                 type="button"
                 onClick={() => setRange(option)}
                 className={cn(
-                  'rounded-lg border px-3 py-2 text-sm font-semibold transition-colors',
+                  // `no-theme`: el botón gestiona su propio contraste; evita que el
+                  // override de texto del tema de organización pise `text-white`.
+                  'no-theme rounded-lg border px-3 py-2 text-sm font-semibold transition-colors',
                   range === option
                     ? 'border-primary bg-primary text-white dark:border-accent dark:bg-accent dark:text-gray-900'
                     : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-white/10 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700',
@@ -437,7 +439,7 @@ export function BusinessUserAnalyticsPageClient({
                     type="button"
                     onClick={() => void generateInsights()}
                     disabled={insightState === 'loading'}
-                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-accent dark:text-gray-900 dark:hover:bg-accent/90"
+                    className="no-theme inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-accent dark:text-gray-900 dark:hover:bg-accent/90"
                   >
                     {insightState === 'loading' ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -1016,7 +1018,7 @@ function ErrorState({
       <button
         type="button"
         onClick={onRetry}
-        className="mt-4 inline-flex items-center gap-2 rounded-lg bg-error px-4 py-2 text-sm font-semibold text-white"
+        className="no-theme mt-4 inline-flex items-center gap-2 rounded-lg bg-error px-4 py-2 text-sm font-semibold text-white"
       >
         <RefreshCw className="h-4 w-4" />
         {action}

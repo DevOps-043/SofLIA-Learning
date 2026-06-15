@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import type {
   BusinessUserAnalyticsInsights,
@@ -70,6 +71,22 @@ function SectionTitle({ children }: { children: string }) {
   return <Text style={styles.sectionTitle}>{children}</Text>
 }
 
+/**
+ * Sección indivisible: agrupa el título con su contenido y, gracias a
+ * `wrap={false}`, evita que una sección corta (métricas/barras) se parta a la
+ * mitad en el salto de página. Si no cabe en el espacio restante, React-PDF la
+ * mueve completa a la página siguiente. Pensado para bloques que caben holgados
+ * en una página (no usar para tablas largas que sí deben poder paginarse).
+ */
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <View wrap={false}>
+      <SectionTitle>{title}</SectionTitle>
+      {children}
+    </View>
+  )
+}
+
 interface CardData {
   label: string
   value: string
@@ -80,7 +97,7 @@ function MetricGrid({ items }: { items: CardData[] }) {
   return (
     <View style={styles.grid}>
       {items.map((item, index) => (
-        <View key={index} style={styles.card}>
+        <View key={index} style={styles.card} wrap={false}>
           <View style={styles.cardInner}>
             <Text style={styles.cardLabel}>{item.label}</Text>
             <Text style={styles.cardValue}>{item.value}</Text>
@@ -150,48 +167,52 @@ export function UserStatsPdfDocument({
         </View>
 
         {/* Resumen general */}
-        <SectionTitle>{copy.sections.overview}</SectionTitle>
-        <MetricGrid
-          items={[
-            { label: copy.metrics.averageProgress, value: `${round(overview.averageProgress)}%`, help: copy.values.coursesAssigned(overview.completedCourses, overview.totalAssigned) },
-            { label: copy.metrics.aiAdoption, value: `${round(aiAdoption.adoptionScore)}%`, help: copy.values.conversations(aiAdoption.totalConversations, aiAdoption.totalMessages) },
-            { label: copy.metrics.quality, value: `${round(quality.overallScore)}%`, help: copy.glossary.quality },
-            { label: copy.metrics.lessonsCompleted, value: String(overview.lessonsCompleted), help: `${copy.metrics.timeSpent}: ${copy.values.minutes(Math.round(overview.timeSpentMinutes))}` },
-            { label: copy.metrics.certificates, value: String(overview.certificates), help: copy.glossary.certificates },
-            { label: copy.metrics.currentStreak, value: copy.values.days(overview.currentStreak), help: copy.glossary.currentStreak },
-          ]}
-        />
+        <Section title={copy.sections.overview}>
+          <MetricGrid
+            items={[
+              { label: copy.metrics.averageProgress, value: `${round(overview.averageProgress)}%`, help: copy.values.coursesAssigned(overview.completedCourses, overview.totalAssigned) },
+              { label: copy.metrics.aiAdoption, value: `${round(aiAdoption.adoptionScore)}%`, help: copy.values.conversations(aiAdoption.totalConversations, aiAdoption.totalMessages) },
+              { label: copy.metrics.quality, value: `${round(quality.overallScore)}%`, help: copy.glossary.quality },
+              { label: copy.metrics.lessonsCompleted, value: String(overview.lessonsCompleted), help: `${copy.metrics.timeSpent}: ${copy.values.minutes(Math.round(overview.timeSpentMinutes))}` },
+              { label: copy.metrics.certificates, value: String(overview.certificates), help: copy.glossary.certificates },
+              { label: copy.metrics.currentStreak, value: copy.values.days(overview.currentStreak), help: copy.glossary.currentStreak },
+            ]}
+          />
+        </Section>
 
         {/* Indicadores de progreso */}
-        <SectionTitle>{copy.sections.progress}</SectionTitle>
-        <Bar label={copy.metrics.averageProgress} value={overview.averageProgress} />
-        <Bar label={copy.metrics.completionRate} value={overview.completionRate} />
-        <Bar label={copy.metrics.aiAdoption} value={aiAdoption.adoptionScore} />
-        <Bar label={copy.metrics.quality} value={quality.overallScore} />
+        <Section title={copy.sections.progress}>
+          <Bar label={copy.metrics.averageProgress} value={overview.averageProgress} />
+          <Bar label={copy.metrics.completionRate} value={overview.completionRate} />
+          <Bar label={copy.metrics.aiAdoption} value={aiAdoption.adoptionScore} />
+          <Bar label={copy.metrics.quality} value={quality.overallScore} />
+        </Section>
 
         {/* Quizzes y exámenes */}
-        <SectionTitle>{copy.sections.quizzes}</SectionTitle>
-        <MetricGrid
-          items={[
-            { label: copy.metrics.quizzesTaken, value: copy.values.outOf(quizzes.quizzesTaken, quizzes.lessonsWithQuiz), help: copy.glossary.quizzesTaken },
-            { label: copy.metrics.quizzesPassed, value: String(quizzes.quizzesPassed), help: copy.glossary.quizzesPassed },
-            { label: copy.metrics.quizzesAverage, value: `${round(quizzes.averageScore)}%`, help: copy.glossary.quizzesAverage },
-            { label: copy.metrics.quizzesTotalAttempts, value: String(quizzes.totalAttempts), help: copy.glossary.quizzesTotalAttempts },
-            { label: copy.metrics.quizzesRetries, value: String(quizzes.retries), help: copy.glossary.quizzesTotalAttempts },
-            { label: copy.metrics.lessonsWithQuiz, value: String(quizzes.lessonsWithQuiz), help: copy.glossary.quizzesTaken },
-          ]}
-        />
+        <Section title={copy.sections.quizzes}>
+          <MetricGrid
+            items={[
+              { label: copy.metrics.quizzesTaken, value: copy.values.outOf(quizzes.quizzesTaken, quizzes.lessonsWithQuiz), help: copy.glossary.quizzesTaken },
+              { label: copy.metrics.quizzesPassed, value: String(quizzes.quizzesPassed), help: copy.glossary.quizzesPassed },
+              { label: copy.metrics.quizzesAverage, value: `${round(quizzes.averageScore)}%`, help: copy.glossary.quizzesAverage },
+              { label: copy.metrics.quizzesTotalAttempts, value: String(quizzes.totalAttempts), help: copy.glossary.quizzesTotalAttempts },
+              { label: copy.metrics.quizzesRetries, value: String(quizzes.retries), help: copy.glossary.quizzesTotalAttempts },
+              { label: copy.metrics.lessonsWithQuiz, value: String(quizzes.lessonsWithQuiz), help: copy.glossary.quizzesTaken },
+            ]}
+          />
+        </Section>
 
         {/* Notas y actividades */}
-        <SectionTitle>{copy.sections.engagement}</SectionTitle>
-        <MetricGrid
-          items={[
-            { label: copy.metrics.activities, value: String(activities.totalSubmissions), help: copy.glossary.activities },
-            { label: copy.metrics.activitiesPassRate, value: `${round(activities.passRate)}%`, help: copy.glossary.activitiesPassRate },
-            { label: copy.metrics.notes, value: String(notes.totalNotes), help: copy.glossary.notes },
-            { label: copy.metrics.notesAdoption, value: `${round(notes.adoptionRate)}%`, help: copy.glossary.notesAdoption },
-          ]}
-        />
+        <Section title={copy.sections.engagement}>
+          <MetricGrid
+            items={[
+              { label: copy.metrics.activities, value: String(activities.totalSubmissions), help: copy.glossary.activities },
+              { label: copy.metrics.activitiesPassRate, value: `${round(activities.passRate)}%`, help: copy.glossary.activitiesPassRate },
+              { label: copy.metrics.notes, value: String(notes.totalNotes), help: copy.glossary.notes },
+              { label: copy.metrics.notesAdoption, value: `${round(notes.adoptionRate)}%`, help: copy.glossary.notesAdoption },
+            ]}
+          />
+        </Section>
 
         {/* Avance por curso */}
         {courseRows.length > 0 ? (
@@ -231,8 +252,10 @@ export function UserStatsPdfDocument({
         {/* Feedback de SofLIA */}
         {showInsights ? (
           <View>
-            <SectionTitle>{copy.sections.insights}</SectionTitle>
-            {insights!.summary ? <Text style={styles.paragraph}>{insights!.summary}</Text> : null}
+            <View wrap={false}>
+              <SectionTitle>{copy.sections.insights}</SectionTitle>
+              {insights!.summary ? <Text style={styles.paragraph}>{insights!.summary}</Text> : null}
+            </View>
             <InsightList title={copy.insights.strengths} items={insights!.strengths} />
             <InsightList title={copy.insights.opportunities} items={insights!.opportunities} />
             <InsightList title={copy.insights.recommendations} items={insights!.recommendations} />
@@ -243,7 +266,7 @@ export function UserStatsPdfDocument({
         <View break>
           <SectionTitle>{copy.sections.glossary}</SectionTitle>
           {glossaryKeys.map((key) => (
-            <View key={key} style={styles.glossaryRow}>
+            <View key={key} style={styles.glossaryRow} wrap={false}>
               <Text style={styles.glossaryTerm}>{copy.metrics[key]}</Text>
               <Text style={styles.glossaryDef}>{copy.glossary[key]}</Text>
             </View>
@@ -256,8 +279,10 @@ export function UserStatsPdfDocument({
 
 function InsightList({ title, items }: { title: string; items: string[] }) {
   if (!items || items.length === 0) return null
+  // wrap={false}: el grupo (título + viñetas) no se parte entre páginas; si no
+  // cabe, pasa entero a la siguiente. La sección puede paginar ENTRE grupos.
   return (
-    <View>
+    <View wrap={false}>
       <Text style={styles.insightGroupTitle}>{title}</Text>
       {items.slice(0, 6).map((item, index) => (
         <Text key={index} style={styles.insightItem}>•  {item}</Text>
