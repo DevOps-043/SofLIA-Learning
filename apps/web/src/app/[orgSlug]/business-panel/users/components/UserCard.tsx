@@ -217,7 +217,7 @@ function UserCard({ user, index, onEdit, onDelete, onStats, onResend, onSuspend,
             }}
           >
             <Activity className="w-4 h-4 group-hover/managed:animate-pulse" />
-            <span>{t('users.card.manage')}</span>
+            <span>{t('users.card.statistics')}</span>
           </button>
         </div>
       </div>

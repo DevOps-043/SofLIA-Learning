@@ -3,11 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { createClient } from '@/lib/supabase/client'
 import {
   INTRO_VIDEO_MAX_SIZE_BYTES,
   isStreamableVideoMimeType,
 } from '@/lib/media/video-upload-policy'
 import type { BusinessLearningPath } from '../services/businessLearningPaths.service'
+
+const INTRO_VIDEOS_BUCKET = 'intro-videos'
 
 const MAX_VIDEO_SIZE_BYTES = INTRO_VIDEO_MAX_SIZE_BYTES
 
@@ -17,11 +20,24 @@ interface UploadVideoDirectMessages {
   uploadFailed: string
 }
 
+interface SignedUploadUrlResponse {
+  success: boolean
+  signedUrl?: string
+  token?: string
+  path?: string
+  publicUrl?: string
+  error?: string
+}
+
 /**
- * Upload de video usando el endpoint /api/upload existente (service role, sin
- * límites de CORS). Para archivos grandes en producción se usaría un signed URL
- * directo, pero en la arquitectura actual el proxy server-side es suficiente y
- * más confiable al evitar los problemas de CORS/timeout con signed URLs.
+ * Sube el video con una signed upload URL: el archivo va DIRECTO del browser al
+ * bucket de Supabase, sin atravesar la función serverless.
+ *
+ * Por qué NO se usa el proxy `/api/upload`: en Netlify las funciones tienen un
+ * límite de payload (~6 MB) y un timeout corto, así que reenviar un video de
+ * hasta 500 MB por ahí siempre termina en 504 (y el cliente recibía HTML en vez
+ * de JSON -> "Unexpected token '<'"). La función solo emite metadatos y firma la
+ * URL; el archivo nunca pasa por ella.
  */
 async function uploadVideoDirect(
   file: File,
@@ -36,24 +52,41 @@ async function uploadVideoDirect(
     throw new Error(messages.invalidType)
   }
 
-  const formData = new FormData()
-  formData.append('file', file)
-  formData.append('bucket', 'intro-videos')
-  formData.append('folder', `org/${orgSlug}/${folder}`)
+  // 1) Pedir la signed upload URL (solo metadatos viajan a la función).
+  const urlResponse = await fetch(
+    `/api/${orgSlug}/business/intro-videos/upload-url`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileName: file.name,
+        contentType: file.type,
+        fileSize: file.size,
+        folder,
+      }),
+    },
+  )
 
-  const uploadResponse = await fetch('/api/upload', {
-    method: 'POST',
-    credentials: 'include',
-    body: formData,
-  })
+  // `catch(() => null)`: si el proxy devolviera HTML (timeout/error de
+  // plataforma), no reventamos con "Unexpected token '<'"; damos un mensaje útil.
+  const urlData = (await urlResponse.json().catch(() => null)) as SignedUploadUrlResponse | null
 
-  const uploadData = await uploadResponse.json() as { success: boolean; url?: string; error?: string }
-
-  if (!uploadData.success || !uploadData.url) {
-    throw new Error(uploadData.error ?? messages.uploadFailed)
+  if (!urlResponse.ok || !urlData?.success || !urlData.token || !urlData.path || !urlData.publicUrl) {
+    throw new Error(urlData?.error ?? messages.uploadFailed)
   }
 
-  return uploadData.url
+  // 2) Subir el archivo DIRECTO a Supabase Storage con el token firmado.
+  const supabase = createClient()
+  const { error: uploadError } = await supabase.storage
+    .from(INTRO_VIDEOS_BUCKET)
+    .uploadToSignedUrl(urlData.path, urlData.token, file, { contentType: file.type })
+
+  if (uploadError) {
+    throw new Error(uploadError.message || messages.uploadFailed)
+  }
+
+  return urlData.publicUrl
 }
 
 export interface LpVideoState {
