@@ -1,18 +1,12 @@
 'use client'
 
-import { Fragment, useCallback, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { Download, Loader2, X } from 'lucide-react'
+import { Loader2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useLanguage } from '@/core/providers/I18nProvider'
 import { BusinessUserAnalyticsPageClient } from '@/features/business-panel/components/business-user-analytics/BusinessUserAnalyticsPageClient'
-import type {
-  BusinessUserAnalyticsInsights,
-  BusinessUserAnalyticsLocale,
-  BusinessUserAnalyticsResponse,
-} from '@/features/business-panel/types/business-user-analytics.types'
 import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
-import { generateUserStatsPdf } from '../../services/admin-user-analytics/generate-user-stats-pdf'
+import type { AdminUserOrganizationOption } from '../../services/admin-user-analytics/list-user-organizations'
 import type { AdminUser } from '../../services/adminUsers.service'
 import { getAdminUserDisplayConfig } from './service'
 
@@ -21,21 +15,13 @@ interface AdminUserStatsModalProps {
   isOpen: boolean
   onClose: () => void
   organizationLabel?: string | null
+  /** Organización filtrada en la página: define la selección inicial del selector. */
+  defaultOrganizationId?: string | null
 }
 
-function normalizeLocale(language: string): BusinessUserAnalyticsLocale {
-  return language === 'en' || language === 'pt' ? language : 'es'
-}
-
-function sanitizeFileSegment(value: string): string {
-  return (
-    value
-      .normalize('NFD')
-      .replace(/\p{Diacritic}/gu, '')
-      .replace(/[^a-zA-Z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .toLowerCase() || 'usuario'
-  )
+interface UserOrganizationsResponse {
+  success: boolean
+  organizations?: AdminUserOrganizationOption[]
 }
 
 export function AdminUserStatsModal({
@@ -43,44 +29,56 @@ export function AdminUserStatsModal({
   isOpen,
   onClose,
   organizationLabel,
+  defaultOrganizationId,
 }: AdminUserStatsModalProps) {
   const theme = useAdminPanelTheme()
   const { t } = useTranslation('admin')
-  const { language } = useLanguage()
   const { displayName } = getAdminUserDisplayConfig(user)
 
-  const [analytics, setAnalytics] = useState<BusinessUserAnalyticsResponse | null>(null)
-  const [insights, setInsights] = useState<BusinessUserAnalyticsInsights | null>(null)
-  const [isExporting, setIsExporting] = useState(false)
-  const [exportError, setExportError] = useState<string | null>(null)
+  const [organizations, setOrganizations] = useState<AdminUserOrganizationOption[]>([])
+  const [orgsLoading, setOrgsLoading] = useState(false)
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null)
 
-  const handleExport = useCallback(async () => {
-    if (!analytics) return
-    setIsExporting(true)
-    setExportError(null)
-    try {
-      const blob = await generateUserStatsPdf(analytics, {
-        userLabel: displayName,
-        organizationLabel,
-        locale: normalizeLocale(language),
-        insights,
-      })
-      const url = URL.createObjectURL(blob)
-      const anchor = document.createElement('a')
-      anchor.href = url
-      anchor.download = `estadisticas-${sanitizeFileSegment(user.username || displayName)}-${
-        new Date().toISOString().split('T')[0]
-      }.pdf`
-      document.body.appendChild(anchor)
-      anchor.click()
-      anchor.remove()
-      URL.revokeObjectURL(url)
-    } catch {
-      setExportError(t('users.stats.exportError'))
-    } finally {
-      setIsExporting(false)
+  // Carga las organizaciones del usuario al abrir y resuelve la selección inicial:
+  // la organización filtrada en la página si el usuario pertenece a ella, si no la
+  // primera. Se reinicia el estado al cerrar para no arrastrar datos entre usuarios.
+  useEffect(() => {
+    if (!isOpen) {
+      setOrganizations([])
+      setSelectedOrgId(null)
+      return
     }
-  }, [analytics, displayName, insights, language, organizationLabel, t, user.username])
+
+    let cancelled = false
+    setOrgsLoading(true)
+    fetch(`/api/admin/users/${user.id}/organizations`, { credentials: 'include', cache: 'no-store' })
+      .then((response) => response.json() as Promise<UserOrganizationsResponse>)
+      .then((data) => {
+        if (cancelled) return
+        const orgs = data.success ? data.organizations ?? [] : []
+        setOrganizations(orgs)
+        const preferred = defaultOrganizationId && orgs.some((org) => org.id === defaultOrganizationId)
+          ? defaultOrganizationId
+          : orgs[0]?.id ?? null
+        setSelectedOrgId(preferred)
+      })
+      .catch(() => {
+        if (!cancelled) setOrganizations([])
+      })
+      .finally(() => {
+        if (!cancelled) setOrgsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, user.id, defaultOrganizationId])
+
+  // Nombre de la org seleccionada para rotular el PDF (cae al label de la página).
+  const selectedOrgLabel = useMemo(
+    () => organizations.find((org) => org.id === selectedOrgId)?.name ?? organizationLabel ?? null,
+    [organizations, selectedOrgId, organizationLabel],
+  )
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -125,21 +123,40 @@ export function AdminUserStatsModal({
                     </h2>
                   </div>
 
-                  <div className="flex flex-shrink-0 items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => void handleExport()}
-                      disabled={!analytics || isExporting}
-                      className="inline-flex h-10 items-center gap-2 rounded-2xl px-4 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60"
-                      style={{ backgroundColor: theme.primaryColor, color: theme.onPrimaryColor }}
-                    >
-                      {isExporting ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Download className="h-4 w-4" />
-                      )}
-                      {isExporting ? t('users.stats.exporting') : t('users.stats.exportPdf')}
-                    </button>
+                  <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
+                    {orgsLoading ? (
+                      <span className="text-xs font-medium" style={{ color: theme.subtextColor }}>
+                        {t('users.stats.organizationLoading')}
+                      </span>
+                    ) : organizations.length > 1 ? (
+                      <label className="flex items-center gap-2">
+                        <span className="sr-only">{t('users.stats.organizationLabel')}</span>
+                        <select
+                          value={selectedOrgId ?? ''}
+                          onChange={(event) => setSelectedOrgId(event.target.value)}
+                          aria-label={t('users.stats.organizationLabel')}
+                          className="h-10 max-w-[220px] rounded-2xl border px-3 text-sm font-semibold focus:outline-none focus:ring-2"
+                          style={{
+                            backgroundColor: theme.inputBg,
+                            borderColor: theme.borderColor,
+                            color: theme.textColor,
+                          }}
+                        >
+                          {organizations.map((org) => (
+                            <option key={org.id} value={org.id}>
+                              {org.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : organizations.length === 1 ? (
+                      <span
+                        className="inline-flex h-10 items-center rounded-2xl border px-3 text-sm font-semibold"
+                        style={{ backgroundColor: theme.inputBg, borderColor: theme.borderColor, color: theme.textColor }}
+                      >
+                        {organizations[0].name}
+                      </span>
+                    ) : null}
                     <button
                       type="button"
                       onClick={onClose}
@@ -156,23 +173,27 @@ export function AdminUserStatsModal({
                   </div>
                 </div>
 
-                {exportError ? (
-                  <div
-                    className="flex-shrink-0 px-6 py-2 text-sm"
-                    style={{ color: theme.dangerColor }}
-                  >
-                    {exportError}
-                  </div>
-                ) : null}
-
                 <div className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6">
-                  <BusinessUserAnalyticsPageClient
-                    embedded
-                    showBackButton={false}
-                    apiBasePath={`/api/admin/users/${user.id}/analytics`}
-                    onAnalyticsLoaded={setAnalytics}
-                    onInsightsLoaded={setInsights}
-                  />
+                  {orgsLoading ? (
+                    <div className="flex min-h-[360px] items-center justify-center">
+                      <Loader2 className="h-6 w-6 animate-spin" style={{ color: theme.subtextColor }} />
+                    </div>
+                  ) : selectedOrgId ? (
+                    <BusinessUserAnalyticsPageClient
+                      embedded
+                      showBackButton={false}
+                      apiBasePath={`/api/admin/users/${user.id}/analytics`}
+                      organizationId={selectedOrgId}
+                      pdfExport={{ userLabel: displayName, organizationLabel: selectedOrgLabel }}
+                    />
+                  ) : (
+                    <div
+                      className="flex min-h-[360px] items-center justify-center text-sm"
+                      style={{ color: theme.subtextColor }}
+                    >
+                      {t('users.stats.noOrganizations')}
+                    </div>
+                  )}
                 </div>
               </Dialog.Panel>
             </Transition.Child>

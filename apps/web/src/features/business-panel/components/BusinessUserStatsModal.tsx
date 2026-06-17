@@ -14,6 +14,7 @@ import {
   Info
 } from 'lucide-react'
 import Image from 'next/image'
+import { useOrganizationStore } from '@/core/stores/organizationStore'
 import type { BusinessUser } from '../services/businessUsers.service'
 import { useBusinessUserStatsModalLogic } from '../hooks/useBusinessUserStatsModalLogic'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
@@ -41,6 +42,7 @@ export function BusinessUserStatsModal({
   orgSlug,
 }: BusinessUserStatsModalProps) {
   const panelTheme = useBusinessPanelTheme()
+  const organizationName = useOrganizationStore((state) => state.currentOrganization?.name) ?? null
   const {
     t,
     isDark,
@@ -209,6 +211,7 @@ export function BusinessUserStatsModal({
                         orgSlug={orgSlug}
                         showBackButton={false}
                         userId={user.id}
+                        pdfExport={{ userLabel: displayName, organizationLabel: organizationName }}
                       />
                     </div>
                   ) : loading ? (

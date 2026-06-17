@@ -216,7 +216,10 @@
       "exportPdf": "Export PDF",
       "exporting": "Exporting...",
       "exportError": "Could not generate the PDF. Please try again.",
-      "close": "Close"
+      "close": "Close",
+      "organizationLabel": "Organization",
+      "organizationLoading": "Loading organizations...",
+      "noOrganizations": "This user does not belong to any organization."
     },
     "roles": {
       "Usuario": "User",

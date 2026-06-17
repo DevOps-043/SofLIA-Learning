@@ -73,6 +73,17 @@ export interface UserStatsPdfCopy {
   courseStatus: Record<string, string>
   /** Etiqueta legible por dimensión del radar de calidad (`quality.radar[].key`). */
   radar: Record<string, string>
+  /** Explicación corta de cada sección, mostrada bajo su título (inline). */
+  sectionDescriptions: {
+    overview: string
+    progress: string
+    quizzes: string
+    engagement: string
+    courses: string
+    quality: string
+  }
+  /** Qué mide cada dimensión del radar, mostrada junto a su barra (inline). */
+  radarDescriptions: Record<string, string>
   insights: {
     summary: string
     strengths: string
@@ -169,6 +180,21 @@ const ES: UserStatsPdfCopy = {
     soflia: 'SofLIA',
     notes: 'Notas',
     quizzes: 'Quizzes',
+  },
+  sectionDescriptions: {
+    overview: 'Indicadores clave del desempeño del usuario en el periodo seleccionado.',
+    progress: 'Qué tanto avanzó: progreso, finalización, uso de SofLIA y calidad global.',
+    quizzes: 'Resultados en evaluaciones: presentación, aprobación, promedio e intentos.',
+    engagement: 'Participación activa: entregas de actividades y toma de notas.',
+    courses: 'Detalle por curso asignado: avance, lecciones, tiempo de estudio y estado.',
+    quality: 'Calidad del aprendizaje por dimensión (0–100). Cada barra explica qué mide.',
+  },
+  radarDescriptions: {
+    courses: 'Avance promedio en cursos asignados y lecciones completadas.',
+    activities: 'Entregas, progreso de actividades requeridas y calidad de validaciones.',
+    soflia: 'Calidad de preguntas, relevancia del uso y señales fuera de tema en SofLIA.',
+    notes: 'Cobertura, contenido y adopción de notas durante el aprendizaje.',
+    quizzes: 'Promedio, aprobación y resultados recientes en quizzes y exámenes.',
   },
   insights: {
     summary: 'Resumen',
@@ -267,6 +293,21 @@ const EN: UserStatsPdfCopy = {
     notes: 'Notes',
     quizzes: 'Quizzes',
   },
+  sectionDescriptions: {
+    overview: "Key indicators of the user's performance in the selected period.",
+    progress: 'How far they got: progress, completion, SofLIA usage and overall quality.',
+    quizzes: 'Assessment results: attempts, pass rate, average and total tries.',
+    engagement: 'Active participation: activity submissions and note-taking.',
+    courses: 'Per assigned course: progress, lessons, study time and status.',
+    quality: 'Learning quality per dimension (0–100). Each bar explains what it measures.',
+  },
+  radarDescriptions: {
+    courses: 'Average progress across assigned courses and completed lessons.',
+    activities: 'Submissions, required-activity progress and validation quality.',
+    soflia: 'Question quality, relevant usage and off-topic signals in SofLIA.',
+    notes: 'Coverage, content and adoption of notes during learning.',
+    quizzes: 'Average, pass rate and recent results in quizzes and exams.',
+  },
   insights: {
     summary: 'Summary',
     strengths: 'Strengths',
@@ -363,6 +404,21 @@ const PT: UserStatsPdfCopy = {
     soflia: 'SofLIA',
     notes: 'Notas',
     quizzes: 'Quizzes',
+  },
+  sectionDescriptions: {
+    overview: 'Indicadores-chave do desempenho do usuário no período selecionado.',
+    progress: 'Quão avançado está: progresso, conclusão, uso da SofLIA e qualidade geral.',
+    quizzes: 'Resultados nas avaliações: tentativas, aprovação, média e total.',
+    engagement: 'Participação ativa: entregas de atividades e criação de notas.',
+    courses: 'Por curso atribuído: avanço, lições, tempo de estudo e status.',
+    quality: 'Qualidade da aprendizagem por dimensão (0–100). Cada barra explica o que mede.',
+  },
+  radarDescriptions: {
+    courses: 'Avanço médio em cursos atribuídos e lições concluídas.',
+    activities: 'Entregas, progresso de atividades exigidas e qualidade das validações.',
+    soflia: 'Qualidade das perguntas, uso relevante e sinais fora de tema na SofLIA.',
+    notes: 'Cobertura, conteúdo e adoção de notas durante a aprendizagem.',
+    quizzes: 'Média, aprovação e resultados recentes em quizzes e exames.',
   },
   insights: {
     summary: 'Resumo',

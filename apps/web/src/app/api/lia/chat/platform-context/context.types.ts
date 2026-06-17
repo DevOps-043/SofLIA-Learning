@@ -47,6 +47,12 @@ export interface PlatformContext {
   currentPage?: string
   currentTab?: string
   pageType?: string
+  // Contenido visible en pantalla (incluye modales/paneles), capturado por el
+  // cliente para que SofLIA pueda explicar lo que el usuario ve ahora mismo.
+  pageTitle?: string
+  pageHeadings?: string[]
+  pageVisibleText?: string
+  pageContentSource?: 'dialog' | 'main' | 'body' | 'none'
   organizationId?: string
   organizationName?: string
   organizationSlug?: string

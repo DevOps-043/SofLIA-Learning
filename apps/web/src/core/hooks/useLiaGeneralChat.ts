@@ -7,6 +7,7 @@ import type { SofLIAMessage } from '../types/lia.types';
 import { useLanguage } from '../providers/I18nProvider';
 import { useOrganizationStore } from '../stores/organizationStore';
 import { consumeLiaChatStreamBuffer } from '../services/lia-chat-stream.service';
+import { extractVisibleScreenContent } from '../components/LiaSidePanel/services/visible-screen-content.service';
 
 
 type LegacyAuthUser = {
@@ -101,6 +102,10 @@ export function useLiaGeneralChat(
           conversationIdRef.current = crypto.randomUUID();
         }
 
+        // Captura lo que el usuario ve AHORA (incluye modales/paneles de
+        // estadísticas) para que SofLIA pueda explicar los datos en pantalla.
+        const visibleScreen = extractVisibleScreenContent();
+
         const response = await fetch('/api/lia/chat', {
           method: 'POST',
           headers: {
@@ -132,6 +137,10 @@ export function useLiaGeneralChat(
                 typeof window !== 'undefined'
                   ? window.location.pathname
                   : undefined,
+              pageTitle: visibleScreen.title || undefined,
+              pageHeadings: visibleScreen.headings.length > 0 ? visibleScreen.headings : undefined,
+              pageVisibleText: visibleScreen.text || undefined,
+              pageContentSource: visibleScreen.source,
               ...(pageContext || {}),
             },
             stream: true,
@@ -170,6 +179,8 @@ export function useLiaGeneralChat(
 
         if (reader) {
           let streamBuffer = '';
+          // Lectura del stream SSE: el corte real es `done` desde `reader.read()`.
+          // eslint-disable-next-line no-constant-condition
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;

@@ -217,7 +217,12 @@
       "Bash(sleep 1; cat \"C:\\\\Users\\\\fysg5\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning\\\\98914eb7-d782-45af-ba7e-d08b1eea75db\\\\tasks\\\\bi8e8v7na.output\" 2>/dev/null | tail -10; echo \"bytes=$\\(stat -c %s \"C:\\\\Users\\\\fysg5\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning\\\\98914eb7-d782-45af-ba7e-d08b1eea75db\\\\tasks\\\\bi8e8v7na.output\" 2>/dev/null\\)\")",
       "Bash(ls -la vercel.json netlify.toml next.config.* apps/web/vercel.json apps/web/next.config.*)",
       "Bash(grep -rn \"maxDuration\\\\|bodySizeLimit\\\\|sizeLimit\" apps/web/next.config.* apps/web/src/app/api/upload/)",
-      "Bash(grep -iE \"setProperty|style=|\\\\\\\\\\\\$\\\\{|template|dangerouslySetInnerHTML\")"
+      "Bash(grep -iE \"setProperty|style=|\\\\\\\\\\\\$\\\\{|template|dangerouslySetInnerHTML\")",
+      "Bash(sed -n '1,60p' src/lib/lia-context/services/page-capabilities.service.ts)",
+      "Bash(sed -n '1,80p' src/lib/lia-context/client/useContextMarkers.ts)",
+      "Bash(grep -rln \"LiaPanelProvider\" src/)",
+      "Bash(grep -rln \"LiaPanelMount\" src/app)",
+      "Bash(sed -n '1,40p' src/app/api/lia/chat/prompt-instructions/page-instructions.ts)"
     ],
     "deny": [],
     "ask": []

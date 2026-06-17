@@ -122,6 +122,7 @@ export function AdminUsersPage() {
           user={state.statsUser}
           isOpen={Boolean(state.statsUser)}
           organizationLabel={companyLabel}
+          defaultOrganizationId={organizationFilter || null}
           onClose={() => state.setStatsUser(null)}
         />
       ) : null}

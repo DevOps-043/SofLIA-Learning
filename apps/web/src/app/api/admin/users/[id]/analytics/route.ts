@@ -34,14 +34,16 @@ export async function GET(
     }
 
     const range = normalizeBusinessUserAnalyticsRange(request.nextUrl.searchParams.get('range'))
+    // Vista de superadmin ACOTADA por organización: un usuario puede pertenecer a
+    // varias organizaciones con progreso/estadísticas distintas. La organización se
+    // resuelve desde `?organizationId=` (validada contra las del usuario) o la
+    // primera; `includeAllUserEnrollments` queda en su default (false) para no
+    // mezclar la actividad de otras organizaciones.
     const dataset = await fetchBusinessUserAnalyticsDataset({
       supabase,
       userId,
       organizationId,
       range,
-      // Vista de superadmin: estadísticas COMPLETAS del usuario (puede pertenecer a
-      // varias organizaciones / tener enrollments personales), no acotadas a una org.
-      includeAllUserEnrollments: true,
     })
     const { aiSamples: _aiSamples, dataHash: _dataHash, ...publicDataset } = dataset
 

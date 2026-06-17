@@ -4,7 +4,7 @@ import type {
   BusinessUserAnalyticsInsights,
   BusinessUserAnalyticsResponse,
 } from '@/features/business-panel/types/business-user-analytics.types'
-import type { UserStatsPdfCopy, UserStatsGlossaryKey } from './user-stats-pdf-copy'
+import type { UserStatsPdfCopy } from './user-stats-pdf-copy'
 
 export interface UserStatsPdfDocumentProps {
   response: BusinessUserAnalyticsResponse
@@ -33,7 +33,8 @@ const styles = StyleSheet.create({
   headerTitle: { color: COLORS.white, fontSize: 20, fontFamily: 'Helvetica-Bold', marginTop: 4 },
   headerSubtitle: { color: COLORS.white, fontSize: 11, marginTop: 6 },
   headerMeta: { color: '#AFC0D4', fontSize: 8.5, marginTop: 8 },
-  sectionTitle: { fontSize: 13, fontFamily: 'Helvetica-Bold', color: COLORS.text, marginTop: 14, marginBottom: 8 },
+  sectionTitle: { fontSize: 13, fontFamily: 'Helvetica-Bold', color: COLORS.text, marginTop: 14, marginBottom: 3 },
+  sectionDesc: { fontSize: 8.5, color: COLORS.muted, lineHeight: 1.35, marginBottom: 9 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -5 },
   card: { width: '33.33%', paddingHorizontal: 5, marginBottom: 10 },
   cardInner: { backgroundColor: COLORS.surface, borderRadius: 8, borderWidth: 1, borderColor: COLORS.line, padding: 10, height: 78 },
@@ -44,6 +45,7 @@ const styles = StyleSheet.create({
   barHead: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 },
   barLabel: { fontSize: 9, color: COLORS.text },
   barValue: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: COLORS.text },
+  barHelp: { fontSize: 7, color: COLORS.muted, marginTop: 2, marginBottom: 2, lineHeight: 1.25 },
   barTrack: { height: 7, borderRadius: 4, backgroundColor: COLORS.line },
   barFill: { height: 7, borderRadius: 4, backgroundColor: COLORS.accent },
   table: { borderRadius: 8, borderWidth: 1, borderColor: COLORS.line, overflow: 'hidden', marginTop: 4 },
@@ -54,9 +56,6 @@ const styles = StyleSheet.create({
   paragraph: { fontSize: 9.5, color: COLORS.muted, lineHeight: 1.4, marginBottom: 4 },
   insightItem: { fontSize: 9, color: COLORS.text, lineHeight: 1.35, marginBottom: 3 },
   insightGroupTitle: { fontSize: 10, fontFamily: 'Helvetica-Bold', color: COLORS.primary, marginTop: 8, marginBottom: 3 },
-  glossaryRow: { flexDirection: 'row', marginBottom: 4 },
-  glossaryTerm: { width: '30%', fontSize: 8, fontFamily: 'Helvetica-Bold', color: COLORS.text },
-  glossaryDef: { width: '70%', fontSize: 8, color: COLORS.muted, lineHeight: 1.3 },
 })
 
 function round(value: number): number {
@@ -78,10 +77,19 @@ function SectionTitle({ children }: { children: string }) {
  * mueve completa a la página siguiente. Pensado para bloques que caben holgados
  * en una página (no usar para tablas largas que sí deben poder paginarse).
  */
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description?: string
+  children: ReactNode
+}) {
   return (
     <View wrap={false}>
       <SectionTitle>{title}</SectionTitle>
+      {description ? <Text style={styles.sectionDesc}>{description}</Text> : null}
       {children}
     </View>
   )
@@ -109,10 +117,10 @@ function MetricGrid({ items }: { items: CardData[] }) {
   )
 }
 
-function Bar({ label, value }: { label: string; value: number }) {
+function Bar({ label, value, help }: { label: string; value: number; help?: string }) {
   const pct = clampPct(value)
   return (
-    <View style={styles.barRow}>
+    <View style={styles.barRow} wrap={false}>
       <View style={styles.barHead}>
         <Text style={styles.barLabel}>{label}</Text>
         <Text style={styles.barValue}>{pct}%</Text>
@@ -120,6 +128,7 @@ function Bar({ label, value }: { label: string; value: number }) {
       <View style={styles.barTrack}>
         <View style={[styles.barFill, { width: `${pct}%` }]} />
       </View>
+      {help ? <Text style={styles.barHelp}>{help}</Text> : null}
     </View>
   )
 }
@@ -145,12 +154,6 @@ export function UserStatsPdfDocument({
     .sort((a, b) => b.progress - a.progress)
     .slice(0, 12)
 
-  const glossaryKeys: UserStatsGlossaryKey[] = [
-    'averageProgress', 'aiAdoption', 'quality', 'lessonsCompleted', 'completionRate',
-    'activities', 'activitiesPassRate', 'quizzesTaken', 'quizzesPassed', 'quizzesAverage',
-    'quizzesTotalAttempts', 'notes', 'notesAdoption', 'currentStreak', 'certificates',
-  ]
-
   const showInsights = insights && !insights.unavailable
 
   return (
@@ -167,7 +170,7 @@ export function UserStatsPdfDocument({
         </View>
 
         {/* Resumen general */}
-        <Section title={copy.sections.overview}>
+        <Section title={copy.sections.overview} description={copy.sectionDescriptions.overview}>
           <MetricGrid
             items={[
               { label: copy.metrics.averageProgress, value: `${round(overview.averageProgress)}%`, help: copy.values.coursesAssigned(overview.completedCourses, overview.totalAssigned) },
@@ -181,15 +184,15 @@ export function UserStatsPdfDocument({
         </Section>
 
         {/* Indicadores de progreso */}
-        <Section title={copy.sections.progress}>
-          <Bar label={copy.metrics.averageProgress} value={overview.averageProgress} />
-          <Bar label={copy.metrics.completionRate} value={overview.completionRate} />
-          <Bar label={copy.metrics.aiAdoption} value={aiAdoption.adoptionScore} />
-          <Bar label={copy.metrics.quality} value={quality.overallScore} />
+        <Section title={copy.sections.progress} description={copy.sectionDescriptions.progress}>
+          <Bar label={copy.metrics.averageProgress} value={overview.averageProgress} help={copy.glossary.averageProgress} />
+          <Bar label={copy.metrics.completionRate} value={overview.completionRate} help={copy.glossary.completionRate} />
+          <Bar label={copy.metrics.aiAdoption} value={aiAdoption.adoptionScore} help={copy.glossary.aiAdoption} />
+          <Bar label={copy.metrics.quality} value={quality.overallScore} help={copy.glossary.quality} />
         </Section>
 
         {/* Quizzes y exámenes */}
-        <Section title={copy.sections.quizzes}>
+        <Section title={copy.sections.quizzes} description={copy.sectionDescriptions.quizzes}>
           <MetricGrid
             items={[
               { label: copy.metrics.quizzesTaken, value: copy.values.outOf(quizzes.quizzesTaken, quizzes.lessonsWithQuiz), help: copy.glossary.quizzesTaken },
@@ -203,7 +206,7 @@ export function UserStatsPdfDocument({
         </Section>
 
         {/* Notas y actividades */}
-        <Section title={copy.sections.engagement}>
+        <Section title={copy.sections.engagement} description={copy.sectionDescriptions.engagement}>
           <MetricGrid
             items={[
               { label: copy.metrics.activities, value: String(activities.totalSubmissions), help: copy.glossary.activities },
@@ -218,6 +221,7 @@ export function UserStatsPdfDocument({
         {courseRows.length > 0 ? (
           <View wrap={false}>
             <SectionTitle>{copy.sections.courses}</SectionTitle>
+            <Text style={styles.sectionDesc}>{copy.sectionDescriptions.courses}</Text>
             <View style={styles.table}>
               <View style={styles.tableHead}>
                 <Text style={[styles.tableHeadCell, { width: COURSE_COLS[0] }]}>{copy.columns.course}</Text>
@@ -243,8 +247,14 @@ export function UserStatsPdfDocument({
         {quality.radar.length > 0 ? (
           <View wrap={false}>
             <SectionTitle>{copy.sections.quality}</SectionTitle>
+            <Text style={styles.sectionDesc}>{copy.sectionDescriptions.quality}</Text>
             {quality.radar.map((item, index) => (
-              <Bar key={index} label={copy.radar[item.key] ?? item.label} value={item.value} />
+              <Bar
+                key={index}
+                label={copy.radar[item.key] ?? item.label}
+                value={item.value}
+                help={copy.radarDescriptions[item.key]}
+              />
             ))}
           </View>
         ) : null}
@@ -261,17 +271,6 @@ export function UserStatsPdfDocument({
             <InsightList title={copy.insights.recommendations} items={insights!.recommendations} />
           </View>
         ) : null}
-
-        {/* Glosario */}
-        <View break>
-          <SectionTitle>{copy.sections.glossary}</SectionTitle>
-          {glossaryKeys.map((key) => (
-            <View key={key} style={styles.glossaryRow} wrap={false}>
-              <Text style={styles.glossaryTerm}>{copy.metrics[key]}</Text>
-              <Text style={styles.glossaryDef}>{copy.glossary[key]}</Text>
-            </View>
-          ))}
-        </View>
       </Page>
     </Document>
   )

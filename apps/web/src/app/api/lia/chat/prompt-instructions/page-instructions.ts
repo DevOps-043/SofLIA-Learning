@@ -5,6 +5,7 @@ import { buildSystemEventsSection } from './system-events'
 import { buildTeamDetailSection } from './team-detail'
 import type { PlatformContext } from './types'
 import { buildUniversalUserRoleSection } from './user-role'
+import { buildVisiblePageContentSection } from './visible-page-content'
 
 export function buildPageInstructionsSection(context: PlatformContext): string {
   let section = ''
@@ -12,6 +13,11 @@ export function buildPageInstructionsSection(context: PlatformContext): string {
   if (context.userJobTitle || context.currentLessonContext || context.currentActivityContext) {
     section += buildUniversalUserRoleSection(context, context.currentLessonContext)
   }
+
+  // Lo que el usuario está viendo AHORA (incluye modales/paneles como las
+  // estadísticas). Va primero y con prioridad alta para que SofLIA explique los
+  // datos reales en pantalla en lugar de inferir solo desde la ruta.
+  section += buildVisiblePageContentSection(context)
 
   // Que puede hacer el usuario EN ESTA pagina (resuelto desde la ruta actual).
   // Da prioridad a la pagina activa para que "que puedes hacer" se responda de

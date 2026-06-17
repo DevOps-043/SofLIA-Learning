@@ -10,6 +10,7 @@ import {
   BookOpen,
   Brain,
   CalendarCheck,
+  Download,
   FileText,
   Loader2,
   MessageSquare,
@@ -23,10 +24,12 @@ import { cn } from '@/shared/utils/cn'
 import type {
   BusinessUserAnalyticsInsights,
   BusinessUserAnalyticsInsightsResponse,
+  BusinessUserAnalyticsLocale,
   BusinessUserAnalyticsRange,
   BusinessUserAnalyticsResponse,
   BusinessUserAnalyticsTrendPoint,
 } from '@/features/business-panel/types/business-user-analytics.types'
+import { generateUserStatsPdf } from '@/features/business-panel/services/business-user-analytics/pdf/generate-user-stats-pdf'
 import { BusinessUserAnalyticsHeatmap } from './BusinessUserAnalyticsHeatmap'
 
 type LoadState = 'idle' | 'loading' | 'error' | 'ready'
@@ -60,10 +63,38 @@ interface BusinessUserAnalyticsPageClientProps {
    * Usado por el panel del superadministrador (`/api/admin/users/<id>/analytics`).
    */
   apiBasePath?: string
+  /**
+   * Organización a la que acotar las estadísticas. Solo aplica en modo
+   * `apiBasePath` (panel del superadministrador, donde un usuario puede pertenecer
+   * a varias organizaciones). Cuando se define, se envía como `?organizationId=` al
+   * dataset y en el body de los insights, y dispara un re-fetch al cambiar.
+   */
+  organizationId?: string
+  /**
+   * Habilita el botón integrado de exportación a PDF en la cabecera. Cuando se
+   * provee, el componente genera el PDF con su propio dataset/insights ya
+   * cargados (misma lógica para las 3 vistas: superadmin, admin de empresa y la
+   * auto-vista del usuario). `userLabel`/`organizationLabel` rotulan el reporte.
+   */
+  pdfExport?: {
+    userLabel: string
+    organizationLabel?: string | null
+  }
   /** Notifica el dataset cargado (para exportaciones externas, p.ej. PDF). */
   onAnalyticsLoaded?: (data: BusinessUserAnalyticsResponse) => void
   /** Notifica los insights de IA generados (para incluirlos en exportaciones). */
   onInsightsLoaded?: (insights: BusinessUserAnalyticsInsights) => void
+}
+
+function sanitizeFileSegment(value: string): string {
+  return (
+    value
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .replace(/[^a-zA-Z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .toLowerCase() || 'usuario'
+  )
 }
 
 export function BusinessUserAnalyticsPageClient({
@@ -73,6 +104,8 @@ export function BusinessUserAnalyticsPageClient({
   userId,
   onBack,
   apiBasePath,
+  organizationId,
+  pdfExport,
   onAnalyticsLoaded,
   onInsightsLoaded,
 }: BusinessUserAnalyticsPageClientProps = {}) {
@@ -87,6 +120,8 @@ export function BusinessUserAnalyticsPageClient({
   const [insightState, setInsightState] = useState<InsightState>('idle')
   const [error, setError] = useState<string | null>(null)
   const [insightError, setInsightError] = useState<string | null>(null)
+  const [isExporting, setIsExporting] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
 
   const locale = i18n.language === 'en' || i18n.language === 'pt' ? i18n.language : 'es'
   const translate = useCallback(
@@ -95,13 +130,16 @@ export function BusinessUserAnalyticsPageClient({
   )
 
   const analyticsUrl = useMemo(() => {
-    if (apiBasePath) return `${apiBasePath}?range=${range}`
+    if (apiBasePath) {
+      const orgParam = organizationId ? `&organizationId=${encodeURIComponent(organizationId)}` : ''
+      return `${apiBasePath}?range=${range}${orgParam}`
+    }
     if (!orgSlug) return null
     const baseUrl = userId
       ? `/api/${orgSlug}/business/users/${userId}/analytics`
       : `/api/${orgSlug}/business-user/analytics`
     return `${baseUrl}?range=${range}`
-  }, [apiBasePath, orgSlug, range, userId])
+  }, [apiBasePath, orgSlug, organizationId, range, userId])
 
   const insightsUrl = useMemo(() => {
     if (apiBasePath) return `${apiBasePath}/insights`
@@ -158,7 +196,7 @@ export function BusinessUserAnalyticsPageClient({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ range, locale }),
+        body: JSON.stringify({ range, locale, ...(organizationId ? { organizationId } : {}) }),
       })
       const data = (await response.json()) as InsightsApiResponse
 
@@ -176,7 +214,37 @@ export function BusinessUserAnalyticsPageClient({
         insightLoadError instanceof Error ? insightLoadError.message : t('analytics.errors.insights'),
       )
     }
-  }, [insightsUrl, locale, onInsightsLoaded, range, t])
+  }, [insightsUrl, locale, onInsightsLoaded, organizationId, range, t])
+
+  // Exporta el PDF branded con el dataset/insights ya cargados en el componente.
+  // Misma lógica para las 3 vistas (superadmin, admin de empresa y auto-vista).
+  const handleExportPdf = useCallback(async () => {
+    if (!analytics || !pdfExport) return
+    setIsExporting(true)
+    setExportError(null)
+    try {
+      const blob = await generateUserStatsPdf(analytics, {
+        userLabel: pdfExport.userLabel,
+        organizationLabel: pdfExport.organizationLabel,
+        locale: locale as BusinessUserAnalyticsLocale,
+        insights,
+      })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `estadisticas-${sanitizeFileSegment(pdfExport.userLabel)}-${
+        new Date().toISOString().split('T')[0]
+      }.pdf`
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      URL.revokeObjectURL(url)
+    } catch {
+      setExportError(t('analytics.errors.export'))
+    } finally {
+      setIsExporting(false)
+    }
+  }, [analytics, insights, locale, pdfExport, t])
 
   const courseChartData = useMemo(() => {
     return (analytics?.learning.courses || [])
@@ -279,8 +347,33 @@ export function BusinessUserAnalyticsPageClient({
               <RefreshCw className="h-4 w-4" />
               {t('analytics.actions.refresh')}
             </button>
+            {pdfExport ? (
+              <button
+                type="button"
+                onClick={() => void handleExportPdf()}
+                disabled={loadState !== 'ready' || isExporting}
+                className={cn(
+                  // `no-theme`: el botón gestiona su propio contraste; evita que el
+                  // override de texto del tema de organización pise `text-white`.
+                  'no-theme inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-accent dark:text-gray-900 dark:hover:bg-accent/90',
+                )}
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                {isExporting ? t('analytics.actions.exporting') : t('analytics.actions.exportPdf')}
+              </button>
+            ) : null}
           </div>
         </header>
+
+        {exportError ? (
+          <div className="rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error">
+            {exportError}
+          </div>
+        ) : null}
 
         {loadState === 'loading' ? (
           <LoadingState label={t('analytics.loading')} />

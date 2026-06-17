@@ -513,12 +513,15 @@
       "retry": "Tentar novamente",
       "restartTour": "Repetir tutorial",
       "generateFeedback": "Gerar Relatório com IA",
-      "generatingFeedback": "Gerando relatório..."
+      "generatingFeedback": "Gerando relatório...",
+      "exportPdf": "Exportar PDF",
+      "exporting": "Exportando..."
     },
     "errors": {
       "title": "Não foi possível carregar suas estatísticas",
       "load": "Erro ao carregar estatísticas",
-      "insights": "Erro ao gerar relatório IA"
+      "insights": "Erro ao gerar relatório IA",
+      "export": "Não foi possível gerar o PDF. Tente novamente."
     },
     "metrics": {
       "averageProgress": "Progresso médio",

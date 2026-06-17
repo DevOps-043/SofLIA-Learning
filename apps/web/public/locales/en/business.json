@@ -512,12 +512,15 @@
       "retry": "Retry",
       "restartTour": "Replay tutorial",
       "generateFeedback": "Generate AI Report",
-      "generatingFeedback": "Generating report..."
+      "generatingFeedback": "Generating report...",
+      "exportPdf": "Export PDF",
+      "exporting": "Exporting..."
     },
     "errors": {
       "title": "Your statistics could not be loaded",
       "load": "Error loading statistics",
-      "insights": "Error generating AI report"
+      "insights": "Error generating AI report",
+      "export": "Could not generate the PDF. Please try again."
     },
     "metrics": {
       "averageProgress": "Average progress",

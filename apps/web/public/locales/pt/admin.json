@@ -216,7 +216,10 @@
       "exportPdf": "Exportar PDF",
       "exporting": "Exportando...",
       "exportError": "Não foi possível gerar o PDF. Tente novamente.",
-      "close": "Fechar"
+      "close": "Fechar",
+      "organizationLabel": "Organização",
+      "organizationLoading": "Carregando organizações...",
+      "noOrganizations": "Este usuário não pertence a nenhuma organização."
     },
     "roles": {
       "Usuario": "Usuário",
