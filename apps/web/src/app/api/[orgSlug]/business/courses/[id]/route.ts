@@ -42,11 +42,15 @@ export async function GET(
       )
     }
 
+    // Must NOT be cached: this payload carries the org's purchase/assignment
+    // state, which changes via mutations on the very same page (purchase, then
+    // assign). A short private cache served the pre-purchase response after
+    // buying, leaving the button stuck on "Adquirir" instead of "Asignar".
     return NextResponse.json({
       success: true,
       course
     }, {
-      headers: cacheHeaders.privateShort
+      headers: cacheHeaders.private
     })
   } catch (error) {
     logger.error('Error in business course detail route', { error, route: '/api/[orgSlug]/business/courses/[id]' })
