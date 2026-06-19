@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 
 const CONFIRM_BUTTON_STYLES = {
-  default: 'bg-primary dark:bg-accent hover:brightness-110 !text-white dark:!text-primary',
+  default: 'hover:brightness-110',
   success: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25',
   danger: 'bg-red-600 hover:bg-red-700 shadow-red-600/25',
   neutral: 'bg-neutral-600 hover:bg-neutral-700 shadow-neutral-600/25',
@@ -26,6 +27,7 @@ export function ConfirmModal({
   isLoading?: boolean
 }) {
   const { t } = useTranslation('business')
+  const theme = useBusinessPanelTheme()
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -49,6 +51,10 @@ export function ConfirmModal({
             onClick={onConfirm}
             disabled={isLoading}
             className={`rounded-xl px-5 py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 ${CONFIRM_BUTTON_STYLES[confirmVariant]}`}
+            style={confirmVariant === 'default' ? {
+              backgroundColor: theme.actionColor,
+              color: theme.onActionColor,
+            } : undefined}
           >
             {isLoading ? t('hierarchy.processing') : confirmLabel}
           </button>

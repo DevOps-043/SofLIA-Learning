@@ -7,7 +7,6 @@ import type { CompanyFormData, EditTab } from './company-form.constants'
 import { CompanyBrandingTab } from './CompanyBrandingTab'
 import { CompanyGeneralTab } from './CompanyGeneralTab'
 import { CompanyMembersTab } from './CompanyMembersTab'
-import { CompanyThemesTab } from './CompanyThemesTab'
 
 interface AdminEditCompanyModalBodyProps {
   activeTab: EditTab
@@ -22,7 +21,6 @@ interface AdminEditCompanyModalBodyProps {
   onPlanOpenChange: (value: boolean) => void
   onDismissImageError: () => void
   onFileChange: (e: ChangeEvent<HTMLInputElement>, imageType: 'logo' | 'banner') => void
-  onApplyPreset: (preset: { primary: string; secondary: string; accent: string }) => void
   onUpdateColor: (key: 'brand_color_primary' | 'brand_color_secondary' | 'brand_color_accent', value: string) => void
   onFormDataChange: Dispatch<SetStateAction<CompanyFormData>>
 }
@@ -34,7 +32,6 @@ export function AdminEditCompanyModalBody(props: AdminEditCompanyModalBodyProps)
         {props.activeTab === 'general' ? <CompanyGeneralTab formData={props.formData} isPlanOpen={props.isPlanOpen} setIsPlanOpen={props.onPlanOpenChange} setFormData={props.onFormDataChange} /> : null}
         {props.activeTab === 'members' ? <CompanyMembersTab company={props.company} /> : null}
         {props.activeTab === 'branding' ? <AdminEditCompanyBrandingSection imageUploadError={props.imageUploadError} onDismissImageError={props.onDismissImageError}><CompanyBrandingTab formData={props.formData} uploadingLogo={props.uploadingLogo} uploadingBanner={props.uploadingBanner} logoInputRef={props.logoInputRef} bannerInputRef={props.bannerInputRef} onFileChange={props.onFileChange} onUpdateColor={props.onUpdateColor} setFormData={props.onFormDataChange} /></AdminEditCompanyBrandingSection> : null}
-        {props.activeTab === 'themes' ? <CompanyThemesTab formData={props.formData} onApplyPreset={props.onApplyPreset} /> : null}
       </AnimatePresence>
     </div>
   )

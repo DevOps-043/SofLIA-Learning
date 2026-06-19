@@ -69,7 +69,8 @@ export function ModernNavbar({
               {onRestartTour ? (
                 <TourTriggerButton
                   onStart={handleRestartTour}
-                  className="text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-accent"
+                  className="text-gray-600 dark:text-gray-400"
+                  style={{ color: colors.accent }}
                 />
               ) : null}
 

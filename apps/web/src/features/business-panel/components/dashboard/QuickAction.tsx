@@ -23,7 +23,7 @@ export function QuickAction({ title, description, icon: Icon, href, color, delay
   const panelStyles = effectiveStyles?.panel
   const textColor = isLightMode ? 'var(--color-legacy-0f172a)' : (panelStyles?.text_color || 'var(--color-bg-light)')
   const mutedTextColor = isLightMode ? 'var(--color-legacy-334155)' : 'var(--color-gray-400)'
-  const iconColor = color || 'var(--color-accent)'
+  const iconColor = color || panelStyles?.primary_button_color || 'var(--color-primary)'
   const visibleIconColor = isLightMode
     ? `color-mix(in srgb, ${iconColor} 60%, var(--color-primary))`
     : iconColor
@@ -41,9 +41,13 @@ export function QuickAction({ title, description, icon: Icon, href, color, delay
         <div 
           className="group relative overflow-hidden rounded-[16px] p-4 transition-all duration-300 flex items-center gap-4 cursor-pointer shadow-sm hover:shadow-md"
           style={{
-            backgroundColor: isLightMode ? 'var(--color-bg-light)' : 'rgb(15 20 25 / 60%)',
+            backgroundColor: isLightMode
+              ? 'var(--color-bg-light)'
+              : (panelStyles?.card_background || 'rgb(15 20 25 / 60%)'),
             backdropFilter: 'blur(20px)',
-            border: `1px solid ${isLightMode ? 'var(--color-gray-200)' : 'rgb(255 255 255 / 4%)'}`,
+            border: `1px solid ${isLightMode
+              ? 'var(--color-gray-200)'
+              : (panelStyles?.border_color || 'rgb(255 255 255 / 4%)')}`,
           }}
         >
           {/* Icon Container - matching StatCard style */}

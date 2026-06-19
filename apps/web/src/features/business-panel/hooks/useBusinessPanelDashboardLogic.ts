@@ -4,9 +4,10 @@ import { useCallback, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import useSWR from 'swr'
 import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
+import { useBusinessPanelTheme } from './useBusinessPanelTheme'
+import { useBusinessSettings } from './useBusinessSettings'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useTranslation } from 'react-i18next'
-import { useThemeStore } from '../../../core/stores/themeStore'
 import {
   UsersIcon,
   BookOpenIcon,
@@ -161,8 +162,8 @@ export function useBusinessPanelDashboardLogic() {
   const { t, i18n } = useTranslation('business')
   const { t: tc } = useTranslation('common')
   const { effectiveStyles } = useOrganizationStylesContext()
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
+  const panelTheme = useBusinessPanelTheme()
+  const { data: businessSettings } = useBusinessSettings()
   const statsUrl = orgSlug ? `/api/${orgSlug}/business/dashboard/stats` : null
   const activitiesUrl = orgSlug ? `/api/${orgSlug}/business/dashboard/activity` : null
 
@@ -192,17 +193,21 @@ export function useBusinessPanelDashboardLogic() {
   const panelStyles = effectiveStyles?.panel
 
   const themeColors = useMemo(() => ({
-    primary: panelStyles?.primary_button_color || 'var(--color-primary)',
-    secondary: panelStyles?.secondary_button_color || 'var(--color-info)',
-    accent: panelStyles?.accent_color || 'var(--color-accent)',
-    text: panelStyles?.text_color || 'var(--color-contrast)',
-    cardBg: panelStyles?.card_background || (isDark ? 'var(--color-gray-800)' : 'var(--color-bg-light)'),
-    borderColor: isDark
-      ? (panelStyles?.border_color || 'color-mix(in srgb, var(--color-bg-light) 10%, transparent)')
-      : (panelStyles?.border_color || 'color-mix(in srgb, var(--color-black) 10%, transparent)'),
-    background: panelStyles?.background_value || 'var(--color-bg-dark)',
+    primary: panelTheme.primaryColor,
+    actionColor: panelTheme.actionColor,
+    secondary: panelTheme.secondaryColor,
+    accent: panelTheme.accentColor,
+    text: panelTheme.textColor,
+    cardBg: panelTheme.cardBg,
+    borderColor: panelTheme.borderColor,
+    heroBackground: panelTheme.heroBackground,
+    heroBorderColor: panelTheme.heroBorderColor,
+    inverseText: panelTheme.inverseTextColor,
+    inverseSubtext: panelTheme.inverseSubtextColor,
+    brandBannerUrl: businessSettings.organization?.brand_banner_url || null,
+    background: panelStyles?.background_value || panelTheme.panelBg,
     backgroundType: panelStyles?.background_type || 'color',
-  }), [panelStyles, isDark])
+  }), [businessSettings.organization?.brand_banner_url, panelStyles?.background_type, panelStyles?.background_value, panelTheme])
 
   const getGreeting = (date: Date = new Date()) => {
     const hour = date.getHours()

@@ -1,6 +1,12 @@
 import { createAdminClient } from '../../../../lib/supabase/admin'
-import type { Database } from '../../../../lib/supabase/types'
+import type { Database, Json } from '../../../../lib/supabase/types'
 import { logger } from '../../../../lib/utils/logger'
+import {
+  BRANDING_THEME_ID,
+  generateOrganizationBrandingTheme,
+  normalizeOrganizationBrandingColors,
+  type OrganizationBrandingRowColors,
+} from '@/core/theme/organization-branding-theme'
 
 import type {
   AdminCompany,
@@ -17,6 +23,7 @@ import { getAdminCompanyById } from './admin-companies-read.service'
 
 type SupabaseServerClient = ReturnType<typeof createAdminClient>
 type OrganizationUpdateData = Database['public']['Tables']['organizations']['Update']
+type OrganizationInsertData = Database['public']['Tables']['organizations']['Insert']
 
 function slugifyCompanyName(value: string): string {
   return value
@@ -27,7 +34,36 @@ function slugifyCompanyName(value: string): string {
     .replace(/(^-|-$)/g, '')
 }
 
-function buildUpdateData(updates: CompanyUpdatePayload): OrganizationUpdateData {
+function shouldSyncBrandingTheme(updates: CompanyUpdatePayload): boolean {
+  return (
+    updates.brand_color_primary !== undefined ||
+    updates.brand_color_secondary !== undefined ||
+    updates.brand_color_accent !== undefined ||
+    updates.brand_font_family !== undefined
+  )
+}
+
+function syncBrandingThemeFields(
+  target: OrganizationUpdateData | OrganizationInsertData,
+  branding: OrganizationBrandingRowColors,
+): void {
+  const normalizedBranding = normalizeOrganizationBrandingColors(branding)
+  const brandingTheme = generateOrganizationBrandingTheme(normalizedBranding)
+
+  target.brand_color_primary = normalizedBranding.color_primary
+  target.brand_color_secondary = normalizedBranding.color_secondary
+  target.brand_color_accent = normalizedBranding.color_accent
+  target.brand_font_family = normalizedBranding.font_family
+  target.panel_styles = brandingTheme.panel as unknown as Json
+  target.user_dashboard_styles = brandingTheme.userDashboard as unknown as Json
+  target.login_styles = brandingTheme.login as unknown as Json
+  target.selected_theme = BRANDING_THEME_ID
+}
+
+function buildUpdateData(
+  updates: CompanyUpdatePayload,
+  currentBranding?: OrganizationBrandingRowColors | null,
+): OrganizationUpdateData {
   const updateData: OrganizationUpdateData = {
     updated_at: new Date().toISOString(),
   }
@@ -67,6 +103,23 @@ function buildUpdateData(updates: CompanyUpdatePayload): OrganizationUpdateData 
   if (updates.max_users !== undefined) updateData.max_users = updates.max_users
   if (updates.google_login_enabled !== undefined) updateData.google_login_enabled = updates.google_login_enabled
   if (updates.microsoft_login_enabled !== undefined) updateData.microsoft_login_enabled = updates.microsoft_login_enabled
+
+  if (shouldSyncBrandingTheme(updates)) {
+    syncBrandingThemeFields(updateData, {
+      brand_color_primary: updates.brand_color_primary !== undefined
+        ? updates.brand_color_primary
+        : currentBranding?.brand_color_primary,
+      brand_color_secondary: updates.brand_color_secondary !== undefined
+        ? updates.brand_color_secondary
+        : currentBranding?.brand_color_secondary,
+      brand_color_accent: updates.brand_color_accent !== undefined
+        ? updates.brand_color_accent
+        : currentBranding?.brand_color_accent,
+      brand_font_family: updates.brand_font_family !== undefined
+        ? updates.brand_font_family
+        : currentBranding?.brand_font_family,
+    })
+  }
 
   if (Object.keys(updateData).length === 1) {
     throw new Error('No hay campos para actualizar')
@@ -109,7 +162,24 @@ async function promotePendingOwnerIfNeeded(
 
 export async function updateAdminCompany(id: string, updates: CompanyUpdatePayload): Promise<AdminCompany> {
   const supabase = createAdminClient()
-  const updateData = buildUpdateData(updates)
+  let currentBranding: OrganizationBrandingRowColors | null = null
+
+  if (shouldSyncBrandingTheme(updates)) {
+    const { data, error } = await supabase
+      .from('organizations')
+      .select('brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family')
+      .eq('id', id)
+      .single()
+
+    if (error || !data) {
+      logger.error('Error fetching current organization branding:', error)
+      throw error || new Error('No se pudo obtener el branding actual')
+    }
+
+    currentBranding = data
+  }
+
+  const updateData = buildUpdateData(updates, currentBranding)
 
   let shouldPromotePendingOwner = false
   if (updates.is_active === true) {
@@ -159,7 +229,7 @@ export async function createAdminCompany(data: CompanyCreatePayload): Promise<Ad
     throw new Error('Ya existe una organizacion con este slug')
   }
 
-  const insertData = {
+  const insertData: OrganizationInsertData = {
     name: data.name,
     slug,
     description: data.description || null,
@@ -180,6 +250,13 @@ export async function createAdminCompany(data: CompanyCreatePayload): Promise<Ad
     google_login_enabled: data.google_login_enabled ?? false,
     microsoft_login_enabled: data.microsoft_login_enabled ?? false,
   }
+
+  syncBrandingThemeFields(insertData, {
+    brand_color_primary: insertData.brand_color_primary,
+    brand_color_secondary: insertData.brand_color_secondary,
+    brand_color_accent: insertData.brand_color_accent,
+    brand_font_family: insertData.brand_font_family,
+  })
 
   const { data: createdOrganization, error } = await supabase
     .from('organizations')

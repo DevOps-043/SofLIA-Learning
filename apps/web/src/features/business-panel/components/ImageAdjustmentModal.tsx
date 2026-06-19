@@ -40,6 +40,10 @@ export function ImageAdjustmentModal({
   const { t } = useTranslation('business');
   const theme = useBusinessPanelTheme();
   const cropperObjectFit = objectFit === 'fill' ? 'contain' : objectFit;
+  const activeFitButtonStyle = {
+    backgroundColor: theme.actionColor,
+    color: theme.onActionColor,
+  };
 
   const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
@@ -87,7 +91,7 @@ export function ImageAdjustmentModal({
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-carbon-700">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-              <Move className="w-6 h-6 text-primary" />
+              <Move className="w-6 h-6" style={{ color: theme.actionColor }} />
               {t('imageAdjustment.title')}
             </h2>
             <button
@@ -136,9 +140,10 @@ export function ImageAdjustmentModal({
                     onClick={() => setObjectFit('cover')}
                     className={`px-4 py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
                       objectFit === 'cover'
-                        ? 'bg-primary text-white'
+                        ? ''
                         : 'bg-carbon-800 text-carbon-300 hover:bg-carbon-700'
                     }`}
+                    style={objectFit === 'cover' ? activeFitButtonStyle : undefined}
                   >
                     <Maximize2 className="w-4 h-4" />
                     {t('imageAdjustment.fit.cover')}
@@ -147,9 +152,10 @@ export function ImageAdjustmentModal({
                     onClick={() => setObjectFit('contain')}
                     className={`px-4 py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
                       objectFit === 'contain'
-                        ? 'bg-primary text-white'
+                        ? ''
                         : 'bg-carbon-800 text-carbon-300 hover:bg-carbon-700'
                     }`}
+                    style={objectFit === 'contain' ? activeFitButtonStyle : undefined}
                   >
                     <Minimize2 className="w-4 h-4" />
                     {t('imageAdjustment.fit.contain')}
@@ -158,9 +164,10 @@ export function ImageAdjustmentModal({
                     onClick={() => setObjectFit('fill')}
                     className={`px-4 py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
                       objectFit === 'fill'
-                        ? 'bg-primary text-white'
+                        ? ''
                         : 'bg-carbon-800 text-carbon-300 hover:bg-carbon-700'
                     }`}
+                    style={objectFit === 'fill' ? activeFitButtonStyle : undefined}
                   >
                     <Move className="w-4 h-4" />
                     {t('imageAdjustment.fit.fill')}

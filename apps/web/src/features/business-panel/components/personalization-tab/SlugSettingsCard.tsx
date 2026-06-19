@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { AlertCircle, CheckCircle, Link as LinkIcon, Loader2, Save } from 'lucide-react'
 import type { OrganizationData } from '../../hooks/useBusinessSettings'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import type { PersonalizationTabState } from './personalization.types'
 
 export function SlugSettingsCard({
@@ -12,11 +13,13 @@ export function SlugSettingsCard({
   organization: OrganizationData
   state: PersonalizationTabState
 }) {
+  const theme = useBusinessPanelTheme()
+
   return (
     <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="relative rounded-2xl p-6 border backdrop-blur-xl overflow-hidden group bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-slate-700/30">
       <div className="relative flex items-center gap-3 mb-6">
-        <motion.div whileHover={{ rotate: 15, scale: 1.1 }} className="p-3 rounded-xl bg-primary">
-          <LinkIcon className="w-5 h-5 text-white" />
+        <motion.div whileHover={{ rotate: 15, scale: 1.1 }} className="p-3 rounded-xl" style={{ backgroundColor: theme.actionColor }}>
+          <LinkIcon className="w-5 h-5" style={{ color: theme.onActionColor }} />
         </motion.div>
         <div>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">Identificador de URL</h3>

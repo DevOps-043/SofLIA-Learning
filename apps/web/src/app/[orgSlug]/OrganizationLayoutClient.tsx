@@ -1,8 +1,16 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useOrganizationStore, Organization } from '@/core/stores/organizationStore';
-import { OrganizationStylesProvider } from '@/features/business-panel/contexts/OrganizationStylesContext';
+import {
+  generateOrganizationBrandingTheme,
+  BRANDING_THEME_ID,
+} from '@/core/theme/organization-branding-theme';
+import {
+  OrganizationStylesProvider,
+  OrganizationGlobalCSSInjector,
+} from '@/features/business-panel/contexts/OrganizationStylesContext';
+import type { OrganizationStyles } from '@/features/business-panel/contexts/OrganizationStylesContext';
 
 interface OrganizationLayoutClientProps {
   children: React.ReactNode;
@@ -10,11 +18,13 @@ interface OrganizationLayoutClientProps {
 }
 
 /**
- * Client-side wrapper that syncs the organization from server-side validation
- * into the client-side Zustand store.
- *
- * This ensures that the organization context is immediately available
- * without waiting for a separate API call.
+ * Client-side wrapper that:
+ * 1. Syncs the organization from server-side validation into the Zustand store.
+ * 2. Pre-computes the branding theme from brand colors (already fetched server-side)
+ *    so the context initializes instantly without a separate API call.
+ *    This solves the permission issue: BusinessUser employees cannot access the
+ *    Business-admin-only styles endpoint, but the server component already has
+ *    the brand colors so we can compute the theme here directly.
  */
 export function OrganizationLayoutClient({
   children,
@@ -30,18 +40,14 @@ export function OrganizationLayoutClient({
     (state) => state.userOrganizations
   );
 
-  // Sync the validated organization to the store
   useEffect(() => {
-    // Set as current organization
     setCurrentOrganization(organization);
 
-    // If not already in user organizations list, add it
     const exists = userOrganizations.some((org) => org.id === organization.id);
     if (!exists) {
       setUserOrganizations([...userOrganizations, organization]);
     }
 
-    // Save to localStorage for persistence across page loads
     if (typeof window !== 'undefined') {
       localStorage.setItem('last_organization_slug', organization.slug);
     }
@@ -52,8 +58,32 @@ export function OrganizationLayoutClient({
     userOrganizations,
   ]);
 
+  const initialStyles = useMemo((): OrganizationStyles => {
+    const theme = generateOrganizationBrandingTheme({
+      brand_color_primary: organization.brandColorPrimary ?? null,
+      brand_color_secondary: organization.brandColorSecondary ?? null,
+      brand_color_accent: organization.brandColorAccent ?? null,
+      brand_font_family: organization.brandFontFamily ?? null,
+    });
+
+    return {
+      panel: theme.panel,
+      userDashboard: theme.userDashboard,
+      login: theme.login,
+      selectedTheme: BRANDING_THEME_ID,
+      supportsDualMode: true,
+      lightMode: theme.lightMode,
+    };
+  }, [
+    organization.brandColorPrimary,
+    organization.brandColorSecondary,
+    organization.brandColorAccent,
+    organization.brandFontFamily,
+  ]);
+
   return (
-    <OrganizationStylesProvider orgSlug={organization.slug}>
+    <OrganizationStylesProvider orgSlug={organization.slug} initialStyles={initialStyles}>
+      <OrganizationGlobalCSSInjector />
       {children}
     </OrganizationStylesProvider>
   );

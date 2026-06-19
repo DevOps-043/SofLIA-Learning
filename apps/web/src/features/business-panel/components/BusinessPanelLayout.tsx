@@ -10,7 +10,6 @@ import { LiaPanelContext } from '@/core/contexts/LiaPanelContext'
 import { useResponsiveLiaLayout } from '@/core/hooks/useResponsiveLiaLayout'
 import { useAuth } from '../../auth/hooks/useAuth'
 import {
-  OrganizationStylesProvider,
   useOrganizationStylesContext,
 } from '../contexts/OrganizationStylesContext'
 import { generateCSSVariables, getBackgroundStyle } from '../utils/styles'
@@ -230,9 +229,5 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
 }
 
 export function BusinessPanelLayout({ children }: BusinessPanelLayoutProps) {
-  return (
-    <OrganizationStylesProvider>
-      <BusinessPanelLayoutInner>{children}</BusinessPanelLayoutInner>
-    </OrganizationStylesProvider>
-  )
+  return <BusinessPanelLayoutInner>{children}</BusinessPanelLayoutInner>
 }

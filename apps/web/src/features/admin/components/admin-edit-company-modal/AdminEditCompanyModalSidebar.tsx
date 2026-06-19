@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { BuildingOffice2Icon, ChartBarIcon, CheckCircleIcon, EyeIcon, GlobeAltIcon, PauseCircleIcon, SparklesIcon } from '@heroicons/react/24/outline'
+import { BuildingOffice2Icon, ChartBarIcon, CheckCircleIcon, GlobeAltIcon, PauseCircleIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import type { AdminCompany } from '../../types/admin-companies.types'
 import { colors, type CompanyFormData, type EditTab } from './company-form.constants'
 
@@ -19,7 +19,6 @@ export function AdminEditCompanyModalSidebar(props: AdminEditCompanyModalSidebar
     { id: 'general' as const, label: 'General', icon: BuildingOffice2Icon, description: 'Info basica y contacto' },
     { id: 'members' as const, label: 'Miembros', icon: ChartBarIcon, description: 'Estadisticas y admins' },
     { id: 'branding' as const, label: 'Branding', icon: SparklesIcon, description: 'Logo, colores y marca' },
-    { id: 'themes' as const, label: 'Temas', icon: EyeIcon, description: 'Estilos predefinidos' },
   ]
 
   return (

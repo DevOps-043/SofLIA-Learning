@@ -4,6 +4,7 @@ import { useThemeStore } from '../../../core/stores/themeStore';
 import { useOrganizationStore } from '../../../core/stores/organizationStore';
 import { getThemeStylesForMode } from '../config/preset-themes';
 import { useOptionalOrganizationStylesContext } from '../contexts/OrganizationStylesContext';
+import { BRANDING_THEME_ID } from '@/core/theme/organization-branding-theme';
 
 export interface OrganizationStyles {
   panel: StyleConfig | null;
@@ -11,6 +12,11 @@ export interface OrganizationStyles {
   login: StyleConfig | null;
   selectedTheme: string | null;
   supportsDualMode?: boolean;
+  lightMode?: {
+    panel: StyleConfig;
+    userDashboard: StyleConfig;
+    login: StyleConfig;
+  };
 }
 
 export interface StyleConfig {
@@ -61,6 +67,17 @@ export function useOrganizationStyles() {
 
   // Calcular estilos efectivos según el modo del tema
   const effectiveStyles = useMemo<OrganizationStyles | null>(() => {
+    if (styles?.selectedTheme === BRANDING_THEME_ID && styles.lightMode) {
+      return resolvedTheme === 'light'
+        ? {
+            ...styles,
+            panel: styles.lightMode.panel,
+            userDashboard: styles.lightMode.userDashboard,
+            login: styles.lightMode.login,
+          }
+        : styles;
+    }
+
     // Si el tema soporta modo dual, SIEMPRE obtener los estilos del preset según el modo actual
     if (styles?.supportsDualMode && styles?.selectedTheme) {
       const modeStyles = getThemeStylesForMode(styles.selectedTheme, resolvedTheme);

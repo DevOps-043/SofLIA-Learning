@@ -56,7 +56,7 @@ export default async function OrganizationLayout({
       .single(),
     supabase
       .from('organizations')
-      .select('id, name, slug, logo_url, brand_logo_url, brand_color_primary, subscription_plan, subscription_status')
+      .select('id, name, slug, logo_url, brand_logo_url, brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family, subscription_plan, subscription_status')
       .eq('slug', orgSlug)
       .eq('is_active', true)
       .single(),
@@ -98,10 +98,13 @@ export default async function OrganizationLayout({
     logoUrl: organization.logo_url,
     brandLogoUrl: organization.brand_logo_url,
     brandColorPrimary: organization.brand_color_primary,
+    brandColorSecondary: organization.brand_color_secondary,
+    brandColorAccent: organization.brand_color_accent,
+    brandFontFamily: organization.brand_font_family,
     role: userRole,
     subscriptionPlan: organization.subscription_plan as 'team' | 'business' | 'enterprise' | undefined,
     subscriptionStatus: organization.subscription_status as 'active' | 'expired' | 'cancelled' | 'trial' | 'pending' | undefined,
-    isPlatformAdmin, // Pass this flag to client for UI adjustments if needed
+    isPlatformAdmin,
   };
 
   return (

@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { useOrganizationStore } from '@/core/stores/organizationStore'
 import { detectColorsFromImage } from '../utils/colorDetection'
+import type { OrganizationStyles } from '../contexts/OrganizationStylesContext'
 
 export interface BrandingData {
   logo_url: string | null
@@ -14,11 +15,16 @@ export interface BrandingData {
   font_family: string
 }
 
+export interface BrandingUpdateResult {
+  success: boolean
+  styles?: OrganizationStyles | null
+}
+
 export interface UseBrandingReturn {
   branding: BrandingData | null
   isLoading: boolean
   error: string | null
-  updateBranding: (data: Partial<BrandingData>) => Promise<boolean>
+  updateBranding: (data: Partial<BrandingData>) => Promise<BrandingUpdateResult>
   detectColors: (imageUrl: string) => Promise<{ color_primary: string; color_secondary: string; color_accent: string } | null>
   refetch: () => Promise<void>
 }
@@ -75,10 +81,10 @@ export function useBranding(): UseBrandingReturn {
     }
   }, [orgSlug])
 
-  const updateBranding = useCallback(async (data: Partial<BrandingData>): Promise<boolean> => {
+  const updateBranding = useCallback(async (data: Partial<BrandingData>): Promise<BrandingUpdateResult> => {
     if (!orgSlug) {
       setError('No se pudo determinar la organización')
-      return false
+      return { success: false }
     }
 
     try {
@@ -101,10 +107,13 @@ export function useBranding(): UseBrandingReturn {
       }
 
       setBranding(result.branding)
-      return true
+      return {
+        success: true,
+        styles: result.styles ?? null,
+      }
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Error al actualizar branding'))
-      return false
+      return { success: false }
     }
   }, [orgSlug])
 

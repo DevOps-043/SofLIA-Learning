@@ -58,7 +58,7 @@ export function CourseCard3D({
   const isSystemLight = resolvedTheme === 'light'
 
   const primaryColor = styles?.primary_button_color || 'var(--color-primary)'
-  const accentColor = styles?.accent_color || 'var(--color-accent)'
+  const accentColor = styles?.accent_color || primaryColor
 
   // Defaults adaptativos basados en el tema del sistema
   const defaultCardBg = isSystemLight ? 'var(--color-bg-light)' : 'var(--color-gray-800)'
@@ -70,11 +70,7 @@ export function CourseCard3D({
   const borderColor = styles?.border_color || defaultBorder
   const cardOpacity = styles?.card_opacity ?? 0.95
 
-  // Determinar si estamos en modo claro basándonos en el color de fondo
-  const isLightMode = cardBackground.toLowerCase() === 'var(--color-bg-light)' ||
-                      cardBackground.toLowerCase() === 'var(--color-gray-50)' ||
-                      cardBackground.startsWith('rgb(255') ||
-                      cardBackground.startsWith('rgba(255')
+  const isLightMode = isSystemLight
 
   // Calcular RGB para opacidad
   const cardBgRgb = hexToRgb(cardBackground)
@@ -131,7 +127,7 @@ export function CourseCard3D({
         className={`group grid grid-cols-[2.5rem_4rem_minmax(0,1fr)] items-center overflow-hidden rounded-2xl md:grid-cols-[2.5rem_4rem_minmax(0,1fr)_9rem_7.5rem_2.75rem] ${disableHeavyEffects ? '' : 'transition-all duration-200'} ${isLockedInPath ? 'cursor-not-allowed' : 'hover:shadow-md cursor-pointer'}`}
         style={{
           backgroundColor: `rgba(${cardBgRgb}, ${cardOpacity})`,
-          border: `1px solid ${isLightMode ? borderColor : 'rgba(255,255,255,0.07)'}`,
+          border: `1px solid ${borderColor}`,
           animationDelay: `${index * 40}ms`,
           opacity: isLockedInPath ? 0.5 : 1,
         }}
@@ -238,7 +234,7 @@ export function CourseCard3D({
       className={`group relative flex flex-col overflow-hidden rounded-[20px] ${disableHeavyEffects ? '' : 'transition-all duration-300'} ${isLockedInPath ? 'cursor-not-allowed' : 'hover:-translate-y-1 hover:shadow-xl cursor-pointer'}`}
       style={{
         backgroundColor: `rgba(${cardBgRgb}, ${cardOpacity})`,
-        border: `1px solid ${isLightMode ? borderColor : 'rgba(255, 255, 255, 0.08)'}`,
+        border: `1px solid ${borderColor}`,
         boxShadow: isLightMode ? '0 4px 20px -10px rgba(0,0,0,0.08)' : 'none',
         animationDelay: `${index * 50}ms`,
         opacity: isLockedInPath ? 0.5 : 1,

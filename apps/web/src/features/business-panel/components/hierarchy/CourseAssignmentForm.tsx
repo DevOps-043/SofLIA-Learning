@@ -35,7 +35,7 @@ export function CourseAssignmentForm({
   const { styles } = useOrganizationStylesContext()
   const panelStyles = styles?.panel
   const primaryColor = panelStyles?.primary_button_color || 'var(--color-primary)'
-  const accentColor = panelStyles?.accent_color || 'var(--color-accent)'
+  const accentColor = panelStyles?.accent_color || primaryColor
 
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>(assignment ? [assignment.course_id] : [])
   const [showCourseSelector, setShowCourseSelector] = useState(false)

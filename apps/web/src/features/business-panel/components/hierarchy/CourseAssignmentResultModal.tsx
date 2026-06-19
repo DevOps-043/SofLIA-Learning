@@ -33,7 +33,7 @@ export function CourseAssignmentResultModal({
   const { styles } = useOrganizationStylesContext()
   const panelStyles = styles?.panel
   const primaryColor = panelStyles?.primary_button_color || 'var(--color-primary)'
-  const accentColor = panelStyles?.accent_color || 'var(--color-accent)'
+  const accentColor = panelStyles?.accent_color || primaryColor
 
   if (!isOpen) return null
 
@@ -192,4 +192,3 @@ export function CourseAssignmentResultModal({
     </div>
   )
 }
-

@@ -5,6 +5,7 @@ interface LiaPanelStylePalette {
   border_color?: string;
   card_background?: string;
   primary_button_color?: string;
+  accent_color?: string;
   text_color?: string;
 }
 
@@ -36,6 +37,6 @@ export function getLiaThemeColors(
     inputBorder: isLightTheme
       ? 'var(--color-gray-300)'
       : effectiveStyles?.border_color || 'color-mix(in srgb, var(--color-bg-light) 14%, transparent)',
-    accentColor: 'var(--color-accent)',
+    accentColor: effectiveStyles?.accent_color || 'var(--color-accent)',
   };
 }

@@ -28,6 +28,8 @@ describe('business-user-dashboard.service', () => {
     expect(colors.accent).toBe('var(--color-legacy-445566)')
     expect(colors.sidebarBg).toBe('var(--color-legacy-778899)')
     expect(colors.isLightMode).toBe(true)
+    expect(colors.heroBg).toContain('var(--color-legacy-112233)')
+    expect(colors.heroBg).toContain('var(--color-legacy-445566)')
   })
 
   it('derives display name and initials from user identity', () => {

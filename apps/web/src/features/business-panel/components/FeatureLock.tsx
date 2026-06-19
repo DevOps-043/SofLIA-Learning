@@ -32,7 +32,7 @@ export function FeatureLock({
       <div className="relative">
         <div className="opacity-50 pointer-events-none">{children}</div>
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 rounded-full animate-spin" style={{ borderColor: 'color-mix(in srgb, var(--org-action-color, var(--color-primary)) 30%, transparent)', borderTopColor: 'var(--org-action-color, var(--color-primary))' }}></div>
         </div>
       </div>
     )
@@ -62,9 +62,10 @@ export function FeatureLock({
           <motion.div
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
-            className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center"
+            className="w-16 h-16 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--org-action-color, var(--color-primary)) 20%, transparent)' }}
           >
-            <Lock className="w-8 h-8 text-primary" />
+            <Lock className="w-8 h-8" style={{ color: 'var(--org-action-color, var(--color-primary))' }} />
           </motion.div>
 
           <div className="space-y-2">

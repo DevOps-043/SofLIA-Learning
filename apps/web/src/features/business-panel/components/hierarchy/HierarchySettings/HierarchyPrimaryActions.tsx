@@ -1,5 +1,6 @@
 import { Sparkles, Zap } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 
 export function HierarchyPrimaryActions({
   canEnableHierarchy,
@@ -19,6 +20,7 @@ export function HierarchyPrimaryActions({
   onRequestEnable: () => void
 }) {
   const { t } = useTranslation('business')
+  const theme = useBusinessPanelTheme()
 
   return (
     <div className="space-y-3">
@@ -38,7 +40,11 @@ export function HierarchyPrimaryActions({
           <button
             onClick={onCreateStructure}
             disabled={isLoading}
-            className="rounded-xl bg-primary px-6 py-2.5 text-[10px] font-black uppercase tracking-widest !text-white shadow-xl transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-accent dark:!text-primary"
+            className="rounded-xl px-6 py-2.5 text-[10px] font-black uppercase tracking-widest shadow-xl transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{
+              backgroundColor: theme.actionColor,
+              color: theme.onActionColor,
+            }}
           >
             {isLoading ? t('hierarchy.creating') : t('hierarchy.creating2')}
           </button>

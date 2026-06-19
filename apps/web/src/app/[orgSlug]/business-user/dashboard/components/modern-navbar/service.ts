@@ -8,7 +8,7 @@ export function getModernNavbarColors(
 ): ModernNavbarColors {
   const isLightMode = resolvedTheme === 'light';
   const primaryColor = styles?.primary_button_color || 'var(--color-primary)';
-  const accentColor = styles?.accent_color || 'var(--color-accent)';
+  const accentColor = styles?.accent_color || primaryColor;
   const textColor = isLightMode ? 'var(--color-legacy-0f172a)' : (styles?.text_color || 'var(--color-bg-light)');
   const cardBg = isLightMode ? 'var(--color-bg-light)' : (styles?.card_background || 'var(--color-gray-800)');
   const sidebarBg = isLightMode ? 'var(--color-bg-light)' : (styles?.sidebar_background || 'var(--color-bg-dark)');

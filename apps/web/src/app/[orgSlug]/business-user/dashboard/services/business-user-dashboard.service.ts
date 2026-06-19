@@ -26,10 +26,12 @@ export function buildBusinessUserDashboardColors({
   const dbBorder = userDashboardStyles?.border_color
   const dbPrimary = userDashboardStyles?.primary_button_color
   const dbAccent = userDashboardStyles?.accent_color
+  const primary = dbPrimary || 'var(--color-primary)'
+  const accent = dbAccent || primary
 
   return {
-    primary: dbPrimary || 'var(--color-primary)',
-    accent: dbAccent || 'var(--color-accent)',
+    primary,
+    accent,
     text: dbText || defaultText,
     cardBg: dbCardBg || defaultCardBg,
     sidebarBg: dbSidebarBg || defaultSidebarBg,
@@ -37,14 +39,16 @@ export function buildBusinessUserDashboardColors({
     isLightMode,
     textSecondary: isLightMode ? 'var(--color-gray-500)' : 'var(--color-legacy-9ca3af)',
     textMuted: isLightMode ? 'var(--color-gray-400)' : 'var(--color-legacy-6b7280)',
-    iconColor: isLightMode ? (dbPrimary || 'var(--color-primary)') : (dbAccent || 'var(--color-accent)'),
+    iconColor: isLightMode ? primary : accent,
     heroBg: isLightMode
-      ? 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-legacy-173b63) 50%, var(--color-primary) 100%)'
-      : 'linear-gradient(135deg, var(--color-legacy-0a1628) 0%, var(--color-legacy-0f1e30) 50%, var(--color-legacy-0d1a2a) 100%)',
+      ? `linear-gradient(135deg, ${primary} 0%, color-mix(in srgb, ${primary} 82%, ${accent}) 52%, ${accent} 100%)`
+      : `linear-gradient(135deg, color-mix(in srgb, ${primary} 62%, var(--color-black)) 0%, color-mix(in srgb, ${primary} 42%, var(--color-black)) 52%, color-mix(in srgb, ${accent} 30%, var(--color-black)) 100%)`,
     heroOverlay: isLightMode
-      ? 'linear-gradient(to right, rgba(10, 37, 64, 0.95) 0%, rgba(10, 37, 64, 0.7) 50%, transparent 100%)'
-      : 'linear-gradient(to right, rgba(10, 22, 40, 0.9) 0%, rgba(10, 22, 40, 0.5) 50%, transparent 100%)',
-    gridPattern: isLightMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)',
+      ? `linear-gradient(to right, color-mix(in srgb, ${primary} 92%, var(--color-black)) 0%, color-mix(in srgb, ${primary} 68%, transparent) 50%, transparent 100%)`
+      : `linear-gradient(to right, color-mix(in srgb, ${primary} 70%, var(--color-black)) 0%, color-mix(in srgb, ${primary} 46%, transparent) 50%, transparent 100%)`,
+    gridPattern: isLightMode
+      ? 'color-mix(in srgb, var(--color-bg-light) 5%, transparent)'
+      : 'color-mix(in srgb, var(--color-bg-light) 10%, transparent)',
   }
 }
 

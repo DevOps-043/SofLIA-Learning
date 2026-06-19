@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import { useLiaPanel } from '../../contexts/LiaPanelContext';
 import { useMotionSafe } from '../../../lib/utils/motion';
+import { useOrganizationStore } from '../../stores/organizationStore';
 
 const LIA_BUTTON_BOTTOM_PX = 24;
 const LIA_BUTTON_RIGHT_PX = 24;
@@ -14,6 +15,16 @@ const LIA_BUTTON_SIZE_PX = 56;
 function LiaFloatingButtonContent() {
   const { isOpen, togglePanel } = useLiaPanel();
   const { disableHeavy } = useMotionSafe();
+  const currentOrganization = useOrganizationStore((s) => s.currentOrganization);
+  const orgAccent = currentOrganization?.brandColorAccent || null;
+  const orgSecondary = currentOrganization?.brandColorSecondary || null;
+  const btnGradient = orgAccent
+    ? `linear-gradient(135deg, ${orgAccent} 0%, ${orgSecondary || orgAccent} 100%)`
+    : 'linear-gradient(135deg, var(--color-accent) 0%, var(--color-legacy-00a893) 100%)';
+  const btnShadow = orgAccent
+    ? `0 4px 20px color-mix(in srgb, ${orgAccent} 40%, transparent)`
+    : '0 4px 20px rgba(0, 212, 179, 0.4)';
+  const btnPulseColor = orgAccent || 'var(--color-accent)';
 
   return (
     <>
@@ -49,8 +60,8 @@ function LiaFloatingButtonContent() {
                 width: '100%',
                 height: '100%',
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, var(--color-accent) 0%, var(--color-legacy-00a893) 100%)',
-                boxShadow: '0 4px 20px rgba(0, 212, 179, 0.4)',
+                background: btnGradient,
+                boxShadow: btnShadow,
                 border: 'none',
                 cursor: 'pointer',
                 display: 'flex',
@@ -68,7 +79,7 @@ function LiaFloatingButtonContent() {
                     position: 'absolute',
                     inset: 0,
                     borderRadius: '50%',
-                    backgroundColor: 'var(--color-accent)',
+                    backgroundColor: btnPulseColor,
                     zIndex: 0,
                   }}
                   animate={{

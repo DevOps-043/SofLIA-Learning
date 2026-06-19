@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { type OrganizationData } from '../hooks/useBusinessSettings'
-import type { BrandingData } from '../hooks/useBranding'
+import type { BrandingData, BrandingUpdateResult } from '../hooks/useBranding'
 
 export interface OrgFormData {
   name: string
@@ -27,7 +27,7 @@ interface UseOrgFormStateProps {
   organization: OrganizationData | null
   updateOrganization: (data: Partial<OrganizationData>) => Promise<boolean>
   branding: BrandingData | null
-  updateBranding: (data: Partial<BrandingData>) => Promise<boolean>
+  updateBranding: (data: Partial<BrandingData>) => Promise<BrandingUpdateResult>
   saveSuccess: string | null
   setSaveSuccess: (msg: string | null) => void
   saveError: string | null
@@ -130,7 +130,8 @@ export function useOrgFormState({
 
       let successBranding = true
       if (formData.banner_url !== branding?.banner_url) {
-        successBranding = await updateBranding({ banner_url: formData.banner_url })
+        const brandingResult = await updateBranding({ banner_url: formData.banner_url })
+        successBranding = brandingResult.success
       }
 
       if (successOrg && successBranding) {

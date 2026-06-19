@@ -11,6 +11,7 @@ export interface OrganizationData {
   logo_url?: string | null
   brand_logo_url?: string | null
   brand_favicon_url?: string | null
+  brand_banner_url?: string | null
   favicon_url?: string | null
   slug?: string | null
   subscription_plan?: string
@@ -163,4 +164,3 @@ export function useBusinessSettings() {
     orgSlug
   }
 }
-

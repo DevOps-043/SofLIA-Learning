@@ -2,6 +2,13 @@
 
 import { useMemo } from 'react'
 import { useThemeStore } from '@/core/stores/themeStore'
+import {
+  adjustColorForContrast,
+  chooseReadableTextColor,
+  getContrastRatio,
+  resolveHexColor,
+} from '@/core/theme/color-engine'
+import { DESIGN_HEX_COLOR } from '@/core/theme/color-tokens'
 import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
 
 /**
@@ -12,7 +19,7 @@ import { useOrganizationStylesContext } from '../contexts/OrganizationStylesCont
  *
  * Jerarquía de prioridad:
  *   1. Colores de la organización (OrganizationStylesContext) — modo claro
- *   2. Paleta del design system (var(--color-accent), var(--color-primary), etc.) — modo oscuro y fallbacks
+ *   2. Paleta del design system solo como fallback
  */
 export interface BusinessPanelThemeTokens {
   // ─── Identidad ───────────────────────────────────────────────────
@@ -94,6 +101,31 @@ export interface BusinessPanelThemeTokens {
   warningColor: string
 }
 
+const MIN_ACTION_SURFACE_CONTRAST = 3
+
+export function resolveBusinessPanelActionColor(options: {
+  primaryColor: string
+  accentColor: string
+  surfaceColor: string
+}): string {
+  const surfaceColor = resolveHexColor(options.surfaceColor) ?? DESIGN_HEX_COLOR.bgDark
+  const primaryColor = resolveHexColor(options.primaryColor)
+  if (primaryColor && getContrastRatio(primaryColor, surfaceColor) >= MIN_ACTION_SURFACE_CONTRAST) {
+    return primaryColor
+  }
+
+  const accentColor = resolveHexColor(options.accentColor)
+  if (accentColor && getContrastRatio(accentColor, surfaceColor) >= MIN_ACTION_SURFACE_CONTRAST) {
+    return accentColor
+  }
+
+  return adjustColorForContrast(
+    primaryColor ?? options.primaryColor,
+    surfaceColor,
+    MIN_ACTION_SURFACE_CONTRAST,
+  )
+}
+
 export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
   const { resolvedTheme } = useThemeStore()
   const { effectiveStyles, styles } = useOrganizationStylesContext()
@@ -101,19 +133,22 @@ export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
   const isDark = resolvedTheme === 'dark'
 
   return useMemo<BusinessPanelThemeTokens>(() => {
-    // En modo oscuro el color primario de acción siempre es el acento (var(--color-accent))
-    // para mantener contraste sobre fondos oscuros, independiente de la org.
     const brandColor = panelStyles?.primary_button_color ?? 'var(--color-primary)'
-    const actionColor = isDark ? 'var(--color-accent)' : brandColor
-    const onActionColor = isDark ? 'var(--color-primary)' : 'var(--color-bg-light)'
+    const accentColor = panelStyles?.accent_color ?? brandColor
+    const secondaryColor = panelStyles?.secondary_button_color ?? 'var(--color-secondary)'
+    const surfaceColor = panelStyles?.sidebar_background
+      ?? panelStyles?.card_background
+      ?? (isDark ? DESIGN_HEX_COLOR.bgDark : DESIGN_HEX_COLOR.bgLight)
+    const actionColor = resolveBusinessPanelActionColor({
+      primaryColor: brandColor,
+      accentColor,
+      surfaceColor,
+    })
+    const onActionColor = chooseReadableTextColor(actionColor)
     const actionSurface = `color-mix(in srgb, ${actionColor} ${isDark ? 12 : 8}%, transparent)`
 
     // Acciones, iconos y textos destacados de UI siguen el modo:
     // claro = azul profundo, oscuro = aqua.
-    const accentColor = actionColor
-
-    const secondaryColor = panelStyles?.secondary_button_color ?? 'var(--color-secondary)'
-
     return {
       isDark,
       brandColor,
@@ -145,8 +180,8 @@ export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
       overlayBg: 'color-mix(in srgb, var(--color-black) 55%, transparent)',
       inverseSurface: 'color-mix(in srgb, var(--color-bg-light) 8%, transparent)',
       inverseBorderColor: 'color-mix(in srgb, var(--color-bg-light) 18%, transparent)',
-      heroBackground: `linear-gradient(135deg, color-mix(in srgb, var(--color-primary) ${isDark ? 82 : 95}%, transparent) 0%, color-mix(in srgb, var(--color-primary) ${isDark ? 55 : 88}%, var(--color-black)) 55%, color-mix(in srgb, var(--color-accent) ${isDark ? 18 : 30}%, transparent) 100%)`,
-      heroBorderColor: `color-mix(in srgb, var(--color-accent) ${isDark ? 12 : 18}%, transparent)`,
+      heroBackground: `linear-gradient(135deg, color-mix(in srgb, ${actionColor} ${isDark ? 82 : 95}%, transparent) 0%, color-mix(in srgb, ${actionColor} ${isDark ? 55 : 88}%, var(--color-black)) 55%, color-mix(in srgb, ${accentColor} ${isDark ? 18 : 30}%, transparent) 100%)`,
+      heroBorderColor: `color-mix(in srgb, ${accentColor} ${isDark ? 12 : 18}%, transparent)`,
 
       // Bordes
       borderColor: isDark
@@ -176,7 +211,7 @@ export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
       },
 
       // Semánticos (invariantes de tema)
-      chartColors: ['var(--color-success)', 'var(--color-info)', 'var(--color-warning)', 'var(--color-secondary)', 'var(--color-error)', 'var(--color-accent)'],
+      chartColors: [actionColor, secondaryColor, accentColor, 'var(--color-success)', 'var(--color-warning)', 'var(--color-error)'],
 
       difficultyColors: {
         beginner: 'var(--color-success)',

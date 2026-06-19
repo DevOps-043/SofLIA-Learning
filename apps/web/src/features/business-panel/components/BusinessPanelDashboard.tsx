@@ -5,7 +5,6 @@ import { motion } from 'framer-motion'
 import {
   SparklesIcon,
   ClockIcon,
-  RocketLaunchIcon,
   ChevronDownIcon,
   ChevronUpIcon,
 } from '@heroicons/react/24/outline'
@@ -67,40 +66,46 @@ export function BusinessPanelDashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={interfaceTransition}
         className="relative overflow-hidden rounded-2xl md:rounded-3xl p-4 md:p-8 mb-4 md:mb-8 group"
+        style={{
+          background: themeColors.heroBackground,
+          border: `1px solid ${themeColors.heroBorderColor}`,
+        }}
       >
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 mix-blend-multiply opacity-80 z-10" style={{ backgroundColor: themeColors.primary }} />
-          <div className="absolute inset-0 z-10" style={{ background: `linear-gradient(to right, ${themeColors.primary}, color-mix(in srgb, ${themeColors.primary} 60%, transparent), transparent)` }} />
-          <Image
-            src="/images/dashboard-header.webp"
-            alt="Business Dashboard Background"
-            fill
-            priority
-            className="object-cover opacity-70 group-hover:scale-105 transition-transform duration-700"
-            sizes="(max-width: 768px) 100vw, 100vw"
-          />
+          {themeColors.brandBannerUrl ? (
+            <Image
+              src={themeColors.brandBannerUrl}
+              alt=""
+              fill
+              priority
+              className="object-cover opacity-25 mix-blend-luminosity group-hover:scale-105 transition-transform duration-700"
+              sizes="(max-width: 768px) 100vw, 100vw"
+            />
+          ) : null}
+          <div className="absolute inset-0 z-10" style={{ background: `linear-gradient(to right, color-mix(in srgb, ${themeColors.primary} 78%, var(--color-black)) 0%, color-mix(in srgb, ${themeColors.primary} 42%, transparent) 56%, transparent 100%)` }} />
+          <div className="absolute inset-0 z-10 opacity-35" style={{ backgroundColor: themeColors.accent }} />
         </div>
 
         <div className="relative z-10">
           <div className="mb-1 flex min-w-0 items-center gap-2 md:mb-2 md:gap-3">
             <SparklesIcon className="h-4 w-4 md:h-6 md:w-6" style={{ color: themeColors.accent }} />
-            <span className="truncate text-[10px] font-medium uppercase tracking-wide md:text-sm" style={{ color: 'var(--color-bg-light)' }}>
+            <span className="truncate text-[10px] font-medium uppercase tracking-wide md:text-sm" style={{ color: themeColors.inverseText }}>
               {t('dashboard.title')}
             </span>
           </div>
 
-          <motion.h1 data-tour-id="business-panel-dashboard--hero-summary" className="text-xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 leading-tight" style={{ color: 'var(--color-bg-light)' }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition}>
+          <motion.h1 data-tour-id="business-panel-dashboard--hero-summary" className="text-xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 leading-tight" style={{ color: themeColors.inverseText }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition}>
             <DashboardGreeting getGreeting={getGreeting} userName={getUserName()} />
           </motion.h1>
 
-          <motion.p className="text-xs md:text-base lg:text-lg max-w-xl line-clamp-2 md:line-clamp-none" style={{ color: 'var(--color-bg-light)', opacity: 0.7 }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition}>
+          <motion.p className="text-xs md:text-base lg:text-lg max-w-xl line-clamp-2 md:line-clamp-none" style={{ color: themeColors.inverseSubtext }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition}>
             {t('dashboard.subtitle')}
           </motion.p>
 
           <motion.div className="flex items-center gap-2 md:gap-6 mt-3 md:mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={interfaceTransition}>
             <div className="flex items-center gap-1.5 md:gap-2 text-white/60 text-[10px] md:text-sm">
               <ClockIcon className="h-3 w-3 md:h-4 md:w-4" />
-              <span style={{ color: 'var(--color-bg-light)' }} className="opacity-90">
+              <span style={{ color: themeColors.inverseText }} className="opacity-90">
                 <DashboardDateText formatDate={formatDate} />
               </span>
             </div>

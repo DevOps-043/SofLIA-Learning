@@ -17,6 +17,20 @@ type UserDropdownLogic = ReturnType<typeof useUserDropdownLogic>
 export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
   if (!logic.isMounted) return null
 
+  const isOrgBranded = Boolean(logic.primaryColor && logic.primaryColor !== 'var(--color-primary)')
+  const isDark = logic.resolvedTheme === 'dark'
+
+  const orgBrandStyles = isOrgBranded
+    ? {
+        backgroundColor: isDark
+          ? `color-mix(in srgb, ${logic.primaryColor} 12%, #111822)`
+          : 'rgba(255, 255, 255, 0.97)',
+        borderColor: isDark
+          ? `color-mix(in srgb, ${logic.primaryColor} 28%, transparent)`
+          : `color-mix(in srgb, ${logic.primaryColor} 18%, var(--color-gray-200))`,
+      }
+    : {}
+
   const menuStyle = logic.isMobileViewport
     ? {
         zIndex: USER_DROPDOWN_MENU_Z_INDEX,
@@ -26,12 +40,14 @@ export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
         left: 0,
         maxHeight: 'none',
         height: `calc(var(--soflia-viewport-height) - ${logic.pos.top}px)`,
+        ...orgBrandStyles,
       }
     : {
         zIndex: USER_DROPDOWN_MENU_Z_INDEX,
         top: logic.pos.top,
         right: logic.pos.right,
         maxHeight: `calc(var(--soflia-viewport-height) - ${logic.pos.top}px - 16px)`,
+        ...orgBrandStyles,
       }
   const mobileSectionClassName = logic.isMobileViewport
     ? 'overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-carbon-800'

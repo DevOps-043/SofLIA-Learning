@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { CheckCircle2 } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 
 type UserBehaviorToggleItemData = {
   key: 'auto_assign_new_users' | 'require_team_assignment'
@@ -23,6 +24,7 @@ export function UserBehaviorToggleItem({
   onToggle: () => void
 }) {
   const { t } = useTranslation('business')
+  const theme = useBusinessPanelTheme()
   const Icon = item.icon
 
   return (
@@ -54,7 +56,8 @@ export function UserBehaviorToggleItem({
         aria-checked={item.value}
         disabled={isBusy}
         onClick={onToggle}
-        className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-offset-carbon-800 ${item.value ? 'bg-accent' : 'bg-neutral-300 dark:bg-white/15'}`}
+        className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--org-action-color)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-offset-carbon-800 ${item.value ? '' : 'bg-neutral-300 dark:bg-white/15'}`}
+        style={item.value ? { backgroundColor: theme.actionColor } : undefined}
       >
         <span className={`pointer-events-none ml-1 mt-1 inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition-transform duration-300 ease-in-out ${item.value ? 'translate-x-5' : 'translate-x-0'}`} />
       </button>

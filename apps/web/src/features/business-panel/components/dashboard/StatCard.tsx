@@ -10,6 +10,7 @@ interface StatCardTheme {
   cardBg?: string
   text?: string
   borderColor?: string
+  actionColor?: string
 }
 
 export interface StatCardProps {
@@ -37,7 +38,7 @@ export function StatCard({ title, value, delay, href, id, theme, iconColor, icon
   const textColor = isLightMode ? 'var(--color-legacy-0f172a)' : theme?.text || 'var(--color-bg-light)'
   const labelColor = isLightMode ? 'var(--color-legacy-334155)' : 'var(--color-gray-400)'
   const borderColor = isLightMode ? 'var(--color-gray-200)' : theme?.borderColor || 'rgb(255 255 255 / 4%)'
-  const resolvedIconColor = iconColor || (isLightMode ? 'var(--color-primary)' : 'var(--color-accent)')
+  const resolvedIconColor = iconColor || theme?.actionColor || 'var(--color-primary)'
   const visibleIconColor = isLightMode
     ? `color-mix(in srgb, ${resolvedIconColor} 60%, var(--color-primary))`
     : resolvedIconColor

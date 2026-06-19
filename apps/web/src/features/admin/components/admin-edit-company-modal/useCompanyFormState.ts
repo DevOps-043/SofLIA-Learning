@@ -44,15 +44,6 @@ export function useCompanyFormState(company: AdminCompany) {
       setFormData((prev) => ({ ...prev, brand_banner_url: bannerUrl })),
   })
 
-  const applyThemePreset = (preset: { accent: string; primary: string; secondary: string }) => {
-    setFormData(prev => ({
-      ...prev,
-      brand_color_primary: preset.primary,
-      brand_color_secondary: preset.secondary,
-      brand_color_accent: preset.accent,
-    }))
-  }
-
   const updateBrandingColor = (key: BrandingColorKey, value: string) => {
     setFormData(prev => ({ ...prev, [key]: value }))
   }
@@ -64,7 +55,6 @@ export function useCompanyFormState(company: AdminCompany) {
     setFormData,
     isPlanOpen,
     setIsPlanOpen,
-    applyThemePreset,
     updateBrandingColor,
     ...uploadState,
   }

@@ -13,6 +13,9 @@ interface LearnPageHeaderProps {
   organizationName?: string | null;
   tourAction?: ReactNode;
   disableHeavyEffects?: boolean;
+  headerBg?: string;
+  primaryColor?: string;
+  accentColor?: string;
 }
 
 export function LearnPageHeader({
@@ -22,8 +25,15 @@ export function LearnPageHeader({
   organizationName,
   tourAction,
   disableHeavyEffects = false,
+  headerBg,
+  primaryColor,
+  accentColor,
 }: LearnPageHeaderProps) {
   const { t } = useTranslation("learn");
+
+  const progressColor = primaryColor && accentColor
+    ? `linear-gradient(to right, ${primaryColor}, ${primaryColor}, ${accentColor})`
+    : undefined
 
   return (
     <motion.div
@@ -31,6 +41,7 @@ export function LearnPageHeader({
       initial={disableHeavyEffects ? false : { opacity: 0, y: -20 }}
       animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
       className="bg-white dark:bg-carbon-800 border-b border-gray-200 dark:border-gray-500/30 px-3 md:px-4 py-1.5 md:py-2 shrink-0 relative z-40"
+      style={headerBg ? { backgroundColor: headerBg } : undefined}
     >
       <div className="flex items-center justify-between w-full gap-2">
         <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
@@ -65,6 +76,7 @@ export function LearnPageHeader({
                 animate={{ width: `${courseProgress}%` }}
                 transition={disableHeavyEffects ? undefined : { duration: 1 }}
                 className="h-full bg-gradient-to-r from-primary via-primary to-accent rounded-full shadow-lg"
+                style={progressColor ? { background: progressColor } : undefined}
               />
             </div>
           </div>
@@ -72,7 +84,7 @@ export function LearnPageHeader({
           <span
             data-tour-id="course-learn--progress"
             className="text-xs text-primary dark:text-accent font-medium bg-primary/10 dark:bg-accent/15 px-2 py-0.5 rounded-full min-w-[2.5rem] text-center shrink-0"
-            style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
+            style={{ fontFamily: "Inter, sans-serif", fontWeight: 500, ...(accentColor ? { color: accentColor, backgroundColor: `color-mix(in srgb, ${accentColor} 15%, transparent)` } : {}) }}
           >
             {courseProgress}%
           </span>

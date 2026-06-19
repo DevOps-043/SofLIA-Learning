@@ -126,6 +126,12 @@ async function handlePost(
   try {
     const { slug, lessonId } = await params
     const supabase = await createClient()
+    // Persisting user quiz data (submission, attempt history) is done with the
+    // service-role client — the same pattern already used below for lesson
+    // progress. The request is authenticated (SessionService) and authorized
+    // (enrollment resolution) before any write, and this avoids RLS write
+    // failures on the user-data tables.
+    const writeClient = createAdminClient()
 
     const currentUser = await SessionService.getCurrentUser()
     if (!currentUser) {
@@ -220,7 +226,7 @@ async function handlePost(
       )
     const now = new Date().toISOString()
 
-    let existingSubmissionQuery = supabase
+    let existingSubmissionQuery = writeClient
       .from('user_quiz_submissions')
       .select('submission_id, percentage_score, is_passed')
       .eq('user_id', currentUser.id)
@@ -251,7 +257,7 @@ async function handlePost(
 
     if (existingSubmission) {
       if (shouldPersistAttempt) {
-        const { data, error } = await supabase
+        const { data, error } = await writeClient
           .from('user_quiz_submissions')
           .update({
             user_answers: answers,
@@ -274,6 +280,7 @@ async function handlePost(
             'QUIZ_SUBMISSION_UPDATE_FAILED',
             'Error al actualizar respuestas del quiz.',
             500,
+            { details: error.message },
           )
         }
 
@@ -282,7 +289,7 @@ async function handlePost(
         submissionResult = existingSubmission
       }
     } else {
-      const { data, error } = await supabase
+      const { data, error } = await writeClient
         .from('user_quiz_submissions')
         .insert({
           user_id: currentUser.id,
@@ -308,6 +315,7 @@ async function handlePost(
           'QUIZ_SUBMISSION_SAVE_FAILED',
           'Error al guardar respuestas del quiz.',
           500,
+          { details: error.message },
         )
       }
 
@@ -316,7 +324,7 @@ async function handlePost(
 
     // Historial append-only: registra ESTE intento (cada envío), independientemente de
     // si la submission "mejor/actual" se actualizó. Best-effort, no bloquea el envío.
-    await recordQuizAttempt(supabase, {
+    await recordQuizAttempt(writeClient, {
       userId: currentUser.id,
       lessonId,
       enrollmentId,

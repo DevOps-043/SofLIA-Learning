@@ -52,6 +52,9 @@ type CourseSidebarPanelProps = {
   onOpenContentSection: () => void;
   onOpenNotesSection: () => void;
   onOpenNewNote: () => void;
+  sidebarBg?: string;
+  sidebarBorderColor?: string;
+  accentColor?: string;
 };
 
 export function CourseSidebarPanel({
@@ -83,6 +86,9 @@ export function CourseSidebarPanel({
   onOpenContentSection,
   onOpenNotesSection,
   onOpenNewNote,
+  sidebarBg,
+  sidebarBorderColor,
+  accentColor,
 }: CourseSidebarPanelProps) {
   const swipeToCloseRef = useSwipe<HTMLDivElement>({
     onSwipeLeft: () => {
@@ -133,6 +139,10 @@ export function CourseSidebarPanel({
                   ? "fixed inset-y-0 left-0 z-50 w-full max-w-sm md:relative md:inset-auto md:w-auto md:max-w-none"
                   : "relative h-full"
               } flex flex-col overflow-hidden border-r border-gray-200 bg-white dark:border-white/5 dark:bg-carbon-900`}
+              style={{
+                ...(sidebarBg ? { backgroundColor: sidebarBg } : {}),
+                ...(sidebarBorderColor ? { borderColor: sidebarBorderColor } : {}),
+              }}
             >
               <div
                 className="flex-1 overflow-y-auto px-6 pb-24 md:pb-6"

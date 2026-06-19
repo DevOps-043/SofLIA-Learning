@@ -6,10 +6,12 @@ import { HierarchyTree } from '@/features/business-panel/components/hierarchy/Hi
 import { HierarchySettings } from '@/features/business-panel/components/hierarchy/HierarchySettings';
 import { Network, Settings, LayoutGrid, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme';
 
 export default function BusinessPanelHierarchyPage() {
   const [activeTab, setActiveTab] = useState<'settings' | 'tree'>('tree');
   const { t } = useTranslation('business');
+  const theme = useBusinessPanelTheme();
   const tabs: Array<{ id: 'tree' | 'settings'; label: string; icon: LucideIcon }> = [
     { id: 'tree', label: t('hierarchy.tabs.treeView'), icon: LayoutGrid },
     { id: 'settings', label: t('hierarchy.tabs.settings'), icon: Settings },
@@ -50,11 +52,16 @@ export default function BusinessPanelHierarchyPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-3 px-8 py-3.5 rounded-xl text-[10px] font-black tracking-[0.2em] transition-all duration-300 ${
                   isActive
-                    ? 'bg-primary dark:bg-accent shadow-lg shadow-accent/20 !text-white dark:!text-black scale-100'
-                    : 'text-neutral-400 dark:text-white/30 hover:text-primary dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-white/5 scale-95'
+                    ? 'shadow-lg scale-100'
+                    : 'text-neutral-400 dark:text-white/30 hover:bg-neutral-50 dark:hover:bg-white/5 scale-95'
                 }`}
+                style={isActive ? {
+                  backgroundColor: theme.actionColor,
+                  color: theme.onActionColor,
+                  boxShadow: `0 18px 35px -22px ${theme.actionColor}`,
+                } : undefined}
               >
-                <Icon className={`w-4 h-4 ${isActive ? '!text-white dark:!text-black' : 'text-current'}`} />
+                <Icon className="w-4 h-4 text-current" />
                 <span className="uppercase">{tab.label}</span>
               </button>
             );

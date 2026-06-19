@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { ComponentType, ReactNode } from 'react'
+import type { ComponentType, CSSProperties, ReactNode } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft,
@@ -31,6 +31,7 @@ import type {
 } from '@/features/business-panel/types/business-user-analytics.types'
 import { generateUserStatsPdf } from '@/features/business-panel/services/business-user-analytics/pdf/generate-user-stats-pdf'
 import { BusinessUserAnalyticsHeatmap } from './BusinessUserAnalyticsHeatmap'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 
 type LoadState = 'idle' | 'loading' | 'error' | 'ready'
 type InsightState = 'idle' | 'loading' | 'error' | 'ready'
@@ -113,6 +114,7 @@ export function BusinessUserAnalyticsPageClient({
   const params = useParams()
   const orgSlug = explicitOrgSlug || (params?.orgSlug as string | undefined)
   const { t, i18n } = useTranslation('business')
+  const theme = useBusinessPanelTheme()
   const [range, setRange] = useState<BusinessUserAnalyticsRange>('365d')
   const [analytics, setAnalytics] = useState<BusinessUserAnalyticsResponse | null>(null)
   const [insights, setInsights] = useState<BusinessUserAnalyticsInsights | null>(null)
@@ -295,6 +297,11 @@ export function BusinessUserAnalyticsPageClient({
           'flex w-full flex-col gap-6',
           embedded ? 'px-0 py-0' : 'mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-10',
         )}
+        style={{
+          '--analytics-action-color': theme.actionColor,
+          '--analytics-on-action-color': theme.onActionColor,
+          '--analytics-accent-color': theme.accentColor,
+        } as CSSProperties}
       >
         <header className="flex flex-col gap-4 border-b border-gray-200 pb-5 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-3">
@@ -332,9 +339,14 @@ export function BusinessUserAnalyticsPageClient({
                   // override de texto del tema de organización pise `text-white`.
                   'no-theme rounded-lg border px-3 py-2 text-sm font-semibold transition-colors',
                   range === option
-                    ? 'border-primary bg-primary text-white dark:border-accent dark:bg-accent dark:text-gray-900'
+                    ? ''
                     : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-white/10 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700',
                 )}
+                style={range === option ? {
+                  backgroundColor: 'var(--analytics-action-color)',
+                  borderColor: 'var(--analytics-action-color)',
+                  color: 'var(--analytics-on-action-color)',
+                } : undefined}
               >
                 {t(`analytics.ranges.${option}`)}
               </button>
@@ -355,8 +367,12 @@ export function BusinessUserAnalyticsPageClient({
                 className={cn(
                   // `no-theme`: el botón gestiona su propio contraste; evita que el
                   // override de texto del tema de organización pise `text-white`.
-                  'no-theme inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-accent dark:text-gray-900 dark:hover:bg-accent/90',
+                  'no-theme inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60',
                 )}
+                style={{
+                  backgroundColor: 'var(--analytics-action-color)',
+                  color: 'var(--analytics-on-action-color)',
+                }}
               >
                 {isExporting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -532,7 +548,11 @@ export function BusinessUserAnalyticsPageClient({
                     type="button"
                     onClick={() => void generateInsights()}
                     disabled={insightState === 'loading'}
-                    className="no-theme inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-accent dark:text-gray-900 dark:hover:bg-accent/90"
+                    className="no-theme inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70"
+                    style={{
+                      backgroundColor: 'var(--analytics-action-color)',
+                      color: 'var(--analytics-on-action-color)',
+                    }}
                   >
                     {insightState === 'loading' ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -604,7 +624,13 @@ function MetricCard({
   return (
     <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-gray-800">
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary dark:bg-accent/10 dark:text-accent">
+        <div
+          className="flex h-11 w-11 items-center justify-center rounded-lg"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--analytics-action-color) 10%, transparent)',
+            color: 'var(--analytics-action-color)',
+          }}
+        >
           <Icon className="h-5 w-5" />
         </div>
         <div>
@@ -638,7 +664,13 @@ function Panel({
     <section className={cn('rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-gray-800', compact ? 'p-5' : 'p-5 sm:p-6')}>
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary dark:bg-accent/10 dark:text-accent">
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--analytics-action-color) 10%, transparent)',
+              color: 'var(--analytics-action-color)',
+            }}
+          >
             <Icon className="h-5 w-5" />
           </div>
           <div>
@@ -685,8 +717,11 @@ function CourseList({
           </div>
           <div className="mt-2 h-2 rounded-full bg-gray-100 dark:bg-gray-900">
             <div
-              className="h-full rounded-full bg-accent"
-              style={{ width: `${Math.min(100, Math.max(0, course.progress))}%` }}
+              className="h-full rounded-full"
+              style={{
+                width: `${Math.min(100, Math.max(0, course.progress))}%`,
+                backgroundColor: 'var(--analytics-accent-color)',
+              }}
             />
           </div>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -724,8 +759,11 @@ function CourseProgressChart({
           <div className="relative h-16 border-l border-gray-300 dark:border-white/20">
             <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 border-t border-dashed border-gray-200 dark:border-white/10" />
             <div
-              className="absolute left-0 top-1/2 h-10 -translate-y-1/2 rounded-r-md bg-accent"
-              style={{ width: `${Math.min(100, Math.max(0, course.progress))}%` }}
+              className="absolute left-0 top-1/2 h-10 -translate-y-1/2 rounded-r-md"
+              style={{
+                width: `${Math.min(100, Math.max(0, course.progress))}%`,
+                backgroundColor: 'var(--analytics-accent-color)',
+              }}
             />
           </div>
         </div>
@@ -805,7 +843,7 @@ function EngagementLineChart({
         <polyline
           fill="none"
           points={messagesPath}
-          stroke="var(--color-accent)"
+          stroke="var(--analytics-accent-color)"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="3"
@@ -813,7 +851,7 @@ function EngagementLineChart({
         <polyline
           fill="none"
           points={lessonsPath}
-          stroke="var(--color-primary)"
+          stroke="var(--analytics-action-color)"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="3"
@@ -838,11 +876,11 @@ function EngagementLineChart({
       </svg>
       <div className="mt-2 flex flex-wrap items-center justify-end gap-4 text-xs font-semibold text-gray-600 dark:text-gray-300">
         <span className="inline-flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-accent" />
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: 'var(--analytics-accent-color)' }} />
           {messagesLabel}
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-primary" />
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: 'var(--analytics-action-color)' }} />
           {lessonsLabel}
         </span>
       </div>
@@ -926,10 +964,10 @@ function QualityRadarChart({
       })}
 
       <polygon
-        fill="var(--color-accent)"
+        fill="var(--analytics-accent-color)"
         fillOpacity="0.35"
         points={areaPoints}
-        stroke="var(--color-accent)"
+        stroke="var(--analytics-accent-color)"
         strokeLinejoin="round"
         strokeWidth="2"
       />
@@ -939,7 +977,7 @@ function QualityRadarChart({
           key={`${point.label}-point`}
           cx={point.x}
           cy={point.y}
-          fill="var(--color-accent)"
+          fill="var(--analytics-accent-color)"
           r="4"
           stroke="var(--color-bg-light)"
           strokeWidth="2"

@@ -13,10 +13,13 @@ export interface Organization {
   logoUrl?: string | null;
   brandLogoUrl?: string | null;
   brandColorPrimary?: string | null;
+  brandColorSecondary?: string | null;
+  brandColorAccent?: string | null;
+  brandFontFamily?: string | null;
   role: 'owner' | 'admin' | 'member';
   subscriptionPlan?: 'team' | 'business' | 'enterprise';
   subscriptionStatus?: 'active' | 'expired' | 'cancelled' | 'trial' | 'pending';
-  isPlatformAdmin?: boolean; // True if accessing as platform administrator
+  isPlatformAdmin?: boolean;
 }
 
 interface OrganizationState {

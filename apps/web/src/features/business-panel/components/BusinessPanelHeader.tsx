@@ -47,17 +47,24 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
     if (!panelStyles) {
       const isDark = resolvedTheme === 'dark'
       return {
-        backgroundColor: isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-        borderColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.8)',
-        color: isDark ? 'var(--color-gray-50)' : 'var(--color-legacy-1e293b)',
-        hoverBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+        backgroundColor: isDark
+          ? 'color-mix(in srgb, var(--color-bg-dark) 85%, transparent)'
+          : 'color-mix(in srgb, var(--color-bg-light) 85%, transparent)',
+        borderColor: isDark
+          ? 'color-mix(in srgb, var(--color-muted) 30%, transparent)'
+          : 'color-mix(in srgb, var(--color-gray-200) 80%, transparent)',
+        color: isDark ? 'var(--color-gray-50)' : 'var(--color-contrast)',
+        hoverBg: isDark
+          ? 'color-mix(in srgb, var(--color-bg-light) 5%, transparent)'
+          : 'color-mix(in srgb, var(--color-black) 4%, transparent)',
       }
     }
 
-    const sidebarBg = panelStyles.sidebar_background || 'var(--color-legacy-0f172a)'
+    const sidebarBg = panelStyles.sidebar_background || 'var(--color-bg-dark)'
     const sidebarOpacity =
       panelStyles.sidebar_opacity !== undefined ? panelStyles.sidebar_opacity : 0.85
-    const borderColor = panelStyles.border_color || 'rgba(71, 85, 105, 0.3)'
+    const borderColor =
+      panelStyles.border_color || 'color-mix(in srgb, var(--color-muted) 30%, transparent)'
     const textColor = panelStyles.text_color
 
     let backgroundColor: string
@@ -76,14 +83,17 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
         backgroundColor = sidebarBg
       }
     } else {
-      backgroundColor = sidebarBg || 'rgba(15, 23, 42, 0.85)'
+      backgroundColor =
+        sidebarBg || 'color-mix(in srgb, var(--color-bg-dark) 85%, transparent)'
     }
 
     return {
       backgroundColor,
       borderColor,
       color: textColor,
-      hoverBg: resolvedTheme === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
+      hoverBg: resolvedTheme === 'light'
+        ? 'color-mix(in srgb, var(--color-black) 4%, transparent)'
+        : 'color-mix(in srgb, var(--color-bg-light) 5%, transparent)',
     }
   }, [effectiveStyles, resolvedTheme, styles])
 
@@ -109,7 +119,9 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
               style={{
                 color:
                   navbarStyle.color ||
-                  (resolvedTheme === 'light' ? 'var(--color-legacy-1e293b)' : 'rgba(255, 255, 255, 0.8)'),
+                  (resolvedTheme === 'light'
+                    ? 'var(--color-contrast)'
+                    : 'color-mix(in srgb, var(--color-bg-light) 80%, transparent)'),
               }}
             >
               <Menu className="h-5 w-5" />
@@ -157,7 +169,9 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                   style={{
                     color:
                       navbarStyle.color ||
-                      (resolvedTheme === 'light' ? 'var(--color-legacy-1e293b)' : 'rgba(255, 255, 255, 0.95)'),
+                      (resolvedTheme === 'light'
+                        ? 'var(--color-contrast)'
+                        : 'color-mix(in srgb, var(--color-bg-light) 95%, transparent)'),
                   }}
                 >
                   {organization?.name || t('header.myOrganization')}
@@ -172,7 +186,11 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                 data-tour-id="business-panel-dashboard--tour-trigger"
                 onStart={restartTour}
                 showLabel
-                className="h-9 border-gray-200 bg-white text-gray-700 shadow-sm hover:border-accent hover:text-primary dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+                className="h-9 shadow-sm dark:hover:bg-white/15"
+                style={{
+                  borderColor: `color-mix(in srgb, ${panelTheme.actionColor} 28%, transparent)`,
+                  color: panelTheme.actionColor,
+                }}
               />
             ) : null}
             <div data-tour-id="business-panel-dashboard--notifications">

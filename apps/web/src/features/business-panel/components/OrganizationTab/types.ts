@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
-import type { BrandingData } from '../../hooks/useBranding'
+import type { BrandingData, BrandingUpdateResult } from '../../hooks/useBranding'
 import type { OrganizationData } from '../../hooks/useBusinessSettings'
 import type { useOrgFormState } from '../useOrgFormState'
 
@@ -17,7 +17,7 @@ export interface OrganizationTabProps {
   organization: OrganizationData | null
   updateOrganization: (data: Partial<OrganizationData>) => Promise<boolean>
   branding: BrandingData | null
-  updateBranding: (data: Partial<BrandingData>) => Promise<boolean>
+  updateBranding: (data: Partial<BrandingData>) => Promise<BrandingUpdateResult>
   saveSuccess: string | null
   setSaveSuccess: (msg: string | null) => void
   saveError: string | null

@@ -32,7 +32,7 @@ async function uploadBrandingImage(file: File, folder: string) {
 
 export function useBrandingTabState() {
   const { branding, isLoading, error, updateBranding, detectColors } = useBranding()
-  const { refetch: refetchStyles } = useOrganizationStylesContext()
+  const { refetch: refetchStyles, syncStyles } = useOrganizationStylesContext()
   const [isSaving, setIsSaving] = useState(false)
   const [isDetecting, setIsDetecting] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null)
@@ -105,15 +105,19 @@ export function useBrandingTabState() {
     setSaveSuccess(null)
 
     try {
-      const success = await updateBranding(localBranding)
+      const result = await updateBranding(localBranding)
 
-      if (!success) {
+      if (!result.success) {
         throw new Error('Error al actualizar el branding')
       }
 
       setSaveSuccess('Branding actualizado correctamente')
       setTimeout(() => setSaveSuccess(null), 5000)
-      await refetchStyles()
+      if (result.styles) {
+        syncStyles(result.styles)
+      } else {
+        await refetchStyles()
+      }
     } catch (err) {
       setTemporaryError(
         err instanceof Error ? err.message : 'Error al actualizar el branding',

@@ -38,7 +38,7 @@ export function ModernStatsCard({
   const isSystemLight = resolvedTheme === 'light'
 
   const primaryColor = styles?.primary_button_color || 'var(--color-primary)'
-  const accentColor = styles?.accent_color || 'var(--color-accent)' // Aqua from SofLIA Design System
+  const accentColor = styles?.accent_color || primaryColor
 
   // Defaults adaptativos basados en el tema del sistema
   const defaultCardBg = isSystemLight ? 'var(--color-bg-light)' : 'var(--color-gray-800)'
@@ -50,16 +50,8 @@ export function ModernStatsCard({
   const borderColor = styles?.border_color || defaultBorder
   const cardOpacity = styles?.card_opacity ?? 0.95
 
-  // Determinar si estamos en modo claro basándonos en el color de fondo
-  const isLightMode = cardBackground.toLowerCase() === 'var(--color-bg-light)' ||
-    cardBackground.toLowerCase() === 'var(--color-gray-50)' ||
-    cardBackground.startsWith('rgb(255') ||
-    cardBackground.startsWith('rgba(255')
+  const iconColor = isSystemLight ? primaryColor : accentColor
 
-  // En modo oscuro, usar aqua para iconos (mejor visibilidad según SofLIA Design System)
-  const iconColor = isLightMode ? primaryColor : accentColor
-
-  // Calcular RGB para opacidad
   const cardBgRgb = hexToRgb(cardBackground)
 
   return (
@@ -70,11 +62,13 @@ export function ModernStatsCard({
         isClickable ? 'cursor-pointer hover:-translate-y-1' : ''
       }`}
       style={{
-        backgroundColor: isLightMode ? 'var(--color-bg-light)' : 'rgba(20, 25, 30, 0.4)',
+        backgroundColor: styles?.card_background
+          ? `rgba(${cardBgRgb}, ${cardOpacity})`
+          : (isSystemLight ? 'var(--color-bg-light)' : 'rgba(20, 25, 30, 0.4)'),
         backdropFilter: disableHeavyEffects ? undefined : 'blur(20px)',
-        border: `1px solid ${isLightMode ? 'var(--color-gray-200)' : 'rgba(255, 255, 255, 0.06)'}`,
-        boxShadow: isLightMode 
-          ? (isClickable ? '0 10px 30px -10px rgba(0,0,0,0.08)' : '0 4px 20px -10px rgba(0,0,0,0.05)') 
+        border: `1px solid ${borderColor}`,
+        boxShadow: isSystemLight
+          ? (isClickable ? '0 10px 30px -10px rgba(0,0,0,0.08)' : '0 4px 20px -10px rgba(0,0,0,0.05)')
           : (isClickable ? '0 10px 30px -10px rgba(0,0,0,0.3)' : 'none'),
         animationDelay: disableHeavyEffects ? undefined : `${index * 50}ms`
       }}
@@ -95,7 +89,7 @@ export function ModernStatsCard({
         <div className="flex flex-col justify-center">
           <p 
             className="text-[10px] sm:text-[11px] uppercase tracking-wider font-bold mb-1 transition-opacity duration-300 group-hover:opacity-100" 
-            style={{ color: isLightMode ? 'var(--color-gray-500)' : 'var(--color-legacy-858e9b)', opacity: 0.85 }}
+            style={{ color: isSystemLight ? 'var(--color-gray-500)' : 'var(--color-legacy-858e9b)', opacity: 0.85 }}
           >
             {label}
           </p>
