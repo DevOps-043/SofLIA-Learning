@@ -357,14 +357,19 @@ async function handlePost(
       (!existingSubmission || isPassed || didImproveBestScore)
     ) {
       const progressClient = createAdminClient()
+      // Intentionally look up by (user_id, lesson_id) without filtering on
+      // enrollment_id — the same enrollment-ID drift that affects submissions
+      // can also affect progress rows. We self-heal enrollment_id on update.
       const { data: existingProgress } = await progressClient
         .from('user_lesson_progress')
         .select(
           'progress_id, quiz_progress_percentage, quiz_passed, video_progress_percentage',
         )
-        .eq('enrollment_id', enrollmentId)
+        .eq('user_id', currentUser.id)
         .eq('lesson_id', lessonId)
-        .single()
+        .order('updated_at', { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle()
 
       const bestProgressScore = existingProgress?.quiz_progress_percentage
         ? Math.max(existingProgress.quiz_progress_percentage, percentageScore)
@@ -375,6 +380,7 @@ async function handlePost(
         const { error: progressUpdateError } = await progressClient
           .from('user_lesson_progress')
           .update({
+            enrollment_id: enrollmentId,
             quiz_progress_percentage: bestProgressScore,
             quiz_completed: true,
             quiz_passed: bestPassed,

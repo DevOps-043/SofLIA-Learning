@@ -222,7 +222,8 @@
       "Bash(sed -n '1,80p' src/lib/lia-context/client/useContextMarkers.ts)",
       "Bash(grep -rln \"LiaPanelProvider\" src/)",
       "Bash(grep -rln \"LiaPanelMount\" src/app)",
-      "Bash(sed -n '1,40p' src/app/api/lia/chat/prompt-instructions/page-instructions.ts)"
+      "Bash(sed -n '1,40p' src/app/api/lia/chat/prompt-instructions/page-instructions.ts)",
+      "Bash(xargs grep -l \"trigger\\\\|TRIGGER\")"
     ],
     "deny": [],
     "ask": []
