@@ -133,19 +133,25 @@ async function handlePost(
     // failures on the user-data tables.
     const writeClient = createAdminClient()
 
-    const currentUser = await SessionService.getCurrentUser()
+    // Three independent lookups — run in parallel to save 2 sequential RTTs.
+    const [currentUser, courseResult, lessonResult] = await Promise.all([
+      SessionService.getCurrentUser(),
+      supabase.from('courses').select('id, title').eq('slug', slug).single(),
+      supabase.from('course_lessons').select('lesson_id').eq('lesson_id', lessonId).single(),
+    ])
+
     if (!currentUser) {
       return apiError('UNAUTHENTICATED', 'No autenticado.', 401)
     }
 
-    const { data: course, error: courseError } = await supabase
-      .from('courses')
-      .select('id, title')
-      .eq('slug', slug)
-      .single()
-
+    const { data: course, error: courseError } = courseResult
     if (courseError || !course) {
       return apiError('COURSE_NOT_FOUND', 'Curso no encontrado.', 404)
+    }
+
+    const { data: lesson, error: lessonError } = lessonResult
+    if (lessonError || !lesson) {
+      return apiError('LESSON_NOT_FOUND', 'Leccion no encontrada.', 404)
     }
 
     const organizationId =
@@ -174,16 +180,6 @@ async function handlePost(
       totalPoints,
       durationSeconds,
     } = body
-
-    const { data: lesson, error: lessonError } = await supabase
-      .from('course_lessons')
-      .select('lesson_id')
-      .eq('lesson_id', lessonId)
-      .single()
-
-    if (lessonError || !lesson) {
-      return apiError('LESSON_NOT_FOUND', 'Leccion no encontrada.', 404)
-    }
 
     const questions = Array.isArray(quizData)
       ? quizData
@@ -329,9 +325,9 @@ async function handlePost(
       submissionResult = data
     }
 
-    // Historial append-only: registra ESTE intento (cada envío), independientemente de
-    // si la submission "mejor/actual" se actualizó. Best-effort, no bloquea el envío.
-    await recordQuizAttempt(writeClient, {
+    // Historial append-only: registra ESTE intento (cada envío). Best-effort, no
+    // bloquea el flujo principal (fire-and-forget: COUNT + INSERT ~2 RTTs ahorradas).
+    void recordQuizAttempt(writeClient, {
       userId: currentUser.id,
       lessonId,
       enrollmentId,
@@ -356,11 +352,10 @@ async function handlePost(
       quizStatus.hasRequiredQuizzes &&
       (!existingSubmission || isPassed || didImproveBestScore)
     ) {
-      const progressClient = createAdminClient()
       // Intentionally look up by (user_id, lesson_id) without filtering on
       // enrollment_id — the same enrollment-ID drift that affects submissions
       // can also affect progress rows. We self-heal enrollment_id on update.
-      const { data: existingProgress } = await progressClient
+      const { data: existingProgress } = await writeClient
         .from('user_lesson_progress')
         .select(
           'progress_id, quiz_progress_percentage, quiz_passed, video_progress_percentage',
@@ -377,7 +372,7 @@ async function handlePost(
       const bestPassed = existingProgress?.quiz_passed || isPassed
 
       if (existingProgress) {
-        const { error: progressUpdateError } = await progressClient
+        const { error: progressUpdateError } = await writeClient
           .from('user_lesson_progress')
           .update({
             enrollment_id: enrollmentId,
@@ -398,7 +393,7 @@ async function handlePost(
           )
         }
       } else {
-        const { error: progressInsertError } = await progressClient
+        const { error: progressInsertError } = await writeClient
           .from('user_lesson_progress')
           .insert({
             user_id: currentUser.id,
@@ -434,7 +429,7 @@ async function handlePost(
         lessonId,
         organizationId: resolvedOrganizationId,
         quizStatus,
-        supabase: createAdminClient(),
+        supabase: writeClient,
         userId: currentUser.id,
       })
     }
