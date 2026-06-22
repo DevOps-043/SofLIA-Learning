@@ -15,6 +15,7 @@ import type { Database, Json } from '@/lib/supabase/types'
 
 import { logger } from '@/lib/utils/logger'
 import { buildOrganizationStylesPayload } from '@/features/business-panel/services/organization-styles-response.service'
+import { PRESET_THEMES } from '@/features/business-panel/config/preset-themes'
 import {
   brandingUpdateSchema,
   type BrandingUpdateBody,
@@ -65,11 +66,11 @@ async function handlePut(
     }
 
     const supabase = await createClient()
-    const { logo_url, favicon_url, banner_url, color_primary, color_secondary, color_accent, font_family } = body
+    const { logo_url, favicon_url, banner_url, color_primary, color_secondary, color_accent, font_family, branding_enabled } = body
 
     const { data: currentBranding, error: currentBrandingError } = await supabase
       .from('organizations')
-      .select('brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family')
+      .select('brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family, branding_enabled')
       .eq('id', auth.organizationId)
       .single()
 
@@ -96,10 +97,23 @@ async function handlePut(
         ? font_family
         : (currentBranding as OrganizationBrandingSource).brand_font_family,
     })
-    const brandingTheme = generateOrganizationBrandingTheme(nextBranding)
+
+    // Resolve the effective branding_enabled flag.
+    // If not provided in the request body, fall back to the current DB value (default false).
+    const nextBrandingEnabled = branding_enabled !== undefined
+      ? branding_enabled
+      : ((currentBranding as { branding_enabled?: boolean | null }).branding_enabled ?? false)
+
+    // When branding is disabled, persist the SofLIA default preset so the
+    // styles cache and any refetch return the correct theme immediately.
+    const sofliaPreset = PRESET_THEMES['SOFLIA']
+    const brandingTheme = nextBrandingEnabled
+      ? generateOrganizationBrandingTheme(nextBranding)
+      : sofliaPreset
 
     const updateData: OrganizationUpdateData = {
       updated_at: new Date().toISOString(),
+      branding_enabled: nextBrandingEnabled,
       brand_color_primary: nextBranding.color_primary,
       brand_color_secondary: nextBranding.color_secondary,
       brand_color_accent: nextBranding.color_accent,
@@ -107,7 +121,7 @@ async function handlePut(
       panel_styles: brandingTheme.panel as unknown as Json,
       user_dashboard_styles: brandingTheme.userDashboard as unknown as Json,
       login_styles: brandingTheme.login as unknown as Json,
-      selected_theme: BRANDING_THEME_ID,
+      selected_theme: nextBrandingEnabled ? BRANDING_THEME_ID : 'SOFLIA',
     }
 
     if (logo_url !== undefined) updateData.brand_logo_url = logo_url || null
@@ -118,7 +132,7 @@ async function handlePut(
       .from('organizations')
       .update(updateData)
       .eq('id', auth.organizationId)
-      .select('brand_logo_url, brand_favicon_url, brand_banner_url, brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family, logo_url, panel_styles, user_dashboard_styles, login_styles, selected_theme')
+      .select('brand_logo_url, brand_favicon_url, brand_banner_url, brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family, logo_url, panel_styles, user_dashboard_styles, login_styles, selected_theme, branding_enabled')
       .single()
 
     if (updateError || !updatedOrg) {
@@ -140,6 +154,7 @@ async function handlePut(
         color_secondary: updatedOrg.brand_color_secondary || DESIGN_HEX_COLOR.success,
         color_accent: updatedOrg.brand_color_accent || DESIGN_HEX_COLOR.secondary,
         font_family: updatedOrg.brand_font_family || 'Inter',
+        branding_enabled: updatedOrg.branding_enabled ?? false,
       },
       styles: buildOrganizationStylesPayload(updatedOrg),
     })

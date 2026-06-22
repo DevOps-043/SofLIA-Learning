@@ -13,6 +13,7 @@ export interface BrandingData {
   color_secondary: string
   color_accent: string
   font_family: string
+  branding_enabled: boolean
 }
 
 export interface BrandingUpdateResult {

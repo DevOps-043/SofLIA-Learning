@@ -50,6 +50,7 @@ export const brandingUpdateSchema = z.object({
   color_secondary: z.union([hexColorSchema, z.literal(''), z.null()]).optional(),
   color_accent: z.union([hexColorSchema, z.literal(''), z.null()]).optional(),
   font_family: optionalTextSchema(120),
+  branding_enabled: z.boolean().optional(),
 }).passthrough()
 
 export const certificateTemplateCreateSchema = z.object({

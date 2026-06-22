@@ -7,6 +7,7 @@ const DEFAULT_BRANDING_STATE: BrandingFormState = {
   color_primary: DESIGN_HEX_COLOR.primary,
   color_secondary: DESIGN_HEX_COLOR.accent,
   color_accent: DESIGN_HEX_COLOR.bgLight,
+  branding_enabled: false,
 }
 
 export function createBrandingFormState(
@@ -18,6 +19,7 @@ export function createBrandingFormState(
         color_primary?: string | null
         color_secondary?: string | null
         color_accent?: string | null
+        branding_enabled?: boolean | null
       }
     | null,
 ): BrandingFormState {
@@ -28,6 +30,7 @@ export function createBrandingFormState(
     color_secondary:
       branding?.color_secondary || DEFAULT_BRANDING_STATE.color_secondary,
     color_accent: branding?.color_accent || DEFAULT_BRANDING_STATE.color_accent,
+    branding_enabled: branding?.branding_enabled ?? false,
   }
 }
 

@@ -226,12 +226,16 @@ async function handlePost(
       )
     const now = new Date().toISOString()
 
+    // Look up an existing submission by (user, lesson, material/activity).
+    // enrollment_id is deliberately excluded: after the B2B enrollment-scope
+    // migrations (20260611) enrollment IDs may have changed, so filtering on
+    // it here causes a false "not found" → INSERT → unique-constraint failure.
+    // We self-heal the stale enrollment_id in the UPDATE path below.
     let existingSubmissionQuery = writeClient
       .from('user_quiz_submissions')
       .select('submission_id, percentage_score, is_passed')
       .eq('user_id', currentUser.id)
       .eq('lesson_id', lessonId)
-      .eq('enrollment_id', enrollmentId)
 
     if (materialId) {
       existingSubmissionQuery = existingSubmissionQuery.eq('material_id', materialId)
@@ -242,7 +246,9 @@ async function handlePost(
     }
 
     const { data: existingSubmission } = await existingSubmissionQuery
-      .single<ExistingQuizSubmissionRow>()
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle<ExistingQuizSubmissionRow>()
 
     const previousScore = existingSubmission?.percentage_score || 0
     const previousPassed = existingSubmission?.is_passed || false
@@ -260,6 +266,7 @@ async function handlePost(
         const { data, error } = await writeClient
           .from('user_quiz_submissions')
           .update({
+            enrollment_id: enrollmentId,
             user_answers: answers,
             score: correctAnswers,
             total_points: calculatedTotalPoints,

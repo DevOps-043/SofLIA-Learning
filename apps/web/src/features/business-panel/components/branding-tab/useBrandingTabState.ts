@@ -204,6 +204,13 @@ export function useBrandingTabState() {
     }
   }
 
+  const handleToggleBranding = (enabled: boolean) => {
+    setLocalBranding((current) => ({
+      ...current,
+      branding_enabled: enabled,
+    }))
+  }
+
   return {
     isLoading,
     error,
@@ -215,6 +222,7 @@ export function useBrandingTabState() {
     setLocalBranding,
     handleSave,
     handleDetectColors,
+    handleToggleBranding,
     openFileDialog,
     handleDropUpload,
   }

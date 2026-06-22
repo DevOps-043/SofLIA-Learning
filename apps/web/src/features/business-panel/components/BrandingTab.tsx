@@ -11,9 +11,12 @@ import {
   useBrandingTabState,
 } from './branding-tab'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
+import { useThemeStore } from '@/core/stores/themeStore'
 
 export function BrandingTab() {
   const theme = useBusinessPanelTheme()
+  const { resolvedTheme } = useThemeStore()
+  const isDark = resolvedTheme === 'dark'
   const {
     isLoading,
     error,
@@ -25,6 +28,7 @@ export function BrandingTab() {
     setLocalBranding,
     handleSave,
     handleDetectColors,
+    handleToggleBranding,
     openFileDialog,
     handleDropUpload,
   } = useBrandingTabState()
@@ -37,35 +41,86 @@ export function BrandingTab() {
     return <BrandingErrorState error={error} />
   }
 
+  const brandingEnabled = localBranding.branding_enabled
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <BrandingLogoCard
-          branding={localBranding}
-          isDetecting={isDetecting}
-          onUpload={() => openFileDialog('Logo-Empresa', 'banner_url')}
-          onDropUpload={(file) =>
-            void handleDropUpload(file, 'Logo-Empresa', 'banner_url')
-          }
-        />
+      {/* Branding toggle */}
+      <div
+        className="rounded-xl border p-5 flex items-start gap-5"
+        style={{
+          backgroundColor: theme.cardBg,
+          borderColor: theme.borderColor,
+        }}
+      >
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm" style={{ color: theme.textColor }}>
+            Branding personalizado
+          </p>
+          <p className="mt-1 text-xs leading-relaxed" style={{ color: theme.subtextColor }}>
+            {brandingEnabled
+              ? 'Los colores y estilos de tu organización se aplican a todos los paneles y componentes de usuario.'
+              : 'Activá el branding personalizado para reemplazar el tema por defecto de SofLIA con los colores de tu organización.'}
+          </p>
+        </div>
 
-        <BrandingFaviconCard
-          branding={localBranding}
-          onUpload={() => openFileDialog('Favicon', 'favicon_url')}
-        />
+        {/* Toggle switch */}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={brandingEnabled}
+          onClick={() => handleToggleBranding(!brandingEnabled)}
+          className="relative flex-shrink-0 mt-0.5 w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          style={{
+            backgroundColor: brandingEnabled
+              ? theme.actionColor
+              : isDark
+              ? 'color-mix(in srgb, var(--color-bg-light) 15%, transparent)'
+              : 'color-mix(in srgb, var(--color-black) 20%, transparent)',
+          }}
+        >
+          <span
+            className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200"
+            style={{
+              transform: brandingEnabled ? 'translateX(24px)' : 'translateX(0)',
+            }}
+          />
+        </button>
       </div>
 
-      <BrandingColorsCard
-        branding={localBranding}
-        isDetecting={isDetecting}
-        onDetectColors={() => void handleDetectColors()}
-        onColorChange={(key, value) =>
-          setLocalBranding((current) => ({
-            ...current,
-            [key]: value,
-          }))
-        }
-      />
+      {/* Color and logo customization — always visible so admins can preview  */}
+      <div
+        className="space-y-5 transition-opacity duration-200"
+        style={{ opacity: brandingEnabled ? 1 : 0.45 }}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <BrandingLogoCard
+            branding={localBranding}
+            isDetecting={isDetecting}
+            onUpload={() => openFileDialog('Logo-Empresa', 'banner_url')}
+            onDropUpload={(file) =>
+              void handleDropUpload(file, 'Logo-Empresa', 'banner_url')
+            }
+          />
+
+          <BrandingFaviconCard
+            branding={localBranding}
+            onUpload={() => openFileDialog('Favicon', 'favicon_url')}
+          />
+        </div>
+
+        <BrandingColorsCard
+          branding={localBranding}
+          isDetecting={isDetecting}
+          onDetectColors={() => void handleDetectColors()}
+          onColorChange={(key, value) =>
+            setLocalBranding((current) => ({
+              ...current,
+              [key]: value,
+            }))
+          }
+        />
+      </div>
 
       <div className="space-y-4">
         <BrandingFeedbackMessages

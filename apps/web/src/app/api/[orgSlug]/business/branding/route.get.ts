@@ -38,7 +38,7 @@ export async function GET(
     // Obtener branding de la organización por slug
     const { data: organization, error: orgError } = await supabase
       .from('organizations')
-      .select('id, name, logo_url, brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family, brand_logo_url, brand_favicon_url, brand_banner_url')
+      .select('id, name, logo_url, brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family, brand_logo_url, brand_favicon_url, brand_banner_url, branding_enabled')
       .eq('slug', orgSlug)
       .single()
 
@@ -59,7 +59,8 @@ export async function GET(
         color_primary: organization.brand_color_primary || DESIGN_HEX_COLOR.info,
         color_secondary: organization.brand_color_secondary || DESIGN_HEX_COLOR.success,
         color_accent: organization.brand_color_accent || DESIGN_HEX_COLOR.secondary,
-        font_family: organization.brand_font_family || 'Inter'
+        font_family: organization.brand_font_family || 'Inter',
+        branding_enabled: organization.branding_enabled ?? false,
       }
     })
   } catch (error) {

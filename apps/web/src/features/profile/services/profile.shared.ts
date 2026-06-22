@@ -3,6 +3,7 @@ import {
   normalizeDateOfBirthForStorage,
   normalizeGenderForStorage,
 } from '../../../lib/schemas/user-demographics.schema'
+import { hexToRgbColor, resolveHexColor } from '../../../core/theme/color-engine'
 import type {
   ProfileColorPalette,
   UpdateProfileRequest,
@@ -39,6 +40,26 @@ type SubscriptionRecord = {
 
 export const PROFILE_IMAGE_ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'] as const
 export const PROFILE_UPLOAD_MAX_SIZE_BYTES = 10 * 1024 * 1024
+
+// Resolves any color value (CSS var, hex, rgba string) to a luminance value [0,1].
+// Returns true for colors with perceived luminance > 0.6 (light backgrounds).
+function isLightBackgroundColor(colorValue: string): boolean {
+  const resolved = resolveHexColor(colorValue)
+  if (resolved) {
+    const rgb = hexToRgbColor(resolved)
+    if (rgb) {
+      return (0.299 * rgb.red + 0.587 * rgb.green + 0.114 * rgb.blue) / 255 > 0.6
+    }
+  }
+
+  // Fallback for non-hex formats (e.g. rgba strings)
+  const lower = colorValue.toLowerCase()
+  return (
+    lower === 'var(--color-bg-light)' ||
+    lower === 'var(--color-gray-50)' ||
+    lower.includes('255, 255, 255')
+  )
+}
 
 export const DEFAULT_PROFILE_COLORS: ProfileColorPalette = {
   primary: 'var(--color-primary)',
@@ -242,11 +263,7 @@ export function resolveProfileColors(
   } | null | undefined
 ): ProfileColorPalette {
   const cardBackground = userDashboardStyles?.card_background || DEFAULT_PROFILE_COLORS.bgSecondary
-  const normalizedCardBackground = cardBackground.toLowerCase()
-  const isLightMode =
-    normalizedCardBackground === 'var(--color-bg-light)' ||
-    normalizedCardBackground === 'var(--color-gray-50)' ||
-    normalizedCardBackground.includes('255, 255, 255')
+  const isLightMode = isLightBackgroundColor(cardBackground)
 
   let bgPrimary = userDashboardStyles?.sidebar_background || (isLightMode ? 'var(--color-gray-100)' : DEFAULT_PROFILE_COLORS.bgPrimary)
   let text = userDashboardStyles?.text_color || (isLightMode ? 'var(--color-legacy-0f172a)' : DEFAULT_PROFILE_COLORS.text)

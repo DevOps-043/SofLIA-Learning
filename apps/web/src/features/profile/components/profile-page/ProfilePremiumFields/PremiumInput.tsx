@@ -54,7 +54,7 @@ export function PremiumInput({
               onBlur={() => setFocused(false)}
               placeholder={focused ? placeholder : ''}
               max={max}
-              className={`w-full bg-transparent text-base font-medium focus:outline-none placeholder-white/20 ${(focused || hasValue) ? 'pt-4' : 'pt-0'}`}
+              className={`w-full bg-transparent text-base font-medium focus:outline-none ${(focused || hasValue) ? 'pt-4' : 'pt-0'}`}
               style={{ color: colors.text }}
             />
           </div>

@@ -16,6 +16,7 @@ export interface Organization {
   brandColorSecondary?: string | null;
   brandColorAccent?: string | null;
   brandFontFamily?: string | null;
+  brandingEnabled?: boolean;
   role: 'owner' | 'admin' | 'member';
   subscriptionPlan?: 'team' | 'business' | 'enterprise';
   subscriptionStatus?: 'active' | 'expired' | 'cancelled' | 'trial' | 'pending';

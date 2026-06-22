@@ -11,6 +11,7 @@ import {
   OrganizationGlobalCSSInjector,
 } from '@/features/business-panel/contexts/OrganizationStylesContext';
 import type { OrganizationStyles } from '@/features/business-panel/contexts/OrganizationStylesContext';
+import { PRESET_THEMES } from '@/features/business-panel/config/preset-themes';
 
 interface OrganizationLayoutClientProps {
   children: React.ReactNode;
@@ -59,6 +60,20 @@ export function OrganizationLayoutClient({
   ]);
 
   const initialStyles = useMemo((): OrganizationStyles => {
+    // When custom branding is disabled, serve the SofLIA default preset so every
+    // user-facing surface (panel, dashboard, SofLIA) shows the standard theme.
+    if (!organization.brandingEnabled) {
+      const sofliaTheme = PRESET_THEMES['SOFLIA'];
+      return {
+        panel: sofliaTheme.panel,
+        userDashboard: sofliaTheme.userDashboard,
+        login: sofliaTheme.login,
+        selectedTheme: 'SOFLIA',
+        supportsDualMode: sofliaTheme.supportsDualMode,
+        lightMode: sofliaTheme.lightMode,
+      };
+    }
+
     const theme = generateOrganizationBrandingTheme({
       brand_color_primary: organization.brandColorPrimary ?? null,
       brand_color_secondary: organization.brandColorSecondary ?? null,
@@ -75,6 +90,7 @@ export function OrganizationLayoutClient({
       lightMode: theme.lightMode,
     };
   }, [
+    organization.brandingEnabled,
     organization.brandColorPrimary,
     organization.brandColorSecondary,
     organization.brandColorAccent,
