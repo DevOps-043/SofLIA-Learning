@@ -91,7 +91,12 @@ export function useSpeechRecognitionLifecycle({
       stopSpeechRecognitionSafely(recognition);
       setIsListening(false);
 
-      if (event.error === "not-allowed") {
+      // These are normal lifecycle events — not user-visible errors.
+      if (event.error === "no-speech" || event.error === "aborted") {
+        return;
+      }
+
+      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
         setVoiceError(getMicrophoneNotAllowedMessage(messagesRef.current));
         return;
       }

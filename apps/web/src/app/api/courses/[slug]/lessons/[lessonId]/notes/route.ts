@@ -6,7 +6,9 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createAdminClient } from '@/lib/supabase/admin'
 import {
   ensureCourseEnrollmentScope,
+  loadCourseEnrollments,
   resolveCourseEnrollment,
+  type CourseEnrollmentScope,
 } from '@/features/courses/services/course-enrollment.server.service'
 
 /**
@@ -42,12 +44,19 @@ export async function GET(
 
     const supabase = createAdminClient()
     const organizationId = request.nextUrl.searchParams.get('orgId')
-    const enrollment = await resolveCourseEnrollment(
-      supabase,
-      currentUser.id,
-      course.id,
-      organizationId,
-    )
+    let enrollment = await resolveCourseEnrollment(supabase, currentUser.id, course.id, organizationId)
+
+    // Business users have enrollments scoped to an org. When no orgId is provided
+    // (e.g. Transcript/Summary panels don't pass it), fall back to the most
+    // recent enrollment across all orgs so notes still load correctly.
+    if (!enrollment && !organizationId) {
+      const allEnrollments = await loadCourseEnrollments(supabase, currentUser.id, course.id)
+      const best = allEnrollments[0]
+      if (best) {
+        enrollment = { ...best, course_id: course.id, user_id: currentUser.id } as CourseEnrollmentScope
+      }
+    }
+
     const notes = enrollment
       ? await NoteService.getNotesByLesson(
           currentUser.id,
@@ -103,12 +112,23 @@ export async function POST(
         : null
     const supabase = createAdminClient()
 
-    const enrollment = await ensureCourseEnrollmentScope(
+    let enrollment = await ensureCourseEnrollmentScope(
       supabase,
       currentUser.id,
       course.id,
       requestedOrganizationId,
     )
+
+    // When no organization_id is sent (Transcript/Summary panels omit it),
+    // fall back to the most recent enrollment across all orgs before failing.
+    if (!enrollment && !requestedOrganizationId) {
+      const allEnrollments = await loadCourseEnrollments(supabase, currentUser.id, course.id)
+      const best = allEnrollments[0]
+      if (best) {
+        enrollment = { ...best, course_id: course.id, user_id: currentUser.id } as CourseEnrollmentScope
+      }
+    }
+
     if (!enrollment) {
       return NextResponse.json(
         { error: 'No tienes acceso a este curso en este contexto' },
