@@ -1,3 +1,4 @@
+import dynamic from 'next/dynamic'
 import type { ReportsAnalyticsAiInsights, ReportsAnalyticsResponse } from '../../types/reports-analytics.types'
 import { AiInsightsPanel } from './AiInsightsPanel'
 import { CourseRiskTable } from './CourseRiskTable'
@@ -5,11 +6,28 @@ import { DataQualityPanel } from './DataQualityPanel'
 import { LeaderboardPanel } from './LeaderboardPanel'
 import { OverviewGrid } from './OverviewGrid'
 import { QualityScorePanel } from './QualityScorePanel'
-import { ReportsChartsGrid } from './ReportsChartsGrid'
 import { ReportsSummaryGrid } from './ReportsSummaryGrid'
-import { SegmentComparisonPanel } from './SegmentComparisonPanel'
 import type { ReportsAnalyticsLocale, ReportsAnalyticsT, ThemeTokens } from './types'
 import type { useReportFormatters } from './useReportFormatters'
+
+// Heavy chart panels — imported dynamically so Recharts is not bundled in the initial chunk.
+// They render only after the page is interactive; the skeleton prevents layout shift.
+const ChartSkeleton = ({ className }: { className?: string }) => (
+  <div className={`animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800 ${className ?? 'h-64'}`} />
+)
+
+const ReportsChartsGrid = dynamic(() => import('./ReportsChartsGrid').then(m => ({ default: m.ReportsChartsGrid })), {
+  ssr: false,
+  loading: () => <ChartSkeleton className="h-80" />,
+})
+
+const SegmentComparisonPanel = dynamic(
+  () => import('./SegmentComparisonPanel').then(m => ({ default: m.SegmentComparisonPanel })),
+  {
+    ssr: false,
+    loading: () => <ChartSkeleton className="h-64" />,
+  }
+)
 
 export function ReportsLoadedContent({
   data,

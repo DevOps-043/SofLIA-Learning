@@ -224,7 +224,9 @@
       "Bash(grep -rln \"LiaPanelMount\" src/app)",
       "Bash(sed -n '1,40p' src/app/api/lia/chat/prompt-instructions/page-instructions.ts)",
       "Bash(xargs grep -l \"trigger\\\\|TRIGGER\")",
-      "Bash(grep -E \"\\\\.tsx$\")"
+      "Bash(grep -E \"\\\\.tsx$\")",
+      "Bash(git -C \"c:/Users/fysg5/OneDrive/Escritorio/PulseHub/Soflia-Learning/SofLIA-Learning\" diff apps/web/src/app/api/lia/chat/prompt-instructions/page-instructions.ts)",
+      "Bash(git -C \"c:/Users/fysg5/OneDrive/Escritorio/PulseHub/Soflia-Learning/SofLIA-Learning\" diff --stat HEAD)"
     ],
     "deny": [],
     "ask": []

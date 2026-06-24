@@ -23,12 +23,33 @@ function createNextConfig(appDir) {
     experimental: {
       externalDir: true,
       // Transforma imports de barril en imports directos -> menos JS por ruta y
-      // mejor tree-shaking. Solo `framer-motion` (animacion) como adicion a lo que
-      // ya cubre el default de Next (lucide-react, heroicons, date-fns...).
-      // `recharts` se deja FUERA de forma conservadora: la libreria ya emite un
-      // warning interno propio (`selectPolarChartLayout`, preexistente y ajeno a
-      // esta opcion), asi que no la incluimos para no sumar variables sobre charts.
-      optimizePackageImports: ['lucide-react', 'framer-motion'],
+      // mejor tree-shaking. Cubre framer-motion, recharts, headlessui, todos los
+      // radix-ui usados en el proyecto y tremor (además de los defaults de Next:
+      // lucide-react, heroicons, date-fns). recharts emite un warning propio
+      // (selectPolarChartLayout) preexistente y no relacionado con esta opción.
+      optimizePackageImports: [
+        'lucide-react',
+        'framer-motion',
+        'recharts',
+        '@headlessui/react',
+        '@radix-ui/react-dialog',
+        '@radix-ui/react-dropdown-menu',
+        '@radix-ui/react-popover',
+        '@radix-ui/react-select',
+        '@radix-ui/react-tabs',
+        '@radix-ui/react-tooltip',
+        '@radix-ui/react-accordion',
+        '@radix-ui/react-checkbox',
+        '@radix-ui/react-switch',
+        '@radix-ui/react-avatar',
+        '@radix-ui/react-label',
+        '@radix-ui/react-separator',
+        '@radix-ui/react-progress',
+        '@radix-ui/react-scroll-area',
+        '@radix-ui/react-slot',
+        '@radix-ui/react-toast',
+        '@tremor/react',
+      ],
     },
     outputFileTracingExcludes,
     serverExternalPackages,

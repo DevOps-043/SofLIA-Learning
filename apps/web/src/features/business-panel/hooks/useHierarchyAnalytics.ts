@@ -66,9 +66,9 @@ export function useHierarchyAnalytics(
     {
       refreshInterval: disabled ? 0 : refreshInterval,
 // ... (omitting unchanged options for brevity in logic, but I'll write the full block in replacement)
-      revalidateOnFocus: true,
+      revalidateOnFocus: false,     // refreshInterval ya garantiza frescura; focus revalidation duplicaría requests
       revalidateOnReconnect: true,
-      dedupingInterval: 5000, // Evitar requests duplicados en 5 segundos
+      dedupingInterval: 5000,       // Evitar requests duplicados en 5 segundos
       revalidateIfStale: true,
       onError: (error) => {
         techDebtLogger.error(`Error obteniendo analíticas de ${entityType}:`, error)

@@ -3,7 +3,7 @@
 import useSWR from 'swr'
 import { Notification } from '../services/notification.service'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 export type NotificationStatusFilter = 'all' | 'unread' | 'read' | 'archived'
 
@@ -18,21 +18,23 @@ export function useNotificationList(options: UseNotificationListOptions = {}) {
   const [statusFilter, setStatusFilter] = useState<NotificationStatusFilter>(options.status || 'all')
   const [limit, setLimit] = useState(options.limit || 50)
   
-  const queryParams = new URLSearchParams()
-  if (statusFilter !== 'all') {
-    queryParams.append('status', statusFilter)
-  }
-  queryParams.append('limit', limit.toString())
-  queryParams.append('orderBy', 'created_at')
-  queryParams.append('orderDirection', 'desc')
+  // Memoized to keep the SWR key stable between renders
+  const queryString = useMemo(() => {
+    const params = new URLSearchParams()
+    if (statusFilter !== 'all') params.append('status', statusFilter)
+    params.append('limit', limit.toString())
+    params.append('orderBy', 'created_at')
+    params.append('orderDirection', 'desc')
+    return params.toString()
+  }, [statusFilter, limit])
 
   const shouldFetch = !authLoading && isAuthenticated && !!user
 
   const { data, error, mutate, isLoading } = useSWR<{ success: boolean; data: { notifications: Notification[]; total: number } }>(
-    shouldFetch ? `/api/notifications?${queryParams.toString()}` : null,
+    shouldFetch ? `/api/notifications?${queryString}` : null,
     {
-      revalidateOnFocus: true,
-      dedupingInterval: 2000
+      revalidateOnFocus: false,  // Polled by NotificationContext; focus revalidation is redundant
+      dedupingInterval: 10000,
     }
   )
 

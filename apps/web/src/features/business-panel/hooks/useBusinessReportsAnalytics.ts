@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
+import useSWR from 'swr'
 import type {
   ReportsAnalyticsAiInsights,
   ReportsAnalyticsExportFormat,
@@ -35,49 +36,59 @@ class ApiJsonResponseError extends Error {
 export function useBusinessReportsAnalytics() {
   const params = useParams()
   const orgSlug = params?.orgSlug as string
+
+  // ── Filter state ───────────────────────────────────────────────────────────
   const [filters, setFilters] = useState<BusinessReportsAnalyticsClientFilters>(() => getDefaultFilters())
-  const [data, setData] = useState<ReportsAnalyticsResponse | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+
+  // ── Mutation state (export, insights) — kept local, not SWR ───────────────
   const [isExporting, setIsExporting] = useState<ReportsAnalyticsExportFormat | null>(null)
   const [insights, setInsights] = useState<ReportsAnalyticsAiInsights | null>(null)
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false)
   const [isExportingInsightsPdf, setIsExportingInsightsPdf] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [mutationError, setMutationError] = useState<string | null>(null)
 
   const queryString = useMemo(() => buildQueryString(filters), [filters])
 
-  const fetchAnalytics = useCallback(async () => {
-    if (!orgSlug) return
+  // ── Analytics data — SWR caches by URL so same filters = instant replay ───
+  // keepPreviousData: shows old results while new filter set loads (no skeleton flash).
+  // revalidateOnFocus: false — heavy analytics don't need silent refetch on tab switch.
+  const analyticsUrl = orgSlug ? `/api/${orgSlug}/business/reports-analytics?${queryString}` : null
 
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const response = await fetch(`/api/${orgSlug}/business/reports-analytics?${queryString}`, {
-        credentials: 'include',
-      })
+  const {
+    data,
+    isLoading,
+    isValidating,
+    error: swrError,
+    mutate: swrMutate,
+  } = useSWR<ReportsAnalyticsResponse>(
+    analyticsUrl,
+    async (url: string) => {
+      const response = await fetch(url, { credentials: 'include' })
       const payload = await readApiJson<ReportsAnalyticsResponse & { error?: string }>(
         response,
         'analytics_fetch_failed',
       )
-
       if (!response.ok || !payload.success) {
         throw new Error(payload.error || 'analytics_fetch_failed')
       }
+      return payload as ReportsAnalyticsResponse
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 30000,
+      keepPreviousData: true,
+      errorRetryCount: 1,
+    },
+  )
 
-      setData(payload as ReportsAnalyticsResponse)
-      setInsights(null)
-    } catch (fetchError) {
-      setError(fetchError instanceof Error ? fetchError.message : 'analytics_fetch_failed')
-      setData(null)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [orgSlug, queryString])
-
+  // Clear stale insights when the filter set changes
   useEffect(() => {
-    fetchAnalytics()
-  }, [fetchAnalytics])
+    setInsights(null)
+  }, [queryString])
+
+  const error =
+    swrError instanceof Error ? swrError.message : mutationError
 
   const updateFilter = useCallback(
     (key: keyof BusinessReportsAnalyticsClientFilters, value: string) => {
@@ -100,20 +111,14 @@ export function useBusinessReportsAnalytics() {
       if (!orgSlug) return
 
       setIsExporting(format)
-      setError(null)
+      setMutationError(null)
 
       try {
         const response = await fetch(`/api/${orgSlug}/business/reports-analytics`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({
-            ...compactFilters(filters),
-            format,
-            locale,
-          }),
+          body: JSON.stringify({ ...compactFilters(filters), format, locale }),
         })
 
         if (!response.ok) {
@@ -125,7 +130,7 @@ export function useBusinessReportsAnalytics() {
         const filename = getFilenameFromResponse(response) || getFallbackFilename(format)
         downloadBlob(blob, filename)
       } catch (exportError) {
-        setError(exportError instanceof Error ? exportError.message : 'analytics_export_failed')
+        setMutationError(exportError instanceof Error ? exportError.message : 'analytics_export_failed')
       } finally {
         setIsExporting(null)
       }
@@ -138,19 +143,14 @@ export function useBusinessReportsAnalytics() {
       if (!orgSlug || !data) return
 
       setIsGeneratingInsights(true)
-      setError(null)
+      setMutationError(null)
 
       try {
         const response = await fetch(`/api/${orgSlug}/business/reports-analytics/insights`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({
-            ...compactFilters(filters),
-            locale,
-          }),
+          body: JSON.stringify({ ...compactFilters(filters), locale }),
         })
         const payload = await readApiJson<ReportsAnalyticsInsightsResponse & { error?: string }>(
           response,
@@ -163,7 +163,7 @@ export function useBusinessReportsAnalytics() {
 
         setInsights((payload as ReportsAnalyticsInsightsResponse).insights)
       } catch (insightsError) {
-        setError(insightsError instanceof Error ? insightsError.message : 'analytics_insights_failed')
+        setMutationError(insightsError instanceof Error ? insightsError.message : 'analytics_insights_failed')
       } finally {
         setIsGeneratingInsights(false)
       }
@@ -176,20 +176,14 @@ export function useBusinessReportsAnalytics() {
       if (!orgSlug || !data) return
 
       setIsExportingInsightsPdf(true)
-      setError(null)
+      setMutationError(null)
 
       try {
         const response = await fetch(`/api/${orgSlug}/business/reports-analytics/insights`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({
-            ...compactFilters(filters),
-            locale,
-            format: 'pdf',
-          }),
+          body: JSON.stringify({ ...compactFilters(filters), locale, format: 'pdf' }),
         })
 
         if (!response.ok) {
@@ -201,7 +195,7 @@ export function useBusinessReportsAnalytics() {
         const filename = getFilenameFromResponse(response) || 'soflia-insights.pdf'
         downloadBlob(blob, filename)
       } catch (exportError) {
-        setError(exportError instanceof Error ? exportError.message : 'analytics_insights_export_failed')
+        setMutationError(exportError instanceof Error ? exportError.message : 'analytics_insights_export_failed')
       } finally {
         setIsExportingInsightsPdf(false)
       }
@@ -209,18 +203,24 @@ export function useBusinessReportsAnalytics() {
     [data, filters, orgSlug],
   )
 
+  const refetch = useCallback(() => {
+    setMutationError(null)
+    return swrMutate()
+  }, [swrMutate])
+
   return {
-    data,
+    data: data ?? null,
     insights,
     filters,
-    isLoading,
+    isLoading,       // true only on first load (no cached data yet)
+    isValidating,    // true when fetching with previous data visible — use for subtle refresh indicators
     isExporting,
     isGeneratingInsights,
     isExportingInsightsPdf,
     error,
     updateFilter,
     resetFilters,
-    refetch: fetchAnalytics,
+    refetch,
     exportAnalytics,
     generateInsights,
     exportInsightsPdf,

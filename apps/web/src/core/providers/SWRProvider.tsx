@@ -5,15 +5,18 @@ import { ReactNode } from 'react';
 
 /**
  * SWR Global Configuration Provider
- * 
- * Configuración optimizada para cache inteligente y revalidación automática.
- * 
- * Estrategia de cache:
- * - dedupingInterval: 2s - Evita requests duplicados en 2 segundos
- * - focusThrottleInterval: 5s - Revalida máximo cada 5s al enfocar ventana
- * - revalidateOnFocus: true - Revalida datos cuando usuario vuelve a la app
- * - revalidateOnReconnect: true - Revalida cuando se recupera conexión
- * 
+ *
+ * Estrategia de caché:
+ * - revalidateOnFocus: false  — no refetch al cambiar de pestaña; en páginas con
+ *   muchos hooks activos (analytics, jerarquía) esto evita 5-10 requests simultáneas
+ *   cada vez que el usuario vuelve al tab. Los hooks que necesitan frescura usan
+ *   refreshInterval propio (ej. notificaciones, jerarquía).
+ * - dedupingInterval: 30 s   — componentes múltiples pidiendo la misma URL en la
+ *   misma ventana de 30 s comparten una sola request.
+ * - focusThrottleInterval: 5 min — fallback de seguridad para los hooks que
+ *   sobreescriban revalidateOnFocus:true explícitamente.
+ * - revalidateOnReconnect: true — recuperación de red sí justifica revalidar.
+ *
  * @see https://swr.vercel.app/docs/options
  */
 
@@ -53,18 +56,18 @@ export function SWRProvider({ children }: SWRProviderProps) {
         fetcher,
         
         // Revalidación automática
-        revalidateOnFocus: true,        // Revalida al volver a la pestaña
-        revalidateOnReconnect: true,    // Revalida al recuperar conexión
-        revalidateIfStale: true,        // Revalida si data está stale
-        
+        revalidateOnFocus: false,       // No refetch al cambiar de pestaña (evita avalancha de requests en páginas con muchos hooks)
+        revalidateOnReconnect: true,    // Revalida al recuperar conexión de red
+        revalidateIfStale: true,        // Revalida si data está stale al montar
+
         // Retry en caso de error
         shouldRetryOnError: true,       // Reintentar si falla
         errorRetryCount: 3,             // Máximo 3 reintentos
         errorRetryInterval: 5000,       // 5 segundos entre reintentos
-        
+
         // Deduplicación y throttling
-        dedupingInterval: 5000,         // Deduplica requests en 5 segundos
-        focusThrottleInterval: 30000,   // Throttle revalidación al enfocar (30s)
+        dedupingInterval: 30000,        // Deduplica requests idénticas en 30 s (antes: 5 s)
+        focusThrottleInterval: 300000,  // Throttle de fallback para hooks con revalidateOnFocus:true explícito (5 min)
         
         // Timeouts
         loadingTimeout: 3000,           // Mostrar loading después de 3s

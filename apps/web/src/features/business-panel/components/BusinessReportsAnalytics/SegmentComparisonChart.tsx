@@ -1,7 +1,8 @@
+import { memo } from 'react'
 import { Bar, BarChart as RechartsBarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { ReportsAnalyticsT, SegmentDisplayRow, ThemeTokens } from './types'
 
-export function SegmentComparisonChart({
+export const SegmentComparisonChart = memo(function SegmentComparisonChart({
   chartRows,
   theme,
   t,
@@ -28,4 +29,4 @@ export function SegmentComparisonChart({
       </RechartsBarChart>
     </ResponsiveContainer>
   )
-}
+})

@@ -3,7 +3,7 @@
 import { ReactNode, useCallback, useEffect, useMemo, useState, createContext, useContext } from 'react';
 import { I18nextProvider } from 'react-i18next';
 
-import { initI18n, SupportedLanguage, syncI18nResources } from '../i18n/i18n';
+import { initI18n, SupportedLanguage, loadLanguageAsync } from '../i18n/i18n';
 
 interface LanguageContextValue {
   language: SupportedLanguage;
@@ -15,38 +15,49 @@ const LanguageContext = createContext<LanguageContextValue | undefined>(undefine
 const STORAGE_KEY = 'app-language';
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const i18nInstance = useMemo(() => {
-    return initI18n();
-  }, []);
+  const i18nInstance = useMemo(() => initI18n(), []);
   const [language, setLanguageState] = useState<SupportedLanguage>('es');
 
-  useEffect(() => {
-    syncI18nResources();
-  });
-
+  // On mount: read the stored language preference, load its bundle if needed (EN/PT
+  // are lazy chunks), then apply it. Spanish is always available immediately.
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    syncI18nResources();
-
     const savedLanguage = localStorage.getItem(STORAGE_KEY) as SupportedLanguage | null;
     const initialLang = savedLanguage || 'es';
-    setLanguageState(initialLang);
-    document.documentElement.lang = initialLang;
-    // Only change language if different from current to avoid unnecessary reload cycles
-    if (i18nInstance.language !== initialLang) {
-      i18nInstance.changeLanguage(initialLang).catch(() => {});
-    }
-  }, [i18nInstance]);
+
+    const applyLanguage = async () => {
+      if (initialLang !== 'es') {
+        await loadLanguageAsync(initialLang);
+      }
+      setLanguageState(initialLang);
+      document.documentElement.lang = initialLang;
+      if (i18nInstance.language !== initialLang) {
+        await i18nInstance.changeLanguage(initialLang);
+      }
+    };
+
+    applyLanguage().catch(() => {
+      // If the language bundle fails to load, stay on Spanish (already bundled)
+      setLanguageState('es');
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const changeLanguage = useCallback(
     (lang: SupportedLanguage) => {
-      setLanguageState(lang);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, lang);
-        document.documentElement.lang = lang;
-      }
-      i18nInstance.changeLanguage(lang).catch(() => {});
+      const doChange = async () => {
+        if (lang !== 'es') {
+          await loadLanguageAsync(lang);
+        }
+        setLanguageState(lang);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(STORAGE_KEY, lang);
+          document.documentElement.lang = lang;
+        }
+        await i18nInstance.changeLanguage(lang);
+      };
+      doChange().catch(() => {});
     },
     [i18nInstance]
   );

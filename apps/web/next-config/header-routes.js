@@ -29,6 +29,24 @@ const STATIC_CACHE_ROUTES = [
   '/_next/static/chunks/:path*',
 ];
 
+// Short-lived private cache for user-specific API data that rarely changes.
+// Reduces repeat round-trips on navigation without exposing stale security-critical state.
+const SHORT_CACHE_API_ROUTES = [
+  '/api/users/organizations',
+];
+
+const SHORT_CACHE_HEADER = {
+  key: 'Cache-Control',
+  value: 'private, max-age=120, stale-while-revalidate=60',
+};
+
+function shortCacheApiHeaders(source) {
+  return {
+    source,
+    headers: [SHORT_CACHE_HEADER],
+  };
+}
+
 function privateRouteHeaders(source) {
   return {
     source,
@@ -52,6 +70,8 @@ module.exports = {
   NO_INDEX_HEADER,
   PRIVATE_ROUTE_SOURCES,
   STATIC_CACHE_ROUTES,
+  SHORT_CACHE_API_ROUTES,
   privateRouteHeaders,
   staticCacheHeaders,
+  shortCacheApiHeaders,
 };

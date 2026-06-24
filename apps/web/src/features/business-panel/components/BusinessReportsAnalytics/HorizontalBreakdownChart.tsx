@@ -1,16 +1,17 @@
+import { memo, useMemo } from 'react'
 import { Bar, BarChart as RechartsBarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { ReportsAnalyticsBreakdownItem } from '../../types/reports-analytics.types'
 import { truncateLabel } from './text.utils'
 import type { ThemeTokens } from './types'
 
-export function HorizontalBreakdownChart({
+export const HorizontalBreakdownChart = memo(function HorizontalBreakdownChart({
   data,
   theme,
 }: {
   data: Array<ReportsAnalyticsBreakdownItem & { fill: string }>
   theme: ThemeTokens
 }) {
-  const visibleData = data.slice(0, 8)
+  const visibleData = useMemo(() => data.slice(0, 8), [data])
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -32,4 +33,4 @@ export function HorizontalBreakdownChart({
       </RechartsBarChart>
     </ResponsiveContainer>
   )
-}
+})

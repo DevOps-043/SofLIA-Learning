@@ -12,9 +12,6 @@
     "userStats": "User Statistics",
     "companies": "Companies",
     "reports": "Reports",
-    "security": "Security",
-    "transcoding": "Video transcoding",
-    "ttsAudio": "TTS Audio",
     "reviews": "Reviews"
   },
   "dashboard": {
@@ -1465,48 +1462,5 @@
     "noUserAssignments": "No individual assignments registered.",
     "confirmRevokeOrg": "Revoke access to this course for the ENTIRE organization?",
     "confirmRevokeUser": "Revoke this individual assignment?"
-  },
-  "security": {
-    "eyebrow": "Security",
-    "title": "Security audit",
-    "subtitle": "Monitor sensitive events, denials, alerts, and recent security activity.",
-    "refresh": "Refresh",
-    "alertsTitle": "Active alerts",
-    "eventsTitle": "Recent events",
-    "empty": "There are no recent security events.",
-    "alertDescription": "{{observed}} events for {{group}} in {{window}} min. Threshold: {{threshold}}.",
-    "summary": {
-      "success": "Successful",
-      "denied": "Denied",
-      "error": "Errors",
-      "alerts": "Alerts"
-    },
-    "result": {
-      "success": "Success",
-      "denied": "Denied",
-      "error": "Error"
-    },
-    "severity": {
-      "medium": "Medium",
-      "high": "High",
-      "critical": "Critical"
-    },
-    "alertCodes": {
-      "login_failure_burst": "Login failure burst",
-      "access_denied_burst": "Access denied burst",
-      "csp_violation_spike": "CSP violation spike",
-      "ssrf_probe_burst": "Blocked SSRF attempts",
-      "upload_rejection_burst": "Elevated upload rejections"
-    },
-    "table": {
-      "time": "Time",
-      "action": "Action",
-      "result": "Result",
-      "actor": "Actor",
-      "resource": "Resource"
-    },
-    "errors": {
-      "loadFailed": "Security audit could not be loaded."
-    }
   }
 }

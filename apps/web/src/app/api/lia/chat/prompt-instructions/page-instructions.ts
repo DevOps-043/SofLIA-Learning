@@ -10,7 +10,7 @@ import { buildVisiblePageContentSection } from './visible-page-content'
 export function buildPageInstructionsSection(context: PlatformContext): string {
   let section = ''
 
-  if (context.userJobTitle || context.currentLessonContext || context.currentActivityContext) {
+  if (context.currentLessonContext || context.currentActivityContext) {
     section += buildUniversalUserRoleSection(context, context.currentLessonContext)
   }
 

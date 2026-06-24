@@ -1,10 +1,11 @@
+import { memo, useMemo } from 'react'
 import { Cell, Pie, PieChart, RadialBar, RadialBarChart, ResponsiveContainer, Tooltip } from 'recharts'
 import type { ReportsAnalyticsBreakdownItem } from '../../types/reports-analytics.types'
 import type { BreakdownChartVariant } from './BreakdownCard'
 import { BreakdownLegend } from './BreakdownLegend'
 import type { ThemeTokens } from './types'
 
-export function CircularBreakdownChart({
+export const CircularBreakdownChart = memo(function CircularBreakdownChart({
   data,
   theme,
   variant,
@@ -13,13 +14,16 @@ export function CircularBreakdownChart({
   theme: ThemeTokens
   variant: Exclude<BreakdownChartVariant, 'horizontalBar'>
 }) {
-  const chartData: Array<Record<string, string | number>> = data.map((item) => ({
-    fill: item.fill,
-    key: item.key,
-    label: item.label,
-    percentage: item.percentage,
-    value: item.value,
-  }))
+  const chartData = useMemo<Array<Record<string, string | number>>>(
+    () => data.map((item) => ({
+      fill: item.fill,
+      key: item.key,
+      label: item.label,
+      percentage: item.percentage,
+      value: item.value,
+    })),
+    [data],
+  )
 
   return (
     <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-4 md:grid-cols-[minmax(0,1fr)_180px] md:grid-rows-1">
@@ -41,4 +45,4 @@ export function CircularBreakdownChart({
       <BreakdownLegend data={data} theme={theme} />
     </div>
   )
-}
+})

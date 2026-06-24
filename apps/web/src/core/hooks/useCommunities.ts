@@ -46,11 +46,9 @@ export function useCommunities() {
     
     return result;
   }, {
-    // Cache semi-estático: revalidar cada 5 minutos si está en background
-    dedupingInterval: 2000,
-    revalidateOnFocus: true,
+    dedupingInterval: 30000,
+    revalidateOnFocus: false,
     revalidateOnReconnect: true,
-    // Reintentar en caso de error (excepto 404)
     shouldRetryOnError: (error: { status?: number }) => {
       return error?.status !== 404;
     },
@@ -74,10 +72,10 @@ export function useCommunities() {
  */
 export function useCommunity(slug: string | null) {
   const { data, error, isLoading, mutate } = useSWR(
-    slug ? `/api/communities/${slug}` : null, // null = no hacer request
+    slug ? `/api/communities/${slug}` : null,
     {
-      dedupingInterval: 2000,
-      revalidateOnFocus: true,
+      dedupingInterval: 30000,
+      revalidateOnFocus: false,
       revalidateOnReconnect: true,
     }
   );
@@ -102,11 +100,10 @@ export function useCommunityPosts(slug: string | null, page: number = 1, limit: 
   const { data, error, isLoading, mutate } = useSWR(
     slug ? `/api/communities/${slug}/posts?page=${page}&limit=${limit}` : null,
     {
-      // Cache dinámico: revalidar más frecuentemente (posts cambian más)
-      dedupingInterval: 1000,
-      revalidateOnFocus: true,
+      dedupingInterval: 10000,
+      revalidateOnFocus: false,
       revalidateOnReconnect: true,
-      refreshInterval: 30000, // Auto-refresh cada 30 segundos
+      refreshInterval: 120000, // Refresco cada 2 min (antes: 30 s — demasiado agresivo para contenido social)
     }
   );
 
@@ -129,8 +126,8 @@ export function useNews(page: number = 1, limit: number = 10) {
   const { data, error, isLoading, mutate } = useSWR(
     `/api/news?page=${page}&limit=${limit}`,
     {
-      dedupingInterval: 2000,
-      revalidateOnFocus: true,
+      dedupingInterval: 30000,
+      revalidateOnFocus: false,
       revalidateOnReconnect: true,
     }
   );
