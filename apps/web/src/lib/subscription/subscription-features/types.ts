@@ -33,5 +33,6 @@ export type FeatureKey =
   | 'notification_email'
   | 'notification_push'
   | 'notification_sms'
+  | 'notification_whatsapp'
 
 export type FeatureAccess = Record<SubscriptionPlan, boolean>

@@ -42,4 +42,5 @@ export const FEATURE_PLAN_ACCESS: Record<
   notification_email: allPlans,
   notification_push: businessAndEnterprise,
   notification_sms: enterpriseOnly,
+  notification_whatsapp: businessAndEnterprise,
 }

@@ -4,6 +4,7 @@ import {
   buildNotificationInsertPayload,
   getDuplicateNotificationWindow,
 } from './utils'
+import { enqueueNotificationChannelDeliveries } from './delivery-queue.service'
 import type { CreateNotificationParams, Notification } from './types'
 
 async function checkDuplicateNotification(
@@ -35,6 +36,32 @@ async function checkDuplicateNotification(
   }
 }
 
+async function findExistingNotificationByDedupKey(
+  userId: string,
+  notificationType: string,
+  dedupKey: string | undefined,
+) {
+  if (!dedupKey?.trim()) {
+    return null
+  }
+
+  const supabase = await getSystemNotificationClient()
+  const { data, error } = await supabase
+    .from('user_notifications')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('notification_type', notificationType)
+    .eq('dedup_key', dedupKey.trim())
+    .maybeSingle()
+
+  if (error) {
+    logger.warn('Error verificando dedup_key de notificacion', { error })
+    return null
+  }
+
+  return data as Notification | null
+}
+
 export async function createNotification(
   params: CreateNotificationParams,
 ): Promise<Notification> {
@@ -43,6 +70,21 @@ export async function createNotification(
   }
 
   const supabase = await getSystemNotificationClient()
+  const existingByDedupKey = await findExistingNotificationByDedupKey(
+    params.userId,
+    params.notificationType,
+    params.dedupKey,
+  )
+
+  if (existingByDedupKey) {
+    logger.info('Notificacion idempotente reutilizada', {
+      dedupKey: params.dedupKey,
+      notificationId: existingByDedupKey.notification_id,
+      notificationType: params.notificationType,
+      userId: params.userId,
+    })
+    return existingByDedupKey
+  }
 
   const duplicateWindow = getDuplicateNotificationWindow(params.notificationType)
   if (duplicateWindow) {
@@ -72,6 +114,17 @@ export async function createNotification(
     logger.error('Error creando notificacion:', error)
     throw new Error(`Error al crear notificacion: ${error.message}`)
   }
+
+  await enqueueNotificationChannelDeliveries(
+    supabase,
+    data as Notification,
+    params,
+  ).catch((deliveryError) => {
+    logger.warn('Notification created but delivery enqueue failed', {
+      error: deliveryError,
+      notificationId: data.notification_id,
+    })
+  })
 
   logger.info('Notificacion creada exitosamente', {
     notificationId: data.notification_id,

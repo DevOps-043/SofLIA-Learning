@@ -12,7 +12,8 @@ export function ActivityMessages(props: {
   return (
     <>
       {(props.error || props.feedbackMessage) && (
-        <div className={`rounded-xl border px-4 py-3 text-sm ${props.error ? "border-red-200 bg-red-50 text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300" : "border-[var(--color-legacy-b6e5db)] bg-[var(--color-legacy-f1fbf8)] text-[var(--color-legacy-0f6a57)] dark:border-accent/20 dark:bg-[var(--color-legacy-08201b)] dark:text-[var(--color-legacy-9de9d5)]"}`}>
+        <div className={`rounded-xl border px-4 py-3 text-sm ${props.error ? "border-red-200 bg-red-50 text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300" : "bg-[var(--color-legacy-f1fbf8)] text-[var(--color-legacy-0f6a57)] dark:bg-[var(--color-legacy-08201b)] dark:text-[var(--color-legacy-9de9d5)]"}`}
+          style={!props.error ? { borderColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)' } : undefined}>
           {props.error || props.feedbackMessage}
         </div>
       )}

@@ -8,6 +8,9 @@ vi.mock('../../../../lib/logger', () => ({
 vi.mock('../auto-notifications-server-client', () => ({
   getSystemNotificationClient: vi.fn(),
 }))
+vi.mock('../notification/delivery-queue.service', () => ({
+  enqueueNotificationChannelDeliveries: vi.fn().mockResolvedValue(undefined),
+}))
 vi.mock('../notification/utils', () => ({
   buildNotificationInsertPayload: vi.fn((params) => ({
     user_id: params.userId,
@@ -21,6 +24,7 @@ vi.mock('../notification/utils', () => ({
 }))
 
 import { getSystemNotificationClient } from '../auto-notifications-server-client'
+import { enqueueNotificationChannelDeliveries } from '../notification/delivery-queue.service'
 import { getDuplicateNotificationWindow } from '../notification/utils'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -47,6 +51,7 @@ function makeSupabase(insertResult: { data?: unknown; error?: unknown } = {}) {
     from: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     gte: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     limit: vi.fn().mockResolvedValue({ data: [], error: null }),
   }
   return { from: vi.fn().mockReturnValue(chain), chain }
@@ -67,7 +72,36 @@ describe('createNotification', () => {
     const result = await createNotification(makeParams())
 
     expect(supabase.chain.insert).toHaveBeenCalled()
+    expect(enqueueNotificationChannelDeliveries).toHaveBeenCalledWith(
+      supabase,
+      notif,
+      makeParams(),
+    )
     expect(result).toMatchObject({ notification_id: 'notif-1' })
+  })
+
+  it('returns existing notification when dedupKey already exists', async () => {
+    const existing = {
+      notification_id: 'existing-notif',
+      user_id: 'user-1',
+      notification_type: 'certificate_generated',
+      dedup_key: 'user-1:course-1:cert-1',
+    }
+    const supabase = makeSupabase()
+    supabase.chain.maybeSingle = vi.fn().mockResolvedValue({
+      data: existing,
+      error: null,
+    })
+    vi.mocked(getSystemNotificationClient).mockResolvedValue(supabase as any)
+
+    const result = await createNotification(makeParams({
+      notificationType: 'certificate_generated',
+      dedupKey: 'user-1:course-1:cert-1',
+    }))
+
+    expect(supabase.chain.insert).not.toHaveBeenCalled()
+    expect(enqueueNotificationChannelDeliveries).not.toHaveBeenCalled()
+    expect(result).toEqual(existing)
   })
 
   it('throws when userId is missing', async () => {

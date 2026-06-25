@@ -47,9 +47,13 @@ export function LearnPageMobileNav({
           onClick={onOpenMaterial}
           className={`flex min-w-0 flex-col items-center gap-1 rounded-xl px-2 py-2 transition-all ${
             isLeftPanelOpen
-              ? "bg-primary/10 dark:bg-accent/15 text-primary dark:text-accent"
+              ? ""
               : "text-gray-500 dark:text-white/60 hover:bg-gray-200/50 dark:hover:bg-primary/30"
           }`}
+          style={isLeftPanelOpen ? {
+            backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)',
+            color: 'var(--learn-accent)',
+          } : undefined}
         >
           <BookOpen className="w-5 h-5" />
           <span className="text-xs font-medium">{t("mobileNav.material")}</span>
@@ -57,7 +61,8 @@ export function LearnPageMobileNav({
 
         <button
           onClick={onCreateNote}
-          className="flex min-w-0 flex-col items-center gap-1 rounded-xl px-2 py-2 text-primary transition-all hover:bg-primary/10 dark:text-accent dark:hover:bg-accent/15"
+          className="flex min-w-0 flex-col items-center gap-1 rounded-xl px-2 py-2 transition-all hover:opacity-80"
+          style={{ color: 'var(--learn-accent)' }}
           aria-label={t("mobileNav.quickNote")}
           title={t("mobileNav.quickNote")}
         >

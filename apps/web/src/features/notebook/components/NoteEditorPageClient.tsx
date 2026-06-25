@@ -18,6 +18,7 @@ import {
 
 import dynamic from 'next/dynamic'
 
+import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { TagInput } from './TagInput'
 import { useNoteEditor, type NoteSaveStatus } from '../hooks/useNoteEditor'
 
@@ -49,6 +50,7 @@ export function NoteEditorPageClient({
 }: NoteEditorPageClientProps) {
   const { t } = useTranslation('notebook')
   const router = useRouter()
+  const theme = useBusinessPanelTheme()
   const {
     note,
     title,
@@ -78,8 +80,11 @@ export function NoteEditorPageClient({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 text-gray-400">
-        <Loader2 className="h-7 w-7 animate-spin text-[var(--color-accent)]" />
+      <div
+        className="flex min-h-screen flex-col items-center justify-center gap-3"
+        style={{ backgroundColor: theme.panelBg, color: theme.mutedTextColor }}
+      >
+        <Loader2 className="h-7 w-7 animate-spin" style={{ color: theme.actionColor }} />
         <p className="text-sm">{t('editor.loading')}</p>
       </div>
     )
@@ -87,15 +92,19 @@ export function NoteEditorPageClient({
 
   if (loadError || !note) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
-        <AlertCircle className="h-8 w-8 text-[var(--color-error)]" />
-        <p className="text-sm text-gray-700 dark:text-gray-200">
+      <div
+        className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center"
+        style={{ backgroundColor: theme.panelBg }}
+      >
+        <AlertCircle className="h-8 w-8 text-red-500" />
+        <p className="text-sm" style={{ color: theme.textColor }}>
           {loadError ?? t('editor.notFound')}
         </p>
         <button
           type="button"
           onClick={goBack}
-          className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+          className="rounded-lg px-4 py-2 text-sm font-semibold hover:opacity-90"
+          style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}
         >
           {t('editor.backToNotebook')}
         </button>
@@ -104,36 +113,47 @@ export function NoteEditorPageClient({
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ backgroundColor: theme.panelBg }}>
       {/* Top bar */}
-      <header className="sticky top-0 z-30 border-b border-gray-200/80 bg-white/80 backdrop-blur-md dark:border-white/10 dark:bg-white/5">
+      <header
+        className="sticky top-0 z-30 border-b backdrop-blur-md"
+        style={{
+          backgroundColor: theme.cardBg + 'cc',
+          borderColor: theme.borderColor,
+        }}
+      >
         <div className="mx-auto flex max-w-[1600px] items-center gap-3 px-4 py-2.5 sm:px-6">
           <button
             type="button"
             onClick={goBack}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium shadow-sm transition-colors hover:opacity-80"
+            style={{
+              backgroundColor: theme.cardBg,
+              borderColor: theme.borderColor,
+              color: theme.textColor,
+            }}
           >
             <ArrowLeft className="h-4 w-4" />
             {t('editor.back')}
           </button>
 
-          <nav className="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
-            <BookOpen className="hidden h-4 w-4 shrink-0 text-gray-400 sm:block" />
-            <span
-              className="hidden max-w-[45%] truncate sm:block"
-              title={note.courseTitle}
-            >
+          <nav
+            className="flex min-w-0 flex-1 items-center gap-1.5 text-sm"
+            style={{ color: theme.subtextColor }}
+          >
+            <BookOpen className="hidden h-4 w-4 shrink-0 sm:block" style={{ color: theme.mutedTextColor }} />
+            <span className="hidden max-w-[45%] truncate sm:block" title={note.courseTitle}>
               {note.courseTitle}
             </span>
-            <ChevronRight className="hidden h-4 w-4 shrink-0 text-gray-300 dark:text-gray-600 sm:block" />
-            <FileText className="hidden h-4 w-4 shrink-0 text-gray-400 sm:block" />
+            <ChevronRight className="hidden h-4 w-4 shrink-0 sm:block" style={{ color: theme.mutedTextColor }} />
+            <FileText className="hidden h-4 w-4 shrink-0 sm:block" style={{ color: theme.mutedTextColor }} />
             <span className="truncate" title={note.lessonTitle}>
               {note.lessonTitle}
             </span>
           </nav>
 
           <div className="shrink-0">
-            <SaveStatusBadge status={saveStatus} />
+            <SaveStatusBadge status={saveStatus} actionColor={theme.actionColor} />
           </div>
         </div>
       </header>
@@ -154,7 +174,8 @@ export function NoteEditorPageClient({
                 maxLength={256}
                 onChange={(event) => setTitle(event.target.value)}
                 placeholder={t('editor.titlePlaceholder')}
-                className="mb-8 w-full border-b border-transparent bg-transparent pb-2 text-3xl font-bold leading-tight text-gray-900 outline-none transition-colors placeholder:text-gray-300 focus:border-gray-200 dark:text-white dark:placeholder:text-gray-600 dark:focus:border-white/10"
+                className="mb-8 w-full border-b border-transparent bg-transparent pb-2 text-3xl font-bold leading-tight outline-none transition-colors placeholder:text-gray-300 dark:placeholder:text-gray-600"
+                style={{ color: theme.textColor }}
               />
             }
           />
@@ -162,34 +183,35 @@ export function NoteEditorPageClient({
 
         {/* Side panel */}
         <aside className="flex flex-col gap-4 lg:sticky lg:top-6 lg:h-fit">
-          <SidePanelCard label={t('editor.locationLabel')}>
-            <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-gray-300">
+          <SidePanelCard label={t('editor.locationLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
+            <div className="flex flex-col gap-2 text-sm" style={{ color: theme.subtextColor }}>
               <span className="inline-flex items-center gap-2">
-                <BookOpen className="h-4 w-4 shrink-0 text-gray-400" />
+                <BookOpen className="h-4 w-4 shrink-0" style={{ color: theme.mutedTextColor }} />
                 <span className="truncate">{note.courseTitle}</span>
               </span>
               <span className="inline-flex items-center gap-2">
-                <FileText className="h-4 w-4 shrink-0 text-gray-400" />
+                <FileText className="h-4 w-4 shrink-0" style={{ color: theme.mutedTextColor }} />
                 <span className="truncate">{note.lessonTitle}</span>
               </span>
             </div>
           </SidePanelCard>
 
-          <SidePanelCard label={t('editor.actionsLabel')}>
+          <SidePanelCard label={t('editor.actionsLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
             <div className="flex flex-col gap-2">
               <button
                 type="button"
                 onClick={() => void saveNow()}
                 disabled={saveStatus === 'saving'}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+                style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}
               >
                 <Save className="h-4 w-4" />
                 {t('editor.save')}
               </button>
 
               {confirmDelete ? (
-                <div className="flex flex-col gap-2 rounded-lg bg-[var(--color-error)]/5 p-2">
-                  <p className="px-1 text-xs text-gray-600 dark:text-gray-300">
+                <div className="flex flex-col gap-2 rounded-lg bg-red-500/5 p-2">
+                  <p className="px-1 text-xs" style={{ color: theme.subtextColor }}>
                     {t('editor.confirmDeletePrompt')}
                   </p>
                   <div className="flex gap-2">
@@ -197,7 +219,7 @@ export function NoteEditorPageClient({
                       type="button"
                       onClick={handleDelete}
                       disabled={isDeleting}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[var(--color-error)] px-3 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-red-500 px-3 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
                     >
                       {isDeleting ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -209,7 +231,8 @@ export function NoteEditorPageClient({
                     <button
                       type="button"
                       onClick={() => setConfirmDelete(false)}
-                      className="rounded-lg px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
+                      className="rounded-lg px-3 py-2 text-sm font-medium hover:opacity-70"
+                      style={{ color: theme.subtextColor }}
                     >
                       {t('editor.cancel')}
                     </button>
@@ -219,7 +242,7 @@ export function NoteEditorPageClient({
                 <button
                   type="button"
                   onClick={() => setConfirmDelete(true)}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-error)]/30 px-4 py-2.5 text-sm font-semibold text-[var(--color-error)] transition-colors hover:bg-[var(--color-error)]/10"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-500/30 px-4 py-2.5 text-sm font-semibold text-red-500 transition-colors hover:bg-red-500/10"
                 >
                   <Trash2 className="h-4 w-4" />
                   {t('editor.delete')}
@@ -228,7 +251,7 @@ export function NoteEditorPageClient({
             </div>
           </SidePanelCard>
 
-          <SidePanelCard label={t('editor.tagsLabel')}>
+          <SidePanelCard label={t('editor.tagsLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
             <TagInput tags={tags} onChange={setTags} />
           </SidePanelCard>
         </aside>
@@ -240,16 +263,25 @@ export function NoteEditorPageClient({
 function SidePanelCard({
   label,
   action,
+  cardBg,
+  borderColor,
+  textColor,
   children,
 }: {
   label: string
   action?: React.ReactNode
+  cardBg: string
+  borderColor: string
+  textColor: string
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
+    <div
+      className="rounded-2xl border p-4 shadow-sm"
+      style={{ backgroundColor: cardBg, borderColor }}
+    >
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: textColor }}>
           {label}
         </p>
         {action}
@@ -259,7 +291,13 @@ function SidePanelCard({
   )
 }
 
-function SaveStatusBadge({ status }: { status: NoteSaveStatus }) {
+function SaveStatusBadge({
+  status,
+  actionColor,
+}: {
+  status: NoteSaveStatus
+  actionColor: string
+}) {
   const { t } = useTranslation('notebook')
 
   if (status === 'saving') {
@@ -272,7 +310,7 @@ function SaveStatusBadge({ status }: { status: NoteSaveStatus }) {
   }
   if (status === 'saved') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-[var(--color-success)]">
+      <span className="inline-flex items-center gap-1.5 text-xs" style={{ color: actionColor }}>
         <Check className="h-3.5 w-3.5" />
         {t('editor.status.saved')}
       </span>
@@ -280,7 +318,7 @@ function SaveStatusBadge({ status }: { status: NoteSaveStatus }) {
   }
   if (status === 'error') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-[var(--color-error)]">
+      <span className="inline-flex items-center gap-1.5 text-xs text-red-500">
         <CloudOff className="h-3.5 w-3.5" />
         {t('editor.status.error')}
       </span>

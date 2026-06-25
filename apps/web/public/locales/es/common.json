@@ -460,7 +460,11 @@
       },
       "system_login_success": {
         "title": "Inicio de sesión en tu cuenta",
-        "message": "Tu cuenta inició sesión desde {{deviceLabel}}. IP: {{ipLabel}}."
+        "message": "Tu cuenta inició sesión desde {{deviceLabel}}."
+      },
+      "system_login_unusual": {
+        "title": "Nuevo acceso detectado",
+        "message": "Detectamos un acceso desde {{deviceLabel}}. Revisa seguridad si no fuiste tú."
       },
       "system_login_failed": {
         "title": "Intento fallido en tu cuenta",
@@ -533,6 +537,10 @@
       "certificate_generated": {
         "title": "Certificado disponible",
         "message": "Tu certificado para \"{{courseTitle}}\" ya está listo para descargar."
+      },
+      "learning_daily_summary": {
+        "title": "Continúa tu aprendizaje de hoy",
+        "message": "Vas en {{progress}}% de \"{{courseTitle}}\". Retoma tu siguiente lección cuando estés listo."
       },
       "team_assignment": {
         "title": "Asignación de equipo",

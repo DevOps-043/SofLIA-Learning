@@ -46,7 +46,7 @@ export function useLiaSidePanelChatHandlers({
     await sendMessage(message, false, pageContext ?? undefined);
   }, [inputValue, isLoading, pageContext, sendMessage, setInputValue]);
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key !== 'Enter' || event.shiftKey) return;
     event.preventDefault();
     if (isDictating) stopDictation();

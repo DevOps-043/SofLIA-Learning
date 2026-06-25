@@ -61,7 +61,13 @@ function ActivityIcon({
   const iconClass = 'h-4 w-4 text-gray-500 dark:text-white/60';
 
   return (
-    <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${isSofliaActivity ? 'overflow-hidden border border-accent/25 bg-accent/10 dark:bg-accent/15' : 'bg-gray-100 dark:bg-white/5'}`}>
+    <div
+      className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${isSofliaActivity ? 'overflow-hidden border' : 'bg-gray-100 dark:bg-white/5'}`}
+      style={isSofliaActivity ? {
+        borderColor: 'color-mix(in srgb, var(--learn-accent) 25%, transparent)',
+        backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)',
+      } : undefined}
+    >
       {isSofliaActivity ? (
         <img src="/lia-avatar.webp" alt="SofLIA" className="h-full w-full object-cover" />
       ) : isQuiz ? (

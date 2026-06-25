@@ -41,7 +41,7 @@ function QuizStatusBadge({
   return (
     <div className="mt-2 border-t border-gray-200/50 pt-2 dark:border-gray-500/30">
       {quizInfo.isPassed ? (
-        <div className="flex items-center gap-1.5 text-xs text-blue-700 dark:text-accent">
+        <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--learn-accent)' }}>
           <CheckCircle className="h-3.5 w-3.5" />
           <span className="font-medium">Aprobado ({quizInfo.percentage}%)</span>
         </div>
@@ -69,7 +69,7 @@ function LoadingSkeleton() {
       transition={{ duration: 0.2 }}
       className="overflow-hidden"
     >
-      <div className="ml-9 mt-3 space-y-2.5 border-l-2 border-blue-200 pl-4 dark:border-accent/40">
+      <div className="ml-9 mt-3 space-y-2.5 border-l-2 pl-4" style={{ borderLeftColor: 'color-mix(in srgb, var(--learn-accent) 40%, transparent)' }}>
         {[1, 2].map((itemIndex) => (
           <div
             key={itemIndex}
@@ -113,7 +113,7 @@ export function LessonSidebarContent({
           transition={{ duration: 0.2 }}
           className="overflow-hidden"
         >
-          <div className="ml-9 mt-3 space-y-2.5 border-l-2 border-blue-200 pl-4 dark:border-accent/40">
+          <div className="ml-9 mt-3 space-y-2.5 border-l-2 pl-4" style={{ borderLeftColor: 'color-mix(in srgb, var(--learn-accent) 40%, transparent)' }}>
             {activities.length > 0 && (
               <div className="space-y-2">
                 {activities.map((activity) => {
@@ -134,9 +134,9 @@ export function LessonSidebarContent({
                       <div className="flex items-start gap-4">
                         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-gray-100 shadow-sm transition-colors group-hover:border-gray-300 dark:border-white/10 dark:bg-carbon-900 dark:group-hover:border-white/20">
                           {isQuiz ? (
-                            <FileText className="h-5 w-5 text-blue-700 dark:text-accent" />
+                            <FileText className="h-5 w-5" style={{ color: 'var(--learn-accent)' }} />
                           ) : (
-                            <ActivityIcon className="h-5 w-5 text-blue-700 dark:text-accent" />
+                            <ActivityIcon className="h-5 w-5" style={{ color: 'var(--learn-accent)' }} />
                           )}
                         </div>
 
@@ -146,7 +146,7 @@ export function LessonSidebarContent({
                           </p>
 
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700 dark:border-accent/30 dark:bg-carbon-900 dark:text-accent">
+                            <span className="rounded-full border px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide" style={{ borderColor: 'color-mix(in srgb, var(--learn-accent) 30%, transparent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 8%, transparent)', color: 'var(--learn-accent)' }}>
                               {activity.activity_type}
                             </span>
 
@@ -187,9 +187,9 @@ export function LessonSidebarContent({
                       <div className="flex items-start gap-4">
                         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-gray-100 shadow-sm transition-colors group-hover:border-gray-300 dark:border-white/10 dark:bg-carbon-900 dark:group-hover:border-white/20">
                           {isReading ? (
-                            <BookOpen className="h-5 w-5 text-blue-700 dark:text-accent" />
+                            <BookOpen className="h-5 w-5" style={{ color: 'var(--learn-accent)' }} />
                           ) : (
-                            <FileText className="h-5 w-5 text-blue-700 dark:text-accent" />
+                            <FileText className="h-5 w-5" style={{ color: 'var(--learn-accent)' }} />
                           )}
                         </div>
 
@@ -205,7 +205,7 @@ export function LessonSidebarContent({
                               </span>
                             )}
 
-                            <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700 dark:border-accent/30 dark:bg-carbon-900 dark:text-accent">
+                            <span className="rounded-full border px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide" style={{ borderColor: 'color-mix(in srgb, var(--learn-accent) 30%, transparent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 8%, transparent)', color: 'var(--learn-accent)' }}>
                               {material.material_type}
                             </span>
                           </div>

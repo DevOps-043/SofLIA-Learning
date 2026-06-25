@@ -91,7 +91,8 @@ export function ReadingAudioPlayer({ player, t }: ReadingAudioPlayerProps) {
         }}
         title={label}
         aria-label={label}
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-colors hover:opacity-90 dark:bg-accent dark:text-primary"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors hover:opacity-90"
+        style={{ backgroundColor: 'var(--learn-action)', color: 'var(--learn-on-action)' }}
       >
         {isPlaying ? (
           <Pause className="h-3.5 w-3.5 fill-current" />

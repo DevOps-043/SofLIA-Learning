@@ -34,9 +34,10 @@ export function TourProgress({ current, total }: TourProgressProps) {
           className={cn(
             'rounded-full transition-all',
             index === current
-              ? 'h-2 w-2 bg-accent'
+              ? 'h-2 w-2'
               : 'h-1.5 w-1.5 bg-gray-200 dark:bg-gray-600',
           )}
+          style={index === current ? { backgroundColor: 'var(--org-accent-color, var(--color-accent))' } : undefined}
         />
       ))}
     </div>

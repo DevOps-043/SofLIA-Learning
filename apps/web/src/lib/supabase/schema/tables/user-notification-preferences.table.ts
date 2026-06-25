@@ -15,6 +15,7 @@ export type UserNotificationPreferencesTable = {
   timezone: string | null
   updated_at: string | null
   user_id: string
+  whatsapp_enabled: boolean | null
 }
   Insert: {
   created_at?: string | null
@@ -30,6 +31,7 @@ export type UserNotificationPreferencesTable = {
   timezone?: string | null
   updated_at?: string | null
   user_id: string
+  whatsapp_enabled?: boolean | null
 }
   Update: {
   created_at?: string | null
@@ -45,6 +47,7 @@ export type UserNotificationPreferencesTable = {
   timezone?: string | null
   updated_at?: string | null
   user_id?: string
+  whatsapp_enabled?: boolean | null
 }
   Relationships: [
     { foreignKeyName: "user_notification_preferences_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "moderation_stats"; referencedColumns: ["user_id"] },

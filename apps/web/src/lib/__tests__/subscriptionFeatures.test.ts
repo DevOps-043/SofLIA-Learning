@@ -40,6 +40,12 @@ describe('hasFeature', () => {
     expect(hasFeature('enterprise', 'course_messaging')).toBe(true);
   });
 
+  it('notification_whatsapp is available on business and enterprise only', () => {
+    expect(hasFeature('team', 'notification_whatsapp')).toBe(false);
+    expect(hasFeature('business', 'notification_whatsapp')).toBe(true);
+    expect(hasFeature('enterprise', 'notification_whatsapp')).toBe(true);
+  });
+
   it('advanced_groups is only available on enterprise', () => {
     expect(hasFeature('team', 'advanced_groups')).toBe(false);
     expect(hasFeature('business', 'advanced_groups')).toBe(false);
@@ -111,6 +117,7 @@ describe('getFeatureName', () => {
     const features = [
       'panel_admin', 'course_messaging', 'custom_groups', 'advanced_groups',
       'corporate_branding', 'basic_reports', 'advanced_analytics', 'notification_email',
+      'notification_whatsapp',
     ] as const;
     features.forEach((f) => {
       expect(getFeatureName(f).length).toBeGreaterThan(0);
@@ -256,12 +263,14 @@ describe('getAllowedNotificationChannels', () => {
     expect(channels).toContain('email');
     expect(channels).not.toContain('push');
     expect(channels).not.toContain('sms');
+    expect(channels).not.toContain('whatsapp');
   });
 
-  it('returns email and push for business plan', () => {
+  it('returns email, push and whatsapp for business plan', () => {
     const channels = getAllowedNotificationChannels('business');
     expect(channels).toContain('email');
     expect(channels).toContain('push');
+    expect(channels).toContain('whatsapp');
     expect(channels).not.toContain('sms');
   });
 
@@ -270,6 +279,7 @@ describe('getAllowedNotificationChannels', () => {
     expect(channels).toContain('email');
     expect(channels).toContain('push');
     expect(channels).toContain('sms');
+    expect(channels).toContain('whatsapp');
   });
 
   it('returns empty array for null plan', () => {

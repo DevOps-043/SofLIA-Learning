@@ -5,6 +5,7 @@ import type { ReportsAnalyticsSupabaseClient } from './reports-analytics-supabas
 export function fetchActivityCompletionRecords(
   supabase: ReportsAnalyticsSupabaseClient,
   userIds: string[],
+  dateRange: { from: string; to: string },
 ): Promise<ActivityCompletionRecord[]> {
   return fetchUserScopedRows<ActivityCompletionRecord>('activity completions', userIds, (chunk, from, to) =>
     supabase
@@ -40,6 +41,8 @@ export function fetchActivityCompletionRecords(
         )
       `)
       .in('user_id', chunk)
+      .gte('started_at', dateRange.from)
+      .lte('started_at', dateRange.to)
       .range(from, to),
   )
 }

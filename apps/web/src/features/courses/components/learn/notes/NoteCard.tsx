@@ -44,7 +44,8 @@ export function NoteCard({
                 event.stopPropagation();
                 onEdit(note);
               }}
-              className="p-1 hover:bg-primary/10 dark:hover:bg-accent/20 rounded text-primary dark:text-accent transition-colors"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded transition-colors"
+              style={{ color: 'var(--learn-accent)' }}
               title={editLabel}
             >
               <Edit2 className="w-3 h-3" />
@@ -80,7 +81,12 @@ export function NoteCard({
           {note.tags.map((tag) => (
             <span
               key={tag}
-              className="inline-block px-2 py-0.5 bg-primary/10 dark:bg-accent/20 text-primary dark:text-accent text-xs rounded border border-primary/20 dark:border-accent/30"
+              className="inline-block px-2 py-0.5 text-xs rounded border"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)',
+                color: 'var(--learn-accent)',
+                borderColor: 'color-mix(in srgb, var(--learn-accent) 25%, transparent)',
+              }}
             >
               {tag}
             </span>

@@ -47,4 +47,5 @@ export const FEATURE_MAP = {
   notification_email: allPlans,
   notification_push: businessPlus,
   notification_sms: enterpriseOnly,
+  notification_whatsapp: businessPlus,
 } satisfies Record<FeatureKey, FeatureAccess>

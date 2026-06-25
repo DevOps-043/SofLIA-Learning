@@ -31,7 +31,8 @@ function buildFieldInput({
     <input
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      className="inline-flex min-w-[180px] rounded-lg border-b-2 border-primary/25 bg-transparent px-2 py-1 text-sm text-gray-900 outline-none transition focus:border-primary dark:border-accent/30 dark:text-white dark:focus:border-accent"
+      className="inline-flex min-w-[180px] rounded-lg border-b-2 bg-transparent px-2 py-1 text-sm text-gray-900 dark:text-white outline-none transition focus:border-[color:var(--learn-accent)]"
+      style={{ borderColor: 'color-mix(in srgb, var(--learn-accent) 30%, transparent)' }}
       placeholder={field.placeholder || "Respuesta"}
     />
   );

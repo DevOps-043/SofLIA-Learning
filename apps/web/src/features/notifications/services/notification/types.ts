@@ -1,3 +1,5 @@
+import type { NotificationChannel } from './catalog'
+
 export interface CreateNotificationParams {
   userId: string
   notificationType: string
@@ -8,6 +10,9 @@ export interface CreateNotificationParams {
   organizationId?: string
   groupId?: string
   isLocalized?: boolean
+  channels?: NotificationChannel[]
+  dedupKey?: string
+  expiresAt?: string
 }
 
 export interface Notification {
@@ -21,6 +26,7 @@ export interface Notification {
   status: 'unread' | 'read' | 'archived'
   channels_sent: string[]
   channels_pending: string[]
+  dedup_key: string | null
   read_at: string | null
   expires_at: string | null
   organization_id: string | null
@@ -50,4 +56,15 @@ export interface NotificationQueryResult {
   total: number
   hasMore: boolean
   nextCursor: string | null
+}
+
+export interface NotificationStatusMutationResult {
+  notificationId: string
+  status: 'read' | 'archived'
+  updated: boolean
+}
+
+export interface NotificationDeleteMutationResult {
+  notificationId: string
+  deleted: boolean
 }

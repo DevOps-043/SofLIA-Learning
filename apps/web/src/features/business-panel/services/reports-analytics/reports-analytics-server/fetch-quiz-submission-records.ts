@@ -5,6 +5,7 @@ import type { ReportsAnalyticsSupabaseClient } from './reports-analytics-supabas
 export function fetchQuizSubmissionRecords(
   supabase: ReportsAnalyticsSupabaseClient,
   userIds: string[],
+  dateRange: { from: string; to: string },
 ): Promise<QuizSubmissionRecord[]> {
   return fetchUserScopedRows<QuizSubmissionRecord>('quiz submissions', userIds, (chunk, from, to) =>
     supabase
@@ -32,6 +33,8 @@ export function fetchQuizSubmissionRecords(
         )
       `)
       .in('user_id', chunk)
+      .gte('created_at', dateRange.from)
+      .lte('created_at', dateRange.to)
       .range(from, to),
   )
 }

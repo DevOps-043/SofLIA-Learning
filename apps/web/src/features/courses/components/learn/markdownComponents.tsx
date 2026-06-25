@@ -22,7 +22,8 @@ export function createLessonMarkdownComponents(
     ),
     h3: (props) => (
       <h3
-        className="text-lg font-semibold text-primary dark:text-accent mb-3 mt-6 not-prose"
+        className="text-lg font-semibold mb-3 mt-6 not-prose"
+        style={{ color: 'var(--learn-accent)' }}
         {...props}
       />
     ),
@@ -37,20 +38,21 @@ export function createLessonMarkdownComponents(
     ),
     ul: (props) => (
       <ul
-        className="list-disc pl-5 space-y-2 mb-6 marker:text-primary dark:marker:text-accent"
+        className="list-disc pl-5 space-y-2 mb-6 marker:text-[var(--learn-accent)]"
         {...props}
       />
     ),
     ol: (props) => (
       <ol
-        className="list-decimal pl-5 space-y-2 mb-6 marker:text-primary dark:marker:text-accent marker:font-bold text-gray-700 dark:text-white/80"
+        className="list-decimal pl-5 space-y-2 mb-6 marker:text-[var(--learn-accent)] marker:font-bold text-gray-700 dark:text-white/80"
         {...props}
       />
     ),
     li: (props) => <li className="pl-1 leading-relaxed" {...props} />,
     blockquote: (props) => (
       <blockquote
-        className="border-l-4 border-primary/35 dark:border-accent/50 pl-4 italic text-gray-600 dark:text-white/60 my-6 bg-primary/5 dark:bg-white/5 py-2 pr-4 rounded-r-lg not-prose"
+        className="border-l-4 pl-4 italic text-gray-600 dark:text-white/60 my-6 bg-primary/5 dark:bg-white/5 py-2 pr-4 rounded-r-lg not-prose"
+        style={{ borderLeftColor: 'color-mix(in srgb, var(--learn-accent) 50%, transparent)' }}
         {...props}
       />
     ),
@@ -64,7 +66,8 @@ export function createLessonMarkdownComponents(
     ...baseComponents,
     code: (props) => (
       <code
-        className="bg-gray-100 dark:bg-black/30 px-1.5 py-0.5 rounded text-sm font-mono text-primary dark:text-accent"
+        className="bg-gray-100 dark:bg-black/30 px-1.5 py-0.5 rounded text-sm font-mono"
+        style={{ color: 'var(--learn-accent)' }}
         {...props}
       />
     ),

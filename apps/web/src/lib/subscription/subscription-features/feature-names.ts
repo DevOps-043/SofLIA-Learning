@@ -33,6 +33,7 @@ export const FEATURE_NAMES: Record<FeatureKey, string> = {
   notification_email: 'Notificaciones por Email',
   notification_push: 'Notificaciones Push',
   notification_sms: 'Notificaciones por SMS',
+  notification_whatsapp: 'Notificaciones por WhatsApp',
 }
 
 export const PLAN_NAMES: Record<SubscriptionPlan, string> = {

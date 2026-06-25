@@ -5,6 +5,7 @@ import type { ReportsAnalyticsSupabaseClient } from './reports-analytics-supabas
 export function fetchLessonProgressRecords(
   supabase: ReportsAnalyticsSupabaseClient,
   userIds: string[],
+  dateRange: { from: string; to: string },
 ): Promise<LessonProgressRecord[]> {
   return fetchUserScopedRows<LessonProgressRecord>('lesson progress', userIds, (chunk, from, to) =>
     supabase
@@ -30,6 +31,7 @@ export function fetchLessonProgressRecords(
         )
       `)
       .in('user_id', chunk)
+      .gte('updated_at', dateRange.from)
       .range(from, to),
   )
 }

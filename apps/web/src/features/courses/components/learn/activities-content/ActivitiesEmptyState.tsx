@@ -18,8 +18,11 @@ export function ActivitiesEmptyState(props: { lessonTitle: string }) {
         </p>
       </div>
       <div className="bg-white dark:bg-carbon-800 rounded-xl border-2 border-gray-200 dark:border-gray-500/30 p-8 text-center">
-        <div className="w-16 h-16 bg-primary/10 dark:bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Activity className="w-8 h-8 text-primary dark:text-accent" />
+        <div
+          className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+          style={{ backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)' }}
+        >
+          <Activity className="w-8 h-8" style={{ color: 'var(--learn-accent)' }} />
         </div>
         <h3 className="text-primary dark:text-white text-lg font-semibold mb-2">
           {t("activities.notAvailable")}

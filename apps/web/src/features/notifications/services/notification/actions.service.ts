@@ -1,8 +1,10 @@
 import { logger } from '../../../../lib/logger'
 import { getServerClient } from '../auto-notifications-server-client'
-import { NOTIFICATION_SELECT } from './select'
 import { buildNotificationsActiveFilter } from './utils'
-import type { Notification } from './types'
+import type {
+  NotificationDeleteMutationResult,
+  NotificationStatusMutationResult,
+} from './types'
 
 type NotificationSupabaseClient = Awaited<ReturnType<typeof getServerClient>>
 
@@ -10,29 +12,123 @@ interface NotificationActionOptions {
   supabase?: NotificationSupabaseClient
 }
 
-async function ensureNotificationOwnership(
+async function resolveNotificationClient(options?: NotificationActionOptions) {
+  return options?.supabase ?? await getServerClient()
+}
+
+function normalizeRpcStatusResult(
+  data: { notification_id?: string; status?: string; updated?: boolean } | null,
+  expectedStatus: 'read' | 'archived',
+): NotificationStatusMutationResult | null {
+  if (!data?.notification_id) {
+    return null
+  }
+
+  return {
+    notificationId: data.notification_id,
+    status: expectedStatus,
+    updated: Boolean(data.updated),
+  }
+}
+
+async function runStatusMutationRpc(
+  supabase: NotificationSupabaseClient,
+  functionName: 'mark_notification_read' | 'archive_notification',
   notificationId: string,
   userId: string,
-  select = 'notification_id, status',
-  options?: NotificationActionOptions,
+  expectedStatus: 'read' | 'archived',
 ) {
+  const rpcClient = supabase as unknown as {
+    rpc: (
+      fn: string,
+      args: { p_notification_id: string; p_user_id: string },
+    ) => { single: () => Promise<{ data: { notification_id?: string; status?: string; updated?: boolean } | null; error: unknown | null }> }
+  }
+
+  let result: {
+    data: { notification_id?: string; status?: string; updated?: boolean } | null
+    error: unknown | null
+  }
+
+  try {
+    result = await rpcClient
+      .rpc(functionName, {
+        p_notification_id: notificationId,
+        p_user_id: userId,
+      })
+      .single()
+  } catch (error) {
+    logger.warn('Notification status RPC failed before fallback', {
+      error,
+      functionName,
+    })
+    return null
+  }
+
+  const { data, error } = result
+
+  if (error) {
+    logger.warn('Notification status RPC unavailable', {
+      error,
+      functionName,
+    })
+    return null
+  }
+
+  return normalizeRpcStatusResult(data, expectedStatus)
+}
+
+async function updateNotificationStatusFallback(
+  notificationId: string,
+  userId: string,
+  status: 'read' | 'archived',
+  options?: NotificationActionOptions,
+): Promise<NotificationStatusMutationResult> {
   const supabase = await resolveNotificationClient(options)
+  const now = new Date().toISOString()
+  const patch =
+    status === 'read'
+      ? { status, read_at: now, updated_at: now }
+      : { status, updated_at: now }
+
   const { data, error } = await supabase
     .from('user_notifications')
-    .select(select)
+    .update(patch)
     .eq('notification_id', notificationId)
     .eq('user_id', userId)
-    .single()
+    .neq('status', status)
+    .select('notification_id, status')
+    .maybeSingle()
 
-  if (error || !data) {
+  if (error) {
+    logger.error('Error actualizando estado de notificacion:', error)
+    throw new Error(`Error al actualizar notificacion: ${error.message}`)
+  }
+
+  if (data?.notification_id) {
+    return {
+      notificationId: data.notification_id,
+      status,
+      updated: true,
+    }
+  }
+
+  const { data: existing, error: existingError } = await supabase
+    .from('user_notifications')
+    .select('notification_id, status')
+    .eq('notification_id', notificationId)
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (existingError || !existing) {
     throw new Error('Notificacion no encontrada o no pertenece al usuario')
   }
 
-  return { supabase, notification: data as unknown as Notification }
-}
-
-async function resolveNotificationClient(options?: NotificationActionOptions) {
-  return options?.supabase ?? await getServerClient()
+  return {
+    notificationId: existing.notification_id,
+    status,
+    updated: false,
+  }
 }
 
 async function markAllAsReadFallback(
@@ -84,41 +180,22 @@ export async function markNotificationAsRead(
   userId: string,
   options?: NotificationActionOptions,
 ) {
-  const { supabase, notification: existing } = await ensureNotificationOwnership(
+  const supabase = await resolveNotificationClient(options)
+  const rpcResult = await runStatusMutationRpc(
+    supabase,
+    'mark_notification_read',
     notificationId,
     userId,
-    'notification_id, status',
-    options,
+    'read',
   )
 
-  if (existing.status === 'read') {
-    const { data } = await supabase
-      .from('user_notifications')
-      .select(NOTIFICATION_SELECT)
-      .eq('notification_id', notificationId)
-      .eq('user_id', userId)
-      .single()
-
-    return data as Notification
+  if (rpcResult) {
+    return rpcResult
   }
 
-  const { data, error } = await supabase
-    .from('user_notifications')
-    .update({
-      status: 'read',
-      read_at: new Date().toISOString(),
-    })
-    .eq('notification_id', notificationId)
-    .eq('user_id', userId)
-    .select()
-    .single()
-
-  if (error) {
-    logger.error('Error marcando notificacion como leida:', error)
-    throw new Error(`Error al marcar como leida: ${error.message}`)
-  }
-
-  return data as Notification
+  return updateNotificationStatusFallback(notificationId, userId, 'read', {
+    supabase,
+  })
 }
 
 export async function markMultipleNotificationsAsRead(
@@ -155,27 +232,22 @@ export async function archiveNotification(
   userId: string,
   options?: NotificationActionOptions,
 ) {
-  const { supabase } = await ensureNotificationOwnership(
+  const supabase = await resolveNotificationClient(options)
+  const rpcResult = await runStatusMutationRpc(
+    supabase,
+    'archive_notification',
     notificationId,
     userId,
-    'notification_id',
-    options,
+    'archived',
   )
 
-  const { data, error } = await supabase
-    .from('user_notifications')
-    .update({ status: 'archived' })
-    .eq('notification_id', notificationId)
-    .eq('user_id', userId)
-    .select()
-    .single()
-
-  if (error) {
-    logger.error('Error archivando notificacion:', error)
-    throw new Error(`Error al archivar: ${error.message}`)
+  if (rpcResult) {
+    return rpcResult
   }
 
-  return data as Notification
+  return updateNotificationStatusFallback(notificationId, userId, 'archived', {
+    supabase,
+  })
 }
 
 export async function deleteNotification(
@@ -183,23 +255,67 @@ export async function deleteNotification(
   userId: string,
   options?: NotificationActionOptions,
 ) {
-  const { supabase } = await ensureNotificationOwnership(
-    notificationId,
-    userId,
-    'notification_id',
-    options,
-  )
+  const supabase = await resolveNotificationClient(options)
+  const rpcClient = supabase as unknown as {
+    rpc: (
+      fn: string,
+      args: { p_notification_id: string; p_user_id: string },
+    ) => { single: () => Promise<{ data: { notification_id?: string; deleted?: boolean } | null; error: unknown | null }> }
+  }
 
-  const { error } = await supabase
+  try {
+    const { data, error } = await rpcClient
+      .rpc('delete_notification', {
+        p_notification_id: notificationId,
+        p_user_id: userId,
+      })
+      .single()
+
+    if (!error && data?.deleted) {
+      return {
+        deleted: true,
+        notificationId: data.notification_id || notificationId,
+      } satisfies NotificationDeleteMutationResult
+    }
+
+    if (!error && data && !data.deleted) {
+      throw new Error('Notificacion no encontrada o no pertenece al usuario')
+    }
+
+    if (error) {
+      logger.warn('Notification delete RPC unavailable', { error })
+    }
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes('no encontrada')
+    ) {
+      throw error
+    }
+    logger.warn('Notification delete RPC failed, using fallback', { error })
+  }
+
+  const { data, error } = await supabase
     .from('user_notifications')
     .delete()
     .eq('notification_id', notificationId)
     .eq('user_id', userId)
+    .select('notification_id')
+    .maybeSingle()
 
   if (error) {
     logger.error('Error eliminando notificacion:', error)
     throw new Error(`Error al eliminar: ${error.message}`)
   }
+
+  if (!data?.notification_id) {
+    throw new Error('Notificacion no encontrada o no pertenece al usuario')
+  }
+
+  return {
+    deleted: true,
+    notificationId: data.notification_id,
+  } satisfies NotificationDeleteMutationResult
 }
 
 export async function markAllNotificationsAsRead(

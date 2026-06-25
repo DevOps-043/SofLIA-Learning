@@ -34,14 +34,11 @@ export function buildCoursePreviewContent(
       'Curso {{position}} de la ruta {{pathTitle}}',
       { position: item.position, pathTitle: learningPathTitle },
     ),
-    description: t(
-      'dashboard.learningPaths.previewLoading',
-      'Gemini esta analizando la descripcion real y el contexto de aprendizaje.',
-    ),
+    description: '',
     points: [],
     progress,
     status,
-    loading: true,
+    loading: false,
   }
 }
 
@@ -60,10 +57,7 @@ export function buildLearningPathPreviewContent(
       '{{count}} cursos en secuencia',
       { count: learningPath.totalItemsCount },
     ),
-    description: t(
-      'dashboard.learningPaths.previewLoading',
-      'Gemini esta analizando la descripcion real y el contexto de aprendizaje.',
-    ),
+    description: '',
     points: [],
     progress: clampProgress(learningPath.progressPercentage),
     status: formatTranslation(
@@ -75,6 +69,6 @@ export function buildLearningPathPreviewContent(
         total: learningPath.totalItemsCount,
       },
     ),
-    loading: true,
+    loading: false,
   }
 }

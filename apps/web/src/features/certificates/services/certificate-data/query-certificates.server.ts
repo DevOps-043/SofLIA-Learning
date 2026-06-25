@@ -5,6 +5,7 @@ interface CertificateFilters {
   userId?: string
   certificateId?: string
   certificateHash?: string
+  organizationId?: string
 }
 
 const CERTIFICATE_SELECT_BASE =
@@ -57,6 +58,7 @@ function buildCertificateQuery(
   if (filters.userId) query = query.eq('user_id', filters.userId)
   if (filters.certificateId) query = query.eq('certificate_id', filters.certificateId)
   if (filters.certificateHash) query = query.eq('certificate_hash', filters.certificateHash)
+  if (filters.organizationId) query = query.eq('organization_id', filters.organizationId)
 
   return query
 }

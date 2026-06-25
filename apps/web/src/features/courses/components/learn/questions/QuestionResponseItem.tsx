@@ -75,7 +75,14 @@ export function QuestionResponseItem({
             {formatQuestionTimeAgo(response.created_at)}
           </span>
           {response.is_instructor_answer && (
-            <span className="px-2 py-0.5 bg-accent/15 text-accent dark:bg-accent/20 dark:text-accent text-[10px] font-semibold rounded-full border border-accent/25">
+            <span
+              className="px-2 py-0.5 text-[10px] font-semibold rounded-full border"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)',
+                color: 'var(--learn-accent)',
+                borderColor: 'color-mix(in srgb, var(--learn-accent) 25%, transparent)',
+              }}
+            >
               Instructor
             </span>
           )}
@@ -118,7 +125,8 @@ export function QuestionResponseItem({
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mt-3 pl-4 border-l-2 border-primary/20 dark:border-accent/20"
+                className="mt-3 pl-4 border-l-2"
+                style={{ borderLeftColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)' }}
               >
                 <div className="flex gap-2">
                   <textarea
@@ -131,7 +139,11 @@ export function QuestionResponseItem({
                   <button
                     onClick={() => onSubmitReply(response.id)}
                     disabled={!replyContent.trim() || isSubmitting}
-                    className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 dark:bg-accent/15 dark:hover:bg-accent/25 text-primary dark:text-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="p-1.5 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-95"
+                    style={{
+                      backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)',
+                      color: 'var(--learn-accent)',
+                    }}
                   >
                     <Send className="w-3.5 h-3.5" />
                   </button>

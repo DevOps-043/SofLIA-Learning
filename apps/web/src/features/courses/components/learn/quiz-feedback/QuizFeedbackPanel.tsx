@@ -28,7 +28,10 @@ function FeedbackBody({
   if (isLoading) {
     return (
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10 text-accent">
+        <div
+        className="flex h-12 w-12 items-center justify-center rounded-lg"
+        style={{ backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)', color: 'var(--learn-accent)' }}
+      >
           <Loader2 className="h-5 w-5 animate-spin" />
         </div>
         <div>
@@ -53,7 +56,8 @@ function FeedbackBody({
           <button
             type="button"
             onClick={onRetry}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 dark:bg-accent dark:text-primary"
+            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+            style={{ backgroundColor: 'var(--learn-action)', color: 'var(--learn-on-action)' }}
           >
             <RefreshCw className="h-4 w-4" />
             {t("activities.quizFeedback.retry")}

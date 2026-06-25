@@ -33,3 +33,4 @@ export type FeatureKey =
   | 'notification_email'
   | 'notification_push'
   | 'notification_sms'
+  | 'notification_whatsapp'

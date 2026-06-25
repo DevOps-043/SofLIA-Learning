@@ -13,6 +13,7 @@ interface CreateSystemNotificationParams {
   message?: string
   metadata?: NotificationMetadata
   isLocalized?: boolean
+  dedupKey?: string
   logSuccess: string
   logError: string
   logContext?: Record<string, unknown>
@@ -26,6 +27,7 @@ export async function createSystemNotification({
   message,
   metadata,
   isLocalized,
+  dedupKey,
   logSuccess,
   logError,
   logContext,
@@ -38,6 +40,7 @@ export async function createSystemNotification({
       title: title || `notifications.types.${notificationType}.title`,
       message: message || `notifications.types.${notificationType}.message`,
       isLocalized: isLocalized ?? (!title && !message),
+      dedupKey,
       metadata: {
         ...metadata,
         timestamp: new Date().toISOString(),

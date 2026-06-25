@@ -20,7 +20,14 @@ export function ActivityTypeBadge({
   t
 }: ActivityTypeBadgeProps) {
   return (
-    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${isSofliaActivity ? 'border border-accent/20 bg-accent/10 text-primary dark:bg-accent/15 dark:text-accent' : 'capitalize bg-gray-100 text-gray-500 dark:bg-white/5 dark:text-white/40'}`}>
+    <span
+      className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${isSofliaActivity ? 'border' : 'capitalize bg-gray-100 text-gray-500 dark:bg-white/5 dark:text-white/40'}`}
+      style={isSofliaActivity ? {
+        borderColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)',
+        backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)',
+        color: 'var(--learn-accent)',
+      } : undefined}
+    >
       {isSofliaActivity ? t('activities.sofliaActivityType') : activity.activity_type}
     </span>
   );

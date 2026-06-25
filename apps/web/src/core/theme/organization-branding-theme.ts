@@ -106,16 +106,20 @@ function buildDarkModeStyles(
   colors: NormalizedOrganizationBrandingColors,
 ): OrganizationThemeModeStyles {
   // Factors: (1 - factor) = fraction of brand color visible.
-  // Reduced from 0.82/0.76/0.72 so brand colors are clearly visible in dark mode.
-  const darkPrimary = darkenHexColor(colors.color_primary, 0.60)   // 40% primary
-  const darkSecondary = darkenHexColor(colors.color_secondary, 0.52) // 48% secondary
-  const darkAccent = darkenHexColor(colors.color_accent, 0.48)      // 52% accent
-  const darkCard = mixHexColors(colors.color_primary, DESIGN_HEX_COLOR.gray800, 0.22) // 22% primary tint
-  const darkBorder = mixHexColors(colors.color_accent, DESIGN_HEX_COLOR.slate700, 0.35)
+  const darkPrimary    = darkenHexColor(colors.color_primary, 0.60)   // 40% primary visible
+  const darkPrimaryMid = darkenHexColor(colors.color_primary, 0.45)   // 55% primary — slightly lighter for gradient end
+  const darkAccent     = darkenHexColor(colors.color_accent, 0.48)    // used in login gradient + border mix
+  const darkCard       = mixHexColors(colors.color_primary, DESIGN_HEX_COLOR.gray800, 0.22)
+  const darkBorder     = mixHexColors(colors.color_accent, DESIGN_HEX_COLOR.slate700, 0.35)
 
   const sharedPanelStyle: OrganizationThemeStyle = {
     background_type: 'gradient',
-    background_value: `linear-gradient(135deg, ${darkPrimary} 0%, ${darkSecondary} 54%, ${darkAccent} 100%)`,
+    // Page background derives only from primary so it stays on-brand with the
+    // org's primary hue. Secondary/accent colors are reserved for interactive
+    // elements (buttons, borders, chart lines) — not the page canvas.
+    // Previously included darkSecondary at 54% which caused a blue bleed when
+    // the primary was very dark (#000000) and the secondary was light-colored.
+    background_value: `linear-gradient(135deg, ${darkPrimary} 0%, ${darkPrimaryMid} 100%)`,
     primary_button_color: colors.color_primary,
     secondary_button_color: colors.color_secondary,
     accent_color: colors.color_accent,
@@ -136,6 +140,7 @@ function buildDarkModeStyles(
     },
     login: {
       ...sharedPanelStyle,
+      // Login keeps accent in gradient for visual richness (gated by brandingEnabled anyway)
       background_value: `linear-gradient(135deg, ${darkPrimary} 0%, ${darkAccent} 100%)`,
       sidebar_background: 'transparent',
       card_background: mixHexColors(colors.color_primary, DESIGN_HEX_COLOR.slate800, 0.16),

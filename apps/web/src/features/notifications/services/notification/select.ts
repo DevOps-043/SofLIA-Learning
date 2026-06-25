@@ -9,6 +9,7 @@ export const NOTIFICATION_SELECT = `
   status,
   channels_sent,
   channels_pending,
+  dedup_key,
   read_at,
   expires_at,
   organization_id,

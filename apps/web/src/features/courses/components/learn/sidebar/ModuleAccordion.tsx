@@ -64,7 +64,7 @@ export function ModuleAccordion({
       <div className="group-hover:bg-white/[0.02] flex items-start justify-between rounded-lg p-2 transition-colors">
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-700 dark:text-accent">
+            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--learn-accent)' }}>
               Módulo {moduleIndex + 1}
             </span>
             <div className="h-[1px] flex-1 bg-gray-200 dark:bg-white/10" />
@@ -107,12 +107,15 @@ export function ModuleAccordion({
               className="mb-4 flex gap-3"
             >
               <span
-                className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-accent/30 dark:bg-accent/20 dark:text-accent"
-                style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
+                className="rounded-full border px-3 py-1 text-xs font-medium"
+                style={{ borderColor: 'color-mix(in srgb, var(--learn-accent) 30%, transparent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)', color: 'var(--learn-accent)', fontFamily: "Inter, sans-serif", fontWeight: 500 }}
               >
                 {completedLessons}/{totalLessons} {t("leftPanel.completed")}
               </span>
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-accent/30 dark:bg-accent/20 dark:text-accent">
+              <span
+                className="rounded-full border px-3 py-1 text-xs font-medium"
+                style={{ borderColor: 'color-mix(in srgb, var(--learn-accent) 30%, transparent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)', color: 'var(--learn-accent)' }}
+              >
                 {completionPercentage}% {t("leftPanel.completedPercentage")}
               </span>
             </div>

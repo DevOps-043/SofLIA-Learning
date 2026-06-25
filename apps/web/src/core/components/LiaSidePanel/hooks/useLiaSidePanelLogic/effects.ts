@@ -14,7 +14,7 @@ interface UseLiaSidePanelEffectsParams {
   optionsMenuRef: RefObject<HTMLDivElement>;
   chatContainerRef: RefObject<HTMLDivElement>;
   messagesEndRef: RefObject<HTMLDivElement>;
-  inputRef: RefObject<HTMLInputElement>;
+  inputRef: RefObject<HTMLTextAreaElement>;
   messages: SofLIAMessage[];
   tips: string[];
   setIsOptionsMenuOpen: (isOpen: boolean) => void;

@@ -111,13 +111,13 @@ describe('NotificationService.getUnreadCount', () => {
 
 describe('NotificationService.markAsRead', () => {
   it('delegates to markNotificationAsRead', async () => {
-    const updated = makeNotification({ read_at: new Date().toISOString() })
+    const updated = { notificationId: 'notif-1', status: 'read' as const, updated: true }
     vi.mocked(markNotificationAsRead).mockResolvedValue(updated)
 
     const result = await NotificationService.markAsRead('notif-1', 'user-1')
 
     expect(markNotificationAsRead).toHaveBeenCalledWith('notif-1', 'user-1')
-    expect(result.read_at).not.toBeNull()
+    expect(result).toEqual(updated)
   })
 })
 
@@ -157,13 +157,13 @@ describe('NotificationService.markAllAsRead', () => {
 
 describe('NotificationService.archiveNotification', () => {
   it('delegates to archiveNotification function', async () => {
-    const archived = makeNotification({ archived_at: new Date().toISOString() })
+    const archived = { notificationId: 'notif-1', status: 'archived' as const, updated: true }
     vi.mocked(archiveNotification).mockResolvedValue(archived)
 
     const result = await NotificationService.archiveNotification('notif-1', 'user-1')
 
     expect(archiveNotification).toHaveBeenCalledWith('notif-1', 'user-1')
-    expect(result.archived_at).not.toBeNull()
+    expect(result).toEqual(archived)
   })
 })
 
@@ -171,11 +171,15 @@ describe('NotificationService.archiveNotification', () => {
 
 describe('NotificationService.deleteNotification', () => {
   it('delegates to deleteNotification function', async () => {
-    vi.mocked(deleteNotification).mockResolvedValue(undefined)
+    vi.mocked(deleteNotification).mockResolvedValue({
+      notificationId: 'notif-1',
+      deleted: true,
+    })
 
-    await NotificationService.deleteNotification('notif-1', 'user-1')
+    const result = await NotificationService.deleteNotification('notif-1', 'user-1')
 
     expect(deleteNotification).toHaveBeenCalledWith('notif-1', 'user-1')
+    expect(result).toEqual({ notificationId: 'notif-1', deleted: true })
   })
 
   it('propagates deletion errors', async () => {

@@ -44,14 +44,35 @@ function resolveIpLabel(ip?: string) {
   return ip && ip !== 'unknown' ? ip : 'IP no disponible'
 }
 
+function buildLoginContextDedupKey(
+  userId: string,
+  client: ReturnType<typeof resolveLoginClient>,
+  metadata?: NotificationMetadata,
+) {
+  const authMethod = metadata?.isOAuth ? 'oauth' : 'password'
+
+  return [
+    userId,
+    client.browser,
+    client.operatingSystem,
+    client.deviceType,
+    authMethod,
+  ]
+    .join(':')
+    .toLowerCase()
+}
+
 export class SystemNotificationsService {
-  static async notifyPasswordChanged(userId: string, metadata?: NotificationMetadata): Promise<void> {
+  static async notifyPasswordChanged(
+    userId: string,
+    metadata?: NotificationMetadata,
+  ): Promise<void> {
     await createSystemNotification({
       userId,
       notificationType: 'system_password_changed',
       metadata,
-      logSuccess: '✅ Notificación de cambio de contraseña creada',
-      logError: '❌ Error creando notificación de cambio de contraseña:',
+      logSuccess: 'Notificacion de cambio de contrasena creada',
+      logError: 'Error creando notificacion de cambio de contrasena:',
     })
   }
 
@@ -82,24 +103,27 @@ export class SystemNotificationsService {
         friendly_changes: profileNotification.friendlyNames,
       },
       organizationId,
-      logSuccess: '✅ Notificación de actualización de perfil creada',
-      logError: '❌ Error creando notificación de actualización de perfil:',
+      logSuccess: 'Notificacion de actualizacion de perfil creada',
+      logError: 'Error creando notificacion de actualizacion de perfil:',
       logContext: { changes: profileNotification.displayableChanges },
     })
   }
 
   static async notifyLoginSuccess(
     userId: string,
-    ip?: string,
+    _ip?: string,
     userAgent?: string,
     metadata?: NotificationMetadata,
   ): Promise<void> {
     const client = resolveLoginClient(userAgent)
-    const ipLabel = resolveIpLabel(ip)
 
     await createSystemNotification({
       userId,
-      notificationType: 'system_login_success',
+      notificationType: 'system_login_unusual',
+      title: 'notifications.types.system_login_unusual.title',
+      message: 'notifications.types.system_login_unusual.message',
+      isLocalized: true,
+      dedupKey: buildLoginContextDedupKey(userId, client, metadata),
       metadata: {
         ...metadata,
         action_url: '/profile?tab=security',
@@ -108,17 +132,13 @@ export class SystemNotificationsService {
         browser: client.browser,
         deviceLabel: client.deviceLabel,
         deviceType: client.deviceType,
-        ip,
-        ipLabel,
-        location: ipLabel,
         operatingSystem: client.operatingSystem,
         rememberMe: metadata?.rememberMe ?? false,
         sessionMode: metadata?.rememberMe ? 'extendida' : 'normal',
-        userAgent,
       },
-      logSuccess: '✅ Notificación de inicio de sesión creada',
-      logError: '❌ Error creando notificación de inicio de sesión:',
-      logContext: { device: client.deviceLabel, ip },
+      logSuccess: 'Notificacion de acceso nuevo creada',
+      logError: 'Error creando notificacion de acceso nuevo:',
+      logContext: { device: client.deviceLabel },
     })
   }
 
@@ -145,19 +165,22 @@ export class SystemNotificationsService {
         operatingSystem: client.operatingSystem,
         userAgent,
       },
-      logSuccess: '✅ Notificación de inicio de sesión fallido creada',
-      logError: '❌ Error creando notificación de inicio de sesión fallido:',
+      logSuccess: 'Notificacion de inicio de sesion fallido creada',
+      logError: 'Error creando notificacion de inicio de sesion fallido:',
       logContext: { device: client.deviceLabel, ip },
     })
   }
 
-  static async notifyEmailVerified(userId: string, metadata?: NotificationMetadata): Promise<void> {
+  static async notifyEmailVerified(
+    userId: string,
+    metadata?: NotificationMetadata,
+  ): Promise<void> {
     await createSystemNotification({
       userId,
       notificationType: 'system_email_verified',
       metadata,
-      logSuccess: '✅ Notificación de verificación de email creada',
-      logError: '❌ Error creando notificación de verificación de email:',
+      logSuccess: 'Notificacion de verificacion de email creada',
+      logError: 'Error creando notificacion de verificacion de email:',
     })
   }
 
@@ -170,8 +193,8 @@ export class SystemNotificationsService {
       userId,
       notificationType: 'system_security_alert',
       metadata: { ...metadata, message },
-      logSuccess: '✅ Notificación de alerta de seguridad creada',
-      logError: '❌ Error creando notificación de alerta de seguridad:',
+      logSuccess: 'Notificacion de alerta de seguridad creada',
+      logError: 'Error creando notificacion de alerta de seguridad:',
     })
   }
 }

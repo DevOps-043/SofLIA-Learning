@@ -16,6 +16,7 @@ import {
 } from '@/features/business-panel/services/reports-analytics/reports-analytics.export.service'
 import { generateReportsAnalyticsReportBlueprint } from '@/features/business-panel/services/reports-analytics/reports-analytics.blueprint.service'
 import type {
+  ReportsAnalyticsDataset,
   ReportsAnalyticsFilters,
 } from '@/features/business-panel/types/reports-analytics.types'
 import {
@@ -26,6 +27,34 @@ import {
 } from '../_schemas'
 
 export const runtime = 'nodejs'
+
+type CachedDataset = { dataset: ReportsAnalyticsDataset; expiresAt: number }
+const analyticsCache = new Map<string, CachedDataset>()
+const ANALYTICS_CACHE_TTL_MS = 5 * 60 * 1000
+
+function buildCacheKey(organizationId: string, filters: ReportsAnalyticsFilters): string {
+  return `${organizationId}|${filters.from}|${filters.to}|${filters.granularity}|${filters.courseId ?? ''}|${filters.regionId ?? ''}|${filters.zoneId ?? ''}|${filters.teamId ?? ''}|${filters.gender ?? ''}|${filters.ageBand ?? ''}|${filters.jobTitle ?? ''}|${filters.role ?? ''}|${filters.status ?? ''}`
+}
+
+function getCachedDataset(key: string): ReportsAnalyticsDataset | null {
+  const entry = analyticsCache.get(key)
+  if (!entry) return null
+  if (Date.now() > entry.expiresAt) {
+    analyticsCache.delete(key)
+    return null
+  }
+  return entry.dataset
+}
+
+function setCachedDataset(key: string, dataset: ReportsAnalyticsDataset): void {
+  if (analyticsCache.size > 100) {
+    const now = Date.now()
+    for (const [k, v] of analyticsCache) {
+      if (now > v.expiresAt) analyticsCache.delete(k)
+    }
+  }
+  analyticsCache.set(key, { dataset, expiresAt: Date.now() + ANALYTICS_CACHE_TTL_MS })
+}
 
 type RouteContext = {
   params: Promise<{ orgSlug: string }>
@@ -42,8 +71,18 @@ export async function GET(
     if (!auth.organizationId) return forbiddenResponse()
 
     const filters = parseFiltersFromSearchParams(request.nextUrl.searchParams)
-    const supabase = await createClient()
-    const dataset = await fetchReportsAnalyticsDataset(supabase, auth.organizationId, filters)
+    const cacheKey = buildCacheKey(auth.organizationId, filters)
+    const cached = getCachedDataset(cacheKey)
+
+    let dataset: ReportsAnalyticsDataset
+    if (cached) {
+      dataset = cached
+    } else {
+      const supabase = await createClient()
+      dataset = await fetchReportsAnalyticsDataset(supabase, auth.organizationId, filters)
+      setCachedDataset(cacheKey, dataset)
+    }
+
     const { userDetails: _userDetails, aiSamples: _aiSamples, ...publicDataset } = dataset
 
     return NextResponse.json(publicDataset, {

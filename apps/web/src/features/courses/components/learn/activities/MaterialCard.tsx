@@ -97,7 +97,7 @@ export function MaterialCard({
               </span>
             )}
             {quizInfo?.isPassed && (
-              <span className="px-1.5 py-0.5 text-[10px] font-medium text-primary dark:text-accent bg-primary/10 dark:bg-accent/15 rounded flex items-center gap-1">
+              <span className="px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-1" style={{ color: 'var(--learn-accent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)' }}>
                 <Check className="w-2.5 h-2.5" /> Completado
               </span>
             )}

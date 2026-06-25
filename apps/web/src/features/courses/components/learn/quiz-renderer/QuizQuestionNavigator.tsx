@@ -58,13 +58,18 @@ export function QuizQuestionNavigator({
                   ? "border-emerald-500 bg-emerald-500 text-white"
                   : "border-red-500 bg-red-500 text-white"
                 : isAnswered
-                  ? "border-primary bg-primary text-white dark:border-accent dark:bg-accent dark:text-primary"
+                  ? "border-primary bg-primary text-white"
                   : "border-gray-300 bg-white text-gray-500 hover:border-primary hover:text-primary dark:border-white/15 dark:bg-white/5 dark:text-white/50 dark:hover:border-accent dark:hover:text-accent"
             } ${
               isCurrent
                 ? "ring-2 ring-primary/40 ring-offset-2 ring-offset-white dark:ring-accent/50 dark:ring-offset-gray-900"
                 : ""
             }`}
+            style={!showResults && isAnswered ? {
+              borderColor: 'var(--learn-action)',
+              backgroundColor: 'var(--learn-action)',
+              color: 'var(--learn-on-action)',
+            } : undefined}
             aria-label={`${t("activities.quiz.goToQuestion", { number: index + 1 })}. ${resultLabel}`}
             aria-current={isCurrent ? "step" : undefined}
             title={`${t("activities.quiz.goToQuestion", { number: index + 1 })}. ${resultLabel}`}

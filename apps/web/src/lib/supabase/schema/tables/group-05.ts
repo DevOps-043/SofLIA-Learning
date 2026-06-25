@@ -1,5 +1,6 @@
 import type { UserActivityEvaluationsTable } from './user-activity-evaluations.table'
 import type { UserActivitySubmissionsTable } from './user-activity-submissions.table'
+import type { NotificationChannelDeliveriesTable } from './notification-channel-deliveries.table'
 import type { UserInvitationsTable } from './user-invitations.table'
 import type { UserLessonNotesTable } from './user-lesson-notes.table'
 import type { UserLessonProgressTable } from './user-lesson-progress.table'
@@ -20,6 +21,7 @@ import type { WorkTeamObjectivesTable } from './work-team-objectives.table'
 import type { WorkTeamStatisticsTable } from './work-team-statistics.table'
 
 export type PublicTablesGroup05 = {
+  notification_channel_deliveries: NotificationChannelDeliveriesTable
   user_activity_evaluations: UserActivityEvaluationsTable
   user_activity_submissions: UserActivitySubmissionsTable
   user_invitations: UserInvitationsTable

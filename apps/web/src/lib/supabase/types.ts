@@ -3521,6 +3521,85 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_channel_deliveries: {
+        Row: {
+          attempts: number
+          channel: string
+          created_at: string | null
+          delivery_id: string
+          destination: string | null
+          last_error: string | null
+          max_attempts: number
+          next_attempt_at: string | null
+          notification_id: string
+          organization_id: string | null
+          payload: Json
+          provider_message_id: string | null
+          sent_at: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          channel: string
+          created_at?: string | null
+          delivery_id?: string
+          destination?: string | null
+          last_error?: string | null
+          max_attempts?: number
+          next_attempt_at?: string | null
+          notification_id: string
+          organization_id?: string | null
+          payload?: Json
+          provider_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          channel?: string
+          created_at?: string | null
+          delivery_id?: string
+          destination?: string | null
+          last_error?: string | null
+          max_attempts?: number
+          next_attempt_at?: string | null
+          notification_id?: string
+          organization_id?: string | null
+          payload?: Json
+          provider_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_channel_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "user_notifications"
+            referencedColumns: ["notification_id"]
+          },
+          {
+            foreignKeyName: "notification_channel_deliveries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_channel_deliveries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_email_queue: {
         Row: {
           attempts: number | null
@@ -7719,6 +7798,7 @@ export type Database = {
           timezone: string | null
           updated_at: string | null
           user_id: string
+          whatsapp_enabled: boolean | null
         }
         Insert: {
           created_at?: string | null
@@ -7734,6 +7814,7 @@ export type Database = {
           timezone?: string | null
           updated_at?: string | null
           user_id: string
+          whatsapp_enabled?: boolean | null
         }
         Update: {
           created_at?: string | null
@@ -7749,6 +7830,7 @@ export type Database = {
           timezone?: string | null
           updated_at?: string | null
           user_id?: string
+          whatsapp_enabled?: boolean | null
         }
         Relationships: [
           {
@@ -7786,6 +7868,7 @@ export type Database = {
           channels_pending: Json | null
           channels_sent: Json | null
           created_at: string | null
+          dedup_key: string | null
           expires_at: string | null
           group_id: string | null
           message: string
@@ -7804,6 +7887,7 @@ export type Database = {
           channels_pending?: Json | null
           channels_sent?: Json | null
           created_at?: string | null
+          dedup_key?: string | null
           expires_at?: string | null
           group_id?: string | null
           message: string
@@ -7822,6 +7906,7 @@ export type Database = {
           channels_pending?: Json | null
           channels_sent?: Json | null
           created_at?: string | null
+          dedup_key?: string | null
           expires_at?: string | null
           group_id?: string | null
           message?: string
@@ -9933,6 +10018,10 @@ export type Database = {
         Args: { request_id: string; reviewer_id: string }
         Returns: string
       }
+      archive_notification: {
+        Args: { p_notification_id: string; p_user_id?: string }
+        Returns: Json
+      }
       calculate_course_complexity: {
         Args: { p_category: string; p_level: string }
         Returns: number
@@ -10034,6 +10123,10 @@ export type Database = {
         Returns: number
       }
       decrement_comment_count: { Args: { post_id: string }; Returns: undefined }
+      delete_notification: {
+        Args: { p_notification_id: string; p_user_id?: string }
+        Returns: Json
+      }
       delete_user_cascade: { Args: { target_user_id: string }; Returns: Json }
       detect_suspicious_token_activity: {
         Args: never
@@ -10257,6 +10350,14 @@ export type Database = {
           p_tokens_used?: number
         }
         Returns: string
+      }
+      mark_all_notifications_read: {
+        Args: { p_user_id?: string }
+        Returns: Json
+      }
+      mark_notification_read: {
+        Args: { p_notification_id: string; p_user_id?: string }
+        Returns: Json
       }
       refresh_community_materialized_views: { Args: never; Returns: undefined }
       regenerate_subscription_token: {

@@ -5,6 +5,7 @@ export type UserNotificationsTable = {
   channels_pending: Json | null
   channels_sent: Json | null
   created_at: string | null
+  dedup_key: string | null
   expires_at: string | null
   group_id: string | null
   message: string
@@ -23,6 +24,7 @@ export type UserNotificationsTable = {
   channels_pending?: Json | null
   channels_sent?: Json | null
   created_at?: string | null
+  dedup_key?: string | null
   expires_at?: string | null
   group_id?: string | null
   message: string
@@ -41,6 +43,7 @@ export type UserNotificationsTable = {
   channels_pending?: Json | null
   channels_sent?: Json | null
   created_at?: string | null
+  dedup_key?: string | null
   expires_at?: string | null
   group_id?: string | null
   message?: string

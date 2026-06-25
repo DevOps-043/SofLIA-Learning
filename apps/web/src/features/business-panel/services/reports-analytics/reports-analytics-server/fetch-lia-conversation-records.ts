@@ -5,6 +5,7 @@ import type { ReportsAnalyticsSupabaseClient } from './reports-analytics-supabas
 export function fetchLiaConversationRecords(
   supabase: ReportsAnalyticsSupabaseClient,
   userIds: string[],
+  dateRange: { from: string; to: string },
 ): Promise<LiaConversationRecord[]> {
   return fetchUserScopedRows<LiaConversationRecord>('lia conversations', userIds, (chunk, from, to) =>
     supabase
@@ -28,6 +29,8 @@ export function fetchLiaConversationRecords(
         )
       `)
       .in('user_id', chunk)
+      .gte('created_at', dateRange.from)
+      .lte('created_at', dateRange.to)
       .range(from, to),
   )
 }

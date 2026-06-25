@@ -82,6 +82,7 @@ export function getAllowedNotificationChannels(
   if (hasFeature(plan, 'notification_email')) channels.push('email')
   if (hasFeature(plan, 'notification_push')) channels.push('push')
   if (hasFeature(plan, 'notification_sms')) channels.push('sms')
+  if (hasFeature(plan, 'notification_whatsapp')) channels.push('whatsapp')
 
   return channels
 }

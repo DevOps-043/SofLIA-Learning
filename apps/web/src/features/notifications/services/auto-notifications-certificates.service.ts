@@ -1,7 +1,10 @@
 import { NotificationService } from './notification.service'
 import { getNotificationPriority } from '../utils/notification-categories'
 import { logger } from '@/lib/logger'
-import type { NotificationMetadata } from './auto-notifications.shared'
+import {
+  resolveNotificationOrganizationId,
+  type NotificationMetadata,
+} from './auto-notifications.shared'
 
 /**
  * Notificaciones automáticas relacionadas con certificados.
@@ -17,14 +20,24 @@ export class CertificateNotificationsService {
     metadata?: NotificationMetadata
   ): Promise<void> {
     try {
+      const courseId =
+        typeof metadata?.course_id === 'string' ? metadata.course_id : 'course'
+
       await NotificationService.createNotification({
         userId,
         notificationType: 'certificate_generated',
         title: 'notifications.types.certificate_generated.title',
         message: 'notifications.types.certificate_generated.message',
         isLocalized: true,
+        channels: ['in_app', 'whatsapp'],
+        dedupKey: `${userId}:${courseId}:${certificateId}`,
+        organizationId: resolveNotificationOrganizationId(metadata),
         metadata: {
           ...metadata,
+          action_url:
+            typeof metadata?.action_url === 'string'
+              ? metadata.action_url
+              : '/profile?tab=certificates',
           courseTitle,
           certificate_id: certificateId,
           timestamp: new Date().toISOString()

@@ -226,7 +226,8 @@
       "Bash(xargs grep -l \"trigger\\\\|TRIGGER\")",
       "Bash(grep -E \"\\\\.tsx$\")",
       "Bash(git -C \"c:/Users/fysg5/OneDrive/Escritorio/PulseHub/Soflia-Learning/SofLIA-Learning\" diff apps/web/src/app/api/lia/chat/prompt-instructions/page-instructions.ts)",
-      "Bash(git -C \"c:/Users/fysg5/OneDrive/Escritorio/PulseHub/Soflia-Learning/SofLIA-Learning\" diff --stat HEAD)"
+      "Bash(git -C \"c:/Users/fysg5/OneDrive/Escritorio/PulseHub/Soflia-Learning/SofLIA-Learning\" diff --stat HEAD)",
+      "Bash(Read \"C:/Users/fysg5/AppData/Local/Temp/claude/c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning/d9b9360f-dec1-4f07-bd4c-bba92aa97539/tasks/bx2pgs5qp.output\")"
     ],
     "deny": [],
     "ask": []

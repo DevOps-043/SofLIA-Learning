@@ -460,7 +460,11 @@
       },
       "system_login_success": {
         "title": "Sign-in to your account",
-        "message": "Your account signed in from {{deviceLabel}}. IP: {{ipLabel}}."
+        "message": "Your account signed in from {{deviceLabel}}."
+      },
+      "system_login_unusual": {
+        "title": "New access detected",
+        "message": "We detected access from {{deviceLabel}}. Review security if this was not you."
       },
       "system_login_failed": {
         "title": "Failed attempt on your account",
@@ -533,6 +537,10 @@
       "certificate_generated": {
         "title": "Certificate available",
         "message": "Your certificate for \"{{courseTitle}}\" is now ready for download."
+      },
+      "learning_daily_summary": {
+        "title": "Continue today's learning",
+        "message": "You are {{progress}}% through \"{{courseTitle}}\". Pick up your next lesson when you are ready."
       },
       "team_assignment": {
         "title": "Team assignment",

@@ -62,10 +62,50 @@ export function NotificationPage() {
     })
   }, [notifications, searchQuery])
 
-  const runAction = async (action: () => Promise<void> | void) => {
+  const updateNotificationLocally = (
+    notification: Notification,
+    nextStatus: 'read' | 'archived' | 'deleted',
+  ) => {
+    void mutate((currentData) => {
+      if (!currentData?.data?.notifications) return currentData
+
+      const shouldRemove =
+        nextStatus === 'deleted' ||
+        nextStatus === 'archived' ||
+        (nextStatus === 'read' && statusFilter === 'unread')
+      const notifications =
+        shouldRemove
+          ? currentData.data.notifications.filter(
+              (item) => item.notification_id !== notification.notification_id,
+            )
+          : currentData.data.notifications.map((item) =>
+              item.notification_id === notification.notification_id
+                ? { ...item, status: 'read' as const, read_at: new Date().toISOString() }
+                : item,
+            )
+
+      return {
+        ...currentData,
+        data: {
+          ...currentData.data,
+          notifications,
+          total:
+            shouldRemove
+              ? Math.max(0, currentData.data.total - 1)
+              : currentData.data.total,
+        },
+      }
+    }, { revalidate: false })
+  }
+
+  const runAction = async (
+    action: () => Promise<void> | void,
+    optimisticUpdate?: () => void,
+  ) => {
     try {
+      optimisticUpdate?.()
       await action()
-      await mutate()
+      void mutate()
     } catch (error) {
       logger.error('Notification action failed', error)
       await mutate()
@@ -74,7 +114,10 @@ export function NotificationPage() {
 
   const openNotification = async (notification: Notification) => {
     if (notification.status === 'unread') {
-      await runAction(() => markAsRead(notification.notification_id))
+      await runAction(
+        () => markAsRead(notification.notification_id),
+        () => updateNotificationLocally(notification, 'read'),
+      )
     }
 
     const actionUrl = getNotificationActionUrl(notification)
@@ -133,7 +176,32 @@ export function NotificationPage() {
           <button
             type="button"
             onClick={() => {
-              void runAction(markAllAsRead)
+              void runAction(markAllAsRead, () => {
+                void mutate((currentData) => {
+                  if (!currentData?.data) return currentData
+
+                  const notifications =
+                    statusFilter === 'unread'
+                        ? []
+                        : currentData.data.notifications.map((notification) => ({
+                            ...notification,
+                            read_at: new Date().toISOString(),
+                            status: 'read' as const,
+                          }))
+
+                  return {
+                    ...currentData,
+                    data: {
+                      ...currentData.data,
+                      notifications,
+                      total:
+                        statusFilter === 'unread'
+                          ? 0
+                          : currentData.data.total,
+                    },
+                  }
+                }, { revalidate: false })
+              })
             }}
             disabled={unreadCount === 0}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-accent dark:text-primary dark:hover:bg-accent/90"
@@ -208,9 +276,18 @@ export function NotificationPage() {
                 notification={notification}
                 formattedTime={formatTime(notification.created_at)}
                 onOpen={openNotification}
-                onMarkAsRead={(notificationId) => runAction(() => markAsRead(notificationId))}
-                onArchive={(notificationId) => runAction(() => archiveNotification(notificationId))}
-                onDelete={(notificationId) => runAction(() => deleteNotification(notificationId))}
+                onMarkAsRead={(notificationId) => runAction(
+                  () => markAsRead(notificationId),
+                  () => updateNotificationLocally(notification, 'read'),
+                )}
+                onArchive={(notificationId) => runAction(
+                  () => archiveNotification(notificationId),
+                  () => updateNotificationLocally(notification, 'archived'),
+                )}
+                onDelete={(notificationId) => runAction(
+                  () => deleteNotification(notificationId),
+                  () => updateNotificationLocally(notification, 'deleted'),
+                )}
               />
             ))
           )}

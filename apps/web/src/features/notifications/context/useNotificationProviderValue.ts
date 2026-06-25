@@ -20,7 +20,11 @@ export function useNotificationProviderValue(
 
     await Promise.all(operations)
   }, [isDropdownOpen, mutateCount, mutateNotifications])
-  const actions = useNotificationActions(revalidateNotificationState)
+  const actions = useNotificationActions(
+    revalidateNotificationState,
+    mutateNotifications,
+    mutateCount,
+  )
 
   useEffect(() => {
     if (!shouldFetch) return

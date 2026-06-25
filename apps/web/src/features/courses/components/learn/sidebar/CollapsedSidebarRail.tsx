@@ -49,10 +49,11 @@ export function CollapsedSidebarRail({
 
         <button
           onClick={onOpenNewNote}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-primary dark:bg-accent shadow-lg shadow-primary/25 dark:shadow-accent/25 transition-colors hover:bg-primary dark:hover:bg-[var(--color-legacy-00b8a0)]"
+          className="flex h-8 w-8 items-center justify-center rounded-full shadow-lg transition-colors hover:brightness-95"
+          style={{ backgroundColor: 'var(--learn-action)' }}
           title={t("leftPanel.notesSection.newNote")}
         >
-          <Plus className="h-4 w-4 text-white" />
+          <Plus className="h-4 w-4" style={{ color: 'var(--learn-on-action)' }} />
         </button>
       </div>
     </div>

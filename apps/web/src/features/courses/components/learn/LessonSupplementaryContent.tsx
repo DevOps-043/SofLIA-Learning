@@ -63,7 +63,13 @@ function SupplementarySection({
         className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition-colors hover:bg-white/60 dark:hover:bg-white/[0.05] md:px-5"
       >
         <div className="flex min-w-0 items-start gap-3">
-          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:bg-accent/10 dark:text-accent">
+          <div
+            className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)',
+              color: 'var(--learn-accent)',
+            }}
+          >
             <Icon className="h-4 w-4" />
           </div>
           <div className="min-w-0">

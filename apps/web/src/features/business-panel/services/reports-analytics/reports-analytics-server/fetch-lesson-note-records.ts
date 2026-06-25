@@ -5,6 +5,7 @@ import type { ReportsAnalyticsSupabaseClient } from './reports-analytics-supabas
 export function fetchLessonNoteRecords(
   supabase: ReportsAnalyticsSupabaseClient,
   userIds: string[],
+  dateRange: { from: string; to: string },
 ): Promise<LessonNoteRecord[]> {
   return fetchUserScopedRows<LessonNoteRecord>('lesson notes', userIds, (chunk, from, to) =>
     supabase
@@ -29,6 +30,8 @@ export function fetchLessonNoteRecords(
         )
       `)
       .in('user_id', chunk)
+      .gte('created_at', dateRange.from)
+      .lte('created_at', dateRange.to)
       .range(from, to),
   )
 }

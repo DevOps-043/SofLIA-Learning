@@ -1,13 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Mic, Loader2 } from 'lucide-react';
 import { LiaThemeColors } from './types';
 
+const MAX_TEXTAREA_HEIGHT = 120; // ~5 rows
+
 const BAR_VARIANTS = [0.2, 1, 0.4, 0.7, 0.3, 0.9, 0.5];
 
-function VoiceWaveform({ color, barCount = 5, height = 18 }: { color: string; barCount?: number; height?: number }) {
+function VoiceWaveform({ color, barCount = 5, height = 16 }: { color: string; barCount?: number; height?: number }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '3px', height: `${height}px` }}>
       {Array.from({ length: barCount }).map((_, i) => (
@@ -39,7 +41,7 @@ interface InputAreaProps {
   isLightTheme: boolean;
   inputValue: string;
   setInputValue: (v: string) => void;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLTextAreaElement>;
   isDictating: boolean;
   isDictationEnabled: boolean;
   isVoiceEnabled: boolean;
@@ -89,11 +91,8 @@ export function InputArea({
   const isVoiceInputActive = isDictating || isLiveVoiceActive;
   const isVoiceInputProcessing = isProcessingDictation || isLiveVoiceConnecting;
   const shouldShowMicButton = isVoiceEnabled || isDictationEnabled;
-  // Mientras SofLIA responde se bloquea la caja de texto (no el dictado en curso).
   const isInputBlocked = isResponding && !isDictating;
 
-  // Boton unificado estilo WhatsApp: un solo control que cambia de funcion
-  // segun el estado. El orden de prioridad importa (processing > stop > send > mic).
   const buttonMode: 'processing' | 'stop' | 'send' | 'mic' = isVoiceInputProcessing
     ? 'processing'
     : isVoiceInputActive
@@ -102,12 +101,20 @@ export function InputArea({
     ? 'send'
     : 'mic';
 
-  // Mientras SofLIA responde se bloquea iniciar voz o enviar, pero NUNCA
-  // detener una sesion en curso (el usuario siempre puede cortar).
   const isButtonDisabled =
     buttonMode === 'processing' ||
     (buttonMode === 'send' && !canSendMessage) ||
     (buttonMode === 'mic' && isInputBlocked);
+
+  // Auto-resize textarea: expands upward (pushes messages up) up to MAX_TEXTAREA_HEIGHT
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    if (composedInputValue) {
+      el.style.height = `${Math.min(el.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
+    }
+  }, [composedInputValue]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleUnifiedButtonClick = () => {
     if (buttonMode === 'stop') {
@@ -124,20 +131,18 @@ export function InputArea({
     }
   };
 
+  const disabledBg = isLightTheme ? 'var(--color-gray-200)' : 'var(--color-gray-800)';
+
   const buttonBackgroundColor =
     buttonMode === 'stop'
       ? 'var(--color-error)'
       : buttonMode === 'processing'
-      ? isLightTheme
-        ? 'var(--color-gray-300)'
-        : 'var(--color-legacy-374151)'
+      ? disabledBg
       : buttonMode === 'send'
       ? canSendMessage
         ? themeColors.accentColor
-        : isLightTheme
-        ? 'var(--color-gray-300)'
-        : 'var(--color-legacy-374151)'
-      : 'transparent'; // mic
+        : disabledBg
+      : 'transparent';
 
   const buttonTitle =
     buttonMode === 'stop'
@@ -153,7 +158,7 @@ export function InputArea({
   return (
     <div
       style={{
-        padding: '12px 16px calc(16px + env(safe-area-inset-bottom, 0px))',
+        padding: '8px 12px calc(10px + env(safe-area-inset-bottom, 0px))',
         borderTop: `1px solid ${themeColors.borderColor}`,
         flexShrink: 0,
         position: 'relative',
@@ -164,21 +169,23 @@ export function InputArea({
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
+          alignItems: 'flex-end',
+          gap: '8px',
           backgroundColor: themeColors.inputBg,
-          borderRadius: '24px',
-          padding: '10px 16px',
+          borderRadius: '18px',
+          padding: '6px 10px',
           border: `1px solid ${themeColors.inputBorder}`,
         }}
       >
-        <div style={{ flex: 1, minWidth: 0, position: 'relative', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ flex: 1, minWidth: 0, position: 'relative', display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
           {isDictating && !composedInputValue && (
-            <VoiceWaveform color={themeColors.accentColor} barCount={6} height={18} />
+            <div style={{ paddingBottom: '4px' }}>
+              <VoiceWaveform color={themeColors.accentColor} barCount={6} height={16} />
+            </div>
           )}
-          <input
+          <textarea
             ref={inputRef}
-            type="text"
+            rows={1}
             value={composedInputValue}
             disabled={isInputBlocked}
             aria-disabled={isInputBlocked}
@@ -190,12 +197,8 @@ export function InputArea({
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                if (isInputBlocked) {
-                  return;
-                }
-                if (isDictating) {
-                  stopDictation();
-                }
+                if (isInputBlocked) return;
+                if (isDictating) stopDictation();
                 handleSendMessage();
               }
             }}
@@ -212,24 +215,33 @@ export function InputArea({
               border: 'none',
               outline: 'none',
               color: themeColors.textPrimary,
-              fontSize: '16px',
+              fontSize: '14px',
+              lineHeight: '1.5',
               minWidth: 0,
+              resize: 'none',
+              overflow: 'hidden',
               cursor: isInputBlocked ? 'not-allowed' : 'text',
               opacity: isInputBlocked ? 0.6 : 1,
+              // Single-line height matches the button so the bottom edge aligns
+              minHeight: '22px',
+              maxHeight: `${MAX_TEXTAREA_HEIGHT}px`,
+              padding: '2px 0',
+              overflowY: composedInputValue.split('\n').length > 5 ||
+                (inputRef.current?.scrollHeight ?? 0) >= MAX_TEXTAREA_HEIGHT
+                  ? 'auto'
+                  : 'hidden',
             }}
           />
         </div>
 
-        {/* Boton unico estilo WhatsApp: micro cuando el campo esta vacio,
-            enviar cuando hay texto, y detener mientras la voz esta activa. */}
         <button
           onClick={handleUnifiedButtonClick}
           disabled={isButtonDisabled}
           title={buttonTitle}
           aria-label={buttonTitle}
           style={{
-            width: '36px',
-            height: '36px',
+            width: '30px',
+            height: '30px',
             borderRadius: '50%',
             flexShrink: 0,
             backgroundColor: buttonBackgroundColor,
@@ -245,30 +257,31 @@ export function InputArea({
             justifyContent: 'center',
             transition: 'all 0.2s',
             opacity: buttonMode === 'processing' ? 0.6 : 1,
+            // Align button to bottom so it stays at baseline when textarea grows
+            alignSelf: 'flex-end',
+            marginBottom: '1px',
           }}
         >
           {buttonMode === 'processing' ? (
             <Loader2
-              style={{ width: '16px', height: '16px', color: themeColors.textSecondary }}
+              style={{ width: '14px', height: '14px', color: themeColors.textSecondary }}
               className="animate-spin"
             />
           ) : buttonMode === 'stop' ? (
-            <VoiceWaveform color="var(--color-bg-light)" barCount={4} height={14} />
+            <VoiceWaveform color="#ffffff" barCount={4} height={12} />
           ) : buttonMode === 'send' ? (
             <Send
               style={{
-                width: '16px',
-                height: '16px',
+                width: '14px',
+                height: '14px',
                 color: canSendMessage
-                  ? 'var(--color-bg-light)'
-                  : isLightTheme
-                  ? 'var(--color-legacy-6b7280)'
-                  : 'var(--color-legacy-9ca3af)',
+                  ? '#ffffff'
+                  : themeColors.textSecondary,
               }}
             />
           ) : (
             <Mic
-              style={{ width: '18px', height: '18px', color: themeColors.textSecondary }}
+              style={{ width: '15px', height: '15px', color: themeColors.textSecondary }}
             />
           )}
         </button>

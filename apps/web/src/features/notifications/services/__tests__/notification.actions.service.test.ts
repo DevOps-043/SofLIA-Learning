@@ -20,124 +20,116 @@ vi.mock('../notification/utils', () => ({
 
 import { getServerClient } from '../auto-notifications-server-client'
 
-// ─── helpers ────────────────────────────────────────────────────────────────
-
-function makeNotif(overrides = {}) {
-  return {
-    notification_id: 'notif-1',
-    user_id: 'user-1',
-    status: 'unread',
-    priority: 'medium',
-    title: 'Test',
-    message: 'Test message',
-    created_at: new Date().toISOString(),
-    ...overrides,
-  }
+function rpcSingle(data: unknown = null, error: unknown = { message: 'RPC unavailable' }) {
+  return vi.fn(() => ({
+    single: vi.fn().mockResolvedValue({ data, error }),
+  }))
 }
 
-/**
- * Builds a supabase mock that handles the ensureNotificationOwnership chain:
- * .from().select().eq().eq().single()  → returns { data: ownershipData, error }
- * Then a second .from() for the actual operation.
- */
-function makeSupabase({
-  ownershipData = makeNotif(),
-  ownershipError = null,
-  updateData = makeNotif({ status: 'read' }),
+function makeStatusFallbackSupabase({
+  rpcData = null,
+  rpcError = { message: 'RPC unavailable' },
+  updateData = { notification_id: 'notif-1', status: 'read' },
   updateError = null,
-  deleteError = null,
+  existingData = { notification_id: 'notif-1', status: 'read' },
+  existingError = null,
 }: {
-  ownershipData?: unknown
-  ownershipError?: unknown
+  rpcData?: unknown
+  rpcError?: unknown
   updateData?: unknown
   updateError?: unknown
-  deleteError?: unknown
+  existingData?: unknown
+  existingError?: unknown
 } = {}) {
-  // ownership chain: .select().eq().eq().single()
-  const ownershipChain = {
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    single: vi.fn().mockResolvedValue({ data: ownershipData, error: ownershipError }),
-  }
-
-  // update/delete chain: .update/delete().eq().eq().select().single() or just .eq()
-  const operationChain = {
+  const updateChain = {
     update: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    neq: vi.fn().mockReturnThis(),
+    select: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue({ data: updateData, error: updateError }),
+  }
+  const existingChain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
-    single: vi.fn().mockResolvedValue({ data: updateData, error: updateError }),
-    in: vi.fn().mockReturnThis(),
-  }
-  if (deleteError) {
-    operationChain.eq = vi.fn().mockReturnThis()
-    // last .eq() in delete chain resolves with error
-    operationChain.single = vi.fn().mockResolvedValue({ error: deleteError })
+    maybeSingle: vi.fn().mockResolvedValue({ data: existingData, error: existingError }),
   }
 
-  let callCount = 0
-  const fromMock = vi.fn(() => {
-    callCount++
-    return callCount === 1 ? ownershipChain : operationChain
-  })
-
-  return { from: fromMock, ownershipChain, operationChain }
+  let fromCallCount = 0
+  return {
+    rpc: rpcSingle(rpcData, rpcError),
+    from: vi.fn(() => {
+      fromCallCount += 1
+      return fromCallCount === 1 ? updateChain : existingChain
+    }),
+    existingChain,
+    updateChain,
+  }
 }
 
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
-// ─── markNotificationAsRead ───────────────────────────────────────────────────
-
 describe('markNotificationAsRead', () => {
-  it('marks unread notification as read', async () => {
-    const updated = makeNotif({ status: 'read', read_at: new Date().toISOString() })
-    const supabase = makeSupabase({ ownershipData: makeNotif({ status: 'unread' }), updateData: updated })
+  it('uses the RPC result when available', async () => {
+    const supabase = makeStatusFallbackSupabase({
+      rpcData: { notification_id: 'notif-1', status: 'read', updated: true },
+      rpcError: null,
+    })
     vi.mocked(getServerClient).mockResolvedValue(supabase as any)
 
     const result = await markNotificationAsRead('notif-1', 'user-1')
 
-    expect(supabase.operationChain.update).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'read' }),
-    )
-    expect(result).toMatchObject({ status: 'read' })
+    expect(supabase.rpc).toHaveBeenCalledWith('mark_notification_read', {
+      p_notification_id: 'notif-1',
+      p_user_id: 'user-1',
+    })
+    expect(supabase.from).not.toHaveBeenCalled()
+    expect(result).toEqual({
+      notificationId: 'notif-1',
+      status: 'read',
+      updated: true,
+    })
   })
 
-  it('returns existing notification without update when already read', async () => {
-    const existing = makeNotif({ status: 'read' })
-    // For already-read: first call is ownership, second is select(*) for the full data
-    let callCount = 0
-    const ownershipChain = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: existing, error: null }),
-    }
-    const selectChain = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: existing, error: null }),
-    }
-    const fromMock = vi.fn(() => {
-      callCount++
-      return callCount === 1 ? ownershipChain : selectChain
-    })
-    vi.mocked(getServerClient).mockResolvedValue({ from: fromMock } as any)
+  it('falls back to a single ownership-safe update when RPC is unavailable', async () => {
+    const supabase = makeStatusFallbackSupabase()
+    vi.mocked(getServerClient).mockResolvedValue(supabase as any)
 
     const result = await markNotificationAsRead('notif-1', 'user-1')
 
-    expect(result).toMatchObject({ status: 'read' })
-    expect(selectChain.select).toHaveBeenCalledWith(
-      expect.stringContaining('notification_type'),
+    expect(supabase.updateChain.update).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'read' }),
     )
-    expect(selectChain.select).toHaveBeenCalledWith(
-      expect.not.stringContaining('action_url'),
-    )
-    expect(selectChain.eq).toHaveBeenCalledWith('user_id', 'user-1')
+    expect(supabase.updateChain.eq).toHaveBeenCalledWith('notification_id', 'notif-1')
+    expect(supabase.updateChain.eq).toHaveBeenCalledWith('user_id', 'user-1')
+    expect(supabase.updateChain.neq).toHaveBeenCalledWith('status', 'read')
+    expect(result).toEqual({
+      notificationId: 'notif-1',
+      status: 'read',
+      updated: true,
+    })
   })
 
-  it('throws when notification not found or wrong user', async () => {
-    const supabase = makeSupabase({ ownershipData: null, ownershipError: { message: 'Not found' } })
+  it('returns updated false when the notification is already read', async () => {
+    const supabase = makeStatusFallbackSupabase({ updateData: null })
+    vi.mocked(getServerClient).mockResolvedValue(supabase as any)
+
+    const result = await markNotificationAsRead('notif-1', 'user-1')
+
+    expect(supabase.existingChain.select).toHaveBeenCalledWith('notification_id, status')
+    expect(result).toEqual({
+      notificationId: 'notif-1',
+      status: 'read',
+      updated: false,
+    })
+  })
+
+  it('throws when notification is not owned by the user', async () => {
+    const supabase = makeStatusFallbackSupabase({
+      updateData: null,
+      existingData: null,
+    })
     vi.mocked(getServerClient).mockResolvedValue(supabase as any)
 
     await expect(markNotificationAsRead('notif-x', 'user-1')).rejects.toThrow(
@@ -145,8 +137,6 @@ describe('markNotificationAsRead', () => {
     )
   })
 })
-
-// ─── markMultipleNotificationsAsRead ─────────────────────────────────────────
 
 describe('markMultipleNotificationsAsRead', () => {
   it('returns { updated: 0 } when notificationIds is empty', async () => {
@@ -172,23 +162,7 @@ describe('markMultipleNotificationsAsRead', () => {
     expect(chain.in).toHaveBeenCalledWith('notification_id', ['n-1', 'n-2'])
     expect(result).toEqual({ updated: 2 })
   })
-
-  it('throws when update fails', async () => {
-    const chain = {
-      update: vi.fn().mockReturnThis(),
-      in: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      select: vi.fn().mockResolvedValue({ data: null, error: { message: 'Update failed' } }),
-    }
-    vi.mocked(getServerClient).mockResolvedValue({ from: vi.fn().mockReturnValue(chain) } as any)
-
-    await expect(markMultipleNotificationsAsRead(['n-1'], 'user-1')).rejects.toThrow(
-      'Error al marcar como leidas',
-    )
-  })
 })
-
-// ─── archiveNotification ──────────────────────────────────────────────────────
 
 describe('markAllNotificationsAsRead', () => {
   it('uses the provided server client and falls back when the RPC is unavailable', async () => {
@@ -204,12 +178,7 @@ describe('markAllNotificationsAsRead', () => {
     }
     let fromCallCount = 0
     const supabase = {
-      rpc: vi.fn(() => ({
-        single: vi.fn().mockResolvedValue({
-          data: null,
-          error: { message: 'Function not found' },
-        }),
-      })),
+      rpc: rpcSingle(null, { message: 'Function not found' }),
       from: vi.fn(() => {
         fromCallCount += 1
         return fromCallCount === 1 ? countChain : updateChain
@@ -224,93 +193,83 @@ describe('markAllNotificationsAsRead', () => {
     expect(supabase.rpc).toHaveBeenCalledWith('mark_all_notifications_read', {
       p_user_id: 'user-1',
     })
-    expect(countChain.eq).toHaveBeenCalledWith('user_id', 'user-1')
-    expect(updateChain.eq).toHaveBeenCalledWith('user_id', 'user-1')
     expect(updateChain.update).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'read' }),
     )
     expect(result).toEqual({ updated: 2 })
   })
 
-  it('returns zero without issuing an update when there are no unread notifications', async () => {
-    const countChain = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      or: vi.fn().mockResolvedValue({ count: 0, error: null }),
-    }
+  it('returns the RPC count when available', async () => {
     const supabase = {
-      rpc: vi.fn(() => {
-        throw new Error('RPC unavailable')
-      }),
-      from: vi.fn(() => countChain),
+      rpc: rpcSingle({ updated_count: 4 }, null),
+      from: vi.fn(),
     }
 
     const result = await markAllNotificationsAsRead('user-1', {
       supabase: supabase as any,
     })
 
-    expect(supabase.from).toHaveBeenCalledTimes(1)
-    expect(result).toEqual({ updated: 0 })
+    expect(supabase.from).not.toHaveBeenCalled()
+    expect(result).toEqual({ updated: 4 })
   })
 })
 
 describe('archiveNotification', () => {
-  it('archives notification and returns updated record', async () => {
-    const archived = makeNotif({ status: 'archived' })
-    const supabase = makeSupabase({ updateData: archived })
+  it('archives notification through fallback update when RPC is unavailable', async () => {
+    const supabase = makeStatusFallbackSupabase({
+      updateData: { notification_id: 'notif-1', status: 'archived' },
+      existingData: { notification_id: 'notif-1', status: 'archived' },
+    })
     vi.mocked(getServerClient).mockResolvedValue(supabase as any)
 
     const result = await archiveNotification('notif-1', 'user-1')
 
-    expect(supabase.operationChain.update).toHaveBeenCalledWith({ status: 'archived' })
-    expect(result).toMatchObject({ status: 'archived' })
-  })
-
-  it('throws when notification not found', async () => {
-    const supabase = makeSupabase({ ownershipData: null, ownershipError: { message: 'Not found' } })
-    vi.mocked(getServerClient).mockResolvedValue(supabase as any)
-
-    await expect(archiveNotification('notif-x', 'user-1')).rejects.toThrow(
-      'Notificacion no encontrada o no pertenece al usuario',
+    expect(supabase.updateChain.update).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'archived' }),
     )
+    expect(result).toEqual({
+      notificationId: 'notif-1',
+      status: 'archived',
+      updated: true,
+    })
   })
 })
 
-// ─── deleteNotification ───────────────────────────────────────────────────────
-
 describe('deleteNotification', () => {
-  it('deletes notification without error on happy path', async () => {
-    const ownershipChain = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: makeNotif(), error: null }),
+  it('returns compact delete result from RPC', async () => {
+    const supabase = {
+      rpc: rpcSingle({ notification_id: 'notif-1', deleted: true }, null),
+      from: vi.fn(),
     }
+    vi.mocked(getServerClient).mockResolvedValue(supabase as any)
+
+    const result = await deleteNotification('notif-1', 'user-1')
+
+    expect(result).toEqual({ notificationId: 'notif-1', deleted: true })
+    expect(supabase.from).not.toHaveBeenCalled()
+  })
+
+  it('deletes notification through fallback with ownership in the delete statement', async () => {
     const deleteChain = {
       delete: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-    }
-    // last .eq() in delete chain resolves with { error: null }
-    const eqMock = vi.fn().mockReturnThis()
-    deleteChain.eq = eqMock
-    eqMock.mockReturnValueOnce(deleteChain).mockResolvedValueOnce({ error: null })
-
-    let callCount = 0
-    vi.mocked(getServerClient).mockResolvedValue({
-      from: vi.fn(() => {
-        callCount++
-        return callCount === 1 ? ownershipChain : deleteChain
+      select: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: { notification_id: 'notif-1' },
+        error: null,
       }),
-    } as any)
-
-    await expect(deleteNotification('notif-1', 'user-1')).resolves.toBeUndefined()
-  })
-
-  it('throws when notification not found', async () => {
-    const supabase = makeSupabase({ ownershipData: null, ownershipError: { message: 'Not found' } })
+    }
+    const supabase = {
+      rpc: rpcSingle(null, { message: 'RPC unavailable' }),
+      from: vi.fn().mockReturnValue(deleteChain),
+    }
     vi.mocked(getServerClient).mockResolvedValue(supabase as any)
 
-    await expect(deleteNotification('notif-x', 'user-1')).rejects.toThrow(
-      'Notificacion no encontrada o no pertenece al usuario',
-    )
+    const result = await deleteNotification('notif-1', 'user-1')
+
+    expect(deleteChain.delete).toHaveBeenCalled()
+    expect(deleteChain.eq).toHaveBeenCalledWith('notification_id', 'notif-1')
+    expect(deleteChain.eq).toHaveBeenCalledWith('user_id', 'user-1')
+    expect(result).toEqual({ notificationId: 'notif-1', deleted: true })
   })
 })

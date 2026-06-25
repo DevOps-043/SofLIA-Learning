@@ -160,8 +160,14 @@ export function CreateQuestionForm({
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 sm:px-6 sm:py-5 border-b border-gray-100 dark:border-white/5 shrink-0 bg-gray-50/50 dark:bg-white/[0.01]">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 dark:bg-accent/10 flex items-center justify-center border border-primary/20 dark:border-accent/20">
-              <MessageCircle className="w-4 h-4 text-primary dark:text-accent" />
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center border"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)',
+                borderColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)',
+              }}
+            >
+              <MessageCircle className="w-4 h-4" style={{ color: 'var(--learn-accent)' }} />
             </div>
             <div>
               <h3
@@ -264,7 +270,12 @@ export function CreateQuestionForm({
                   {tags.map((tag) => (
                     <span
                       key={tag}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/5 dark:bg-accent/5 text-primary dark:text-accent text-xs font-semibold rounded-full border border-primary/10 dark:border-accent/10 transition-all hover:bg-red-50 hover:text-red-500 hover:border-red-200 group/tag cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full border transition-all hover:bg-red-50 hover:text-red-500 hover:border-red-200 group/tag cursor-pointer"
+                      style={{
+                        backgroundColor: 'color-mix(in srgb, var(--learn-accent) 5%, transparent)',
+                        color: 'var(--learn-accent)',
+                        borderColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)',
+                      }}
                       onClick={() => handleRemoveTag(tag)}
                       title="Haz clic para eliminar"
                     >
@@ -297,7 +308,8 @@ export function CreateQuestionForm({
             type="submit"
             form="create-question-form"
             disabled={isSubmitting || !content.trim()}
-            className="px-6 py-2.5 bg-primary hover:bg-primary/95 dark:bg-accent dark:hover:bg-accent/95 text-white dark:text-[var(--color-legacy-0a1724)] rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg text-sm font-semibold flex items-center justify-center gap-2"
+            className="px-6 py-2.5 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:brightness-95 text-sm font-semibold flex items-center justify-center gap-2"
+            style={{ backgroundColor: 'var(--learn-action)', color: 'var(--learn-on-action)' }}
           >
             {isSubmitting ? (
               <>

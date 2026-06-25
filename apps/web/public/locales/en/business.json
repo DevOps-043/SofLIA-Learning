@@ -2149,5 +2149,37 @@
       "gender": "Gender",
       "job_title": "Job title"
     }
+  },
+  "notifications": {
+    "events": {
+      "certificate_generated": {
+        "label": "Certificate generated",
+        "description": "Notify when a certificate is generated"
+      },
+      "course_assigned": {
+        "label": "Course assigned",
+        "description": "Notify when a course is assigned to a user"
+      },
+      "course_completed": {
+        "label": "Course completed",
+        "description": "Notify when a user completes a course"
+      },
+      "deadline_approaching": {
+        "label": "Deadline approaching",
+        "description": "Notify when an assigned course deadline is approaching"
+      },
+      "learning_daily_summary": {
+        "label": "Daily reminder",
+        "description": "Send a daily summary to continue active courses"
+      },
+      "progress_milestone": {
+        "label": "Progress milestone",
+        "description": "Notify when a user reaches progress milestones"
+      },
+      "user_added": {
+        "label": "User added",
+        "description": "Notify when a new user is added to the organization"
+      }
+    }
   }
 }

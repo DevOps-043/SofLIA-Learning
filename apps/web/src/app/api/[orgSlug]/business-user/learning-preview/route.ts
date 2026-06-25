@@ -530,4 +530,67 @@ async function handlePost(
   }
 }
 
+/**
+ * GET /api/[orgSlug]/business-user/learning-preview?kind=...&targetId=...&locale=...
+ *
+ * Fast cache-only lookup. Does NOT load learning paths or call Gemini.
+ * Used as a pre-flight by the client: if this returns 200, show content immediately
+ * without any "Analizando" loading state. If 204, the client falls back to POST.
+ */
+export async function GET(request: NextRequest, context: RouteContext) {
+  const { orgSlug } = await context.params
+  if (!orgSlug) return new NextResponse(null, { status: 204 })
+
+  const auth = await requireBusinessUser({ organizationSlug: orgSlug })
+  if (auth instanceof NextResponse) return new NextResponse(null, { status: 204 })
+
+  const sp = request.nextUrl.searchParams
+  const kind = sp.get('kind')
+  const targetId = sp.get('targetId')
+  const locale = sp.get('locale') ?? undefined
+
+  if (!kind || !targetId || (kind !== 'course' && kind !== 'learning_path')) {
+    return new NextResponse(null, { status: 204 })
+  }
+
+  const currentLocale = normalizePreviewLocale(locale)
+  const supabase = createAdminClient()
+
+  try {
+    const { data: cached } = await fromLoose<
+      LearningPreviewSummaryRow,
+      LearningPreviewSummaryWrite
+    >(supabase, 'learning_preview_summaries')
+      .select('payload, model_name')
+      .eq('kind', kind)
+      .eq('target_id', targetId)
+      .eq('locale', currentLocale)
+      .maybeSingle()
+
+    if (cached) {
+      const parsed = parseCachedPreview(cached.payload, cached.model_name)
+      if (parsed) return NextResponse.json({ success: true, ...parsed })
+    }
+
+    // Also check legacy table so content already in the old cache is served fast
+    if (auth.organizationId) {
+      const { data: legacyCached } = await supabase
+        .from('learning_preview_cache')
+        .select('payload, model_name, expires_at')
+        .eq('organization_id', auth.organizationId)
+        .eq('kind', kind)
+        .eq('target_id', targetId)
+        .eq('locale', currentLocale)
+        .maybeSingle<LegacyLearningPreviewCacheRow>()
+
+      const parsedLegacy = parseCachedPreview(legacyCached?.payload, legacyCached?.model_name)
+      if (parsedLegacy) return NextResponse.json({ success: true, ...parsedLegacy })
+    }
+  } catch (error) {
+    logger.error('Learning preview GET cache lookup failed', error)
+  }
+
+  return new NextResponse(null, { status: 204 })
+}
+
 export const POST = withZodBody(learningPreviewSchema, handlePost)

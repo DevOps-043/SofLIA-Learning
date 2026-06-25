@@ -14,9 +14,13 @@ export function LiaMobileButton() {
         isInteractionBlocked
           ? "opacity-45 grayscale cursor-not-allowed text-gray-400 dark:text-white/40"
           : isOpen
-            ? "bg-primary/10 dark:bg-accent/15 text-primary dark:text-accent"
+            ? ""
             : "text-gray-500 dark:text-white/60 hover:bg-gray-200/50 dark:hover:bg-primary/30"
       }`}
+      style={!isInteractionBlocked && isOpen ? {
+        backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)',
+        color: 'var(--learn-accent)',
+      } : undefined}
     >
       <div className="w-6 h-6 rounded-full overflow-hidden border-2 border-current">
         <img src="/lia-avatar.webp" alt="SofLIA" className="w-full h-full object-cover" />

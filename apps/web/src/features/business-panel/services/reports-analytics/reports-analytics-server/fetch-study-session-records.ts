@@ -5,6 +5,7 @@ import type { StudySessionRecord } from './study-session-record'
 export function fetchStudySessionRecords(
   supabase: ReportsAnalyticsSupabaseClient,
   userIds: string[],
+  dateRange: { from: string; to: string },
 ): Promise<StudySessionRecord[]> {
   return fetchUserScopedRows<StudySessionRecord>('study sessions', userIds, (chunk, from, to) =>
     supabase
@@ -28,6 +29,8 @@ export function fetchStudySessionRecords(
         )
       `)
       .in('user_id', chunk)
+      .gte('start_time', dateRange.from)
+      .lte('start_time', dateRange.to)
       .range(from, to),
   )
 }

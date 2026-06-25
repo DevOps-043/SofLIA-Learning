@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Building2, Sparkles } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import Image from 'next/image';
 import type { TFunction } from 'i18next';
 import type { ModernNavbarColors, ModernNavbarOrganization } from './types';
@@ -62,15 +62,9 @@ export function ModernNavbarBrand({ colors, organization, t }: ModernNavbarBrand
 
         {organization?.show_navbar_name !== false && (
           <div className="hidden sm:block">
-            <h1 className="text-sm sm:text-base font-bold leading-tight tracking-tight truncate max-w-[200px] sm:max-w-[300px]" style={{ color: colors.text }}>
+            <h1 className="text-lg sm:text-xl font-bold leading-tight tracking-tight truncate max-w-[200px] sm:max-w-[300px]" style={{ color: colors.text }}>
               {organization?.name || t('header.myOrganization')}
             </h1>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <Sparkles className="w-3 h-3" style={{ color: colors.accent }} />
-              <p className="text-xs font-medium" style={{ color: `color-mix(in srgb, ${colors.accent} 80%, transparent)` }}>
-                {t('header.learningPanel')}
-              </p>
-            </div>
           </div>
         )}
       </motion.div>

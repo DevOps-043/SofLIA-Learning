@@ -43,7 +43,13 @@ export function CourseCompletedModal({ isOpen, onClose }: CourseCompletedModalPr
             <p className="text-gray-600 dark:text-slate-300 text-center mb-4">
               Has completado el curso exitosamente. ¡Buen trabajo!
             </p>
-            <div className="bg-primary/10 dark:bg-accent/20 border border-primary/20 dark:border-accent/40 rounded-xl p-3 mb-6">
+            <div
+              className="rounded-xl border p-3 mb-6"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--learn-action) 10%, transparent)',
+                borderColor: 'color-mix(in srgb, var(--learn-action) 20%, transparent)',
+              }}
+            >
               <p
                 className="text-primary dark:text-white text-center text-sm"
                 style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
@@ -53,8 +59,8 @@ export function CourseCompletedModal({ isOpen, onClose }: CourseCompletedModalPr
             </div>
             <button
               onClick={onClose}
-              className="w-full px-6 py-3 bg-primary hover:bg-primary dark:bg-accent dark:hover:bg-accent text-white dark:text-[var(--color-legacy-0a1724)] font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-primary/25 dark:hover:shadow-accent/25"
-              style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
+              className="w-full px-6 py-3 font-medium rounded-xl transition-all duration-200 shadow-lg hover:brightness-95"
+              style={{ fontFamily: "Inter, sans-serif", fontWeight: 500, backgroundColor: 'var(--learn-action)', color: 'var(--learn-on-action)' }}
             >
               Aceptar
             </button>

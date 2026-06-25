@@ -17,7 +17,7 @@ export function ToolTaskActions(props: {
   }
 
   return (
-    <div className="rounded-xl border border-[var(--color-legacy-b6e5db)] bg-[var(--color-legacy-f1fbf8)] px-4 py-3 dark:border-accent/20 dark:bg-[var(--color-legacy-08201b)]">
+    <div className="rounded-xl border bg-[var(--color-legacy-f1fbf8)] px-4 py-3 dark:bg-[var(--color-legacy-08201b)]" style={{ borderColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)' }}>
       <div className="flex flex-wrap items-center gap-2">
         {toolTask.showCopyButton && promptText && (
           <button type="button" onClick={() => copyPrompt(promptText, props.setMessage)} className="inline-flex items-center gap-2 rounded-lg border border-primary/10 bg-white px-3 py-2 text-xs font-medium text-primary transition hover:border-primary/20 hover:bg-primary/5 dark:border-white/10 dark:bg-white/5 dark:text-white">

@@ -118,6 +118,10 @@
 [functions."process-inactive-lessons"]
   schedule = "*/5 * * * *"
 
+# Funcion programada: Recordatorios diarios de aprendizaje por zona horaria
+[functions."process-learning-reminders"]
+  schedule = "0 * * * *"
+
 # Función programada: Procesar cursos del inbox de CourseEngine cada 5 minutos
 [functions."process-inbox"]
   schedule = "*/5 * * * *"
@@ -137,3 +141,7 @@
 
 [context.deploy-preview]
   command = "bash scripts/netlify-build.sh"
+
+# Funcion programada: Entregas externas de notificaciones
+[functions."process-notification-deliveries"]
+  schedule = "*/5 * * * *"

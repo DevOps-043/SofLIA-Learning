@@ -84,7 +84,12 @@ export function QuestionThread({ questionId, slug }: QuestionThreadProps) {
                 disabled={!newResponse.trim() || isSubmitting}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-primary/10 hover:bg-primary/15 text-primary dark:bg-accent/15 dark:hover:bg-accent/25 dark:text-accent border border-primary/15 dark:border-accent/20"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed border hover:brightness-95"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--learn-accent) 12%, transparent)',
+                  color: 'var(--learn-accent)',
+                  borderColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)',
+                }}
               >
                 {isSubmitting ? (
                   <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />

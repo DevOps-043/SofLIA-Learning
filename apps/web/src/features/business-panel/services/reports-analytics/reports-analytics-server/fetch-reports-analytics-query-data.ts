@@ -17,14 +17,17 @@ import { uniqueValues } from './unique-values'
 import type { AnalyticsQueryData } from './analytics-query-data'
 import type { ReportsAnalyticsSupabaseClient } from './reports-analytics-supabase-client'
 import type { ReportsAnalyticsUntypedSupabaseClient } from './reports-analytics-untyped-supabase-client'
+import type { ReportsAnalyticsFilters } from '../../../types/reports-analytics.types'
 
 export async function fetchReportsAnalyticsQueryData(
   supabase: ReportsAnalyticsSupabaseClient,
   organizationId: string,
+  filters: ReportsAnalyticsFilters,
 ): Promise<AnalyticsQueryData> {
   const organizationUsers = await fetchOrganizationUsers(supabase, organizationId)
   const organizationUserIds = uniqueValues(organizationUsers.map((record) => record.user_id))
   const hierarchySupabase = supabase as unknown as ReportsAnalyticsUntypedSupabaseClient
+  const dateRange = { from: filters.from, to: filters.to }
 
   const [
     regions,
@@ -44,14 +47,14 @@ export async function fetchReportsAnalyticsQueryData(
     fetchOrganizationZones(hierarchySupabase, organizationId),
     fetchOrganizationTeams(hierarchySupabase, organizationId),
     fetchAssignmentRecords(supabase, organizationId),
-    fetchEnrollmentRecords(supabase, organizationUserIds),
-    fetchLessonProgressRecords(supabase, organizationUserIds),
-    fetchActivityCompletionRecords(supabase, organizationUserIds),
-    fetchActivitySubmissionRecords(supabase, organizationId, organizationUserIds),
-    fetchLessonNoteRecords(supabase, organizationUserIds),
-    fetchLiaConversationRecords(supabase, organizationUserIds),
-    fetchQuizSubmissionRecords(supabase, organizationUserIds),
-    fetchStudySessionRecords(supabase, organizationUserIds),
+    fetchEnrollmentRecords(supabase, organizationUserIds),         // structural: no date filter
+    fetchLessonProgressRecords(supabase, organizationUserIds, dateRange),
+    fetchActivityCompletionRecords(supabase, organizationUserIds, dateRange),
+    fetchActivitySubmissionRecords(supabase, organizationId, organizationUserIds, dateRange),
+    fetchLessonNoteRecords(supabase, organizationUserIds, dateRange),
+    fetchLiaConversationRecords(supabase, organizationUserIds, dateRange),
+    fetchQuizSubmissionRecords(supabase, organizationUserIds, dateRange),
+    fetchStudySessionRecords(supabase, organizationUserIds, dateRange),
   ])
 
   const [liaMessages, activityEvaluations] = await Promise.all([

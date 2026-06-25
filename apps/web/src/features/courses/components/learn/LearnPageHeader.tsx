@@ -83,8 +83,8 @@ export function LearnPageHeader({
           <NotificationBell />
           <span
             data-tour-id="course-learn--progress"
-            className="text-xs text-primary dark:text-accent font-medium bg-primary/10 dark:bg-accent/15 px-2 py-0.5 rounded-full min-w-[2.5rem] text-center shrink-0"
-            style={{ fontFamily: "Inter, sans-serif", fontWeight: 500, ...(accentColor ? { color: accentColor, backgroundColor: `color-mix(in srgb, ${accentColor} 15%, transparent)` } : {}) }}
+            className="text-xs font-medium px-2 py-0.5 rounded-full min-w-[2.5rem] text-center shrink-0"
+            style={{ fontFamily: "Inter, sans-serif", fontWeight: 500, color: 'var(--learn-accent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)' }}
           >
             {courseProgress}%
           </span>

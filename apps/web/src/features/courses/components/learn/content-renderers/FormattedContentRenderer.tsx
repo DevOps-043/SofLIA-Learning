@@ -20,10 +20,13 @@ function StaticChecklistItem({ checked, content }: { checked: boolean; content: 
     <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-[var(--color-legacy-10161d)]">
       <span
         className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded border text-[11px] font-bold ${
-          checked
-            ? "border-primary bg-primary text-white dark:border-accent dark:bg-accent dark:text-[var(--color-legacy-08141f)]"
-            : "border-gray-300 text-transparent dark:border-white/20"
+          checked ? "" : "border-gray-300 text-transparent dark:border-white/20"
         }`}
+        style={checked ? {
+          borderColor: 'var(--learn-action)',
+          backgroundColor: 'var(--learn-action)',
+          color: 'var(--learn-on-action)',
+        } : undefined}
       >
         ✓
       </span>
@@ -59,7 +62,8 @@ function renderFormattedItem(item: FormattedItem): ReactNode {
   if (item.type === "main-title") {
     return (
       <h1
-        className="border-b border-primary/15 pb-3 text-3xl font-bold text-primary dark:border-accent/20 dark:text-white"
+        className="border-b pb-3 text-3xl font-bold text-primary dark:text-white"
+        style={{ borderBottomColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)' }}
         style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}
       >
         {item.content}
@@ -84,7 +88,14 @@ function renderFormattedItem(item: FormattedItem): ReactNode {
       <div className="flex items-center gap-3 text-primary dark:text-[var(--color-legacy-d6fff8)]">
         {match ? (
           <>
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-primary/20 bg-primary/5 text-lg font-bold dark:border-accent/25 dark:bg-accent/10 dark:text-accent">
+            <span
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-lg font-bold"
+            style={{
+              borderColor: 'color-mix(in srgb, var(--learn-accent) 25%, transparent)',
+              backgroundColor: 'color-mix(in srgb, var(--learn-accent) 8%, transparent)',
+              color: 'var(--learn-accent)',
+            }}
+          >
               {match[1]}
             </span>
             <h3 className="text-xl font-semibold">{match[2]}</h3>
@@ -98,7 +109,7 @@ function renderFormattedItem(item: FormattedItem): ReactNode {
 
   if (item.type === "example") {
     return (
-      <div className="rounded-xl border-l-4 border-primary/30 bg-[var(--color-legacy-f5f8fc)] px-4 py-3 dark:border-accent/35 dark:bg-[var(--color-legacy-0b1a20)]">
+      <div className="rounded-xl border-l-4 bg-[var(--color-legacy-f5f8fc)] px-4 py-3 dark:bg-[var(--color-legacy-0b1a20)]" style={{ borderLeftColor: 'color-mix(in srgb, var(--learn-accent) 35%, transparent)' }}>
         <p className="text-sm font-semibold uppercase tracking-wide text-primary dark:text-[var(--color-legacy-98f5e4)]">Ejemplo</p>
         <p className="mt-1 text-sm leading-relaxed text-gray-700 dark:text-white/80">{item.content}</p>
       </div>
@@ -122,7 +133,7 @@ function renderFormattedItem(item: FormattedItem): ReactNode {
   if (item.type === "list") {
     return (
       <div className="flex items-start gap-3">
-        <span className="mt-1 text-lg font-bold text-primary dark:text-accent">-</span>
+        <span className="mt-1 text-lg font-bold" style={{ color: 'var(--learn-accent)' }}>-</span>
         <p className="flex-1 text-base leading-relaxed text-primary dark:text-white">{item.content}</p>
       </div>
     );
@@ -178,11 +189,13 @@ export function FormattedContentRenderer({
         {formattedContent.map((item, index) => (
           <div
             key={`item-${index}`}
-            className={
-              index === activeIndex
-                ? "-mx-2 rounded-lg bg-accent/10 px-2 py-1 transition-colors duration-300 dark:bg-accent/15"
-                : "transition-colors duration-300"
-            }
+            className="transition-colors duration-300"
+            style={index === activeIndex ? {
+              margin: '0 -0.5rem',
+              borderRadius: '0.5rem',
+              backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)',
+              padding: '0.25rem 0.5rem',
+            } : undefined}
           >
             {renderFormattedItem(item)}
           </div>

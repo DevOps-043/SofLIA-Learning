@@ -18,7 +18,7 @@ function LiaSidePanelContent() {
     isDarkMode, isLightTheme, themeColors,
     messages, isLoading, clearHistory, currentConversationId,
     inputValue, setInputValue, inputRef, messagesEndRef, chatContainerRef,
-    handleChatScroll, handleSendMessage, handleQuickAction, handleKeyDown, handleLinkClick, quickActions,
+    handleChatScroll, handleSendMessage, handleQuickAction, handleLinkClick, quickActions,
     currentTip, tips,
     typewriterReveal, isResponding,
     isSpeaking, isVoiceEnabled, toggleVoiceEnabled, isVoiceTogglePending,
@@ -63,10 +63,10 @@ function LiaSidePanelContent() {
           <motion.aside
             className="lia-side-panel-shell"
             data-tour-id="soflia-side-panel"
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
             style={{
               position: 'fixed',
               top: 0,

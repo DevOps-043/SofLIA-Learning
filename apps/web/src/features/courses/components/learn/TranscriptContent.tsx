@@ -132,8 +132,8 @@ export function TranscriptContent({
     return (
       <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-white/[0.02]">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 dark:bg-accent/10">
-            <ScrollText className="h-4 w-4 animate-pulse text-primary dark:text-accent" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)' }}>
+            <ScrollText className="h-4 w-4 animate-pulse" style={{ color: 'var(--learn-accent)' }} />
           </div>
           <div className="space-y-2">
             <div className="h-3 w-40 animate-pulse rounded bg-gray-200 dark:bg-white/10" />
@@ -151,8 +151,8 @@ export function TranscriptContent({
     return (
       <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-white/[0.02]">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 dark:bg-accent/10">
-            <Info className="h-4 w-4 text-primary dark:text-accent" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)' }}>
+            <Info className="h-4 w-4" style={{ color: 'var(--learn-accent)' }} />
           </div>
           <div>
             <h3 className="text-sm font-semibold text-primary dark:text-white">
@@ -171,12 +171,12 @@ export function TranscriptContent({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2 rounded-full border border-primary/10 bg-white px-3 py-1.5 text-sm text-gray-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70">
-          <div className="h-1.5 w-1.5 rounded-full bg-primary dark:bg-accent" />
+          <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--learn-accent)' }} />
           <span className="font-medium">{transcriptContent?.length || 0}</span>
           <span className="text-xs">{t("transcript.characters")}</span>
         </div>
         <div className="flex items-center gap-2 rounded-full border border-primary/10 bg-white px-3 py-1.5 text-sm text-gray-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 font-sans">
-          <Clock className="h-3.5 w-3.5 text-primary dark:text-accent" />
+          <Clock className="h-3.5 w-3.5" style={{ color: 'var(--learn-accent)' }} />
           <span className="font-medium">{estimatedReadingTime}</span>
           <span className="text-xs">{t("transcript.readTime")}</span>
         </div>
@@ -190,7 +190,7 @@ export function TranscriptContent({
                 {/* Time column */}
                 <div className="sm:w-28 shrink-0">
                   {block.time && (
-                    <div className="inline-flex items-center gap-1.5 rounded-lg border border-primary/10 bg-primary/5 px-2.5 py-1 text-sm font-medium text-primary dark:border-accent/20 dark:bg-accent/10 dark:text-accent">
+                    <div className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium" style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 8%, transparent)', color: 'var(--learn-accent)' }}>
                       <Clock className="h-3.5 w-3.5 opacity-70" />
                       <span>{block.time}</span>
                     </div>
@@ -218,7 +218,8 @@ export function TranscriptContent({
               type="button"
               onClick={handleSaveToNotes}
               disabled={isSaving}
-              className="flex items-center gap-2 rounded-lg border border-primary/15 bg-primary/[0.08] px-4 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/[0.12] disabled:cursor-not-allowed disabled:opacity-60 dark:border-accent/20 dark:bg-accent/10 dark:text-accent dark:hover:bg-accent/15"
+              className="flex items-center gap-2 rounded-lg px-4 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+              style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)', color: 'var(--learn-accent)' }}
             >
               <Save className={`h-3.5 w-3.5 ${isSaving ? "animate-spin" : ""}`} />
               {isSaving ? t("transcript.savingToNotes") : t("transcript.generateNote")}

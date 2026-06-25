@@ -2150,5 +2150,37 @@
       "gender": "Género",
       "job_title": "Puesto"
     }
+  },
+  "notifications": {
+    "events": {
+      "certificate_generated": {
+        "label": "Certificado generado",
+        "description": "Notificar cuando se genera un certificado"
+      },
+      "course_assigned": {
+        "label": "Curso asignado",
+        "description": "Notificar cuando se asigna un curso a un usuario"
+      },
+      "course_completed": {
+        "label": "Curso completado",
+        "description": "Notificar cuando un usuario completa un curso"
+      },
+      "deadline_approaching": {
+        "label": "Fecha límite próxima",
+        "description": "Notificar cuando se acerca la fecha límite de un curso asignado"
+      },
+      "learning_daily_summary": {
+        "label": "Recordatorio diario",
+        "description": "Enviar un resumen diario para continuar cursos activos"
+      },
+      "progress_milestone": {
+        "label": "Hito de progreso",
+        "description": "Notificar cuando un usuario alcanza hitos de progreso"
+      },
+      "user_added": {
+        "label": "Usuario agregado",
+        "description": "Notificar cuando se agrega un nuevo usuario a la organización"
+      }
+    }
   }
 }

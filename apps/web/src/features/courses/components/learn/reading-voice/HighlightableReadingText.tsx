@@ -13,7 +13,7 @@ interface HighlightableReadingTextProps {
 }
 
 const HIGHLIGHT_CLASS =
-  "rounded bg-accent/20 text-primary shadow-[0_0_0_2px_rgba(0,212,179,0.12)] dark:bg-accent/25 dark:text-white";
+  "rounded text-primary dark:text-white bg-[color-mix(in_srgb,var(--learn-accent)_22%,transparent)] shadow-[0_0_0_2px_color-mix(in_srgb,var(--learn-accent)_12%,transparent)]";
 
 /**
  * Renders reading text split into paragraphs and sentences, highlighting the sentence

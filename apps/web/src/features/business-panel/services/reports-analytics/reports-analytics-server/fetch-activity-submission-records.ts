@@ -6,6 +6,7 @@ export function fetchActivitySubmissionRecords(
   supabase: ReportsAnalyticsSupabaseClient,
   organizationId: string,
   userIds: string[],
+  dateRange: { from: string; to: string },
 ): Promise<ActivitySubmissionRecord[]> {
   return fetchUserScopedRows<ActivitySubmissionRecord>('activity submissions', userIds, (chunk, from, to) =>
     supabase
@@ -47,6 +48,8 @@ export function fetchActivitySubmissionRecords(
       `)
       .eq('organization_id', organizationId)
       .in('user_id', chunk)
+      .gte('submitted_at', dateRange.from)
+      .lte('submitted_at', dateRange.to)
       .range(from, to),
   )
 }

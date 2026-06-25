@@ -45,9 +45,6 @@ export function CourseSectionHeader({
           <h2 className="text-xl font-bold" style={{ color: orgColors.text }}>
             {t('sidebar.courses')}
           </h2>
-          <p className="text-sm" style={{ color: orgColors.textSecondary }}>
-            {t('dashboard.quickActions.assignCourses.desc', 'Continua donde lo dejaste')}
-          </p>
         </div>
       </div>
       {hasCourses ? (

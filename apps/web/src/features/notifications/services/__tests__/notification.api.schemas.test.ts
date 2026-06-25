@@ -54,6 +54,9 @@ describe('notification api schemas', () => {
       message: 'Has completado el curso.',
       priority: 'medium',
       organizationId: '148291f8-fbe9-4d41-8d5d-e5a621aaf011',
+      channels: ['in_app', 'whatsapp'],
+      dedupKey: 'user:course:certificate',
+      expiresAt: '2026-06-30T00:00:00.000Z',
     })
 
     expect(result.success).toBe(true)

@@ -125,7 +125,7 @@ export function useUserDropdownLogic(userProp?: unknown, options: UserDropdownLo
   const roleLabel = getUserRoleLabel({ isAdmin, isInstructor, isOrgAdmin, orgAdminLabel: t('profileDropdown.orgRoles.admin'), user })
   const imageUrl = userProfile?.profile_picture_url || user?.profile_picture_url
   const primaryColor = currentOrganization?.brandColorPrimary || 'var(--color-primary)'
-  const accentColor = 'var(--color-accent)'
+  const accentColor = currentOrganization?.brandColorAccent ?? currentOrganization?.brandColorPrimary ?? 'var(--color-accent)'
 
   return {
     activeSubmenu, accentColor, canSwitch, currentOrganization, displayName, dropdownRef,

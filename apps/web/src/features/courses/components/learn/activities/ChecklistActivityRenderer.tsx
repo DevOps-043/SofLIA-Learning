@@ -57,10 +57,13 @@ export function ChecklistActivityRenderer({
             >
               <span
                 className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded border text-[11px] font-bold transition ${
-                  checked
-                    ? "border-primary bg-primary text-white dark:border-accent dark:bg-accent dark:text-[var(--color-legacy-08141f)]"
-                    : "border-gray-300 text-transparent dark:border-white/20"
+                  checked ? "" : "border-gray-300 text-transparent dark:border-white/20"
                 }`}
+                style={checked ? {
+                  borderColor: 'var(--learn-action)',
+                  backgroundColor: 'var(--learn-action)',
+                  color: 'var(--learn-on-action)',
+                } : undefined}
               >
                 ✓
               </span>

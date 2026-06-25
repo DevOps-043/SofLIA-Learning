@@ -16,9 +16,10 @@ interface PanelSwitcherItem {
 interface PanelSwitcherProps {
   items: PanelSwitcherItem[]
   label: string
+  accentColor: string
 }
 
-function PanelSwitcherGrid({ items, label }: PanelSwitcherProps) {
+function PanelSwitcherGrid({ items, label, accentColor }: PanelSwitcherProps) {
   const gridClassName = items.length >= 4 ? 'grid-cols-2' : items.length === 3 ? 'grid-cols-3' : 'grid-cols-2'
 
   return (
@@ -36,13 +37,16 @@ function PanelSwitcherGrid({ items, label }: PanelSwitcherProps) {
               aria-current={item.isActive ? 'page' : undefined}
               onClick={item.onClick}
               className={cn(
-                'flex min-h-[34px] min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20',
+                'flex min-h-[34px] min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold transition-colors focus:outline-none',
                 item.isActive
                   ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 dark:bg-white/10 dark:text-white dark:ring-white/10'
                   : 'text-gray-600 hover:bg-white/70 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white',
               )}
             >
-              <Icon className={cn('h-3.5 w-3.5 shrink-0', item.isActive ? 'text-emerald-500' : 'text-gray-400')} />
+              <Icon
+                className={cn('h-3.5 w-3.5 shrink-0', !item.isActive && 'text-gray-400')}
+                style={item.isActive ? { color: accentColor } : undefined}
+              />
               <span className="min-w-0 truncate">{item.label}</span>
             </button>
           )
@@ -53,7 +57,7 @@ function PanelSwitcherGrid({ items, label }: PanelSwitcherProps) {
 }
 
 export function UserDropdownPanelSwitcher({ logic }: { logic: UserDropdownLogic }) {
-  const { currentOrganization, handleNavigation, isAdmin, isInstructor, isOrgAdmin, pathname, t } = logic
+  const { accentColor, currentOrganization, handleNavigation, isAdmin, isInstructor, isOrgAdmin, pathname, t } = logic
 
   const panelLinks = useMemo<PanelSwitcherItem[]>(() => {
     const links: PanelSwitcherItem[] = []
@@ -103,5 +107,5 @@ export function UserDropdownPanelSwitcher({ logic }: { logic: UserDropdownLogic 
 
   if (panelLinks.length <= 1) return null
 
-  return <PanelSwitcherGrid items={panelLinks} label={t('profileDropdown.panels.title')} />
+  return <PanelSwitcherGrid items={panelLinks} label={t('profileDropdown.panels.title')} accentColor={accentColor} />
 }

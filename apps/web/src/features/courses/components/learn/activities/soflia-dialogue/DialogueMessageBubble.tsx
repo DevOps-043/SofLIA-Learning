@@ -24,11 +24,15 @@ export function DialogueMessageBubble({
       <div
         className={`max-w-[88%] break-words rounded-2xl border px-3.5 py-2.5 text-sm leading-relaxed ${
           isUser
-            ? "rounded-br-md border-transparent bg-primary text-white dark:bg-accent dark:text-primary"
+            ? "rounded-br-md border-transparent"
             : "rounded-bl-md border-gray-200/70 bg-gray-50 text-gray-800 dark:border-white/10 dark:bg-white/[0.05] dark:text-white/90"
         }`}
+        style={isUser ? { backgroundColor: 'var(--learn-action)', color: 'var(--learn-on-action)' } : undefined}
       >
-        <div className={`mb-0.5 text-[11px] font-semibold ${isUser ? "text-white/70 dark:text-primary/70" : "text-accent"}`}>
+        <div
+          className={`mb-0.5 text-[11px] font-semibold ${isUser ? "opacity-70" : ""}`}
+          style={!isUser ? { color: 'var(--learn-accent)' } : undefined}
+        >
           {isUser ? userDisplayName : "SofLIA"}
         </div>
         <p className="whitespace-pre-wrap break-words">{message.content}</p>

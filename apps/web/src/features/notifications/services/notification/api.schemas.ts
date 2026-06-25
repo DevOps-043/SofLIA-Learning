@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { NOTIFICATION_CHANNELS } from './catalog'
 import { parseNotificationCursor } from './utils'
 
 const optionalNonEmptyString = z
@@ -22,6 +23,8 @@ const notificationStatusSchema = z.enum(['unread', 'read', 'archived'])
 const notificationOrderBySchema = z.enum(['created_at', 'priority', 'status'])
 
 const notificationOrderDirectionSchema = z.enum(['asc', 'desc'])
+
+const notificationChannelSchema = z.enum(NOTIFICATION_CHANNELS)
 
 const boundedIntegerFromQuerySchema = (defaultValue: number, maxValue: number) =>
   z
@@ -76,6 +79,9 @@ export const createNotificationBodySchema = z.object({
   priority: notificationPrioritySchema.optional(),
   organizationId: optionalUuid,
   groupId: optionalUuid,
+  channels: z.array(notificationChannelSchema).max(10).optional(),
+  dedupKey: z.string().trim().min(1).max(240).optional(),
+  expiresAt: z.string().datetime({ offset: true }).optional(),
 })
 
 export type NotificationListQueryInput = z.infer<

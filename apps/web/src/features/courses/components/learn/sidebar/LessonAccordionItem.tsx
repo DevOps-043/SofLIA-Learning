@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import { useThemeStore } from "@/core/stores/themeStore";
 
 import type {
   LearnActivitySummary,
@@ -51,6 +52,8 @@ export function LessonAccordionItem({
 }: LessonAccordionItemProps) {
   const isActive = currentLessonId === lesson.lesson_id;
   const isCompleted = lesson.is_completed;
+  const { resolvedTheme } = useThemeStore()
+  const isDark = resolvedTheme === 'dark'
 
   return (
     <div className="w-full">
@@ -63,26 +66,28 @@ export function LessonAccordionItem({
           }}
           className={`group relative flex flex-1 items-center gap-3 overflow-hidden rounded-r-lg border-l-2 px-3 py-2 transition-all duration-200 ${
             isActive
-              ? "border-blue-600 bg-blue-50 dark:border-accent dark:bg-accent/10"
+              ? isDark ? '' : 'border-blue-600 bg-blue-50'
               : "border-transparent hover:bg-gray-50 dark:hover:bg-white/5"
           }`}
+          style={isActive && isDark ? {
+            borderColor: 'var(--learn-accent)',
+            backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)',
+          } : undefined}
         >
           <div
             className={`flex flex-shrink-0 items-center justify-center ${
-              isCompleted
-                ? "text-blue-700 dark:text-accent"
-                : isActive
-                  ? "text-blue-700 dark:text-accent"
-                  : "text-gray-400 group-hover:text-gray-600 dark:text-white/20 dark:group-hover:text-white/40"
+              isCompleted || isActive
+                ? isDark ? '' : 'text-blue-700'
+                : "text-gray-400 group-hover:text-gray-600 dark:text-white/20 dark:group-hover:text-white/40"
             }`}
+            style={(isCompleted || isActive) && isDark ? { color: 'var(--learn-accent)' } : undefined}
           >
             {isCompleted ? (
               <CheckCircle2 className="h-4 w-4" />
             ) : (
               <div
-                className={`h-1.5 w-1.5 rounded-full ${
-                  isActive ? "animate-pulse bg-blue-600 dark:bg-accent" : "bg-current"
-                }`}
+                className={`h-1.5 w-1.5 rounded-full ${isActive ? 'animate-pulse' : 'bg-current'} ${isActive && !isDark ? 'bg-blue-600' : ''}`}
+                style={isActive && isDark ? { backgroundColor: 'var(--learn-accent)' } : undefined}
               />
             )}
           </div>
@@ -100,7 +105,10 @@ export function LessonAccordionItem({
             </p>
 
             {isActive && (
-              <span className="mt-1 block text-[10px] font-medium text-blue-700/80 dark:text-accent/80">
+              <span
+                className={`mt-1 block text-[10px] font-medium ${!isDark ? 'text-blue-700/80' : ''}`}
+                style={isDark ? { color: 'color-mix(in srgb, var(--learn-accent) 80%, transparent)' } : undefined}
+              >
                 En curso • {formatLessonDuration(lesson.duration_seconds)}
               </span>
             )}

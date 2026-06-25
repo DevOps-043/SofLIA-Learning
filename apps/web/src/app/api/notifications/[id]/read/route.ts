@@ -36,7 +36,7 @@ export async function POST(
     }
 
     // Marcar como leída
-    const notification = await NotificationService.markAsRead(
+    const mutation = await NotificationService.markAsRead(
       notificationId,
       context.userId,
       context.supabase,
@@ -44,7 +44,7 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      data: notification
+      data: mutation
     })
   } catch (error) {
     logger.error('Error en POST /api/notifications/[id]/read:', error)

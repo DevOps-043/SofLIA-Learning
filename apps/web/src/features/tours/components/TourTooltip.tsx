@@ -45,7 +45,7 @@ export function TourTooltip({
       </button>
 
       <header className="flex shrink-0 items-start gap-2 border-b border-gray-100 pb-3 pr-9 dark:border-white/10">
-        <Sparkles className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+        <Sparkles className="h-4 w-4 shrink-0" style={{ color: 'var(--org-accent-color, var(--color-accent))' }} aria-hidden="true" />
         <h2 className="text-sm font-semibold leading-snug text-gray-900 dark:text-white">
           {step.title}
         </h2>
@@ -74,7 +74,8 @@ export function TourTooltip({
           <button
             type="button"
             {...primaryProps}
-            className="inline-flex h-9 items-center gap-1 rounded-full bg-primary px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:bg-accent dark:text-primary"
+            className="inline-flex h-9 items-center gap-1 rounded-full px-4 text-sm font-medium transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            style={{ backgroundColor: 'var(--org-accent-color, var(--color-accent))', color: 'var(--org-on-action-color, var(--color-primary))' }}
           >
             <span>{primaryLabel}</span>
             {!isLastStep ? <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" /> : null}

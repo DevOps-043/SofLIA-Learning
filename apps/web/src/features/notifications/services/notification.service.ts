@@ -13,8 +13,10 @@ import type { getServerClient } from './auto-notifications-server-client'
 import type {
   CreateNotificationParams,
   Notification,
+  NotificationDeleteMutationResult,
   NotificationFilters,
   NotificationQueryResult,
+  NotificationStatusMutationResult,
 } from './notification'
 
 export type {
@@ -60,7 +62,7 @@ export class NotificationService {
     notificationId: string,
     userId: string,
     supabase?: NotificationSupabaseClient,
-  ): Promise<Notification> {
+  ): Promise<NotificationStatusMutationResult> {
     if (!supabase) {
       return markNotificationAsRead(notificationId, userId)
     }
@@ -84,7 +86,7 @@ export class NotificationService {
     notificationId: string,
     userId: string,
     supabase?: NotificationSupabaseClient,
-  ): Promise<Notification> {
+  ): Promise<NotificationStatusMutationResult> {
     if (!supabase) {
       return archiveNotification(notificationId, userId)
     }
@@ -96,7 +98,7 @@ export class NotificationService {
     notificationId: string,
     userId: string,
     supabase?: NotificationSupabaseClient,
-  ): Promise<void> {
+  ): Promise<NotificationDeleteMutationResult> {
     if (!supabase) {
       return deleteNotification(notificationId, userId)
     }

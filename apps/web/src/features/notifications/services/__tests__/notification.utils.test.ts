@@ -13,7 +13,8 @@ import {
 
 describe('notification.utils', () => {
   it('returns duplicate windows only for protected notification types', () => {
-    expect(getDuplicateNotificationWindow('system_login_success')).toBe(5)
+    expect(getDuplicateNotificationWindow('system_login_success')).toBe(60)
+    expect(getDuplicateNotificationWindow('system_login_unusual')).toBe(1440)
     expect(getDuplicateNotificationWindow('custom_event')).toBeUndefined()
   })
 
@@ -35,10 +36,31 @@ describe('notification.utils', () => {
       },
       priority: 'medium',
       status: 'unread',
-      channels_sent: [],
+      channels_sent: ['in_app'],
       channels_pending: [],
+      dedup_key: null,
+      expires_at: null,
       organization_id: null,
       group_id: null,
+    })
+  })
+
+  it('uses external channels, dedup key and expiration when requested', () => {
+    expect(
+      buildNotificationInsertPayload({
+        userId: 'user-1',
+        notificationType: 'certificate_generated',
+        title: 'Certificado',
+        message: 'Listo',
+        channels: ['in_app', 'whatsapp'],
+        dedupKey: ' user-1:course-1:cert-1 ',
+        expiresAt: '2026-06-30T00:00:00.000Z',
+      }),
+    ).toMatchObject({
+      channels_sent: ['in_app'],
+      channels_pending: ['whatsapp'],
+      dedup_key: 'user-1:course-1:cert-1',
+      expires_at: '2026-06-30T00:00:00.000Z',
     })
   })
 

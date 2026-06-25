@@ -1,4 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('@/core/stores/themeStore', () => ({
+  useThemeStore: (selector: (state: { resolvedTheme: 'dark' }) => unknown) =>
+    selector({ resolvedTheme: 'dark' }),
+}))
 
 import { getNotificationActionUrl } from '../notification-ui'
 

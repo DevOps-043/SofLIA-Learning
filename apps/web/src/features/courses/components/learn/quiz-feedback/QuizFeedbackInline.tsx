@@ -60,7 +60,10 @@ export function QuizFeedbackInline({
           <div className="px-4 py-4">
             {isLoading && (
               <div className="flex items-center justify-center gap-3 py-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-lg"
+                  style={{ backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)', color: 'var(--learn-accent)' }}
+                >
                   <Loader2 className="h-4 w-4 animate-spin" />
                 </div>
                 <div>
@@ -83,7 +86,8 @@ export function QuizFeedbackInline({
                   <button
                     type="button"
                     onClick={onRetry}
-                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 dark:bg-accent dark:text-primary"
+                    className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: 'var(--learn-action)', color: 'var(--learn-on-action)' }}
                   >
                     <RefreshCw className="h-4 w-4" />
                     {t("activities.quizFeedback.retry")}

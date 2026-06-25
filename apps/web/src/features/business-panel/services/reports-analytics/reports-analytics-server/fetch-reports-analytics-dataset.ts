@@ -8,6 +8,6 @@ export async function fetchReportsAnalyticsDataset(
   organizationId: string,
   filters: ReportsAnalyticsFilters,
 ): Promise<ReportsAnalyticsDataset> {
-  const queryData = await fetchReportsAnalyticsQueryData(supabase, organizationId)
+  const queryData = await fetchReportsAnalyticsQueryData(supabase, organizationId, filters)
   return buildReportsAnalyticsDataset(queryData, filters)
 }

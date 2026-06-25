@@ -25,7 +25,7 @@ export function ActivityActionButtons(props: {
         {props.saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         Guardar borrador
       </button>
-      <button type="button" onClick={() => { props.setFeedbackMessage(null); void props.onSubmitActivity(); }} disabled={disabledBase || !props.isSubmissionStructurallyComplete} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary disabled:cursor-not-allowed disabled:opacity-60 dark:bg-accent dark:text-[var(--color-legacy-08141f)] dark:hover:bg-[var(--color-legacy-00b79c)]">
+      <button type="button" onClick={() => { props.setFeedbackMessage(null); void props.onSubmitActivity(); }} disabled={disabledBase || !props.isSubmissionStructurallyComplete} className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60" style={{ backgroundColor: 'var(--learn-action)', color: 'var(--learn-on-action)' }}>
         {props.saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         Enviar actividad
       </button>

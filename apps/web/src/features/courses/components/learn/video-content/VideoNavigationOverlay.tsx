@@ -38,11 +38,14 @@ export function VideoNavigationOverlay({
       {(hasNextVideo || isLastLesson) && (
         <button
           onClick={onPrimaryAction}
-          className={`pointer-events-auto h-10 sm:h-12 rounded-full text-white flex items-center justify-center hover:justify-end overflow-hidden transition-all duration-300 shadow-lg backdrop-blur-sm group w-10 sm:w-12 md:hover:w-32 hover:pl-2 md:hover:pl-3 hover:pr-2 md:hover:pr-3 ${
-            isLastLesson
-              ? "bg-primary/55 hover:bg-primary/75 border border-primary/35 dark:bg-accent/35 dark:hover:bg-accent/55 dark:border-accent/30"
-              : "bg-primary/50 hover:bg-primary/70 border border-primary/30"
-          }`}
+          className="pointer-events-auto h-10 sm:h-12 rounded-full text-white flex items-center justify-center hover:justify-end overflow-hidden transition-all duration-300 shadow-lg backdrop-blur-sm group w-10 sm:w-12 md:hover:w-32 hover:pl-2 md:hover:pl-3 hover:pr-2 md:hover:pr-3 border"
+          style={isLastLesson ? {
+            backgroundColor: 'color-mix(in srgb, var(--learn-action) 45%, transparent)',
+            borderColor: 'color-mix(in srgb, var(--learn-action) 30%, transparent)',
+          } : {
+            backgroundColor: 'color-mix(in srgb, var(--color-primary) 50%, transparent)',
+            borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
+          }}
         >
           <span className="hidden md:block text-sm font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden order-1">
             {isLastLesson ? finishLabel : nextLabel}

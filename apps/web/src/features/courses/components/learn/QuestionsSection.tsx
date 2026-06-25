@@ -95,7 +95,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
       <div data-tour-id="course-learn--questions-header" className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 dark:from-accent/20 dark:to-primary/20 flex items-center justify-center flex-shrink-0">
-            <MessageCircle className="w-4 h-4 text-white dark:text-accent" />
+            <MessageCircle className="w-4 h-4 text-white" />
           </div>
           <div className="min-w-0">
             <h2 className="text-base font-semibold text-gray-900 dark:text-white leading-tight">
@@ -111,7 +111,8 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
           onClick={() => setShowCreateForm(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-primary dark:bg-accent text-white dark:text-primary text-sm font-semibold rounded-xl transition-colors hover:opacity-90 flex-shrink-0"
+          className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-xl transition-colors hover:opacity-90 flex-shrink-0"
+          style={{ backgroundColor: 'var(--learn-action)', color: 'var(--learn-on-action)' }}
         >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">Nueva pregunta</span>
@@ -150,7 +151,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
           className="rounded-2xl border border-dashed border-gray-200 dark:border-white/10 p-12 flex flex-col items-center justify-center gap-3"
         >
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-            <MessageCircle className="w-7 h-7 text-primary dark:text-accent" />
+            <MessageCircle className="w-7 h-7" style={{ color: 'var(--learn-accent)' }} />
           </div>
           <div className="text-center">
             <h3 className="text-gray-900 dark:text-white font-semibold mb-1">
@@ -167,7 +168,8 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setShowCreateForm(true)}
-              className="mt-2 flex items-center gap-2 px-5 py-2.5 bg-primary dark:bg-accent text-white dark:text-primary text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity"
+              className="mt-2 flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: 'var(--learn-action)', color: 'var(--learn-on-action)' }}
             >
               <Plus className="w-4 h-4" />
               Hacer primera pregunta
@@ -191,9 +193,13 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
                 transition={{ delay: index * 0.04 }}
                 className={`rounded-xl border overflow-hidden transition-all duration-200 ${
                   isSelected
-                    ? "border-primary/25 dark:border-accent/25 bg-primary/[0.02] dark:bg-accent/[0.04]"
+                    ? ""
                     : "border-gray-100 dark:border-white/8 bg-white dark:bg-white/[0.03] hover:border-gray-200 dark:hover:border-white/12 hover:bg-gray-50/80 dark:hover:bg-white/[0.05]"
                 }`}
+                style={isSelected ? {
+                  borderColor: 'color-mix(in srgb, var(--learn-accent) 25%, transparent)',
+                  backgroundColor: 'color-mix(in srgb, var(--learn-accent) 4%, transparent)',
+                } : undefined}
               >
                 {/* Card body */}
                 <div
@@ -250,7 +256,11 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
                       {question.tags && question.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
                           {question.tags.map((tag) => (
-                            <span key={tag} className="text-[10px] font-medium text-primary/70 dark:text-accent/70 bg-primary/5 dark:bg-accent/5 px-2 py-0.5 rounded-full border border-primary/10 dark:border-accent/10">
+                            <span key={tag} className="text-[10px] font-medium px-2 py-0.5 rounded-full border" style={{
+                              color: 'color-mix(in srgb, var(--learn-accent) 70%, transparent)',
+                              backgroundColor: 'color-mix(in srgb, var(--learn-accent) 5%, transparent)',
+                              borderColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)',
+                            }}>
                               #{tag}
                             </span>
                           ))}
@@ -281,7 +291,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
                       </span>
                     </div>
 
-                    <span className="flex items-center gap-1 text-xs text-primary/60 dark:text-accent/60 font-medium">
+                    <span className="flex items-center gap-1 text-xs font-medium" style={{ color: 'color-mix(in srgb, var(--learn-accent) 60%, transparent)' }}>
                       {isSelected ? (
                         <>Cerrar <ChevronDown className="w-3 h-3" /></>
                       ) : (

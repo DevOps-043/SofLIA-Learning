@@ -61,7 +61,7 @@ export function PromptsRenderer({
   }
 
   return (
-    <div className="rounded-lg border border-primary/15 bg-[var(--color-legacy-f5f8fc)] p-4 dark:border-accent/20 dark:bg-[var(--color-legacy-0b1a20)]">
+    <div className="rounded-lg border bg-[var(--color-legacy-f5f8fc)] p-4 dark:bg-[var(--color-legacy-0b1a20)]" style={{ borderColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)' }}>
       {externalTool && (
         <div className="mb-3 flex flex-wrap items-center gap-2">
           {externalTool.url && (
@@ -103,13 +103,19 @@ export function PromptsRenderer({
             className="group w-full rounded-lg border border-primary/15 bg-white px-4 py-3 text-left transition hover:border-primary/30 hover:bg-primary/5 dark:border-white/10 dark:bg-[var(--color-legacy-10161d)] dark:hover:border-accent/30 dark:hover:bg-white/[0.03]"
           >
             <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary dark:bg-accent/15 dark:text-accent">
+              <div
+                className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)',
+                  color: 'var(--learn-accent)',
+                }}
+              >
                 {index + 1}
               </div>
               <p className="flex-1 text-sm leading-relaxed text-primary dark:text-white">
                 {prompt}
               </p>
-              <span className="mt-1 shrink-0 text-primary dark:text-accent">
+              <span className="mt-1 shrink-0" style={{ color: 'var(--learn-accent)' }}>
                 <Copy className="h-4 w-4" />
               </span>
             </div>

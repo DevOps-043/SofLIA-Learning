@@ -181,7 +181,7 @@ async function handlePost(
 
       const { data: courseInfo } = await supabase
         .from('courses')
-        .select('id')
+        .select('id, title')
         .eq('id', courseId)
         .single()
 
@@ -199,6 +199,31 @@ async function handlePost(
     })
 
     logger.log(`Certificado generado: ${issuedCertificate.certificateId}`)
+
+    const { data: notificationCourse } = await supabase
+      .from('courses')
+      .select('title')
+      .eq('id', courseId)
+      .maybeSingle()
+
+    const courseTitle = notificationCourse?.title || 'tu curso'
+    const { AutoNotificationsService } = await import(
+      '@/features/notifications/services/auto-notifications.service'
+    )
+
+    await AutoNotificationsService.notifyCertificateGenerated(
+      currentUser.id,
+      courseTitle,
+      issuedCertificate.certificateId,
+      {
+        action_url: '/profile?tab=certificates',
+        certificate_url: issuedCertificate.certificateUrl,
+        course_id: courseId,
+        organization_id:
+          requestedOrganizationId || enrollment.organization_id || undefined,
+        source: existingCertificate ? 'certificate_repair' : 'certificate_generate',
+      },
+    )
 
     return NextResponse.json({
       success: true,

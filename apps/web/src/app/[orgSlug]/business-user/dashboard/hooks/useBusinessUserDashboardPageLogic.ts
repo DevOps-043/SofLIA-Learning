@@ -258,11 +258,14 @@ export function useBusinessUserDashboardPageLogic() {
     async (course: AssignedCourse, action?: 'start' | 'continue' | 'certificate') => {
       if (action === 'certificate' && course.has_certificate) {
         try {
-          const response = await fetch('/api/certificates', { credentials: 'include' })
+          const certApiUrl = orgSlug
+            ? `/api/${orgSlug}/business-user/certificates`
+            : '/api/certificates'
+          const response = await fetch(certApiUrl, { credentials: 'include' })
           const data = (await response.json()) as CertificatesResponse
           router.push(getBusinessUserCertificateRoute(data.certificates, course.course_id))
         } catch {
-          router.push('/certificates')
+          router.push(orgSlug ? `/${orgSlug}/certificates` : '/certificates')
         }
         return
       }
@@ -294,8 +297,8 @@ export function useBusinessUserDashboardPageLogic() {
   }, [orgSlug, router])
 
   const handleCertificatesClick = useCallback(() => {
-    router.push('/certificates')
-  }, [router])
+    router.push(orgSlug ? `/${orgSlug}/certificates` : '/certificates')
+  }, [orgSlug, router])
 
   const handleAnalyticsClick = useCallback(() => {
     if (!orgSlug) return

@@ -4,9 +4,12 @@ import { queryCertificates } from './query-certificates.server'
 import { resolveCertificates } from './resolve-certificates.server'
 
 export class CertificateDataService {
-  static async listUserCertificates(userId: string): Promise<CertificateListItem[]> {
+  static async listUserCertificates(
+    userId: string,
+    options?: { organizationId?: string },
+  ): Promise<CertificateListItem[]> {
     const supabase = createAdminClient()
-    const result = await queryCertificates(supabase, { userId })
+    const result = await queryCertificates(supabase, { userId, organizationId: options?.organizationId })
     return resolveCertificates(supabase, result)
   }
 

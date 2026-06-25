@@ -24,7 +24,13 @@ export function DialogueAvatar({
   }
 
   return (
-    <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary dark:bg-accent/15 dark:text-accent">
+    <div
+      className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
+      style={{
+        backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)',
+        color: 'var(--learn-accent)',
+      }}
+    >
       {userInitials}
     </div>
   );

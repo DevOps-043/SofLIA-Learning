@@ -3,10 +3,15 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types'
 import { logger } from '@/lib/utils/logger'
 import { getAllowedNotificationChannels } from '@/lib/subscription/subscriptionFeatures'
 import { getOrganizationPlan } from '@/lib/subscription/subscriptionHelper'
-import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+import {
+  BUSINESS_NOTIFICATION_EVENT_TYPES,
+  DEFAULT_BUSINESS_NOTIFICATION_CHANNELS,
+  buildBusinessNotificationEventOptions,
+} from '@/features/notifications/services/notification-settings.catalog'
 import {
   notificationSettingsUpdateSchema,
   type NotificationSettingsUpdateBody,
@@ -25,12 +30,19 @@ type NotificationSettingData = {
   updated_at: string
 }
 
-/**
- * GET /api/[orgSlug]/business/notifications/settings
- * Obtiene la configuracion de notificaciones automaticas de la organizacion
- */
+function filterAllowedChannels(
+  requestedChannels: string[] | undefined,
+  allowedChannels: string[],
+) {
+  const filteredChannels = (requestedChannels || [
+    ...DEFAULT_BUSINESS_NOTIFICATION_CHANNELS,
+  ]).filter((channel) => channel === 'in_app' || allowedChannels.includes(channel))
+
+  return filteredChannels.length > 0 ? filteredChannels : ['in_app']
+}
+
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: RouteContext,
 ) {
   try {
@@ -39,22 +51,14 @@ export async function GET(
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Usuario no pertenece a ninguna organizacion',
-      }, { status: 400 })
+      return apiError(
+        'NO_ORGANIZATION',
+        'Usuario no pertenece a ninguna organizacion',
+        400,
+      )
     }
 
     const supabase = await createClient()
-    const eventTypes = [
-      'course_assigned',
-      'course_completed',
-      'user_added',
-      'progress_milestone',
-      'certificate_generated',
-      'deadline_approaching',
-    ]
-
     const { data: settings, error: settingsError } = await supabase
       .from('notification_settings')
       .select(SELECT_COLUMNS.notification_settings)
@@ -62,22 +66,21 @@ export async function GET(
 
     if (settingsError && settingsError.code !== 'PGRST116') {
       logger.error('Error fetching notification settings:', settingsError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al obtener configuracion de notificaciones',
-      }, { status: 500 })
+      return apiError(
+        'FETCH_NOTIFICATION_SETTINGS_FAILED',
+        'Error al obtener configuracion de notificaciones',
+        500,
+      )
     }
 
-    const existingSettings = settings || []
-    const existingEventTypes = existingSettings.map((setting) => setting.event_type)
-
-    const defaultSettings = eventTypes
+    const existingEventTypes = (settings || []).map((setting) => setting.event_type)
+    const defaultSettings = BUSINESS_NOTIFICATION_EVENT_TYPES
       .filter((eventType) => !existingEventTypes.includes(eventType))
       .map((eventType) => ({
-        organization_id: auth.organizationId,
-        event_type: eventType,
+        channels: [...DEFAULT_BUSINESS_NOTIFICATION_CHANNELS],
         enabled: true,
-        channels: ['email'],
+        event_type: eventType,
+        organization_id: auth.organizationId,
         template: null,
       }))
 
@@ -99,38 +102,35 @@ export async function GET(
 
     if (fetchError) {
       logger.error('Error fetching all notification settings:', fetchError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al obtener configuracion de notificaciones',
-      }, { status: 500 })
+      return apiError(
+        'FETCH_NOTIFICATION_SETTINGS_FAILED',
+        'Error al obtener configuracion de notificaciones',
+        500,
+      )
     }
 
     const plan = await getOrganizationPlan(auth.organizationId)
-    const availableChannels = getAllowedNotificationChannels(plan)
+    const availableChannels = [
+      'in_app',
+      ...getAllowedNotificationChannels(plan),
+    ]
 
     return NextResponse.json({
       success: true,
       settings: allSettings || [],
-      available_channels: availableChannels,
-      event_types: eventTypes.map((eventType) => ({
-        value: eventType,
-        label: getEventTypeLabel(eventType),
-        description: getEventTypeDescription(eventType),
-      })),
+      available_channels: [...new Set(availableChannels)],
+      event_types: buildBusinessNotificationEventOptions(),
     })
   } catch (error) {
     logger.error('Error in /api/[orgSlug]/business/notifications/settings GET:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Error interno del servidor',
-    }, { status: 500 })
+    return apiError(
+      'FETCH_NOTIFICATION_SETTINGS_FAILED',
+      'Error interno del servidor',
+      500,
+    )
   }
 }
 
-/**
- * PUT /api/[orgSlug]/business/notifications/settings
- * Actualiza la configuracion de notificaciones automaticas
- */
 async function handlePut(
   _request: NextRequest,
   body: NotificationSettingsUpdateBody,
@@ -150,31 +150,20 @@ async function handlePut(
     }
 
     const supabase = await createClient()
-    const { settings } = body
     const plan = await getOrganizationPlan(auth.organizationId)
     const allowedChannels = getAllowedNotificationChannels(plan)
-
     const updates: Array<{ id: string; data: NotificationSettingData }> = []
     const inserts: NotificationSettingData[] = []
 
-    for (const setting of settings) {
+    for (const setting of body.settings) {
       const { event_type, enabled, channels, template } = setting
-
       if (!event_type) continue
 
-      const filteredChannels = (channels || ['email']).filter((channel) =>
-        allowedChannels.includes(channel),
-      )
-
-      if (filteredChannels.length === 0) {
-        filteredChannels.push('email')
-      }
-
       const settingData: NotificationSettingData = {
-        organization_id: auth.organizationId,
-        event_type,
+        channels: filterAllowedChannels(channels, allowedChannels),
         enabled: enabled !== undefined ? enabled : true,
-        channels: filteredChannels,
+        event_type,
+        organization_id: auth.organizationId,
         template: template || null,
         updated_at: new Date().toISOString(),
       }
@@ -187,10 +176,7 @@ async function handlePut(
         .maybeSingle()
 
       if (existing) {
-        updates.push({
-          id: existing.id,
-          data: settingData,
-        })
+        updates.push({ id: existing.id, data: settingData })
       } else {
         inserts.push(settingData)
       }
@@ -200,8 +186,8 @@ async function handlePut(
       const { error: updateError } = await supabase
         .from('notification_settings')
         .update({
-          enabled: update.data.enabled,
           channels: update.data.channels,
+          enabled: update.data.enabled,
           template: update.data.template,
           updated_at: update.data.updated_at,
         })
@@ -228,32 +214,12 @@ async function handlePut(
     })
   } catch (error) {
     logger.error('Error in /api/[orgSlug]/business/notifications/settings PUT:', error)
-    return apiError('UPDATE_NOTIFICATION_SETTINGS_FAILED', 'Error interno del servidor', 500)
+    return apiError(
+      'UPDATE_NOTIFICATION_SETTINGS_FAILED',
+      'Error interno del servidor',
+      500,
+    )
   }
 }
 
 export const PUT = withZodBody(notificationSettingsUpdateSchema, handlePut)
-
-function getEventTypeLabel(eventType: string): string {
-  const labels: Record<string, string> = {
-    course_assigned: 'Curso Asignado',
-    course_completed: 'Curso Completado',
-    user_added: 'Usuario Agregado',
-    progress_milestone: 'Hito de Progreso',
-    certificate_generated: 'Certificado Generado',
-    deadline_approaching: 'Fecha Limite Proxima',
-  }
-  return labels[eventType] || eventType
-}
-
-function getEventTypeDescription(eventType: string): string {
-  const descriptions: Record<string, string> = {
-    course_assigned: 'Notificar cuando se asigna un curso a un usuario',
-    course_completed: 'Notificar cuando un usuario completa un curso',
-    user_added: 'Notificar cuando se agrega un nuevo usuario a la organizacion',
-    progress_milestone: 'Notificar cuando un usuario alcanza hitos de progreso (25%, 50%, 75%)',
-    certificate_generated: 'Notificar cuando se genera un certificado',
-    deadline_approaching: 'Notificar cuando se acerca la fecha limite de un curso asignado',
-  }
-  return descriptions[eventType] || ''
-}

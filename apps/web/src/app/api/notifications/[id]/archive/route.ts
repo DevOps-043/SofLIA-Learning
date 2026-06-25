@@ -36,7 +36,7 @@ export async function POST(
     }
 
     // Archivar notificación
-    const notification = await NotificationService.archiveNotification(
+    const mutation = await NotificationService.archiveNotification(
       notificationId,
       context.userId,
       context.supabase,
@@ -44,7 +44,7 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      data: notification
+      data: mutation
     })
   } catch (error) {
     logger.error('Error en POST /api/notifications/[id]/archive:', error)

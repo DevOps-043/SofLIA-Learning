@@ -5,21 +5,20 @@ import { resolveNotificationRequestContext } from '../_lib/request-context'
 
 /**
  * DELETE /api/notifications/[id]
- * Elimina una notificación
+ * Elimina una notificacion
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    // Obtener usuario autenticado
     void request
 
     const context = await resolveNotificationRequestContext()
     if (!context) {
       return NextResponse.json(
         { error: 'No autenticado' },
-        { status: 401 }
+        { status: 401 },
       )
     }
 
@@ -29,14 +28,13 @@ export async function DELETE(
       return NextResponse.json(
         {
           success: false,
-          error: 'ID de notificación requerido'
+          error: 'ID de notificacion requerido',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
-    // Eliminar notificación
-    await NotificationService.deleteNotification(
+    const mutation = await NotificationService.deleteNotification(
       notificationId,
       context.userId,
       context.supabase,
@@ -44,28 +42,31 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: 'Notificación eliminada exitosamente'
+      data: mutation,
+      message: 'Notificacion eliminada exitosamente',
     })
   } catch (error) {
     logger.error('Error en DELETE /api/notifications/[id]:', error)
-    
-    // Si la notificación no existe o no pertenece al usuario
+
     if (error instanceof Error && error.message.includes('no encontrada')) {
       return NextResponse.json(
         {
           success: false,
-          error: error.message
+          error: error.message,
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Error al eliminar notificación'
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Error al eliminar notificacion',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
