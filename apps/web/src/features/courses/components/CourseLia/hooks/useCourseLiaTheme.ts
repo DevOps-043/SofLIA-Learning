@@ -54,7 +54,9 @@ export function useCourseLiaTheme({
       inputBorder: forceDarkText
         ? COURSE_LIA_COLORS.inputBorderLight
         : customColors?.borderColor
-          ? 'transparent'
+          ? isLightTheme
+            ? COURSE_LIA_COLORS.inputBorderLight
+            : 'rgba(255,255,255,0.15)'
           : isLightTheme
             ? COURSE_LIA_COLORS.inputBorderLight
             : COURSE_LIA_COLORS.inputBorderDark,

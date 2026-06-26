@@ -17,7 +17,7 @@ export function ActivitiesEmptyState(props: { lessonTitle: string }) {
           {props.lessonTitle}
         </p>
       </div>
-      <div className="bg-white dark:bg-carbon-800 rounded-xl border-2 border-gray-200 dark:border-gray-500/30 p-8 text-center">
+      <div className="rounded-xl border-2 p-8 text-center" style={{ background: 'var(--learn-card-bg)', borderColor: 'var(--learn-card-border)' }}>
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
           style={{ backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)' }}

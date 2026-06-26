@@ -17,7 +17,7 @@ type FormattedItem = ReturnType<typeof buildFormattedContent>[number];
 
 function StaticChecklistItem({ checked, content }: { checked: boolean; content: string }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-[var(--color-legacy-10161d)]">
+    <div className="flex items-start gap-3 rounded-xl border px-4 py-3" style={{ background: 'var(--learn-card-bg)', borderColor: 'var(--learn-card-border)' }}>
       <span
         className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded border text-[11px] font-bold ${
           checked ? "" : "border-gray-300 text-transparent dark:border-white/20"
@@ -41,7 +41,7 @@ function HtmlContentRenderer({ html }: { html: string }) {
   const sanitized = sanitizeRichHtml(html);
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm dark:border-white/10 dark:bg-[var(--color-legacy-10161d)]">
+    <div className="rounded-xl border p-8 shadow-sm" style={{ background: 'var(--learn-card-bg)', borderColor: 'var(--learn-card-border)' }}>
       <article
         className={[
           "prose prose-slate max-w-none overflow-x-auto text-primary",
@@ -63,8 +63,7 @@ function renderFormattedItem(item: FormattedItem): ReactNode {
     return (
       <h1
         className="border-b pb-3 text-3xl font-bold text-primary dark:text-white"
-        style={{ borderBottomColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)' }}
-        style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}
+        style={{ borderBottomColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)', fontFamily: "Inter, sans-serif", fontWeight: 700 }}
       >
         {item.content}
       </h1>
@@ -184,7 +183,7 @@ export function FormattedContentRenderer({
     : -1;
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm dark:border-white/10 dark:bg-[var(--color-legacy-10161d)]">
+    <div className="rounded-xl border p-8 shadow-sm" style={{ background: 'var(--learn-card-bg)', borderColor: 'var(--learn-card-border)' }}>
       <article className="space-y-5">
         {formattedContent.map((item, index) => (
           <div

@@ -16,9 +16,10 @@ export function CourseLearnBody({ logic, shell, panelStyles }: CourseLearnBodyPr
   return (
     <div
       ref={logic.swipeRef}
-      className="relative z-10 flex flex-1 flex-col overflow-hidden bg-white md:flex-row dark:bg-gray-900"
+      className="relative z-10 flex flex-1 flex-col overflow-hidden md:flex-row"
       style={{
-        marginRight: logic.isLiaOpen && !logic.isMobile ? '420px' : 0,
+        background: 'var(--learn-body-bg)',
+        marginRight: logic.isLiaOpen && !logic.isMobile ? '428px' : 0,
         transition: shell.disableHeavyEffects ? 'none' : 'margin-right 0.3s ease-in-out',
       }}
     >

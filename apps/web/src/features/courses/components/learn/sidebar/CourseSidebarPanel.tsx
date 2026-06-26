@@ -137,7 +137,7 @@ export function CourseSidebarPanel({
               className={`${
                 isMobile
                   ? "fixed inset-y-0 left-0 z-50 w-full max-w-sm md:relative md:inset-auto md:w-auto md:max-w-none"
-                  : "relative h-full"
+                  : "relative h-full md:my-2 md:ml-2 md:rounded-lg"
               } flex flex-col overflow-hidden border-r border-gray-200 bg-white dark:border-white/5 dark:bg-carbon-900`}
               style={{
                 ...(sidebarBg ? { backgroundColor: sidebarBg } : {}),

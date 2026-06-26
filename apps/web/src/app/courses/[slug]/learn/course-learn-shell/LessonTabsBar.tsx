@@ -12,7 +12,7 @@ const TAB_TOUR_IDS: Record<string, string> = {
 
 export function LessonTabsBar({ logic }: { logic: LearnPageLogicResult }) {
   return (
-    <div data-tour-id="course-learn--tabs" className="scrollbar-hide flex h-[56px] items-center gap-1 overflow-x-auto scroll-smooth rounded-t-xl border-b border-gray-200 bg-white p-2 md:gap-2 md:p-3 dark:border-white/5 dark:bg-carbon-900" style={{ scrollPaddingLeft: '0.5rem', scrollPaddingRight: '0.5rem', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}>
+    <div data-tour-id="course-learn--tabs" className="scrollbar-hide flex h-[56px] items-center gap-1 overflow-x-auto scroll-smooth rounded-t-xl border-b p-2 md:gap-2 md:p-3" style={{ background: 'var(--learn-card-bg)', borderColor: 'var(--learn-card-border)', scrollPaddingLeft: '0.5rem', scrollPaddingRight: '0.5rem', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}>
       <div className="flex min-w-max items-center gap-1 md:gap-2">
         {logic.tabs.map((tab) => {
           const Icon = TAB_ICONS[tab.icon as keyof typeof TAB_ICONS]

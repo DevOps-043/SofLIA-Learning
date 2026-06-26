@@ -42,7 +42,7 @@ export function VideoPanel({
   return (
     <div className="relative w-full">
       {hasVideo ? (
-        <div data-tour-id="course-learn--video-player" className="aspect-video w-full max-h-[calc(100dvh-13rem)] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-500/30 relative bg-gray-900">
+        <div data-tour-id="course-learn--video-player" className="aspect-video w-full max-h-[calc(100dvh-13rem)] rounded-xl overflow-hidden border relative bg-gray-900" style={{ borderColor: 'var(--learn-card-border)' }}>
           <VideoPlayer
             videoProvider={lesson.video_provider!}
             videoProviderId={lesson.video_provider_id!}

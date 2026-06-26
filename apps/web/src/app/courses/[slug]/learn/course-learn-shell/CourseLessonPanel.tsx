@@ -9,7 +9,11 @@ import type { CourseLearnShellState } from './useCourseLearnShellState'
 
 export function CourseLessonPanel({ logic, shell }: { logic: LearnPageLogicResult; shell: CourseLearnShellState }) {
   return (
-    <div data-tour-id="course-learn--lesson-panel" className={`mx-0 my-0 flex flex-1 flex-col overflow-hidden rounded-lg border-2 border-gray-200 bg-white md:mx-2 md:my-2 dark:border-white/5 dark:bg-carbon-900 ${shell.disableHeavyEffects ? '' : 'backdrop-blur-sm shadow-xl'}` }>
+    <div
+      data-tour-id="course-learn--lesson-panel"
+      className={`mx-0 my-0 flex flex-1 flex-col overflow-hidden rounded-lg border-2 md:mx-2 md:my-2${shell.disableHeavyEffects ? '' : ' backdrop-blur-sm shadow-xl'}`}
+      style={{ background: 'var(--learn-card-bg)', borderColor: 'var(--learn-card-border)' }}
+    >
       {logic.modules.length === 0 ? <EmptyCourseContent /> : logic.currentLesson ? <><LessonTabsBar logic={logic} /><LessonTabContent logic={logic} shell={shell} /></> : <LessonLoadingState logic={logic} />}
     </div>
   )
