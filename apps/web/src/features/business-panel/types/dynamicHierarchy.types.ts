@@ -7,7 +7,11 @@ export interface OrganizationStructure {
     id: string;
     organization_id: string;
     name: string;
+    description: string | null;
+    template: 'regions_zones_teams' | 'regions_only' | 'zones_only' | 'flat' | 'custom' | null;
+    metadata: Record<string, unknown> | null;
     is_default: boolean;
+    created_by: string | null;
     created_at: string;
     updated_at: string;
 }

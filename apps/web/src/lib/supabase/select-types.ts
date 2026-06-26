@@ -32,7 +32,7 @@ export const SELECT_COLUMNS = {
   oauth_accounts: 'id, user_id, provider, provider_account_id, access_token, refresh_token, token_expires_at, scope, token_type, created_at, updated_at',
   organization_nodes: 'id, structure_id, organization_id, parent_id, name, type, code, manager_id, properties, path, depth, position, created_at, updated_at',
   organization_regions: 'id, organization_id, name, description, code, is_active, metadata, created_by, created_at, updated_at, address, city, state, country, postal_code, latitude, longitude, phone, email, manager_id, logo_url, banner_url',
-  organization_structures: 'id, organization_id, name, is_default, created_at, updated_at',
+  organization_structures: 'id, organization_id, name, description, template, metadata, is_default, created_by, created_at, updated_at',
   organization_subscriptions: '*',
   organization_teams: 'id, organization_id, zone_id, name, description, code, max_members, is_active, metadata, created_by, created_at, updated_at, address, city, state, country, postal_code, latitude, longitude, phone, email, leader_id, target_goal, monthly_target, logo_url, banner_url',
   organization_zones: 'id, organization_id, region_id, name, description, code, is_active, metadata, created_by, created_at, updated_at, address, city, state, country, postal_code, latitude, longitude, phone, email, manager_id, logo_url, banner_url',

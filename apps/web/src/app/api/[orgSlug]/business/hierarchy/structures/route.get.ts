@@ -34,7 +34,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       .from('organization_structures')
       .select(SELECT_COLUMNS.organization_structures)
       .eq('organization_id', auth.organizationId)
-      .order('is_active', { ascending: false })
+      .order('is_default', { ascending: false })
       .order('name', { ascending: true });
 
     if (error) {

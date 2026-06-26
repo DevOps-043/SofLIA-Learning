@@ -275,6 +275,8 @@ export async function processDialogueMessage(input: {
     session.session_id,
   )
   const recentTurns = [...existingTurns, userTurn]
+  // Criteria confirmed across all turns before this one (union from session state).
+  const priorAccumulatedCriteriaMet: string[] = session.criteria_met ?? []
   let evaluationWithModel: {
     evaluation: DialogueEvaluationResult
     modelName: string
@@ -288,6 +290,7 @@ export async function processDialogueMessage(input: {
             modelName: 'security-guardrail',
           }
         : await evaluateDialogueTurnWithRetry({
+            accumulatedCriteriaMet: priorAccumulatedCriteriaMet,
             config,
             organizationAiContext: input.context.organizationAiContext,
             previousEvaluations,
@@ -369,7 +372,14 @@ export async function processDialogueMessage(input: {
     userId: input.context.userId,
   })
 
+  // Accumulated criteria = confirmed in prior turns UNION confirmed in this turn.
+  const allCriteriaIds = config.successCriteria.map((criterion) => criterion.id)
+  const accumulatedCriteriaMet = [
+    ...new Set([...priorAccumulatedCriteriaMet, ...evaluationWithModel.evaluation.criteriaMet]),
+  ]
+
   const policy = decideDialogueNextState({
+    accumulatedCriteriaMet,
     config,
     currentState: toDialogueState(session.state),
     evaluation: evaluationWithModel.evaluation,
@@ -379,6 +389,7 @@ export async function processDialogueMessage(input: {
   })
 
   const updatedSession = await updateDialogueSessionAfterTurn({
+    allCriteriaIds,
     client: input.client,
     evaluation: evaluationWithModel.evaluation,
     policy,

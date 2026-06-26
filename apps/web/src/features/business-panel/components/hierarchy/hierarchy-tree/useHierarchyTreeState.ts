@@ -19,6 +19,7 @@ export function useHierarchyTreeState(
   const [error, setError] = useState<string | null>(null);
   const [showStructureModal, setShowStructureModal] = useState(false);
   const [pendingDeleteNode, setPendingDeleteNode] = useState<OrganizationNode | null>(null);
+  const [pendingDeleteStructure, setPendingDeleteStructure] = useState<OrganizationStructure | null>(null);
   const [nodeActionError, setNodeActionError] = useState<string | null>(null);
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
   const [memberModalNodeId, setMemberModalNodeId] = useState<string | null>(null);
@@ -34,8 +35,11 @@ export function useHierarchyTreeState(
       setStructures(data);
 
       if (data.length > 0) {
-        const defaultStructureId = (data.find((structure) => structure.is_default) || data[0]).id;
-        setSelectedStructureId((currentStructureId) => currentStructureId || defaultStructureId);
+        const fallbackId = (data.find((structure) => structure.is_default) || data[0]).id;
+        const loadedIds = new Set(data.map((s) => s.id));
+        setSelectedStructureId((currentStructureId) =>
+          currentStructureId && loadedIds.has(currentStructureId) ? currentStructureId : fallbackId,
+        );
       }
     } catch (err) {
       setError(t('hierarchy.loadStructuresError'));
@@ -90,9 +94,10 @@ export function useHierarchyTreeState(
   return {
     error, handleNodeSave, isDropdownOpen, isLoading, isMemberModalOpen, loadNodes, loadStructures,
     memberModalNodeId, memberModalNodeName, nodeActionError, nodeModalMode, nodes, orgSlug,
-    openNodeModal, pendingDeleteNode, selectedStructureId, setIsDropdownOpen,
+    openNodeModal, pendingDeleteNode, pendingDeleteStructure, selectedStructureId, setIsDropdownOpen,
     setIsMemberModalOpen, setMemberModalNodeId, setMemberModalNodeName, setNodeActionError,
-    setPendingDeleteNode, setSelectedStructureId, setShowNodeModal, setShowStructureModal, showNodeModal, showStructureModal,
+    setPendingDeleteNode, setPendingDeleteStructure, setSelectedStructureId, setShowNodeModal,
+    setShowStructureModal, showNodeModal, showStructureModal,
     structures, targetNode, treeRoots,
   };
 }

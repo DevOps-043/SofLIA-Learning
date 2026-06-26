@@ -68,8 +68,9 @@ function evaluation(
 }
 
 describe('decideDialogueNextState', () => {
-  it('completes only when score and required criteria are satisfied', () => {
+  it('completes when score and required criteria are satisfied in the current turn', () => {
     const decision = decideDialogueNextState({
+      accumulatedCriteriaMet: [],
       config,
       currentState: 'EVALUATE_RESPONSE',
       evaluation: evaluation({
@@ -87,8 +88,70 @@ describe('decideDialogueNextState', () => {
     expect(decision.shouldComplete).toBe(true)
   })
 
+  it('completes when accumulated criteria cover all required even if current evaluation is partial_continue', () => {
+    // Student addressed 'risk' in a previous turn, 'mitigation' in this one.
+    // The evaluator only sees 'mitigation' in criteriaMet for this message,
+    // but the accumulated set ['risk'] from the session covers the rest.
+    const decision = decideDialogueNextState({
+      accumulatedCriteriaMet: ['risk'],
+      config,
+      currentState: 'CHALLENGE_OR_PROBE',
+      evaluation: evaluation({
+        overallScore: 80,
+        decision: 'partial_continue',
+        criteriaMet: ['mitigation'],
+        criteriaMissing: ['risk'],
+      }),
+      hintsUsed: 0,
+      lowEvidenceTurns: 0,
+      turnsCount: 3,
+    })
+
+    expect(decision.nextState).toBe('COMPLETE')
+    expect(decision.shouldComplete).toBe(true)
+  })
+
+  it('does not complete when accumulated criteria cover required but score is below minimum', () => {
+    const decision = decideDialogueNextState({
+      accumulatedCriteriaMet: ['risk'],
+      config,
+      currentState: 'CHALLENGE_OR_PROBE',
+      evaluation: evaluation({
+        overallScore: 50,
+        decision: 'partial_continue',
+        criteriaMet: ['mitigation'],
+        criteriaMissing: ['risk'],
+      }),
+      hintsUsed: 0,
+      lowEvidenceTurns: 0,
+      turnsCount: 3,
+    })
+
+    expect(decision.nextState).not.toBe('COMPLETE')
+  })
+
+  it('does not complete when current evaluation is low_evidence even if accumulated criteria are full', () => {
+    const decision = decideDialogueNextState({
+      accumulatedCriteriaMet: ['risk', 'mitigation'],
+      config,
+      currentState: 'CHALLENGE_OR_PROBE',
+      evaluation: evaluation({
+        overallScore: 80,
+        decision: 'low_evidence',
+        criteriaMet: [],
+        criteriaMissing: ['risk', 'mitigation'],
+      }),
+      hintsUsed: 0,
+      lowEvidenceTurns: 1,
+      turnsCount: 3,
+    })
+
+    expect(decision.nextState).not.toBe('COMPLETE')
+  })
+
   it('uses a hint before rescue when low evidence can still be corrected', () => {
     const decision = decideDialogueNextState({
+      accumulatedCriteriaMet: [],
       config,
       currentState: 'EVALUATE_RESPONSE',
       evaluation: evaluation({ decision: 'low_evidence' }),
@@ -103,6 +166,7 @@ describe('decideDialogueNextState', () => {
 
   it('rescues (no loop) when hints are exhausted and there is no progress, even with needs_hint', () => {
     const decision = decideDialogueNextState({
+      accumulatedCriteriaMet: [],
       config,
       currentState: 'CHALLENGE_OR_PROBE',
       evaluation: evaluation({
@@ -119,8 +183,9 @@ describe('decideDialogueNextState', () => {
     expect(decision.nextState).toBe('RESCUE')
   })
 
-  it('keeps probing (not rescue) when hints are exhausted but the student is making progress', () => {
+  it('keeps probing (not rescue) when hints are exhausted but the student is making progress in the current turn', () => {
     const decision = decideDialogueNextState({
+      accumulatedCriteriaMet: [],
       config,
       currentState: 'CHALLENGE_OR_PROBE',
       evaluation: evaluation({
@@ -137,8 +202,28 @@ describe('decideDialogueNextState', () => {
     expect(decision.nextState).toBe('CHALLENGE_OR_PROBE')
   })
 
+  it('keeps probing (not rescue) when hints are exhausted but the student made progress in a previous turn', () => {
+    const decision = decideDialogueNextState({
+      accumulatedCriteriaMet: ['risk'],
+      config,
+      currentState: 'CHALLENGE_OR_PROBE',
+      evaluation: evaluation({
+        decision: 'needs_hint',
+        overallScore: 0,
+        criteriaMet: [],
+        criteriaMissing: ['risk', 'mitigation'],
+      }),
+      hintsUsed: 2,
+      lowEvidenceTurns: 0,
+      turnsCount: 5,
+    })
+
+    expect(decision.nextState).toBe('CHALLENGE_OR_PROBE')
+  })
+
   it('blocks completion when security flags are present', () => {
     const decision = decideDialogueNextState({
+      accumulatedCriteriaMet: [],
       config,
       currentState: 'EVALUATE_RESPONSE',
       evaluation: evaluation({

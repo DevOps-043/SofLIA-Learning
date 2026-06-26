@@ -11,6 +11,7 @@ import {
 } from '../dialogue-tables'
 
 export async function updateDialogueSessionAfterTurn(input: {
+  allCriteriaIds: string[]
   client: unknown
   evaluation: DialogueEvaluationResult
   policy: DialoguePolicyDecision
@@ -26,11 +27,18 @@ export async function updateDialogueSessionAfterTurn(input: {
   const turnsCount = input.session.turns_count + 1
   const now = new Date().toISOString()
 
+  // Accumulate criteria confirmed across all turns rather than replacing them.
+  // A criterion confirmed in turn N must remain confirmed in turn N+k.
+  const accumulatedMet = [
+    ...new Set([...(input.session.criteria_met ?? []), ...input.evaluation.criteriaMet]),
+  ]
+  const accumulatedMissing = input.allCriteriaIds.filter((id) => !accumulatedMet.includes(id))
+
   const { data, error } = await dialogueSessionsTable(input.client)
     .update({
       completed_at: isTerminalDialogueState(nextState) ? now : null,
-      criteria_met: input.evaluation.criteriaMet,
-      criteria_missing: input.evaluation.criteriaMissing,
+      criteria_met: accumulatedMet,
+      criteria_missing: accumulatedMissing,
       current_score: input.evaluation.overallScore,
       hints_used: hintsUsed,
       low_evidence_turns: lowEvidenceTurns,

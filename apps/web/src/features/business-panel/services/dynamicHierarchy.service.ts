@@ -80,6 +80,12 @@ export class DynamicHierarchyService {
         }, orgSlug);
     }
 
+    static async deleteStructure(structureId: string, orgSlug?: string | null): Promise<ApiResponse<void>> {
+        return fetchApi(`/structures/${encodeURIComponent(structureId)}`, {
+            method: 'DELETE',
+        }, orgSlug);
+    }
+
     // Nodes
     static async getTree(structureId: string, orgSlug?: string | null): Promise<OrganizationNode[]> {
         const res = await fetchApi<{ nodes: OrganizationNode[] }>(`/nodes?structureId=${encodeURIComponent(structureId)}`, {}, orgSlug);

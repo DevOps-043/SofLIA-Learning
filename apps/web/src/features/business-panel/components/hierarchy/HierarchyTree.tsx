@@ -34,6 +34,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
 
       <HierarchyInlineAlerts
         onConfirmDeleteNode={commands.confirmDeleteNode}
+        onConfirmDeleteStructure={commands.confirmDeleteStructure}
         state={state}
         t={t}
         tc={tc}

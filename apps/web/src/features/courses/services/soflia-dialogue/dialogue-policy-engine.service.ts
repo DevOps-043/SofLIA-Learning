@@ -6,6 +6,7 @@ import type {
 } from '../../types/dialogue-runtime'
 
 type DialoguePolicyInput = {
+  accumulatedCriteriaMet: string[]
   config: DialogueActivityConfig
   currentState: DialogueState
   evaluation: DialogueEvaluationResult
@@ -31,8 +32,10 @@ function requiredCriteria(config: DialogueActivityConfig) {
 function allRequiredCriteriaMet(
   config: DialogueActivityConfig,
   evaluation: DialogueEvaluationResult,
+  accumulatedCriteriaMet: string[],
 ) {
-  const met = new Set(evaluation.criteriaMet)
+  // Union criteria confirmed in this turn with those confirmed in earlier turns.
+  const met = new Set([...accumulatedCriteriaMet, ...evaluation.criteriaMet])
   return requiredCriteria(config).every((criterionId) => met.has(criterionId))
 }
 
@@ -62,7 +65,11 @@ export function decideDialogueNextState(
 ): DialoguePolicyDecision {
   const { config, currentState, evaluation } = input
   const policy = config.policy
-  const requiredCriteriaMet = allRequiredCriteriaMet(config, evaluation)
+  const requiredCriteriaMet = allRequiredCriteriaMet(
+    config,
+    evaluation,
+    input.accumulatedCriteriaMet,
+  )
   const securityBlocked = hasSecurityFlags(evaluation)
 
   if (securityBlocked) {
@@ -76,10 +83,20 @@ export function decideDialogueNextState(
     }
   }
 
+  // Complete when:
+  //   - Score reaches the approval threshold
+  //   - All required criteria are met (union of accumulated + current turn)
+  //   - The evaluator hasn't flagged this as low-evidence, a failure, or a security issue
+  // Note: we intentionally do NOT require evaluation.decision === 'complete' because the
+  // evaluator judges only the current message in isolation; a student who distributed correct
+  // answers across multiple turns would never produce a single 'complete' decision even though
+  // all criteria are covered.
   if (
     evaluation.overallScore >= policy.approvalMinimum &&
     requiredCriteriaMet &&
-    evaluation.decision === 'complete'
+    evaluation.decision !== 'low_evidence' &&
+    evaluation.decision !== 'fail_or_retry' &&
+    evaluation.decision !== 'security_block'
   ) {
     return {
       nextState: 'COMPLETE',
@@ -115,7 +132,9 @@ export function decideDialogueNextState(
   // O cuando no hay ningún progreso: damos el modelo de referencia y redirigimos al
   // video en lugar de seguir sondeando indefinidamente.
   const isMakingProgress =
-    evaluation.overallScore > 0 || evaluation.criteriaMet.length > 0
+    evaluation.overallScore > 0 ||
+    evaluation.criteriaMet.length > 0 ||
+    input.accumulatedCriteriaMet.length > 0
 
   if (
     input.hintsUsed >= policy.maxHints &&

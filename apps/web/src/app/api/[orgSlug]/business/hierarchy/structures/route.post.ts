@@ -7,6 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 
 import { logger } from '@/lib/utils/logger';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 import {
   createStructureSchema,
   type CreateStructureBody,
@@ -41,13 +42,13 @@ async function handlePost(
       .insert({
         ...body,
         organization_id: auth.organizationId,
-        created_by: auth.userId
+        created_by: auth.userId,
       })
-      .select()
+      .select(SELECT_COLUMNS.organization_structures)
       .single();
 
     if (error) {
-      logger.error('Error creando estructura:', error);
+      logger.error('Error creando estructura:', { code: error.code, message: error.message });
       return apiError('CREATE_STRUCTURE_FAILED', 'Error al crear estructura', 500);
     }
 

@@ -22,6 +22,22 @@ export function useHierarchyTreeCommands(state: HierarchyTreeState, t: BusinessT
       .catch(techDebtLogger.error);
   };
 
+  const confirmDeleteStructure = async () => {
+    if (!state.pendingDeleteStructure) return;
+
+    const structure = state.pendingDeleteStructure;
+    state.setPendingDeleteStructure(null);
+
+    const res = await DynamicHierarchyService.deleteStructure(structure.id, state.orgSlug);
+
+    if (res.success) {
+      await state.loadStructures();
+      // If the deleted structure was the selected one, loadStructures auto-selects the next one.
+    } else {
+      state.setNodeActionError(t('hierarchy.deleteStructureError') + (res.error ? `: ${res.error}` : ''));
+    }
+  };
+
   const saveStructure = async (name: string) => {
     try {
       const res = await DynamicHierarchyService.createStructure(name, state.orgSlug);
@@ -81,5 +97,5 @@ export function useHierarchyTreeCommands(state: HierarchyTreeState, t: BusinessT
     await state.loadNodes(state.selectedStructureId);
   };
 
-  return { confirmDeleteNode, initializeRootNode, openRootMembers, saveStructure };
+  return { confirmDeleteNode, confirmDeleteStructure, initializeRootNode, openRootMembers, saveStructure };
 }
