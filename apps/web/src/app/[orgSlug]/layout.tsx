@@ -48,7 +48,13 @@ export default async function OrganizationLayout({
     redirect(`/auth?redirect=/${orgSlug}/dashboard`);
   }
 
-  const [userResult, organizationResult] = await Promise.all([
+  // Run all three queries in parallel:
+  // - users: to know if the user is a platform admin
+  // - organizations: to validate the org exists and get its data
+  // - organization_users: membership check via orgSlug join (no need to wait for org.id)
+  // The membership query uses an !inner join on organizations so it only returns a row
+  // when BOTH the slug matches AND the user is an active member — safe to run upfront.
+  const [userResult, organizationResult, membershipResult] = await Promise.all([
     supabase
       .from('users')
       .select('cargo_rol')
@@ -60,6 +66,13 @@ export default async function OrganizationLayout({
       .eq('slug', orgSlug)
       .eq('is_active', true)
       .single(),
+    supabase
+      .from('organization_users')
+      .select('role, status, organizations!inner(slug)')
+      .eq('user_id', authUser.id)
+      .eq('status', 'active')
+      .eq('organizations.slug', orgSlug)
+      .maybeSingle(),
   ]);
 
   const isPlatformAdmin = userResult.data?.cargo_rol?.toLowerCase().trim() === 'administrador';
@@ -74,16 +87,8 @@ export default async function OrganizationLayout({
   let userRole: 'owner' | 'admin' | 'member' = 'admin'; // Default for platform admins
 
   if (!isPlatformAdmin) {
-    const { data: membership, error: membershipError } = await supabase
-      .from('organization_users')
-      .select('role, status')
-      .eq('organization_id', organization.id)
-      .eq('user_id', authUser.id)
-      .eq('status', 'active')
-      .single();
-
-    // User not a member of this organization and not a platform admin
-    if (membershipError || !membership) {
+    const membership = membershipResult.data;
+    if (!membership) {
       redirect('/dashboard?error=not_member');
     }
 

@@ -10,6 +10,7 @@ const LANGUAGE_OPTIONS = [
 
 interface LanguageSubmenuProps {
   activeSubmenu: string | null
+  accentColor: string
   isMounted: boolean
   language: 'es' | 'en' | 'pt'
   setActiveSubmenu: (submenu: string | null) => void
@@ -19,6 +20,7 @@ interface LanguageSubmenuProps {
 
 export function LanguageSubmenu({
   activeSubmenu,
+  accentColor,
   isMounted,
   language,
   setActiveSubmenu,
@@ -43,10 +45,14 @@ export function LanguageSubmenu({
                   <button
                     key={option.value}
                     onClick={() => { setLanguage(option.value); setActiveSubmenu(null) }}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all ${isActive ? 'bg-accent/15 text-accent' : 'text-[var(--color-legacy-8b95a5)] hover:bg-white/5 hover:text-white'}`}
+                    className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all ${isActive ? '' : 'text-[var(--color-legacy-8b95a5)] hover:bg-white/5 hover:text-white'}`}
+                    style={isActive ? {
+                      backgroundColor: `color-mix(in srgb, ${accentColor} 15%, transparent)`,
+                      color: accentColor,
+                    } : undefined}
                   >
                     <span className="flex items-center gap-2"><span>{option.flag}</span><span>{isMounted ? t(`menu.languages.${option.value}`) : '...'}</span></span>
-                    {isActive && <Check className="w-3 h-3 ml-auto" />}
+                    {isActive && <Check className="w-3 h-3 ml-auto" style={{ color: accentColor }} />}
                   </button>
                 )
               })}

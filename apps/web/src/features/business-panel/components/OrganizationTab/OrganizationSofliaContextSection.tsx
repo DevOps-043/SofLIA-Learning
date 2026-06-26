@@ -1,11 +1,15 @@
-import { motion } from 'framer-motion'
 import { Brain, MapPin, Users } from 'lucide-react'
 import { SectionHeader, TextAreaField } from './FormField'
+import { PremiumSelect } from '../PremiumSelect'
 import type { OrganizationFormState, OrganizationTabStyles, OrganizationTabTheme } from './types'
 
 const industryOptions = ['Tecnología e IT', 'Manufactura e Industria', 'Salud y Farmacéutica', 'Servicios Financieros y Banca', 'Retail y Comercio', 'Educación', 'Logística y Transporte', 'Construcción e Inmobiliaria', 'Alimentos y Bebidas', 'Marketing y Publicidad', 'Consultoría y Servicios Profesionales', 'Energía y Recursos Naturales', 'Telecomunicaciones', 'Turismo y Hospitalidad', 'Gobierno y Sector Público', 'ONG y Sector Social', 'Otro']
 const sizeOptions = ['1-10', '11-50', '51-200', '201-1000', '1001-5000', '5000+']
 const typeOptions = ['B2B', 'B2C', 'Mixto', 'Pública', 'ONG']
+
+function toSelectOptions(options: string[]) {
+  return options.map(opt => ({ value: opt, label: formatOptionLabel(opt) }))
+}
 
 export function OrganizationSofliaContextSection({ formState, styles, theme }: {
   formState: OrganizationFormState
@@ -14,23 +18,61 @@ export function OrganizationSofliaContextSection({ formState, styles, theme }: {
 }) {
   const { formData, handleChange } = formState
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="rounded-2xl p-6 border space-y-5" style={styles.cardStyle}>
+    <div className="rounded-2xl p-6 border space-y-5" style={styles.cardStyle}>
       <SectionHeader description="Esta información permite a SofLIA adaptar sus respuestas al perfil real de tu empresa" icon={<Brain className="w-5 h-5" />} title="Contexto para SofLIA" theme={theme} styles={styles} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SelectField id="industry" name="industry" label="Giro / Sector de la Empresa" value={formData.industry} placeholder="Selecciona un sector..." options={industryOptions} formState={formState} styles={styles} />
-        <SelectField id="company_size" name="company_size" label="Tamaño de la Empresa" icon={<Users className="w-4 h-4" />} value={formData.company_size} placeholder="Selecciona un rango..." options={sizeOptions} formState={formState} styles={styles} />
-        <SelectField id="company_type" name="company_type" label="Tipo de Empresa" value={formData.company_type} placeholder="Selecciona un tipo..." options={typeOptions} formState={formState} styles={styles} />
-        <div><label htmlFor="company_country" className="block text-sm font-medium mb-2" style={styles.labelStyle}><span className="flex items-center gap-2"><MapPin className="w-4 h-4" />País de Operación</span></label><input type="text" id="company_country" name="company_country" value={formData.company_country} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border-2 transition-colors focus:outline-none" style={styles.inputStyle} placeholder="México, Colombia, España..." /></div>
+        <SelectField
+          label="Giro / Sector de la Empresa"
+          name="industry"
+          value={formData.industry}
+          placeholder="Selecciona un sector..."
+          options={industryOptions}
+          formState={formState}
+          styles={styles}
+        />
+        <SelectField
+          label="Tamaño de la Empresa"
+          name="company_size"
+          icon={<Users className="w-4 h-4" />}
+          value={formData.company_size}
+          placeholder="Selecciona un rango..."
+          options={sizeOptions}
+          formState={formState}
+          styles={styles}
+        />
+        <SelectField
+          label="Tipo de Empresa"
+          name="company_type"
+          value={formData.company_type}
+          placeholder="Selecciona un tipo..."
+          options={typeOptions}
+          formState={formState}
+          styles={styles}
+        />
+        <div>
+          <label htmlFor="company_country" className="block text-sm font-medium mb-2" style={styles.labelStyle}>
+            <span className="flex items-center gap-2"><MapPin className="w-4 h-4" />País de Operación</span>
+          </label>
+          <input
+            type="text"
+            id="company_country"
+            name="company_country"
+            value={formData.company_country}
+            onChange={handleChange}
+            className="w-full px-4 py-3 rounded-xl border-2 transition-colors focus:outline-none"
+            style={styles.inputStyle}
+            placeholder="México, Colombia, España..."
+          />
+        </div>
       </div>
       <TextAreaField id="company_mission" name="company_mission" label="Misión / Propósito de la Empresa" value={formData.company_mission} onChange={handleChange} rows={3} maxLength={500} placeholder="Describe la misión o propósito central de tu empresa..." theme={theme} styles={styles} help="SofLIA usará esta información para contextualizar ejemplos, actividades y recomendaciones a la realidad de tu empresa." />
-    </motion.div>
+    </div>
   )
 }
 
-function SelectField({ formState, icon, id, label, name, options, placeholder, styles, value }: {
+function SelectField({ formState, icon, label, name, options, placeholder, styles, value }: {
   formState: OrganizationFormState
   icon?: React.ReactNode
-  id: string
   label: string
   name: string
   options: string[]
@@ -40,11 +82,17 @@ function SelectField({ formState, icon, id, label, name, options, placeholder, s
 }) {
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium mb-2" style={styles.labelStyle}><span className="flex items-center gap-2">{icon}{label}</span></label>
-      <select id={id} name={name} value={value} onChange={formState.handleChange} className="w-full px-4 py-3 rounded-xl border-2 transition-colors focus:outline-none" style={styles.inputStyle}>
-        <option value="">{placeholder}</option>
-        {options.map((option) => <option key={option} value={option}>{formatOptionLabel(option)}</option>)}
-      </select>
+      <label className="block text-sm font-medium mb-2" style={styles.labelStyle}>
+        <span className="flex items-center gap-2">{icon}{label}</span>
+      </label>
+      <PremiumSelect
+        value={value}
+        onChange={(val) => formState.setFormData(prev => ({ ...prev, [name]: val }))}
+        options={toSelectOptions(options)}
+        placeholder={placeholder}
+        icon={icon}
+        className="w-full"
+      />
     </div>
   )
 }

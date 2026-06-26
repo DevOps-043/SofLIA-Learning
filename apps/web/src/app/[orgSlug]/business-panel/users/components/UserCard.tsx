@@ -212,8 +212,8 @@ function UserCard({ user, index, onEdit, onDelete, onStats, onResend, onSuspend,
             onClick={onStats}
             className="flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl font-black text-xs uppercase tracking-[0.1em] transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-95 group/managed"
             style={{
-              backgroundColor: theme.accentColor,
-              color: theme.isDark ? 'var(--color-black)' : 'var(--color-bg-light)',
+              backgroundColor: theme.actionColor,
+              color: theme.onActionColor,
             }}
           >
             <Activity className="w-4 h-4 group-hover/managed:animate-pulse" />

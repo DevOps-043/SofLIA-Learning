@@ -83,6 +83,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       organizations,
+    }, {
+      headers: {
+        // Private cache: only the user's own browser stores this, never a shared CDN.
+        // 5-min max-age covers the typical session without extra round trips.
+        // stale-while-revalidate=600 lets the browser serve stale data instantly and
+        // refresh silently in the background — avoids the org-switcher flash on navigation.
+        'Cache-Control': 'private, max-age=300, stale-while-revalidate=600',
+      },
     });
   } catch (error) {
     logger.error('Error in /api/users/organizations:', error);

@@ -68,6 +68,13 @@ export function NotificationBell({
   const headingColor = isLightMode ? 'var(--color-legacy-0f172a)' : undefined
   const mutedTextColor = isLightMode ? 'var(--color-legacy-334155)' : undefined
 
+  // Org-aware panel: tints the platform bg-dark with the org primary so black-primary orgs
+  // produce a near-black panel while still falling back to platform tokens when no org is set.
+  const panelDarkStyle = !isLightMode ? {
+    backgroundColor: 'color-mix(in srgb, var(--org-primary-button-color, var(--color-primary)) 60%, var(--color-bg-dark))',
+    borderColor: 'color-mix(in srgb, var(--org-accent-color, var(--color-accent)) 15%, var(--color-gray-800))',
+  } : undefined
+
   useEffect(() => {
     if (!isDropdownOpen) return
 
@@ -129,7 +136,7 @@ export function NotificationBell({
       <motion.button
         type="button"
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        className="relative rounded-lg p-2.5 text-gray-600 transition-colors hover:bg-gray-100 hover:text-primary dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-accent"
+        className="relative rounded-lg p-2.5 text-gray-600 transition-colors hover:bg-gray-100 hover:text-primary dark:text-gray-400 dark:hover:bg-white/10"
         whileHover={{ scale: 1.03 }}
         whileTap={{ scale: 0.97 }}
         aria-label={t('actions.notificationsPage.title')}
@@ -138,7 +145,13 @@ export function NotificationBell({
         <Bell className={iconSizes[iconSize]} />
 
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold text-white shadow-sm dark:bg-accent dark:text-primary">
+          <span
+            className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-semibold shadow-sm"
+            style={{
+              backgroundColor: 'var(--org-action-color, var(--color-accent))',
+              color: 'var(--org-on-action-color, #ffffff)',
+            }}
+          >
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -164,7 +177,8 @@ export function NotificationBell({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.98 }}
               transition={{ duration: 0.16 }}
-              className="fixed inset-x-3 top-20 z-[100] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-gray-800 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[28rem]"
+              className="fixed inset-x-3 top-20 z-[100] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-2xl sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[28rem]"
+              style={panelDarkStyle}
               role="dialog"
               aria-label={t('actions.notificationsPage.title')}
             >
@@ -232,7 +246,8 @@ export function NotificationBell({
                 <Link
                   href="/dashboard/notifications"
                   onClick={() => setIsDropdownOpen(false)}
-                  className="flex w-full items-center justify-center rounded-md px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 dark:text-accent dark:hover:bg-accent/10"
+                  className="flex w-full items-center justify-center rounded-md px-3 py-2 text-sm font-semibold transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                  style={{ color: 'var(--org-accent-color, var(--color-accent))' }}
                 >
                   {t('actions.notificationsPage.viewAll')}
                 </Link>

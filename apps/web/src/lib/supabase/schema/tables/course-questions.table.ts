@@ -14,6 +14,7 @@ export type CourseQuestionsTable = {
   is_hidden: boolean | null
   is_pinned: boolean | null
   is_resolved: boolean | null
+  lesson_id: string | null
   organization_id: string | null
   reaction_count: number | null
   response_count: number | null
@@ -35,6 +36,7 @@ export type CourseQuestionsTable = {
   is_hidden?: boolean | null
   is_pinned?: boolean | null
   is_resolved?: boolean | null
+  lesson_id?: string | null
   organization_id?: string | null
   reaction_count?: number | null
   response_count?: number | null
@@ -56,6 +58,7 @@ export type CourseQuestionsTable = {
   is_hidden?: boolean | null
   is_pinned?: boolean | null
   is_resolved?: boolean | null
+  lesson_id?: string | null
   organization_id?: string | null
   reaction_count?: number | null
   response_count?: number | null
@@ -67,6 +70,7 @@ export type CourseQuestionsTable = {
   Relationships: [
     { foreignKeyName: "course_questions_course_id_fkey"; columns: ["course_id"]; isOneToOne: false; referencedRelation: "courses"; referencedColumns: ["id"] },
     { foreignKeyName: "course_questions_course_id_fkey"; columns: ["course_id"]; isOneToOne: false; referencedRelation: "v_incomplete_lesson_times"; referencedColumns: ["course_id"] },
+    { foreignKeyName: "course_questions_lesson_id_fkey"; columns: ["lesson_id"]; isOneToOne: false; referencedRelation: "course_lessons"; referencedColumns: ["lesson_id"] },
     { foreignKeyName: "course_questions_organization_id_fkey"; columns: ["organization_id"]; isOneToOne: false; referencedRelation: "organizations"; referencedColumns: ["id"] },
     { foreignKeyName: "course_questions_organization_id_fkey"; columns: ["organization_id"]; isOneToOne: false; referencedRelation: "v_organization_stats"; referencedColumns: ["organization_id"] },
     { foreignKeyName: "course_questions_organization_id_fkey"; columns: ["organization_id"]; isOneToOne: false; referencedRelation: "v_organization_users_detailed"; referencedColumns: ["organization_id"] },

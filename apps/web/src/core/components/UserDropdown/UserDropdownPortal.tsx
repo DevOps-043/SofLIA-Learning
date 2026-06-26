@@ -17,25 +17,21 @@ type UserDropdownLogic = ReturnType<typeof useUserDropdownLogic>
 export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
   if (!logic.isMounted) return null
 
-  const isOrgBranded = Boolean(
-    (logic.primaryColor && logic.primaryColor !== 'var(--color-primary)') ||
-    (logic.accentColor && logic.accentColor !== 'var(--color-accent)'),
-  )
   const isDark = logic.resolvedTheme === 'dark'
 
-  // Use accentColor for the color-mix base so the tint is always visible.
-  // Mixing a black primaryColor (#000000) into a dark base produces zero change;
-  // the accent (e.g. #8ed1fc) gives a readable subtle tint and a clear border.
-  const orgBrandStyles = isOrgBranded
-    ? {
-        backgroundColor: isDark
-          ? `color-mix(in srgb, ${logic.accentColor} 7%, #0c0f14)`
-          : 'rgba(255, 255, 255, 0.97)',
-        borderColor: isDark
-          ? `color-mix(in srgb, ${logic.accentColor} 22%, transparent)`
-          : `color-mix(in srgb, ${logic.primaryColor} 18%, var(--color-gray-200))`,
-      }
-    : {}
+  // Panel background uses only CSS/design-system tokens — no hardcoded hex or rgba.
+  // primaryColor / accentColor come from the org store (dynamic, not hardcoded).
+  // In dark mode: tints var(--color-bg-dark) with the org primary so black-primary orgs
+  // produce a near-black panel and navy-primary orgs produce a deep navy.
+  // In light mode: platform bg-light (white) with org-primary-tinted border.
+  const panelStyles = {
+    backgroundColor: isDark
+      ? `color-mix(in srgb, ${logic.primaryColor} 60%, var(--color-bg-dark))`
+      : 'var(--color-bg-light)',
+    borderColor: isDark
+      ? `color-mix(in srgb, ${logic.accentColor} 20%, var(--color-gray-800))`
+      : `color-mix(in srgb, ${logic.primaryColor} 15%, var(--color-gray-200))`,
+  }
 
   const menuStyle = logic.isMobileViewport
     ? {
@@ -46,17 +42,17 @@ export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
         left: 0,
         maxHeight: 'none',
         height: `calc(var(--soflia-viewport-height) - ${logic.pos.top}px)`,
-        ...orgBrandStyles,
+        ...panelStyles,
       }
     : {
         zIndex: USER_DROPDOWN_MENU_Z_INDEX,
         top: logic.pos.top,
         right: logic.pos.right,
         maxHeight: `calc(var(--soflia-viewport-height) - ${logic.pos.top}px - 16px)`,
-        ...orgBrandStyles,
+        ...panelStyles,
       }
   const mobileSectionClassName = logic.isMobileViewport
-    ? 'overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-carbon-800'
+    ? 'overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5'
     : ''
 
   return createPortal(
@@ -78,10 +74,10 @@ export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
             exit={logic.isMobileViewport ? { opacity: 0, y: -12 } : { opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
             className={cn(
-              'fixed overflow-y-auto border shadow-2xl border-gray-200 dark:border-white/10',
+              'fixed overflow-y-auto border shadow-2xl',
               logic.isMobileViewport
-                ? 'w-screen max-w-none rounded-none border-x-0 border-b-0 bg-gray-50 dark:bg-carbon-900'
-                : 'w-[308px] max-w-[calc(100vw-2rem)] rounded-2xl bg-white/95 backdrop-blur-xl dark:bg-carbon-800/95',
+                ? 'w-screen max-w-none rounded-none border-x-0 border-b-0'
+                : 'w-[308px] max-w-[calc(100vw-2rem)] rounded-2xl backdrop-blur-xl',
             )}
             style={menuStyle}
           >

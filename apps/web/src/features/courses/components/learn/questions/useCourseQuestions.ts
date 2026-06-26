@@ -5,9 +5,9 @@ import { fetchCourseQuestions, fetchQuestionById, toggleQuestionReaction } from 
 import type { CourseQuestion } from "./types";
 import { collectQuestionReactionMaps, mergeQuestions } from "./utils";
 const QUESTION_PAGE_SIZE = 20;
-type UseCourseQuestionsOptions = { slug: string };
+type UseCourseQuestionsOptions = { lessonId: string; slug: string };
 
-export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
+export function useCourseQuestions({ lessonId, slug }: UseCourseQuestionsOptions) {
   const [questions, setQuestions] = useState<CourseQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -19,7 +19,6 @@ export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
   const [hasMore, setHasMore] = useState(true);
   const [userReactions, setUserReactions] = useState<Record<string, string>>({});
   const [reactionCounts, setReactionCounts] = useState<Record<string, number>>({});
-  const [courseId, setCourseId] = useState<string | null>(null);
 
   const applyQuestionReactionCount = useCallback(
     (questionId: string, count: number) => {
@@ -48,17 +47,20 @@ export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
   }, []);
 
   const reloadQuestions = useCallback(async () => {
-    if (!slug) {
+    if (!slug || !lessonId) {
       setQuestions([]);
+      syncQuestionMaps([]);
       setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
+      setSelectedQuestionId(null);
       setOffset(0);
       setHasMore(true);
       const nextQuestions = await fetchCourseQuestions({
+        lessonId,
         slug,
         search: activeSearchQuery,
         limit: QUESTION_PAGE_SIZE,
@@ -67,31 +69,29 @@ export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
 
       if (nextQuestions.length === 0) {
         setQuestions([]);
+        syncQuestionMaps([]);
         setHasMore(false);
         return;
       }
       setQuestions(nextQuestions);
       syncQuestionMaps(nextQuestions);
 
-      if (nextQuestions.length > 0 && nextQuestions[0].course_id && !courseId) {
-        setCourseId(nextQuestions[0].course_id);
-      }
-
       setHasMore(nextQuestions.length === QUESTION_PAGE_SIZE);
     } catch {
       setQuestions([]);
+      syncQuestionMaps([]);
       setHasMore(false);
     } finally {
       setLoading(false);
     }
-  }, [activeSearchQuery, courseId, slug, syncQuestionMaps]);
+  }, [activeSearchQuery, lessonId, slug, syncQuestionMaps]);
 
   useEffect(() => {
     void reloadQuestions();
   }, [reloadQuestions]);
 
   useEffect(() => {
-    if (!courseId) {
+    if (!lessonId) {
       return;
     }
 
@@ -105,14 +105,14 @@ export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
     }
 
     const questionsChannel = supabase
-      .channel(`course-questions-${courseId}`)
+      .channel(`course-questions-${lessonId}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "course_questions",
-          filter: `course_id=eq.${courseId}`,
+          filter: `lesson_id=eq.${lessonId}`,
         },
         async (payload) => {
           if (activeSearchQuery) {
@@ -139,9 +139,6 @@ export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
               }
               return [newQuestion, ...currentQuestions];
             });
-            if (newQuestion.course_id && !courseId) {
-              setCourseId(newQuestion.course_id);
-            }
           } catch {
             await reloadQuestions();
           }
@@ -153,7 +150,7 @@ export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
           event: "UPDATE",
           schema: "public",
           table: "course_questions",
-          filter: `course_id=eq.${courseId}`,
+          filter: `lesson_id=eq.${lessonId}`,
         },
         (payload) => {
           const nextValues = payload.new as Partial<CourseQuestion> & { id?: string };
@@ -180,7 +177,7 @@ export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
           event: "DELETE",
           schema: "public",
           table: "course_questions",
-          filter: `course_id=eq.${courseId}`,
+          filter: `lesson_id=eq.${lessonId}`,
         },
         (payload) => {
           const deletedQuestionId = String((payload.old as { id?: string }).id || "");
@@ -198,7 +195,7 @@ export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
     return () => {
       void supabase?.removeChannel(questionsChannel);
     };
-  }, [activeSearchQuery, courseId, reloadQuestions, slug]);
+  }, [activeSearchQuery, lessonId, reloadQuestions, slug]);
 
   const handleSearch = useCallback(() => {
     setActiveSearchQuery(searchQuery); setOffset(0); setHasMore(true);
@@ -208,7 +205,7 @@ export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
   }, []);
 
   const loadMoreQuestions = useCallback(async () => {
-    if (!slug || loadingMore || !hasMore) {
+    if (!slug || !lessonId || loadingMore || !hasMore) {
       return;
     }
 
@@ -216,6 +213,7 @@ export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
       setLoadingMore(true);
       const nextOffset = offset + QUESTION_PAGE_SIZE;
       const nextQuestions = await fetchCourseQuestions({
+        lessonId,
         slug,
         search: activeSearchQuery,
         limit: QUESTION_PAGE_SIZE,
@@ -248,7 +246,7 @@ export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
     } finally {
       setLoadingMore(false);
     }
-  }, [activeSearchQuery, hasMore, loadingMore, offset, slug]);
+  }, [activeSearchQuery, hasMore, lessonId, loadingMore, offset, slug]);
 
   const handleReaction = useCallback(
     async (questionId: string) => {
@@ -326,6 +324,11 @@ export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
         return;
       }
 
+      if (question.lesson_id !== lessonId) {
+        void reloadQuestions();
+        return;
+      }
+
       setQuestions((currentQuestions) => {
         if (currentQuestions.some((currentQuestion) => currentQuestion.id === question.id)) {
           return currentQuestions;
@@ -344,12 +347,8 @@ export function useCourseQuestions({ slug }: UseCourseQuestionsOptions) {
           [question.id]: question.user_reaction as string,
         }));
       }
-
-      if (question.course_id && !courseId) {
-        setCourseId(question.course_id);
-      }
     },
-    [courseId, reloadQuestions]
+    [lessonId, reloadQuestions]
   );
 
   const questionCountLabel = `${questions.length} conversaciones`;

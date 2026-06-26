@@ -1,4 +1,10 @@
 const animations = {
+  'hero-orb-1': 'heroOrb1 10s ease-in-out infinite',
+  'hero-orb-2': 'heroOrb2 12s ease-in-out 2s infinite',
+  'hero-glow-pulse': 'heroGlowPulse 4s ease-in-out infinite',
+  'hero-float': 'heroFloat 4s ease-in-out infinite',
+  'hero-card-left': 'heroCardLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both',
+  'hero-card-right': 'heroCardRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1s both',
   'communities-orb-1': 'communitiesOrb1 10s ease-in-out infinite',
   'communities-orb-2': 'communitiesOrb2 8s ease-in-out infinite',
   'fade-in': 'fadeIn 0.5s ease',
@@ -15,6 +21,7 @@ const animations = {
   'border-glow': 'borderGlow 3s ease-in-out infinite',
   'shimmer-gradient': 'shimmerGradient 2s ease-in-out infinite',
   'slide-in-up': 'slideInUp 0.6s ease-out',
+  'slide-in-left': 'slideInLeft 0.3s ease both',
   'scale-in': 'scaleIn 0.5s ease-out',
   ripple: 'ripple 0.6s linear',
   'pulse-glow': 'pulseGlow 2s ease-in-out infinite',

@@ -1,7 +1,6 @@
 'use client'
 
-import { type ReactNode } from 'react'
-import { MotionConfig } from 'framer-motion'
+import { type ReactNode, useEffect } from 'react'
 
 import { useMotionSafe } from '../../lib/utils/motion'
 
@@ -10,31 +9,30 @@ interface MotionGuardProviderProps {
 }
 
 /**
- * Centralised framer-motion throttle for heat-sensitive devices.
+ * Centralised reduced-motion guard for heat-sensitive devices.
  *
- * Wraps the entire client tree in a MotionConfig with reducedMotion='always'
- * whenever useMotionSafe().disableHeavy is true (Apple platforms, WebKit,
- * prefers-reduced-motion users, low-end devices).  Inside that subtree
- * every motion.* component skips its animations and transitions — no
- * per-frame value computation, no GPU compositing for transforms that
- * weren't going to be visible anyway.
+ * Previously used framer-motion's MotionConfig to globally set
+ * `reducedMotion='always'`, which pulled framer-motion (~200 KB gzipped) into
+ * the initial bundle for every user — including anonymous visitors on the
+ * landing page who never see a single motion.* component.
  *
- * This complements the CSS-level rules in globals.css that hide
- * decorative blur orbs: this hook addresses the JS-side cost (framer
- * value drivers), the CSS addresses the GPU-side cost (composition
- * layers).  Together they eliminate the bulk of landing-page heat.
- *
- * For animations that should always run (loading spinners, etc.),
- * use the `transition={false}` escape hatch on the individual motion
- * component or wrap that subtree in another MotionConfig with
- * `reducedMotion='never'`.
+ * Now uses a CSS data attribute: when disableHeavy is true we set
+ * `data-reduce-motion="true"` on <html>, triggering the global CSS rule in
+ * global-overrides-17.css to suppress all CSS animations on heat-sensitive
+ * devices.  framer-motion components in authenticated layouts still respect the
+ * system-level `prefers-reduced-motion` automatically (framer-motion's default
+ * behaviour), so motion accessibility is not regressed.
  */
 export function MotionGuardProvider({ children }: MotionGuardProviderProps) {
   const { disableHeavy } = useMotionSafe()
 
-  return (
-    <MotionConfig reducedMotion={disableHeavy ? 'always' : 'user'}>
-      {children}
-    </MotionConfig>
-  )
+  useEffect(() => {
+    if (disableHeavy) {
+      document.documentElement.dataset.reduceMotion = 'true'
+    } else {
+      delete document.documentElement.dataset.reduceMotion
+    }
+  }, [disableHeavy])
+
+  return <>{children}</>
 }

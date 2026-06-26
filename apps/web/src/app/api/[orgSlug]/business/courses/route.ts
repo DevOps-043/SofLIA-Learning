@@ -29,7 +29,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     const supabase = await createClient()
 
-    // Obtener todos los cursos activos
+    // Single join query: cursos + datos del instructor en un solo round trip a Supabase.
+    // Usar !instructor_id para indicar la FK explícita evita ambigüedad cuando hay
+    // múltiples relaciones entre courses y users.
     const { data: courses, error: coursesError } = await supabase
       .from('courses')
       .select(`
@@ -49,7 +51,15 @@ export async function GET(request: NextRequest, context: RouteContext) {
         review_count,
         learning_objectives,
         created_at,
-        updated_at
+        updated_at,
+        instructor:users!instructor_id (
+          id,
+          first_name,
+          last_name,
+          display_name,
+          username,
+          email
+        )
       `)
       .eq('is_active', true)
       .order('created_at', { ascending: false })
@@ -63,38 +73,23 @@ export async function GET(request: NextRequest, context: RouteContext) {
       }, { status: 500 })
     }
 
-    // Obtener información de instructores
-    const instructorIds = [...new Set(courses?.map(c => c.instructor_id).filter(Boolean) || [])]
-    const instructorMap = new Map()
-
-    if (instructorIds.length > 0) {
-      const { data: instructors, error: instructorsError } = await supabase
-        .from('users')
-        .select('id, first_name, last_name, display_name, username, email')
-        .in('id', instructorIds)
-
-      if (!instructorsError && instructors) {
-        instructors.forEach(instructor => {
-          const name = instructor.display_name ||
-            `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim() ||
-            instructor.username ||
-            'Instructor'
-          instructorMap.set(instructor.id, {
-            id: instructor.id,
-            name,
-            email: instructor.email || ''
-          })
-        })
-      }
-    }
-
-    // Transformar datos
+    // Transformar datos — instructor ya viene embebido en cada fila
     const coursesWithInstructors = courses?.map(course => {
-      const instructor = instructorMap.get(course.instructor_id) || {
-        id: course.instructor_id,
-        name: 'Instructor',
-        email: ''
-      }
+      const raw = course.instructor as {
+        id: string
+        first_name: string | null
+        last_name: string | null
+        display_name: string | null
+        username: string | null
+        email: string | null
+      } | null
+
+      const instructorName = raw
+        ? (raw.display_name ||
+           `${raw.first_name || ''} ${raw.last_name || ''}`.trim() ||
+           raw.username ||
+           'Instructor')
+        : 'Instructor'
 
       return {
         id: course.id,
@@ -102,7 +97,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
         description: course.description,
         category: course.category,
         level: course.level,
-        instructor: instructor,
+        instructor: {
+          id: raw?.id ?? course.instructor_id ?? '',
+          name: instructorName,
+          email: raw?.email ?? '',
+        },
         duration: course.duration_total_minutes,
         thumbnail_url: course.thumbnail_url,
         slug: course.slug,
@@ -121,7 +120,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
       courses: coursesWithInstructors
     }, {
       headers: {
-        'Cache-Control': 'private, max-age=120, stale-while-revalidate=60'
+        // private: sólo el navegador del usuario puede cachear (no CDN compartida).
+        // max-age=300: sirve del caché por 5 min sin re-validar.
+        // stale-while-revalidate=3600: si el caché expiró, sirve el dato viejo
+        // inmediatamente y revalida en background — el usuario nunca ve un spinner
+        // al volver a la página en la misma sesión.
+        'Cache-Control': 'private, max-age=300, stale-while-revalidate=3600'
       }
     })
   } catch (error) {

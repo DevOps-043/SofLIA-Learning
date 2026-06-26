@@ -40,7 +40,7 @@
   transition: color 0.3s ease, opacity 0.3s ease;
 }
 
-/* Reduced motion */
+/* Reduced motion — system preference */
 @media (prefers-reduced-motion: reduce) {
 
   *,
@@ -51,6 +51,19 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Reduced motion — device performance guard (MotionGuardProvider sets this
+   attribute on <html> for heat-sensitive devices: Apple/WebKit, low-end,
+   prefers-reduced-motion users). Covers our CSS keyframe animations;
+   framer-motion components in authenticated layouts handle themselves. */
+[data-reduce-motion="true"] *,
+[data-reduce-motion="true"] *::before,
+[data-reduce-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
 
 /* Estilos personalizados para Business Panel */

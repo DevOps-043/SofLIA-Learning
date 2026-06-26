@@ -9,12 +9,14 @@ import type { CourseQuestion } from "./questions/types";
 import { createClient } from "@/lib/supabase/client";
 
 type CreateQuestionFormProps = {
+  lessonId: string;
   onClose: () => void;
   onSuccess: (question?: CourseQuestion) => void;
   slug: string;
 };
 
 export function CreateQuestionForm({
+  lessonId,
   onClose,
   onSuccess,
   slug,
@@ -101,6 +103,7 @@ export function CreateQuestionForm({
         body: JSON.stringify({
           title: null,
           content: content.trim(),
+          lesson_id: lessonId,
           tags: tags,
         }),
       });

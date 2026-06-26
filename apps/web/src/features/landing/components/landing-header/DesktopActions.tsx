@@ -29,12 +29,23 @@ export function DesktopActions({ state, t }: DesktopActionsProps) {
         onThemeChange={state.setTheme}
       />
       <div className="mx-1 h-6 w-px bg-gray-200 dark:bg-white/10" />
+      {/*
+        data-navigating is set via vanilla DOM in onClick so the loading state
+        applies even before React hydrates (the onclick attr runs immediately on
+        click, before any JS framework). CSS selector [data-navigating] picks it
+        up without React needing to re-render.
+      */}
       <Link
         href="/auth"
         prefetch
         onMouseEnter={warmClientAccess}
         onFocus={warmClientAccess}
-        className="inline-block cursor-pointer px-4 py-2.5 text-sm font-medium text-primary transition-all duration-150 hover:scale-[1.02] active:scale-95 hover:text-accent dark:text-white/80"
+        className="group relative inline-flex cursor-pointer items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-primary transition-all duration-150 hover:scale-[1.02] active:scale-95 hover:text-accent dark:text-white/80 [&[data-navigating]]:cursor-wait [&[data-navigating]]:opacity-60"
+        onClick={(e) => {
+          // Mark the link immediately (runs before React re-renders and before
+          // the browser navigates), giving instant visual feedback on cold start.
+          ;(e.currentTarget as HTMLElement).dataset.navigating = 'true'
+        }}
       >
         {t('landing.nav.clientAccess', 'Acceso clientes')}
       </Link>

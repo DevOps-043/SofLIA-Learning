@@ -10,9 +10,12 @@ type WindowWithIdleCallback = Window & {
   requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number
 }
 
-const FAST_PREFETCH_DELAY_MS = 1200
-const CONSERVATIVE_PREFETCH_DELAY_MS = 3500
-const IDLE_PREFETCH_TIMEOUT_MS = 5000
+// Waiting at least 3 s after mount avoids competing with the JS chunks and API
+// calls the page itself needs to become interactive. On constrained devices the
+// delay is longer (6 s) to further reduce main-thread contention.
+const FAST_PREFETCH_DELAY_MS = 3000
+const CONSERVATIVE_PREFETCH_DELAY_MS = 6000
+const IDLE_PREFETCH_TIMEOUT_MS = 8000
 
 /**
  * Global route prefetcher.

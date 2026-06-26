@@ -295,12 +295,14 @@ CREATE TABLE public.course_questions (
   edited_at timestamp with time zone,
   is_hidden boolean DEFAULT false,
   is_resolved boolean DEFAULT false,
+  lesson_id uuid,
   tags ARRAY DEFAULT '{}'::text[],
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   organization_id uuid,
   CONSTRAINT course_questions_pkey PRIMARY KEY (id),
   CONSTRAINT course_questions_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id),
+  CONSTRAINT course_questions_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.course_lessons(lesson_id) ON DELETE SET NULL,
   CONSTRAINT course_questions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
   CONSTRAINT course_questions_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );

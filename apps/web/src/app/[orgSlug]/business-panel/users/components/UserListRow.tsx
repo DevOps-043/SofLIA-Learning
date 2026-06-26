@@ -161,17 +161,19 @@ function UserListRow({ user, index, onEdit, onDelete, onStats, onResend }: UserL
             const tab = user.org_status === 'invited' ? 'invitations' : 'users'
             window.dispatchEvent(new CustomEvent('change-user-tab', { detail: tab }))
           }}
-          className={`p-1.5 rounded-lg transition-colors ${theme.isDark ? 'hover:bg-emerald-500/20' : 'hover:bg-blue-500/10'}`}
+          className="p-1.5 rounded-lg transition-colors hover:opacity-80"
+          style={{ color: theme.actionColor }}
           title={t('users.card.manage')}
         >
-          <ChevronRight className={`w-4 h-4 ${theme.isDark ? 'text-emerald-400' : 'text-blue-400'}`} />
+          <ChevronRight className="w-4 h-4" />
         </button>
         <button
           onClick={onStats}
-          className={`p-1.5 rounded-lg transition-colors ${theme.isDark ? 'hover:bg-emerald-500/20' : 'hover:bg-blue-500/10'}`}
+          className="p-1.5 rounded-lg transition-colors hover:opacity-80"
+          style={{ color: theme.actionColor }}
           title={t('users.card.viewStats')}
         >
-          <BarChart3 className={`w-4 h-4 ${theme.isDark ? 'text-emerald-400' : 'text-blue-400'}`} />
+          <BarChart3 className="w-4 h-4" />
         </button>
         <button
           onClick={onEdit}

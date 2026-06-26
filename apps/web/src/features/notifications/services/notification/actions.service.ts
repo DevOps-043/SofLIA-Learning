@@ -279,20 +279,17 @@ export async function deleteNotification(
     }
 
     if (!error && data && !data.deleted) {
-      throw new Error('Notificacion no encontrada o no pertenece al usuario')
+      // RPC says the row wasn't found or doesn't belong to this user.
+      // The notification is already gone — treat as idempotent success.
+      logger.info('Notification already absent (RPC returned deleted: false)', { notificationId })
+      return { deleted: true, notificationId } satisfies NotificationDeleteMutationResult
     }
 
     if (error) {
-      logger.warn('Notification delete RPC unavailable', { error })
+      logger.warn('Notification delete RPC unavailable, trying direct delete', { error })
     }
   } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message.includes('no encontrada')
-    ) {
-      throw error
-    }
-    logger.warn('Notification delete RPC failed, using fallback', { error })
+    logger.warn('Notification delete RPC threw, using fallback', { error })
   }
 
   const { data, error } = await supabase
@@ -309,7 +306,10 @@ export async function deleteNotification(
   }
 
   if (!data?.notification_id) {
-    throw new Error('Notificacion no encontrada o no pertenece al usuario')
+    // Row not found in direct delete — notification was already removed.
+    // Treat as idempotent success so the UI stays consistent.
+    logger.info('Notification already absent (direct delete found no row)', { notificationId })
+    return { deleted: true, notificationId } satisfies NotificationDeleteMutationResult
   }
 
   return {

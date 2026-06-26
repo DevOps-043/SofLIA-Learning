@@ -26,6 +26,7 @@ describe('useCourseQuestions realtime subscriptions', () => {
       {
         id: 'question-1',
         course_id: 'course-1',
+        lesson_id: 'lesson-1',
         content: 'Pregunta',
         created_at: '2026-01-01T00:00:00.000Z',
         response_count: 0,
@@ -39,7 +40,7 @@ describe('useCourseQuestions realtime subscriptions', () => {
     } as any);
   });
 
-  it('subscribes only to course questions, not global response or reaction tables', async () => {
+  it('subscribes only to current lesson questions, not global response or reaction tables', async () => {
     const channelNames: string[] = [];
     const removeChannel = vi.fn();
 
@@ -57,7 +58,7 @@ describe('useCourseQuestions realtime subscriptions', () => {
     } as any);
 
     const { result, unmount } = renderHook(() =>
-      useCourseQuestions({ slug: 'curso-demo' })
+      useCourseQuestions({ lessonId: 'lesson-1', slug: 'curso-demo' })
     );
 
     await waitFor(() => {
@@ -65,11 +66,14 @@ describe('useCourseQuestions realtime subscriptions', () => {
     });
 
     await waitFor(() => {
-      expect(channelNames).toContain('course-questions-course-1');
+      expect(channelNames).toContain('course-questions-lesson-1');
     });
 
-    expect(channelNames).not.toContain('course-responses-course-1');
-    expect(channelNames).not.toContain('course-reactions-course-1');
+    expect(mockedFetchCourseQuestions).toHaveBeenCalledWith(
+      expect.objectContaining({ lessonId: 'lesson-1', slug: 'curso-demo' }),
+    );
+    expect(channelNames).not.toContain('course-responses-lesson-1');
+    expect(channelNames).not.toContain('course-reactions-lesson-1');
 
     unmount();
 

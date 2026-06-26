@@ -6,6 +6,7 @@ import type {
 } from "./types";
 
 type FetchCourseQuestionsOptions = {
+  lessonId: string;
   limit: number;
   offset: number;
   search?: string;
@@ -17,6 +18,7 @@ function normalizeQuestions(payload: unknown): CourseQuestion[] {
 }
 
 export async function fetchCourseQuestions({
+  lessonId,
   limit,
   offset,
   search,
@@ -26,6 +28,7 @@ export async function fetchCourseQuestions({
   if (search) {
     params.append("search", search);
   }
+  params.append("lessonId", lessonId);
   params.append("limit", String(limit));
   params.append("offset", String(offset));
 

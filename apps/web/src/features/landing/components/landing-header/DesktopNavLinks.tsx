@@ -1,5 +1,4 @@
-import { motion } from 'framer-motion';
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import type { LandingHeaderTranslator, LandingNavLink } from './types';
 
 interface DesktopNavLinksProps {
@@ -8,7 +7,7 @@ interface DesktopNavLinksProps {
 }
 
 const desktopLinkClass =
-  'px-4 py-2 text-sm font-medium text-gray-500 transition-colors rounded-lg hover:bg-gray-100 hover:text-primary dark:text-white/70 dark:hover:bg-white/5 dark:hover:text-white';
+  'px-4 py-2 text-sm font-medium text-gray-500 transition-all duration-150 rounded-lg hover:bg-gray-100 hover:text-primary hover:scale-[1.02] dark:text-white/70 dark:hover:bg-white/5 dark:hover:text-white';
 
 export function DesktopNavLinks({ links, t }: DesktopNavLinksProps) {
   return (
@@ -19,26 +18,23 @@ export function DesktopNavLinks({ links, t }: DesktopNavLinksProps) {
         if (link.href.startsWith('/') && link.href.length > 1) {
           return (
             <Link key={link.key} href={link.href} className={desktopLinkClass}>
-              <motion.span whileHover={{ scale: 1.02 }}>{label}</motion.span>
+              {label}
             </Link>
           );
         }
 
         return (
-          <motion.a key={link.key} href={link.href} whileHover={{ scale: 1.02 }} className={desktopLinkClass}>
+          <a key={link.key} href={link.href} className={desktopLinkClass}>
             {label}
-          </motion.a>
+          </a>
         );
       })}
 
-      <Link href="/downloads">
-        <motion.span
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          className="inline-block cursor-pointer rounded-lg px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/10 hover:text-accent"
-        >
-          {t('landing.nav.downloadHub', 'Descargar Hub')}
-        </motion.span>
+      <Link
+        href="/downloads"
+        className="inline-block cursor-pointer rounded-lg px-4 py-2 text-sm font-medium text-accent transition-all duration-150 hover:bg-accent/10 hover:text-accent hover:scale-[1.03] active:scale-[0.97]"
+      >
+        {t('landing.nav.downloadHub', 'Descargar Hub')}
       </Link>
     </div>
   );

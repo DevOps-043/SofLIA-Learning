@@ -1,5 +1,4 @@
-import { motion } from 'framer-motion';
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import type { LandingHeaderTranslator, LandingNavLink } from './types';
 
 interface MobileNavLinksProps {
@@ -16,33 +15,28 @@ export function MobileNavLinks({ links, t, onNavigate }: MobileNavLinksProps) {
     <>
       {links.map((link, index) => {
         const label = t(`landing.nav.${link.key}`, link.key);
+        const entryStyle = { animationDelay: `${index * 50}ms` };
 
         if (link.href.startsWith('/')) {
           return (
             <Link key={link.key} href={link.href} onClick={onNavigate} className={mobileLinkClass}>
-              <motion.span
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
+              <span className="animate-slide-in-left block" style={entryStyle}>
                 {label}
-              </motion.span>
+              </span>
             </Link>
           );
         }
 
         return (
-          <motion.a
+          <a
             key={link.key}
             href={link.href}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
             onClick={onNavigate}
-            className={mobileLinkClass}
+            className={`${mobileLinkClass} animate-slide-in-left`}
+            style={entryStyle}
           >
             {label}
-          </motion.a>
+          </a>
         );
       })}
     </>

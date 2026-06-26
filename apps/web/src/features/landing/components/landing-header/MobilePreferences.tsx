@@ -1,5 +1,4 @@
-import { motion } from 'framer-motion';
-import { Globe, Moon, Sun } from 'lucide-react';
+﻿import { Globe, Moon, Sun } from 'lucide-react';
 import { LANDING_LANGUAGE_OPTIONS } from './constants';
 import type { LandingHeaderState } from './types';
 
@@ -14,18 +13,17 @@ export function MobilePreferences({ state }: MobilePreferencesProps) {
         <Globe size={18} className="text-gray-500 dark:text-white/70" />
         <div className="flex gap-1">
           {LANDING_LANGUAGE_OPTIONS.map((option) => (
-            <motion.button
+            <button
               key={option.value}
               onClick={() => state.setLanguage(option.value)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`rounded-lg px-2.5 py-1.5 text-sm font-medium transition-all ${state.language === option.value
-                ? 'bg-accent/20 text-accent'
-                : 'text-gray-500 hover:bg-gray-100 dark:text-white/70 dark:hover:bg-white/10'
-                }`}
+              className={`rounded-lg px-2.5 py-1.5 text-sm font-medium transition-all hover:scale-[1.05] active:scale-[0.95] ${
+                state.language === option.value
+                  ? 'bg-accent/20 text-accent'
+                  : 'text-gray-500 hover:bg-gray-100 dark:text-white/70 dark:hover:bg-white/10'
+              }`}
             >
               {option.flag}
-            </motion.button>
+            </button>
           ))}
         </div>
       </div>
@@ -53,16 +51,15 @@ function MobileThemeButton({
   children: React.ReactNode;
 }) {
   return (
-    <motion.button
+    <button
       onClick={onClick}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      className={`rounded-lg p-2 transition-all ${active
-        ? 'bg-accent/20 text-accent'
-        : 'text-gray-500 hover:bg-gray-100 dark:text-white/70 dark:hover:bg-white/10'
-        }`}
+      className={`rounded-lg p-2 transition-all hover:scale-[1.05] active:scale-[0.95] ${
+        active
+          ? 'bg-accent/20 text-accent'
+          : 'text-gray-500 hover:bg-gray-100 dark:text-white/70 dark:hover:bg-white/10'
+      }`}
     >
       {children}
-    </motion.button>
+    </button>
   );
 }

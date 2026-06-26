@@ -1592,6 +1592,7 @@ export type Database = {
           is_hidden: boolean | null
           is_pinned: boolean | null
           is_resolved: boolean | null
+          lesson_id: string | null
           organization_id: string | null
           reaction_count: number | null
           response_count: number | null
@@ -1613,6 +1614,7 @@ export type Database = {
           is_hidden?: boolean | null
           is_pinned?: boolean | null
           is_resolved?: boolean | null
+          lesson_id?: string | null
           organization_id?: string | null
           reaction_count?: number | null
           response_count?: number | null
@@ -1634,6 +1636,7 @@ export type Database = {
           is_hidden?: boolean | null
           is_pinned?: boolean | null
           is_resolved?: boolean | null
+          lesson_id?: string | null
           organization_id?: string | null
           reaction_count?: number | null
           response_count?: number | null
@@ -1656,6 +1659,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_incomplete_lesson_times"
             referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "course_questions_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "course_lessons"
+            referencedColumns: ["lesson_id"]
           },
           {
             foreignKeyName: "course_questions_organization_id_fkey"

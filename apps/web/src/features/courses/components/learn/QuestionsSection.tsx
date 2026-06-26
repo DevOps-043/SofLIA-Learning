@@ -27,10 +27,11 @@ import {
 } from "./questions/utils";
 
 type QuestionsSectionProps = {
+  lessonId: string;
   slug: string;
 };
 
-export function QuestionsSection({ slug }: QuestionsSectionProps) {
+export function QuestionsSection({ lessonId, slug }: QuestionsSectionProps) {
   const { t } = useTranslation("learn");
   const {
     activeSearchQuery,
@@ -52,7 +53,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
     showCreateForm,
     toggleQuestionSelection,
     userReactions,
-  } = useCourseQuestions({ slug });
+  } = useCourseQuestions({ lessonId, slug });
 
   const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") { e.preventDefault(); handleSearch(); }
@@ -332,6 +333,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
       <AnimatePresence>
         {showCreateForm && (
           <CreateQuestionForm
+            lessonId={lessonId}
             slug={slug}
             onClose={() => setShowCreateForm(false)}
             onSuccess={handleQuestionCreated}

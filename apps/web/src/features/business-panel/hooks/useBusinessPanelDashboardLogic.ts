@@ -13,11 +13,8 @@ import {
   BookOpenIcon,
   CheckCircleIcon,
   ChartBarIcon,
-  PlusIcon,
-  Cog6ToothIcon,
   ClockIcon,
   AcademicCapIcon,
-  LinkIcon,
 } from '@heroicons/react/24/outline'
 import { formatDate, formatTimeAgo } from '@/utils/date-formatter'
 
@@ -315,66 +312,11 @@ export function useBusinessPanelDashboardLogic() {
       backgroundImage: '/images/dashboard-cards/engagement-card-bg.webp',
       gradient: 'bg-gradient-to-br from-pink-500 to-pink-500/80',
       gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-legacy-ec4899), var(--color-legacy-ec4899cc))' },
+      href: `/${orgSlug}/business-panel/reports`,
       icon: ChartBarIcon,
       iconColor: 'var(--color-legacy-ec4899)',
     },
-    {
-      title: t('dashboard.stats.invitedUsers', 'Usuarios Invitados'),
-      value: getStatValue(stats.invitedUsers),
-      change: getStatChange(stats.invitedUsers),
-      backgroundImage: '/images/dashboard-cards/users-card-bg.webp',
-      gradient: 'bg-gradient-to-br from-[var(--color-legacy-6366f1)] to-[color-mix(in_srgb,var(--color-legacy-6366f1)_80%,transparent)]',
-      gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-legacy-6366f1), var(--color-legacy-6366f1cc))' },
-      href: `/${orgSlug}/business-panel/users?tab=invitations`,
-      icon: UsersIcon,
-      iconColor: 'var(--color-legacy-6366f1)',
-    },
-    {
-      title: t('dashboard.stats.inviteLinks', 'Enlaces de Invitacion'),
-      value:
-        stats.invitedUsers && typeof stats.invitedUsers === 'object'
-          ? stats.invitedUsers.linksCount || 0
-          : 0,
-      change: 0,
-      backgroundImage: '/images/dashboard-cards/courses-card-bg.webp',
-      gradient: 'bg-gradient-to-br from-success to-success/80',
-      gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-success), var(--color-legacy-10b981cc))' },
-      href: `/${orgSlug}/business-panel/users?tab=links`,
-      icon: LinkIcon,
-      iconColor: 'var(--color-success)',
-    },
   ] : [], [stats, themeColors, t, orgSlug]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const quickActions = useMemo(() => [
-    {
-      title: t('dashboard.quickActions.manageUsers.title'),
-      description: t('dashboard.quickActions.manageUsers.desc'),
-      icon: UsersIcon,
-      href: `/${orgSlug}/business-panel/users`,
-      color: themeColors.primary,
-    },
-    {
-      title: t('dashboard.quickActions.assignCourses.title'),
-      description: t('dashboard.quickActions.assignCourses.desc'),
-      icon: PlusIcon,
-      href: `/${orgSlug}/business-panel/courses`,
-      color: themeColors.secondary,
-    },
-    {
-      title: t('dashboard.quickActions.viewReports.title'),
-      description: t('dashboard.quickActions.viewReports.desc'),
-      icon: ChartBarIcon,
-      href: `/${orgSlug}/business-panel/reports`,
-      color: themeColors.accent,
-    },
-    {
-      title: t('dashboard.quickActions.settings.title'),
-      description: t('dashboard.quickActions.settings.desc'),
-      icon: Cog6ToothIcon,
-      href: `/${orgSlug}/business-panel/settings`,
-      color: themeColors.primary,
-    },
-  ], [themeColors, t, orgSlug])
 
   const getBackgroundStyles = () => {
     if (themeColors.backgroundType === 'gradient' && themeColors.background) {
@@ -401,7 +343,6 @@ export function useBusinessPanelDashboardLogic() {
     error: statsError instanceof Error ? statsError.message : null,
     themeColors,
     statsData,
-    quickActions,
     getGreeting,
     getUserName,
     formatTimestamp,

@@ -69,6 +69,7 @@ export type NoteUpdateBody = z.infer<typeof noteUpdateSchema>
 
 export const questionCreateSchema = z.object({
   content: contentSchema,
+  lesson_id: z.string().uuid(),
   tags: z.array(tagSchema).max(20).optional().default([]),
   ...attachmentFieldsSchema,
 })

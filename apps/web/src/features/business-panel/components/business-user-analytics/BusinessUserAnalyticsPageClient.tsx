@@ -38,6 +38,8 @@ export interface BusinessUserAnalyticsPageClientProps {
   pdfExport?:         { userLabel: string; organizationLabel?: string | null }
   onAnalyticsLoaded?: (data: BusinessUserAnalyticsResponse) => void
   onInsightsLoaded?:  (insights: BusinessUserAnalyticsInsights) => void
+  /** When true, renders only OverviewKPIs + PerformanceCards (no charts, no AI insights) */
+  compactMode?:       boolean
 }
 
 const DEFAULT_RANGE: BusinessUserAnalyticsRange = '365d'
@@ -52,6 +54,7 @@ export function BusinessUserAnalyticsPageClient({
   organizationId,
   onAnalyticsLoaded,
   onInsightsLoaded,
+  compactMode    = false,
 }: BusinessUserAnalyticsPageClientProps = {}) {
   const router  = useRouter()
   const params  = useParams()
@@ -229,50 +232,52 @@ export function BusinessUserAnalyticsPageClient({
 
   const content = (
     <div className="flex w-full flex-col gap-8">
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          {showBackButton && (
+      {/* ── Header — hidden when embedded (the modal provides its own header) ── */}
+      {!embedded && (
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            {showBackButton && (
+              <button
+                type="button"
+                onClick={goBack}
+                aria-label="Volver"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-gray-600 shadow-sm transition-colors dark:text-gray-300"
+                style={{
+                  backgroundColor: 'var(--dash-card)',
+                  borderColor:     'var(--dash-border)',
+                }}
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+            )}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: theme.mutedTextColor }}>
+                Panel personal
+              </p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
+                Mis estadísticas
+              </h1>
+            </div>
+          </div>
+
+          {/* Refresh — only when data is loaded */}
+          {!isLoading && (
             <button
               type="button"
-              onClick={goBack}
-              aria-label="Volver"
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-gray-600 shadow-sm transition-colors dark:text-gray-300"
+              onClick={() => void mutate()}
+              className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition-colors dark:text-gray-300"
               style={{
                 backgroundColor: 'var(--dash-card)',
                 borderColor:     'var(--dash-border)',
+                color:           theme.subtextColor,
               }}
             >
-              <ArrowLeft className="h-4 w-4" />
+              <RefreshCw className="h-4 w-4" />
+              Actualizar
             </button>
           )}
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: theme.mutedTextColor }}>
-              Panel personal
-            </p>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
-              Mis estadísticas
-            </h1>
-          </div>
-        </div>
-
-        {/* Refresh — only when data is loaded */}
-        {!isLoading && (
-          <button
-            type="button"
-            onClick={() => void mutate()}
-            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition-colors dark:text-gray-300"
-            style={{
-              backgroundColor: 'var(--dash-card)',
-              borderColor:     'var(--dash-border)',
-              color:           theme.subtextColor,
-            }}
-          >
-            <RefreshCw className="h-4 w-4" />
-            Actualizar
-          </button>
-        )}
-      </header>
+        </header>
+      )}
 
       {/* ── States ─────────────────────────────────────────────────────────── */}
 
@@ -288,22 +293,28 @@ export function BusinessUserAnalyticsPageClient({
       {data && (
         <>
           <OverviewKPIs data={data} />
-          <CourseProgressBars courses={data.learning.courses} />
-          <LearningTrendChart
-            lessonTrend={data.learning.lessonTrend}
-            activityTrend={data.activities.submissionsTrend}
-            range={range}
-            onRangeChange={setRange}
-          />
-          <PerformanceCards data={data} />
-          <QualityRadarChart quality={data.quality} />
-          <NextGoals data={data} orgSlug={orgSlug} />
-          <AiInsightsCard
-            state={insightState}
-            insights={insights}
-            error={insightError}
-            onGenerate={() => void generateInsights()}
-          />
+          {compactMode
+            ? <PerformanceCards data={data} />
+            : (
+              <>
+                <CourseProgressBars courses={data.learning.courses} />
+                <LearningTrendChart
+                  lessonTrend={data.learning.lessonTrend}
+                  activityTrend={data.activities.submissionsTrend}
+                  range={range}
+                  onRangeChange={setRange}
+                />
+                <QualityRadarChart quality={data.quality} />
+                <NextGoals data={data} orgSlug={orgSlug} />
+                <AiInsightsCard
+                  state={insightState}
+                  insights={insights}
+                  error={insightError}
+                  onGenerate={() => void generateInsights()}
+                />
+              </>
+            )
+          }
         </>
       )}
     </div>

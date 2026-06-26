@@ -13,7 +13,6 @@ import { useBusinessPanelDashboardLogic } from '../hooks/useBusinessPanelDashboa
 import { useTour } from '@/features/tours'
 import { businessPanelDashboardTour } from '@/features/tours/config/business-panel-dashboard.tour'
 import { StatCard } from './dashboard/StatCard'
-import { QuickAction } from './dashboard/QuickAction'
 import { ActivityItem } from './dashboard/ActivityItem'
 import { useMinuteTicker } from '@/hooks/useMinuteTicker'
 import { useMotionSafe } from '@/lib/utils/motion'
@@ -39,7 +38,6 @@ export function BusinessPanelDashboard() {
     activitiesLoading,
     themeColors,
     statsData,
-    quickActions,
     getGreeting,
     getUserName,
     formatDate,
@@ -113,9 +111,7 @@ export function BusinessPanelDashboard() {
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-        {/* Main Content */}
-        <div className="xl:col-span-3 space-y-8">
+      <div className="space-y-8">
           {/* Stats Grid */}
           <section id="tour-stats-section" data-tour-id="business-panel-dashboard--stats-section">
             <motion.div data-tour-id="business-panel-dashboard--stats-header" className="flex items-center justify-between mb-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
@@ -211,33 +207,6 @@ export function BusinessPanelDashboard() {
               )}
             </motion.div>
           </section>
-        </div>
-
-        {/* Sidebar - Quick Actions */}
-        <div id="tour-quick-actions" data-tour-id="business-panel-dashboard--quick-actions" className="xl:col-span-1">
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition} className="sticky top-24">
-            <div id="tour-quick-actions-list">
-              <div data-tour-id="business-panel-dashboard--quick-actions-header" className="mb-6">
-                <h2 className="text-lg font-bold" style={{ color: themeColors.text }}>{t('dashboard.quickActions.title')}</h2>
-                <p className="text-sm mt-1" style={{ color: themeColors.text, opacity: 0.7 }}>{t('dashboard.quickActions.subtitle')}</p>
-              </div>
-              <div className="space-y-3">
-                {quickActions.map((action, index) => (
-                  <QuickAction
-                    key={action.title}
-                    title={action.title}
-                    description={action.description}
-                    icon={action.icon}
-                    href={action.href}
-                    color={action.color}
-                    delay={index}
-                  />
-                ))}
-              </div>
-            </div>
-
-          </motion.div>
-        </div>
       </div>
     </div>
   )

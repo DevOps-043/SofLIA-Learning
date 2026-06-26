@@ -14,6 +14,7 @@ describe('courses API schemas', () => {
     expect(
       questionCreateSchema.safeParse({
         content: 'Como aplico esto en mi trabajo?',
+        lesson_id: '11111111-1111-4111-8111-111111111111',
       }).success,
     ).toBe(true)
 
@@ -23,7 +24,17 @@ describe('courses API schemas', () => {
       }).success,
     ).toBe(true)
 
-    expect(questionCreateSchema.safeParse({ content: '   ' }).success).toBe(false)
+    expect(
+      questionCreateSchema.safeParse({
+        content: 'Pregunta sin leccion',
+      }).success,
+    ).toBe(false)
+    expect(
+      questionCreateSchema.safeParse({
+        content: '   ',
+        lesson_id: '11111111-1111-4111-8111-111111111111',
+      }).success,
+    ).toBe(false)
     expect(responseCreateSchema.safeParse({ content: '' }).success).toBe(false)
   })
 

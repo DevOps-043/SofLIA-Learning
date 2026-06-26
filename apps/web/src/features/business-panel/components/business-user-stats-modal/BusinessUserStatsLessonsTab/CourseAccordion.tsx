@@ -67,7 +67,7 @@ function CourseLessonsList({
           </p>
         ) : (
           courseData.lessons.map((lesson, index) => (
-            <LessonRow key={lesson.lesson_id} lesson={lesson} index={index} theme={theme} t={t} />
+            <LessonRow key={`${lesson.lesson_id}-${index}`} lesson={lesson} index={index} theme={theme} t={t} />
           ))
         )}
       </div>

@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { AlertCircle, RefreshCw, Settings as SettingsIcon, XCircle } from 'lucide-react'
 import Image from 'next/image'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
@@ -35,13 +34,13 @@ export function BusinessSettings() {
     return (
       <div className="min-h-screen p-6 lg:p-8">
         <div className="flex items-center justify-center py-32">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-            className="w-16 h-16 border-4 rounded-full"
+          <div
+            className="w-16 h-16 border-4 rounded-full animate-spin"
             style={{
-              borderColor: theme.actionSurface,
               borderTopColor: theme.actionColor,
+              borderRightColor: theme.actionSurface,
+              borderBottomColor: theme.actionSurface,
+              borderLeftColor: theme.actionSurface,
             }}
           />
         </div>
@@ -52,12 +51,7 @@ export function BusinessSettings() {
   if (error) {
     return (
       <div className="min-h-screen p-6 lg:p-8">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="text-center py-20"
-        >
+        <div className="text-center py-20">
           <XCircle
             className="w-20 h-20 mx-auto mb-6"
             style={{ color: theme.dangerColor }}
@@ -68,11 +62,9 @@ export function BusinessSettings() {
           >
             {error}
           </p>
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
+          <button
             onClick={refetch}
-            className="px-6 py-3 rounded-xl font-medium transition-all shadow-lg inline-flex items-center gap-2"
+            className="px-6 py-3 rounded-xl font-medium transition-all shadow-lg inline-flex items-center gap-2 hover:scale-[1.03] active:scale-[0.97]"
             style={{
               backgroundColor: theme.actionColor,
               color: theme.onActionColor,
@@ -81,8 +73,8 @@ export function BusinessSettings() {
           >
             <RefreshCw className="w-4 h-4" />
             Reintentar
-          </motion.button>
-        </motion.div>
+          </button>
+        </div>
       </div>
     )
   }
@@ -91,10 +83,7 @@ export function BusinessSettings() {
     <>
     <div className="min-h-screen p-6 lg:p-8 space-y-8">
       <div>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
+      <div
         className="relative overflow-hidden rounded-3xl p-8 shadow-xl border"
         style={{
           background: theme.heroBackground,
@@ -157,13 +146,10 @@ export function BusinessSettings() {
             Gestiona la configuración de tu organización desde un solo lugar.
           </p>
         </div>
-      </motion.div>
+      </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
+      <div
         className="rounded-2xl border overflow-hidden backdrop-blur-xl"
         style={{
           backgroundColor: theme.cardBg,
@@ -189,11 +175,9 @@ export function BusinessSettings() {
                 }}
               >
                 {isActive && (
-                  <motion.div
-                    layoutId="active-settings-tab"
+                  <div
                     className="absolute bottom-0 left-0 right-0 h-0.5"
                     style={{ backgroundColor: tab.color }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                   />
                 )}
 
@@ -207,14 +191,7 @@ export function BusinessSettings() {
           })}
         </div>
 
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="p-8"
-        >
+        <div className="p-8">
           {activeTab === 'organization' && (
             <>
               <OrganizationTab
@@ -242,12 +219,7 @@ export function BusinessSettings() {
           {activeTab === 'branding' && canUseBranding && <BrandingTab />}
 
           {activeTab === 'branding' && !canUseBranding && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="text-center py-20"
-            >
+            <div className="text-center py-20">
               <AlertCircle
                 className="w-20 h-20 mx-auto mb-6"
                 style={{ color: theme.warningColor }}
@@ -265,10 +237,10 @@ export function BusinessSettings() {
                 Esta función solo está disponible en Enterprise. Actualiza tu plan
                 para acceder a esta funcionalidad.
               </p>
-            </motion.div>
+            </div>
           )}
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
     </>
   )

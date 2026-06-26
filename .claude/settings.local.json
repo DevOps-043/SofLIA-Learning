@@ -227,7 +227,16 @@
       "Bash(grep -E \"\\\\.tsx$\")",
       "Bash(git -C \"c:/Users/fysg5/OneDrive/Escritorio/PulseHub/Soflia-Learning/SofLIA-Learning\" diff apps/web/src/app/api/lia/chat/prompt-instructions/page-instructions.ts)",
       "Bash(git -C \"c:/Users/fysg5/OneDrive/Escritorio/PulseHub/Soflia-Learning/SofLIA-Learning\" diff --stat HEAD)",
-      "Bash(Read \"C:/Users/fysg5/AppData/Local/Temp/claude/c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning/d9b9360f-dec1-4f07-bd4c-bba92aa97539/tasks/bx2pgs5qp.output\")"
+      "Bash(Read \"C:/Users/fysg5/AppData/Local/Temp/claude/c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning/d9b9360f-dec1-4f07-bd4c-bba92aa97539/tasks/bx2pgs5qp.output\")",
+      "Bash(cat apps/web/next.config.js)",
+      "Bash(cat apps/web/next.config.mjs)",
+      "Bash(cat apps/web/next.config.ts)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); deps=d.get\\('dependencies',{}\\); dev=d.get\\('devDependencies',{}\\); all_deps={**deps,**dev}; print\\(json.dumps\\(all_deps, indent=2\\)\\)\")",
+      "Bash(cat apps/web/next-config/create-next-config.js)",
+      "Bash(cat apps/web/next-config/create-next-config.ts)",
+      "Bash(ls \"C:\\\\Users\\\\fysg5\\\\.claude\\\\projects\\\\c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning\\\\memory\\\\\" 2>/dev/null || echo \"empty\")",
+      "Read(//c/Users/fysg5/.claude/projects/c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning/memory\" 2>/dev/**)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\)['dependencies']; [print\\(k,v\\) for k,v in sorted\\(d.items\\(\\)\\)]\")"
     ],
     "deny": [],
     "ask": []

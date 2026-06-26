@@ -32,9 +32,24 @@ interface QuestionUserReactionRow {
   reaction_type: string;
 }
 
+async function verifyLessonBelongsToCourse(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  courseId: string,
+  lessonId: string,
+) {
+  const { data: lesson, error } = await supabase
+    .from('course_lessons')
+    .select('lesson_id, course_modules!inner(course_id)')
+    .eq('lesson_id', lessonId)
+    .eq('course_modules.course_id', courseId)
+    .single();
+
+  return !error && Boolean(lesson);
+}
+
 /**
  * GET /api/courses/[slug]/questions
- * Obtiene todas las preguntas de un curso
+ * Obtiene las preguntas de un curso, opcionalmente filtradas por lección.
  */
 export async function GET(
   request: NextRequest,
@@ -63,6 +78,7 @@ export async function GET(
     const isResolved = searchParams.get('resolved');
     const isPinned = searchParams.get('pinned');
     const search = searchParams.get('search');
+    const lessonId = searchParams.get('lessonId') || searchParams.get('lesson_id');
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
@@ -85,6 +101,10 @@ export async function GET(
       .order('is_pinned', { ascending: false })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
+
+    if (lessonId) {
+      query = query.eq('lesson_id', lessonId);
+    }
 
     // Aplicar filtros
     if (isResolved === 'true') {
@@ -221,7 +241,7 @@ async function handlePost(
       return apiError('COURSE_NOT_FOUND', 'Curso no encontrado.', 404);
     }
 
-    const { content, tags, attachment_url, attachment_type, attachment_data } = body;
+    const { content, lesson_id, tags, attachment_url, attachment_type, attachment_data } = body;
     const sanitizedContent = sanitizeHtml(content, {
       level: 'rich',
       maxLength: 50_000,
@@ -231,11 +251,22 @@ async function handlePost(
       return apiError('VALIDATION_ERROR', 'El contenido de la pregunta es requerido.', 422);
     }
 
+    const lessonBelongsToCourse = await verifyLessonBelongsToCourse(
+      supabase,
+      course.id,
+      lesson_id,
+    );
+
+    if (!lessonBelongsToCourse) {
+      return apiError('LESSON_NOT_FOUND', 'Lección no encontrada para este curso.', 404);
+    }
+
     // Crear la pregunta
     const { data: question, error: questionError } = await supabase
       .from('course_questions')
       .insert({
         course_id: course.id,
+        lesson_id,
         user_id: user.id,
         content: sanitizedContent,
         tags: tags || [],
