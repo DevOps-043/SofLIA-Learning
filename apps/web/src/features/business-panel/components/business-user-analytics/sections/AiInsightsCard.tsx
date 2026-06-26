@@ -121,14 +121,9 @@ function InsightsContent({
         >
           <p className="text-sm leading-7 text-gray-700 dark:text-gray-200">{insights.summary}</p>
 
-          {(insights.cached || insights.model) && (
+          {insights.cached && (
             <div className="mt-3 flex items-center gap-2">
-              {insights.cached && (
-                <Chip label="En caché" theme={theme} />
-              )}
-              {insights.model && (
-                <Chip label={insights.model} theme={theme} />
-              )}
+              <Chip label="En caché" theme={theme} />
             </div>
           )}
         </div>

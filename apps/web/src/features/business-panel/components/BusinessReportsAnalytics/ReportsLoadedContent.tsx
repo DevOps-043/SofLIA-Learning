@@ -1,48 +1,57 @@
 import dynamic from 'next/dynamic'
 import type { ReportsAnalyticsAiInsights, ReportsAnalyticsResponse } from '../../types/reports-analytics.types'
+import { AcademicPerformanceCards } from './AcademicPerformanceCards'
 import { AiInsightsPanel } from './AiInsightsPanel'
 import { CourseRiskTable } from './CourseRiskTable'
 import { DataQualityPanel } from './DataQualityPanel'
-import { LeaderboardPanel } from './LeaderboardPanel'
-import { OverviewGrid } from './OverviewGrid'
-import { QualityScorePanel } from './QualityScorePanel'
-import { ReportsSummaryGrid } from './ReportsSummaryGrid'
+import { ExecutiveKpiGrid } from './ExecutiveKpiGrid'
+import { LearningFunnelChart } from './LearningFunnelChart'
+import { NotesCompositionPanel } from './NotesCompositionPanel'
+import { PlannerInsightsPanel } from './PlannerInsightsPanel'
+import { RankingTablesPanel } from './RankingTablesPanel'
+import { RiskPrioritiesTable } from './RiskPrioritiesTable'
+import { SegmentPerformancePanel } from './SegmentPerformancePanel'
+import { SofLIAQualityPanel } from './SofLIAQualityPanel'
 import type { ReportsAnalyticsLocale, ReportsAnalyticsT, ThemeTokens } from './types'
-import type { useReportFormatters } from './useReportFormatters'
 
-// Heavy chart panels — imported dynamically so Recharts is not bundled in the initial chunk.
-// They render only after the page is interactive; the skeleton prevents layout shift.
-const ChartSkeleton = ({ className }: { className?: string }) => (
-  <div className={`animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800 ${className ?? 'h-64'}`} />
+const ChartSkeleton = () => <div className="h-80 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
+
+const LearningTrendChart = dynamic(
+  () => import('./LearningTrendChart').then((m) => ({ default: m.LearningTrendChart })),
+  { ssr: false, loading: () => <ChartSkeleton /> },
 )
 
-const ReportsChartsGrid = dynamic(() => import('./ReportsChartsGrid').then(m => ({ default: m.ReportsChartsGrid })), {
-  ssr: false,
-  loading: () => <ChartSkeleton className="h-80" />,
-})
+const OrgRadarChart = dynamic(
+  () => import('./OrgRadarChart').then((m) => ({ default: m.OrgRadarChart })),
+  { ssr: false, loading: () => <ChartSkeleton /> },
+)
 
-const SegmentComparisonPanel = dynamic(
-  () => import('./SegmentComparisonPanel').then(m => ({ default: m.SegmentComparisonPanel })),
-  {
-    ssr: false,
-    loading: () => <ChartSkeleton className="h-64" />,
-  }
+const TeamScatterChart = dynamic(
+  () => import('./TeamScatterChart').then((m) => ({ default: m.TeamScatterChart })),
+  { ssr: false, loading: () => <ChartSkeleton /> },
+)
+
+const WorkforceStatusPanel = dynamic(
+  () => import('./WorkforceStatusPanel').then((m) => ({ default: m.WorkforceStatusPanel })),
+  { ssr: false, loading: () => <ChartSkeleton /> },
+)
+
+const ComplianceBarChart = dynamic(
+  () => import('./ComplianceBarChart').then((m) => ({ default: m.ComplianceBarChart })),
+  { ssr: false, loading: () => <ChartSkeleton /> },
 )
 
 export function ReportsLoadedContent({
   data,
-  formatters,
   insights,
   isExportingInsightsPdf,
   isGeneratingInsights,
-  locale,
   theme,
   t,
   onExportInsightsPdf,
   onGenerateInsights,
 }: {
   data: ReportsAnalyticsResponse
-  formatters: ReturnType<typeof useReportFormatters>
   insights: ReportsAnalyticsAiInsights | null
   isExportingInsightsPdf: boolean
   isGeneratingInsights: boolean
@@ -53,8 +62,53 @@ export function ReportsLoadedContent({
   onGenerateInsights: () => void
 }) {
   return (
-    <>
-      <div id="tour-reports-overview"><OverviewGrid data={data} theme={theme} t={t} /></div>
+    <div className="flex flex-col gap-6">
+      {/* 1. KPIs ejecutivos */}
+      <ExecutiveKpiGrid data={data} theme={theme} t={t} />
+
+      {/* 2. Estado de la fuerza laboral — headcounts visuales para C-Level */}
+      <WorkforceStatusPanel data={data} theme={theme} t={t} />
+
+      {/* 3. Radar multidimensional de salud org */}
+      <OrgRadarChart data={data} theme={theme} t={t} />
+
+      {/* 4. Cumplimiento por área — gráfica más accionable para RRHH */}
+      <ComplianceBarChart data={data} theme={theme} t={t} />
+
+      {/* 5. Usuarios en riesgo — para seguimiento inmediato */}
+      <RiskPrioritiesTable priorityUsers={data.priorityUsers} theme={theme} t={t} />
+
+      {/* 6. Embudo — dónde se pierde el avance */}
+      <LearningFunnelChart data={data} theme={theme} t={t} />
+
+      {/* 7. Riesgo por curso */}
+      <CourseRiskTable courses={data.courses} theme={theme} t={t} />
+
+      {/* 8. Mapa de posicionamiento de equipos */}
+      <TeamScatterChart data={data} theme={theme} t={t} />
+
+      {/* 9. Clasificación de aprovechamiento */}
+      <RankingTablesPanel data={data} theme={theme} t={t} />
+
+      {/* 10. Desempeño por segmento */}
+      <SegmentPerformancePanel data={data} theme={theme} t={t} />
+
+      {/* 11. Tendencia en el tiempo */}
+      <LearningTrendChart data={data} theme={theme} t={t} />
+
+      {/* 12. Rendimiento académico */}
+      <AcademicPerformanceCards data={data} theme={theme} t={t} />
+
+      {/* 13. Calidad SofLIA — métricas de uso y calidad de la IA */}
+      <SofLIAQualityPanel data={data} theme={theme} t={t} />
+
+      {/* 14. Planificador de estudio — adherencia y varianza de tiempo */}
+      <PlannerInsightsPanel data={data} theme={theme} t={t} />
+
+      {/* 15. Notas — composición y adopción */}
+      <NotesCompositionPanel data={data} theme={theme} t={t} />
+
+      {/* 16. Análisis IA */}
       <div id="tour-reports-insights">
         <AiInsightsPanel
           insights={insights}
@@ -66,13 +120,9 @@ export function ReportsLoadedContent({
           onGenerate={onGenerateInsights}
         />
       </div>
-      <ReportsChartsGrid data={data} formatters={formatters} locale={locale} theme={theme} t={t} />
-      <ReportsSummaryGrid data={data} theme={theme} t={t} />
-      <QualityScorePanel data={data} theme={theme} t={t} />
-      <SegmentComparisonPanel data={data} theme={theme} t={t} />
-      <LeaderboardPanel data={data} theme={theme} t={t} />
-      <CourseRiskTable courses={data.courses} theme={theme} t={t} />
+
+      {/* 17. Calidad de datos */}
       <DataQualityPanel data={data} theme={theme} t={t} />
-    </>
+    </div>
   )
 }

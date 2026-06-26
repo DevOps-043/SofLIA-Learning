@@ -236,7 +236,16 @@
       "Bash(cat apps/web/next-config/create-next-config.ts)",
       "Bash(ls \"C:\\\\Users\\\\fysg5\\\\.claude\\\\projects\\\\c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning\\\\memory\\\\\" 2>/dev/null || echo \"empty\")",
       "Read(//c/Users/fysg5/.claude/projects/c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning/memory\" 2>/dev/**)",
-      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\)['dependencies']; [print\\(k,v\\) for k,v in sorted\\(d.items\\(\\)\\)]\")"
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\)['dependencies']; [print\\(k,v\\) for k,v in sorted\\(d.items\\(\\)\\)]\")",
+      "Bash(xargs grep -l \"lesson_time_estimates\\\\|course_lessons\")",
+      "Bash(python3 -c ' *)",
+      "PowerShell(cd \"C:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\"; npm run type-check --workspace=apps/web 2>&1 | Where-Object { $_ -match \"BusinessReportsAnalytics|ReportsLoadedContent|ExecutiveKpiGrid|RiskPrioritiesTable|LearningFunnel|CourseRiskTable|SegmentPerformancePanel|LearningTrendChart|AcademicPerformance|AiInsights|FiltersBar|derive-executive|derive-learning|derive-course|compute-priority\" })",
+      "PowerShell(cd \"C:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\"; npm run type-check --workspace=apps/web 2>&1 | Where-Object { $_ -match \"OrgRadarChart|TeamScatterChart|should-include|apply-assignments|build-context|create-build-context\" })",
+      "PowerShell(node -e \"try { JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/public/locales/es/business.json','utf8'\\)\\); console.log\\('JSON OK'\\); } catch\\(e\\) { console.log\\('JSON ERROR:', e.message\\); }\" 2>&1)",
+      "PowerShell(node -e \"try { JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/public/locales/en/business.json','utf8'\\)\\); console.log\\('JSON OK'\\); } catch\\(e\\) { console.log\\('JSON ERROR:', e.message\\); }\" 2>&1)",
+      "PowerShell(node -e \"try { JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/public/locales/pt/business.json','utf8'\\)\\); console.log\\('JSON OK'\\); } catch\\(e\\) { console.log\\('JSON ERROR:', e.message\\); }\" 2>&1)",
+      "PowerShell($f = \"C:\\\\Users\\\\fysg5\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning\\\\05a0f5d0-3e32-4b0b-897a-ed6577604f94\\\\tasks\\\\b29nlq292.output\"; if \\(Test-Path $f\\) { $lines = \\(Get-Content $f\\); Write-Host \"Lines: $\\($lines.Count\\)\"; $lines | Select-String \"error TS\" | Select-Object -First 15 } else { Write-Host \"File not found\" })",
+      "PowerShell($f1 = \"C:\\\\Users\\\\fysg5\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning\\\\05a0f5d0-3e32-4b0b-897a-ed6577604f94\\\\tasks\\\\b29nlq292.output\"; $f2 = \"C:\\\\Users\\\\fysg5\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning\\\\05a0f5d0-3e32-4b0b-897a-ed6577604f94\\\\tasks\\\\b485xvej4.output\"; Write-Host \"f1 lines: $\\(\\(Get-Content $f1 -ErrorAction SilentlyContinue | Measure-Object -Line\\).Lines\\)\"; Write-Host \"f2 lines: $\\(\\(Get-Content $f2 -ErrorAction SilentlyContinue | Measure-Object -Line\\).Lines\\)\")"
     ],
     "deny": [],
     "ask": []

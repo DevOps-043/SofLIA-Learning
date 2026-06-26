@@ -13,6 +13,7 @@ import { buildQuality } from './build-quality'
 import { buildRankings } from './build-rankings'
 import { buildSegments } from './build-segments'
 import { buildSoflia } from './build-soflia'
+import { computePriorityUsers } from './compute-priority-users'
 import { createBuildContext } from './create-build-context'
 import { finalizeCourses } from './finalize-courses'
 import { finalizeUserDetails } from './finalize-user-details'
@@ -54,6 +55,7 @@ export function buildReportsAnalyticsDataset(
   const rankings = buildRankings(userDetails)
   const dataQuality = buildDataQuality(context.dimensions)
   const overview = buildOverviewMetrics(context, queryData, userDetails, quality)
+  const priorityUsers = computePriorityUsers(userDetails, new Date(filters.to))
 
   return {
     success: true,
@@ -81,6 +83,7 @@ export function buildReportsAnalyticsDataset(
     rankings,
     dataQuality,
     filterOptions: buildFilterOptions(queryData, context.dimensions),
+    priorityUsers,
     userDetails,
     aiSamples: context.aiSamples,
   }

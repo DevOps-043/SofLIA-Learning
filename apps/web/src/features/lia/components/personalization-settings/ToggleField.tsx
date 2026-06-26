@@ -1,3 +1,5 @@
+const ORG_ACCENT = 'var(--org-accent-color, var(--color-accent))';
+
 interface ToggleFieldProps {
   checked: boolean;
   description: string;
@@ -24,7 +26,10 @@ export function ToggleField({
           onChange={(event) => onChange(event.target.checked)}
           className="sr-only peer"
         />
-        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent/20 rounded-full peer dark:bg-carbon-900 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500/30 peer-checked:bg-accent dark:peer-checked:bg-accent" />
+        <div
+          style={{ backgroundColor: checked ? ORG_ACCENT : undefined }}
+          className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 dark:peer-focus:ring-white/10 rounded-full peer dark:bg-carbon-900 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500/30"
+        />
       </label>
     </div>
   );

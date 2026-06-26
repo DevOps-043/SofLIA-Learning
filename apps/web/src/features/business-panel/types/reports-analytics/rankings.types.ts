@@ -73,3 +73,25 @@ export interface ReportsAnalyticsDataQuality {
   demographicsCompletionRate: number
   missingFields: ReportsAnalyticsBreakdownItem[]
 }
+
+export type ReportsAnalyticsPriorityUserRiskLevel = 'high' | 'medium' | 'low'
+export type ReportsAnalyticsPriorityUserRiskCause =
+  | 'overdue'
+  | 'not_started'
+  | 'inactive'
+  | 'low_progress'
+
+export interface ReportsAnalyticsPriorityUser {
+  userId: string
+  displayName: string
+  email: string
+  jobTitle: string
+  teamName: string
+  regionName: string
+  coursesAssigned: number
+  overdueAssignments: number
+  averageProgress: number
+  lastActivityAt: string | null
+  riskLevel: ReportsAnalyticsPriorityUserRiskLevel
+  riskCause: ReportsAnalyticsPriorityUserRiskCause
+}

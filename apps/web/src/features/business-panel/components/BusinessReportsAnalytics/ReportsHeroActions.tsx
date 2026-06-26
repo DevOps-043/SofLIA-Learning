@@ -33,8 +33,14 @@ export function ReportsHeroActions({
   onGenerateInsights: (locale: ReportsAnalyticsLocale) => void
 }) {
   return (
-    <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
-      <button type="button" onClick={() => onGenerateInsights(locale)} disabled={!canUseData || isGeneratingInsights} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" style={{ borderColor: theme.inverseBorderColor, backgroundColor: theme.inverseSurface, color: theme.inverseTextColor }}>
+    <div className="flex flex-nowrap items-center gap-2">
+      <button
+        type="button"
+        onClick={() => onGenerateInsights(locale)}
+        disabled={!canUseData || isGeneratingInsights}
+        className="inline-flex shrink-0 items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
+        style={{ borderColor: theme.inverseBorderColor, backgroundColor: theme.inverseSurface, color: theme.inverseTextColor }}
+      >
         {isGeneratingInsights ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
         {t('reportsAnalytics.actions.generateInsights')}
       </button>
@@ -44,12 +50,16 @@ export function ReportsHeroActions({
         const style = action.primary
           ? { backgroundColor: theme.onActionColor, color: theme.actionColor }
           : { borderColor: theme.inverseBorderColor, backgroundColor: theme.inverseSurface, color: theme.inverseTextColor }
-        const className = action.primary
-          ? 'inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
-          : 'inline-flex w-full items-center justify-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
 
         return (
-          <button key={action.format} type="button" onClick={() => onExport(action.format, locale)} disabled={!canUseData || Boolean(isExporting)} className={className} style={style}>
+          <button
+            key={action.format}
+            type="button"
+            onClick={() => onExport(action.format, locale)}
+            disabled={!canUseData || Boolean(isExporting)}
+            className={`inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60${action.primary ? '' : ' border'}`}
+            style={style}
+          >
             {isCurrentExport ? <Loader2 className="h-4 w-4 animate-spin" /> : <Icon className="h-4 w-4" />}
             {t(action.labelKey)}
           </button>

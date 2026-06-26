@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 import { LiaFloatingButton } from '@/core/components/LiaSidePanel/LiaFloatingButton'
 import { LiaSidePanel } from '@/core/components/LiaSidePanel'
@@ -24,8 +24,23 @@ interface BusinessPanelLayoutProps {
 function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   const { styles, effectiveStyles, loading: stylesLoading } =
     useOrganizationStylesContext()
+
+  // Client-side fallback: redirect root /[orgSlug]/business-panel to /dashboard.
+  // The server page.tsx also does this redirect, but during client navigation the RSC
+  // redirect instruction can leave the children slot empty briefly (visible as a black
+  // area). This useEffect catches that case and ensures a smooth redirect every time.
+  useEffect(() => {
+    if (!pathname) return
+    const segments = pathname.split('/').filter(Boolean)
+    // e.g. ['valora-it', 'business-panel']
+    if (segments.length === 2 && segments[1] === 'business-panel') {
+      router.replace(`/${segments[0]}/business-panel/dashboard`)
+    }
+  }, [pathname, router])
+
   const [isMounted, setIsMounted] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('dashboard')

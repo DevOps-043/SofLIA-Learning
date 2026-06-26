@@ -2,6 +2,7 @@ import { Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { getBaseStyles } from './constants';
+import { PersonalizationSelect } from './PersonalizationSelect';
 import { Section } from './Section';
 import type { PersonalizationBaseStyle, PersonalizationFormData } from './types';
 
@@ -27,22 +28,16 @@ export function StyleSection(props: StyleSectionProps) {
       <label className="block text-sm font-medium mb-2 text-primary dark:text-white">
         {t('liaPersonalization.styleLabel')}
       </label>
-      <select
+      <PersonalizationSelect
         value={props.formData.base_style}
-        onChange={(event) =>
+        onChange={(val) =>
           props.setFormData({
             ...props.formData,
-            base_style: event.target.value as PersonalizationBaseStyle,
+            base_style: val as PersonalizationBaseStyle,
           })
         }
-        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-500/30 bg-white dark:bg-carbon-900 text-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-      >
-        {baseStyles.map((style) => (
-          <option key={style.value} value={style.value}>
-            {style.label}
-          </option>
-        ))}
-      </select>
+        options={baseStyles}
+      />
       <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
         {baseStyles.find((style) => style.value === props.formData.base_style)?.description}
       </p>

@@ -4,7 +4,7 @@ import type { BuildContext } from './build-context'
 
 export function finalizeCourses(context: BuildContext): ReportsAnalyticsCourseRow[] {
   return Array.from(context.courses.values())
-    .filter((course) => course.courseId !== REPORTS_ANALYTICS_UNSPECIFIED || course.assignedUsers.size > 0 || course.activeLearners.size > 0)
+    .filter((course) => course.courseId !== REPORTS_ANALYTICS_UNSPECIFIED)
     .map((course) => ({
       courseId: course.courseId,
       courseTitle: course.courseTitle,

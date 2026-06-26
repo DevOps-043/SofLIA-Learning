@@ -34,6 +34,24 @@ export interface ReportsAnalyticsAiInsightMetric {
   detail: string
 }
 
+export interface ReportsAnalyticsAiUrgentAction {
+  priority: 'high' | 'medium'
+  title: string
+  description: string
+  affectedUsers: number
+  timeline: string
+}
+
+export interface ReportsAnalyticsAiSegmentHighlight {
+  segment: string
+  insight: string
+}
+
+export interface ReportsAnalyticsAiKudo {
+  title: string
+  description: string
+}
+
 export interface ReportsAnalyticsAiInsights {
   generatedAt: string
   model: string
@@ -43,6 +61,9 @@ export interface ReportsAnalyticsAiInsights {
   risks: string[]
   recommendations: string[]
   actionPlan?: ReportsAnalyticsAiInsightSection[]
+  urgentActions?: ReportsAnalyticsAiUrgentAction[]
+  segmentHighlights?: ReportsAnalyticsAiSegmentHighlight[]
+  kudos?: ReportsAnalyticsAiKudo[]
 }
 
 export interface ReportsAnalyticsInsightsResponse {

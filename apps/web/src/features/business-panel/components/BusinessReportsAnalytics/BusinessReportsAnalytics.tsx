@@ -1,6 +1,7 @@
 'use client'
 
-import { AlertTriangle, Loader2 } from 'lucide-react'
+import { useLanguage } from '@/core/providers/I18nProvider'
+import { AlertCircle, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import { useBusinessReportsAnalytics } from '../../hooks/useBusinessReportsAnalytics'
@@ -8,58 +9,84 @@ import { FiltersBar } from './FiltersBar'
 import { ReportsHero } from './ReportsHero'
 import { ReportsLoadedContent } from './ReportsLoadedContent'
 import { StatePanel } from './StatePanel'
-import { isReportsAnalyticsLocale, useReportsAnalyticsText } from './translations'
-import { useReportFormatters } from './useReportFormatters'
-import type { ReportsAnalyticsLocale } from './types'
+import type { ReportsAnalyticsLocale, ReportsAnalyticsT } from './types'
 
 export function BusinessReportsAnalytics() {
-  const { t: baseT, i18n } = useTranslation('business')
+  const { t: tRaw } = useTranslation('business')
+  const { language } = useLanguage()
   const theme = useBusinessPanelTheme()
-  const analytics = useBusinessReportsAnalytics()
-  const locale: ReportsAnalyticsLocale = isReportsAnalyticsLocale(i18n.language) ? i18n.language : 'es'
-  const t = useReportsAnalyticsText(baseT as (key: string) => string, locale)
-  const formatters = useReportFormatters(t)
+
+  const {
+    data,
+    insights,
+    filters,
+    isLoading,
+    isValidating,
+    isExporting,
+    isGeneratingInsights,
+    isExportingInsightsPdf,
+    error,
+    updateFilter,
+    resetFilters,
+    refetch,
+    exportAnalytics,
+    generateInsights,
+    exportInsightsPdf,
+  } = useBusinessReportsAnalytics()
+
+  const locale = language as ReportsAnalyticsLocale
+  const t: ReportsAnalyticsT = (key) => tRaw(key)
 
   return (
-    <div className="w-full space-y-6">
+    <div className="flex flex-col gap-4">
       <ReportsHero
-        data={analytics.data}
-        isExporting={analytics.isExporting}
-        isGeneratingInsights={analytics.isGeneratingInsights}
+        data={data}
+        isExporting={isExporting}
+        isGeneratingInsights={isGeneratingInsights}
         locale={locale}
         theme={theme}
         t={t}
-        onExport={analytics.exportAnalytics}
-        onGenerateInsights={analytics.generateInsights}
+        onExport={exportAnalytics}
+        onGenerateInsights={generateInsights}
       />
+
       <FiltersBar
-        data={analytics.data}
-        filters={analytics.filters}
-        isLoading={analytics.isLoading}
+        data={data}
+        filters={filters}
         theme={theme}
         t={t}
-        onFilterChange={analytics.updateFilter}
-        onRefresh={analytics.refetch}
-        onReset={analytics.resetFilters}
+        onFilterChange={updateFilter}
+        onReset={resetFilters}
+        onRefresh={refetch}
+        isLoading={isValidating}
       />
-      {analytics.error ? (
-        <StatePanel theme={theme} icon={AlertTriangle} title={t('reportsAnalytics.states.errorTitle')} message={t('reportsAnalytics.states.errorDescription')} />
-      ) : null}
-      {analytics.isLoading ? (
-        <StatePanel theme={theme} icon={Loader2} title={t('reportsAnalytics.states.loadingTitle')} message={t('reportsAnalytics.states.loadingDescription')} spinning />
-      ) : null}
-      {!analytics.isLoading && analytics.data ? (
+
+      {isLoading && !data ? (
+        <StatePanel
+          theme={theme}
+          icon={Loader2}
+          title={t('reportsAnalytics.states.loadingTitle')}
+          message={t('reportsAnalytics.states.loadingDescription')}
+          spinning
+        />
+      ) : error && !data ? (
+        <StatePanel
+          theme={theme}
+          icon={AlertCircle}
+          title={t('reportsAnalytics.states.errorTitle')}
+          message={t('reportsAnalytics.states.errorDescription')}
+        />
+      ) : data ? (
         <ReportsLoadedContent
-          data={analytics.data}
-          formatters={formatters}
-          insights={analytics.insights}
-          isExportingInsightsPdf={analytics.isExportingInsightsPdf}
-          isGeneratingInsights={analytics.isGeneratingInsights}
+          data={data}
+          insights={insights}
+          isExportingInsightsPdf={isExportingInsightsPdf}
+          isGeneratingInsights={isGeneratingInsights}
           locale={locale}
           theme={theme}
           t={t}
-          onExportInsightsPdf={() => analytics.exportInsightsPdf(locale)}
-          onGenerateInsights={() => analytics.generateInsights(locale)}
+          onExportInsightsPdf={() => exportInsightsPdf(locale)}
+          onGenerateInsights={() => generateInsights(locale)}
         />
       ) : null}
     </div>

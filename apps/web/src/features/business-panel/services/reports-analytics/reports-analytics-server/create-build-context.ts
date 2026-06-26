@@ -81,6 +81,7 @@ export function createBuildContext(
     users,
     dimensions,
     courses: new Map<string, MutableCourseStats>(),
+    orgCourseIds: new Set<string>(),
     regions,
     zones,
     teams,

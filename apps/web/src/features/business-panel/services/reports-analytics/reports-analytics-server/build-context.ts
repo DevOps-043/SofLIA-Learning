@@ -10,6 +10,9 @@ export interface BuildContext {
   users: Map<string, MutableUserStats>
   dimensions: UserDimension[]
   courses: Map<string, MutableCourseStats>
+  // Course IDs assigned by this org — populated by applyAssignments.
+  // Used by shouldInclude* guards to reject cross-org data for users in multiple orgs.
+  orgCourseIds: Set<string>
   regions: Map<string, OrganizationRegionRecord>
   zones: Map<string, OrganizationZoneRecord>
   teams: Map<string, OrganizationTeamRecord>

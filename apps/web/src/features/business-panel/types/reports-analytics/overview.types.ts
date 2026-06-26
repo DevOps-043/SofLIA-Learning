@@ -12,4 +12,9 @@ export interface ReportsAnalyticsOverview {
   plannerAdherenceRate: number
   quizAverageScore: number
   qualityScore: number
+  assignedUsersCount: number
+  atRiskUsersCount: number
+  atRiskRate: number
+  inactiveUsersCount: number
+  complianceRate: number
 }

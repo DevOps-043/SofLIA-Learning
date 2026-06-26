@@ -18,6 +18,7 @@ import type {
 } from './quality.types'
 import type {
   ReportsAnalyticsDataQuality,
+  ReportsAnalyticsPriorityUser,
   ReportsAnalyticsRankings,
   ReportsAnalyticsSegments,
 } from './rankings.types'
@@ -42,6 +43,7 @@ export interface ReportsAnalyticsResponse {
   rankings: ReportsAnalyticsRankings
   dataQuality: ReportsAnalyticsDataQuality
   filterOptions: ReportsAnalyticsFilterOptions
+  priorityUsers: ReportsAnalyticsPriorityUser[]
 }
 
 export interface ReportsAnalyticsUserDetailRow {

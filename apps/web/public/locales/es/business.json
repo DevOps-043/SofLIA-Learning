@@ -1976,7 +1976,8 @@
       "allStatuses": "Todos los estados",
       "allRegions": "Todas las regiones",
       "allZones": "Todas las zonas",
-      "allTeams": "Todas las áreas/equipos"
+      "allTeams": "Todas las áreas/equipos",
+      "moreFilters": "Más filtros"
     },
     "granularity": {
       "day": "Día",
@@ -1997,7 +1998,12 @@
       "qualityScore": "Calidad",
       "sofliaAdoptionRate": "Adopción SofLIA",
       "plannerAdherenceRate": "Planificación",
-      "overdueAssignments": "Vencidos"
+      "overdueAssignments": "Vencidos",
+      "totalUsers": "Total en la org",
+      "assignedUsers": "Usuarios asignados",
+      "atRiskUsers": "Usuarios en riesgo",
+      "inactiveUsers": "Usuarios inactivos",
+      "complianceRate": "Cumplimiento"
     },
     "sections": {
       "demographics": "Edad de usuarios",
@@ -2030,7 +2036,35 @@
       "courseRiskSubtitle": "Ordenados por vencimientos y señales de avance.",
       "dataQuality": "Calidad de datos",
       "missingFields": "Campos demográficos faltantes",
-      "missingFieldsSubtitle": "Datos que RRHH debe completar para mejorar la lectura estadística."
+      "missingFieldsSubtitle": "Datos que RRHH debe completar para mejorar la lectura estadística.",
+      "executiveKpis": "Indicadores clave",
+      "executiveKpisSubtitle": "Métricas accionables del periodo seleccionado.",
+      "riskPriorities": "Prioridades de atención",
+      "riskPrioritiesSubtitle": "Usuarios con cursos asignados que requieren seguimiento inmediato.",
+      "learningFunnel": "Embudo de aprendizaje",
+      "learningFunnelSubtitle": "Muestra en qué etapa se pierde el avance hacia la finalización.",
+      "segmentPerformance": "Desempeño por segmento",
+      "segmentPerformanceSubtitle": "Identifica equipos, puestos y regiones que necesitan intervención.",
+      "evolutionTitle": "Evolución del aprendizaje",
+      "evolutionSubtitle": "Cursos completados a lo largo del tiempo.",
+      "academicPerformance": "Rendimiento académico",
+      "academicPerformanceSubtitle": "Calidad de evaluaciones y actividades del periodo.",
+      "orgRadar": "Perfil de salud organizacional",
+      "orgRadarSubtitle": "Vista multidimensional de la org: actividad, progreso, cumplimiento, calidad académica, SofLIA y planificación. La línea punteada es la meta del 70%.",
+      "teamScatter": "Mapa de posicionamiento de equipos",
+      "teamScatterSubtitle": "Cada burbuja es un equipo. Cuadrante superior derecho = saludable. Rojo = atención urgente. El tamaño indica cantidad de usuarios.",
+      "rankings": "Clasificación de aprovechamiento",
+      "rankingsSubtitle": "Usuarios, equipos, regiones y zonas ordenados por score compuesto: progreso, finalización, calidad académica y adopción de herramientas.",
+      "workforceStatus": "Estado de la fuerza laboral",
+      "workforceStatusSubtitle": "Distribución del personal por etapa de aprendizaje. Los números reflejan headcount real, no estimaciones.",
+      "complianceByArea": "Cumplimiento de capacitación por área",
+      "complianceByAreaSubtitle": "Porcentaje de finalización por equipo, zona y región ordenado de menor a mayor. La línea roja marca la meta del 80%.",
+      "sofliaQuality": "Calidad e interacción con SofLIA",
+      "sofliaQualitySubtitle": "Análisis profundo del uso y calidad de respuestas de la asistente IA.",
+      "plannerInsights": "Planificador de estudio",
+      "plannerInsightsSubtitle": "Adherencia a sesiones de estudio y comparativa de tiempo planeado vs. real.",
+      "notesComposition": "Notas y apuntes",
+      "notesCompositionSubtitle": "Adopción del cuaderno de notas y composición: manuales vs. auto-generadas."
     },
     "metrics": {
       "totalConversations": "Conversaciones",
@@ -2043,6 +2077,8 @@
       "evaluationCompletionRate": "Aprobación de evaluaciones",
       "activityCompletionRate": "Actividades completadas",
       "quizAverageScore": "Promedio de evaluaciones",
+      "quizPassRate": "Tasa de aprobación",
+      "pendingActivities": "Actividades pendientes",
       "usersNeedingHelp": "Usuarios con ayuda",
       "totalNotes": "Notas creadas",
       "notesAdoptionRate": "Adopción de notas",
@@ -2085,7 +2121,13 @@
       "name": "Nombre",
       "score": "Score",
       "user": "Usuario",
-      "team": "Área"
+      "team": "Área",
+      "risk": "Riesgo",
+      "cause": "Causa",
+      "lastActivity": "Última actividad",
+      "recommendedAction": "Acción",
+      "jobTitle": "Puesto",
+      "evaluations": "Evaluaciones"
     },
     "hierarchy": {
       "region": "Región",
@@ -2105,7 +2147,57 @@
       "empty": "Genera un análisis IA para interpretar los datos filtrados.",
       "model": "Modelo",
       "risks": "Riesgos",
-      "recommendations": "Recomendaciones"
+      "recommendations": "Recomendaciones",
+      "actionPlan": "Plan de acción",
+      "urgentActions": "Acciones urgentes",
+      "segmentHighlights": "Destacados por segmento",
+      "kudos": "Reconocimientos",
+      "urgentPriority": "Urgente",
+      "mediumPriority": "Prioritario",
+      "affectedUsers": "usuarios afectados",
+      "timeline": "Plazo"
+    },
+    "sofliaPanel": {
+      "activeUsers": "Usuarios activos",
+      "totalConversations": "Conversaciones",
+      "avgMessages": "Mensajes por sesión",
+      "completionRate": "Tasa de resolución",
+      "helpRate": "Solicitudes de ayuda",
+      "redirectRate": "Redirecciones",
+      "offTopicRate": "Fuera de tema",
+      "questionRate": "Preguntas",
+      "avgResponseTime": "Tiempo de respuesta",
+      "avgSentiment": "Sentimiento promedio",
+      "contextBreakdown": "Uso por contexto",
+      "sentimentPositive": "Positivo",
+      "sentimentNeutral": "Neutral",
+      "sentimentNegative": "Negativo",
+      "noData": "No hay datos de SofLIA para este período",
+      "seconds": "s"
+    },
+    "plannerPanel": {
+      "adherenceRate": "Adherencia",
+      "plannedSessions": "Planeadas",
+      "completedSessions": "Cumplidas",
+      "missedSessions": "Perdidas",
+      "rescheduledSessions": "Reagendadas",
+      "avgPlannedMinutes": "Minutos planeados",
+      "avgActualMinutes": "Minutos reales",
+      "timeVariance": "Varianza de tiempo",
+      "sessionStatus": "Estado de sesiones",
+      "planned": "planeado",
+      "actual": "real",
+      "noData": "No hay datos de planificación para este período",
+      "perSession": "por sesión"
+    },
+    "notesPanel": {
+      "totalNotes": "Notas creadas",
+      "usersWithNotes": "Usuarios con notas",
+      "adoptionRate": "Tasa de adopción",
+      "autoGenerated": "Auto-generadas",
+      "manual": "Manuales",
+      "byCourse": "Notas por curso",
+      "noData": "No hay notas para este período"
     },
     "gender": {
       "female": "Mujer",
@@ -2149,6 +2241,73 @@
       "date_of_birth": "Fecha de nacimiento",
       "gender": "Género",
       "job_title": "Puesto"
+    },
+    "funnel": {
+      "assigned": "Asignados",
+      "started": "Iniciaron",
+      "progress25": "Más del 25%",
+      "progress50": "Más del 50%",
+      "progress75": "Más del 75%",
+      "completed": "Completaron",
+      "dropoff": "Abandono"
+    },
+    "risk": {
+      "high": "Alto",
+      "medium": "Medio",
+      "low": "Bajo"
+    },
+    "riskCause": {
+      "overdue": "Curso vencido",
+      "not_started": "No ha iniciado",
+      "inactive": "Sin actividad reciente",
+      "low_progress": "Bajo avance"
+    },
+    "compliance": {
+      "atRisk": "En riesgo",
+      "acceptable": "En alerta",
+      "healthy": "En meta",
+      "target": "Meta",
+      "targetLabel": "Meta"
+    },
+    "emptyStates": {
+      "noRiskUsers": "No hay usuarios en riesgo con los filtros actuales.",
+      "noAtRiskCourses": "No hay cursos en riesgo con los filtros actuales.",
+      "noSegmentData": "No hay suficientes datos para comparar segmentos.",
+      "noTrendData": "No hay datos de tendencia para el periodo seleccionado.",
+      "generateInsightsPrompt": "Haz clic en 'Analizar con IA' para generar un análisis del periodo seleccionado.",
+      "noRankingData": "No hay datos de clasificación para los filtros actuales."
+    },
+    "tabs": {
+      "users": "Usuarios",
+      "teams": "Equipos",
+      "jobTitles": "Puestos",
+      "regions": "Regiones",
+      "zones": "Zonas"
+    },
+    "progressStatus": {
+      "low": "Bajo",
+      "medium": "Medio",
+      "good": "Bueno",
+      "excellent": "Excelente"
+    },
+    "workforce": {
+      "notStarted": "Sin iniciar",
+      "inProcess": "En proceso",
+      "advancing": "Avanzando",
+      "completedStatus": "Completaron",
+      "total": "colaboradores",
+      "summaryOf": "de",
+      "summaryCompleted": "colaboradores han completado su capacitación asignada"
+    },
+    "radar": {
+      "activity": "Actividad",
+      "progress": "Progreso",
+      "compliance": "Cumplimiento",
+      "academicQuality": "Calidad",
+      "soflia": "SofLIA",
+      "planner": "Planificación",
+      "org": "Organización",
+      "target": "Meta"
     }
   },
   "notifications": {

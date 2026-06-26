@@ -1,6 +1,8 @@
 import { Loader2, Save } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+const ORG_ACCENT = 'var(--org-accent-color, var(--color-accent))';
+
 export function FooterActions(props: {
   isSaving: boolean;
   onClose: () => void;
@@ -28,7 +30,8 @@ export function FooterActions(props: {
         <button
           onClick={props.onSave}
           disabled={props.isSaving}
-          className="px-6 py-2 bg-accent text-white rounded-lg hover:bg-accent transition-colors disabled:opacity-50 flex items-center gap-2"
+          style={{ backgroundColor: ORG_ACCENT }}
+          className="px-6 py-2 text-white rounded-lg transition-opacity disabled:opacity-50 flex items-center gap-2"
         >
           {props.isSaving ? (
             <>

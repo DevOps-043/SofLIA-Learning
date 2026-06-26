@@ -8,6 +8,8 @@ import { isActiveLearner } from './is-active-learner'
 import type { AnalyticsQueryData } from './analytics-query-data'
 import type { BuildContext } from './build-context'
 
+const INACTIVE_THRESHOLD_DAYS = 14
+
 export function buildOverviewMetrics(
   context: BuildContext,
   queryData: AnalyticsQueryData,
@@ -25,6 +27,26 @@ export function buildOverviewMetrics(
   const usersWithSoflia = userDetails.filter((user) => user.sofliaConversations > 0).length
   const usersWithNotes = userDetails.filter((user) => user.notesCreated > 0).length
 
+  const referenceDate = new Date(context.filters.to)
+  const inactiveThresholdMs = INACTIVE_THRESHOLD_DAYS * 24 * 60 * 60 * 1000
+  const assignedUsers = userDetails.filter((u) => u.coursesAssigned > 0)
+  const assignedUsersCount = assignedUsers.length
+
+  const inactiveUsersCount = assignedUsers.filter((u) => {
+    if (!u.lastActivityAt) return true
+    return referenceDate.getTime() - new Date(u.lastActivityAt).getTime() > inactiveThresholdMs
+  }).length
+
+  const atRiskUsersCount = assignedUsers.filter((u) => {
+    if (u.overdueAssignments > 0) return true
+    if (u.averageProgress === 0) return true
+    if (!u.lastActivityAt) return true
+    return referenceDate.getTime() - new Date(u.lastActivityAt).getTime() > inactiveThresholdMs
+  }).length
+
+  const atRiskRate = calculatePercentage(atRiskUsersCount, assignedUsersCount)
+  const complianceRate = calculatePercentage(assignedUsersCount - atRiskUsersCount, assignedUsersCount)
+
   return {
     totalUsers,
     activeLearners,
@@ -39,5 +61,10 @@ export function buildOverviewMetrics(
     plannerAdherenceRate: calculatePercentage(plannerCompleted, plannerPlanned),
     quizAverageScore: calculateAverage(userDetails.map((user) => user.quizAverageScore)),
     qualityScore: quality.overallScore,
+    assignedUsersCount,
+    atRiskUsersCount,
+    atRiskRate,
+    inactiveUsersCount,
+    complianceRate,
   }
 }

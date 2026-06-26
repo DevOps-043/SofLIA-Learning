@@ -43,7 +43,7 @@ export async function generateReportsAnalyticsInsights({
       contents: [{ role: 'user', parts: [{ text: JSON.stringify(buildReportsAnalyticsAiPayload(dataset)) }] }],
       generationConfig: {
         temperature: 0.2,
-        maxOutputTokens: 2200,
+        maxOutputTokens: 4000,
         responseMimeType: 'application/json',
       },
     })

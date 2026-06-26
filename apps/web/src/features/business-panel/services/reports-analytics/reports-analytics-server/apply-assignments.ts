@@ -26,6 +26,7 @@ export function applyAssignments(context: BuildContext, assignments: AssignmentR
     const user = context.users.get(assignment.user_id)
     if (!user) return
 
+    context.orgCourseIds.add(assignment.course_id)
     const course = ensureCourse(context, assignment.course_id, unwrapRelation(assignment.courses)?.title)
     const progress = clampPercentage(Number(assignment.completion_percentage) || 0)
     const completed = isCompletedStatus(assignment.status) || progress >= 100 || Boolean(assignment.completed_at)

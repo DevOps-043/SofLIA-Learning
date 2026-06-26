@@ -35,7 +35,7 @@ export function PersonalizationSettingsModal(props: PersonalizationSettingsModal
         <div className="flex-1 overflow-y-auto p-6">
           {props.controller.loading && !props.controller.settings ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-accent" />
+              <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--org-accent-color, var(--color-accent))' }} />
             </div>
           ) : props.controller.error ? (
             <div className="text-center py-20 text-red-500">

@@ -26,7 +26,7 @@ export function Section({
         className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <Icon className="w-5 h-5 text-primary dark:text-accent" />
+          <Icon className="w-5 h-5 text-primary" style={{ color: 'var(--org-accent-color, var(--color-accent))' }} />
           <div className="text-left">
             <h3 className="font-semibold text-primary dark:text-white">{title}</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
