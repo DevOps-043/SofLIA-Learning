@@ -150,12 +150,17 @@ export function clampTourFloaterToViewport(padding = TOOLTIP_VIEWPORT_PADDING_PX
   let offsetX = 0
   let offsetY = 0
 
+  // Account for any left sidebar so the tooltip never slides behind it.
+  const sidebarEl = document.querySelector<HTMLElement>('#business-panel-sidebar-root')
+  const sidebarRight = sidebarEl ? sidebarEl.getBoundingClientRect().right : 0
+  const leftPadding = sidebarRight > 0 ? sidebarRight + padding : padding
+
   if (rect.right > window.innerWidth - padding) {
     offsetX = window.innerWidth - padding - rect.right
   }
 
-  if (rect.left + offsetX < padding) {
-    offsetX += padding - (rect.left + offsetX)
+  if (rect.left + offsetX < leftPadding) {
+    offsetX += leftPadding - (rect.left + offsetX)
   }
 
   if (rect.bottom > window.innerHeight - padding) {

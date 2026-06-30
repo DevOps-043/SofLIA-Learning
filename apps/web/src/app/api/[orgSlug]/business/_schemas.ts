@@ -73,12 +73,23 @@ export const courseAssignmentDeleteSchema = z.object({
 }).passthrough()
 
 export const courseAssignmentCreateSchema = z.object({
-  user_ids: z.array(z.string().uuid()).min(1),
+  user_ids: z.array(z.string().uuid()).min(1).optional(),
+  target: z.object({
+    type: z.enum(['all', 'node']),
+    nodeIds: z.array(z.string().uuid()).optional(),
+    includeDescendants: z.boolean().optional(),
+  }).optional(),
   due_date: optionalTextSchema(80),
   start_date: optionalTextSchema(80),
   approach: z.enum(['fast', 'balanced', 'long', 'custom']).nullable().optional(),
   message: optionalTextSchema(2000),
-}).passthrough()
+}).passthrough().refine(
+  (v) => (v.user_ids && v.user_ids.length > 0) || Boolean(v.target),
+  'Selecciona al menos un usuario o una audiencia',
+).refine(
+  (v) => v.target?.type !== 'node' || Boolean(v.target.nodeIds?.length),
+  'Selecciona al menos un nodo de estructura',
+)
 
 export const dashboardLayoutSaveSchema = z.object({
   name: requiredTextSchema(160),

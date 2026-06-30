@@ -284,17 +284,17 @@ export async function getAdminCompanyById(id: string): Promise<AdminCompany | nu
   }
 
   const organization = data as OrganizationRow
-  const profileRoles = new Set(COMPANY_MEMBER_PROFILE_ROLES)
-  const userIds = Array.from(
+
+  // Fetch profiles for ALL members (not just owner/admin) so the edit page
+  // shows the full member list instead of only privileged roles.
+  const allUserIds = Array.from(
     new Set(
-      (organization.organization_users || [])
-        .filter((membership) => membership.role && profileRoles.has(membership.role))
-        .map((membership) => membership.user_id)
+      (organization.organization_users || []).map((membership) => membership.user_id)
     )
   )
 
   const [usersMap, pendingInvitationsResponse, bulkInviteLinksResponse] = await Promise.all([
-    buildUsersMap(supabase, userIds),
+    buildUsersMap(supabase, allUserIds),
     supabase
       .from('user_invitations')
       .select(USER_INVITATIONS_SELECT)
@@ -305,9 +305,9 @@ export async function getAdminCompanyById(id: string): Promise<AdminCompany | nu
       .eq('organization_id', id),
   ])
 
+  // No memberRoles filter → all members included in the returned array
   return mapOrganizationRow(organization, {
     usersMap,
-    memberRoles: COMPANY_MEMBER_PROFILE_ROLES,
     pendingInvitationCount: pendingInvitationsResponse.data?.length || 0,
     pendingInvitations: pendingInvitationsResponse.data || [],
     bulkInviteLinks: bulkInviteLinksResponse.data || [],

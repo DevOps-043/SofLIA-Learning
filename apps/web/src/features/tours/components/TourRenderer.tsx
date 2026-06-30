@@ -19,6 +19,15 @@ import { TourTooltip } from './TourTooltip'
 
 const TOUR_OVERLAY_Z_INDEX = 10000
 const TOUR_FLOATER_Z_INDEX = TOUR_OVERLAY_Z_INDEX + 10
+const SHIFT_PADDING_DEFAULT = 24
+
+function getSidebarShiftPad(): number {
+  if (typeof document === 'undefined') return SHIFT_PADDING_DEFAULT
+  const el = document.querySelector<HTMLElement>('#business-panel-sidebar-root')
+  if (!el) return SHIFT_PADDING_DEFAULT
+  const right = Math.round(el.getBoundingClientRect().right)
+  return right > 0 ? right + SHIFT_PADDING_DEFAULT : SHIFT_PADDING_DEFAULT
+}
 
 export function TourRenderer() {
   const { t, i18n } = useTranslation('tours')
@@ -34,6 +43,7 @@ export function TourRenderer() {
   const stopTour = useTourStore((state) => state.stopTour)
   const markCompleted = useTourStore((state) => state.markCompleted)
   const [isMobile, setIsMobile] = useState(() => isMobileViewport())
+  const [sidebarShiftPad, setSidebarShiftPad] = useState(getSidebarShiftPad)
 
   const completeActiveTour = useCallback(() => {
     if (!activeTourConfig) {
@@ -55,6 +65,18 @@ export function TourRenderer() {
     }
   }, [])
 
+  // Track the business-panel sidebar width so floating-ui's shift middleware
+  // keeps the tooltip and its arrow fully inside the content area (never behind the sidebar).
+  useEffect(() => {
+    const sidebarEl = document.querySelector<HTMLElement>('#business-panel-sidebar-root')
+    if (!sidebarEl) return
+
+    const sync = () => setSidebarShiftPad(getSidebarShiftPad())
+    const ro = new ResizeObserver(sync)
+    ro.observe(sidebarEl)
+    return () => ro.disconnect()
+  }, [])
+
   const resolvedTourSteps = useMemo(
     () => resolveSteps(activeTourConfig?.steps ?? []),
     [activeTourConfig?.steps],
@@ -69,6 +91,14 @@ export function TourRenderer() {
         placement: resolveStepPlacement(step, isMobile),
         skipBeacon: step.disableBeacon ?? true,
         blockTargetInteraction: step.spotlightClicks !== true,
+        // Inject per-step so rootBoundary is guaranteed to be 'viewport'.
+        // Without this, Joyride may use a scrollable ancestor as the shift
+        // boundary, which lets the tooltip escape the visible viewport area.
+        floatingOptions: {
+          shiftOptions: {
+            rootBoundary: 'viewport',
+          },
+        },
       })),
     [i18n, i18n.language, i18n.resolvedLanguage, isMobile, resolvedTourSteps, t],
   )
@@ -93,23 +123,60 @@ export function TourRenderer() {
       return
     }
 
+    const pad = isMobile ? 12 : 16
+    // Guard prevents the MutationObserver from re-triggering when WE set translate.
+    let clamping = false
+
     const clampTooltip = () => {
-      window.requestAnimationFrame(() => clampTourFloaterToViewport(isMobile ? 12 : 16))
+      if (clamping) return
+      window.requestAnimationFrame(() => {
+        clamping = true
+        clampTourFloaterToViewport(pad)
+        clamping = false
+      })
     }
 
     const timers = [
       window.setTimeout(clampTooltip, 0),
       window.setTimeout(clampTooltip, 120),
       window.setTimeout(clampTooltip, 320),
+      window.setTimeout(clampTooltip, 600),
     ]
 
     window.addEventListener('resize', clampTooltip)
     window.addEventListener('scroll', clampTooltip, true)
 
+    // Watch for floating-ui autoUpdate repositions and re-clamp immediately.
+    // Attaches once the floater element is in the DOM.
+    let mutationObserver: MutationObserver | null = null
+    const attachObserver = () => {
+      if (mutationObserver) return
+      const floater = document.querySelector<HTMLElement>('.react-joyride__floater')
+      if (!floater) return
+      mutationObserver = new MutationObserver((mutations) => {
+        if (clamping) return
+        for (const m of mutations) {
+          if (m.attributeName === 'style') {
+            clampTooltip()
+            break
+          }
+        }
+      })
+      mutationObserver.observe(floater, { attributes: true, attributeFilter: ['style'] })
+    }
+
+    const observerTimers = [
+      window.setTimeout(attachObserver, 0),
+      window.setTimeout(attachObserver, 100),
+      window.setTimeout(attachObserver, 300),
+    ]
+
     return () => {
-      timers.forEach((timer) => window.clearTimeout(timer))
+      timers.forEach((id) => window.clearTimeout(id))
+      observerTimers.forEach((id) => window.clearTimeout(id))
       window.removeEventListener('resize', clampTooltip)
       window.removeEventListener('scroll', clampTooltip, true)
+      mutationObserver?.disconnect()
     }
   }, [currentStep, isMobile, isRunning, joyrideSteps.length])
 
@@ -226,11 +293,18 @@ export function TourRenderer() {
       }}
       floatingOptions={{
         flipOptions: {
-          fallbackPlacements: ['right', 'left', 'bottom', 'top'],
+          fallbackPlacements: ['bottom', 'right', 'left', 'top'],
           padding: 24,
         },
         shiftOptions: {
-          padding: 24,
+          // Per-side padding so floating-ui shifts the tooltip (and its arrow)
+          // to stay inside the content area, not behind any left sidebar.
+          padding: {
+            top: 24,
+            right: 24,
+            bottom: 24,
+            left: sidebarShiftPad,
+          },
         },
         strategy: 'fixed',
       }}

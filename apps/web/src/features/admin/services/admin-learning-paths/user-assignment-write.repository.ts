@@ -65,13 +65,22 @@ export async function revokeUserAssignment(
   organizationId: string,
   assignmentId: string,
 ) {
-  const { error } = await fromLoose<UserLearningPathAssignmentRow>(supabase, 'user_learning_path_assignments')
+  const { data, error } = await fromLoose<UserLearningPathAssignmentRow>(supabase, 'user_learning_path_assignments')
     .update({ status: 'revoked', updated_at: new Date().toISOString() })
     .eq('organization_id', organizationId)
     .eq('id', assignmentId)
+    .select('id')
 
   if (error) {
     logger.error('Error revoking user learning path assignment:', error)
     throw new Error('No se pudo revocar la asignacion individual')
+  }
+
+  // UPDATE silently matches 0 rows when the assignmentId doesn't exist
+  // in this org. Surface this as an explicit error so callers don't assume
+  // the revocation succeeded.
+  if (!data || data.length === 0) {
+    logger.warn('revokeUserAssignment: no matching row found', { assignmentId, organizationId })
+    throw new Error('La asignacion no existe o ya fue revocada en esta organizacion')
   }
 }

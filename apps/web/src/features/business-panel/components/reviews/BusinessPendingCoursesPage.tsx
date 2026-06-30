@@ -1,6 +1,8 @@
 'use client'
 
-import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
+import { useEffect } from 'react'
+import { useTour } from '@/features/tours'
+import { businessPanelReviewsTour } from '@/features/tours/config/business-panel-reviews.tour'
 import { ReviewConfirmationModals } from './BusinessPendingCoursesPage/ReviewConfirmationModals'
 import { ReviewEmptyState } from './BusinessPendingCoursesPage/ReviewEmptyState'
 import { ReviewErrorState } from './BusinessPendingCoursesPage/ReviewErrorState'
@@ -15,8 +17,14 @@ import type { BusinessPendingCoursesPageProps } from './BusinessPendingCoursesPa
 export function BusinessPendingCoursesPage({
   basePath,
 }: BusinessPendingCoursesPageProps) {
-  const panelTheme = useBusinessPanelTheme()
   const page = useBusinessPendingCoursesPage()
+  const { autoStartIfNeeded } = useTour(businessPanelReviewsTour)
+
+  useEffect(() => {
+    if (!page.isLoading) {
+      return autoStartIfNeeded()
+    }
+  }, [autoStartIfNeeded, page.isLoading])
 
   if (page.isLoading) {
     return <ReviewLoadingState />

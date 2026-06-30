@@ -2,16 +2,20 @@
 
 import { AlertCircle, RefreshCw, Settings as SettingsIcon, XCircle } from 'lucide-react'
 import Image from 'next/image'
+import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useTour } from '@/features/tours'
+import { businessPanelSettingsTour } from '@/features/tours/config/business-panel-settings.tour'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 import { BrandingTab } from './BrandingTab'
 import { LoginPersonalizadoSection } from './LoginPersonalizadoSection'
 import { OrganizationTab } from './OrganizationTab'
 import { useBusinessSettingsLogic } from './hooks/useBusinessSettingsLogic'
-import { useTranslation } from 'react-i18next'
 
 export function BusinessSettings() {
   const theme = useBusinessPanelTheme()
   const { t } = useTranslation('business')
+  const { autoStartIfNeeded } = useTour(businessPanelSettingsTour)
   const {
     data,
     isLoading,
@@ -29,6 +33,12 @@ export function BusinessSettings() {
     setSaveError,
     canUseBranding,
   } = useBusinessSettingsLogic()
+
+  useEffect(() => {
+    if (!isLoading) {
+      return autoStartIfNeeded()
+    }
+  }, [autoStartIfNeeded, isLoading])
 
   if (isLoading) {
     return (
@@ -84,6 +94,7 @@ export function BusinessSettings() {
     <div className="min-h-screen p-6 lg:p-8 space-y-8">
       <div>
       <div
+        id="tour-settings-hero"
         className="relative overflow-hidden rounded-3xl p-8 shadow-xl border"
         style={{
           background: theme.heroBackground,
@@ -150,6 +161,7 @@ export function BusinessSettings() {
       </div>
 
       <div
+        id="tour-settings-tabs"
         className="rounded-2xl border overflow-hidden backdrop-blur-xl"
         style={{
           backgroundColor: theme.cardBg,

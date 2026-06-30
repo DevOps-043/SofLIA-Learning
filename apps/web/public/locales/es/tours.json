@@ -177,5 +177,237 @@
       "title": "Tu asistente SofLIA",
       "content": "SofLIA puede apoyarte con dudas del panel, cursos, progreso del equipo o próximos pasos de gestión."
     }
+  },
+  "businessPanelUsers": {
+    "hero": {
+      "title": "Gestión de usuarios",
+      "content": "Desde aquí administras todos los colaboradores de tu organización: usuarios activos, invitaciones enviadas, enlaces de acceso y solicitudes de unión pendientes."
+    },
+    "stats": {
+      "title": "Resumen del equipo",
+      "content": "Estas tarjetas muestran el total de usuarios, cuántos están activos, cuántos tienen invitación pendiente, cuántos son administradores y las solicitudes de unión recibidas."
+    },
+    "filters": {
+      "title": "Busca y filtra",
+      "content": "Usa las pestañas para cambiar entre usuarios, invitaciones, enlaces y solicitudes. Aplica filtros por rol, estado, región, zona o equipo para localizar exactamente a quien necesitas."
+    },
+    "list": {
+      "title": "Lista de usuarios",
+      "content": "Aquí aparecen los usuarios de la pestaña activa. Haz clic en un usuario para ver su perfil, cambiar su rol o gestionar su acceso a cursos y rutas."
+    },
+    "actions": {
+      "title": "Acciones de gestión",
+      "content": "Desde estos botones puedes actualizar la lista, exportar o importar usuarios en bloque, enviar invitaciones individuales o crear un nuevo usuario directamente."
+    },
+    "soflia": {
+      "title": "Tu asistente SofLIA",
+      "content": "SofLIA puede ayudarte a entender el estado de tu equipo, sugerirte cómo estructurar las invitaciones y resolver dudas sobre la gestión de usuarios."
+    }
+  },
+  "businessPanelHierarchy": {
+    "header": {
+      "title": "Gestión de estructura",
+      "content": "Desde este panel defines cómo se organiza tu empresa: regiones, zonas y equipos que agrupan a tus colaboradores para reportes y asignaciones de cursos."
+    },
+    "tabs": {
+      "title": "Vistas del panel",
+      "content": "Usa la pestaña Árbol para ver y gestionar la estructura visual, o Configuración para activar y personalizar la jerarquía de tu organización."
+    },
+    "structureSelector": {
+      "title": "Selector de estructura",
+      "content": "Si tienes varias estructuras activas, este selector te permite cambiar entre ellas para ver o editar la que necesitas en cada momento."
+    },
+    "actions": {
+      "title": "Gestionar tu equipo",
+      "content": "Agrega miembros directamente a la estructura raíz o crea una nueva estructura completa para segmentar tu organización de forma distinta."
+    },
+    "treeBody": {
+      "title": "Árbol jerárquico",
+      "content": "Este árbol muestra regiones, zonas y equipos en cascada. Expande nodos, edita nombres, agrega subniveles o elimina ramas que ya no uses."
+    },
+    "soflia": {
+      "title": "Tu asistente SofLIA",
+      "content": "SofLIA puede ayudarte a entender cómo configurar la estructura de tu organización y cómo influye en la asignación de rutas y cursos."
+    }
+  },
+  "businessPanelCourses": {
+    "hero": {
+      "title": "Catálogo de cursos",
+      "content": "Este panel muestra todos los cursos disponibles para tu organización. Desde aquí puedes explorarlos, asignarlos a tu equipo y hacer seguimiento."
+    },
+    "stats": {
+      "title": "Métricas del catálogo",
+      "content": "Estas tarjetas resumen el total de cursos, categorías disponibles, niveles de dificultad y número total de estudiantes en tu organización."
+    },
+    "filters": {
+      "title": "Busca y filtra",
+      "content": "Escribe un nombre, instructor o descripción para localizar cursos rápidamente, o aplica filtros por categoría y nivel de dificultad."
+    },
+    "viewToggle": {
+      "title": "Vista del catálogo",
+      "content": "Alterna entre cuadrícula para explorar visualmente o lista para comparar y encontrar cursos de forma más rápida."
+    },
+    "grid": {
+      "title": "Cursos disponibles",
+      "content": "Cada tarjeta muestra portada, título, categoría, nivel e instructor. Haz clic en cualquier curso para ver su detalle completo y opciones de asignación."
+    },
+    "firstCard": {
+      "title": "¡Listo para explorar!",
+      "content": "Cierra el tour con ¡Entendido! y luego haz clic en cualquier curso para ver su detalle completo: contenido, reseñas, instructor y la opción de asignarlo a tu equipo."
+    }
+  },
+  "businessPanelCourseDetail": {
+    "hero": {
+      "title": "Información del curso",
+      "content": "Este encabezado resume lo esencial: portada, título, categoría, nivel, duración e instructor. Te da contexto rápido antes de explorar el contenido."
+    },
+    "tabsContainer": {
+      "title": "Secciones del curso",
+      "content": "Navega entre Información general, Contenido por módulos, Reseñas de usuarios e Instructor para conocer el curso a fondo antes de asignarlo."
+    },
+    "sidebar": {
+      "title": "Asignar y adquirir",
+      "content": "Desde este panel lateral puedes asignar el curso a miembros de tu equipo o gestionarlo según la disponibilidad y los permisos de tu organización."
+    },
+    "soflia": {
+      "title": "Tu asistente SofLIA",
+      "content": "SofLIA puede ayudarte a decidir si este curso es el adecuado para tu equipo y sugerirte cómo estructurar la asignación."
+    }
+  },
+  "businessPanelReports": {
+    "hero": {
+      "title": "Centro de reportes y analítica",
+      "content": "Este panel centraliza todas las métricas clave de tu organización. Desde aquí puedes exportar datos, generar análisis con IA y aplicar filtros temporales, por área, rol o equipo para explorar resultados específicos."
+    },
+    "filters": {
+      "title": "Filtros de análisis",
+      "content": "Delimita el período usando fecha de inicio y fin. Filtra por área, rol, región, zona o equipo. Todos los paneles del reporte se actualizan en tiempo real con cada cambio que apliques aquí."
+    },
+    "kpi": {
+      "title": "KPIs ejecutivos",
+      "content": "Las tarjetas superiores muestran los indicadores más críticos de un vistazo: total de usuarios asignados, cuántos están activos, el progreso promedio de la organización, la tasa de finalización de cursos, el cumplimiento general y los usuarios en riesgo. Son el termómetro rápido del estado formativo."
+    },
+    "workforce": {
+      "title": "Estado de la fuerza laboral",
+      "content": "Esta gráfica de dona muestra la distribución real de tu equipo por etapa de aprendizaje: Sin iniciar, En proceso, Avanzando y Completaron. Los números reflejan headcount real, no estimaciones. Úsala para identificar de inmediato cuántos colaboradores todavía no han comenzado su formación."
+    },
+    "radar": {
+      "title": "Perfil de salud organizacional",
+      "content": "El radar evalúa tu organización en seis dimensiones simultáneas: Actividad (uso activo de la plataforma), Progreso (avance promedio en cursos), Cumplimiento (finalización vs. meta), Calidad académica (rendimiento en evaluaciones), SofLIA (adopción del asistente IA) y Planificación (uso del planificador de estudio). La línea punteada marca la meta del 70%. Cuanto más lleno está el radar, más saludable es tu organización."
+    },
+    "compliance": {
+      "title": "Cumplimiento por área",
+      "content": "Esta gráfica de barras horizontales muestra la tasa de finalización de cursos desglosada por área o departamento. Es la más accionable para RRHH: identifica al instante qué áreas están por debajo de la meta y requieren intervención. Haz clic en una barra para filtrar el resto del reporte por esa área."
+    },
+    "riskUsers": {
+      "title": "Usuarios en riesgo",
+      "content": "Esta tabla lista a los colaboradores con mayor probabilidad de abandono, ordenados por nivel de riesgo (Alto, Medio). Para cada usuario ves su área, cursos asignados, progreso actual, días sin actividad y la causa del riesgo detectada. Úsala para priorizar intervenciones directas antes de que el usuario abandone por completo."
+    },
+    "funnel": {
+      "title": "Embudo de aprendizaje",
+      "content": "El embudo muestra en qué etapa se pierde el avance hacia la finalización. De izquierda a derecha: Asignados → Iniciaron → Más del 25% → Más del 50% → Más del 75% → Completaron. El porcentaje en rojo indica la caída entre etapas. Identifica en cuál escalón hay mayor deserción para enfocar ahí las acciones de seguimiento."
+    },
+    "courseRisk": {
+      "title": "Cursos con mayor riesgo operativo",
+      "content": "Esta tabla ordena los cursos por riesgo operativo compuesto, considerando el número de asignados, cuántos están activos, el progreso promedio, la tasa de finalización, los vencimientos pendientes y la señal de riesgo global. Los cursos con más rojo necesitan atención inmediata: pueden tener fechas límite próximas o baja adherencia."
+    },
+    "scatter": {
+      "title": "Mapa de posicionamiento de equipos",
+      "content": "Cada burbuja representa un equipo. El eje X muestra el progreso promedio y el eje Y la tasa de finalización. El tamaño de la burbuja indica la cantidad de usuarios del equipo. Los equipos en el cuadrante superior derecho son saludables; los que aparecen en rojo, en la esquina inferior izquierda, requieren atención urgente. Cambia entre Equipos, Regiones y Zonas con las pestañas superiores."
+    },
+    "ranking": {
+      "title": "Clasificación de aprovechamiento",
+      "content": "Ordena usuarios, equipos, regiones y zonas por un score compuesto que combina progreso, finalización, calidad académica y adopción de herramientas. Usa las pestañas para cambiar entre vistas. Los primeros lugares tienen prácticas que vale la pena identificar y compartir; los últimos pueden necesitar apoyo adicional."
+    },
+    "segments": {
+      "title": "Desempeño por segmento",
+      "content": "Compara el desempeño formativo entre Equipos, Puestos, Regiones y Zonas. Para cada segmento ves el número de usuarios, el progreso promedio, la tasa de finalización y los vencimientos. Es la herramienta clave para detectar brechas de formación entre grupos y decidir dónde concentrar los esfuerzos de desarrollo."
+    },
+    "trend": {
+      "title": "Evolución del aprendizaje",
+      "content": "Esta gráfica de línea muestra la evolución del número de cursos completados a lo largo del tiempo, semana a semana. Identifica picos de actividad (quizás tras una campaña de recordatorio), períodos de caída sostenida o tendencias de mejora continua. Úsala para correlacionar acciones de gestión con resultados reales."
+    },
+    "academic": {
+      "title": "Rendimiento académico",
+      "content": "Las cuatro tarjetas muestran la calidad del aprendizaje en el período filtrado: Promedio de evaluaciones (score de quizzes), Tasa de aprobación (porcentaje de evaluaciones aprobadas), Actividades completadas (ejercicios finalizados) y Actividades pendientes. Un promedio de evaluaciones alto con baja tasa de finalización indica dificultades de adherencia, no de comprensión."
+    },
+    "sofliaQuality": {
+      "title": "Calidad e interacción con SofLIA",
+      "content": "Mide cómo tu equipo usa el asistente IA. Verás: usuarios activos con SofLIA, total de conversaciones, mensajes por sesión y tasa de resolución. Debajo, la calidad de respuestas desglosa el tipo de preguntas (generales, de curso, de soporte). El uso por contexto muestra en qué áreas de la plataforma se consulta más a SofLIA: general, curso o planificador."
+    },
+    "planner": {
+      "title": "Planificador de estudio",
+      "content": "Analiza la adherencia de tu equipo al plan de estudio generado por SofLIA. Ves cuántas sesiones fueron programadas vs. completadas, la varianza de tiempo (diferencia entre lo planeado y lo real), y el porcentaje de usuarios que efectivamente usan el planificador. Una adherencia baja puede indicar que los planes son poco realistas o que falta seguimiento."
+    },
+    "notes": {
+      "title": "Notas y apuntes",
+      "content": "Muestra la adopción del cuaderno de notas: total de notas creadas, usuarios con al menos una nota y tasa de adopción general. El gráfico distingue entre notas auto-generadas (creadas por SofLIA al finalizar una lección) y manuales (escritas por el usuario). Una alta proporción de notas manuales indica compromiso activo con el aprendizaje."
+    },
+    "insights": {
+      "title": "Análisis inteligente con IA",
+      "content": "SofLIA analiza todos los datos del reporte y genera un informe ejecutivo con hallazgos clave, patrones de riesgo detectados y recomendaciones accionables priorizadas. Haz clic en Analizar con IA y espera unos segundos. Cuando esté listo, puedes exportarlo como PDF para compartirlo con tu equipo directivo o de RRHH."
+    }
+  },
+  "businessPanelReviews": {
+    "header": {
+      "title": "Revisión de cursos",
+      "content": "Este panel centraliza los cursos que necesitan tu aprobación antes de estar disponibles para los usuarios de la organización. Aquí gestionas el flujo de aprobación, rechazo y seguimiento de actualizaciones de contenido."
+    },
+    "stats": {
+      "title": "Estado de las revisiones",
+      "content": "Estas tarjetas muestran cuántos cursos están pendientes de revisión, cuántos fueron rechazados, cuántos tienen actualizaciones recientes disponibles y cuántos son contenidos nuevos que aún no han sido evaluados."
+    },
+    "filters": {
+      "title": "Filtra y busca cursos",
+      "content": "Usa las pestañas para alternar entre Pendientes, Rechazados, Actualizaciones y Nuevos. El campo de búsqueda te permite localizar un curso específico por nombre dentro de la pestaña activa."
+    },
+    "grid": {
+      "title": "Cursos por revisar",
+      "content": "Cada tarjeta muestra la portada, el título, la categoría y las acciones disponibles según el estado del curso. Puedes aprobar un curso para que esté disponible en la organización, rechazarlo con un comentario o abrirlo para revisar su contenido en detalle antes de decidir."
+    },
+    "soflia": {
+      "title": "Tu asistente SofLIA",
+      "content": "SofLIA puede ayudarte a evaluar si un curso es adecuado para tu equipo, comparar opciones y redactar comentarios de rechazo claros y constructivos."
+    }
+  },
+  "businessPanelSettings": {
+    "hero": {
+      "title": "Configuración de la organización",
+      "content": "Desde aquí gestionas toda la configuración de tu organización en un solo lugar: nombre, idioma, zona horaria, contexto de SofLIA y personalización visual. Los cambios se aplican de forma inmediata para todos los usuarios de la organización."
+    },
+    "tabs": {
+      "title": "Secciones de configuración",
+      "content": "La pestaña Organización concentra los datos generales: información básica, datos de contacto, contexto que SofLIA usará para responder a tu equipo y opciones de acceso. La pestaña Branding (plan Enterprise) permite personalizar el logo, favicon y los colores de la plataforma para que reflejen la identidad visual de tu empresa."
+    },
+    "soflia": {
+      "title": "Tu asistente SofLIA",
+      "content": "SofLIA puede ayudarte a redactar el contexto organizacional, sugerir configuraciones según el tipo de empresa y resolver dudas sobre qué opciones afectan a los usuarios finales."
+    }
+  },
+  "businessPanelLearningPaths": {
+    "hero": {
+      "title": "Rutas de aprendizaje",
+      "content": "Las rutas agrupan cursos en un orden definido para guiar a tu equipo a través de un proceso de formación completo y progresivo."
+    },
+    "stats": {
+      "title": "Métricas de rutas",
+      "content": "Consulta cuántas rutas están activas, cuántos talleres incluyen, cuántos usuarios las tienen asignadas y el total de asignaciones vigentes."
+    },
+    "search": {
+      "title": "Busca una ruta",
+      "content": "Escribe el nombre de una ruta para localizarla rápidamente dentro del catálogo y acceder a sus detalles o asignaciones."
+    },
+    "cards": {
+      "title": "Catálogo de rutas",
+      "content": "Cada tarjeta muestra el nombre, descripción, cursos incluidos y opciones para gestionar y asignar la ruta a tu equipo."
+    },
+    "assignments": {
+      "title": "Asignaciones activas",
+      "content": "Esta sección lista qué usuarios o grupos tienen cada ruta asignada, con la fecha de asignación y el estado actual de avance."
+    },
+    "soflia": {
+      "title": "Tu asistente SofLIA",
+      "content": "SofLIA puede ayudarte a diseñar rutas de formación, entender el progreso de tu equipo y sugerir el orden óptimo de los cursos."
+    }
   }
 }

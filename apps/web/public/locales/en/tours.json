@@ -177,5 +177,237 @@
       "title": "Your SofLIA Assistant",
       "content": "SofLIA can support you with panel questions, courses, team progress, or next management steps."
     }
+  },
+  "businessPanelUsers": {
+    "hero": {
+      "title": "User Management",
+      "content": "Manage all of your organization's members from here: active users, sent invitations, access links, and pending join requests."
+    },
+    "stats": {
+      "title": "Team Overview",
+      "content": "These cards show the total number of users, how many are active, how many have pending invitations, how many are administrators, and the join requests received."
+    },
+    "filters": {
+      "title": "Search and Filter",
+      "content": "Use the tabs to switch between users, invitations, links, and requests. Apply filters by role, status, region, zone, or team to find exactly who you need."
+    },
+    "list": {
+      "title": "User List",
+      "content": "Users from the active tab appear here. Click a user to view their profile, change their role, or manage their access to courses and learning paths."
+    },
+    "actions": {
+      "title": "Management Actions",
+      "content": "From these buttons you can refresh the list, export or bulk-import users, send individual invitations, or create a new user directly."
+    },
+    "soflia": {
+      "title": "Your SofLIA Assistant",
+      "content": "SofLIA can help you understand your team's status, suggest how to structure invitations, and answer questions about user management."
+    }
+  },
+  "businessPanelHierarchy": {
+    "header": {
+      "title": "Structure Management",
+      "content": "Define how your company is organized here: regions, zones, and teams that group your employees for reporting and course assignments."
+    },
+    "tabs": {
+      "title": "Panel Views",
+      "content": "Use the Tree tab to visualize and manage your hierarchy, or Settings to enable and customize the organization structure."
+    },
+    "structureSelector": {
+      "title": "Structure Selector",
+      "content": "If you have multiple active structures, this selector lets you switch between them to view or edit the one you need."
+    },
+    "actions": {
+      "title": "Manage Your Team",
+      "content": "Add members directly to the root structure or create a new structure to segment your organization differently."
+    },
+    "treeBody": {
+      "title": "Hierarchy Tree",
+      "content": "This tree shows regions, zones, and teams in cascade. Expand nodes, rename levels, add sub-levels, or remove branches you no longer need."
+    },
+    "soflia": {
+      "title": "Your SofLIA Assistant",
+      "content": "SofLIA can help you configure your organization structure and understand how it affects learning path and course assignments."
+    }
+  },
+  "businessPanelCourses": {
+    "hero": {
+      "title": "Course Catalog",
+      "content": "This panel shows all courses available to your organization. From here you can explore them, assign them to your team, and track progress."
+    },
+    "stats": {
+      "title": "Catalog Metrics",
+      "content": "These cards summarize the total courses, available categories, difficulty levels, and total number of enrolled students in your organization."
+    },
+    "filters": {
+      "title": "Search and Filter",
+      "content": "Type a name, instructor, or description to locate courses quickly, or apply filters by category and difficulty level."
+    },
+    "viewToggle": {
+      "title": "Catalog View",
+      "content": "Switch between grid view for visual exploration or list view for faster comparison and search."
+    },
+    "grid": {
+      "title": "Available Courses",
+      "content": "Each card shows the cover, title, category, level, and instructor. Click any course to see its full detail and assignment options."
+    },
+    "firstCard": {
+      "title": "Ready to Explore!",
+      "content": "Close the tour with Got it! and then click any course to see its full detail: content, reviews, instructor, and the option to assign it to your team."
+    }
+  },
+  "businessPanelCourseDetail": {
+    "hero": {
+      "title": "Course Overview",
+      "content": "This header summarizes the essentials: cover, title, category, level, duration, and instructor — giving you quick context before diving in."
+    },
+    "tabsContainer": {
+      "title": "Course Sections",
+      "content": "Browse General Information, Module Content, User Reviews, and Instructor tabs to fully understand the course before assigning it."
+    },
+    "sidebar": {
+      "title": "Assign and Acquire",
+      "content": "From this sidebar you can assign the course to team members or manage it based on availability and your organization's permissions."
+    },
+    "soflia": {
+      "title": "Your SofLIA Assistant",
+      "content": "SofLIA can help you decide if this course is right for your team and suggest how to structure the assignment."
+    }
+  },
+  "businessPanelReports": {
+    "hero": {
+      "title": "Reports and Analytics Hub",
+      "content": "This panel centralizes all key metrics for your organization. From here you can export data, generate AI-powered analyses, and apply filters by period, area, role, or team to explore specific results."
+    },
+    "filters": {
+      "title": "Analysis Filters",
+      "content": "Set the analysis period using start and end dates. Filter by area, role, region, zone, or team. All report panels update in real time with every filter change you apply here."
+    },
+    "kpi": {
+      "title": "Executive KPIs",
+      "content": "The top cards show the most critical indicators at a glance: total assigned users, how many are active, the organization's average progress, course completion rate, overall compliance, and users at risk. Think of them as the quick health check for your training program."
+    },
+    "workforce": {
+      "title": "Workforce Status",
+      "content": "This donut chart shows the actual distribution of your team by learning stage: Not started, In progress, Advancing, and Completed. The numbers reflect real headcount, not estimates. Use it to immediately see how many employees have not yet begun their training."
+    },
+    "radar": {
+      "title": "Organizational Health Profile",
+      "content": "The radar evaluates your organization across six dimensions at once: Activity (active platform use), Progress (average course advancement), Compliance (completion vs. target), Academic quality (assessment performance), SofLIA (AI assistant adoption), and Planning (study planner use). The dotted line marks the 70% target. The fuller the radar, the healthier your organization."
+    },
+    "compliance": {
+      "title": "Compliance by Area",
+      "content": "This horizontal bar chart shows the course completion rate broken down by area or department. It is the most actionable view for HR: instantly spot which areas are below target and need intervention. Click a bar to filter the entire report by that area."
+    },
+    "riskUsers": {
+      "title": "Users at Risk",
+      "content": "This table lists employees with the highest likelihood of dropping out, ordered by risk level (High, Medium). For each user you see their area, assigned courses, current progress, days without activity, and the detected risk cause. Use it to prioritize direct outreach before a user disengages entirely."
+    },
+    "funnel": {
+      "title": "Learning Funnel",
+      "content": "The funnel shows where progress is lost on the path to completion. Left to right: Assigned → Started → Over 25% → Over 50% → Over 75% → Completed. The red percentage shows the drop between stages. Identify which step has the highest dropout rate so you can focus follow-up actions there."
+    },
+    "courseRisk": {
+      "title": "Courses with Operational Risk",
+      "content": "This table orders courses by their composite operational risk, considering the number assigned, how many are active, average progress, completion rate, pending deadlines, and the overall risk signal. Red courses need immediate attention: they may have approaching deadlines or very low adherence."
+    },
+    "scatter": {
+      "title": "Team Positioning Map",
+      "content": "Each bubble represents a team. The X axis shows average progress and the Y axis shows the completion rate. Bubble size indicates the number of users on the team. Teams in the upper-right quadrant are healthy; those in red in the lower-left need urgent attention. Switch between Teams, Regions, and Zones using the tabs."
+    },
+    "ranking": {
+      "title": "Performance Ranking",
+      "content": "Ranks users, teams, regions, and zones by a composite score combining progress, completion, academic quality, and tool adoption. Use the tabs to switch views. Top performers have practices worth identifying and sharing; those at the bottom may need additional support."
+    },
+    "segments": {
+      "title": "Performance by Segment",
+      "content": "Compares training performance across Teams, Roles, Regions, and Zones. For each segment you see the number of users, average progress, completion rate, and pending deadlines. This is the key tool for spotting training gaps between groups and deciding where to concentrate development efforts."
+    },
+    "trend": {
+      "title": "Learning Evolution",
+      "content": "This line chart shows how the number of completed courses has evolved over time, week by week. Identify activity peaks (perhaps after a reminder campaign), periods of sustained decline, or continuous improvement trends. Use it to correlate management actions with real results."
+    },
+    "academic": {
+      "title": "Academic Performance",
+      "content": "The four cards show learning quality for the filtered period: Assessment average (quiz scores), Pass rate (percentage of passed assessments), Completed activities (finished exercises), and Pending activities. A high assessment average with low completion rate signals an adherence problem, not a comprehension one."
+    },
+    "sofliaQuality": {
+      "title": "SofLIA Quality and Interaction",
+      "content": "Measures how your team uses the AI assistant. You will see: active users with SofLIA, total conversations, messages per session, and resolution rate. Below, response quality breaks down question types (general, course, support). Usage by context shows where SofLIA is consulted most: general, course, or planner."
+    },
+    "planner": {
+      "title": "Study Planner",
+      "content": "Analyzes your team's adherence to the study plan generated by SofLIA. You can see how many sessions were scheduled vs. completed, time variance (difference between planned and actual), and the percentage of users who actively use the planner. Low adherence may indicate unrealistic plans or a lack of follow-through."
+    },
+    "notes": {
+      "title": "Notes and Summaries",
+      "content": "Shows notebook adoption: total notes created, users with at least one note, and overall adoption rate. The chart distinguishes between auto-generated notes (created by SofLIA at lesson end) and manual ones (written by the user). A high proportion of manual notes indicates active engagement with learning."
+    },
+    "insights": {
+      "title": "AI-Powered Smart Analysis",
+      "content": "SofLIA analyzes all report data and generates an executive report with key findings, detected risk patterns, and prioritized actionable recommendations. Click Analyze with AI and wait a few seconds. When ready, you can export it as a PDF to share with your leadership or HR team."
+    }
+  },
+  "businessPanelReviews": {
+    "header": {
+      "title": "Course Reviews",
+      "content": "This panel centralizes the courses that need your approval before becoming available to organization users. Here you manage the approval, rejection, and update tracking workflow for all content."
+    },
+    "stats": {
+      "title": "Review Status",
+      "content": "These cards show how many courses are pending review, how many were rejected, how many have recent updates available, and how many are new content that has not yet been evaluated."
+    },
+    "filters": {
+      "title": "Filter and Search Courses",
+      "content": "Use the tabs to switch between Pending, Rejected, Updates, and New. The search field lets you find a specific course by name within the active tab."
+    },
+    "grid": {
+      "title": "Courses to Review",
+      "content": "Each card shows the cover, title, category, and available actions based on the course status. You can approve a course to make it available in the organization, reject it with a comment, or open it to review its content in detail before deciding."
+    },
+    "soflia": {
+      "title": "Your SofLIA Assistant",
+      "content": "SofLIA can help you evaluate whether a course is suitable for your team, compare options, and draft clear, constructive rejection comments."
+    }
+  },
+  "businessPanelSettings": {
+    "hero": {
+      "title": "Organization Settings",
+      "content": "Manage all of your organization's configuration in one place: name, language, time zone, SofLIA context, and visual customization. Changes apply immediately for all users in the organization."
+    },
+    "tabs": {
+      "title": "Settings Sections",
+      "content": "The Organization tab covers general data: basic information, contact details, the context SofLIA will use to answer your team, and access options. The Branding tab (Enterprise plan) lets you customize the logo, favicon, and platform colors to reflect your company's visual identity."
+    },
+    "soflia": {
+      "title": "Your SofLIA Assistant",
+      "content": "SofLIA can help you write the organizational context, suggest settings based on your company type, and answer questions about which options affect end users."
+    }
+  },
+  "businessPanelLearningPaths": {
+    "hero": {
+      "title": "Learning Paths",
+      "content": "Learning paths group courses in a defined order to guide your team through a complete, progressive training process."
+    },
+    "stats": {
+      "title": "Path Metrics",
+      "content": "See how many paths are active, how many workshops they include, how many users have them assigned, and the total active assignments."
+    },
+    "search": {
+      "title": "Search a Path",
+      "content": "Type a path name to quickly find it in the catalog and access its details or assignment options."
+    },
+    "cards": {
+      "title": "Path Catalog",
+      "content": "Each card shows the name, description, included courses, and options to manage and assign the path to your team."
+    },
+    "assignments": {
+      "title": "Active Assignments",
+      "content": "This section lists which users or groups have each path assigned, with the assignment date and current progress status."
+    },
+    "soflia": {
+      "title": "Your SofLIA Assistant",
+      "content": "SofLIA can help you design training paths, understand your team's progress, and suggest the optimal course order."
+    }
   }
 }

@@ -1,10 +1,10 @@
 'use client';
 
 import type { JSX } from 'react';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, X, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export type ToastType = 'error' | 'success' | 'info';
 
@@ -23,7 +23,12 @@ export function ToastNotification({
   type = 'error',
   duration = 5000,
 }: ToastNotificationProps): JSX.Element | null {
-  // Cerrar automáticamente después de la duración especificada
+  // Guard against hydration mismatch: portal must only render on the client.
+  // Server renders null; client renders null on first pass (matching server),
+  // then switches to the portal after mount — avoiding React 18 reconciler crashes.
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => { setIsMounted(true); }, []);
+
   useEffect(() => {
     if (isOpen && duration > 0) {
       const timer = setTimeout(() => {
@@ -62,7 +67,6 @@ export function ToastNotification({
 
   const styles = getStyles();
 
-  // Usar portal para renderizar fuera de la jerarquía del DOM
   const toastContent = (
     <AnimatePresence>
       {isOpen && (
@@ -105,10 +109,7 @@ export function ToastNotification({
     </AnimatePresence>
   );
 
-  // Renderizar en el body usando portal si estamos en el cliente
-  if (typeof window !== 'undefined') {
-    return createPortal(toastContent, document.body) as unknown as JSX.Element;
-  }
+  if (!isMounted || !document.body) return null;
 
-  return null;
+  return createPortal(toastContent, document.body) as unknown as JSX.Element;
 }

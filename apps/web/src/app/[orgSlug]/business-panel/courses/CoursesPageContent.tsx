@@ -12,12 +12,15 @@ import {
   List
 } from 'lucide-react'
 import Image from 'next/image'
+import { useEffect } from 'react'
 import { PremiumSelect } from '@/features/business-panel/components/PremiumSelect'
 import { CourseStatCard } from './CourseStatCard'
 import { CourseCard } from './CourseCard'
 import { useCoursesPageLogic } from './useCoursesPageLogic'
 import { useMotionSafe } from '@/lib/utils/motion'
 import { PrefetchLink } from '@/core/components/PrefetchLink'
+import { useTour } from '@/features/tours'
+import { businessPanelCoursesTour } from '@/features/tours/config/business-panel-courses.tour'
 
 export function CoursesPageContent() {
   const { disableHeavy, interfaceStaggerSeconds, interfaceTransition } = useMotionSafe()
@@ -48,6 +51,13 @@ export function CoursesPageContent() {
     setViewMode,
     orgSlug,
   } = useCoursesPageLogic()
+
+  const { autoStartIfNeeded } = useTour(businessPanelCoursesTour)
+
+  // Auto-start tour on first visit
+  useEffect(() => {
+    return autoStartIfNeeded()
+  }, [autoStartIfNeeded])
 
   if (isLoading) {
     return (
@@ -85,6 +95,7 @@ export function CoursesPageContent() {
     >
       {/* Hero Section */}
       <motion.div
+        data-tour-id="business-panel-courses--hero"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={interfaceTransition}
@@ -141,7 +152,7 @@ export function CoursesPageContent() {
       </motion.div>
 
       {/* Stats Grid - Minimalist Dashboard Pattern */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div data-tour-id="business-panel-courses--stats" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {courseStats.map((stat, index) => (
           <CourseStatCard key={stat.title} {...stat} delay={index} />
         ))}
@@ -166,7 +177,7 @@ export function CoursesPageContent() {
       )}
 
       {/* Filters Section - EXACT Replication of Users Page Style */}
-      <div className="flex flex-col lg:flex-row gap-4 mb-8">
+      <div data-tour-id="business-panel-courses--filters" className="flex flex-col lg:flex-row gap-4 mb-8">
         {/* Search Input - Matching Users Page Design */}
         <div className="flex-1 relative group">
           <Search
@@ -216,6 +227,7 @@ export function CoursesPageContent() {
         </div>
 
         <div
+          data-tour-id="business-panel-courses--view-toggle"
           className="flex items-center rounded-xl border-2 overflow-hidden ml-auto"
           style={{
             borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
@@ -282,12 +294,13 @@ export function CoursesPageContent() {
 
           {/* Grid or List View */}
           {viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
+            <div data-tour-id="business-panel-courses--grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
               {filteredCourses.map((course, index) => (
                 <PrefetchLink
                   key={course.id}
                   href={`/${orgSlug}/business-panel/courses/${course.id}`}
                   className="block h-full relative z-10"
+                  {...(index === 0 ? { 'data-tour-id': 'business-panel-courses--first-card' } : {})}
                 >
                   <CourseCard
                     course={course}

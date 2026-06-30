@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
 import { AdminLearningPathsService } from '@/features/admin/services/adminLearningPaths.service'
@@ -169,6 +170,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       auth.organizationId,
       assignmentIdResult.data,
     )
+
+    // Invalidate all server-rendered pages under this org so the affected
+    // user sees their updated LP / course access immediately instead of
+    // getting a stale cached response.
+    revalidatePath(`/${orgSlug}`, 'layout')
 
     return NextResponse.json({ success: true })
   } catch (error) {

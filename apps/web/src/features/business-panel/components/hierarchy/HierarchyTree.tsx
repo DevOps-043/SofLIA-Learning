@@ -24,12 +24,16 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
   return (
     <div className="space-y-8 min-h-[500px]">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-8 border-b border-neutral-200 dark:border-white/5">
-        <StructureSelector state={state} t={t} />
-        <HierarchyActions
-          onNewStructure={() => state.setShowStructureModal(true)}
-          onOpenMembers={commands.openRootMembers}
-          t={t}
-        />
+        <div data-tour-id="business-panel-hierarchy--structure-selector">
+          <StructureSelector state={state} t={t} />
+        </div>
+        <div data-tour-id="business-panel-hierarchy--actions">
+          <HierarchyActions
+            onNewStructure={() => state.setShowStructureModal(true)}
+            onOpenMembers={commands.openRootMembers}
+            t={t}
+          />
+        </div>
       </div>
 
       <HierarchyInlineAlerts
@@ -40,7 +44,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
         tc={tc}
       />
 
-      <div className="relative">
+      <div className="relative" data-tour-id="business-panel-hierarchy--tree-body">
         <HierarchyTreeBody
           onInitializeRootNode={commands.initializeRootNode}
           state={state}

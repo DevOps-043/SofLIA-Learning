@@ -32,6 +32,7 @@ export const SidebarSurface = forwardRef<HTMLDivElement, SidebarSurfaceProps>(
     return (
       <motion.div
         ref={ref}
+        id="business-panel-sidebar-root"
         initial={false}
         animate={{ width: sidebarWidth, x: xPosition }}
         transition={{ width: { duration: 0.3, ease: 'easeInOut' }, x: { duration: 0.3, ease: [0.32, 0.72, 0, 1] } }}

@@ -64,49 +64,79 @@ export function ReportsLoadedContent({
   return (
     <div className="flex flex-col gap-6">
       {/* 1. KPIs ejecutivos */}
-      <ExecutiveKpiGrid data={data} theme={theme} t={t} />
+      <div id="tour-reports-kpi">
+        <ExecutiveKpiGrid data={data} theme={theme} t={t} />
+      </div>
 
-      {/* 2. Estado de la fuerza laboral — headcounts visuales para C-Level */}
-      <WorkforceStatusPanel data={data} theme={theme} t={t} />
+      {/* 2. Estado de la fuerza laboral */}
+      <div id="tour-reports-workforce">
+        <WorkforceStatusPanel data={data} theme={theme} t={t} />
+      </div>
 
       {/* 3. Radar multidimensional de salud org */}
-      <OrgRadarChart data={data} theme={theme} t={t} />
+      <div id="tour-reports-radar">
+        <OrgRadarChart data={data} theme={theme} t={t} />
+      </div>
 
-      {/* 4. Cumplimiento por área — gráfica más accionable para RRHH */}
-      <ComplianceBarChart data={data} theme={theme} t={t} />
+      {/* 4. Cumplimiento por área */}
+      <div id="tour-reports-compliance">
+        <ComplianceBarChart data={data} theme={theme} t={t} />
+      </div>
 
-      {/* 5. Usuarios en riesgo — para seguimiento inmediato */}
-      <RiskPrioritiesTable priorityUsers={data.priorityUsers} theme={theme} t={t} />
+      {/* 5. Usuarios en riesgo */}
+      <div id="tour-reports-risk-users">
+        <RiskPrioritiesTable priorityUsers={data.priorityUsers} theme={theme} t={t} />
+      </div>
 
-      {/* 6. Embudo — dónde se pierde el avance */}
-      <LearningFunnelChart data={data} theme={theme} t={t} />
+      {/* 6. Embudo de aprendizaje */}
+      <div id="tour-reports-funnel">
+        <LearningFunnelChart data={data} theme={theme} t={t} />
+      </div>
 
       {/* 7. Riesgo por curso */}
-      <CourseRiskTable courses={data.courses} theme={theme} t={t} />
+      <div id="tour-reports-course-risk">
+        <CourseRiskTable courses={data.courses} theme={theme} t={t} />
+      </div>
 
       {/* 8. Mapa de posicionamiento de equipos */}
-      <TeamScatterChart data={data} theme={theme} t={t} />
+      <div id="tour-reports-scatter">
+        <TeamScatterChart data={data} theme={theme} t={t} />
+      </div>
 
       {/* 9. Clasificación de aprovechamiento */}
-      <RankingTablesPanel data={data} theme={theme} t={t} />
+      <div id="tour-reports-ranking">
+        <RankingTablesPanel data={data} theme={theme} t={t} />
+      </div>
 
       {/* 10. Desempeño por segmento */}
-      <SegmentPerformancePanel data={data} theme={theme} t={t} />
+      <div id="tour-reports-segments">
+        <SegmentPerformancePanel data={data} theme={theme} t={t} />
+      </div>
 
       {/* 11. Tendencia en el tiempo */}
-      <LearningTrendChart data={data} theme={theme} t={t} />
+      <div id="tour-reports-trend">
+        <LearningTrendChart data={data} theme={theme} t={t} />
+      </div>
 
       {/* 12. Rendimiento académico */}
-      <AcademicPerformanceCards data={data} theme={theme} t={t} />
+      <div id="tour-reports-academic">
+        <AcademicPerformanceCards data={data} theme={theme} t={t} />
+      </div>
 
-      {/* 13. Calidad SofLIA — métricas de uso y calidad de la IA */}
-      <SofLIAQualityPanel data={data} theme={theme} t={t} />
+      {/* 13. Calidad SofLIA */}
+      <div id="tour-reports-soflia-quality">
+        <SofLIAQualityPanel data={data} theme={theme} t={t} />
+      </div>
 
-      {/* 14. Planificador de estudio — adherencia y varianza de tiempo */}
-      <PlannerInsightsPanel data={data} theme={theme} t={t} />
+      {/* 14. Planificador de estudio */}
+      <div id="tour-reports-planner">
+        <PlannerInsightsPanel data={data} theme={theme} t={t} />
+      </div>
 
-      {/* 15. Notas — composición y adopción */}
-      <NotesCompositionPanel data={data} theme={theme} t={t} />
+      {/* 15. Notas y apuntes */}
+      <div id="tour-reports-notes">
+        <NotesCompositionPanel data={data} theme={theme} t={t} />
+      </div>
 
       {/* 16. Análisis IA */}
       <div id="tour-reports-insights">

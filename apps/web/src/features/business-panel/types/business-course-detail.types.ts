@@ -1,4 +1,4 @@
-export type BusinessCourseDetailTabId = 'info' | 'content' | 'reviews' | 'instructor' | 'analytics'
+export type BusinessCourseDetailTabId = 'info' | 'content' | 'reviews' | 'instructor'
 
 export interface BusinessCourseInstructor {
   id: string

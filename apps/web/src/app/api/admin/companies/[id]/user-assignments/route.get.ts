@@ -8,13 +8,13 @@ import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await requireAdmin()
     if (auth instanceof NextResponse) return auth
 
-    const { id: companyId } = params
+    const { id: companyId } = await params
     const assignments = await AdminCompaniesService.getUserCourseAssignments(companyId)
 
     return NextResponse.json({

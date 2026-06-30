@@ -1,17 +1,24 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { HierarchyTree } from '@/features/business-panel/components/hierarchy/HierarchyTree';
 import { HierarchySettings } from '@/features/business-panel/components/hierarchy/HierarchySettings';
 import { Network, Settings, LayoutGrid, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme';
+import { useTour } from '@/features/tours';
+import { businessPanelHierarchyTour } from '@/features/tours/config/business-panel-hierarchy.tour';
 
 export default function BusinessPanelHierarchyPage() {
   const [activeTab, setActiveTab] = useState<'settings' | 'tree'>('tree');
   const { t } = useTranslation('business');
   const theme = useBusinessPanelTheme();
+  const { autoStartIfNeeded } = useTour(businessPanelHierarchyTour);
+
+  useEffect(() => {
+    return autoStartIfNeeded();
+  }, [autoStartIfNeeded]);
   const tabs: Array<{ id: 'tree' | 'settings'; label: string; icon: LucideIcon }> = [
     { id: 'tree', label: t('hierarchy.tabs.treeView'), icon: LayoutGrid },
     { id: 'settings', label: t('hierarchy.tabs.settings'), icon: Settings },
@@ -23,9 +30,10 @@ export default function BusinessPanelHierarchyPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="w-full space-y-8"
+      data-tour-id="business-panel-hierarchy--page"
     >
       {/* Premium Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4" data-tour-id="business-panel-hierarchy--header">
         <div className="space-y-2">
           <div className="flex items-center gap-3 mb-1">
              <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/5 border border-white/10 shadow-xl">
@@ -42,7 +50,7 @@ export default function BusinessPanelHierarchyPage() {
         </div>
 
         {/* Premium Tab Bar */}
-        <div className="flex p-1.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shrink-0">
+        <div className="flex p-1.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shrink-0" data-tour-id="business-panel-hierarchy--tabs">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;

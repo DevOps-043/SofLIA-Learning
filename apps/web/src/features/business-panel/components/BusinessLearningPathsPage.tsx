@@ -1,10 +1,12 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 
 import { useBusinessLearningPathsPageLogic } from '../hooks/useBusinessLearningPathsPageLogic'
+import { useTour } from '@/features/tours'
+import { businessPanelLearningPathsTour } from '@/features/tours/config/business-panel-learning-paths.tour'
 import { BusinessLearningPathAssignments } from './BusinessLearningPathsPage/Assignments'
 import { BusinessLearningPathCards } from './BusinessLearningPathsPage/Cards'
 import { BusinessLearningPathsFeedback } from './BusinessLearningPathsPage/Feedback'
@@ -18,6 +20,11 @@ export function BusinessLearningPathsPage() {
   const { t, i18n } = useTranslation('business')
   const logic = useBusinessLearningPathsPageLogic()
   const [videosLearningPathId, setVideosLearningPathId] = useState<string | null>(null)
+  const { autoStartIfNeeded } = useTour(businessPanelLearningPathsTour)
+
+  useEffect(() => {
+    return autoStartIfNeeded()
+  }, [autoStartIfNeeded])
   const selectedLearningPathForVideos = useMemo(
     () => logic.learningPaths.find((path) => path.id === videosLearningPathId) ?? null,
     [logic.learningPaths, videosLearningPathId],

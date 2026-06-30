@@ -2,7 +2,10 @@
 
 import { useLanguage } from '@/core/providers/I18nProvider'
 import { AlertCircle, Loader2 } from 'lucide-react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useTour } from '@/features/tours'
+import { businessPanelReportsTour } from '@/features/tours/config/business-panel-reports.tour'
 import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import { useBusinessReportsAnalytics } from '../../hooks/useBusinessReportsAnalytics'
 import { FiltersBar } from './FiltersBar'
@@ -15,6 +18,11 @@ export function BusinessReportsAnalytics() {
   const { t: tRaw } = useTranslation('business')
   const { language } = useLanguage()
   const theme = useBusinessPanelTheme()
+  const { autoStartIfNeeded } = useTour(businessPanelReportsTour)
+
+  useEffect(() => {
+    return autoStartIfNeeded()
+  }, [autoStartIfNeeded])
 
   const {
     data,

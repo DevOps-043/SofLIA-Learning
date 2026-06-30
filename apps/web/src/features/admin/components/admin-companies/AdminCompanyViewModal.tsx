@@ -15,11 +15,10 @@ import { AdminCompanyViewModalHeader } from './AdminCompanyViewModalHeader'
 interface AdminCompanyViewModalProps {
   company: AdminCompany
   onClose: () => void
-  onEdit: () => void
   themeColors: AdminCompaniesThemeColors
 }
 
-export function AdminCompanyViewModal({ company, onClose, onEdit, themeColors }: AdminCompanyViewModalProps) {
+export function AdminCompanyViewModal({ company, onClose, themeColors }: AdminCompanyViewModalProps) {
   const router = useRouter()
   const { t } = useTranslation('admin')
   const theme = useAdminPanelTheme()
@@ -35,7 +34,7 @@ export function AdminCompanyViewModal({ company, onClose, onEdit, themeColors }:
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[99999] flex items-center justify-center overflow-y-auto p-4" style={{ backgroundColor: theme.overlayBg }} onClick={onClose}>
       <motion.div initial={{ scale: 0.96, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.96, opacity: 0, y: 20 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} onClick={(event) => event.stopPropagation()} className="relative my-8 w-full max-w-3xl overflow-hidden rounded-[28px] border shadow-2xl" style={{ backgroundColor: themeColors.cardBackground, borderColor: themeColors.borderColor }}>
-        <AdminCompanyViewModalHeader company={company} logoUrl={logoUrl} status={status} planColor={planColor} normalizedPlan={normalizedPlan} themeColors={themeColors} onClose={onClose} onEdit={onEdit} />
+        <AdminCompanyViewModalHeader company={company} logoUrl={logoUrl} status={status} planColor={planColor} normalizedPlan={normalizedPlan} themeColors={themeColors} onClose={onClose} />
         <div className="grid gap-4 px-6 pb-6 lg:grid-cols-[1fr_0.9fr]">
           <AdminCompanyAdminsSection members={adminMembers} themeColors={themeColors} />
           <AdminCompanyContactSection company={company} themeColors={themeColors} />

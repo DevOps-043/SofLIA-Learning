@@ -24,8 +24,8 @@ export function AdminCompaniesPage() {
       {logic.actionError ? <AdminCompaniesActionError message={logic.actionError} /> : null}
       <AdminCompaniesStatsSection stats={logic.stats} />
       <AdminCompaniesFilters searchTerm={logic.searchTerm} planFilter={logic.planFilter} statusFilter={logic.statusFilter} filteredCount={logic.filteredCompanies.length} onSearchChange={logic.setSearchTerm} onPlanChange={logic.setPlanFilter} onStatusChange={logic.setStatusFilter} />
-      <AdminCompaniesGrid companies={logic.filteredCompanies} updatingId={logic.updatingId} themeColors={logic.themeColors} onView={logic.setViewCompany} onEdit={logic.setEditCompany} onToggle={logic.handleToggle} onActivate={logic.handleActivatePending} />
-      <AdminCompaniesModals viewCompany={logic.viewCompany} editCompany={logic.editCompany} showCreateModal={logic.showCreateModal} isSaving={logic.isSaving} isCreating={logic.isCreating} themeColors={logic.themeColors} onCloseView={() => logic.setViewCompany(null)} onOpenEditFromView={() => { if (logic.viewCompany) logic.setEditCompany(logic.viewCompany); logic.setViewCompany(null) }} onCloseEdit={() => logic.setEditCompany(null)} onCloseCreate={() => logic.setShowCreateModal(false)} onSaveEdit={logic.handleSaveEdit} onCreateCompany={logic.handleCreateCompany} />
+      <AdminCompaniesGrid companies={logic.filteredCompanies} themeColors={logic.themeColors} onView={logic.setViewCompany} />
+      <AdminCompaniesModals viewCompany={logic.viewCompany} showCreateModal={logic.showCreateModal} isCreating={logic.isCreating} themeColors={logic.themeColors} onCloseView={() => logic.setViewCompany(null)} onCloseCreate={() => logic.setShowCreateModal(false)} onCreateCompany={logic.handleCreateCompany} />
     </div>
   )
 }

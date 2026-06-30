@@ -16,8 +16,6 @@ export function useAdminCompaniesLogic() {
   const [planFilter, setPlanFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [viewCompany, setViewCompany] = useState<AdminCompany | null>(null)
-  const [editCompany, setEditCompany] = useState<AdminCompany | null>(null)
-  const [isSaving, setIsSaving] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -47,17 +45,6 @@ export function useAdminCompaniesLogic() {
 
   const handleActivatePending = async (company: AdminCompany) => {
     await updateCompany(company.id, { is_active: true, subscription_status: 'active' })
-  }
-
-  const handleSaveEdit = async (updates: Partial<AdminCompany>) => {
-    if (!editCompany) return
-    setIsSaving(true)
-    try {
-      await updateCompany(editCompany.id, updates)
-      setEditCompany(null)
-    } finally {
-      setIsSaving(false)
-    }
   }
 
   const handleCreateCompany = async (data: CreateCompanyData) => {
@@ -92,15 +79,12 @@ export function useAdminCompaniesLogic() {
     planFilter, setPlanFilter,
     statusFilter, setStatusFilter,
     viewCompany, setViewCompany,
-    editCompany, setEditCompany,
-    isSaving,
     showCreateModal, setShowCreateModal,
     isCreating,
     themeColors,
     filteredCompanies,
     handleToggle,
     handleActivatePending,
-    handleSaveEdit,
     handleCreateCompany,
   }
 }

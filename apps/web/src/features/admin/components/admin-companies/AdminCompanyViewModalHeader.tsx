@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import type { LucideIcon } from 'lucide-react'
-import { Building2, Pencil, X } from 'lucide-react'
+import { Building2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAdminPanelTheme } from '../../hooks/useAdminPanelTheme'
 import type { AdminCompany } from '../../types/admin-companies.types'
@@ -21,7 +21,6 @@ interface AdminCompanyViewModalHeaderProps {
   normalizedPlan: string
   themeColors: AdminCompaniesThemeColors
   onClose: () => void
-  onEdit: () => void
 }
 
 export function AdminCompanyViewModalHeader(props: AdminCompanyViewModalHeaderProps) {
@@ -43,16 +42,10 @@ export function AdminCompanyViewModalHeader(props: AdminCompanyViewModalHeaderPr
         </div>
       </div>
       <div className="px-6 pb-6 pt-16">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0">
-            <h2 className="truncate text-2xl font-extrabold" style={{ color: props.themeColors.textPrimary }}>{props.company.name}</h2>
-            <p className="mt-1 text-sm font-semibold" style={{ color: props.themeColors.textSecondary }}>/ {props.company.slug || t('companies.card.noSlug')}</p>
-            {props.company.description ? <p className="mt-3 max-w-2xl text-sm leading-relaxed" style={{ color: props.themeColors.textSecondary }}>{props.company.description}</p> : null}
-          </div>
-          <button type="button" onClick={props.onEdit} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl px-5 text-sm font-bold" style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 7.8%, transparent)`, color: theme.primaryColor }}>
-            <Pencil className="h-4 w-4" />
-            {t('companies.actions.edit')}
-          </button>
+        <div className="min-w-0">
+          <h2 className="truncate text-2xl font-extrabold" style={{ color: props.themeColors.textPrimary }}>{props.company.name}</h2>
+          <p className="mt-1 text-sm font-semibold" style={{ color: props.themeColors.textSecondary }}>/ {props.company.slug || t('companies.card.noSlug')}</p>
+          {props.company.description ? <p className="mt-3 max-w-2xl text-sm leading-relaxed" style={{ color: props.themeColors.textSecondary }}>{props.company.description}</p> : null}
         </div>
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-extrabold" style={{ backgroundColor: props.status.bg, borderColor: `color-mix(in srgb, ${props.status.color} 14.9%, transparent)`, color: props.status.color }}>

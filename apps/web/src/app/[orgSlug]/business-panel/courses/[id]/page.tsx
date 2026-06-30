@@ -1,9 +1,9 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
+import { useEffect } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { BusinessAssignCourseModal } from '../../../../../features/business-panel/components/BusinessAssignCourseModal'
-import { CourseAnalyticsTab } from '../../../../../features/business-panel/components/CourseAnalyticsTab'
 import { BusinessCourseContentTab } from '../../../../../features/business-panel/components/business-course-detail/BusinessCourseContentTab'
 import { BusinessCourseDetailHero } from '../../../../../features/business-panel/components/business-course-detail/BusinessCourseDetailHero'
 import { BusinessCourseDetailSidebar } from '../../../../../features/business-panel/components/business-course-detail/BusinessCourseDetailSidebar'
@@ -17,10 +17,19 @@ import { BusinessCourseInstructorTab } from '../../../../../features/business-pa
 import { BusinessCourseReviewsTab } from '../../../../../features/business-panel/components/business-course-detail/BusinessCourseReviewsTab'
 import { useBusinessCourseDetailPageLogic } from '../../../../../features/business-panel/hooks/useBusinessCourseDetailPageLogic'
 import { useBusinessPanelTheme } from '../../../../../features/business-panel/hooks/useBusinessPanelTheme'
+import { useTour } from '@/features/tours'
+import { businessPanelCourseDetailTour } from '@/features/tours/config/business-panel-courses.tour'
 
 export default function BusinessCourseDetailPage() {
   const logic = useBusinessCourseDetailPageLogic()
   const theme = useBusinessPanelTheme()
+  const { autoStartIfNeeded } = useTour(businessPanelCourseDetailTour)
+
+  useEffect(() => {
+    if (!logic.loading && !logic.error && logic.course) {
+      return autoStartIfNeeded()
+    }
+  }, [autoStartIfNeeded, logic.loading, logic.error, logic.course])
 
   if (logic.loading) {
     return <BusinessCourseDetailLoadingState cardBackground={logic.cardBackground} />
@@ -63,21 +72,24 @@ export default function BusinessCourseDetailPage() {
 
       {/* Unified Main Section */}
       <div className="max-w-[1550px] mx-auto px-6 lg:px-8 space-y-4 lg:space-y-8">
-        <BusinessCourseDetailHero
-          course={logic.course}
-          levelStyles={logic.levelStyles}
-          primaryColor={logic.primaryColor}
-          accentColor={logic.accentColor}
-          textColor={logic.textColor}
-          mutedTextColor={logic.mutedTextColor}
-          borderColor={logic.borderColor}
-          formatDuration={logic.formatDuration}
-        />
+        <div data-tour-id="business-panel-course-detail--hero">
+          <BusinessCourseDetailHero
+            course={logic.course}
+            levelStyles={logic.levelStyles}
+            primaryColor={logic.primaryColor}
+            accentColor={logic.accentColor}
+            textColor={logic.textColor}
+            mutedTextColor={logic.mutedTextColor}
+            borderColor={logic.borderColor}
+            formatDuration={logic.formatDuration}
+          />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Main Content Area */}
           <div className="lg:col-span-7 xl:col-span-8 space-y-6">
             <motion.div
+              data-tour-id="business-panel-course-detail--tabs-container"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -153,22 +165,13 @@ export default function BusinessCourseDetailPage() {
                     />
                   ) : null}
 
-                  {logic.activeTab === 'analytics' ? (
-                    <motion.div key="analytics-tab" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                      <CourseAnalyticsTab
-                        courseId={logic.course.id}
-                        orgSlug={logic.orgSlug}
-                        refreshKey={logic.assignmentRefreshKey}
-                      />
-                    </motion.div>
-                  ) : null}
                 </AnimatePresence>
               </div>
             </motion.div>
           </div>
 
           {/* Sidebar Area */}
-          <div className="lg:col-span-5 xl:col-span-4 sticky top-6">
+          <div className="lg:col-span-5 xl:col-span-4 sticky top-6" data-tour-id="business-panel-course-detail--sidebar">
             <BusinessCourseDetailSidebar
               course={logic.course}
               setIsAssignModalOpen={logic.setIsAssignModalOpen}

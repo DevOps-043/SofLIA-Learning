@@ -122,5 +122,6 @@ export function useCoursesPageLogic() {
     viewMode,
     setViewMode,
     orgSlug,
+    router,
   }
 }

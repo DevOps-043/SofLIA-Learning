@@ -45,7 +45,7 @@ export function useBusinessSettingsLogic() {
   const tabs = [
     { id: 'organization' as const, label: 'Datos de la Empresa', icon: Building2, color: theme.actionColor },
     ...(canUseBranding
-      ? [{ id: 'branding' as const, label: 'Branding', icon: Palette, color: theme.secondaryColor }]
+      ? [{ id: 'branding' as const, label: 'Branding', icon: Palette, color: theme.isDark ? theme.secondaryColor : 'var(--color-secondary)' }]
       : []),
   ]
 

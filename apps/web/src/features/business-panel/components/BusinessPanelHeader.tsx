@@ -12,6 +12,13 @@ import { NotificationBell } from '@/core/components/NotificationBell'
 import { UserDropdown } from '@/core/components/UserDropdown'
 import { TourTriggerButton, useTour } from '@/features/tours'
 import { businessPanelDashboardTour } from '@/features/tours/config/business-panel-dashboard.tour'
+import { businessPanelHierarchyTour } from '@/features/tours/config/business-panel-hierarchy.tour'
+import { businessPanelCoursesTour, businessPanelCourseDetailTour } from '@/features/tours/config/business-panel-courses.tour'
+import { businessPanelLearningPathsTour } from '@/features/tours/config/business-panel-learning-paths.tour'
+import { businessPanelUsersTour } from '@/features/tours/config/business-panel-users.tour'
+import { businessPanelReportsTour } from '@/features/tours/config/business-panel-reports.tour'
+import { businessPanelReviewsTour } from '@/features/tours/config/business-panel-reviews.tour'
+import { businessPanelSettingsTour } from '@/features/tours/config/business-panel-settings.tour'
 import { useThemeStore } from '../../../core/stores/themeStore'
 import { useBusinessSettings } from '../hooks/useBusinessSettings'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
@@ -37,9 +44,37 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
   const { resolvedTheme } = useThemeStore()
   const pathname = usePathname()
   const { restartTour } = useTour(businessPanelDashboardTour)
+  const { restartTour: restartHierarchyTour } = useTour(businessPanelHierarchyTour)
+  const { restartTour: restartCoursesTour } = useTour(businessPanelCoursesTour)
+  const { restartTour: restartCourseDetailTour } = useTour(businessPanelCourseDetailTour)
+  const { restartTour: restartLearningPathsTour } = useTour(businessPanelLearningPathsTour)
+  const { restartTour: restartUsersTour } = useTour(businessPanelUsersTour)
+  const { restartTour: restartReportsTour } = useTour(businessPanelReportsTour)
+  const { restartTour: restartReviewsTour } = useTour(businessPanelReviewsTour)
+  const { restartTour: restartSettingsTour } = useTour(businessPanelSettingsTour)
   const panelTheme = useBusinessPanelTheme()
   const organization = businessData?.organization
   const canRestartDashboardTour = pathname?.includes('/business-panel/dashboard') ?? false
+  const canRestartHierarchyTour = (pathname?.includes('/business-panel/hierarchy') && !pathname?.includes('/node/')) ?? false
+  const canRestartCoursesListTour = /\/business-panel\/courses$/.test(pathname ?? '')
+  const canRestartCourseDetailTour = /\/business-panel\/courses\/[^/]+$/.test(pathname ?? '')
+  const canRestartLearningPathsTour = pathname?.includes('/business-panel/learning-paths') ?? false
+  const canRestartUsersTour = /\/business-panel\/users$/.test(pathname ?? '')
+  const canRestartReportsTour = pathname?.includes('/business-panel/reports') ?? false
+  const canRestartReviewsTour = pathname?.includes('/business-panel/reviews') ?? false
+  const canRestartSettingsTour = pathname?.includes('/business-panel/settings') ?? false
+
+  const activeTourRestart =
+    canRestartDashboardTour ? restartTour :
+    canRestartUsersTour ? restartUsersTour :
+    canRestartHierarchyTour ? restartHierarchyTour :
+    canRestartCoursesListTour ? restartCoursesTour :
+    canRestartCourseDetailTour ? restartCourseDetailTour :
+    canRestartLearningPathsTour ? restartLearningPathsTour :
+    canRestartReportsTour ? restartReportsTour :
+    canRestartReviewsTour ? restartReviewsTour :
+    canRestartSettingsTour ? restartSettingsTour :
+    null
 
   const navbarStyle = useMemo(() => {
     const panelStyles = effectiveStyles?.panel || styles?.panel
@@ -181,10 +216,10 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
           </div>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-4">
-            {canRestartDashboardTour ? (
+            {activeTourRestart !== null ? (
               <TourTriggerButton
                 data-tour-id="business-panel-dashboard--tour-trigger"
-                onStart={restartTour}
+                onStart={activeTourRestart}
                 showLabel
                 className="h-9 shadow-sm dark:hover:bg-white/15"
                 style={{

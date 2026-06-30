@@ -1,10 +1,13 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { useBusinessUsersPageLogic } from '@/features/business-panel/hooks/useBusinessUsersPageLogic'
+import { useTour } from '@/features/tours'
+import { businessPanelUsersTour } from '@/features/tours/config/business-panel-users.tour'
 
 import { BusinessUsersErrorBanner } from './components/BusinessUsersErrorBanner'
 import { BusinessUsersLoadingState } from './components/BusinessUsersLoadingState'
@@ -19,6 +22,13 @@ export default function BusinessPanelUsersPage() {
   const { t } = useTranslation('business')
   const theme = useBusinessPanelTheme()
   const logic = useBusinessUsersPageLogic()
+  const { autoStartIfNeeded } = useTour(businessPanelUsersTour)
+
+  useEffect(() => {
+    if (!logic.isLoading) {
+      return autoStartIfNeeded()
+    }
+  }, [autoStartIfNeeded, logic.isLoading])
 
   if (logic.isLoading) {
     return <BusinessUsersLoadingState />

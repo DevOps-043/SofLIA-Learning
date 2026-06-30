@@ -8,7 +8,7 @@ import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params: _params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await requireAdmin()

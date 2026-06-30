@@ -2,6 +2,7 @@
 
 import { ConfirmationModal } from '@/features/admin/components/ConfirmationModal'
 import { AdminMemberManageModal } from '@/features/admin/components/AdminMemberManageModal'
+import { AdminMemberDetailModal } from '@/features/admin/components/AdminMemberDetailModal'
 import { AdminUnifiedInviteModal } from '@/features/admin/components/AdminUnifiedInviteModal'
 import { ErrorModal } from '@/core/components/ErrorModal/ErrorModal'
 import { SuccessModal } from '@/core/components/SuccessModal/SuccessModal'
@@ -39,13 +40,21 @@ export function UsersSectionModals(props: UsersSectionModalsProps) {
         accentColor={colors.accent}
       />
 
-      <AdminMemberManageModal
-        isOpen={props.manageMode !== null}
+      <AdminMemberDetailModal
+        isOpen={props.manageMode === 'edit'}
         onClose={props.onCloseManage}
         onUpdate={props.onUpdate}
         member={props.manageMember}
         companyId={props.company.id}
-        mode={props.manageMode}
+      />
+
+      <AdminMemberManageModal
+        isOpen={props.manageMode === 'delete'}
+        onClose={props.onCloseManage}
+        onUpdate={props.onUpdate}
+        member={props.manageMember}
+        companyId={props.company.id}
+        mode="delete"
         primaryColor={colors.primary}
         accentColor={colors.accent}
       />

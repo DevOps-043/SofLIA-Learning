@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { BarChart3, BookOpen, FileText, GraduationCap, Star } from 'lucide-react'
+import { BookOpen, FileText, GraduationCap, Star } from 'lucide-react'
 import type { BusinessCourseDetailTabId } from '../../types/business-course-detail.types'
 
 const BUSINESS_COURSE_TABS: Array<{
@@ -11,7 +11,6 @@ const BUSINESS_COURSE_TABS: Array<{
   { id: 'content', label: 'Contenido', icon: FileText },
   { id: 'reviews', label: 'Reseñas', icon: Star },
   { id: 'instructor', label: 'Instructor', icon: GraduationCap },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
 ]
 
 interface BusinessCourseDetailTabsProps {

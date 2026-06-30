@@ -122,7 +122,7 @@ export function FiltersBar({
   const hasSecondaryActive = secondaryFilters.some((f) => f.value)
 
   return (
-    <section className="rounded-lg border p-4" style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}>
+    <section id="tour-reports-filters" className="rounded-lg border p-4" style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}>
       <div className="flex flex-wrap items-end gap-3">
         <DateFilter
           label={t('reportsAnalytics.filters.from')}

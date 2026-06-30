@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import { SubscriptionService } from '@/features/business-panel/services/subscription.service'
 import { SessionService } from '@/features/auth/services/session.service'
+import { LearningPathDefaultsService } from '@/features/learning-paths/services/learning-path-defaults.server'
 import {
   courseAssignmentCreateSchema,
   courseAssignmentDeleteSchema,
@@ -134,24 +135,51 @@ async function handlePost(
 
     const { user_ids, due_date, start_date, approach, message } = body
 
-    const { data: orgUsers, error: orgUsersError } = await supabase
-      .from('organization_users')
-      .select('user_id, organization_id, status')
-      .in('user_id', user_ids)
-      .eq('organization_id', organizationId)
-      .eq('status', 'active')
+    // Resolve user IDs: from explicit list or from bulk target (all/node)
+    let resolvedUserIds: string[]
 
-    if (orgUsersError) {
-      logger.error('Error validating organization users:', orgUsersError)
-      return apiError('VALIDATE_USERS_FAILED', 'Error al validar usuarios', 500)
-    }
+    if (body.target) {
+      try {
+        const lpTarget =
+          body.target.type === 'all'
+            ? ({ type: 'all' } as const)
+            : ({ type: 'node', nodeIds: body.target.nodeIds ?? [], includeDescendants: body.target.includeDescendants ?? true } as const)
+        resolvedUserIds = await LearningPathDefaultsService.resolveTargetUserIds(organizationId, lpTarget)
+      } catch (targetError) {
+        logger.error('Error resolving target users for course assignment:', targetError)
+        return apiError(
+          'TARGET_RESOLUTION_FAILED',
+          targetError instanceof Error ? targetError.message : 'Error al resolver usuarios del destino',
+          400,
+        )
+      }
 
-    if (!orgUsers || orgUsers.length !== user_ids.length) {
-      return apiError(
-        'INVALID_ORGANIZATION_USERS',
-        'Algunos usuarios no pertenecen a tu organizacion o no estan activos',
-        400,
-      )
+      if (resolvedUserIds.length === 0) {
+        return apiError('NO_USERS_FOUND', 'No se encontraron usuarios activos para este destino', 400)
+      }
+    } else {
+      const explicitUserIds = user_ids ?? []
+      const { data: orgUsers, error: orgUsersError } = await supabase
+        .from('organization_users')
+        .select('user_id, organization_id, status')
+        .in('user_id', explicitUserIds)
+        .eq('organization_id', organizationId)
+        .eq('status', 'active')
+
+      if (orgUsersError) {
+        logger.error('Error validating organization users:', orgUsersError)
+        return apiError('VALIDATE_USERS_FAILED', 'Error al validar usuarios', 500)
+      }
+
+      if (!orgUsers || orgUsers.length !== explicitUserIds.length) {
+        return apiError(
+          'INVALID_ORGANIZATION_USERS',
+          'Algunos usuarios no pertenecen a tu organizacion o no estan activos',
+          400,
+        )
+      }
+
+      resolvedUserIds = explicitUserIds
     }
 
     if (start_date && due_date) {
@@ -172,11 +200,11 @@ async function handlePost(
       .select('user_id')
       .eq('organization_id', organizationId)
       .eq('course_id', courseId)
-      .in('user_id', user_ids)
+      .in('user_id', resolvedUserIds)
       .or('status.is.null,status.in.(assigned,in_progress)')
 
     const existingUserIds = existingAssignments?.map((assignment) => assignment.user_id) || []
-    const newUserIds = user_ids.filter((userId) => !existingUserIds.includes(userId))
+    const newUserIds = resolvedUserIds.filter((userId) => !existingUserIds.includes(userId))
 
     if (newUserIds.length === 0) {
       return apiError(

@@ -1,5 +1,7 @@
 import type { TFunction } from 'i18next'
 
+export type AssignmentMode = 'users' | 'all' | 'node'
+
 export interface BusinessAssignCourseModalProps {
   isOpen: boolean
   onClose: () => void
