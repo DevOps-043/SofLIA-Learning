@@ -23,8 +23,12 @@ export function BusinessLearningPathsPage() {
   const { autoStartIfNeeded } = useTour(businessPanelLearningPathsTour)
 
   useEffect(() => {
+    // Wait until content is loaded so tour targets (#tour-paths-hero, etc.) are in the DOM.
+    // autoStartIfNeeded already handles hasCompleted and isRunning guards internally,
+    // and retries when isRunning changes to false (its identity changes with isRunning).
+    if (logic.isLoading) return
     return autoStartIfNeeded()
-  }, [autoStartIfNeeded])
+  }, [logic.isLoading, autoStartIfNeeded])
   const selectedLearningPathForVideos = useMemo(
     () => logic.learningPaths.find((path) => path.id === videosLearningPathId) ?? null,
     [logic.learningPaths, videosLearningPathId],

@@ -1,7 +1,11 @@
-'use client'
+import { BusinessPanelContentPage } from './BusinessPanelContentPage'
 
-import { CoursesPageContent } from './CoursesPageContent'
+interface Props {
+  searchParams: Promise<{ tab?: string }>
+}
 
-export default function BusinessPanelCoursesPage() {
-  return <CoursesPageContent />
+export default async function BusinessPanelCoursesPage({ searchParams }: Props) {
+  const { tab } = await searchParams
+  const initialTab = tab === 'paths' ? 'paths' : 'courses'
+  return <BusinessPanelContentPage initialTab={initialTab} />
 }

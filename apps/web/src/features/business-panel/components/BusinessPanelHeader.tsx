@@ -2,7 +2,7 @@
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Building2, Menu } from 'lucide-react'
 import { useMemo } from 'react'
@@ -43,6 +43,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
   const { t } = useTranslation('business')
   const { resolvedTheme } = useThemeStore()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { restartTour } = useTour(businessPanelDashboardTour)
   const { restartTour: restartHierarchyTour } = useTour(businessPanelHierarchyTour)
   const { restartTour: restartCoursesTour } = useTour(businessPanelCoursesTour)
@@ -54,11 +55,15 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
   const { restartTour: restartSettingsTour } = useTour(businessPanelSettingsTour)
   const panelTheme = useBusinessPanelTheme()
   const organization = businessData?.organization
+  const isOnContentPage = /\/business-panel\/courses$/.test(pathname ?? '')
+  const contentTab = isOnContentPage ? (searchParams?.get('tab') ?? 'courses') : null
+
   const canRestartDashboardTour = pathname?.includes('/business-panel/dashboard') ?? false
   const canRestartHierarchyTour = (pathname?.includes('/business-panel/hierarchy') && !pathname?.includes('/node/')) ?? false
-  const canRestartCoursesListTour = /\/business-panel\/courses$/.test(pathname ?? '')
+  // Courses and LP now share the unified /courses page — distinguish by ?tab param
+  const canRestartCoursesListTour = isOnContentPage && contentTab !== 'paths'
   const canRestartCourseDetailTour = /\/business-panel\/courses\/[^/]+$/.test(pathname ?? '')
-  const canRestartLearningPathsTour = pathname?.includes('/business-panel/learning-paths') ?? false
+  const canRestartLearningPathsTour = isOnContentPage && contentTab === 'paths'
   const canRestartUsersTour = /\/business-panel\/users$/.test(pathname ?? '')
   const canRestartReportsTour = pathname?.includes('/business-panel/reports') ?? false
   const canRestartReviewsTour = pathname?.includes('/business-panel/reviews') ?? false

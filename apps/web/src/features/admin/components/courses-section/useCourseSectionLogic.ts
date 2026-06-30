@@ -11,6 +11,8 @@ import type {
   LearningPath,
   OrganizationLearningPathAssignment,
   UserLearningPathAssignment,
+  UnifiedOrgItem,
+  UnifiedUserItem,
 } from './courses-section.types'
 
 interface UseCourseSectionLogicProps {
@@ -38,6 +40,9 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
   const [isAssignLearningPathModalOpen, setIsAssignLearningPathModalOpen] = useState(false)
   const [assigningId, setAssigningId] = useState<string | null>(null)
   const [isAssigning, setIsAssigning] = useState(false)
+
+  // Content type filter (unified panel)
+  const [contentTypeFilter, setContentTypeFilter] = useState<'all' | 'courses' | 'paths'>('all')
 
   // Filters & Search
   const [catalogSearch, setCatalogSearch] = useState('')
@@ -308,9 +313,30 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
     )
   ), [userLearningPathAssignments, listSearch])
 
+  const unifiedOrgItems = useMemo<UnifiedOrgItem[]>(() => {
+    const courseItems: UnifiedOrgItem[] = contentTypeFilter !== 'paths'
+      ? activeHierarchy.map(data => ({ kind: 'course', data }))
+      : []
+    const pathItems: UnifiedOrgItem[] = contentTypeFilter !== 'courses'
+      ? activeOrganizationLearningPaths.map(data => ({ kind: 'path', data }))
+      : []
+    return [...courseItems, ...pathItems]
+  }, [activeHierarchy, activeOrganizationLearningPaths, contentTypeFilter])
+
+  const unifiedUserItems = useMemo<UnifiedUserItem[]>(() => {
+    const courseItems: UnifiedUserItem[] = contentTypeFilter !== 'paths'
+      ? activeUserAssignments.map(data => ({ kind: 'course', data }))
+      : []
+    const pathItems: UnifiedUserItem[] = contentTypeFilter !== 'courses'
+      ? activeUserLearningPathAssignments.map(data => ({ kind: 'path', data }))
+      : []
+    return [...courseItems, ...pathItems]
+  }, [activeUserAssignments, activeUserLearningPathAssignments, contentTypeFilter])
+
   return {
     // State
     activeTab, setActiveTab,
+    contentTypeFilter, setContentTypeFilter,
     loading,
     isCatalogOpen, setIsCatalogOpen,
     isLearningPathCatalogOpen, setIsLearningPathCatalogOpen,
@@ -339,6 +365,8 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
     activeUserAssignments,
     activeOrganizationLearningPaths,
     activeUserLearningPathAssignments,
+    unifiedOrgItems,
+    unifiedUserItems,
     // Handlers
     handleAssignToOrg,
     handleAssignLearningPathToOrg,

@@ -15,6 +15,11 @@ interface LearningPathAssignmentIdRow {
   learning_path_id: string
 }
 
+interface UserLearningPathAssignmentRow {
+  learning_path_id: string
+  status: 'assigned' | 'revoked'
+}
+
 interface LearningPathCourseJoinRow {
   id: string
   title: string | null
@@ -47,11 +52,11 @@ async function loadAssignedLearningPathIds(userId: string, organizationId: strin
       .returns<LearningPathAssignmentIdRow[]>(),
     supabase
       .from('user_learning_path_assignments')
-      .select('learning_path_id')
+      .select('learning_path_id, status')
       .eq('organization_id', organizationId)
       .eq('user_id', userId)
-      .eq('status', 'assigned')
-      .returns<LearningPathAssignmentIdRow[]>(),
+      .in('status', ['assigned', 'revoked'])
+      .returns<UserLearningPathAssignmentRow[]>(),
   ])
 
   if (organizationAssignments.error) {
@@ -72,10 +77,23 @@ async function loadAssignedLearningPathIds(userId: string, organizationId: strin
     return []
   }
 
-  const ids = uniqueValues([
-    ...(organizationAssignments.data || []).map((row) => row.learning_path_id),
-    ...(userAssignments.data || []).map((row) => row.learning_path_id),
-  ])
+  // Separate revoked from assigned user-level rows.
+  // A 'revoked' row overrides any org-level assignment for that LP.
+  const explicitlyRevokedIds = new Set<string>()
+  const userAssignedIds: string[] = []
+  for (const row of userAssignments.data || []) {
+    if (row.status === 'revoked') {
+      explicitlyRevokedIds.add(row.learning_path_id)
+    } else if (row.status === 'assigned') {
+      userAssignedIds.push(row.learning_path_id)
+    }
+  }
+
+  const orgIds = (organizationAssignments.data || [])
+    .map((row) => row.learning_path_id)
+    .filter((id) => !explicitlyRevokedIds.has(id))
+
+  const ids = uniqueValues([...orgIds, ...userAssignedIds])
 
   logger.log(
     `📚 Learning path IDs for user ${userId} in org ${organizationId}:`,

@@ -80,6 +80,14 @@ export interface CompanyMember {
   }
 }
 
+export type UnifiedOrgItem =
+  | { kind: 'course'; data: AssignedCourse }
+  | { kind: 'path'; data: OrganizationLearningPathAssignment }
+
+export type UnifiedUserItem =
+  | { kind: 'course'; data: UserAssignment }
+  | { kind: 'path'; data: UserLearningPathAssignment }
+
 export const colors = {
   primary: 'var(--color-primary)',
   accent: 'var(--color-accent)',

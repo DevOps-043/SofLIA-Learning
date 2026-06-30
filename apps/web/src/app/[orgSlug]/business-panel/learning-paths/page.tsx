@@ -1,7 +1,10 @@
-'use client'
+import { redirect } from 'next/navigation'
 
-import { BusinessLearningPathsPage } from '@/features/business-panel/components/BusinessLearningPathsPage'
+interface Props {
+  params: Promise<{ orgSlug: string }>
+}
 
-export default function BusinessPanelLearningPathsPage() {
-  return <BusinessLearningPathsPage />
+export default async function BusinessPanelLearningPathsPage({ params }: Props) {
+  const { orgSlug } = await params
+  redirect(`/${orgSlug}/business-panel/courses?tab=paths`)
 }

@@ -2,15 +2,10 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { useTranslation } from 'react-i18next'
+import { BookOpen, Route } from 'lucide-react'
 import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import { useCourseSectionLogic } from './useCourseSectionLogic'
-import {
-  OrgCoursesGrid,
-  OrgLearningPathsGrid,
-  UserAssignmentsTable,
-  UserLearningPathAssignmentsTable,
-} from './CoursesList'
+import { UnifiedOrgGrid, UnifiedUserAssignmentsTable } from './CoursesList'
 import {
   CoursesHeader,
   CoursesSearchBar,
@@ -24,15 +19,48 @@ interface CoursesSectionProps {
   companyId: string
 }
 
+function StatsRow({ courseCount, pathCount }: { courseCount: number; pathCount: number }) {
+  return (
+    <div className="flex gap-3 flex-wrap">
+      <div
+        className="flex items-center gap-2 px-4 py-2 rounded-xl border"
+        style={{ borderColor: 'rgba(255,255,255,0.07)', backgroundColor: 'rgba(255,255,255,0.02)' }}
+      >
+        <BookOpen className="w-3.5 h-3.5" style={{ color: colors.accent }} />
+        <span className="text-xs font-bold" style={{ color: colors.grayMedium }}>
+          {courseCount} {courseCount === 1 ? 'Curso' : 'Cursos'}
+        </span>
+      </div>
+      <div
+        className="flex items-center gap-2 px-4 py-2 rounded-xl border"
+        style={{ borderColor: 'rgba(255,255,255,0.07)', backgroundColor: 'rgba(255,255,255,0.02)' }}
+      >
+        <Route className="w-3.5 h-3.5" style={{ color: colors.purple }} />
+        <span className="text-xs font-bold" style={{ color: colors.grayMedium }}>
+          {pathCount} {pathCount === 1 ? 'Ruta' : 'Rutas'}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => {
-  const { t } = useTranslation('admin')
   const logic = useCourseSectionLogic({ companyId })
 
   if (logic.loading) {
     return (
       <div className="rounded-2xl p-6 flex flex-col items-center justify-center py-20 space-y-4" style={{ backgroundColor: colors.bgTertiary }}>
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-10 h-10 border-4 rounded-full" style={{ borderColor: `color-mix(in srgb, ${colors.accent} 12.5%, transparent)`, borderTopColor: colors.accent }} />
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-10 h-10 border-4 rounded-full"
+          style={{
+            borderTopColor: colors.accent,
+            borderRightColor: `color-mix(in srgb, ${colors.accent} 12.5%, transparent)`,
+            borderBottomColor: `color-mix(in srgb, ${colors.accent} 12.5%, transparent)`,
+            borderLeftColor: `color-mix(in srgb, ${colors.accent} 12.5%, transparent)`,
+          }}
+        />
         <p className="text-sm font-medium" style={{ color: colors.grayMedium }}>Preparando catálogo...</p>
       </div>
     )
@@ -50,6 +78,8 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => 
       <CoursesHeader
         activeTab={logic.activeTab}
         setActiveTab={logic.setActiveTab}
+        contentTypeFilter={logic.contentTypeFilter}
+        setContentTypeFilter={logic.setContentTypeFilter}
         onOpenCatalog={() => logic.setIsCatalogOpen(true)}
         onOpenLearningPathCatalog={() => logic.setIsLearningPathCatalogOpen(true)}
         onAssignUser={() => logic.setIsAssignUserModalOpen(true)}
@@ -62,51 +92,27 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => 
       />
 
       {logic.activeTab === 'org' ? (
-        <div className="space-y-8">
-          <div>
-            <h4 className="mb-4 text-sm font-black uppercase tracking-[0.2em]" style={{ color: colors.grayMedium }}>
-              Cursos Organizacionales
-            </h4>
-            <OrgCoursesGrid
-              activeHierarchy={logic.activeHierarchy}
-              onRemove={logic.handleRemoveHierarchy}
-            />
-          </div>
-          <div>
-            <h4 className="mb-4 text-sm font-black uppercase tracking-[0.2em]" style={{ color: colors.grayMedium }}>
-              Learning Paths Organizacionales
-            </h4>
-            <OrgLearningPathsGrid
-              assignments={logic.activeOrganizationLearningPaths}
-              onRemove={logic.handleRemoveOrganizationLearningPath}
-            />
-          </div>
+        <div className="space-y-4">
+          <StatsRow
+            courseCount={logic.activeHierarchy.length}
+            pathCount={logic.activeOrganizationLearningPaths.length}
+          />
+          <UnifiedOrgGrid
+            items={logic.unifiedOrgItems}
+            onRemoveCourse={logic.handleRemoveHierarchy}
+            onRemovePath={logic.handleRemoveOrganizationLearningPath}
+          />
         </div>
       ) : (
-        <div className="space-y-8">
-          <div>
-            <h4 className="mb-4 text-sm font-black uppercase tracking-[0.2em]" style={{ color: colors.grayMedium }}>
-              Cursos Asignados Individualmente
-            </h4>
-            <UserAssignmentsTable
-              activeUserAssignments={logic.activeUserAssignments}
-              onRemove={logic.handleRemoveUserAssignment}
-            />
-          </div>
-          <div>
-            <h4 className="mb-4 text-sm font-black uppercase tracking-[0.2em]" style={{ color: colors.grayMedium }}>
-              Learning Paths Asignados Individualmente
-            </h4>
-            <p className="mb-4 text-sm" style={{ color: colors.grayMedium }}>
-              {t(
-                'coursesSection.learningPathAssignmentsManagedByCompany',
-                'Las asignaciones individuales de rutas se gestionan desde el panel de cada empresa.',
-              )}
-            </p>
-            <UserLearningPathAssignmentsTable
-              assignments={logic.activeUserLearningPathAssignments}
-            />
-          </div>
+        <div className="space-y-4">
+          <StatsRow
+            courseCount={logic.activeUserAssignments.length}
+            pathCount={logic.activeUserLearningPathAssignments.length}
+          />
+          <UnifiedUserAssignmentsTable
+            items={logic.unifiedUserItems}
+            onRemoveCourse={logic.handleRemoveUserAssignment}
+          />
         </div>
       )}
 
