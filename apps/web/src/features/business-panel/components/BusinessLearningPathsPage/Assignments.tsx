@@ -1,3 +1,4 @@
+import { AnimatePresence } from 'framer-motion'
 import { Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { BusinessLearningPathAssignmentRow } from './AssignmentRow'
@@ -32,9 +33,11 @@ export function BusinessLearningPathAssignments({ logic, language }: BusinessLea
             ))}
           </div>
           <div style={{ backgroundColor: inputBg }}>
-            {assignmentCards.map((assignment, index) => (
-              <BusinessLearningPathAssignmentRow key={assignment.id} assignment={assignment} index={index} language={language} logic={logic} />
-            ))}
+            <AnimatePresence>
+              {assignmentCards.map((assignment, index) => (
+                <BusinessLearningPathAssignmentRow key={assignment.id} assignment={assignment} index={index} language={language} logic={logic} />
+              ))}
+            </AnimatePresence>
           </div>
         </div>
       )}

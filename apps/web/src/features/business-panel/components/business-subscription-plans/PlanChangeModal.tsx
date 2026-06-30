@@ -23,7 +23,7 @@ export function PlanChangeModal(props: PlanChangeModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCancelChange} className="absolute inset-0 backdrop-blur-sm" style={{ backgroundColor: theme.overlayBg }} />
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCancelChange} className="absolute inset-0" />
       <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ type: 'spring', duration: 0.3 }} className="relative z-10 w-full max-w-lg rounded-xl border" style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor, boxShadow: modalShadow }}>
         <div className="flex items-center justify-between border-b p-5" style={{ backgroundColor: theme.cardBg, borderColor: theme.dividerColor }}>
           <h2 className="flex items-center gap-2.5 text-xl font-bold" style={{ color: theme.textColor }}><span className="rounded-lg p-1.5" style={{ backgroundColor: primarySurface }}><Info className="h-4 w-4" style={{ color: theme.primaryColor }} /></span>Confirmar cambio de plan</h2>

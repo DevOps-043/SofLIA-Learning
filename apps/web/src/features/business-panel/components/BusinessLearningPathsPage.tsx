@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { useBusinessLearningPathsPageLogic } from '../hooks/useBusinessLearningPathsPageLogic'
 import { useTour } from '@/features/tours'
 import { businessPanelLearningPathsTour } from '@/features/tours/config/business-panel-learning-paths.tour'
+import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import { BusinessLearningPathAssignments } from './BusinessLearningPathsPage/Assignments'
 import { BusinessLearningPathCards } from './BusinessLearningPathsPage/Cards'
 import { BusinessLearningPathsFeedback } from './BusinessLearningPathsPage/Feedback'
@@ -33,7 +34,7 @@ export function BusinessLearningPathsPage() {
     () => logic.learningPaths.find((path) => path.id === videosLearningPathId) ?? null,
     [logic.learningPaths, videosLearningPathId],
   )
-  const { panelBg, borderColor, inputBg } = logic.theme
+  const { panelBg, inputBg } = logic.theme
 
   if (logic.isLoading) {
     return <BusinessLearningPathsLoading inputBg={inputBg} />
@@ -62,6 +63,13 @@ export function BusinessLearningPathsPage() {
           />
         </div>
       </motion.div>
+      <ToastNotification
+        isOpen={logic.toast.isOpen}
+        onClose={logic.hideToast}
+        message={logic.toast.message}
+        type={logic.toast.type}
+        position="top-right"
+      />
     </>
   )
 }

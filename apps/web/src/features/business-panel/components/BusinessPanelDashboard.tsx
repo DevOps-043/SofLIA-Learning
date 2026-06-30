@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import {
-  SparklesIcon,
   ClockIcon,
   ChevronDownIcon,
   ChevronUpIcon,
@@ -85,13 +84,6 @@ export function BusinessPanelDashboard() {
         </div>
 
         <div className="relative z-10">
-          <div className="mb-1 flex min-w-0 items-center gap-2 md:mb-2 md:gap-3">
-            <SparklesIcon className="h-4 w-4 md:h-6 md:w-6" style={{ color: themeColors.accent }} />
-            <span className="truncate text-[10px] font-medium uppercase tracking-wide md:text-sm" style={{ color: themeColors.inverseText }}>
-              {t('dashboard.title')}
-            </span>
-          </div>
-
           <motion.h1 data-tour-id="business-panel-dashboard--hero-summary" className="text-xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 leading-tight" style={{ color: themeColors.inverseText }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition}>
             <DashboardGreeting getGreeting={getGreeting} userName={getUserName()} />
           </motion.h1>

@@ -18,8 +18,7 @@ export function AssignModalShell({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 backdrop-blur-sm"
-          style={{ backgroundColor: theme.overlayBg }}
+          className="absolute inset-0"
         />
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 24 }}

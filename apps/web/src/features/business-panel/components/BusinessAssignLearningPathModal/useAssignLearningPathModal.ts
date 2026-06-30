@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { mutate } from 'swr'
 import { assignLearningPathSelection } from './assign-learning-path-selection'
 import { validateAssignmentSelection } from './validate-assignment-selection'
 import type { BusinessAssignLearningPathModalProps, BusinessTranslate, AssignmentMode } from './types'
@@ -77,6 +78,9 @@ export function useAssignLearningPathModal({
         selectedNodeIds,
         selectedUserIds,
       })
+      // Invalidate business-user dashboard cache so affected users see updated
+      // LP assignments without waiting for the SWR dedupingInterval to expire.
+      void mutate((key: unknown) => typeof key === 'string' && key.startsWith('business-user-dashboard:'))
       await onAssigned()
       onClose()
     } catch (assignmentError) {

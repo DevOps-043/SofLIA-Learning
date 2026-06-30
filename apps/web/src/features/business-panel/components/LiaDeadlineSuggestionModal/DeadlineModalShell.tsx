@@ -19,8 +19,7 @@ export function DeadlineModalShell({ children, theme, onClose }: DeadlineModalSh
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 backdrop-blur-md"
-          style={{ backgroundColor: theme.overlayBg }}
+          className="absolute inset-0"
         />
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}

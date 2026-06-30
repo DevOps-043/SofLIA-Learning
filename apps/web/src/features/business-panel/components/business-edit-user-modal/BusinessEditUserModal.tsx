@@ -58,7 +58,6 @@ export function BusinessEditUserModal({ isOpen, onClose, user, onSave }: Busines
           exit={{ opacity: 0 }}
           onClick={onClose}
           className="absolute inset-0"
-          style={{ backgroundColor: theme.overlayBg }}
         />
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}

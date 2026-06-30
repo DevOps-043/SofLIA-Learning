@@ -74,8 +74,7 @@ export function BusinessInviteModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 backdrop-blur-sm"
-          style={{ backgroundColor: theme.overlayBg }}
+          className="absolute inset-0"
         />
 
         <motion.div

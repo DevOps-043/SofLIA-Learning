@@ -170,10 +170,10 @@ export function useBusinessUserDashboardPageLogic() {
     orgSlug ? `business-user-dashboard:${orgSlug}` : null,
     () => fetchBusinessUserDashboardData(orgSlug as string),
     {
-      dedupingInterval: 60000,
+      dedupingInterval: 8000,
       errorRetryCount: 1,
       keepPreviousData: true,
-      revalidateOnFocus: false,
+      revalidateOnFocus: true,
       revalidateOnReconnect: true,
     },
   )

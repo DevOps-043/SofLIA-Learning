@@ -1,8 +1,10 @@
 'use client'
 
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useCallback, useDeferredValue, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
+import { mutate } from 'swr'
+import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
 
 import { BusinessLearningPathsService } from '../services/businessLearningPaths.service'
 import { useBusinessLearningPaths } from './useBusinessLearningPaths'
@@ -21,7 +23,7 @@ export function useBusinessLearningPathsPageLogic() {
     hierarchyNodes,
     isLoading,
     error,
-    refetch,
+    refetchSilent,
   } =
     useBusinessLearningPaths(orgSlug)
   const {
@@ -34,10 +36,10 @@ export function useBusinessLearningPathsPageLogic() {
   const deferredSearchTerm = useDeferredValue(searchTerm)
   const [selectedLearningPathId, setSelectedLearningPathId] = useState<string | null>(null)
   const [defaultConfigLearningPathId, setDefaultConfigLearningPathId] = useState<string | null>(null)
-  const [feedback, setFeedback] = useState<{
-    type: 'success' | 'error'
-    message: string
-  } | null>(null)
+  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: ToastType }>({ isOpen: false, message: '', type: 'success' })
+  const showToast = useCallback((message: string, type: ToastType = 'success') => setToast({ isOpen: true, message, type }), [])
+  const hideToast = useCallback(() => setToast(prev => ({ ...prev, isOpen: false })), [])
+  const [pendingRevokeIds, setPendingRevokeIds] = useState<Set<string>>(new Set())
   const [revokingAssignmentId, setRevokingAssignmentId] = useState<string | null>(null)
 
   const normalizedSearchTerm = deferredSearchTerm.trim().toLowerCase()
@@ -45,6 +47,13 @@ export function useBusinessLearningPathsPageLogic() {
   const activeAssignments = useMemo(
     () => assignments.filter((assignment) => assignment.status === 'assigned'),
     [assignments],
+  )
+
+  // Optimistically exclude rows being revoked so they animate out immediately,
+  // without waiting for the server response or triggering a full data reload.
+  const visibleAssignments = useMemo(
+    () => activeAssignments.filter((a) => !pendingRevokeIds.has(a.id)),
+    [activeAssignments, pendingRevokeIds],
   )
 
   const assignmentsByPathId = useMemo(() => {
@@ -117,40 +126,38 @@ export function useBusinessLearningPathsPageLogic() {
   )
 
   async function handleAssignmentCreated() {
-    await refetch()
-    setFeedback({
-      type: 'success',
-      message: t('learningPathsPage.messages.assignSuccess'),
-    })
+    await refetchSilent()
+    showToast(t('learningPathsPage.messages.assignSuccess'))
   }
 
   async function handleDefaultRulesChanged(message?: string) {
-    await refetch()
-    setFeedback({
-      type: 'success',
-      message: message || t('learningPathsPage.messages.defaultSaved'),
-    })
+    await refetchSilent()
+    showToast(message || t('learningPathsPage.messages.defaultSaved'))
   }
 
   async function handleRevokeAssignment(assignmentId: string) {
+    // Optimistic: remove row from visible list immediately so it animates out
+    // before the server responds. Rolled back if the API call fails.
+    setPendingRevokeIds((prev) => new Set(prev).add(assignmentId))
+    setRevokingAssignmentId(assignmentId)
     try {
-      setRevokingAssignmentId(assignmentId)
       await BusinessLearningPathsService.revokeLearningPathAssignment(orgSlug, assignmentId)
-      await refetch()
-      setFeedback({
-        type: 'success',
-        message: t('learningPathsPage.messages.revokeSuccess'),
-      })
+      void mutate((key: unknown) => typeof key === 'string' && key.startsWith('business-user-dashboard:'))
+      showToast(t('learningPathsPage.messages.revokeSuccess'))
+      void refetchSilent()
     } catch (revokeError) {
-      setFeedback({
-        type: 'error',
-        message:
-          revokeError instanceof Error
-            ? revokeError.message
-            : t('learningPathsPage.messages.revokeError', {
-                defaultValue: 'No se pudo revocar la asignación',
-              }),
+      // Rollback: restore the row so the user can retry
+      setPendingRevokeIds((prev) => {
+        const next = new Set(prev)
+        next.delete(assignmentId)
+        return next
       })
+      showToast(
+        revokeError instanceof Error
+          ? revokeError.message
+          : t('learningPathsPage.messages.revokeError', { defaultValue: 'No se pudo revocar la asignación' }),
+        'error',
+      )
     } finally {
       setRevokingAssignmentId(null)
     }
@@ -162,7 +169,7 @@ export function useBusinessLearningPathsPageLogic() {
     theme,
     learningPaths,
     filteredLearningPaths,
-    assignments: activeAssignments,
+    assignments: visibleAssignments,
     assignmentsByPathId,
     defaultRules: activeDefaultRules,
     defaultRulesByPathId,
@@ -176,8 +183,8 @@ export function useBusinessLearningPathsPageLogic() {
     error: error || usersError,
     searchTerm,
     setSearchTerm,
-    feedback,
-    setFeedback,
+    toast,
+    hideToast,
     totalAssignedUsers,
     totalWorkshops,
     selectedLearningPathId,

@@ -88,7 +88,9 @@ export async function GET(_request: NextRequest, context: RouteContext) {
           }
         : null,
     }, {
-      headers: cacheHeaders.privateShort,
+      // Assignment data is personalized and changes when admins assign/revoke LPs or courses.
+      // Never serve stale data from the browser cache — freshness is critical here.
+      headers: cacheHeaders.private,
     })
   } catch (error) {
     logger.error('Error in /api/[orgSlug]/business-user/dashboard:', error)

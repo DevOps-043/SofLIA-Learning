@@ -1,13 +1,19 @@
 'use client'
 
+import { useState, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BarChart3, ChevronRight, Mail, Sparkles, User, X } from 'lucide-react'
+import { BarChart3, ChevronRight, Download, Loader2, Mail, Sparkles, User, X } from 'lucide-react'
 import Image from 'next/image'
 import { useOrganizationStore } from '@/core/stores/organizationStore'
 import type { BusinessUser } from '../services/businessUsers.service'
 import { useBusinessUserStatsModalLogic } from '../hooks/useBusinessUserStatsModalLogic'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 import { BusinessUserAnalyticsPageClient } from './business-user-analytics/BusinessUserAnalyticsPageClient'
+import type {
+  BusinessUserAnalyticsInsights,
+  BusinessUserAnalyticsResponse,
+} from '../types/business-user-analytics.types'
+import { useLanguage } from '@/core/providers/I18nProvider'
 
 interface BusinessUserStatsModalProps {
   user:     BusinessUser | null
@@ -24,9 +30,40 @@ export function BusinessUserStatsModal({
 }: BusinessUserStatsModalProps) {
   const panelTheme       = useBusinessPanelTheme()
   const organizationName = useOrganizationStore((s) => s.currentOrganization?.name) ?? null
+  const { language }     = useLanguage()
 
   const { t, isDark, primaryColor, accentColor, displayName } =
     useBusinessUserStatsModalLogic({ user, onClose })
+
+  const [analyticsData,    setAnalyticsData]    = useState<BusinessUserAnalyticsResponse | null>(null)
+  const [analyticsInsights, setAnalyticsInsights] = useState<BusinessUserAnalyticsInsights | null>(null)
+  const [isPdfExporting,   setIsPdfExporting]   = useState(false)
+
+  const handleExportPdf = useCallback(async () => {
+    if (!analyticsData) return
+    setIsPdfExporting(true)
+    try {
+      const { generateUserStatsPdf } = await import(
+        '../services/business-user-analytics/pdf/generate-user-stats-pdf'
+      )
+      const blob = await generateUserStatsPdf(analyticsData, {
+        userLabel:         displayName,
+        organizationLabel: organizationName,
+        locale:            (language as 'es' | 'en' | 'pt') ?? 'es',
+        insights:          analyticsInsights,
+      })
+      const url = URL.createObjectURL(blob)
+      const a   = document.createElement('a')
+      a.href     = url
+      a.download = `estadisticas-${displayName.toLowerCase().replace(/\s+/g, '-')}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      // PDF generation is non-critical; ignore failures silently
+    } finally {
+      setIsPdfExporting(false)
+    }
+  }, [analyticsData, analyticsInsights, displayName, language, organizationName])
 
   if (!isOpen || !user) return null
 
@@ -144,6 +181,8 @@ export function BusinessUserStatsModal({
                     showBackButton={false}
                     userId={user.id}
                     pdfExport={{ userLabel: displayName, organizationLabel: organizationName }}
+                    onAnalyticsLoaded={setAnalyticsData}
+                    onInsightsLoaded={setAnalyticsInsights}
                   />
                 </div>
               </div>
@@ -167,6 +206,18 @@ export function BusinessUserStatsModal({
                     style={{ color: mutedText, backgroundColor: inputBg, borderColor: modalBorder }}
                   >
                     {t('common.close', 'Cerrar')}
+                  </button>
+                  <button
+                    onClick={() => void handleExportPdf()}
+                    disabled={!analyticsData || isPdfExporting}
+                    className="flex items-center justify-center gap-2 rounded-2xl border px-6 py-4 text-[10px] font-black uppercase tracking-widest transition-all disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none"
+                    style={{ color: mutedText, backgroundColor: inputBg, borderColor: modalBorder }}
+                  >
+                    {isPdfExporting
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : <Download className="h-4 w-4" />
+                    }
+                    PDF
                   </button>
                   <button
                     onClick={onClose}

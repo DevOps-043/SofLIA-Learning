@@ -13,7 +13,8 @@ interface ToastNotificationProps {
   onClose: () => void;
   message: string;
   type?: ToastType;
-  duration?: number; // Duración en milisegundos antes de cerrar automáticamente
+  duration?: number;
+  position?: 'top-center' | 'top-right';
 }
 
 export function ToastNotification({
@@ -22,6 +23,7 @@ export function ToastNotification({
   message,
   type = 'error',
   duration = 5000,
+  position = 'top-center',
 }: ToastNotificationProps): JSX.Element | null {
   // Guard against hydration mismatch: portal must only render on the client.
   // Server renders null; client renders null on first pass (matching server),
@@ -67,10 +69,18 @@ export function ToastNotification({
 
   const styles = getStyles();
 
+  const containerClass = position === 'top-right'
+    ? 'fixed top-4 right-4 z-[99999] pointer-events-none'
+    : 'fixed top-4 left-0 right-0 z-[99999] flex justify-center pointer-events-none'
+
+  const cardClass = position === 'top-right'
+    ? `pointer-events-auto w-auto max-w-sm bg-white/95 dark:bg-gray-900/95 backdrop-blur-md ${styles.bg} ${styles.border} border rounded-lg shadow-lg p-4 flex items-center gap-3`
+    : `pointer-events-auto max-w-md w-[calc(100%-2rem)] sm:w-auto bg-white/95 dark:bg-gray-900/95 backdrop-blur-md ${styles.bg} ${styles.border} border rounded-lg shadow-lg p-4 flex items-center justify-center gap-3 text-center`
+
   const toastContent = (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed top-4 left-0 right-0 z-[99999] flex justify-center pointer-events-none">
+        <div className={containerClass}>
           <motion.div
             initial={{ opacity: 0, y: -20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -80,7 +90,7 @@ export function ToastNotification({
               stiffness: 300,
               damping: 30,
             }}
-            className={`pointer-events-auto max-w-md w-[calc(100%-2rem)] sm:w-auto bg-white/95 dark:bg-gray-900/95 backdrop-blur-md ${styles.bg} ${styles.border} border rounded-lg shadow-lg p-4 flex items-center justify-center gap-3 text-center`}
+            className={cardClass}
           >
             {/* Icono */}
             <div className="flex-shrink-0">

@@ -553,6 +553,54 @@ AI-powered activity conversations in the courses learning page. Replaces static 
 - Sidebar order: Dashboard → Usuarios → Estructura → Cursos → Rutas → Reportes y Analítica → Revisiones → Configuración
 - Navigation config: `features/business-panel/components/business-panel-sidebar/navigation.ts`
 
+### Feedback & Toast Standard (Business Panel)
+
+**Rule:** All transient action feedback (assign, revoke, save, update, mutation errors) uses `ToastNotification` with `position="top-right"`. Never use inline feedback banners for action results — they cause layout shifts and feel like page reloads.
+
+**Component:** `core/components/ToastNotification/ToastNotification.tsx`
+- Props: `{ isOpen, onClose, message, type?: 'success'|'error'|'info', duration?, position?: 'top-center'|'top-right' }`
+- Portal-based (no layout shift), auto-dismiss 5 s, Framer Motion entrance, progress bar
+
+**Hook template (copy-paste for any business panel feature hook):**
+```typescript
+import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
+
+const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: ToastType }>
+  ({ isOpen: false, message: '', type: 'success' })
+const showToast = useCallback((msg: string, type: ToastType = 'success') =>
+  setToast({ isOpen: true, message: msg, type }), [])
+const hideToast = useCallback(() => setToast(prev => ({ ...prev, isOpen: false })), [])
+```
+
+**Component wiring (in the page component):**
+```tsx
+<ToastNotification
+  isOpen={logic.toast.isOpen}
+  onClose={logic.hideToast}
+  message={logic.toast.message}
+  type={logic.toast.type}
+  position="top-right"
+/>
+```
+
+**Forbidden patterns (never do these after mutations):**
+- Inline `feedback` state banners rendered inside page content
+- `window.location.reload()` or `router.refresh()` after mutations
+- `refetch()` that calls `setIsLoading(true)` after mutations — use `refetchSilent()` instead to avoid full-page skeleton flash
+
+**Exception:** Unrecoverable data-loading errors (API unavailable, auth failure) may be shown inline at the top of page content — those are not transient and must stay visible until the user acts.
+
+**Optimistic updates pattern (for list mutations like revoke):**
+```typescript
+// 1. Immediately hide the row in UI
+setPendingRevokeIds(prev => new Set(prev).add(id))
+// 2. Call API
+// 3. On success: showToast + refetchSilent()
+// 4. On error: remove from pendingRevokeIds (rollback) + showToast(..., 'error')
+```
+
+**In-scope for this pattern (rows with animation):** Use `<AnimatePresence>` around lists + `exit` prop on `motion.div` rows. Already implemented in `BusinessLearningPathsPage/Assignments.tsx`.
+
 ### Settings (Business Role)
 - Component: `features/business-panel/components/BusinessSettings.tsx` — zero framer-motion (plain HTML + CSS)
 - Tabs: Organización, Branding (Enterprise only — controlled by `organizations.branding_enabled`)

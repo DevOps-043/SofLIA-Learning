@@ -17,8 +17,7 @@ export function SidebarOverlay({ isOpen, onClose, overlayBg }: SidebarOverlayPro
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 backdrop-blur-sm z-[100] lg:hidden"
-          style={{ backgroundColor: overlayBg }}
+          className="fixed inset-0 z-[100] lg:hidden"
           onClick={onClose}
           aria-hidden="true"
         />

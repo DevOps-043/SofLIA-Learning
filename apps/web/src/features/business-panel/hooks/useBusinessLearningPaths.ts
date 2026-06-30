@@ -47,6 +47,22 @@ export function useBusinessLearningPaths(orgSlugProp?: string) {
     }
   }, [orgSlug])
 
+  // Silent background sync — does NOT set isLoading, so the page keeps showing
+  // existing content. Use this after mutations (revoke, assign) instead of refetch()
+  // to avoid the full-page loading skeleton flash.
+  const refetchSilent = useCallback(async () => {
+    if (!orgSlug) return
+    try {
+      const data = await BusinessLearningPathsService.getLearningPaths(orgSlug)
+      setLearningPaths(data.learningPaths)
+      setAssignments(data.assignments)
+      setDefaultRules(data.defaultRules)
+      setHierarchyNodes(data.hierarchyNodes)
+    } catch {
+      // Swallowed — caller already showed an error toast; this is a background sync
+    }
+  }, [orgSlug])
+
   useEffect(() => {
     void fetchLearningPaths()
   }, [fetchLearningPaths])
@@ -59,5 +75,6 @@ export function useBusinessLearningPaths(orgSlugProp?: string) {
     isLoading,
     error,
     refetch: fetchLearningPaths,
+    refetchSilent,
   }
 }

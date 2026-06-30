@@ -22,7 +22,7 @@ export function BusinessImportUsersModal({
   return (
     <AnimatePresence>
       <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex: 99999 }}>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={state.handleClose} className="absolute inset-0 backdrop-blur-sm" style={{ backgroundColor: theme.overlayBg }} />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={state.handleClose} className="absolute inset-0" />
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }} className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden" onClick={event => event.stopPropagation()}>
           <div className="rounded-2xl shadow-2xl overflow-hidden border" style={{ backgroundColor: theme.panelBg, borderColor: theme.borderColor }}>
             <div className="flex flex-col lg:flex-row max-h-[85vh] overflow-y-auto lg:overflow-hidden">

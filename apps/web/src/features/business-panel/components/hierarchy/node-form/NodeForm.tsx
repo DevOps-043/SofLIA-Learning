@@ -83,8 +83,7 @@ export const NodeForm: React.FC<NodeFormProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 backdrop-blur-md"
-          style={{ backgroundColor: theme.overlayBg }}
+          className="absolute inset-0"
           onClick={onClose}
         />
 
