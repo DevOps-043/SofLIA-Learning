@@ -44,6 +44,7 @@ export function BrandingTab() {
   const brandingEnabled = localBranding.branding_enabled
 
   return (
+    <>
     <div className="space-y-6">
       {/* Branding toggle */}
       <div
@@ -161,5 +162,6 @@ export function BrandingTab() {
       type={toast.type}
       position="top-right"
     />
+    </>
   )
 }
