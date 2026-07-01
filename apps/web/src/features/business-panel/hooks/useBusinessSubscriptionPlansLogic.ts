@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useCallback, useState, useMemo, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
 import { useSubscriptionFeatures } from './useSubscriptionFeatures'
 import { useBusinessPanelTheme } from './useBusinessPanelTheme'
 import { getPlanById, calculatePlanPrice, type BusinessPlanId, type BillingCycle } from '../services/subscription.utils'
@@ -29,12 +31,19 @@ interface Plan {
 
 export function useBusinessSubscriptionPlansLogic() {
   const theme = useBusinessPanelTheme()
+  const { t } = useTranslation('business')
   const { plan: currentPlan, billingCycle: currentBillingCycle, subscription, loading: planLoading, changePlan, refetch } = useSubscriptionFeatures()
   const [billingCycle, setBillingCycle] = useState<BillingCycle>(() => currentBillingCycle || 'yearly')
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [isChangingPlan, setIsChangingPlan] = useState(false)
   const [changeError, setChangeError] = useState<string | null>(null)
-  const [changeSuccess, setChangeSuccess] = useState(false)
+  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: ToastType }>(
+    { isOpen: false, message: '', type: 'success' }
+  )
+  const showToast = useCallback((message: string, type: ToastType = 'success') =>
+    setToast({ isOpen: true, message, type }), [])
+  const hideToast = useCallback(() =>
+    setToast(prev => ({ ...prev, isOpen: false })), [])
 
   useEffect(() => {
     if (currentBillingCycle && currentBillingCycle !== billingCycle) {
@@ -169,14 +178,12 @@ export function useBusinessSubscriptionPlansLogic() {
     if (currentPlan === planId && currentBillingCycle === billingCycle) return
     setSelectedPlan(planId)
     setChangeError(null)
-    setChangeSuccess(false)
   }
 
   const handleConfirmChange = async () => {
     if (!selectedPlan || selectedPlan === 'enterprise') return
     setIsChangingPlan(true)
     setChangeError(null)
-    setChangeSuccess(false)
     try {
       const result = await changePlan(selectedPlan, billingCycle)
       if (result.success) {
@@ -187,9 +194,8 @@ export function useBusinessSubscriptionPlansLogic() {
             detail: { planId: selectedPlan, billingCycle }
           }))
         }
-        setChangeSuccess(true)
         setSelectedPlan(null)
-        setTimeout(() => { setChangeSuccess(false) }, 5000)
+        showToast(t('subscription.messages.changeSuccess'), 'success')
       } else {
         setChangeError(result.error || 'Error al cambiar el plan. Por favor, intenta nuevamente.')
       }
@@ -203,7 +209,6 @@ export function useBusinessSubscriptionPlansLogic() {
   const handleCancelChange = () => {
     setSelectedPlan(null)
     setChangeError(null)
-    setChangeSuccess(false)
   }
 
   const changeInfo = useMemo(() => {
@@ -256,7 +261,8 @@ export function useBusinessSubscriptionPlansLogic() {
     setSelectedPlan,
     isChangingPlan,
     changeError,
-    changeSuccess,
+    toast,
+    hideToast,
     plans,
     featuresByCategory,
     changeInfo,

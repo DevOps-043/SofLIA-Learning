@@ -10,7 +10,7 @@ export function EditCompanyErrorState({
   onBack: () => void
 }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-carbon-950">
+    <div className="flex h-64 items-center justify-center">
       <div className="text-center">
         <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-red-500" />
         <p className="mt-4 text-gray-900 dark:text-white">{error}</p>

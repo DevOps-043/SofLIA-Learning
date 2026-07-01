@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
 import type { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import type { BrandingData, BrandingUpdateResult } from '../../hooks/useBranding'
 import type { OrganizationData } from '../../hooks/useBusinessSettings'
@@ -18,10 +19,7 @@ export interface OrganizationTabProps {
   updateOrganization: (data: Partial<OrganizationData>) => Promise<boolean>
   branding: BrandingData | null
   updateBranding: (data: Partial<BrandingData>) => Promise<BrandingUpdateResult>
-  saveSuccess: string | null
-  setSaveSuccess: (msg: string | null) => void
-  saveError: string | null
-  setSaveError: (msg: string | null) => void
+  showToast: (msg: string, type?: ToastType) => void
 }
 
 export interface OrganizationTabStyles {

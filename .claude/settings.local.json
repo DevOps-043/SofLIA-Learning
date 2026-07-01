@@ -261,7 +261,9 @@
       "PowerShell(cd \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\\\\apps\\\\web\"; node --max-old-space-size=512 node_modules/typescript/bin/tsc --noEmit --skipLibCheck 2>&1 | Where-Object { $_ -match \"AdminMemberDetailModal|UsersSectionModals|CoursesSection|user-assignments\" } | Select-Object -First 25)",
       "PowerShell(cd \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\"; npx tsc --noEmit --skipLibCheck --project apps/web/tsconfig.json 2>&1 | Where-Object { $_ -match \"AdminMemberDetailModal|UsersSectionModals|user-assignments.route\" } | Select-Object -First 30)",
       "Bash(xargs grep -l \"organization_learning_path_assignments\\\\|user_learning_path_assignments\")",
-      "Bash(git log *)"
+      "Bash(git log *)",
+      "Bash(rm \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\app\\\\admin\\\\companies\\\\[id]\\\\edit\\\\sections\\\\CertificatesSection.tsx\")",
+      "Bash(rm \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\app\\\\admin\\\\companies\\\\[id]\\\\edit\\\\sections\\\\NotificationsSection.tsx\")"
     ],
     "deny": [],
     "ask": [],

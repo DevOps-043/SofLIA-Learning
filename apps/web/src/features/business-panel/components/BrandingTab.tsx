@@ -1,11 +1,11 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import {
   BrandingColorsCard,
   BrandingErrorState,
   BrandingFaviconCard,
-  BrandingFeedbackMessages,
   BrandingLoadingState,
   BrandingLogoCard,
   useBrandingTabState,
@@ -22,8 +22,8 @@ export function BrandingTab() {
     error,
     isSaving,
     isDetecting,
-    saveSuccess,
-    saveError,
+    toast,
+    hideToast,
     localBranding,
     setLocalBranding,
     handleSave,
@@ -123,11 +123,6 @@ export function BrandingTab() {
       </div>
 
       <div className="space-y-4">
-        <BrandingFeedbackMessages
-          saveSuccess={saveSuccess}
-          saveError={saveError}
-        />
-
         <div className="flex justify-end">
           <motion.button
             type="button"
@@ -159,5 +154,12 @@ export function BrandingTab() {
         </div>
       </div>
     </div>
+    <ToastNotification
+      isOpen={toast.isOpen}
+      onClose={hideToast}
+      message={toast.message}
+      type={toast.type}
+      position="top-right"
+    />
   )
 }

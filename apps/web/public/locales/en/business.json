@@ -2345,5 +2345,18 @@
         "description": "Notify when a new user is added to the organization"
       }
     }
+  },
+  "subscription": {
+    "messages": {
+      "changeSuccess": "Plan updated successfully"
+    }
+  },
+  "themeCustomizer": {
+    "messages": {
+      "applySuccess": "Theme applied successfully",
+      "applyError": "Error applying theme",
+      "saveSuccess": "Styles saved successfully",
+      "saveError": "Error saving styles"
+    }
   }
 }

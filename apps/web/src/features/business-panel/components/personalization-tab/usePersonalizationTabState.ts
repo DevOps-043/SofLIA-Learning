@@ -1,14 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
 import type { PersonalizationTabProps } from './personalization.types'
 import { normalizeSlugInput, validateOrganizationSlug } from './slug-validation'
 
 export function usePersonalizationTabState({
   organization,
-  setSaveError,
-  setSaveSuccess,
   updateOrganization,
 }: PersonalizationTabProps) {
   const params = useParams()
@@ -23,6 +22,13 @@ export function usePersonalizationTabState({
   const [copiedRegister, setCopiedRegister] = useState(false)
   const [isUpdatingGoogle, setIsUpdatingGoogle] = useState(false)
   const [isUpdatingMicrosoft, setIsUpdatingMicrosoft] = useState(false)
+  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: ToastType }>(
+    { isOpen: false, message: '', type: 'success' }
+  )
+  const showToast = useCallback((message: string, type: ToastType = 'success') =>
+    setToast({ isOpen: true, message, type }), [])
+  const hideToast = useCallback(() =>
+    setToast(prev => ({ ...prev, isOpen: false })), [])
 
   useEffect(() => setBaseUrl(window.location.origin), [])
   useEffect(() => {
@@ -70,17 +76,13 @@ export function usePersonalizationTabState({
   const handleSaveSlug = async () => {
     if (!slug || slugError || !slugAvailable) return
     setIsSaving(true)
-    setSaveError(null)
-    setSaveSuccess(null)
     const success = await updateOrganization({ slug })
     setIsSaving(false)
     if (success) {
-      setSaveSuccess('Identificador de login guardado correctamente')
-      setTimeout(() => setSaveSuccess(null), 5000)
+      showToast('Identificador de login guardado correctamente')
       setSlugAvailable(null)
     } else {
-      setSaveError('Error al guardar el identificador')
-      setTimeout(() => setSaveError(null), 5000)
+      showToast('Error al guardar el identificador', 'error')
     }
   }
   const handleToggleSSO = async (provider: 'google' | 'microsoft', value: boolean) => {
@@ -128,5 +130,7 @@ export function usePersonalizationTabState({
     slug,
     slugAvailable,
     slugError,
+    toast,
+    hideToast,
   }
 }

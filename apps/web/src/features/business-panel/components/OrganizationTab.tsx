@@ -8,7 +8,6 @@ import { OrganizationEmptyState } from './OrganizationTab/OrganizationEmptyState
 import { OrganizationFormActions } from './OrganizationTab/OrganizationFormActions'
 import { OrganizationMediaSection } from './OrganizationTab/OrganizationMediaSection'
 import { OrganizationSofliaContextSection } from './OrganizationTab/OrganizationSofliaContextSection'
-import { OrganizationStatusAlerts } from './OrganizationTab/OrganizationStatusAlerts'
 import type { OrganizationTabProps, OrganizationTabStyles } from './OrganizationTab/types'
 
 export function OrganizationTab(props: OrganizationTabProps) {
@@ -33,7 +32,6 @@ export function OrganizationTab(props: OrganizationTabProps) {
         <OrganizationContactSection formState={formState} styles={styles} theme={theme} />
       </div>
       <OrganizationSofliaContextSection formState={formState} styles={styles} theme={theme} />
-      <OrganizationStatusAlerts saveError={props.saveError} saveSuccess={props.saveSuccess} theme={theme} />
       <OrganizationFormActions formState={formState} theme={theme} />
     </form>
   )

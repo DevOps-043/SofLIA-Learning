@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
-import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
+import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import { CustomDashboardFatalError } from './custom-dashboard/CustomDashboardFatalError'
 import { CustomDashboardLoading } from './custom-dashboard/CustomDashboardLoading'
 import { CustomDashboardToolbar } from './custom-dashboard/CustomDashboardToolbar'
@@ -16,7 +16,6 @@ interface CustomDashboardProps {
 }
 
 export function CustomDashboard({ onClose }: CustomDashboardProps) {
-  const theme = useBusinessPanelTheme()
   const { t } = useTranslation('business')
   const { t: tc } = useTranslation('common')
   const params = useParams()
@@ -37,14 +36,12 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
         onConfirm={state.handleConfirmReset}
       />
       <CustomDashboardToolbar
-        error={state.error}
         isEditMode={state.isEditMode}
         isSaving={state.isSaving}
         onClose={onClose}
         onReset={state.handleReset}
         onSave={state.handleSave}
         onToggleEditMode={() => state.setIsEditMode(current => !current)}
-        saveSuccess={state.saveSuccess}
         t={t}
         tc={tc}
       />
@@ -56,5 +53,12 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
         widgets={widgets}
       />
     </div>
+    <ToastNotification
+      isOpen={state.toast.isOpen}
+      onClose={state.hideToast}
+      message={state.toast.message}
+      type={state.toast.type}
+      position="top-right"
+    />
   )
 }

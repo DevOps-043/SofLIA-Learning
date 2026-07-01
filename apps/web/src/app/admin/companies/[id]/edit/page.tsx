@@ -3,7 +3,7 @@
 import { useEditCompanyLogic } from '@/features/admin/hooks/useEditCompanyLogic'
 import { useMotionSafe } from '@/lib/utils/motion'
 import { EditCompanyErrorState } from './page-components/EditCompanyErrorState'
-import { EditCompanyHeader } from './page-components/EditCompanyHeader'
+import { EditCompanyHeroCard } from './page-components/EditCompanyHeroCard'
 import { EditCompanyLoadingState } from './page-components/EditCompanyLoadingState'
 import { EditCompanySectionContent } from './page-components/EditCompanySectionContent'
 import { EditCompanySidebar } from './page-components/EditCompanySidebar'
@@ -19,17 +19,16 @@ export default function EditCompanyPage() {
   if (!logic.company) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 font-inter text-gray-900 dark:bg-carbon-950 dark:text-white">
-      <EditCompanyHeader
-        companyName={logic.company.name}
+    <div className="w-full">
+      <EditCompanyHeroCard
+        company={logic.company}
         error={logic.error}
-        logoUrl={logic.company.brand_logo_url}
         saving={logic.saving}
         saveSuccess={logic.saveSuccess}
         onBack={() => logic.router.back()}
         onSave={logic.handleSave}
       />
-      <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-[1600px]">
+      <div className="mt-6 flex gap-6">
         <EditCompanySidebar
           activeTab={logic.activeTab}
           interfaceTransition={interfaceTransition}

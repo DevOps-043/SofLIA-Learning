@@ -1,9 +1,7 @@
 import {
   AcademicCapIcon,
-  BellIcon,
   ChartBarIcon,
   Cog6ToothIcon,
-  DocumentTextIcon,
   PaintBrushIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline'
@@ -15,6 +13,4 @@ export const NAV_ITEMS = [
   { id: 'courses', label: 'Cursos', icon: AcademicCapIcon, color: colors.purple },
   { id: 'stats', label: 'Estadísticas', icon: ChartBarIcon, color: colors.success },
   { id: 'customization', label: 'Personalización', icon: PaintBrushIcon, color: colors.pink },
-  { id: 'notifications', label: 'Notificaciones', icon: BellIcon, color: colors.warning },
-  { id: 'certificates', label: 'Certificados', icon: DocumentTextIcon, color: 'var(--color-legacy-06b6d4)' },
 ]

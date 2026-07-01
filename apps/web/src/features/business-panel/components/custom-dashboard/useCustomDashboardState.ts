@@ -1,17 +1,26 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
 import type { DashboardLayout, WidgetConfig, WidgetType } from './custom-dashboard.types'
 import { fetchDashboardLayout, resetDashboardLayout, saveDashboardLayout } from './custom-dashboard.api'
 import { addWidgetToLayout, removeWidgetFromLayout, replaceWidgets } from './dashboard-layout.utils'
 
 export function useCustomDashboardState(orgSlug: string) {
+  const { t: tc } = useTranslation('common')
   const [isEditMode, setIsEditMode] = useState(false)
   const [layout, setLayout] = useState<DashboardLayout | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [saveSuccess, setSaveSuccess] = useState(false)
+  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: ToastType }>(
+    { isOpen: false, message: '', type: 'success' }
+  )
+  const showToast = useCallback((message: string, type: ToastType = 'success') =>
+    setToast({ isOpen: true, message, type }), [])
+  const hideToast = useCallback(() =>
+    setToast(prev => ({ ...prev, isOpen: false })), [])
   const [pendingReset, setPendingReset] = useState(false)
 
   const fetchLayout = useCallback(async () => {
@@ -39,16 +48,14 @@ export function useCustomDashboardState(orgSlug: string) {
 
     try {
       setIsSaving(true)
-      setError(null)
-      setSaveSuccess(false)
       await saveDashboardLayout(orgSlug, layout)
-      setSaveSuccess(true)
-      window.setTimeout(() => {
-        setSaveSuccess(false)
-        setIsEditMode(false)
-      }, 2000)
+      setIsEditMode(false)
+      showToast(tc('actions.savedSuccessfully'), 'success')
     } catch (saveIssue) {
-      setError(saveIssue instanceof Error ? saveIssue.message : 'Error al guardar el layout')
+      showToast(
+        saveIssue instanceof Error ? saveIssue.message : 'Error al guardar el layout',
+        'error',
+      )
     } finally {
       setIsSaving(false)
     }
@@ -58,14 +65,15 @@ export function useCustomDashboardState(orgSlug: string) {
     setPendingReset(false)
     try {
       setIsSaving(true)
-      setError(null)
       await resetDashboardLayout(orgSlug)
       await fetchLayout()
       setIsEditMode(false)
-      setSaveSuccess(true)
-      window.setTimeout(() => setSaveSuccess(false), 2000)
+      showToast(tc('actions.savedSuccessfully'), 'success')
     } catch (resetIssue) {
-      setError(resetIssue instanceof Error ? resetIssue.message : 'Error al restablecer el layout')
+      showToast(
+        resetIssue instanceof Error ? resetIssue.message : 'Error al restablecer el layout',
+        'error',
+      )
     } finally {
       setIsSaving(false)
     }
@@ -79,14 +87,15 @@ export function useCustomDashboardState(orgSlug: string) {
     handleLayoutChange,
     handleReset: () => setPendingReset(true),
     handleSave,
+    hideToast,
     isEditMode,
     isLoading,
     isSaving,
     layout,
     pendingReset,
     removeWidget: (widgetId: string) => setLayout(currentLayout => removeWidgetFromLayout(currentLayout, widgetId)),
-    saveSuccess,
     setIsEditMode,
     setPendingReset,
+    toast,
   }
 }

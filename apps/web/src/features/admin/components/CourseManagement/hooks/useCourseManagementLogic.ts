@@ -50,6 +50,11 @@ export function useCourseManagementLogic(courseId: string) {
     feedbackTimerRef.current = setTimeout(() => setFeedbackMessage(null), 4000)
   }
 
+  const clearFeedbackMessage = () => {
+    if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current)
+    setFeedbackMessage(null)
+  }
+
   // ── Entity selection ───────────────────────────────────────────────────────
   const [selectedModule, setSelectedModule] = useState<AdminModule | null>(null)
   const [selectedLesson, setSelectedLesson] = useState<AdminLesson | null>(null)
@@ -314,6 +319,7 @@ export function useCourseManagementLogic(courseId: string) {
     showTemplatePreview, setShowTemplatePreview,
 
     feedbackMessage,
+    clearFeedbackMessage,
 
     selectedModule, setSelectedModule,
     selectedLesson, setSelectedLesson,

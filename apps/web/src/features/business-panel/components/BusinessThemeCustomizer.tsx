@@ -1,6 +1,7 @@
 'use client'
 
 import { AlertCircle } from 'lucide-react'
+import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 import { useBusinessThemeCustomizerLogic } from '../hooks/useBusinessThemeCustomizerLogic'
 import {
@@ -19,8 +20,8 @@ export function BusinessThemeCustomizer() {
     error,
     activePanel,
     currentStyles,
-    saveSuccess,
-    saveError,
+    toast,
+    hideToast,
     isSaving,
     allThemes,
     gradientColors,
@@ -101,13 +102,18 @@ export function BusinessThemeCustomizer() {
         <BusinessThemeCustomizerPreview currentStyles={currentStyles} />
       </div>
       <BusinessThemeCustomizerActions
-        saveSuccess={saveSuccess}
-        saveError={saveError}
         isSaving={isSaving}
         onDiscard={handleDiscard}
         onReset={handleReset}
         onSave={handleSave}
       />
     </div>
+    <ToastNotification
+      isOpen={toast.isOpen}
+      onClose={hideToast}
+      message={toast.message}
+      type={toast.type}
+      position="top-right"
+    />
   )
 }

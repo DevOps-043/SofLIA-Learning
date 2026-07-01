@@ -3,10 +3,6 @@ import type { OrganizationData } from '../../hooks/useBusinessSettings'
 export interface PersonalizationTabProps {
   organization: OrganizationData | null
   updateOrganization: (data: Partial<OrganizationData>) => Promise<boolean>
-  saveSuccess: string | null
-  setSaveSuccess: (msg: string | null) => void
-  saveError: string | null
-  setSaveError: (msg: string | null) => void
 }
 
 export interface PersonalizationTabState {

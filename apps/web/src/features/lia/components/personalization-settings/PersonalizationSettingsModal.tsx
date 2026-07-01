@@ -3,10 +3,10 @@
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 
+import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification';
 import { FooterActions } from './FooterActions';
 import { ModalHeader } from './ModalHeader';
 import { ResetConfirmation } from './ResetConfirmation';
-import { SaveMessage } from './SaveMessage';
 import { SettingsSections } from './SettingsSections';
 import type { PersonalizationSettingsModalProps } from './types';
 import { usePersonalizationSettingsForm } from './usePersonalizationSettingsForm';
@@ -22,6 +22,7 @@ export function PersonalizationSettingsModal(props: PersonalizationSettingsModal
   }
 
   return (
+    <>
     <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4">
       <div className="absolute inset-0" onClick={props.onClose} />
       <motion.div
@@ -43,7 +44,6 @@ export function PersonalizationSettingsModal(props: PersonalizationSettingsModal
             </div>
           ) : (
             <div className="space-y-4">
-              <SaveMessage message={form.saveMessage} />
               <SettingsSections
                 expandedSections={form.expandedSections}
                 formData={form.formData}
@@ -66,5 +66,13 @@ export function PersonalizationSettingsModal(props: PersonalizationSettingsModal
         />
       </motion.div>
     </div>
+    <ToastNotification
+      isOpen={form.toast.isOpen}
+      onClose={form.hideToast}
+      message={form.toast.message}
+      type={form.toast.type}
+      position="top-right"
+    />
+    </>
   );
 }

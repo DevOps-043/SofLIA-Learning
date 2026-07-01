@@ -1,6 +1,7 @@
 'use client'
 
 import { AnimatePresence } from 'framer-motion'
+import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import { useBusinessSubscriptionPlansLogic } from '../../hooks/useBusinessSubscriptionPlansLogic'
 import { BillingCycleToggle } from './BillingCycleToggle'
@@ -9,7 +10,6 @@ import { EnterpriseContactModal } from './EnterpriseContactModal'
 import { FeaturesComparison } from './FeaturesComparison'
 import { PlanCard } from './PlanCard'
 import { PlanChangeModal } from './PlanChangeModal'
-import { PlanStatusAlerts } from './PlanStatusAlerts'
 
 export function BusinessSubscriptionPlans() {
   const theme = useBusinessPanelTheme()
@@ -21,8 +21,8 @@ export function BusinessSubscriptionPlans() {
   const modalShadow = theme.isDark ? '0 32px 80px rgba(0, 0, 0, 0.35)' : '0 32px 80px rgba(15, 23, 42, 0.18)'
 
   return (
+    <>
     <div className="w-full space-y-12">
-      <PlanStatusAlerts changeError={logic.changeError} changeSuccess={logic.changeSuccess} dangerSurface={dangerSurface} successSurface={successSurface} theme={theme} />
       <CurrentPlanSummary currentBillingCycle={logic.currentBillingCycle} currentPlan={logic.currentPlan} subscription={logic.subscription} theme={theme} />
       <BillingCycleToggle billingCycle={logic.billingCycle} setBillingCycle={logic.setBillingCycle} successSurface={successSurface} theme={theme} />
       <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-3">
@@ -41,5 +41,13 @@ export function BusinessSubscriptionPlans() {
         ) : null}
       </AnimatePresence>
     </div>
+    <ToastNotification
+      isOpen={logic.toast.isOpen}
+      onClose={logic.hideToast}
+      message={logic.toast.message}
+      type={logic.toast.type}
+      position="top-right"
+    />
+    </>
   )
 }

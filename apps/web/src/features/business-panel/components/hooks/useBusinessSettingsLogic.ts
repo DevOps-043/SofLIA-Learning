@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Building2, Palette } from 'lucide-react'
+import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
 import { useBusinessSettings } from '../../hooks/useBusinessSettings'
 import { useSubscriptionFeatures } from '../../hooks/useSubscriptionFeatures'
 import { useOrganizationStylesContext } from '../../contexts/OrganizationStylesContext'
@@ -19,8 +20,13 @@ export function useBusinessSettingsLogic() {
   const theme = useBusinessPanelTheme()
 
   const [activeTab, setActiveTab] = useState<'organization' | 'branding'>('organization')
-  const [saveSuccess, setSaveSuccess] = useState<string | null>(null)
-  const [saveError, setSaveError] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: ToastType }>(
+    { isOpen: false, message: '', type: 'success' }
+  )
+  const showToast = useCallback((message: string, type: ToastType = 'success') =>
+    setToast({ isOpen: true, message, type }), [])
+  const hideToast = useCallback(() =>
+    setToast(prev => ({ ...prev, isOpen: false })), [])
 
   const canUseBranding = canUse('corporate_branding')
   const isEnterprise = plan === 'enterprise'
@@ -67,11 +73,10 @@ export function useBusinessSettingsLogic() {
     activeTab,
     setActiveTab,
     tabs,
-    // Save feedback state
-    saveSuccess,
-    setSaveSuccess,
-    saveError,
-    setSaveError,
+    // Toast feedback
+    toast,
+    showToast,
+    hideToast,
     // Computed
     canUseBranding,
     isEnterprise,

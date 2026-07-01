@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { AnimatePresence } from 'framer-motion'
+import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import { useProfilePageLogic } from '../../hooks/useProfilePageLogic'
 import { ProfileHero } from './ProfileHero'
 import { ProfilePageHeader } from './ProfilePageHeader'
@@ -19,7 +20,8 @@ export function ProfilePageContent(logic: ProfilePageLogic) {
     activeTab,
     setActiveTab,
     formData,
-    showSaveSuccess,
+    toast,
+    hideToast,
     imageError,
     setImageError,
     isRemovingProfilePicture,
@@ -33,8 +35,6 @@ export function ProfilePageContent(logic: ProfilePageLogic) {
     setShowCurrentPassword,
     setShowNewPassword,
     setShowConfirmPassword,
-    passwordChangeError,
-    passwordChangeSuccess,
     isChangingPassword,
     saving,
     setPasswordValue,
@@ -63,59 +63,66 @@ export function ProfilePageContent(logic: ProfilePageLogic) {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: colors.bgPrimary }}>
-      <ProfilePageHeader colors={colors} saving={saving} showSaveSuccess={showSaveSuccess} goBack={goBack} handleSave={handleSave} />
+    <>
+      <div className="min-h-screen" style={{ background: colors.bgPrimary }}>
+        <ProfilePageHeader colors={colors} saving={saving} goBack={goBack} handleSave={handleSave} />
 
-      <main className="pt-16 min-h-screen">
-        <ProfileHero
-          profile={profile}
-          stats={stats}
-          colors={colors}
-          imageError={imageError}
-          setImageError={setImageError}
-          isRemovingProfilePicture={isRemovingProfilePicture}
-          handleProfilePictureUpload={handleProfilePictureUpload}
-          handleProfilePictureRemove={handleProfilePictureRemove}
-          formatDate={formatDate}
-        />
+        <main className="pt-16 min-h-screen">
+          <ProfileHero
+            profile={profile}
+            stats={stats}
+            colors={colors}
+            imageError={imageError}
+            setImageError={setImageError}
+            isRemovingProfilePicture={isRemovingProfilePicture}
+            handleProfilePictureUpload={handleProfilePictureUpload}
+            handleProfilePictureRemove={handleProfilePictureRemove}
+            formatDate={formatDate}
+          />
 
-        <ProfileTabs activeTab={activeTab} canEditCredentials={canEditCredentials} setActiveTab={setActiveTab} colors={colors} />
+          <ProfileTabs activeTab={activeTab} canEditCredentials={canEditCredentials} setActiveTab={setActiveTab} colors={colors} />
 
-        <div className="px-6 lg:px-12 py-10">
-          <AnimatePresence initial={false}>
-            {activeTab === 'personal' || !canEditCredentials ? (
-              <div>
-                <ProfilePersonalTab formData={formData} handleInputChange={handleInputChange} colors={colors} />
-              </div>
-            ) : (
-              <ProfileSecurityTab
-                profile={profile}
-                colors={colors}
-                passwordChangeSuccess={passwordChangeSuccess}
-                passwordChangeError={passwordChangeError}
-                currentPassword={currentPassword}
-                newPassword={newPassword}
-                confirmPassword={confirmPassword}
-                showCurrentPassword={showCurrentPassword}
-                showNewPassword={showNewPassword}
-                showConfirmPassword={showConfirmPassword}
-                setShowCurrentPassword={setShowCurrentPassword}
-                setShowNewPassword={setShowNewPassword}
-                setShowConfirmPassword={setShowConfirmPassword}
-                setPasswordValue={setPasswordValue}
-                passwordErrors={passwordErrors}
-                isChangingPassword={isChangingPassword}
-                handleChangePassword={handleChangePassword}
-              />
-            )}
-          </AnimatePresence>
-        </div>
-      </main>
+          <div className="px-6 lg:px-12 py-10">
+            <AnimatePresence initial={false}>
+              {activeTab === 'personal' || !canEditCredentials ? (
+                <div>
+                  <ProfilePersonalTab formData={formData} handleInputChange={handleInputChange} colors={colors} />
+                </div>
+              ) : (
+                <ProfileSecurityTab
+                  profile={profile}
+                  colors={colors}
+                  currentPassword={currentPassword}
+                  newPassword={newPassword}
+                  confirmPassword={confirmPassword}
+                  showCurrentPassword={showCurrentPassword}
+                  showNewPassword={showNewPassword}
+                  showConfirmPassword={showConfirmPassword}
+                  setShowCurrentPassword={setShowCurrentPassword}
+                  setShowNewPassword={setShowNewPassword}
+                  setShowConfirmPassword={setShowConfirmPassword}
+                  setPasswordValue={setPasswordValue}
+                  passwordErrors={passwordErrors}
+                  isChangingPassword={isChangingPassword}
+                  handleChangePassword={handleChangePassword}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+        </main>
 
-      <style>{`
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
-    </div>
+        <style>{`
+          .hide-scrollbar::-webkit-scrollbar { display: none; }
+          .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        `}</style>
+      </div>
+      <ToastNotification
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+        position="top-right"
+      />
+    </>
   )
 }

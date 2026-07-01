@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
 import { type OrganizationData } from '../hooks/useBusinessSettings'
 import type { BrandingData, BrandingUpdateResult } from '../hooks/useBranding'
 
@@ -28,10 +29,7 @@ interface UseOrgFormStateProps {
   updateOrganization: (data: Partial<OrganizationData>) => Promise<boolean>
   branding: BrandingData | null
   updateBranding: (data: Partial<BrandingData>) => Promise<BrandingUpdateResult>
-  saveSuccess: string | null
-  setSaveSuccess: (msg: string | null) => void
-  saveError: string | null
-  setSaveError: (msg: string | null) => void
+  showToast: (msg: string, type?: ToastType) => void
 }
 
 export function useOrgFormState({
@@ -39,10 +37,7 @@ export function useOrgFormState({
   updateOrganization,
   branding,
   updateBranding,
-  saveSuccess,
-  setSaveSuccess,
-  saveError,
-  setSaveError,
+  showToast,
 }: UseOrgFormStateProps) {
   const params = useParams()
   const orgSlug = params?.orgSlug as string | undefined
@@ -98,16 +93,11 @@ export function useOrgFormState({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
-
-    if (saveSuccess) setSaveSuccess(null)
-    if (saveError) setSaveError(null)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSaving(true)
-    setSaveError(null)
-    setSaveSuccess(null)
 
     try {
       const updateData: Partial<OrganizationData> = {
@@ -135,15 +125,12 @@ export function useOrgFormState({
       }
 
       if (successOrg && successBranding) {
-        setSaveSuccess('Datos de la empresa actualizados correctamente')
-        setTimeout(() => setSaveSuccess(null), 5000)
+        showToast('Datos de la empresa actualizados correctamente')
       } else {
-        setSaveError('Error al actualizar los datos')
-        setTimeout(() => setSaveError(null), 5000)
+        showToast('Error al actualizar los datos', 'error')
       }
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'Error al actualizar los datos')
-      setTimeout(() => setSaveError(null), 5000)
+      showToast(err instanceof Error ? err.message : 'Error al actualizar los datos', 'error')
     } finally {
       setIsSaving(false)
     }
@@ -168,8 +155,6 @@ export function useOrgFormState({
         company_mission: organization.company_mission || '',
         company_country: organization.company_country || '',
       })
-      setSaveError(null)
-      setSaveSuccess(null)
     }
   }
 
@@ -218,7 +203,7 @@ export function useOrgFormState({
             setFormData(prev => ({ ...prev, banner_url: result.url }))
           }
         } catch {
-          setSaveError('Error al subir el banner')
+          showToast('Error al subir el banner', 'error')
         }
       }
     }
@@ -243,7 +228,7 @@ export function useOrgFormState({
             setFormData(prev => ({ ...prev, icon_url: result.url, logo_url: result.url }))
           }
         } catch {
-          setSaveError('Error al subir el logo')
+          showToast('Error al subir el logo', 'error')
         }
       }
     }

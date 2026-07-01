@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+import type { ToastType } from '@/core/components/ToastNotification/ToastNotification';
 import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext';
 import type { StyleConfig } from '../contexts/OrganizationStylesContext';
 import { BrandingColors, ThemeConfig, generateBrandingTheme, getAllThemes } from '../config/preset-themes';
@@ -18,11 +20,17 @@ import {
 export function useBusinessThemeCustomizerLogic() {
   const params = useParams();
   const orgSlug = params?.orgSlug as string | undefined;
+  const { t } = useTranslation('business');
   const { styles, loading, error, updateStyles, applyTheme, refetch } = useOrganizationStylesContext();
 
   const [activePanel, setActivePanel] = useState<ActivePanel>('panel');
-  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: ToastType }>(
+    { isOpen: false, message: '', type: 'success' }
+  );
+  const showToast = useCallback((message: string, type: ToastType = 'success') =>
+    setToast({ isOpen: true, message, type }), []);
+  const hideToast = useCallback(() =>
+    setToast(prev => ({ ...prev, isOpen: false })), []);
   const [isSaving, setIsSaving] = useState(false);
   const [brandingColors, setBrandingColors] = useState<BrandingColors | null>(null);
   const [loadingBranding, setLoadingBranding] = useState(true);
@@ -127,8 +135,6 @@ export function useBusinessThemeCustomizerLogic() {
           break;
       }
 
-      setSaveSuccess(null);
-      setSaveError(null);
     },
     []
   );
@@ -144,30 +150,23 @@ export function useBusinessThemeCustomizerLogic() {
     }
   }, [activePanel, currentStyles.background_type, currentStyles.background_value, generateGradientCSS, gradientColors.length, updateStyle]);
 
-  const clearSaveState = () => {
-    setSaveSuccess(null);
-    setSaveError(null);
-  };
-
   const handleApplyTheme = async (themeId: string) => {
     setIsSaving(true);
-    clearSaveState();
 
     try {
       const success = await applyTheme(themeId);
       if (success) {
-        setSaveSuccess('Tema aplicado correctamente');
-        setTimeout(() => setSaveSuccess(null), 3000);
+        showToast(t('themeCustomizer.messages.applySuccess'), 'success');
         await refetch();
         return;
       }
 
-      setSaveError('Error al aplicar tema');
-      setTimeout(() => setSaveError(null), 3000);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al aplicar tema';
-      setSaveError(message);
-      setTimeout(() => setSaveError(null), 3000);
+      showToast(t('themeCustomizer.messages.applyError'), 'error');
+    } catch (applyError) {
+      showToast(
+        applyError instanceof Error ? applyError.message : t('themeCustomizer.messages.applyError'),
+        'error',
+      );
     } finally {
       setIsSaving(false);
     }
@@ -175,7 +174,6 @@ export function useBusinessThemeCustomizerLogic() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    clearSaveState();
 
     try {
       const success = await updateStyles(
@@ -185,18 +183,17 @@ export function useBusinessThemeCustomizerLogic() {
       );
 
       if (success) {
-        setSaveSuccess('Estilos guardados correctamente');
-        setTimeout(() => setSaveSuccess(null), 3000);
+        showToast(t('themeCustomizer.messages.saveSuccess'), 'success');
         await refetch();
         return;
       }
 
-      setSaveError('Error al guardar estilos');
-      setTimeout(() => setSaveError(null), 3000);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al guardar estilos';
-      setSaveError(message);
-      setTimeout(() => setSaveError(null), 3000);
+      showToast(t('themeCustomizer.messages.saveError'), 'error');
+    } catch (saveError) {
+      showToast(
+        saveError instanceof Error ? saveError.message : t('themeCustomizer.messages.saveError'),
+        'error',
+      );
     } finally {
       setIsSaving(false);
     }
@@ -210,7 +207,6 @@ export function useBusinessThemeCustomizerLogic() {
     setPanelStyles(styles.panel || getDefaultBusinessStyle());
     setUserDashboardStyles(styles.userDashboard || getDefaultBusinessStyle());
     setLoginStyles(styles.login || getDefaultBusinessStyle());
-    clearSaveState();
   };
 
   const handleReset = () => {
@@ -218,7 +214,6 @@ export function useBusinessThemeCustomizerLogic() {
     setPanelStyles(defaultStyle);
     setUserDashboardStyles(defaultStyle);
     setLoginStyles(defaultStyle);
-    clearSaveState();
   };
 
   const copyGradientToClipboard = () => {
@@ -267,8 +262,8 @@ export function useBusinessThemeCustomizerLogic() {
     panelStyles,
     userDashboardStyles,
     loginStyles,
-    saveSuccess,
-    saveError,
+    toast,
+    hideToast,
     isSaving,
     brandingColors,
     loadingBranding,

@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
+import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useOrganizationStyles } from '../../business-panel/hooks/useOrganizationStyles'
 import { ChangePasswordSchema, type ChangePasswordInput } from '../../../lib/schemas/user.schema'
@@ -33,13 +34,17 @@ export function useProfilePageLogic() {
 
   const [formData, setFormData] = useState<UpdateProfileRequest>({})
   const [activeTab, setActiveTab] = useState<ProfileTabId>('personal')
-  const [showSaveSuccess, setShowSaveSuccess] = useState(false)
+  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: ToastType }>(
+    { isOpen: false, message: '', type: 'success' }
+  )
+  const showToast = useCallback((message: string, type: ToastType = 'success') =>
+    setToast({ isOpen: true, message, type }), [])
+  const hideToast = useCallback(() =>
+    setToast(prev => ({ ...prev, isOpen: false })), [])
   const [imageError, setImageError] = useState(false)
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [passwordChangeError, setPasswordChangeError] = useState<string | null>(null)
-  const [passwordChangeSuccess, setPasswordChangeSuccess] = useState<string | null>(null)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [isRemovingProfilePicture, setIsRemovingProfilePicture] = useState(false)
 
@@ -81,8 +86,7 @@ export function useProfilePageLogic() {
 
   const handleSave = async () => {
     await updateProfile(formData)
-    setShowSaveSuccess(true)
-    window.setTimeout(() => setShowSaveSuccess(false), 3000)
+    showToast(t('profile.header.saved'), 'success')
   }
 
   const handleProfilePictureUpload = async (file: File) => {
@@ -103,21 +107,21 @@ export function useProfilePageLogic() {
 
   const handleChangePassword = async () => {
     if (!user?.id || !currentPassword || !newPassword) {
-      setPasswordChangeError(t('profile.security.completePasswordFields'))
+      showToast(t('profile.security.completePasswordFields'), 'error')
       return
     }
 
     setIsChangingPassword(true)
-    setPasswordChangeError(null)
-    setPasswordChangeSuccess(null)
 
     try {
       await changePassword(currentPassword, newPassword)
-      setPasswordChangeSuccess(t('profile.security.passwordUpdated'))
+      showToast(t('profile.security.passwordUpdated'), 'success')
       resetPasswordForm()
-      window.setTimeout(() => setPasswordChangeSuccess(null), 5000)
     } catch (error) {
-      setPasswordChangeError(error instanceof Error ? error.message : t('profile.security.passwordChangeError'))
+      showToast(
+        error instanceof Error ? error.message : t('profile.security.passwordChangeError'),
+        'error',
+      )
     } finally {
       setIsChangingPassword(false)
     }
@@ -132,7 +136,8 @@ export function useProfilePageLogic() {
     activeTab,
     setActiveTab,
     formData,
-    showSaveSuccess,
+    toast,
+    hideToast,
     imageError,
     setImageError,
     isRemovingProfilePicture,
@@ -146,8 +151,6 @@ export function useProfilePageLogic() {
     setShowCurrentPassword,
     setShowNewPassword,
     setShowConfirmPassword,
-    passwordChangeError,
-    passwordChangeSuccess,
     isChangingPassword,
     setPasswordValue,
     handleInputChange,

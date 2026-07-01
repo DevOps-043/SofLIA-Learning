@@ -3,7 +3,7 @@
 import { AlertCircle, RefreshCw, Settings as SettingsIcon, XCircle } from 'lucide-react'
 import Image from 'next/image'
 import { useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
+import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import { useTour } from '@/features/tours'
 import { businessPanelSettingsTour } from '@/features/tours/config/business-panel-settings.tour'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
@@ -27,10 +27,9 @@ export function BusinessSettings() {
     activeTab,
     setActiveTab,
     tabs,
-    saveSuccess,
-    setSaveSuccess,
-    saveError,
-    setSaveError,
+    toast,
+    showToast,
+    hideToast,
     canUseBranding,
   } = useBusinessSettingsLogic()
 
@@ -211,10 +210,7 @@ export function BusinessSettings() {
                 updateOrganization={updateOrganization}
                 branding={branding}
                 updateBranding={updateBranding}
-                saveSuccess={saveSuccess}
-                setSaveSuccess={setSaveSuccess}
-                saveError={saveError}
-                setSaveError={setSaveError}
+                showToast={showToast}
               />
 
               {data.organization && (
@@ -254,6 +250,13 @@ export function BusinessSettings() {
         </div>
       </div>
     </div>
+    <ToastNotification
+      isOpen={toast.isOpen}
+      onClose={hideToast}
+      message={toast.message}
+      type={toast.type}
+      position="top-right"
+    />
     </>
   )
 }

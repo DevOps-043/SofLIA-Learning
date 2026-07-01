@@ -1,7 +1,8 @@
 'use client'
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
 import { useBranding } from '../../hooks/useBranding'
 import { useOrganizationStylesContext } from '../../contexts/OrganizationStylesContext'
 import {
@@ -35,8 +36,13 @@ export function useBrandingTabState() {
   const { refetch: refetchStyles, syncStyles } = useOrganizationStylesContext()
   const [isSaving, setIsSaving] = useState(false)
   const [isDetecting, setIsDetecting] = useState(false)
-  const [saveSuccess, setSaveSuccess] = useState<string | null>(null)
-  const [saveError, setSaveError] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: ToastType }>(
+    { isOpen: false, message: '', type: 'success' }
+  )
+  const showToast = useCallback((message: string, type: ToastType = 'success') =>
+    setToast({ isOpen: true, message, type }), [])
+  const hideToast = useCallback(() =>
+    setToast(prev => ({ ...prev, isOpen: false })), [])
   const [localBranding, setLocalBranding] = useState<BrandingFormState>(
     createBrandingFormState(),
   )
@@ -66,8 +72,6 @@ export function useBrandingTabState() {
 
     const autoDetectColors = async () => {
       setIsDetecting(true)
-      setSaveError(null)
-      setSaveSuccess(null)
 
       try {
         const colors = await detectColors(localBranding.banner_url)
@@ -77,8 +81,7 @@ export function useBrandingTabState() {
             ...current,
             ...colors,
           }))
-          setSaveSuccess('Colores detectados automáticamente')
-          setTimeout(() => setSaveSuccess(null), 5000)
+          showToast('Colores detectados automáticamente', 'success')
         }
       } catch (err) {
         techDebtLogger.error('Error detectando colores automáticamente:', err)
@@ -94,15 +97,8 @@ export function useBrandingTabState() {
     return () => window.clearTimeout(timeoutId)
   }, [detectColors, localBranding.banner_url])
 
-  const setTemporaryError = (message: string) => {
-    setSaveError(message)
-    setTimeout(() => setSaveError(null), 5000)
-  }
-
   const handleSave = async () => {
     setIsSaving(true)
-    setSaveError(null)
-    setSaveSuccess(null)
 
     try {
       const result = await updateBranding(localBranding)
@@ -111,16 +107,16 @@ export function useBrandingTabState() {
         throw new Error('Error al actualizar el branding')
       }
 
-      setSaveSuccess('Branding actualizado correctamente')
-      setTimeout(() => setSaveSuccess(null), 5000)
+      showToast('Branding actualizado correctamente', 'success')
       if (result.styles) {
         syncStyles(result.styles)
       } else {
         await refetchStyles()
       }
     } catch (err) {
-      setTemporaryError(
+      showToast(
         err instanceof Error ? err.message : 'Error al actualizar el branding',
+        'error',
       )
     } finally {
       setIsSaving(false)
@@ -129,13 +125,11 @@ export function useBrandingTabState() {
 
   const handleDetectColors = async () => {
     if (!localBranding.banner_url) {
-      setTemporaryError('Primero debes subir un banner')
+      showToast('Primero debes subir un banner', 'error')
       return
     }
 
     setIsDetecting(true)
-    setSaveError(null)
-    setSaveSuccess(null)
 
     try {
       const colors = await detectColors(localBranding.banner_url)
@@ -150,12 +144,12 @@ export function useBrandingTabState() {
         ...current,
         ...colors,
       }))
-      setSaveSuccess('Colores detectados automáticamente')
-      setTimeout(() => setSaveSuccess(null), 5000)
+      showToast('Colores detectados automáticamente', 'success')
     } catch (err) {
       techDebtLogger.error('Error detectando colores:', err)
-      setTemporaryError(
+      showToast(
         err instanceof Error ? err.message : 'Error al detectar colores',
+        'error',
       )
     } finally {
       setIsDetecting(false)
@@ -174,7 +168,7 @@ export function useBrandingTabState() {
         [field]: url,
       }))
     } catch {
-      setTemporaryError('Error al subir la imagen')
+      showToast('Error al subir la imagen', 'error')
     }
   }
 
@@ -216,8 +210,8 @@ export function useBrandingTabState() {
     error,
     isSaving,
     isDetecting,
-    saveSuccess,
-    saveError,
+    toast,
+    hideToast,
     localBranding,
     setLocalBranding,
     handleSave,

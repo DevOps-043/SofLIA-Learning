@@ -1,6 +1,6 @@
 'use client'
 
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { AlertCircle, CheckCircle2, Lock, Mail, Shield } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useMotionSafe } from '../../../../lib/utils/motion'
@@ -16,8 +16,6 @@ interface PasswordErrors {
 interface ProfileSecurityTabProps {
   profile: UserProfile
   colors: ProfileColorPalette
-  passwordChangeSuccess: string | null
-  passwordChangeError: string | null
   currentPassword: string
   newPassword: string
   confirmPassword: string
@@ -36,8 +34,6 @@ interface ProfileSecurityTabProps {
 export function ProfileSecurityTab({
   profile,
   colors,
-  passwordChangeSuccess,
-  passwordChangeError,
   currentPassword,
   newPassword,
   confirmPassword,
@@ -59,46 +55,6 @@ export function ProfileSecurityTab({
 
   return (
     <motion.div key="security" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={interfaceTransition} className="space-y-6">
-      <AnimatePresence>
-        {passwordChangeSuccess ? (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={interfaceTransition}
-            className="p-4 rounded-2xl flex items-center gap-3"
-            style={{ backgroundColor: `color-mix(in srgb, ${colors.success} 8.2%, transparent)`, border: `1px solid color-mix(in srgb, ${colors.success} 18.8%, transparent)` }}
-          >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${colors.success} 12.5%, transparent)` }}>
-              <CheckCircle2 className="w-5 h-5" style={{ color: colors.success }} />
-            </div>
-            <div>
-              <p className="font-semibold" style={{ color: colors.success }}>{t('profile.security.passwordUpdated')}</p>
-              <p className="text-sm" style={{ color: colors.textSecondary }}>{passwordChangeSuccess}</p>
-            </div>
-          </motion.div>
-        ) : null}
-
-        {passwordChangeError ? (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={interfaceTransition}
-            className="p-4 rounded-2xl flex items-center gap-3"
-            style={{ backgroundColor: `color-mix(in srgb, ${colors.error} 8.2%, transparent)`, border: `1px solid color-mix(in srgb, ${colors.error} 18.8%, transparent)` }}
-          >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${colors.error} 12.5%, transparent)` }}>
-              <AlertCircle className="w-5 h-5" style={{ color: colors.error }} />
-            </div>
-            <div>
-              <p className="font-semibold" style={{ color: colors.error }}>{t('profile.security.error')}</p>
-              <p className="text-sm" style={{ color: colors.textSecondary }}>{passwordChangeError}</p>
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <div className="relative overflow-hidden rounded-2xl border-2 p-5" style={{ backgroundColor: `color-mix(in srgb, ${colors.bgSecondary} 80%, transparent)`, borderColor: colors.border }}>
           <div className="flex items-start gap-3">

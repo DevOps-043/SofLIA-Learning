@@ -2346,5 +2346,18 @@
         "description": "Notificar cuando se agrega un nuevo usuario a la organización"
       }
     }
+  },
+  "subscription": {
+    "messages": {
+      "changeSuccess": "Plan actualizado exitosamente"
+    }
+  },
+  "themeCustomizer": {
+    "messages": {
+      "applySuccess": "Tema aplicado correctamente",
+      "applyError": "Error al aplicar tema",
+      "saveSuccess": "Estilos guardados correctamente",
+      "saveError": "Error al guardar estilos"
+    }
   }
 }

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { ToastType } from '@/core/components/ToastNotification/ToastNotification';
 
 import {
   defaultExpandedSections,
@@ -20,9 +21,13 @@ export function usePersonalizationSettingsForm(input: {
     defaultPersonalizationFormData
   );
   const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<
-    { text: string; type: 'error' | 'success' } | null
-  >(null);
+  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: ToastType }>(
+    { isOpen: false, message: '', type: 'success' }
+  );
+  const showToast = useCallback((message: string, type: ToastType = 'success') =>
+    setToast({ isOpen: true, message, type }), []);
+  const hideToast = useCallback(() =>
+    setToast(prev => ({ ...prev, isOpen: false })), []);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(
     defaultExpandedSections
@@ -48,12 +53,11 @@ export function usePersonalizationSettingsForm(input: {
 
   const handleSave = async () => {
     setIsSaving(true);
-    setSaveMessage(null);
     try {
       await updateSettings(formData);
-      showTransientMessage('success', t('liaPersonalization.saveSuccess'));
+      showToast(t('liaPersonalization.saveSuccess'), 'success');
     } catch (error: unknown) {
-      showTransientMessage('error', getErrorMessage(error, t('liaPersonalization.saveError')));
+      showToast(getErrorMessage(error, t('liaPersonalization.saveError')), 'error');
     } finally {
       setIsSaving(false);
     }
@@ -65,17 +69,12 @@ export function usePersonalizationSettingsForm(input: {
     try {
       await resetSettings();
       setFormData(defaultPersonalizationFormData);
-      showTransientMessage('success', t('liaPersonalization.resetSuccess'));
+      showToast(t('liaPersonalization.resetSuccess'), 'success');
     } catch (error: unknown) {
-      showTransientMessage('error', getErrorMessage(error, t('liaPersonalization.resetError')));
+      showToast(getErrorMessage(error, t('liaPersonalization.resetError')), 'error');
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const showTransientMessage = (type: 'error' | 'success', text: string) => {
-    setSaveMessage({ text, type });
-    setTimeout(() => setSaveMessage(null), 3000);
   };
 
   return {
@@ -83,11 +82,12 @@ export function usePersonalizationSettingsForm(input: {
     formData,
     handleResetConfirm,
     handleSave,
+    hideToast,
     isSaving,
-    saveMessage,
     setFormData,
     setShowResetConfirm,
     showResetConfirm,
+    toast,
     toggleSection,
   };
 }
