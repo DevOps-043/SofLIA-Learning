@@ -395,6 +395,8 @@ export function useLearnPageCourseData({
       setIsLiaSummaryLoading(false)
     }
 
+    // Micro-delay to yield to the main thread after course data renders,
+    // then load LIA supplemental content (transcript + summary) in background.
     const timer = setTimeout(() => {
       void loadLiaContext().catch((error) => {
         if (abortController.signal.aborted) {
@@ -408,7 +410,7 @@ export function useLearnPageCourseData({
         setIsLiaTranscriptLoading(false)
         setIsLiaSummaryLoading(false)
       })
-    }, 1000)
+    }, 150)
 
     return () => {
       abortController.abort()

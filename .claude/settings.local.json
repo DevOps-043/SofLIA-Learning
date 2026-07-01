@@ -263,7 +263,12 @@
       "Bash(xargs grep -l \"organization_learning_path_assignments\\\\|user_learning_path_assignments\")",
       "Bash(git log *)",
       "Bash(rm \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\app\\\\admin\\\\companies\\\\[id]\\\\edit\\\\sections\\\\CertificatesSection.tsx\")",
-      "Bash(rm \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\app\\\\admin\\\\companies\\\\[id]\\\\edit\\\\sections\\\\NotificationsSection.tsx\")"
+      "Bash(rm \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\app\\\\admin\\\\companies\\\\[id]\\\\edit\\\\sections\\\\NotificationsSection.tsx\")",
+      "Bash(grep -i \"\\\\.ts$\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/public/locales/es/business.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/public/locales/en/business.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/public/locales/pt/business.json','utf8'\\)\\); console.log\\('OK'\\)\")",
+      "Bash(npm run *)",
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=8192\" npx tsc --noEmit -p tsconfig.typecheck.features.json)",
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=8192\" npx tsc --noEmit -p tsconfig.typecheck.app.json)"
     ],
     "deny": [],
     "ask": [],

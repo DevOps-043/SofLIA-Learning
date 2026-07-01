@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { BusinessAssignCourseModal } from '../../../../../features/business-panel/components/BusinessAssignCourseModal'
+import { BusinessCourseDefaultModal } from '../../../../../features/business-panel/components/BusinessCourseDefaultModal'
+import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import { BusinessCourseContentTab } from '../../../../../features/business-panel/components/business-course-detail/BusinessCourseContentTab'
 import { BusinessCourseDetailHero } from '../../../../../features/business-panel/components/business-course-detail/BusinessCourseDetailHero'
 import { BusinessCourseDetailSidebar } from '../../../../../features/business-panel/components/business-course-detail/BusinessCourseDetailSidebar'
@@ -175,6 +177,7 @@ export default function BusinessCourseDetailPage() {
             <BusinessCourseDetailSidebar
               course={logic.course}
               setIsAssignModalOpen={logic.setIsAssignModalOpen}
+              onOpenDefaultModal={() => logic.setIsDefaultModalOpen(true)}
               isPurchasing={logic.isPurchasing}
               purchaseSuccess={logic.purchaseSuccess}
               purchaseError={logic.purchaseError}
@@ -204,6 +207,24 @@ export default function BusinessCourseDetailPage() {
         onAssignComplete={() => {
           void logic.handleAssignmentComplete()
         }}
+      />
+
+      <BusinessCourseDefaultModal
+        isOpen={logic.isDefaultModalOpen}
+        onClose={() => logic.setIsDefaultModalOpen(false)}
+        orgSlug={logic.orgSlug}
+        course={{ id: logic.course.id, title: logic.course.title }}
+        rules={logic.defaultRules}
+        hierarchyNodes={logic.hierarchyNodes}
+        onChanged={logic.handleDefaultRulesChanged}
+      />
+
+      <ToastNotification
+        isOpen={logic.toast.isOpen}
+        onClose={logic.hideToast}
+        message={logic.toast.message}
+        type={logic.toast.type}
+        position="top-right"
       />
     </motion.div>
   )

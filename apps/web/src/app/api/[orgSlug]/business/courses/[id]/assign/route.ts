@@ -7,6 +7,7 @@ import { logger } from '@/lib/utils/logger'
 import { SubscriptionService } from '@/features/business-panel/services/subscription.service'
 import { SessionService } from '@/features/auth/services/session.service'
 import { LearningPathDefaultsService } from '@/features/learning-paths/services/learning-path-defaults.server'
+import { CourseDefaultsService } from '@/features/courses/services/course-defaults.server'
 import {
   courseAssignmentCreateSchema,
   courseAssignmentDeleteSchema,
@@ -195,18 +196,29 @@ async function handlePost(
       }
     }
 
-    const { data: existingAssignments } = await supabase
-      .from('organization_course_assignments')
-      .select('user_id')
-      .eq('organization_id', organizationId)
-      .eq('course_id', courseId)
-      .in('user_id', resolvedUserIds)
-      .or('status.is.null,status.in.(assigned,in_progress)')
+    const assignmentMessage = typeof message === 'string' && message.trim()
+      ? message.trim()
+      : null
 
-    const existingUserIds = existingAssignments?.map((assignment) => assignment.user_id) || []
-    const newUserIds = resolvedUserIds.filter((userId) => !existingUserIds.includes(userId))
+    let assignResult
+    try {
+      assignResult = await CourseDefaultsService.assignCourseToUsers({
+        organizationId,
+        courseId,
+        userIds: resolvedUserIds,
+        assignedBy: currentUser.id,
+        assignmentSource: 'bulk',
+        dueDate: due_date || null,
+        startDate: start_date || null,
+        approach: approach || null,
+        message: assignmentMessage,
+      })
+    } catch (assignError) {
+      logger.error('Error creating assignments:', assignError)
+      return apiError('ASSIGN_COURSE_FAILED', 'Error al asignar el curso', 500)
+    }
 
-    if (newUserIds.length === 0) {
+    if (assignResult.assigned === 0) {
       return apiError(
         'COURSE_ALREADY_ASSIGNED',
         'Todos los usuarios seleccionados ya tienen este curso asignado',
@@ -214,81 +226,15 @@ async function handlePost(
       )
     }
 
-    const now = new Date().toISOString()
-    const assignmentMessage = typeof message === 'string' && message.trim()
-      ? message.trim()
-      : null
-
-    const assignments = newUserIds.map((userId) => ({
-      organization_id: organizationId,
-      user_id: userId,
-      course_id: courseId,
-      assigned_by: currentUser.id,
-      assigned_at: now,
-      due_date: due_date || null,
-      start_date: start_date || null,
-      approach: approach || null,
-      message: assignmentMessage,
-      status: 'assigned',
-      completion_percentage: 0,
-    }))
-
-    const { data: createdAssignments, error: assignError } = await supabase
-      .from('organization_course_assignments')
-      .insert(assignments)
-      .select()
-
-    if (assignError || !createdAssignments) {
-      logger.error('Error creating assignments:', assignError)
-      return apiError('ASSIGN_COURSE_FAILED', 'Error al asignar el curso', 500)
-    }
-
-    const { data: existingEnrollments, error: existingEnrollmentsError } = await supabase
-      .from('user_course_enrollments')
-      .select('user_id')
-      .eq('course_id', courseId)
-      .eq('organization_id', organizationId)
-      .in('user_id', newUserIds)
-
-    if (existingEnrollmentsError) {
-      logger.warn('Error checking existing enrollments:', existingEnrollmentsError)
-    }
-
-    const usersWithEnrollment = new Set(
-      (existingEnrollments || []).map((enrollment: { user_id: string }) => enrollment.user_id),
-    )
-    const enrollmentsToCreate = newUserIds
-      .filter((userId) => !usersWithEnrollment.has(userId))
-      .map((userId) => ({
-        user_id: userId,
-        course_id: courseId,
-        organization_id: organizationId,
-        enrollment_status: 'active',
-        overall_progress_percentage: 0,
-        enrolled_at: now,
-        started_at: now,
-        last_accessed_at: now,
-      }))
-
-    if (enrollmentsToCreate.length > 0) {
-      const { error: enrollError } = await supabase
-        .from('user_course_enrollments')
-        .insert(enrollmentsToCreate)
-
-      if (enrollError) {
-        logger.warn('Error creating enrollments:', enrollError)
-      }
-    }
-
     return NextResponse.json({
       success: true,
-      message: `Curso asignado exitosamente a ${createdAssignments.length} usuario(s)`,
+      message: `Curso asignado exitosamente a ${assignResult.assigned} usuario(s)`,
       data: {
         course_id: courseId,
         course_title: course.title,
-        assigned_count: createdAssignments.length,
-        already_assigned_count: existingUserIds.length,
-        assignments: createdAssignments.map((assignment) => ({
+        assigned_count: assignResult.assigned,
+        already_assigned_count: assignResult.existing,
+        assignments: assignResult.createdAssignments.map((assignment) => ({
           assignment_id: assignment.id,
           user_id: assignment.user_id,
         })),

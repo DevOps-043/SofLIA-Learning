@@ -20,7 +20,7 @@ import { loadNotesStats, type NotesStats } from './learn-data/learn-data-progres
 import type { ModulesWithProgressResult } from './learn-data/learn-data-lessons.service'
 import type { LearningPathAccessState } from '@/features/learning-paths/services/learning-path-access.server'
 
-interface CourseRow {
+export interface CourseRow {
   id: string
   title: string
   description: string | null
@@ -58,10 +58,17 @@ export async function loadLearnDataPayload(
   userId?: string,
   organizationId?: string | null,
   includeLessonData = false,
+  prefetchedCourse?: CourseRow,
 ): Promise<LearnDataQueryPayload> {
   const startedAt = Date.now()
-  const course = await loadCourseBySlug(supabase, slug)
-  const [modulesResult, questionsResult, lessonDataResult] =
+  // Accept a pre-fetched course to avoid a duplicate DB round-trip when the
+  // caller already resolved the course (e.g. to parallelize the LP check).
+  const course = prefetchedCourse ?? await loadCourseBySlug(supabase, slug)
+
+  // notesStats uses the get_course_notes_stats RPC when enrollmentId is
+  // undefined — it doesn't need the enrollment ID from modulesResult, so it
+  // can run in parallel with the other queries instead of sequentially after.
+  const [modulesResult, questionsResult, lessonDataResult, notesStatsResult] =
     await Promise.all([
       loadModulesWithProgress(
         supabase,
@@ -74,15 +81,10 @@ export async function loadLearnDataPayload(
       includeLessonData && lessonId
         ? loadLessonData(supabase, course.id, lessonId, language)
         : Promise.resolve(null),
+      userId
+        ? loadNotesStats(supabase, course.id, userId, undefined)
+        : Promise.resolve(null),
     ])
-  const notesStatsResult = userId
-    ? await loadNotesStats(
-        supabase,
-        course.id,
-        userId,
-        modulesResult.enrollmentId,
-      )
-    : null
 
   return {
     course,

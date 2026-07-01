@@ -5,7 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { cacheHeaders, withCacheHeaders } from '@/lib/utils/cache-headers'
 import { resolveLearningPathAccessForCourse } from '@/features/learning-paths/services/learning-path-access.server'
 import { buildLearnDataResponse } from './services/learn-data-response.service'
-import { loadLearnDataPayload } from './services/learn-data-query.service'
+import { loadLearnDataPayload, loadCourseBySlug } from './services/learn-data-query.service'
 
 export async function GET(
   request: NextRequest,
@@ -21,40 +21,47 @@ export async function GET(
     const currentUser = await SessionService.getCurrentUser()
     const supabase = currentUser ? createAdminClient() : await createClient()
 
-    const payload = await loadLearnDataPayload(
-      supabase,
-      slug,
-      lessonId,
-      language,
-      currentUser?.id,
-      organizationId,
-      includeLessonData,
-    )
+    // Fetch the course first (single fast query) so we can pass it to both
+    // loadLearnDataPayload and resolveLearningPathAccessForCourse in parallel,
+    // avoiding the sequential LP check that previously ran after the full data load.
+    const course = await loadCourseBySlug(supabase, slug)
 
-    if (currentUser?.id && payload.course.id) {
-      const learningPathState = await resolveLearningPathAccessForCourse({
-        userId: currentUser.id,
-        courseId: payload.course.id,
+    const [payload, learningPathState] = await Promise.all([
+      loadLearnDataPayload(
+        supabase,
+        slug,
+        lessonId,
+        language,
+        currentUser?.id,
         organizationId,
-      })
+        includeLessonData,
+        course,
+      ),
+      currentUser?.id
+        ? resolveLearningPathAccessForCourse({
+            userId: currentUser.id,
+            courseId: course.id,
+            organizationId,
+          })
+        : Promise.resolve(null),
+    ])
 
-      if (learningPathState && !learningPathState.currentCourseUnlocked) {
-        return withCacheHeaders(
-          NextResponse.json(
-            {
-              error: 'CURSO_BLOQUEADO_POR_LEARNING_PATH',
-              message:
-                'Este taller pertenece a un learning path y todavía no se ha desbloqueado.',
-              learningPath: learningPathState,
-            },
-            { status: 423 },
-          ),
-          cacheHeaders.dynamic,
-        )
-      }
-
-      payload.learningPathState = learningPathState
+    if (learningPathState && !learningPathState.currentCourseUnlocked) {
+      return withCacheHeaders(
+        NextResponse.json(
+          {
+            error: 'CURSO_BLOQUEADO_POR_LEARNING_PATH',
+            message:
+              'Este taller pertenece a un learning path y todavía no se ha desbloqueado.',
+            learningPath: learningPathState,
+          },
+          { status: 423 },
+        ),
+        cacheHeaders.dynamic,
+      )
     }
+
+    payload.learningPathState = learningPathState
 
     return withCacheHeaders(
       NextResponse.json(buildLearnDataResponse(payload)),

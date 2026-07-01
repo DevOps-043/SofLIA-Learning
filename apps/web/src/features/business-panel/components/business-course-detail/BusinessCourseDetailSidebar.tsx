@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion'
-import { AlertCircle, CheckCircle2, Loader2, Shield, TrendingUp, Users, Video, Award, Zap, Star } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Loader2, Shield, TrendingUp, Users, Video, Award, Zap, Star, Sparkles } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { BusinessCourseDetail } from '../../types/business-course-detail.types'
 
 interface BusinessCourseDetailSidebarProps {
   course: BusinessCourseDetail
   setIsAssignModalOpen: (value: boolean) => void
+  onOpenDefaultModal: () => void
   isPurchasing: boolean
   purchaseSuccess: boolean
   purchaseError: string | null
@@ -25,6 +27,7 @@ interface BusinessCourseDetailSidebarProps {
 export function BusinessCourseDetailSidebar({
   course,
   setIsAssignModalOpen,
+  onOpenDefaultModal,
   isPurchasing,
   purchaseSuccess,
   purchaseError,
@@ -41,6 +44,7 @@ export function BusinessCourseDetailSidebar({
   onPurchase,
   formatDate
 }: BusinessCourseDetailSidebarProps) {
+  const { t } = useTranslation('business')
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -132,6 +136,18 @@ export function BusinessCourseDetailSidebar({
           </>
         )}
       </motion.button>
+
+      {course.subscription_status?.is_organization_purchased ? (
+        <button
+          type="button"
+          onClick={onOpenDefaultModal}
+          className="w-full mt-3 py-3 lg:py-3.5 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border text-[10px] lg:text-xs"
+          style={{ backgroundColor: cardBackground, borderColor, color: textColor }}
+        >
+          <Sparkles className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
+          <span>{t('assignCourse.defaults.title')}</span>
+        </button>
+      ) : null}
 
       {course.subscription_status?.has_subscription === false ? (
         <p className="text-center text-[10px] mt-3" style={{ color: mutedTextColor }}>

@@ -1280,7 +1280,35 @@
       "selectCourse": "Selecionar curso...",
       "teamMessage": "Mensagem personalizada para a equipe..."
     },
-    "titleTeam": "Atribuir Curso à Equipe"
+    "titleTeam": "Atribuir Curso à Equipe",
+    "defaults": {
+      "title": "Curso padrão",
+      "scopeOrganization": "Toda a empresa",
+      "scopeNode": "Estrutura",
+      "nodeLabel": "Nó de estrutura",
+      "selectNode": "Selecione um nó",
+      "includeDescendants": "Incluir nós descendentes",
+      "saveAndApply": "Salvar e aplicar agora",
+      "saving": "Salvando...",
+      "activeRules": "Regras ativas",
+      "applyNow": "Aplicar agora",
+      "applying": "Aplicando...",
+      "noRules": "Este curso nao tem regras padrao ativas.",
+      "wholeOrganization": "Toda a empresa",
+      "nodeFallback": "Nó sem nome",
+      "withDescendants": "Inclui descendentes",
+      "directScope": "Somente alcance direto",
+      "autoAssigns": "Atribuido automaticamente aos usuarios correspondentes, incluindo os que entrarem depois.",
+      "selectNodeError": "Selecione um nó para esta regra.",
+      "saveError": "Nao foi possivel salvar a regra padrao.",
+      "revokeError": "Nao foi possivel desativar a regra padrao.",
+      "applyError": "Nao foi possivel aplicar os cursos padrao."
+    },
+    "messages": {
+      "defaultSaved": "Curso padrao configurado com sucesso",
+      "defaultRevoked": "Regra padrao desativada",
+      "defaultApplied": "Cursos padrao aplicados com sucesso"
+    }
   },
   "liaSuggestion": {
     "title": "Sugestões do SofLIA",

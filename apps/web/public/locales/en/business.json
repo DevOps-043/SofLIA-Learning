@@ -1279,7 +1279,35 @@
       "selectCourse": "Select course...",
       "teamMessage": "Custom message for the team..."
     },
-    "titleTeam": "Assign Course to Team"
+    "titleTeam": "Assign Course to Team",
+    "defaults": {
+      "title": "Default course",
+      "scopeOrganization": "Whole company",
+      "scopeNode": "Structure",
+      "nodeLabel": "Structure node",
+      "selectNode": "Select a node",
+      "includeDescendants": "Include descendant nodes",
+      "saveAndApply": "Save and apply now",
+      "saving": "Saving...",
+      "activeRules": "Active rules",
+      "applyNow": "Apply now",
+      "applying": "Applying...",
+      "noRules": "This course has no active default rules.",
+      "wholeOrganization": "Whole company",
+      "nodeFallback": "Unnamed node",
+      "withDescendants": "Includes descendants",
+      "directScope": "Direct scope only",
+      "autoAssigns": "Automatically assigned to matching users, including those who join later.",
+      "selectNodeError": "Select a node for this rule.",
+      "saveError": "Could not save the default rule.",
+      "revokeError": "Could not deactivate the default rule.",
+      "applyError": "Could not apply the default courses."
+    },
+    "messages": {
+      "defaultSaved": "Default course configured successfully",
+      "defaultRevoked": "Default rule deactivated",
+      "defaultApplied": "Default courses applied successfully"
+    }
   },
   "liaSuggestion": {
     "title": "SofLIA Suggestions",

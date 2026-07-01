@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useBusinessPanelTheme } from './useBusinessPanelTheme'
 import { BusinessCourseDetailService } from '../services/business-course-detail.service'
@@ -11,6 +11,13 @@ import {
   getBusinessCourseLevelStyles
 } from '../services/business-course-detail-display.service'
 import type { BusinessCourseDetail, BusinessCourseDetailTabId } from '../types/business-course-detail.types'
+import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
+import { logger } from '@/lib/utils/logger'
+import {
+  BusinessCourseDefaultsService,
+  type BusinessCourseDefaultRule,
+  type BusinessCourseHierarchyNode,
+} from '../services/businessCourseDefaults.service'
 
 export function useBusinessCourseDetailPageLogic() {
   const params = useParams()
@@ -40,6 +47,15 @@ export function useBusinessCourseDetailPageLogic() {
   const [isPurchasing, setIsPurchasing] = useState(false)
   const [purchaseSuccess, setPurchaseSuccess] = useState(false)
   const [purchaseError, setPurchaseError] = useState<string | null>(null)
+
+  const [isDefaultModalOpen, setIsDefaultModalOpen] = useState(false)
+  const [defaultRules, setDefaultRules] = useState<BusinessCourseDefaultRule[]>([])
+  const [hierarchyNodes, setHierarchyNodes] = useState<BusinessCourseHierarchyNode[]>([])
+  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: ToastType }>({
+    isOpen: false,
+    message: '',
+    type: 'success',
+  })
 
   const loadCourse = async () => {
     if (!courseId) {
@@ -99,6 +115,34 @@ export function useBusinessCourseDetailPageLogic() {
     await loadCourse()
   }
 
+  const showToast = useCallback((message: string, type: ToastType = 'success') => {
+    setToast({ isOpen: true, message, type })
+  }, [])
+
+  const hideToast = useCallback(() => {
+    setToast((previousToast) => ({ ...previousToast, isOpen: false }))
+  }, [])
+
+  const loadCourseDefaults = async () => {
+    try {
+      const { rules, nodes } = await BusinessCourseDefaultsService.getCourseDefaults(orgSlug)
+      setDefaultRules(rules)
+      setHierarchyNodes(nodes)
+    } catch (loadError) {
+      logger.error('Error loading course default rules:', loadError)
+    }
+  }
+
+  useEffect(() => {
+    if (isDefaultModalOpen) void loadCourseDefaults()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDefaultModalOpen])
+
+  const handleDefaultRulesChanged = async (message?: string) => {
+    await loadCourseDefaults()
+    if (message) showToast(message)
+  }
+
   const levelStyles = useMemo(
     () => getBusinessCourseLevelStyles(course?.level || null, primaryColor, accentColor),
     [accentColor, course?.level, primaryColor]
@@ -117,6 +161,13 @@ export function useBusinessCourseDetailPageLogic() {
     setActiveTab,
     isAssignModalOpen,
     setIsAssignModalOpen,
+    isDefaultModalOpen,
+    setIsDefaultModalOpen,
+    defaultRules,
+    hierarchyNodes,
+    handleDefaultRulesChanged,
+    toast,
+    hideToast,
     isPurchasing,
     purchaseSuccess,
     purchaseError,

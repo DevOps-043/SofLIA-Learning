@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { loadBusinessUserLearningPaths } from '@/features/learning-paths/services/learning-path-dashboard.server'
 import { LearningPathDefaultsService } from '@/features/learning-paths/services/learning-path-defaults.server'
+import { CourseDefaultsService } from '@/features/courses/services/course-defaults.server'
 import { createClient } from '@/lib/supabase/server'
 import { cacheHeaders } from '@/lib/utils/cache-headers'
 import { logger } from '@/lib/utils/logger'
@@ -49,6 +50,15 @@ export async function GET(_request: NextRequest, context: RouteContext) {
       organizationId: auth.organizationId,
     }).catch((err: unknown) => {
       logger.error('Error applying default learning paths for dashboard:', err)
+    })
+
+    // Fire-and-forget: apply default course rules for this user, same non-blocking
+    // pattern as the learning path defaults above.
+    CourseDefaultsService.applyDefaultRulesForUser({
+      userId: auth.userId,
+      organizationId: auth.organizationId,
+    }).catch((err: unknown) => {
+      logger.error('Error applying default courses for dashboard:', err)
     })
 
     // Phase 2: enrichment queries need courseIds/instructorIds from Phase 1.

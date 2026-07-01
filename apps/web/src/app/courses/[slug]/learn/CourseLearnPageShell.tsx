@@ -54,8 +54,10 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     )
   }
 
-  // Single unified loading state while either course data OR access check is pending
-  if (!logic.ready || logic.loading || accessLoading || hasAccess === null) {
+  // Block only on course data — access check runs in background and doesn't delay render.
+  // In B2B every org member has access; the check-purchase call is a redundant safety net.
+  // We only block render when hasAccess is definitively false (never when still null/loading).
+  if (!logic.ready || logic.loading) {
     return <CourseLearnLoadingState logic={logic} />
   }
 
@@ -63,7 +65,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     return <CourseUnavailableState logic={logic} />
   }
 
-  if (!hasAccess) {
+  if (hasAccess === false) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-carbon-900 p-4">
         <div className="max-w-md w-full bg-carbon-800 rounded-2xl border border-gray-500/30 p-8 text-center">

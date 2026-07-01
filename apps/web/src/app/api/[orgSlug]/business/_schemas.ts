@@ -270,6 +270,14 @@ export const createDefaultRuleSchema = z.object({
   applyNow: z.boolean().optional().default(true),
 }).passthrough()
 
+export const createCourseDefaultRuleSchema = z.object({
+  courseId: z.string().uuid('CourseId invalido'),
+  scopeType: z.enum(['organization', 'node']).default('organization'),
+  nodeId: z.string().uuid('NodeId invalido').nullable().optional(),
+  includeDescendants: z.boolean().optional(),
+  applyNow: z.boolean().optional().default(true),
+}).passthrough()
+
 export const introVideoUploadUrlSchema = z.object({
   fileName: requiredTextSchema(255),
   contentType: z.enum(STREAMABLE_VIDEO_MIME_TYPES),
@@ -304,5 +312,6 @@ export type ApplyThemeBody = z.infer<typeof applyThemeSchema>
 export type AssignLearningPathBody = z.infer<typeof assignLearningPathSchema>
 export type ApplyDefaultsBody = z.infer<typeof applyDefaultsSchema>
 export type CreateDefaultRuleBody = z.infer<typeof createDefaultRuleSchema>
+export type CreateCourseDefaultRuleBody = z.infer<typeof createCourseDefaultRuleSchema>
 export type IntroVideoUploadUrlBody = z.infer<typeof introVideoUploadUrlSchema>
 export type IntroVideoUrlBody = z.infer<typeof introVideoUrlSchema>

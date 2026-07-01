@@ -1280,7 +1280,35 @@
       "selectCourse": "Seleccionar curso...",
       "teamMessage": "Mensaje personalizado para el equipo..."
     },
-    "titleTeam": "Asignar Curso a Equipo"
+    "titleTeam": "Asignar Curso a Equipo",
+    "defaults": {
+      "title": "Curso predeterminado",
+      "scopeOrganization": "Toda la empresa",
+      "scopeNode": "Estructura",
+      "nodeLabel": "Nodo de estructura",
+      "selectNode": "Selecciona un nodo",
+      "includeDescendants": "Incluir nodos descendientes",
+      "saveAndApply": "Guardar y aplicar ahora",
+      "saving": "Guardando...",
+      "activeRules": "Reglas activas",
+      "applyNow": "Aplicar ahora",
+      "applying": "Aplicando...",
+      "noRules": "Este curso no tiene reglas predeterminadas activas.",
+      "wholeOrganization": "Toda la empresa",
+      "nodeFallback": "Nodo sin nombre",
+      "withDescendants": "Incluye descendientes",
+      "directScope": "Solo alcance directo",
+      "autoAssigns": "Se asigna automaticamente a usuarios que coincidan, incluidos los que se unan despues.",
+      "selectNodeError": "Selecciona un nodo para esta regla.",
+      "saveError": "No se pudo guardar la regla predeterminada.",
+      "revokeError": "No se pudo desactivar la regla predeterminada.",
+      "applyError": "No se pudieron aplicar los cursos predeterminados."
+    },
+    "messages": {
+      "defaultSaved": "Curso predeterminado configurado correctamente",
+      "defaultRevoked": "Regla predeterminada desactivada",
+      "defaultApplied": "Cursos predeterminados aplicados correctamente"
+    }
   },
   "liaSuggestion": {
     "title": "Sugerencias de SofLIA",
