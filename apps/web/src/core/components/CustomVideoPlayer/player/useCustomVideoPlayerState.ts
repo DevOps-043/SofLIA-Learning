@@ -121,7 +121,7 @@ export function useCustomVideoPlayerState(
     videoRef: refs.videoRef,
     duration: state.duration,
     initialTime,
-    initialPlaybackRate,
+    playbackRate: state.playbackRate,
     hasInitialTimeSet: state.hasInitialTimeSet,
     hasNotifiedCompletionRef: refs.hasNotifiedCompletionRef,
     lastTimeupdateRenderRef: refs.lastTimeupdateRenderRef,

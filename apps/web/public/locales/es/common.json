@@ -12,6 +12,30 @@
     "label": "Idioma: {{language}}",
     "active": "Activo"
   },
+  "status": {
+    "pageTitle": "Estado del sistema",
+    "unavailable": "No se pudo cargar el estado del sistema. Intenta de nuevo más tarde.",
+    "banner": {
+      "operational": "Todos los sistemas operativos",
+      "degraded": "Rendimiento degradado",
+      "down": "Interrupción del servicio"
+    },
+    "components": {
+      "gemini_ai": "SofLIA Chat / IA",
+      "database": "Base de datos",
+      "auth": "Autenticación"
+    },
+    "currentStatus": {
+      "operational": "Operativo",
+      "degraded": "Degradado",
+      "down": "Caído"
+    },
+    "uptimeBar": {
+      "legend": "Últimos 90 días",
+      "noData": "Sin datos"
+    },
+    "lastUpdated": "Última actualización: {{time}}"
+  },
   "themeSelector": {
     "label": "Cambiar tema",
     "light": "Claro",
@@ -450,6 +474,14 @@
     "noNotifications": "No tienes notificaciones",
     "viewAll": "Ver todas",
     "types": {
+      "system_status_incident": {
+        "title": "Incidente en un servicio de la plataforma",
+        "message": "Un servicio de la plataforma está degradado o fuera de línea. Revisa el panel de Estado del Sistema para ver el detalle."
+      },
+      "system_status_recovered": {
+        "title": "Servicio restablecido",
+        "message": "Un servicio de la plataforma que estaba degradado o fuera de línea volvió a operar con normalidad."
+      },
       "system_password_changed": {
         "title": "Contraseña actualizada",
         "message": "Tu contraseña ha sido actualizada exitosamente."
@@ -573,6 +605,10 @@
       "course_completed_with_certificate": {
         "title": "Curso completado",
         "message": "¡Felicidades! Has completado \"{{courseTitle}}\". Tu certificado está disponible."
+      },
+      "business_goal_reminder": {
+        "title": "Recordatorio de tu administrador",
+        "message": "Tu administrador te envió un recordatorio: {{goalText}}"
       }
     }
   },
@@ -1315,6 +1351,11 @@
     "refresh": "Refrescar",
     "archive": "Archivar",
     "markAsRead": "Marcar como leída",
+    "sendReminder": "Enviar recordatorio",
+    "sending": "Enviando...",
+    "sent": "Enviado",
+    "reminderSent": "Recordatorio enviado",
+    "reminderError": "Error al enviar el recordatorio",
     "notificationsPage": {
       "title": "Notificaciones",
       "subtitle": "Gestiona tus notificaciones y mantente al día",

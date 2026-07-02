@@ -1,5 +1,6 @@
 import type { DialogueActivityConfig } from '../../types/dialogue-runtime'
 import { DialogueRuntimeError } from './dialogue-runtime.errors'
+import type { DialogueTurnRow } from './dialogue-tables'
 
 export function isRecoverableDialogueEvaluationError(
   error: unknown,
@@ -7,6 +8,44 @@ export function isRecoverableDialogueEvaluationError(
   return (
     error instanceof DialogueRuntimeError &&
     error.code === 'DIALOGUE_EVALUATION_FAILED'
+  )
+}
+
+/**
+ * Tope de mensajes de recuperación técnica consecutivos. La escalada tiene 3 niveles
+ * (reenvío → pista → rescate); a partir de ahí repetir el mismo rescate no aporta nada:
+ * el fallo es del servicio de evaluación, no del estudiante, y hay que reportarlo como
+ * indisponibilidad (503) y permitir reiniciar la actividad sin consumir intentos.
+ */
+export const MAX_CONSECUTIVE_DIALOGUE_TECHNICAL_RECOVERIES = 3
+
+/**
+ * Cuenta cuántos mensajes de recuperación técnica consecutivos lleva SofLIA (mirando
+ * los turnos de asistente más recientes hacia atrás; los turnos del usuario no cortan
+ * la racha). Sirve para escalar la guía y para detectar una sesión atascada por fallos
+ * técnicos persistentes.
+ */
+export function countConsecutiveDialogueTechnicalRecoveries(
+  turns: DialogueTurnRow[],
+): number {
+  let count = 0
+  for (let index = turns.length - 1; index >= 0; index -= 1) {
+    const turn = turns[index]
+    if (turn.role !== 'assistant') continue
+    const metadata = turn.metadata as { technicalRecovery?: unknown } | null | undefined
+    if (metadata?.technicalRecovery) {
+      count += 1
+    } else {
+      break
+    }
+  }
+  return count
+}
+
+export function isDialogueStuckOnTechnicalFailures(turns: DialogueTurnRow[]): boolean {
+  return (
+    countConsecutiveDialogueTechnicalRecoveries(turns) >=
+    MAX_CONSECUTIVE_DIALOGUE_TECHNICAL_RECOVERIES
   )
 }
 

@@ -6,16 +6,16 @@ import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
+  Activity,
   BarChart3,
-  BookOpen,
   Building2,
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
   FileText,
   LayoutDashboard,
+  Library,
   MapPin,
-  Route,
   Users,
   X,
 } from 'lucide-react'
@@ -38,13 +38,22 @@ interface AdminSidebarProps {
 const navigation = [
   { section: 'dashboard', labelKey: 'navigation.dashboard', fallbackLabel: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
   { section: 'users', labelKey: 'navigation.users', fallbackLabel: 'Usuarios', href: '/admin/users', icon: Users },
-  { section: 'workshops', labelKey: 'navigation.workshops', fallbackLabel: 'Talleres', href: '/admin/workshops', icon: BookOpen },
-  { section: 'learning-paths', labelKey: 'navigation.learningPaths', fallbackLabel: 'Rutas de aprendizaje', href: '/admin/learning-paths', icon: Route },
+  {
+    section: 'workshops',
+    labelKey: 'navigation.content',
+    fallbackLabel: 'Contenido',
+    href: '/admin/workshops',
+    icon: Library,
+    // Also covers /admin/learning-paths/[id] (its list view now redirects into this tab,
+    // but its own detail route stays separate so the sidebar item must match both prefixes).
+    matchPrefixes: ['/admin/workshops', '/admin/learning-paths'],
+  },
   { section: 'lia-analytics', labelKey: 'navigation.liaAnalytics', fallbackLabel: 'SofLIA Analytics', href: '/admin/lia-analytics', icon: BarChart3 },
   { section: 'user-stats', labelKey: 'navigation.userStats', fallbackLabel: 'Estadisticas de Usuarios', href: '/admin/user-stats', icon: MapPin },
   { section: 'companies', labelKey: 'navigation.companies', fallbackLabel: 'Empresas', href: '/admin/companies', icon: Building2 },
   { section: 'reports', labelKey: 'navigation.reports', fallbackLabel: 'Reportes', href: '/admin/reportes', icon: FileText },
   { section: 'reviews', labelKey: 'navigation.reviews', fallbackLabel: 'Revisiones', href: '/admin/courses/pending', icon: ClipboardCheck },
+  { section: 'system-status', labelKey: 'navigation.systemStatus', fallbackLabel: 'Estado del Sistema', href: '/admin/system-status', icon: Activity },
 ]
 
 export function AdminSidebar({
@@ -238,7 +247,10 @@ export function AdminSidebar({
           <ul className="space-y-1.5">
             {navigation.map((item) => {
               const Icon = item.icon
-              const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`)
+              const matchPrefixes = 'matchPrefixes' in item ? item.matchPrefixes : [item.href]
+              const isActive = matchPrefixes.some(
+                (prefix) => pathname === prefix || pathname?.startsWith(`${prefix}/`),
+              )
               const label = t(item.labelKey, { defaultValue: item.fallbackLabel })
 
               return (

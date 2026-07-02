@@ -1,6 +1,5 @@
 export { AdminDashboardActivitySection } from './AdminDashboardActivitySection'
 export { AdminDashboardHero } from './AdminDashboardHero'
-export { AdminDashboardSidebar } from './AdminDashboardSidebar'
 export { AdminDashboardStatsSection } from './AdminDashboardStatsSection'
 export { useAdminDashboardLogic } from './useAdminDashboardLogic'
 export * from './service'

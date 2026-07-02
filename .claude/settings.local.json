@@ -268,7 +268,12 @@
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/public/locales/es/business.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/public/locales/en/business.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/public/locales/pt/business.json','utf8'\\)\\); console.log\\('OK'\\)\")",
       "Bash(npm run *)",
       "Bash(NODE_OPTIONS=\"--max-old-space-size=8192\" npx tsc --noEmit -p tsconfig.typecheck.features.json)",
-      "Bash(NODE_OPTIONS=\"--max-old-space-size=8192\" npx tsc --noEmit -p tsconfig.typecheck.app.json)"
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=8192\" npx tsc --noEmit -p tsconfig.typecheck.app.json)",
+      "PowerShell(git stash pop)",
+      "PowerShell(Copy-Item .claude/settings.local.json \"$env:TEMP\\\\settings.local.json.bak\" -Force; git checkout -- .claude/settings.local.json; git stash pop; Copy-Item \"$env:TEMP\\\\settings.local.json.bak\" .claude/settings.local.json -Force; git status --short | Select-Object -First 20)",
+      "PowerShell(npm run type-check --workspace=apps/web 2>&1)",
+      "PowerShell(npm run type-check:features --workspace=apps/web 2>&1 | Select-String -Pattern 'error TS' | Select-Object -First 20; if \\(-not $?\\) { echo '---' } ; echo \"exit=$LASTEXITCODE\")",
+      "PowerShell(npm run type-check:app --workspace=apps/web 2>&1 | Select-String -Pattern 'error TS' | Select-Object -First 20; echo \"exit=$LASTEXITCODE\")"
     ],
     "deny": [],
     "ask": [],

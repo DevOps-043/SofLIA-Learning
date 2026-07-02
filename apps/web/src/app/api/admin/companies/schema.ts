@@ -61,3 +61,9 @@ export const updateMemberRoleSchema = z.object({
 })
 
 export type UpdateMemberRoleBody = z.infer<typeof updateMemberRoleSchema>
+
+export const deleteCompanySchema = z.object({
+  confirmName: z.string().min(1).max(200),
+})
+
+export type DeleteCompanyBody = z.infer<typeof deleteCompanySchema>

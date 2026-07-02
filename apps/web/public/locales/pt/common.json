@@ -12,6 +12,30 @@
     "label": "Idioma: {{language}}",
     "active": "Ativo"
   },
+  "status": {
+    "pageTitle": "Status do sistema",
+    "unavailable": "Não foi possível carregar o status do sistema. Tente novamente mais tarde.",
+    "banner": {
+      "operational": "Todos os sistemas operacionais",
+      "degraded": "Desempenho degradado",
+      "down": "Interrupção do serviço"
+    },
+    "components": {
+      "gemini_ai": "SofLIA Chat / IA",
+      "database": "Banco de dados",
+      "auth": "Autenticação"
+    },
+    "currentStatus": {
+      "operational": "Operacional",
+      "degraded": "Degradado",
+      "down": "Fora do ar"
+    },
+    "uptimeBar": {
+      "legend": "Últimos 90 dias",
+      "noData": "Sem dados"
+    },
+    "lastUpdated": "Última atualização: {{time}}"
+  },
   "themeSelector": {
     "label": "Mudar tema",
     "light": "Claro",
@@ -450,6 +474,14 @@
     "noNotifications": "Você não tem notificações",
     "viewAll": "Ver todas",
     "types": {
+      "system_status_incident": {
+        "title": "Incidente em um serviço da plataforma",
+        "message": "Um serviço da plataforma está degradado ou fora do ar. Verifique o painel de Status do Sistema para mais detalhes."
+      },
+      "system_status_recovered": {
+        "title": "Serviço restabelecido",
+        "message": "Um serviço da plataforma que estava degradado ou fora do ar voltou a operar normalmente."
+      },
       "system_password_changed": {
         "title": "Senha atualizada",
         "message": "Sua senha foi atualizada com sucesso."
@@ -573,6 +605,10 @@
       "course_completed_with_certificate": {
         "title": "Curso concluído",
         "message": "Parabéns! Você concluiu \"{{courseTitle}}\". Seu certificado está disponível."
+      },
+      "business_goal_reminder": {
+        "title": "Lembrete do seu administrador",
+        "message": "Seu administrador enviou um lembrete: {{goalText}}"
       }
     }
   },
@@ -1315,6 +1351,11 @@
     "refresh": "Atualizar",
     "archive": "Arquivar",
     "markAsRead": "Marcar como lida",
+    "sendReminder": "Enviar lembrete",
+    "sending": "Enviando...",
+    "sent": "Enviado",
+    "reminderSent": "Lembrete enviado",
+    "reminderError": "Erro ao enviar lembrete",
     "notificationsPage": {
       "title": "Notificações",
       "subtitle": "Gerencie suas notificações e mantenha-se atualizado",

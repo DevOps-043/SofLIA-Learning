@@ -109,6 +109,24 @@ function resolveDialogueEvaluationTimeoutMs() {
   return Number.isFinite(rawTimeout) && rawTimeout > 0 ? rawTimeout : 25000
 }
 
+/**
+ * Presupuesto de salida del evaluador. Los modelos con razonamiento interno (familia
+ * gemini-3.x) descuentan sus "thinking tokens" de maxOutputTokens: con un presupuesto
+ * corto el JSON llega truncado o vacío y CADA turno falla con DIALOGUE_EVALUATION_FAILED
+ * (el origen del bucle de recuperación técnica). 4096 deja margen para razonamiento +
+ * el JSON completo de la rúbrica.
+ */
+const DEFAULT_EVALUATOR_MAX_OUTPUT_TOKENS = 4096
+
+function resolveDialogueEvaluationMaxOutputTokens() {
+  const rawValue = Number(process.env.SOFLIA_DIALOGUE_EVALUATOR_MAX_OUTPUT_TOKENS)
+  if (!Number.isFinite(rawValue) || rawValue <= 0) {
+    return DEFAULT_EVALUATOR_MAX_OUTPUT_TOKENS
+  }
+
+  return Math.max(1024, Math.min(Math.trunc(rawValue), 8192))
+}
+
 export function buildEvaluatorPrompt(input: {
   accumulatedCriteriaMet: string[]
   config: DialogueActivityConfig
@@ -227,7 +245,8 @@ export async function evaluateDialogueTurn(input: {
     const response = await generateGeminiText({
       circuitBreakerName: 'gemini-dialogue-evaluator',
       generationConfig: {
-        maxOutputTokens: 1800,
+        maxOutputTokens: resolveDialogueEvaluationMaxOutputTokens(),
+        responseMimeType: 'application/json',
         temperature: 0.15,
       },
       model: modelName,
@@ -236,8 +255,16 @@ export async function evaluateDialogueTurn(input: {
         'Eres un evaluador estricto de aprendizaje. Responde exclusivamente JSON valido.',
       timeoutMs: resolveDialogueEvaluationTimeoutMs(),
     })
-    const responseText = response.text || '{}'
-    const parsed = JSON.parse(extractJsonObject(responseText))
+
+    if (!response.text) {
+      // No degradar a '{}': una respuesta vacía casi siempre significa presupuesto de
+      // salida agotado (thinking tokens) y debe diagnosticarse como tal, no como JSON invalido.
+      throw new Error(
+        `El evaluador devolvio una respuesta vacia (modelo ${modelName}); posible maxOutputTokens insuficiente`,
+      )
+    }
+
+    const parsed = JSON.parse(extractJsonObject(response.text))
 
     return {
       evaluation: dialogueEvaluationResultSchema.parse(parsed),

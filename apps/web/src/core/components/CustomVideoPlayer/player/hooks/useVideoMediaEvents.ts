@@ -15,7 +15,7 @@ interface UseVideoMediaEventsOptions {
   videoRef: RefObject<HTMLVideoElement | null>;
   duration: number;
   initialTime: number;
-  initialPlaybackRate: number;
+  playbackRate: number;
   hasInitialTimeSet: boolean;
   hasNotifiedCompletionRef: MutableRefObject<boolean>;
   lastTimeupdateRenderRef: MutableRefObject<number>;
@@ -46,7 +46,7 @@ export function useVideoMediaEvents({
   videoRef,
   duration,
   initialTime,
-  initialPlaybackRate,
+  playbackRate,
   hasInitialTimeSet,
   hasNotifiedCompletionRef,
   lastTimeupdateRenderRef,
@@ -126,8 +126,12 @@ export function useVideoMediaEvents({
         videoElement.currentTime = initialTime;
         setHasInitialTimeSet(true);
       }
-      if (Math.abs(videoElement.playbackRate - initialPlaybackRate) > 0.01) {
-        videoElement.playbackRate = initialPlaybackRate;
+      // Se compara contra la velocidad ACTUAL del estado (no un valor fijo de
+      // montaje): así, al cambiar de lección o tras un buffering/seek que
+      // dispare loadedmetadata/canplay de nuevo, se reaplica la última
+      // velocidad elegida por el usuario en vez de reiniciarla a 1x.
+      if (Math.abs(videoElement.playbackRate - playbackRate) > 0.01) {
+        videoElement.playbackRate = playbackRate;
       }
     };
 
@@ -224,7 +228,7 @@ export function useVideoMediaEvents({
   }, [
     duration,
     hasInitialTimeSet,
-    initialPlaybackRate,
+    playbackRate,
     initialTime,
     onComplete,
     onProgress,

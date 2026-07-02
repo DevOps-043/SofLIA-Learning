@@ -1,6 +1,7 @@
 'use client'
 
 import { useEditCompanyLogic } from '@/features/admin/hooks/useEditCompanyLogic'
+import { AdminDeleteCompanyModal } from '@/features/admin/components/admin-companies/AdminDeleteCompanyModal'
 import { useMotionSafe } from '@/lib/utils/motion'
 import { EditCompanyErrorState } from './page-components/EditCompanyErrorState'
 import { EditCompanyHeroCard } from './page-components/EditCompanyHeroCard'
@@ -40,8 +41,17 @@ export default function EditCompanyPage() {
           companyId={logic.companyId}
           onUpdate={logic.loadCompany}
           setCompany={logic.setCompany}
+          onDeleteClick={() => logic.setIsDeleteModalOpen(true)}
         />
       </div>
+      <AdminDeleteCompanyModal
+        companyName={logic.company.name}
+        isOpen={logic.isDeleteModalOpen}
+        isDeleting={logic.isDeleting}
+        error={logic.deleteError}
+        onClose={() => logic.setIsDeleteModalOpen(false)}
+        onConfirm={(confirmText) => logic.handleDelete(confirmText)}
+      />
     </div>
   )
 }

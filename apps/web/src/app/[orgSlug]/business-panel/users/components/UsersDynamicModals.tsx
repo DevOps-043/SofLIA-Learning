@@ -82,10 +82,17 @@ export function UsersDynamicModals({ logic }: { logic: BusinessUsersPageLogic })
         }}
       />
       {logic.statsUser ? (
-        <UserStatsModal user={logic.statsUser} isOpen={logic.isStatsModalOpen} onClose={() => {
-          logic.setIsStatsModalOpen(false)
-          logic.setStatsUser(null)
-        }} orgSlug={logic.orgSlug} />
+        <UserStatsModal
+          user={logic.statsUser}
+          isOpen={logic.isStatsModalOpen}
+          onClose={() => {
+            logic.setIsStatsModalOpen(false)
+            logic.setStatsUser(null)
+          }}
+          orgSlug={logic.orgSlug}
+          viewerUserId={logic.currentUser?.id}
+          onNotifyFeedback={logic.showToast}
+        />
       ) : null}
       <UnifiedInviteModal
         isOpen={logic.isUnifiedInviteModalOpen}

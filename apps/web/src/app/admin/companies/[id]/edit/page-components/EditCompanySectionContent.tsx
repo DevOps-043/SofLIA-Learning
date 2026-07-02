@@ -14,6 +14,7 @@ interface EditCompanySectionContentProps {
   companyId: string
   onUpdate: () => void
   setCompany: (company: CompanyData) => void
+  onDeleteClick: () => void
 }
 
 export function EditCompanySectionContent(props: EditCompanySectionContentProps) {
@@ -30,10 +31,11 @@ function renderSection({
   companyId,
   onUpdate,
   setCompany,
+  onDeleteClick,
 }: EditCompanySectionContentProps) {
   switch (activeTab) {
     case 'general':
-      return <GeneralSection company={company} setCompany={setCompany} />
+      return <GeneralSection company={company} setCompany={setCompany} onDeleteClick={onDeleteClick} />
     case 'users':
       return <UsersSection company={company} onUpdate={onUpdate} />
     case 'courses':
@@ -43,6 +45,6 @@ function renderSection({
     case 'customization':
       return <CustomizationSection company={company} setCompany={setCompany} />
     default:
-      return <GeneralSection company={company} setCompany={setCompany} />
+      return <GeneralSection company={company} setCompany={setCompany} onDeleteClick={onDeleteClick} />
   }
 }

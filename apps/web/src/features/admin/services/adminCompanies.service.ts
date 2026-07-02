@@ -19,6 +19,7 @@ import {
   assignCourseToUser,
   calculateCompanyStats,
   createAdminCompany,
+  deleteAdminCompany,
   getAdminCompanies,
   getAdminCompanyById,
   getCompanyCourses,
@@ -48,6 +49,10 @@ export class AdminCompaniesService {
 
   static async createCompany(data: CompanyCreatePayload): Promise<AdminCompany> {
     return createAdminCompany(data)
+  }
+
+  static async deleteCompany(id: string, adminUserId: string): Promise<void> {
+    return deleteAdminCompany(id, adminUserId)
   }
 
   static async getCompanyCourses(id: string) {

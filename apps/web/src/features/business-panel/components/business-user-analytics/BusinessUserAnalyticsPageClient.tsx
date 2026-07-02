@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Download, Loader2, RefreshCw } from 'lucide-react'
 import useSWR from 'swr'
 
+import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
 import type {
   BusinessUserAnalyticsInsights,
   BusinessUserAnalyticsInsightsResponse,
@@ -12,6 +13,7 @@ import type {
   BusinessUserAnalyticsResponse,
 } from '@/features/business-panel/types/business-user-analytics.types'
 import { useOrganizationStore } from '@/core/stores/organizationStore'
+import { useLanguage } from '@/core/providers/I18nProvider'
 import {
   resolveBusinessPanelActionColor,
   useBusinessPanelTheme,
@@ -40,6 +42,12 @@ export interface BusinessUserAnalyticsPageClientProps {
   onInsightsLoaded?:  (insights: BusinessUserAnalyticsInsights) => void
   /** When true, renders only OverviewKPIs + PerformanceCards (no charts, no AI insights) */
   compactMode?:       boolean
+  /** Id of the currently logged-in viewer. Used to detect when a Business admin is
+   *  looking at their own row (vs. another employee's) inside the stats modal. */
+  viewerUserId?:      string
+  /** Controls whether next-goal CTAs navigate as the learner or send admin reminders. */
+  goalActionMode?:    'personal' | 'reminder'
+  onNotifyFeedback?:  (message: string, type: ToastType) => void
 }
 
 const DEFAULT_RANGE: BusinessUserAnalyticsRange = '365d'
@@ -52,13 +60,22 @@ export function BusinessUserAnalyticsPageClient({
   onBack,
   apiBasePath,
   organizationId,
+  pdfExport,
   onAnalyticsLoaded,
   onInsightsLoaded,
   compactMode    = false,
+  viewerUserId,
+  goalActionMode = 'personal',
+  onNotifyFeedback,
 }: BusinessUserAnalyticsPageClientProps = {}) {
   const router  = useRouter()
   const params  = useParams()
   const orgSlug = explicitOrgSlug || (params?.orgSlug as string | undefined) || ''
+  const { language } = useLanguage()
+
+  // In personal action mode, no target userId means the viewer is on their own
+  // analytics page. Admin embeds can force reminder mode even for a matching row.
+  const isOwnProfile = goalActionMode === 'personal' && (!userId || userId === viewerUserId)
 
   const theme = useBusinessPanelTheme()
   // Raw org brand colors from the server-side layout — always present regardless of
@@ -73,6 +90,7 @@ export function BusinessUserAnalyticsPageClient({
   const [insightState, setInsightState] = useState<InsightState>('idle')
   const [insights,     setInsights]     = useState<BusinessUserAnalyticsInsights | null>(null)
   const [insightError, setInsightError] = useState<string | null>(null)
+  const [isPdfExporting, setIsPdfExporting] = useState(false)
 
   // ── URL builders ────────────────────────────────────────────────────────────
 
@@ -169,6 +187,38 @@ export function BusinessUserAnalyticsPageClient({
     }
   }, [insightsUrl, organizationId, range, onInsightsLoaded])
 
+  // ── PDF export — only available when the caller supplies `pdfExport` labels ──
+  // (the standalone `/business-user/analytics` page). The admin stats modal renders
+  // its own export button in its footer instead, using the `onAnalyticsLoaded`/
+  // `onInsightsLoaded` callbacks above to capture this same data externally.
+
+  const handleExportPdf = useCallback(async () => {
+    if (!data || !pdfExport) return
+
+    setIsPdfExporting(true)
+    try {
+      const { generateUserStatsPdf } = await import(
+        '../../services/business-user-analytics/pdf/generate-user-stats-pdf'
+      )
+      const blob = await generateUserStatsPdf(data, {
+        userLabel:         pdfExport.userLabel,
+        organizationLabel: pdfExport.organizationLabel ?? null,
+        locale:            (language as 'es' | 'en' | 'pt') ?? 'es',
+        insights,
+      })
+      const url = URL.createObjectURL(blob)
+      const a   = document.createElement('a')
+      a.href     = url
+      a.download = `estadisticas-${pdfExport.userLabel.toLowerCase().replace(/\s+/g, '-')}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      // PDF generation is non-critical; ignore failures silently
+    } finally {
+      setIsPdfExporting(false)
+    }
+  }, [data, pdfExport, language, insights])
+
   // ── Navigation ───────────────────────────────────────────────────────────────
 
   const goBack = useCallback(() => {
@@ -260,21 +310,42 @@ export function BusinessUserAnalyticsPageClient({
             </div>
           </div>
 
-          {/* Refresh — only when data is loaded */}
+          {/* Refresh + PDF export — only when data is loaded */}
           {!isLoading && (
-            <button
-              type="button"
-              onClick={() => void mutate()}
-              className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition-colors dark:text-gray-300"
-              style={{
-                backgroundColor: 'var(--dash-card)',
-                borderColor:     'var(--dash-border)',
-                color:           theme.subtextColor,
-              }}
-            >
-              <RefreshCw className="h-4 w-4" />
-              Actualizar
-            </button>
+            <div className="flex items-center gap-2">
+              {pdfExport && data && (
+                <button
+                  type="button"
+                  onClick={() => void handleExportPdf()}
+                  disabled={isPdfExporting}
+                  className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300"
+                  style={{
+                    backgroundColor: 'var(--dash-card)',
+                    borderColor:     'var(--dash-border)',
+                    color:           theme.subtextColor,
+                  }}
+                >
+                  {isPdfExporting
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <Download className="h-4 w-4" />
+                  }
+                  PDF
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => void mutate()}
+                className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition-colors dark:text-gray-300"
+                style={{
+                  backgroundColor: 'var(--dash-card)',
+                  borderColor:     'var(--dash-border)',
+                  color:           theme.subtextColor,
+                }}
+              >
+                <RefreshCw className="h-4 w-4" />
+                Actualizar
+              </button>
+            </div>
           )}
         </header>
       )}
@@ -305,7 +376,13 @@ export function BusinessUserAnalyticsPageClient({
                   onRangeChange={setRange}
                 />
                 <QualityRadarChart quality={data.quality} />
-                <NextGoals data={data} orgSlug={orgSlug} />
+                <NextGoals
+                  data={data}
+                  orgSlug={orgSlug}
+                  isOwnProfile={isOwnProfile}
+                  viewedUserId={userId}
+                  onNotifyFeedback={onNotifyFeedback}
+                />
                 <AiInsightsCard
                   state={insightState}
                   insights={insights}

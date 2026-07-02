@@ -14,12 +14,16 @@ import type {
   BusinessUserAnalyticsResponse,
 } from '../types/business-user-analytics.types'
 import { useLanguage } from '@/core/providers/I18nProvider'
+import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
 
 interface BusinessUserStatsModalProps {
-  user:     BusinessUser | null
-  isOpen:   boolean
-  onClose:  () => void
-  orgSlug?: string
+  user:             BusinessUser | null
+  isOpen:           boolean
+  onClose:          () => void
+  orgSlug?:         string
+  /** Id of the currently logged-in viewer, used to detect an admin viewing their own row. */
+  viewerUserId?:    string
+  onNotifyFeedback?: (message: string, type: ToastType) => void
 }
 
 export function BusinessUserStatsModal({
@@ -27,6 +31,8 @@ export function BusinessUserStatsModal({
   isOpen,
   onClose,
   orgSlug,
+  viewerUserId,
+  onNotifyFeedback,
 }: BusinessUserStatsModalProps) {
   const panelTheme       = useBusinessPanelTheme()
   const organizationName = useOrganizationStore((s) => s.currentOrganization?.name) ?? null
@@ -183,6 +189,9 @@ export function BusinessUserStatsModal({
                     pdfExport={{ userLabel: displayName, organizationLabel: organizationName }}
                     onAnalyticsLoaded={setAnalyticsData}
                     onInsightsLoaded={setAnalyticsInsights}
+                    viewerUserId={viewerUserId}
+                    goalActionMode="reminder"
+                    onNotifyFeedback={onNotifyFeedback}
                   />
                 </div>
               </div>

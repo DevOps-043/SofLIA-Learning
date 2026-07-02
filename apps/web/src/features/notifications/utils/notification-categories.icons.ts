@@ -58,4 +58,7 @@ export const NOTIFICATION_TYPE_ICONS: Record<string, LucideIcon> = {
   hierarchy_chat_message: MessageSquare,
   planner_rebalance_suggested: Sparkles,
   study_session_overdue: Clock,
+  business_goal_reminder: Clock,
+  system_status_incident: AlertTriangle,
+  system_status_recovered: CheckCircle2,
 }

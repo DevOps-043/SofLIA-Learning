@@ -109,15 +109,17 @@ export function PanelDashboardHero({
       </div>
 
       <div className="relative z-10">
-        <div className="mb-1 flex items-center gap-2 md:mb-2 md:gap-3">
-          <SparklesIcon className="h-4 w-4 md:h-6 md:w-6" style={{ color: theme.accent }} />
-          <span
-            className="text-[10px] font-medium uppercase tracking-wide md:text-sm"
-            style={{ color: inverseText }}
-          >
-            {eyebrow}
-          </span>
-        </div>
+        {eyebrow ? (
+          <div className="mb-1 flex items-center gap-2 md:mb-2 md:gap-3">
+            <SparklesIcon className="h-4 w-4 md:h-6 md:w-6" style={{ color: theme.accent }} />
+            <span
+              className="text-[10px] font-medium uppercase tracking-wide md:text-sm"
+              style={{ color: inverseText }}
+            >
+              {eyebrow}
+            </span>
+          </div>
+        ) : null}
 
         <motion.h1
           className="mb-1 text-xl font-bold leading-tight md:mb-2 md:text-3xl lg:text-4xl"
@@ -208,7 +210,7 @@ export function PanelStatCard({
           <Icon className="h-5 w-5" style={{ color: iconColor }} />
         </div>
 
-        <div className="flex min-w-0 flex-col justify-center overflow-hidden">
+        <div className="flex min-w-0 flex-1 flex-col justify-center overflow-hidden">
           <p
             className="mb-1 w-full truncate text-[10px] font-bold uppercase tracking-widest"
             style={{ color: theme.subtext, opacity: 0.9 }}
@@ -222,6 +224,15 @@ export function PanelStatCard({
             {typeof value === 'number' ? value.toLocaleString() : value}
           </p>
         </div>
+
+        {href && (
+          <div
+            className="flex-shrink-0 translate-x-3 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
+            style={{ color: iconColor }}
+          >
+            <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
+          </div>
+        )}
       </div>
 
       <div

@@ -3,7 +3,6 @@
 import {
   AdminDashboardActivitySection,
   AdminDashboardHero,
-  AdminDashboardSidebar,
   AdminDashboardStatsSection,
   useAdminDashboardLogic,
 } from './admin-dashboard'
@@ -15,7 +14,6 @@ export function AdminDashboard() {
     error,
     greeting,
     isLoading,
-    quickActions,
     statsData,
     themeColors,
     todayLabel,
@@ -34,28 +32,19 @@ export function AdminDashboard() {
         userName={userName}
       />
 
-      <div className="grid grid-cols-1 gap-8 xl:grid-cols-4">
-        <div className="space-y-8 xl:col-span-3">
-          <AdminDashboardStatsSection
-            error={error}
-            isLoading={isLoading}
-            statsData={statsData}
-            themeColors={themeColors}
-          />
+      <div className="space-y-8">
+        <AdminDashboardStatsSection
+          error={error}
+          isLoading={isLoading}
+          statsData={statsData}
+          themeColors={themeColors}
+        />
 
-          <AdminDashboardActivitySection
-            activities={activities}
-            isLoading={activitiesLoading}
-            themeColors={themeColors}
-          />
-        </div>
-
-        <div className="xl:col-span-1">
-          <AdminDashboardSidebar
-            quickActions={quickActions}
-            themeColors={themeColors}
-          />
-        </div>
+        <AdminDashboardActivitySection
+          activities={activities}
+          isLoading={activitiesLoading}
+          themeColors={themeColors}
+        />
       </div>
     </div>
   )

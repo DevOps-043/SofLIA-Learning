@@ -49,7 +49,7 @@ export function AiInsightsCard({ state, insights, error, onGenerate }: AiInsight
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
             style={{ background: `linear-gradient(135deg, ${theme.actionColor} 0%, ${theme.accentColor} 100%)` }}
           >
-            <Sparkles className="h-5 w-5 text-white" />
+            <Sparkles className="no-theme h-5 w-5 text-white" />
           </div>
           <div>
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">Análisis de SofLIA</h2>
@@ -175,7 +175,7 @@ function InsightsContent({
                 style={{ backgroundColor: 'var(--dash-card-inner)', borderColor: 'var(--dash-border)' }}
               >
                 <span
-                  className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                  className="no-theme mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
                   style={{ backgroundColor: theme.actionColor }}
                   aria-hidden="true"
                 >
@@ -362,7 +362,7 @@ function IdleState({ onGenerate }: { onGenerate: () => void }) {
         className="flex h-14 w-14 items-center justify-center rounded-2xl"
         style={{ background: `linear-gradient(135deg, ${theme.actionColor} 0%, ${theme.accentColor} 100%)` }}
       >
-        <Sparkles className="h-7 w-7 text-white" />
+        <Sparkles className="no-theme h-7 w-7 text-white" />
       </div>
       <div>
         <p className="text-base font-semibold text-gray-800 dark:text-gray-200">

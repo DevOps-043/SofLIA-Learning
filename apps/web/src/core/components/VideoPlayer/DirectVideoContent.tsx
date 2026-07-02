@@ -1,4 +1,5 @@
 import { CustomVideoPlayer as CustomVideoPlayerComponent } from '../CustomVideoPlayer/CustomVideoPlayer';
+import { getPreferredPlaybackRate } from '../CustomVideoPlayer/player/video-playback-rate-preference';
 import type {
   VideoContentStateProps,
   VideoPlayerProps,
@@ -25,7 +26,7 @@ export function DirectVideoContent(props: DirectVideoContentProps) {
       onComplete={props.onComplete}
       onPiPChange={props.onPiPChange}
       initialTime={props.initialTime ?? 0}
-      initialPlaybackRate={props.initialPlaybackRate ?? 1}
+      initialPlaybackRate={props.initialPlaybackRate ?? getPreferredPlaybackRate()}
       pauseWhenHidden={props.playbackPolicy.pauseWhenHidden}
       pauseWhenOutsideViewport={props.playbackPolicy.pauseWhenOutsideViewport}
       preload={props.playbackPolicy.nativeVideoPreload}

@@ -22,7 +22,7 @@ export function AdminDashboardHero({
 
   return (
     <PanelDashboardHero
-      eyebrow={t('dashboard.heroEyebrow')}
+      eyebrow=""
       greeting={greeting}
       imageAlt="Admin Dashboard Background"
       subtitle={t('dashboard.heroSubtitle')}

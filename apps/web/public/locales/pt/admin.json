@@ -6,13 +6,60 @@
   "navigation": {
     "dashboard": "Dashboard",
     "users": "Usuários",
+    "content": "Conteúdo",
     "workshops": "Workshops",
     "learningPaths": "Rotas de aprendizagem",
     "liaAnalytics": "SofLIA Analytics",
     "userStats": "Estatísticas de Usuários",
     "companies": "Empresas",
     "reports": "Relatórios",
-    "reviews": "Revisões"
+    "reviews": "Revisões",
+    "systemStatus": "Status do Sistema"
+  },
+  "systemStatus": {
+    "title": "Status do Sistema",
+    "lastUpdated": "Última atualização: {{time}}",
+    "loadError": "Não foi possível carregar o detalhe do status. Tente novamente mais tarde.",
+    "runCheckNow": "Verificar",
+    "runCheckSuccess": "Verificação concluída",
+    "runCheckError": "A verificação falhou. Aguarde alguns segundos e tente novamente.",
+    "latencySectionTitle": "Latência por componente",
+    "latencyChartTitle": "Latência (ms)",
+    "components": {
+      "gemini_ai": "SofLIA Chat / IA",
+      "database": "Banco de dados",
+      "auth": "Autenticação"
+    },
+    "status": {
+      "operational": "Operacional",
+      "degraded": "Degradado",
+      "down": "Fora do ar"
+    },
+    "circuitBreaker": {
+      "sectionTitle": "Circuit breakers (Gemini)",
+      "empty": "Nenhuma atividade de circuit breakers registrada neste processo.",
+      "failureRate": "Taxa de falhas",
+      "nextAttempt": "Próxima tentativa"
+    },
+    "checksTable": {
+      "sectionTitle": "Últimas verificações",
+      "empty": "Ainda não há verificações registradas.",
+      "component": "Componente",
+      "status": "Status",
+      "latency": "Latência",
+      "classification": "Classificação",
+      "detail": "Detalhe",
+      "checkedAt": "Data"
+    },
+    "errorClassification": {
+      "none": "Sem erro",
+      "timeout": "Tempo de espera esgotado",
+      "billing_quota": "Problema de faturamento/cota",
+      "generic_outage": "Interrupção genérica",
+      "latency_degraded": "Latência degradada",
+      "auth_failure": "Falha de autenticação",
+      "unknown": "Desconhecido"
+    }
   },
   "dashboard": {
     "confirmResetLayout": "Tem certeza de que deseja restaurar o layout padrão?",
@@ -792,6 +839,19 @@
         "owner": "Owner",
         "admin": "Admin"
       }
+    },
+    "deleteModal": {
+      "title": "Excluir organização",
+      "irreversible": "Todos os cursos atribuídos, progresso, certificados, análises, notificações, chats e estrutura hierárquica desta organização serão excluídos permanentemente. Esta ação não pode ser desfeita.",
+      "membersPreserved": "As contas dos membros não serão excluídas: eles apenas perderão a afiliação a esta organização.",
+      "alsoDeleted": "Isto excluirá permanentemente:",
+      "courses": "Cursos atribuídos e progresso",
+      "certificates": "Certificados e análises",
+      "hierarchy": "Estrutura hierárquica e chats",
+      "confirmLabel": "Digite \"{{name}}\" para confirmar",
+      "confirmPlaceholder": "Nome da organização",
+      "confirmButton": "Excluir organização",
+      "errorDeleting": "Erro ao excluir a organização"
     },
     "empty": {
       "title": "Nenhuma empresa encontrada",

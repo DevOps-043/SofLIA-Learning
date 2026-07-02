@@ -28,6 +28,7 @@ interface GenerateGeminiTextParams {
   circuitBreakerName: string
   generationConfig?: {
     maxOutputTokens?: number
+    responseMimeType?: string
     temperature?: number
     topK?: number
     topP?: number

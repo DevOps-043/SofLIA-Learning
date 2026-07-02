@@ -26,6 +26,8 @@ export type DialogueSession = {
   sessionId: string;
   startedAt: string;
   state: DialogueState;
+  /** La sesión quedó bloqueada por fallos técnicos persistentes del evaluador; la UI debe ofrecer reiniciar. */
+  stuckOnTechnicalFailure?: boolean;
   turnsCount: number;
 };
 

@@ -1,4 +1,7 @@
-import type { DialogueActivityConfig } from '../../../types/dialogue-runtime'
+import {
+  terminalDialogueStates,
+  type DialogueActivityConfig,
+} from '../../../types/dialogue-runtime'
 import type { CourseActivityContext } from '../../activity-submission.server.service'
 import { DialogueRuntimeError } from '../dialogue-runtime.errors'
 import { dialogueSessionsTable } from '../dialogue-tables'
@@ -31,11 +34,15 @@ export async function createDialogueSession(input: {
   config: DialogueActivityConfig
   context: CourseActivityContext
 }) {
+  // Solo las sesiones que llegaron a un estado terminal consumen intento. Las sesiones
+  // abandonadas o bloqueadas por fallos técnicos del evaluador no son intentos reales
+  // del estudiante y no deben dejarlo fuera de la actividad.
   const { count, error: countError } = await dialogueSessionsTable(input.client)
     .select('session_id', { count: 'exact', head: true })
     .eq('user_id', input.context.userId)
     .eq('activity_id', input.context.activity.activity_id)
     .eq('enrollment_id', input.context.enrollmentId)
+    .in('state', terminalDialogueStates)
 
   if (countError) {
     throw new DialogueRuntimeError(

@@ -5,6 +5,7 @@ import {
   type DialogueSessionRow,
   type DialogueTurnRow,
 } from '../dialogue-tables'
+import { isDialogueStuckOnTechnicalFailures } from '../dialogue-technical-recovery.service'
 import { normalizeSessionState } from './session-state'
 import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
@@ -41,6 +42,9 @@ export function toDialogueSessionResponse(input: {
     criteriaMissing: input.session.criteria_missing ?? [],
     startedAt: input.session.started_at,
     completedAt: input.session.completed_at,
+    // La sesión quedó bloqueada por fallos técnicos persistentes del evaluador (no por
+    // desempeño del estudiante): la UI debe ofrecer reiniciar la actividad.
+    stuckOnTechnicalFailure: isDialogueStuckOnTechnicalFailures(input.turns),
     messages: input.turns.map((turn) => ({
       id: turn.turn_id,
       role: turn.role,

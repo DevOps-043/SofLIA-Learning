@@ -41,4 +41,7 @@ export const NOTIFICATION_TYPE_CATEGORY_MAP: Record<
   hierarchy_chat_message: 'community',
   planner_rebalance_suggested: 'planner',
   study_session_overdue: 'critical',
+  business_goal_reminder: 'course',
+  system_status_incident: 'critical',
+  system_status_recovered: 'system',
 }

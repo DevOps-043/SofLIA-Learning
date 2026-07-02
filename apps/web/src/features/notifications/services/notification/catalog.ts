@@ -56,6 +56,7 @@ export const NOTIFICATION_EVENTS = [
   'hierarchy_chat_message',
   'planner_rebalance_suggested',
   'study_session_overdue',
+  'business_goal_reminder',
 ] as const
 
 export type NotificationEventType = (typeof NOTIFICATION_EVENTS)[number]

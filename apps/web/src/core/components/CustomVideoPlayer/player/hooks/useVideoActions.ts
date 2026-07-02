@@ -1,6 +1,7 @@
 import { useCallback, type RefObject } from 'react';
 
 import { clampPlaybackTime } from '../video-player.utils';
+import { setPreferredPlaybackRate } from '../video-playback-rate-preference';
 
 interface UseVideoActionsOptions {
   videoRef: RefObject<HTMLVideoElement | null>;
@@ -169,6 +170,7 @@ export function useVideoActions({
       if (!videoElement) return;
       videoElement.playbackRate = rate;
       setPlaybackRate(rate);
+      setPreferredPlaybackRate(rate);
       setShowSettings(false);
       setShowControls(true);
     },

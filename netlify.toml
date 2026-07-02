@@ -145,3 +145,7 @@
 # Funcion programada: Entregas externas de notificaciones
 [functions."process-notification-deliveries"]
   schedule = "*/5 * * * *"
+
+# Funcion programada: Chequeo de estado del sistema (Gemini AI, DB, Auth) para /status
+[functions."system-status-check"]
+  schedule = "*/5 * * * *"

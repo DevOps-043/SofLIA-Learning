@@ -31,10 +31,12 @@ import {
   updateDialogueSessionAfterTurn,
 } from './dialogue-session.service'
 import { generateDialogueTutorMessage } from './dialogue-tutor.service'
-import type { DialogueSessionRow, DialogueTurnRow } from './dialogue-tables'
+import type { DialogueSessionRow } from './dialogue-tables'
 import {
   buildDialogueTechnicalRecovery,
+  countConsecutiveDialogueTechnicalRecoveries,
   isRecoverableDialogueEvaluationError,
+  MAX_CONSECUTIVE_DIALOGUE_TECHNICAL_RECOVERIES,
 } from './dialogue-technical-recovery.service'
 
 /**
@@ -52,26 +54,6 @@ async function evaluateDialogueTurnWithRetry(
     await new Promise((resolve) => setTimeout(resolve, 600))
     return await evaluateDialogueTurn(params)
   }
-}
-
-/**
- * Cuenta cuántos mensajes de recuperación técnica consecutivos lleva SofLIA (mirando
- * los turnos de asistente más recientes hacia atrás). Sirve para ESCALAR la guía en
- * vez de repetir el mismo texto: 1er fallo pide reenvío, 2do da pista, 3er+ rescata.
- */
-function countConsecutiveTechnicalRecoveries(turns: DialogueTurnRow[]): number {
-  let count = 0
-  for (let index = turns.length - 1; index >= 0; index -= 1) {
-    const turn = turns[index]
-    if (turn.role !== 'assistant') continue
-    const metadata = turn.metadata as { technicalRecovery?: unknown } | null | undefined
-    if (metadata?.technicalRecovery) {
-      count += 1
-    } else {
-      break
-    }
-  }
-  return count
 }
 
 function toDialogueState(value: string): DialogueState {
@@ -302,20 +284,35 @@ export async function processDialogueMessage(input: {
       throw error
     }
 
+    // Recuperación ESCALADA: en vez de repetir siempre el mismo texto, escala según
+    // cuántos fallos técnicos consecutivos van (reenvío → pista → rescate + video).
+    const recoveryAttempt =
+      countConsecutiveDialogueTechnicalRecoveries(existingTurns) + 1
+
     await recordDialogueEvent(input.client, {
       activityId: input.context.activity.activity_id,
       eventType: 'evaluation_failed',
       payload: {
         code: error.code,
+        recoveryAttempt,
         status: error.status,
       },
       sessionId: session.session_id,
       userId: input.context.userId,
     })
 
-    // Recuperación ESCALADA: en vez de repetir siempre el mismo texto, escala según
-    // cuántos fallos técnicos consecutivos van (reenvío → pista → rescate + video).
-    const recoveryAttempt = countConsecutiveTechnicalRecoveries(existingTurns) + 1
+    // Agotada la escalada (reenvío → pista → rescate), repetir el rescate no aporta
+    // nada: el fallo es del servicio de evaluación, no del estudiante. Se reporta como
+    // indisponibilidad real para que la UI muestre el error y ofrezca reiniciar.
+    if (recoveryAttempt > MAX_CONSECUTIVE_DIALOGUE_TECHNICAL_RECOVERIES) {
+      throw new DialogueRuntimeError(
+        'DIALOGUE_EVALUATION_UNAVAILABLE',
+        503,
+        'La evaluacion de SofLIA no esta disponible en este momento. Espera unos minutos e intenta de nuevo, o reinicia la actividad.',
+        { consecutiveFailures: recoveryAttempt },
+      )
+    }
+
     const assistantMessage = buildDialogueTechnicalRecovery({ config, attempt: recoveryAttempt })
     const currentState = toDialogueState(session.state)
 

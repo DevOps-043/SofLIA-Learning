@@ -78,7 +78,7 @@ export function resolvePrefetchRoutes(
       routes = orgBaseRoutes
     }
   } else if (pathname.startsWith('/admin')) {
-    routes = ['/admin/dashboard', '/admin/companies', '/admin/users', '/admin/learning-paths']
+    routes = ['/admin/dashboard', '/admin/companies', '/admin/users', '/admin/workshops']
   } else {
     const relatedRoutes: Record<string, string[]> = {
       '/': ['/dashboard', '/communities', '/courses', '/news'],

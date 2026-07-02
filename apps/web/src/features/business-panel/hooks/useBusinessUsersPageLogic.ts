@@ -83,6 +83,7 @@ export function useBusinessUsersPageLogic() {
     ...modals,
     toast: toastState.toast,
     setToast: toastState.setToast,
+    showToast: toastState.showToast,
     ...primaryActions,
     ...secondaryActions,
     reviewingId: joinState.reviewingId,

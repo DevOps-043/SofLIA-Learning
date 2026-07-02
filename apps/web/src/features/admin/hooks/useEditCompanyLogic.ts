@@ -84,6 +84,9 @@ export function useEditCompanyLogic() {
 
     // Modals
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+    const [deleteError, setDeleteError] = useState<string | null>(null)
 
     // Load company data
     const loadCompany = useCallback(async () => {
@@ -148,6 +151,32 @@ export function useEditCompanyLogic() {
         window.history.pushState(null, '', `?tab=${tabId}`)
     }
 
+    const handleDelete = async (confirmName: string) => {
+        setIsDeleting(true)
+        setDeleteError(null)
+
+        try {
+            const res = await fetch(`/api/admin/companies/${companyId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ confirmName }),
+            })
+
+            const data = await res.json().catch(() => null)
+
+            if (res.ok && data?.success) {
+                router.push('/admin/companies')
+                return
+            }
+
+            setDeleteError(getAdminApiErrorMessage(data, 'Error al eliminar la organización'))
+        } catch {
+            setDeleteError('Error al eliminar la organización')
+        } finally {
+            setIsDeleting(false)
+        }
+    }
+
     return {
         // Navigation
         router,
@@ -172,5 +201,12 @@ export function useEditCompanyLogic() {
         // Modal state
         isInviteModalOpen,
         setIsInviteModalOpen,
+
+        // Delete organization
+        isDeleteModalOpen,
+        setIsDeleteModalOpen,
+        isDeleting,
+        deleteError,
+        handleDelete,
     }
 }

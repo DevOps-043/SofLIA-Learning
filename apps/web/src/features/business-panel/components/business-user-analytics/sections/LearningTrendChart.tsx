@@ -105,7 +105,7 @@ export function LearningTrendChart({
               onClick={() => onRangeChange(opt.value)}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
                 range === opt.value
-                  ? 'text-white shadow-sm'
+                  ? 'no-theme text-white shadow-sm'
                   : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
               }`}
               style={range === opt.value ? { backgroundColor: theme.actionColor, color: theme.onActionColor } : undefined}

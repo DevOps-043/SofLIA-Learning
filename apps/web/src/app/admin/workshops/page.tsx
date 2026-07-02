@@ -1,11 +1,12 @@
 import { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 import { AdminLoadingSpinner } from '@/features/admin/components/AdminLoadingSpinner'
+import type { AdminContentTab } from '@/features/admin/components/AdminContentPage'
 
-// Lazy loading de la página de gestión de talleres
+// Lazy loading de la pagina unificada de talleres + rutas de aprendizaje
 // Reduce bundle inicial ~100-150 KB
-const AdminWorkshopsPage = dynamic(
-  () => import('@/features/admin/components/AdminWorkshopsPage').then(mod => ({ default: mod.AdminWorkshopsPage })),
+const AdminContentPage = dynamic(
+  () => import('@/features/admin/components/AdminContentPage').then(mod => ({ default: mod.AdminContentPage })),
   {
     loading: () => <AdminLoadingSpinner />
   }
@@ -13,9 +14,15 @@ const AdminWorkshopsPage = dynamic(
 
 export const metadata: Metadata = {
   title: 'Gestión de Talleres | Panel de Administración',
-  description: 'Gestiona todos los talleres de la plataforma.',
+  description: 'Gestiona todos los talleres y rutas de aprendizaje de la plataforma.',
 }
 
-export default function WorkshopsPage() {
-  return <AdminWorkshopsPage />
+interface Props {
+  searchParams: Promise<{ tab?: string }>
+}
+
+export default async function WorkshopsPage({ searchParams }: Props) {
+  const { tab } = await searchParams
+  const initialTab: AdminContentTab = tab === 'learning-paths' ? 'learning-paths' : 'workshops'
+  return <AdminContentPage initialTab={initialTab} />
 }

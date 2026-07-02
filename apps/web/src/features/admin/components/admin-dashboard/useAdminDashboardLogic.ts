@@ -14,7 +14,6 @@ import {
   buildAdminDashboardStatsData,
   buildAdminDashboardThemeColors,
   getAdminDashboardGreeting,
-  getAdminDashboardQuickActions,
   getAdminDashboardUserName,
   mapAdminDashboardActivities,
 } from './service'
@@ -88,7 +87,7 @@ export function useAdminDashboardLogic() {
     error,
     greeting: getAdminDashboardGreeting(currentTime, t),
     isLoading,
-    quickActions: getAdminDashboardQuickActions(t),
+
     statsData: buildAdminDashboardStatsData(stats, t),
     themeColors,
     todayLabel: currentTime.toLocaleDateString(locale, {

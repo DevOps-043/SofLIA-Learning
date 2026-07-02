@@ -6,13 +6,60 @@
   "navigation": {
     "dashboard": "Dashboard",
     "users": "Users",
+    "content": "Content",
     "workshops": "Workshops",
     "learningPaths": "Learning paths",
     "liaAnalytics": "SofLIA Analytics",
     "userStats": "User Statistics",
     "companies": "Companies",
     "reports": "Reports",
-    "reviews": "Reviews"
+    "reviews": "Reviews",
+    "systemStatus": "System Status"
+  },
+  "systemStatus": {
+    "title": "System Status",
+    "lastUpdated": "Last updated: {{time}}",
+    "loadError": "The status detail could not be loaded. Please try again later.",
+    "runCheckNow": "Check",
+    "runCheckSuccess": "Check completed",
+    "runCheckError": "The check failed. Wait a few seconds and try again.",
+    "latencySectionTitle": "Latency per component",
+    "latencyChartTitle": "Latency (ms)",
+    "components": {
+      "gemini_ai": "SofLIA Chat / AI",
+      "database": "Database",
+      "auth": "Authentication"
+    },
+    "status": {
+      "operational": "Operational",
+      "degraded": "Degraded",
+      "down": "Down"
+    },
+    "circuitBreaker": {
+      "sectionTitle": "Circuit breakers (Gemini)",
+      "empty": "No circuit breaker activity recorded in this process.",
+      "failureRate": "Failure rate",
+      "nextAttempt": "Next attempt"
+    },
+    "checksTable": {
+      "sectionTitle": "Latest checks",
+      "empty": "No checks recorded yet.",
+      "component": "Component",
+      "status": "Status",
+      "latency": "Latency",
+      "classification": "Classification",
+      "detail": "Detail",
+      "checkedAt": "Date"
+    },
+    "errorClassification": {
+      "none": "No error",
+      "timeout": "Timed out",
+      "billing_quota": "Billing/quota issue",
+      "generic_outage": "Generic outage",
+      "latency_degraded": "Degraded latency",
+      "auth_failure": "Authentication failure",
+      "unknown": "Unknown"
+    }
   },
   "dashboard": {
     "confirmResetLayout": "Are you sure you want to reset the default layout?",
@@ -792,6 +839,19 @@
         "owner": "Owner",
         "admin": "Admin"
       }
+    },
+    "deleteModal": {
+      "title": "Delete organization",
+      "irreversible": "All assigned courses, progress, certificates, analytics, notifications, chats and hierarchy structure for this organization will be permanently deleted. This action cannot be undone.",
+      "membersPreserved": "Member accounts are not deleted: they will just lose their affiliation to this organization.",
+      "alsoDeleted": "This will permanently delete:",
+      "courses": "Assigned courses and progress",
+      "certificates": "Certificates and analytics",
+      "hierarchy": "Hierarchy structure and chats",
+      "confirmLabel": "Type \"{{name}}\" to confirm",
+      "confirmPlaceholder": "Organization name",
+      "confirmButton": "Delete organization",
+      "errorDeleting": "Error deleting the organization"
     },
     "empty": {
       "title": "No companies found",

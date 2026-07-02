@@ -41,7 +41,10 @@ export function useSofliaDialogueSession({
   const loadSession = useDialogueSessionLoader({ endpointBase, mountedRef, organizationId, setDraftMessage, setError, setLoading, setSession, t });
   const canRetry = session?.state === "FAIL_OR_RETRY" && session.result?.activityResult === "needs_retry";
   const canPracticeAgain = session?.result?.activityResult === "completed";
-  const canStartNewAttempt = Boolean(canRetry || canPracticeAgain);
+  // Una sesión bloqueada por fallos técnicos del evaluador también debe poder reiniciarse
+  // (no consume intentos: el backend solo cuenta sesiones terminales como intento).
+  const isStuckOnTechnicalFailure = Boolean(session?.stuckOnTechnicalFailure) && !session?.result;
+  const canStartNewAttempt = Boolean(canRetry || canPracticeAgain || isStuckOnTechnicalFailure);
   const isTerminal = isDialogueTerminal(session, Boolean(canRetry));
   const sendMessage = useDialogueMessageSender({ draftMessage, endpointBase, isTerminal, onSessionUpdated, organizationId, sending, session, setDraftMessage, setError, setSending, setSession, t });
   const retrySession = useCallback(async () => {

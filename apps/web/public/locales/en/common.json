@@ -12,6 +12,30 @@
     "label": "Language: {{language}}",
     "active": "Active"
   },
+  "status": {
+    "pageTitle": "System status",
+    "unavailable": "The system status could not be loaded. Please try again later.",
+    "banner": {
+      "operational": "All systems operational",
+      "degraded": "Degraded performance",
+      "down": "Service disruption"
+    },
+    "components": {
+      "gemini_ai": "SofLIA Chat / AI",
+      "database": "Database",
+      "auth": "Authentication"
+    },
+    "currentStatus": {
+      "operational": "Operational",
+      "degraded": "Degraded",
+      "down": "Down"
+    },
+    "uptimeBar": {
+      "legend": "Last 90 days",
+      "noData": "No data"
+    },
+    "lastUpdated": "Last updated: {{time}}"
+  },
   "themeSelector": {
     "label": "Change theme",
     "light": "Light",
@@ -450,6 +474,14 @@
     "noNotifications": "No notifications",
     "viewAll": "View all",
     "types": {
+      "system_status_incident": {
+        "title": "Platform service incident",
+        "message": "A platform service is degraded or offline. Check the System Status panel for details."
+      },
+      "system_status_recovered": {
+        "title": "Service restored",
+        "message": "A platform service that was degraded or offline is operating normally again."
+      },
       "system_password_changed": {
         "title": "Password updated",
         "message": "Your password has been updated successfully."
@@ -573,6 +605,10 @@
       "course_completed_with_certificate": {
         "title": "Course completed",
         "message": "Congratulations! You have completed \"{{courseTitle}}\". Your certificate is now available."
+      },
+      "business_goal_reminder": {
+        "title": "Reminder from your admin",
+        "message": "Your admin sent you a reminder: {{goalText}}"
       }
     }
   },
@@ -1315,6 +1351,11 @@
     "refresh": "Refresh",
     "archive": "Archive",
     "markAsRead": "Mark as read",
+    "sendReminder": "Send reminder",
+    "sending": "Sending...",
+    "sent": "Sent",
+    "reminderSent": "Reminder sent",
+    "reminderError": "Error sending reminder",
     "notificationsPage": {
       "title": "Notifications",
       "subtitle": "Manage your notifications and stay up to date",

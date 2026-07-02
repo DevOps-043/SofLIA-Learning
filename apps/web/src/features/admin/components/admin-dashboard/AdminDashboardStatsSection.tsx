@@ -84,7 +84,7 @@ export function AdminDashboardStatsSection({
 
       <div className={!isStatsOpenMobile ? 'hidden md:block' : 'block'}>
         {isLoading ? (
-          <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
             {[...Array(4)].map((_, index) => (
               <div
                 key={index}
@@ -105,7 +105,7 @@ export function AdminDashboardStatsSection({
             {t('dashboard.statsError', { error })}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
             {statsData.map((stat, index) => {
               const Icon = statIcons[stat.iconKey]
               return (

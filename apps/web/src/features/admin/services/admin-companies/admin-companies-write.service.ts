@@ -7,6 +7,7 @@ import {
   normalizeOrganizationBrandingColors,
   type OrganizationBrandingRowColors,
 } from '@/core/theme/organization-branding-theme'
+import { AuditLogService } from '../auditLog.service'
 
 import type {
   AdminCompany,
@@ -293,4 +294,47 @@ export async function createAdminCompany(data: CompanyCreatePayload): Promise<Ad
   }
 
   return createdCompany
+}
+
+/**
+ * Permanently deletes an organization and every org-scoped row that cascades
+ * from it (courses assignments, progress, certificates, analytics, hierarchy,
+ * chats, notifications, etc — see migration 20260701130000). Member accounts
+ * are NOT deleted: `organization_users` cascading only removes the membership
+ * row, `users` has no organization_id column, so accounts are just orphaned.
+ */
+export async function deleteAdminCompany(id: string, adminUserId: string): Promise<void> {
+  const supabase = createAdminClient()
+
+  const { data: organization, error: fetchError } = await supabase
+    .from('organizations')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (fetchError || !organization) {
+    throw new Error('Organizacion no encontrada')
+  }
+
+  const { data: ownerMembership } = await supabase
+    .from('organization_users')
+    .select('user_id')
+    .eq('organization_id', id)
+    .eq('role', 'owner')
+    .maybeSingle()
+
+  await AuditLogService.logAction({
+    user_id: ownerMembership?.user_id ?? adminUserId,
+    admin_user_id: adminUserId,
+    action: 'DELETE',
+    table_name: 'organizations',
+    record_id: id,
+    old_values: organization as unknown as Record<string, unknown>,
+  })
+
+  const { error: deleteError } = await supabase.from('organizations').delete().eq('id', id)
+  if (deleteError) {
+    logger.error('Error deleting organization:', deleteError)
+    throw new Error('No se pudo eliminar la organizacion. Verifica que no existan referencias bloqueantes.')
+  }
 }
