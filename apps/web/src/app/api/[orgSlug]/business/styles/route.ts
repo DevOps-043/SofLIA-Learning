@@ -49,7 +49,7 @@ export async function GET(
 
     const { data: organization, error: orgError } = await supabase
       .from('organizations')
-      .select('panel_styles, user_dashboard_styles, login_styles, selected_theme, brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family')
+      .select('panel_styles, user_dashboard_styles, login_styles, selected_theme, brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family, branding_enabled')
       .eq('id', auth.organizationId)
       .single()
 

@@ -60,17 +60,17 @@ export function OrganizationLayoutClient({
   ]);
 
   const initialStyles = useMemo((): OrganizationStyles => {
-    // Use the org's brand colors whenever they are configured in the DB.
-    // `brandingEnabled` is treated as a full-branding gate (backgrounds, login page,
-    // custom fonts) but should NOT override a color palette the org admin explicitly set.
-    // If no brand colors are configured at all, fall back to the SOFLIA preset.
+    // `brandingEnabled` gates ALL branded surfaces (panel, user dashboard, login).
+    // When the org disables custom branding — or has no brand colors configured —
+    // every surface falls back to the platform SofLIA preset. The brand colors are
+    // kept in the DB so re-enabling the toggle restores them instantly.
     const hasBrandColors = !!(
       organization.brandColorPrimary ||
       organization.brandColorAccent ||
       organization.brandColorSecondary
     );
 
-    if (!hasBrandColors) {
+    if (!organization.brandingEnabled || !hasBrandColors) {
       const sofliaTheme = PRESET_THEMES['SOFLIA'];
       return {
         panel: sofliaTheme.panel,
@@ -92,8 +92,7 @@ export function OrganizationLayoutClient({
     return {
       panel: theme.panel,
       userDashboard: theme.userDashboard,
-      // Only apply login branding when explicitly enabled (paid feature gate)
-      login: organization.brandingEnabled ? theme.login : PRESET_THEMES['SOFLIA'].login,
+      login: theme.login,
       selectedTheme: BRANDING_THEME_ID,
       supportsDualMode: true,
       lightMode: theme.lightMode,

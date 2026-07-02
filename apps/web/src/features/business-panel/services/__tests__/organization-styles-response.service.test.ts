@@ -132,4 +132,47 @@ describe('organization-styles-response.service', () => {
     expect(payload.selectedTheme).toBe(BRANDING_THEME_ID)
     expect(payload.panel?.primary_button_color).toBe(DESIGN_HEX_COLOR.info)
   })
+
+  it('returns the SofLIA preset for every surface when branding is disabled', () => {
+    const payload = buildOrganizationStylesPayload({
+      selected_theme: BRANDING_THEME_ID,
+      brand_color_primary: DESIGN_HEX_COLOR.black,
+      brand_color_secondary: DESIGN_HEX_COLOR.info,
+      brand_color_accent: DESIGN_HEX_COLOR.blue400,
+      branding_enabled: false,
+    })
+
+    expect(payload.selectedTheme).toBe('SOFLIA')
+    expect(payload.panel?.accent_color).toBe(DESIGN_HEX_COLOR.accent)
+    expect(payload.panel?.primary_button_color).toBe(DESIGN_HEX_COLOR.primary)
+    expect(payload.userDashboard?.accent_color).toBe(DESIGN_HEX_COLOR.accent)
+    expect(payload.login?.accent_color).toBe(DESIGN_HEX_COLOR.accent)
+    expect(payload.supportsDualMode).toBe(true)
+    expect(payload.lightMode?.panel).toBeDefined()
+  })
+
+  it('keeps the branded theme when branding is explicitly enabled', () => {
+    const payload = buildOrganizationStylesPayload({
+      selected_theme: BRANDING_THEME_ID,
+      brand_color_primary: DESIGN_HEX_COLOR.black,
+      brand_color_secondary: DESIGN_HEX_COLOR.info,
+      brand_color_accent: DESIGN_HEX_COLOR.blue400,
+      branding_enabled: true,
+    })
+
+    expect(payload.selectedTheme).toBe(BRANDING_THEME_ID)
+    expect(payload.panel?.primary_button_color).toBe(DESIGN_HEX_COLOR.black)
+  })
+
+  it('keeps the branded theme when branding_enabled is not selected (legacy callers)', () => {
+    const payload = buildOrganizationStylesPayload({
+      selected_theme: BRANDING_THEME_ID,
+      brand_color_primary: DESIGN_HEX_COLOR.black,
+      brand_color_secondary: DESIGN_HEX_COLOR.info,
+      brand_color_accent: DESIGN_HEX_COLOR.blue400,
+    })
+
+    expect(payload.selectedTheme).toBe(BRANDING_THEME_ID)
+    expect(payload.panel?.primary_button_color).toBe(DESIGN_HEX_COLOR.black)
+  })
 })

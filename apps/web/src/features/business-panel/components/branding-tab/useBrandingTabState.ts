@@ -108,11 +108,13 @@ export function useBrandingTabState() {
       }
 
       showToast('Branding actualizado correctamente', 'success')
+      // Apply the styles returned by the PUT immediately (no visual delay)…
       if (result.styles) {
         syncStyles(result.styles)
-      } else {
-        await refetchStyles()
       }
+      // …and always re-fetch from the server so the live theme converges to the
+      // persisted truth (covers branding_enabled toggles without a page reload).
+      await refetchStyles()
     } catch (err) {
       showToast(
         err instanceof Error ? err.message : 'Error al actualizar el branding',

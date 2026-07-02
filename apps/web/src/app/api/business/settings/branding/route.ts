@@ -29,6 +29,7 @@ interface OrganizationBrandingRow {
   user_dashboard_styles?: unknown
   login_styles?: unknown
   selected_theme?: string | null
+  branding_enabled?: boolean | null
 }
 
 interface OrganizationBrandingSource {
@@ -210,7 +211,7 @@ async function handlePut(
       .from('organizations')
       .update(updateData)
       .eq('id', auth.organizationId)
-      .select('brand_logo_url, brand_favicon_url, brand_banner_url, brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family, logo_url, panel_styles, user_dashboard_styles, login_styles, selected_theme')
+      .select('brand_logo_url, brand_favicon_url, brand_banner_url, brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family, logo_url, panel_styles, user_dashboard_styles, login_styles, selected_theme, branding_enabled')
       .single()
 
     if (errorWithBanner && errorWithBanner.message?.includes('brand_banner_url')) {
@@ -222,7 +223,7 @@ async function handlePut(
         .from('organizations')
         .update(updateDataWithoutBanner)
         .eq('id', auth.organizationId)
-        .select('brand_logo_url, brand_favicon_url, brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family, logo_url, panel_styles, user_dashboard_styles, login_styles, selected_theme')
+        .select('brand_logo_url, brand_favicon_url, brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family, logo_url, panel_styles, user_dashboard_styles, login_styles, selected_theme, branding_enabled')
         .single()
       
       updatedOrg = updatedWithoutBanner
