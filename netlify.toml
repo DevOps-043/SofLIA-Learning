@@ -13,7 +13,13 @@
   # Versión de Node.js (lee automáticamente desde .nvmrc)
   # Actualizado a Node.js 22 para compatibilidad con camera-controls@3.1.2 que requiere Node >= 22.0.0
   NODE_VERSION = "22"
-  
+
+  # Aumenta el heap de Node para el build de producción. `next build` de esta app
+  # supera el límite por defecto (~2 GB) y aborta con OOM (exit code 134:
+  # "Ineffective mark-compacts near heap limit"). 6 GB da margen suficiente en el
+  # contenedor de build de Netlify. Se hereda por los procesos hijos (next build).
+  NODE_OPTIONS = "--max-old-space-size=6144"
+
   # Habilitar plugin de Next.js
   NETLIFY_NEXT_PLUGIN_SKIP = "false"
 
