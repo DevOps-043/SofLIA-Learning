@@ -7,6 +7,7 @@ import {
   normalizeOrganizationBrandingColors,
   type OrganizationBrandingRowColors,
 } from '@/core/theme/organization-branding-theme'
+import { PRESET_THEMES } from '@/features/business-panel/config/preset-themes'
 import { AuditLogService } from '../auditLog.service'
 
 import type {
@@ -40,30 +41,44 @@ function shouldSyncBrandingTheme(updates: CompanyUpdatePayload): boolean {
     updates.brand_color_primary !== undefined ||
     updates.brand_color_secondary !== undefined ||
     updates.brand_color_accent !== undefined ||
-    updates.brand_font_family !== undefined
+    updates.brand_font_family !== undefined ||
+    updates.branding_enabled !== undefined
   )
 }
 
+/**
+ * Writes the brand color/font columns plus the denormalized *_styles theme.
+ *
+ * Brand colors are ALWAYS persisted (so a disabled org keeps its palette for
+ * later reactivation), but the effective theme depends on `brandingEnabled`:
+ * when disabled we write the platform SofLIA preset to every surface
+ * (panel + dashboard + login), mirroring the business-panel branding route.
+ */
 function syncBrandingThemeFields(
   target: OrganizationUpdateData | OrganizationInsertData,
   branding: OrganizationBrandingRowColors,
+  brandingEnabled: boolean,
 ): void {
   const normalizedBranding = normalizeOrganizationBrandingColors(branding)
-  const brandingTheme = generateOrganizationBrandingTheme(normalizedBranding)
+  const brandingTheme = brandingEnabled
+    ? generateOrganizationBrandingTheme(normalizedBranding)
+    : PRESET_THEMES['SOFLIA']
 
   target.brand_color_primary = normalizedBranding.color_primary
   target.brand_color_secondary = normalizedBranding.color_secondary
   target.brand_color_accent = normalizedBranding.color_accent
   target.brand_font_family = normalizedBranding.font_family
+  target.branding_enabled = brandingEnabled
   target.panel_styles = brandingTheme.panel as unknown as Json
   target.user_dashboard_styles = brandingTheme.userDashboard as unknown as Json
   target.login_styles = brandingTheme.login as unknown as Json
-  target.selected_theme = BRANDING_THEME_ID
+  target.selected_theme = brandingEnabled ? BRANDING_THEME_ID : 'SOFLIA'
 }
 
 function buildUpdateData(
   updates: CompanyUpdatePayload,
   currentBranding?: OrganizationBrandingRowColors | null,
+  currentBrandingEnabled?: boolean | null,
 ): OrganizationUpdateData {
   const updateData: OrganizationUpdateData = {
     updated_at: new Date().toISOString(),
@@ -106,20 +121,28 @@ function buildUpdateData(
   if (updates.microsoft_login_enabled !== undefined) updateData.microsoft_login_enabled = updates.microsoft_login_enabled
 
   if (shouldSyncBrandingTheme(updates)) {
-    syncBrandingThemeFields(updateData, {
-      brand_color_primary: updates.brand_color_primary !== undefined
-        ? updates.brand_color_primary
-        : currentBranding?.brand_color_primary,
-      brand_color_secondary: updates.brand_color_secondary !== undefined
-        ? updates.brand_color_secondary
-        : currentBranding?.brand_color_secondary,
-      brand_color_accent: updates.brand_color_accent !== undefined
-        ? updates.brand_color_accent
-        : currentBranding?.brand_color_accent,
-      brand_font_family: updates.brand_font_family !== undefined
-        ? updates.brand_font_family
-        : currentBranding?.brand_font_family,
-    })
+    const effectiveBrandingEnabled = updates.branding_enabled !== undefined
+      ? updates.branding_enabled
+      : (currentBrandingEnabled ?? false)
+
+    syncBrandingThemeFields(
+      updateData,
+      {
+        brand_color_primary: updates.brand_color_primary !== undefined
+          ? updates.brand_color_primary
+          : currentBranding?.brand_color_primary,
+        brand_color_secondary: updates.brand_color_secondary !== undefined
+          ? updates.brand_color_secondary
+          : currentBranding?.brand_color_secondary,
+        brand_color_accent: updates.brand_color_accent !== undefined
+          ? updates.brand_color_accent
+          : currentBranding?.brand_color_accent,
+        brand_font_family: updates.brand_font_family !== undefined
+          ? updates.brand_font_family
+          : currentBranding?.brand_font_family,
+      },
+      effectiveBrandingEnabled,
+    )
   }
 
   if (Object.keys(updateData).length === 1) {
@@ -164,11 +187,12 @@ async function promotePendingOwnerIfNeeded(
 export async function updateAdminCompany(id: string, updates: CompanyUpdatePayload): Promise<AdminCompany> {
   const supabase = createAdminClient()
   let currentBranding: OrganizationBrandingRowColors | null = null
+  let currentBrandingEnabled: boolean | null = null
 
   if (shouldSyncBrandingTheme(updates)) {
     const { data, error } = await supabase
       .from('organizations')
-      .select('brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family')
+      .select('brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family, branding_enabled')
       .eq('id', id)
       .single()
 
@@ -177,10 +201,14 @@ export async function updateAdminCompany(id: string, updates: CompanyUpdatePaylo
       throw error || new Error('No se pudo obtener el branding actual')
     }
 
-    currentBranding = data
+    const { branding_enabled, ...brandingColors } = data as OrganizationBrandingRowColors & {
+      branding_enabled: boolean | null
+    }
+    currentBranding = brandingColors
+    currentBrandingEnabled = branding_enabled
   }
 
-  const updateData = buildUpdateData(updates, currentBranding)
+  const updateData = buildUpdateData(updates, currentBranding, currentBrandingEnabled)
 
   let shouldPromotePendingOwner = false
   if (updates.is_active === true) {
@@ -248,16 +276,21 @@ export async function createAdminCompany(data: CompanyCreatePayload): Promise<Ad
     brand_color_secondary: normalizeBrandHexColor(data.brand_color_secondary, DEFAULT_BRAND_SECONDARY),
     brand_color_accent: normalizeBrandHexColor(data.brand_color_accent, DEFAULT_BRAND_ACCENT),
     brand_font_family: data.brand_font_family || 'Inter',
+    branding_enabled: data.branding_enabled ?? false,
     google_login_enabled: data.google_login_enabled ?? false,
     microsoft_login_enabled: data.microsoft_login_enabled ?? false,
   }
 
-  syncBrandingThemeFields(insertData, {
-    brand_color_primary: insertData.brand_color_primary,
-    brand_color_secondary: insertData.brand_color_secondary,
-    brand_color_accent: insertData.brand_color_accent,
-    brand_font_family: insertData.brand_font_family,
-  })
+  syncBrandingThemeFields(
+    insertData,
+    {
+      brand_color_primary: insertData.brand_color_primary,
+      brand_color_secondary: insertData.brand_color_secondary,
+      brand_color_accent: insertData.brand_color_accent,
+      brand_font_family: insertData.brand_font_family,
+    },
+    insertData.branding_enabled ?? false,
+  )
 
   const { data: createdOrganization, error } = await supabase
     .from('organizations')

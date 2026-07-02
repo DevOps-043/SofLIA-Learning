@@ -16,7 +16,7 @@ export const SOURCE_TYPE_KEYS: Array<ReadingAudioSourceType | 'all'> = [
   'lesson_transcript',
   'lesson_summary',
 ];
-export const RESOURCE_KEYS: ReadingAudioResource[] = ['all', 'activities', 'lessons'];
+export const RESOURCE_KEYS: ReadingAudioResource[] = ['all', 'activities', 'lessons', 'materials'];
 
 export const STATUS_STYLES: Record<ReadingAudioJobStatus, string> = {
   failed: 'border-red-200 bg-red-50 text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300',

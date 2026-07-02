@@ -35,21 +35,22 @@ export function CoursesHeader({
 }: CoursesHeaderProps) {
   const { t } = useTranslation('admin')
 
+  const tabClass = (isActive: boolean) =>
+    `px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
+      isActive
+        ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
+        : 'text-gray-500 hover:text-gray-900 dark:text-white/40 dark:hover:text-white'
+    }`
+
   return (
     <>
       {/* Scope tab toggle */}
-      <div className="flex p-1 rounded-2xl w-fit" style={{ backgroundColor: colors.bgTertiary }}>
-        <button
-          onClick={() => setActiveTab('org')}
-          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'org' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white'}`}
-        >
+      <div className="flex p-1 rounded-2xl w-fit bg-gray-100 dark:bg-carbon-900">
+        <button onClick={() => setActiveTab('org')} className={tabClass(activeTab === 'org')}>
           <Building className="w-4 h-4" />
           Acceso Organizacional
         </button>
-        <button
-          onClick={() => setActiveTab('users')}
-          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'users' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white'}`}
-        >
+        <button onClick={() => setActiveTab('users')} className={tabClass(activeTab === 'users')}>
           <GraduationCap className="w-4 h-4" />
           Asignaciones Individuales
         </button>
@@ -58,10 +59,10 @@ export function CoursesHeader({
       {/* Title row + actions */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div>
-          <h3 className="text-xl font-bold text-white">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
             {activeTab === 'org' ? 'Contenido y Rutas de Aprendizaje' : 'Asignaciones Individuales'}
           </h3>
-          <p className="text-sm mt-1" style={{ color: colors.grayMedium }}>
+          <p className="text-sm mt-1 text-gray-500 dark:text-white/60">
             {activeTab === 'org'
               ? 'Gestiona los cursos y rutas disponibles para todos los miembros de la organización.'
               : 'Asigna cursos y rutas de aprendizaje a usuarios específicos.'}
@@ -75,11 +76,15 @@ export function CoursesHeader({
                 <button
                   key={value}
                   onClick={() => setContentTypeFilter(value)}
-                  className="px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border"
+                  className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
+                    isActive
+                      ? ''
+                      : 'border-gray-200 bg-transparent text-gray-500 hover:text-gray-900 dark:border-white/10 dark:text-white/40 dark:hover:text-white'
+                  }`}
                   style={
                     isActive
                       ? { backgroundColor: colors.accent, color: colors.primary, borderColor: colors.accent }
-                      : { backgroundColor: 'transparent', color: 'rgba(255,255,255,0.4)', borderColor: 'rgba(255,255,255,0.1)' }
+                      : undefined
                   }
                 >
                   {icon}

@@ -33,7 +33,7 @@ export function buildOrganizationInvitationEmailContent(
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>InvitaciÃ³n - ${safeOrganizationName}</title>
+        <title>Invitación - ${safeOrganizationName}</title>
         <style>${organizationInvitationEmailStyles}${organizationInvitationFooterStyles}</style>
       </head>
       <body>
@@ -44,7 +44,7 @@ export function buildOrganizationInvitationEmailContent(
               : `<p class="org-name">${safeOrganizationName}</p>`}
           </div>
           <div class="content">
-            <h1 class="title">InvitaciÃ³n de ${safeOrganizationName}</h1>
+            <h1 class="title">Invitación de ${safeOrganizationName}</h1>
             <p class="text">Hola,</p>
             <p class="text">Has sido invitado/a a unirte a <strong>${safeOrganizationName}</strong> en SofLIA, nuestra plataforma de aprendizaje y desarrollo continuo.</p>
             ${safeCustomMessage
@@ -55,22 +55,22 @@ export function buildOrganizationInvitationEmailContent(
             </div>
             <div class="divider"></div>
             <div class="link-section">
-              <p class="link-label">Si el botÃ³n no funciona, copia y pega el siguiente enlace:</p>
+              <p class="link-label">Si el botón no funciona, copia y pega el siguiente enlace:</p>
               <div class="link-box">${safeRegisterUrl}</div>
             </div>
             <div class="info-section">
-              <p class="info-title">Detalles de la invitaciÃ³n</p>
+              <p class="info-title">Detalles de la invitación</p>
               <ul class="info-list">
-                <li>VÃ¡lida durante 7 dÃ­as.</li>
-                <li>Acceso exclusivo para tu correo electrÃ³nico.</li>
+                <li>Válida durante 7 días.</li>
+                <li>Acceso exclusivo para tu correo electrónico.</li>
                 <li>Plataforma segura impulsada por IA.</li>
               </ul>
             </div>
           </div>
           <div class="footer">
-            <p class="footer-text">Enviado a travÃ©s de</p>
+            <p class="footer-text">Enviado a través de</p>
             <img src="${safeSofliaLogoUrl}" alt="SofLIA" class="footer-logo" />
-            <p class="footer-text">Este es un mensaje automÃ¡tico. Por favor, no respondas a este correo.</p>
+            <p class="footer-text">Este es un mensaje automático. Por favor, no respondas a este correo.</p>
             <p class="footer-copyright">&copy; ${year} SofLIA. Todos los derechos reservados.</p>
           </div>
         </div>

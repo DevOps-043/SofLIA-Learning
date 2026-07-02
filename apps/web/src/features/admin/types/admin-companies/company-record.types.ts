@@ -30,6 +30,7 @@ export interface AdminCompany {
   brand_color_secondary: string | null
   brand_color_accent: string | null
   brand_font_family: string | null
+  branding_enabled: boolean
   contact_email: string | null
   contact_phone: string | null
   website_url: string | null

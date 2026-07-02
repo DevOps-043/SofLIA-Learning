@@ -4,6 +4,7 @@ import { createHash } from 'crypto';
 import { logger } from '@/lib/logger';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { Database } from '@/lib/supabase/types';
+import { normalizeContentForRenderer } from '@/lib/course-content';
 import {
   canPregenerateReadingContent,
   segmentReadingContent,
@@ -90,6 +91,20 @@ export function computeReadingContentHash(text: string): string {
   return createHash('sha256').update(text.trim()).digest('hex');
 }
 
+/**
+ * Canonical reading text for a `reading` material. Mirrors exactly what the reader
+ * renders (`content_data || material_description`, then normalized), so the hash
+ * computed at enqueue time matches the one the manifest computes at resolve time,
+ * and the synthesized segments line up 1:1 with the on-screen blocks.
+ */
+export function extractMaterialReadingText(material: {
+  content_data?: unknown;
+  material_description?: string | null;
+}): string {
+  const raw = material.content_data || material.material_description || '';
+  return normalizeContentForRenderer(raw);
+}
+
 function buildWorkerId(prefix = 'tts-reading-audio'): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -170,7 +185,6 @@ function buildJobInsertRows(items: EnqueueReadingAudioBatchItem[]): ReadingAudio
   const rows: ReadingAudioJobInsert[] = [];
 
   for (const item of items) {
-    if (item.sourceType === 'material_reading') continue;
     if (!canPregenerateReadingContent(item.text)) continue;
 
     const descriptor = resolveTTSCacheDescriptor({ text: item.text, context: 'reading' });
@@ -230,7 +244,6 @@ export async function enqueueReadingAudio({
   triggerNow = true,
 }: EnqueueReadingAudioParams): Promise<boolean> {
   try {
-    if (sourceType === 'material_reading') return false;
     if (!canPregenerateReadingContent(text)) return false;
 
     const contentHash = computeReadingContentHash(text);
@@ -303,6 +316,29 @@ export async function enqueueActivityReadingAudio(
     sourceId: activity.activity_id,
     language: 'es',
     text: activity.activity_content,
+    triggerNow: options.triggerNow,
+  });
+}
+
+export async function enqueueMaterialReadingAudio(
+  material: {
+    material_id: string;
+    material_type?: string | null;
+    content_data?: unknown;
+    material_description?: string | null;
+  },
+  options: { triggerNow?: boolean } = {},
+): Promise<void> {
+  if (material.material_type !== 'reading') return;
+
+  const text = extractMaterialReadingText(material);
+  if (!text) return;
+
+  await enqueueReadingAudio({
+    sourceType: 'material_reading',
+    sourceId: material.material_id,
+    language: 'es',
+    text,
     triggerNow: options.triggerNow,
   });
 }
@@ -435,7 +471,6 @@ async function isJobWithinReadingAudioScope(
   supabase: AdminClient,
   job: ReadingAudioJobRow,
 ): Promise<boolean> {
-  if (job.source_type === 'material_reading') return false;
   // Transcripts duplicate the lesson video's audio — never synthesize them. Any
   // pre-existing transcript job is treated as out of scope and discarded here.
   if (job.source_type === 'lesson_transcript') return false;
@@ -446,6 +481,17 @@ async function isJobWithinReadingAudioScope(
       .select('activity_id')
       .eq('activity_id', job.source_id)
       .eq('activity_type', TARGET_ACTIVITY_TYPE)
+      .maybeSingle();
+
+    return Boolean(data);
+  }
+
+  if (job.source_type === 'material_reading') {
+    const { data } = await supabase
+      .from('lesson_materials')
+      .select('material_id')
+      .eq('material_id', job.source_id)
+      .eq('material_type', 'reading')
       .maybeSingle();
 
     return Boolean(data);

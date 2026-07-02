@@ -23,14 +23,13 @@ export function CourseCatalogCard({
   return (
     <motion.div
       whileHover={{ y: -5 }}
-      className="group rounded-3xl overflow-hidden border transition-all flex flex-col"
-      style={{ backgroundColor: colors.bgTertiary, borderColor: 'rgba(255,255,255,0.05)' }}
+      className="group rounded-3xl overflow-hidden border transition-all flex flex-col border-gray-200 bg-white dark:border-white/5 dark:bg-carbon-900"
     >
-      <div className="aspect-video relative overflow-hidden bg-black/40">
+      <div className="aspect-video relative overflow-hidden bg-gray-900/80">
         {course.thumbnail_url ? (
           <img src={course.thumbnail_url} className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-700" alt="" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center opacity-10"><BookOpen className="w-10 h-10" /></div>
+          <div className="w-full h-full flex items-center justify-center opacity-20"><BookOpen className="w-10 h-10 text-white" /></div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
         <div className="absolute top-4 left-4">
@@ -42,8 +41,8 @@ export function CourseCatalogCard({
 
       <div className="p-6 flex-1 flex flex-col">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: colors.accent }}>{course.category}</p>
-        <h5 className="text-lg font-bold text-white leading-tight mb-6 line-clamp-2">{course.title}</h5>
-        <div className="mt-auto pt-6 border-t border-white/5 flex items-center justify-between">
+        <h5 className="text-lg font-bold leading-tight mb-6 line-clamp-2 text-gray-900 dark:text-white">{course.title}</h5>
+        <div className="mt-auto pt-6 border-t flex items-center justify-between border-gray-100 dark:border-white/5">
           {isAlreadyPurchased ? (
             <div className="flex items-center gap-2 text-success">
               <CheckCircle className="w-4 h-4" />

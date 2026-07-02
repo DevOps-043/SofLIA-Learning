@@ -14,6 +14,7 @@ import {
   AssignUserModal,
 } from './CoursesFilters'
 import { colors } from './courses-section.types'
+import { ContentDefaultModal } from './ContentDefaultModal'
 
 interface CoursesSectionProps {
   companyId: string
@@ -22,21 +23,15 @@ interface CoursesSectionProps {
 function StatsRow({ courseCount, pathCount }: { courseCount: number; pathCount: number }) {
   return (
     <div className="flex gap-3 flex-wrap">
-      <div
-        className="flex items-center gap-2 px-4 py-2 rounded-xl border"
-        style={{ borderColor: 'rgba(255,255,255,0.07)', backgroundColor: 'rgba(255,255,255,0.02)' }}
-      >
+      <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/[0.02]">
         <BookOpen className="w-3.5 h-3.5" style={{ color: colors.accent }} />
-        <span className="text-xs font-bold" style={{ color: colors.grayMedium }}>
+        <span className="text-xs font-bold text-gray-600 dark:text-white/60">
           {courseCount} {courseCount === 1 ? 'Curso' : 'Cursos'}
         </span>
       </div>
-      <div
-        className="flex items-center gap-2 px-4 py-2 rounded-xl border"
-        style={{ borderColor: 'rgba(255,255,255,0.07)', backgroundColor: 'rgba(255,255,255,0.02)' }}
-      >
+      <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/[0.02]">
         <Route className="w-3.5 h-3.5" style={{ color: colors.purple }} />
-        <span className="text-xs font-bold" style={{ color: colors.grayMedium }}>
+        <span className="text-xs font-bold text-gray-600 dark:text-white/60">
           {pathCount} {pathCount === 1 ? 'Ruta' : 'Rutas'}
         </span>
       </div>
@@ -49,7 +44,7 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => 
 
   if (logic.loading) {
     return (
-      <div className="rounded-2xl p-6 flex flex-col items-center justify-center py-20 space-y-4" style={{ backgroundColor: colors.bgTertiary }}>
+      <div className="rounded-2xl p-6 flex flex-col items-center justify-center py-20 space-y-4 border border-gray-100 bg-white dark:border-white/5 dark:bg-carbon-800">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -61,13 +56,13 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => 
             borderLeftColor: `color-mix(in srgb, ${colors.accent} 12.5%, transparent)`,
           }}
         />
-        <p className="text-sm font-medium" style={{ color: colors.grayMedium }}>Preparando catálogo...</p>
+        <p className="text-sm font-medium text-gray-500 dark:text-white/60">Preparando catálogo...</p>
       </div>
     )
   }
 
   return (
-    <div className="rounded-2xl p-6 space-y-6" style={{ backgroundColor: colors.bgTertiary }}>
+    <div className="rounded-2xl p-6 space-y-6 border border-gray-100 bg-white dark:border-white/5 dark:bg-carbon-800">
       <ToastNotification
         isOpen={logic.toast.isOpen}
         onClose={() => logic.setToast(prev => ({ ...prev, isOpen: false }))}
@@ -101,6 +96,7 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => 
             items={logic.unifiedOrgItems}
             onRemoveCourse={logic.handleRemoveHierarchy}
             onRemovePath={logic.handleRemoveOrganizationLearningPath}
+            onSetDefault={logic.openDefaultModal}
           />
         </div>
       ) : (
@@ -149,6 +145,16 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => 
         setSelectedCourseForUser={logic.setSelectedCourseForUser}
         isAssigning={logic.isAssigning}
         onConfirm={logic.handleAssignToUser}
+      />
+
+      <ContentDefaultModal
+        isOpen={!!logic.defaultModalTarget}
+        onClose={logic.closeDefaultModal}
+        companyId={companyId}
+        target={logic.defaultModalTarget}
+        rules={logic.defaultModalTarget?.kind === 'path' ? logic.learningPathDefaultRules : logic.courseDefaultRules}
+        nodes={logic.hierarchyNodes}
+        onChanged={logic.handleDefaultChanged}
       />
     </div>
   )

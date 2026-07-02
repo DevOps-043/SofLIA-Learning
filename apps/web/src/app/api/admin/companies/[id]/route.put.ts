@@ -65,6 +65,8 @@ function buildPayload(body: UpdateCompanyBody): CompanyUpdatePayload {
       : DEFAULT_BRAND_ACCENT
   if (body.brand_font_family !== undefined)
     payload.brand_font_family = body.brand_font_family ?? 'Inter'
+  if (body.branding_enabled !== undefined)
+    payload.branding_enabled = Boolean(body.branding_enabled)
 
   if (body.is_active !== undefined) payload.is_active = Boolean(body.is_active)
   if (body.subscription_status !== undefined)

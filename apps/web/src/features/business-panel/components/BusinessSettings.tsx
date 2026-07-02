@@ -3,6 +3,7 @@
 import { AlertCircle, RefreshCw, Settings as SettingsIcon, XCircle } from 'lucide-react'
 import Image from 'next/image'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import { useTour } from '@/features/tours'
 import { businessPanelSettingsTour } from '@/features/tours/config/business-panel-settings.tour'

@@ -5,25 +5,25 @@ export function buildOrganizationInvitationText(
   customMessage?: string
 ) {
   return `
-InvitaciÃ³n de ${input.organizationName} en SofLIA
+Invitación de ${input.organizationName} en SofLIA
 
 Hola,
 
-Has sido invitado/a a unirte a ${input.organizationName} en nuestra plataforma de capacitaciÃ³n y desarrollo profesional.
+Has sido invitado/a a unirte a ${input.organizationName} en nuestra plataforma de capacitación y desarrollo profesional.
 
 ${customMessage ? `Mensaje del administrador:\n"${customMessage}"\n` : ''}
 
 Para completar tu registro y configurar tu cuenta, accede al siguiente enlace:
 ${input.registerUrl}
 
-INFORMACIÃ“N IMPORTANTE:
-- Esta invitaciÃ³n tiene una validez de 7 dÃ­as.
-- El enlace es de uso Ãºnico y personal.
+INFORMACIÓN IMPORTANTE:
+- Esta invitación tiene una validez de 7 días.
+- El enlace es de uso único y personal.
 
 Atentamente,
-Equipo de SofLIA en colaboraciÃ³n con ${input.organizationName}
+Equipo de SofLIA en colaboración con ${input.organizationName}
 
 ---
-Este es un mensaje automÃ¡tico enviado a travÃ©s de SofLIA. Por favor, no respondas a este correo.
+Este es un mensaje automático enviado a través de SofLIA. Por favor, no respondas a este correo.
     `.trim();
 }

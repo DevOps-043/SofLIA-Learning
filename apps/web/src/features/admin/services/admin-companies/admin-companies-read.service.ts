@@ -37,6 +37,7 @@ interface AdminCompanyOverviewRow {
   brand_color_secondary: string | null
   brand_color_accent: string | null
   brand_font_family: string | null
+  branding_enabled: boolean | null
   contact_email: string | null
   contact_phone: string | null
   website_url: string | null
@@ -80,6 +81,7 @@ const ORGANIZATION_SELECT = `
   brand_color_secondary,
   brand_color_accent,
   brand_font_family,
+  branding_enabled,
   contact_email,
   contact_phone,
   website_url,
@@ -128,6 +130,7 @@ function mapAdminCompanyOverviewRow(row: AdminCompanyOverviewRow): AdminCompany 
     brand_color_secondary: normalizeBrandHexColor(row.brand_color_secondary, DEFAULT_BRAND_SECONDARY),
     brand_color_accent: normalizeBrandHexColor(row.brand_color_accent, DEFAULT_BRAND_ACCENT),
     brand_font_family: row.brand_font_family ?? DEFAULT_BRAND_FONT,
+    branding_enabled: row.branding_enabled ?? false,
     contact_email: row.contact_email,
     contact_phone: row.contact_phone,
     website_url: row.website_url,

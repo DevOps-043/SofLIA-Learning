@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import type { Json } from '@/lib/supabase/types';
 import {
   enqueueReadingAudioBatch,
+  extractMaterialReadingText,
   processPendingReadingAudio,
   type ReadingAudioLanguage,
   type ReadingAudioSourceType,
@@ -12,7 +13,7 @@ import {
 type AdminClient = ReturnType<typeof createAdminClient>;
 
 export type ReadingAudioJobStatus = 'pending' | 'generating' | 'ready' | 'failed';
-export type ReadingAudioBackfillResource = 'all' | 'activities' | 'lessons';
+export type ReadingAudioBackfillResource = 'all' | 'activities' | 'lessons' | 'materials';
 
 export interface ReadingAudioJobListParams {
   language?: ReadingAudioLanguage | 'all';
@@ -45,6 +46,13 @@ interface ActivityRow {
   activity_id: string;
   activity_content?: string | null;
   activity_type?: string | null;
+}
+
+interface MaterialRow {
+  material_id: string;
+  material_type?: string | null;
+  content_data?: unknown;
+  material_description?: string | null;
 }
 
 const LANGUAGES: ReadingAudioLanguage[] = ['es', 'en', 'pt'];
@@ -202,7 +210,7 @@ async function prepareReadingAudioQueueForManualDrain(limit: number) {
 
 async function loadTranslations(
   supabase: AdminClient,
-  entityType: 'activity',
+  entityType: 'activity' | 'material',
   language: ReadingAudioLanguage,
   entityIds: string[],
 ): Promise<Map<string, ContentTranslationRow>> {
@@ -264,6 +272,59 @@ async function enqueueActivityBatch(
   const queued = await enqueueReadingAudioBatch(items);
 
   return { scanned: activities.length, queued };
+}
+
+async function enqueueMaterialBatch(
+  supabase: AdminClient,
+  language: ReadingAudioLanguage,
+  limit: number,
+  offset: number,
+): Promise<{ scanned: number; queued: number }> {
+  const { data, error } = await supabase
+    .from('lesson_materials')
+    .select('material_id, material_type, content_data, material_description')
+    .eq('material_type', 'reading')
+    .order('material_id', { ascending: true })
+    .range(offset, offset + limit - 1);
+
+  if (error) throw error;
+  const materials = (data || []) as MaterialRow[];
+  const translations = await loadTranslations(
+    supabase,
+    'material',
+    language,
+    materials.map((material) => material.material_id),
+  );
+
+  const items: Array<{
+    language: ReadingAudioLanguage;
+    sourceId: string;
+    sourceType: 'material_reading';
+    text: string;
+  }> = [];
+
+  for (const material of materials) {
+    const text = language === 'es'
+      ? extractMaterialReadingText(material)
+      : extractMaterialReadingText({
+          content_data: getTextTranslation(translations.get(material.material_id), 'content_data'),
+          material_description: getTextTranslation(
+            translations.get(material.material_id),
+            'material_description',
+          ),
+        });
+    if (!text) continue;
+    items.push({
+      sourceType: 'material_reading',
+      sourceId: material.material_id,
+      language,
+      text,
+    });
+  }
+
+  const queued = await enqueueReadingAudioBatch(items);
+
+  return { scanned: materials.length, queued };
 }
 
 async function loadLessons(
@@ -333,7 +394,7 @@ export async function backfillReadingAudioJobs({
   const supabase = createAdminClient();
   const languages = resolveLanguages(language);
   const resources = resource === 'all'
-    ? (['activities', 'lessons'] as const)
+    ? (['activities', 'lessons', 'materials'] as const)
     : ([resource] as const);
   const details: Array<{
     language: ReadingAudioLanguage;
@@ -352,7 +413,9 @@ export async function backfillReadingAudioJobs({
       for (const currentResource of resources) {
         const result = currentResource === 'activities'
           ? await enqueueActivityBatch(supabase, currentLanguage, limit, offset)
-          : await enqueueLessonBatch(supabase, currentLanguage, limit, offset);
+          : currentResource === 'materials'
+            ? await enqueueMaterialBatch(supabase, currentLanguage, limit, offset)
+            : await enqueueLessonBatch(supabase, currentLanguage, limit, offset);
 
         if (result.scanned === limit) {
           hasMore = true;
@@ -562,10 +625,31 @@ export async function cleanupNonTargetReadingAudioJobs() {
     }
   }
 
+  // Reading materials are now a valid audio source. Only jobs whose material was
+  // deleted or is no longer `material_type='reading'` are out of scope and purged —
+  // mirroring the reflection check applied to activities above.
+  const materialIds = materialJobs.map((job) => job.source_id);
+  const readingMaterialIds = new Set<string>();
+
+  for (const chunk of chunkArray(materialIds, 500)) {
+    if (chunk.length === 0) continue;
+    const { data: readings, error: readingError } = await supabase
+      .from('lesson_materials')
+      .select('material_id')
+      .eq('material_type', 'reading')
+      .in('material_id', chunk);
+
+    if (readingError) throw readingError;
+    for (const reading of readings || []) {
+      readingMaterialIds.add(reading.material_id);
+    }
+  }
+
   const nonTargetActivityJobs = activityJobs.filter((job) => !reflectionIds.has(job.source_id));
-  const deleteJobs = [...materialJobs, ...nonTargetActivityJobs];
+  const nonTargetMaterialJobs = materialJobs.filter((job) => !readingMaterialIds.has(job.source_id));
+  const deleteJobs = [...nonTargetMaterialJobs, ...nonTargetActivityJobs];
   const jobIds = deleteJobs.map((job) => job.id);
-  const materialSourceIds = materialJobs.map((job) => job.source_id);
+  const materialSourceIds = nonTargetMaterialJobs.map((job) => job.source_id);
   const activitySourceIds = nonTargetActivityJobs.map((job) => job.source_id);
 
   let deletedAssets = 0;

@@ -10,6 +10,7 @@ export interface CompanyUpdatePayload {
   brand_color_secondary?: string | null
   brand_color_accent?: string | null
   brand_font_family?: string | null
+  branding_enabled?: boolean
   contact_email?: string | null
   contact_phone?: string | null
   website_url?: string | null
@@ -39,6 +40,7 @@ export interface CompanyCreatePayload {
   brand_color_secondary?: string
   brand_color_accent?: string
   brand_font_family?: string
+  branding_enabled?: boolean
   google_login_enabled?: boolean
   microsoft_login_enabled?: boolean
   owner_email?: string

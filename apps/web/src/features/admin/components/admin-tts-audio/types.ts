@@ -5,7 +5,7 @@ export type ReadingAudioSourceType =
   | 'material_reading'
   | 'lesson_transcript'
   | 'lesson_summary';
-export type ReadingAudioResource = 'all' | 'activities' | 'lessons';
+export type ReadingAudioResource = 'all' | 'activities' | 'lessons' | 'materials';
 
 export interface ReadingAudioJob {
   content_hash: string;

@@ -9,6 +9,7 @@ export type OrganizationsUpdate = {
   brand_favicon_url?: string | null
   brand_font_family?: string | null
   brand_logo_url?: string | null
+  branding_enabled?: boolean | null
   company_country?: string | null
   company_mission?: string | null
   company_size?: string | null

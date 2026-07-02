@@ -11,7 +11,7 @@ const schema = z.object({
   language: z.enum(['all', 'es', 'en', 'pt']).optional().default('all'),
   limit: z.number().int().min(1).max(300).optional().default(100),
   offset: z.number().int().min(0).max(100_000).optional().default(0),
-  resource: z.enum(['all', 'activities', 'lessons']).optional().default('all'),
+  resource: z.enum(['all', 'activities', 'lessons', 'materials']).optional().default('all'),
 });
 
 async function readBody(request: NextRequest) {

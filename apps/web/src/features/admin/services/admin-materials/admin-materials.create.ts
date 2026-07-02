@@ -1,3 +1,4 @@
+import { enqueueMaterialReadingAudio } from '@/core/services/tts/server/tts-reading-pregeneration.service'
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createAdminMaterialsClient } from './admin-materials.client'
 import { buildMaterialInsertData } from './admin-materials.data'
@@ -48,5 +49,7 @@ export async function createMaterial(
   const createdMaterial = data as AdminMaterial
   await translateCreatedMaterial(createdMaterial, userId)
   await updateModuleDurationFromLesson(lessonId)
+  // Pre-generación de audio de lectura (best-effort; solo materiales tipo 'reading').
+  await enqueueMaterialReadingAudio(createdMaterial)
   return createdMaterial
 }

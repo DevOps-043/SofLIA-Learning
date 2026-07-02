@@ -37,6 +37,7 @@ export function mapOrganizationRow(
     brand_color_secondary: normalizeBrandHexColor(row.brand_color_secondary, DEFAULT_BRAND_SECONDARY),
     brand_color_accent: normalizeBrandHexColor(row.brand_color_accent, DEFAULT_BRAND_ACCENT),
     brand_font_family: row.brand_font_family ?? DEFAULT_BRAND_FONT,
+    branding_enabled: row.branding_enabled ?? false,
     contact_email: row.contact_email,
     contact_phone: row.contact_phone,
     website_url: row.website_url,

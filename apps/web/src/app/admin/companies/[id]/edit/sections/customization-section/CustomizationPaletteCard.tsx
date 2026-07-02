@@ -18,7 +18,15 @@ export function CustomizationPaletteCard({ company, setCompany }: CustomizationS
 
   return (
     <Card title="Paleta de Colores" description="Personaliza los colores de la marca" icon={SwatchIcon} iconColor={colors.pink}>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      {!company.branding_enabled ? (
+        <p className="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+          La paleta personalizada está desactivada. Estos colores se guardan pero no se aplican hasta que la actives arriba.
+        </p>
+      ) : null}
+      <div
+        className="grid grid-cols-1 gap-6 transition-opacity md:grid-cols-3"
+        style={{ opacity: company.branding_enabled ? 1 : 0.5 }}
+      >
         <CustomizationColorField label="Color Primario" value={primaryColor} onChange={(value) => setCompany({ ...company, brand_color_primary: value })} />
         <CustomizationColorField label="Color Secundario" value={secondaryColor} onChange={(value) => setCompany({ ...company, brand_color_secondary: value })} />
         <CustomizationColorField label="Color de Acento" value={accentColor} onChange={(value) => setCompany({ ...company, brand_color_accent: value })} />

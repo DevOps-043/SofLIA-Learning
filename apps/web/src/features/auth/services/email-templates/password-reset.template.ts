@@ -16,19 +16,19 @@ export function buildPasswordResetEmailContent(
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>RecuperaciÃ³n de ContraseÃ±a</title>
+        <title>Recuperación de Contraseña</title>
         <style>${passwordResetEmailStyles}</style>
       </head>
       <body>
         <div class="container">
           <div class="header">
             <div class="logo">SofLIA</div>
-            <h1>RecuperaciÃ³n de ContraseÃ±a</h1>
+            <h1>Recuperación de Contraseña</h1>
           </div>
           <p>Hola <strong>${safeUsername}</strong>,</p>
-          <p>Recibimos una solicitud para restablecer la contraseÃ±a de tu cuenta.</p>
+          <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta.</p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${safeResetUrl}" class="button">Restablecer mi contraseÃ±a</a>
+            <a href="${safeResetUrl}" class="button">Restablecer mi contraseña</a>
           </div>
           <p style="text-align: center; color: rgb(102, 102, 102); font-size: 14px;">
             O copia y pega este enlace en tu navegador:
@@ -40,15 +40,15 @@ export function buildPasswordResetEmailContent(
               <li>Este enlace expira en <strong>1 hora</strong></li>
               <li>Solo puedes usar este enlace una vez</li>
               <li>Si no solicitaste este cambio, ignora este email</li>
-              <li>Tu contraseÃ±a actual permanece segura hasta que la cambies</li>
+              <li>Tu contraseña actual permanece segura hasta que la cambies</li>
             </ul>
           </div>
           <p style="margin-top: 30px;">
-            Si no solicitaste restablecer tu contraseÃ±a, puedes ignorar este correo.
+            Si no solicitaste restablecer tu contraseña, puedes ignorar este correo.
             Tu cuenta permanece segura.
           </p>
           <div class="footer">
-            <p>Este es un email automÃ¡tico, por favor no respondas a este mensaje.</p>
+            <p>Este es un email automático, por favor no respondas a este mensaje.</p>
             <p>Si tienes problemas, contacta a nuestro equipo de soporte.</p>
             <p>&copy; ${year} SofLIA. Todos los derechos reservados.</p>
           </div>
@@ -57,13 +57,13 @@ export function buildPasswordResetEmailContent(
       </html>
     `,
     text: `
-RecuperaciÃ³n de ContraseÃ±a - SofLIA
+Recuperación de Contraseña - SofLIA
 
 Hola ${input.username},
 
-Recibimos una solicitud para restablecer la contraseÃ±a de tu cuenta.
+Recibimos una solicitud para restablecer la contraseña de tu cuenta.
 
-Para crear una nueva contraseÃ±a, haz clic en el siguiente enlace:
+Para crear una nueva contraseña, haz clic en el siguiente enlace:
 ${input.resetUrl}
 
 IMPORTANTE:
@@ -77,7 +77,7 @@ Saludos,
 Equipo SofLIA
 
 ---
-Este es un email automÃ¡tico, por favor no respondas a este mensaje.
+Este es un email automático, por favor no respondas a este mensaje.
     `.trim(),
   };
 }

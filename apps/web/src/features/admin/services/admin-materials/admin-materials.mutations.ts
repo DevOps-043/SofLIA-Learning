@@ -1,3 +1,4 @@
+import { enqueueMaterialReadingAudio } from '@/core/services/tts/server/tts-reading-pregeneration.service'
 import { createAdminMaterialsClient } from './admin-materials.client'
 import { buildMaterialUpdateData } from './admin-materials.data'
 import { updateModuleDurationFromLesson } from './admin-materials.duration'
@@ -20,6 +21,9 @@ export async function updateMaterial(
   if (materialData.estimated_time_minutes !== undefined) {
     await updateModuleDurationFromLesson(updatedMaterial.lesson_id)
   }
+  // Re-encola audio si cambió el contenido de una lectura (best-effort). Encolar es
+  // idempotente: si el hash del texto no cambió, no se crea un job nuevo.
+  await enqueueMaterialReadingAudio(updatedMaterial)
   return updatedMaterial
 }
 

@@ -10,11 +10,9 @@ import {
   ScrollText,
 } from "lucide-react";
 
-import {
-  FormattedContentRenderer,
-  ReadingContentRenderer,
-} from "../ContentRenderers";
+import { FormattedContentRenderer } from "../ContentRenderers";
 import { QuizRenderer } from "../QuizRenderer";
+import { MaterialReadingContent } from "./MaterialReadingContent";
 import {
   findQuizStatusItem,
   getNormalizedMaterialContent,
@@ -156,10 +154,10 @@ export function MaterialCard({
                   })()}
 
                   {isReading && (
-                    <ReadingContentRenderer
-                      content={
-                        material.content_data || material.material_description
-                      }
+                    <MaterialReadingContent
+                      lessonId={lessonId}
+                      material={material}
+                      slug={slug}
                     />
                   )}
 

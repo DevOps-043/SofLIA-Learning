@@ -40,6 +40,7 @@ export const createCompanySchema = z.object({
   brand_color_secondary: optionalHexColor,
   brand_color_accent: optionalHexColor,
   brand_font_family: optionalNullableString(120),
+  branding_enabled: z.boolean().optional(),
   google_login_enabled: z.boolean().optional(),
   microsoft_login_enabled: z.boolean().optional(),
   owner_email: z.string().email().max(320).optional(),

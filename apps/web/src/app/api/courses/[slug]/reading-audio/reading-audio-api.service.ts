@@ -4,7 +4,10 @@ import {
   resolveCourseLessonByLanguage,
   type LearnLanguage,
 } from '@/app/api/courses/_services/lesson-language-resolution.service';
-import { computeReadingContentHash } from '@/core/services/tts/server/tts-reading-pregeneration.service';
+import {
+  computeReadingContentHash,
+  extractMaterialReadingText,
+} from '@/core/services/tts/server/tts-reading-pregeneration.service';
 import {
   loadCourseEnrollments,
   resolveCourseEnrollment,
@@ -36,6 +39,7 @@ export function normalizeReadingAudioLanguage(value: string | null): LearnLangua
 export function normalizeSourceType(value: string | null): ReadingAudioSourceType | null {
   if (
     value === 'activity_reading' ||
+    value === 'material_reading' ||
     value === 'lesson_transcript' ||
     value === 'lesson_summary'
   ) {
@@ -92,7 +96,7 @@ export async function assertUserCanAccessCourse(
 
 async function loadContentTranslation(
   supabase: AdminClient,
-  entityType: 'activity',
+  entityType: 'activity' | 'material',
   entityId: string,
   language: LearnLanguage,
 ): Promise<Record<string, unknown>> {
@@ -170,6 +174,36 @@ export async function resolveReadingAudioSource(params: {
     const translations = await loadContentTranslation(supabase, 'activity', sourceId, language);
     text = asTranslatedText(translations.activity_content) ?? activity.activity_content;
     resolvedLanguage = asTranslatedText(translations.activity_content) ? language : 'es';
+  }
+
+  if (sourceType === 'material_reading') {
+    const { data } = await supabase
+      .from('lesson_materials')
+      .select('material_id, material_type, content_data, material_description, lesson_id')
+      .eq('material_id', sourceId)
+      .eq('lesson_id', lessonId)
+      .maybeSingle();
+    const material = data as {
+      content_data?: unknown;
+      material_description?: string | null;
+      material_type?: string | null;
+    } | null;
+    if (!material || material.material_type !== 'reading') return null;
+
+    // Text must be extracted with the SAME helper the enqueue path uses so the
+    // resolve-time hash matches the enqueue-time hash and the manifest finds the asset.
+    const translations = await loadContentTranslation(supabase, 'material', sourceId, language);
+    const translatedText = extractMaterialReadingText({
+      content_data: translations.content_data,
+      material_description: asTranslatedText(translations.material_description),
+    });
+    if (translatedText) {
+      text = translatedText;
+      resolvedLanguage = language;
+    } else {
+      text = extractMaterialReadingText(material);
+      resolvedLanguage = 'es';
+    }
   }
 
   if (!text?.trim()) return null;

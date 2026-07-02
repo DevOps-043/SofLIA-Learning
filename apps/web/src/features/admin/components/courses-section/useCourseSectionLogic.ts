@@ -1,8 +1,14 @@
 'use client'
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
+import {
+  AdminContentDefaultsService,
+  type AdminContentDefaultRule,
+  type AdminHierarchyNode,
+} from '@/features/admin/services/adminContentDefaults.service'
+import type { ContentDefaultTarget } from './ContentDefaultModal'
 import type {
   Course,
   AssignedCourse,
@@ -31,6 +37,12 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
   const [userLearningPathAssignments, setUserLearningPathAssignments] = useState<UserLearningPathAssignment[]>([])
   const [allLearningPaths, setAllLearningPaths] = useState<LearningPath[]>([])
   const [members, setMembers] = useState<CompanyMember[]>([])
+
+  // Default-content rules (auto-assign by organization / hierarchy node)
+  const [courseDefaultRules, setCourseDefaultRules] = useState<AdminContentDefaultRule[]>([])
+  const [learningPathDefaultRules, setLearningPathDefaultRules] = useState<AdminContentDefaultRule[]>([])
+  const [hierarchyNodes, setHierarchyNodes] = useState<AdminHierarchyNode[]>([])
+  const [defaultModalTarget, setDefaultModalTarget] = useState<ContentDefaultTarget | null>(null)
 
   // UI State
   const [loading, setLoading] = useState(true)
@@ -70,54 +82,105 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
 
   const fetchInitialData = async () => {
     setLoading(true)
-    try {
-      const hRes = await fetch(`/api/admin/companies/${companyId}/courses`)
-      const hData = await hRes.json()
-      if (hData.success) setHierarchyCourses(hData.courses)
 
-      const uRes = await fetch(`/api/admin/companies/${companyId}/user-assignments`)
-      const uData = await uRes.json()
-      if (uData.success) setUserAssignments(uData.assignments)
-
-      const cRes = await fetch('/api/admin/courses')
-      const cData = await cRes.json()
-      if (cData.success) {
-        const approvedCourses = (cData.courses as Course[]).filter((course) =>
-          course.is_active === true && (course.approval_status === 'approved' || !course.approval_status)
-        )
-        setAllCourses(approvedCourses)
+    // Fetch each independent resource concurrently. A single slow/failed
+    // resource must not block or abort the others (fail-soft per resource),
+    // so every fetch is wrapped and its own errors are logged individually.
+    const loadResource = async (label: string, run: () => Promise<void>): Promise<boolean> => {
+      try {
+        await run()
+        return true
+      } catch (error) {
+        techDebtLogger.error(`Error fetching courses data (${label}):`, error)
+        return false
       }
-
-      const lpRes = await fetch('/api/admin/learning-paths')
-      const lpData = await lpRes.json()
-      if (lpData.success) {
-        setAllLearningPaths((lpData.learningPaths || []).filter((path: LearningPath) => path.is_active))
-      }
-
-      const orgLpRes = await fetch(`/api/admin/companies/${companyId}/learning-paths`)
-      const orgLpData = await orgLpRes.json()
-      if (orgLpData.success) {
-        setOrganizationLearningPaths(orgLpData.assignments || [])
-      }
-
-      const userLpRes = await fetch(`/api/admin/companies/${companyId}/user-learning-path-assignments`)
-      const userLpData = await userLpRes.json()
-      if (userLpData.success) {
-        setUserLearningPathAssignments(userLpData.assignments || [])
-      }
-
-      const mRes = await fetch(`/api/admin/companies/${companyId}`)
-      const mData = await mRes.json()
-      if (mData.success && mData.company) {
-        setMembers(mData.company.members || [])
-      }
-    } catch (error) {
-      techDebtLogger.error('Error fetching courses data:', error)
-      showToast('Error al cargar la información', 'error')
-    } finally {
-      setLoading(false)
     }
+
+    const results = await Promise.all([
+      loadResource('org-courses', async () => {
+        const res = await fetch(`/api/admin/companies/${companyId}/courses`)
+        const data = await res.json()
+        if (data.success) setHierarchyCourses(data.courses)
+      }),
+      loadResource('user-assignments', async () => {
+        const res = await fetch(`/api/admin/companies/${companyId}/user-assignments`)
+        const data = await res.json()
+        if (data.success) setUserAssignments(data.assignments)
+      }),
+      loadResource('catalog-courses', async () => {
+        const res = await fetch('/api/admin/courses')
+        const data = await res.json()
+        if (data.success) {
+          const approvedCourses = (data.courses as Course[]).filter((course) =>
+            course.is_active === true && (course.approval_status === 'approved' || !course.approval_status)
+          )
+          setAllCourses(approvedCourses)
+        }
+      }),
+      loadResource('catalog-learning-paths', async () => {
+        const res = await fetch('/api/admin/learning-paths')
+        const data = await res.json()
+        if (data.success) {
+          setAllLearningPaths((data.learningPaths || []).filter((path: LearningPath) => path.is_active))
+        }
+      }),
+      loadResource('org-learning-paths', async () => {
+        const res = await fetch(`/api/admin/companies/${companyId}/learning-paths`)
+        const data = await res.json()
+        if (data.success) setOrganizationLearningPaths(data.assignments || [])
+      }),
+      loadResource('user-learning-paths', async () => {
+        const res = await fetch(`/api/admin/companies/${companyId}/user-learning-path-assignments`)
+        const data = await res.json()
+        if (data.success) setUserLearningPathAssignments(data.assignments || [])
+      }),
+      loadResource('company-members', async () => {
+        const res = await fetch(`/api/admin/companies/${companyId}`)
+        const data = await res.json()
+        if (data.success && data.company) setMembers(data.company.members || [])
+      }),
+      loadResource('course-defaults', async () => {
+        const { rules, nodes } = await AdminContentDefaultsService.getCourseDefaults(companyId)
+        setCourseDefaultRules(rules)
+        setHierarchyNodes(nodes)
+      }),
+      loadResource('learning-path-defaults', async () => {
+        const { rules } = await AdminContentDefaultsService.getLearningPathDefaults(companyId)
+        setLearningPathDefaultRules(rules)
+      }),
+    ])
+
+    if (results.some((ok) => !ok)) {
+      showToast('Error al cargar parte de la información', 'error')
+    }
+
+    setLoading(false)
   }
+
+  const refetchDefaults = useCallback(async () => {
+    try {
+      const [courseDefaults, lpDefaults] = await Promise.all([
+        AdminContentDefaultsService.getCourseDefaults(companyId),
+        AdminContentDefaultsService.getLearningPathDefaults(companyId),
+      ])
+      setCourseDefaultRules(courseDefaults.rules)
+      setHierarchyNodes(courseDefaults.nodes)
+      setLearningPathDefaultRules(lpDefaults.rules)
+    } catch (error) {
+      techDebtLogger.error('Error refetching default rules:', error)
+    }
+  }, [companyId])
+
+  const openDefaultModal = (target: ContentDefaultTarget) => setDefaultModalTarget(target)
+  const closeDefaultModal = () => setDefaultModalTarget(null)
+
+  const handleDefaultChanged = useCallback(
+    async (message?: string, type: ToastType = 'success') => {
+      if (message) showToast(message, type)
+      await refetchDefaults()
+    },
+    [refetchDefaults],
+  )
 
   const handleAssignLearningPathToOrg = async (learningPathId: string) => {
     setAssigningId(learningPathId)
@@ -367,6 +430,14 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
     activeUserLearningPathAssignments,
     unifiedOrgItems,
     unifiedUserItems,
+    // Default-content rules
+    courseDefaultRules,
+    learningPathDefaultRules,
+    hierarchyNodes,
+    defaultModalTarget,
+    openDefaultModal,
+    closeDefaultModal,
+    handleDefaultChanged,
     // Handlers
     handleAssignToOrg,
     handleAssignLearningPathToOrg,
