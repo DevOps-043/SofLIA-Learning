@@ -10,7 +10,7 @@ export function DownloadsPageRequirements() {
     {
       os: 'Windows',
       min: 'Windows 10+ (64-bit)',
-      ram: t('downloadsPage.requirements.ramReconended'),
+      ram: t('downloadsPage.requirements.ramRecomended'),
       disk: '~300 MB',
       icon: Monitor,
       color: 'bg-blue-500/10 text-blue-500',
@@ -18,7 +18,7 @@ export function DownloadsPageRequirements() {
     {
       os: 'macOS',
       min: 'macOS 12 Monterey+',
-      ram: t('downloadsPage.requirements.ramReconended'),
+      ram: t('downloadsPage.requirements.ramRecomended'),
       disk: '~300 MB',
       icon: Apple,
       color: 'bg-gray-500/10 text-gray-400',

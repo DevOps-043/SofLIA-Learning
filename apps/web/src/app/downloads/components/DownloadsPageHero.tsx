@@ -163,25 +163,18 @@ export function DownloadsPageHero({
                   ) : null}
                 </p>
 
-                {release?.assets.mac ? (
-                  <a
-                    href={release.assets.mac.url}
-                    className="flex items-center justify-between w-full px-6 py-4 rounded-2xl bg-primary hover:bg-primary dark:bg-white dark:hover:bg-gray-100 dark:text-primary text-white transition-all group"
-                  >
-                    <span className="font-bold">{t('downloadsPage.hero.downloadMac')}</span>
-                    <Download
-                      size={20}
-                      className="group-hover:translate-y-1 transition-transform"
-                    />
-                  </a>
-                ) : (
+                <div className="w-full">
                   <button
                     disabled
-                    className="w-full px-6 py-4 rounded-2xl bg-gray-200 dark:bg-white/10 text-gray-500 cursor-not-allowed"
+                    className="flex items-center justify-between w-full px-6 py-4 rounded-2xl bg-gray-200 dark:bg-white/10 text-gray-400 dark:text-white/30 cursor-not-allowed"
                   >
-                    {t('downloadsPage.hero.notAvailable')}
+                    <span className="font-bold">{t('downloadsPage.hero.comingSoonMac')}</span>
+                    <Apple size={20} className="opacity-40" />
                   </button>
-                )}
+                  <p className="text-xs text-gray-400 dark:text-white/30 mt-2 text-center">
+                    {t('downloadsPage.hero.comingSoonMacDesc')}
+                  </p>
+                </div>
               </div>
             </motion.div>
           </>

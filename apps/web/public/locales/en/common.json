@@ -1687,7 +1687,9 @@
       "size": "Size: {{size}}",
       "errorRateLimit": "Request limit exceeded. Please try again in a few minutes.",
       "errorNotFound": "No available releases found.",
-      "errorGeneric": "Could not connect to the download server. Please check your internet connection."
+      "errorGeneric": "Could not connect to the download server. Please check your internet connection.",
+      "comingSoonMac": "Coming soon for macOS",
+      "comingSoonMacDesc": "We're working on bringing SofLIA Hub to macOS. It will be available very soon!"
     },
     "changelog": {
       "title": "Changelog",
