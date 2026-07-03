@@ -47,7 +47,7 @@ export const dialogueActivityConfigSchema = z
     evaluator: z
       .object({
         model: z.string().trim().max(120).optional(),
-        promptVersion: z.string().trim().max(120).default('DIALOGUE_EVALUATOR_RUNTIME@1.0.0'),
+        promptVersion: z.string().trim().max(120).default('DIALOGUE_EVALUATOR_RUNTIME@1.1.0'),
       })
       .strict()
       .default({}),

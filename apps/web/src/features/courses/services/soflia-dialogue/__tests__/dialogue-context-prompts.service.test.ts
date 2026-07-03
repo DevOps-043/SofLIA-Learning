@@ -121,6 +121,36 @@ describe('dialogue organization context prompts', () => {
     expect(prompt).toContain('Cierra siempre con una frase completa')
   })
 
+  it('calibrates the evaluator to grade concepts, never literal wording from the video', () => {
+    const prompt = buildEvaluatorPrompt({
+      config,
+      organizationAiContext,
+      previousEvaluations: [],
+      recentTurns: [],
+      studentMessage: 'Usaria IA para segmentar clientes.',
+    })
+
+    expect(prompt).toContain('COMPRENSION CONCEPTUAL, no memoria textual')
+    expect(prompt).toContain('NUNCA exijas la redaccion')
+    expect(prompt).toContain('EJEMPLOS DE REFERENCIA')
+    expect(prompt).toContain('decide a favor del estudiante')
+    expect(prompt).not.toContain('evaluador estricto')
+  })
+
+  it('pins accumulated criteria from earlier turns into the evaluator prompt', () => {
+    const prompt = buildEvaluatorPrompt({
+      accumulatedCriteriaMet: ['impact'],
+      config,
+      organizationAiContext,
+      previousEvaluations: [],
+      recentTurns: [],
+      studentMessage: 'Usaria IA para segmentar clientes.',
+    })
+
+    expect(prompt).toContain('Criterios ya confirmados en turnos anteriores')
+    expect(prompt).toContain('["impact"]')
+  })
+
   it('asks the evaluator for student-facing feedback to avoid a second tutor call', () => {
     const prompt = buildEvaluatorPrompt({
       config,
