@@ -13,6 +13,7 @@ export interface ReleaseData {
   assets: {
     windows?: DownloadAsset
     mac?: DownloadAsset
+    linux?: DownloadAsset
   }
 }
 

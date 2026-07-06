@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { AlertTriangle, Apple, Download, Monitor, Sparkles } from 'lucide-react'
+import { AlertTriangle, Apple, Download, Monitor, Sparkles, Terminal } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { ReleaseData } from '../types'
 
@@ -75,9 +75,9 @@ export function DownloadsPageHero({
         </motion.div>
       ) : null}
 
-      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
         {loading ? (
-          Array.from({ length: 2 }).map((_, index) => (
+          Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
               className="h-64 rounded-3xl bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 animate-pulse"
@@ -175,6 +175,56 @@ export function DownloadsPageHero({
                     {t('downloadsPage.hero.comingSoonMacDesc')}
                   </p>
                 </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              whileHover={{ y: -8 }}
+              className="relative group overflow-hidden rounded-3xl bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 p-8 shadow-2xl shadow-black/5"
+            >
+              <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Terminal size={120} />
+              </div>
+
+              <div className="relative z-10 flex flex-col h-full text-left">
+                <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-6">
+                  <Terminal className="text-amber-500" size={32} />
+                </div>
+                <h3 className="text-2xl font-bold dark:text-white mb-2">
+                  Linux
+                </h3>
+                <p className="text-primary/40 dark:text-white/40 text-sm mb-8 flex-1">
+                  {t('downloadsPage.hero.linuxCompat')}
+                  {release?.assets.linux?.size ? (
+                    <>
+                      <br />
+                      {t('downloadsPage.hero.size', { size: release.assets.linux.size })}
+                    </>
+                  ) : null}
+                </p>
+
+                {release?.assets.linux ? (
+                  <a
+                    href={release.assets.linux.url}
+                    className="flex items-center justify-between w-full px-6 py-4 rounded-2xl bg-primary hover:bg-primary dark:bg-accent dark:hover:bg-[var(--color-legacy-00b8a3)] text-white transition-all group"
+                  >
+                    <span className="font-bold">{t('downloadsPage.hero.downloadLinux')}</span>
+                    <Download
+                      size={20}
+                      className="group-hover:translate-y-1 transition-transform"
+                    />
+                  </a>
+                ) : (
+                  <button
+                    disabled
+                    className="w-full px-6 py-4 rounded-2xl bg-gray-200 dark:bg-white/10 text-gray-500 cursor-not-allowed"
+                  >
+                    {t('downloadsPage.hero.notAvailable')}
+                  </button>
+                )}
               </div>
             </motion.div>
           </>

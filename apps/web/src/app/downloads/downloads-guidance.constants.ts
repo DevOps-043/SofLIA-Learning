@@ -8,6 +8,7 @@ import {
   Search,
   Settings,
   ShieldCheck,
+  Terminal,
   Zap,
 } from 'lucide-react'
 import type {
@@ -32,6 +33,14 @@ export const DOWNLOADS_REQUIREMENTS: DownloadsRequirement[] = [
     disk: '~300 MB',
     icon: Apple,
     color: 'bg-gray-500/10 text-gray-400',
+  },
+  {
+    os: 'Linux',
+    min: 'Ubuntu 20.04+ / Debian 11+ (64-bit)',
+    ram: '4 GB (8 GB recomendado)',
+    disk: '~300 MB',
+    icon: Terminal,
+    color: 'bg-amber-500/10 text-amber-500',
   },
 ]
 

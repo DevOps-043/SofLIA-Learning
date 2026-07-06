@@ -42,6 +42,43 @@ describe('downloads-page.service', () => {
     expect(release.assets.windows?.size).toBe('5.0 MB')
   })
 
+  it('detects a Linux AppImage asset regardless of naming', () => {
+    const release = mapLatestRelease({
+      tag_name: 'v2.4.0',
+      published_at: '2026-05-01T00:00:00.000Z',
+      assets: [
+        {
+          name: 'soflia-hub-2.4.0.AppImage',
+          size: 7 * 1024 * 1024,
+          browser_download_url: 'https://example.com/soflia-hub.AppImage',
+        },
+      ],
+    })
+
+    expect(release.assets.linux?.url).toContain('.AppImage')
+    expect(release.assets.linux?.size).toBe('7.0 MB')
+  })
+
+  it('prefers the AppImage asset over .deb when a release ships both', () => {
+    const release = mapLatestRelease({
+      tag_name: 'v2.4.0',
+      assets: [
+        {
+          name: 'soflia-hub_2.4.0_amd64.deb',
+          size: 6 * 1024 * 1024,
+          browser_download_url: 'https://example.com/soflia-hub.deb',
+        },
+        {
+          name: 'soflia-hub-2.4.0.AppImage',
+          size: 7 * 1024 * 1024,
+          browser_download_url: 'https://example.com/soflia-hub.AppImage',
+        },
+      ],
+    })
+
+    expect(release.assets.linux?.url).toContain('.AppImage')
+  })
+
   it('parses release notes into ordered sections', () => {
     const parsed = parseReleaseNotes(`
 ## v1.2.0

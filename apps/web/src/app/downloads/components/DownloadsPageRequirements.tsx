@@ -1,6 +1,6 @@
 'use client'
 
-import { Apple, Monitor, ShieldCheck } from 'lucide-react'
+import { Apple, Monitor, ShieldCheck, Terminal } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 export function DownloadsPageRequirements() {
@@ -22,6 +22,14 @@ export function DownloadsPageRequirements() {
       disk: '~300 MB',
       icon: Apple,
       color: 'bg-gray-500/10 text-gray-400',
+    },
+    {
+      os: 'Linux',
+      min: 'Ubuntu 20.04+ / Debian 11+ (64-bit)',
+      ram: t('downloadsPage.requirements.ramRecomended'),
+      disk: '~300 MB',
+      icon: Terminal,
+      color: 'bg-amber-500/10 text-amber-500',
     },
   ]
 

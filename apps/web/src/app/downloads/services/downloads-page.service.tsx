@@ -43,6 +43,24 @@ function createDownloadAsset(asset: GithubReleaseAssetPayload): DownloadAsset {
   }
 }
 
+// Ordered by preference: AppImage runs on any distro without installation,
+// so it is offered first when a release ships more than one Linux package.
+const LINUX_EXTENSIONS_BY_PRIORITY = ['.AppImage', '.deb', '.rpm']
+
+function isLinuxAsset(assetName: string): boolean {
+  return (
+    LINUX_EXTENSIONS_BY_PRIORITY.some((extension) => assetName.endsWith(extension)) ||
+    /linux/i.test(assetName)
+  )
+}
+
+function getLinuxAssetPriority(assetName: string): number {
+  const priority = LINUX_EXTENSIONS_BY_PRIORITY.findIndex((extension) =>
+    assetName.endsWith(extension),
+  )
+  return priority === -1 ? LINUX_EXTENSIONS_BY_PRIORITY.length : priority
+}
+
 function formatReleaseDate(dateValue?: string): string {
   const rawDate = dateValue ? new Date(dateValue) : new Date()
 
@@ -89,6 +107,13 @@ export function mapLatestRelease(release: GithubReleasePayload): ReleaseData {
 
     if (asset.name.includes('Mac') && asset.name.endsWith('.dmg')) {
       assets.mac = createDownloadAsset(asset)
+    }
+
+    if (
+      isLinuxAsset(asset.name) &&
+      (!assets.linux || getLinuxAssetPriority(asset.name) < getLinuxAssetPriority(assets.linux.name))
+    ) {
+      assets.linux = createDownloadAsset(asset)
     }
   }
 

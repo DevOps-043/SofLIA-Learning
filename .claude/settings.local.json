@@ -301,7 +301,8 @@
       "Bash(grep -nE 'Invitación|Válida|días|botón|electrónico|través|automático' __TRACKED_VAR__/organization-invitation.template.ts)",
       "Bash(grep -nE 'Invitación|INFORMACIÓN|días|único|automático|través|capacitación' __TRACKED_VAR__/organization-invitation.text.ts)",
       "Bash(grep -nE 'Recuperación|Contraseña|automático' __TRACKED_VAR__/password-reset.template.ts)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/public/locales/es/common.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/public/locales/en/common.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/public/locales/pt/common.json','utf8'\\)\\); console.log\\('OK'\\)\")"
     ],
     "deny": [],
     "ask": [],
