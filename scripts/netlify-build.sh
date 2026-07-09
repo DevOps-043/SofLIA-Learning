@@ -10,28 +10,31 @@ npm config set fetch-retry-mintimeout 20000
 npm config set fetch-retry-maxtimeout 120000
 npm config set fetch-timeout 300000
 
-install_ffmpeg_from_apt() {
-  if ! command -v apt-get >/dev/null 2>&1; then
-    echo "❌ apt-get is not available in this build image; cannot provision FFmpeg."
-    return 1
-  fi
-
-  local apt_get=(apt-get)
-  if [ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1; then
-    apt_get=(sudo apt-get)
-  fi
-
-  export DEBIAN_FRONTEND=noninteractive
-
-  echo "📦 Installing FFmpeg from the build image package manager..."
-  "${apt_get[@]}" update
-  "${apt_get[@]}" install -y --no-install-recommends ffmpeg
-
+copy_ffmpeg_from_path() {
   local installed_ffmpeg
   installed_ffmpeg="$(command -v ffmpeg || true)"
 
   if [ -z "${installed_ffmpeg}" ]; then
-    echo "❌ apt-get finished, but ffmpeg was not found on PATH."
+    return 1
+  fi
+
+  echo "✅ Found FFmpeg on PATH at ${installed_ffmpeg}."
+  cp "${installed_ffmpeg}" apps/web/bin/ffmpeg
+  chmod +x apps/web/bin/ffmpeg
+}
+
+install_ffmpeg_from_npm() {
+  echo "📦 Installing FFmpeg binary from npm..."
+  npm install --no-save --package-lock=false --include=optional --ignore-scripts @ffmpeg-installer/ffmpeg@1.1.0
+
+  local installed_ffmpeg
+  if ! installed_ffmpeg="$(node -e "const ffmpeg = require('@ffmpeg-installer/ffmpeg'); process.stdout.write(ffmpeg.path || '');")"; then
+    echo "❌ Unable to resolve @ffmpeg-installer/ffmpeg path."
+    return 1
+  fi
+
+  if [ -z "${installed_ffmpeg}" ] || [ ! -f "${installed_ffmpeg}" ]; then
+    echo "❌ @ffmpeg-installer/ffmpeg did not provide an executable binary path."
     return 1
   fi
 
@@ -51,8 +54,8 @@ if [ "${VIDEO_TRANSCODING_ENABLED}" = "true" ]; then
   if [ -x apps/web/bin/ffmpeg ]; then
     echo "✅ Existing FFmpeg binary found; skipping install."
   else
-    if ! install_ffmpeg_from_apt; then
-      echo "❌ Unable to install FFmpeg from the build image package manager."
+    if ! copy_ffmpeg_from_path && ! install_ffmpeg_from_npm; then
+      echo "❌ Unable to provision FFmpeg without root access."
       exit 2
     fi
   fi
