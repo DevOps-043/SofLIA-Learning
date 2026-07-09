@@ -24,22 +24,36 @@ copy_ffmpeg_from_path() {
 }
 
 install_ffmpeg_from_npm() {
+  local ffmpeg_npm_dir
+  ffmpeg_npm_dir="$(mktemp -d)"
+
   echo "📦 Installing FFmpeg binary from npm..."
-  npm install --no-save --package-lock=false --include=optional --ignore-scripts @ffmpeg-installer/ffmpeg@1.1.0
+  if ! (
+    cd "${ffmpeg_npm_dir}"
+    npm init -y >/dev/null
+    npm install --omit=dev --include=optional --ignore-scripts --package-lock=false --no-audit --no-fund @ffmpeg-installer/ffmpeg@1.1.0
+  ); then
+    echo "❌ Unable to install @ffmpeg-installer/ffmpeg in an isolated temp directory."
+    rm -rf "${ffmpeg_npm_dir}"
+    return 1
+  fi
 
   local installed_ffmpeg
-  if ! installed_ffmpeg="$(node -e "const ffmpeg = require('@ffmpeg-installer/ffmpeg'); process.stdout.write(ffmpeg.path || '');")"; then
+  if ! installed_ffmpeg="$(node -e "const ffmpeg = require(process.argv[1]); process.stdout.write(ffmpeg.path || '');" "${ffmpeg_npm_dir}/node_modules/@ffmpeg-installer/ffmpeg")"; then
     echo "❌ Unable to resolve @ffmpeg-installer/ffmpeg path."
+    rm -rf "${ffmpeg_npm_dir}"
     return 1
   fi
 
   if [ -z "${installed_ffmpeg}" ] || [ ! -f "${installed_ffmpeg}" ]; then
     echo "❌ @ffmpeg-installer/ffmpeg did not provide an executable binary path."
+    rm -rf "${ffmpeg_npm_dir}"
     return 1
   fi
 
   cp "${installed_ffmpeg}" apps/web/bin/ffmpeg
   chmod +x apps/web/bin/ffmpeg
+  rm -rf "${ffmpeg_npm_dir}"
 }
 
 # FFmpeg binary is NOT committed to git (would exceed Netlify's 250 MB bundle limit).

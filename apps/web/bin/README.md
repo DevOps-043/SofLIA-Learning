@@ -2,6 +2,9 @@
 
 On Netlify the `apps/web/bin/ffmpeg` Linux x64 binary is provisioned without
 root by `scripts/netlify-build.sh` when `VIDEO_TRANSCODING_ENABLED=true`.
+The script first checks whether `ffmpeg` is already on PATH; otherwise it
+installs `@ffmpeg-installer/ffmpeg` in an isolated temporary directory and
+copies the resulting binary here.
 It is not committed to git (would exceed Netlify's 250 MB function bundle limit).
 
 `ffprobe` is intentionally NOT bundled. Bundling both binaries pushed the
