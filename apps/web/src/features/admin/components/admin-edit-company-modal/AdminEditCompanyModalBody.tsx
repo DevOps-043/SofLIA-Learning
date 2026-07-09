@@ -1,5 +1,6 @@
 'use client'
 
+import type { CompanyImageType } from '../admin-company-branding'
 import type { ChangeEvent, Dispatch, ReactNode, RefObject, SetStateAction } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import type { AdminCompany } from '../../types/admin-companies.types'
@@ -20,7 +21,7 @@ interface AdminEditCompanyModalBodyProps {
   bannerInputRef: RefObject<HTMLInputElement | null>
   onPlanOpenChange: (value: boolean) => void
   onDismissImageError: () => void
-  onFileChange: (e: ChangeEvent<HTMLInputElement>, imageType: 'logo' | 'banner') => void
+  onFileChange: (e: ChangeEvent<HTMLInputElement>, imageType: CompanyImageType) => void
   onUpdateColor: (key: 'brand_color_primary' | 'brand_color_secondary' | 'brand_color_accent', value: string) => void
   onFormDataChange: Dispatch<SetStateAction<CompanyFormData>>
 }

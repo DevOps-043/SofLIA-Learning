@@ -1,5 +1,6 @@
 'use client'
 
+import type { CompanyImageType } from '../admin-company-branding'
 import type { ChangeEvent, Dispatch, MutableRefObject, ReactNode, SetStateAction } from 'react'
 import { GlobeAltIcon, PhotoIcon } from '@heroicons/react/24/outline'
 import {
@@ -19,7 +20,7 @@ interface CompanyBrandingTabProps {
   uploadingBanner: boolean
   logoInputRef: MutableRefObject<HTMLInputElement | null>
   bannerInputRef: MutableRefObject<HTMLInputElement | null>
-  onFileChange: (event: ChangeEvent<HTMLInputElement>, imageType: 'logo' | 'banner') => void
+  onFileChange: (event: ChangeEvent<HTMLInputElement>, imageType: CompanyImageType) => void
   onUpdateColor: (key: BrandingColorKey, value: string) => void
   setFormData: Dispatch<SetStateAction<CompanyFormData>>
 }
@@ -85,11 +86,11 @@ interface AdminEditCompanyUploadCardProps {
   emptyLabel: string
   emptyHint: string
   actionLabel: string
-  imageType: 'logo' | 'banner'
+  imageType: CompanyImageType
   imageUrl: string
   inputRef: MutableRefObject<HTMLInputElement | null>
   uploading: boolean
-  onFileChange: (event: ChangeEvent<HTMLInputElement>, imageType: 'logo' | 'banner') => void
+  onFileChange: (event: ChangeEvent<HTMLInputElement>, imageType: CompanyImageType) => void
   onRemove: () => void
   icon: ReactNode
   objectFit?: 'contain' | 'cover'

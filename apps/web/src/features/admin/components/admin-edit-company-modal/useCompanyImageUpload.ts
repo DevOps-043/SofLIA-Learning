@@ -1,3 +1,4 @@
+import type { CompanyImageType } from '../admin-company-branding'
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useRef, useState, type ChangeEvent } from 'react'
 
@@ -20,7 +21,7 @@ export function useCompanyImageUpload({
 
   const handleFileChange = (
     event: ChangeEvent<HTMLInputElement>,
-    imageType: 'logo' | 'banner',
+    imageType: CompanyImageType,
   ) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -30,7 +31,7 @@ export function useCompanyImageUpload({
 
   const uploadCompanyImage = async (
     file: File,
-    imageType: 'logo' | 'banner',
+    imageType: CompanyImageType,
   ) => {
     try {
       setUploadingState(imageType, true, setUploadingLogo, setUploadingBanner)
@@ -61,7 +62,7 @@ export function useCompanyImageUpload({
 }
 
 function setUploadingState(
-  imageType: 'logo' | 'banner',
+  imageType: CompanyImageType,
   value: boolean,
   setUploadingLogo: (value: boolean) => void,
   setUploadingBanner: (value: boolean) => void,
@@ -76,7 +77,7 @@ function setUploadingState(
 async function postCompanyImage(
   file: File,
   slug: string,
-  imageType: 'logo' | 'banner',
+  imageType: CompanyImageType,
 ) {
   const formDataUpload = new FormData()
   formDataUpload.append('file', file)

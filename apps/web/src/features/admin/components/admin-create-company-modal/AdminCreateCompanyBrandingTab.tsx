@@ -1,5 +1,6 @@
 'use client'
 
+import type { CompanyImageType } from '../admin-company-branding'
 import type { ChangeEvent, MutableRefObject } from 'react'
 import {
   AdminCompanyBrandingColorPalette,
@@ -24,7 +25,7 @@ interface AdminCreateCompanyBrandingTabProps {
   onFormDataChange: (updater: (current: CreateCompanyData) => CreateCompanyData) => void
   onFileChange: (
     event: ChangeEvent<HTMLInputElement>,
-    imageType: 'logo' | 'banner',
+    imageType: CompanyImageType,
   ) => void
 }
 

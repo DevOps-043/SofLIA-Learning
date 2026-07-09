@@ -3,10 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { quizSubmitSchema, type QuizSubmitBody } from '@/app/api/courses/_schemas'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
-import {
-  generateLessonAutoNote,
-  type LessonAutoNoteResult,
-} from '@/features/courses/services/lesson-auto-note.service'
+import type { GenerateLessonAutoNoteInput } from '@/features/courses/services/lesson-auto-note.service'
 import { recordQuizAttempt } from '@/features/courses/services/quiz/record-quiz-attempt.service'
 import { fetchRequiredLessonQuizStatus } from '@/features/courses/services/quiz/required-quiz-status.service'
 import { SessionService } from '@/features/auth/services/session.service'
@@ -14,6 +11,31 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
+
+/**
+ * Generates the lesson auto-note off the response path. The generation calls
+ * Gemini (seconds) and its result is not part of the response contract; the
+ * service handles its own errors, this only guards the dynamic import.
+ */
+function triggerLessonAutoNoteAsync(input: GenerateLessonAutoNoteInput) {
+  void import('@/features/courses/services/lesson-auto-note.service')
+    .then(async ({ generateLessonAutoNote }) => {
+      const result = await generateLessonAutoNote(input)
+      techDebtLogger.info('Lesson auto-note async generation', {
+        lessonId: input.lessonId,
+        reason: result.reason,
+        status: result.status,
+        userId: input.userId,
+      })
+    })
+    .catch((error) => {
+      techDebtLogger.error('Lesson auto-note async generation failed to start', {
+        error: error instanceof Error ? error.message : error,
+        lessonId: input.lessonId,
+        userId: input.userId,
+      })
+    })
+}
 
 interface ExistingQuizSubmissionRow {
   is_passed: boolean | null
@@ -418,10 +440,11 @@ async function handlePost(
       }
     }
 
-    let lessonAutoNote: LessonAutoNoteResult | undefined
-
     if (isPassed && quizStatus.allQuizzesPassed) {
-      lessonAutoNote = await generateLessonAutoNote({
+      // Fire-and-forget: the auto-note calls Gemini (multiple seconds) and the
+      // client never reads it from this response — it re-fetches the notes
+      // APIs instead (with a delayed retry to pick up the generated note).
+      triggerLessonAutoNoteAsync({
         allowUpdate: !existingSubmission || !previousPassed || didImproveBestScore,
         courseId: course.id,
         courseTitle: course.title || slug,
@@ -465,7 +488,6 @@ async function handlePost(
         submission: submissionResult,
         bestScore,
       },
-      lessonAutoNote,
     })
   } catch (error) {
     techDebtLogger.error(

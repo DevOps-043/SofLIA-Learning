@@ -1,3 +1,4 @@
+import type { CompanyImageType } from '../admin-company-branding'
 import { useRef, useState, type ChangeEvent } from 'react'
 
 interface UseAdminCreateCompanyUploadProps {
@@ -19,7 +20,7 @@ export function useAdminCreateCompanyUpload({
 
   const handleFileChange = (
     event: ChangeEvent<HTMLInputElement>,
-    imageType: 'logo' | 'banner',
+    imageType: CompanyImageType,
   ) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -29,7 +30,7 @@ export function useAdminCreateCompanyUpload({
 
   const handleImageUpload = async (
     file: File,
-    imageType: 'logo' | 'banner',
+    imageType: CompanyImageType,
   ) => {
     try {
       toggleUploadingState(imageType, true, setUploadingLogo, setUploadingBanner)
@@ -59,7 +60,7 @@ export function useAdminCreateCompanyUpload({
 }
 
 function toggleUploadingState(
-  imageType: 'logo' | 'banner',
+  imageType: CompanyImageType,
   value: boolean,
   setUploadingLogo: (value: boolean) => void,
   setUploadingBanner: (value: boolean) => void,
@@ -74,7 +75,7 @@ function toggleUploadingState(
 async function uploadCompanyImage(
   file: File,
   slug: string,
-  imageType: 'logo' | 'banner',
+  imageType: CompanyImageType,
 ) {
   const formDataUpload = new FormData()
   formDataUpload.append('file', file)

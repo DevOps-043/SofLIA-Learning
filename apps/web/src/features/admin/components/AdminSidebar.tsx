@@ -247,7 +247,10 @@ export function AdminSidebar({
           <ul className="space-y-1.5">
             {navigation.map((item) => {
               const Icon = item.icon
-              const matchPrefixes = 'matchPrefixes' in item ? item.matchPrefixes : [item.href]
+              const matchPrefixes =
+                'matchPrefixes' in item && item.matchPrefixes
+                  ? item.matchPrefixes
+                  : [item.href]
               const isActive = matchPrefixes.some(
                 (prefix) => pathname === prefix || pathname?.startsWith(`${prefix}/`),
               )

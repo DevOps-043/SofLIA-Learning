@@ -1,3 +1,14 @@
+/**
+ * SINGLE SOURCE OF TRUTH for Supabase types in apps/web.
+ *
+ * Generated with `supabase gen types typescript` (see `npm run gen:types`) and
+ * committed. Hand-edits are allowed only to close gaps until the next
+ * regeneration — never create parallel copies of these types.
+ *
+ * Note: apps/api keeps its own minimal hand-curated table types on purpose
+ * (different app, 17 tables) — do not sync it with this file.
+ */
+
 export type Json =
   | string
   | number
@@ -4311,6 +4322,7 @@ export type Database = {
           id: string
           message: string | null
           organization_id: string
+          source_learning_path_id: string | null
           start_date: string | null
           status: string | null
           updated_at: string | null
@@ -4328,6 +4340,7 @@ export type Database = {
           id?: string
           message?: string | null
           organization_id: string
+          source_learning_path_id?: string | null
           start_date?: string | null
           status?: string | null
           updated_at?: string | null
@@ -4345,6 +4358,7 @@ export type Database = {
           id?: string
           message?: string | null
           organization_id?: string
+          source_learning_path_id?: string | null
           start_date?: string | null
           status?: string | null
           updated_at?: string | null
@@ -4797,6 +4811,7 @@ export type Database = {
           brand_favicon_url: string | null
           brand_font_family: string | null
           brand_logo_url: string | null
+          branding_enabled: boolean
           company_country: string | null
           company_mission: string | null
           company_size: string | null
@@ -4835,6 +4850,7 @@ export type Database = {
           brand_favicon_url?: string | null
           brand_font_family?: string | null
           brand_logo_url?: string | null
+          branding_enabled?: boolean
           company_country?: string | null
           company_mission?: string | null
           company_size?: string | null
@@ -4873,6 +4889,7 @@ export type Database = {
           brand_favicon_url?: string | null
           brand_font_family?: string | null
           brand_logo_url?: string | null
+          branding_enabled?: boolean
           company_country?: string | null
           company_mission?: string | null
           company_size?: string | null
@@ -8668,6 +8685,189 @@ export type Database = {
         }
         Relationships: []
       }
+      skills: {
+        Row: {
+          category: string
+          color: string | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          icon_name: string | null
+          icon_type: string | null
+          icon_url: string | null
+          is_active: boolean | null
+          level: string | null
+          name: string
+          skill_id: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          icon_name?: string | null
+          icon_type?: string | null
+          icon_url?: string | null
+          is_active?: boolean | null
+          level?: string | null
+          name: string
+          skill_id?: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          icon_name?: string | null
+          icon_type?: string | null
+          icon_url?: string | null
+          is_active?: boolean | null
+          level?: string | null
+          name?: string
+          skill_id?: string
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      course_skills: {
+        Row: {
+          course_id: string
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_primary: boolean | null
+          is_required: boolean | null
+          proficiency_level: string | null
+          skill_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_primary?: boolean | null
+          is_required?: boolean | null
+          proficiency_level?: string | null
+          skill_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_primary?: boolean | null
+          is_required?: boolean | null
+          proficiency_level?: string | null
+          skill_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_skills_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["skill_id"]
+          },
+        ]
+      }
+      skill_badges: {
+        Row: {
+          badge_url: string
+          created_at: string | null
+          id: string
+          level: string
+          skill_id: string
+        }
+        Insert: {
+          badge_url: string
+          created_at?: string | null
+          id?: string
+          level: string
+          skill_id: string
+        }
+        Update: {
+          badge_url?: string
+          created_at?: string | null
+          id?: string
+          level?: string
+          skill_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_badges_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["skill_id"]
+          },
+        ]
+      }
+      user_skills: {
+        // Shape derived from runtime usage — this table has no versioned DDL.
+        // Regenerate with `npm run gen:types` once the Supabase CLI is linked.
+        Row: {
+          course_id: string | null
+          created_at: string | null
+          display_order: number | null
+          enrollment_id: string | null
+          id: string
+          is_displayed: boolean | null
+          obtained_at: string | null
+          proficiency_level: string | null
+          skill_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          enrollment_id?: string | null
+          id?: string
+          is_displayed?: boolean | null
+          obtained_at?: string | null
+          proficiency_level?: string | null
+          skill_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          enrollment_id?: string | null
+          id?: string
+          is_displayed?: boolean | null
+          obtained_at?: string | null
+          proficiency_level?: string | null
+          skill_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["skill_id"]
+          },
+        ]
+      }
       work_team_course_assignments: {
         Row: {
           assigned_at: string
@@ -10300,6 +10500,37 @@ export type Database = {
           course_count: number
           level: string
           next_level_courses_needed: number
+        }[]
+      }
+      get_user_skill_levels: {
+        Args: { p_skill_ids: string[]; p_user_id: string }
+        Returns: {
+          course_count: number
+          level: string | null
+          next_level_courses_needed: number
+          skill_id: string
+        }[]
+      }
+      get_course_notes_stats: {
+        Args: { p_course_id: string; p_user_id: string }
+        Returns: {
+          last_update: string | null
+          lessons_with_notes: number
+          total_lessons: number
+          total_notes: number
+        }[]
+      }
+      get_course_notes_stats_v2: {
+        Args: {
+          p_course_id: string
+          p_enrollment_id: string | null
+          p_user_id: string
+        }
+        Returns: {
+          last_update: string | null
+          lessons_with_notes: number
+          total_lessons: number
+          total_notes: number
         }[]
       }
       get_unread_notifications_count: {

@@ -1,20 +1,76 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+import { SessionService } from '@/features/auth/services/session.service'
+import { apiError } from '@/lib/api/errors'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
+interface UserSkillRow {
+  id: string
+  skill_id: string
+  course_id: string | null
+  proficiency_level: string | null
+  obtained_at: string | null
+  is_displayed: boolean | null
+  display_order: number | null
+  skills: {
+    skill_id: string
+    name: string
+    slug: string
+    description: string | null
+    category: string
+    icon_url: string | null
+    icon_type: string | null
+    icon_name: string | null
+    color: string | null
+    level: string | null
+  } | null
+}
+
+interface SkillLevelRow {
+  skill_id: string
+  level: string | null
+  course_count: number
+  next_level_courses_needed: number
+}
+
+interface SkillBadgeRow {
+  skill_id: string
+  level: string
+  badge_url: string
+}
+
 /**
  * GET /api/users/[userId]/skills
- * Obtiene todas las skills del usuario con sus niveles calculados
+ * Returns the user's skills with computed levels and badges.
+ *
+ * Fixed 3 round-trips regardless of skill count: user_skills+skills (1),
+ * batched level RPC (1), badges for all skills (1). Previously this was
+ * 2 queries PER skill (N+1).
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     const { userId } = await params
+    const currentUser = await SessionService.getCurrentUser()
+
+    if (!currentUser) {
+      return apiError('UNAUTHENTICATED', 'No autenticado', 401)
+    }
+
+    // Skills are personal data: only the owner can read them.
+    if (currentUser.id !== userId) {
+      return apiError(
+        'USER_SKILLS_FORBIDDEN',
+        'No autorizado para consultar estas skills',
+        403,
+      )
+    }
+
     const supabase = await createClient()
 
-    // Obtener skills del usuario
     const { data: userSkills, error: userSkillsError } = await supabase
       .from('user_skills')
       .select(`
@@ -41,75 +97,85 @@ export async function GET(
       .eq('user_id', userId)
       .order('display_order', { ascending: true })
       .order('obtained_at', { ascending: false })
+      .returns<UserSkillRow[]>()
 
     if (userSkillsError) {
       logger.error('Error fetching user skills:', userSkillsError)
-      return NextResponse.json({
-        success: false,
-        error: 'Error al obtener skills del usuario'
-      }, { status: 500 })
+      return apiError(
+        'USER_SKILLS_FETCH_FAILED',
+        'Error al obtener skills del usuario',
+        500,
+      )
     }
 
-    // Para cada skill, calcular el nivel basado en cursos completados
-    const skillsWithLevels = await Promise.all(
-      (userSkills || []).map(async (userSkill) => {
-        const skillId = userSkill.skill_id
+    const skillRows = userSkills ?? []
+    if (skillRows.length === 0) {
+      return NextResponse.json({ success: true, skills: [] })
+    }
 
-        // Llamar a la función SQL para obtener nivel
-        const { data: levelData, error: levelError } = await supabase
-          .rpc('get_user_skill_level', {
-            p_user_id: userId,
-            p_skill_id: skillId
-          })
+    const skillIds = skillRows.map((row) => row.skill_id)
 
-        if (levelError) {
-          logger.error('Error calculating skill level:', levelError)
-        }
+    const [levelsResult, badgesResult] = await Promise.all([
+      supabase.rpc('get_user_skill_levels', {
+        p_user_id: userId,
+        p_skill_ids: skillIds,
+      }),
+      supabase
+        .from('skill_badges')
+        .select('skill_id, level, badge_url')
+        .in('skill_id', skillIds)
+        .returns<SkillBadgeRow[]>(),
+    ])
 
-        const levelInfo = levelData && levelData.length > 0 ? levelData[0] : null
-        const courseCount = levelInfo?.course_count || 0
-        const level = levelInfo?.level || null
-        const nextLevelCoursesNeeded = levelInfo?.next_level_courses_needed || 0
+    if (levelsResult.error) {
+      logger.error('Error calculating skill levels:', levelsResult.error)
+    }
+    if (badgesResult.error) {
+      logger.error('Error fetching skill badges:', badgesResult.error)
+    }
 
-        // Obtener badge URL desde skill_badges si existe
-        let badgeUrl = null
-        if (level) {
-          const { data: badgeData } = await supabase
-            .from('skill_badges')
-            .select('badge_url')
-            .eq('skill_id', skillId)
-            .eq('level', level)
-            .single()
-
-          badgeUrl = badgeData?.badge_url || null
-        }
-
-        return {
-          id: userSkill.id,
-          skill_id: skillId,
-          skill: userSkill.skills,
-          course_id: userSkill.course_id,
-          proficiency_level: userSkill.proficiency_level,
-          obtained_at: userSkill.obtained_at,
-          is_displayed: userSkill.is_displayed !== false, // Si es null o undefined, tratarlo como true
-          display_order: userSkill.display_order,
-          level: level,
-          course_count: courseCount,
-          badge_url: badgeUrl,
-          next_level_courses_needed: nextLevelCoursesNeeded
-        }
-      })
+    const levelsBySkill = new Map<string, SkillLevelRow>(
+      ((levelsResult.data ?? []) as SkillLevelRow[]).map((row) => [
+        row.skill_id,
+        row,
+      ]),
     )
+    const badgeBySkillAndLevel = new Map<string, string>(
+      (badgesResult.data ?? []).map((badge) => [
+        `${badge.skill_id}:${badge.level}`,
+        badge.badge_url,
+      ]),
+    )
+
+    const skillsWithLevels = skillRows.map((userSkill) => {
+      const levelInfo = levelsBySkill.get(userSkill.skill_id) ?? null
+      const level = levelInfo?.level || null
+
+      return {
+        id: userSkill.id,
+        skill_id: userSkill.skill_id,
+        skill: userSkill.skills,
+        course_id: userSkill.course_id,
+        proficiency_level: userSkill.proficiency_level,
+        obtained_at: userSkill.obtained_at,
+        // null/undefined means visible (legacy rows without the flag).
+        is_displayed: userSkill.is_displayed !== false,
+        display_order: userSkill.display_order,
+        level,
+        course_count: levelInfo?.course_count || 0,
+        badge_url: level
+          ? badgeBySkillAndLevel.get(`${userSkill.skill_id}:${level}`) ?? null
+          : null,
+        next_level_courses_needed: levelInfo?.next_level_courses_needed || 0,
+      }
+    })
 
     return NextResponse.json({
       success: true,
-      skills: skillsWithLevels
+      skills: skillsWithLevels,
     })
   } catch (error) {
     logger.error('💥 Error in /api/users/[userId]/skills GET:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Error interno del servidor'
-    }, { status: 500 })
+    return apiError('USER_SKILLS_INTERNAL_ERROR', 'Error interno del servidor', 500)
   }
 }

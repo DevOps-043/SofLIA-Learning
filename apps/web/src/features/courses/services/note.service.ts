@@ -63,16 +63,6 @@ interface CourseNotesStatsRpcRow {
   last_update: string | null
 }
 
-interface CourseNotesStatsRpcClient {
-  rpc(
-    fn: 'get_course_notes_stats',
-    args: { p_user_id: string; p_course_id: string },
-  ): PromiseLike<{
-    data: CourseNotesStatsRpcRow[] | CourseNotesStatsRpcRow | null
-    error: { message?: string } | null
-  }>
-}
-
 export type LessonNoteSource =
   | 'manual'
   | 'chat'
@@ -140,31 +130,19 @@ export class NoteService {
     supabase: SupabaseServerClient,
     courseId: string,
   ): Promise<string[]> {
-    const { data: modules, error: modulesError } = await supabase
+    // Single round-trip: modules + nested lesson ids (was 2 sequential queries).
+    const { data: modules, error } = await supabase
       .from('course_modules')
-      .select('module_id')
+      .select('course_lessons(lesson_id)')
       .eq('course_id', courseId)
 
-    if (modulesError) {
-      throw new Error(`Error al obtener módulos: ${modulesError.message}`)
+    if (error) {
+      throw new Error(`Error al obtener lecciones del curso: ${error.message}`)
     }
 
-    const moduleIds = modules?.map((module) => module.module_id) || []
-
-    if (moduleIds.length === 0) {
-      return []
-    }
-
-    const { data: lessons, error: lessonsError } = await supabase
-      .from('course_lessons')
-      .select('lesson_id')
-      .in('module_id', moduleIds)
-
-    if (lessonsError) {
-      throw new Error(`Error al obtener lecciones: ${lessonsError.message}`)
-    }
-
-    return lessons?.map((lesson) => lesson.lesson_id) || []
+    return (modules ?? []).flatMap((module) =>
+      (module.course_lessons ?? []).map((lesson) => lesson.lesson_id),
+    )
   }
 
   /**
@@ -398,22 +376,31 @@ export class NoteService {
     enrollmentId?: string | null,
   ): Promise<CourseNotesStats> {
     try {
-      if (enrollmentId === undefined) {
-        const { data: rpcData, error: rpcError } = await (
-          supabase as unknown as CourseNotesStatsRpcClient
-        ).rpc('get_course_notes_stats', {
-          p_user_id: userId,
-          p_course_id: courseId,
-        })
+      // Single round-trip: aggregation happens in Postgres. v1 keeps the
+      // legacy "all enrollments" semantics (enrollmentId undefined); v2 scopes
+      // by enrollment (uuid) or personal notes (null).
+      const { data: rpcData, error: rpcError } =
+        enrollmentId === undefined
+          ? await supabase.rpc('get_course_notes_stats', {
+              p_user_id: userId,
+              p_course_id: courseId,
+            })
+          : await supabase.rpc('get_course_notes_stats_v2', {
+              p_user_id: userId,
+              p_course_id: courseId,
+              p_enrollment_id: enrollmentId,
+            })
 
-        if (!rpcError && rpcData) {
-          const row = Array.isArray(rpcData) ? rpcData[0] : rpcData
-          if (row) {
-            return mapCourseNotesStats(row)
-          }
+      if (!rpcError && rpcData) {
+        const row = (Array.isArray(rpcData) ? rpcData[0] : rpcData) as
+          | CourseNotesStatsRpcRow
+          | undefined
+        if (row) {
+          return mapCourseNotesStats(row)
         }
       }
 
+      // Resilience fallback only (RPC missing/failed) — 4 round-trips.
       const lessonIds = await this.getCourseLessonIds(supabase, courseId)
       const totalLessons = lessonIds.length
 

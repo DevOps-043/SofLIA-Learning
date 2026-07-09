@@ -9,7 +9,7 @@ interface UseLiaSidePanelDictationOptions {
   isOpen: boolean;
   isDictationEnabled: boolean;
   language: string;
-  inputRef: RefObject<HTMLInputElement>;
+  inputRef: RefObject<HTMLTextAreaElement>;
   setInputValue: Dispatch<SetStateAction<string>>;
 }
 
@@ -61,7 +61,7 @@ type SpeechRecognitionWindow = Window & {
   webkitSpeechRecognition?: SpeechRecognitionConstructor;
 };
 
-function focusInputAtEnd(inputRef: RefObject<HTMLInputElement>) {
+function focusInputAtEnd(inputRef: RefObject<HTMLTextAreaElement>) {
   setTimeout(() => {
     inputRef.current?.focus();
     if (inputRef.current) {

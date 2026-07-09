@@ -1,13 +1,6 @@
 import type { QuizQuestion, SelectedQuizAnswers } from "@/features/courses/components/learn/quiz.utils";
 import type { LessonQuizStatusItem } from "@/features/courses/components/learn/types";
 
-export type LessonAutoNoteSubmitResult = {
-  error?: string;
-  noteId?: string;
-  reason?: string;
-  status: "created" | "updated" | "skipped" | "failed";
-};
-
 export type QuizRendererProps = {
   quizData: QuizQuestion[];
   totalPoints?: number;
@@ -21,7 +14,9 @@ export type QuizRendererProps = {
     source?: { activityId?: string | null; materialId?: string | null },
   ) => void;
   onTriggerLiaFeedback?: (prompt: string) => void;
-  onQuizSubmitted?: (lessonAutoNote?: LessonAutoNoteSubmitResult) => void | Promise<void>;
+  // The SofLIA auto-note is generated asynchronously server-side; consumers
+  // re-fetch the notes APIs instead of receiving it here.
+  onQuizSubmitted?: () => void | Promise<void>;
 };
 
 export type HydratedQuizState = {
@@ -38,7 +33,7 @@ export type SubmitQuizResultsParams = {
   materialId?: string;
   normalizedQuizData: QuizQuestion[];
   organizationId?: string | null;
-  onQuizSubmitted?: (lessonAutoNote?: LessonAutoNoteSubmitResult) => void | Promise<void>;
+  onQuizSubmitted?: () => void | Promise<void>;
   selectedAnswers: SelectedQuizAnswers;
   setServerMessage: (message: string | null) => void;
   setSubmitError: (error: string | null) => void;

@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentType } from 'react'
+import type { ComponentType, CSSProperties } from 'react'
 import { Award, BookOpen, Clock, GraduationCap } from 'lucide-react'
 import type { BusinessUserAnalyticsResponse } from '@/features/business-panel/types/business-user-analytics.types'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'

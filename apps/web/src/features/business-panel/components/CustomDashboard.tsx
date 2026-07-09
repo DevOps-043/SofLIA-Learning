@@ -29,6 +29,7 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
   const widgets = state.layout.layout_config.widgets || []
 
   return (
+    <>
     <div className="space-y-6">
       <ResetLayoutBanner
         isOpen={state.pendingReset}
@@ -60,5 +61,6 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
       type={state.toast.type}
       position="top-right"
     />
+    </>
   )
 }

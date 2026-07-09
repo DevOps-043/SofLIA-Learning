@@ -421,7 +421,7 @@ USER_JWT_SECRET=
 
 ## Key Files
 
-- `lib/supabase/types.ts` — Database schema TypeScript types (auto-generated)
+- `lib/supabase/types.ts` — Database schema TypeScript types (SINGLE source of truth in web; regenerate with `npm run gen:types --workspace=apps/web`; the old `lib/supabase/schema/` tree was removed — never recreate parallel type copies; apps/api keeps its own minimal table types on purpose)
 - `apps/web/src/app/layout.tsx` — Root layout with all providers
 - `core/services/api.ts` — Axios client with interceptors and token refresh
 - `core/theme/color-tokens.ts` — Design system hex constants (`DESIGN_HEX_COLOR`)

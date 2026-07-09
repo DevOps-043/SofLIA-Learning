@@ -29,7 +29,7 @@ export function StyleSection(props: StyleSectionProps) {
         {t('liaPersonalization.styleLabel')}
       </label>
       <PersonalizationSelect
-        value={props.formData.base_style}
+        value={props.formData.base_style ?? ''}
         onChange={(val) =>
           props.setFormData({
             ...props.formData,

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { SessionService } from '@/features/auth/services/session.service'
+import { apiError } from '@/lib/api/errors'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
@@ -12,6 +14,21 @@ export async function GET(
 ) {
   try {
     const { userId, skillId } = await params
+    const currentUser = await SessionService.getCurrentUser()
+
+    if (!currentUser) {
+      return apiError('UNAUTHENTICATED', 'No autenticado', 401)
+    }
+
+    // Skill progress is personal data: only the owner can read it.
+    if (currentUser.id !== userId) {
+      return apiError(
+        'USER_SKILL_LEVEL_FORBIDDEN',
+        'No autorizado para consultar esta skill',
+        403,
+      )
+    }
+
     const supabase = await createClient()
 
     // Llamar a la función SQL para obtener nivel

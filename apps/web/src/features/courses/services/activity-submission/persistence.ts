@@ -1,4 +1,4 @@
-import type { Json } from '@/lib/supabase/schema/json'
+import type { Json } from '@/lib/supabase/types'
 
 import { ACTIVITY_SUBMISSION_SELECT } from './constants'
 import type {

@@ -113,17 +113,32 @@ async function ensureEnrollment(
   )
 }
 
+interface CourseWithLessonsRow extends CourseRow {
+  course_modules: Array<
+    ModuleRow & {
+      course_lessons: Array<Omit<LessonRow, 'module_order_index'>> | null
+    }
+  > | null
+}
+
 async function loadCourseAndLessons(
   supabase: SupabaseServerClient,
   slug: string,
 ) {
-  const { data: course, error: courseError } = await supabase
+  // Hot path: one round-trip for course + published modules + published
+  // lessons (was 3 sequential queries). Final ordering is applied by
+  // sortLessonsForCourse, so no nested ordering is needed.
+  const { data, error: courseError } = await supabase
     .from('courses')
-    .select('id, title, instructor_id')
+    .select(
+      'id, title, instructor_id, course_modules(module_id, module_order_index, course_lessons(lesson_id, lesson_title, lesson_order_index, module_id))',
+    )
     .eq('slug', slug)
+    .eq('course_modules.is_published', true)
+    .eq('course_modules.course_lessons.is_published', true)
     .single()
 
-  if (courseError || !course) {
+  if (courseError || !data) {
     throw new LessonProgressError(
       'COURSE_NOT_FOUND',
       404,
@@ -131,14 +146,10 @@ async function loadCourseAndLessons(
     )
   }
 
-  const { data: modules, error: modulesError } = await supabase
-    .from('course_modules')
-    .select('module_id, module_order_index')
-    .eq('course_id', course.id)
-    .eq('is_published', true)
-    .order('module_order_index', { ascending: true })
+  const course = data as unknown as CourseWithLessonsRow
+  const modules = course.course_modules ?? []
 
-  if (modulesError || !modules || modules.length === 0) {
+  if (modules.length === 0) {
     throw new LessonProgressError(
       'COURSE_HAS_NO_MODULES',
       404,
@@ -146,17 +157,14 @@ async function loadCourseAndLessons(
     )
   }
 
-  const { data: lessons, error: lessonsError } = await supabase
-    .from('course_lessons')
-    .select('lesson_id, lesson_title, lesson_order_index, module_id')
-    .in(
-      'module_id',
-      modules.map((module) => module.module_id),
-    )
-    .eq('is_published', true)
-    .order('lesson_order_index', { ascending: true })
+  const lessons = modules.flatMap((module) =>
+    (module.course_lessons ?? []).map((lesson) => ({
+      ...lesson,
+      module_order_index: module.module_order_index || 0,
+    })),
+  )
 
-  if (lessonsError || !lessons || lessons.length === 0) {
+  if (lessons.length === 0) {
     throw new LessonProgressError(
       'COURSE_HAS_NO_LESSONS',
       404,
@@ -164,21 +172,13 @@ async function loadCourseAndLessons(
     )
   }
 
-  const moduleOrderMap = new Map(
-    (modules as ModuleRow[]).map((module) => [
-      module.module_id,
-      module.module_order_index,
-    ]),
-  )
-
   return {
-    course: course as CourseRow,
-    lessons: sortLessonsForCourse(
-      (lessons as Array<Omit<LessonRow, 'module_order_index'>>).map((lesson) => ({
-        ...lesson,
-        module_order_index: moduleOrderMap.get(lesson.module_id) || 0,
-      })),
-    ),
+    course: {
+      id: course.id,
+      title: course.title,
+      instructor_id: course.instructor_id,
+    } satisfies CourseRow,
+    lessons: sortLessonsForCourse(lessons),
   }
 }
 

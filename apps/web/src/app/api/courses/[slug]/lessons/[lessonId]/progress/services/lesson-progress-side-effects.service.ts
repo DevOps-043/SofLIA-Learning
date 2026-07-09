@@ -120,30 +120,19 @@ async function syncUserSkills({
     }
   }
 
-  const existingSkillsFromOtherCourses = (courseSkills as CourseSkillRow[]).filter(
-    (skill) =>
-      existingSkillIds.has(skill.skill_id) &&
-      !existingFromThisCourse.has(skill.skill_id),
-  )
-
-  for (const skill of existingSkillsFromOtherCourses) {
-    const { data: levelData, error: levelError } = await supabase.rpc(
-      'get_user_skill_level',
-      {
-        p_user_id: userId,
-        p_skill_id: skill.skill_id,
-      },
+  const skillIdsFromOtherCourses = (courseSkills as CourseSkillRow[])
+    .filter(
+      (skill) =>
+        existingSkillIds.has(skill.skill_id) &&
+        !existingFromThisCourse.has(skill.skill_id),
     )
+    .map((skill) => skill.skill_id)
 
-    if (levelError) {
-      logger.warn(`Error calculando nivel para skill ${skill.skill_id}:`, levelError)
-      continue
-    }
-
-    if (!levelData || levelData.length === 0) {
-      continue
-    }
-
+  if (skillIdsFromOtherCourses.length > 0) {
+    // Batched refresh (was a 2-queries-per-skill loop). The skill level itself
+    // is derived data computed at read time (get_user_skill_levels); here we
+    // only refresh the timestamps because a newly completed course changed
+    // the counts behind those skills.
     const { error: updateError } = await supabase
       .from('user_skills')
       .update({
@@ -151,10 +140,10 @@ async function syncUserSkills({
         updated_at: now,
       })
       .eq('user_id', userId)
-      .eq('skill_id', skill.skill_id)
+      .in('skill_id', skillIdsFromOtherCourses)
 
     if (updateError) {
-      logger.warn(`Error actualizando skill ${skill.skill_id}:`, updateError)
+      logger.warn('Error actualizando skills existentes del usuario:', updateError)
     }
   }
 }

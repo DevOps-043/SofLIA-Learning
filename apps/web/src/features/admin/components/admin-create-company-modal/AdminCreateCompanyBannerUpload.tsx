@@ -1,5 +1,6 @@
 'use client'
 
+import type { CompanyImageType } from '../admin-company-branding'
 import type { ChangeEvent, MutableRefObject } from 'react'
 import { GlobeAltIcon } from '@heroicons/react/24/outline'
 import { AdminCompanyBrandingUploadCard } from '../admin-company-branding'
@@ -10,7 +11,7 @@ interface AdminCreateCompanyBannerUploadProps {
   uploading: boolean
   onFileChange: (
     event: ChangeEvent<HTMLInputElement>,
-    imageType: 'logo' | 'banner',
+    imageType: CompanyImageType,
   ) => void
   onRemove: () => void
 }

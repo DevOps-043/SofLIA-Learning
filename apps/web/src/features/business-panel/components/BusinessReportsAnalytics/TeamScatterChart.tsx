@@ -140,7 +140,7 @@ export function TeamScatterChart({ data, theme, t }: TeamScatterChartProps) {
             content={(props) => (
               <CustomTooltip
                 active={props.active}
-                payload={props.payload as Array<{ payload: TeamPoint }>}
+                payload={props.payload as unknown as Array<{ payload: TeamPoint }>}
                 theme={theme}
                 t={t}
               />

@@ -73,6 +73,7 @@ export function BusinessThemeCustomizer() {
   }
 
   return (
+    <>
     <div className="space-y-6">
       <BusinessThemeCustomizerHeader />
       <BusinessThemeCustomizerThemes
@@ -115,5 +116,6 @@ export function BusinessThemeCustomizer() {
       type={toast.type}
       position="top-right"
     />
+    </>
   )
 }

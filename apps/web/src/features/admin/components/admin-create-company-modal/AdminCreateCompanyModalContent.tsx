@@ -1,5 +1,6 @@
 'use client'
 
+import type { CompanyImageType } from '../admin-company-branding'
 import type { ChangeEvent, MutableRefObject } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { AdminCreateCompanyBrandingTab } from './AdminCreateCompanyBrandingTab'
@@ -22,7 +23,7 @@ interface AdminCreateCompanyModalContentProps {
   onDismissImageError: () => void
   onFileChange: (
     event: ChangeEvent<HTMLInputElement>,
-    imageType: 'logo' | 'banner',
+    imageType: CompanyImageType,
   ) => void
   onFormDataChange: (updater: (current: CreateCompanyData) => CreateCompanyData) => void
   onNameChange: (name: string) => void

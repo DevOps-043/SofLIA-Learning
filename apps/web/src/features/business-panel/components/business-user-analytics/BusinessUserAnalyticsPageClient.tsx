@@ -127,8 +127,12 @@ export function BusinessUserAnalyticsPageClient({
     analyticsUrl,
     async (url: string) => {
       const res  = await fetch(url, { credentials: 'include' })
-      const json = (await res.json()) as BusinessUserAnalyticsResponse & { success?: boolean; error?: string }
-      if (!res.ok || json.success === false) throw new Error(json.error ?? 'Error al cargar estadísticas')
+      const json = (await res.json()) as BusinessUserAnalyticsResponse
+      // The API envelope adds success/error outside the response type.
+      const envelope = json as unknown as { success?: boolean; error?: string }
+      if (!res.ok || envelope.success === false) {
+        throw new Error(envelope.error ?? 'Error al cargar estadísticas')
+      }
       return json
     },
     {
@@ -172,10 +176,12 @@ export function BusinessUserAnalyticsPageClient({
         }),
       })
 
-      const json = (await res.json()) as BusinessUserAnalyticsInsightsResponse & { success?: boolean; error?: string }
+      const json = (await res.json()) as BusinessUserAnalyticsInsightsResponse
+      // The API envelope adds success/error outside the response type.
+      const envelope = json as unknown as { success?: boolean; error?: string }
 
-      if (!res.ok || json.success === false) {
-        throw new Error((json as { error?: string }).error ?? 'Error al generar insights')
+      if (!res.ok || envelope.success === false) {
+        throw new Error(envelope.error ?? 'Error al generar insights')
       }
 
       setInsights(json.insights)

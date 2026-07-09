@@ -64,17 +64,14 @@ function normalizeGeneratedHtml(value: string): string {
     .trim()
 }
 
-interface ModuleRow {
-  module_id: string
+interface ModuleWithLessonsRow {
   module_order_index: number | null
   module_title: string
-}
-
-interface LessonListRow {
-  lesson_id: string
-  lesson_order_index: number | null
-  lesson_title: string
-  module_id: string
+  course_lessons: Array<{
+    lesson_id: string
+    lesson_order_index: number | null
+    lesson_title: string
+  }> | null
 }
 
 interface ExistingCompendiumRow {
@@ -85,45 +82,28 @@ async function loadOrderedLessons(
   supabase: AdminClient,
   courseId: string,
 ): Promise<CompendiumLesson[]> {
-  const { data: modules, error: modulesError } = await supabase
+  // Single round-trip: modules + nested lessons (was 2 sequential queries).
+  const { data: modules, error } = await supabase
     .from('course_modules')
-    .select('module_id, module_title, module_order_index')
+    .select(
+      'module_title, module_order_index, course_lessons(lesson_id, lesson_title, lesson_order_index)',
+    )
     .eq('course_id', courseId)
 
-  if (modulesError) {
-    throw new Error(`Error cargando módulos del curso: ${modulesError.message}`)
+  if (error) {
+    throw new Error(`Error cargando lecciones del curso: ${error.message}`)
   }
 
-  const moduleRows = (modules ?? []) as ModuleRow[]
-  if (moduleRows.length === 0) {
-    return []
-  }
-
-  const { data: lessons, error: lessonsError } = await supabase
-    .from('course_lessons')
-    .select('lesson_id, lesson_title, lesson_order_index, module_id')
-    .in(
-      'module_id',
-      moduleRows.map((module) => module.module_id),
-    )
-
-  if (lessonsError) {
-    throw new Error(`Error cargando lecciones del curso: ${lessonsError.message}`)
-  }
-
-  const modulesById = new Map(moduleRows.map((module) => [module.module_id, module]))
-
-  return ((lessons ?? []) as LessonListRow[])
-    .map((lesson) => {
-      const module = modulesById.get(lesson.module_id)
-      return {
+  return ((modules ?? []) as ModuleWithLessonsRow[])
+    .flatMap((module) =>
+      (module.course_lessons ?? []).map((lesson) => ({
         lessonId: lesson.lesson_id,
         lessonTitle: lesson.lesson_title,
-        moduleOrder: module?.module_order_index ?? 0,
-        moduleTitle: module?.module_title ?? '',
+        moduleOrder: module.module_order_index ?? 0,
+        moduleTitle: module.module_title,
         orderIndex: lesson.lesson_order_index ?? 0,
-      }
-    })
+      })),
+    )
     .sort((a, b) =>
       a.moduleOrder !== b.moduleOrder
         ? a.moduleOrder - b.moduleOrder

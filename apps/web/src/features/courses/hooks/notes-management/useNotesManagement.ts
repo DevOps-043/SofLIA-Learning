@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   LearnNoteFormData,
   LearnNoteListItem,
@@ -93,10 +93,36 @@ export function useNotesManagement({
     notes.ensureCourseNotesLoaded(slug, isNotesCollapsed);
   }, [isNotesCollapsed, notes.ensureCourseNotesLoaded, slug]);
 
+  // The SofLIA auto-note is generated server-side off the quiz-submit response
+  // path (Gemini takes seconds), so a single delayed silent re-fetch picks it
+  // up without any user action.
+  const delayedNotesRefreshRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+
+  useEffect(() => {
+    return () => {
+      if (delayedNotesRefreshRef.current) {
+        clearTimeout(delayedNotesRefreshRef.current);
+      }
+    };
+  }, []);
+
   const refreshNotesAfterQuiz = useCallback(async () => {
     if (!slug || isNotesCollapsed) {
       return;
     }
+
+    if (delayedNotesRefreshRef.current) {
+      clearTimeout(delayedNotesRefreshRef.current);
+    }
+    delayedNotesRefreshRef.current = setTimeout(() => {
+      delayedNotesRefreshRef.current = null;
+      void Promise.all([
+        notes.loadCourseNotes(slug),
+        stats.loadNotesStats(slug),
+      ]);
+    }, 12_000);
 
     await Promise.all([
       notes.loadCourseNotes(slug),

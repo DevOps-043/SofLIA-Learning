@@ -14,6 +14,7 @@
     "type-check:app": "tsc --noEmit -p tsconfig.typecheck.app.json",
     "type-check:features": "tsc --noEmit -p tsconfig.typecheck.features.json",
     "type-check:all": "tsc --noEmit -p tsconfig.typecheck.json",
+    "gen:types": "supabase gen types typescript --linked --schema public > src/lib/supabase/types.ts",
     "clean": "if exist .next rmdir /s /q .next && echo Cleaned .next directory || echo .next directory not found",
     "build:clean": "npm run clean && npm run build",
     "test:responsive": "playwright test",

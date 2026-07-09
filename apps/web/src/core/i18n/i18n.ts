@@ -1,6 +1,7 @@
 'use client';
 
 import i18n from 'i18next';
+import type { ResourceKey } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 // Spanish is bundled statically — it is the default language and must be available
@@ -30,7 +31,7 @@ export const ALL_NAMESPACES = [
 
 type Namespace = (typeof ALL_NAMESPACES)[number];
 
-const esResources: Record<Namespace, unknown> = {
+const esResources: Record<Namespace, ResourceKey> = {
   common: commonEs,
   dashboard: dashboardEs,
   content: contentEs,

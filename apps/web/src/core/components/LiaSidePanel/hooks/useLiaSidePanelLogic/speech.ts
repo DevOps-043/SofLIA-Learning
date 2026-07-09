@@ -57,7 +57,7 @@ interface UseLiaSidePanelSpeechParams {
   currentConversationId: string | null;
   settings: SofLIAPersonalizationSettings | null | undefined;
   updateSettings: (input: SofLIAPersonalizationSettingsInput) => Promise<void>;
-  inputRef: RefObject<HTMLInputElement>;
+  inputRef: RefObject<HTMLTextAreaElement>;
   setInputValue: Dispatch<SetStateAction<string>>;
 }
 

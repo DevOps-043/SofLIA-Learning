@@ -89,8 +89,8 @@ export function OrgRadarChart({ data, theme, t }: OrgRadarChartProps) {
               fontSize: 12,
               borderRadius: 8,
             }}
-            formatter={(value: number, name: string) => [
-              `${value}%`,
+            formatter={(value, name) => [
+              `${String(value ?? 0)}%`,
               name === 'value' ? t('reportsAnalytics.radar.org') : t('reportsAnalytics.radar.target'),
             ]}
           />
