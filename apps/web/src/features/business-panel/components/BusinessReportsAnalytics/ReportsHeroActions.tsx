@@ -33,7 +33,7 @@ export function ReportsHeroActions({
   onGenerateInsights: (locale: ReportsAnalyticsLocale) => void
 }) {
   return (
-    <div className="flex flex-nowrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <button
         type="button"
         onClick={() => onGenerateInsights(locale)}

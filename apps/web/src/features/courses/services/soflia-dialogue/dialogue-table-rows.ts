@@ -20,6 +20,9 @@ export type DialogueSessionRow = {
   started_at: string
   completed_at: string | null
   updated_at: string
+  active_seconds: number | null
+  active_seconds_reason: 'policy_closed' | 'inactivity_timeout' | null
+  active_seconds_updated_at: string | null
 }
 
 export type DialogueTurnRow = {

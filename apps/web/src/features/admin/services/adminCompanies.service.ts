@@ -3,7 +3,6 @@ export type {
   AdminCompanyMember,
   AdminCompanyUserProfile,
   CompanyCreatePayload,
-  CompanyDetailedStats,
   CompanyStats,
   CompanyUpdatePayload,
 } from '../types/admin-companies.types'
@@ -23,7 +22,6 @@ import {
   getAdminCompanies,
   getAdminCompanyById,
   getCompanyCourses,
-  getCompanyDetailedStats,
   getUserCourseAssignments,
   removeCourseFromCompany,
   removeCourseFromUser,
@@ -77,9 +75,5 @@ export class AdminCompaniesService {
 
   static async removeCourseFromUser(assignmentId: string) {
     return removeCourseFromUser(assignmentId)
-  }
-
-  static async getCompanyDetailedStats(companyId: string) {
-    return getCompanyDetailedStats(companyId)
   }
 }

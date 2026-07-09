@@ -797,7 +797,9 @@
     "filters": {
       "allPlans": "Todos os planos",
       "allStatuses": "Todos os estados",
-      "resultCount": "{{count}} empresas"
+      "resultCount": "{{count}} empresas",
+      "gridView": "Grade",
+      "listView": "Lista"
     },
     "plans": {
       "none": "Sem plano",
@@ -1492,6 +1494,7 @@
     "progress": "Progresso",
     "learningPath": "Rota de aprendizagem",
     "learningPaths": "Rotas de aprendizagem",
+    "coursesGroup": "Cursos",
     "noOrgLearningPaths": "Nenhuma rota de aprendizagem atribuida a toda a organizacao.",
     "noUserLearningPaths": "Nenhuma atribuicao individual de rotas de aprendizagem registrada.",
     "untitledPath": "Rota sem titulo",

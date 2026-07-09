@@ -241,7 +241,7 @@ export function resolveCurrentLesson(
       (lesson) => lesson.lesson_id === lastWatchedLessonId,
     )
 
-    if (lastWatchedLesson) {
+    if (lastWatchedLesson && !lastWatchedLesson.is_completed) {
       return lastWatchedLesson
     }
   }

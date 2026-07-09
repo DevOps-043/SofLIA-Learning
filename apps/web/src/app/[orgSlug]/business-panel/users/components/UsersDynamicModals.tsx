@@ -61,6 +61,7 @@ export function UsersDynamicModals({ logic }: { logic: BusinessUsersPageLogic })
         onSave={async (id, data) => {
           await logic.updateUser(id, data)
         }}
+        orgSlug={logic.orgSlug}
       />
       <DeleteUserModal
         user={logic.deletingUser}

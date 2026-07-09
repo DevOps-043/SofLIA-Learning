@@ -6,7 +6,11 @@ type SupabaseServerClient =
   | Awaited<ReturnType<typeof createClient>>
   | ReturnType<typeof createAdminClient>
 type LessonNoteRow = Tables<'user_lesson_notes'>
-type LessonNoteRowLike = Omit<LessonNoteRow, 'enrollment_id' | 'organization_id'> & {
+type LessonNoteRowLike = Omit<
+  LessonNoteRow,
+  'course_id' | 'enrollment_id' | 'organization_id'
+> & {
+  course_id?: string | null
   enrollment_id?: string | null
   organization_id?: string | null
 }
@@ -69,7 +73,12 @@ interface CourseNotesStatsRpcClient {
   }>
 }
 
-export type LessonNoteSource = 'manual' | 'chat' | 'import' | 'lesson_auto_note'
+export type LessonNoteSource =
+  | 'manual'
+  | 'chat'
+  | 'import'
+  | 'lesson_auto_note'
+  | 'course_compendium'
 
 function parseNoteTags(value: Json): string[] {
   if (!Array.isArray(value)) {
@@ -83,7 +92,8 @@ function parseNoteSource(value: string | null): LessonNote['source_type'] {
   return value === 'chat' ||
     value === 'import' ||
     value === 'manual' ||
-    value === 'lesson_auto_note'
+    value === 'lesson_auto_note' ||
+    value === 'course_compendium'
     ? value
     : 'manual'
 }
@@ -99,7 +109,9 @@ function mapLessonNote(row: LessonNoteRowLike): LessonNote {
     created_at: row.created_at ?? '',
     updated_at: row.updated_at ?? '',
     user_id: row.user_id,
-    lesson_id: row.lesson_id,
+    // Course compendium rows are the only ones with a null lesson_id and they
+    // never flow through NoteService (all queries here filter by lesson).
+    lesson_id: row.lesson_id ?? '',
     enrollment_id: row.enrollment_id ?? null,
     organization_id: row.organization_id ?? null,
   }

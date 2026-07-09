@@ -93,6 +93,17 @@ export function useNotebookTree(orgSlug: string) {
   const flatNotes = useMemo<NotebookFlatNote[]>(() => {
     const items: NotebookFlatNote[] = []
     for (const course of tree.courses) {
+      // The course compendium is course-scoped (no lesson), so it surfaces in
+      // "all notes" and course-level selection but never in a lesson filter.
+      if (course.compendium) {
+        items.push({
+          note: course.compendium,
+          courseId: course.courseId,
+          courseTitle: course.title,
+          lessonId: '',
+          lessonTitle: '',
+        })
+      }
       for (const lesson of course.lessons) {
         for (const note of lesson.notes) {
           items.push({

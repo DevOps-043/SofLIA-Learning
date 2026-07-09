@@ -194,6 +194,27 @@ async function handleCourseCompletion({
         source: 'lesson_progress',
       },
     )
+
+    if (!wasCompleted) {
+      const { generateCourseCompendium } = await import(
+        '@/features/courses/services/course-compendium.service'
+      )
+      const compendium = await generateCourseCompendium({
+        allowUpdate: false,
+        courseId,
+        courseTitle,
+        enrollmentId,
+        organizationId: organizationId ?? null,
+        userId,
+      })
+      logger.info('Course compendium auto-generation', {
+        courseId,
+        error: compendium.error,
+        reason: compendium.reason,
+        status: compendium.status,
+        userId,
+      })
+    }
   } catch (error) {
     logger.error('Error ejecutando side effects de curso completado:', error)
   }

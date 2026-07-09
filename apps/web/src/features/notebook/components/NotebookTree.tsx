@@ -1,7 +1,14 @@
 'use client'
 
 import { useTranslation } from 'react-i18next'
-import { BookOpen, ChevronDown, ChevronRight, FileText, Layers } from 'lucide-react'
+import {
+  BookOpen,
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  Layers,
+  Sparkles,
+} from 'lucide-react'
 
 import { cn } from '@/utils/cn'
 import type { NotebookSelection } from '../hooks/useNotebookTree'
@@ -13,6 +20,8 @@ interface NotebookTreeProps {
   onSelect: (selection: NotebookSelection) => void
   expandedCourses: Set<string>
   onToggleCourse: (courseId: string) => void
+  /** Opens a note directly (used by the course compendium entry). */
+  onOpenNote: (noteId: string) => void
 }
 
 function isLessonActive(
@@ -35,6 +44,7 @@ export function NotebookTree({
   onSelect,
   expandedCourses,
   onToggleCourse,
+  onOpenNote,
 }: NotebookTreeProps) {
   const { t } = useTranslation('notebook')
 
@@ -108,6 +118,18 @@ export function NotebookTree({
 
             {expanded && (
               <div className="ml-7 flex flex-col gap-0.5 border-l border-gray-200 pl-2 dark:border-white/10">
+                {course.compendium && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenNote(course.compendium!.noteId)}
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-accent)]/10 dark:text-[var(--color-accent)]"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                    <span className="flex-1 truncate">
+                      {t('compendium.label')}
+                    </span>
+                  </button>
+                )}
                 {course.lessons.map((lesson) => (
                   <button
                     key={lesson.lessonId}

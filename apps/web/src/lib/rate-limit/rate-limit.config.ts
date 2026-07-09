@@ -25,6 +25,12 @@ export const RATE_LIMIT_CONFIG = {
     message: 'Demasiadas peticiones. Por favor espera un momento.',
     blockDurationMs: 2 * 60 * 1000,
   },
+  [RateLimitTier.AI_GENERATION]: {
+    maxRequests: 3,
+    windowMs: 10 * 60 * 1000,
+    message: 'Demasiadas generaciones con IA. Intenta de nuevo en unos minutos.',
+    blockDurationMs: 10 * 60 * 1000,
+  },
   [RateLimitTier.PUBLIC]: {
     maxRequests: 1000,
     windowMs: 60 * 1000,

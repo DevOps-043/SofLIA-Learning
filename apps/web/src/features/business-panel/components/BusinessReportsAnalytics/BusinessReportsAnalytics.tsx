@@ -14,7 +14,11 @@ import { ReportsLoadedContent } from './ReportsLoadedContent'
 import { StatePanel } from './StatePanel'
 import type { ReportsAnalyticsLocale, ReportsAnalyticsT } from './types'
 
-export function BusinessReportsAnalytics() {
+interface BusinessReportsAnalyticsProps {
+  orgSlug?: string
+}
+
+export function BusinessReportsAnalytics({ orgSlug }: BusinessReportsAnalyticsProps = {}) {
   const { t: tRaw } = useTranslation('business')
   const { language } = useLanguage()
   const theme = useBusinessPanelTheme()
@@ -40,7 +44,7 @@ export function BusinessReportsAnalytics() {
     exportAnalytics,
     generateInsights,
     exportInsightsPdf,
-  } = useBusinessReportsAnalytics()
+  } = useBusinessReportsAnalytics(orgSlug)
 
   const locale = language as ReportsAnalyticsLocale
   const t: ReportsAnalyticsT = (key) => tRaw(key)

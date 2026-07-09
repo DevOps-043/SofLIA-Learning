@@ -6,7 +6,12 @@
  * current organization. Note content is rich HTML (TipTap output).
  */
 
-export type NotebookNoteSource = 'manual' | 'chat' | 'import' | 'lesson_auto_note'
+export type NotebookNoteSource =
+  | 'manual'
+  | 'chat'
+  | 'import'
+  | 'lesson_auto_note'
+  | 'course_compendium'
 
 /** Lightweight note descriptor used to render the tree and note cards. */
 export interface NotebookNoteSummary {
@@ -19,7 +24,10 @@ export interface NotebookNoteSummary {
   updatedAt: string
 }
 
-/** Full note payload used by the dedicated editor page and hover preview. */
+/**
+ * Full note payload used by the dedicated editor page and hover preview.
+ * Course compendium notes are course-scoped: lessonId/lessonTitle are empty.
+ */
 export interface NotebookNoteDetail extends NotebookNoteSummary {
   content: string
   lessonId: string
@@ -41,6 +49,8 @@ export interface NotebookCourseNode {
   title: string
   slug: string | null
   totalNotes: number
+  /** SofLIA course compendium ("libreta"), shown above the lessons. */
+  compendium?: NotebookNoteSummary | null
   lessons: NotebookLessonNode[]
 }
 

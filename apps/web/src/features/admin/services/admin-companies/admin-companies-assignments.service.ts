@@ -2,9 +2,6 @@ import { createAdminClient } from '../../../../lib/supabase/admin'
 import { fromLoose } from '../../../../lib/supabase/looseQuery'
 import { logger } from '../../../../lib/utils/logger'
 
-import { buildCompanyDetailedStats } from './admin-companies-detailed-stats.service'
-import type { CompanyDetailedStats } from '../../types/admin-companies.types'
-
 interface HierarchyCourseAssignmentRow {
   id: string
   course_id: string
@@ -26,16 +23,6 @@ interface HierarchyCourseAssignmentWrite {
   course_id: string
   assigned_by?: string | null
   status?: string | null
-}
-
-interface AdminCompanyDetailedStatsRpcClient {
-  rpc(
-    fn: 'get_admin_company_detailed_stats',
-    args: { target_organization_id: string },
-  ): PromiseLike<{
-    data: CompanyDetailedStats | null
-    error: { message?: string } | null
-  }>
 }
 
 export async function getCompanyCourses(id: string) {
@@ -121,6 +108,7 @@ export async function getUserCourseAssignments(companyId: string) {
       assigned_at,
       status,
       completion_percentage,
+      source_learning_path_id,
       courses (
         id,
         title,
@@ -133,6 +121,10 @@ export async function getUserCourseAssignments(companyId: string) {
         first_name,
         last_name,
         display_name
+      ),
+      learning_paths:source_learning_path_id (
+        id,
+        title
       )
     `)
     .eq('organization_id', companyId)
@@ -180,64 +172,4 @@ export async function removeCourseFromUser(assignmentId: string) {
   }
 
   return { success: true }
-}
-
-export async function getCompanyDetailedStats(companyId: string) {
-  const supabase = createAdminClient()
-  const { data: aggregatedStats, error: aggregatedStatsError } = await (
-    supabase as unknown as AdminCompanyDetailedStatsRpcClient
-  ).rpc('get_admin_company_detailed_stats', {
-    target_organization_id: companyId,
-  })
-
-  if (!aggregatedStatsError && aggregatedStats) {
-    return aggregatedStats
-  }
-
-  if (aggregatedStatsError) {
-    logger.warn('Admin company detailed stats RPC unavailable, using fallback', {
-      companyId,
-      error: aggregatedStatsError.message,
-    })
-  }
-
-  const [assignmentsResponse, sessionsResponse, membersResponse, pendingInvitationsResponse] = await Promise.all([
-    supabase
-      .from('organization_course_assignments')
-      .select('course_id, completion_percentage, status, courses(title)')
-      .eq('organization_id', companyId),
-    supabase
-      .from('study_sessions')
-      .select('actual_duration_minutes, completed_at, self_evaluation, user_id')
-      .eq('organization_id', companyId)
-      .eq('status', 'completed')
-      .order('completed_at', { ascending: true }),
-    fromLoose<
-      {
-        status?: string | null
-        organization_teams?:
-          | {
-              name?: string | null
-            }
-          | Array<{
-              name?: string | null
-            }>
-          | null
-      }
-    >(supabase, 'organization_users')
-      .select('status, organization_teams(name)')
-      .eq('organization_id', companyId),
-    supabase
-      .from('user_invitations')
-      .select('id', { count: 'exact' })
-      .eq('organization_id', companyId)
-      .eq('status', 'pending'),
-  ])
-
-  return buildCompanyDetailedStats({
-    assignments: assignmentsResponse.data || [],
-    sessions: sessionsResponse.data || [],
-    members: membersResponse.data || [],
-    pendingInvitationCount: pendingInvitationsResponse.count || 0,
-  })
 }

@@ -124,6 +124,10 @@
 [functions."process-inactive-lessons"]
   schedule = "*/5 * * * *"
 
+# Función programada: Cerrar sesiones de diálogo con SofLIA abandonadas por inactividad cada 5 minutos
+[functions."process-inactive-dialogue-sessions"]
+  schedule = "*/5 * * * *"
+
 # Funcion programada: Recordatorios diarios de aprendizaje por zona horaria
 [functions."process-learning-reminders"]
   schedule = "0 * * * *"

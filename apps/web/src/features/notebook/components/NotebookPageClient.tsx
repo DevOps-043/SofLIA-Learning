@@ -158,6 +158,10 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
                 }}
                 expandedCourses={expandedCourses}
                 onToggleCourse={toggleCourse}
+                onOpenNote={(noteId) => {
+                  setShowTreeMobile(false)
+                  openNote(noteId)
+                }}
               />
             )}
           </aside>

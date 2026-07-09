@@ -86,5 +86,7 @@ export const updateNoteSchema = z
     { message: 'No hay cambios para guardar.' },
   )
 
+export const compendiumCourseIdSchema = z.string().uuid()
+
 export type CreateNoteBody = z.infer<typeof createNoteSchema>
 export type UpdateNoteBody = z.infer<typeof updateNoteSchema>

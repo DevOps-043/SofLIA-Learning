@@ -1,5 +1,9 @@
 import { createClient } from '../../../lib/supabase/server'
 import { logger } from '../../../lib/utils/logger'
+import {
+  fetchBusinessUserDialogueSessions,
+  type BusinessUserStatsDialogueSessionRecord,
+} from './business-user-stats-dialogue.service'
 
 type BusinessUserStatsSupabaseClient = Awaited<ReturnType<typeof createClient>>
 
@@ -40,6 +44,7 @@ interface BusinessUserStatsQuizSubmissionRecord {
 }
 
 export interface EngagementQueryData {
+  dialogueSessions: BusinessUserStatsDialogueSessionRecord[]
   liaConversations: BusinessUserStatsLiaConversationRecord[]
   liaMessages: BusinessUserStatsLiaMessageRecord[]
   quizSubmissions: BusinessUserStatsQuizSubmissionRecord[]
@@ -53,6 +58,7 @@ export async function fetchEngagementData(
   const [
     liaConversationsResult,
     quizSubmissionsResult,
+    dialogueSessions,
   ] = await Promise.all([
     supabase
       .from('lia_conversations')
@@ -84,6 +90,8 @@ export async function fetchEngagementData(
       `)
       .eq('user_id', userId)
       .order('completed_at', { ascending: false }),
+
+    fetchBusinessUserDialogueSessions(userId),
   ])
 
   if (liaConversationsResult.error) {
@@ -111,5 +119,5 @@ export async function fetchEngagementData(
   if (liaMessagesResult.error) logger.error('Error fetching LIA messages:', liaMessagesResult.error)
   const liaMessages = (liaMessagesResult.data || []) as unknown as BusinessUserStatsLiaMessageRecord[]
 
-  return { liaConversations, liaMessages, quizSubmissions }
+  return { dialogueSessions, liaConversations, liaMessages, quizSubmissions }
 }

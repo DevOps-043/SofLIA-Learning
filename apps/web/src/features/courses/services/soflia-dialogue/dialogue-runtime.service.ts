@@ -10,6 +10,7 @@ import type {
   DialogueEvaluationResult,
   DialogueState,
 } from '../../types/dialogue-runtime'
+import { isTerminalDialogueState } from '../../types/dialogue-runtime'
 import { evaluateDialogueTurn } from './dialogue-evaluator.service'
 import { recordDialogueEvent } from './dialogue-events.service'
 import { decideDialogueNextState } from './dialogue-policy-engine.service'
@@ -17,6 +18,7 @@ import { persistDialogueResult } from './dialogue-result.service'
 import { DialogueRuntimeError } from './dialogue-runtime.errors'
 import {
   findTurnByClientTurnId,
+  computeDialogueActiveSeconds,
   createDialogueSession,
   getDialogueEvaluations,
   getDialogueResult,
@@ -26,6 +28,7 @@ import {
   getOrCreateDialogueSession,
   insertDialogueEvaluation,
   insertDialogueTurn,
+  recordDialogueActiveSeconds,
   resolveDialogueConfig,
   toDialogueSessionResponse,
   updateDialogueSessionAfterTurn,
@@ -401,7 +404,7 @@ export async function processDialogueMessage(input: {
     recentTurns,
   })
 
-  await insertDialogueTurn({
+  const assistantTurn = await insertDialogueTurn({
     client: input.client,
     content: assistantMessage,
     metadata: {
@@ -414,6 +417,15 @@ export async function processDialogueMessage(input: {
     stateBefore: toDialogueState(session.state),
     turnNumber: existingTurns.length + 2,
   })
+
+  if (isTerminalDialogueState(policy.nextState)) {
+    await recordDialogueActiveSeconds({
+      activeSeconds: computeDialogueActiveSeconds([...existingTurns, userTurn, assistantTurn]),
+      client: input.client,
+      reason: 'policy_closed',
+      sessionId: updatedSession.session_id,
+    })
+  }
 
   if (policy.nextState === 'HINT') {
     await recordDialogueEvent(input.client, {

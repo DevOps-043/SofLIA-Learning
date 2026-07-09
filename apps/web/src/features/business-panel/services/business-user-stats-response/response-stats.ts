@@ -16,7 +16,13 @@ export function buildResponseStats({ certificates, coursesData, coursesWithLesso
   const completedCourses = coursesData.filter(isCompletedCourseStats).length
   const inProgressCourses = coursesData.filter(isInProgressCourseStats).length
   const notStartedCourses = Math.max(totalCourses - completedCourses - inProgressCourses, 0)
-  const totalTimeSpent = data.lessonProgress.reduce((sum, progress) => sum + (progress.time_spent_minutes || 0), 0)
+  // total_time_spent_minutes solo sumaba user_lesson_progress.time_spent_minutes,
+  // que no cubre actividades de dialogo con SofLIA (no generan una fila de
+  // progreso con minutos). Se suma (no se reemplaza) el tiempo real medido por
+  // computeDialogueActiveSeconds para no perder tiempo de aprendizaje real.
+  const totalTimeSpent =
+    data.lessonProgress.reduce((sum, progress) => sum + (progress.time_spent_minutes || 0), 0) +
+    sumDialogueActiveMinutes(data.dialogueSessions)
   const averageProgress = totalCourses > 0 ? coursesData.reduce((sum, course) => sum + (Number(course.progress) || 0), 0) / totalCourses : 0
 
   return {
@@ -42,4 +48,9 @@ function buildQuizAverageScore(data: BusinessUserStatsQueryData) {
   if (data.quizSubmissions.length === 0) return 0
   const totalScore = data.quizSubmissions.reduce((sum, submission) => sum + (Number(submission.percentage_score) || 0), 0)
   return Math.round((totalScore / data.quizSubmissions.length) * 10) / 10
+}
+
+function sumDialogueActiveMinutes(dialogueSessions: BusinessUserStatsQueryData['dialogueSessions']) {
+  const totalSeconds = dialogueSessions.reduce((sum, session) => sum + (session.active_seconds || 0), 0)
+  return Math.round((totalSeconds / 60) * 10) / 10
 }

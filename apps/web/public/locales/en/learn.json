@@ -512,7 +512,9 @@
       "error": "Voice error",
       "loading": "Loading...",
       "unavailable": "Audio not available",
-      "seek": "Seek through the audio"
+      "seek": "Seek through the audio",
+      "speed": "Playback speed",
+      "speedNormal": "Normal"
     }
   }
 }

@@ -1,7 +1,6 @@
 import 'server-only'
 
 export * from './admin-companies-assignments.service'
-export * from './admin-companies-detailed-stats.service'
 export * from './admin-companies-display.service'
 export * from './admin-companies-filter.service'
 export * from './admin-companies.mapper'

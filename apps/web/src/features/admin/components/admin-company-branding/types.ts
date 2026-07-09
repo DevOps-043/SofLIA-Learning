@@ -1,6 +1,6 @@
 import type { ChangeEvent, MutableRefObject, ReactNode } from 'react'
 
-export type CompanyImageType = 'logo' | 'banner'
+export type CompanyImageType = 'logo' | 'banner' | 'favicon'
 
 export interface BrandingColorField<T extends string> {
   key: T

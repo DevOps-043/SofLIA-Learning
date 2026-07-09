@@ -1,8 +1,9 @@
 "use client";
 
 import type { TFunction } from "i18next";
-import { Loader2, Pause, Play, Volume2, VolumeX } from "lucide-react";
+import { Check, Loader2, Pause, Play, Volume2, VolumeX } from "lucide-react";
 import type { ChangeEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type {
   ReadingAudioStatus,
@@ -31,12 +32,115 @@ function getStatusLabel(status: ReadingAudioStatus, t: TFunction<"learn">): stri
   return t("reading.voice.listen");
 }
 
+interface PlaybackSpeedMenuProps {
+  changePlaybackRate: (rate: number) => void;
+  playbackRate: number;
+  playbackRates: readonly number[];
+  t: TFunction<"learn">;
+}
+
+/**
+ * Compact playback-speed selector: shows the current rate (e.g. "1×") and opens a
+ * dropdown with the same rate options as the video player.
+ */
+function PlaybackSpeedMenu({
+  changePlaybackRate,
+  playbackRate,
+  playbackRates,
+  t,
+}: PlaybackSpeedMenuProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // defaultValue fallbacks guarantee we never render a raw i18n key if the
+  // bundled learn namespace is stale (e.g. dev server not restarted).
+  const speedLabel = t("reading.voice.speed", "Velocidad de reproducción");
+  const normalLabel = t("reading.voice.speedNormal", "Normal");
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, [isOpen]);
+
+  return (
+    <div ref={containerRef} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          setIsOpen((prev) => !prev);
+        }}
+        title={speedLabel}
+        aria-label={speedLabel}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        className={`rounded-md border px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums transition-colors ${
+          isOpen
+            ? "border-gray-300 bg-gray-100 text-gray-700 dark:border-white/20 dark:bg-white/10 dark:text-white/80"
+            : "border-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-white/50 dark:hover:bg-white/10 dark:hover:text-white/80"
+        }`}
+      >
+        {playbackRate}×
+      </button>
+
+      {isOpen && (
+        <div
+          role="menu"
+          aria-label={speedLabel}
+          className="absolute right-0 top-full z-20 mt-1.5 w-40 overflow-hidden rounded-xl border border-gray-200 bg-white py-1.5 shadow-xl dark:border-white/10 dark:bg-gray-800"
+        >
+          <p className="px-3 pb-1 pt-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-white/40">
+            {speedLabel}
+          </p>
+          {playbackRates.map((rate) => {
+            const isSelected = rate === playbackRate;
+            return (
+              <button
+                key={rate}
+                type="button"
+                role="menuitemradio"
+                aria-checked={isSelected}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  changePlaybackRate(rate);
+                  setIsOpen(false);
+                }}
+                className={`flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-xs tabular-nums transition-colors hover:bg-gray-100 dark:hover:bg-white/10 ${
+                  isSelected
+                    ? "font-semibold text-gray-900 dark:text-white"
+                    : "text-gray-600 dark:text-white/60"
+                }`}
+              >
+                <span className="whitespace-nowrap">
+                  {rate === 1 ? normalLabel : `${rate}×`}
+                </span>
+                {isSelected && (
+                  <Check
+                    className="h-3.5 w-3.5 shrink-0"
+                    style={{ color: "var(--learn-action)" }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /**
  * Inline reading-audio player: a play/pause control plus a draggable progress bar so
  * the user can scrub to any position. Streams the pre-generated MP3 from storage.
  */
 export function ReadingAudioPlayer({ player, t }: ReadingAudioPlayerProps) {
-  const { currentTime, duration, seek, status, toggle } = player;
+  const { changePlaybackRate, currentTime, duration, playbackRate, playbackRates, seek, status, toggle } = player;
 
   const isLoading = status === "loading";
   const isPlaying = status === "playing";
@@ -121,6 +225,13 @@ export function ReadingAudioPlayer({ player, t }: ReadingAudioPlayerProps) {
       <span className="shrink-0 font-mono text-[11px] tabular-nums text-gray-500 dark:text-white/50">
         {formatTime(currentTime)} / {formatTime(duration)}
       </span>
+
+      <PlaybackSpeedMenu
+        changePlaybackRate={changePlaybackRate}
+        playbackRate={playbackRate}
+        playbackRates={playbackRates}
+        t={t}
+      />
 
       {(isPlaying || isPaused) && <span className="sr-only">{label}</span>}
     </div>

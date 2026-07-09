@@ -49,6 +49,12 @@ export async function syncNewCourseAccessForExistingLearningPathAssignments(
   for (const assignment of userAssignments.data || []) {
     const assignedBy = assignment.assigned_by || adminUserId
     await syncCourseAccessForOrganization(assignment.organization_id, [courseId], assignedBy)
-    await syncCourseAccessForUser(assignment.organization_id, assignment.user_id, [courseId], assignedBy)
+    await syncCourseAccessForUser(
+      assignment.organization_id,
+      assignment.user_id,
+      [courseId],
+      assignedBy,
+      learningPathId,
+    )
   }
 }

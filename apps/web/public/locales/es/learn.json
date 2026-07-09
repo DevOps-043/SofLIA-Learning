@@ -512,7 +512,9 @@
       "error": "Error de voz",
       "loading": "Cargando...",
       "unavailable": "Audio no disponible",
-      "seek": "Avanzar o retroceder el audio"
+      "seek": "Avanzar o retroceder el audio",
+      "speed": "Velocidad de reproducción",
+      "speedNormal": "Normal"
     }
   }
 }

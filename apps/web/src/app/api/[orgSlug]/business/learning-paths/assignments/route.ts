@@ -166,7 +166,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    await AdminLearningPathsService.revokeFromUser(
+    const cleanup = await AdminLearningPathsService.revokeFromUserWithCourseCleanup(
       auth.organizationId,
       assignmentIdResult.data,
     )
@@ -176,7 +176,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     // getting a stale cached response.
     revalidatePath(`/${orgSlug}`, 'layout')
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, ...cleanup })
   } catch (error) {
     logger.error('Error revoking learning path assignment from business panel:', error)
     return NextResponse.json(

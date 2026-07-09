@@ -39,8 +39,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    await AdminLearningPathsService.revokeFromUser(id, assignmentIdResult.data)
-    return NextResponse.json({ success: true })
+    const cleanup = await AdminLearningPathsService.revokeFromUserWithCourseCleanup(
+      id,
+      assignmentIdResult.data,
+    )
+    return NextResponse.json({ success: true, ...cleanup })
   } catch (error) {
     logger.error('Error revoking user learning path assignment:', error)
     const isValidationError = error instanceof z.ZodError

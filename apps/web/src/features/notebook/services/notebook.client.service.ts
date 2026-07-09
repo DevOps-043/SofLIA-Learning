@@ -108,6 +108,24 @@ export async function updateNotebookNote(
   return data.note
 }
 
+export async function regenerateCourseCompendium(
+  orgSlug: string,
+  courseId: string,
+): Promise<NotebookNoteDetail> {
+  const response = await fetch(
+    `${base(orgSlug)}/compendium/${encodeURIComponent(courseId)}`,
+    {
+      method: 'POST',
+      credentials: 'include',
+    },
+  )
+  if (!response.ok) {
+    return parseError(response, 'No se pudo regenerar el compendio.')
+  }
+  const data = (await response.json()) as NotebookNoteResponse
+  return data.note
+}
+
 export async function deleteNotebookNote(
   orgSlug: string,
   noteId: string,

@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { LearningPathManagementPage } from '@/features/admin/components'
+import { LearningPathManagementPage } from '@/features/admin/components/LearningPathManagementPage'
 
 interface PageProps {
   params: Promise<{ id: string }>

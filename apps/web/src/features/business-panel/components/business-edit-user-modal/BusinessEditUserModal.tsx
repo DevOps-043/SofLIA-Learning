@@ -13,6 +13,7 @@ interface BusinessEditUserModalProps {
   onClose: () => void
   user: BusinessUser | null
   onSave: (id: string, data: UpdateBusinessUserRequest) => Promise<void>
+  orgSlug?: string
 }
 
 function getUserInitials(formData: UserFormData): string {
@@ -31,7 +32,7 @@ function getDisplayName(formData: UserFormData, user: BusinessUser): string {
   )
 }
 
-export function BusinessEditUserModal({ isOpen, onClose, user, onSave }: BusinessEditUserModalProps) {
+export function BusinessEditUserModal({ isOpen, onClose, user, onSave, orgSlug }: BusinessEditUserModalProps) {
   const theme = useBusinessPanelTheme()
   const handleSave = useCallback(
     async (userId: string, formData: UserFormData) => {
@@ -43,7 +44,7 @@ export function BusinessEditUserModal({ isOpen, onClose, user, onSave }: Busines
     },
     [onSave]
   )
-  const form = useUserFormState(user, handleSave, onClose)
+  const form = useUserFormState(user, handleSave, onClose, orgSlug)
 
   if (!isOpen || !user) {
     return null

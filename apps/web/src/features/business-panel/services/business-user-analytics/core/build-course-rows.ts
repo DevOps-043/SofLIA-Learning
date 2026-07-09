@@ -4,6 +4,7 @@ import { buildCourseLessonCountByCourse } from './build-course-lesson-count-by-c
 import { calculateStudyMinutes } from './calculate-study-minutes'
 import { getLatestDate } from './get-latest-date'
 import { groupCourseLessonsByCourse } from './group-course-lessons-by-course'
+import { groupDialogueSessionsByCourse } from './group-dialogue-sessions-by-course'
 import { groupLessonProgressByCourse } from './group-lesson-progress-by-course'
 import { groupLessonTrackingByCourse } from './group-lesson-tracking-by-course'
 import { QueryData } from './query-data'
@@ -22,6 +23,7 @@ export function buildCourseRows(
   const lessonProgressByCourse = groupLessonProgressByCourse(data.lessonProgress, enrollmentCourseById)
   const lessonTrackingByCourse = groupLessonTrackingByCourse(data.lessonTracking, data.courseLessons)
   const courseLessonsByCourse = groupCourseLessonsByCourse(data.courseLessons)
+  const dialogueSessionsByCourse = groupDialogueSessionsByCourse(data.dialogueSessions)
   const lessonCountByCourse = buildCourseLessonCountByCourse(data.courseLessons)
 
   return data.assignments.map((assignment) => {
@@ -61,6 +63,7 @@ export function buildCourseRows(
         courseLessons,
         data.lessonActivities,
         status === 'completed' || progress >= 100,
+        dialogueSessionsByCourse.get(assignment.course_id) || [],
       ),
       hasCertificate: certificateCourseIds.has(assignment.course_id),
     }

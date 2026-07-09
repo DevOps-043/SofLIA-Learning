@@ -75,10 +75,17 @@ export function resolveStudyMinutes(input: {
   completed: boolean
   estimatedMinutes: number
   progressMinutes: number
+  realDialogueMinutes?: number
   trackingMinutes: number
 }): number {
   if (input.progressMinutes > 0) return roundStudyMinutes(input.progressMinutes)
   if (input.trackingMinutes > 0) return roundStudyMinutes(input.trackingMinutes)
+  // Tiempo real de dialogo con SofLIA: mide a ESTE usuario (ver
+  // computeDialogueActiveSeconds), asi que cuenta aunque la leccion no este
+  // completada todavia, a diferencia del estimado estatico de abajo.
+  if (input.realDialogueMinutes && input.realDialogueMinutes > 0) {
+    return roundStudyMinutes(input.realDialogueMinutes)
+  }
   return input.completed ? roundStudyMinutes(input.estimatedMinutes) : 0
 }
 
@@ -91,6 +98,39 @@ export function buildEstimatedMinutesByLesson(
       getEstimatedLessonMinutes(lesson),
     ]),
   )
+}
+
+export interface DialogueSessionTimeRow {
+  active_seconds?: number | null
+  lesson_id: string | null
+}
+
+/**
+ * Real per-user active time for SofLIA Dialogue activities, keyed by lesson.
+ * `active_seconds` is the gap-capped sum computed server-side in
+ * computeDialogueActiveSeconds (features/courses/services/soflia-dialogue) —
+ * it reflects how long THIS user actually spent, unlike the static
+ * estimated-minutes fallback configured by an admin for all users alike.
+ */
+export function buildDialogueMinutesByLesson(
+  dialogueSessions: DialogueSessionTimeRow[],
+): Map<string, number> {
+  const minutesByLesson = new Map<string, number>()
+
+  dialogueSessions.forEach((session) => {
+    const activeSeconds = toPositiveNumber(session.active_seconds)
+    if (!session.lesson_id || activeSeconds <= 0) return
+    minutesByLesson.set(
+      session.lesson_id,
+      (minutesByLesson.get(session.lesson_id) || 0) + activeSeconds / 60,
+    )
+  })
+
+  minutesByLesson.forEach((minutes, lessonId) => {
+    minutesByLesson.set(lessonId, roundStudyMinutes(minutes))
+  })
+
+  return minutesByLesson
 }
 
 export function buildStudyMinutesByUserLesson(input: {

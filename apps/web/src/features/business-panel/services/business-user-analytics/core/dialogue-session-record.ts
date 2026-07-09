@@ -20,4 +20,5 @@ export interface DialogueSessionRecord {
   completed_at: string | null
   started_at: string | null
   updated_at: string | null
+  active_seconds: number | null
 }

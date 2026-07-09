@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { AdminUsersPage } from '@/features/admin/components'
+import { AdminUsersPage } from '@/features/admin/components/AdminUsersPage'
 
 export const metadata: Metadata = {
   title: 'Gestión de Usuarios | Panel de Administración',

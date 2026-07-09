@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { AdminLayout } from '@/features/admin/components'
+import { AdminLayout } from '@/features/admin/components/AdminLayout'
 
 export const metadata: Metadata = {
   title: 'Panel de Administración | SofLIA',

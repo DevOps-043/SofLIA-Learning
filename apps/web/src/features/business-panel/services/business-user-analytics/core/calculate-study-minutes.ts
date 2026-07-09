@@ -1,5 +1,7 @@
 import { buildEstimatedLessonMinutesMap } from './build-estimated-lesson-minutes-map'
+import { buildRealDialogueMinutesByLesson } from './build-real-dialogue-minutes-by-lesson'
 import { CourseLessonRecord } from './course-lesson-record'
+import { DialogueSessionRecord } from './dialogue-session-record'
 import { getLessonTrackingMinutes } from './get-lesson-tracking-minutes'
 import { isCompletedStatus } from './is-completed-status'
 import { LessonActivityRecord } from './lesson-activity-record'
@@ -13,6 +15,7 @@ export function calculateStudyMinutes(
   courseLessons: CourseLessonRecord[],
   lessonActivities: LessonActivityRecord[],
   isCourseCompleted: boolean,
+  dialogueSessions: DialogueSessionRecord[] = [],
 ): number {
   const progressMinutesByLesson = new Map<string, number>()
   const completedLessonIds = new Set<string>()
@@ -38,6 +41,7 @@ export function calculateStudyMinutes(
   })
 
   const estimatedMinutesByLesson = buildEstimatedLessonMinutesMap(courseLessons, lessonActivities)
+  const realDialogueMinutesByLesson = buildRealDialogueMinutesByLesson(dialogueSessions)
   if (isCourseCompleted && completedLessonIds.size === 0) {
     courseLessons.forEach((lesson) => completedLessonIds.add(lesson.lesson_id))
   }
@@ -46,6 +50,7 @@ export function calculateStudyMinutes(
     ...progressMinutesByLesson.keys(),
     ...trackingMinutesByLesson.keys(),
     ...completedLessonIds,
+    ...realDialogueMinutesByLesson.keys(),
   ])
   let total = 0
   lessonIds.forEach((lessonId) => {
@@ -54,6 +59,15 @@ export function calculateStudyMinutes(
     const actualMinutes = progressMinutes > 0 ? progressMinutes : trackingMinutes
     if (actualMinutes > 0) {
       total += actualMinutes
+      return
+    }
+
+    // Tiempo real de diálogo con SofLIA: cuenta aunque la lección aún no esté
+    // completada (a diferencia del estimado estático de abajo), porque ya es
+    // una medición real de ESTE usuario, no un valor configurado por un admin.
+    const realDialogueMinutes = realDialogueMinutesByLesson.get(lessonId) || 0
+    if (realDialogueMinutes > 0) {
+      total += realDialogueMinutes
       return
     }
 

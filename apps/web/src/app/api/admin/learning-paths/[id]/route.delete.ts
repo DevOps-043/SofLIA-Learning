@@ -29,9 +29,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     if (auth instanceof NextResponse) return auth
 
     const { id } = learningPathParamsSchema.parse(await params)
-    await AdminLearningPathsService.deleteLearningPath(id)
+    const cleanup = await AdminLearningPathsService.deleteLearningPathWithCourseCleanup(id)
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, ...cleanup })
   } catch (error) {
     logger.error('Error deleting learning path:', error)
     const isValidationError = error instanceof z.ZodError

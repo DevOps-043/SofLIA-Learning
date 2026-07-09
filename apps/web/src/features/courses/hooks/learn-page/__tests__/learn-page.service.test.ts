@@ -49,6 +49,11 @@ describe('learn-page.service', () => {
     expect(resolveCurrentLesson(modules)?.lesson_id).toBe('lesson-2')
   })
 
+  it('does not resume on an already-completed lesson even if reported as lastWatchedLessonId', () => {
+    // lesson-1 is is_completed: true in the shared fixture above.
+    expect(resolveCurrentLesson(modules, 'lesson-1')?.lesson_id).toBe('lesson-2')
+  })
+
   it('builds workshop metadata context with the full module map', () => {
     const context = buildWorkshopMetadataContext({
       metadata: {

@@ -3,6 +3,7 @@ export enum RateLimitTier {
   ADMIN = 'admin',
   API_MUTATION = 'api_mutation',
   API_READ = 'api_read',
+  AI_GENERATION = 'ai_generation',
   PUBLIC = 'public',
 }
 

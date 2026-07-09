@@ -8,6 +8,8 @@ import type { RawQuizQuestion, NormalizedQuizQuestion } from '@/lib/course-conte
 import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core'
 import { logger } from '@/lib/utils/logger'
 
+import type { DialogueTranscriptRows } from './lesson-dialogue-transcript.builder'
+import { buildDialogueTranscriptHtml } from './lesson-dialogue-transcript.builder'
 import type {
   RequiredQuizStatus,
   RequiredQuizStatusItem,
@@ -183,6 +185,12 @@ export interface LessonAutoNotePersistenceDecision {
 const AUTO_NOTE_TAGS = ['SofLIA', 'Apunte automatico', 'Leccion']
 const FALLBACK_MODEL = 'gemini-3.5-flash'
 const MAX_NOTE_CONTENT = 50_000
+// The AI summary gets a smaller cap so the remaining budget (~30k) can hold
+// the verbatim dialogue transcript appended after it.
+const AI_SUMMARY_MAX = 20_000
+const TRANSCRIPT_SECTION_HEADING =
+  '<h2>Transcripción completa de mi diálogo con SofLIA</h2>'
+const TRANSCRIPT_SECTION_RESERVE = 500
 
 function clip(value: string | null | undefined, maxLength: number): string {
   const normalized = (value || '').replace(/\s+/g, ' ').trim()
@@ -370,7 +378,7 @@ Reglas estrictas:
 - Responde unicamente con HTML seguro: usa <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>.
 - No uses markdown, bloques de codigo, estilos inline, scripts, tablas ni enlaces inventados.
 - No inventes datos. Si falta contexto en una seccion, resume con lo disponible.
-- No copies la conversacion completa con SofLIA. Selecciona fragmentos/parafrasis clave.
+- No copies la conversacion completa con SofLIA; la transcripcion completa se añadira automaticamente despues de tu resumen. En la seccion de puntos clave usa de 3 a 6 viñetas breves.
 - Mantente conciso: entre 500 y 900 palabras.
 - Tono profesional, claro y accionable.
 - Idioma: usa el idioma principal del contenido; si no es claro, usa español.
@@ -430,7 +438,7 @@ async function generateNoteHtml(prompt: string): Promise<string> {
   const rawHtml = normalizeGeneratedHtml(result.response.text())
   const sanitized = sanitizeHtml(rawHtml, {
     level: 'rich',
-    maxLength: MAX_NOTE_CONTENT,
+    maxLength: AI_SUMMARY_MAX,
   }).trim()
 
   if (!sanitized) {
@@ -775,9 +783,14 @@ export function buildLessonAutoNotePromptInputFromRows(input: {
   }
 }
 
+interface LessonAutoNotePromptData {
+  promptInput: LessonAutoNotePromptInput
+  transcriptRows: DialogueTranscriptRows
+}
+
 async function buildPromptInput(
   input: GenerateLessonAutoNoteInput,
-): Promise<LessonAutoNotePromptInput> {
+): Promise<LessonAutoNotePromptData> {
   const [
     lesson,
     activitiesResult,
@@ -860,7 +873,7 @@ async function buildPromptInput(
     ),
   ])
 
-  return buildLessonAutoNotePromptInputFromRows({
+  const promptInput = buildLessonAutoNotePromptInputFromRows({
     activities,
     courseTitle: input.courseTitle,
     dialogueResults,
@@ -874,6 +887,40 @@ async function buildPromptInput(
     quizStatus: input.quizStatus,
     submissions,
   })
+
+  return {
+    promptInput,
+    transcriptRows: {
+      activities,
+      dialogueSessions,
+      dialogueTurns,
+      liaConversations,
+      liaMessages,
+    },
+  }
+}
+
+/**
+ * Appends the verbatim dialogue transcript after the AI summary, budgeted so
+ * the final note never exceeds MAX_NOTE_CONTENT (the transcript builder trims
+ * at whole-turn boundaries; the final sanitize is defensive re-validation).
+ */
+function composeNoteContent(
+  aiHtml: string,
+  transcriptRows: DialogueTranscriptRows,
+): string {
+  const transcriptBudget =
+    MAX_NOTE_CONTENT - aiHtml.length - TRANSCRIPT_SECTION_RESERVE
+  const transcript = buildDialogueTranscriptHtml(transcriptRows, transcriptBudget)
+
+  if (!transcript.html) {
+    return aiHtml
+  }
+
+  return sanitizeHtml(
+    `${aiHtml}${TRANSCRIPT_SECTION_HEADING}${transcript.html}`,
+    { level: 'rich', maxLength: MAX_NOTE_CONTENT },
+  ).trim()
 }
 
 export async function generateLessonAutoNote(
@@ -902,9 +949,10 @@ export async function generateLessonAutoNote(
       }
     }
 
-    const promptInput = await buildPromptInput(input)
+    const { promptInput, transcriptRows } = await buildPromptInput(input)
     const prompt = buildLessonAutoNotePrompt(promptInput)
-    const noteContent = await generateNoteHtml(prompt)
+    const aiHtml = await generateNoteHtml(prompt)
+    const noteContent = composeNoteContent(aiHtml, transcriptRows)
     const noteTitle = clip(`Apunte SofLIA: ${promptInput.lessonTitle}`, 240)
 
     return persistLessonAutoNote({

@@ -7,6 +7,7 @@ import {
   AdminCompaniesFilters,
   AdminCompaniesGrid,
   AdminCompaniesHeader,
+  AdminCompaniesList,
   AdminCompaniesLoadingState,
   AdminCompaniesModals,
   AdminCompaniesStatsSection,
@@ -23,9 +24,14 @@ export function AdminCompaniesPage() {
       <AdminCompaniesHeader isRefreshing={logic.isRefreshing} onRefresh={logic.refetch} onCreate={() => logic.setShowCreateModal(true)} />
       {logic.actionError ? <AdminCompaniesActionError message={logic.actionError} /> : null}
       <AdminCompaniesStatsSection stats={logic.stats} />
-      <AdminCompaniesFilters searchTerm={logic.searchTerm} planFilter={logic.planFilter} statusFilter={logic.statusFilter} filteredCount={logic.filteredCompanies.length} onSearchChange={logic.setSearchTerm} onPlanChange={logic.setPlanFilter} onStatusChange={logic.setStatusFilter} />
-      <AdminCompaniesGrid companies={logic.filteredCompanies} themeColors={logic.themeColors} onView={logic.setViewCompany} />
+      <AdminCompaniesFilters searchTerm={logic.searchTerm} planFilter={logic.planFilter} statusFilter={logic.statusFilter} filteredCount={logic.filteredCompanies.length} viewMode={logic.viewMode} onSearchChange={logic.setSearchTerm} onPlanChange={logic.setPlanFilter} onStatusChange={logic.setStatusFilter} onViewModeChange={logic.setViewMode} />
+      {logic.viewMode === 'grid' ? (
+        <AdminCompaniesGrid companies={logic.filteredCompanies} themeColors={logic.themeColors} onView={logic.setViewCompany} />
+      ) : (
+        <AdminCompaniesList companies={logic.filteredCompanies} themeColors={logic.themeColors} onView={logic.setViewCompany} />
+      )}
       <AdminCompaniesModals viewCompany={logic.viewCompany} showCreateModal={logic.showCreateModal} isCreating={logic.isCreating} themeColors={logic.themeColors} onCloseView={() => logic.setViewCompany(null)} onCloseCreate={() => logic.setShowCreateModal(false)} onCreateCompany={logic.handleCreateCompany} />
     </div>
   )
 }
+

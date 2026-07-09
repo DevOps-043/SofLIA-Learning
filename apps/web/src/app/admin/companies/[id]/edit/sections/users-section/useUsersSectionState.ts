@@ -1,8 +1,13 @@
 'use client'
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { CompanyMember } from '@/features/admin/hooks/useEditCompanyLogic'
+import {
+  BusinessUsersService,
+  type BusinessUser,
+  type UpdateBusinessUserRequest,
+} from '@/features/business-panel/services/businessUsers.service'
 import type { UsersModalConfig, UsersSectionProps, CompanyUsersSubTab } from './types'
 import { resendCompanyInvitation, revokeCompanyInvitation } from './users-section.actions'
 import { filterInviteLinks, filterInvitations, filterMembers } from './users-section.helpers'
@@ -13,7 +18,7 @@ export function useUsersSectionState({ company, onUpdate }: UsersSectionProps) {
   const [activeSubTab, setActiveSubTab] = useState<CompanyUsersSubTab>('members')
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [manageMember, setManageMember] = useState<CompanyMember | null>(null)
-  const [manageMode, setManageMode] = useState<'edit' | 'delete' | null>(null)
+  const [manageMode, setManageMode] = useState<'assignments' | 'delete' | null>(null)
   const [resendingId, setResendingId] = useState<string | null>(null)
   const [revokingId, setRevokingId] = useState<string | null>(null)
   const [invitationToRevoke, setInvitationToRevoke] = useState<string | null>(null)
@@ -23,10 +28,72 @@ export function useUsersSectionState({ company, onUpdate }: UsersSectionProps) {
     title: '',
     message: '',
   })
+
+  const [businessUsersById, setBusinessUsersById] = useState<Map<string, BusinessUser>>(new Map())
+  const [statsMember, setStatsMember] = useState<CompanyMember | null>(null)
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false)
+  const [profileMember, setProfileMember] = useState<CompanyMember | null>(null)
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false)
+
+  const orgSlug = company.slug || null
+
+  useEffect(() => {
+    if (!orgSlug) {
+      setBusinessUsersById(new Map())
+      return
+    }
+
+    let cancelled = false
+
+    BusinessUsersService.getOrganizationUsers(orgSlug).then(({ users }) => {
+      if (cancelled) return
+      setBusinessUsersById(new Map(users.map((businessUser) => [businessUser.id, businessUser])))
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [orgSlug])
+
   const filteredMembers = useMemo(() => filterMembers(company, searchTerm, roleFilter), [company, roleFilter, searchTerm])
   const filteredInvitations = useMemo(() => filterInvitations(company, searchTerm), [company, searchTerm])
   const filteredLinks = useMemo(() => filterInviteLinks(company, searchTerm), [company, searchTerm])
   const showModal = (type: 'success' | 'error', title: string, message?: string) => setModalConfig({ isOpen: true, type, title, message })
+
+  const openStats = (member: CompanyMember) => {
+    if (!businessUsersById.has(member.user_id)) {
+      showModal('error', 'Error', 'No se pudo cargar la informacion completa de este usuario')
+      return
+    }
+    setStatsMember(member)
+    setIsStatsModalOpen(true)
+  }
+
+  const closeStats = () => {
+    setIsStatsModalOpen(false)
+    setStatsMember(null)
+  }
+
+  const openEditProfile = (member: CompanyMember) => {
+    if (!businessUsersById.has(member.user_id)) {
+      showModal('error', 'Error', 'No se pudo cargar la informacion completa de este usuario')
+      return
+    }
+    setProfileMember(member)
+    setIsEditProfileModalOpen(true)
+  }
+
+  const closeEditProfile = () => {
+    setIsEditProfileModalOpen(false)
+    setProfileMember(null)
+  }
+
+  const handleSaveProfile = async (userId: string, data: UpdateBusinessUserRequest) => {
+    if (!orgSlug) return
+    const updatedUser = await BusinessUsersService.updateUser(orgSlug, userId, data)
+    setBusinessUsersById((previous) => new Map(previous).set(updatedUser.id, updatedUser))
+    onUpdate()
+  }
 
   const handleResendInvitation = async (invitationId: string) => {
     setResendingId(invitationId)
@@ -91,5 +158,16 @@ export function useUsersSectionState({ company, onUpdate }: UsersSectionProps) {
     setRoleFilter,
     setSearchTerm,
     handleResendInvitation,
+    orgSlug,
+    businessUsersById,
+    statsMember,
+    isStatsModalOpen,
+    openStats,
+    closeStats,
+    profileMember,
+    isEditProfileModalOpen,
+    openEditProfile,
+    closeEditProfile,
+    handleSaveProfile,
   }
 }

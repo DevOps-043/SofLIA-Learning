@@ -797,7 +797,9 @@
     "filters": {
       "allPlans": "Todos los planes",
       "allStatuses": "Todos los estados",
-      "resultCount": "{{count}} empresas"
+      "resultCount": "{{count}} empresas",
+      "gridView": "Cuadrícula",
+      "listView": "Lista"
     },
     "plans": {
       "none": "Sin plan",
@@ -1493,6 +1495,7 @@
     "actionsHeader": "Acciones",
     "learningPath": "Ruta de aprendizaje",
     "learningPaths": "Rutas de aprendizaje",
+    "coursesGroup": "Cursos",
     "noOrgLearningPaths": "No hay rutas de aprendizaje asignadas a toda la organizacion.",
     "noUserLearningPaths": "No hay asignaciones individuales de rutas de aprendizaje registradas.",
     "untitledPath": "Ruta sin titulo",

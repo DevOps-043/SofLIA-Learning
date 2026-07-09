@@ -20,9 +20,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     if (auth instanceof NextResponse) return auth
 
     const { id, itemId } = learningPathItemParamsSchema.parse(await params)
-    await AdminLearningPathsService.removeItem(id, itemId)
+    const cleanup = await AdminLearningPathsService.removeItem(id, itemId)
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, ...cleanup })
   } catch (error) {
     logger.error('Error deleting learning path item:', error)
     return NextResponse.json(

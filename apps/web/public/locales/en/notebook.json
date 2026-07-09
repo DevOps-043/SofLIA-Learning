@@ -30,6 +30,16 @@
   "error": {
     "retry": "Retry"
   },
+  "compendium": {
+    "label": "Course compendium",
+    "badge": "SofLIA Compendium",
+    "readOnlyHint": "This compendium is generated automatically and cannot be edited. Regenerate it to include your most recent notes.",
+    "regenerate": "Regenerate compendium",
+    "regenerating": "Regenerating...",
+    "regenerateConfirm": "Regenerate the compendium? The current content will be replaced with your most recent notes.",
+    "regenerateSuccess": "Compendium updated.",
+    "regenerateError": "The compendium could not be regenerated."
+  },
   "newNote": {
     "button": "New note",
     "title": "Create new note",

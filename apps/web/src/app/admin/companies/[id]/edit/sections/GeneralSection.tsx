@@ -2,7 +2,6 @@
 
 import { SectionWrapper } from './shared'
 import { GeneralBasicInfoCard } from './general-section/GeneralBasicInfoCard'
-import { GeneralBrandingCard } from './general-section/GeneralBrandingCard'
 import { GeneralContactCard } from './general-section/GeneralContactCard'
 import { GeneralDangerZoneCard } from './general-section/GeneralDangerZoneCard'
 import { GeneralLimitsCard } from './general-section/GeneralLimitsCard'
@@ -14,7 +13,6 @@ function GeneralSection(props: GeneralSectionProps) {
     <SectionWrapper>
       <GeneralBasicInfoCard {...props} />
       <GeneralContactCard {...props} />
-      <GeneralBrandingCard {...props} />
       <GeneralLimitsCard {...props} />
       <GeneralSecurityCard {...props} />
       <GeneralDangerZoneCard onDeleteClick={props.onDeleteClick} />
@@ -23,3 +21,4 @@ function GeneralSection(props: GeneralSectionProps) {
 }
 
 export { GeneralSection }
+

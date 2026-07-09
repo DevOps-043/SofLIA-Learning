@@ -1,5 +1,6 @@
 'use client'
 
+import { useAuth } from '@/features/auth/hooks/useAuth'
 import { SectionWrapper } from './shared'
 import { InviteLinksTable } from './users-section/InviteLinksTable'
 import { InvitationsTable } from './users-section/InvitationsTable'
@@ -14,6 +15,7 @@ import { useUsersSectionState } from './users-section/useUsersSectionState'
 
 function UsersSection(props: UsersSectionProps) {
   const state = useUsersSectionState(props)
+  const { data: currentUser } = useAuth()
   const activeItems =
     state.activeSubTab === 'members'
       ? state.filteredMembers
@@ -37,9 +39,12 @@ function UsersSection(props: UsersSectionProps) {
         {state.activeSubTab === 'members' ? (
           <MembersTable
             members={state.filteredMembers}
-            onEdit={(member) => {
+            actionsDisabled={!state.orgSlug}
+            onViewStats={state.openStats}
+            onEditProfile={state.openEditProfile}
+            onManageAssignments={(member) => {
               state.setManageMember(member)
-              state.setManageMode('edit')
+              state.setManageMode('assignments')
             }}
             onDelete={(member) => {
               state.setManageMember(member)
@@ -90,6 +95,15 @@ function UsersSection(props: UsersSectionProps) {
         onCloseRevoke={() => state.setInvitationToRevoke(null)}
         onConfirmRevoke={state.confirmRevokeInvitation}
         onUpdate={props.onUpdate}
+        businessUsersById={state.businessUsersById}
+        statsMember={state.statsMember}
+        isStatsModalOpen={state.isStatsModalOpen}
+        onCloseStats={state.closeStats}
+        viewerUserId={currentUser?.id}
+        profileMember={state.profileMember}
+        isEditProfileModalOpen={state.isEditProfileModalOpen}
+        onCloseEditProfile={state.closeEditProfile}
+        onSaveProfile={state.handleSaveProfile}
       />
     </SectionWrapper>
   )

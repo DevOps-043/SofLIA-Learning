@@ -42,6 +42,7 @@ export interface UserAssignment {
   assigned_at: string
   status: string
   completion_percentage: number
+  source_learning_path_id: string | null
   courses: Course
   users: {
     id: string
@@ -50,6 +51,7 @@ export interface UserAssignment {
     first_name: string | null
     last_name: string | null
   }
+  learning_paths: { id: string; title: string } | null
 }
 
 export interface UserLearningPathAssignment {

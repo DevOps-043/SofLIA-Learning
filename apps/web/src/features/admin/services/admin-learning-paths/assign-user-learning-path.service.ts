@@ -28,7 +28,7 @@ export async function assignToUser(
 
   const courseIds = path.items.map((item) => item.course_id)
   await syncCourseAccessForOrganization(organizationId, courseIds, adminUserId)
-  await syncCourseAccessForUser(organizationId, userId, courseIds, adminUserId)
+  await syncCourseAccessForUser(organizationId, userId, courseIds, adminUserId, learningPathId)
 
   const supabase = createAdminClient()
   const assignmentSource = options.assignmentSource || 'manual'

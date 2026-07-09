@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { AdminStatisticsPage } from '@/features/admin/components'
+import { AdminStatisticsPage } from '@/features/admin/components/AdminStatisticsPage'
 
 export const metadata: Metadata = {
   title: 'Estadísticas | Panel de Administración',

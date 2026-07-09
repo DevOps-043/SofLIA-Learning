@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { SessionService } from '../../../../features/auth/services/session.service'
+import { requireBusiness } from '../../../../lib/auth/requireBusiness'
 import { logger } from '../../../../lib/logger'
 import { generateSafeFileName } from '../../../../lib/upload/validation'
 import { validateAndPrepareUpload } from '../../../../lib/upload/validation.server'
@@ -27,9 +28,45 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const fileValue = formData.get('file')
     const file = fileValue instanceof File ? fileValue : null
+    const targetUserId = formData.get('targetUserId')
+    const organizationSlug = formData.get('organizationSlug')
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+    }
+
+    let ownerUserId = user.id
+
+    if (typeof targetUserId === 'string' && targetUserId && targetUserId !== user.id) {
+      if (typeof organizationSlug !== 'string' || !organizationSlug) {
+        return NextResponse.json(
+          { error: 'organizationSlug es requerido para editar la foto de otro usuario' },
+          { status: 400 },
+        )
+      }
+
+      const auth = await requireBusiness({ organizationSlug })
+      if (auth instanceof NextResponse) return auth
+
+      if (!auth.organizationId) {
+        return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+      }
+
+      const { data: membership } = await supabase
+        .from('organization_users')
+        .select('user_id')
+        .eq('organization_id', auth.organizationId)
+        .eq('user_id', targetUserId)
+        .maybeSingle()
+
+      if (!membership) {
+        return NextResponse.json(
+          { error: 'El usuario no pertenece a esta organizacion' },
+          { status: 403 },
+        )
+      }
+
+      ownerUserId = targetUserId
     }
 
     const uploadValidation = await validateAndPrepareUpload(file, 'avatars')
@@ -41,11 +78,11 @@ export async function POST(request: NextRequest) {
     }
 
     const preparedFile = uploadValidation.file
-    const fileName = `${user.id}-${generateSafeFileName(file.name, preparedFile.detectedExtension)}`
+    const fileName = `${ownerUserId}-${generateSafeFileName(file.name, preparedFile.detectedExtension)}`
     const filePath = `profile-pictures/${fileName}`
 
     logger.info('Uploading profile picture', {
-      userId: user.id,
+      userId: ownerUserId,
       fileName,
       filePath,
       fileSize: preparedFile.sizeBytes,
@@ -74,14 +111,14 @@ export async function POST(request: NextRequest) {
         profile_picture_url: publicUrl,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', user.id)
+      .eq('id', ownerUserId)
 
     if (updateError) {
       logger.error('Error updating profile:', updateError)
       return NextResponse.json({ error: 'Error updating profile' }, { status: 500 })
     }
 
-    await notifyProfilePictureUpdatedBestEffort(user.id)
+    await notifyProfilePictureUpdatedBestEffort(ownerUserId)
 
     return NextResponse.json({ imageUrl: publicUrl })
   } catch (error) {

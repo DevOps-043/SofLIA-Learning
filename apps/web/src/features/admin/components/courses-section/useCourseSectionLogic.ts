@@ -25,6 +25,23 @@ interface UseCourseSectionLogicProps {
   companyId: string
 }
 
+/**
+ * Case- and accent-insensitive normalization so searches like "lideres"
+ * match titles like "Líderes" (Spanish content is the common case).
+ */
+function normalizeSearchText(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+}
+
+function matchesSearch(query: string, ...fields: Array<string | null | undefined>): boolean {
+  const normalizedQuery = normalizeSearchText(query.trim())
+  if (!normalizedQuery) return true
+  return fields.some(field => field != null && normalizeSearchText(field).includes(normalizedQuery))
+}
+
 export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps) {
   // Tabs
   const [activeTab, setActiveTab] = useState<'org' | 'users'>('org')
@@ -346,34 +363,29 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
   }
 
   const filteredCatalog = useMemo(() => allCourses.filter(c =>
-    c.title.toLowerCase().includes(catalogSearch.toLowerCase()) ||
-    c.category.toLowerCase().includes(catalogSearch.toLowerCase())
+    matchesSearch(catalogSearch, c.title, c.category)
   ), [allCourses, catalogSearch])
 
   const filteredLearningPathCatalog = useMemo(() => allLearningPaths.filter(lp =>
-    lp.title.toLowerCase().includes(learningPathCatalogSearch.toLowerCase()) ||
-    (lp.description || '').toLowerCase().includes(learningPathCatalogSearch.toLowerCase())
+    matchesSearch(learningPathCatalogSearch, lp.title, lp.description)
   ), [allLearningPaths, learningPathCatalogSearch])
 
   const activeHierarchy = useMemo(() => hierarchyCourses.filter(ac =>
-    ac.courses.title.toLowerCase().includes(listSearch.toLowerCase())
+    matchesSearch(listSearch, ac.courses?.title)
   ), [hierarchyCourses, listSearch])
 
   const activeUserAssignments = useMemo(() => userAssignments.filter(ua =>
-    ua.courses.title.toLowerCase().includes(listSearch.toLowerCase()) ||
-    ua.users.email.toLowerCase().includes(listSearch.toLowerCase())
+    matchesSearch(listSearch, ua.courses?.title, ua.users?.email)
   ), [userAssignments, listSearch])
 
   const activeOrganizationLearningPaths = useMemo(() => organizationLearningPaths.filter(assignment =>
     assignment.status === 'active' &&
-    (assignment.learning_path?.title || '').toLowerCase().includes(listSearch.toLowerCase())
+    matchesSearch(listSearch, assignment.learning_path?.title)
   ), [organizationLearningPaths, listSearch])
 
   const activeUserLearningPathAssignments = useMemo(() => userLearningPathAssignments.filter(assignment =>
-    assignment.status === 'assigned' && (
-      (assignment.learning_path?.title || '').toLowerCase().includes(listSearch.toLowerCase()) ||
-      (assignment.user?.email || '').toLowerCase().includes(listSearch.toLowerCase())
-    )
+    assignment.status === 'assigned' &&
+    matchesSearch(listSearch, assignment.learning_path?.title, assignment.user?.email)
   ), [userLearningPathAssignments, listSearch])
 
   const unifiedOrgItems = useMemo<UnifiedOrgItem[]>(() => {

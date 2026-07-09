@@ -19,7 +19,13 @@ import {
 import dynamic from 'next/dynamic'
 
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
+import {
+  ToastNotification,
+  type ToastType,
+} from '@/core/components/ToastNotification/ToastNotification'
 import { TagInput } from './TagInput'
+import { CompendiumActionsPanel } from './CompendiumActionsPanel'
+import { NoteContentView } from './NoteContentView'
 import { useNoteEditor, type NoteSaveStatus } from '../hooks/useNoteEditor'
 
 /**
@@ -63,11 +69,19 @@ export function NoteEditorPageClient({
     loadError,
     saveStatus,
     isDeleting,
+    isReadOnly,
+    isRegenerating,
     saveNow,
     removeNote,
+    regenerate,
   } = useNoteEditor(orgSlug, noteId)
 
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [toast, setToast] = useState<{
+    isOpen: boolean
+    message: string
+    type: ToastType
+  }>({ isOpen: false, message: '', type: 'success' })
 
   const goBack = useCallback(() => {
     router.push(`/${orgSlug}/business-user/notebook`)
@@ -77,6 +91,17 @@ export function NoteEditorPageClient({
     const ok = await removeNote()
     if (ok) goBack()
   }, [removeNote, goBack])
+
+  const handleRegenerate = useCallback(async () => {
+    const ok = await regenerate()
+    setToast({
+      isOpen: true,
+      message: ok
+        ? t('compendium.regenerateSuccess')
+        : t('compendium.regenerateError'),
+      type: ok ? 'success' : 'error',
+    })
+  }, [regenerate, t])
 
   if (isLoading) {
     return (
@@ -147,38 +172,55 @@ export function NoteEditorPageClient({
             </span>
             <ChevronRight className="hidden h-4 w-4 shrink-0 sm:block" style={{ color: theme.mutedTextColor }} />
             <FileText className="hidden h-4 w-4 shrink-0 sm:block" style={{ color: theme.mutedTextColor }} />
-            <span className="truncate" title={note.lessonTitle}>
-              {note.lessonTitle}
+            <span
+              className="truncate"
+              title={isReadOnly ? t('compendium.label') : note.lessonTitle}
+            >
+              {isReadOnly ? t('compendium.label') : note.lessonTitle}
             </span>
           </nav>
 
           <div className="shrink-0">
-            <SaveStatusBadge status={saveStatus} actionColor={theme.actionColor} />
+            {!isReadOnly && (
+              <SaveStatusBadge status={saveStatus} actionColor={theme.actionColor} />
+            )}
           </div>
         </div>
       </header>
 
       {/* Canvas: document + side panel */}
       <div className="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        {/* Document sheet */}
+        {/* Document sheet — compendiums are read-only (no TipTap mount) */}
         <div className="min-w-0">
-          <RichTextEditor
-            value={content}
-            onChange={setContent}
-            placeholder={t('editor.contentPlaceholder')}
-            pageClassName="px-6 py-12 sm:px-16 lg:px-24"
-            header={
-              <input
-                type="text"
-                value={title}
-                maxLength={256}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder={t('editor.titlePlaceholder')}
-                className="mb-8 w-full border-b border-transparent bg-transparent pb-2 text-3xl font-bold leading-tight outline-none transition-colors placeholder:text-gray-300 dark:placeholder:text-gray-600"
+          {isReadOnly ? (
+            <div className="rounded-2xl border border-gray-200 bg-white px-6 py-12 shadow-sm dark:border-white/10 dark:bg-white/[0.03] sm:px-16 lg:px-24">
+              <h1
+                className="mb-8 border-b border-transparent pb-2 text-3xl font-bold leading-tight"
                 style={{ color: theme.textColor }}
-              />
-            }
-          />
+              >
+                {title}
+              </h1>
+              <NoteContentView html={content} />
+            </div>
+          ) : (
+            <RichTextEditor
+              value={content}
+              onChange={setContent}
+              placeholder={t('editor.contentPlaceholder')}
+              pageClassName="px-6 py-12 sm:px-16 lg:px-24"
+              header={
+                <input
+                  type="text"
+                  value={title}
+                  maxLength={256}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder={t('editor.titlePlaceholder')}
+                  className="mb-8 w-full border-b border-transparent bg-transparent pb-2 text-3xl font-bold leading-tight outline-none transition-colors placeholder:text-gray-300 dark:placeholder:text-gray-600"
+                  style={{ color: theme.textColor }}
+                />
+              }
+            />
+          )}
         </div>
 
         {/* Side panel */}
@@ -191,11 +233,26 @@ export function NoteEditorPageClient({
               </span>
               <span className="inline-flex items-center gap-2">
                 <FileText className="h-4 w-4 shrink-0" style={{ color: theme.mutedTextColor }} />
-                <span className="truncate">{note.lessonTitle}</span>
+                <span className="truncate">
+                  {isReadOnly ? t('compendium.label') : note.lessonTitle}
+                </span>
               </span>
             </div>
           </SidePanelCard>
 
+          {isReadOnly ? (
+            <SidePanelCard label={t('editor.actionsLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
+              <CompendiumActionsPanel
+                isDeleting={isDeleting}
+                isRegenerating={isRegenerating}
+                onDelete={() => void handleDelete()}
+                onRegenerate={() => void handleRegenerate()}
+                actionColor={theme.actionColor}
+                onActionColor={theme.onActionColor}
+                subtextColor={theme.subtextColor}
+              />
+            </SidePanelCard>
+          ) : (
           <SidePanelCard label={t('editor.actionsLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
             <div className="flex flex-col gap-2">
               <button
@@ -250,12 +307,23 @@ export function NoteEditorPageClient({
               )}
             </div>
           </SidePanelCard>
+          )}
 
-          <SidePanelCard label={t('editor.tagsLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
-            <TagInput tags={tags} onChange={setTags} />
-          </SidePanelCard>
+          {!isReadOnly && (
+            <SidePanelCard label={t('editor.tagsLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
+              <TagInput tags={tags} onChange={setTags} />
+            </SidePanelCard>
+          )}
         </aside>
       </div>
+
+      <ToastNotification
+        isOpen={toast.isOpen}
+        onClose={() => setToast((prev) => ({ ...prev, isOpen: false }))}
+        message={toast.message}
+        type={toast.type}
+        position="top-right"
+      />
     </div>
   )
 }

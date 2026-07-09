@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
+import type { KeptCourseWithProgress } from '@/features/admin/services/admin-learning-paths/course-access-provenance-cleanup.service'
 
 import { BusinessLearningPathsService } from '../services/businessLearningPaths.service'
 import { useBusinessLearningPaths } from './useBusinessLearningPaths'
@@ -41,6 +42,12 @@ export function useBusinessLearningPathsPageLogic() {
   const hideToast = useCallback(() => setToast(prev => ({ ...prev, isOpen: false })), [])
   const [pendingRevokeIds, setPendingRevokeIds] = useState<Set<string>>(new Set())
   const [revokingAssignmentId, setRevokingAssignmentId] = useState<string | null>(null)
+  const [keptCoursesModal, setKeptCoursesModal] = useState<{
+    userId: string
+    revokedCount: number
+    keptWithProgress: KeptCourseWithProgress[]
+  } | null>(null)
+  const [isForceRevokingKeptCourses, setIsForceRevokingKeptCourses] = useState(false)
 
   const normalizedSearchTerm = deferredSearchTerm.trim().toLowerCase()
 
@@ -141,10 +148,20 @@ export function useBusinessLearningPathsPageLogic() {
     setPendingRevokeIds((prev) => new Set(prev).add(assignmentId))
     setRevokingAssignmentId(assignmentId)
     try {
-      await BusinessLearningPathsService.revokeLearningPathAssignment(orgSlug, assignmentId)
+      const assignment = assignments.find((candidate) => candidate.id === assignmentId)
+      const result = await BusinessLearningPathsService.revokeLearningPathAssignment(orgSlug, assignmentId)
       void mutate((key: unknown) => typeof key === 'string' && key.startsWith('business-user-dashboard:'))
       showToast(t('learningPathsPage.messages.revokeSuccess'))
       void refetchSilent()
+
+      const keptWithProgress = (result.keptWithProgress || []) as KeptCourseWithProgress[]
+      if (keptWithProgress.length > 0 && assignment) {
+        setKeptCoursesModal({
+          userId: assignment.user_id,
+          revokedCount: typeof result.revokedCount === 'number' ? result.revokedCount : 0,
+          keptWithProgress,
+        })
+      }
     } catch (revokeError) {
       // Rollback: restore the row so the user can retry
       setPendingRevokeIds((prev) => {
@@ -160,6 +177,34 @@ export function useBusinessLearningPathsPageLogic() {
       )
     } finally {
       setRevokingAssignmentId(null)
+    }
+  }
+
+  function closeKeptCoursesModal() {
+    setKeptCoursesModal(null)
+  }
+
+  async function handleForceRevokeKeptCourses(courseIds: string[]) {
+    if (!keptCoursesModal || courseIds.length === 0) return
+
+    setIsForceRevokingKeptCourses(true)
+    try {
+      await BusinessLearningPathsService.forceRevokeKeptCourses(
+        orgSlug,
+        keptCoursesModal.userId,
+        courseIds,
+      )
+      showToast(t('learningPathsPage.messages.forceRevokeSuccess', { defaultValue: 'Acceso a los cursos revocado' }))
+      closeKeptCoursesModal()
+    } catch (forceRevokeError) {
+      showToast(
+        forceRevokeError instanceof Error
+          ? forceRevokeError.message
+          : t('learningPathsPage.messages.forceRevokeError', { defaultValue: 'No se pudo revocar el acceso a los cursos' }),
+        'error',
+      )
+    } finally {
+      setIsForceRevokingKeptCourses(false)
     }
   }
 
@@ -195,5 +240,9 @@ export function useBusinessLearningPathsPageLogic() {
     handleAssignmentCreated,
     handleDefaultRulesChanged,
     handleRevokeAssignment,
+    keptCoursesModal,
+    closeKeptCoursesModal,
+    handleForceRevokeKeptCourses,
+    isForceRevokingKeptCourses,
   }
 }

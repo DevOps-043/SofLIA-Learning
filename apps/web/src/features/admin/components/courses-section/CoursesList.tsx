@@ -420,30 +420,97 @@ interface UnifiedOrgGridProps {
   onSetDefault?: (target: ContentDefaultTarget) => void
 }
 
+/**
+ * Labeled divider between the courses and learning-path groups so both content
+ * types are visually distinguishable at a glance (badge + horizontal rule).
+ */
+function ContentGroupDivider({
+  color,
+  count,
+  icon: Icon,
+  label,
+}: {
+  color: string
+  count: number
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span
+        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border"
+        style={{
+          color,
+          backgroundColor: `color-mix(in srgb, ${color} 10%, transparent)`,
+          borderColor: `color-mix(in srgb, ${color} 25%, transparent)`,
+        }}
+      >
+        <Icon className="w-3.5 h-3.5" />
+        {label}
+        <span className="opacity-70">· {count}</span>
+      </span>
+      <div className="flex-1 h-px bg-gray-200 dark:bg-white/10" />
+    </div>
+  )
+}
+
 export function UnifiedOrgGrid({ items, onRemoveCourse, onRemovePath, onSetDefault }: UnifiedOrgGridProps) {
   const { t } = useTranslation('admin')
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {items.length === 0 ? (
-        <div className="col-span-full py-20 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center border-gray-200 dark:border-white/10">
-          <div className="flex gap-4 mb-4 text-gray-300 dark:text-white/10">
-            <BookOpen className="w-8 h-8" />
-            <Route className="w-8 h-8" />
-          </div>
-          <p className={`text-sm text-center px-10 ${MUTED_TEXT}`}>
-            {t('coursesSection.noOrgCourses')}
-          </p>
+
+  const courseItems = items.filter(item => item.kind === 'course')
+  const pathItems = items.filter(item => item.kind === 'path')
+
+  if (items.length === 0) {
+    return (
+      <div className="py-20 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center border-gray-200 dark:border-white/10">
+        <div className="flex gap-4 mb-4 text-gray-300 dark:text-white/10">
+          <BookOpen className="w-8 h-8" />
+          <Route className="w-8 h-8" />
         </div>
-      ) : (
-        items.map(item => (
-          <UnifiedOrgCard
-            key={item.kind === 'course' ? `course-${item.data.id}` : `path-${item.data.id}`}
-            item={item}
-            onRemoveCourse={onRemoveCourse}
-            onRemovePath={onRemovePath}
-            onSetDefault={onSetDefault}
+        <p className={`text-sm text-center px-10 ${MUTED_TEXT}`}>
+          {t('coursesSection.noOrgCourses')}
+        </p>
+      </div>
+    )
+  }
+
+  const renderCards = (groupItems: UnifiedOrgItem[]) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {groupItems.map(item => (
+        <UnifiedOrgCard
+          key={item.kind === 'course' ? `course-${item.data.id}` : `path-${item.data.id}`}
+          item={item}
+          onRemoveCourse={onRemoveCourse}
+          onRemovePath={onRemovePath}
+          onSetDefault={onSetDefault}
+        />
+      ))}
+    </div>
+  )
+
+  return (
+    <div className="space-y-8">
+      {courseItems.length > 0 && (
+        <section className="space-y-4">
+          <ContentGroupDivider
+            icon={BookOpen}
+            label={t('coursesSection.coursesGroup')}
+            count={courseItems.length}
+            color={colors.accent}
           />
-        ))
+          {renderCards(courseItems)}
+        </section>
+      )}
+      {pathItems.length > 0 && (
+        <section className="space-y-4">
+          <ContentGroupDivider
+            icon={Route}
+            label={t('coursesSection.learningPaths')}
+            count={pathItems.length}
+            color={colors.purple}
+          />
+          {renderCards(pathItems)}
+        </section>
       )}
     </div>
   )
@@ -509,6 +576,14 @@ export function UnifiedUserAssignmentsTable({ items, onRemoveCourse }: UnifiedUs
                       <p className={`text-[10px] ${MUTED_TEXT}`}>
                         {t('coursesSection.workshopsCount', { count: item.data.learning_path?.item_count || 0 })}
                       </p>
+                    )}
+                    {item.kind === 'course' && item.data.learning_paths && (
+                      <span
+                        className="mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-bold"
+                        style={{ backgroundColor: `color-mix(in srgb, ${colors.purple} 12%, transparent)`, color: colors.purple }}
+                      >
+                        Desde ruta: {item.data.learning_paths.title}
+                      </span>
                     )}
                   </td>
                   <td className="px-6 py-4">

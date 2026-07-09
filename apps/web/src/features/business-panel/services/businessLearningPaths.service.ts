@@ -84,4 +84,12 @@ export class BusinessLearningPathsService {
       'Error al revocar la ruta de aprendizaje',
     )
   }
+
+  static forceRevokeKeptCourses(orgSlug: string, userId: string, courseIds: string[]) {
+    return postBusinessLearningPathResource(
+      `/api/${orgSlug}/business/course-access/force-revoke`,
+      { userId, courseIds },
+      'Error al revocar el acceso a los cursos seleccionados',
+    )
+  }
 }

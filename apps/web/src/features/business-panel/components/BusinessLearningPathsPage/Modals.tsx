@@ -1,6 +1,7 @@
 import { BusinessAssignLearningPathModal } from '../BusinessAssignLearningPathModal'
 import { BusinessLearningPathDefaultModal } from '../BusinessLearningPathDefaultModal'
 import { BusinessLearningPathVideosModal } from '../BusinessLearningPathVideosModal'
+import { KeptCoursesFollowUpModal } from './KeptCoursesFollowUpModal'
 import type { BusinessLearningPathItem, BusinessLearningPathsLogic } from './types'
 
 interface BusinessLearningPathModalsProps {
@@ -43,6 +44,15 @@ export function BusinessLearningPathModals({
         onClose={onCloseVideos}
         orgSlug={logic.orgSlug}
         learningPath={selectedLearningPathForVideos}
+      />
+      <KeptCoursesFollowUpModal
+        isOpen={Boolean(logic.keptCoursesModal)}
+        onClose={logic.closeKeptCoursesModal}
+        revokedCount={logic.keptCoursesModal?.revokedCount ?? 0}
+        keptWithProgress={logic.keptCoursesModal?.keptWithProgress ?? []}
+        isSubmitting={logic.isForceRevokingKeptCourses}
+        onForceRevoke={logic.handleForceRevokeKeptCourses}
+        theme={logic.theme}
       />
     </>
   )

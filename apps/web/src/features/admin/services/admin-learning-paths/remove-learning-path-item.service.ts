@@ -1,9 +1,14 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { fromLoose } from '@/lib/supabase/looseQuery'
 import { logger } from '@/lib/utils/logger'
+import type { CourseAccessCleanupResult } from './course-access-provenance-cleanup.service'
+import { revokeCourseAccessSourcedFromLearningPath } from './course-access-provenance-cleanup.service'
 import type { LearningPathItemRow } from './rows'
 
-export async function removeLearningPathItem(learningPathId: string, itemId: string) {
+export async function removeLearningPathItem(
+  learningPathId: string,
+  itemId: string,
+): Promise<CourseAccessCleanupResult> {
   const supabase = createAdminClient()
   const { data: item, error: itemError } = await fromLoose<LearningPathItemRow>(supabase, 'learning_path_items')
     .select('id, learning_path_id, course_id, position')
@@ -26,6 +31,11 @@ export async function removeLearningPathItem(learningPathId: string, itemId: str
     logger.error('Error removing learning path item:', error)
     throw new Error('No se pudo eliminar el item del learning path')
   }
+
+  const cleanup = await revokeCourseAccessSourcedFromLearningPath({
+    learningPathId,
+    courseIds: [item.course_id],
+  })
 
   const { data: remaining, error: remainingError } = await fromLoose<LearningPathItemRow>(
     supabase,
@@ -53,4 +63,6 @@ export async function removeLearningPathItem(learningPathId: string, itemId: str
       throw new Error('No se pudo reordenar el learning path')
     }
   }
+
+  return cleanup
 }

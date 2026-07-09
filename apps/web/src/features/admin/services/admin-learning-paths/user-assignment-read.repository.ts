@@ -40,6 +40,28 @@ export async function listRawUserAssignments(
   return result.data || []
 }
 
+export async function findUserAssignmentById(
+  supabase: AdminClient,
+  organizationId: string,
+  assignmentId: string,
+) {
+  const result = await fromLoose<UserLearningPathAssignmentRow>(
+    supabase,
+    'user_learning_path_assignments',
+  )
+    .select('id, organization_id, user_id, learning_path_id, status')
+    .eq('organization_id', organizationId)
+    .eq('id', assignmentId)
+    .maybeSingle()
+
+  if (result.error) {
+    logger.error('Error loading user learning path assignment by id:', result.error)
+    throw new Error('No se pudo cargar la asignacion del learning path')
+  }
+
+  return result.data
+}
+
 export async function findUserAssignment(
   supabase: AdminClient,
   organizationId: string,

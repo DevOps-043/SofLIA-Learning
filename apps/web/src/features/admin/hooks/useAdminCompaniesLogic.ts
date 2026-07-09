@@ -9,6 +9,7 @@ import {
   filterAdminCompanies,
   type AdminCompaniesThemeColors,
 } from '../services/admin-companies'
+import type { CompaniesViewMode } from '../components/admin-companies'
 
 export function useAdminCompaniesLogic() {
   const { companies, stats, isLoading, error, refetch, updatingId, updateCompany, createCompany, actionError } = useAdminCompanies()
@@ -18,6 +19,7 @@ export function useAdminCompaniesLogic() {
   const [viewCompany, setViewCompany] = useState<AdminCompany | null>(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
+  const [viewMode, setViewMode] = useState<CompaniesViewMode>('grid')
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   const theme = useAdminPanelTheme()
@@ -81,6 +83,7 @@ export function useAdminCompaniesLogic() {
     viewCompany, setViewCompany,
     showCreateModal, setShowCreateModal,
     isCreating,
+    viewMode, setViewMode,
     themeColors,
     filteredCompanies,
     handleToggle,

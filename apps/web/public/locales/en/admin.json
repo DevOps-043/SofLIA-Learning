@@ -797,7 +797,9 @@
     "filters": {
       "allPlans": "All plans",
       "allStatuses": "All statuses",
-      "resultCount": "{{count}} companies"
+      "resultCount": "{{count}} companies",
+      "gridView": "Grid",
+      "listView": "List"
     },
     "plans": {
       "none": "No plan",
@@ -1493,6 +1495,7 @@
     "actionsHeader": "Actions",
     "learningPath": "Learning path",
     "learningPaths": "Learning paths",
+    "coursesGroup": "Courses",
     "noOrgLearningPaths": "No learning paths assigned to the whole organization.",
     "noUserLearningPaths": "No individual learning path assignments registered.",
     "untitledPath": "Untitled path",

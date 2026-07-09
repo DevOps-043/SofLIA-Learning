@@ -4,6 +4,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { logger } from '@/lib/utils/logger';
 
+import {
+  getPreferredReadingAudioPlaybackRate,
+  isValidReadingAudioPlaybackRate,
+  READING_AUDIO_PLAYBACK_RATES,
+  setPreferredReadingAudioPlaybackRate,
+} from './reading-audio-playback-rate';
+
 export type ReadingAudioStatus =
   | 'idle' // not loaded yet
   | 'loading' // fetching manifest / audio
@@ -28,9 +35,12 @@ export interface ReadingAudioSource {
 }
 
 export interface UseReadingAudioPlayerReturn {
+  changePlaybackRate: (rate: number) => void;
   currentTime: number;
   duration: number;
   isPlaying: boolean;
+  playbackRate: number;
+  playbackRates: readonly number[];
   seek: (seconds: number) => void;
   status: ReadingAudioStatus;
   toggle: () => Promise<void>;
@@ -71,8 +81,11 @@ export function useReadingAudioPlayer(
   const [status, setStatus] = useState<ReadingAudioStatus>('idle');
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [playbackRate, setPlaybackRate] = useState(() => getPreferredReadingAudioPlaybackRate());
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Ref mirror so attachAudio applies the current rate without re-creating callbacks.
+  const playbackRateRef = useRef(playbackRate);
   const audioUrlRef = useRef<string | null>(null);
   const resumeAtRef = useRef(0);
   const lastSavedAtRef = useRef(0);
@@ -186,6 +199,7 @@ export function useReadingAudioPlayer(
     (url: string) => {
       const audio = new Audio(url);
       audio.preload = 'auto';
+      audio.playbackRate = playbackRateRef.current;
       audioRef.current = audio;
 
       audio.addEventListener('loadedmetadata', () => {
@@ -270,6 +284,15 @@ export function useReadingAudioPlayer(
     await loadAndPlay();
   }, [loadAndPlay]);
 
+  const changePlaybackRate = useCallback((rate: number) => {
+    if (!isValidReadingAudioPlaybackRate(rate)) return;
+    playbackRateRef.current = rate;
+    setPlaybackRate(rate);
+    setPreferredReadingAudioPlaybackRate(rate);
+    const audio = audioRef.current;
+    if (audio) audio.playbackRate = rate;
+  }, []);
+
   const seek = useCallback((seconds: number) => {
     const audio = audioRef.current;
     if (!audio || !Number.isFinite(audio.duration)) return;
@@ -280,9 +303,12 @@ export function useReadingAudioPlayer(
   }, []);
 
   return {
+    changePlaybackRate,
     currentTime,
     duration,
     isPlaying: status === 'playing',
+    playbackRate,
+    playbackRates: READING_AUDIO_PLAYBACK_RATES,
     seek,
     status,
     toggle,

@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { fromLoose } from '@/lib/supabase/looseQuery'
 import { logger } from '@/lib/utils/logger'
 import {
+  buildDialogueMinutesByLesson,
   getEstimatedLessonMinutes,
   getLessonTrackingMinutes,
   isCompletedStudyStatus,
   resolveStudyMinutes,
+  type DialogueSessionTimeRow,
   type LessonTrackingTimeRow,
 } from '../../../study-time'
 
@@ -50,8 +53,15 @@ export async function GET(
     const { id: userId } = await params
     const supabase = createAdminClient()
 
-    // Fetch enrollments, certificates, progress, and tracking in parallel
-    const [enrollmentsRes, certificatesRes, lessonProgressRes, lessonTrackingRes] = await Promise.all([
+    // Fetch enrollments, certificates, progress, tracking, and SofLIA dialogue
+    // sessions (real per-user active time) in parallel
+    const [
+      enrollmentsRes,
+      certificatesRes,
+      lessonProgressRes,
+      lessonTrackingRes,
+      dialogueSessionsRes,
+    ] = await Promise.all([
       supabase
         .from('user_course_enrollments')
         .select('enrollment_id, course_id, enrollment_status, overall_progress_percentage, enrolled_at, completed_at, courses(id, title, level, thumbnail_url)')
@@ -68,6 +78,11 @@ export async function GET(
       supabase
         .from('lesson_tracking')
         .select('user_id, lesson_id, status, started_at, completed_at, t_lesson_minutes, t_video_minutes, t_materials_minutes')
+        .eq('user_id', userId),
+      // soflia_dialogue_sessions is service_role-only via RLS and not present
+      // in the generated Database type, hence fromLoose instead of .from().
+      fromLoose<DialogueSessionTimeRow>(supabase, 'soflia_dialogue_sessions')
+        .select('lesson_id, active_seconds')
         .eq('user_id', userId),
     ])
 
@@ -88,10 +103,21 @@ export async function GET(
       return NextResponse.json({ error: 'Failed to fetch progress details' }, { status: 500 })
     }
 
+    if (dialogueSessionsRes.error) {
+      // No es fatal: el tiempo real de dialogo es un enriquecimiento, no un
+      // requisito para mostrar el progreso. Se degrada al estimado estatico.
+      logger.error('Failed to fetch admin user dialogue sessions', {
+        error: dialogueSessionsRes.error.message,
+        userId,
+      })
+    }
+
     const enrollments = enrollmentsRes.data || []
     const certificates = certificatesRes.data || []
     const lessonProgress = (lessonProgressRes.data || []) as UserLessonProgressRow[]
     const lessonTracking = (lessonTrackingRes.data || []) as LessonTrackingTimeRow[]
+    const dialogueSessions = (dialogueSessionsRes.data || []) as DialogueSessionTimeRow[]
+    const dialogueMinutesByLesson = buildDialogueMinutesByLesson(dialogueSessions)
 
     // Build certificate lookup
     const certMap = new Map<string, string>()
@@ -133,6 +159,7 @@ export async function GET(
               isCompletedStudyStatus(lp.lesson_status),
             estimatedMinutes: getEstimatedLessonMinutes(lesson),
             progressMinutes: Number(lp.time_spent_minutes) || 0,
+            realDialogueMinutes: dialogueMinutesByLesson.get(lp.lesson_id) || 0,
             trackingMinutes,
           })
 

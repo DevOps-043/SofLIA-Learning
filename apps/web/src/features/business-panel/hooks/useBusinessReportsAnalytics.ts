@@ -33,9 +33,9 @@ class ApiJsonResponseError extends Error {
   }
 }
 
-export function useBusinessReportsAnalytics() {
+export function useBusinessReportsAnalytics(orgSlugOverride?: string) {
   const params = useParams()
-  const orgSlug = params?.orgSlug as string
+  const orgSlug = orgSlugOverride || (params?.orgSlug as string)
 
   // ── Filter state ───────────────────────────────────────────────────────────
   const [filters, setFilters] = useState<BusinessReportsAnalyticsClientFilters>(() => getDefaultFilters())

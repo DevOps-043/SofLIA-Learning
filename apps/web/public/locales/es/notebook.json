@@ -30,6 +30,16 @@
   "error": {
     "retry": "Reintentar"
   },
+  "compendium": {
+    "label": "Compendio del curso",
+    "badge": "Compendio SofLIA",
+    "readOnlyHint": "Este compendio se genera automáticamente y no se puede editar. Regenéralo para incluir tus apuntes más recientes.",
+    "regenerate": "Regenerar compendio",
+    "regenerating": "Regenerando...",
+    "regenerateConfirm": "¿Regenerar el compendio? El contenido actual se reemplazará con tus apuntes más recientes.",
+    "regenerateSuccess": "Compendio actualizado.",
+    "regenerateError": "No se pudo regenerar el compendio."
+  },
   "newNote": {
     "button": "Nuevo apunte",
     "title": "Crear nuevo apunte",

@@ -315,3 +315,10 @@ export type CreateDefaultRuleBody = z.infer<typeof createDefaultRuleSchema>
 export type CreateCourseDefaultRuleBody = z.infer<typeof createCourseDefaultRuleSchema>
 export type IntroVideoUploadUrlBody = z.infer<typeof introVideoUploadUrlSchema>
 export type IntroVideoUrlBody = z.infer<typeof introVideoUrlSchema>
+
+export const forceRevokeCourseAccessSchema = z.object({
+  userId: z.string().uuid('UserId invalido'),
+  courseIds: z.array(z.string().uuid('CourseId invalido')).min(1, 'Selecciona al menos un curso'),
+})
+
+export type ForceRevokeCourseAccessBody = z.infer<typeof forceRevokeCourseAccessSchema>

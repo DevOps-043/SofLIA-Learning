@@ -1,6 +1,5 @@
 export * from './AdminUserCard'
 export * from './AdminUserListRow'
-export * from './AdminUserStatsModal'
 export * from './AdminUsersEmptyState'
 export * from './AdminUsersFilterBar'
 export * from './AdminUsersHero'

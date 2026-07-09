@@ -9,6 +9,7 @@ export type OrganizationCourseAssignmentsTable = {
     assigned_at: string | null
     due_date: string | null
     completed_at: string | null
+    source_learning_path_id: string | null
   }
   Insert: {
     id?: string
@@ -20,6 +21,7 @@ export type OrganizationCourseAssignmentsTable = {
     assigned_at?: string | null
     due_date?: string | null
     completed_at?: string | null
+    source_learning_path_id?: string | null
   }
   Update: {
     status?: string | null
@@ -27,6 +29,7 @@ export type OrganizationCourseAssignmentsTable = {
     assigned_at?: string | null
     due_date?: string | null
     completed_at?: string | null
+    source_learning_path_id?: string | null
   }
   Relationships: []
 }

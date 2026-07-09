@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useTranslation } from 'react-i18next'
 import { useLanguage } from '@/core/providers/I18nProvider'
 import { useAdminUsers } from '../hooks/useAdminUsers'
@@ -8,7 +9,6 @@ import { useAdminUserStatsFilters } from '../hooks/useAdminUserStatsFilters'
 import type { AdminUser } from '../services/adminUsers.service'
 import type { NewAdminUserData } from './AddUserModal'
 import {
-  AdminUserStatsModal,
   AdminUsersErrorState,
   AdminUsersFilterBar,
   AdminUsersHero,
@@ -19,6 +19,15 @@ import {
   useAdminUsersPageState,
 } from './admin-users'
 import { createAdminUser, deleteAdminUser, saveAdminUser } from './admin-users/admin-users-api'
+
+// AdminUserStatsModal pulls in BusinessUserAnalyticsPageClient (charts, PDF
+// export, AI insights) — the same heavy tree behind the earlier "Cursos tab"
+// slowdown. It's only ever shown after clicking "ver estadísticas" on a user,
+// so it must not be part of the eagerly-compiled /admin/users route bundle.
+const AdminUserStatsModal = dynamic(
+  () => import('./admin-users/AdminUserStatsModal').then((mod) => mod.AdminUserStatsModal),
+  { ssr: false },
+)
 
 export function AdminUsersPage() {
   const { t } = useTranslation('admin')

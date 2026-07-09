@@ -6,6 +6,7 @@ export async function syncCourseAccessForUser(
   userId: string,
   courseIds: string[],
   adminUserId: string | null,
+  sourceLearningPathId: string | null = null,
 ) {
   if (courseIds.length === 0) return
 
@@ -34,6 +35,7 @@ export async function syncCourseAccessForUser(
           course_id: courseId,
           assigned_by: adminUserId,
           status: 'assigned',
+          source_learning_path_id: sourceLearningPathId,
         })
 
       if (assignmentInsert.error && assignmentInsert.error.code !== '23505') {

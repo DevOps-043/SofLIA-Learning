@@ -1,12 +1,19 @@
 'use client'
 
-import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { AcademicCapIcon, ChartBarIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline'
 import type { CompanyMember } from '@/features/admin/hooks/useEditCompanyLogic'
 import type { MembersTableProps } from './types'
 import { colors } from '../shared'
 import { getRoleBadge, getStatusBadge, getUserDisplayName } from './users-section.helpers'
 
-export function MembersTable({ members, onDelete, onEdit }: MembersTableProps) {
+export function MembersTable({
+  members,
+  onDelete,
+  onEditProfile,
+  onViewStats,
+  onManageAssignments,
+  actionsDisabled,
+}: MembersTableProps) {
   return (
     <table className="w-full">
       <thead>
@@ -20,7 +27,15 @@ export function MembersTable({ members, onDelete, onEdit }: MembersTableProps) {
       </thead>
       <tbody className="divide-y" style={{ borderColor: `color-mix(in srgb, ${colors.grayMedium} 6.3%, transparent)` }}>
         {members.map((member) => (
-          <MembersTableRow key={member.id} member={member} onDelete={onDelete} onEdit={onEdit} />
+          <MembersTableRow
+            key={member.id}
+            member={member}
+            onDelete={onDelete}
+            onEditProfile={onEditProfile}
+            onViewStats={onViewStats}
+            onManageAssignments={onManageAssignments}
+            actionsDisabled={actionsDisabled}
+          />
         ))}
       </tbody>
     </table>
@@ -30,11 +45,17 @@ export function MembersTable({ members, onDelete, onEdit }: MembersTableProps) {
 function MembersTableRow({
   member,
   onDelete,
-  onEdit,
+  onEditProfile,
+  onViewStats,
+  onManageAssignments,
+  actionsDisabled,
 }: {
   member: CompanyMember
   onDelete: (member: CompanyMember) => void
-  onEdit: (member: CompanyMember) => void
+  onEditProfile: (member: CompanyMember) => void
+  onViewStats: (member: CompanyMember) => void
+  onManageAssignments: (member: CompanyMember) => void
+  actionsDisabled?: boolean
 }) {
   const roleBadge = getRoleBadge(member.role, colors)
   const statusBadge = getStatusBadge(member.status, colors)
@@ -67,10 +88,30 @@ function MembersTableRow({
       </td>
       <td className="py-3">
         <div className="flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-          <button onClick={() => onEdit(member)} className="rounded-lg p-1.5 transition-colors hover:bg-white/10">
+          <button
+            onClick={() => onViewStats(member)}
+            disabled={actionsDisabled}
+            title="Estadísticas"
+            className="rounded-lg p-1.5 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <ChartBarIcon className="h-4 w-4" style={{ color: colors.grayMedium }} />
+          </button>
+          <button
+            onClick={() => onEditProfile(member)}
+            disabled={actionsDisabled}
+            title="Editar perfil"
+            className="rounded-lg p-1.5 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+          >
             <PencilSquareIcon className="h-4 w-4" style={{ color: colors.grayMedium }} />
           </button>
-          <button onClick={() => onDelete(member)} className="rounded-lg p-1.5 transition-colors hover:bg-white/10">
+          <button
+            onClick={() => onManageAssignments(member)}
+            title="Asignaciones (rol, cursos y rutas)"
+            className="rounded-lg p-1.5 transition-colors hover:bg-white/10"
+          >
+            <AcademicCapIcon className="h-4 w-4" style={{ color: colors.grayMedium }} />
+          </button>
+          <button onClick={() => onDelete(member)} title="Eliminar" className="rounded-lg p-1.5 transition-colors hover:bg-white/10">
             <TrashIcon className="h-4 w-4" style={{ color: colors.error }} />
           </button>
         </div>

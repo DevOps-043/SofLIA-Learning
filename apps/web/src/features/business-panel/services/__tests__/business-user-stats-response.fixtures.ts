@@ -30,6 +30,7 @@ export function createStatsData(
     lessonNotes: [],
     certificates: [],
     instructors: [],
+    dialogueSessions: [],
     liaConversations: [],
     liaMessages: [],
     quizSubmissions: [],

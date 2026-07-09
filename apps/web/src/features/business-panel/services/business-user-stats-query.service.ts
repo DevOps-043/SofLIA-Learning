@@ -2,6 +2,7 @@
 import { logger } from '../../../lib/utils/logger'
 import { createClient } from '../../../lib/supabase/server'
 import { fetchCompletionData } from './business-user-stats-completion.service'
+import type { BusinessUserStatsDialogueSessionRecord } from './business-user-stats-dialogue.service'
 import { fetchEngagementData } from './business-user-stats-engagement.service'
 import { fetchLearningPathCourseOrder } from './business-user-stats-learning-path.service'
 
@@ -221,6 +222,7 @@ export interface BusinessUserStatsQueryData {
   lessonNotes: BusinessUserStatsLessonNoteRecord[]
   certificates: BusinessUserStatsCertificateRecord[]
   instructors: BusinessUserStatsInstructorRecord[]
+  dialogueSessions: BusinessUserStatsDialogueSessionRecord[]
   liaConversations: BusinessUserStatsLiaConversationRecord[]
   liaMessages: BusinessUserStatsLiaMessageRecord[]
   quizSubmissions: BusinessUserStatsQuizSubmissionRecord[]
@@ -316,6 +318,7 @@ export async function fetchBusinessUserStatsData(
       certificates: completionData.certificates,
       instructors: completionData.instructors,
       assignments: completionData.assignments,
+      dialogueSessions: engagementData.dialogueSessions,
       liaConversations: engagementData.liaConversations,
       liaMessages: engagementData.liaMessages,
       quizSubmissions: engagementData.quizSubmissions,

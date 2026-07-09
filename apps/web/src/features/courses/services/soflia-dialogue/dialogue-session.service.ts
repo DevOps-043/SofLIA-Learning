@@ -25,3 +25,12 @@ export {
   getDialogueResult,
   toDialogueSessionResponse,
 } from './dialogue-session/response'
+export { DIALOGUE_INACTIVITY_THRESHOLD_SECONDS } from './dialogue-session/dialogue-timing.constants'
+export {
+  computeDialogueActiveSeconds,
+  type DialogueTimingTurn,
+} from './dialogue-session/compute-active-seconds'
+export {
+  recordDialogueActiveSeconds,
+  type DialogueActiveSecondsReason,
+} from './dialogue-session/session-timing'

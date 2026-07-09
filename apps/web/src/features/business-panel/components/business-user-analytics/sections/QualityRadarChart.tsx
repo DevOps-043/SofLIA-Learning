@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Radar,
   RadarChart,
@@ -20,15 +21,23 @@ interface QualityRadarChartProps {
 
 export function QualityRadarChart({ quality }: QualityRadarChartProps) {
   const theme = useBusinessPanelTheme()
+  const { t } = useTranslation('business')
+
+  // The server returns raw dimension keys ('courses', 'quizzes', ...) as labels;
+  // translate them client-side so the chart follows the user's language.
+  const dimensionLabel = useCallback(
+    (key: string, fallback: string) => t(`analytics.quality.radar.${key}`, fallback),
+    [t],
+  )
 
   const radarData = useMemo(
     () =>
       quality.radar.map((item) => ({
-        subject: item.label,
+        subject: dimensionLabel(item.key, item.label),
         value: Math.round(item.value),
         fullMark: 100,
       })),
-    [quality.radar],
+    [quality.radar, dimensionLabel],
   )
 
   const level = performanceLevel(quality.overallScore)
@@ -116,7 +125,7 @@ export function QualityRadarChart({ quality }: QualityRadarChartProps) {
             return (
               <div key={item.key} className="flex items-center gap-3">
                 <span className="w-28 shrink-0 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                  {item.label}
+                  {dimensionLabel(item.key, item.label)}
                 </span>
                 <div
                   className="h-1.5 flex-1 overflow-hidden rounded-full"

@@ -114,14 +114,17 @@ export function resolveLastWatchedLessonId(
   let lastAccessedInProgress: { lesson_id: string; accessed_at: number } | null =
     null
 
+  // Walk every lesson in course order to find (a) the most recently touched
+  // in-progress lesson and (b) the last completed lesson. A lesson with no
+  // progress row, or one that's still 'locked'/'not_started', simply means
+  // "not completed" — it must NOT stop the scan, since completion is not
+  // guaranteed to be contiguous (a learner can skip a lesson and complete
+  // later ones; those later completions still need to be seen).
   for (const lesson of orderedLessons) {
     const progress = progressLookup.get(lesson.lesson_id)
 
     if (!progress) {
-      if (!lastValidLessonId) {
-        lastValidLessonId = lesson.lesson_id
-      }
-      break
+      continue
     }
 
     if (progress.is_completed) {
@@ -148,17 +151,15 @@ export function resolveLastWatchedLessonId(
 
       lastValidLessonId = lesson.lesson_id
     }
-
-    if (
-      progress.lesson_status === 'locked' ||
-      progress.lesson_status === 'not_started'
-    ) {
-      break
-    }
   }
+
+  const firstIncompleteLessonId =
+    orderedLessons.find((lesson) => !progressLookup.get(lesson.lesson_id)?.is_completed)
+      ?.lesson_id ?? null
 
   return (
     lastAccessedInProgress?.lesson_id ||
+    firstIncompleteLessonId ||
     lastValidLessonId ||
     orderedLessons[0]?.lesson_id ||
     null

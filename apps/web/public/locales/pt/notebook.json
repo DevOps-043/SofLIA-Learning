@@ -30,6 +30,16 @@
   "error": {
     "retry": "Tentar novamente"
   },
+  "compendium": {
+    "label": "Compêndio do curso",
+    "badge": "Compêndio SofLIA",
+    "readOnlyHint": "Este compêndio é gerado automaticamente e não pode ser editado. Regenere-o para incluir suas anotações mais recentes.",
+    "regenerate": "Regenerar compêndio",
+    "regenerating": "Regenerando...",
+    "regenerateConfirm": "Regenerar o compêndio? O conteúdo atual será substituído pelas suas anotações mais recentes.",
+    "regenerateSuccess": "Compêndio atualizado.",
+    "regenerateError": "Não foi possível regenerar o compêndio."
+  },
   "newNote": {
     "button": "Nova anotação",
     "title": "Criar nova anotação",

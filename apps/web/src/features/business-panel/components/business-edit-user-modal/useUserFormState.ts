@@ -25,6 +25,7 @@ export function useUserFormState(
   user: BusinessUser | null,
   onSave: (userId: string, data: UserFormData) => Promise<void>,
   onClose: () => void,
+  orgSlug?: string,
 ) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -102,6 +103,12 @@ export function useUserFormState(
       setIsUploadingImage(true)
       const formDataUpload = new FormData()
       formDataUpload.append('file', file)
+      if (user) {
+        formDataUpload.append('targetUserId', user.id)
+      }
+      if (orgSlug) {
+        formDataUpload.append('organizationSlug', orgSlug)
+      }
 
       const response = await fetch('/api/profile/upload-picture', {
         method: 'POST',

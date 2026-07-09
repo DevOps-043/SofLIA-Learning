@@ -19,5 +19,9 @@ export interface UsersSectionProps {
 export interface MembersTableProps {
   members: CompanyMember[]
   onDelete: (member: CompanyMember) => void
-  onEdit: (member: CompanyMember) => void
+  onEditProfile: (member: CompanyMember) => void
+  onViewStats: (member: CompanyMember) => void
+  onManageAssignments: (member: CompanyMember) => void
+  /** True when the organization has no slug — disables profile/stats actions, which require it. */
+  actionsDisabled?: boolean
 }
