@@ -19,17 +19,84 @@ if [ "${VIDEO_TRANSCODING_ENABLED}" = "true" ]; then
   echo "🎞️ Downloading FFmpeg static binary for adaptive video transcoding..."
   mkdir -p apps/web/bin
 
-  FFMPEG_ARCHIVE="ffmpeg-release-amd64-static.tar.xz"
-  FFMPEG_URL="https://johnvansickle.com/ffmpeg/releases/${FFMPEG_ARCHIVE}"
+  if [ -x apps/web/bin/ffmpeg ]; then
+    echo "✅ Existing FFmpeg binary found; skipping download."
+  else
+    FFMPEG_ARCHIVE="ffmpeg-release-amd64-static.tar.xz"
+    FFMPEG_ARCHIVE_PATH="/tmp/${FFMPEG_ARCHIVE}"
+    FFMPEG_CACHE_DIR="${NETLIFY_CACHE_DIR:-.netlify/cache}/ffmpeg"
+    FFMPEG_CACHE_PATH="${FFMPEG_CACHE_DIR}/${FFMPEG_ARCHIVE}"
+    FFMPEG_URLS=(
+      "https://johnvansickle.com/ffmpeg/releases/${FFMPEG_ARCHIVE}"
+      "https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz"
+    )
 
-  curl -fsSL "${FFMPEG_URL}" -o /tmp/ffmpeg.tar.xz
-  EXTRACTED_DIR=$(tar -tJf /tmp/ffmpeg.tar.xz | head -1 | cut -d/ -f1)
-  tar -xJf /tmp/ffmpeg.tar.xz -C /tmp/ "${EXTRACTED_DIR}/ffmpeg"
-  cp "/tmp/${EXTRACTED_DIR}/ffmpeg"  apps/web/bin/ffmpeg
-  chmod +x apps/web/bin/ffmpeg
+    mkdir -p "${FFMPEG_CACHE_DIR}"
+    rm -f "${FFMPEG_ARCHIVE_PATH}"
+
+    if [ -f "${FFMPEG_CACHE_PATH}" ] && tar -tJf "${FFMPEG_CACHE_PATH}" >/dev/null 2>&1; then
+      echo "✅ Using cached FFmpeg archive from ${FFMPEG_CACHE_PATH}."
+      cp "${FFMPEG_CACHE_PATH}" "${FFMPEG_ARCHIVE_PATH}"
+    else
+      rm -f "${FFMPEG_CACHE_PATH}"
+
+      CURL_RETRY_ARGS=(
+        --fail
+        --location
+        --silent
+        --show-error
+        --retry 5
+        --retry-delay 10
+        --connect-timeout 30
+        --max-time 300
+        --speed-limit 1024
+        --speed-time 60
+      )
+
+      if curl --help all 2>/dev/null | grep -q -- "--retry-all-errors"; then
+        CURL_RETRY_ARGS+=(--retry-all-errors)
+      fi
+
+      DOWNLOAD_SUCCEEDED=false
+      for FFMPEG_URL in "${FFMPEG_URLS[@]}"; do
+        echo "⬇️ Downloading FFmpeg from ${FFMPEG_URL}..."
+        if curl "${CURL_RETRY_ARGS[@]}" --output "${FFMPEG_ARCHIVE_PATH}" "${FFMPEG_URL}"; then
+          if tar -tJf "${FFMPEG_ARCHIVE_PATH}" >/dev/null 2>&1; then
+            DOWNLOAD_SUCCEEDED=true
+            cp "${FFMPEG_ARCHIVE_PATH}" "${FFMPEG_CACHE_PATH}"
+            break
+          fi
+
+          echo "⚠️ Downloaded FFmpeg archive is invalid; trying the next source..."
+          rm -f "${FFMPEG_ARCHIVE_PATH}"
+        else
+          echo "⚠️ FFmpeg download failed from ${FFMPEG_URL}; trying the next source..."
+          rm -f "${FFMPEG_ARCHIVE_PATH}"
+        fi
+      done
+
+      if [ "${DOWNLOAD_SUCCEEDED}" != "true" ]; then
+        echo "❌ Unable to download a valid FFmpeg archive after retries."
+        exit 2
+      fi
+    fi
+
+    FFMPEG_EXTRACT_DIR=$(mktemp -d)
+    EXTRACTED_DIR=$(tar -tJf "${FFMPEG_ARCHIVE_PATH}" | head -1 | cut -d/ -f1)
+
+    if [ -z "${EXTRACTED_DIR}" ]; then
+      echo "❌ FFmpeg archive did not contain an extractable directory."
+      exit 2
+    fi
+
+    tar -xJf "${FFMPEG_ARCHIVE_PATH}" -C "${FFMPEG_EXTRACT_DIR}" "${EXTRACTED_DIR}/ffmpeg"
+    cp "${FFMPEG_EXTRACT_DIR}/${EXTRACTED_DIR}/ffmpeg" apps/web/bin/ffmpeg
+    chmod +x apps/web/bin/ffmpeg
+    rm -rf "${FFMPEG_EXTRACT_DIR}" "${FFMPEG_ARCHIVE_PATH}"
+  fi
+
   # Strip debug symbols (johnvansickle builds are usually already stripped — no-op then).
   strip apps/web/bin/ffmpeg 2>/dev/null || true
-  rm -f /tmp/ffmpeg.tar.xz
   echo "✅ FFmpeg binary ready — size:"
   ls -lh apps/web/bin/ffmpeg
   du -sh apps/web/bin
