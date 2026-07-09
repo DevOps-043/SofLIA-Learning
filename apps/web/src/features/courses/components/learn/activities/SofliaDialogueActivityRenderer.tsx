@@ -59,11 +59,14 @@ export function SofliaDialogueActivityRenderer({
         draftMessage={dialogue.draftMessage}
         error={dialogue.error}
         isTerminal={dialogue.isTerminal}
+        onDismissInactivityPrompt={dialogue.dismissInactivityPrompt}
         onDraftMessageChange={dialogue.setDraftMessage}
+        onRestartFromInactivity={dialogue.restartFromInactivity}
         onRetrySession={dialogue.retrySession}
         onSendMessage={dialogue.sendMessage}
         sending={dialogue.sending}
         session={dialogue.session}
+        showInactivityPrompt={dialogue.showInactivityPrompt}
       />
     </div>
   );

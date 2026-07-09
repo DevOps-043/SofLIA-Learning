@@ -325,7 +325,8 @@
       "Bash(grep -rn \"api/users/\\\\${\" apps/web/src --include=\"*.ts\" --include=\"*.tsx\")",
       "PowerShell(cd \"C:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\\\\apps\\\\web\"; $env:NODE_OPTIONS='--max-old-space-size=6144'; npm run type-check:core; npm run type-check:features)",
       "PowerShell(cd \"C:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\\\\apps\\\\web\"; $env:NODE_OPTIONS='--max-old-space-size=6144'; npm run type-check:features; npx tsc --noEmit -p tsconfig.typecheck.scratch.json)",
-      "PowerShell(cd \"C:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\\\\apps\\\\web\"; $env:NODE_OPTIONS='--max-old-space-size=6144'; npm run type-check:features; npx tsc --noEmit -p tsconfig.typecheck.scratch.json; npm run type-check:core)"
+      "PowerShell(cd \"C:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\\\\apps\\\\web\"; $env:NODE_OPTIONS='--max-old-space-size=6144'; npm run type-check:features; npx tsc --noEmit -p tsconfig.typecheck.scratch.json; npm run type-check:core)",
+      "PowerShell(cd \"C:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\\\\apps\\\\web\"; $env:NODE_OPTIONS='--max-old-space-size=6144'; npm run type-check:features)"
     ],
     "deny": [],
     "ask": [],

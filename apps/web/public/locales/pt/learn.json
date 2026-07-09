@@ -263,6 +263,12 @@
       "finalFeedback": "Feedback final",
       "practiceAgain": "Praticar novamente",
       "retryActivity": "Tentar atividade novamente",
+      "inactivity": {
+        "title": "Você ainda está aí?",
+        "message": "Já se passaram 3 minutos sem atividade. Você pode reiniciar a atividade para começar de novo ou continuar de onde parou.",
+        "restart": "Reiniciar atividade",
+        "continue": "Continuar de onde parei"
+      },
       "placeholder": "Escreva sua resposta para a SofLIA...",
       "closedPlaceholder": "Esta sessao ja foi encerrada.",
       "helper": "Envie uma resposta concreta com evidencias do seu raciocinio.",

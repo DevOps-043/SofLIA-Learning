@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useCurrentOrganizationId } from "@/core/stores/organizationStore";
 import { getDialogueMetrics, isDialogueTerminal } from "./dialogue-state";
 import type { DialogueSession } from "./dialogue.types";
+import { useDialogueInactivityPrompt } from "./useDialogueInactivityPrompt";
 import { useDialogueMessageSender } from "./useDialogueMessageSender";
 import { useDialogueSessionLoader } from "./useDialogueSessionLoader";
 
@@ -58,6 +59,30 @@ export function useSofliaDialogueSession({
     }
   }, [canStartNewAttempt, loadSession, loading, sending]);
 
+  // Aviso de inactividad (3 min sin actividad): ofrece reiniciar la actividad
+  // o continuar. El cron del servidor (5 min) solo registra el tiempo activo y
+  // nunca cierra la sesión, así que ambas acciones son siempre seguras.
+  const { dismissInactivityPrompt, showInactivityPrompt } =
+    useDialogueInactivityPrompt({
+      enabled: !loading && !isTerminal && Boolean(session),
+      activitySignals: [draftMessage, session?.messages.length, sending],
+    });
+
+  // A diferencia de retrySession, el reinicio por inactividad aplica a una
+  // sesión aún activa (restart=1 crea una sesión nueva desde cualquier estado
+  // y no consume intentos: solo las sesiones terminales cuentan).
+  const restartFromInactivity = useCallback(async () => {
+    if (loading || sending) return;
+
+    try {
+      setSending(true);
+      await loadSession({ restart: true, showLoading: false });
+      dismissInactivityPrompt();
+    } finally {
+      setSending(false);
+    }
+  }, [dismissInactivityPrompt, loadSession, loading, sending]);
+
   useEffect(() => {
     mountedRef.current = true;
     void loadSession();
@@ -74,7 +99,10 @@ export function useSofliaDialogueSession({
     ? t(`activities.dialogue.states.${session.state}`, { defaultValue: session.state.replace(/_/g, " ") })
     : t("activities.dialogue.states.START");
   const metrics = getDialogueMetrics(session);
-  const canSendMessage = Boolean(draftMessage.trim()) && !sending && !isTerminal;
+  // Mientras el aviso de inactividad está visible se bloquea el envío: el
+  // usuario decide primero entre reiniciar o continuar.
+  const canSendMessage =
+    Boolean(draftMessage.trim()) && !sending && !isTerminal && !showInactivityPrompt;
 
-  return { canPracticeAgain, canRetry, canSendMessage, canStartNewAttempt, draftMessage, error, isTerminal, loading, messagesEndRef, retrySession, sendMessage, sending, session, setDraftMessage, stateLabel, ...metrics };
+  return { canPracticeAgain, canRetry, canSendMessage, canStartNewAttempt, dismissInactivityPrompt, draftMessage, error, isTerminal, loading, messagesEndRef, restartFromInactivity, retrySession, sendMessage, sending, session, setDraftMessage, showInactivityPrompt, stateLabel, ...metrics };
 }

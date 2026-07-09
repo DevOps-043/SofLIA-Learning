@@ -263,6 +263,12 @@
       "finalFeedback": "Final feedback",
       "practiceAgain": "Practice again",
       "retryActivity": "Retry activity",
+      "inactivity": {
+        "title": "Are you still there?",
+        "message": "It's been 3 minutes without activity. You can restart the activity to begin again or continue where you left off.",
+        "restart": "Restart activity",
+        "continue": "Continue where I left off"
+      },
       "placeholder": "Write your answer for SofLIA...",
       "closedPlaceholder": "This session has already been closed.",
       "helper": "Send a concrete answer with evidence of your reasoning.",
