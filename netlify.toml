@@ -27,7 +27,7 @@
   # ffprobe is NOT bundled — the BG function reads dimensions by parsing
   # `ffmpeg -i` stderr, which keeps the function bundle under 250 MB.
   # Enable VIDEO_TRANSCODING_ENABLED=true in the Netlify UI only after the
-  # binary is downloaded by scripts/netlify-build.sh.
+  # binary is provisioned by scripts/netlify-build.sh.
   FFMPEG_PATH = "/var/task/apps/web/bin/ffmpeg"
 
 # Configuración para Next.js con serverless functions
@@ -109,8 +109,8 @@
   ]
 
 # Background function: async HLS transcoding via FFmpeg.
-# Only ffmpeg is bundled (~80 MB) — ffprobe was dropped because
-# bundling both pushed the function past the 250 MB cap.  Dimensions
+# Only the ffmpeg executable is bundled — ffprobe was dropped because
+# bundling both pushed the function past the 250 MB cap. Dimensions
 # are read by parsing `ffmpeg -i` stderr inside the function.
 # external_node_modules is overridden to an empty list to avoid pulling
 # the 12 packages declared in the global [functions] block (~80-100 MB)

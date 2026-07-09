@@ -10,98 +10,61 @@ npm config set fetch-retry-mintimeout 20000
 npm config set fetch-retry-maxtimeout 120000
 npm config set fetch-timeout 300000
 
+install_ffmpeg_from_apt() {
+  if ! command -v apt-get >/dev/null 2>&1; then
+    echo "❌ apt-get is not available in this build image; cannot provision FFmpeg."
+    return 1
+  fi
+
+  local apt_get=(apt-get)
+  if [ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1; then
+    apt_get=(sudo apt-get)
+  fi
+
+  export DEBIAN_FRONTEND=noninteractive
+
+  echo "📦 Installing FFmpeg from the build image package manager..."
+  "${apt_get[@]}" update
+  "${apt_get[@]}" install -y --no-install-recommends ffmpeg
+
+  local installed_ffmpeg
+  installed_ffmpeg="$(command -v ffmpeg || true)"
+
+  if [ -z "${installed_ffmpeg}" ]; then
+    echo "❌ apt-get finished, but ffmpeg was not found on PATH."
+    return 1
+  fi
+
+  cp "${installed_ffmpeg}" apps/web/bin/ffmpeg
+  chmod +x apps/web/bin/ffmpeg
+}
+
 # FFmpeg binary is NOT committed to git (would exceed Netlify's 250 MB bundle limit).
-# Downloaded here only when VIDEO_TRANSCODING_ENABLED=true.
+# Provisioned here only when VIDEO_TRANSCODING_ENABLED=true.
 # We deliberately do NOT bundle ffprobe — video dimensions are read by parsing
 # `ffmpeg -i` stderr instead, which keeps the BG function under the 250 MB cap.
 # Local dev: set FFMPEG_PATH in apps/web/.env.local.
 if [ "${VIDEO_TRANSCODING_ENABLED}" = "true" ]; then
-  echo "🎞️ Downloading FFmpeg static binary for adaptive video transcoding..."
+  echo "🎞️ Preparing FFmpeg binary for adaptive video transcoding..."
   mkdir -p apps/web/bin
 
   if [ -x apps/web/bin/ffmpeg ]; then
-    echo "✅ Existing FFmpeg binary found; skipping download."
+    echo "✅ Existing FFmpeg binary found; skipping install."
   else
-    FFMPEG_ARCHIVE="ffmpeg-release-amd64-static.tar.xz"
-    FFMPEG_ARCHIVE_PATH="/tmp/${FFMPEG_ARCHIVE}"
-    FFMPEG_CACHE_DIR="${NETLIFY_CACHE_DIR:-.netlify/cache}/ffmpeg"
-    FFMPEG_CACHE_PATH="${FFMPEG_CACHE_DIR}/${FFMPEG_ARCHIVE}"
-    FFMPEG_URLS=(
-      "https://johnvansickle.com/ffmpeg/releases/${FFMPEG_ARCHIVE}"
-      "https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz"
-    )
-
-    mkdir -p "${FFMPEG_CACHE_DIR}"
-    rm -f "${FFMPEG_ARCHIVE_PATH}"
-
-    if [ -f "${FFMPEG_CACHE_PATH}" ] && tar -tJf "${FFMPEG_CACHE_PATH}" >/dev/null 2>&1; then
-      echo "✅ Using cached FFmpeg archive from ${FFMPEG_CACHE_PATH}."
-      cp "${FFMPEG_CACHE_PATH}" "${FFMPEG_ARCHIVE_PATH}"
-    else
-      rm -f "${FFMPEG_CACHE_PATH}"
-
-      CURL_RETRY_ARGS=(
-        --fail
-        --location
-        --silent
-        --show-error
-        --retry 5
-        --retry-delay 10
-        --connect-timeout 30
-        --max-time 300
-        --speed-limit 1024
-        --speed-time 60
-      )
-
-      if curl --help all 2>/dev/null | grep -q -- "--retry-all-errors"; then
-        CURL_RETRY_ARGS+=(--retry-all-errors)
-      fi
-
-      DOWNLOAD_SUCCEEDED=false
-      for FFMPEG_URL in "${FFMPEG_URLS[@]}"; do
-        echo "⬇️ Downloading FFmpeg from ${FFMPEG_URL}..."
-        if curl "${CURL_RETRY_ARGS[@]}" --output "${FFMPEG_ARCHIVE_PATH}" "${FFMPEG_URL}"; then
-          if tar -tJf "${FFMPEG_ARCHIVE_PATH}" >/dev/null 2>&1; then
-            DOWNLOAD_SUCCEEDED=true
-            cp "${FFMPEG_ARCHIVE_PATH}" "${FFMPEG_CACHE_PATH}"
-            break
-          fi
-
-          echo "⚠️ Downloaded FFmpeg archive is invalid; trying the next source..."
-          rm -f "${FFMPEG_ARCHIVE_PATH}"
-        else
-          echo "⚠️ FFmpeg download failed from ${FFMPEG_URL}; trying the next source..."
-          rm -f "${FFMPEG_ARCHIVE_PATH}"
-        fi
-      done
-
-      if [ "${DOWNLOAD_SUCCEEDED}" != "true" ]; then
-        echo "❌ Unable to download a valid FFmpeg archive after retries."
-        exit 2
-      fi
-    fi
-
-    FFMPEG_EXTRACT_DIR=$(mktemp -d)
-    EXTRACTED_DIR=$(tar -tJf "${FFMPEG_ARCHIVE_PATH}" | head -1 | cut -d/ -f1)
-
-    if [ -z "${EXTRACTED_DIR}" ]; then
-      echo "❌ FFmpeg archive did not contain an extractable directory."
+    if ! install_ffmpeg_from_apt; then
+      echo "❌ Unable to install FFmpeg from the build image package manager."
       exit 2
     fi
-
-    tar -xJf "${FFMPEG_ARCHIVE_PATH}" -C "${FFMPEG_EXTRACT_DIR}" "${EXTRACTED_DIR}/ffmpeg"
-    cp "${FFMPEG_EXTRACT_DIR}/${EXTRACTED_DIR}/ffmpeg" apps/web/bin/ffmpeg
-    chmod +x apps/web/bin/ffmpeg
-    rm -rf "${FFMPEG_EXTRACT_DIR}" "${FFMPEG_ARCHIVE_PATH}"
   fi
 
-  # Strip debug symbols (johnvansickle builds are usually already stripped — no-op then).
+  # Strip debug symbols when supported by the installed binary; no-op otherwise.
   strip apps/web/bin/ffmpeg 2>/dev/null || true
   echo "✅ FFmpeg binary ready — size:"
   ls -lh apps/web/bin/ffmpeg
+  apps/web/bin/ffmpeg -version | head -1
   du -sh apps/web/bin
 else
-  echo "ℹ️ VIDEO_TRANSCODING_ENABLED is not set — skipping FFmpeg download."
+  echo "ℹ️ VIDEO_TRANSCODING_ENABLED is not set — skipping FFmpeg provisioning."
 fi
 
 # Ensure TypeScript is available for building packages
