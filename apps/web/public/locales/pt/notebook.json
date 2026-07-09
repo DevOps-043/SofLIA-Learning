@@ -58,6 +58,31 @@
     "loadError": "Não foi possível carregar os cursos.",
     "createError": "Não foi possível criar a anotação."
   },
+  "enrichment": {
+    "title": "Análise da SofLIA",
+    "loading": "Carregando análise...",
+    "processing": "A SofLIA está analisando sua anotação. O resumo aparecerá aqui em instantes.",
+    "empty": "Salve conteúdo na sua anotação e a SofLIA a analisará automaticamente.",
+    "failed": "Não foi possível analisar esta anotação. A análise será refeita quando você editá-la novamente.",
+    "summaryLabel": "Resumo",
+    "conceptsLabel": "Conceitos-chave",
+    "tasksLabel": "Tarefas detectadas",
+    "aiDisclaimer": "Gerado pela SofLIA a partir da sua anotação. Pode conter imprecisões.",
+    "suggestedBadge": "Sugerida",
+    "taskConfirm": "Confirmar tarefa",
+    "taskDismiss": "Descartar tarefa",
+    "taskComplete": "Marcar como concluída",
+    "taskReopen": "Reabrir tarefa",
+    "taskActionError": "Não foi possível atualizar a tarefa.",
+    "knowledgeType": {
+      "note": "Anotação",
+      "reflection": "Reflexão",
+      "decision": "Decisão",
+      "qa": "Pergunta e resposta",
+      "resource": "Recurso",
+      "evidence": "Evidência"
+    }
+  },
   "editor": {
     "back": "Voltar",
     "backToNotebook": "Voltar ao caderno de anotações",

@@ -103,6 +103,75 @@ export interface NotebookNoteResponse {
   note: NotebookNoteDetail
 }
 
+// --- AI enrichment (second-brain phase 1) ---
+
+/** Knowledge classification suggested by AI, editable by the user. */
+export type NotebookKnowledgeType =
+  | 'note'
+  | 'reflection'
+  | 'decision'
+  | 'qa'
+  | 'resource'
+  | 'evidence'
+
+/** Note lifecycle; 'shared'/'promoted' are reserved for the sharing phase. */
+export type NotebookLifecycleStatus =
+  | 'draft'
+  | 'enriched'
+  | 'reviewed'
+  | 'archived'
+  | 'shared'
+  | 'promoted'
+
+/** AI enrichment attached to a note (1:1, from notebook_note_metadata). */
+export interface NotebookNoteEnrichment {
+  noteId: string
+  knowledgeType: NotebookKnowledgeType
+  lifecycleStatus: NotebookLifecycleStatus
+  summary: string | null
+  keyConcepts: string[]
+  suggestedTags: string[]
+  /** 0..1 — AI self-reported confidence in its classification. */
+  confidence: number | null
+  enrichedAt: string | null
+}
+
+export type NotebookDerivedTaskStatus = 'suggested' | 'open' | 'done' | 'dismissed'
+
+/** Actionable item derived from a note (AI-suggested until user confirms). */
+export interface NotebookDerivedTask {
+  taskId: string
+  noteId: string
+  title: string
+  status: NotebookDerivedTaskStatus
+  createdBy: 'ai' | 'user'
+  createdAt: string
+  completedAt: string | null
+}
+
+/**
+ * Aggregated queue state for a note: 'pending'/'processing' while a job is in
+ * flight (UI polls), 'failed' when retries were exhausted, 'idle' otherwise.
+ */
+export type NotebookEnrichmentJobStatus = 'idle' | 'pending' | 'processing' | 'failed'
+
+export interface NotebookNoteEnrichmentState {
+  enrichment: NotebookNoteEnrichment | null
+  tasks: NotebookDerivedTask[]
+  jobStatus: NotebookEnrichmentJobStatus
+}
+
+export interface NotebookNoteEnrichmentResponse {
+  state: NotebookNoteEnrichmentState
+}
+
+export interface NotebookDerivedTaskResponse {
+  task: NotebookDerivedTask
+}
+
+/** Statuses a user may set on a derived task (never back to 'suggested'). */
+export const NOTEBOOK_TASK_USER_STATUSES = ['open', 'done', 'dismissed'] as const
+
 /** Maximum stored size for note HTML content (mirrors lesson-notes limit). */
 export const NOTEBOOK_MAX_CONTENT_LENGTH = 50_000
 /** Maximum length for a note title. */

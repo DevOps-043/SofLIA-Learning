@@ -5,6 +5,7 @@ import {
   fetchNotebookNote,
   updateNotebookNote,
 } from '@/features/notebook/services/notebook.server.service'
+import { enqueueNoteEnrichment } from '@/features/notebook/services/notebook-enrichment.server.service'
 import type { NotebookNoteResponse } from '@/features/notebook/types'
 import {
   notebookErrorResponse,
@@ -62,6 +63,17 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       organizationId: auth.organizationId,
       noteId,
       input: parsed.data,
+    })
+
+    // Fire-and-forget: idempotent per content hash, so autosave bursts only
+    // ever enqueue one job per real content change.
+    void enqueueNoteEnrichment({
+      contentHtml: note.content,
+      noteId: note.noteId,
+      organizationId: auth.organizationId,
+      sourceType: note.source,
+      title: note.title,
+      userId: auth.userId,
     })
 
     return NextResponse.json({ note } satisfies NotebookNoteResponse)

@@ -17,14 +17,17 @@ export { NoteContentView } from './components/NoteContentView'
 // Hooks
 export { useNotebookTree } from './hooks/useNotebookTree'
 export { useNoteEditor } from './hooks/useNoteEditor'
+export { useNoteEnrichment } from './hooks/useNoteEnrichment'
 
 // Client service
 export {
   fetchNotebookTree,
   fetchNotebookNote,
   fetchNotebookCourseOptions,
+  fetchNoteEnrichmentState,
   createNotebookNote,
   updateNotebookNote,
+  updateDerivedTask,
   deleteNotebookNote,
 } from './services/notebook.client.service'
 
@@ -36,6 +39,12 @@ export type {
   NotebookNoteSummary,
   NotebookNoteDetail,
   NotebookCourseOption,
+  NotebookNoteEnrichment,
+  NotebookNoteEnrichmentState,
+  NotebookDerivedTask,
+  NotebookDerivedTaskStatus,
+  NotebookKnowledgeType,
+  NotebookLifecycleStatus,
   CreateNotebookNoteInput,
   UpdateNotebookNoteInput,
 } from './types'

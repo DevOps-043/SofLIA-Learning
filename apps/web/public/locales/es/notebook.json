@@ -58,6 +58,31 @@
     "loadError": "No se pudieron cargar los cursos.",
     "createError": "No se pudo crear el apunte."
   },
+  "enrichment": {
+    "title": "Análisis de SofLIA",
+    "loading": "Cargando análisis...",
+    "processing": "SofLIA está analizando tu apunte. El resumen aparecerá aquí en unos momentos.",
+    "empty": "Guarda contenido en tu apunte y SofLIA lo analizará automáticamente.",
+    "failed": "No se pudo analizar este apunte. El análisis se reintentará al volver a editarlo.",
+    "summaryLabel": "Resumen",
+    "conceptsLabel": "Conceptos clave",
+    "tasksLabel": "Tareas detectadas",
+    "aiDisclaimer": "Generado por SofLIA a partir de tu apunte. Puede contener imprecisiones.",
+    "suggestedBadge": "Sugerida",
+    "taskConfirm": "Confirmar tarea",
+    "taskDismiss": "Descartar tarea",
+    "taskComplete": "Marcar como completada",
+    "taskReopen": "Reabrir tarea",
+    "taskActionError": "No se pudo actualizar la tarea.",
+    "knowledgeType": {
+      "note": "Apunte",
+      "reflection": "Reflexión",
+      "decision": "Decisión",
+      "qa": "Pregunta y respuesta",
+      "resource": "Recurso",
+      "evidence": "Evidencia"
+    }
+  },
   "editor": {
     "back": "Volver",
     "backToNotebook": "Volver al libro de apuntes",

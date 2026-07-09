@@ -12,15 +12,19 @@ Tu entregable debe ser aplicable por un equipo de ingeniería real sobre una bas
 
 **SofLIA Learning** es una plataforma **B2B pura** de adopción organizacional de Inteligencia Artificial. No es un LMS tradicional ni una plataforma de cursos al consumidor: convierte aprendizaje, interacción, práctica y conocimiento en capacidades reales, hábitos de trabajo, evidencia de avance y productividad aplicada.
 
-**Roles reales del sistema (no inventes otros):**
+**Roles reales DENTRO de la organización (no inventes otros).** El diseño del módulo se articula alrededor de los roles organizacionales, no de los roles de plataforma:
 
-| Rol | Descripción |
-|-----|-------------|
-| `Admin` | Super-admin de la plataforma (gestión global de empresas, cursos, contenido) |
-| `Business` | Administrador de una organización cliente (panel de negocio, analítica, reportes) |
-| `BusinessUser` | Empleado de la organización (consume cursos, rutas, notebook, SofLIA chat) |
+| Rol organizacional | Origen en el sistema | Descripción |
+|--------------------|----------------------|-------------|
+| `owner` | `organization_users.role` | Dueño de la organización; máximo nivel de gestión y visibilidad |
+| `admin` | `organization_users.role` | Administrador de la organización (panel de negocio, analítica, configuración) |
+| `member` | `organization_users.role` | Empleado; consume cursos, rutas, notebook y SofLIA chat |
+| `regional_manager` | Jerarquía (`HierarchyRole`) | Responsable de una región (`organization_regions`) |
+| `zone_manager` | Jerarquía (`HierarchyRole`) | Responsable de una zona (`organization_zones`) |
+| `team_leader` | Jerarquía (`HierarchyRole`) | Líder de un equipo (`organization_teams`); revisor natural del conocimiento de su equipo |
+| `node_manager` | Jerarquía (`HierarchyRole`) | Responsable de un nodo en jerarquías dinámicas |
 
-No existen "estudiantes consumer", "mentores", "founders" ni "comunidades públicas" como entidades del sistema. Si un caso de uso lo requiere, mapéalo a estos roles (p. ej., "mentor" → `Business` admin o un futuro sub-rol de `BusinessUser` con permisos de revisión, y decláralo explícitamente como decisión de diseño).
+Los scopes de jerarquía existentes son `organization → region → zone → team` (ver `features/business-panel/types/hierarchy/core.types.ts`). No existen "estudiantes consumer", "mentores externos", "founders" ni "comunidades públicas". Si un caso de uso requiere una figura de mentor/revisor, mapéala a `team_leader` (o al manager del scope correspondiente) y decláralo explícitamente como decisión de diseño. El super-admin de plataforma solo aparece para auditoría y salud del módulo, nunca como consumidor del conocimiento de una organización.
 
 ---
 
@@ -47,7 +51,7 @@ No existen "estudiantes consumer", "mentores", "founders" ni "comunidades públi
 
 **Lo que NO existe todavía (y debes diseñar):** embeddings/pgvector, búsqueda semántica, relaciones entre notas, notas a nivel de proyecto/área (fuera de curso-lección), conocimiento compartido/organizacional, conversación con los apuntes, automatizaciones de revisión/resumen periódico.
 
-**Módulos del ecosistema PulseHub aún no presentes en este repositorio** (Project Hub, IRIS, Tool Library, Meeting Intelligence, Deep Research, Web Agent): trátalos como **integraciones futuras**; define solo los contratos/puntos de extensión, no dependas de ellos para el MVP.
+**Integración externa objetivo: el agente de SofLIA Hub.** SofLIA Hub es el servicio/agente que cada organización despliega en su propia VPS (una instancia por organización, con sus propias credenciales de WhatsApp Business/Telegram). Hoy ya existe la base de la integración: cola `notification_channel_deliveries` + cron de Netlify (`process-notification-deliveries.ts`) que envía entregas al Hub mediante POST firmado con HMAC (`SOFLIA_HUB_NOTIFICATIONS_URL` / `SOFLIA_HUB_API_KEY`), e infraestructura de autenticación agente-a-agente en `lib/security/trusted-agent-auth/` + endpoint `api/security/agent-handshake`. Ver `docs/SOFLIA_HUB_NOTIFICATIONS_WHATSAPP_TELEGRAM.md` (incluye la brecha conocida: la configuración del Hub aún es global, no por organización). El Libro de Apuntes debe integrarse con el agente Hub sobre estos mecanismos existentes — no inventes otros módulos de ecosistema (Project Hub, IRIS, etc.).
 
 ---
 
@@ -64,7 +68,7 @@ Entrega una propuesta completa (estratégica, funcional y técnica) con **gap an
 1. Diferencia entre libreta digital, repositorio de notas y segundo cerebro con IA — y en qué punto del espectro está la v1 actual.
 2. Cómo el Libro de Apuntes se convierte en memoria personal, de aprendizaje, de equipo y organizacional dentro de un contexto B2B multi-tenant.
 3. Conexión con las capacidades existentes: SofLIA chat, Dialogue Engine, Study Planner, analítica, rutas de aprendizaje y skills.
-4. Valor diferencial para cada rol real: `BusinessUser`, `Business` y `Admin`.
+4. Valor diferencial para cada rol organizacional: `member` (empleado), `team_leader` / managers de jerarquía, `admin` y `owner` de la organización.
 5. Por qué esto es ventaja competitiva frente a LMS tradicionales, en línea con la tesis de "Sistema de Adopción Organizacional de IA".
 
 ## 2. Principios de diseño
@@ -102,9 +106,12 @@ Define los principios rectores, incluyendo al menos: captura sin fricción, orga
 
 ## 7. Integración con el ecosistema
 
-1. Integraciones internas concretas (existen hoy): SofLIA chat/Dialogue Engine, Study Planner, cursos/lecciones, rutas de aprendizaje, skills, analítica personal y organizacional, panel de negocio, certificados.
-2. Integraciones futuras (solo contratos): Project Hub, IRIS, Tool Library, Meeting Intelligence, Deep Research, Web Agent.
-3. Acciones que SofLIA puede ejecutar desde/sobre el notebook (siguiendo el patrón `<action>JSON</action>` del Study Planner): crear apuntes, vincular, resumir, generar tareas/checklists/flashcards/guías de estudio, detectar brechas de conocimiento, preparar reportes para `Business`, proponer próximos pasos, generar evidencia de progreso.
+1. Integraciones internas concretas (existen hoy): SofLIA chat/Dialogue Engine, Study Planner, cursos/lecciones, rutas de aprendizaje, skills, analítica personal y organizacional, panel de negocio, certificados, sistema de notificaciones.
+2. **Integración con el agente de SofLIA Hub** (la única integración externa a diseñar). Define el contrato completo en ambas direcciones, reutilizando los mecanismos existentes:
+   - **Saliente (plataforma → Hub):** entrega de resúmenes/digests de apuntes, flashcards y recordatorios de repaso hacia WhatsApp/Telegram del empleado, a través de la cola `notification_channel_deliveries` y el cron firmado con HMAC ya existente.
+   - **Entrante (Hub → plataforma):** captura de conocimiento desde WhatsApp/Telegram — el empleado envía un mensaje/nota de voz/documento al bot del Hub y este lo registra como apunte borrador vía REST API autenticada como agente confiable (`lib/security/trusted-agent-auth/`, `agent-handshake`), respetando multi-tenencia (una instancia de Hub por organización, credenciales por organización).
+   - Especifica payloads, idempotencia, autenticación/firma, límites de tamaño, manejo de errores y qué fase del roadmap habilita cada dirección. Considera la brecha documentada de configuración global vs. por organización.
+3. Acciones que SofLIA puede ejecutar desde/sobre el notebook (siguiendo el patrón `<action>JSON</action>` del Study Planner): crear apuntes, vincular, resumir, generar tareas/checklists/flashcards/guías de estudio, detectar brechas de conocimiento, preparar reportes para `admin`/`owner` de la organización, proponer próximos pasos, generar evidencia de progreso.
 
 ## 8. Modelo de datos y arquitectura técnica
 
@@ -115,20 +122,20 @@ Define los principios rectores, incluyendo al menos: captura sin fricción, orga
 
 ## 9. Casos de uso prioritarios para MVP
 
-Define los casos de uso de la primera iteración, **con los roles reales**:
+Define los casos de uso de la primera iteración, **con los roles organizacionales reales**:
 
-1. `BusinessUser` que toma apuntes por lección y los enriquece con IA.
-2. `BusinessUser` que guarda respuestas de SofLIA y luego conversa con sus apuntes.
-3. `BusinessUser` que convierte apuntes en tareas o material de repaso.
-4. Equipo (vía jerarquía org existente) que comparte conocimiento curado.
-5. `Business` admin que ve conocimiento agregado/anonimizado: conceptos más consultados, brechas, evidencia de aplicación.
-6. `Admin` de plataforma que audita salud y adopción del módulo.
+1. `member` (empleado) que toma apuntes por lección y los enriquece con IA.
+2. `member` que guarda respuestas de SofLIA y luego conversa con sus apuntes.
+3. `member` que convierte apuntes en tareas o material de repaso, y recibe repasos/digests vía el agente de SofLIA Hub (WhatsApp/Telegram).
+4. `member` que captura conocimiento desde WhatsApp/Telegram a través del agente Hub y lo cura después en el notebook.
+5. `team_leader` que revisa y cura el conocimiento compartido de su equipo (scope `team` de la jerarquía existente).
+6. `admin`/`owner` de la organización que ve conocimiento agregado/anonimizado: conceptos más consultados, brechas, evidencia de aplicación.
 
 Para cada uno: usuario, problema, flujo ideal, funcionalidades necesarias, resultado esperado, métrica de éxito, complejidad técnica y riesgo principal.
 
 ## 10. Automatizaciones inteligentes
 
-Propón automatizaciones (resumen diario/semanal, detección de ideas repetidas y conceptos no dominados, flashcards, tareas automáticas, conexiones entre conceptos, reportes, recomendación de recursos, alertas de conocimiento obsoleto, resúmenes por curso/periodo). Para cada una: disparador, datos que usa, salida, nivel de intervención humana, riesgo, cómo validar utilidad y **costo estimado en llamadas IA**. Indica cuáles corren como cron (patrón Netlify Functions existente) y cuáles on-demand.
+Propón automatizaciones (resumen diario/semanal, detección de ideas repetidas y conceptos no dominados, flashcards, tareas automáticas, conexiones entre conceptos, reportes, recomendación de recursos, alertas de conocimiento obsoleto, resúmenes por curso/periodo). Para cada una: disparador, datos que usa, salida, nivel de intervención humana, riesgo, cómo validar utilidad y **costo estimado en llamadas IA**. Indica cuáles corren como cron (patrón Netlify Functions existente), cuáles on-demand, y cuáles se entregan al usuario a través del agente de SofLIA Hub (WhatsApp/Telegram) usando la cola de entregas existente.
 
 ## 11. Analítica, medición e impacto
 
@@ -136,8 +143,8 @@ Métricas separadas en cuatro niveles — actividad, aprendizaje, aplicación e 
 
 ## 12. Gobernanza, privacidad y permisos
 
-1. Modelo de visibilidad: privado (default), compartido con equipo, compartido con organización, archivado, restringido. Justifica si "compartido con revisor/mentor" entra en v1 dado que el rol no existe hoy.
-2. Qué ve `Business` (agregado/anonimizado vs. contenido literal), consentimiento, datos sensibles, curaduría humana obligatoria antes de promover conocimiento personal a organizacional, auditoría de acciones IA sobre el conocimiento (integrada con `security-audit-log`).
+1. Modelo de visibilidad: privado (default), compartido con equipo (scope `team`), compartido con la organización, archivado, restringido. La figura de revisor/curador se mapea a `team_leader` y a los managers de jerarquía (`zone_manager`, `regional_manager`) según scope — justifica qué scopes entran en v1.
+2. Qué ven `admin`/`owner` de la organización (agregado/anonimizado vs. contenido literal), consentimiento, datos sensibles, curaduría humana obligatoria antes de promover conocimiento personal a organizacional, auditoría de acciones IA sobre el conocimiento (integrada con `security-audit-log`) — incluyendo las acciones ejecutadas por el agente de SofLIA Hub.
 3. Cómo se implementa cada nivel con RLS + autorización en capa de servicio.
 
 ## 13. Riesgos y decisiones críticas

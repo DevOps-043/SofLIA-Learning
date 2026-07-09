@@ -26,6 +26,7 @@ import {
 import { TagInput } from './TagInput'
 import { CompendiumActionsPanel } from './CompendiumActionsPanel'
 import { NoteContentView } from './NoteContentView'
+import { NoteEnrichmentPanel } from './NoteEnrichmentPanel'
 import { useNoteEditor, type NoteSaveStatus } from '../hooks/useNoteEditor'
 
 /**
@@ -313,6 +314,20 @@ export function NoteEditorPageClient({
             <SidePanelCard label={t('editor.tagsLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
               <TagInput tags={tags} onChange={setTags} />
             </SidePanelCard>
+          )}
+
+          {!isReadOnly && (
+            <NoteEnrichmentPanel
+              orgSlug={orgSlug}
+              noteId={noteId}
+              onTaskActionError={() =>
+                setToast({
+                  isOpen: true,
+                  message: t('enrichment.taskActionError'),
+                  type: 'error',
+                })
+              }
+            />
           )}
         </aside>
       </div>

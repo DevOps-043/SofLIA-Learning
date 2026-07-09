@@ -88,5 +88,11 @@ export const updateNoteSchema = z
 
 export const compendiumCourseIdSchema = z.string().uuid()
 
+/** Users may confirm/complete/reopen/dismiss — never reset to 'suggested'. */
+export const updateDerivedTaskSchema = z.object({
+  status: z.enum(['open', 'done', 'dismissed']),
+})
+
 export type CreateNoteBody = z.infer<typeof createNoteSchema>
 export type UpdateNoteBody = z.infer<typeof updateNoteSchema>
+export type UpdateDerivedTaskBody = z.infer<typeof updateDerivedTaskSchema>

@@ -10,7 +10,12 @@ import type {
   CreateNotebookNoteInput,
   NotebookCourseOption,
   NotebookCourseOptionsResponse,
+  NotebookDerivedTask,
+  NotebookDerivedTaskResponse,
+  NotebookDerivedTaskStatus,
   NotebookNoteDetail,
+  NotebookNoteEnrichmentResponse,
+  NotebookNoteEnrichmentState,
   NotebookNoteResponse,
   NotebookTree,
   NotebookTreeResponse,
@@ -124,6 +129,42 @@ export async function regenerateCourseCompendium(
   }
   const data = (await response.json()) as NotebookNoteResponse
   return data.note
+}
+
+export async function fetchNoteEnrichmentState(
+  orgSlug: string,
+  noteId: string,
+): Promise<NotebookNoteEnrichmentState> {
+  const response = await fetch(
+    `${base(orgSlug)}/notes/${encodeURIComponent(noteId)}/enrichment`,
+    { credentials: 'include', cache: 'no-store' },
+  )
+  if (!response.ok) {
+    return parseError(response, 'No se pudo cargar el enriquecimiento del apunte.')
+  }
+  const data = (await response.json()) as NotebookNoteEnrichmentResponse
+  return data.state
+}
+
+export async function updateDerivedTask(
+  orgSlug: string,
+  taskId: string,
+  status: Exclude<NotebookDerivedTaskStatus, 'suggested'>,
+): Promise<NotebookDerivedTask> {
+  const response = await fetch(
+    `${base(orgSlug)}/tasks/${encodeURIComponent(taskId)}`,
+    {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    },
+  )
+  if (!response.ok) {
+    return parseError(response, 'No se pudo actualizar la tarea.')
+  }
+  const data = (await response.json()) as NotebookDerivedTaskResponse
+  return data.task
 }
 
 export async function deleteNotebookNote(

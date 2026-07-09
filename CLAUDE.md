@@ -522,6 +522,12 @@ Personal rich-text note-taking for organization employees (`BusinessUser` role):
 - Auto-notes: Lessons can generate auto-notes via `features/courses/services/lesson-auto-note.service.ts` (DB: `lesson_auto_notes`)
 - Note service: `features/courses/services/note.service.ts` — CRUD for user notes
 - API: `app/api/[orgSlug]/business-user/notebook/` or within courses API
+- **AI enrichment (second-brain phase 1)** — async pipeline that summarizes notes, extracts key concepts and detects tasks (design: `docs/LIBRO_APUNTES_SEGUNDO_CEREBRO_BLUEPRINT.md`):
+  - DB: `notebook_note_metadata` (1:1 enrichment), `notebook_ai_enrichment_jobs` (service-role-only queue, idempotent per content hash), `notebook_derived_tasks` (statuses: suggested/open/done/dismissed) — migration `20260717090000`
+  - Services: `notebook-enrichment.server.service.ts` (enqueue/read/tasks), `notebook-enrichment.processor.server.ts` (Gemini batch, cron), `notebook-enrichment.normalizer.ts` (pure logic, unit-tested)
+  - Cron: Netlify `process-notebook-enrichment` → `GET /api/cron/process-notebook-enrichment` (CRON_SECRET)
+  - UI: `NoteEnrichmentPanel` in the note editor (polls while a job is pending); i18n namespace `notebook` under `enrichment.*`
+  - Rules: enrichment is fire-and-forget on note create/update (never blocks the save); compendiums are never enriched; AI-suggested tasks require explicit user confirmation; note content is injection-scanned and data-framed before reaching Gemini
 
 ## SofLIA Dialogue Engine
 

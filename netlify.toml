@@ -159,3 +159,7 @@
 # Funcion programada: Chequeo de estado del sistema (Gemini AI, DB, Auth) para /status
 [functions."system-status-check"]
   schedule = "*/5 * * * *"
+
+# Funcion programada: Enriquecimiento IA de apuntes del notebook
+[functions."process-notebook-enrichment"]
+  schedule = "*/5 * * * *"
