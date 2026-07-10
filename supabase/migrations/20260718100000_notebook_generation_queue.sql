@@ -854,25 +854,27 @@ grant execute on function public.finish_notebook_generation_job(
 -- for completed lessons/courses whose canonical generated note is missing.
 -- Eligible legacy user-authored notes enter the enrichment queue once.
 -- ---------------------------------------------------------------------------
+-- The enrichment queue is keyed by (note_id, content_hash, job_type); the
+-- author is resolved through the note itself. sha256() is a Postgres builtin,
+-- so the hash matches computeNoteContentHash() without requiring pgcrypto.
 insert into public.notebook_ai_enrichment_jobs (
   note_id,
-  user_id,
   organization_id,
   content_hash
 )
 select
   note.note_id,
-  note.user_id,
   note.organization_id,
   encode(
-    digest(btrim(note.note_title) || ' ' || btrim(note.note_content), 'sha256'),
+    sha256(convert_to(btrim(note.note_title) || ' ' || btrim(note.note_content), 'UTF8')),
     'hex'
   )
 from public.user_lesson_notes note
 where note.organization_id is not null
   and note.source_type in ('manual', 'chat', 'import')
   and char_length(regexp_replace(note.note_content, '<[^>]*>', ' ', 'g')) >= 80
-on conflict (note_id, content_hash) do nothing;
+on conflict on constraint notebook_ai_enrichment_jobs_unique_content
+do nothing;
 
 insert into public.notebook_ai_generation_jobs (
   job_type,
@@ -892,11 +894,11 @@ select
   module.course_id,
   progress.lesson_id,
   encode(
-    digest(
+    sha256(convert_to(
       progress.user_id::text || ':' || progress.enrollment_id::text || ':' ||
       progress.lesson_id::text || ':' || coalesce(progress.updated_at::text, 'completed'),
-      'sha256'
-    ),
+      'UTF8'
+    )),
     'hex'
   ),
   50
@@ -934,11 +936,11 @@ select
   enrollment.course_id,
   null,
   encode(
-    digest(
+    sha256(convert_to(
       enrollment.user_id::text || ':' || enrollment.enrollment_id::text || ':' ||
       enrollment.course_id::text || ':' || coalesce(enrollment.completed_at::text, 'completed'),
-      'sha256'
-    ),
+      'UTF8'
+    )),
     'hex'
   ),
   200
