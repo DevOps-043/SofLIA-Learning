@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { buildLessonAutoNoteHtmlFromModel } from "../lesson-auto-note-content.builder";
+import {
+  buildDeterministicLessonAutoNoteHtml,
+  buildLessonAutoNoteHtmlFromModel,
+} from "../lesson-auto-note-content.builder";
 
 describe("buildLessonAutoNoteHtmlFromModel", () => {
   it("renders a predictable study-note hierarchy from Gemini JSON", () => {
@@ -58,5 +61,32 @@ describe("buildLessonAutoNoteHtmlFromModel", () => {
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");
     expect(html).toContain("&lt;b&gt;Clave&lt;/b&gt;");
+  });
+});
+
+describe("buildDeterministicLessonAutoNoteHtml", () => {
+  it("keeps quiz question, user answer and correct answer as separate lines", () => {
+    const html = buildDeterministicLessonAutoNoteHtml({
+      activityNotes: [
+        "Actividad: Mapeo Ágil (reflection). Contenido: Analizar la brecha de productividad.",
+      ],
+      dialogueHighlights: [],
+      lessonDescription: null,
+      lessonSummary: "El participante analiza el riesgo de pérdida de capacidad.",
+      lessonTitle: "Mapeo de procesos",
+      quizReviews: [
+        "Pregunta 1 (Quiz final): ¿Cuál es el principal beneficio?\n" +
+          "Tu respuesta: Deducción inmediata (correcta).\n" +
+          "Respuesta correcta: Deducción inmediata del 100%.\n" +
+          "Explicación: Permite aplicar el monto invertido en un solo año.",
+      ],
+      transcript: null,
+    });
+
+    expect(html).toContain("<h2>Resumen de la lección</h2>");
+    expect(html).toContain("<strong>Tu respuesta:</strong> Deducción inmediata (correcta).");
+    expect(html).toContain("<br><strong>Respuesta correcta:</strong>");
+    expect(html).toContain("<br><strong>Explicación:</strong>");
+    expect(html).not.toContain('{"');
   });
 });

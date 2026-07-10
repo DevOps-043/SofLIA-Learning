@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronUp, Plus, TrendingUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import type { LearnNoteListItem, LearnNotesStats } from "./types";
+import { GeneratedNoteViewerModal } from "./notes/GeneratedNoteViewerModal";
 import { NoteCard } from "./notes/NoteCard";
 
 type NotesSidebarSectionProps = {
@@ -29,6 +31,8 @@ export function NotesSidebarSection({
   notebookBasePath,
 }: NotesSidebarSectionProps) {
   const { t } = useTranslation("learn");
+  // Los apuntes generados se leen en un visor modal sin abandonar el curso.
+  const [viewingNote, setViewingNote] = useState<LearnNoteListItem | null>(null);
 
   return (
     <>
@@ -107,6 +111,7 @@ export function NotesSidebarSection({
                       note={note}
                       onEdit={onEditNote}
                       onDelete={onDeleteNote}
+                      onView={setViewingNote}
                       editLabel={t("leftPanel.notesSection.editNote")}
                       deleteLabel={t("leftPanel.notesSection.deleteNote")}
                       notebookHref={notebookBasePath ? `${notebookBasePath}/${note.id}` : undefined}
@@ -119,6 +124,16 @@ export function NotesSidebarSection({
           </motion.div>
         )}
       </AnimatePresence>
+
+      <GeneratedNoteViewerModal
+        note={viewingNote}
+        onClose={() => setViewingNote(null)}
+        notebookHref={
+          viewingNote && notebookBasePath
+            ? `${notebookBasePath}/${viewingNote.id}`
+            : undefined
+        }
+      />
     </>
   );
 }

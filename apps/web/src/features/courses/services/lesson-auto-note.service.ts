@@ -294,20 +294,72 @@ function stripHtml(value: string): string {
     .replace(/&quot;/g, '"')
 }
 
-function compactUnknown(value: unknown, maxLength = 900): string {
+/** Campos con texto pensado para el alumno dentro de payloads de actividades. */
+const READABLE_CONTENT_KEYS = [
+  'title',
+  'introduction',
+  'description',
+  'instructions',
+  'objective',
+  'context',
+  'scenario',
+  'question',
+  'prompt',
+  'text',
+  'content',
+  'body',
+  'summary',
+  'conclusion',
+  'task',
+  'goal',
+] as const
+
+function stripMarkdownSyntax(value: string): string {
+  return value
+    .replace(/^#{1,6}\s+/u, '')
+    .replace(/\s#{1,6}\s+/gu, '. ')
+    .replace(/\*\*([^*]+)\*\*/gu, '$1')
+    .replace(/`([^`]+)`/gu, '$1')
+}
+
+/**
+ * Extracts learner-readable text from arbitrary payloads. Serialized JSON is
+ * never emitted: it pollutes both the AI prompt and the deterministic note.
+ */
+function readableFromUnknown(value: unknown, depth = 0): string {
   if (typeof value === 'string') {
-    return clip(stripHtml(value), maxLength)
+    return stripMarkdownSyntax(stripHtml(value)).trim()
   }
-
-  if (value === null || value === undefined) {
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value)
+  }
+  if (!value || depth >= 3) {
     return ''
   }
-
-  try {
-    return clip(JSON.stringify(value), maxLength)
-  } catch {
-    return ''
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => readableFromUnknown(item, depth + 1))
+      .filter(Boolean)
+      .join(' ')
   }
+
+  const record = toRecord(value)
+  const known = READABLE_CONTENT_KEYS.map((key) =>
+    readableFromUnknown(record[key], depth + 1),
+  ).filter(Boolean)
+  if (known.length > 0) {
+    return known.join(' ')
+  }
+
+  return Object.values(record)
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => stripMarkdownSyntax(stripHtml(item)).trim())
+    .filter(Boolean)
+    .join(' ')
+}
+
+function compactUnknown(value: unknown, maxLength = 900): string {
+  return clip(readableFromUnknown(value), maxLength)
 }
 
 function toRecord(value: unknown): Record<string, unknown> {
@@ -422,24 +474,26 @@ function getQuizReviewLines(input: {
     ]
   }
 
+  // Cada parte va en su propia línea: la nota determinista y el prompt de IA
+  // deben mostrar pregunta, respuesta del alumno y respuesta correcta como
+  // bloques separados, nunca como un párrafo corrido.
   return questions.map((question, index) => {
     const selectedAnswer = answers[question.id]
     const selectedText = answerToText(question, selectedAnswer)
     const correctness = isAnswerCorrect(question, selectedAnswer)
       ? 'correcta'
       : 'a revisar'
-    const explanation = question.explanation
-      ? ` Explicacion: ${clip(question.explanation, 320)}`
-      : ''
 
     return [
-      `${input.quiz.title || 'Quiz'} - Pregunta ${index + 1}: ${clip(question.question, 260)}`,
-      `Respuesta del usuario: ${clip(selectedText, 220)} (${correctness}).`,
-      `Respuesta clave: ${clip(question.correctAnswer, 220)}.`,
-      explanation,
+      `Pregunta ${index + 1} (${input.quiz.title || 'Quiz'}): ${clip(question.question, 260)}`,
+      `Tu respuesta: ${clip(selectedText, 220)} (${correctness}).`,
+      `Respuesta correcta: ${clip(question.correctAnswer, 220)}.`,
+      question.explanation
+        ? `Explicación: ${clip(question.explanation, 320)}`
+        : '',
     ]
       .filter(Boolean)
-      .join(' ')
+      .join('\n')
   })
 }
 

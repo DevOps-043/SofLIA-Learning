@@ -215,7 +215,7 @@ describe('lesson auto-note prompt context', () => {
     expect(promptInput.dialogueHighlights.join('\n')).toContain('SofLIA: Buen enfoque')
     expect(promptInput.dialogueHighlights.join('\n')).toContain('Chat de practica')
     expect(promptInput.quizReviews.join('\n')).toContain('What is the capital of France?')
-    expect(promptInput.quizReviews.join('\n')).toContain('Respuesta clave: Paris.')
+    expect(promptInput.quizReviews.join('\n')).toContain('Respuesta correcta: Paris.')
   })
 
   it('uses the required structured JSON sections and rules in the generation prompt', () => {

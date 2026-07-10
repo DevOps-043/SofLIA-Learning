@@ -10,7 +10,7 @@ export function SelectOrganizationScenario() {
     <ScenarioCanvas
       eyebrow="Responsive Smoke"
       title="Select Organization"
-      description="SelecciÃ³n de organizaciÃ³n con tarjetas de alto contenido, badges de rol y CTA integrados. El grid debe degradar a una columna sin cortar textos largos."
+      description="Selección de organización con tarjetas de alto contenido, badges de rol y CTA integrados. El grid debe degradar a una columna sin cortar textos largos."
     >
       <section className="grid gap-5 lg:grid-cols-2">
         {organizations.map((org) => (

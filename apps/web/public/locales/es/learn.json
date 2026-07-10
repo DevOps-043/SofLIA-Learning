@@ -47,6 +47,7 @@
       "editNote": "Editar nota",
       "deleteNote": "Eliminar nota",
       "viewGenerated": "Ver apunte generado",
+      "openInNotebook": "Abrir en el cuaderno",
       "source": {
         "manual": "Manual",
         "chat": "Conversación SofLIA",

@@ -17,6 +17,56 @@ interface SectionMatch {
 }
 
 const LESSON_SECTIONS: SectionDefinition[] = [
+  // Secciones del apunte determinista (fallback sin IA). Van primero porque un
+  // documento usa una sola familia y estas aparecen en este orden.
+  {
+    aliases: [
+      "Resumen de la lección",
+      "Resumen de la leccion",
+      "Lesson summary",
+      "Resumo da lição",
+      "Resumo da licao",
+    ],
+    mode: "paragraphs",
+  },
+  {
+    aliases: [
+      "Conceptos y evidencias",
+      "Concepts and evidence",
+      "Conceitos e evidências",
+      "Conceitos e evidencias",
+    ],
+    mode: "bullets",
+  },
+  {
+    aliases: [
+      "Retroalimentación de SofLIA",
+      "Retroalimentacion de SofLIA",
+      "SofLIA feedback",
+      "Feedback da SofLIA",
+    ],
+    mode: "bullets",
+  },
+  {
+    aliases: [
+      "Para ponerlo en práctica",
+      "Para ponerlo en practica",
+      "Put it into practice",
+      "Para colocar em prática",
+      "Para colocar em pratica",
+    ],
+    mode: "steps",
+  },
+  {
+    aliases: [
+      "Preguntas de repaso",
+      "Review questions",
+      "Perguntas de revisão",
+      "Perguntas de revisao",
+    ],
+    mode: "steps",
+  },
+  // Secciones del apunte generado por IA (esquema JSON de Gemini).
   {
     aliases: [
       "Resumen estratégico",
@@ -82,6 +132,43 @@ const LESSON_SECTIONS: SectionDefinition[] = [
 ];
 
 const COMPENDIUM_SECTIONS: SectionDefinition[] = [
+  // Secciones del compendio determinista (fallback sin IA).
+  {
+    aliases: ["Síntesis ejecutiva", "Sintesis ejecutiva", "Executive synthesis"],
+    mode: "paragraphs",
+  },
+  {
+    aliases: [
+      "Resumen por módulo y lección",
+      "Resumen por modulo y leccion",
+      "Summary by module and lesson",
+    ],
+    mode: "paragraphs",
+  },
+  {
+    aliases: [
+      "Conceptos y evidencias registradas",
+      "Recorded concepts and evidence",
+    ],
+    mode: "bullets",
+  },
+  {
+    aliases: ["Brechas para reforzar", "Gaps to reinforce"],
+    mode: "bullets",
+  },
+  {
+    aliases: ["Plan práctico de 7 días", "Plan practico de 7 dias", "7-day practical plan"],
+    mode: "steps",
+  },
+  {
+    aliases: ["Plan práctico de 30 días", "Plan practico de 30 dias", "30-day practical plan"],
+    mode: "steps",
+  },
+  {
+    aliases: ["Preguntas de recuperación", "Preguntas de recuperacion", "Recall questions"],
+    mode: "steps",
+  },
+  // Secciones del compendio generado por IA.
   {
     aliases: [
       "Síntesis del curso",
@@ -144,6 +231,30 @@ function decodeEntities(value: string): string {
     .replace(/&gt;/gi, ">")
     .replace(/&quot;/gi, '"')
     .replace(/&#39;|&apos;/gi, "'");
+}
+
+const ESCAPED_BLOCK_MARKUP = /&lt;(?:h[1-6]|p|ul|ol|li|blockquote)\b/iu;
+
+/**
+ * Removes serialization debris that older generators embedded as plain text:
+ * single-key JSON payloads, empty `{}` answers, mid-text markdown headers and
+ * literal tag remnants. Applied only on the legacy plain-text path.
+ */
+function cleanLegacyGeneratedText(value: string): string {
+  return value
+    .replace(
+      /\{\s*"[a-zA-Z_]+"\s*:\s*"((?:[^"\\]|\\.)*)"\s*\}/gu,
+      (_match, text: string) => text.replace(/\\"/g, '"').replace(/\\n/g, " "),
+    )
+    .replace(
+      /(?:Respuesta del usuario|Tu respuesta|Resposta do usuário|Resposta do usuario|User answer)\s*:\s*\{\s*\}\s*\.?/giu,
+      "",
+    )
+    .replace(/\{\s*\}/gu, "")
+    .replace(/<\/?[a-z][a-z0-9]*\b[^>]*>/giu, " ")
+    .replace(/^#{1,6}\s+/u, "")
+    .replace(/\s#{1,6}\s+/gu, ". ")
+    .replace(/[ \t]{2,}/gu, " ");
 }
 
 function htmlToReadableText(value: string): string {
@@ -527,6 +638,19 @@ export function normalizeGeneratedNoteHtml(
     return ensureGeneratedNoteIndex(sanitized);
   }
 
+  // Algunas notas antiguas guardaron el HTML generado con las etiquetas
+  // escapadas (&lt;h2&gt;...). Se decodifica una vez y se re-sanitiza para
+  // recuperar la estructura real sin permitir markup no autorizado.
+  if (ESCAPED_BLOCK_MARKUP.test(value)) {
+    const decoded = sanitizeHtml(decodeEntities(value), {
+      level: "rich",
+    }).trim();
+    const decodedBlocks = decoded.match(/<(?:h[1-6]|ul|ol|blockquote)\b/gi);
+    if ((decodedBlocks?.length ?? 0) >= 2) {
+      return ensureGeneratedNoteIndex(decoded);
+    }
+  }
+
   const markdown = convertSimpleMarkdown(value);
   if (markdown) {
     return ensureGeneratedNoteIndex(
@@ -534,7 +658,9 @@ export function normalizeGeneratedNoteHtml(
     );
   }
 
-  const plainText = htmlToReadableText(sanitized || value);
+  const plainText = cleanLegacyGeneratedText(
+    htmlToReadableText(sanitized || value),
+  );
   const definitions =
     kind === "course_compendium" ? COMPENDIUM_SECTIONS : LESSON_SECTIONS;
   const structured = renderLegacySections(plainText, definitions);

@@ -9,7 +9,7 @@ export function createCreateLessonErrorResponse(error: unknown) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Error al crear lecciÃ³n en la base de datos',
+        error: 'Error al crear lección en la base de datos',
         details: supabaseError.message || errorMessage,
         code: supabaseError.code,
       },
@@ -20,7 +20,7 @@ export function createCreateLessonErrorResponse(error: unknown) {
   return NextResponse.json(
     {
       success: false,
-      error: errorMessage || 'Error al crear lecciÃ³n',
+      error: errorMessage || 'Error al crear lección',
     },
     { status: 500 },
   )

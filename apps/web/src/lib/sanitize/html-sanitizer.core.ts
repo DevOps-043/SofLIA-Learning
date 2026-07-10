@@ -27,7 +27,10 @@ export function sanitizeHtml(
   const config = getEffectiveConfig(options)
 
   try {
-    const DOMPurify = getDOMPurify()
+    // getDOMPurify vive en un módulo 'use client': invocarlo desde una ruta o
+    // servicio de servidor lanza (client reference), lo que degradaba todo el
+    // HTML al fallback del catch. En servidor se usa el sanitizador propio.
+    const DOMPurify = typeof window === 'undefined' ? null : getDOMPurify()
 
     if (DOMPurify) {
       const clean = DOMPurify.sanitize(content, config)

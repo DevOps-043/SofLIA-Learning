@@ -10,6 +10,8 @@ type NoteCardProps = {
   note: LearnNoteListItem;
   onEdit: (note: LearnNoteListItem) => void;
   onDelete: (noteId: string) => void;
+  /** Abre el visor de solo lectura in-page para apuntes generados por SofLIA. */
+  onView?: (note: LearnNoteListItem) => void;
   editLabel: string;
   deleteLabel: string;
   notebookHref?: string;
@@ -19,6 +21,7 @@ export function NoteCard({
   note,
   onEdit,
   onDelete,
+  onView,
   editLabel,
   deleteLabel,
   notebookHref,
@@ -31,9 +34,19 @@ export function NoteCard({
     source === "lesson_auto_note" ||
     source === "course_compendium";
   const status = note.generationStatus ?? (isGenerated ? "ready" : null);
+  const canOpenGenerated = Boolean(onView || notebookHref);
+  const openGeneratedNote = () => {
+    // El visor modal mantiene al usuario dentro del curso; navegar al editor
+    // del cuaderno queda como acción secundaria dentro del propio visor.
+    if (onView) {
+      onView(note);
+      return;
+    }
+    if (notebookHref) router.push(notebookHref);
+  };
   const openNote = () => {
     if (isGenerated) {
-      if (notebookHref) router.push(notebookHref);
+      openGeneratedNote();
       return;
     }
     onEdit(note);
@@ -41,16 +54,16 @@ export function NoteCard({
 
   return (
     <div
-      className={`group rounded-xl border border-gray-200 bg-white p-3 transition-colors hover:bg-gray-200/50 dark:border-gray-500/30 dark:bg-carbon-800 dark:hover:bg-primary/50 ${!isGenerated || notebookHref ? "cursor-pointer" : ""}`}
+      className={`group rounded-xl border border-gray-200 bg-white p-3 transition-colors hover:bg-gray-200/50 dark:border-gray-500/30 dark:bg-carbon-800 dark:hover:bg-primary/50 ${!isGenerated || canOpenGenerated ? "cursor-pointer" : ""}`}
       onClick={openNote}
       onKeyDown={(event) => {
-        if ((event.key === "Enter" || event.key === " ") && (!isGenerated || notebookHref)) {
+        if ((event.key === "Enter" || event.key === " ") && (!isGenerated || canOpenGenerated)) {
           event.preventDefault();
           openNote();
         }
       }}
       role="button"
-      tabIndex={!isGenerated || notebookHref ? 0 : -1}
+      tabIndex={!isGenerated || canOpenGenerated ? 0 : -1}
     >
       <div className="flex items-center justify-between mb-2">
         <span
@@ -90,12 +103,12 @@ export function NoteCard({
             >
               <Trash2 className="w-3 h-3" />
             </button>
-            </> : notebookHref ? (
+            </> : canOpenGenerated ? (
               <button
                 type="button"
                 onClick={(event) => {
                   event.stopPropagation();
-                  router.push(notebookHref);
+                  openGeneratedNote();
                 }}
                 className="rounded p-1 transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
                 style={{ color: 'var(--learn-accent)' }}

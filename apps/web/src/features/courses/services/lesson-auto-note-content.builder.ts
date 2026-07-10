@@ -226,9 +226,32 @@ export function buildLessonAutoNoteHtmlFromModel(value: string): string {
   return normalizeGeneratedNoteHtml(value, "lesson_auto_note");
 }
 
+/**
+ * Preserves the line structure of an evidence item (question / user answer /
+ * correct answer / feedback) and bolds `Etiqueta:` prefixes so quiz and
+ * dialogue feedback never collapse into a single run-on paragraph.
+ */
+function renderFallbackItem(item: string): string {
+  const lines = item
+    .split("\n")
+    .map((line) => normalizeText(line, 2_500))
+    .filter(Boolean)
+    .slice(0, 12);
+
+  return lines
+    .map((line, index) => {
+      const labeled = line.match(/^([^:]{2,80}):\s+(.+)$/u);
+      const rendered = labeled
+        ? `<strong>${escapeHtml(labeled[1])}:</strong> ${escapeHtml(labeled[2])}`
+        : escapeHtml(line);
+      return index === 0 ? rendered : `<br>${rendered}`;
+    })
+    .join("");
+}
+
 function renderFallbackList(items: string[], emptyText: string): string {
   const normalized = items
-    .map((item) => normalizeText(item, 2_500))
+    .map((item) => renderFallbackItem(item))
     .filter(Boolean)
     .slice(0, 20);
 
@@ -236,9 +259,7 @@ function renderFallbackList(items: string[], emptyText: string): string {
     return `<p><em>${escapeHtml(emptyText)}</em></p>`;
   }
 
-  return `<ul>${normalized
-    .map((item) => `<li>${escapeHtml(item)}</li>`)
-    .join("")}</ul>`;
+  return `<ul>${normalized.map((item) => `<li>${item}</li>`).join("")}</ul>`;
 }
 
 /**

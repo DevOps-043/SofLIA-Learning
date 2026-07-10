@@ -47,6 +47,7 @@
       "editNote": "Edit note",
       "deleteNote": "Delete note",
       "viewGenerated": "View generated note",
+      "openInNotebook": "Open in notebook",
       "source": {
         "manual": "Manual",
         "chat": "SofLIA conversation",

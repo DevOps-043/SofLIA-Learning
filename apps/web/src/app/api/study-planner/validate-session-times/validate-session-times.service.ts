@@ -124,23 +124,23 @@ function validateSessionDurations(
 ): void {
   if (body.minSessionMinutes < minimumLessonTime) {
     errors.push(
-      `El tiempo mÃ­nimo de sesiÃ³n (${body.minSessionMinutes} min) es menor que la lecciÃ³n mÃ¡s corta (${Math.ceil(minimumLessonTime)} min). ` +
-      `Es importante completar al menos una lecciÃ³n por sesiÃ³n.`,
+      `El tiempo mínimo de sesión (${body.minSessionMinutes} min) es menor que la lección más corta (${Math.ceil(minimumLessonTime)} min). ` +
+      `Es importante completar al menos una lección por sesión.`,
     );
-    suggestions.push(`Aumenta el tiempo mÃ­nimo de sesiÃ³n a al menos ${Math.ceil(minimumLessonTime)} minutos.`);
+    suggestions.push(`Aumenta el tiempo mínimo de sesión a al menos ${Math.ceil(minimumLessonTime)} minutos.`);
   }
 
   if (body.maxSessionMinutes <= body.minSessionMinutes) {
-    errors.push('El tiempo mÃ¡ximo de sesiÃ³n debe ser mayor que el tiempo mÃ­nimo.');
+    errors.push('El tiempo máximo de sesión debe ser mayor que el tiempo mínimo.');
   }
 
   if (body.maxSessionMinutes > 180) {
-    warnings.push('Las sesiones de mÃ¡s de 3 horas pueden afectar la concentraciÃ³n y retenciÃ³n.');
-    suggestions.push('Considera dividir las sesiones largas con descansos mÃ¡s frecuentes.');
+    warnings.push('Las sesiones de más de 3 horas pueden afectar la concentración y retención.');
+    suggestions.push('Considera dividir las sesiones largas con descansos más frecuentes.');
   }
 
   if (body.breakDurationMinutes < 5) {
-    warnings.push('Los descansos muy cortos (menos de 5 minutos) pueden no ser suficientes para recuperar la concentraciÃ³n.');
+    warnings.push('Los descansos muy cortos (menos de 5 minutos) pueden no ser suficientes para recuperar la concentración.');
   }
 }
 
@@ -150,7 +150,7 @@ function validatePreferredBlocks(
   warnings: string[],
 ): void {
   if (!body.preferredDays || body.preferredDays.length === 0) {
-    errors.push('Debes seleccionar al menos un dÃ­a para estudiar.');
+    errors.push('Debes seleccionar al menos un día para estudiar.');
   }
 
   if (!body.preferredTimeBlocks || body.preferredTimeBlocks.length === 0) {
@@ -163,7 +163,7 @@ function validatePreferredBlocks(
       warnings.push(
         `El bloque de tiempo ${block.startHour}:${String(block.startMinute).padStart(2, '0')} - ` +
         `${block.endHour}:${String(block.endMinute).padStart(2, '0')} (${blockMinutes} min) ` +
-        `es menor que el tiempo mÃ­nimo de sesiÃ³n (${body.minSessionMinutes} min).`,
+        `es menor que el tiempo mínimo de sesión (${body.minSessionMinutes} min).`,
       );
     }
   }

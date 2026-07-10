@@ -48,7 +48,7 @@ export async function parseCreateLessonBody(
     return NextResponse.json(
       {
         success: false,
-        error: 'Error al parsear el cuerpo de la peticiÃ³n. Verifique que el formato JSON sea vÃ¡lido.',
+        error: 'Error al parsear el cuerpo de la petición. Verifique que el formato JSON sea válido.',
       },
       { status: 400 },
     )
@@ -58,7 +58,7 @@ export async function parseCreateLessonBody(
 export function validateCreateLessonBody(body: CreateLessonData): NextResponse | null {
   if (!body.lesson_title || body.lesson_title.trim() === '') {
     return NextResponse.json(
-      { success: false, error: 'El tÃ­tulo de la lecciÃ³n es requerido' },
+      { success: false, error: 'El título de la lección es requerido' },
       { status: 400 },
     )
   }

@@ -42,6 +42,35 @@ describe("normalizeGeneratedNoteHtml", () => {
     );
   });
 
+  it("recovers real structure from notes stored with escaped HTML tags", () => {
+    const html = normalizeGeneratedNoteHtml(
+      "&lt;h2&gt;Resumen de la lección&lt;/h2&gt;&lt;p&gt;El participante analiza la brecha.&lt;/p&gt;" +
+        "&lt;h2&gt;Conceptos y evidencias&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;Actividad: Mapeo de procesos.&lt;/li&gt;&lt;/ul&gt;",
+      "lesson_auto_note",
+    );
+
+    expect(html).toContain("<h2>Resumen de la lección</h2>");
+    expect(html).toContain("<ul><li>Actividad: Mapeo de procesos.</li></ul>");
+    expect(html).not.toContain("&lt;h2&gt;");
+  });
+
+  it("structures flattened deterministic notes and drops serialized JSON debris", () => {
+    const html = normalizeGeneratedNoteHtml(
+      "Resumen de la lecciónEl participante será capaz de analizar el riesgo. " +
+        'Conceptos y evidenciasActividad: Mapeo Ágil (reflection). Contenido: {"introduction":"Analizar la brecha de productividad."}. Respuesta del usuario: {}. ' +
+        "Retroalimentación de SofLIAEvaluación: Pregunta 1: ¿Cuál es el principal beneficio? Tu respuesta: Deducción inmediata (correcta). " +
+        "Preguntas de repaso ¿Qué aprendí y qué evidencia lo demuestra?",
+      "lesson_auto_note",
+    );
+
+    expect(html).toContain("<h2>Resumen de la lección</h2>");
+    expect(html).toContain("<h2>Conceptos y evidencias</h2>");
+    expect(html).toContain("<h2>Retroalimentación de SofLIA</h2>");
+    expect(html).toContain("Analizar la brecha de productividad.");
+    expect(html).not.toContain('{"introduction"');
+    expect(html).not.toContain("Respuesta del usuario: {}");
+  });
+
   it("converts markdown headings and lists when a model returns markdown", () => {
     const html = normalizeGeneratedNoteHtml(
       "## Resumen\nTexto breve.\n\n## Claves\n- Primera\n- Segunda",
