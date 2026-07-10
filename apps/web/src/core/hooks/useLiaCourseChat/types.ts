@@ -11,6 +11,11 @@ export interface LiaCourseChatUserProfile {
 }
 
 export interface LiaChatResponsePayload {
+  chat_provenance?: {
+    assistant_message_id?: string | null;
+    conversation_id: string;
+    user_message_id?: string;
+  };
   conversationId?: string;
   response?: string;
   generatedNanoBanana?: SofLIAMessage['generatedNanoBanana'];

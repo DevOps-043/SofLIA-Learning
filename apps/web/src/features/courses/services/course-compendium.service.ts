@@ -12,8 +12,9 @@
  * Pure prompt/compilation builders live in course-compendium.builder.ts.
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { z } from 'zod'
 
+import { generateStructuredContent } from '@/lib/ai/structured-generation.server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { Json } from '@/lib/supabase/types'
 import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core'
@@ -23,6 +24,8 @@ import { NoteService } from './note.service'
 import {
   buildCompiledNotesHtml,
   buildCourseCompendiumPrompt,
+  buildCourseSynthesisHtmlFromModel,
+  buildDeterministicCourseSynthesisHtml,
   clip,
   groupNotesByLesson,
   type CompendiumLesson,
@@ -36,8 +39,10 @@ export type CourseCompendiumStatus = 'created' | 'updated' | 'skipped' | 'failed
 export interface CourseCompendiumResult {
   error?: string
   noteId?: string
+  quality?: 'ai' | 'deterministic'
   reason?: string
   status: CourseCompendiumStatus
+  warning?: string
 }
 
 export interface GenerateCourseCompendiumInput {
@@ -56,12 +61,49 @@ const MAX_NOTE_CONTENT = 50_000
 const AI_SYNTHESIS_MAX = 30_000
 const COMPILED_SECTION_RESERVE = 500
 
-function normalizeGeneratedHtml(value: string): string {
-  return value
-    .trim()
-    .replace(/^```(?:html)?/i, '')
-    .replace(/```$/i, '')
-    .trim()
+const compendiumItemSchema = z.object({
+  detail: z.string().min(1).max(2_500),
+  label: z.string().max(160),
+})
+const courseSynthesisSchema = z.object({
+  keyConcepts: z.array(compendiumItemSchema).min(1).max(12),
+  reviewSteps: z.array(compendiumItemSchema).min(1).max(12),
+  synthesis: z.array(z.string().min(1).max(3_000)).min(1).max(5),
+  titles: z.object({
+    concepts: z.string().min(1).max(120),
+    index: z.string().min(1).max(80),
+    review: z.string().min(1).max(120),
+    synthesis: z.string().min(1).max(120),
+  }),
+})
+const COURSE_SYNTHESIS_JSON_SCHEMA: Record<string, unknown> = {
+  $defs: {
+    item: {
+      additionalProperties: false,
+      properties: { detail: { type: 'string' }, label: { type: 'string' } },
+      required: ['detail', 'label'],
+      type: 'object',
+    },
+  },
+  additionalProperties: false,
+  properties: {
+    keyConcepts: { items: { $ref: '#/$defs/item' }, minItems: 1, type: 'array' },
+    reviewSteps: { items: { $ref: '#/$defs/item' }, minItems: 1, type: 'array' },
+    synthesis: { items: { type: 'string' }, minItems: 1, type: 'array' },
+    titles: {
+      additionalProperties: false,
+      properties: {
+        concepts: { type: 'string' },
+        index: { type: 'string' },
+        review: { type: 'string' },
+        synthesis: { type: 'string' },
+      },
+      required: ['concepts', 'index', 'review', 'synthesis'],
+      type: 'object',
+    },
+  },
+  required: ['keyConcepts', 'reviewSteps', 'synthesis', 'titles'],
+  type: 'object',
 }
 
 interface ModuleWithLessonsRow {
@@ -78,7 +120,7 @@ interface ExistingCompendiumRow {
   note_id: string
 }
 
-async function loadOrderedLessons(
+export async function loadOrderedLessons(
   supabase: AdminClient,
   courseId: string,
 ): Promise<CompendiumLesson[]> {
@@ -134,24 +176,32 @@ async function findExistingCompendium(
   return data || null
 }
 
-async function generateSynthesisHtml(prompt: string): Promise<string> {
-  const googleApiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY
-  if (!googleApiKey) {
-    throw new Error('GEMINI_API_KEY no esta configurada.')
-  }
-
-  const genAI = new GoogleGenerativeAI(googleApiKey)
-  const model = genAI.getGenerativeModel({
-    model: process.env.GEMINI_MODEL || FALLBACK_MODEL,
-    generationConfig: {
-      maxOutputTokens: 8192,
-      temperature: 0.25,
+async function generateSynthesisHtml(input: {
+  generation: GenerateCourseCompendiumInput
+  prompt: string
+  untrustedText: string
+}): Promise<string> {
+  const result = await generateStructuredContent({
+    audit: {
+      action: 'notebook_course_compendium_generated',
+      actorId: input.generation.userId,
+      organizationId: input.generation.organizationId,
+      resourceId: input.generation.courseId,
+      resourceType: 'course',
     },
+    jsonSchema: COURSE_SYNTHESIS_JSON_SCHEMA,
+    maxOutputTokens: 8_192,
+    model: process.env.GEMINI_MODEL || FALLBACK_MODEL,
+    operation: 'course_compendium',
+    prompt: input.prompt,
+    schema: courseSynthesisSchema,
+    temperature: 0.25,
+    untrustedText: input.untrustedText,
   })
-
-  const result = await model.generateContent(prompt)
-  const rawHtml = normalizeGeneratedHtml(result.response.text())
-  const sanitized = sanitizeHtml(rawHtml, {
+  const generatedHtml = buildCourseSynthesisHtmlFromModel(
+    JSON.stringify(result.value),
+  )
+  const sanitized = sanitizeHtml(generatedHtml, {
     level: 'rich',
     maxLength: AI_SYNTHESIS_MAX,
   }).trim()
@@ -269,7 +319,35 @@ export async function generateCourseCompendium(
       lessons,
       notesByLesson,
     })
-    const synthesisHtml = await generateSynthesisHtml(prompt)
+    let quality: 'ai' | 'deterministic' = 'ai'
+    let warning: string | undefined
+    let synthesisHtml: string
+    try {
+      synthesisHtml = await generateSynthesisHtml({
+        generation: input,
+        prompt,
+        untrustedText: notes
+          .map((note) => `${note.note_title}\n${note.note_content}`)
+          .join('\n')
+          .slice(0, 20_000),
+      })
+    } catch (generationError) {
+      quality = 'deterministic'
+      warning =
+        generationError instanceof Error
+          ? generationError.message
+          : 'AI generation unavailable'
+      logger.warn('Using deterministic course compendium fallback', {
+        courseId: input.courseId,
+        reason: warning,
+        userId: input.userId,
+      })
+      synthesisHtml = buildDeterministicCourseSynthesisHtml({
+        courseTitle: input.courseTitle,
+        lessons,
+        notesByLesson,
+      })
+    }
 
     const compiledBudget =
       MAX_NOTE_CONTENT - synthesisHtml.length - COMPILED_SECTION_RESERVE
@@ -284,7 +362,7 @@ export async function generateCourseCompendium(
       maxLength: MAX_NOTE_CONTENT,
     }).trim()
 
-    return persistCompendium({
+    const persisted = await persistCompendium({
       content,
       courseId: input.courseId,
       enrollmentId: input.enrollmentId,
@@ -294,6 +372,7 @@ export async function generateCourseCompendium(
       supabase,
       userId: input.userId,
     })
+    return { ...persisted, quality, warning }
   } catch (error) {
     logger.error('Course compendium generation failed', {
       courseId: input.courseId,

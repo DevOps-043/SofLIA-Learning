@@ -65,9 +65,8 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       input: parsed.data,
     })
 
-    // Fire-and-forget: idempotent per content hash, so autosave bursts only
-    // ever enqueue one job per real content change.
-    void enqueueNoteEnrichment({
+    // Await only the durable enqueue; processing stays asynchronous.
+    await enqueueNoteEnrichment({
       contentHtml: note.content,
       noteId: note.noteId,
       organizationId: auth.organizationId,

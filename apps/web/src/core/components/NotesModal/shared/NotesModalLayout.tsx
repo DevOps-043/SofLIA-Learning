@@ -385,7 +385,7 @@ export function NotesModalLayout({
               </div>
               <div className={classes.editorArea}>
                 <div
-                  className="notes-editor w-full flex-1 text-gray-900 dark:text-white/90 placeholder-gray-400 dark:placeholder-white/20 focus:outline-none resize-none break-words"
+                  className="notes-editor notebook-prose w-full flex-1 text-gray-900 dark:text-white/90 placeholder-gray-400 dark:placeholder-white/20 focus:outline-none resize-none break-words"
                   contentEditable
                   data-placeholder={t('notes.modal.contentPlaceholder')}
                   onClick={editor.handleEditorClick}

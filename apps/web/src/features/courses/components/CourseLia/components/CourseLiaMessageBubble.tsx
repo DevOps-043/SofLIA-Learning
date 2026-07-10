@@ -1,7 +1,7 @@
 import type { LiaImageAttachment } from '@/core/reporting/report-problem.contract';
 import type { SofLIAMessage } from '@/core/types/lia.types';
 import type { NormalizedLiaLink } from '../lia-link.utils';
-import type { CourseLiaThemeColors } from '../types';
+import type { CourseLiaProps, CourseLiaThemeColors } from '../types';
 import { parseMarkdownContent } from '../utils/markdown-content';
 
 import { AssistantMessageActions } from './AssistantMessageActions';
@@ -21,9 +21,10 @@ interface CourseLiaMessageBubbleProps {
   onCopyMessage: (messageId: string, content: string) => void | Promise<void>;
   onEditKeyDown: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   onLinkClick: (link: NormalizedLiaLink) => void;
-  onSaveNote?: (content: string) => void;
+  onSaveNote?: CourseLiaProps['onSaveNote'];
   onSubmitEditedMessage: () => void | Promise<void>;
   setEditingValue: (value: string) => void;
+  precedingUserMessage?: string;
   themeColors: CourseLiaThemeColors;
 }
 
@@ -63,6 +64,7 @@ export function CourseLiaMessageBubble({
           message={message}
           onCopyMessage={props.onCopyMessage}
           onSaveNote={props.onSaveNote}
+          precedingUserMessage={props.precedingUserMessage}
           themeColors={themeColors}
         />
       ) : null}

@@ -50,12 +50,39 @@ export const lessonFeedbackSchema = z.object({
 
 export type LessonFeedbackBody = z.infer<typeof lessonFeedbackSchema>
 
-export const noteCreateSchema = z.object({
-  note_title: optionalShortTextSchema,
-  note_content: contentSchema,
-  note_tags: z.array(tagSchema).max(20).optional(),
-  source_type: z.enum(['manual', 'chat', 'import', 'lesson_auto_note']).optional(),
+export const noteChatProvenanceSchema = z.object({
+  conversation_id: z.string().uuid(),
+  user_message_id: z.string().uuid().optional(),
+  assistant_message_id: z.string().uuid().optional(),
 })
+
+export const noteCreateSchema = z
+  .object({
+    note_title: optionalShortTextSchema,
+    note_content: contentSchema,
+    note_tags: z.array(tagSchema).max(20).optional(),
+    // Generated sources are server-owned. A browser may only create notes that
+    // represent explicit user content or a saved, verifiable SofLIA answer.
+    source_type: z.enum(['manual', 'chat', 'import']).optional().default('manual'),
+    chat_provenance: noteChatProvenanceSchema.optional(),
+  })
+  .superRefine((body, context) => {
+    if (body.source_type === 'chat' && !body.chat_provenance) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'CHAT_PROVENANCE_REQUIRED',
+        path: ['chat_provenance'],
+      })
+    }
+
+    if (body.source_type !== 'chat' && body.chat_provenance) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'CHAT_PROVENANCE_NOT_ALLOWED',
+        path: ['chat_provenance'],
+      })
+    }
+  })
 
 export type NoteCreateBody = z.infer<typeof noteCreateSchema>
 

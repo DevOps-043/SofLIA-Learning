@@ -1,5 +1,16 @@
 # Prompt — Evolución del Libro de Apuntes de SofLIA Learning a "Segundo Cerebro Operativo"
 
+> **Estado de implementación verificado (2026-07-10):** este archivo es la
+> fuente de visión y requisitos, no una afirmación de que toda la visión esté
+> desplegada. El núcleo y la Fase 1 están implementados en el repositorio:
+> notas manuales/chat acotadas por organización e inscripción, generación
+> durable por lección, conversación visible en crudo, compendio vivo por curso,
+> exportación PDF, enriquecimiento revisable, timeline, tareas y búsqueda por
+> filtros. Su activación en cada entorno requiere aplicar la migración
+> `20260718100000_notebook_generation_queue.sql` y habilitar los crons de
+> generación/enriquecimiento. Embeddings, RAG, compartir conocimiento y Hub
+> continúan como fases posteriores.
+
 ## ROL
 
 Actúa como arquitecto senior de producto IA, diseñador de sistemas de conocimiento, estratega de aprendizaje corporativo, especialista en UX para plataformas EdTech B2B y consultor técnico en arquitectura de datos, memoria contextual, RAG, búsqueda semántica y automatización inteligente.

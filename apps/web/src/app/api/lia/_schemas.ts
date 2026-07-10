@@ -37,6 +37,7 @@ const currentLessonContextSchema = z
     courseSlug: optionalTextSchema(200),
     courseTitle: optionalTextSchema(300),
     courseDescription: optionalTextSchema(4_000),
+    enrollmentId: optionalIdSchema,
     userRole: optionalTextSchema(200),
     moduleId: optionalTextSchema(),
     moduleTitle: optionalTextSchema(300),
@@ -96,6 +97,7 @@ const platformContextSchema = z
     currentLessonContext: currentLessonContextSchema.optional(),
     currentActivityContext: z
       .object({
+        id: optionalIdSchema,
         title: z.string().min(1).max(300),
         type: z.string().min(1).max(120),
         description: z.string().min(1).max(4_000),

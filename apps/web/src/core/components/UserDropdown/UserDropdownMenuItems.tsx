@@ -30,7 +30,7 @@ export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
     let count = 0
     if (logic.isAdmin) count++
     if (logic.isInstructor) count++
-    if (logic.isOrgAdmin && logic.currentOrganization) count++
+    if ((logic.isOrgAdmin || logic.isAdmin) && logic.currentOrganization) count++
     count++ // user panel is always included
     return count > 1
   }, [logic.isAdmin, logic.isInstructor, logic.isOrgAdmin, logic.currentOrganization])
@@ -47,7 +47,7 @@ export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
       {!hasPanelSwitcher && logic.isInstructor && (
         <MenuItem icon={LayoutDashboard} label={logic.t('menu.instructorPanel')} onClick={() => logic.handleNavigation('/instructor/dashboard')} />
       )}
-      {!hasPanelSwitcher && logic.isOrgAdmin && businessPanelPath && (
+      {!hasPanelSwitcher && (logic.isOrgAdmin || logic.isAdmin) && businessPanelPath && (
         <MenuItem icon={LayoutDashboard} label={logic.t('business:header.administratorRole')} onClick={() => logic.handleNavigation(businessPanelPath)} />
       )}
       {logic.isB2B && (

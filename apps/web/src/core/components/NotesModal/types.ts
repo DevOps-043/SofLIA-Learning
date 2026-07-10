@@ -1,5 +1,11 @@
 export interface NoteDraft {
+  chatProvenance?: {
+    assistantMessageId?: string;
+    conversationId: string;
+    userMessageId?: string;
+  };
   content: string;
+  sourceType?: 'manual' | 'chat' | 'import';
   tags: string[];
   title: string;
 }

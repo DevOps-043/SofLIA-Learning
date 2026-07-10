@@ -4,6 +4,8 @@ import { calculateCourseProgress } from '@/lib/utils/lesson-progress'
 import { computeLessonActivityProgress } from '@/features/courses/services/activity-submission.server.service'
 import { ensureCourseEnrollmentScope } from '@/features/courses/services/course-enrollment.server.service'
 import { fetchRequiredLessonQuizStatus } from '@/features/courses/services/quiz/required-quiz-status.service'
+import type { GenerationState } from '@/features/notebook/types'
+import { logger } from '@/lib/utils/logger'
 import {
   LessonProgressError,
   sortLessonsForCourse,
@@ -53,7 +55,7 @@ type LessonProgressSideEffectHandler = (
     now: string
   },
   overallProgress: number,
-) => void
+) => Promise<{ lesson?: GenerationState; compendium?: GenerationState }>
 
 const importSideEffectsModule = new Function(
   'modulePath',
@@ -64,7 +66,7 @@ const importSideEffectsModule = new Function(
   triggerLessonProgressSideEffects: LessonProgressSideEffectHandler
 }>
 
-function triggerLessonProgressSideEffectsAsync(
+async function runLessonProgressSideEffects(
   completionContext: {
     supabase: SupabaseServerClient
     userId: string
@@ -79,12 +81,24 @@ function triggerLessonProgressSideEffectsAsync(
     now: string
   },
   overallProgress: number,
-) {
-  void importSideEffectsModule('./lesson-progress-side-effects.service')
-    .then(({ triggerLessonProgressSideEffects }) => {
-      triggerLessonProgressSideEffects(completionContext, overallProgress)
+): Promise<{ lesson?: GenerationState; compendium?: GenerationState }> {
+  try {
+    const { triggerLessonProgressSideEffects } = await importSideEffectsModule(
+      './lesson-progress-side-effects.service',
+    )
+    return await triggerLessonProgressSideEffects(
+      completionContext,
+      overallProgress,
+    )
+  } catch (error) {
+    logger.error('Notebook generation enqueue failed after lesson completion', {
+      courseId: completionContext.courseId,
+      error: error instanceof Error ? error.message : error,
+      lessonId: completionContext.lessonId,
+      userId: completionContext.userId,
     })
-    .catch(() => undefined)
+    return {}
+  }
 }
 
 async function ensureEnrollment(
@@ -471,7 +485,7 @@ export async function completeLessonProgress(
     now,
   )
 
-  triggerLessonProgressSideEffectsAsync(
+  const notebookGeneration = await runLessonProgressSideEffects(
     {
       supabase,
       userId,
@@ -490,6 +504,7 @@ export async function completeLessonProgress(
 
   return {
     lessonId,
+    notebookGeneration,
     overallProgress,
   }
 }

@@ -5,6 +5,72 @@
   "search": {
     "placeholder": "Buscar por título, curso, lección o etiqueta..."
   },
+  "views": {
+    "timeline": "Actividad reciente",
+    "tasks": "Tareas"
+  },
+  "filters": {
+    "sourceLabel": "Origen",
+    "knowledgeLabel": "Tipo",
+    "lifecycleLabel": "Estado",
+    "all": "Todos los tipos",
+    "lifecycle": {
+      "all": "Todos los estados",
+      "draft": "Borrador",
+      "enriched": "Enriquecido",
+      "reviewed": "Revisado",
+      "archived": "Archivado",
+      "shared": "Compartido",
+      "promoted": "Promovido"
+    }
+  },
+  "source": {
+    "all": "Todos",
+    "manual": "Manual",
+    "chat": "Conversación SofLIA",
+    "import": "Importado",
+    "lesson_auto_note": "Apunte SofLIA",
+    "course_compendium": "Compendio"
+  },
+  "generation": {
+    "retry": "Reintentar generación",
+    "status": {
+      "queued": "En cola",
+      "processing": "Generando",
+      "partial": "Parcial",
+      "ready": "Listo",
+      "failed": "Falló",
+      "stale": "Por actualizar"
+    },
+    "statusDescription": {
+      "queued": "Tu cuaderno está en cola y comenzará a generarse en breve.",
+      "processing": "SofLIA está organizando tus apuntes y aprendizajes.",
+      "partial": "Ya puedes consultar una versión parcial; completaremos lo que falta automáticamente.",
+      "ready": "Tu cuaderno está listo para consultarlo y ponerlo en práctica.",
+      "failed": "No se pudo completar la generación. Puedes reintentarlo sin perder tus notas.",
+      "stale": "Hay nuevos aprendizajes; el cuaderno necesita actualizarse."
+    }
+  },
+  "tasks": {
+    "title": "Tareas de aprendizaje",
+    "subtitle": "Convierte tus apuntes en acciones concretas y dales seguimiento.",
+    "emptyTitle": "No hay tareas en este filtro",
+    "emptyDescription": "Las acciones detectadas por SofLIA aparecerán aquí para que decidas cuáles realizar.",
+    "loadMore": "Cargar más",
+    "filter": {
+      "all": "Todas",
+      "suggested": "Sugeridas",
+      "open": "Pendientes",
+      "done": "Completadas",
+      "dismissed": "Descartadas"
+    },
+    "status": {
+      "suggested": "Sugerida",
+      "open": "Pendiente",
+      "done": "Completada",
+      "dismissed": "Descartada"
+    }
+  },
   "tree": {
     "aria": "Navegación de apuntes por curso y lección",
     "allNotes": "Todos los apuntes",
@@ -37,8 +103,9 @@
     "regenerate": "Regenerar compendio",
     "regenerating": "Regenerando...",
     "regenerateConfirm": "¿Regenerar el compendio? El contenido actual se reemplazará con tus apuntes más recientes.",
-    "regenerateSuccess": "Compendio actualizado.",
-    "regenerateError": "No se pudo regenerar el compendio."
+    "regenerateSuccess": "La regeneración del compendio comenzó.",
+    "regenerateError": "No se pudo regenerar el compendio.",
+    "exportPdf": "Exportar cuaderno en PDF"
   },
   "newNote": {
     "button": "Nuevo apunte",
@@ -97,6 +164,7 @@
     "actionsLabel": "Acciones",
     "titlePlaceholder": "Título del apunte",
     "contentPlaceholder": "Empieza a escribir tu apunte...",
+    "generatedReadOnlyHint": "Este apunte conserva la evidencia generada por SofLIA y es de solo lectura. Puedes crear un apunte manual para agregar tus propias reflexiones.",
     "tagsLabel": "Etiquetas",
     "tagPlaceholder": "Agregar etiqueta",
     "removeTag": "Quitar etiqueta {{tag}}",

@@ -103,8 +103,11 @@ describe('courses API schemas', () => {
     ).toBe(true)
     expect(
       noteCreateSchema.safeParse({
-        note_content: '<p>Apunte generado</p>',
-        source_type: 'lesson_auto_note',
+        note_content: '<p>Respuesta guardada</p>',
+        source_type: 'chat',
+        chat_provenance: {
+          conversation_id: '11111111-1111-4111-8111-111111111111',
+        },
       }).success,
     ).toBe(true)
 
@@ -112,7 +115,22 @@ describe('courses API schemas', () => {
     expect(
       noteCreateSchema.safeParse({
         note_content: 'Contenido',
-        source_type: 'auto',
+        source_type: 'lesson_auto_note',
+      }).success,
+    ).toBe(false)
+    expect(
+      noteCreateSchema.safeParse({
+        note_content: 'Respuesta sin procedencia',
+        source_type: 'chat',
+      }).success,
+    ).toBe(false)
+    expect(
+      noteCreateSchema.safeParse({
+        note_content: 'Nota manual con procedencia falsa',
+        source_type: 'manual',
+        chat_provenance: {
+          conversation_id: '11111111-1111-4111-8111-111111111111',
+        },
       }).success,
     ).toBe(false)
   })

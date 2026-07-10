@@ -12,6 +12,7 @@ export interface CourseLessonActivitiesContext {
   pendingRequiredTitles?: string
   activityTypes?: LessonActivityContextItem[]
   currentActivityFocus?: {
+    id?: string
     title: string
     type: string
     isRequired: boolean

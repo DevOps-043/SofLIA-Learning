@@ -1,5 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
+import {
+  enqueueCourseCompletionNotebookJobs,
+  enqueueLessonAutoNoteJob,
+} from '@/features/notebook/services/notebook-generation.server.service'
+import { resolveQueuedJobState } from '@/features/notebook/services/notebook-generation.helpers'
+import type { GenerationState } from '@/features/notebook/types'
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
 
@@ -184,38 +190,53 @@ async function handleCourseCompletion({
       },
     )
 
-    if (!wasCompleted) {
-      const { generateCourseCompendium } = await import(
-        '@/features/courses/services/course-compendium.service'
-      )
-      const compendium = await generateCourseCompendium({
-        allowUpdate: false,
-        courseId,
-        courseTitle,
-        enrollmentId,
-        organizationId: organizationId ?? null,
-        userId,
-      })
-      logger.info('Course compendium auto-generation', {
-        courseId,
-        error: compendium.error,
-        reason: compendium.reason,
-        status: compendium.status,
-        userId,
-      })
-    }
   } catch (error) {
     logger.error('Error ejecutando side effects de curso completado:', error)
   }
 }
 
-export function triggerLessonProgressSideEffects(
+export async function triggerLessonProgressSideEffects(
   completionContext: CompletionContext,
   overallProgress: number,
-) {
+): Promise<{
+  lesson?: GenerationState
+  compendium?: GenerationState
+}> {
   fireAndForget(() => notifyLessonCompleted(completionContext))
+
+  if (!completionContext.organizationId) {
+    logger.warn('Notebook generation skipped without organization scope', {
+      courseId: completionContext.courseId,
+      lessonId: completionContext.lessonId,
+      userId: completionContext.userId,
+    })
+    return {}
+  }
+
+  const lessonJob = await enqueueLessonAutoNoteJob({
+    courseId: completionContext.courseId,
+    enrollmentId: completionContext.enrollmentId,
+    lessonId: completionContext.lessonId,
+    organizationId: completionContext.organizationId,
+    priority: 50,
+    sourceVersion: completionContext.now,
+    userId: completionContext.userId,
+  })
+  const notebookGeneration: {
+    lesson?: GenerationState
+    compendium?: GenerationState
+  } = { lesson: resolveQueuedJobState(lessonJob) }
 
   if (overallProgress === 100) {
     fireAndForget(() => handleCourseCompletion(completionContext))
+    const courseJobs = await enqueueCourseCompletionNotebookJobs({
+      courseId: completionContext.courseId,
+      enrollmentId: completionContext.enrollmentId,
+      organizationId: completionContext.organizationId,
+      userId: completionContext.userId,
+    })
+    notebookGeneration.compendium = courseJobs.compendium.state
   }
+
+  return notebookGeneration
 }

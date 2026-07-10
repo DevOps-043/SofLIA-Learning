@@ -46,6 +46,22 @@
       "saveFirstNote": "Save your first note to get started",
       "editNote": "Edit note",
       "deleteNote": "Delete note",
+      "viewGenerated": "View generated note",
+      "source": {
+        "manual": "Manual",
+        "chat": "SofLIA conversation",
+        "import": "Imported",
+        "lesson_auto_note": "SofLIA note",
+        "course_compendium": "Compendium"
+      },
+      "generationStatus": {
+        "queued": "Queued",
+        "processing": "Generating",
+        "partial": "Partial",
+        "ready": "Read-only",
+        "failed": "Failed",
+        "stale": "Update needed"
+      },
       "notesProgress": "Notes Progress",
       "notesCreated": "Notes created",
       "lessonsWithNotes": "Lessons with notes",
@@ -329,6 +345,13 @@
     "courseCompleted": {
       "title": "Congratulations!",
       "message": "You have successfully completed the course",
+      "certificateHint": "Next, complete a short survey to access your certificate.",
+      "continue": "Continue",
+      "notebook": {
+        "title": "Your learning notebook",
+        "preparing": "We are preparing a compendium of your notes and everything you learned.",
+        "view": "View notebook"
+      },
       "rateNow": "Rate now",
       "rateLater": "Later"
     },

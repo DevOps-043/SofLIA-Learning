@@ -39,6 +39,55 @@ const aiEnrichmentOutputSchema = z.object({
   summary: z.string().optional(),
 })
 
+export const structuredAiEnrichmentOutputSchema = z.object({
+  confidence: z.number().min(0).max(1),
+  detected_tasks: z.array(z.object({ title: z.string().min(1).max(200) })).max(5),
+  key_concepts: z.array(z.string().min(1).max(80)).max(8),
+  knowledge_type: z.enum([
+    'note',
+    'reflection',
+    'decision',
+    'qa',
+    'resource',
+    'evidence',
+  ]),
+  suggested_tags: z.array(z.string().min(1).max(40)).max(5),
+  summary: z.string().max(MAX_SUMMARY_LENGTH),
+})
+
+export const AI_ENRICHMENT_JSON_SCHEMA: Record<string, unknown> = {
+  additionalProperties: false,
+  properties: {
+    confidence: { maximum: 1, minimum: 0, type: 'number' },
+    detected_tasks: {
+      items: {
+        additionalProperties: false,
+        properties: { title: { type: 'string' } },
+        required: ['title'],
+        type: 'object',
+      },
+      maxItems: 5,
+      type: 'array',
+    },
+    key_concepts: { items: { type: 'string' }, maxItems: 8, type: 'array' },
+    knowledge_type: {
+      enum: ['note', 'reflection', 'decision', 'qa', 'resource', 'evidence'],
+      type: 'string',
+    },
+    suggested_tags: { items: { type: 'string' }, maxItems: 5, type: 'array' },
+    summary: { type: 'string' },
+  },
+  required: [
+    'confidence',
+    'detected_tasks',
+    'key_concepts',
+    'knowledge_type',
+    'suggested_tags',
+    'summary',
+  ],
+  type: 'object',
+}
+
 export interface NormalizedEnrichment {
   confidence: number | null
   detectedTasks: string[]

@@ -7,11 +7,19 @@ import {
 } from '@/app/api/courses/_schemas'
 import { SessionService } from '@/features/auth/services/session.service'
 import { CourseService } from '@/features/courses/services/course.service'
+import {
+  assertNoteLessonScope,
+  ChatNoteProvenanceError,
+} from '@/features/courses/services/chat-note-provenance.server.service'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
-import { NoteService } from '@/features/courses/services/note.service'
+import {
+  NoteMutationError,
+  NoteService,
+} from '@/features/courses/services/note.service'
+import { enqueueNoteEnrichment } from '@/features/notebook/services/notebook-enrichment.server.service'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
-import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core'
+import { normalizeNoteContentHtml } from '@/lib/notes/generated-note-html'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 async function generateNoteTitle(noteContent: string): Promise<string> {
@@ -87,13 +95,16 @@ async function handlePut(
       )
     }
 
+    await assertNoteLessonScope({
+      client: supabase,
+      courseId: course.id,
+      lessonId,
+    })
+
     const noteContent =
       body.note_content === undefined || body.note_content === null
         ? undefined
-        : sanitizeHtml(body.note_content, {
-            level: 'rich',
-            maxLength: 50_000,
-          }).trim()
+        : normalizeNoteContentHtml(body.note_content)
 
     if (body.note_content !== undefined && body.note_content !== null && !noteContent) {
       return apiError(
@@ -131,14 +142,44 @@ async function handlePut(
       }
     }
 
-    const note = await NoteService.updateNote(currentUser.id, noteId, {
-      note_title: noteTitle,
-      note_content: noteContent,
-      note_tags: body.note_tags,
-    }, enrollment.enrollment_id)
+    const note = await NoteService.updateNote(
+      currentUser.id,
+      noteId,
+      {
+        note_title: noteTitle,
+        note_content: noteContent,
+        note_tags: body.note_tags,
+      },
+      {
+        enrollmentId: enrollment.enrollment_id,
+        lessonId,
+        organizationId: enrollment.organization_id,
+      },
+    )
+
+    if (enrollment.organization_id) {
+      await enqueueNoteEnrichment({
+        contentHtml: note.note_content,
+        noteId: note.note_id,
+        organizationId: enrollment.organization_id,
+        sourceType: note.source_type || 'manual',
+        title: note.note_title,
+        userId: currentUser.id,
+      })
+    }
 
     return NextResponse.json(note)
   } catch (error) {
+    if (error instanceof NoteMutationError) {
+      return apiError(
+        error.code === 'READ_ONLY' ? 'NOTE_READ_ONLY' : 'NOTE_NOT_FOUND',
+        error.message,
+        error.code === 'READ_ONLY' ? 422 : 404,
+      )
+    }
+    if (error instanceof ChatNoteProvenanceError) {
+      return apiError('INVALID_NOTE_SCOPE', error.message, 422)
+    }
     return apiError('INTERNAL_ERROR', 'Error interno del servidor.', 500, {
       details: error instanceof Error ? error.message : 'Error desconocido',
     })

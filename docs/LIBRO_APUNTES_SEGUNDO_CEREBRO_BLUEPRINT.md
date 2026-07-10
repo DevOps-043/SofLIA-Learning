@@ -1,9 +1,30 @@
 # Libro de Apuntes de SofLIA Learning — Blueprint: Evolución a "Segundo Cerebro Operativo"
 
-**Estado:** Blueprint estratégico, funcional y técnico (documento de diseño — no incluye cambios de código).
+**Estado:** Blueprint estratégico, funcional y técnico sincronizado con la implementación del repositorio al 2026-07-10.
 **Audiencia:** ingeniería de plataforma, producto, y equipo/agente que opera SofLIA Hub.
 **Base:** módulo `features/notebook/` v1 en producción, esquema real de `supabase/migrations/`, roles organizacionales reales y la integración existente con el agente de SofLIA Hub.
 **Relacionado:** `CLAUDE.md`, `docs/SOFLIA_HUB_NOTIFICATIONS_WHATSAPP_TELEGRAM.md`, `Prompt.md`.
+
+---
+
+## 0. Matriz de implementación verificada
+
+| Capacidad | Estado en repositorio | Condición de despliegue |
+|---|---|---|
+| CRUD de notas manuales/importadas/chat con scope usuario+organización+inscripción | ✅ Implementado | Migraciones existentes |
+| Guardado Q&A desde SofLIA con procedencia de conversación/mensajes | ✅ Implementado | Aplicar migración de generación |
+| Apunte por cada lección completada, conversación cruda y feedback público | ✅ Implementado | Activar `process-notebook-generation` |
+| Cola durable, reintentos, fallback determinista, artefactos y evidencia | ✅ Implementado | Aplicar `20260718100000_notebook_generation_queue.sql` |
+| Compendio vivo al finalizar curso + PDF | ✅ Implementado | Mismo worker; la finalización del curso no depende de Gemini |
+| Enriquecimiento, revisión humana, timeline, tareas y búsqueda con filtros | ✅ Fase 1 implementada | Activar cron de enriquecimiento |
+| Embeddings, búsqueda semántica y conversación RAG | ⏳ Fase 2 | Fuera del alcance actual |
+| Compartir/curar conocimiento y analítica organizacional avanzada | ⏳ Fases 2–3 | Fuera del alcance actual |
+| Integración del notebook con SofLIA Hub | ⏳ Fase 3 | Requiere configuración Hub multi-tenant |
+
+La implementación conserva `user_lesson_notes` como contrato compatible. La
+IA produce una síntesis cacheada; las conversaciones y notas fuente completas
+permanecen como evidencia canónica separada para que los límites del HTML no
+eliminen información.
 
 ---
 
@@ -235,7 +256,7 @@ Tema claro/oscuro; branding por organización vía `useBusinessPanelTheme()` (nu
 
 **Contexto real:** cada organización despliega su propia instancia de SofLIA Hub en su VPS. Hoy existe el canal saliente: cola `notification_channel_deliveries` + cron `process-notification-deliveries.ts` con POST firmado HMAC (`X-Soflia-Signature`, env `SOFLIA_HUB_NOTIFICATIONS_URL`/`SOFLIA_HUB_API_KEY`). Brecha documentada: configuración global, no por organización. Existe además `lib/security/trusted-agent-auth/` + `POST /api/security/agent-handshake` para autenticación agente-a-agente.
 
-**Prerrequisito (bloqueante para ambas direcciones en producción multi-cliente):** tabla `organization_hub_config` (`organization_id` PK/FK, `hub_url`, `api_key_hash` — la key en secreto por org, no en texto plano —, `enabled_channels jsonb`, `notebook_features jsonb`, `status`). Cierra la brecha del doc de notificaciones y da al notebook un switch por organización.
+**Prerrequisito (bloqueante para ambas direcciones en producción multi-cliente):** extender la configuración canónica `organization_notification_hub_configs` (`organization_id`, URL/credencial secreta por organización, canales habilitados, capacidades de notebook y estado). Cierra la brecha del doc de notificaciones y da al notebook un switch por organización; no se creará una tabla paralela `organization_hub_config`.
 
 **Dirección saliente (plataforma → Hub) — Fase Avanzada-temprana, bajo riesgo:**
 
@@ -256,7 +277,7 @@ El empleado escribe/manda audio o documento al bot del Hub de su organización �
 ```
 POST /api/agent/notebook/capture
 Auth: cabeceras trusted-agent (lib/security/trusted-agent-auth/) +
-      firma HMAC del body con la key de LA organización (organization_hub_config)
+      firma HMAC del body con la key de LA organización (organization_notification_hub_configs)
 Body: {
   idempotency_key: string,          // UUID del Hub — reintentos seguros
   organization_id: uuid,            // debe coincidir con la credencial firmante
@@ -387,7 +408,7 @@ CREATE TABLE notebook_concepts (
   UNIQUE (organization_id, canonical_name)
 );
 
--- Migración 3 (Avanzada): organization_hub_config (ver §8.2)
+-- Migración 3 (Avanzada): extender organization_notification_hub_configs (ver §8.2)
 ```
 
 **Snapshot en shares — decisión deliberada:** compartir copia el contenido en ese momento. Evita que ediciones privadas posteriores se filtren al equipo sin nueva curación, y simplifica RLS (el scope lee el snapshot, nunca la nota original).
@@ -519,7 +540,7 @@ Todos los agregados organizacionales se sirven desde caché server-side (patrón
 
 ### Fase 3 — Avanzada "Conocimiento que circula" (8–10 semanas)
 
-- **Incluye:** `organization_hub_config` + Hub **saliente** (digest semanal, recordatorios de tareas, repaso espaciado); Hub **entrante** (`/api/agent/notebook/capture`, source `hub_agent`) cuando la vinculación de identidad verificada del Hub esté disponible; conceptos normalizados + panel org agregado en reports-analytics (con k-anonimato); flashcards on-demand; captura desde documentos subidos.
+- **Incluye:** extensión de `organization_notification_hub_configs` + Hub **saliente** (digest semanal, recordatorios de tareas, repaso espaciado); Hub **entrante** (`/api/agent/notebook/capture`, source `hub_agent`) cuando la vinculación de identidad verificada del Hub esté disponible; conceptos normalizados + panel org agregado en reports-analytics (con k-anonimato); flashcards on-demand; captura desde documentos subidos.
 - **Dependencias:** Fase 2; del lado Hub: multi-tenencia de configuración y vinculación opt-in verificada (brechas documentadas en `docs/SOFLIA_HUB_NOTIFICATIONS_WHATSAPP_TELEGRAM.md`).
 - **Riesgos:** fatiga de notificaciones (frecuencia conservadora + preferencias), abuso del endpoint entrante (rate limit + HMAC + auditoría).
 - **Criterio de éxito:** CTR de digest >20%; ≥15% de usuarios con captura externa mensual; panel org consultado mensualmente por `admin`/`owner`.
@@ -534,7 +555,7 @@ Grafo de conocimiento navegable; scopes zone/region/organization con doble curac
 
 1. **Empezar por la migración 1 y el pipeline de enriquecimiento** — es el 80% del valor percibido con el 20% del riesgo, y no toca nada existente.
 2. **Evaluar la calidad del enriquecimiento con notas reales** (set de ~50 notas es/en/pt) antes de activarlo por defecto; el primer contacto del usuario con "IA que entiende mis apuntes" define la adopción.
-3. **No construir el endpoint entrante del Hub hasta cerrar la multi-tenencia** (`organization_hub_config`) y la vinculación de identidad — el orden inverso crea deuda de seguridad.
+3. **No construir el endpoint entrante del Hub hasta cerrar la multi-tenencia** (`organization_notification_hub_configs`) y la vinculación de identidad — el orden inverso crea deuda de seguridad.
 4. **Instrumentar desde el día 1**: tasa de aceptación de enriquecimiento, uso de búsqueda, tareas confirmadas — las fases 2–3 se aprueban o recortan con esos datos.
 5. **Extender `delete_user_cascade` y las cascadas de curso** en la misma migración que cree cada tabla nueva — la integridad de borrado es parte del contrato, no un follow-up.
 6. **Mantener el principio rector:** cada fase debe poder detenerse y dejar un producto coherente; el segundo cerebro se construye por capas de valor, no por big bang.

@@ -1,59 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { NoteService } from '@/features/courses/services/note.service'
-import { CourseService } from '@/features/courses/services/course.service'
+
 import { SessionService } from '@/features/auth/services/session.service'
-import { GoogleGenerativeAI } from '@google/generative-ai'
-import { createAdminClient } from '@/lib/supabase/admin'
 import {
-  ensureCourseEnrollmentScope,
   loadCourseEnrollments,
   resolveCourseEnrollment,
   type CourseEnrollmentScope,
 } from '@/features/courses/services/course-enrollment.server.service'
+import { CourseService } from '@/features/courses/services/course.service'
+import { NoteService } from '@/features/courses/services/note.service'
+import { createAdminClient } from '@/lib/supabase/admin'
 
-/**
- * GET /api/courses/[slug]/lessons/[lessonId]/notes
- * Obtiene todas las notas de un usuario para una lección específica
- */
+export { POST } from './route.post'
+
+/** Returns notes from the exact course enrollment represented by orgId. */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string; lessonId: string }> }
+  { params }: { params: Promise<{ slug: string; lessonId: string }> },
 ) {
   try {
     const { slug, lessonId } = await params
-
-    // Obtener usuario autenticado usando el sistema de sesiones personalizado
     const currentUser = await SessionService.getCurrentUser()
-
     if (!currentUser) {
-      return NextResponse.json(
-        { error: 'No autenticado' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
 
-    // Verificar que el curso existe (opcional, para validación)
     const course = await CourseService.getCourseBySlug(slug, currentUser.id)
-
     if (!course) {
       return NextResponse.json(
         { error: 'Curso no encontrado' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     const supabase = createAdminClient()
     const organizationId = request.nextUrl.searchParams.get('orgId')
-    let enrollment = await resolveCourseEnrollment(supabase, currentUser.id, course.id, organizationId)
+    let enrollment = await resolveCourseEnrollment(
+      supabase,
+      currentUser.id,
+      course.id,
+      organizationId,
+    )
 
-    // Business users have enrollments scoped to an org. When no orgId is provided
-    // (e.g. Transcript/Summary panels don't pass it), fall back to the most
-    // recent enrollment across all orgs so notes still load correctly.
+    // Compatibility for panels that omit orgId: only resolve a single,
+    // unambiguous enrollment. Multiple org contexts must identify orgId.
     if (!enrollment && !organizationId) {
-      const allEnrollments = await loadCourseEnrollments(supabase, currentUser.id, course.id)
-      const best = allEnrollments[0]
-      if (best) {
-        enrollment = { ...best, course_id: course.id, user_id: currentUser.id } as CourseEnrollmentScope
+      const enrollments = await loadCourseEnrollments(
+        supabase,
+        currentUser.id,
+        course.id,
+      )
+      if (enrollments.length === 1) {
+        enrollment = {
+          ...enrollments[0],
+          course_id: course.id,
+          user_id: currentUser.id,
+        } as CourseEnrollmentScope
       }
     }
 
@@ -65,148 +66,16 @@ export async function GET(
         )
       : []
 
-    return NextResponse.json(notes)
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Error interno del servidor',
-        message: error instanceof Error ? error.message : 'Error desconocido'
-      },
-      { status: 500 }
-    )
-  }
-}
-
-/**
- * POST /api/courses/[slug]/lessons/[lessonId]/notes
- * Crea una nueva nota
- */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string; lessonId: string }> }
-) {
-  try {
-    const { slug, lessonId } = await params
-    // Obtener usuario autenticado usando el sistema de sesiones personalizado
-    const currentUser = await SessionService.getCurrentUser()
-    if (!currentUser) {
-      return NextResponse.json(
-        { error: 'No autenticado' },
-        { status: 401 }
-      )
-    }
-
-    // Verificar que el curso existe (opcional, para validación)
-    const course = await CourseService.getCourseBySlug(slug, currentUser.id)
-    if (!course) {
-      return NextResponse.json(
-        { error: 'Curso no encontrado' },
-        { status: 404 }
-      )
-    }
-    const body = await request.json()
-    let { note_title, note_content, note_tags, source_type } = body
-    const requestedOrganizationId =
-      typeof body?.organization_id === 'string' && body.organization_id.trim()
-        ? body.organization_id.trim()
-        : null
-    const supabase = createAdminClient()
-
-    let enrollment = await ensureCourseEnrollmentScope(
-      supabase,
-      currentUser.id,
-      course.id,
-      requestedOrganizationId,
-    )
-
-    // When no organization_id is sent (Transcript/Summary panels omit it),
-    // fall back to the most recent enrollment across all orgs before failing.
-    if (!enrollment && !requestedOrganizationId) {
-      const allEnrollments = await loadCourseEnrollments(supabase, currentUser.id, course.id)
-      const best = allEnrollments[0]
-      if (best) {
-        enrollment = { ...best, course_id: course.id, user_id: currentUser.id } as CourseEnrollmentScope
-      }
-    }
-
-    if (!enrollment) {
-      return NextResponse.json(
-        { error: 'No tienes acceso a este curso en este contexto' },
-        { status: requestedOrganizationId ? 403 : 404 },
-      )
-    }
-
-    // Validaciones
-    if (!note_content || typeof note_content !== 'string' || note_content.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'El contenido de la nota es requerido y no puede estar vacío' },
-        { status: 400 }
-      )
-    }
-
-    // GENERACIÓN DE TÍTULO POR IA: Si el título está vacío, generarlo automáticamente
-    if (!note_title || typeof note_title !== 'string' || note_title.trim().length === 0) {
-      try {
-        const googleApiKey = process.env.GOOGLE_API_KEY;
-        const geminiModel = process.env.GEMINI_MODEL || "gemini-3.5-flash";
-
-        if (googleApiKey) {
-          const genAI = new GoogleGenerativeAI(googleApiKey);
-          const model = genAI.getGenerativeModel({ model: geminiModel });
-
-          const prompt = `Eres un asistente experto en educación que genera títulos cortos, profesionales y descriptivos para notas de estudio.
-
-          Contenido de la nota: "${note_content.replace(/<[^>]*>?/gm, '').substring(0, 1500)}"
-
-          Instrucciones:
-          1. El título debe ser muy corto (máximo 5 palabras).
-          2. Debe capturar la esencia principal del contenido.
-          3. Evita palabras genéricas como "Nota sobre" o "Resumen de".
-          4. Responde ÚNICAMENTE con el texto del título, sin comillas, sin puntos finales y sin explicaciones.
-          5. Idioma: Español.`;
-
-          const result = await model.generateContent(prompt);
-          const response = await result.response;
-          const generatedTitle = response.text().trim().replace(/^["']|["']$/g, '').replace(/\.$/, '');
-
-          if (generatedTitle && generatedTitle.length > 0 && !generatedTitle.toLowerCase().includes("error")) {
-            note_title = generatedTitle;
-          } else {
-            note_title = "Nota de estudio";
-          }
-        } else {
-          note_title = "Nota de estudio";
-        }
-      } catch (aiError) {
-        note_title = "Nota de estudio";
-      }
-    }
-
-    // Validar que note_tags sea un array si se proporciona
-    if (note_tags !== undefined && (!Array.isArray(note_tags) || note_tags.some((tag: unknown) => typeof tag !== 'string'))) {
-      return NextResponse.json(
-        { error: 'Las etiquetas deben ser un array de strings' },
-        { status: 400 }
-      )
-    }
-
-    const note = await NoteService.createNote(currentUser.id, lessonId, {
-      note_title: note_title.trim(),
-      note_content: note_content.trim(),
-      note_tags: note_tags && Array.isArray(note_tags) ? note_tags.filter((tag: string) => tag.trim().length > 0) : [],
-      enrollment_id: enrollment.enrollment_id,
-      organization_id: enrollment.organization_id,
-      source_type: source_type || 'manual'
+    return NextResponse.json(notes, {
+      headers: { 'Cache-Control': 'private, no-store, max-age=0' },
     })
-    return NextResponse.json(note, { status: 201 })
   } catch (error) {
     return NextResponse.json(
       {
         error: 'Error interno del servidor',
         message: error instanceof Error ? error.message : 'Error desconocido',
-        details: error instanceof Error ? error.stack : 'Sin detalles adicionales'
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

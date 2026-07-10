@@ -3009,6 +3009,7 @@ export type Database = {
           created_at: string | null
           device_type: string | null
           duration_seconds: number | null
+          enrollment_id: string | null
           ended_at: string | null
           ip_address: unknown
           lesson_id: string | null
@@ -3033,6 +3034,7 @@ export type Database = {
           created_at?: string | null
           device_type?: string | null
           duration_seconds?: number | null
+          enrollment_id?: string | null
           ended_at?: string | null
           ip_address?: unknown
           lesson_id?: string | null
@@ -3057,6 +3059,7 @@ export type Database = {
           created_at?: string | null
           device_type?: string | null
           duration_seconds?: number | null
+          enrollment_id?: string | null
           ended_at?: string | null
           ip_address?: unknown
           lesson_id?: string | null
@@ -3071,6 +3074,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "lia_conversations_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "user_course_enrollments"
+            referencedColumns: ["enrollment_id"]
+          },
           {
             foreignKeyName: "lia_conversations_activity_id_fkey"
             columns: ["activity_id"]

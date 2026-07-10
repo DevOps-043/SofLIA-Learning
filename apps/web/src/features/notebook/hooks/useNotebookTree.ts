@@ -62,7 +62,18 @@ export function useNotebookTree(orgSlug: string) {
   } = useSWR<NotebookTree>(
     orgSlug ? ['notebook-tree', orgSlug] : null,
     () => fetchNotebookTree(orgSlug),
-    { revalidateOnFocus: false, dedupingInterval: 30_000, keepPreviousData: true },
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5_000,
+      keepPreviousData: true,
+      refreshInterval: (latest) =>
+        latest?.courses.some((course) => {
+          const status = course.generationState?.status
+          return status === 'queued' || status === 'processing' || status === 'stale'
+        })
+          ? 5_000
+          : 0,
+    },
   )
 
   const tree = data ?? EMPTY_TREE
@@ -77,7 +88,7 @@ export function useNotebookTree(orgSlug: string) {
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set())
 
   const reload = useCallback(() => {
-    void mutate()
+    return mutate()
   }, [mutate])
 
   // Expand the first course by default once the tree is available.

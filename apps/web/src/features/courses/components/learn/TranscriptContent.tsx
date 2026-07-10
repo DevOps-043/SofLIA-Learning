@@ -11,6 +11,7 @@ import {
   parseTranscriptSegments,
 } from "@/features/courses/components/learn/transcript-segments";
 import type { LearnLesson } from "@/features/courses/components/learn/types";
+import { normalizeNoteContentHtml } from "@/lib/notes/generated-note-html";
 
 const transcriptMarkdownComponents = createLessonMarkdownComponents();
 
@@ -74,7 +75,7 @@ export function TranscriptContent({
     try {
       const notePayload = {
         note_title: `${t("transcript.noteTitle")}: ${lesson.lesson_title}`,
-        note_content: transcriptContent,
+        note_content: normalizeNoteContentHtml(transcriptContent),
         note_tags: [t("transcript.noteTags.transcript"), t("transcript.noteTags.automatic")],
         source_type: "manual",
       };

@@ -96,7 +96,7 @@ export function OrgNavbar() {
             />
           </div>
 
-          {org?.name && (
+          {org?.showNavbarName !== false && org?.name && (
             <h1
               className="hidden sm:block text-lg font-bold leading-tight tracking-tight truncate max-w-[200px] sm:max-w-[280px]"
               style={{ color: textColor }}

@@ -20,6 +20,7 @@ export interface TranscriptDialogueSessionRow {
 
 export interface TranscriptDialogueTurnRow {
   content: string
+  created_at?: string | null
   role: string
   session_id: string
   turn_number: number
@@ -34,6 +35,7 @@ export interface TranscriptLiaConversationRow {
 export interface TranscriptLiaMessageRow {
   content: string
   conversation_id: string
+  created_at?: string | null
   message_sequence: number
   role: string
 }
@@ -70,9 +72,21 @@ interface TranscriptBlock {
   isHeading: boolean
 }
 
-function turnBlock(role: string, content: string): TranscriptBlock {
+function renderTimestamp(value: string | null | undefined): string {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const iso = date.toISOString()
+  return ` <small><time datetime="${escapeHtml(iso)}">${escapeHtml(iso)}</time></small>`
+}
+
+function turnBlock(
+  role: string,
+  content: string,
+  createdAt?: string | null,
+): TranscriptBlock {
   const speaker = role === 'user' ? 'Usuario' : 'SofLIA'
-  const paragraph = `<p><strong>${speaker}:</strong> ${escapeHtml(content)}</p>`
+  const paragraph = `<p><strong>${speaker}:</strong>${renderTimestamp(createdAt)} ${escapeHtml(content)}</p>`
   return {
     html: role === 'user' ? paragraph : `<blockquote>${paragraph}</blockquote>`,
     isHeading: false,
@@ -112,7 +126,7 @@ function buildBlocks(rows: DialogueTranscriptRows): TranscriptBlock[] {
       ),
     )
     for (const turn of turns) {
-      blocks.push(turnBlock(turn.role, turn.content))
+      blocks.push(turnBlock(turn.role, turn.content, turn.created_at))
     }
   }
 
@@ -133,7 +147,7 @@ function buildBlocks(rows: DialogueTranscriptRows): TranscriptBlock[] {
       'Actividad con SofLIA'
     blocks.push(headingBlock(`Conversación con SofLIA: ${title}`))
     for (const message of messages) {
-      blocks.push(turnBlock(message.role, message.content))
+      blocks.push(turnBlock(message.role, message.content, message.created_at))
     }
   }
 

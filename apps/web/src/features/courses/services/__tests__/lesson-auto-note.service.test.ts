@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('server-only', () => ({}))
 
 import {
   buildLessonAutoNotePrompt,
@@ -216,7 +218,7 @@ describe('lesson auto-note prompt context', () => {
     expect(promptInput.quizReviews.join('\n')).toContain('Respuesta clave: Paris.')
   })
 
-  it('uses the required HTML sections and rules in the generation prompt', () => {
+  it('uses the required structured JSON sections and rules in the generation prompt', () => {
     const prompt = buildLessonAutoNotePrompt({
       activityNotes: ['Actividad: respuesta del usuario y retroalimentacion.'],
       courseTitle: 'Curso IA',
@@ -228,12 +230,12 @@ describe('lesson auto-note prompt context', () => {
       transcript: 'Transcripcion del video',
     })
 
-    expect(prompt).toContain('<h2>Resumen estratégico</h2>')
-    expect(prompt).toContain('<h2>Video, lectura y reflexión</h2>')
-    expect(prompt).toContain('<h2>Puntos clave de mi interacción con SofLIA</h2>')
-    expect(prompt).toContain('<h2>Retroalimentación de la actividad</h2>')
-    expect(prompt).toContain('<h2>Retroalimentación del quiz</h2>')
-    expect(prompt).toContain('<h2>Para repasar</h2>')
+    expect(prompt).toContain('"strategicSummary": ["párrafo"]')
+    expect(prompt).toContain('"lessonKeyPoints"')
+    expect(prompt).toContain('"sofliaHighlights"')
+    expect(prompt).toContain('"activityFeedback"')
+    expect(prompt).toContain('"quizFeedback"')
+    expect(prompt).toContain('"reviewChecklist"')
     expect(prompt).toContain('No inventes datos')
     expect(prompt).toContain('No copies la conversacion completa')
     expect(prompt).toContain('Transcripcion del video')

@@ -127,12 +127,21 @@ function buildAssistantStreamResponse(content: string): Response {
   });
 }
 
-function buildAssistantResponse(content: string, shouldStream: boolean) {
+function buildAssistantResponse(
+  content: string,
+  shouldStream: boolean,
+  chatProvenance?: {
+    assistant_message_id: string | null;
+    conversation_id: string;
+    user_message_id: string;
+  } | null,
+) {
   if (shouldStream) {
     return buildAssistantStreamResponse(content);
   }
 
   return NextResponse.json({
+    chat_provenance: chatProvenance || undefined,
     message: { role: 'assistant', content },
   });
 }
@@ -471,7 +480,7 @@ async function handlePost(
     const finalContent = result.response.text();
 
     // Post-process: handle bug reports, save conversation history
-    const { clientContent } = await processAIResponse(
+    const { clientContent, chatProvenance } = await processAIResponse(
       finalContent,
       body,
       sanitizedRequestContext,
@@ -502,7 +511,11 @@ async function handlePost(
     }
 
     // Stream or JSON response
-    return buildAssistantResponse(securedClientContent, shouldStream);
+    return buildAssistantResponse(
+      securedClientContent,
+      shouldStream,
+      chatProvenance,
+    );
 
   } catch (error) {
     logger.error('LIA Chat API error', error);

@@ -347,7 +347,9 @@ export function useNotesEditorState({
     }
 
     const noteDraft: NoteDraft = {
+      chatProvenance: initialNote?.chatProvenance,
       content: content.trim(),
+      sourceType: initialNote?.sourceType,
       tags,
       title: title.trim(),
     };

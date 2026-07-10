@@ -163,3 +163,7 @@
 # Funcion programada: Enriquecimiento IA de apuntes del notebook
 [functions."process-notebook-enrichment"]
   schedule = "*/5 * * * *"
+
+# Funcion programada: apuntes automaticos y compendios durables
+[functions."process-notebook-generation"]
+  schedule = "* * * * *"

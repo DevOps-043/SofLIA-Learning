@@ -22,6 +22,7 @@ import {
 import type {
   NotebookDerivedTask,
   NotebookDerivedTaskStatus,
+  NotebookEnrichmentReviewInput,
   NotebookEnrichmentJobStatus,
   NotebookNoteEnrichment,
   NotebookNoteEnrichmentState,
@@ -40,6 +41,7 @@ export interface FlexibleBuilder {
   eq(column: string, value: unknown): FlexibleBuilder
   in(column: string, values: readonly unknown[]): FlexibleBuilder
   insert(values: unknown): FlexibleBuilder
+  is(column: string, value: unknown): FlexibleBuilder
   limit(count: number): FlexibleBuilder
   lt(column: string, value: unknown): FlexibleBuilder
   lte(column: string, value: unknown): FlexibleBuilder
@@ -84,6 +86,10 @@ interface JobStatusRow {
   status: string
   attempts: number
   max_attempts: number
+}
+
+interface JobIdRow {
+  job_id: string
 }
 
 function toStringArray(value: unknown): string[] {
@@ -220,7 +226,7 @@ export async function fetchNoteEnrichmentState(params: {
     flexibleFrom(client, 'notebook_ai_enrichment_jobs')
       .select('status, attempts, max_attempts')
       .eq('note_id', params.noteId)
-      .order('created_at', { ascending: false })
+      .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle<JobStatusRow>(),
   ])
@@ -250,6 +256,142 @@ export async function fetchNoteEnrichmentState(params: {
     tasks: (tasksResult.data ?? []).map(toTask),
     jobStatus,
   }
+}
+
+/** Accepts, edits or dismisses AI suggestions without changing note content. */
+export async function reviewNoteEnrichment(params: {
+  input: NotebookEnrichmentReviewInput
+  noteId: string
+  organizationId: string
+  userId: string
+}): Promise<NotebookNoteEnrichmentState> {
+  const client = createAdminClient()
+  await assertNoteOwnership(client, params)
+
+  const update: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  }
+
+  if (params.input.action === 'dismiss') {
+    Object.assign(update, {
+      ai_summary: null,
+      confidence: null,
+      key_concepts: [],
+      lifecycle_status: 'draft',
+      suggested_tags: [],
+    })
+  } else {
+    update.lifecycle_status = 'reviewed'
+    if (params.input.action === 'edit' && params.input.overrides) {
+      const overrides = params.input.overrides
+      if (overrides.summary !== undefined) update.ai_summary = overrides.summary
+      if (overrides.keyConcepts !== undefined) {
+        update.key_concepts = overrides.keyConcepts
+      }
+      if (overrides.suggestedTags !== undefined) {
+        update.suggested_tags = overrides.suggestedTags
+      }
+      if (overrides.knowledgeType !== undefined) {
+        update.knowledge_type = overrides.knowledgeType
+      }
+    }
+  }
+
+  const { data, error } = await flexibleFrom(client, 'notebook_note_metadata')
+    .update(update)
+    .eq('note_id', params.noteId)
+    .eq('user_id', params.userId)
+    .eq('organization_id', params.organizationId)
+    .select('note_id')
+    .maybeSingle<{ note_id: string }>()
+
+  if (error) {
+    throw new Error(`Error al revisar el enriquecimiento: ${error.message}`)
+  }
+  if (!data) {
+    throw new NotebookError('El apunte aún no tiene sugerencias para revisar.', 404)
+  }
+
+  return fetchNoteEnrichmentState(params)
+}
+
+/** Resets (or creates) the idempotent job for the note's current content. */
+export async function retryNoteEnrichment(params: {
+  noteId: string
+  organizationId: string
+  userId: string
+}): Promise<NotebookNoteEnrichmentState> {
+  const client = createAdminClient()
+  const { data: note, error: noteError } = await client
+    .from('user_lesson_notes')
+    .select('note_id, note_title, note_content, source_type')
+    .eq('note_id', params.noteId)
+    .eq('user_id', params.userId)
+    .eq('organization_id', params.organizationId)
+    .maybeSingle()
+
+  if (noteError) {
+    throw new Error(`Error al validar la nota: ${noteError.message}`)
+  }
+  if (!note) {
+    throw new NotebookError('Nota no encontrada.', 404)
+  }
+  if (note.source_type === 'course_compendium') {
+    throw new NotebookError('El compendio no requiere enriquecimiento.', 422)
+  }
+  if (stripHtmlToText(note.note_content).length < MIN_ENRICHABLE_TEXT_LENGTH) {
+    throw new NotebookError(
+      'La nota necesita más contenido antes de poder enriquecerla.',
+      422,
+    )
+  }
+
+  const contentHash = computeNoteContentHash(note.note_title, note.note_content)
+  const now = new Date().toISOString()
+  const { data: resetJob, error: resetError } = await flexibleFrom(
+    client,
+    'notebook_ai_enrichment_jobs',
+  )
+    .update({
+      attempts: 0,
+      last_error: null,
+      next_attempt_at: now,
+      status: 'pending',
+      updated_at: now,
+    })
+    .eq('note_id', params.noteId)
+    .eq('content_hash', contentHash)
+    .eq('job_type', 'enrich')
+    .select('job_id')
+    .maybeSingle<JobIdRow>()
+
+  if (resetError) {
+    throw new Error(`Error al reintentar el enriquecimiento: ${resetError.message}`)
+  }
+
+  if (!resetJob) {
+    const { error: insertError } = await flexibleFrom(
+      client,
+      'notebook_ai_enrichment_jobs',
+    )
+      .insert({
+        content_hash: contentHash,
+        job_type: 'enrich',
+        note_id: params.noteId,
+        organization_id: params.organizationId,
+        status: 'pending',
+      })
+      .select('job_id')
+      .maybeSingle<JobIdRow>()
+
+    if (insertError) {
+      throw new Error(
+        `Error al encolar el enriquecimiento: ${insertError.message}`,
+      )
+    }
+  }
+
+  return fetchNoteEnrichmentState(params)
 }
 
 /**

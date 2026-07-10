@@ -1,14 +1,17 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import useSWR from 'swr'
 
 import {
   fetchNoteEnrichmentState,
+  reviewNotebookNoteEnrichment,
+  retryNotebookNoteEnrichment,
   updateDerivedTask,
 } from '../services/notebook.client.service'
 import type {
   NotebookDerivedTaskStatus,
+  NotebookEnrichmentReviewInput,
   NotebookNoteEnrichmentState,
 } from '../types'
 
@@ -26,6 +29,8 @@ export function useNoteEnrichment(
   options?: { enabled?: boolean },
 ) {
   const enabled = options?.enabled ?? true
+  const [isReviewing, setIsReviewing] = useState(false)
+  const [isRetrying, setIsRetrying] = useState(false)
 
   const { data, error, isLoading, mutate } = useSWR<NotebookNoteEnrichmentState>(
     enabled && orgSlug && noteId
@@ -82,6 +87,35 @@ export function useNoteEnrichment(
     [orgSlug, data, mutate],
   )
 
+  const reviewEnrichment = useCallback(
+    async (input: NotebookEnrichmentReviewInput): Promise<boolean> => {
+      setIsReviewing(true)
+      try {
+        const updated = await reviewNotebookNoteEnrichment(orgSlug, noteId, input)
+        await mutate(updated, { revalidate: false })
+        return true
+      } catch {
+        return false
+      } finally {
+        setIsReviewing(false)
+      }
+    },
+    [mutate, noteId, orgSlug],
+  )
+
+  const retryEnrichment = useCallback(async (): Promise<boolean> => {
+    setIsRetrying(true)
+    try {
+      const updated = await retryNotebookNoteEnrichment(orgSlug, noteId)
+      await mutate(updated, { revalidate: false })
+      return true
+    } catch {
+      return false
+    } finally {
+      setIsRetrying(false)
+    }
+  }, [mutate, noteId, orgSlug])
+
   return {
     state: data ?? null,
     isLoading,
@@ -91,6 +125,10 @@ export function useNoteEnrichment(
         : 'No se pudo cargar el enriquecimiento.'
       : null,
     setTaskStatus,
+    reviewEnrichment,
+    retryEnrichment,
+    isReviewing,
+    isRetrying,
     refresh: () => void mutate(),
   }
 }

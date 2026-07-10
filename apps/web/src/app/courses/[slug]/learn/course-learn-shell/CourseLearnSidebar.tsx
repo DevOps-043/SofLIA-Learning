@@ -43,6 +43,7 @@ export function CourseLearnSidebar({ logic, panelStyles }: CourseLearnSidebarPro
       sidebarBg={panelStyles?.sidebar_background}
       sidebarBorderColor={panelStyles?.border_color}
       accentColor={panelStyles?.accent_color}
+      notebookBasePath={logic.orgSlug ? `/${logic.orgSlug}/business-user/notebook` : undefined}
     />
   )
 }

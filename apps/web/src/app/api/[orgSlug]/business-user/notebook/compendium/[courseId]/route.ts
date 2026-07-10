@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
+import { enqueueCourseCompletionNotebookJobs } from '@/features/notebook/services/notebook-generation.server.service'
+import type { NotebookGenerationMutationResponse } from '@/features/notebook/types'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkRateLimit } from '@/lib/rate-limit/rate-limit.check'
 import { RateLimitTier } from '@/lib/rate-limit/rate-limit.types'
-import { generateCourseCompendium } from '@/features/courses/services/course-compendium.service'
-import { fetchNotebookNote } from '@/features/notebook/services/notebook.server.service'
-import type { NotebookNoteResponse } from '@/features/notebook/types'
+
 import {
   compendiumCourseIdSchema,
   notebookErrorResponse,
@@ -20,12 +20,8 @@ interface CompletedEnrollmentRow {
   overall_progress_percentage: number | null
 }
 
-/**
- * POST /api/[orgSlug]/business-user/notebook/compendium/[courseId]
- * Regenerates the SofLIA course compendium for a completed course, so notes
- * added after completion get included. Rate limited (Gemini cost).
- */
-export async function POST(_request: NextRequest, { params }: RouteContext) {
+/** Enqueues missing lesson notes and one idempotent course compendium. */
+export async function POST(_request: Request, { params }: RouteContext) {
   try {
     const { orgSlug, courseId } = await params
     const auth = await resolveNotebookAuth(orgSlug)
@@ -33,29 +29,21 @@ export async function POST(_request: NextRequest, { params }: RouteContext) {
 
     const parsedCourseId = compendiumCourseIdSchema.safeParse(courseId)
     if (!parsedCourseId.success) {
-      return NextResponse.json(
-        { success: false, error: 'Curso inválido.' },
-        { status: 422 },
-      )
+      return NextResponse.json({ error: 'Curso inválido.' }, { status: 422 })
     }
-
     const rateLimit = checkRateLimit(
       `compendium:${auth.userId}`,
       RateLimitTier.AI_GENERATION,
     )
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Demasiadas regeneraciones. Intenta de nuevo en unos minutos.',
-          retryAfter: rateLimit.retryAfter,
-        },
+        { error: 'Demasiadas solicitudes.', retryAfter: rateLimit.retryAfter },
         { status: 429 },
       )
     }
 
-    const supabase = createAdminClient()
-    const { data: enrollment, error: enrollmentError } = await supabase
+    const client = createAdminClient()
+    const { data: enrollment, error } = await client
       .from('user_course_enrollments')
       .select('enrollment_id, enrollment_status, overall_progress_percentage')
       .eq('user_id', auth.userId)
@@ -64,52 +52,30 @@ export async function POST(_request: NextRequest, { params }: RouteContext) {
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle<CompletedEnrollmentRow>()
-
-    if (enrollmentError) {
-      throw new Error(`Error consultando inscripción: ${enrollmentError.message}`)
-    }
-
-    const isCompleted =
-      enrollment !== null &&
-      (enrollment.enrollment_status === 'completed' ||
-        enrollment.overall_progress_percentage === 100)
-    if (!enrollment || !isCompleted) {
+    if (error) throw new Error(error.message)
+    if (
+      !enrollment ||
+      (enrollment.enrollment_status !== 'completed' &&
+        enrollment.overall_progress_percentage !== 100)
+    ) {
       return NextResponse.json(
-        { success: false, error: 'Aún no has completado este curso.' },
+        { error: 'Aún no has completado este curso.' },
         { status: 422 },
       )
     }
 
-    const { data: course } = await supabase
-      .from('courses')
-      .select('title')
-      .eq('id', parsedCourseId.data)
-      .maybeSingle<{ title: string }>()
-
-    const result = await generateCourseCompendium({
-      allowUpdate: true,
+    const queued = await enqueueCourseCompletionNotebookJobs({
+      client,
       courseId: parsedCourseId.data,
-      courseTitle: course?.title || 'Curso',
       enrollmentId: enrollment.enrollment_id,
       organizationId: auth.organizationId,
+      sourceVersion: `manual:${new Date().toISOString()}`,
       userId: auth.userId,
     })
-
-    if (result.status === 'failed' || !result.noteId) {
-      return NextResponse.json(
-        { success: false, error: 'No se pudo regenerar el compendio.' },
-        { status: 500 },
-      )
-    }
-
-    const note = await fetchNotebookNote({
-      userId: auth.userId,
-      organizationId: auth.organizationId,
-      noteId: result.noteId,
-      client: supabase,
-    })
-
-    return NextResponse.json({ note } satisfies NotebookNoteResponse)
+    return NextResponse.json(
+      { state: queued.compendium.state } satisfies NotebookGenerationMutationResponse,
+      { status: 202 },
+    )
   } catch (error) {
     return notebookErrorResponse(error, 'compendium POST')
   }

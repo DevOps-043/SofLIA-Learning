@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { fetchNoteEnrichmentState } from '@/features/notebook/services/notebook-enrichment.server.service'
+import {
+  fetchNoteEnrichmentState,
+  retryNoteEnrichment,
+  reviewNoteEnrichment,
+} from '@/features/notebook/services/notebook-enrichment.server.service'
 import type { NotebookNoteEnrichmentResponse } from '@/features/notebook/types'
-import { notebookErrorResponse, resolveNotebookAuth } from '../../../_shared'
+import {
+  notebookErrorResponse,
+  resolveNotebookAuth,
+  reviewNoteEnrichmentSchema,
+} from '../../../_shared'
 
 type RouteContext = { params: Promise<{ orgSlug: string; noteId: string }> }
 
@@ -29,5 +37,53 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
     })
   } catch (error) {
     return notebookErrorResponse(error, 'note enrichment GET')
+  }
+}
+
+export async function PATCH(request: NextRequest, { params }: RouteContext) {
+  try {
+    const { orgSlug, noteId } = await params
+    const auth = await resolveNotebookAuth(orgSlug)
+    if (auth instanceof NextResponse) return auth
+
+    const json = await request.json().catch(() => null)
+    const parsed = reviewNoteEnrichmentSchema.safeParse(json)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Revisión de enriquecimiento inválida.' },
+        { status: 422 },
+      )
+    }
+
+    const state = await reviewNoteEnrichment({
+      input: parsed.data,
+      noteId,
+      organizationId: auth.organizationId,
+      userId: auth.userId,
+    })
+    return NextResponse.json({ state } satisfies NotebookNoteEnrichmentResponse)
+  } catch (error) {
+    return notebookErrorResponse(error, 'note enrichment PATCH')
+  }
+}
+
+/** Requeues the current content hash, including jobs that exhausted retries. */
+export async function POST(_request: NextRequest, { params }: RouteContext) {
+  try {
+    const { orgSlug, noteId } = await params
+    const auth = await resolveNotebookAuth(orgSlug)
+    if (auth instanceof NextResponse) return auth
+
+    const state = await retryNoteEnrichment({
+      noteId,
+      organizationId: auth.organizationId,
+      userId: auth.userId,
+    })
+    return NextResponse.json(
+      { state } satisfies NotebookNoteEnrichmentResponse,
+      { status: 202 },
+    )
+  } catch (error) {
+    return notebookErrorResponse(error, 'note enrichment POST')
   }
 }

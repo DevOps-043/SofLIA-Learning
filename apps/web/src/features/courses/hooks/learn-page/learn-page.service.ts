@@ -91,6 +91,7 @@ function buildActivitiesContext(params: {
       .map((activity) => activity.activity_title)
       .join(', '),
     activityTypes: currentActivities.map((activity) => ({
+      id: activity.activity_id,
       title: activity.activity_title,
       type: activity.activity_type,
       description: activity.activity_description,
@@ -100,6 +101,7 @@ function buildActivitiesContext(params: {
     currentActivityFocus:
       activeTab === 'activities' && fallbackFocus
         ? {
+            id: fallbackFocus.activity_id,
             title: fallbackFocus.activity_title,
             type: fallbackFocus.activity_type,
             isRequired: fallbackFocus.is_required,
@@ -340,6 +342,7 @@ export function buildLearnLessonContext(params: {
         courseSlug: slug || undefined,
         courseTitle: course.title || course.course_title,
         courseDescription: course.description || course.course_description,
+        enrollmentId: course.enrollment_id || undefined,
         moduleId: currentModule?.module_id,
         moduleTitle: currentModule?.module_title,
         lessonId: currentLesson.lesson_id,

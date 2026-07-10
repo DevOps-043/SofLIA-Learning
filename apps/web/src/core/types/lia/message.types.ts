@@ -9,4 +9,9 @@ export interface SofLIAMessage {
   clientTurnStartedAtMs?: number
   generatedNanoBanana?: GeneratedNanoBananaData
   attachments?: LiaImageAttachment[]
+  chatProvenance?: {
+    assistantMessageId?: string
+    conversationId: string
+    userMessageId?: string
+  }
 }

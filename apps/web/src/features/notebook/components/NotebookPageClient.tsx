@@ -14,6 +14,17 @@ import { NotebookTree } from './NotebookTree'
 import { NotebookNoteCard } from './NotebookNoteCard'
 import { NotebookEmptyState } from './NotebookEmptyState'
 import { NewNoteModal } from './NewNoteModal'
+import { NotebookTasksView } from './NotebookTasksView'
+import {
+  NotebookViewToolbar,
+  type NotebookMainView,
+  type NotebookKnowledgeFilter,
+  type NotebookLifecycleFilter,
+  type NotebookSourceFilter,
+} from './NotebookViewToolbar'
+import type { NotebookTaskFilter } from '../hooks/useNotebookTasks'
+import { requestCourseCompendium } from '../services/notebook.client.service'
+import { useNotebookNotesList } from '../hooks/useNotebookNotesList'
 
 interface NotebookPageClientProps {
   orgSlug: string
@@ -41,6 +52,21 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
 
   const [isNewNoteOpen, setIsNewNoteOpen] = useState(false)
   const [showTreeMobile, setShowTreeMobile] = useState(false)
+  const [mainView, setMainView] = useState<NotebookMainView>('timeline')
+  const [sourceFilter, setSourceFilter] = useState<NotebookSourceFilter>('all')
+  const [knowledgeFilter, setKnowledgeFilter] = useState<NotebookKnowledgeFilter>('all')
+  const [lifecycleFilter, setLifecycleFilter] = useState<NotebookLifecycleFilter>('all')
+  const [taskFilter, setTaskFilter] = useState<NotebookTaskFilter>('all')
+  const [retryingCourseId, setRetryingCourseId] = useState<string | null>(null)
+  const noteList = useNotebookNotesList({
+    orgSlug,
+    enabled: mainView === 'timeline',
+    selection,
+    query: searchQuery,
+    source: sourceFilter,
+    knowledgeType: knowledgeFilter,
+    lifecycleStatus: lifecycleFilter,
+  })
 
   const openNote = useCallback(
     (noteId: string) => {
@@ -57,12 +83,29 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
     (noteId: string) => {
       setIsNewNoteOpen(false)
       void reload()
+      void noteList.reload()
       openNote(noteId)
     },
-    [openNote, reload],
+    [noteList, openNote, reload],
   )
 
   const hasNotes = totalNotes > 0
+  const filteredVisibleNotes = sourceFilter === 'all'
+    ? visibleNotes
+    : visibleNotes.filter((item) => item.note.source === sourceFilter)
+  // Fall back to the tree-derived list if the paginated endpoint is not
+  // available yet during a rolling deployment.
+  const displayedNotes = noteList.error ? filteredVisibleNotes : noteList.notes
+
+  const retryCompendium = useCallback(async (courseId: string) => {
+    setRetryingCourseId(courseId)
+    try {
+      await requestCourseCompendium(orgSlug, courseId)
+      await reload()
+    } finally {
+      setRetryingCourseId(null)
+    }
+  }, [orgSlug, reload])
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: theme.panelBg, color: theme.textColor }}>
@@ -106,7 +149,7 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
           </button>
         </header>
 
-        <div className="relative">
+        {mainView === 'timeline' && <div className="relative">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
             style={{ color: theme.mutedTextColor }}
@@ -123,7 +166,18 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
               color: theme.textColor,
             }}
           />
-        </div>
+        </div>}
+
+        <NotebookViewToolbar
+          view={mainView}
+          onViewChange={setMainView}
+          source={sourceFilter}
+          onSourceChange={setSourceFilter}
+          knowledgeType={knowledgeFilter}
+          onKnowledgeTypeChange={setKnowledgeFilter}
+          lifecycleStatus={lifecycleFilter}
+          onLifecycleStatusChange={setLifecycleFilter}
+        />
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
           {/* Mobile tree toggle */}
@@ -162,12 +216,20 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
                   setShowTreeMobile(false)
                   openNote(noteId)
                 }}
+                onRetryCompendium={(courseId) => void retryCompendium(courseId)}
+                retryingCourseId={retryingCourseId}
               />
             )}
           </aside>
 
           <main className="min-h-[320px]">
-            {isLoading ? (
+            {mainView === 'tasks' ? (
+              <NotebookTasksView
+                orgSlug={orgSlug}
+                status={taskFilter}
+                onStatusChange={setTaskFilter}
+              />
+            ) : isLoading || (noteList.isLoading && noteList.notes.length === 0) ? (
               <div
                 className="flex items-center justify-center py-20"
                 style={{ color: theme.mutedTextColor }}
@@ -205,23 +267,36 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
                   </button>
                 }
               />
-            ) : visibleNotes.length === 0 ? (
+            ) : displayedNotes.length === 0 ? (
               <NotebookEmptyState
                 title={t('empty.filteredTitle')}
                 description={t('empty.filteredDescription')}
               />
             ) : (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {visibleNotes.map((item) => (
-                  <NotebookNoteCard
-                    key={item.note.noteId}
-                    item={item}
-                    preview={previews[item.note.noteId]}
-                    isPreviewLoading={loadingId === item.note.noteId}
-                    onOpen={openNote}
-                    onRequestPreview={requestPreview}
-                  />
-                ))}
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {displayedNotes.map((item) => (
+                    <NotebookNoteCard
+                      key={item.note.noteId}
+                      item={item}
+                      preview={previews[item.note.noteId]}
+                      isPreviewLoading={loadingId === item.note.noteId}
+                      onOpen={openNote}
+                      onRequestPreview={requestPreview}
+                    />
+                  ))}
+                </div>
+                {noteList.nextCursor && !noteList.error && (
+                  <button
+                    type="button"
+                    disabled={noteList.isLoadingMore}
+                    onClick={() => void noteList.loadMore()}
+                    className="inline-flex items-center justify-center gap-2 self-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
+                  >
+                    {noteList.isLoadingMore && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {t('tasks.loadMore')}
+                  </button>
+                )}
               </div>
             )}
           </main>

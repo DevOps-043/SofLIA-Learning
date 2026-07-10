@@ -30,7 +30,17 @@ interface UseLearnPageLiaIntegrationOptions {
   isLiaInteractionBlocked: boolean
   openLia: () => void
   closeLia: () => void
-  openLiaNoteModal: (content: string) => void
+  openLiaNoteModal: (
+    content: string,
+    context?: {
+      chatProvenance?: {
+        assistantMessageId?: string
+        conversationId: string
+        userMessageId?: string
+      }
+      question?: string
+    },
+  ) => void
   course: LearnCourseData | null
   currentLesson: LearnLesson | null
   modules: LearnModule[]
@@ -98,7 +108,10 @@ export function useLearnPageLiaIntegration({
   )
 
   const handleSaveLiaNote = useCallback(
-    (content: string) => openLiaNoteModal(content),
+    (
+      content: string,
+      context?: Parameters<UseLearnPageLiaIntegrationOptions['openLiaNoteModal']>[1],
+    ) => openLiaNoteModal(content, context),
     [openLiaNoteModal],
   )
 

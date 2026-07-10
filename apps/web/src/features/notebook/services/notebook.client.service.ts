@@ -11,9 +11,15 @@ import type {
   NotebookCourseOption,
   NotebookCourseOptionsResponse,
   NotebookDerivedTask,
+  NotebookDerivedTaskListItem,
+  NotebookDerivedTaskListResponse,
   NotebookDerivedTaskResponse,
   NotebookDerivedTaskStatus,
+  NotebookEnrichmentReviewInput,
+  NotebookGenerationMutationResponse,
+  NotebookGenerationResponse,
   NotebookNoteDetail,
+  NotebookNoteListResponse,
   NotebookNoteEnrichmentResponse,
   NotebookNoteEnrichmentState,
   NotebookNoteResponse,
@@ -78,6 +84,35 @@ export async function fetchNotebookNote(
   return data.note
 }
 
+export async function fetchNotebookNotes(
+  orgSlug: string,
+  params: {
+    query?: string
+    source?: string
+    courseId?: string
+    lessonId?: string
+    knowledgeType?: string
+    lifecycleStatus?: string
+    cursor?: string | null
+    limit?: number
+  } = {},
+): Promise<NotebookNoteListResponse> {
+  const query = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== '') {
+      query.set(key === 'query' ? 'q' : key, String(value))
+    }
+  }
+  const response = await fetch(`${base(orgSlug)}/notes?${query.toString()}`, {
+    credentials: 'include',
+    cache: 'no-store',
+  })
+  if (!response.ok) {
+    return parseError(response, 'No se pudieron cargar los apuntes.')
+  }
+  return (await response.json()) as NotebookNoteListResponse
+}
+
 export async function createNotebookNote(
   orgSlug: string,
   input: CreateNotebookNoteInput,
@@ -113,22 +148,64 @@ export async function updateNotebookNote(
   return data.note
 }
 
-export async function regenerateCourseCompendium(
+export async function fetchNotebookGeneration(
+  orgSlug: string,
+  params: { courseId: string; lessonId?: string },
+): Promise<NotebookGenerationResponse> {
+  const query = new URLSearchParams({ courseId: params.courseId })
+  if (params.lessonId) query.set('lessonId', params.lessonId)
+  const response = await fetch(`${base(orgSlug)}/generation?${query.toString()}`, {
+    credentials: 'include',
+    cache: 'no-store',
+  })
+  if (!response.ok) {
+    return parseError(response, 'No se pudo consultar la generación del cuaderno.')
+  }
+  return (await response.json()) as NotebookGenerationResponse
+}
+
+/** Enqueues a durable compendium job. A 202 response is a successful result. */
+export async function requestCourseCompendium(
   orgSlug: string,
   courseId: string,
-): Promise<NotebookNoteDetail> {
+): Promise<NotebookGenerationMutationResponse> {
   const response = await fetch(
     `${base(orgSlug)}/compendium/${encodeURIComponent(courseId)}`,
-    {
-      method: 'POST',
-      credentials: 'include',
-    },
+    { method: 'POST', credentials: 'include' },
   )
   if (!response.ok) {
-    return parseError(response, 'No se pudo regenerar el compendio.')
+    return parseError(response, 'No se pudo iniciar el compendio.')
   }
-  const data = (await response.json()) as NotebookNoteResponse
-  return data.note
+  return (await response.json()) as NotebookGenerationMutationResponse
+}
+
+export async function fetchNotebookTasks(
+  orgSlug: string,
+  params: {
+    status?: NotebookDerivedTaskStatus | 'all'
+    courseId?: string
+    cursor?: string | null
+    limit?: number
+  } = {},
+): Promise<NotebookDerivedTaskListResponse> {
+  const query = new URLSearchParams()
+  if (params.status && params.status !== 'all') query.set('status', params.status)
+  if (params.courseId) query.set('courseId', params.courseId)
+  if (params.cursor) query.set('cursor', params.cursor)
+  query.set('limit', String(params.limit ?? 40))
+
+  const response = await fetch(`${base(orgSlug)}/tasks?${query.toString()}`, {
+    credentials: 'include',
+    cache: 'no-store',
+  })
+  if (!response.ok) {
+    return parseError(response, 'No se pudieron cargar las tareas del cuaderno.')
+  }
+  const data = (await response.json()) as NotebookDerivedTaskListResponse
+  return {
+    tasks: (data.tasks ?? []) as NotebookDerivedTaskListItem[],
+    nextCursor: data.nextCursor ?? null,
+  }
 }
 
 export async function fetchNoteEnrichmentState(
@@ -141,6 +218,42 @@ export async function fetchNoteEnrichmentState(
   )
   if (!response.ok) {
     return parseError(response, 'No se pudo cargar el enriquecimiento del apunte.')
+  }
+  const data = (await response.json()) as NotebookNoteEnrichmentResponse
+  return data.state
+}
+
+export async function reviewNotebookNoteEnrichment(
+  orgSlug: string,
+  noteId: string,
+  input: NotebookEnrichmentReviewInput,
+): Promise<NotebookNoteEnrichmentState> {
+  const response = await fetch(
+    `${base(orgSlug)}/notes/${encodeURIComponent(noteId)}/enrichment`,
+    {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    },
+  )
+  if (!response.ok) {
+    return parseError(response, 'No se pudo revisar el enriquecimiento.')
+  }
+  const data = (await response.json()) as NotebookNoteEnrichmentResponse
+  return data.state
+}
+
+export async function retryNotebookNoteEnrichment(
+  orgSlug: string,
+  noteId: string,
+): Promise<NotebookNoteEnrichmentState> {
+  const response = await fetch(
+    `${base(orgSlug)}/notes/${encodeURIComponent(noteId)}/enrichment`,
+    { method: 'POST', credentials: 'include' },
+  )
+  if (!response.ok) {
+    return parseError(response, 'No se pudo reintentar el enriquecimiento.')
   }
   const data = (await response.json()) as NotebookNoteEnrichmentResponse
   return data.state

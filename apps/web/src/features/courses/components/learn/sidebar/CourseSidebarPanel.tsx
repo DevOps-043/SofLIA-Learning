@@ -55,6 +55,7 @@ type CourseSidebarPanelProps = {
   sidebarBg?: string;
   sidebarBorderColor?: string;
   accentColor?: string;
+  notebookBasePath?: string;
 };
 
 export function CourseSidebarPanel({
@@ -89,6 +90,7 @@ export function CourseSidebarPanel({
   sidebarBg,
   sidebarBorderColor,
   accentColor,
+  notebookBasePath,
 }: CourseSidebarPanelProps) {
   const swipeToCloseRef = useSwipe<HTMLDivElement>({
     onSwipeLeft: () => {
@@ -181,6 +183,7 @@ export function CourseSidebarPanel({
                     onCreateNote={onCreateNote}
                     onEditNote={onEditNote}
                     onDeleteNote={onDeleteNote}
+                    notebookBasePath={notebookBasePath}
                   />
                 </div>
               </div>

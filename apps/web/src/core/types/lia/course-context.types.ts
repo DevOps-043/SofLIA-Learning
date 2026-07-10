@@ -23,6 +23,7 @@ export interface LessonInfo {
 }
 
 export interface LessonActivityContextItem {
+  id?: string
   title: string
   type: string
   description?: string
@@ -52,6 +53,7 @@ export interface CourseLessonContext {
   courseSlug?: string
   courseTitle?: string
   courseDescription?: string
+  enrollmentId?: string
   moduleId?: string
   moduleTitle?: string
   lessonId?: string

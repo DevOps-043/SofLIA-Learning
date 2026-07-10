@@ -76,6 +76,7 @@ export function NoteEditorPageClient({
     removeNote,
     regenerate,
   } = useNoteEditor(orgSlug, noteId)
+  const isCompendium = note?.source === 'course_compendium'
 
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [toast, setToast] = useState<{
@@ -175,9 +176,9 @@ export function NoteEditorPageClient({
             <FileText className="hidden h-4 w-4 shrink-0 sm:block" style={{ color: theme.mutedTextColor }} />
             <span
               className="truncate"
-              title={isReadOnly ? t('compendium.label') : note.lessonTitle}
+              title={isCompendium ? t('compendium.label') : note.lessonTitle}
             >
-              {isReadOnly ? t('compendium.label') : note.lessonTitle}
+              {isCompendium ? t('compendium.label') : note.lessonTitle}
             </span>
           </nav>
 
@@ -201,7 +202,11 @@ export function NoteEditorPageClient({
               >
                 {title}
               </h1>
-              <NoteContentView html={content} />
+              <NoteContentView
+                className="text-gray-900 dark:text-gray-100"
+                html={content}
+                source={note.source}
+              />
             </div>
           ) : (
             <RichTextEditor
@@ -235,23 +240,29 @@ export function NoteEditorPageClient({
               <span className="inline-flex items-center gap-2">
                 <FileText className="h-4 w-4 shrink-0" style={{ color: theme.mutedTextColor }} />
                 <span className="truncate">
-                  {isReadOnly ? t('compendium.label') : note.lessonTitle}
+                  {isCompendium ? t('compendium.label') : note.lessonTitle}
                 </span>
               </span>
             </div>
           </SidePanelCard>
 
-          {isReadOnly ? (
+          {isCompendium ? (
             <SidePanelCard label={t('editor.actionsLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
               <CompendiumActionsPanel
-                isDeleting={isDeleting}
+                courseId={note.courseId}
+                orgSlug={orgSlug}
                 isRegenerating={isRegenerating}
-                onDelete={() => void handleDelete()}
                 onRegenerate={() => void handleRegenerate()}
                 actionColor={theme.actionColor}
                 onActionColor={theme.onActionColor}
                 subtextColor={theme.subtextColor}
               />
+            </SidePanelCard>
+          ) : isReadOnly ? (
+            <SidePanelCard label={t('editor.actionsLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
+              <p className="text-sm leading-relaxed" style={{ color: theme.subtextColor }}>
+                {t('editor.generatedReadOnlyHint')}
+              </p>
             </SidePanelCard>
           ) : (
           <SidePanelCard label={t('editor.actionsLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>

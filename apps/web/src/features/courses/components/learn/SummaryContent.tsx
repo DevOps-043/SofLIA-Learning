@@ -10,6 +10,7 @@ import type { LearnLesson } from "@/features/courses/components/learn/types";
 import { HighlightableReadingText } from "@/features/courses/components/learn/reading-voice/HighlightableReadingText";
 import { ReadingAudioPlayer } from "@/features/courses/components/learn/reading-voice/ReadingAudioPlayer";
 import { useReadingAudioPlayer } from "@/features/courses/components/learn/reading-voice/useReadingAudioPlayer";
+import { normalizeNoteContentHtml } from "@/lib/notes/generated-note-html";
 
 const summaryMarkdownComponents = createLessonMarkdownComponents({
   includeCode: true,
@@ -71,7 +72,7 @@ export function SummaryContent({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            note_content: summaryContent,
+            note_content: normalizeNoteContentHtml(summaryContent),
             note_tags: [
               t("summary.noteTags.summary"),
               t("summary.noteTags.automatic"),

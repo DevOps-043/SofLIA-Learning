@@ -46,6 +46,22 @@
       "saveFirstNote": "Salve sua primeira nota para começar",
       "editNote": "Editar nota",
       "deleteNote": "Excluir nota",
+      "viewGenerated": "Ver anotação gerada",
+      "source": {
+        "manual": "Manual",
+        "chat": "Conversa com a SofLIA",
+        "import": "Importado",
+        "lesson_auto_note": "Anotação SofLIA",
+        "course_compendium": "Compêndio"
+      },
+      "generationStatus": {
+        "queued": "Na fila",
+        "processing": "Gerando",
+        "partial": "Parcial",
+        "ready": "Somente leitura",
+        "failed": "Falhou",
+        "stale": "Precisa atualizar"
+      },
       "notesProgress": "Progresso das Notas",
       "notesCreated": "Notas criadas",
       "lessonsWithNotes": "Lições com notas",
@@ -329,6 +345,13 @@
     "courseCompleted": {
       "title": "Parabéns!",
       "message": "Você concluiu o curso com sucesso",
+      "certificateHint": "A seguir, responda a uma breve pesquisa para acessar seu certificado.",
+      "continue": "Continuar",
+      "notebook": {
+        "title": "Seu caderno de aprendizagem",
+        "preparing": "Estamos preparando um compêndio das suas anotações e de tudo que você aprendeu.",
+        "view": "Ver caderno"
+      },
       "rateNow": "Avaliar agora",
       "rateLater": "Mais tarde"
     },

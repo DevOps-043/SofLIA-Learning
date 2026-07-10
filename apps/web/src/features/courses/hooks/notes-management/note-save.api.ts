@@ -38,15 +38,15 @@ export async function createNoteRequest(
   noteData: LearnNoteFormData,
   organizationId?: string | null
 ): Promise<NoteRequestResult> {
+  const query = new URLSearchParams();
+  if (organizationId) query.set("orgId", organizationId);
+  const queryString = query.toString();
   const response = await fetch(
-    `/api/courses/${slug}/lessons/${lessonId}/notes`,
+    `/api/courses/${slug}/lessons/${lessonId}/notes${queryString ? `?${queryString}` : ""}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...normalizeNoteFormData(noteData),
-        organization_id: organizationId || null,
-      }),
+      body: JSON.stringify(normalizeNoteFormData(noteData)),
     }
   );
 

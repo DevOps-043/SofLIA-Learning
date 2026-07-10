@@ -57,6 +57,8 @@ export interface CompendiumNoteRow extends SummaryNoteRow {
 }
 
 export interface DetailRow {
+  course_id?: string | null
+  enrollment_id?: string | null
   note_id: string
   note_title: string
   note_content: string

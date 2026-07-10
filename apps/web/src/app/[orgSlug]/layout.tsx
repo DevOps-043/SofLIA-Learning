@@ -62,7 +62,7 @@ export default async function OrganizationLayout({
       .single(),
     supabase
       .from('organizations')
-      .select('id, name, slug, logo_url, brand_logo_url, brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family, branding_enabled, subscription_plan, subscription_status')
+      .select('id, name, slug, logo_url, brand_logo_url, brand_color_primary, brand_color_secondary, brand_color_accent, brand_font_family, branding_enabled, show_navbar_name, subscription_plan, subscription_status')
       .eq('slug', orgSlug)
       .eq('is_active', true)
       .single(),
@@ -107,6 +107,7 @@ export default async function OrganizationLayout({
     brandColorAccent: organization.brand_color_accent,
     brandFontFamily: organization.brand_font_family,
     brandingEnabled: organization.branding_enabled ?? false,
+    showNavbarName: organization.show_navbar_name ?? true,
     role: userRole,
     subscriptionPlan: organization.subscription_plan as 'team' | 'business' | 'enterprise' | undefined,
     subscriptionStatus: organization.subscription_status as 'active' | 'expired' | 'cancelled' | 'trial' | 'pending' | undefined,

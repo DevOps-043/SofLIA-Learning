@@ -19,6 +19,7 @@ export function buildCurrentLessonContext(
     courseSlug: activeContext.courseSlug,
     courseTitle: activeContext.courseTitle,
     courseDescription: activeContext.courseDescription,
+    enrollmentId: activeContext.enrollmentId,
     userRole: activeContext.userRole,
     moduleId: activeContext.moduleId,
     moduleTitle: activeContext.moduleTitle,
@@ -75,6 +76,7 @@ export function buildCurrentActivityContext(
   }
 
   return {
+    id: activityFocus.id,
     title: activityFocus.title,
     type: activityFocus.type,
     description: activityFocus.description,

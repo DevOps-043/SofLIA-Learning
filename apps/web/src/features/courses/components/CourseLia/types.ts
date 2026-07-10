@@ -17,7 +17,17 @@ export interface CourseLiaProps {
   lessonContent?: string | null;
   lessonContext?: CourseLessonContext;
   customColors?: CourseLiaCustomColors;
-  onSaveNote?: (content: string) => void;
+  onSaveNote?: (
+    content: string,
+    context?: {
+      chatProvenance?: {
+        assistantMessageId?: string;
+        conversationId: string;
+        userMessageId?: string;
+      };
+      question?: string;
+    },
+  ) => void;
 }
 
 export interface CourseLiaThemeColors {

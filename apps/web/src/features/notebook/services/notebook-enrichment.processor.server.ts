@@ -15,8 +15,7 @@
 
 import 'server-only'
 
-import { GoogleGenerativeAI } from '@google/generative-ai'
-
+import { generateStructuredContent } from '@/lib/ai/structured-generation.server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { evaluatePromptInjectionRisk } from '@/lib/security/prompt-injection-detector'
 import { writeSecurityAuditLogAsync } from '@/lib/security/security-audit-log'
@@ -24,9 +23,11 @@ import { logger } from '@/lib/utils/logger'
 import { flexibleFrom } from './notebook-enrichment.server.service'
 import {
   buildEnrichmentPrompt,
+  AI_ENRICHMENT_JSON_SCHEMA,
   clip,
   computeNoteContentHash,
   normalizeAiOutput,
+  structuredAiEnrichmentOutputSchema,
   stripHtmlToText,
   type NormalizedEnrichment,
 } from './notebook-enrichment.normalizer'
@@ -73,41 +74,31 @@ export interface EnrichmentBatchResult {
   skipped: number
 }
 
-async function generateEnrichment(prompt: string): Promise<NormalizedEnrichment> {
-  const googleApiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY
-  if (!googleApiKey) {
-    throw new Error('GEMINI_API_KEY no esta configurada.')
-  }
-
-  const genAI = new GoogleGenerativeAI(googleApiKey)
-  const model = genAI.getGenerativeModel(
-    {
-      generationConfig: {
-        maxOutputTokens: 1_024,
-        responseMimeType: 'application/json',
-        temperature: 0.2,
-      },
-      model: process.env.GEMINI_MODEL || FALLBACK_MODEL,
+async function generateEnrichment(input: {
+  note: NoteRow
+  noteText: string
+  prompt: string
+}): Promise<NormalizedEnrichment> {
+  const result = await generateStructuredContent({
+    audit: {
+      action: 'notebook_enrichment_model_completed',
+      actorId: input.note.user_id,
+      organizationId: input.note.organization_id,
+      resourceId: input.note.note_id,
+      resourceType: 'notebook_note',
     },
-    { timeout: MODEL_TIMEOUT_MS },
-  )
+    jsonSchema: AI_ENRICHMENT_JSON_SCHEMA,
+    maxOutputTokens: 1_024,
+    model: process.env.GEMINI_MODEL || FALLBACK_MODEL,
+    operation: 'notebook_enrichment',
+    prompt: input.prompt,
+    schema: structuredAiEnrichmentOutputSchema,
+    temperature: 0.2,
+    timeoutMs: MODEL_TIMEOUT_MS,
+    untrustedText: input.noteText,
+  })
 
-  const result = await model.generateContent(prompt)
-  const rawText = result.response
-    .text()
-    .trim()
-    .replace(/^```(?:json)?/i, '')
-    .replace(/```$/i, '')
-    .trim()
-
-  let parsedJson: unknown
-  try {
-    parsedJson = JSON.parse(rawText)
-  } catch {
-    throw new Error('La respuesta del modelo no es JSON valido.')
-  }
-
-  return normalizeAiOutput(parsedJson)
+  return normalizeAiOutput(result.value)
 }
 
 async function persistMetadata(
@@ -281,13 +272,15 @@ async function processJob(client: AdminClient, job: JobRow): Promise<'done' | 's
     ? note.note_tags.filter((tag): tag is string => typeof tag === 'string')
     : []
 
-  const enrichment = await generateEnrichment(
-    buildEnrichmentPrompt({
+  const enrichment = await generateEnrichment({
+    note,
+    noteText,
+    prompt: buildEnrichmentPrompt({
       existingTags,
       noteText,
       noteTitle: note.note_title,
     }),
-  )
+  })
 
   await persistMetadata(client, note, enrichment, job.content_hash)
   await refreshSuggestedTasks(client, note, enrichment.detectedTasks)

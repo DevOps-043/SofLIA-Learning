@@ -4,6 +4,7 @@ import { resolveGeminiModel } from '@/lib/gemini/client'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../lib/supabase/types';
 import type { ChatMessage, ChatRequest } from './platform-context.service';
+import { enqueueLessonAutoNoteJob } from '@/features/notebook/services/notebook-generation.server.service';
 
 const LIA_CHAT_MODEL = resolveGeminiModel(
   process.env.LIA_CHAT_GEMINI_MODEL || 'gemini-3.5-flash',
@@ -16,6 +17,120 @@ interface PersistConversationTurnParams {
   requestContext: ChatRequest['context'];
   userMessage?: ChatMessage | null;
   assistantContent: string;
+}
+
+export interface PersistedConversationTurn {
+  assistantMessageId: string | null;
+  conversationId: string;
+  userMessageId: string;
+}
+
+interface EnrollmentScopeRow {
+  enrollment_id: string;
+  organization_id: string | null;
+}
+
+async function resolveEnrollmentScope(
+  supabaseAdmin: ReturnType<typeof createSupabaseAdminClient>,
+  userId: string,
+  requestContext: ChatRequest['context'],
+): Promise<EnrollmentScopeRow | null> {
+  const courseId = requestContext?.currentLessonContext?.courseId;
+  if (!courseId) return null;
+
+  let query = supabaseAdmin
+    .from('user_course_enrollments')
+    .select('enrollment_id, organization_id')
+    .eq('user_id', userId)
+    .eq('course_id', courseId)
+    .neq('enrollment_status', 'cancelled');
+
+  const organizationId =
+    typeof requestContext?.organizationId === 'string'
+      ? requestContext.organizationId
+      : null;
+  query = organizationId
+    ? query.eq('organization_id', organizationId)
+    : query.is('organization_id', null);
+
+  const requestedEnrollmentId =
+    requestContext?.currentLessonContext?.enrollmentId;
+  if (requestedEnrollmentId && isValidUUID(requestedEnrollmentId)) {
+    query = query.eq('enrollment_id', requestedEnrollmentId);
+  }
+
+  const { data, error } = await query
+    .order('last_accessed_at', { ascending: false })
+    .limit(1)
+    .maybeSingle<EnrollmentScopeRow>();
+
+  if (error) {
+    techDebtLogger.warn('No se pudo resolver la inscripcion del chat SofLIA', {
+      error: error.message,
+      userId,
+    });
+    return null;
+  }
+
+  return data || null;
+}
+
+async function resolveActivityId(
+  supabaseAdmin: ReturnType<typeof createSupabaseAdminClient>,
+  requestContext: ChatRequest['context'],
+): Promise<string | null> {
+  const activityId = requestContext?.currentActivityContext?.id;
+  const lessonId = requestContext?.currentLessonContext?.lessonId;
+  if (!activityId || !lessonId || !isValidUUID(activityId)) return null;
+
+  const { data } = await supabaseAdmin
+    .from('lesson_activities')
+    .select('activity_id')
+    .eq('activity_id', activityId)
+    .eq('lesson_id', lessonId)
+    .maybeSingle();
+
+  return data?.activity_id || null;
+}
+
+async function enqueueCompletedLessonRefresh(input: {
+  assistantMessageId: string
+  client: ReturnType<typeof createSupabaseAdminClient>
+  courseId: string | undefined
+  enrollment: EnrollmentScopeRow | null
+  lessonId: string | undefined
+  organizationId: string | null
+  userId: string
+}): Promise<void> {
+  if (
+    !input.courseId ||
+    !input.lessonId ||
+    !input.enrollment ||
+    !input.organizationId
+  ) {
+    return
+  }
+
+  const { data: progress } = await input.client
+    .from('user_lesson_progress')
+    .select('progress_id')
+    .eq('user_id', input.userId)
+    .eq('enrollment_id', input.enrollment.enrollment_id)
+    .eq('lesson_id', input.lessonId)
+    .eq('is_completed', true)
+    .maybeSingle()
+  if (!progress) return
+
+  await enqueueLessonAutoNoteJob({
+    client: input.client,
+    courseId: input.courseId,
+    enrollmentId: input.enrollment.enrollment_id,
+    lessonId: input.lessonId,
+    organizationId: input.organizationId,
+    priority: 40,
+    sourceVersion: input.assistantMessageId,
+    userId: input.userId,
+  })
 }
 
 function createSupabaseAdminClient() {
@@ -81,7 +196,7 @@ export async function persistConversationTurn({
   requestContext,
   userMessage,
   assistantContent,
-}: PersistConversationTurnParams): Promise<void> {
+}: PersistConversationTurnParams): Promise<PersistedConversationTurn | null> {
   if (
     !conversationId ||
     !userId ||
@@ -89,11 +204,15 @@ export async function persistConversationTurn({
     !userMessage ||
     userMessage.role !== 'user'
   ) {
-    return;
+    return null;
   }
 
   try {
     const supabaseAdmin = createSupabaseAdminClient();
+    const [enrollmentScope, activityId] = await Promise.all([
+      resolveEnrollmentScope(supabaseAdmin, userId, requestContext),
+      resolveActivityId(supabaseAdmin, requestContext),
+    ]);
 
     const { error: upsertError } = await supabaseAdmin
       .from('lia_conversations')
@@ -105,13 +224,14 @@ export async function persistConversationTurn({
             ? 'course'
             : 'general',
           course_id: requestContext?.currentLessonContext?.courseId || null,
+          enrollment_id: enrollmentScope?.enrollment_id || null,
+          activity_id: activityId,
           module_id: requestContext?.currentLessonContext?.moduleId || null,
           lesson_id: requestContext?.currentLessonContext?.lessonId || null,
           organization_id:
             typeof requestContext?.organizationId === 'string'
               ? requestContext.organizationId
               : null,
-          started_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'conversation_id' }
@@ -119,7 +239,7 @@ export async function persistConversationTurn({
 
     if (upsertError) {
       techDebtLogger.error('Error en upsert de conversacion de SofLIA:', upsertError);
-      return;
+      return null;
     }
 
     const { data: lastMessageRecord, error: sequenceError } = await supabaseAdmin
@@ -135,29 +255,31 @@ export async function persistConversationTurn({
         'Error obteniendo la secuencia de mensajes de SofLIA:',
         sequenceError
       );
-      return;
+      return null;
     }
 
     const nextSequence = (lastMessageRecord?.message_sequence || 0) + 1;
 
-    const { error: userMessageError } = await supabaseAdmin
+    const { data: persistedUserMessage, error: userMessageError } = await supabaseAdmin
       .from('lia_messages')
       .insert({
         conversation_id: conversationId,
         role: 'user',
         content: userMessage.content,
         message_sequence: nextSequence,
-      });
+      })
+      .select('message_id')
+      .single();
 
-    if (userMessageError) {
+    if (userMessageError || !persistedUserMessage) {
       techDebtLogger.error(
         'Error guardando el mensaje del usuario en SofLIA:',
-        userMessageError
+        userMessageError || new Error('Mensaje sin identificador')
       );
-      return;
+      return null;
     }
 
-    const { error: assistantMessageError } = await supabaseAdmin
+    const { data: persistedAssistantMessage, error: assistantMessageError } = await supabaseAdmin
       .from('lia_messages')
       .insert({
         conversation_id: conversationId,
@@ -166,7 +288,9 @@ export async function persistConversationTurn({
         model_used: LIA_CHAT_MODEL,
         tokens_used: 0,
         message_sequence: nextSequence + 1,
-      });
+      })
+      .select('message_id')
+      .single();
 
     if (assistantMessageError) {
       techDebtLogger.error(
@@ -174,7 +298,34 @@ export async function persistConversationTurn({
         assistantMessageError
       );
     }
+
+    if (persistedAssistantMessage?.message_id) {
+      try {
+        await enqueueCompletedLessonRefresh({
+          assistantMessageId: persistedAssistantMessage.message_id,
+          client: supabaseAdmin,
+          courseId: requestContext?.currentLessonContext?.courseId,
+          enrollment: enrollmentScope,
+          lessonId: requestContext?.currentLessonContext?.lessonId,
+          organizationId: enrollmentScope?.organization_id || null,
+          userId,
+        })
+      } catch (enqueueError) {
+        techDebtLogger.warn('No se pudo refrescar el apunte tras el chat', {
+          conversationId,
+          error:
+            enqueueError instanceof Error ? enqueueError.message : enqueueError,
+        })
+      }
+    }
+
+    return {
+      assistantMessageId: persistedAssistantMessage?.message_id || null,
+      conversationId,
+      userMessageId: persistedUserMessage.message_id,
+    };
   } catch (error) {
     techDebtLogger.error('Error persistiendo el turno de conversacion de SofLIA:', error);
+    return null;
   }
 }

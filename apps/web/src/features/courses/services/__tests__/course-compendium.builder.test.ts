@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildCompiledNotesHtml,
   buildCourseCompendiumPrompt,
+  buildCourseSynthesisHtmlFromModel,
   type CompendiumLesson,
 } from '../course-compendium.builder'
 import type { LessonNote } from '../note.service'
@@ -49,7 +50,9 @@ describe('buildCourseCompendiumPrompt', () => {
     expect(prompt).toContain('IA para equipos')
     expect(prompt).toContain('Módulo 1 / Lección 1')
     expect(prompt).toContain('Concepto clave de IA')
-    expect(prompt).toContain('<h2>Síntesis del curso</h2>')
+    expect(prompt).toContain('"synthesis": ["párrafo"]')
+    expect(prompt).toContain('"keyConcepts"')
+    expect(prompt).toContain('"reviewSteps"')
   })
 
   it('handles the no-notes case with an explicit instruction', () => {
@@ -60,6 +63,36 @@ describe('buildCourseCompendiumPrompt', () => {
     })
 
     expect(prompt).toContain('no tiene apuntes registrados')
+  })
+})
+
+describe('buildCourseSynthesisHtmlFromModel', () => {
+  it('builds an indexed synthesis with concepts and ordered review steps', () => {
+    const html = buildCourseSynthesisHtmlFromModel(
+      JSON.stringify({
+        titles: {
+          index: 'Índice',
+          synthesis: 'Síntesis del curso',
+          concepts: 'Conceptos clave',
+          review: 'Guía de repaso',
+        },
+        synthesis: ['El curso conecta estrategia, práctica y verificación.'],
+        keyConcepts: [
+          { label: 'Criterio', detail: 'Permite evaluar una decisión.' },
+          { label: 'Verificación', detail: 'Reduce errores evitables.' },
+        ],
+        reviewSteps: [
+          { label: 'Recordar', detail: 'Explica los conceptos principales.' },
+          { label: 'Aplicar', detail: 'Resuelve un caso nuevo.' },
+        ],
+      }),
+    )
+
+    expect(html).toContain('<h2>Índice</h2>')
+    expect(html).toContain('class="notebook-note-index"')
+    expect(html).toContain('<h2>Síntesis del curso</h2>')
+    expect(html).toContain('<ul><li><strong>Criterio:</strong>')
+    expect(html).toContain('<ol><li><strong>Recordar:</strong>')
   })
 })
 

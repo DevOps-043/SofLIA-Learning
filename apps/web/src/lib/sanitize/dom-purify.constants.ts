@@ -31,6 +31,7 @@ export const ALLOWED_CSS_CLASSES = [
   /^(block|inline-block|inline|flex|grid|hidden)$/,
   /^border(-\d+)?$/,
   /^rounded(-\w+)?$/,
+  /^notebook-note-index$/,
 ];
 
 export const BLOCKED_URL_PATTERNS = [

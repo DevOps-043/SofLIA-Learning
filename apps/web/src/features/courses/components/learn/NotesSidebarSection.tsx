@@ -15,6 +15,7 @@ type NotesSidebarSectionProps = {
   onCreateNote: () => void;
   onEditNote: (note: LearnNoteListItem) => void;
   onDeleteNote: (noteId: string) => void;
+  notebookBasePath?: string;
 };
 
 export function NotesSidebarSection({
@@ -25,6 +26,7 @@ export function NotesSidebarSection({
   onCreateNote,
   onEditNote,
   onDeleteNote,
+  notebookBasePath,
 }: NotesSidebarSectionProps) {
   const { t } = useTranslation("learn");
 
@@ -107,6 +109,7 @@ export function NotesSidebarSection({
                       onDelete={onDeleteNote}
                       editLabel={t("leftPanel.notesSection.editNote")}
                       deleteLabel={t("leftPanel.notesSection.deleteNote")}
+                      notebookHref={notebookBasePath ? `${notebookBasePath}/${note.id}` : undefined}
                     />
                   ))
                 )}

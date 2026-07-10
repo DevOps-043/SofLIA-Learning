@@ -94,9 +94,11 @@ describe('useCourseCompletionFlow', () => {
       await result.current.handleCourseCompletedClose()
     })
 
-    expect(CourseCertificateService.generateCertificate).toHaveBeenCalledWith(
-      'course-1',
-    )
+    expect(CourseCertificateService.generateCertificate).toHaveBeenCalledWith({
+      courseId: 'course-1',
+      enrollmentId: undefined,
+      organizationId: undefined,
+    })
     expect(onCertificateReady).toHaveBeenCalledWith('/certificates/cert-1')
     expect(result.current.hasUserRated).toBe(true)
   })
@@ -181,9 +183,11 @@ describe('useCourseCompletionFlow', () => {
         reviewContent: 'Muy bien',
       },
     )
-    expect(CourseCertificateService.generateCertificate).toHaveBeenCalledWith(
-      'course-1',
-    )
+    expect(CourseCertificateService.generateCertificate).toHaveBeenCalledWith({
+      courseId: 'course-1',
+      enrollmentId: undefined,
+      organizationId: undefined,
+    })
     expect(onCertificateReady).toHaveBeenCalledWith('/certificates/cert-2')
   })
 })

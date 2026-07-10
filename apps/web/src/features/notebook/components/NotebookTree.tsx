@@ -7,12 +7,15 @@ import {
   ChevronRight,
   FileText,
   Layers,
+  Loader2,
+  RotateCcw,
   Sparkles,
 } from 'lucide-react'
 
 import { cn } from '@/utils/cn'
 import type { NotebookSelection } from '../hooks/useNotebookTree'
 import type { NotebookTree as NotebookTreeData } from '../types'
+import { GenerationStatusBadge } from './GenerationStatusBadge'
 
 interface NotebookTreeProps {
   tree: NotebookTreeData
@@ -22,6 +25,8 @@ interface NotebookTreeProps {
   onToggleCourse: (courseId: string) => void
   /** Opens a note directly (used by the course compendium entry). */
   onOpenNote: (noteId: string) => void
+  onRetryCompendium: (courseId: string) => void
+  retryingCourseId?: string | null
 }
 
 function isLessonActive(
@@ -45,6 +50,8 @@ export function NotebookTree({
   expandedCourses,
   onToggleCourse,
   onOpenNote,
+  onRetryCompendium,
+  retryingCourseId,
 }: NotebookTreeProps) {
   const { t } = useTranslation('notebook')
 
@@ -118,18 +125,36 @@ export function NotebookTree({
 
             {expanded && (
               <div className="ml-7 flex flex-col gap-0.5 border-l border-gray-200 pl-2 dark:border-white/10">
-                {course.compendium && (
-                  <button
-                    type="button"
-                    onClick={() => onOpenNote(course.compendium!.noteId)}
-                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-accent)]/10 dark:text-[var(--color-accent)]"
-                  >
-                    <Sparkles className="h-3.5 w-3.5 shrink-0" />
-                    <span className="flex-1 truncate">
-                      {t('compendium.label')}
-                    </span>
-                  </button>
-                )}
+                {(course.compendium || course.generationState) && (() => {
+                  const state = course.compendium?.generationState ?? course.generationState
+                  const isRetrying = retryingCourseId === course.courseId
+                  return (
+                    <div className="flex items-center gap-1 rounded-md px-1 py-1 text-[var(--color-primary)] dark:text-[var(--color-accent)]">
+                      <button
+                        type="button"
+                        disabled={!course.compendium}
+                        onClick={() => course.compendium && onOpenNote(course.compendium.noteId)}
+                        className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-1 text-left text-sm font-medium transition-colors enabled:hover:bg-[var(--color-accent)]/10 disabled:cursor-default"
+                      >
+                        <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                        <span className="min-w-0 flex-1 truncate">{t('compendium.label')}</span>
+                        {state && <GenerationStatusBadge status={state.status} compact />}
+                      </button>
+                      {state?.retryable && (state.status === 'failed' || state.status === 'partial' || state.status === 'stale') && (
+                        <button
+                          type="button"
+                          disabled={isRetrying}
+                          onClick={() => onRetryCompendium(course.courseId)}
+                          className="rounded-md p-1.5 transition-colors hover:bg-[var(--color-accent)]/10 disabled:opacity-50"
+                          title={t('generation.retry')}
+                          aria-label={t('generation.retry')}
+                        >
+                          {isRetrying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+                        </button>
+                      )}
+                    </div>
+                  )
+                })()}
                 {course.lessons.map((lesson) => (
                   <button
                     key={lesson.lessonId}

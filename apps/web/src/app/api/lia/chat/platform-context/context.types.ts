@@ -73,6 +73,7 @@ export interface PlatformContext {
   userLessonProgress?: UserLessonProgressItem[]
   currentLessonContext?: CurrentLessonContext
   currentActivityContext?: {
+    id?: string
     title: string
     type: string
     description: string

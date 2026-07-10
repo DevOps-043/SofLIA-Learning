@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { z } from 'zod'
 
 import type { createAdminClient } from '@/lib/supabase/admin'
 import type { createClient } from '@/lib/supabase/server'
@@ -10,6 +10,10 @@ import { logger } from '@/lib/utils/logger'
 
 import type { DialogueTranscriptRows } from './lesson-dialogue-transcript.builder'
 import { buildDialogueTranscriptHtml } from './lesson-dialogue-transcript.builder'
+import {
+  buildDeterministicLessonAutoNoteHtml,
+  buildLessonAutoNoteHtmlFromModel,
+} from './lesson-auto-note-content.builder'
 import type {
   RequiredQuizStatus,
   RequiredQuizStatusItem,
@@ -44,8 +48,10 @@ export type LessonAutoNoteStatus = 'created' | 'updated' | 'skipped' | 'failed'
 export interface LessonAutoNoteResult {
   error?: string
   noteId?: string
+  quality?: 'ai' | 'deterministic'
   reason?: string
   status: LessonAutoNoteStatus
+  warning?: string
 }
 
 export interface GenerateLessonAutoNoteInput {
@@ -119,6 +125,7 @@ interface DialogueSessionRow {
 }
 
 interface DialogueTurnRow {
+  created_at?: string | null
   session_id: string
   role: 'user' | 'assistant' | 'system'
   content: string
@@ -146,6 +153,7 @@ interface LiaConversationRow {
 
 interface LiaMessageRow {
   conversation_id: string
+  created_at?: string | null
   role: string
   content: string
   message_sequence: number
@@ -189,8 +197,86 @@ const MAX_NOTE_CONTENT = 50_000
 // the verbatim dialogue transcript appended after it.
 const AI_SUMMARY_MAX = 20_000
 const TRANSCRIPT_SECTION_HEADING =
-  '<h2>Transcripción completa de mi diálogo con SofLIA</h2>'
+  '<h2>Conversación en crudo con SofLIA</h2>'
 const TRANSCRIPT_SECTION_RESERVE = 500
+
+const labeledItemSchema = z.object({
+  detail: z.string().min(1).max(2_500),
+  label: z.string().max(160),
+})
+
+const lessonAutoNoteDocumentSchema = z.object({
+  activityFeedback: z.array(labeledItemSchema).max(8),
+  lessonKeyPoints: z.array(labeledItemSchema).max(8),
+  lessonOverview: z.array(z.string().min(1).max(2_500)).max(4),
+  quizFeedback: z.array(labeledItemSchema).max(10),
+  reviewChecklist: z.array(z.string().min(1).max(1_000)).max(8),
+  sofliaHighlights: z.array(labeledItemSchema).max(8),
+  strategicSummary: z.array(z.string().min(1).max(2_500)).min(1).max(4),
+  titles: z.object({
+    activityFeedback: z.string().min(1).max(120),
+    index: z.string().min(1).max(80),
+    lessonContent: z.string().min(1).max(120),
+    quizFeedback: z.string().min(1).max(120),
+    review: z.string().min(1).max(120),
+    sofliaHighlights: z.string().min(1).max(160),
+    summary: z.string().min(1).max(120),
+  }),
+})
+
+const LESSON_AUTO_NOTE_JSON_SCHEMA: Record<string, unknown> = {
+  $defs: {
+    labeledItem: {
+      additionalProperties: false,
+      properties: { detail: { type: 'string' }, label: { type: 'string' } },
+      required: ['detail', 'label'],
+      type: 'object',
+    },
+  },
+  additionalProperties: false,
+  properties: {
+    activityFeedback: { items: { $ref: '#/$defs/labeledItem' }, type: 'array' },
+    lessonKeyPoints: { items: { $ref: '#/$defs/labeledItem' }, type: 'array' },
+    lessonOverview: { items: { type: 'string' }, type: 'array' },
+    quizFeedback: { items: { $ref: '#/$defs/labeledItem' }, type: 'array' },
+    reviewChecklist: { items: { type: 'string' }, type: 'array' },
+    sofliaHighlights: { items: { $ref: '#/$defs/labeledItem' }, type: 'array' },
+    strategicSummary: { items: { type: 'string' }, minItems: 1, type: 'array' },
+    titles: {
+      additionalProperties: false,
+      properties: {
+        activityFeedback: { type: 'string' },
+        index: { type: 'string' },
+        lessonContent: { type: 'string' },
+        quizFeedback: { type: 'string' },
+        review: { type: 'string' },
+        sofliaHighlights: { type: 'string' },
+        summary: { type: 'string' },
+      },
+      required: [
+        'activityFeedback',
+        'index',
+        'lessonContent',
+        'quizFeedback',
+        'review',
+        'sofliaHighlights',
+        'summary',
+      ],
+      type: 'object',
+    },
+  },
+  required: [
+    'activityFeedback',
+    'lessonKeyPoints',
+    'lessonOverview',
+    'quizFeedback',
+    'reviewChecklist',
+    'sofliaHighlights',
+    'strategicSummary',
+    'titles',
+  ],
+  type: 'object',
+}
 
 function clip(value: string | null | undefined, maxLength: number): string {
   const normalized = (value || '').replace(/\s+/g, ' ').trim()
@@ -256,6 +342,32 @@ function getRecordText(record: Record<string, unknown>): string {
   }
 
   return compactUnknown(record, 900)
+}
+
+const PUBLIC_FEEDBACK_FIELDS = [
+  'summary',
+  'feedback',
+  'student_feedback',
+  'strengths',
+  'improvements',
+  'recommendations',
+  'next_steps',
+  'message',
+] as const
+
+/** Allows only learner-facing evaluation fields into notes and AI prompts. */
+function getPublicFeedbackText(value: unknown): string {
+  const record = toRecord(value)
+  const parts = PUBLIC_FEEDBACK_FIELDS.flatMap((field) => {
+    const candidate = record[field]
+    if (typeof candidate === 'string') return [candidate]
+    if (Array.isArray(candidate)) {
+      return candidate.filter((item): item is string => typeof item === 'string')
+    }
+    return []
+  })
+
+  return clip(parts.join(' '), 900)
 }
 
 function normalizeForCompare(value: string): string {
@@ -372,24 +484,39 @@ export function buildLessonAutoNotePrompt(input: LessonAutoNotePromptInput): str
   return `Genera un apunte automatico de leccion para SofLIA Learning.
 
 Objetivo:
-Crear una nota concisa, estrategica y util para que el usuario recuerde lo aprendido despues de aprobar el quiz de la leccion.
+Crear una nota concisa, estrategica y util para que el usuario recuerde y aplique lo aprendido al completar la leccion, tenga o no quiz o conversacion.
 
 Reglas estrictas:
-- Responde unicamente con HTML seguro: usa <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>.
-- No uses markdown, bloques de codigo, estilos inline, scripts, tablas ni enlaces inventados.
+- Responde unicamente con JSON valido que respete exactamente el esquema indicado abajo.
+- No uses HTML, markdown, bloques de codigo, estilos, tablas ni enlaces inventados dentro de los textos.
 - No inventes datos. Si falta contexto en una seccion, resume con lo disponible.
-- No copies la conversacion completa con SofLIA; la transcripcion completa se añadira automaticamente despues de tu resumen. En la seccion de puntos clave usa de 3 a 6 viñetas breves.
+- No copies la conversacion completa con SofLIA; la transcripcion completa se añadira automaticamente despues de tu resumen.
+- Usa de 1 a 3 parrafos breves en strategicSummary y lessonOverview.
+- Usa de 3 a 6 elementos concretos en lessonKeyPoints, sofliaHighlights y reviewChecklist cuando haya contexto suficiente.
+- Para activityFeedback y quizFeedback, usa label para el tema o pregunta y detail para la retroalimentacion accionable.
 - Mantente conciso: entre 500 y 900 palabras.
 - Tono profesional, claro y accionable.
-- Idioma: usa el idioma principal del contenido; si no es claro, usa español.
+- Idioma: usa el idioma principal del contenido; si no es claro, usa español. Traduce tambien todos los valores de titles a ese idioma.
 
-Estructura obligatoria:
-<h2>Resumen estratégico</h2>
-<h2>Video, lectura y reflexión</h2>
-<h2>Puntos clave de mi interacción con SofLIA</h2>
-<h2>Retroalimentación de la actividad</h2>
-<h2>Retroalimentación del quiz</h2>
-<h2>Para repasar</h2>
+Esquema JSON obligatorio:
+{
+  "titles": {
+    "index": "Índice",
+    "summary": "Resumen estratégico",
+    "lessonContent": "Video, lectura y reflexión",
+    "sofliaHighlights": "Puntos clave de mi interacción con SofLIA",
+    "activityFeedback": "Retroalimentación de la actividad",
+    "quizFeedback": "Retroalimentación del quiz",
+    "review": "Para repasar"
+  },
+  "strategicSummary": ["párrafo"],
+  "lessonOverview": ["párrafo"],
+  "lessonKeyPoints": [{ "label": "concepto", "detail": "explicación" }],
+  "sofliaHighlights": [{ "label": "hallazgo", "detail": "por qué importa" }],
+  "activityFeedback": [{ "label": "actividad", "detail": "retroalimentación" }],
+  "quizFeedback": [{ "label": "pregunta o concepto", "detail": "respuesta clave y explicación" }],
+  "reviewChecklist": ["acción de repaso"]
+}
 
 Curso: ${input.courseTitle}
 Leccion: ${input.lessonTitle}
@@ -411,32 +538,35 @@ Quiz y retroalimentacion:
 ${input.quizReviews.length > 0 ? input.quizReviews.join('\n\n') : 'No hay detalle de quiz disponible.'}`
 }
 
-function normalizeGeneratedHtml(value: string): string {
-  return value
-    .trim()
-    .replace(/^```(?:html)?/i, '')
-    .replace(/```$/i, '')
-    .trim()
-}
-
-async function generateNoteHtml(prompt: string): Promise<string> {
-  const googleApiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY
-  if (!googleApiKey) {
-    throw new Error('GEMINI_API_KEY no esta configurada.')
-  }
-
-  const genAI = new GoogleGenerativeAI(googleApiKey)
-  const model = genAI.getGenerativeModel({
-    model: process.env.GEMINI_MODEL || FALLBACK_MODEL,
-    generationConfig: {
-      maxOutputTokens: 4096,
-      temperature: 0.25,
+async function generateNoteHtml(input: {
+  generation: GenerateLessonAutoNoteInput
+  prompt: string
+  untrustedText: string
+}): Promise<string> {
+  const { generateStructuredContent } = await import(
+    '@/lib/ai/structured-generation.server'
+  )
+  const result = await generateStructuredContent({
+    audit: {
+      action: 'notebook_lesson_note_generated',
+      actorId: input.generation.userId,
+      organizationId: input.generation.organizationId,
+      resourceId: input.generation.lessonId,
+      resourceType: 'course_lesson',
     },
+    jsonSchema: LESSON_AUTO_NOTE_JSON_SCHEMA,
+    maxOutputTokens: 4_096,
+    model: process.env.GEMINI_MODEL || FALLBACK_MODEL,
+    operation: 'lesson_auto_note',
+    prompt: input.prompt,
+    schema: lessonAutoNoteDocumentSchema,
+    temperature: 0.25,
+    untrustedText: input.untrustedText,
   })
-
-  const result = await model.generateContent(prompt)
-  const rawHtml = normalizeGeneratedHtml(result.response.text())
-  const sanitized = sanitizeHtml(rawHtml, {
+  const generatedHtml = buildLessonAutoNoteHtmlFromModel(
+    JSON.stringify(result.value),
+  )
+  const sanitized = sanitizeHtml(generatedHtml, {
     level: 'rich',
     maxLength: AI_SUMMARY_MAX,
   }).trim()
@@ -581,7 +711,7 @@ async function loadLiaMessages(
 
   const { data } = await supabase
     .from('lia_messages')
-    .select('conversation_id, role, content, message_sequence')
+    .select('conversation_id, role, content, message_sequence, created_at')
     .in('conversation_id', conversationIds)
     .eq('is_system_message', false)
     .order('message_sequence', { ascending: true })
@@ -599,7 +729,7 @@ async function loadDialogueTurns(
   }
 
   const { data } = await fromFlexible(supabase, 'soflia_dialogue_turns')
-    .select('session_id, role, content, turn_number')
+    .select('session_id, role, content, turn_number, created_at')
     .in('session_id', sessionIds)
     .order('turn_number', { ascending: true })
     .returns<DialogueTurnRow[]>()
@@ -616,7 +746,7 @@ async function loadDialogueResults(
   }
 
   const { data } = await fromFlexible(supabase, 'soflia_dialogue_results')
-    .select('session_id, activity_id, activity_result, score, student_feedback, instructor_summary, criteria_met, criteria_missing')
+    .select('session_id, activity_id, activity_result, score, student_feedback, criteria_met, criteria_missing')
     .in('session_id', sessionIds)
     .returns<DialogueResultRow[]>()
 
@@ -662,7 +792,9 @@ function buildActivityNotes(input: {
         activity.activity_description ? `Descripcion: ${clip(activity.activity_description, 500)}.` : '',
         activity.activity_content ? `Contenido: ${compactUnknown(activity.activity_content, 900)}.` : '',
         responseText ? `Respuesta del usuario: ${clip(responseText, 900)}.` : '',
-        evaluation ? `Evaluacion SofLIA: ${compactUnknown(evaluation.feedback_payload, 900)}.` : '',
+        evaluation && getPublicFeedbackText(evaluation.feedback_payload)
+          ? `Evaluacion SofLIA: ${getPublicFeedbackText(evaluation.feedback_payload)}.`
+          : '',
       ]
         .filter(Boolean)
         .join(' ')
@@ -699,7 +831,6 @@ function buildDialogueHighlights(input: {
       `Dialogo guiado: ${activityTitleById.get(session.activity_id) || 'Actividad SofLIA'}.`,
       `Estado: ${session.state}; puntaje: ${result?.score ?? session.current_score ?? 0}.`,
       result?.student_feedback ? `Retroalimentacion: ${clip(result.student_feedback, 900)}.` : '',
-      result?.instructor_summary ? `Resumen interno: ${clip(result.instructor_summary, 700)}.` : '',
       `Fragmentos clave:\n${formatMessages(turns)}`,
     ]
       .filter(Boolean)
@@ -791,6 +922,23 @@ interface LessonAutoNotePromptData {
 async function buildPromptInput(
   input: GenerateLessonAutoNoteInput,
 ): Promise<LessonAutoNotePromptData> {
+  let liaConversationsQuery = fromFlexible(input.supabase, 'lia_conversations')
+    .select('conversation_id, activity_id, conversation_title, total_user_messages, updated_at')
+    .eq('user_id', input.userId)
+    .eq('lesson_id', input.lessonId)
+    .eq('enrollment_id', input.enrollmentId)
+
+  if (input.organizationId) {
+    liaConversationsQuery = liaConversationsQuery.eq(
+      'organization_id',
+      input.organizationId,
+    )
+  }
+
+  liaConversationsQuery = liaConversationsQuery
+    .order('updated_at', { ascending: true })
+    .limit(50)
+
   const [
     lesson,
     activitiesResult,
@@ -825,29 +973,17 @@ async function buildPromptInput(
       .eq('lesson_id', input.lessonId)
       .eq('enrollment_id', input.enrollmentId)
       .in('state', ['COMPLETE', 'SESSION_SUMMARY'])
-      .order('updated_at', { ascending: false })
-      .limit(5)
+      .order('updated_at', { ascending: true })
+      .limit(50)
       .returns<DialogueSessionRow[]>(),
-    input.supabase
-      .from('lia_conversations')
-      .select('conversation_id, activity_id, conversation_title, total_user_messages, updated_at')
-      .eq('user_id', input.userId)
-      .eq('lesson_id', input.lessonId)
-      .not('activity_id', 'is', null)
-      .order('updated_at', { ascending: false })
-      .limit(5)
-      .returns<LiaConversationRow[]>(),
+    liaConversationsQuery.returns<LiaConversationRow[]>(),
   ])
 
   const activities = activitiesResult.data || []
   const materials = materialsResult.data || []
   const submissions = submissionsResult.data || []
   const dialogueSessions = dialogueSessionsResult.data || []
-  const liaConversations = (liaConversationsResult.data || []).filter(
-    (conversation) =>
-      !input.organizationId || conversation.activity_id ||
-      conversation.total_user_messages,
-  )
+  const liaConversations = liaConversationsResult.data || []
 
   const [
     evaluations,
@@ -914,7 +1050,10 @@ function composeNoteContent(
   const transcript = buildDialogueTranscriptHtml(transcriptRows, transcriptBudget)
 
   if (!transcript.html) {
-    return aiHtml
+    return sanitizeHtml(
+      `${aiHtml}${TRANSCRIPT_SECTION_HEADING}<p><em>No hubo conversación con SofLIA registrada en esta lección.</em></p>`,
+      { level: 'rich', maxLength: MAX_NOTE_CONTENT },
+    ).trim()
   }
 
   return sanitizeHtml(
@@ -927,11 +1066,7 @@ export async function generateLessonAutoNote(
   input: GenerateLessonAutoNoteInput,
 ): Promise<LessonAutoNoteResult> {
   try {
-    if (!input.quizStatus.hasRequiredQuizzes) {
-      return { reason: 'NO_REQUIRED_QUIZZES', status: 'skipped' }
-    }
-
-    if (!input.quizStatus.allQuizzesPassed) {
+    if (input.quizStatus.hasRequiredQuizzes && !input.quizStatus.allQuizzesPassed) {
       return { reason: 'REQUIRED_QUIZZES_NOT_PASSED', status: 'skipped' }
     }
 
@@ -951,11 +1086,38 @@ export async function generateLessonAutoNote(
 
     const { promptInput, transcriptRows } = await buildPromptInput(input)
     const prompt = buildLessonAutoNotePrompt(promptInput)
-    const aiHtml = await generateNoteHtml(prompt)
+    let quality: 'ai' | 'deterministic' = 'ai'
+    let warning: string | undefined
+    let aiHtml: string
+
+    try {
+      aiHtml = await generateNoteHtml({
+        generation: input,
+        prompt,
+        untrustedText: [
+          ...promptInput.activityNotes,
+          ...promptInput.dialogueHighlights,
+          ...promptInput.quizReviews,
+        ].join('\n'),
+      })
+    } catch (generationError) {
+      quality = 'deterministic'
+      warning =
+        generationError instanceof Error
+          ? generationError.message
+          : 'AI generation unavailable'
+      logger.warn('Using deterministic lesson note fallback', {
+        lessonId: input.lessonId,
+        reason: warning,
+        userId: input.userId,
+      })
+      aiHtml = buildDeterministicLessonAutoNoteHtml(promptInput)
+    }
+
     const noteContent = composeNoteContent(aiHtml, transcriptRows)
     const noteTitle = clip(`Apunte SofLIA: ${promptInput.lessonTitle}`, 240)
 
-    return persistLessonAutoNote({
+    const persisted = await persistLessonAutoNote({
       allowUpdate: input.allowUpdate,
       content: noteContent,
       enrollmentId: input.enrollmentId,
@@ -965,6 +1127,8 @@ export async function generateLessonAutoNote(
       supabase: input.supabase,
       userId: input.userId,
     })
+
+    return { ...persisted, quality, warning }
   } catch (error) {
     logger.error('Lesson auto-note generation failed', {
       error: error instanceof Error ? error.message : error,

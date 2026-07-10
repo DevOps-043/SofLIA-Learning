@@ -47,11 +47,19 @@ export function useNoteModalState({
   );
 
   const openLiaNoteModal = useCallback(
-    (content: string) => {
+    (
+      content: string,
+      context?: {
+        chatProvenance?: LearnEditableNote["chatProvenance"];
+        question?: string;
+      }
+    ) => {
       setEditingNote(
         buildLiaDraftNote(content, {
+          chatProvenance: context?.chatProvenance,
           lessonId: currentLesson?.lesson_id,
           lessonTitle: currentLesson?.lesson_title,
+          question: context?.question,
         })
       );
       closeLia();

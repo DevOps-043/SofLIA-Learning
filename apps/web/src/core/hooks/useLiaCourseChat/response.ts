@@ -16,12 +16,20 @@ export function appendAssistantResponse(
   setMessages((prev) => [
     ...prev,
     {
-      id: createMessageId(),
+      id: data.chat_provenance?.assistant_message_id || createMessageId(),
       role: 'assistant',
       content: responseText,
       timestamp: new Date(),
       generatedNanoBanana: data.generatedNanoBanana,
       attachments: data.message?.attachments,
+      chatProvenance: data.chat_provenance
+        ? {
+            assistantMessageId:
+              data.chat_provenance.assistant_message_id || undefined,
+            conversationId: data.chat_provenance.conversation_id,
+            userMessageId: data.chat_provenance.user_message_id,
+          }
+        : undefined,
     },
   ]);
 }

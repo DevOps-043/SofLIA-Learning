@@ -4,12 +4,14 @@ import { motion } from 'framer-motion'
 import { Loader2, Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import type { NotebookNoteSource } from '../types'
 import { NoteContentView } from './NoteContentView'
 
 interface NoteHoverPreviewProps {
   title: string
   content?: string
   isLoading: boolean
+  source?: NotebookNoteSource
 }
 
 /**
@@ -22,6 +24,7 @@ export function NoteHoverPreview({
   title,
   content,
   isLoading,
+  source,
 }: NoteHoverPreviewProps) {
   const { t } = useTranslation('notebook')
 
@@ -49,7 +52,11 @@ export function NoteHoverPreview({
               <span className="text-xs">{t('preview.loading')}</span>
             </div>
           ) : (
-            <NoteContentView html={content} />
+            <NoteContentView
+              className="notebook-prose--preview"
+              html={content}
+              source={source}
+            />
           )}
         </div>
 

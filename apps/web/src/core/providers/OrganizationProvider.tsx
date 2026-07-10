@@ -70,6 +70,7 @@ interface OrganizationsResponse {
     logo_url?: string | null;
     brand_logo_url?: string | null;
     brand_color_primary?: string | null;
+    show_navbar_name?: boolean | null;
     role: 'owner' | 'admin' | 'member';
     subscription_plan?: 'team' | 'business' | 'enterprise';
     subscription_status?: 'active' | 'expired' | 'cancelled' | 'trial' | 'pending';
@@ -109,6 +110,7 @@ const organizationsFetcher = async (
       logoUrl: org.logo_url,
       brandLogoUrl: org.brand_logo_url,
       brandColorPrimary: org.brand_color_primary,
+      showNavbarName: org.show_navbar_name ?? true,
       role: org.role,
       subscriptionPlan: org.subscription_plan,
       subscriptionStatus: org.subscription_status,

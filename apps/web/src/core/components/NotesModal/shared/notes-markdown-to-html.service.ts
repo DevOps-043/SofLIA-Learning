@@ -38,28 +38,30 @@ function escapeHtml(text: string): string {
  * then bold (**), then italic (*), then inline code (`).
  */
 function convertInlineFormatting(line: string): string {
-  return (
-    line
-      // Links:  [text](url)
-      .replace(
-        /\[([^\]]+)\]\(([^)]+)\)/g,
-        (_match, text: string, url: string) => {
-          const safeUrl = /^(https?:\/\/|mailto:|tel:|\/)/i.test(url.trim())
-            ? url.trim()
-            : '';
-          if (!safeUrl) {
-            return escapeHtml(text);
-          }
-          return `<a href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(text)}</a>`;
-        },
-      )
-      // Bold:  **text**
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      // Italic:  *text*  (single asterisk, must not start another bold)
-      .replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em>$1</em>')
-      // Inline code:  `code`
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
-  );
+  // Escape first. The result is inserted directly into a contentEditable
+  // surface before the server has a chance to sanitize it.
+  const escapedLine = escapeHtml(line);
+
+  return escapedLine
+    // Links:  [text](url)
+    .replace(
+      /\[([^\]]+)\]\(([^)]+)\)/g,
+      (_match, text: string, url: string) => {
+        const safeUrl = /^(https?:\/\/|mailto:|tel:|\/)/i.test(url.trim())
+          ? url.trim()
+          : '';
+        if (!safeUrl) {
+          return text;
+        }
+        return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+      },
+    )
+    // Bold:  **text**
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    // Italic:  *text*  (single asterisk, must not start another bold)
+    .replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em>$1</em>')
+    // Inline code:  `code`
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
 }
 
 // ---------------------------------------------------------------------------

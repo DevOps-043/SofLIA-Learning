@@ -82,7 +82,7 @@ export function UserDropdownPanelSwitcher({ logic }: { logic: UserDropdownLogic 
       })
     }
 
-    if (isOrgAdmin && currentOrganization) {
+    if ((isOrgAdmin || isAdmin) && currentOrganization) {
       links.push({
         id: 'business',
         icon: BriefcaseBusiness,

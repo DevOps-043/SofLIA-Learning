@@ -2,8 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { SessionService } from '@/features/auth/services/session.service'
 import { CourseService } from '@/features/courses/services/course.service'
+import {
+  assertNoteLessonScope,
+  ChatNoteProvenanceError,
+} from '@/features/courses/services/chat-note-provenance.server.service'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
-import { NoteService } from '@/features/courses/services/note.service'
+import {
+  NoteMutationError,
+  NoteService,
+} from '@/features/courses/services/note.service'
 import { apiError } from '@/lib/api/errors'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -12,7 +19,7 @@ export async function DELETE(
   { params }: { params: Promise<{ slug: string; lessonId: string; noteId: string }> },
 ) {
   try {
-    const { slug, noteId } = await params
+    const { slug, lessonId, noteId } = await params
 
     const currentUser = await SessionService.getCurrentUser()
     if (!currentUser) {
@@ -40,10 +47,29 @@ export async function DELETE(
       )
     }
 
-    await NoteService.deleteNote(currentUser.id, noteId, enrollment.enrollment_id)
+    await assertNoteLessonScope({
+      courseId: course.id,
+      lessonId,
+    })
+
+    await NoteService.deleteNote(currentUser.id, noteId, {
+      enrollmentId: enrollment.enrollment_id,
+      lessonId,
+      organizationId: enrollment.organization_id,
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {
+    if (error instanceof NoteMutationError) {
+      return apiError(
+        error.code === 'READ_ONLY' ? 'NOTE_READ_ONLY' : 'NOTE_NOT_FOUND',
+        error.message,
+        error.code === 'READ_ONLY' ? 422 : 404,
+      )
+    }
+    if (error instanceof ChatNoteProvenanceError) {
+      return apiError('INVALID_NOTE_SCOPE', error.message, 422)
+    }
     return apiError('INTERNAL_ERROR', 'Error interno del servidor.', 500, {
       details: error instanceof Error ? error.message : 'Error desconocido',
     })

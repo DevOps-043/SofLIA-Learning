@@ -49,6 +49,22 @@ export interface UpdateNoteInput {
   note_tags?: string[]
 }
 
+export interface NoteMutationScope {
+  enrollmentId: string
+  lessonId: string
+  organizationId: string | null
+}
+
+export class NoteMutationError extends Error {
+  constructor(
+    public readonly code: 'NOT_FOUND' | 'READ_ONLY',
+    message: string,
+  ) {
+    super(message)
+    this.name = 'NoteMutationError'
+  }
+}
+
 export interface CourseNotesStats {
   totalNotes: number
   lessonsWithNotes: number
@@ -279,10 +295,42 @@ export class NoteService {
     userId: string,
     noteId: string,
     noteData: UpdateNoteInput,
-    enrollmentId?: string | null,
+    scope: NoteMutationScope,
   ): Promise<LessonNote> {
     try {
       const supabase = createAdminClient()
+
+      let ownershipQuery = supabase
+        .from('user_lesson_notes')
+        .select('note_id, source_type, is_auto_generated')
+        .eq('note_id', noteId)
+        .eq('user_id', userId)
+        .eq('lesson_id', scope.lessonId)
+        .eq('enrollment_id', scope.enrollmentId)
+
+      ownershipQuery = scope.organizationId
+        ? ownershipQuery.eq('organization_id', scope.organizationId)
+        : ownershipQuery.is('organization_id', null)
+
+      const { data: existing, error: ownershipError } =
+        await ownershipQuery.maybeSingle()
+
+      if (ownershipError) {
+        throw new Error(`Error al validar la nota: ${ownershipError.message}`)
+      }
+      if (!existing) {
+        throw new NoteMutationError('NOT_FOUND', 'Nota no encontrada.')
+      }
+      if (
+        existing.is_auto_generated ||
+        existing.source_type === 'lesson_auto_note' ||
+        existing.source_type === 'course_compendium'
+      ) {
+        throw new NoteMutationError(
+          'READ_ONLY',
+          'Los apuntes generados por SofLIA son de solo lectura.',
+        )
+      }
 
       const updateData: TablesUpdate<'user_lesson_notes'> = {
         updated_at: new Date().toISOString(),
@@ -303,19 +351,22 @@ export class NoteService {
         .update(updateData)
         .eq('note_id', noteId)
         .eq('user_id', userId)
+        .eq('lesson_id', scope.lessonId)
+        .eq('enrollment_id', scope.enrollmentId)
 
-      if (enrollmentId !== undefined) {
-        query = enrollmentId
-          ? query.eq('enrollment_id', enrollmentId)
-          : query.is('enrollment_id', null)
-      }
+      query = scope.organizationId
+        ? query.eq('organization_id', scope.organizationId)
+        : query.is('organization_id', null)
 
       const { data, error } = await query
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) {
         throw new Error(`Error al actualizar nota: ${error.message}`)
+      }
+      if (!data) {
+        throw new NoteMutationError('NOT_FOUND', 'Nota no encontrada.')
       }
 
       return mapLessonNote(data)
@@ -330,27 +381,62 @@ export class NoteService {
   static async deleteNote(
     userId: string,
     noteId: string,
-    enrollmentId?: string | null,
+    scope: NoteMutationScope,
   ): Promise<void> {
     try {
       const supabase = createAdminClient()
+
+      let ownershipQuery = supabase
+        .from('user_lesson_notes')
+        .select('note_id, source_type, is_auto_generated')
+        .eq('note_id', noteId)
+        .eq('user_id', userId)
+        .eq('lesson_id', scope.lessonId)
+        .eq('enrollment_id', scope.enrollmentId)
+
+      ownershipQuery = scope.organizationId
+        ? ownershipQuery.eq('organization_id', scope.organizationId)
+        : ownershipQuery.is('organization_id', null)
+
+      const { data: existing, error: ownershipError } =
+        await ownershipQuery.maybeSingle()
+
+      if (ownershipError) {
+        throw new Error(`Error al validar la nota: ${ownershipError.message}`)
+      }
+      if (!existing) {
+        throw new NoteMutationError('NOT_FOUND', 'Nota no encontrada.')
+      }
+      if (
+        existing.is_auto_generated ||
+        existing.source_type === 'lesson_auto_note' ||
+        existing.source_type === 'course_compendium'
+      ) {
+        throw new NoteMutationError(
+          'READ_ONLY',
+          'Los apuntes generados por SofLIA son de solo lectura.',
+        )
+      }
 
       let query = supabase
         .from('user_lesson_notes')
         .delete()
         .eq('note_id', noteId)
         .eq('user_id', userId)
+        .eq('lesson_id', scope.lessonId)
+        .eq('enrollment_id', scope.enrollmentId)
 
-      if (enrollmentId !== undefined) {
-        query = enrollmentId
-          ? query.eq('enrollment_id', enrollmentId)
-          : query.is('enrollment_id', null)
-      }
+      query = scope.organizationId
+        ? query.eq('organization_id', scope.organizationId)
+        : query.is('organization_id', null)
 
-      const { error } = await query
+      const { data, error } = await query.select('note_id').maybeSingle()
 
       if (error) {
         throw new Error(`Error al eliminar nota: ${error.message}`)
+      }
+      if (!data) {
+        throw new NoteMutationError('NOT_FOUND', 'Nota no encontrada.')
       }
     } catch (error) {
       throw error

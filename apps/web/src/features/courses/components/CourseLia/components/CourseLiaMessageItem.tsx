@@ -2,7 +2,7 @@ import { Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { SofLIAMessage } from '@/core/types/lia.types';
-import type { CourseLiaThemeColors } from '../types';
+import type { CourseLiaProps, CourseLiaThemeColors } from '../types';
 
 import { CourseLiaMessageBubble } from './CourseLiaMessageBubble';
 
@@ -20,9 +20,10 @@ interface CourseLiaMessageItemProps {
   onCopyMessage: (messageId: string, content: string) => void | Promise<void>;
   onEditKeyDown: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   onLinkClick: Parameters<typeof CourseLiaMessageBubble>[0]['onLinkClick'];
-  onSaveNote?: (content: string) => void;
+  onSaveNote?: CourseLiaProps['onSaveNote'];
   onStartEditing: (message: SofLIAMessage) => void;
   onSubmitEditedMessage: () => void | Promise<void>;
+  precedingUserMessage?: string;
   setEditingValue: (value: string) => void;
   themeColors: CourseLiaThemeColors;
 }

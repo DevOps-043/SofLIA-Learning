@@ -3,14 +3,16 @@ import { useTranslation } from 'react-i18next';
 
 import { convertNoteMarkdownToHtml } from '@/core/components/NotesModal/shared/notes-markdown-to-html.service';
 import type { SofLIAMessage } from '@/core/types/lia.types';
-import type { CourseLiaThemeColors } from '../types';
+import { normalizeGeneratedNoteHtml } from '@/lib/notes/generated-note-html';
+import type { CourseLiaProps, CourseLiaThemeColors } from '../types';
 
 interface AssistantMessageActionsProps {
   copiedMessageId: string | null;
   isLightTheme: boolean;
   message: SofLIAMessage;
   onCopyMessage: (messageId: string, content: string) => void | Promise<void>;
-  onSaveNote?: (content: string) => void;
+  onSaveNote?: CourseLiaProps['onSaveNote'];
+  precedingUserMessage?: string;
   themeColors: CourseLiaThemeColors;
 }
 
@@ -20,6 +22,7 @@ export function AssistantMessageActions({
   message,
   onCopyMessage,
   onSaveNote,
+  precedingUserMessage,
   themeColors,
 }: AssistantMessageActionsProps) {
   const { t } = useTranslation('learn');
@@ -47,7 +50,18 @@ export function AssistantMessageActions({
       {onSaveNote ? (
         <button
           type="button"
-          onClick={() => onSaveNote(convertNoteMarkdownToHtml(message.content))}
+          onClick={() =>
+            onSaveNote(
+              normalizeGeneratedNoteHtml(
+                convertNoteMarkdownToHtml(message.content),
+                'lesson_auto_note',
+              ),
+              {
+                chatProvenance: message.chatProvenance,
+                question: precedingUserMessage,
+              },
+            )
+          }
           title={t('lia.createNote')}
           aria-label={t('lia.createNote')}
           style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: isLightTheme ? 'var(--color-gray-500)' : themeColors.textSecondary }}

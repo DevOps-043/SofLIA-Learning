@@ -271,12 +271,13 @@ describe("useNotesManagement", () => {
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/courses/curso-demo/lessons/lesson-origin/notes",
       expect.objectContaining({
+        // La organización ya no viaja en el body: el servidor la deriva de la
+        // inscripción (o del query param orgId cuando hay contexto organizacional).
         body: JSON.stringify({
           note_title: "SofLIA: LecciÃ³n de origen",
           note_content: "<p>Idea clave</p>",
           note_tags: ["SofLIA", "Clase"],
           source_type: "manual",
-          organization_id: null,
         }),
         headers: { "Content-Type": "application/json" },
         method: "POST",

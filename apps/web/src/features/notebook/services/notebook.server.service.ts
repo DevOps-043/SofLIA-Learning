@@ -16,11 +16,21 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core'
 import { NoteService } from '@/features/courses/services/note.service'
+import { loadOrderedLessons } from '@/features/courses/services/course-compendium.service'
+import {
+  buildCompiledNotesHtml,
+  groupNotesByLesson,
+} from '@/features/courses/services/course-compendium.builder'
 import { ensureCourseEnrollmentScope } from '@/features/courses/services/course-enrollment.server.service'
+import {
+  persistChatNoteProvenance,
+  resolveChatNoteProvenance,
+} from '@/features/courses/services/chat-note-provenance.server.service'
 // Reused to resolve learning-path course access exactly like the dashboard does,
 // so the "New note" picker only offers courses the user is really assigned.
 import { loadBusinessUserLearningPaths } from '@/features/learning-paths/services/learning-path-dashboard.server'
 import type { TablesUpdate } from '@/lib/supabase/types'
+import { fromLoose } from '@/lib/supabase/looseQuery'
 import {
   NOTEBOOK_EMPTY_CONTENT,
   NOTEBOOK_MAX_CONTENT_LENGTH,
@@ -39,6 +49,23 @@ import {
 } from './notebook-tree.builder'
 
 type AdminClient = ReturnType<typeof createAdminClient>
+
+interface TreeGenerationJobRow {
+  course_id: string
+  enrollment_id: string
+  note_id: string | null
+  source_hash: string
+  status: string
+  updated_at: string
+}
+
+interface TreeGenerationArtifactRow {
+  course_id: string
+  note_id: string | null
+  source_hash: string
+  status: string
+  updated_at: string
+}
 
 /** Domain error carrying an HTTP status so routes can map it cleanly. */
 export class NotebookError extends Error {
@@ -73,7 +100,7 @@ const COMPENDIUM_TREE_SELECT = `
 
 const DETAIL_SELECT = `
   note_id, note_title, note_content, note_tags, source_type, is_auto_generated,
-  created_at, updated_at, user_id, lesson_id, organization_id,
+  created_at, updated_at, user_id, lesson_id, organization_id, enrollment_id, course_id,
   course_lessons(
     lesson_id, lesson_title,
     course_modules!inner(
@@ -103,7 +130,7 @@ export async function fetchNotebookTree(params: {
 }): Promise<NotebookTree> {
   const supabase = params.client ?? createAdminClient()
 
-  const [lessonNotes, compendiums] = await Promise.all([
+  const [lessonNotes, compendiums, generationJobs, generationArtifacts] = await Promise.all([
     supabase
       .from('user_lesson_notes')
       .select(TREE_SELECT)
@@ -120,6 +147,20 @@ export async function fetchNotebookTree(params: {
       .eq('source_type', 'course_compendium')
       .order('updated_at', { ascending: false })
       .limit(200),
+    fromLoose<TreeGenerationJobRow>(supabase, 'notebook_ai_generation_jobs')
+      .select('course_id, enrollment_id, note_id, source_hash, status, updated_at')
+      .eq('job_type', 'course_compendium')
+      .eq('user_id', params.userId)
+      .eq('organization_id', params.organizationId)
+      .order('updated_at', { ascending: false })
+      .limit(500),
+    fromLoose<TreeGenerationArtifactRow>(supabase, 'notebook_generated_artifacts')
+      .select('course_id, note_id, source_hash, status, updated_at')
+      .eq('artifact_type', 'course_compendium')
+      .eq('user_id', params.userId)
+      .eq('organization_id', params.organizationId)
+      .order('updated_at', { ascending: false })
+      .limit(500),
   ])
 
   if (lessonNotes.error) {
@@ -133,10 +174,72 @@ export async function fetchNotebookTree(params: {
     )
   }
 
-  return buildNotebookTree(
+  const tree = buildNotebookTree(
     (lessonNotes.data ?? []) as unknown as TreeNoteRow[],
     (compendiums.data ?? []) as unknown as CompendiumNoteRow[],
   )
+
+  // Generation tables are additive. During a rolling deploy an older database
+  // may not have them yet, so the classic note tree remains usable.
+  if (generationJobs.error) return tree
+
+  const latestJobByCourse = new Map<string, TreeGenerationJobRow>()
+  for (const job of generationJobs.data ?? []) {
+    if (!latestJobByCourse.has(job.course_id)) latestJobByCourse.set(job.course_id, job)
+  }
+  const latestArtifactByCourse = new Map<string, TreeGenerationArtifactRow>()
+  for (const artifact of generationArtifacts.data ?? []) {
+    if (!latestArtifactByCourse.has(artifact.course_id)) {
+      latestArtifactByCourse.set(artifact.course_id, artifact)
+    }
+  }
+
+  const missingCourseIds = [...latestJobByCourse.keys()].filter(
+    (courseId) => !tree.courses.some((course) => course.courseId === courseId),
+  )
+  if (missingCourseIds.length > 0) {
+    const { data: courses } = await supabase
+      .from('courses')
+      .select('id, title, slug')
+      .in('id', missingCourseIds)
+    for (const course of courses ?? []) {
+      tree.courses.push({
+        courseId: course.id,
+        lessons: [],
+        slug: course.slug,
+        title: course.title,
+        totalNotes: 0,
+      })
+    }
+  }
+
+  for (const course of tree.courses) {
+    const job = latestJobByCourse.get(course.courseId)
+    if (!job) continue
+    const artifact = latestArtifactByCourse.get(course.courseId)
+    const artifactStatus = artifact?.status
+    const status =
+      job.status === 'processing'
+        ? 'processing'
+        : job.status === 'pending'
+          ? 'queued'
+          : artifactStatus === 'partial'
+            ? 'partial'
+            : artifactStatus === 'ready' || (job.status === 'done' && job.note_id)
+              ? 'ready'
+              : artifactStatus === 'stale' || job.status === 'skipped'
+                ? 'stale'
+                : 'failed'
+    course.generationState = {
+      noteId: artifact?.note_id || job.note_id || undefined,
+      retryable: status === 'partial' || status === 'stale' || status === 'failed',
+      status,
+      targetType: 'course_compendium',
+      updatedAt: artifact?.updated_at || job.updated_at,
+    }
+  }
+  tree.courses.sort((left, right) => left.title.localeCompare(right.title))
+  return tree
 }
 
 /**
@@ -166,7 +269,35 @@ export async function fetchNotebookNote(params: {
     throw new NotebookError('Nota no encontrada.', 404)
   }
 
-  return toNoteDetail(data as unknown as DetailRow)
+  const row = data as unknown as DetailRow
+  const detail = toNoteDetail(row)
+  if (
+    detail.source !== 'course_compendium' ||
+    !detail.courseId ||
+    !row.enrollment_id
+  ) {
+    return detail
+  }
+
+  const [lessons, sourceNotes] = await Promise.all([
+    loadOrderedLessons(supabase, detail.courseId),
+    NoteService.getNotesByCourseWithClient(
+      supabase,
+      params.userId,
+      detail.courseId,
+      row.enrollment_id,
+    ),
+  ])
+  const liveNotesHtml = buildCompiledNotesHtml({
+    budget: 5_000_000,
+    lessons,
+    notesByLesson: groupNotesByLesson(sourceNotes),
+  })
+  const synthesisOnly = detail.content.replace(
+    /<h2>Mis apuntes por lecci(?:o|ó)n<\/h2>[\s\S]*$/i,
+    '',
+  )
+  return { ...detail, content: `${synthesisOnly}${liveNotesHtml}` }
 }
 
 /** Verifies the lesson exists and belongs to the given course. */
@@ -232,14 +363,53 @@ export async function createNotebookNote(params: {
     .map((tag) => tag.trim())
     .filter((tag) => tag.length > 0)
 
+  const chatProvenance =
+    params.input.source === 'chat' && params.input.chatProvenance
+      ? await resolveChatNoteProvenance({
+          client: supabase,
+          courseId,
+          enrollmentId: enrollment.enrollment_id,
+          input: {
+            assistant_message_id:
+              params.input.chatProvenance.assistantMessageId,
+            conversation_id: params.input.chatProvenance.conversationId,
+            user_message_id: params.input.chatProvenance.userMessageId,
+          },
+          lessonId,
+          organizationId: params.organizationId,
+          userId: params.userId,
+        })
+      : null
+
   const created = await NoteService.createNote(params.userId, lessonId, {
     note_title: title,
-    note_content: content,
+    note_content: chatProvenance
+      ? sanitizeContent(chatProvenance.canonicalContentHtml)
+      : content,
     note_tags: tags,
     organization_id: params.organizationId,
     enrollment_id: enrollment.enrollment_id,
-    source_type: 'manual',
+    source_type: params.input.source || 'manual',
   })
+
+  try {
+    if (chatProvenance) {
+      await persistChatNoteProvenance({
+        client: supabase,
+        noteId: created.note_id,
+        organizationId: params.organizationId,
+        provenance: chatProvenance,
+        userId: params.userId,
+      })
+    }
+  } catch (error) {
+    await NoteService.deleteNote(params.userId, created.note_id, {
+      enrollmentId: enrollment.enrollment_id,
+      lessonId,
+      organizationId: params.organizationId,
+    })
+    throw error
+  }
 
   return fetchNotebookNote({
     userId: params.userId,
@@ -260,6 +430,34 @@ export async function updateNotebookNote(params: {
   input: UpdateNotebookNoteInput
 }): Promise<NotebookNoteDetail> {
   const supabase = createAdminClient()
+
+  const { data: existing, error: existingError } = await supabase
+    .from('user_lesson_notes')
+    .select('note_id, lesson_id, enrollment_id, source_type, is_auto_generated')
+    .eq('note_id', params.noteId)
+    .eq('user_id', params.userId)
+    .eq('organization_id', params.organizationId)
+    .maybeSingle()
+
+  if (existingError) {
+    throw new Error(`Error al validar la nota: ${existingError.message}`)
+  }
+  if (!existing) {
+    throw new NotebookError('Nota no encontrada.', 404)
+  }
+  if (
+    existing.is_auto_generated ||
+    existing.source_type === 'lesson_auto_note' ||
+    existing.source_type === 'course_compendium'
+  ) {
+    throw new NotebookError(
+      'Los apuntes generados por SofLIA son de solo lectura.',
+      422,
+    )
+  }
+  if (!existing.lesson_id || !existing.enrollment_id) {
+    throw new NotebookError('Nota no encontrada.', 404)
+  }
 
   const updateData: TablesUpdate<'user_lesson_notes'> = {
     updated_at: new Date().toISOString(),
@@ -284,7 +482,10 @@ export async function updateNotebookNote(params: {
     .eq('note_id', params.noteId)
     .eq('user_id', params.userId)
     .eq('organization_id', params.organizationId)
-    .neq('source_type', 'course_compendium')
+    .eq('lesson_id', existing.lesson_id)
+    .eq('enrollment_id', existing.enrollment_id)
+    .in('source_type', ['manual', 'chat', 'import'])
+    .eq('is_auto_generated', false)
     .select('note_id')
     .maybeSingle()
 
@@ -326,12 +527,44 @@ export async function deleteNotebookNote(params: {
 }): Promise<void> {
   const supabase = createAdminClient()
 
+  const { data: existing, error: existingError } = await supabase
+    .from('user_lesson_notes')
+    .select('note_id, lesson_id, enrollment_id, source_type, is_auto_generated')
+    .eq('note_id', params.noteId)
+    .eq('user_id', params.userId)
+    .eq('organization_id', params.organizationId)
+    .maybeSingle()
+
+  if (existingError) {
+    throw new Error(`Error al validar la nota: ${existingError.message}`)
+  }
+  if (!existing) {
+    throw new NotebookError('Nota no encontrada.', 404)
+  }
+  if (
+    existing.is_auto_generated ||
+    existing.source_type === 'lesson_auto_note' ||
+    existing.source_type === 'course_compendium'
+  ) {
+    throw new NotebookError(
+      'Los apuntes generados por SofLIA son de solo lectura.',
+      422,
+    )
+  }
+  if (!existing.lesson_id || !existing.enrollment_id) {
+    throw new NotebookError('Nota no encontrada.', 404)
+  }
+
   const { data, error } = await supabase
     .from('user_lesson_notes')
     .delete()
     .eq('note_id', params.noteId)
     .eq('user_id', params.userId)
     .eq('organization_id', params.organizationId)
+    .eq('lesson_id', existing.lesson_id)
+    .eq('enrollment_id', existing.enrollment_id)
+    .in('source_type', ['manual', 'chat', 'import'])
+    .eq('is_auto_generated', false)
     .select('note_id')
     .maybeSingle()
 

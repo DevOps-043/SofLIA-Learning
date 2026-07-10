@@ -23,6 +23,11 @@ import {
 export interface ProcessedResponse {
   clientContent: string;
   bugReportSaved: boolean;
+  chatProvenance: {
+    assistant_message_id: string | null;
+    conversation_id: string;
+    user_message_id: string;
+  } | null;
 }
 
 export interface ProcessAIResponseOptions {
@@ -67,7 +72,7 @@ export async function processAIResponse(
     );
   }
 
-  await persistConversationTurn({
+  const persistedTurn = await persistConversationTurn({
     conversationId: body.conversationId,
     userId: requestContext?.userId,
     requestContext,
@@ -75,5 +80,15 @@ export async function processAIResponse(
     assistantContent: assistantContentToPersist,
   });
 
-  return { clientContent, bugReportSaved: false };
+  return {
+    clientContent,
+    bugReportSaved: false,
+    chatProvenance: persistedTurn
+      ? {
+          assistant_message_id: persistedTurn.assistantMessageId,
+          conversation_id: persistedTurn.conversationId,
+          user_message_id: persistedTurn.userMessageId,
+        }
+      : null,
+  };
 }

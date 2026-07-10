@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { enqueueLessonAutoNoteJob } from '@/features/notebook/services/notebook-generation.server.service'
 
 import {
   courseActivityValidationSchema,
@@ -119,7 +120,11 @@ async function handlePost(
         feedback_payload: feedback,
         model_name: modelName,
         result_status: feedback.resultStatus,
-        rubric_snapshot: context.resolvedActivityConfig?.validation.rubric ?? [],
+        rubric_snapshot:
+          context.resolvedActivityConfig &&
+          'validation' in context.resolvedActivityConfig
+            ? context.resolvedActivityConfig.validation.rubric ?? []
+            : [],
         submission_id: submission.submissionId,
       })
       .select('evaluation_id')
@@ -159,6 +164,32 @@ async function handlePost(
 
     await recalculateLessonActivityProgress(supabase, context)
     const refreshedSubmission = await getActivitySubmissionDetail(supabase, context)
+
+    if (context.organizationId) {
+      const { data: completedProgress } = await supabase
+        .from('user_lesson_progress')
+        .select('progress_id')
+        .eq('user_id', context.userId)
+        .eq('enrollment_id', context.enrollmentId)
+        .eq('lesson_id', context.lessonId)
+        .eq('is_completed', true)
+        .maybeSingle()
+      if (completedProgress) {
+        try {
+          await enqueueLessonAutoNoteJob({
+            courseId: context.courseId,
+            enrollmentId: context.enrollmentId,
+            lessonId: context.lessonId,
+            organizationId: context.organizationId,
+            priority: 40,
+            sourceVersion: evaluation.evaluation_id,
+            userId: context.userId,
+          })
+        } catch {
+          // The evaluation is already durable; generation can be retried later.
+        }
+      }
+    }
 
     await notifyCourseActivityCompletedBestEffort({
       context,

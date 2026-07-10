@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
           logo_url,
           brand_logo_url,
           brand_color_primary,
+          show_navbar_name,
           subscription_plan,
           subscription_status,
           is_active
@@ -63,6 +64,7 @@ export async function GET(request: NextRequest) {
         logo_url: string | null;
         brand_logo_url: string | null;
         brand_color_primary: string | null;
+        show_navbar_name: boolean | null;
         subscription_plan: string | null;
         subscription_status: string | null;
       };
@@ -74,6 +76,7 @@ export async function GET(request: NextRequest) {
         logo_url: org.logo_url,
         brand_logo_url: org.brand_logo_url,
         brand_color_primary: org.brand_color_primary,
+        show_navbar_name: org.show_navbar_name,
         role: membership.role,
         subscription_plan: org.subscription_plan,
         subscription_status: org.subscription_status,
