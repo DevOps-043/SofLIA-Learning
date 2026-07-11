@@ -101,6 +101,30 @@ describe('lesson auto-note prompt context', () => {
           ai_prompts: null,
           is_required: true,
         },
+        {
+          activity_config: null,
+          activity_content: {
+            scenes: [
+              {
+                character: 'Lia',
+                emotion: 'neutral',
+                message: 'Hola, tu tiempo es oro.',
+              },
+              {
+                character: 'Lia',
+                emotion: 'thinking',
+                message: 'Eso es NotebookLM.',
+              },
+            ],
+          },
+          activity_description: 'Dialogo guiado con SofLIA',
+          activity_id: 'chat-activity',
+          activity_order_index: 3,
+          activity_title: 'Optimizando Flujos',
+          activity_type: 'ai_chat',
+          ai_prompts: null,
+          is_required: false,
+        },
       ],
       courseTitle: 'Curso IA',
       dialogueResults: [
@@ -211,6 +235,11 @@ describe('lesson auto-note prompt context', () => {
     expect(promptInput.transcript).toContain('define el problema')
     expect(promptInput.activityNotes.join('\n')).toContain('Lectura estrategica')
     expect(promptInput.activityNotes.join('\n')).toContain('priorizando por impacto')
+    // El guion de ai_chat expone solo el texto hablado, nunca JSON serializado.
+    expect(promptInput.activityNotes.join('\n')).toContain('Hola, tu tiempo es oro.')
+    expect(promptInput.activityNotes.join('\n')).toContain('Eso es NotebookLM.')
+    expect(promptInput.activityNotes.join('\n')).not.toContain('"scenes"')
+    expect(promptInput.activityNotes.join('\n')).not.toContain('{')
     expect(promptInput.dialogueHighlights.join('\n')).toContain('Usuario: Creo que puedo usarlo')
     expect(promptInput.dialogueHighlights.join('\n')).toContain('SofLIA: Buen enfoque')
     expect(promptInput.dialogueHighlights.join('\n')).toContain('Chat de practica')

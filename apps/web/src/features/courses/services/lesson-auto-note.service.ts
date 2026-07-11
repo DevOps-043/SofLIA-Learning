@@ -306,12 +306,24 @@ const READABLE_CONTENT_KEYS = [
   'question',
   'prompt',
   'text',
+  'message',
   'content',
   'body',
   'summary',
   'conclusion',
   'task',
   'goal',
+] as const
+
+/** Contenedores anidados que pueden envolver texto legible (p. ej. escenas de ai_chat). */
+const READABLE_CONTAINER_KEYS = [
+  'scenes',
+  'messages',
+  'steps',
+  'items',
+  'sections',
+  'questions',
+  'dialogue',
 ] as const
 
 function stripMarkdownSyntax(value: string): string {
@@ -347,8 +359,11 @@ function readableFromUnknown(value: unknown, depth = 0): string {
   const known = READABLE_CONTENT_KEYS.map((key) =>
     readableFromUnknown(record[key], depth + 1),
   ).filter(Boolean)
-  if (known.length > 0) {
-    return known.join(' ')
+  const nested = READABLE_CONTAINER_KEYS.map((key) =>
+    readableFromUnknown(record[key], depth + 1),
+  ).filter(Boolean)
+  if (known.length > 0 || nested.length > 0) {
+    return [...known, ...nested].join(' ')
   }
 
   return Object.values(record)

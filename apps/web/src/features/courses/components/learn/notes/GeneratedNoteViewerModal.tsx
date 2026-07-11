@@ -59,7 +59,7 @@ export function GeneratedNoteViewerModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 10 }}
             onClick={(event) => event.stopPropagation()}
-            className="relative flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-gray-900"
+            className="relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-gray-900"
           >
             <div className="flex items-start justify-between gap-3 border-b border-gray-200 p-4 dark:border-white/10 sm:p-5">
               <div className="min-w-0">

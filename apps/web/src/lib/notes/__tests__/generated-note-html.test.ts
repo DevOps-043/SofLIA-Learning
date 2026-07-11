@@ -71,6 +71,21 @@ describe("normalizeGeneratedNoteHtml", () => {
     expect(html).not.toContain("Respuesta del usuario: {}");
   });
 
+  it("keeps only the spoken messages from serialized ai_chat scene payloads", () => {
+    const html = normalizeGeneratedNoteHtml(
+      "Resumen de la lecciónEl participante optimiza flujos con IA. " +
+        'Conceptos y evidenciasActividad: Optimizando Flujos (ai_chat). Contenido: {"scenes":[{"emotion":"neutral","message":"¡Hola! Como directivo, sé que tu tiempo es oro.","character":"Lia"},{"emotion":"thinking","message":"Eso es NotebookLM.","character":"Lia"}]}.',
+      "lesson_auto_note",
+    );
+
+    expect(html).toContain("Como directivo, sé que tu tiempo es oro.");
+    expect(html).toContain("<li>Eso es NotebookLM.</li>");
+    expect(html).not.toContain('"scenes"');
+    expect(html).not.toContain('"character"');
+    expect(html).not.toContain('"emotion"');
+    expect(html).not.toContain("{");
+  });
+
   it("converts markdown headings and lists when a model returns markdown", () => {
     const html = normalizeGeneratedNoteHtml(
       "## Resumen\nTexto breve.\n\n## Claves\n- Primera\n- Segunda",

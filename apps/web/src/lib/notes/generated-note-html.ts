@@ -241,7 +241,23 @@ const ESCAPED_BLOCK_MARKUP = /&lt;(?:h[1-6]|p|ul|ol|li|blockquote)\b/iu;
  * literal tag remnants. Applied only on the legacy plain-text path.
  */
 function cleanLegacyGeneratedText(value: string): string {
-  return value
+  const cleaned = value
+    // Guiones serializados de ai_chat ({"scenes":[{"emotion","message",...}]}):
+    // conserva únicamente el texto de "message" y descarta la metadata.
+    .replace(
+      /"message"\s*:\s*"((?:[^"\\]|\\.)*)"?/gu,
+      (_match, text: string) =>
+        ` ${text.replace(/\\"/g, '"').replace(/\\n/g, " ")} `,
+    )
+    .replace(
+      /"(?:character|emotion|type|id|avatar|voice)"\s*:\s*(?:"(?:[^"\\]|\\.)*"?|\d+|true|false|null)\s*,?/gu,
+      " ",
+    )
+    .replace(
+      /"(?:scenes|messages|steps|items|sections|questions|dialogue)"\s*:\s*\[?/gu,
+      " ",
+    )
+    // JSON de una sola clave incrustado por generadores antiguos.
     .replace(
       /\{\s*"[a-zA-Z_]+"\s*:\s*"((?:[^"\\]|\\.)*)"\s*\}/gu,
       (_match, text: string) => text.replace(/\\"/g, '"').replace(/\\n/g, " "),
@@ -253,8 +269,15 @@ function cleanLegacyGeneratedText(value: string): string {
     .replace(/\{\s*\}/gu, "")
     .replace(/<\/?[a-z][a-z0-9]*\b[^>]*>/giu, " ")
     .replace(/^#{1,6}\s+/u, "")
-    .replace(/\s#{1,6}\s+/gu, ". ")
-    .replace(/[ \t]{2,}/gu, " ");
+    .replace(/\s#{1,6}\s+/gu, ". ");
+
+  // Si quedó andamiaje JSON (llaves/corchetes/comillas huérfanas de los
+  // fragmentos truncados), se retira: en esta ruta legacy nunca es contenido.
+  const hasJsonDebris = /[{}[\]]\s*,?\s*[{}[\]"]/u.test(cleaned);
+  return (hasJsonDebris
+    ? cleaned.replace(/[{}[\]]+/gu, " ").replace(/(?:^|\s)"+|"+(?=[\s.,;:!?)]|$)/gu, " ")
+    : cleaned
+  ).replace(/\s+,\s+/gu, " ").replace(/[ \t]{2,}/gu, " ");
 }
 
 function htmlToReadableText(value: string): string {
@@ -425,7 +448,11 @@ function renderList(
   mode: Exclude<SectionMode, "paragraphs">,
 ): string {
   const items = explicitListItems(value);
-  const normalizedItems = items.length > 0 ? items : splitSentences(value);
+  const normalizedItems = (items.length > 0 ? items : splitSentences(value))
+    // La limpieza de JSON legacy puede dejar puntuación huérfana al inicio de
+    // una oración o items compuestos solo por signos: no aportan al lector.
+    .map((item) => item.replace(/^[\s,;.]+/u, "").trim())
+    .filter((item) => /[\p{L}\p{N}]/u.test(item));
   if (normalizedItems.length === 0) return "";
 
   const tag = mode === "steps" ? "ol" : "ul";
