@@ -60,9 +60,9 @@ interface InviteResponse {
 type PageState = 'loading' | 'valid' | 'invalid' | 'error';
 
 const roleColors: Record<string, string> = {
-  member: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
-  admin: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-  owner: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+  member: 'text-blue-700 dark:text-blue-400 bg-blue-500/10 border-blue-500/20',
+  admin: 'text-amber-700 dark:text-amber-400 bg-amber-500/10 border-amber-500/20',
+  owner: 'text-purple-700 dark:text-purple-400 bg-purple-500/10 border-purple-500/20',
 };
 
 // ============================================
@@ -167,14 +167,14 @@ export default function InvitePage() {
   // ——— LOADING ———
   if (pageState === 'loading' || authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-carbon-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-carbon-900">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center gap-4"
         >
-          <Loader2 className="w-10 h-10 text-teal-400 animate-spin" />
-          <p className="text-gray-400 text-sm font-medium">
+          <Loader2 className="w-10 h-10 text-teal-500 dark:text-teal-400 animate-spin" />
+          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">
             {t('auth.invitation.verifying')}
           </p>
         </motion.div>
@@ -185,19 +185,19 @@ export default function InvitePage() {
   // ——— ACCEPTED SUCCESS ———
   if (accepted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-carbon-900 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-carbon-900 px-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-carbon-800 rounded-2xl border border-white/10 p-8 text-center"
+          className="max-w-md w-full bg-white dark:bg-carbon-800 rounded-2xl border border-gray-200 dark:border-white/10 p-8 text-center shadow-xl dark:shadow-none"
         >
-          <PartyPopper className="w-14 h-14 text-teal-400 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-white mb-2">
+          <PartyPopper className="w-14 h-14 text-teal-500 dark:text-teal-400 mx-auto mb-4" />
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
             {t('auth.invitation.acceptedTitle')}
           </h1>
-          <p className="text-gray-400 mb-6">
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
             {t('auth.invitation.acceptedDescriptionPrefix')}{' '}
-            <strong className="text-white">{organization?.name}</strong>
+            <strong className="text-gray-900 dark:text-white">{organization?.name}</strong>
           </p>
           <button
             onClick={() => router.push(acceptedOrgSlug ? `/${acceptedOrgSlug}/business-user/dashboard` : '/')}
@@ -222,24 +222,24 @@ export default function InvitePage() {
     };
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-carbon-900 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-carbon-900 px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-md w-full bg-carbon-800 rounded-2xl border border-white/10 p-8 text-center"
+          className="max-w-md w-full bg-white dark:bg-carbon-800 rounded-2xl border border-gray-200 dark:border-white/10 p-8 text-center shadow-xl dark:shadow-none"
         >
           <div className="mb-6">
-            {errorIcons[errorReason] || <XCircle className="w-12 h-12 text-red-400 mx-auto" />}
+            {errorIcons[errorReason] || <XCircle className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto" />}
           </div>
-          <h1 className="text-xl font-bold text-white mb-3">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
             {t('auth.invitation.unavailableTitle')}
           </h1>
-          <p className="text-gray-400 mb-8">
+          <p className="text-gray-600 dark:text-gray-400 mb-8">
             {t(errorKey || 'auth.invitation.errors.invalid')}
           </p>
           <a
             href="/auth"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all font-medium"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white dark:border-white/10 transition-all font-medium"
           >
             {t('auth.invitation.goToLogin')}
           </a>
@@ -263,7 +263,7 @@ export default function InvitePage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-carbon-900 text-white flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-carbon-900 dark:text-white flex items-center justify-center px-4 py-12">
       {/* Background glow */}
       <div
         className="fixed inset-0 pointer-events-none"
@@ -279,7 +279,7 @@ export default function InvitePage() {
         className="relative max-w-lg w-full"
       >
         {/* Card */}
-        <div className="bg-carbon-800 rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
+        <div className="bg-white dark:bg-carbon-800 rounded-3xl border border-gray-200 dark:border-white/10 overflow-hidden shadow-2xl">
           {/* Top accent bar */}
           <div
             className="h-1.5"
@@ -293,7 +293,7 @@ export default function InvitePage() {
                 <img
                   src={organization.logoUrl}
                   alt={organization.name}
-                  className="w-16 h-16 rounded-2xl mx-auto object-contain bg-white/5 p-2"
+                  className="w-16 h-16 rounded-2xl mx-auto object-contain bg-gray-100 dark:bg-white/5 p-2"
                 />
               ) : (
                 <div
@@ -305,28 +305,28 @@ export default function InvitePage() {
               )}
 
               <div>
-                <h1 className="text-2xl font-bold text-white">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   {organization?.name}
                 </h1>
-                <p className="text-gray-400 mt-1">
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
                   {t('auth.invitation.organizationInviteDescription')}
                 </p>
               </div>
             </div>
 
             {/* Invitation details */}
-            <div className="bg-white/5 rounded-2xl p-5 space-y-4 border border-white/5">
+            <div className="bg-gray-50 dark:bg-white/5 rounded-2xl p-5 space-y-4 border border-gray-200 dark:border-white/5">
               <div className="flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                <span className="text-sm text-gray-300">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                <span className="text-sm text-gray-700 dark:text-gray-300">
                   {t('auth.invitation.valid')}
                 </span>
               </div>
 
               <div className="flex items-center gap-3">
-                <Shield className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                <Shield className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-300">
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
                     {t('auth.invitation.assignedRole')}
                   </span>
                   <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${roleColors[invite?.role || 'member']}`}>
@@ -337,8 +337,8 @@ export default function InvitePage() {
 
               {invite?.remainingUses !== undefined && (
                 <div className="flex items-center gap-3">
-                  <Users className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                  <span className="text-sm text-gray-300">
+                  <Users className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
                     {t('auth.invitation.remainingUses', {
                       count: invite.remainingUses,
                     })}
@@ -348,8 +348,8 @@ export default function InvitePage() {
 
               {expiresDate && (
                 <div className="flex items-center gap-3">
-                  <Clock className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                  <span className="text-sm text-gray-300">
+                  <Clock className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
                     {t('auth.invitation.validUntil', { date: expiresDate })}
                   </span>
                 </div>
@@ -361,13 +361,13 @@ export default function InvitePage() {
               {user ? (
                 /* Logged-in user: accept directly */
                 <>
-                  <div className="bg-white/5 rounded-xl p-3 flex items-center gap-3 border border-white/5">
-                    <div className="w-9 h-9 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                  <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-3 flex items-center gap-3 border border-gray-200 dark:border-white/5">
+                    <div className="w-9 h-9 rounded-full bg-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center text-sm font-bold flex-shrink-0">
                       {user.first_name?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm text-white font-medium truncate">{user.display_name || user.email}</p>
-                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      <p className="text-sm text-gray-900 dark:text-white font-medium truncate">{user.display_name || user.email}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500 truncate">{user.email}</p>
                     </div>
                   </div>
                   <button
@@ -408,9 +408,9 @@ export default function InvitePage() {
 
                   <button
                     onClick={handleLogin}
-                    className="w-full py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2.5 bg-white/5 hover:bg-white/10 text-white border border-white/10"
+                    className="w-full py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2.5 bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white dark:border-white/10"
                   >
-                    <LogIn className="w-5 h-5 text-gray-400" />
+                    <LogIn className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                     {t('auth.invitation.alreadyHaveAccount')}
                   </button>
 
@@ -429,7 +429,7 @@ export default function InvitePage() {
             </div>
 
             {/* Footer */}
-            <p className="text-center text-xs text-gray-500">
+            <p className="text-center text-xs text-gray-500 dark:text-gray-500">
               {t('auth.invitation.termsNotice')}
             </p>
           </div>
@@ -437,7 +437,7 @@ export default function InvitePage() {
 
         {/* Powered by */}
         <div className="mt-6 text-center">
-          <div className="inline-flex items-center gap-1.5 text-gray-600 text-xs">
+          <div className="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-600 text-xs">
             <Sparkles className="w-3 h-3" />
             Powered by SofLIA
           </div>
