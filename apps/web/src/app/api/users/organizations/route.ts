@@ -36,6 +36,9 @@ export async function GET(request: NextRequest) {
           logo_url,
           brand_logo_url,
           brand_color_primary,
+          brand_color_secondary,
+          brand_color_accent,
+          branding_enabled,
           show_navbar_name,
           subscription_plan,
           subscription_status,
@@ -64,6 +67,9 @@ export async function GET(request: NextRequest) {
         logo_url: string | null;
         brand_logo_url: string | null;
         brand_color_primary: string | null;
+        brand_color_secondary: string | null;
+        brand_color_accent: string | null;
+        branding_enabled: boolean | null;
         show_navbar_name: boolean | null;
         subscription_plan: string | null;
         subscription_status: string | null;
@@ -76,6 +82,11 @@ export async function GET(request: NextRequest) {
         logo_url: org.logo_url,
         brand_logo_url: org.brand_logo_url,
         brand_color_primary: org.brand_color_primary,
+        brand_color_secondary: org.brand_color_secondary,
+        brand_color_accent: org.brand_color_accent,
+        // Sin este flag el cliente no puede saber si debe aplicar los colores
+        // de marca: se enviaba solo el color y el branding "se colaba" apagado.
+        branding_enabled: org.branding_enabled ?? false,
         show_navbar_name: org.show_navbar_name,
         role: membership.role,
         subscription_plan: org.subscription_plan,

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLiaPanel } from '../../contexts/LiaPanelContext';
 import { useMotionSafe } from '../../../lib/utils/motion';
 import { useOrganizationStore } from '../../stores/organizationStore';
+import { resolveOrganizationBrandColors } from '../../theme/organization-brand-colors';
 
 const LIA_BUTTON_BOTTOM_PX = 24;
 const LIA_BUTTON_RIGHT_PX = 24;
@@ -16,8 +17,10 @@ function LiaFloatingButtonContent() {
   const { isOpen, togglePanel } = useLiaPanel();
   const { disableHeavy } = useMotionSafe();
   const currentOrganization = useOrganizationStore((s) => s.currentOrganization);
-  const orgAccent = currentOrganization?.brandColorAccent || null;
-  const orgSecondary = currentOrganization?.brandColorSecondary || null;
+  // Con el branding apagado el botón vuelve al degradado de plataforma.
+  const brand = resolveOrganizationBrandColors(currentOrganization);
+  const orgAccent = brand.hasBranding ? brand.accentColor : null;
+  const orgSecondary = brand.hasBranding ? brand.secondaryColor : null;
   const btnGradient = orgAccent
     ? `linear-gradient(135deg, ${orgAccent} 0%, ${orgSecondary || orgAccent} 100%)`
     : 'linear-gradient(135deg, var(--color-accent) 0%, var(--color-legacy-00a893) 100%)';

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useOrganizationStore, useCurrentOrganizationSlug } from '@/core/stores/organizationStore'
 import { useThemeStore } from '@/core/stores/themeStore'
 import { darkenHexColor, hexToRgbChannels } from '@/core/theme/color-engine'
+import { resolveOrganizationBrandColors } from '@/core/theme/organization-brand-colors'
 import { NotificationBell } from '../NotificationBell'
 import { UserDropdown } from '../UserDropdown'
 
@@ -25,12 +26,15 @@ export function OrgNavbar() {
   const orgSlug = useCurrentOrganizationSlug()
 
   const isDark = resolvedTheme !== 'light'
-  const primary = org?.brandColorPrimary ?? null
-  const accent = org?.brandColorAccent ?? org?.brandColorPrimary ?? 'var(--color-accent)'
+  // Gateado por brandingEnabled: con el branding apagado la navbar usa la
+  // paleta de plataforma aunque la org conserve sus colores en la BD.
+  const brand = resolveOrganizationBrandColors(org)
+  const primary = brand.hasBranding ? brand.primaryColor : null
+  const accent = brand.accentColor
 
   // Derive the same sidebar_background that OrganizationLayoutClient computes from
   // generateOrganizationBrandingTheme so the navbar color matches ModernNavbar on the dashboard.
-  const hasBrandColors = !!(org?.brandColorPrimary || org?.brandColorAccent || org?.brandColorSecondary)
+  const hasBrandColors = brand.hasBranding
   const sidebarHex = hasBrandColors && isDark && primary
     ? darkenHexColor(primary, 0.60)
     : null

@@ -61,6 +61,14 @@ export const BUCKET_UPLOAD_POLICIES = {
     maxSizeBytes: 8 * MB,
     reencodeImages: true,
   },
+  // Branding de la organización (logo, favicon, banner) subido desde el panel
+  // de negocio. SVG queda fuera a propósito: puede transportar scripts.
+  'Panel-Business': {
+    allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp'],
+    allowedExtensions: ['png', 'jpg', 'jpeg', 'webp'],
+    maxSizeBytes: 5 * MB,
+    reencodeImages: true,
+  },
 } as const satisfies Record<string, UploadBucketPolicy>;
 
 export const UPLOAD_CONFIG = {

@@ -70,6 +70,9 @@ interface OrganizationsResponse {
     logo_url?: string | null;
     brand_logo_url?: string | null;
     brand_color_primary?: string | null;
+    brand_color_secondary?: string | null;
+    brand_color_accent?: string | null;
+    branding_enabled?: boolean | null;
     show_navbar_name?: boolean | null;
     role: 'owner' | 'admin' | 'member';
     subscription_plan?: 'team' | 'business' | 'enterprise';
@@ -110,6 +113,9 @@ const organizationsFetcher = async (
       logoUrl: org.logo_url,
       brandLogoUrl: org.brand_logo_url,
       brandColorPrimary: org.brand_color_primary,
+      brandColorSecondary: org.brand_color_secondary,
+      brandColorAccent: org.brand_color_accent,
+      brandingEnabled: org.branding_enabled ?? false,
       showNavbarName: org.show_navbar_name ?? true,
       role: org.role,
       subscriptionPlan: org.subscription_plan,

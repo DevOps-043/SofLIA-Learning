@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Check, ChevronRight } from 'lucide-react'
 import { cn } from '@/shared/utils/cn'
 import type { Organization } from '../../hooks/useOrganization'
+import { resolveOrganizationBrandColors } from '../../theme/organization-brand-colors'
 import type { useUserDropdownLogic } from './useUserDropdownLogic'
 
 type UserDropdownLogic = ReturnType<typeof useUserDropdownLogic>
@@ -12,7 +13,7 @@ interface UserDropdownOrgSectionProps {
 
 function OrganizationMark({ organization }: { organization: Organization }) {
   const logoUrl = organization.brandLogoUrl || organization.logoUrl
-  const brandColor = organization.brandColorPrimary || 'var(--color-primary)'
+  const { primaryColor: brandColor } = resolveOrganizationBrandColors(organization)
   const label = organization.name?.trim() || organization.slug?.trim() || organization.id?.trim() || 'O'
 
   if (logoUrl) {

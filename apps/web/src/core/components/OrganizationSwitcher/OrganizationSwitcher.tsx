@@ -8,6 +8,7 @@ import Image from 'next/image';
 
 import { cn } from '@/lib/utils/cn';
 import { useOrganization, Organization } from '@/core/hooks/useOrganization';
+import { resolveOrganizationBrandColors } from '@/core/theme/organization-brand-colors';
 
 interface OrganizationSwitcherProps {
   /** Additional CSS classes */
@@ -99,8 +100,9 @@ export function OrganizationSwitcher({
       );
     }
 
-    // Fallback: colored icon with first letter
-    const bgColor = org.brandColorPrimary || 'var(--color-info)';
+    // Fallback: colored icon with first letter (gateado por brandingEnabled).
+    const brand = resolveOrganizationBrandColors(org);
+    const bgColor = brand.hasBranding ? brand.primaryColor : 'var(--color-info)';
     return (
       <div
         className={cn(

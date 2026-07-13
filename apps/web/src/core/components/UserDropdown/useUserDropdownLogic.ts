@@ -8,6 +8,7 @@ import { useUserProfile } from '../../../features/auth/hooks/useUserProfile'
 import { useOrganization } from '../../hooks/useOrganization'
 import { useLanguage } from '../../providers/I18nProvider'
 import { useThemeStore } from '../../stores/themeStore'
+import { resolveOrganizationBrandColors } from '../../theme/organization-brand-colors'
 import { getOrganizationUserDashboardPath } from '../../utils/organizationNavigation'
 import {
   getUserDisplayName,
@@ -124,8 +125,9 @@ export function useUserDropdownLogic(userProp?: unknown, options: UserDropdownLo
   const initials = getUserInitials(displayName)
   const roleLabel = getUserRoleLabel({ isAdmin, isInstructor, isOrgAdmin, orgAdminLabel: t('profileDropdown.orgRoles.admin'), user })
   const imageUrl = userProfile?.profile_picture_url || user?.profile_picture_url
-  const primaryColor = currentOrganization?.brandColorPrimary || 'var(--color-primary)'
-  const accentColor = currentOrganization?.brandColorAccent ?? currentOrganization?.brandColorPrimary ?? 'var(--color-accent)'
+  // Gateado por brandingEnabled: con el branding apagado el menú usa la paleta
+  // de plataforma, aunque la organización conserve sus colores en la BD.
+  const { primaryColor, accentColor } = resolveOrganizationBrandColors(currentOrganization)
 
   return {
     activeSubmenu, accentColor, canSwitch, currentOrganization, displayName, dropdownRef,
