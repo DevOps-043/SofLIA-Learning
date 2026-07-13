@@ -8,7 +8,7 @@ type SupabaseServerClient =
 type LessonNoteRow = Tables<'user_lesson_notes'>
 type LessonNoteRowLike = Omit<
   LessonNoteRow,
-  'course_id' | 'enrollment_id' | 'organization_id'
+  'course_id' | 'enrollment_id' | 'organization_id' | 'is_user_edited'
 > & {
   course_id?: string | null
   enrollment_id?: string | null

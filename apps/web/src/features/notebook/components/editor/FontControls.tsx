@@ -16,9 +16,23 @@ const FONT_FAMILIES = [
   { label: 'Mono', value: 'ui-monospace, SFMono-Regular, Menlo, monospace' },
 ]
 
-const FONT_SIZES = ['12px', '14px', '16px', '18px', '24px', '30px']
+// Escalera de tamaños (px) estilo Word para el selector y los pasos A−/A+.
+const FONT_SIZE_STEPS = [12, 14, 16, 18, 20, 24, 30, 36, 48]
+const FONT_SIZES = FONT_SIZE_STEPS.map((size) => `${size}px`)
+// Tamaño base del cuerpo (.notebook-prose ≈ 1.0625rem) cuando no hay override.
+const BASE_FONT_SIZE = 17
 
 const LINE_HEIGHTS = ['1', '1.15', '1.5', '2']
+
+/** Devuelve el siguiente tamaño de la escalera en la dirección indicada. */
+function steppedFontSize(current: number, direction: 1 | -1): string {
+  if (direction === 1) {
+    const next = FONT_SIZE_STEPS.find((size) => size > current)
+    return `${next ?? FONT_SIZE_STEPS[FONT_SIZE_STEPS.length - 1]}px`
+  }
+  const smaller = [...FONT_SIZE_STEPS].reverse().find((size) => size < current)
+  return `${smaller ?? FONT_SIZE_STEPS[0]}px`
+}
 
 /** Font family, size and line-height selectors using the Premium Dropdown. */
 export function FontControls({ editor }: FontControlsProps) {
@@ -57,6 +71,15 @@ export function FontControls({ editor }: FontControlsProps) {
     ...LINE_HEIGHTS.map((value) => ({ value, label: value })),
   ]
 
+  const currentSizePx = parseInt(currentSize, 10) || BASE_FONT_SIZE
+  const stepFontSize = (direction: 1 | -1) => {
+    editor
+      .chain()
+      .focus()
+      .setFontSize(steppedFontSize(currentSizePx, direction))
+      .run()
+  }
+
   return (
     <>
       <ToolbarDropdown
@@ -71,6 +94,15 @@ export function FontControls({ editor }: FontControlsProps) {
           else editor.chain().focus().unsetFontFamily().run()
         }}
       />
+      <button
+        type="button"
+        title={t('editor.toolbar.decreaseFont')}
+        aria-label={t('editor.toolbar.decreaseFont')}
+        onClick={() => stepFontSize(-1)}
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
+      >
+        <span className="text-xs font-bold">A−</span>
+      </button>
       <ToolbarDropdown
         ariaLabel={t('editor.toolbar.fontSize')}
         icon={ALargeSmall}
@@ -82,6 +114,15 @@ export function FontControls({ editor }: FontControlsProps) {
           else editor.chain().focus().unsetFontSize().run()
         }}
       />
+      <button
+        type="button"
+        title={t('editor.toolbar.increaseFont')}
+        aria-label={t('editor.toolbar.increaseFont')}
+        onClick={() => stepFontSize(1)}
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
+      >
+        <span className="text-base font-bold">A+</span>
+      </button>
       <ToolbarDropdown
         ariaLabel={t('editor.toolbar.lineHeight')}
         icon={StretchVertical}

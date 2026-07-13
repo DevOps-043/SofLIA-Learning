@@ -61,12 +61,12 @@ function ToolbarButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        'flex h-8 w-8 items-center justify-center rounded-md text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-300 dark:hover:bg-white/10',
+        'flex h-9 w-9 items-center justify-center rounded-md text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-300 dark:hover:bg-white/10',
         isActive &&
           'bg-[var(--color-accent)]/15 text-[var(--color-primary)] dark:text-[var(--color-accent)]',
       )}
     >
-      <Icon className="h-4 w-4" />
+      <Icon className="h-[18px] w-[18px]" />
     </button>
   )
 }

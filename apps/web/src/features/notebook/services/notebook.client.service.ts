@@ -292,3 +292,41 @@ export async function deleteNotebookNote(
     await parseError(response, 'No se pudo eliminar la nota.')
   }
 }
+
+export interface NotebookAssistantTurn {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface NotebookAssistantReply {
+  reply: string
+  /** HTML completo revisado del apunte cuando SofLIA propone una edición. */
+  proposedContent: string | null
+}
+
+/** Pregunta a SofLIA sobre el apunte actual (contexto = contenido de la nota). */
+export async function askNotebookAssistant(
+  orgSlug: string,
+  noteId: string,
+  message: string,
+  history: NotebookAssistantTurn[],
+): Promise<NotebookAssistantReply> {
+  const response = await fetch(
+    `${base(orgSlug)}/notes/${encodeURIComponent(noteId)}/assistant`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, history }),
+    },
+  )
+  if (!response.ok) {
+    return parseError(response, 'SofLIA no pudo responder en este momento.')
+  }
+  const data = (await response.json()) as Partial<NotebookAssistantReply>
+  return {
+    proposedContent:
+      typeof data.proposedContent === 'string' ? data.proposedContent : null,
+    reply: data.reply ?? '',
+  }
+}

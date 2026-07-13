@@ -65,6 +65,7 @@ export interface DetailRow {
   note_tags: Json
   source_type: string | null
   is_auto_generated: boolean | null
+  is_user_edited?: boolean | null
   created_at: string | null
   updated_at: string | null
   user_id: string

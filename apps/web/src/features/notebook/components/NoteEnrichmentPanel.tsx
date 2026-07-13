@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Check,
@@ -33,7 +34,11 @@ export function NoteEnrichmentPanel({
 }: NoteEnrichmentPanelProps) {
   const { t } = useTranslation('notebook')
   const theme = useBusinessPanelTheme()
-  const { state, isLoading, setTaskStatus } = useNoteEnrichment(orgSlug, noteId)
+  const { state, isLoading, setTaskStatus, retryEnrichment } = useNoteEnrichment(
+    orgSlug,
+    noteId,
+  )
+  const [isRetrying, setIsRetrying] = useState(false)
 
   const handleTaskStatus = async (
     taskId: string,
@@ -41,6 +46,17 @@ export function NoteEnrichmentPanel({
   ) => {
     const ok = await setTaskStatus(taskId, status)
     if (!ok) onTaskActionError()
+  }
+
+  const handleRetry = async () => {
+    setIsRetrying(true)
+    try {
+      await retryEnrichment()
+    } catch {
+      onTaskActionError()
+    } finally {
+      setIsRetrying(false)
+    }
   }
 
   const isProcessing =
@@ -80,11 +96,29 @@ export function NoteEnrichmentPanel({
           {t('enrichment.processing')}
         </p>
       ) : !enrichment ? (
-        <p className="text-xs" style={{ color: theme.mutedTextColor }}>
-          {state?.jobStatus === 'failed'
-            ? t('enrichment.failed')
-            : t('enrichment.empty')}
-        </p>
+        <div className="flex flex-col gap-2">
+          <p className="text-xs" style={{ color: theme.mutedTextColor }}>
+            {state?.jobStatus === 'failed'
+              ? t('enrichment.failed')
+              : t('enrichment.empty')}
+          </p>
+          {state?.jobStatus === 'failed' && (
+            <button
+              type="button"
+              onClick={() => void handleRetry()}
+              disabled={isRetrying}
+              className="inline-flex w-fit items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-opacity hover:opacity-80 disabled:opacity-50"
+              style={{ borderColor: theme.borderColor, color: theme.actionColor }}
+            >
+              {isRetrying ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RotateCcw className="h-3.5 w-3.5" />
+              )}
+              {t('enrichment.retry')}
+            </button>
+          )}
+        </div>
       ) : (
         <div className="flex flex-col gap-4">
           <span

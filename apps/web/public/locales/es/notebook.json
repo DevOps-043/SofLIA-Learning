@@ -99,10 +99,10 @@
   "compendium": {
     "label": "Compendio del curso",
     "badge": "Compendio SofLIA",
-    "readOnlyHint": "Este compendio se genera automáticamente y no se puede editar. Regenéralo para incluir tus apuntes más recientes.",
+    "readOnlyHint": "Este compendio se compone con tus apuntes del curso. Puedes editarlo libremente; regeneráralo para reconstruirlo con tus apuntes más recientes (se descartan tus ediciones).",
     "regenerate": "Regenerar compendio",
     "regenerating": "Regenerando...",
-    "regenerateConfirm": "¿Regenerar el compendio? El contenido actual se reemplazará con tus apuntes más recientes.",
+    "regenerateConfirm": "¿Regenerar el compendio? Se reconstruirá con tus apuntes más recientes y se descartarán las ediciones que hayas hecho.",
     "regenerateSuccess": "La regeneración del compendio comenzó.",
     "regenerateError": "No se pudo regenerar el compendio.",
     "exportPdf": "Exportar cuaderno en PDF"
@@ -148,7 +148,8 @@
       "qa": "Pregunta y respuesta",
       "resource": "Recurso",
       "evidence": "Evidencia"
-    }
+    },
+    "retry": "Reintentar análisis"
   },
   "editor": {
     "back": "Volver",
@@ -209,7 +210,27 @@
       "undo": "Deshacer",
       "redo": "Rehacer",
       "applyLink": "Aplicar",
-      "cancelLink": "Cancelar"
+      "cancelLink": "Cancelar",
+      "increaseFont": "Aumentar tamaño",
+      "decreaseFont": "Reducir tamaño"
+    },
+    "moreActions": "Más acciones"
+  },
+  "soflia": {
+    "chat": {
+      "title": "Pregúntale a SofLIA",
+      "placeholder": "SofLIA puede ver este apunte. Pregúntale, o pídele que lo mejore, resuma o reescriba y aplica su propuesta con un clic.",
+      "inputPlaceholder": "Escribe tu pregunta…",
+      "thinking": "SofLIA está pensando…",
+      "send": "Enviar",
+      "errorFallback": "SofLIA no pudo responder en este momento."
+    },
+    "edit": {
+      "proposalTitle": "SofLIA propone una edición",
+      "apply": "Aplicar",
+      "discard": "Descartar",
+      "applied": "Edición aplicada al apunte",
+      "dismissed": "Propuesta descartada"
     }
   }
 }

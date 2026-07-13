@@ -64,6 +64,19 @@ export async function POST(_request: Request, { params }: RouteContext) {
       )
     }
 
+    // Regenerar es una acción explícita del usuario: descongela el compendio
+    // (is_user_edited=false) para que el worker lo reconstruya y la vista viva
+    // vuelva a componerse. La regeneración automática (fin de curso) no pasa por
+    // aquí, así que un compendio editado no se sobrescribe solo.
+    await client
+      .from('user_lesson_notes')
+      .update({ is_user_edited: false })
+      .eq('user_id', auth.userId)
+      .eq('organization_id', auth.organizationId)
+      .eq('course_id', parsedCourseId.data)
+      .eq('enrollment_id', enrollment.enrollment_id)
+      .eq('source_type', 'course_compendium')
+
     const queued = await enqueueCourseCompletionNotebookJobs({
       client,
       courseId: parsedCourseId.data,

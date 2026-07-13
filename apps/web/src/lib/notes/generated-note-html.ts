@@ -235,12 +235,18 @@ function decodeEntities(value: string): string {
 
 const ESCAPED_BLOCK_MARKUP = /&lt;(?:h[1-6]|p|ul|ol|li|blockquote)\b/iu;
 
+const JSON_DEBRIS_MARKER =
+  /"(?:scenes|messages|message|introduction|character|emotion)"|\{\s*\}/u;
+
 /**
- * Removes serialization debris that older generators embedded as plain text:
- * single-key JSON payloads, empty `{}` answers, mid-text markdown headers and
- * literal tag remnants. Applied only on the legacy plain-text path.
+ * Removes serialized-JSON debris (ai_chat scene payloads, single-key blobs,
+ * empty `{}` answers) from a string. Safe to run on HTML: it never strips tags,
+ * and the aggressive brace/quote cleanup only fires when JSON scaffolding is
+ * actually present, so element attributes are left intact.
  */
-function cleanLegacyGeneratedText(value: string): string {
+export function stripSerializedJsonDebris(value: string): string {
+  if (!JSON_DEBRIS_MARKER.test(value)) return value;
+
   const cleaned = value
     // Guiones serializados de ai_chat ({"scenes":[{"emotion","message",...}]}):
     // conserva únicamente el texto de "message" y descarta la metadata.
@@ -266,18 +272,32 @@ function cleanLegacyGeneratedText(value: string): string {
       /(?:Respuesta del usuario|Tu respuesta|Resposta do usuário|Resposta do usuario|User answer)\s*:\s*\{\s*\}\s*\.?/giu,
       "",
     )
-    .replace(/\{\s*\}/gu, "")
+    .replace(/\{\s*\}/gu, "");
+
+  // Andamiaje JSON huérfano (llaves/corchetes/comillas de fragmentos truncados).
+  const hasJsonDebris = /[{}[\]]/u.test(cleaned);
+  return (
+    hasJsonDebris
+      ? cleaned
+          .replace(/[{}[\]]+/gu, " ")
+          .replace(/(?:^|\s)"+|"+(?=[\s.,;:!?)]|$)/gu, " ")
+      : cleaned
+  )
+    .replace(/\s+,\s+/gu, " ")
+    .replace(/[ \t]{2,}/gu, " ");
+}
+
+/**
+ * Legacy plain-text cleanup: strips JSON debris (via stripSerializedJsonDebris)
+ * plus literal tag remnants and mid-text markdown headers. Only used on the
+ * flat/legacy text path where the content has already lost its structure.
+ */
+function cleanLegacyGeneratedText(value: string): string {
+  return stripSerializedJsonDebris(value)
     .replace(/<\/?[a-z][a-z0-9]*\b[^>]*>/giu, " ")
     .replace(/^#{1,6}\s+/u, "")
-    .replace(/\s#{1,6}\s+/gu, ". ");
-
-  // Si quedó andamiaje JSON (llaves/corchetes/comillas huérfanas de los
-  // fragmentos truncados), se retira: en esta ruta legacy nunca es contenido.
-  const hasJsonDebris = /[{}[\]]\s*,?\s*[{}[\]"]/u.test(cleaned);
-  return (hasJsonDebris
-    ? cleaned.replace(/[{}[\]]+/gu, " ").replace(/(?:^|\s)"+|"+(?=[\s.,;:!?)]|$)/gu, " ")
-    : cleaned
-  ).replace(/\s+,\s+/gu, " ").replace(/[ \t]{2,}/gu, " ");
+    .replace(/\s#{1,6}\s+/gu, ". ")
+    .replace(/[ \t]{2,}/gu, " ");
 }
 
 function htmlToReadableText(value: string): string {
@@ -662,7 +682,9 @@ export function normalizeGeneratedNoteHtml(
   const structuralBlocks = sanitized.match(/<(?:h[1-6]|ul|ol|blockquote)\b/gi);
 
   if ((structuralBlocks?.length ?? 0) >= 2) {
-    return ensureGeneratedNoteIndex(sanitized);
+    // El HTML ya estructurado puede llevar restos de JSON dentro de los <li>
+    // (p. ej. {"scenes":...} de actividades ai_chat): se limpian sin tocar tags.
+    return ensureGeneratedNoteIndex(stripSerializedJsonDebris(sanitized));
   }
 
   // Algunas notas antiguas guardaron el HTML generado con las etiquetas
@@ -674,7 +696,7 @@ export function normalizeGeneratedNoteHtml(
     }).trim();
     const decodedBlocks = decoded.match(/<(?:h[1-6]|ul|ol|blockquote)\b/gi);
     if ((decodedBlocks?.length ?? 0) >= 2) {
-      return ensureGeneratedNoteIndex(decoded);
+      return ensureGeneratedNoteIndex(stripSerializedJsonDebris(decoded));
     }
   }
 

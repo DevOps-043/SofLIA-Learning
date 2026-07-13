@@ -118,6 +118,7 @@ interface ModuleWithLessonsRow {
 
 interface ExistingCompendiumRow {
   note_id: string
+  is_user_edited?: boolean | null
 }
 
 export async function loadOrderedLessons(
@@ -159,7 +160,7 @@ async function findExistingCompendium(
 ): Promise<ExistingCompendiumRow | null> {
   const { data, error } = await supabase
     .from('user_lesson_notes')
-    .select('note_id')
+    .select('note_id, is_user_edited')
     .eq('user_id', input.userId)
     .eq('course_id', input.courseId)
     .eq('enrollment_id', input.enrollmentId)
@@ -293,6 +294,9 @@ export async function generateCourseCompendium(
     const decision = resolveLessonAutoNotePersistenceDecision({
       allowUpdate: input.allowUpdate,
       existingNoteId: existing?.note_id,
+      // Un compendio editado por el usuario no se regenera; la ruta de
+      // "Regenerar" pone is_user_edited=false antes de encolar para forzarlo.
+      existingUserEdited: existing?.is_user_edited,
     })
 
     if (decision.action === 'skip') {

@@ -161,6 +161,7 @@ interface LiaMessageRow {
 
 interface ExistingAutoNoteRow {
   note_id: string
+  is_user_edited?: boolean | null
 }
 
 interface PersistLessonAutoNoteInput {
@@ -537,9 +538,16 @@ function latestEvaluationBySubmission(
 export function resolveLessonAutoNotePersistenceDecision(input: {
   allowUpdate: boolean
   existingNoteId?: string | null
+  existingUserEdited?: boolean | null
 }): LessonAutoNotePersistenceDecision {
   if (!input.existingNoteId) {
     return { action: 'create' }
+  }
+
+  // Una auto-nota que el usuario editó a mano queda blindada: nunca se
+  // sobrescribe con una regeneración, aunque allowUpdate sea true.
+  if (input.existingUserEdited) {
+    return { action: 'skip', noteId: input.existingNoteId }
   }
 
   if (!input.allowUpdate) {
@@ -653,7 +661,7 @@ async function findExistingAutoNote(
 ): Promise<ExistingAutoNoteRow | null> {
   const { data, error } = await supabase
     .from('user_lesson_notes')
-    .select('note_id')
+    .select('note_id, is_user_edited')
     .eq('user_id', input.userId)
     .eq('lesson_id', input.lessonId)
     .eq('enrollment_id', input.enrollmentId)
@@ -678,12 +686,15 @@ async function persistLessonAutoNote(
   const decision = resolveLessonAutoNotePersistenceDecision({
     allowUpdate: input.allowUpdate,
     existingNoteId: existing?.note_id,
+    existingUserEdited: existing?.is_user_edited,
   })
 
   if (decision.action === 'skip') {
     return {
       noteId: decision.noteId,
-      reason: 'AUTO_NOTE_ALREADY_CURRENT',
+      reason: existing?.is_user_edited
+        ? 'AUTO_NOTE_USER_EDITED'
+        : 'AUTO_NOTE_ALREADY_CURRENT',
       status: 'skipped',
     }
   }
@@ -1143,12 +1154,16 @@ export async function generateLessonAutoNote(
     const decision = resolveLessonAutoNotePersistenceDecision({
       allowUpdate: input.allowUpdate,
       existingNoteId: existing?.note_id,
+      existingUserEdited: existing?.is_user_edited,
     })
 
+    // Corta antes de gastar tokens si el usuario ya editó el apunte.
     if (decision.action === 'skip') {
       return {
         noteId: decision.noteId,
-        reason: 'AUTO_NOTE_ALREADY_CURRENT',
+        reason: existing?.is_user_edited
+          ? 'AUTO_NOTE_USER_EDITED'
+          : 'AUTO_NOTE_ALREADY_CURRENT',
         status: 'skipped',
       }
     }

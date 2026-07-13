@@ -12,8 +12,6 @@ import {
   CloudOff,
   FileText,
   Loader2,
-  Save,
-  Trash2,
 } from 'lucide-react'
 
 import dynamic from 'next/dynamic'
@@ -23,10 +21,10 @@ import {
   ToastNotification,
   type ToastType,
 } from '@/core/components/ToastNotification/ToastNotification'
-import { TagInput } from './TagInput'
 import { CompendiumActionsPanel } from './CompendiumActionsPanel'
 import { NoteContentView } from './NoteContentView'
-import { NoteEnrichmentPanel } from './NoteEnrichmentPanel'
+import { NoteHeaderMenu } from './NoteHeaderMenu'
+import { NotebookSofliaPanel } from './NotebookSofliaPanel'
 import { useNoteEditor, type NoteSaveStatus } from '../hooks/useNoteEditor'
 
 /**
@@ -72,13 +70,11 @@ export function NoteEditorPageClient({
     isDeleting,
     isReadOnly,
     isRegenerating,
-    saveNow,
     removeNote,
     regenerate,
   } = useNoteEditor(orgSlug, noteId)
   const isCompendium = note?.source === 'course_compendium'
 
-  const [confirmDelete, setConfirmDelete] = useState(false)
   const [toast, setToast] = useState<{
     isOpen: boolean
     message: string
@@ -182,9 +178,17 @@ export function NoteEditorPageClient({
             </span>
           </nav>
 
-          <div className="shrink-0">
-            {!isReadOnly && (
-              <SaveStatusBadge status={saveStatus} actionColor={theme.actionColor} />
+          <div className="flex shrink-0 items-center gap-2">
+            <SaveStatusBadge status={saveStatus} actionColor={theme.actionColor} />
+            {/* El compendio no tiene etiquetas ni se elimina desde aquí; su rail
+                conserva Regenerar/Exportar. */}
+            {!isCompendium && (
+              <NoteHeaderMenu
+                tags={tags}
+                onTagsChange={setTags}
+                onDelete={handleDelete}
+                isDeleting={isDeleting}
+              />
             )}
           </div>
         </div>
@@ -229,24 +233,10 @@ export function NoteEditorPageClient({
           )}
         </div>
 
-        {/* Side panel */}
+        {/* Rail derecho: dedicado a SofLIA (análisis + chat). El compendio
+            conserva su acción de regenerar. */}
         <aside className="flex flex-col gap-4 lg:sticky lg:top-6 lg:h-fit">
-          <SidePanelCard label={t('editor.locationLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
-            <div className="flex flex-col gap-2 text-sm" style={{ color: theme.subtextColor }}>
-              <span className="inline-flex items-center gap-2">
-                <BookOpen className="h-4 w-4 shrink-0" style={{ color: theme.mutedTextColor }} />
-                <span className="truncate">{note.courseTitle}</span>
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <FileText className="h-4 w-4 shrink-0" style={{ color: theme.mutedTextColor }} />
-                <span className="truncate">
-                  {isCompendium ? t('compendium.label') : note.lessonTitle}
-                </span>
-              </span>
-            </div>
-          </SidePanelCard>
-
-          {isCompendium ? (
+          {isCompendium && (
             <SidePanelCard label={t('editor.actionsLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
               <CompendiumActionsPanel
                 courseId={note.courseId}
@@ -258,88 +248,26 @@ export function NoteEditorPageClient({
                 subtextColor={theme.subtextColor}
               />
             </SidePanelCard>
-          ) : isReadOnly ? (
-            <SidePanelCard label={t('editor.actionsLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
-              <p className="text-sm leading-relaxed" style={{ color: theme.subtextColor }}>
-                {t('editor.generatedReadOnlyHint')}
-              </p>
-            </SidePanelCard>
-          ) : (
-          <SidePanelCard label={t('editor.actionsLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={() => void saveNow()}
-                disabled={saveStatus === 'saving'}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}
-              >
-                <Save className="h-4 w-4" />
-                {t('editor.save')}
-              </button>
-
-              {confirmDelete ? (
-                <div className="flex flex-col gap-2 rounded-lg bg-red-500/5 p-2">
-                  <p className="px-1 text-xs" style={{ color: theme.subtextColor }}>
-                    {t('editor.confirmDeletePrompt')}
-                  </p>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={handleDelete}
-                      disabled={isDeleting}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-red-500 px-3 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
-                    >
-                      {isDeleting ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                      {t('editor.confirmDelete')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmDelete(false)}
-                      className="rounded-lg px-3 py-2 text-sm font-medium hover:opacity-70"
-                      style={{ color: theme.subtextColor }}
-                    >
-                      {t('editor.cancel')}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setConfirmDelete(true)}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-500/30 px-4 py-2.5 text-sm font-semibold text-red-500 transition-colors hover:bg-red-500/10"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  {t('editor.delete')}
-                </button>
-              )}
-            </div>
-          </SidePanelCard>
           )}
 
-          {!isReadOnly && (
-            <SidePanelCard label={t('editor.tagsLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
-              <TagInput tags={tags} onChange={setTags} />
-            </SidePanelCard>
-          )}
-
-          {!isReadOnly && (
-            <NoteEnrichmentPanel
-              orgSlug={orgSlug}
-              noteId={noteId}
-              onTaskActionError={() =>
-                setToast({
-                  isOpen: true,
-                  message: t('enrichment.taskActionError'),
-                  type: 'error',
-                })
-              }
-            />
-          )}
+          <NotebookSofliaPanel
+            orgSlug={orgSlug}
+            noteId={noteId}
+            showAnalysis={!isCompendium}
+            onApplyEdit={(html) => {
+              // Reemplaza el contenido del editor; el autosave persiste y marca
+              // el apunte como editado por el usuario.
+              setContent(html)
+              setToast({
+                isOpen: true,
+                message: t('soflia.edit.applied'),
+                type: 'success',
+              })
+            }}
+            onError={(message) =>
+              setToast({ isOpen: true, message, type: 'error' })
+            }
+          />
         </aside>
       </div>
 

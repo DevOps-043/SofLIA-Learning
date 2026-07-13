@@ -99,10 +99,10 @@
   "compendium": {
     "label": "Compêndio do curso",
     "badge": "Compêndio SofLIA",
-    "readOnlyHint": "Este compêndio é gerado automaticamente e não pode ser editado. Regenere-o para incluir suas anotações mais recentes.",
+    "readOnlyHint": "Este compêndio é composto a partir das suas anotações do curso. Você pode editá-lo livremente; regenere-o para reconstruí-lo com suas anotações mais recentes (suas edições serão descartadas).",
     "regenerate": "Regenerar compêndio",
     "regenerating": "Regenerando...",
-    "regenerateConfirm": "Regenerar o compêndio? O conteúdo atual será substituído pelas suas anotações mais recentes.",
+    "regenerateConfirm": "Regenerar o compêndio? Ele será reconstruído com suas anotações mais recentes e as edições feitas serão descartadas.",
     "regenerateSuccess": "A regeneração do compêndio foi iniciada.",
     "regenerateError": "Não foi possível regenerar o compêndio.",
     "exportPdf": "Exportar caderno em PDF"
@@ -148,7 +148,8 @@
       "qa": "Pergunta e resposta",
       "resource": "Recurso",
       "evidence": "Evidência"
-    }
+    },
+    "retry": "Repetir análise"
   },
   "editor": {
     "back": "Voltar",
@@ -209,7 +210,27 @@
       "undo": "Desfazer",
       "redo": "Refazer",
       "applyLink": "Aplicar",
-      "cancelLink": "Cancelar"
+      "cancelLink": "Cancelar",
+      "increaseFont": "Aumentar tamanho",
+      "decreaseFont": "Reduzir tamanho"
+    },
+    "moreActions": "Mais ações"
+  },
+  "soflia": {
+    "chat": {
+      "title": "Pergunte à SofLIA",
+      "placeholder": "A SofLIA pode ver esta anotação. Faça uma pergunta ou peça para melhorá-la, resumi-la ou reescrevê-la e aplique a proposta com um clique.",
+      "inputPlaceholder": "Escreva sua pergunta…",
+      "thinking": "A SofLIA está pensando…",
+      "send": "Enviar",
+      "errorFallback": "A SofLIA não conseguiu responder agora."
+    },
+    "edit": {
+      "proposalTitle": "A SofLIA sugere uma edição",
+      "apply": "Aplicar",
+      "discard": "Descartar",
+      "applied": "Edição aplicada à anotação",
+      "dismissed": "Sugestão descartada"
     }
   }
 }

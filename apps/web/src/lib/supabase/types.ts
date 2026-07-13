@@ -7480,6 +7480,7 @@ export type Database = {
           created_at: string | null
           enrollment_id: string | null
           is_auto_generated: boolean | null
+          is_user_edited: boolean
           lesson_id: string | null
           note_content: string
           note_id: string
@@ -7495,6 +7496,7 @@ export type Database = {
           created_at?: string | null
           enrollment_id?: string | null
           is_auto_generated?: boolean | null
+          is_user_edited?: boolean
           lesson_id?: string | null
           note_content: string
           note_id?: string
@@ -7510,6 +7512,7 @@ export type Database = {
           created_at?: string | null
           enrollment_id?: string | null
           is_auto_generated?: boolean | null
+          is_user_edited?: boolean
           lesson_id?: string | null
           note_content?: string
           note_id?: string

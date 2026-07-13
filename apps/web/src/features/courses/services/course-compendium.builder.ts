@@ -8,7 +8,10 @@
  */
 
 import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core'
-import { normalizeGeneratedNoteHtml } from '@/lib/notes/generated-note-html'
+import {
+  normalizeGeneratedNoteHtml,
+  stripSerializedJsonDebris,
+} from '@/lib/notes/generated-note-html'
 
 import type { LessonNote } from './note.service'
 import { escapeHtml } from './lesson-dialogue-transcript.builder'
@@ -370,9 +373,10 @@ export function buildCompiledNotesHtml(input: {
     let lessonHeadingAppended = false
 
     for (const note of notes) {
-      const noteHtml = `<h4>${escapeHtml(note.note_title)}</h4>${sanitizeHtml(
-        note.note_content,
-        { level: 'rich' },
+      // Limpia restos de JSON (escenas ai_chat, blobs) del apunte embebido sin
+      // alterar su estructura HTML, para que el compendio no muestre datos crudos.
+      const noteHtml = `<h4>${escapeHtml(note.note_title)}</h4>${stripSerializedJsonDebris(
+        sanitizeHtml(note.note_content, { level: 'rich' }),
       )}`
       const headingCost = lessonHeadingAppended ? 0 : lessonHeading.length
 

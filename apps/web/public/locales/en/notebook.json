@@ -99,10 +99,10 @@
   "compendium": {
     "label": "Course compendium",
     "badge": "SofLIA Compendium",
-    "readOnlyHint": "This compendium is generated automatically and cannot be edited. Regenerate it to include your most recent notes.",
+    "readOnlyHint": "This compendium is composed from your course notes. You can edit it freely; regenerate it to rebuild it from your latest notes (your edits will be discarded).",
     "regenerate": "Regenerate compendium",
     "regenerating": "Regenerating...",
-    "regenerateConfirm": "Regenerate the compendium? The current content will be replaced with your most recent notes.",
+    "regenerateConfirm": "Regenerate the compendium? It will be rebuilt from your latest notes and any edits you made will be discarded.",
     "regenerateSuccess": "Compendium regeneration started.",
     "regenerateError": "The compendium could not be regenerated.",
     "exportPdf": "Export notebook as PDF"
@@ -148,7 +148,8 @@
       "qa": "Question & answer",
       "resource": "Resource",
       "evidence": "Evidence"
-    }
+    },
+    "retry": "Retry analysis"
   },
   "editor": {
     "back": "Back",
@@ -209,7 +210,27 @@
       "undo": "Undo",
       "redo": "Redo",
       "applyLink": "Apply",
-      "cancelLink": "Cancel"
+      "cancelLink": "Cancel",
+      "increaseFont": "Increase size",
+      "decreaseFont": "Decrease size"
+    },
+    "moreActions": "More actions"
+  },
+  "soflia": {
+    "chat": {
+      "title": "Ask SofLIA",
+      "placeholder": "SofLIA can see this note. Ask a question, or ask it to improve, summarize or rewrite it and apply its proposal with one click.",
+      "inputPlaceholder": "Type your question…",
+      "thinking": "SofLIA is thinking…",
+      "send": "Send",
+      "errorFallback": "SofLIA could not respond right now."
+    },
+    "edit": {
+      "proposalTitle": "SofLIA suggests an edit",
+      "apply": "Apply",
+      "discard": "Discard",
+      "applied": "Edit applied to the note",
+      "dismissed": "Suggestion discarded"
     }
   }
 }

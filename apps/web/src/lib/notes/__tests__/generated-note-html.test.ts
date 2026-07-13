@@ -3,9 +3,40 @@ import { describe, expect, it } from "vitest";
 import {
   normalizeGeneratedNoteHtml,
   normalizeNoteContentHtml,
+  stripSerializedJsonDebris,
 } from "../generated-note-html";
 
+describe("stripSerializedJsonDebris", () => {
+  it("keeps message text and removes JSON scaffolding inside structured HTML", () => {
+    const html =
+      '<ul><li><strong>Contenido:</strong> {"scenes":[{"emotion":"neutral","message":"¡Hola! Tu tiempo es oro.","character":"Lia"}]}</li></ul>';
+    const cleaned = stripSerializedJsonDebris(html);
+
+    expect(cleaned).toContain("<ul><li>");
+    expect(cleaned).toContain("Tu tiempo es oro.");
+    expect(cleaned).not.toContain('"scenes"');
+    expect(cleaned).not.toContain('"character"');
+    expect(cleaned).not.toContain("{");
+  });
+
+  it("preserves HTML attributes when no JSON debris is present", () => {
+    const html = '<p><a href="https://x.com" rel="noopener">Enlace</a></p>';
+    expect(stripSerializedJsonDebris(html)).toBe(html);
+  });
+});
+
 describe("normalizeGeneratedNoteHtml", () => {
+  it("cleans JSON debris embedded in already-structured generated HTML", () => {
+    const html = normalizeGeneratedNoteHtml(
+      '<h2>Conceptos y evidencias</h2><ul><li><strong>Actividad:</strong> Optimizando (ai_chat). Contenido: {"scenes":[{"emotion":"neutral","message":"Como directivo, sé que tu tiempo es oro.","character":"Lia"}]}</li></ul><h2>Para repasar</h2><ol><li>Repasa</li></ol>',
+      "course_compendium",
+    );
+
+    expect(html).toContain("Como directivo, sé que tu tiempo es oro.");
+    expect(html).not.toContain('"scenes"');
+    expect(html).not.toContain("{");
+  });
+
   it("restores semantic sections in legacy flattened lesson notes", () => {
     const html = normalizeGeneratedNoteHtml(
       "Resumen estratégico El cierre consolida el aprendizaje. " +
