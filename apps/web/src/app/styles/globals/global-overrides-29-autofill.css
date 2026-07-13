@@ -1,0 +1,39 @@
+/* ========================================================================
+   Autofill de Chrome/WebKit
+   ========================================================================
+   Al autocompletar, WebKit pinta el input con su propio fondo (blanco
+   azulado) y su propio color de texto, ignorando las clases del componente.
+   En las tarjetas oscuras (login con branding de organización) esto se veía
+   como un campo blanco con texto ilegible.
+
+   No existe forma de fijar `background-color` en el estado :-webkit-autofill,
+   pero sí se puede tapar con una sombra interior del color real del campo y
+   forzar el color del texto. `transition-delay` evita el destello inicial.
+   ==================================================================== */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  /* Hereda el fondo real del campo: transparente por defecto. */
+  -webkit-box-shadow: 0 0 0 1000px var(--autofill-bg, transparent) inset !important;
+  box-shadow: 0 0 0 1000px var(--autofill-bg, transparent) inset !important;
+  -webkit-text-fill-color: var(--autofill-text, currentColor) !important;
+  caret-color: var(--autofill-text, currentColor);
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* Superficies claras: el campo es blanco con texto oscuro. */
+:root {
+  --autofill-bg: #ffffff;
+  --autofill-text: var(--color-gray-900);
+}
+
+/* Superficies oscuras (modo oscuro o tarjetas de login con branding). */
+.dark,
+[data-auth-surface='dark'] {
+  --autofill-bg: transparent;
+  --autofill-text: #ffffff;
+}

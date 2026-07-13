@@ -302,7 +302,10 @@ async function handlePost(
 
     return NextResponse.json({
       success: true,
-      message: 'Te has unido exitosamente a la organización',
+      alreadyMember: result.alreadyMember ?? false,
+      message: result.alreadyMember
+        ? 'Ya formas parte de esta organización'
+        : 'Te has unido exitosamente a la organización',
       organizationSlug: result.organizationSlug || null
     })
   } catch (error) {

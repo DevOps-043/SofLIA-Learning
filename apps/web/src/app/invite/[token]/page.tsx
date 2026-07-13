@@ -82,6 +82,7 @@ export default function InvitePage() {
   const [errorReason, setErrorReason] = useState<string>('');
   const [accepting, setAccepting] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  const [alreadyMember, setAlreadyMember] = useState(false);
   const [acceptedOrgSlug, setAcceptedOrgSlug] = useState<string | null>(null);
   const { user, loading: authLoading } = useAuth();
 
@@ -150,6 +151,9 @@ export default function InvitePage() {
       });
       const data = await response.json();
       if (data.success) {
+        // Ya ser miembro no es un error: se muestra el mismo cierre y se ofrece
+        // ir al panel, en vez de un "enlace no disponible".
+        setAlreadyMember(Boolean(data.alreadyMember));
         setAccepted(true);
         setAcceptedOrgSlug(data.organizationSlug);
       } else {
@@ -191,12 +195,20 @@ export default function InvitePage() {
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-md w-full bg-white dark:bg-carbon-800 rounded-2xl border border-gray-200 dark:border-white/10 p-8 text-center shadow-xl dark:shadow-none"
         >
-          <PartyPopper className="w-14 h-14 text-teal-500 dark:text-teal-400 mx-auto mb-4" />
+          {alreadyMember ? (
+            <CheckCircle2 className="w-14 h-14 text-teal-500 dark:text-teal-400 mx-auto mb-4" />
+          ) : (
+            <PartyPopper className="w-14 h-14 text-teal-500 dark:text-teal-400 mx-auto mb-4" />
+          )}
           <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            {t('auth.invitation.acceptedTitle')}
+            {alreadyMember
+              ? t('auth.invitation.alreadyMemberTitle')
+              : t('auth.invitation.acceptedTitle')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {t('auth.invitation.acceptedDescriptionPrefix')}{' '}
+            {alreadyMember
+              ? t('auth.invitation.alreadyMemberDescriptionPrefix')
+              : t('auth.invitation.acceptedDescriptionPrefix')}{' '}
             <strong className="text-gray-900 dark:text-white">{organization?.name}</strong>
           </p>
           <button

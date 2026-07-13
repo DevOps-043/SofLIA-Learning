@@ -304,7 +304,9 @@
         "used": "Esta invitación ya fue utilizada",
         "verifyFailed": "Error al verificar el enlace de invitación",
         "wrongOrganization": "Esta invitación no es para esta organización"
-      }
+      },
+      "alreadyMemberTitle": "Ya eres parte del equipo",
+      "alreadyMemberDescriptionPrefix": "Ya formas parte de"
     },
     "questionnaireModal": {
       "title": "Cuestionario Requerido",
@@ -464,8 +466,7 @@
     "restartTour": "Ver Tour",
     "userPanel": "Panel Usuario",
     "logout": "Cerrar sesión",
-    "myCourses": "Mis cursos",
-    "profile": "Editar perfil"
+    "myCourses": "Mis cursos"
   },
   "notifications": {
     "title": "Notificaciones",

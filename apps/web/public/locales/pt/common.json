@@ -304,7 +304,9 @@
         "used": "Este convite já foi usado",
         "verifyFailed": "Erro ao verificar o link de convite",
         "wrongOrganization": "Este convite não é para esta organização"
-      }
+      },
+      "alreadyMemberTitle": "Você já faz parte da equipe",
+      "alreadyMemberDescriptionPrefix": "Você já faz parte de"
     },
     "questionnaireModal": {
       "title": "Questionário Obrigatório",
@@ -464,8 +466,7 @@
     "restartTour": "Reiniciar Tour",
     "userPanel": "Painel do Usuário",
     "logout": "Sair",
-    "myCourses": "Meus cursos",
-    "profile": "Editar perfil"
+    "myCourses": "Meus cursos"
   },
   "notifications": {
     "title": "Notificações",

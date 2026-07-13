@@ -35,17 +35,18 @@ export function SocialLoginButtons({
 
   return (
     <div className="space-y-3">
-      {/* Divisor "O continuar con" - solo si hay providers */}
+      {/* Divisor "O continuar con" - solo si hay providers.
+          Se usan dos segmentos de línea en vez de una línea con un chip opaco
+          encima: el login puede renderizarse sobre una tarjeta clara u oscura
+          (estilos de la organización), y un `bg-white` fijo se veía como un
+          recuadro blanco sobre las tarjetas oscuras. */}
       {hasAnyProvider && (
-        <div className="relative py-3">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300 dark:border-white/20"></div>
-          </div>
-          <div className="relative flex justify-center">
-            <span className="px-4 text-xs font-medium text-gray-500 dark:text-white/60 bg-white dark:bg-transparent">
-              {t('auth.social.divider')}
-            </span>
-          </div>
+        <div className="flex items-center gap-3 py-3">
+          <div className="h-px flex-1 bg-gray-300 dark:bg-white/20" />
+          <span className="text-xs font-medium text-gray-500 dark:text-white/60">
+            {t('auth.social.divider')}
+          </span>
+          <div className="h-px flex-1 bg-gray-300 dark:bg-white/20" />
         </div>
       )}
 

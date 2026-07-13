@@ -304,7 +304,9 @@
         "used": "This invitation has already been used",
         "verifyFailed": "Error verifying the invitation link",
         "wrongOrganization": "This invitation is not for this organization"
-      }
+      },
+      "alreadyMemberTitle": "You are already on the team",
+      "alreadyMemberDescriptionPrefix": "You already belong to"
     },
     "questionnaireModal": {
       "title": "Questionnaire Required",
@@ -464,8 +466,7 @@
     "restartTour": "Restart Tour",
     "userPanel": "User Panel",
     "logout": "Sign out",
-    "myCourses": "My courses",
-    "profile": "Edit profile"
+    "myCourses": "My courses"
   },
   "notifications": {
     "title": "Notifications",

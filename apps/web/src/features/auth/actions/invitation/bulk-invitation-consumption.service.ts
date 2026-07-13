@@ -6,7 +6,12 @@ export async function consumeBulkInvitation(
   token: string,
   userId: string,
   runtime: InvitationRuntime,
-): Promise<{ success: boolean; error?: string; organizationSlug?: string }> {
+): Promise<{
+  success: boolean
+  error?: string
+  organizationSlug?: string
+  alreadyMember?: boolean
+}> {
   try {
     const authenticatedUserId = await runtime.repo.resolveAuthenticatedUserId()
 
@@ -34,7 +39,12 @@ async function completeBulkInvitationConsumption(
   token: string,
   userId: string,
   runtime: InvitationRuntime,
-): Promise<{ success: boolean; error?: string; organizationSlug?: string }> {
+): Promise<{
+  success: boolean
+  error?: string
+  organizationSlug?: string
+  alreadyMember?: boolean
+}> {
   const link = await runtime.repo.getBulkInviteLinkByToken(token)
   if (!link) {
     return { success: false, error: 'Enlace de invitacion no encontrado' }
@@ -45,9 +55,17 @@ async function completeBulkInvitationConsumption(
     return { success: false, error: 'Usuario no encontrado' }
   }
 
+  // Reabrir el enlace siendo ya miembro no es un error: el flujo es idempotente
+  // y simplemente devuelve al usuario a su organización, sin consumir un uso del
+  // enlace ni duplicar la membresía.
   const existingMember = await runtime.repo.findOrganizationMembership(userId, link.organizationId)
   if (existingMember) {
-    return { success: false, error: 'Ya perteneces a esta organizacion' }
+    const currentSlug = await runtime.repo.getOrganizationSlug(link.organizationId)
+    return {
+      alreadyMember: true,
+      organizationSlug: currentSlug ?? undefined,
+      success: true,
+    }
   }
 
   await runtime.repo.addOrganizationMembership({

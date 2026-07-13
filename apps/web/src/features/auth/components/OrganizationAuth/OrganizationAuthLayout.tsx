@@ -13,6 +13,27 @@ import {
 } from './useOrganizationAuthStyles';
 import type { OrganizationAuthStyles } from './organization-auth.styles';
 
+/**
+ * Devuelve el color sin transparencia. La sombra interior que usamos para tapar
+ * el autofill de Chrome debe ser opaca; si dejara pasar alfa, el blanco del
+ * navegador seguiría viéndose por debajo.
+ */
+function toOpaqueColor(color: string): string {
+  if (color.startsWith('#')) {
+    return `rgb(${hexToRgb(color)})`;
+  }
+
+  const rgbaMatch = color.match(/rgba?\(([^)]+)\)/);
+  if (rgbaMatch) {
+    const [r, g, b] = rgbaMatch[1].split(',');
+    if (r && g && b) {
+      return `rgb(${r.trim()}, ${g.trim()}, ${b.trim()})`;
+    }
+  }
+
+  return color;
+}
+
 interface OrganizationAuthLayoutProps {
   organization: {
     id: string;
@@ -96,10 +117,21 @@ export function OrganizationAuthLayout({
     loginStyles?.background_type === 'image' && loginStyles.background_value
       ? {}
       : { backgroundColor: defaultPageBg };
+
+  // Chrome pinta los campos autocompletados con su propio blanco, ignorando las
+  // clases del input. Se le pasa el color REAL de la tarjeta (opaco, para que
+  // tape el blanco) y del texto, de modo que el autofill respete el branding
+  // tanto en tarjetas claras como oscuras. Ver global-overrides-29-autofill.css.
+  const autofillVariables = {
+    '--autofill-bg': toOpaqueColor(cardBackground),
+    '--autofill-text': textColor,
+  } as React.CSSProperties;
+
   const pageStyle: React.CSSProperties = {
     ...pageBackground,
     ...backgroundStyle,
     ...cssVariables,
+    ...autofillVariables,
     color: textColor,
   };
 
