@@ -44,6 +44,7 @@ describe('business-users-server.helpers', () => {
         gender: 'female',
         points: null,
         last_login_at: null,
+        last_activity_at: null,
         created_at: '2026-03-01T00:00:00.000Z',
         updated_at: '2026-03-02T00:00:00.000Z',
       },

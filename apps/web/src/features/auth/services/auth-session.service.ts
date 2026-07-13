@@ -116,9 +116,12 @@ export async function updateLastLoginAt(
   supabase: SupabaseServerClient,
   userId: string
 ): Promise<void> {
+  const now = new Date().toISOString();
+  // Un login también es actividad: se sincronizan ambas marcas para que
+  // last_activity_at nunca quede por detrás de last_login_at.
   const { error } = await supabase
     .from('users')
-    .update({ last_login_at: new Date().toISOString() })
+    .update({ last_login_at: now, last_activity_at: now })
     .eq('id', userId);
 
   if (error) {

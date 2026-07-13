@@ -1,4 +1,7 @@
-import { LearningPathDefaultsService } from '@/features/learning-paths/services/learning-path-defaults.server'
+import {
+  LearningPathDefaultsService,
+  type LearningPathHierarchyNodeOption,
+} from '@/features/learning-paths/services/learning-path-defaults.server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { fromLoose } from '@/lib/supabase/looseQuery'
 import { logger } from '@/lib/utils/logger'
@@ -12,7 +15,18 @@ import { mapCourseDefaultRule } from './mappers'
 import { createRule, reactivateRule } from './rule-write'
 import type { CourseDefaultRule, CourseDefaultRuleRow, CourseDefaultScopeType, OrganizationNodeRow } from './types'
 
-export async function listDefaultRules(organizationId: string): Promise<CourseDefaultRule[]> {
+/**
+ * Contexto opcional precargado: permite reutilizar los nodos de jerarquía ya
+ * consultados por el caller en lugar de repetir la query a organization_nodes.
+ */
+export interface ListCourseDefaultRulesPreloadedContext {
+  nodes?: LearningPathHierarchyNodeOption[]
+}
+
+export async function listDefaultRules(
+  organizationId: string,
+  preloaded?: ListCourseDefaultRulesPreloadedContext,
+): Promise<CourseDefaultRule[]> {
   const supabase = createAdminClient()
   const { data, error } = await fromLoose<CourseDefaultRuleRow>(supabase, 'organization_course_default_rules')
     .select(COURSE_DEFAULT_RULE_SELECT)
@@ -28,7 +42,7 @@ export async function listDefaultRules(organizationId: string): Promise<CourseDe
   const rows = data || []
   const [courseMap, nodes] = await Promise.all([
     loadCourseReferences([...new Set(rows.map((row) => row.course_id))]),
-    LearningPathDefaultsService.listHierarchyNodeOptions(organizationId),
+    preloaded?.nodes ?? LearningPathDefaultsService.listHierarchyNodeOptions(organizationId),
   ])
   const nodeMap = new Map<string, OrganizationNodeRow>(
     nodes.map((node) => [node.id, { id: node.id, organization_id: organizationId, name: node.name, type: node.type, path: node.path, parent_id: node.parent_id, is_active: true }]),

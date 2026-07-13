@@ -294,14 +294,114 @@
       "creating": "Creating...",
       "create": "Create User"
     },
-    "editModal": {
-      "title": "Edit User",
+    "masterPanel": {
+      "eyebrow": "Master panel",
+      "close": "Close",
       "tabs": {
-        "personal": "Personal",
-        "account": "Account"
+        "profile": "Profile",
+        "account": "Account",
+        "organizations": "Organizations",
+        "courses": "Courses",
+        "learningPaths": "Paths",
+        "stats": "Statistics"
       },
-      "saving": "Saving...",
-      "saveChanges": "Save Changes"
+      "profile": {
+        "saved": "Profile updated successfully"
+      },
+      "account": {
+        "roleSection": "Role and verification",
+        "saved": "Account updated successfully",
+        "password": {
+          "title": "Change password",
+          "newLabel": "New password",
+          "confirmLabel": "Confirm password",
+          "requirements": "At least 12 characters, with uppercase, lowercase and a number.",
+          "submit": "Update password",
+          "success": "Password updated. All user sessions were signed out.",
+          "error": "Error updating the password",
+          "mismatch": "Passwords do not match"
+        },
+        "sessions": {
+          "title": "Danger zone",
+          "description": "Signs the user out of every active session on all devices.",
+          "revoke": "Revoke all sessions",
+          "confirm": "Revoke all sessions?",
+          "revoked": "Sessions revoked successfully",
+          "error": "Error revoking sessions"
+        },
+        "info": {
+          "title": "Account information",
+          "createdAt": "Created",
+          "lastLogin": "Last sign-in",
+          "lastActivity": "Last activity",
+          "provider": "Sign-in provider",
+          "providerLocal": "Email and password",
+          "copyId": "Copy user ID"
+        },
+        "ban": {
+          "ban": "Suspend account",
+          "unban": "Reactivate account",
+          "banDescription": "Suspends the account: the user will not be able to sign in and their active sessions will be closed.",
+          "unbanDescription": "The account is suspended. Reactivate it so the user can sign in again.",
+          "banConfirm": "Suspend this account?",
+          "unbanConfirm": "Reactivate this account?",
+          "reasonLabel": "Reason (optional)",
+          "reasonPlaceholder": "E.g. policy violation...",
+          "banned": "Account suspended and sessions revoked",
+          "unbanned": "Account reactivated successfully",
+          "bannedBadge": "Account suspended since {{date}}"
+        },
+        "delete": {
+          "description": "Permanently deletes the user and all associated data.",
+          "button": "Delete user"
+        }
+      },
+      "organizations": {
+        "title": "Organizations ({{count}})",
+        "empty": "The user does not belong to any organization",
+        "statusActive": "Active",
+        "addTitle": "Add to an organization",
+        "organizationLabel": "Organization",
+        "roleLabel": "Role",
+        "jobTitleLabel": "Job title (optional)",
+        "add": "Add",
+        "added": "User added to the organization",
+        "addError": "Error adding the user to the organization",
+        "alreadyMember": "The user already belongs to this organization",
+        "noAvailable": "No organizations available",
+        "roleUpdated": "Role updated successfully",
+        "removeConfirm": "Remove from organization",
+        "removed": "User removed from the organization",
+        "removeError": "Error removing the user from the organization"
+      },
+      "courses": {
+        "assignedTitle": "Assigned courses ({{count}})",
+        "empty": "No courses assigned in this organization",
+        "catalogTitle": "Organization catalog",
+        "catalogEmpty": "All courses are already assigned",
+        "catalogError": "Error loading the course catalog",
+        "assign": "Assign",
+        "assigned": "Course assigned successfully",
+        "assignError": "Error assigning the course",
+        "remove": "Remove course",
+        "removed": "Course removed successfully",
+        "removeError": "Error removing the course",
+        "fromLearningPath": "From learning path"
+      },
+      "learningPaths": {
+        "assignedTitle": "Assigned paths ({{count}})",
+        "empty": "No paths assigned in this organization",
+        "catalogTitle": "Paths available in the organization",
+        "catalogEmpty": "All paths are already assigned",
+        "catalogError": "Error loading the path catalog",
+        "assign": "Assign",
+        "assigned": "Path assigned successfully",
+        "assignError": "Error assigning the path",
+        "revoke": "Revoke path",
+        "revoked": "Path revoked successfully",
+        "revokeError": "Error revoking the path",
+        "courseCount": "{{count}} courses"
+      }
     },
     "demographics": {
       "username": "Username",

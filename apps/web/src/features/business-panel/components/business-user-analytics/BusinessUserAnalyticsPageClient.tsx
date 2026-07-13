@@ -38,6 +38,10 @@ export interface BusinessUserAnalyticsPageClientProps {
   apiBasePath?:       string
   organizationId?:    string
   pdfExport?:         { userLabel: string; organizationLabel?: string | null }
+  /** En modo embedded el header (y su botón PDF) se oculta. Actívalo para
+   *  mostrar una toolbar compacta con la exportación; déjalo apagado si el
+   *  contenedor ya provee su propio botón (p. ej. BusinessUserStatsModal). */
+  showEmbeddedPdfButton?: boolean
   onAnalyticsLoaded?: (data: BusinessUserAnalyticsResponse) => void
   onInsightsLoaded?:  (insights: BusinessUserAnalyticsInsights) => void
   /** When true, renders only OverviewKPIs + PerformanceCards (no charts, no AI insights) */
@@ -61,6 +65,7 @@ export function BusinessUserAnalyticsPageClient({
   apiBasePath,
   organizationId,
   pdfExport,
+  showEmbeddedPdfButton = false,
   onAnalyticsLoaded,
   onInsightsLoaded,
   compactMode    = false,
@@ -194,9 +199,8 @@ export function BusinessUserAnalyticsPageClient({
   }, [insightsUrl, organizationId, range, onInsightsLoaded])
 
   // ── PDF export — only available when the caller supplies `pdfExport` labels ──
-  // (the standalone `/business-user/analytics` page). The admin stats modal renders
-  // its own export button in its footer instead, using the `onAnalyticsLoaded`/
-  // `onInsightsLoaded` callbacks above to capture this same data externally.
+  // In embedded mode (admin master panel) the full header is hidden, so a
+  // compact toolbar with the export button is rendered instead (see below).
 
   const handleExportPdf = useCallback(async () => {
     if (!data || !pdfExport) return
@@ -354,6 +358,31 @@ export function BusinessUserAnalyticsPageClient({
             </div>
           )}
         </header>
+      )}
+
+      {/* Toolbar compacta de exportación en modo embedded (opt-in): el header
+          completo está oculto y contenedores como BusinessUserStatsModal ya
+          tienen su propio botón, así que solo se muestra si el caller lo pide. */}
+      {embedded && showEmbeddedPdfButton && pdfExport && !isLoading && data && (
+        <div className="flex items-center justify-end">
+          <button
+            type="button"
+            onClick={() => void handleExportPdf()}
+            disabled={isPdfExporting}
+            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300"
+            style={{
+              backgroundColor: 'var(--dash-card)',
+              borderColor:     'var(--dash-border)',
+              color:           theme.subtextColor,
+            }}
+          >
+            {isPdfExporting
+              ? <Loader2 className="h-4 w-4 animate-spin" />
+              : <Download className="h-4 w-4" />
+            }
+            PDF
+          </button>
+        </div>
       )}
 
       {/* ── States ─────────────────────────────────────────────────────────── */}

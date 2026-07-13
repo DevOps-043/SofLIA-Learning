@@ -22,6 +22,7 @@ export interface AdminUser {
   created_at: string | null
   updated_at: string | null
   last_login_at: string | null
+  last_activity_at?: string | null
   oauth_provider?: string | null
   oauth_provider_id?: string | null
   is_banned?: boolean

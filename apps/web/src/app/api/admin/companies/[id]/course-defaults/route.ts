@@ -29,10 +29,10 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 
   try {
     const { id: organizationId } = await params
-    const [rules, nodes] = await Promise.all([
-      CourseDefaultsService.listDefaultRules(organizationId),
-      CourseDefaultsService.listHierarchyNodeOptions(organizationId),
-    ])
+    // Los nodos se cargan una vez y se reutilizan dentro de listDefaultRules
+    // (antes se consultaba organization_nodes dos veces por request).
+    const nodes = await CourseDefaultsService.listHierarchyNodeOptions(organizationId)
+    const rules = await CourseDefaultsService.listDefaultRules(organizationId, { nodes })
 
     return NextResponse.json({ success: true, rules, nodes })
   } catch (error) {

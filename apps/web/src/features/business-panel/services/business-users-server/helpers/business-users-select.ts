@@ -21,6 +21,7 @@ export const BUSINESS_USER_SELECT = `
     date_of_birth,
     gender,
     last_login_at,
+    last_activity_at,
     created_at,
     updated_at
   )

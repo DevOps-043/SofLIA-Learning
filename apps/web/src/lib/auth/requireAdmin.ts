@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { SessionService } from '../../features/auth/services/session.service';
 import { logger } from '../logger';
+import { isPlatformAdminRole, isPlatformInstructorRole } from './platform-role';
 
 /**
  * Resultado exitoso de autenticación
@@ -50,11 +51,11 @@ export async function requireAdmin(): Promise<AdminAuth | NextResponse> {
       );
     }
 
-    // PASO 3: Verificar que el usuario sea Administrador (case-insensitive para consistencia con middleware)
-    const normalizedRole = user.cargo_rol?.toLowerCase().trim();
-
-    if (normalizedRole !== 'administrador') {
-      logger.warn('Non-admin user attempted to access admin route', { 
+    // PASO 3: Verificar que el usuario sea Administrador
+    // (predicado compartido en lib/auth/platform-role para no divergir del middleware
+    // ni del copiloto de SofLIA para superadmins)
+    if (!isPlatformAdminRole(user.cargo_rol)) {
+      logger.warn('Non-admin user attempted to access admin route', {
         userId: user.id,
         email: user.email,
         role: user.cargo_rol 
@@ -116,11 +117,12 @@ export async function requireInstructor(): Promise<AdminAuth | NextResponse> {
       );
     }
 
-    const normalizedRole = user.cargo_rol?.toLowerCase().trim();
-
     // Permitir Administrador e Instructor
-    if (normalizedRole !== 'administrador' && normalizedRole !== 'instructor') {
-      logger.warn('User without instructor permissions attempted access', { 
+    if (
+      !isPlatformAdminRole(user.cargo_rol) &&
+      !isPlatformInstructorRole(user.cargo_rol)
+    ) {
+      logger.warn('User without instructor permissions attempted access', {
         userId: user.id,
         role: user.cargo_rol 
       });

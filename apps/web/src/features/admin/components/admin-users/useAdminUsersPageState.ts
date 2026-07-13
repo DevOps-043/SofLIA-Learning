@@ -1,21 +1,30 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { getAdminUserDisplayConfig } from './service'
 import type { AdminUser } from '../../services/adminUsers.service'
+import type { MasterPanelTab } from './master-panel/types'
 import type { AdminRoleFilter, AdminUsersViewMode } from './types'
 
 export function useAdminUsersPageState(users: AdminUser[]) {
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState<AdminRoleFilter>('all')
   const [viewMode, setViewMode] = useState<AdminUsersViewMode>('cards')
-  const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
   const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null)
-  const [statsUser, setStatsUser] = useState<AdminUser | null>(null)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
+
+  // Panel Maestro: sustituye a los antiguos modales de edición y estadísticas.
+  const [panelUser, setPanelUser] = useState<AdminUser | null>(null)
+  const [panelInitialTab, setPanelInitialTab] = useState<MasterPanelTab>('profile')
+
+  const openPanel = useCallback((user: AdminUser, tab: MasterPanelTab = 'profile') => {
+    setPanelInitialTab(tab)
+    setPanelUser(user)
+  }, [])
+
+  const closePanel = useCallback(() => setPanelUser(null), [])
 
   const filteredUsers = useMemo(() => {
     const searchQuery = searchTerm.trim().toLowerCase()
@@ -37,20 +46,18 @@ export function useAdminUsersPageState(users: AdminUser[]) {
     searchTerm,
     roleFilter,
     viewMode,
-    editingUser,
     deletingUser,
-    statsUser,
-    isEditModalOpen,
     isDeleteModalOpen,
     isAddModalOpen,
     isRefreshing,
+    panelUser,
+    panelInitialTab,
+    openPanel,
+    closePanel,
     setSearchTerm,
     setRoleFilter,
     setViewMode,
-    setEditingUser,
     setDeletingUser,
-    setStatsUser,
-    setIsEditModalOpen,
     setIsDeleteModalOpen,
     setIsAddModalOpen,
     setIsRefreshing,

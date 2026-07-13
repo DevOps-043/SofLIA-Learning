@@ -294,14 +294,114 @@
       "creating": "Criando...",
       "create": "Criar Usuário"
     },
-    "editModal": {
-      "title": "Editar Usuário",
+    "masterPanel": {
+      "eyebrow": "Painel mestre",
+      "close": "Fechar",
       "tabs": {
-        "personal": "Pessoal",
-        "account": "Conta"
+        "profile": "Perfil",
+        "account": "Conta",
+        "organizations": "Organizações",
+        "courses": "Cursos",
+        "learningPaths": "Trilhas",
+        "stats": "Estatísticas"
       },
-      "saving": "Salvando...",
-      "saveChanges": "Salvar Alterações"
+      "profile": {
+        "saved": "Perfil atualizado com sucesso"
+      },
+      "account": {
+        "roleSection": "Papel e verificação",
+        "saved": "Conta atualizada com sucesso",
+        "password": {
+          "title": "Alterar senha",
+          "newLabel": "Nova senha",
+          "confirmLabel": "Confirmar senha",
+          "requirements": "Mínimo de 12 caracteres, com maiúscula, minúscula e número.",
+          "submit": "Atualizar senha",
+          "success": "Senha atualizada. Todas as sessões do usuário foram encerradas.",
+          "error": "Erro ao atualizar a senha",
+          "mismatch": "As senhas não coincidem"
+        },
+        "sessions": {
+          "title": "Zona de risco",
+          "description": "Encerra todas as sessões ativas do usuário em todos os dispositivos.",
+          "revoke": "Revogar todas as sessões",
+          "confirm": "Revogar todas as sessões?",
+          "revoked": "Sessões revogadas com sucesso",
+          "error": "Erro ao revogar as sessões"
+        },
+        "info": {
+          "title": "Informações da conta",
+          "createdAt": "Criada",
+          "lastLogin": "Último acesso",
+          "lastActivity": "Última atividade",
+          "provider": "Provedor de acesso",
+          "providerLocal": "E-mail e senha",
+          "copyId": "Copiar ID do usuário"
+        },
+        "ban": {
+          "ban": "Suspender conta",
+          "unban": "Reativar conta",
+          "banDescription": "Suspende a conta: o usuário não poderá entrar e suas sessões ativas serão encerradas.",
+          "unbanDescription": "A conta está suspensa. Reative-a para que o usuário possa acessar novamente.",
+          "banConfirm": "Suspender esta conta?",
+          "unbanConfirm": "Reativar esta conta?",
+          "reasonLabel": "Motivo (opcional)",
+          "reasonPlaceholder": "Ex.: violação de políticas...",
+          "banned": "Conta suspensa e sessões revogadas",
+          "unbanned": "Conta reativada com sucesso",
+          "bannedBadge": "Conta suspensa desde {{date}}"
+        },
+        "delete": {
+          "description": "Exclui definitivamente o usuário e todos os dados associados.",
+          "button": "Excluir usuário"
+        }
+      },
+      "organizations": {
+        "title": "Organizações ({{count}})",
+        "empty": "O usuário não pertence a nenhuma organização",
+        "statusActive": "Ativo",
+        "addTitle": "Adicionar a uma organização",
+        "organizationLabel": "Organização",
+        "roleLabel": "Papel",
+        "jobTitleLabel": "Cargo (opcional)",
+        "add": "Adicionar",
+        "added": "Usuário adicionado à organização",
+        "addError": "Erro ao adicionar o usuário à organização",
+        "alreadyMember": "O usuário já pertence a esta organização",
+        "noAvailable": "Nenhuma organização disponível",
+        "roleUpdated": "Papel atualizado com sucesso",
+        "removeConfirm": "Remover da organização",
+        "removed": "Usuário removido da organização",
+        "removeError": "Erro ao remover o usuário da organização"
+      },
+      "courses": {
+        "assignedTitle": "Cursos atribuídos ({{count}})",
+        "empty": "Nenhum curso atribuído nesta organização",
+        "catalogTitle": "Catálogo da organização",
+        "catalogEmpty": "Todos os cursos já estão atribuídos",
+        "catalogError": "Erro ao carregar o catálogo de cursos",
+        "assign": "Atribuir",
+        "assigned": "Curso atribuído com sucesso",
+        "assignError": "Erro ao atribuir o curso",
+        "remove": "Remover curso",
+        "removed": "Curso removido com sucesso",
+        "removeError": "Erro ao remover o curso",
+        "fromLearningPath": "Da trilha de aprendizagem"
+      },
+      "learningPaths": {
+        "assignedTitle": "Trilhas atribuídas ({{count}})",
+        "empty": "Nenhuma trilha atribuída nesta organização",
+        "catalogTitle": "Trilhas disponíveis na organização",
+        "catalogEmpty": "Todas as trilhas já estão atribuídas",
+        "catalogError": "Erro ao carregar o catálogo de trilhas",
+        "assign": "Atribuir",
+        "assigned": "Trilha atribuída com sucesso",
+        "assignError": "Erro ao atribuir a trilha",
+        "revoke": "Revogar trilha",
+        "revoked": "Trilha revogada com sucesso",
+        "revokeError": "Erro ao revogar a trilha",
+        "courseCount": "{{count}} cursos"
+      }
     },
     "demographics": {
       "username": "Nome de usuário",

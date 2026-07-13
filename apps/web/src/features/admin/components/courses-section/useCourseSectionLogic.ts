@@ -100,78 +100,44 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
   const fetchInitialData = async () => {
     setLoading(true)
 
-    // Fetch each independent resource concurrently. A single slow/failed
-    // resource must not block or abort the others (fail-soft per resource),
-    // so every fetch is wrapped and its own errors are logged individually.
-    const loadResource = async (label: string, run: () => Promise<void>): Promise<boolean> => {
-      try {
-        await run()
-        return true
-      } catch (error) {
-        techDebtLogger.error(`Error fetching courses data (${label}):`, error)
-        return false
+    // Un solo request agregado en lugar de 9 GETs paralelos: cada request
+    // extra pagaba middleware + auth + invocación serverless por separado y
+    // bajo concurrencia provocaba cold starts de ~18 s. El servidor resuelve
+    // todas las secciones compartiendo queries (ver courses-section route) y
+    // reporta en failedSections las que fallaron (fail-soft por sección).
+    try {
+      const res = await fetch(`/api/admin/companies/${companyId}/courses-section`)
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        throw new Error(data?.error || 'Error al cargar la información de cursos')
       }
+
+      setHierarchyCourses(data.companyCourses || [])
+      setUserAssignments(data.userCourseAssignments || [])
+
+      const approvedCourses = ((data.catalogCourses || []) as Course[]).filter((course) =>
+        course.is_active === true && (course.approval_status === 'approved' || !course.approval_status)
+      )
+      setAllCourses(approvedCourses)
+
+      setAllLearningPaths(((data.learningPaths || []) as LearningPath[]).filter((path) => path.is_active))
+      setOrganizationLearningPaths(data.organizationLearningPathAssignments || [])
+      setUserLearningPathAssignments(data.userLearningPathAssignments || [])
+      setMembers(data.members || [])
+      setCourseDefaultRules(data.courseDefaults?.rules || [])
+      setHierarchyNodes(data.courseDefaults?.nodes || [])
+      setLearningPathDefaultRules(data.learningPathDefaults?.rules || [])
+
+      if ((data.failedSections || []).length > 0) {
+        techDebtLogger.error('Courses section loaded with failed sections:', data.failedSections)
+        showToast('Error al cargar parte de la información', 'error')
+      }
+    } catch (error) {
+      techDebtLogger.error('Error fetching courses section data:', error)
+      showToast('Error al cargar la información de cursos', 'error')
+    } finally {
+      setLoading(false)
     }
-
-    const results = await Promise.all([
-      loadResource('org-courses', async () => {
-        const res = await fetch(`/api/admin/companies/${companyId}/courses`)
-        const data = await res.json()
-        if (data.success) setHierarchyCourses(data.courses)
-      }),
-      loadResource('user-assignments', async () => {
-        const res = await fetch(`/api/admin/companies/${companyId}/user-assignments`)
-        const data = await res.json()
-        if (data.success) setUserAssignments(data.assignments)
-      }),
-      loadResource('catalog-courses', async () => {
-        const res = await fetch('/api/admin/courses')
-        const data = await res.json()
-        if (data.success) {
-          const approvedCourses = (data.courses as Course[]).filter((course) =>
-            course.is_active === true && (course.approval_status === 'approved' || !course.approval_status)
-          )
-          setAllCourses(approvedCourses)
-        }
-      }),
-      loadResource('catalog-learning-paths', async () => {
-        const res = await fetch('/api/admin/learning-paths')
-        const data = await res.json()
-        if (data.success) {
-          setAllLearningPaths((data.learningPaths || []).filter((path: LearningPath) => path.is_active))
-        }
-      }),
-      loadResource('org-learning-paths', async () => {
-        const res = await fetch(`/api/admin/companies/${companyId}/learning-paths`)
-        const data = await res.json()
-        if (data.success) setOrganizationLearningPaths(data.assignments || [])
-      }),
-      loadResource('user-learning-paths', async () => {
-        const res = await fetch(`/api/admin/companies/${companyId}/user-learning-path-assignments`)
-        const data = await res.json()
-        if (data.success) setUserLearningPathAssignments(data.assignments || [])
-      }),
-      loadResource('company-members', async () => {
-        const res = await fetch(`/api/admin/companies/${companyId}`)
-        const data = await res.json()
-        if (data.success && data.company) setMembers(data.company.members || [])
-      }),
-      loadResource('course-defaults', async () => {
-        const { rules, nodes } = await AdminContentDefaultsService.getCourseDefaults(companyId)
-        setCourseDefaultRules(rules)
-        setHierarchyNodes(nodes)
-      }),
-      loadResource('learning-path-defaults', async () => {
-        const { rules } = await AdminContentDefaultsService.getLearningPathDefaults(companyId)
-        setLearningPathDefaultRules(rules)
-      }),
-    ])
-
-    if (results.some((ok) => !ok)) {
-      showToast('Error al cargar parte de la información', 'error')
-    }
-
-    setLoading(false)
   }
 
   const refetchDefaults = useCallback(async () => {

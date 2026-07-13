@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { RefObject } from 'react';
 import type { SofLIAMessage } from '@/core/types/lia.types';
 
@@ -43,11 +43,20 @@ export function useLiaSidePanelEffects({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOptionsMenuOpen, optionsMenuRef, setIsOptionsMenuOpen]);
 
+  // Elige un tip al azar SOLO al abrir el panel. `tips` se reconstruye en cada
+  // render (array literal en el componente padre), así que tenerlo como
+  // dependencia provocaba: efecto -> setCurrentTip -> render -> nueva identidad
+  // de `tips` -> efecto... ("Maximum update depth exceeded"). Se depende de la
+  // longitud, que es estable entre renders con el mismo catálogo de tips.
+  const tipsRef = useRef(tips);
+  tipsRef.current = tips;
+
   useEffect(() => {
-    if (isOpen && tips.length > 0) {
-      setCurrentTip(tips[Math.floor(Math.random() * tips.length)]);
+    const availableTips = tipsRef.current;
+    if (isOpen && availableTips.length > 0) {
+      setCurrentTip(availableTips[Math.floor(Math.random() * availableTips.length)]);
     }
-  }, [isOpen, setCurrentTip, tips]);
+  }, [isOpen, setCurrentTip, tips.length]);
 
   useEffect(() => {
     const container = chatContainerRef.current;

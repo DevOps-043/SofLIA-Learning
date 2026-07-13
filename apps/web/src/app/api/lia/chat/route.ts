@@ -50,6 +50,12 @@ import {
   persistConversationTurn,
 } from './lia-chat-history.service';
 import { detectTechnicalBugReportIntent } from './bug-report-intent.service';
+import {
+  buildSuperadminPromptSections,
+  finalizeSuperadminResponse,
+  resolveSuperadminTurn,
+} from './superadmin/superadmin-turn';
+import { hasActionBlock, stripActionTokens } from './superadmin/actions';
 import { liaChatSchema, type LiaChatBody } from '../_schemas';
 import { SessionService } from '@/features/auth/services/session.service';
 
@@ -370,15 +376,58 @@ async function handlePost(
       );
     }
 
-    let activeBugReportDraft = null;
-    if (body.conversationId) {
-      const latestAssistantContent = await getLatestAssistantMessageContent(
-        body.conversationId
+    const latestAssistantContent = body.conversationId
+      ? await getLatestAssistantMessageContent(body.conversationId)
+      : null;
+    const activeBugReportDraft = latestAssistantContent
+      ? extractBugReportDraftToken(latestAssistantContent)
+      : null;
+
+    // Capacidades exclusivas del superadmin de plataforma dentro de /admin:
+    // consulta global de usuarios y ejecución de acciones administrativas.
+    // La autorización es fail-closed y vive en superadmin/authorization (rol de
+    // sesión + panel + riesgo de inyección + rate limit + re-verificación en BD).
+    // Para Business/BusinessUser el turno queda inerte: sin secciones de prompt
+    // y sin capacidad de ejecutar nada.
+    const currentPage =
+      typeof sanitizedRequestContext?.currentPage === 'string'
+        ? sanitizedRequestContext.currentPage
+        : undefined;
+    const superadminTurn = await resolveSuperadminTurn({
+      sessionUser,
+      currentPage,
+      promptRiskAction: securityAssessment.action,
+      request,
+      latestAssistantContent,
+      userMessage: lastMessage.content,
+    });
+
+    // El admin confirmó (o canceló) una acción propuesta: se resuelve sin pasar
+    // por el modelo — una confirmación no necesita generación.
+    if (superadminTurn.immediateResponse) {
+      await persistConversationTurn({
+        conversationId: body.conversationId,
+        userId: sanitizedRequestContext?.userId,
+        requestContext: sanitizedRequestContext,
+        userMessage: lastMessage,
+        assistantContent: superadminTurn.immediateResponse,
+      });
+
+      return buildAssistantResponse(
+        superadminTurn.immediateResponse,
+        shouldStream,
       );
-      activeBugReportDraft = latestAssistantContent
-        ? extractBugReportDraftToken(latestAssistantContent)
-        : null;
     }
+
+    systemPrompt += await buildSuperadminPromptSections({
+      turn: superadminTurn,
+      sessionUser,
+      currentPage,
+      promptRiskAction: securityAssessment.action,
+      recentUserMessages: sanitizedMessages
+        .filter((entry) => entry.role === 'user')
+        .map((entry) => entry.content),
+    });
 
     if (activeBugReportDraft) {
       const confirmationIntent = detectBugReportConfirmationIntent(
@@ -456,11 +505,15 @@ async function handlePost(
 
     const messageParts = buildCurrentMessageParts(messageWithContext, lastMessage.attachments);
 
-    // Streaming REAL: solo en el flujo común. Los flujos de reporte de bug
-    // requieren reescribir el contenido (token de confirmación) antes de
-    // enviarlo, por lo que se mantienen en modo buffered.
+    // Streaming REAL: solo en el flujo común. Los flujos de reporte de bug y los
+    // turnos de superadmin con acciones habilitadas requieren reescribir el
+    // contenido (token de confirmación) antes de enviarlo, por lo que se
+    // mantienen en modo buffered.
     const canStreamLive =
-      shouldStream && !bugReportIntent.isBugReport && !activeBugReportDraft;
+      shouldStream &&
+      !bugReportIntent.isBugReport &&
+      !activeBugReportDraft &&
+      !superadminTurn.isEnabled;
 
     if (canStreamLive) {
       return await streamGeminiResponse({
@@ -478,6 +531,41 @@ async function handlePost(
       CIRCUIT_BREAKER_DEFAULTS.gemini,
     );
     const finalContent = result.response.text();
+
+    // El modelo propuso una acción administrativa: se convierte en una solicitud
+    // de confirmación firmada. El token viaja en el mensaje PERSISTIDO (el turno
+    // siguiente lo verifica desde la BD) pero se retira del texto que ve el
+    // admin. Solo se toma esta rama cuando hay acción, para no alterar el flujo
+    // de reportes de bug de un superadmin.
+    if (superadminTurn.isEnabled && hasActionBlock(finalContent)) {
+      const contentWithAction = await finalizeSuperadminResponse({
+        turn: superadminTurn,
+        assistantContent: finalContent,
+      });
+
+      const persistedTurn = await persistConversationTurn({
+        conversationId: body.conversationId,
+        userId: sanitizedRequestContext?.userId,
+        requestContext: sanitizedRequestContext,
+        userMessage: lastMessage,
+        assistantContent: contentWithAction,
+      });
+
+      return buildAssistantResponse(
+        enforceSecurityResponsePolicy({
+          content: stripActionTokens(contentWithAction),
+          assessment: securityAssessment,
+        }),
+        shouldStream,
+        persistedTurn
+          ? {
+              assistant_message_id: persistedTurn.assistantMessageId,
+              conversation_id: persistedTurn.conversationId,
+              user_message_id: persistedTurn.userMessageId,
+            }
+          : null,
+      );
+    }
 
     // Post-process: handle bug reports, save conversation history
     const { clientContent, chatProvenance } = await processAIResponse(

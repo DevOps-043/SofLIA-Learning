@@ -1,7 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { fromLoose } from '@/lib/supabase/looseQuery'
 import { logger } from '@/lib/utils/logger'
-import type { OrganizationLearningPathAssignment } from '../../types'
+import type { LearningPath, OrganizationLearningPathAssignment } from '../../types'
 import { mapOrganizationAssignment } from './assignment-mappers'
 import { getLearningPathById, listLearningPaths } from './learning-paths.query'
 import { notifyOrganizationUsersPathAssigned } from './organization-assignment-notifications.service'
@@ -16,6 +16,7 @@ import type { OrganizationLearningPathAssignmentRow } from './rows'
 
 export async function listOrganizationAssignments(
   organizationId: string,
+  preloadedLearningPaths?: LearningPath[],
 ): Promise<OrganizationLearningPathAssignment[]> {
   const supabase = createAdminClient()
   const { data, error } = await fromLoose<OrganizationLearningPathAssignmentRow>(
@@ -31,7 +32,7 @@ export async function listOrganizationAssignments(
     throw new Error('No se pudieron cargar las asignaciones organizacionales')
   }
 
-  const learningPaths = await listLearningPaths()
+  const learningPaths = preloadedLearningPaths ?? (await listLearningPaths())
   const learningPathMap = new Map(learningPaths.map((path) => [path.id, path]))
   return (data || []).map((row) => mapOrganizationAssignment(row, learningPathMap.get(row.learning_path_id) || null))
 }

@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 
 import { createClient } from '../supabase/server';
 import { RefreshTokenError } from './refresh-token.errors';
+import { touchUserLastActivity } from './user-activity.service';
 import {
   buildAccessTokenCookieOptions,
   createAccessTokenExpiry,
@@ -174,6 +175,10 @@ export class RefreshTokenService {
       accessToken,
       buildAccessTokenCookieOptions(accessExpiresAt)
     );
+
+    // El refresh ocurre como máximo una vez por vida del access token (30 min),
+    // así que sirve de throttle natural. touchUserLastActivity nunca lanza.
+    await touchUserLastActivity(tokenData.user_id);
 
     return {
       userId: tokenData.user_id,

@@ -161,8 +161,8 @@ function UserCard({ user, index, onEdit, onDelete, onStats, onResend, onSuspend,
             </span>
             <div className="flex items-center gap-1 text-[10px] font-bold" style={{ color: theme.textColor }}>
               <Calendar className="w-3 h-3 opacity-40" />
-              {user.last_login_at
-                ? formatDate(user.last_login_at, i18n.language, { day: '2-digit', month: 'short' })
+              {user.last_activity_at || user.last_login_at
+                ? formatDate((user.last_activity_at ?? user.last_login_at) as string, i18n.language, { day: '2-digit', month: 'short' })
                 : t('users.card.noAccess')}
             </div>
           </div>

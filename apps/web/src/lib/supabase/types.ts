@@ -8607,6 +8607,7 @@ export type Database = {
           gender: string | null
           id: string
           is_banned: boolean
+          last_activity_at: string | null
           last_login_at: string | null
           last_name: string | null
           location: string | null
@@ -8642,6 +8643,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_banned?: boolean
+          last_activity_at?: string | null
           last_login_at?: string | null
           last_name?: string | null
           location?: string | null
@@ -8677,6 +8679,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_banned?: boolean
+          last_activity_at?: string | null
           last_login_at?: string | null
           last_name?: string | null
           location?: string | null

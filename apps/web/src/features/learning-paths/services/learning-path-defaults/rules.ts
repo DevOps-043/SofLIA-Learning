@@ -1,4 +1,5 @@
 import { AdminLearningPathsService } from '@/features/admin/services/adminLearningPaths.service'
+import type { LearningPath } from '@/features/admin/types'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { fromLoose } from '@/lib/supabase/looseQuery'
 import { logger } from '@/lib/utils/logger'
@@ -6,11 +7,24 @@ import { isMissingDefaultRulesInfrastructureError, throwMissingDefaultRulesMigra
 import { listHierarchyNodeOptions } from './hierarchy-nodes'
 import { mapRule, optionToNodeRow } from './mappers'
 import { createDefaultRule, reactivateDefaultRule } from './rule-mutations'
-import type { LearningPathDefaultRule, LearningPathDefaultRuleRow, LearningPathDefaultScopeType, OrganizationNodeRow } from './types'
+import type { LearningPathDefaultRule, LearningPathDefaultRuleRow, LearningPathDefaultScopeType, LearningPathHierarchyNodeOption, OrganizationNodeRow } from './types'
 
 const DEFAULT_RULE_COLUMNS = 'id, organization_id, learning_path_id, scope_type, node_id, include_descendants, status, created_by, created_at, updated_at'
 
-export async function listDefaultRules(organizationId: string): Promise<LearningPathDefaultRule[]> {
+/**
+ * Contexto opcional precargado para evitar repetir queries cuando el caller ya
+ * tiene los learning paths y/o los nodos de jerarquía (p. ej. el endpoint
+ * agregado del panel de cursos, que los comparte entre varias secciones).
+ */
+export interface ListDefaultRulesPreloadedContext {
+  learningPaths?: LearningPath[]
+  nodes?: LearningPathHierarchyNodeOption[]
+}
+
+export async function listDefaultRules(
+  organizationId: string,
+  preloaded?: ListDefaultRulesPreloadedContext,
+): Promise<LearningPathDefaultRule[]> {
   const supabase = createAdminClient()
   const { data, error } = await fromLoose<LearningPathDefaultRuleRow>(supabase, 'organization_learning_path_default_rules')
     .select(DEFAULT_RULE_COLUMNS)
@@ -24,8 +38,8 @@ export async function listDefaultRules(organizationId: string): Promise<Learning
   }
 
   const [learningPaths, nodes] = await Promise.all([
-    AdminLearningPathsService.listLearningPaths(),
-    listHierarchyNodeOptions(organizationId),
+    preloaded?.learningPaths ?? AdminLearningPathsService.listLearningPaths(),
+    preloaded?.nodes ?? listHierarchyNodeOptions(organizationId),
   ])
   const learningPathMap = new Map(learningPaths.map((path) => [path.id, path]))
   const nodeMap = new Map<string, OrganizationNodeRow>(nodes.map((node) => [node.id, optionToNodeRow(node, organizationId)]))

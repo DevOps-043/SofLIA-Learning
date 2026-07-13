@@ -27,29 +27,20 @@ export function useLearningPathData({ learningPathId, state, t }: UseLearningPat
     setError(null)
 
     try {
-      const [pathResponse, coursesResponse, companiesResponse, assignmentsResponse] =
-        await Promise.all([
-          fetch(`/api/admin/learning-paths/${learningPathId}`),
-          fetch('/api/admin/courses'),
-          fetch('/api/admin/companies'),
-          fetch(`/api/admin/learning-paths/${learningPathId}/assignments`),
-        ])
-      const [pathData, coursesData, companiesData, assignmentsData] = await Promise.all([
-        pathResponse.json(),
-        coursesResponse.json(),
-        companiesResponse.json(),
-        assignmentsResponse.json(),
-      ])
+      // Un solo request agregado en lugar de 4 GETs paralelos: cada request
+      // extra pagaba middleware + auth + invocación serverless por separado
+      // (ver /api/admin/learning-paths/[id]/bootstrap).
+      const response = await fetch(`/api/admin/learning-paths/${learningPathId}/bootstrap`)
+      const data = await response.json()
 
-      if (!pathResponse.ok || !pathData.success) throw new Error(pathData.error || t('learningPathsPage.loadError', 'No se pudo cargar la ruta de aprendizaje'))
-      if (!coursesResponse.ok || !coursesData.success) throw new Error(coursesData.error || t('learningPathsPage.loadCatalogError', 'No se pudo cargar el catalogo de cursos'))
-      if (!companiesResponse.ok || !companiesData.success) throw new Error(companiesData.error || t('learningPathsPage.loadCompaniesError', 'No se pudieron cargar las empresas'))
-      if (!assignmentsResponse.ok || !assignmentsData.success) throw new Error(assignmentsData.error || t('learningPathsPage.loadAssignmentsError', 'No se pudieron cargar las asignaciones'))
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || t('learningPathsPage.loadError', 'No se pudo cargar la ruta de aprendizaje'))
+      }
 
-      setLearningPath(pathData.learningPath)
-      setAllCourses(coursesData.courses || [])
-      setCompanies(companiesData.companies || [])
-      setAssignmentOverview(assignmentsData.assignments || {
+      setLearningPath(data.learningPath)
+      setAllCourses(data.courses || [])
+      setCompanies(data.companies || [])
+      setAssignmentOverview(data.assignments || {
         organizationAssignments: [],
         userAssignments: [],
       })

@@ -16,6 +16,7 @@ export interface BusinessUserProfileRow {
   date_of_birth: string | null
   gender: UserGender | null
   last_login_at: string | null
+  last_activity_at: string | null
   created_at: string
   updated_at: string
 }

@@ -138,8 +138,8 @@ function UserListRow({ user, index, onEdit, onDelete, onStats, onResend }: UserL
 
         {/* Last Access */}
         <div className="hidden sm:block text-xs opacity-50 text-right">
-          {user.last_login_at
-            ? formatDate(user.last_login_at, i18n.language, { day: '2-digit', month: 'short' })
+          {user.last_activity_at || user.last_login_at
+            ? formatDate((user.last_activity_at ?? user.last_login_at) as string, i18n.language, { day: '2-digit', month: 'short' })
             : '—'}
         </div>
       </div>

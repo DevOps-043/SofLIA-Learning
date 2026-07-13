@@ -21,6 +21,8 @@ export interface BusinessUser {
   age?: number | null
   points: number
   last_login_at?: string | null
+  /** Última actividad real (navegación/refresh de sesión); last_login_at solo registra re-autenticaciones */
+  last_activity_at?: string | null
   created_at: string
   updated_at: string
   org_role?: 'owner' | 'admin' | 'member'

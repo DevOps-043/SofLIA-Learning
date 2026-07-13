@@ -41,6 +41,7 @@ export function mapOrganizationUserRecord(
     age: calculateAgeFromDateOfBirth(profile.date_of_birth),
     points: 0,
     last_login_at: profile.last_login_at,
+    last_activity_at: profile.last_activity_at,
     created_at: profile.created_at,
     updated_at: profile.updated_at,
     org_role: normalizeOrganizationRole(record.role),

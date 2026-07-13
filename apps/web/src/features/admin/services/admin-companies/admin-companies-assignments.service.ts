@@ -1,3 +1,4 @@
+import { assignCourseToUsers } from '../../../courses/services/course-defaults/assignments'
 import { createAdminClient } from '../../../../lib/supabase/admin'
 import { fromLoose } from '../../../../lib/supabase/looseQuery'
 import { logger } from '../../../../lib/utils/logger'
@@ -138,21 +139,31 @@ export async function getUserCourseAssignments(companyId: string) {
 }
 
 export async function assignCourseToUser(companyId: string, userId: string, courseId: string, adminId: string) {
+  // Delegates to the shared primitive so the assignment also creates the
+  // user_course_enrollments row (a direct insert here left users "assigned"
+  // but never enrolled) and so repeated assigns are idempotent instead of 500s.
+  await assignCourseToUsers({
+    organizationId: companyId,
+    courseId,
+    userIds: [userId],
+    assignedBy: adminId,
+    assignmentSource: 'manual',
+  })
+
   const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('organization_course_assignments')
-    .insert({
-      organization_id: companyId,
-      user_id: userId,
-      course_id: courseId,
-      assigned_by: adminId,
-      status: 'assigned',
-    })
     .select()
+    .eq('organization_id', companyId)
+    .eq('user_id', userId)
+    .eq('course_id', courseId)
+    .or('status.is.null,status.in.(assigned,in_progress)')
+    .order('assigned_at', { ascending: false })
+    .limit(1)
     .single()
 
   if (error) {
-    logger.error('Error assigning course to user:', error)
+    logger.error('Error fetching course assignment after assign:', error)
     throw error
   }
 

@@ -1,6 +1,11 @@
-import { type NextRequest, NextResponse } from 'next/server'
+import { type NextFetchEvent, type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from './src/lib/supabase/middleware'
 import { RefreshTokenService } from './src/lib/auth/refreshToken.service'
+import {
+  ACTIVITY_SYNC_COOKIE_NAME,
+  buildActivitySyncCookieOptions,
+  touchUserLastActivity,
+} from './src/lib/auth/user-activity.service'
 import {
   assessAgentTraffic,
   shouldRequireAutomationChallenge,
@@ -47,7 +52,7 @@ function hasSupabaseAuthTokenCookie(request: NextRequest) {
     )
 }
 
-export async function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest, event: NextFetchEvent) {
   const { pathname } = request.nextUrl;
   const correlationId = getOrCreateCorrelationId(request.headers)
   setCorrelationId(request.headers, correlationId)
@@ -425,6 +430,20 @@ export async function middleware(request: NextRequest) {
   }
 
   response = applyCorsHeaders(response, request);
+
+  // Última actividad real del usuario (users.last_activity_at).
+  // Cubre sesiones nativas de Supabase, que se renuevan en silencio sin pasar
+  // por login ni por /api/auth/refresh (las sesiones custom se cubren dentro de
+  // RefreshTokenService.refreshSession). La cookie limita a 1 escritura cada
+  // 15 min por usuario y waitUntil evita sumar latencia a la navegación.
+  if (preResolvedUserId && !request.cookies.get(ACTIVITY_SYNC_COOKIE_NAME)) {
+    event.waitUntil(touchUserLastActivity(preResolvedUserId));
+    response.cookies.set(
+      ACTIVITY_SYNC_COOKIE_NAME,
+      String(Date.now()),
+      buildActivitySyncCookieOptions(),
+    );
+  }
 
   return withCorrelationHeader(response, correlationId);
 }

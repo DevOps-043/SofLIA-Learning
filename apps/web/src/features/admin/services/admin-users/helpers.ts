@@ -29,7 +29,12 @@ export const ADMIN_USER_SELECT_FIELDS = `
   gender,
   created_at,
   updated_at,
-  last_login_at
+  last_login_at,
+  last_activity_at,
+  oauth_provider,
+  is_banned,
+  banned_at,
+  ban_reason
 `
 
 export const ADMIN_USER_LIST_SELECT_FIELDS = ADMIN_USER_SELECT_FIELDS
@@ -73,6 +78,21 @@ export function buildAdminUserUpdatePayload(userData: Partial<AdminUser>) {
     country_code: emptyToNull(userData.country_code),
     date_of_birth: normalizeDateOfBirthForStorage(userData.date_of_birth),
     gender: normalizeGenderForStorage(userData.gender),
+    // Suspensión: banned_at/ban_reason solo se tocan cuando la petición trae
+    // is_banned explícito; al reactivar se limpian ambos.
+    is_banned: userData.is_banned,
+    banned_at:
+      userData.is_banned === undefined
+        ? undefined
+        : userData.is_banned
+          ? new Date().toISOString()
+          : null,
+    ban_reason:
+      userData.is_banned === undefined
+        ? undefined
+        : userData.is_banned
+          ? emptyToNull(userData.ban_reason)
+          : null,
     updated_at: new Date().toISOString(),
   }
 }
