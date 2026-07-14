@@ -415,6 +415,7 @@
       "bio": "Biografia",
       "bioPlaceholder": "Escreva uma breve descrição do usuário...",
       "role": "Cargo",
+      "platformRole": "Papel na plataforma",
       "roleType": "Tipo de cargo",
       "points": "Pontos",
       "emailVerified": "E-mail verificado",

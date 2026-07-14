@@ -5,8 +5,7 @@ import { logger } from '@/lib/utils/logger'
 
 interface AssignedUser {
   user_id: string
-  source: 'direct' | 'team' | 'learning_path'
-  team_name?: string
+  source: 'direct' | 'learning_path'
   learning_path_title?: string
 }
 
@@ -55,50 +54,11 @@ export async function GET(
       })
     }
 
-    // 2. Obtener equipos de la organización
-    const { data: orgTeams, error: teamsError } = await supabase
-      .from('work_teams')
-      .select('team_id, name')
-      .eq('organization_id', organizationId)
-      .eq('status', 'active')
+    // (Se eliminó la asignación por "equipo de trabajo": las tablas work_team_*
+    // ya no existen. La asignación a nivel de organización llega por asignación
+    // directa o por learning path.)
 
-    logger.info(`📋 Org teams found: ${orgTeams?.length || 0}`)
-
-    if (!teamsError && orgTeams && orgTeams.length > 0) {
-      const orgTeamIds = orgTeams.map((t: { team_id: string }) => t.team_id)
-      const teamNamesMap = new Map<string, string>(orgTeams.map((t: { team_id: string, name: string }) => [t.team_id, t.name]))
-
-      const { data: teamCourseAssignments, error: teamCourseError } = await supabase
-        .from('work_team_course_assignments')
-        .select('team_id')
-        .eq('course_id', courseId)
-        .in('team_id', orgTeamIds)
-
-      if (!teamCourseError && teamCourseAssignments && teamCourseAssignments.length > 0) {
-        const assignedTeamIds = teamCourseAssignments.map((a: { team_id: string }) => a.team_id)
-
-        const { data: teamMembers, error: membersError } = await supabase
-          .from('work_team_members')
-          .select('user_id, team_id')
-          .in('team_id', assignedTeamIds)
-          .eq('status', 'active')
-
-        if (!membersError && teamMembers) {
-          teamMembers.forEach((m: { user_id: string, team_id: string }) => {
-            if (!assignedUsersMap.has(m.user_id)) {
-              const teamName = teamNamesMap.get(m.team_id)
-              assignedUsersMap.set(m.user_id, {
-                user_id: m.user_id,
-                source: 'team',
-                team_name: teamName
-              })
-            }
-          })
-        }
-      }
-    }
-
-    // 3. Obtener usuarios asignados a través de learning paths que contienen este curso
+    // 2. Obtener usuarios asignados a través de learning paths que contienen este curso
     try {
       // 3a. Buscar learning paths que contienen este curso
       const { data: pathItems, error: pathItemsError } = await supabase
@@ -184,7 +144,7 @@ export async function GET(
     const assignedUsers = Array.from(assignedUsersMap.values())
     const userIds = assignedUsers.map(u => u.user_id)
 
-    logger.info(`✅ Total users with course ${courseId} assigned: ${userIds.length} (direct: ${assignedUsers.filter(u => u.source === 'direct').length}, team: ${assignedUsers.filter(u => u.source === 'team').length}, learning_path: ${assignedUsers.filter(u => u.source === 'learning_path').length})`)
+    logger.info(`✅ Total users with course ${courseId} assigned: ${userIds.length} (direct: ${assignedUsers.filter(u => u.source === 'direct').length}, learning_path: ${assignedUsers.filter(u => u.source === 'learning_path').length})`)
 
     return NextResponse.json({
       success: true,

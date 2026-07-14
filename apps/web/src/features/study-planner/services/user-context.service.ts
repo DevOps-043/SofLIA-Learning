@@ -17,7 +17,6 @@ import type {
   UserBasicInfo,
   UserProfessionalProfile,
   OrganizationInfo,
-  WorkTeam,
   CourseAssignment,
   StudyPreferences,
   CalendarIntegration,
@@ -51,10 +50,6 @@ export class UserContextService {
     userId: string
   ): Promise<OrganizationInfo | null> {
     return UserOrganizationService.getUserOrganization(userId);
-  }
-
-  static async getUserWorkTeams(userId: string): Promise<WorkTeam[]> {
-    return UserOrganizationService.getUserWorkTeams(userId);
   }
 
   static async getB2BCourseAssignments(
@@ -114,7 +109,6 @@ export class UserContextService {
       user,
       professionalProfile,
       organization,
-      workTeams,
       courses,
       studyPreferences,
       calendarIntegration,
@@ -124,9 +118,6 @@ export class UserContextService {
       userType === 'b2b'
         ? UserOrganizationService.getUserOrganization(userId)
         : Promise.resolve(null),
-      userType === 'b2b'
-        ? UserOrganizationService.getUserWorkTeams(userId)
-        : Promise.resolve([]),
       UserCourseAssignmentsService.getUserCourses(userId, userType),
       UserPreferencesService.getStudyPreferences(userId),
       UserPreferencesService.getCalendarIntegration(userId),
@@ -157,7 +148,6 @@ export class UserContextService {
       userType,
       professionalProfile: professionalProfile || undefined,
       organization: organization || undefined,
-      workTeams: workTeams.length > 0 ? workTeams : undefined,
       courses,
       studyPreferences: studyPreferences || undefined,
       calendarIntegration: calendarIntegration || undefined,

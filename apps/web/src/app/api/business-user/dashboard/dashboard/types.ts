@@ -53,19 +53,8 @@ export interface DirectAssignmentRow {
   courses: RelatedCourseValue
 }
 
-export interface TeamAssignmentRow {
-  id: string
-  team_id: string
-  course_id: string
-  status: string
-  assigned_at: string
-  due_date: string | null
-  message: string | null
-  courses: RelatedCourseValue
-}
-
 export interface CombinedAssignmentRow extends DirectAssignmentRow {
-  source: 'direct' | 'team'
+  source: 'direct'
 }
 
 export interface EnrollmentRow {

@@ -86,13 +86,13 @@ describe('getApiRouteAuthRequirement', () => {
   })
 
   it('keeps public reads open but protects mutations on content APIs', () => {
-    expect(getApiRouteAuthRequirement('/api/news', 'GET')).toMatchObject({
+    expect(getApiRouteAuthRequirement('/api/courses', 'GET')).toMatchObject({
       kind: 'public',
     })
-    expect(getApiRouteAuthRequirement('/api/news/article/save', 'POST')).toMatchObject({
+    expect(getApiRouteAuthRequirement('/api/courses/some-course/enroll', 'POST')).toMatchObject({
       kind: 'authenticated',
     })
-    expect(getApiRouteAuthRequirement('/api/communities/community/posts', 'POST')).toMatchObject({
+    expect(getApiRouteAuthRequirement('/api/statistics/profile', 'POST')).toMatchObject({
       kind: 'authenticated',
     })
   })

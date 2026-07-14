@@ -5,8 +5,7 @@ import { logger } from '@/lib/utils/logger'
 
 interface AssignedUser {
   user_id: string
-  source: 'direct' | 'team'
-  team_name?: string
+  source: 'direct'
 }
 
 /**
@@ -56,78 +55,13 @@ export async function GET(
         })
     }
 
-    // 2. Obtener equipos de la organización
-    const { data: orgTeams, error: teamsError } = await supabase
-      .from('work_teams')
-      .select('team_id, name')
-      .eq('organization_id', organizationId)
-      .eq('status', 'active')
-
-    logger.info(`📋 Org teams found: ${orgTeams?.length || 0}`)
-
-    if (teamsError) {
-      logger.error('Error fetching org teams:', teamsError)
-    }
-
-    if (!teamsError && orgTeams && orgTeams.length > 0) {
-      const orgTeamIds = orgTeams.map((t: { team_id: string }) => t.team_id)
-      const teamNamesMap = new Map<string, string>(orgTeams.map((t: { team_id: string, name: string }) => [t.team_id, t.name]))
-
-      logger.info(`📋 Checking team course assignments for teams: ${orgTeamIds.join(', ')}`)
-
-      // Obtener equipos que tienen el curso asignado
-      const { data: teamCourseAssignments, error: teamCourseError } = await supabase
-        .from('work_team_course_assignments')
-        .select('team_id')
-        .eq('course_id', courseId)
-        .in('team_id', orgTeamIds)
-
-      if (teamCourseError) {
-        logger.error('Error fetching team course assignments:', teamCourseError)
-      }
-
-      logger.info(`📋 Team course assignments found: ${teamCourseAssignments?.length || 0}`)
-
-      if (!teamCourseError && teamCourseAssignments && teamCourseAssignments.length > 0) {
-        const assignedTeamIds = teamCourseAssignments.map((a: { team_id: string }) => a.team_id)
-
-        logger.info(`📋 Teams with course assigned: ${assignedTeamIds.join(', ')}`)
-
-        // Obtener miembros activos de esos equipos
-        const { data: teamMembers, error: membersError } = await supabase
-          .from('work_team_members')
-          .select('user_id, team_id')
-          .in('team_id', assignedTeamIds)
-          .eq('status', 'active')
-
-        if (membersError) {
-          logger.error('Error fetching team members:', membersError)
-        }
-
-        logger.info(`📋 Team members found: ${teamMembers?.length || 0}`)
-
-        if (!membersError && teamMembers) {
-          teamMembers.forEach((m: { user_id: string, team_id: string }) => {
-            // Solo agregar si no tiene asignación directa (la directa tiene prioridad)
-            if (!assignedUsersMap.has(m.user_id)) {
-              const teamName = teamNamesMap.get(m.team_id)
-              logger.info(`👤 Adding user ${m.user_id} from team ${teamName}`)
-              assignedUsersMap.set(m.user_id, {
-                user_id: m.user_id,
-                source: 'team',
-                team_name: teamName
-              })
-            }
-          })
-        }
-      }
-    }
+    // La asignación por "equipo de trabajo" (tablas work_team_*) se eliminó:
+    // esas tablas ya no existen. La asignación llega por asignación directa.
 
     const assignedUsers = Array.from(assignedUsersMap.values())
     const userIds = assignedUsers.map(u => u.user_id)
 
-    logger.info(`✅ Total users with course ${courseId} assigned: ${userIds.length} (direct + team)`)
-    logger.info(`✅ User IDs: ${userIds.join(', ')}`)
+    logger.info(`✅ Total users with course ${courseId} assigned: ${userIds.length}`)
 
     return NextResponse.json({
       success: true,

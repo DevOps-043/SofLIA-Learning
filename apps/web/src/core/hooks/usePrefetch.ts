@@ -82,12 +82,9 @@ function getRelatedRoutes(currentPath: string): string[] {
   const routeMap: Record<string, string[]> = {
     '/': ['/dashboard', '/communities', '/my-courses', '/news'],
     '/dashboard': ['/my-courses', '/communities', '/profile', '/statistics'],
-    '/communities': ['/communities/ecos-de-liderazgo', '/dashboard', '/profile'],
     '/my-courses': ['/dashboard', '/courses', '/statistics'],
     '/profile': ['/dashboard', '/my-courses', '/statistics'],
-    '/news': ['/dashboard', '/communities'],
-    '/statistics': ['/dashboard', '/statistics/results'],
-    '/questionnaire': ['/dashboard', '/statistics'],
+    '/statistics': ['/dashboard'],
     '/auth': ['/dashboard'],
   }
 

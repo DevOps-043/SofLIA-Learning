@@ -6,13 +6,10 @@ export async function fetchInitialDashboardData(
   userId: string,
   organizationId: string
 ) {
-  const [teamMemberships, directAssignments, certificates] = await Promise.all([
-    supabase
-      .from('work_team_members')
-      .select('team_id, status, work_teams!inner(organization_id)')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .eq('work_teams.organization_id', organizationId),
+  // Nota: la antigua consulta a `work_team_members`/`work_teams` se eliminó.
+  // Esas tablas ya no existen (las sustituyó la jerarquía de organización), así
+  // que fallaba en cada carga del dashboard y siempre devolvía cero equipos.
+  const [directAssignments, certificates] = await Promise.all([
     supabase
       .from('organization_course_assignments')
       .select(`
@@ -32,12 +29,10 @@ export async function fetchInitialDashboardData(
       .limit(100),
   ])
 
-  if (teamMemberships.error) logger.error('Error fetching team memberships:', teamMemberships.error)
   if (directAssignments.error) logger.error('❌ Error fetching direct assignments:', directAssignments.error)
   if (certificates.error) logger.error('❌ Error fetching certificates:', certificates.error)
 
   return {
-    userTeamIds: teamMemberships.data?.map((membership) => membership.team_id) || [],
     directAssignments: (directAssignments.data || []) as DirectAssignmentRow[],
     certificates: (certificates.data || []) as CertificateRow[],
   }

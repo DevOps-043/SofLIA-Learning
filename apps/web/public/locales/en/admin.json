@@ -415,6 +415,7 @@
       "bio": "Bio",
       "bioPlaceholder": "Write a brief description of the user...",
       "role": "Role",
+      "platformRole": "Platform role",
       "roleType": "Role type",
       "points": "Points",
       "emailVerified": "Email verified",

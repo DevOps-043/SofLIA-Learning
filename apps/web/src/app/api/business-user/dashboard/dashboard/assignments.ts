@@ -1,9 +1,9 @@
-import type { CombinedAssignmentRow, DirectAssignmentRow, TeamAssignmentRow } from './types'
+import type { CombinedAssignmentRow, DirectAssignmentRow } from './types'
 
-export function combineDashboardAssignments(
-  directAssignments: DirectAssignmentRow[],
-  teamCourseAssignments: TeamAssignmentRow[]
-) {
+// Las asignaciones por "equipo de trabajo" (tablas work_team_*) se retiraron:
+// esas tablas ya no existen. Las asignaciones a usuarios de una organización
+// llegan por `organization_course_assignments` (asignación directa).
+export function combineDashboardAssignments(directAssignments: DirectAssignmentRow[]) {
   const courseIdSet = new Set<string>()
   const combinedAssignments: CombinedAssignmentRow[] = []
 
@@ -11,22 +11,6 @@ export function combineDashboardAssignments(
     if (!assignment.courses || courseIdSet.has(assignment.course_id)) continue
     courseIdSet.add(assignment.course_id)
     combinedAssignments.push({ ...assignment, source: 'direct' })
-  }
-
-  for (const teamAssignment of teamCourseAssignments) {
-    if (!teamAssignment.courses || courseIdSet.has(teamAssignment.course_id)) continue
-    courseIdSet.add(teamAssignment.course_id)
-    combinedAssignments.push({
-      id: teamAssignment.id,
-      course_id: teamAssignment.course_id,
-      status: teamAssignment.status,
-      completion_percentage: 0,
-      assigned_at: teamAssignment.assigned_at,
-      due_date: teamAssignment.due_date,
-      completed_at: null,
-      courses: teamAssignment.courses,
-      source: 'team',
-    })
   }
 
   return {

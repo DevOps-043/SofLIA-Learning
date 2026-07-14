@@ -11,7 +11,7 @@ describe('security schemas', () => {
     const result = agentHandshakeSchema.safeParse({
       agentId: 'codex-desktop',
       method: 'POST',
-      pathname: '/api/reels',
+      pathname: '/api/courses',
     });
 
     expect(result.success).toBe(true);

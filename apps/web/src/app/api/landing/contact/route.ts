@@ -46,13 +46,19 @@ async function handlePost(_request: NextRequest, body: LandingContactBody) {
   try {
     const supabase = await createClient();
 
-    // Guardar en la base de datos
+    // Guardar el lead COMPLETO. Antes solo se guardaba name/email/company y el
+    // resto (teléfono, tamaño, interés, mensaje) se perdía aunque el formulario
+    // lo enviara: solo viajaba en el correo de aviso, sin quedar consultable.
     const { data, error: dbError } = await supabase
       .from('landing_contacts')
       .insert({
         name,
         email,
         company,
+        phone: phone || null,
+        company_size: companySize || null,
+        interest: interest || null,
+        message: message || null,
         source: source || 'landing_cta',
         created_at: timestamp || new Date().toISOString(),
         status: 'pending',

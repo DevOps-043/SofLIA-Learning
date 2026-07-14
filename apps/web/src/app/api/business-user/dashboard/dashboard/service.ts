@@ -9,7 +9,6 @@ import {
 } from './relations'
 import { sortCoursesByLearningPathPosition } from './sort-courses'
 import { calculateDashboardStats, createCertificatesMap } from './stats'
-import { fetchTeamAssignments } from './team-assignments'
 import type { DashboardSupabaseClient } from './types'
 
 export async function getBusinessUserDashboardData(
@@ -19,12 +18,9 @@ export async function getBusinessUserDashboardData(
 ) {
   logger.log('📊 Fetching dashboard data for user:', userId, 'org:', organizationId)
   const initialData = await fetchInitialDashboardData(supabase, userId, organizationId)
-  logger.debug('Teams found for org:', organizationId, 'teams:', initialData.userTeamIds)
 
-  const teamAssignments = await fetchTeamAssignments(supabase, initialData.userTeamIds)
   const { combinedAssignments, courseIds } = combineDashboardAssignments(
-    initialData.directAssignments,
-    teamAssignments
+    initialData.directAssignments
   )
   const relations = await fetchDashboardCourseRelations(
     supabase,

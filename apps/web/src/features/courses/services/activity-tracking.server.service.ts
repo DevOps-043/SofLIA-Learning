@@ -2,10 +2,6 @@ import { createClient } from '@/lib/supabase/server'
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
 
-type UserProfileRow = {
-  id: string
-}
-
 export interface CourseTrackingSummary {
   course: {
     courseId: string
@@ -63,19 +59,6 @@ async function resolveCourseContext(
   }
 }
 
-async function resolveUserProfileId(
-  supabase: SupabaseServerClient,
-  userId: string,
-) {
-  const { data: profile } = await supabase
-    .from('user_perfil')
-    .select('id')
-    .eq('user_id', userId)
-    .maybeSingle()
-
-  return (profile as UserProfileRow | null)?.id ?? null
-}
-
 function getLatestTimestamp<T extends object>(rows: T[], key: keyof T): string | null {
   return rows.reduce<string | null>((latest, row) => {
     const candidate = row[key]
@@ -101,30 +84,23 @@ export async function getCourseTrackingSummary(
     return null
   }
 
-  const userProfileId = await resolveUserProfileId(supabase, userId)
+  const [quizSubmissions, activitySubmissions] = await Promise.all([
+    supabase
+      .from('user_quiz_submissions')
+      .select('completed_at, is_passed')
+      .eq('user_id', userId)
+      .eq('enrollment_id', courseContext.enrollmentId),
+    supabase
+      .from('user_activity_submissions')
+      .select('submitted_at, last_validated_at, status')
+      .eq('user_id', userId)
+      .eq('enrollment_id', courseContext.enrollmentId),
+  ])
 
-  const [questionnaireResponses, quizSubmissions, activitySubmissions] =
-    await Promise.all([
-      userProfileId
-        ? supabase
-            .from('respuestas')
-            .select('respondido_en')
-            .eq('user_perfil_id', userProfileId)
-        : Promise.resolve({ data: [] as Array<{ respondido_en: string }> }),
-      supabase
-        .from('user_quiz_submissions')
-        .select('completed_at, is_passed')
-        .eq('user_id', userId)
-        .eq('enrollment_id', courseContext.enrollmentId),
-      supabase
-        .from('user_activity_submissions')
-        .select('submitted_at, last_validated_at, status')
-        .eq('user_id', userId)
-        .eq('enrollment_id', courseContext.enrollmentId),
-    ])
-
-  const questionnaireRows =
-    questionnaireResponses.data || ([] as Array<{ respondido_en: string }>)
+  // El cuestionario de onboarding (tabla `respuestas`) se retiró; su tabla ya no
+  // existe. Se mantiene el campo `questionnaire` vacío para no romper el
+  // contrato del resumen de tracking que consumen sus lectores.
+  const questionnaireRows: Array<{ respondido_en: string }> = []
   const quizRows =
     quizSubmissions.data ||
     ([] as Array<{ completed_at: string | null; is_passed: boolean | null }>)

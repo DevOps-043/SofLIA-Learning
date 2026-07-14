@@ -53,7 +53,6 @@ const PUBLIC_PREFIXES = [
 const AUTHENTICATED_PREFIXES = [
   '/api/account-settings',
   '/api/certificates',
-  '/api/favorites',
   '/api/lesson-tracking',
   '/api/lia',
   '/api/my-courses',
@@ -68,11 +67,7 @@ const AUTHENTICATED_PREFIXES = [
 ]
 
 const AUTHENTICATED_MUTATION_PREFIXES = [
-  '/api/communities',
   '/api/courses',
-  '/api/news',
-  '/api/questionnaire',
-  '/api/reels',
   '/api/reportes',
   '/api/statistics',
 ]
@@ -101,12 +96,8 @@ const ROLE_PROTECTED_EXACT_PATHS = new Map<string, {
 ])
 
 const PUBLIC_GET_PATTERNS = [
-  /^\/api\/communities(?:\/[^/]+)?$/,
   /^\/api\/courses(?:\/[^/]+)?$/,
   /^\/api\/courses\/[^/]+\/(?:full|intro-videos|modules|skills|learn-data|check-purchase)$/,
-  /^\/api\/news(?:\/[^/]+)?$/,
-  /^\/api\/news\/stats$/,
-  /^\/api\/reels(?:\/(?:featured|[^/]+))?$/,
   /^\/api\/skills$/,
   /^\/api\/workshops\/[^/]+\/metadata$/,
 ]
