@@ -8,7 +8,7 @@ import {
 const mockPathname = vi.hoisted(() => ({ value: '/valora-it/business-panel/dashboard' }))
 const mockUser = vi.hoisted(() => ({
   value: {
-    cargo_rol: 'Administrador',
+    platform_role: 'Administrador',
     organization_id: null,
   },
 }))

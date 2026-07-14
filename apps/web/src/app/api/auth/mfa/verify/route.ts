@@ -15,12 +15,10 @@ import { createClient } from '@/lib/supabase/server'
 import type { Tables } from '@/lib/supabase/types'
 import { recordSecurityEvent } from '@/lib/security/security-events'
 import { updateLastLoginAt } from '@/features/auth/services/auth-session.service'
-import { isLegacySessionFallbackEnabled } from '@/features/auth/services/legacy-auth-fallback'
 import {
   ensureSupabaseAuthUserForLegacyProfile,
   SupabaseAuthBridgeError,
 } from '@/features/auth/services/supabase-auth-bridge.service'
-import { createLoginSessions } from '@/features/auth/actions/login/create-login-sessions'
 import { scheduleExpiredSessionCleanup } from '@/features/auth/actions/login/expired-session-cleanup'
 import {
   buildLockoutErrorMessage,
@@ -40,13 +38,13 @@ import { validateCustomOrganizationLogin } from '@/features/auth/actions/login/o
 import { resolveLoginRedirect } from '@/features/auth/actions/login/redirect'
 import {
   findLoginUserById,
-  validateLoginPassword,
+  mapNativeAuthFailure,
 } from '@/features/auth/actions/login/user-credentials'
 import type { LoginUserRecord } from '@/features/auth/actions/login/types'
 
 import { loginChallengeTokenSchema, tokenSchema } from '../schema'
 
-type UserProfileRow = Pick<Tables<'users'>, 'cargo_rol' | 'email' | 'id'>
+type UserProfileRow = Pick<Tables<'users'>, 'platform_role' | 'email' | 'id'>
 
 export async function POST(request: NextRequest) {
   const json = await readJsonBody(request)
@@ -144,7 +142,7 @@ async function verifyLoginChallenge(
       const failedAttempt = await recordFailedLoginAttempt(loginAttemptContext)
       recordSecurityEvent('mfa-verification-failed', {
         actorId: user.id,
-        actorRole: user.cargo_rol,
+        actorRole: user.platform_role,
         method: request.method,
         pathname: request.nextUrl.pathname,
         metadata: { reason: 'invalid_token' },
@@ -179,61 +177,29 @@ async function verifyLoginChallenge(
         userId: user.id,
       })
     } else {
-      const passwordResult = user.password_hash
-        ? await validateLoginPassword(user, input.password)
-        : { error: 'Credenciales invalidas' }
+      // Supabase Auth es la única autoridad de credenciales: ya no hay fallback
+      // bcrypt (la columna `users.password_hash` fue eliminada). El motivo real
+      // del rechazo —credenciales, rate limit, servicio caído— se traduce a un
+      // mensaje honesto en lugar de un genérico.
+      const failure = mapNativeAuthFailure(nativeLoginResult.reason)
+      const failedAttempt = await recordFailedLoginAttempt(loginAttemptContext)
 
-      if (passwordResult) {
-        const failedAttempt = await recordFailedLoginAttempt(loginAttemptContext)
-        recordSecurityEvent('login-failure', {
-          actorId: user.id,
-          actorRole: user.cargo_rol,
-          metadata: {
-            nativeReason: nativeLoginResult.reason,
-            reason: 'password_validation_failed_after_mfa',
-          },
-        })
-        return apiError(
-          'LOGIN_CREDENTIALS_INVALID',
-          failedAttempt.isLocked
-            ? buildLockoutErrorMessage(failedAttempt)
-            : passwordResult.error,
-          failedAttempt.isLocked ? 423 : 401,
-        )
-      }
-
-      if (!isLegacySessionFallbackEnabled()) {
-        logger.error('Supabase Auth MFA login failed and legacy fallback is disabled', {
-          reason: nativeLoginResult.reason,
-          userId: user.id,
-        })
-        recordSecurityEvent('login-failure', {
-          actorId: user.id,
-          actorRole: user.cargo_rol,
-          result: 'error',
-          metadata: {
-            nativeReason: nativeLoginResult.reason,
-            reason: 'supabase_auth_mfa_unavailable_legacy_fallback_disabled',
-          },
-        })
-        return apiError(
-          'SUPABASE_AUTH_UNAVAILABLE',
-          'No se pudo iniciar sesion con Supabase Auth. Por favor, intenta nuevamente.',
-          503,
-        )
-      }
-
-      logger.warn('Supabase Auth MFA login unavailable; using legacy session fallback', {
-        reason: nativeLoginResult.reason,
-        userId: user.id,
+      recordSecurityEvent('login-failure', {
+        actorId: user.id,
+        actorRole: user.platform_role,
+        metadata: {
+          nativeReason: nativeLoginResult.reason,
+          reason: failure.debugCode,
+        },
       })
-      const sessionResult = await createLoginSessions({
-        rememberMe: challenge.rememberMe,
-        userId: user.id,
-      })
-      if (sessionResult) {
-        return apiError('SESSION_CREATION_FAILED', sessionResult.error, 500)
-      }
+
+      return apiError(
+        'LOGIN_CREDENTIALS_INVALID',
+        failedAttempt.isLocked
+          ? buildLockoutErrorMessage(failedAttempt)
+          : failure.error,
+        failedAttempt.isLocked ? 423 : 401,
+      )
     }
 
     scheduleExpiredSessionCleanup()
@@ -244,13 +210,13 @@ async function verifyLoginChallenge(
     const redirectTo = await resolveLoginRedirect({ supabase, user })
     recordSecurityEvent('mfa-verification-success', {
       actorId: user.id,
-      actorRole: user.cargo_rol,
+      actorRole: user.platform_role,
       method: request.method,
       pathname: request.nextUrl.pathname,
     })
     recordSecurityEvent('login-success', {
       actorId: user.id,
-      actorRole: user.cargo_rol,
+      actorRole: user.platform_role,
       metadata: { mfaVerified: true },
     })
 
@@ -316,7 +282,7 @@ async function resolveAuthContext(): Promise<AuthContext | Response> {
 
   const { data: profile, error } = await supabase
     .from('users')
-    .select('id, email, cargo_rol')
+    .select('id, email, platform_role')
     .eq('id', user.id)
     .single<UserProfileRow>()
 
@@ -324,7 +290,7 @@ async function resolveAuthContext(): Promise<AuthContext | Response> {
     return apiError('PROFILE_NOT_FOUND', 'No se encontro el perfil del usuario autenticado.', 403)
   }
 
-  const role = normalizeAuthRole(profile.cargo_rol)
+  const role = normalizeAuthRole(profile.platform_role)
   if (!role) {
     return apiError('FORBIDDEN', 'El rol del usuario no permite acceder a este recurso.', 403)
   }

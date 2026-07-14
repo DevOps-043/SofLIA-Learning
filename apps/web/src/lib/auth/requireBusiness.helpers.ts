@@ -5,7 +5,7 @@ import type { BusinessAuth } from './requireBusiness.types';
 interface AuthenticatedUserRow {
   id: string;
   email?: string | null;
-  cargo_rol?: string | null;
+  platform_role?: string | null;
 }
 
 interface ResolvedOrganizationAccess {
@@ -55,7 +55,7 @@ export function buildBusinessAuth(
   return {
     userId: user.id,
     userEmail: user.email ?? '',
-    userRole: user.cargo_rol ?? '',
+    userRole: user.platform_role ?? '',
     organizationId: organization.organizationId,
     organizationSlug: organization.organizationSlug,
     organizationRole: organization.organizationRole,

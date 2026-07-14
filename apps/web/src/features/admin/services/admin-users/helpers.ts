@@ -16,7 +16,7 @@ export const ADMIN_USER_SELECT_FIELDS = `
   first_name,
   last_name,
   display_name,
-  cargo_rol,
+  platform_role,
   email_verified,
   email_verified_at,
   phone,
@@ -30,7 +30,6 @@ export const ADMIN_USER_SELECT_FIELDS = `
   updated_at,
   last_login_at,
   last_activity_at,
-  oauth_provider,
   is_banned,
   banned_at,
   ban_reason
@@ -64,7 +63,7 @@ export function buildAdminUserUpdatePayload(userData: Partial<AdminUser>) {
     first_name: emptyToNull(userData.first_name),
     last_name: emptyToNull(userData.last_name),
     display_name: emptyToNull(userData.display_name),
-    cargo_rol: userData.cargo_rol,
+    platform_role: userData.platform_role,
     email_verified: userData.email_verified,
     email_verified_at: userData.email_verified
       ? new Date().toISOString()
@@ -106,7 +105,7 @@ export function buildAdminUserInsertPayload(
     first_name: userData.first_name || null,
     last_name: userData.last_name || null,
     display_name: userData.display_name || null,
-    cargo_rol: userData.cargo_rol,
+    platform_role: userData.platform_role,
     phone: userData.phone || null,
     bio: userData.bio || null,
     location: userData.location || null,

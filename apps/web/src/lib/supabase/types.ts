@@ -8595,7 +8595,7 @@ export type Database = {
           ban_reason: string | null
           banned_at: string | null
           bio: string | null
-          cargo_rol: string | null
+          platform_role: string | null
           country_code: string | null
           created_at: string
           date_of_birth: string | null
@@ -8631,7 +8631,7 @@ export type Database = {
           ban_reason?: string | null
           banned_at?: string | null
           bio?: string | null
-          cargo_rol?: string | null
+          platform_role?: string | null
           country_code?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -8667,7 +8667,7 @@ export type Database = {
           ban_reason?: string | null
           banned_at?: string | null
           bio?: string | null
-          cargo_rol?: string | null
+          platform_role?: string | null
           country_code?: string | null
           created_at?: string
           date_of_birth?: string | null

@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Obtener el rol del usuario
-    const userRole = user.cargo_rol;
+    const userRole = user.platform_role;
     const isAdmin = userRole === 'Administrador';
     const isInstructor = userRole === 'Instructor';
 

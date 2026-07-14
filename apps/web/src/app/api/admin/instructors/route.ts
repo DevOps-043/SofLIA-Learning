@@ -21,9 +21,9 @@ export async function GET(request: NextRequest) {
       supabase.auth.getUser(),
       supabase
         .from('users')
-        .select('id, display_name, first_name, last_name, username, cargo_rol')
-        .or('cargo_rol.ilike.instructor,cargo_rol.ilike.administrador')
-        .order('cargo_rol', { ascending: true })
+        .select('id, display_name, first_name, last_name, username, platform_role')
+        .or('platform_role.ilike.instructor,platform_role.ilike.administrador')
+        .order('platform_role', { ascending: true })
         .order('display_name', { ascending: true })
         .limit(100) // Límite explícito para escala
     ])

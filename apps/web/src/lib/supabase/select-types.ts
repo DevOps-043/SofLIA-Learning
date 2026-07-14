@@ -59,5 +59,5 @@ export const SELECT_COLUMNS = {
   // aquí, y PostgREST rechaza el SELECT entero con "column users.type_rol does
   // not exist". Eso dejaba rotos el update y el delete de usuarios del panel de
   // administración, que usan esta constante.
-  users: 'ban_reason, banned_at, bio, cargo_rol, country_code, created_at, date_of_birth, display_name, email, email_verified, email_verified_at, first_name, gender, id, is_banned, last_activity_at, last_login_at, last_name, location, notification_community_updates, notification_course_updates, notification_email, notification_marketing, notification_push, oauth_provider, oauth_provider_id, password_hash, phone, profile_picture_url, signature_name, signature_url, updated_at, username',
+  users: 'ban_reason, banned_at, bio, platform_role, country_code, created_at, date_of_birth, display_name, email, email_verified, email_verified_at, first_name, gender, id, is_banned, last_activity_at, last_login_at, last_name, location, notification_community_updates, notification_course_updates, notification_email, notification_marketing, notification_push, phone, profile_picture_url, signature_name, signature_url, updated_at, username',
 } as const

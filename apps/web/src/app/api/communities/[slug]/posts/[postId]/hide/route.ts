@@ -38,8 +38,8 @@ async function handlePost(
       return apiError('POST_NOT_FOUND', 'Post no encontrado', 404)
     }
 
-    const isAdmin = user.cargo_rol?.toLowerCase() === 'administrador'
-    const isInstructor = user.cargo_rol?.toLowerCase() === 'instructor'
+    const isAdmin = user.platform_role?.toLowerCase() === 'administrador'
+    const isInstructor = user.platform_role?.toLowerCase() === 'instructor'
 
     let isModerator = false
     if (isInstructor || isAdmin) {

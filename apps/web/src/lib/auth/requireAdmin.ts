@@ -54,11 +54,11 @@ export async function requireAdmin(): Promise<AdminAuth | NextResponse> {
     // PASO 3: Verificar que el usuario sea Administrador
     // (predicado compartido en lib/auth/platform-role para no divergir del middleware
     // ni del copiloto de SofLIA para superadmins)
-    if (!isPlatformAdminRole(user.cargo_rol)) {
+    if (!isPlatformAdminRole(user.platform_role)) {
       logger.warn('Non-admin user attempted to access admin route', {
         userId: user.id,
         email: user.email,
-        role: user.cargo_rol 
+        role: user.platform_role 
       });
       return NextResponse.json(
         { 
@@ -78,7 +78,7 @@ export async function requireAdmin(): Promise<AdminAuth | NextResponse> {
     return {
       userId: user.id,
       userEmail: user.email ?? '',
-      userRole: user.cargo_rol ?? '',
+      userRole: user.platform_role ?? '',
     };
 
   } catch (error) {
@@ -119,12 +119,12 @@ export async function requireInstructor(): Promise<AdminAuth | NextResponse> {
 
     // Permitir Administrador e Instructor
     if (
-      !isPlatformAdminRole(user.cargo_rol) &&
-      !isPlatformInstructorRole(user.cargo_rol)
+      !isPlatformAdminRole(user.platform_role) &&
+      !isPlatformInstructorRole(user.platform_role)
     ) {
       logger.warn('User without instructor permissions attempted access', {
         userId: user.id,
-        role: user.cargo_rol 
+        role: user.platform_role 
       });
       return NextResponse.json(
         { 
@@ -137,13 +137,13 @@ export async function requireInstructor(): Promise<AdminAuth | NextResponse> {
 
     logger.auth('Instructor access granted', { 
       userId: user.id, 
-      role: user.cargo_rol 
+      role: user.platform_role 
     });
 
     return {
       userId: user.id,
       userEmail: user.email ?? '',
-      userRole: user.cargo_rol ?? '',
+      userRole: user.platform_role ?? '',
     };
 
   } catch (error) {

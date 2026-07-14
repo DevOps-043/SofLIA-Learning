@@ -1,7 +1,7 @@
 import type { SupabaseServerClient } from './oauth-flow.types';
 
 interface UserRoleRow {
-  cargo_rol?: string | null;
+  platform_role?: string | null;
 }
 
 interface OrganizationMembershipRow {
@@ -50,13 +50,13 @@ export async function resolveOAuthDashboardDestination(
 ): Promise<string> {
   const { data: user } = await supabase
     .from('users')
-    .select('cargo_rol')
+    .select('platform_role')
     .eq('id', userId)
     .single();
 
   const userRole = user as UserRoleRow | null;
 
-  const normalizedRole = normalizeCargoRole(userRole?.cargo_rol);
+  const normalizedRole = normalizeCargoRole(userRole?.platform_role);
 
   if (normalizedRole === 'administrador') {
     return '/admin/dashboard';
@@ -83,7 +83,7 @@ export async function resolveOAuthDashboardDestination(
   if (!isBusinessCargoRole(normalizedRole)) {
     await supabase
       .from('users')
-      .update({ cargo_rol: 'Business' })
+      .update({ platform_role: 'Business' })
       .eq('id', userId);
   }
 

@@ -12,7 +12,7 @@ interface User {
   first_name?: string
   last_name?: string
   display_name?: string
-  cargo_rol?: string
+  platform_role?: string
   created_at?: string
   job_title?: string
   job_description?: string

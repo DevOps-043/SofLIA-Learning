@@ -169,16 +169,16 @@ async function promotePendingOwnerIfNeeded(
 
   const { error: roleError } = await supabase
     .from('users')
-    .update({ cargo_rol: 'Business' })
+    .update({ platform_role: 'Business' })
     .eq('id', ownerMembership.user_id)
-    .eq('cargo_rol', 'Usuario')
+    .eq('platform_role', 'Usuario')
 
   if (roleError) {
-    logger.error('Error promoting owner cargo_rol:', roleError)
+    logger.error('Error promoting owner platform_role:', roleError)
     return
   }
 
-  logger.info('Owner cargo_rol promoted to Business', {
+  logger.info('Owner platform_role promoted to Business', {
     userId: ownerMembership.user_id,
     organizationId,
   })

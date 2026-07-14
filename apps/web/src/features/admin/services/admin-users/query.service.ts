@@ -70,11 +70,11 @@ export async function getAdminUserStats(): Promise<UserStats> {
       supabase
         .from('users')
         .select('id', { count: 'exact', head: true })
-        .eq('cargo_rol', 'Instructor'),
+        .eq('platform_role', 'Instructor'),
       supabase
         .from('users')
         .select('id', { count: 'exact', head: true })
-        .eq('cargo_rol', 'Administrador'),
+        .eq('platform_role', 'Administrador'),
     ])
 
   if (totalResult.error) throw totalResult.error

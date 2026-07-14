@@ -7,7 +7,7 @@ export type LoginSupabaseClient =
 
 export interface LoginUserRecord {
   ban_reason: string | null
-  cargo_rol: string | null
+  platform_role: string | null
   display_name?: string | null
   email: string | null
   email_verified: boolean | null
@@ -15,7 +15,6 @@ export interface LoginUserRecord {
   id: string
   is_banned: boolean | null
   last_name?: string | null
-  password_hash: string | null
   profile_picture_url?: string | null
   username: string | null
 }

@@ -73,7 +73,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         return
       }
 
-      const normalizedRole = user.cargo_rol?.toLowerCase().trim()
+      const normalizedRole = user.platform_role?.toLowerCase().trim()
 
       if (normalizedRole !== 'administrador') {
         setIsRedirecting(true)
@@ -165,7 +165,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     )
   }
 
-  const normalizedRole = user?.cargo_rol?.toLowerCase().trim()
+  const normalizedRole = user?.platform_role?.toLowerCase().trim()
 
   if (!user || normalizedRole !== 'administrador') {
     return null

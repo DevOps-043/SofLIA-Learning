@@ -105,11 +105,11 @@ async function handlePatch(
 
       const { error: roleError } = await supabase
         .from('users')
-        .update({ cargo_rol: 'Business' })
+        .update({ platform_role: 'Business' })
         .eq('id', joinRequest.user_id)
 
       if (roleError) {
-        logger.error('Error updating user cargo_rol:', roleError)
+        logger.error('Error updating user platform_role:', roleError)
       }
 
       logger.info('Join request approved', {

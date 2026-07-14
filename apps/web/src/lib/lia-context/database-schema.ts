@@ -9,7 +9,7 @@ Esto te servirá para responder preguntas técnicas o sobre disponibilidad de da
 - id (uuid, PK)
 - username, email
 - first_name, last_name, display_name
-- cargo_rol (Usuario, Instructor, Administrador, Business, Business User)
+- platform_role (Usuario, Instructor, Administrador, Business, Business User)
 - type_rol (Cargo específico)
 - profile_picture_url, bio, location
 - is_banned, ban_reason

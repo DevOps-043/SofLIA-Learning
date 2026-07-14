@@ -8,7 +8,7 @@ export interface BusinessUser {
   first_name?: string | null
   last_name?: string | null
   display_name?: string | null
-  cargo_rol: string
+  platform_role: string
   job_title?: string | null  // Antes type_rol - ahora en organization_users
   organization_id?: string | null
   email_verified: boolean
@@ -104,7 +104,7 @@ export interface UpdateBusinessUserRequest {
   last_name?: string
   display_name?: string
   email?: string
-  cargo_rol?: string
+  platform_role?: string
   job_title?: string  // Antes type_rol - cargo/puesto en la organización
   org_role?: 'owner' | 'admin' | 'member'
   org_status?: 'active' | 'invited' | 'suspended' | 'removed'

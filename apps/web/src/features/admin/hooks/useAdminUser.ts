@@ -21,7 +21,7 @@ interface AdminUser {
   last_name: string
   email: string
   profile_picture_url?: string
-  cargo_rol: string
+  platform_role: string
   created_at: string
   updated_at: string
   organization?: {
@@ -47,7 +47,7 @@ export function useAdminUser() {
         ...(authUser.profile_picture_url
           ? { profile_picture_url: authUser.profile_picture_url }
           : {}),
-        cargo_rol: authUser.cargo_rol ?? '',
+        platform_role: authUser.platform_role ?? '',
         created_at: authUser.created_at ?? '',
         updated_at: authUser.updated_at ?? '',
         ...(authUser.organization

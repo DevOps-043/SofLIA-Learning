@@ -70,7 +70,7 @@ export async function resolveSuperadminTurn(
 
   // Filtro barato antes de tocar la BD: la autorización real (panel, riesgo,
   // rate limit, re-verificación en BD) la hace `authorizeAdminActions`.
-  if (!sessionUser || !isPlatformAdminRole(sessionUser.cargo_rol)) {
+  if (!sessionUser || !isPlatformAdminRole(sessionUser.platform_role)) {
     return INERT_TURN
   }
 

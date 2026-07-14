@@ -46,8 +46,8 @@ export async function resetSupabaseRecoveryPasswordAction(
       return { error: 'Error actualizando contrasena.' };
     }
 
+    // La contraseña vive en Supabase Auth; el hash legacy ya no existe.
     const adminSupabase = createAdminClient();
-    await adminSupabase.from('users').update({ password_hash: null }).eq('id', user.id);
     await adminSupabase
       .from('refresh_tokens')
       .update({

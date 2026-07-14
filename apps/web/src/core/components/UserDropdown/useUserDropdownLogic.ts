@@ -86,8 +86,8 @@ export function useUserDropdownLogic(userProp?: unknown, options: UserDropdownLo
     return () => window.removeEventListener(USER_DROPDOWN_CLOSE_EVENT, closeDropdown)
   }, [])
 
-  const isAdmin = useMemo(() => user?.cargo_rol?.toLowerCase() === 'administrador', [user?.cargo_rol])
-  const isInstructor = useMemo(() => user?.cargo_rol?.toLowerCase() === 'instructor', [user?.cargo_rol])
+  const isAdmin = useMemo(() => user?.platform_role?.toLowerCase() === 'administrador', [user?.platform_role])
+  const isInstructor = useMemo(() => user?.platform_role?.toLowerCase() === 'instructor', [user?.platform_role])
   const profilePath = useMemo(() => currentOrganization?.slug ? `/${currentOrganization.slug}/profile` : '/profile', [currentOrganization?.slug])
   const handleNavigation = useCallback((path: string) => {
     router.push(path); setIsOpen(false); setActiveSubmenu(null); setIsOrgSwitcherOpen(false)

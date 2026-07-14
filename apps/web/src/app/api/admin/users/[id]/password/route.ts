@@ -48,7 +48,7 @@ async function handleSetPassword(
     const adminSupabase = createAdminClient()
     const { data: userData, error: fetchError } = await adminSupabase
       .from('users')
-      .select('id, username, email, password_hash, email_verified, cargo_rol, first_name, last_name, display_name, profile_picture_url')
+      .select('id, username, email, email_verified, platform_role, first_name, last_name, display_name, profile_picture_url')
       .eq('id', targetUserId)
       .single()
 
@@ -76,9 +76,10 @@ async function handleSetPassword(
       return apiError('PASSWORD_UPDATE_FAILED', 'Error al actualizar la contraseña.', 500)
     }
 
+    // La contraseña la guarda Supabase Auth (el hash legacy ya no existe).
     await adminSupabase
       .from('users')
-      .update({ password_hash: null, updated_at: new Date().toISOString() })
+      .update({ updated_at: new Date().toISOString() })
       .eq('id', targetUserId)
     await revokeSupabaseAuthSessions(targetUserId)
     await revokeAllSessionsAsAdmin(adminSupabase, targetUserId, auth.userId)

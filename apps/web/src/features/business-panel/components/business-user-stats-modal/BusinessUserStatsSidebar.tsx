@@ -81,7 +81,7 @@ export function BusinessUserStatsSidebar({
         <BusinessUserStatsInfoCard
           icon={Briefcase}
           label={t('users.stats.labels.typeRole')}
-          value={user.job_title || user.cargo_rol || 'N/A'}
+          value={user.job_title || user.platform_role || 'N/A'}
           theme={theme}
         />
         <BusinessUserStatsInfoCard

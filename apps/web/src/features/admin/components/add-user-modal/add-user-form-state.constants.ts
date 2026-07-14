@@ -7,7 +7,7 @@ export const INITIAL_ADD_USER_FORM: NewAdminUserData = {
   first_name: '',
   last_name: '',
   display_name: '',
-  cargo_rol: 'Usuario',
+  platform_role: 'Usuario',
   phone: '',
   date_of_birth: '',
   gender: '',

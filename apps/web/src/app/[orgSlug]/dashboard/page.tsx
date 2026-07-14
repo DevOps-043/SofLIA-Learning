@@ -49,11 +49,11 @@ export default async function OrganizationDashboardPage({ params }: DashboardPag
   // Check if user is platform administrator
   const { data: userData } = await supabase
     .from('users')
-    .select('cargo_rol')
+    .select('platform_role')
     .eq('id', currentUser.id)
     .single();
   
-  const isPlatformAdmin = userData?.cargo_rol?.toLowerCase().trim() === 'administrador';
+  const isPlatformAdmin = userData?.platform_role?.toLowerCase().trim() === 'administrador';
 
   if ((membershipError || !membership) && !isPlatformAdmin) {
     // User is not a member of this organization and not a platform admin

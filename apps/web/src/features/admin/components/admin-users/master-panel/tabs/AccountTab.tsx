@@ -39,8 +39,8 @@ export function AccountTab(props: AccountTabProps) {
           <div>
             <label className={FIELD_LABEL_CLASS}>{t('admin:users.demographics.role')} *</label>
             <PremiumSelect
-              value={props.formData.cargo_rol}
-              onChange={(value) => props.setField('cargo_rol', value)}
+              value={props.formData.platform_role}
+              onChange={(value) => props.setField('platform_role', value)}
               options={roleOptions}
               icon={<ShieldCheck className="h-4 w-4" />}
             />

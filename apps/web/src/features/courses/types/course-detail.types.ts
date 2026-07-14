@@ -74,7 +74,7 @@ export interface CourseInstructorProfile {
   email?: string | null
   profile_picture_url?: string | null
   bio?: string | null
-  cargo_rol?: string | null
+  platform_role?: string | null
   location?: string | null
 }
 

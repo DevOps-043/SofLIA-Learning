@@ -60,7 +60,7 @@ export class UserIdentityService {
         last_name,
         display_name,
         profile_picture_url,
-        cargo_rol
+        platform_role
       `)
       .eq('id', userId)
       .single();
@@ -78,7 +78,7 @@ export class UserIdentityService {
       lastName: data.last_name ?? undefined,
       displayName: data.display_name ?? undefined,
       profilePictureUrl: data.profile_picture_url ?? undefined,
-      cargoRol: data.cargo_rol ?? undefined,
+      cargoRol: data.platform_role ?? undefined,
     };
   }
 

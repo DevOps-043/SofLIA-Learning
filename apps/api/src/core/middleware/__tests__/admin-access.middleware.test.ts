@@ -36,7 +36,7 @@ describe('admin access middleware', () => {
 
     maybeSingleMock.mockResolvedValue({
       data: {
-        cargo_rol: 'Administrador',
+        platform_role: 'Administrador',
         is_banned: false,
       },
       error: null,
@@ -61,7 +61,7 @@ describe('admin access middleware', () => {
 
     maybeSingleMock.mockResolvedValue({
       data: {
-        cargo_rol: 'Administrador',
+        platform_role: 'Administrador',
         is_banned: true,
       },
       error: null,

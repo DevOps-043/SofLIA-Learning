@@ -59,9 +59,9 @@ export function createMembershipMethods(supabase: unknown): MembershipMethods {
 
     async setUserBusinessRole(userId: string) {
       const { error } = await usersTable(supabase)
-        .update({ cargo_rol: 'Business' })
+        .update({ platform_role: 'Business' })
         .eq('id', userId)
-        .neq('cargo_rol', 'Administrador')
+        .neq('platform_role', 'Administrador')
 
       if (error) {
         throw error

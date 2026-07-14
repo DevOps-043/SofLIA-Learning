@@ -157,7 +157,7 @@ export class OAuthService {
 
     const { data, error } = await supabase
       .from('users')
-      .select('id, email, username, first_name, last_name, email_verified, cargo_rol')
+      .select('id, email, username, first_name, last_name, email_verified, platform_role')
       .ilike('email', escapeIlikePattern(normalizedEmail))
       .limit(10);
 
@@ -251,7 +251,7 @@ export class OAuthService {
 
       try {
         const authUser = await createSupabaseAuthUserRecord({
-          cargo_rol: cargoRol || 'Usuario',
+          platform_role: cargoRol || 'Usuario',
           display_name: `${firstName} ${lastName}`.trim(),
           email,
           email_verified: true,
@@ -273,7 +273,7 @@ export class OAuthService {
             display_name: `${firstName} ${lastName}`.trim(),
             email_verified: true, // OAuth emails ya están verificados
             profile_picture_url: profilePicture || null,
-            cargo_rol: cargoRol || 'Usuario',
+            platform_role: cargoRol || 'Usuario',
             // NOTA: type_rol fue eliminado - el cargo va en organization_users.job_title
           }, { onConflict: 'id' })
           .select()

@@ -129,7 +129,7 @@ export function UserFormFields({
                  <div className={iconContainerClass}>
                    <Briefcase className="w-4 h-4" />
                  </div>
-                 <input type="text" name="cargo_rol" value={formData.cargo_rol} onChange={onChange}
+                 <input type="text" name="platform_role" value={formData.platform_role} onChange={onChange}
                    className={`${inputClass} pl-12`}
                    placeholder={t('users.modals.add.placeholders.position', 'Ej. Director de Marketing')} />
                </div>

@@ -7,7 +7,7 @@ const FIELD_DISPLAY_NAMES: Record<string, string> = {
   phone: 'Teléfono',
   bio: 'Biografía',
   location: 'Ubicación',
-  cargo_rol: 'Cargo',
+  platform_role: 'Cargo',
   type_rol: 'Cargo de la empresa',
   profile_picture_url: 'Foto de perfil',
   curriculum_url: 'Currículum',

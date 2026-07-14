@@ -24,7 +24,7 @@ interface AnalyticsUserInfo {
   display_name?: string | null
   email?: string | null
   profile_picture_url?: string | null
-  cargo_rol?: string | null
+  platform_role?: string | null
 }
 
 export async function GET(request: NextRequest) {
@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
     if (userIds.length > 0) {
       const { data: users } = await supabase
         .from('users')
-        .select('id, username, first_name, last_name, display_name, email, profile_picture_url, cargo_rol')
+        .select('id, username, first_name, last_name, display_name, email, profile_picture_url, platform_role')
         .in('id', userIds);
       
       usersMap = new Map(users?.map(u => [u.id, u]) || []);
@@ -183,7 +183,7 @@ export async function GET(request: NextRequest) {
           name: getUserName(userInfo),
           email: userInfo.email,
           avatar: userInfo.profile_picture_url,
-          role: userInfo.cargo_rol
+          role: userInfo.platform_role
         } : null,
         stats: {
           conversations: stats.conversations,

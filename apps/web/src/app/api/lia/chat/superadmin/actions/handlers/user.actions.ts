@@ -134,7 +134,7 @@ export const createUserAction = defineAction<CreateUserParams>({
         password: temporaryPassword,
         first_name: params.firstName,
         last_name: params.lastName ?? null,
-        cargo_rol: params.role,
+        platform_role: params.role,
       },
       context.adminUserId,
       context.requestInfo,

@@ -103,7 +103,7 @@ async function handlePatch(
       }
     }
 
-    const isAdmin = user.cargo_rol?.toLowerCase() === 'administrador'
+    const isAdmin = user.platform_role?.toLowerCase() === 'administrador'
     let hasPermission = false
 
     if (isAdmin) {

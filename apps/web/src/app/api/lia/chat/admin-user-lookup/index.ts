@@ -99,7 +99,7 @@ export async function buildAdminUserLookupPromptSection(
   const grant = await authorizePlatformSuperadmin({
     capability: 'user-lookup',
     sessionUserId: params.sessionUser.id,
-    sessionUserRole: params.sessionUser.cargo_rol,
+    sessionUserRole: params.sessionUser.platform_role,
     currentPage: params.currentPage,
     promptRiskAction: params.promptRiskAction,
   })

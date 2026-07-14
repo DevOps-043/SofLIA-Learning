@@ -30,7 +30,7 @@ describe('organization access middleware', () => {
     const next = vi.fn()
 
     userMaybeSingleMock.mockResolvedValue({
-      data: { cargo_rol: 'Business', is_banned: false },
+      data: { platform_role: 'Business', is_banned: false },
       error: null,
     })
     membershipMaybeSingleMock.mockResolvedValue({
@@ -48,7 +48,7 @@ describe('organization access middleware', () => {
     const next = vi.fn()
 
     userMaybeSingleMock.mockResolvedValue({
-      data: { cargo_rol: 'Administrador', is_banned: false },
+      data: { platform_role: 'Administrador', is_banned: false },
       error: null,
     })
     membershipMaybeSingleMock.mockResolvedValue({
@@ -66,7 +66,7 @@ describe('organization access middleware', () => {
     const next = vi.fn()
 
     userMaybeSingleMock.mockResolvedValue({
-      data: { cargo_rol: 'Business', is_banned: true },
+      data: { platform_role: 'Business', is_banned: true },
       error: null,
     })
     membershipMaybeSingleMock.mockResolvedValue({
@@ -89,7 +89,7 @@ describe('organization access middleware', () => {
     const next = vi.fn()
 
     userMaybeSingleMock.mockResolvedValue({
-      data: { cargo_rol: 'Business', is_banned: false },
+      data: { platform_role: 'Business', is_banned: false },
       error: null,
     })
     membershipMaybeSingleMock.mockResolvedValue({

@@ -45,7 +45,7 @@ export async function canManageCommunityAccessRequests(
 
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id, cargo_rol')
+      .select('id, platform_role')
       .eq('id', userId)
       .single()
 
@@ -57,7 +57,7 @@ export async function canManageCommunityAccessRequests(
       return false
     }
 
-    const normalizedRole = normalizeRole(user.cargo_rol)
+    const normalizedRole = normalizeRole(user.platform_role)
     if (normalizedRole === 'administrador') {
       return true
     }
@@ -123,12 +123,12 @@ export async function getUsersToNotifyForAccessRequest(
 
     const { data: users, error: usersError } = await supabase
       .from('users')
-      .select('id, cargo_rol, is_banned')
+      .select('id, platform_role, is_banned')
       .eq('is_banned', false)
 
     if (!usersError && users) {
       const adminIds = users
-        .filter((user) => normalizeRole(user.cargo_rol) === 'administrador')
+        .filter((user) => normalizeRole(user.platform_role) === 'administrador')
         .map((user) => user.id)
 
       userIds.push(...adminIds)
@@ -150,11 +150,11 @@ export async function getUsersToNotifyForAccessRequest(
     if (community.creator_id) {
       const { data: creator, error: creatorError } = await supabase
         .from('users')
-        .select('id, cargo_rol')
+        .select('id, platform_role')
         .eq('id', community.creator_id)
         .single()
 
-      if (!creatorError && creator && normalizeRole(creator.cargo_rol) === 'instructor') {
+      if (!creatorError && creator && normalizeRole(creator.platform_role) === 'instructor') {
         if (!userIds.includes(creator.id)) {
           userIds.push(creator.id)
         }
@@ -182,7 +182,7 @@ export async function getUsersToNotifyForAccessRequest(
 
     const { data: memberUsers, error: memberUsersError } = await supabase
       .from('users')
-      .select('id, cargo_rol')
+      .select('id, platform_role')
       .in('id', memberIds)
 
     if (memberUsersError) {
@@ -194,7 +194,7 @@ export async function getUsersToNotifyForAccessRequest(
     }
 
     for (const memberUser of memberUsers ?? []) {
-      if (normalizeRole(memberUser.cargo_rol) !== 'instructor') {
+      if (normalizeRole(memberUser.platform_role) !== 'instructor') {
         continue
       }
 
@@ -225,7 +225,7 @@ export async function canModerateCommunity(
 
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id, cargo_rol')
+      .select('id, platform_role')
       .eq('id', userId)
       .single()
 
@@ -237,7 +237,7 @@ export async function canModerateCommunity(
       return false
     }
 
-    if (normalizeRole(user.cargo_rol) === 'administrador') {
+    if (normalizeRole(user.platform_role) === 'administrador') {
       return true
     }
 

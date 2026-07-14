@@ -111,7 +111,7 @@ export async function findActiveLegacySessionUser(
         first_name,
         last_name,
         display_name,
-        cargo_rol,
+        platform_role,
         profile_picture_url,
         is_banned,
         signature_url,

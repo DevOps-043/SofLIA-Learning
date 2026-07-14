@@ -103,7 +103,7 @@ export function AddUserModal({ isOpen, onClose, onSave }: AddUserModalProps) {
                       activeTab={activeTab}
                       formData={formData}
                       onChange={handleChange}
-                      onRoleChange={(value) => setFormData(prev => ({ ...prev, cargo_rol: value }))}
+                      onRoleChange={(value) => setFormData(prev => ({ ...prev, platform_role: value }))}
                       confirmPassword={confirmPassword}
                       onConfirmPasswordChange={(e) => setConfirmPassword(e.target.value)}
                     />

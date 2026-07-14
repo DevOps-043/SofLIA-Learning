@@ -15,7 +15,7 @@ type LegacyAuthUser = {
   first_name?: string;
   last_name?: string;
   display_name?: string;
-  cargo_rol?: string;
+  platform_role?: string;
   job_title?: string;
   nombre?: string;
   type_rol?: string;
@@ -129,7 +129,7 @@ export function useLiaGeneralChat(
                 : (legacyUser?.display_name || legacyUser?.nombre),
               userRole:
                 legacyUser?.job_title ||
-                legacyUser?.cargo_rol ||
+                legacyUser?.platform_role ||
                 legacyUser?.type_rol,
               userId: user?.id,
               organizationId: currentOrganization?.id,

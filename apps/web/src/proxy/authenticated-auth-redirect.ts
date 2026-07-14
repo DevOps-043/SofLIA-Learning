@@ -14,9 +14,9 @@ export async function handleAuthenticatedAuthRouteRedirect(request: NextRequest,
       logger.log('?????? No se pudo obtener userId, redirigiendo a /dashboard')
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
-    const { data: userData } = await supabase.from('users').select('cargo_rol').eq('id', userId).single()
-    const normalizedRole = normalizeRole(userData?.cargo_rol)
-    logger.log('???? Usuario autenticado en ruta auth, redirigiendo seg??n cargo_rol:', normalizedRole)
+    const { data: userData } = await supabase.from('users').select('platform_role').eq('id', userId).single()
+    const normalizedRole = normalizeRole(userData?.platform_role)
+    logger.log('???? Usuario autenticado en ruta auth, redirigiendo seg??n platform_role:', normalizedRole)
     if (normalizedRole === 'business' || normalizedRole === 'business user') {
       return redirectBusinessRoleByActiveOrganization(request, supabase, userId, normalizedRole)
     }

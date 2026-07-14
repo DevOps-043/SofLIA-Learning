@@ -94,7 +94,7 @@ async function verifyAdminRoleInDatabase(userId: string): Promise<boolean> {
   const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('users')
-    .select('cargo_rol, is_banned')
+    .select('platform_role, is_banned')
     .eq('id', userId)
     .single()
 
@@ -105,7 +105,7 @@ async function verifyAdminRoleInDatabase(userId: string): Promise<boolean> {
     return false
   }
 
-  return data.is_banned !== true && isPlatformAdminRole(data.cargo_rol)
+  return data.is_banned !== true && isPlatformAdminRole(data.platform_role)
 }
 
 export interface AuthorizeSuperadminParams {
@@ -113,7 +113,7 @@ export interface AuthorizeSuperadminParams {
   capability: SuperadminCapability
   /** Id del usuario de la sesión del servidor (nunca del cliente). */
   sessionUserId: string
-  /** `cargo_rol` del usuario de la sesión del servidor. */
+  /** `platform_role` del usuario de la sesión del servidor. */
   sessionUserRole: string | null
   /** Página actual reportada por el cliente (candado de superficie). */
   currentPage: string | null | undefined

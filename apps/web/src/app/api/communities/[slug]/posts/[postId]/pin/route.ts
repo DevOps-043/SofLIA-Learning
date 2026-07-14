@@ -34,8 +34,8 @@ export async function PATCH(
     }
 
     // Verificar permisos: solo moderadores/admins
-    const isAdmin = user.cargo_rol?.toLowerCase() === 'administrador'
-    const isInstructor = user.cargo_rol?.toLowerCase() === 'instructor'
+    const isAdmin = user.platform_role?.toLowerCase() === 'administrador'
+    const isInstructor = user.platform_role?.toLowerCase() === 'instructor'
     
     let isModerator = false
     if (isInstructor || isAdmin) {

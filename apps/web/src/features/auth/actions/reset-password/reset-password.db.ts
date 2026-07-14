@@ -39,7 +39,7 @@ export async function changeUserPassword(
   const adminSupabase = createAdminClient()
   const { data: profile, error: profileError } = await adminSupabase
     .from('users')
-    .select('id, username, email, password_hash, email_verified, cargo_rol, first_name, last_name, display_name, profile_picture_url')
+    .select('id, username, email, email_verified, platform_role, first_name, last_name, display_name, profile_picture_url')
     .eq('id', userId)
     .single()
 
@@ -61,8 +61,8 @@ export async function changeUserPassword(
     return 'Error actualizando contrasena.'
   }
 
-  await adminSupabase.from('users').update({ password_hash: null }).eq('id', userId)
-
+  // Supabase Auth ya guarda la nueva contraseña. Antes se anulaba aquí el hash
+  // legacy de `users.password_hash`; esa columna se eliminó.
   return null
 }
 

@@ -95,7 +95,7 @@ export function AddUserModalTabs({ activeTab, formData, onChange, onRoleChange, 
               </div>
             </div>
 
-            <RoleSelect value={formData.cargo_rol} onChange={onRoleChange} />
+            <RoleSelect value={formData.platform_role} onChange={onRoleChange} />
           </div>
         </motion.div>
       )}

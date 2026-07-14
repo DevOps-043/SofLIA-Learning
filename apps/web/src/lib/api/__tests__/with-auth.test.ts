@@ -9,7 +9,7 @@ vi.mock('@/lib/supabase/server', () => ({
 }));
 
 type MockSupabaseOptions = {
-  profile?: { cargo_rol: string | null; email: string | null; id: string } | null;
+  profile?: { platform_role: string | null; email: string | null; id: string } | null;
   profileError?: unknown;
   user?: { email?: string; id: string } | null;
 };
@@ -53,7 +53,7 @@ describe('withAuth', () => {
   it('returns FORBIDDEN when the authenticated role is not allowed', async () => {
     mockedCreateClient.mockResolvedValue(
       buildSupabaseMock({
-        profile: { cargo_rol: 'business', email: 'admin@soflia.com', id: 'user-1' },
+        profile: { platform_role: 'business', email: 'admin@soflia.com', id: 'user-1' },
         user: { id: 'user-1' },
       }) as never,
     );
@@ -88,7 +88,7 @@ describe('withAuth', () => {
   it('returns FORBIDDEN when the stored role is unknown', async () => {
     mockedCreateClient.mockResolvedValue(
       buildSupabaseMock({
-        profile: { cargo_rol: 'external-contractor', email: 'user@soflia.com', id: 'user-1' },
+        profile: { platform_role: 'external-contractor', email: 'user@soflia.com', id: 'user-1' },
         user: { id: 'user-1' },
       }) as never,
     );
@@ -105,7 +105,7 @@ describe('withAuth', () => {
   it('passes normalized auth context to the route handler', async () => {
     mockedCreateClient.mockResolvedValue(
       buildSupabaseMock({
-        profile: { cargo_rol: 'administrador', email: 'admin@soflia.com', id: 'user-1' },
+        profile: { platform_role: 'administrador', email: 'admin@soflia.com', id: 'user-1' },
         user: { email: 'fallback@soflia.com', id: 'user-1' },
       }) as never,
     );
@@ -125,7 +125,7 @@ describe('withAuth', () => {
   it('falls back to auth email when profile email is null', async () => {
     mockedCreateClient.mockResolvedValue(
       buildSupabaseMock({
-        profile: { cargo_rol: 'business_user', email: null, id: 'user-1' },
+        profile: { platform_role: 'business_user', email: null, id: 'user-1' },
         user: { email: 'fallback@soflia.com', id: 'user-1' },
       }) as never,
     );

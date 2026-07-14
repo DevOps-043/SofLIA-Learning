@@ -68,7 +68,7 @@ function buildVerifiedRequestContext(
     pageType: asText(pageContext.pageType) || body.contextType,
     userId: user.id,
     userName: getDisplayName(user),
-    userRole: asText(user.cargo_rol),
+    userRole: asText(user.platform_role),
   };
 }
 

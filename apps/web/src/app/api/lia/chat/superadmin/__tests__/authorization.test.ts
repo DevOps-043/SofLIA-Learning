@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockState = {
-  dbUser: { cargo_rol: 'Administrador', is_banned: false } as
-    | { cargo_rol: string | null; is_banned: boolean }
+  dbUser: { platform_role: 'Administrador', is_banned: false } as
+    | { platform_role: string | null; is_banned: boolean }
     | null,
   dbError: null as { message: string } | null,
   rateLimitAllowed: true,
@@ -58,7 +58,7 @@ function authorizedParams(capability: SuperadminCapability = 'admin-actions') {
 }
 
 beforeEach(() => {
-  mockState.dbUser = { cargo_rol: 'Administrador', is_banned: false }
+  mockState.dbUser = { platform_role: 'Administrador', is_banned: false }
   mockState.dbError = null
   mockState.rateLimitAllowed = true
   recordSecurityEventMock.mockClear()
@@ -131,7 +131,7 @@ describe('authorizePlatformSuperadmin', () => {
   })
 
   it('denies and audits when the database no longer says the user is admin', async () => {
-    mockState.dbUser = { cargo_rol: 'BusinessUser', is_banned: false }
+    mockState.dbUser = { platform_role: 'BusinessUser', is_banned: false }
 
     expect(await authorizePlatformSuperadmin(authorizedParams())).toBeNull()
     expect(recordSecurityEventMock).toHaveBeenCalledWith(
@@ -143,7 +143,7 @@ describe('authorizePlatformSuperadmin', () => {
   })
 
   it('denies banned admins even if the session role says admin', async () => {
-    mockState.dbUser = { cargo_rol: 'Administrador', is_banned: true }
+    mockState.dbUser = { platform_role: 'Administrador', is_banned: true }
 
     expect(await authorizePlatformSuperadmin(authorizedParams())).toBeNull()
   })

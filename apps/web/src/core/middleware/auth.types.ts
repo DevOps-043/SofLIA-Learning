@@ -33,7 +33,7 @@ export interface ValidationResult {
 
 export interface AuthUserRow {
   id: string;
-  cargo_rol: string | null;
+  platform_role: string | null;
   email: string | null;
   username: string | null;
 }

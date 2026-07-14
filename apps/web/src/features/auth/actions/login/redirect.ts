@@ -10,7 +10,7 @@ export async function resolveLoginRedirect(input: {
   supabase: LoginSupabaseClient
   user: LoginUserRecord
 }): Promise<string> {
-  const normalizedRole = input.user.cargo_rol?.toLowerCase().trim()
+  const normalizedRole = input.user.platform_role?.toLowerCase().trim()
 
   if (normalizedRole === 'usuario') {
     const promotedRedirect = await promoteUserWithActiveOrganization(input)
@@ -53,7 +53,7 @@ async function promoteUserWithActiveOrganization(input: {
 
   await input.supabase
     .from('users')
-    .update({ cargo_rol: 'Business' })
+    .update({ platform_role: 'Business' })
     .eq('id', input.user.id)
 
   const orgSlug = getOrganizationSlug(activeOrg.organizations)

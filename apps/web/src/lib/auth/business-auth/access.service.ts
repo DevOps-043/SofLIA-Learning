@@ -116,7 +116,7 @@ export async function resolveBusinessAccess(
   logger.auth(config.successMessage, {
     userId: userResult.value.id,
     email: userResult.value.email,
-    role: userResult.value.cargo_rol,
+    role: userResult.value.platform_role,
     organizationId: organizationResult.value.organizationId,
     organizationSlug: organizationResult.value.organizationSlug,
     organizationRole: organizationResult.value.organizationRole,
@@ -126,7 +126,7 @@ export async function resolveBusinessAccess(
   return authSuccess({
     userId: userResult.value.id,
     userEmail: userResult.value.email ?? '',
-    userRole: userResult.value.cargo_rol ?? '',
+    userRole: userResult.value.platform_role ?? '',
     organizationId: organizationResult.value.organizationId,
     organizationSlug: organizationResult.value.organizationSlug,
     organizationRole: organizationResult.value.organizationRole,

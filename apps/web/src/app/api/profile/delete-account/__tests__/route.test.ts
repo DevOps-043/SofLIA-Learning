@@ -35,7 +35,7 @@ type Chain = {
 }
 
 const currentUser = {
-  cargo_rol: 'BusinessUser',
+  platform_role: 'BusinessUser',
   email: 'learner@example.com',
   id: 'user-1',
   username: 'learner',

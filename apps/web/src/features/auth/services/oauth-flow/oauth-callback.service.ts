@@ -110,7 +110,7 @@ export async function processOAuthCallback<TProviderTokens>({
       const profileUpdates: TablesUpdate<'users'> = {};
 
       if (orgContext.orgId && invitedRole) {
-        profileUpdates.cargo_rol = 'Business';
+        profileUpdates.platform_role = 'Business';
       }
 
       if (normalizedProfile.picture) {

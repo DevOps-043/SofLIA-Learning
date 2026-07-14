@@ -38,7 +38,7 @@ export interface OAuthAccount {
 }
 
 export interface OAuthUserRecord {
-  cargo_rol?: string | null;
+  platform_role?: string | null;
   email: string;
   email_verified?: boolean | null;
   first_name?: string | null;

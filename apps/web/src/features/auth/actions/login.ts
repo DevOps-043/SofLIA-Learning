@@ -13,12 +13,10 @@ import { requireHumanVerification } from '@/lib/security/bot-protection'
 import { recordSecurityEvent } from '@/lib/security/security-events'
 
 import { updateLastLoginAt } from '../services/auth-session.service'
-import { isLegacySessionFallbackEnabled } from '../services/legacy-auth-fallback'
 import {
   ensureSupabaseAuthUserForLegacyProfile,
   SupabaseAuthBridgeError,
 } from '../services/supabase-auth-bridge.service'
-import { createLoginSessions } from './login/create-login-sessions'
 import {
   getUnknownErrorMessage,
   hasDigest,
@@ -42,9 +40,8 @@ import { validateCustomOrganizationLogin } from './login/organization-context'
 import { resolveLoginRedirect } from './login/redirect'
 import {
   findLoginUser,
-  isNativeAuthOnlyAccount,
   mapNativeAuthFailure,
-  validateLoginPassword,
+  notifyFailedLogin,
 } from './login/user-credentials'
 import { notifyLoginSuccess } from './login/login-notifications'
 import type { LoginUserRecord } from './login/types'
@@ -95,7 +92,7 @@ export async function loginAction(formData: FormData) {
     if (user.is_banned) {
       recordSecurityEvent('login-failure', {
         actorId: user.id,
-        actorRole: user.cargo_rol,
+        actorRole: user.platform_role,
         metadata: { reason: 'USER_BANNED' },
       })
       return {
@@ -120,7 +117,7 @@ export async function loginAction(formData: FormData) {
 
           recordSecurityEvent('login-failure', {
             actorId: user.id,
-            actorRole: user.cargo_rol,
+            actorRole: user.platform_role,
             metadata: {
               nativeReason: passwordResult.nativeReason,
               reason: debugCode,
@@ -151,7 +148,7 @@ export async function loginAction(formData: FormData) {
 
         recordSecurityEvent('mfa-challenge-issued', {
           actorId: user.id,
-          actorRole: user.cargo_rol,
+          actorRole: user.platform_role,
           metadata: { factorId: mfaStatus.factorId },
         })
 
@@ -174,7 +171,7 @@ export async function loginAction(formData: FormData) {
       })
       recordSecurityEvent('login-failure', {
         actorId: user.id,
-        actorRole: user.cargo_rol,
+        actorRole: user.platform_role,
         result: 'error',
         metadata: { reason: errorCode },
       })
@@ -190,64 +187,38 @@ export async function loginAction(formData: FormData) {
       user,
     })
     if (!nativeLoginResult.success) {
-      // Cuenta nativa (sin password_hash): la contraseña vive solo en Supabase
-      // Auth, así que NO hay validación legacy a la que recurrir. El motivo del
-      // fallo nativo se traduce a un mensaje real (credenciales, rate limit,
-      // servicio caído) en lugar del antiguo "contacta al soporte", que hacía
-      // parecer corrupta una cuenta sana.
-      const nativeOnlyFailure = isNativeAuthOnlyAccount(user)
-        ? mapNativeAuthFailure(nativeLoginResult.reason)
-        : null
+      // Supabase Auth es la ÚNICA autoridad de credenciales: ya no existe la
+      // validación bcrypt legacy contra `users.password_hash` (columna
+      // eliminada). El motivo del rechazo se traduce a un mensaje real
+      // —credenciales, rate limit, servicio caído— en vez del antiguo
+      // "contacta al soporte", que hacía parecer corrupta una cuenta sana.
+      const failure = mapNativeAuthFailure(nativeLoginResult.reason)
 
-      if (nativeOnlyFailure) {
-        logger.warn('Login failed: native auth rejected a native-only account', {
-          debugCode: nativeOnlyFailure.debugCode,
+      logger.warn('Login failed: Supabase Auth rejected the credentials', {
+        debugCode: failure.debugCode,
+        nativeReason: nativeLoginResult.reason,
+        userId: user.id,
+      })
+
+      recordSecurityEvent('login-failure', {
+        actorId: user.id,
+        actorRole: user.platform_role,
+        metadata: {
           nativeReason: nativeLoginResult.reason,
-          userId: user.id,
-        })
+          reason: failure.debugCode,
+        },
+      })
 
-        recordSecurityEvent('login-failure', {
-          actorId: user.id,
-          actorRole: user.cargo_rol,
-          metadata: {
-            nativeReason: nativeLoginResult.reason,
-            reason: nativeOnlyFailure.debugCode,
-          },
-        })
-
-        const failedAttempt = await recordFailedLoginAttempt(loginAttemptContext)
-        if (failedAttempt.isLocked) {
-          return { error: buildLockoutErrorMessage(failedAttempt) }
-        }
-
-        return { error: nativeOnlyFailure.error }
+      if (failure.debugCode === 'SUPABASE_AUTH_PASSWORD_MISMATCH') {
+        await notifyFailedLogin(user.id)
       }
 
-      const passwordResult = await validateLoginPassword(user, parsed.password)
-      if (passwordResult) {
-        logger.warn('Login failed: password validation failed', {
-          debugCode: 'PASSWORD_MISMATCH',
-          nativeReason: nativeLoginResult.reason,
-          userId: user.id,
-        })
-
-        recordSecurityEvent('login-failure', {
-          actorId: user.id,
-          actorRole: user.cargo_rol,
-          metadata: {
-            nativeReason: nativeLoginResult.reason,
-            reason: 'PASSWORD_MISMATCH',
-          },
-        })
-
-        const failedAttempt = await recordFailedLoginAttempt(loginAttemptContext)
-        if (failedAttempt.isLocked) {
-          return { error: buildLockoutErrorMessage(failedAttempt) }
-        }
-
-        return passwordResult
+      const failedAttempt = await recordFailedLoginAttempt(loginAttemptContext)
+      if (failedAttempt.isLocked) {
+        return { error: buildLockoutErrorMessage(failedAttempt) }
       }
 
+      return { error: failure.error }
     }
 
     const organizationResult = await validateCustomOrganizationLogin({
@@ -259,67 +230,29 @@ export async function loginAction(formData: FormData) {
       logger.warn('Login failed: organization validation failed', {
         userId: user.id,
       })
-      if (nativeLoginResult.success) {
-        const authClient = await createAuthActionClient()
-        await authClient.auth.signOut({ scope: 'local' })
-      }
+      // La sesión nativa ya está creada en este punto: hay que cerrarla para no
+      // dejar autenticado a quien no pasó la validación de organización.
+      const authClient = await createAuthActionClient()
+      await authClient.auth.signOut({ scope: 'local' })
+
       recordSecurityEvent('login-failure', {
         actorId: user.id,
-        actorRole: user.cargo_rol,
+        actorRole: user.platform_role,
         metadata: { reason: 'organization_validation_failed' },
       })
       return organizationResult
     }
 
-    if (nativeLoginResult.success) {
-      await notifyLoginSuccess({
-        ip: loginAttemptContext.ip,
-        rememberMe: parsed.rememberMe,
-        userAgent: headersList.get('user-agent') || 'unknown',
-        userId: user.id,
-      })
-    } else {
-      if (!isLegacySessionFallbackEnabled()) {
-        logger.error('Supabase Auth login failed and legacy fallback is disabled', {
-          reason: nativeLoginResult.reason,
-          userId: user.id,
-        })
-        recordSecurityEvent('login-failure', {
-          actorId: user.id,
-          actorRole: user.cargo_rol,
-          result: 'error',
-          metadata: {
-            nativeReason: nativeLoginResult.reason,
-            reason: 'supabase_auth_unavailable_legacy_fallback_disabled',
-          },
-        })
-        return {
-          error:
-            'No se pudo iniciar sesion con Supabase Auth. Por favor, intenta nuevamente.',
-        }
-      }
-
-      logger.warn('Supabase Auth login unavailable; using legacy session fallback', {
-        reason: nativeLoginResult.reason,
-        userId: user.id,
-      })
-      const legacySessionResult = await createLoginSessions({
-        rememberMe: parsed.rememberMe,
-        userId: user.id,
-      })
-      if (legacySessionResult) {
-        logger.error('Login failed: fallback session creation failed', {
-          userId: user.id,
-        })
-        recordSecurityEvent('login-failure', {
-          actorId: user.id,
-          actorRole: user.cargo_rol,
-          result: 'error',
-          metadata: { reason: 'session_creation_failed' },
-        })
-        return legacySessionResult
-      }
-    }
+    // Llegar aquí implica que Supabase Auth aceptó las credenciales: el fallo
+    // ya retornó más arriba. Por eso desaparece el antiguo fallback de sesión
+    // legacy, que solo tenía sentido cuando la autenticación podía resolverse
+    // con el bcrypt de `users.password_hash`.
+    await notifyLoginSuccess({
+      ip: loginAttemptContext.ip,
+      rememberMe: parsed.rememberMe,
+      userAgent: headersList.get('user-agent') || 'unknown',
+      userId: user.id,
+    })
 
     scheduleExpiredSessionCleanup()
     await clearLoginLockout(loginAttemptContext)
@@ -328,7 +261,7 @@ export async function loginAction(formData: FormData) {
     const redirectTo = await resolveLoginRedirect({ supabase, user })
     recordSecurityEvent('login-success', {
       actorId: user.id,
-      actorRole: user.cargo_rol,
+      actorRole: user.platform_role,
     })
     return { success: true, redirectTo }
   } catch (error) {
@@ -436,23 +369,11 @@ async function validatePasswordBeforeMfaChallenge(input: {
     }
   }
 
-  if (!input.user.password_hash) {
-    return {
-      debugCode: 'SUPABASE_AUTH_PASSWORD_MISMATCH',
-      error: 'Credenciales invalidas',
-      nativeReason: nativePasswordResult.reason,
-      success: false,
-    }
-  }
-
-  const legacyPasswordResult = await validateLoginPassword(input.user, input.password)
-  if (!legacyPasswordResult) {
-    return { success: true }
-  }
-
+  // Sin fallback legacy: Supabase Auth es la única autoridad de credenciales.
+  const failure = mapNativeAuthFailure(nativePasswordResult.reason)
   return {
-    debugCode: 'PASSWORD_MISMATCH',
-    error: legacyPasswordResult.error,
+    debugCode: failure.debugCode,
+    error: failure.error,
     nativeReason: nativePasswordResult.reason,
     success: false,
   }

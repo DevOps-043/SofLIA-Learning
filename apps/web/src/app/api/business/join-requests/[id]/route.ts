@@ -67,7 +67,7 @@ async function handlePatch(
       return apiError('UPDATE_JOIN_REQUEST_FAILED', 'Error al procesar la solicitud.', 500)
     }
 
-    // If approved, add user to organization and update cargo_rol
+    // If approved, add user to organization and update platform_role
     if (action === 'approve') {
       // Get job_title from request
       const { data: fullRequest } = await supabase
@@ -99,14 +99,14 @@ async function handlePatch(
         return apiError('ADD_ORGANIZATION_USER_FAILED', 'Error al agregar usuario a la organización.', 500)
       }
 
-      // Update user's cargo_rol to 'Business'
+      // Update user's platform_role to 'Business'
       const { error: roleError } = await supabase
         .from('users')
-        .update({ cargo_rol: 'Business' })
+        .update({ platform_role: 'Business' })
         .eq('id', joinRequest.user_id)
 
       if (roleError) {
-        logger.error('Error updating user cargo_rol:', roleError)
+        logger.error('Error updating user platform_role:', roleError)
       }
 
       logger.info('Join request approved', {

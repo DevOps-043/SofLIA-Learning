@@ -7,7 +7,7 @@ export interface BusinessCourseInstructor {
   profile_picture_url: string | null
   bio: string | null
   location: string | null
-  cargo_rol: string | null
+  platform_role: string | null
 }
 
 export interface BusinessCourseReview {

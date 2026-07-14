@@ -11,7 +11,7 @@ export async function getOptionalCourseSkillUser(supabase: SupabaseServerClient)
 
   const { data: userData } = await supabase
     .from('users')
-    .select('id, cargo_rol')
+    .select('id, platform_role')
     .eq('id', user.id)
     .single()
 
@@ -34,7 +34,7 @@ export async function authorizeCourseSkillEdit(
 
   const { data: userData } = await supabase
     .from('users')
-    .select('id, cargo_rol')
+    .select('id, platform_role')
     .eq('id', currentUser.id)
     .single()
 
@@ -48,7 +48,7 @@ export async function authorizeCourseSkillEdit(
   }
 
   const isInstructor = course.instructor_id === currentUser.id
-  const isAdmin = userData.cargo_rol?.toLowerCase().trim() === 'administrador'
+  const isAdmin = userData.platform_role?.toLowerCase().trim() === 'administrador'
   if (!isInstructor && !isAdmin) {
     return {
       response: NextResponse.json(

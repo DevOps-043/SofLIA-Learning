@@ -64,7 +64,7 @@ export async function resolveTargetUser(
 
   const query = supabase
     .from('users')
-    .select('id, email, display_name, first_name, last_name, username, is_banned, cargo_rol')
+    .select('id, email, display_name, first_name, last_name, username, is_banned, platform_role')
 
   const { data, error } = UUID_PATTERN.test(trimmed)
     ? await query.eq('id', trimmed).maybeSingle()
@@ -81,7 +81,7 @@ export async function resolveTargetUser(
     email: data.email,
     displayName: buildDisplayName(data),
     isBanned: data.is_banned === true,
-    platformRole: data.cargo_rol,
+    platformRole: data.platform_role,
   }
 }
 

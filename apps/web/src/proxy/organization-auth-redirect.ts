@@ -16,7 +16,7 @@ export async function handleOrganizationAuthRedirect(request: NextRequest, logge
     const userId = await getAuthenticatedUserId(request, supabase)
     if (!userId) return null
 
-    const { data: user } = await supabase.from('users').select('cargo_rol').eq('id', userId).single()
+    const { data: user } = await supabase.from('users').select('platform_role').eq('id', userId).single()
     const activeOrganizations = await loadActiveBusinessOrganizationRedirectTargets(supabase, userId)
     const singleOrganizationId = activeOrganizations.length === 1
       ? activeOrganizations[0].organizationId
@@ -24,7 +24,7 @@ export async function handleOrganizationAuthRedirect(request: NextRequest, logge
     const customLoginRedirect = await getCustomLoginRedirect(request, singleOrganizationId, supabase)
     if (customLoginRedirect) return customLoginRedirect
     if (user) {
-      const normalizedRole = normalizeRole(user.cargo_rol)
+      const normalizedRole = normalizeRole(user.platform_role)
       logger.log('???? Usuario autenticado en /auth sin organizaci??n v??lida, redirigiendo seg??n rol:', normalizedRole)
       if (normalizedRole === 'business' || normalizedRole === 'business user') {
         if (activeOrganizations.length !== 1) {

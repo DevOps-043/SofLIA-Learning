@@ -1,5 +1,5 @@
 export interface DropdownUserLike {
-  cargo_rol?: string
+  platform_role?: string
   display_name?: string
   email?: string | null
   first_name?: string | null
@@ -50,5 +50,5 @@ export function getUserRoleLabel({
   if (isAdmin) return 'Superadmin'
   if (isInstructor) return 'Instructor'
   if (isOrgAdmin) return orgAdminLabel
-  return user?.cargo_rol || ''
+  return user?.platform_role || ''
 }

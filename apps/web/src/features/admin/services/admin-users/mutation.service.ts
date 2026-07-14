@@ -68,7 +68,7 @@ export async function updateAdminUserRole(userId: string, newRole: string) {
   const adminSupabase = createAdminClient()
   const { error } = await adminSupabase
     .from('users')
-    .update({ cargo_rol: newRole })
+    .update({ platform_role: newRole })
     .eq('id', userId)
 
   if (error) {
@@ -85,7 +85,7 @@ export async function createAdminUser(
 
   try {
     const provisioned = await provisionAuthAccount({
-      cargoRol: userData.cargo_rol,
+      cargoRol: userData.platform_role,
       dateOfBirth: userData.date_of_birth ?? null,
       displayName: userData.display_name || null,
       email: userData.email,

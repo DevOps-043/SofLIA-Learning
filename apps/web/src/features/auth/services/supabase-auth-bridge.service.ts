@@ -4,14 +4,13 @@ import { logger } from '@/lib/logger'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export interface LegacyUserForAuthBridge {
-  cargo_rol?: string | null
+  platform_role?: string | null
   display_name?: string | null
   email: string | null
   email_verified?: boolean | null
   first_name?: string | null
   id: string
   last_name?: string | null
-  password_hash?: string | null
   profile_picture_url?: string | null
   username?: string | null
 }
@@ -35,7 +34,6 @@ export interface GeneratedAuthUserRecordInput extends Omit<AuthUserRecordInput, 
 
 interface CreateAuthUserOptions {
   password?: string
-  passwordHash?: string | null
 }
 
 type RpcClient = {
@@ -51,8 +49,8 @@ export class SupabaseAuthBridgeError extends Error {
       | 'AUTH_USER_CREATE_FAILED'
       | 'AUTH_USER_ID_MISMATCH'
       | 'AUTH_USER_LOOKUP_FAILED'
-      | 'MISSING_EMAIL'
-      | 'MISSING_PASSWORD_HASH',
+      | 'AUTH_USER_NOT_FOUND'
+      | 'MISSING_EMAIL',
     message: string,
   ) {
     super(message)
@@ -60,6 +58,15 @@ export class SupabaseAuthBridgeError extends Error {
   }
 }
 
+/**
+ * Devuelve el usuario de Supabase Auth correspondiente al perfil.
+ *
+ * Antes, si no existía, lo CREABA migrando el bcrypt de `users.password_hash`.
+ * Esa migración ya terminó: los 30 usuarios tienen credenciales en `auth.users`
+ * (verificado: 0 filas sin `encrypted_password`) y la columna se ha eliminado.
+ * Si a estas alturas falta el usuario de Auth, es una inconsistencia real que
+ * hay que ver, no algo que se pueda arreglar solo: se falla de forma explícita.
+ */
 export async function ensureSupabaseAuthUserForLegacyProfile(
   profile: LegacyUserForAuthBridge,
 ) {
@@ -68,16 +75,10 @@ export async function ensureSupabaseAuthUserForLegacyProfile(
     return existingUser
   }
 
-  if (!profile.password_hash) {
-    throw new SupabaseAuthBridgeError(
-      'MISSING_PASSWORD_HASH',
-      'El usuario legacy no tiene password_hash migrable.',
-    )
-  }
-
-  return createAuthUserWithLegacyId(profile, {
-    passwordHash: profile.password_hash,
-  })
+  throw new SupabaseAuthBridgeError(
+    'AUTH_USER_NOT_FOUND',
+    'El perfil no tiene usuario correspondiente en Supabase Auth.',
+  )
 }
 
 export async function ensureSupabaseAuthUserRecordForLegacyProfile(
@@ -88,9 +89,10 @@ export async function ensureSupabaseAuthUserRecordForLegacyProfile(
     return existingUser
   }
 
-  return createAuthUserWithLegacyId(profile, {
-    passwordHash: profile.password_hash,
-  })
+  // Sin contraseña: crea el registro en Auth para un perfil que aún no lo tiene
+  // (p. ej. altas por importación). La contraseña se establece después, por
+  // invitación o restablecimiento.
+  return createAuthUserWithLegacyId(profile, {})
 }
 
 async function findExistingAuthUser(profile: LegacyUserForAuthBridge) {
@@ -206,7 +208,6 @@ async function createAuthUser(
     ...overrides,
     email,
     ...(options.password ? { password: options.password } : {}),
-    ...(options.passwordHash ? { password_hash: options.passwordHash } : {}),
     email_confirm: true,
     user_metadata: {
       display_name: profile.display_name,
@@ -219,7 +220,7 @@ async function createAuthUser(
     app_metadata: {
       legacy_user_id: profile.id ?? null,
       migration_source: 'public.users',
-      role: profile.cargo_rol ?? 'Usuario',
+      role: profile.platform_role ?? 'Usuario',
     },
   })
 

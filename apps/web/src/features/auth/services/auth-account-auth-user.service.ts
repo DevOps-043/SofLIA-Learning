@@ -12,7 +12,7 @@ export async function createProvisionedAuthUser(
   username: string,
 ) {
   const authProfile = {
-    cargo_rol: input.cargoRol,
+    platform_role: input.cargoRol,
     display_name: input.displayName ?? buildDisplayName(input),
     email: normalizedEmail,
     email_verified: input.emailVerified ?? true,

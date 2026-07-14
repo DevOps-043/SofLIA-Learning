@@ -19,12 +19,12 @@ export async function GET(request: NextRequest) {
     if (user) {
       const { data: userData } = await supabase
         .from('users')
-        .select('cargo_rol')
+        .select('platform_role')
         .eq('id', user.id)
         .single();
 
       if (userData) {
-        const role = (userData.cargo_rol || '').toLowerCase().trim();
+        const role = (userData.platform_role || '').toLowerCase().trim();
         
         // Mapear roles a los tipos esperados
         if (role === 'administrador' || role === 'admin') {

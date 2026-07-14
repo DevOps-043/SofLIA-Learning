@@ -35,7 +35,7 @@ describe('requireBusiness shared helpers', () => {
         {
           id: 'user-1',
           email: 'owner@example.com',
-          cargo_rol: 'Business',
+          platform_role: 'Business',
         },
         {
           organizationId: 'org-1',
@@ -55,7 +55,7 @@ describe('requireBusiness shared helpers', () => {
         {
           id: 'user-2',
           email: 'member@example.com',
-          cargo_rol: 'Business',
+          platform_role: 'Business',
         },
         {
           organizationId: 'org-1',

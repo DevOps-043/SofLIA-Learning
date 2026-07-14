@@ -55,7 +55,7 @@ export async function validateRoleAccess(
 
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('id, cargo_rol, email, username')
+      .select('id, platform_role, email, username')
       .eq('id', userId)
       .single();
 
@@ -99,12 +99,12 @@ async function validateResolvedUserAccess(params: {
   requiredRole?: ValidRole
   clientIp: string
 }): Promise<ValidationResult> {
-  const normalizedRole = normalizeRole(params.authUser.cargo_rol);
+  const normalizedRole = normalizeRole(params.authUser.platform_role);
 
   if (!normalizedRole) {
     await logSecurityEvent('INVALID_ROLE', {
       userId: params.authUser.id,
-      role: params.authUser.cargo_rol ?? undefined,
+      role: params.authUser.platform_role ?? undefined,
       path: params.pathname,
     });
     return { isValid: false, error: 'Invalid role' };

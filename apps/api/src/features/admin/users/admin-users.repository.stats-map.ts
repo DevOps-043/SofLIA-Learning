@@ -20,11 +20,11 @@ export function mapAdminUserStatsRows(rows: StatsRows): AdminUserStats {
   }
 }
 
-function buildRoleDistribution(rows: { cargo_rol: string | null }[]) {
+function buildRoleDistribution(rows: { platform_role: string | null }[]) {
   const roleCounts = new Map<string, number>()
 
   for (const row of rows) {
-    const roleName = row.cargo_rol?.trim() || 'Sin rol'
+    const roleName = row.platform_role?.trim() || 'Sin rol'
     roleCounts.set(roleName, (roleCounts.get(roleName) ?? 0) + 1)
   }
 

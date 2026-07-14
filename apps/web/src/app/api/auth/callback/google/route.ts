@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // El éxito se maneja con redirect en handleGoogleCallback que ya redirige según cargo_rol
+    // El éxito se maneja con redirect en handleGoogleCallback que ya redirige según platform_role
     // Si llegamos aquí, es porque no hubo redirección ni error (caso extremadamente raro)
     return NextResponse.redirect(new URL('/dashboard', request.url));
   } catch (error) {

@@ -25,7 +25,7 @@ export async function fetchAdminUserStatsRows(activeSinceIso: string) {
       .from('users')
       .select('id', { count: 'exact', head: true })
       .eq('email_verified', true),
-    client.from('users').select('cargo_rol'),
+    client.from('users').select('platform_role'),
     client
       .from('organization_users')
       .select('organization_id, user_id, role, status, organizations(name, slug)')

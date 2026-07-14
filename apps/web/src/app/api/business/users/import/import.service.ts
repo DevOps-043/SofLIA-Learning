@@ -333,7 +333,7 @@ function buildUserInsertData(
     display_name: userData.display_name ||
       `${userData.first_name || ''} ${userData.last_name || ''}`.trim() ||
       null,
-    cargo_rol: 'Business',
+    platform_role: 'Business',
     date_of_birth: normalizeDateOfBirthForStorage(validation.demographics.date_of_birth),
     gender: normalizeGenderForStorage(validation.demographics.gender),
   }

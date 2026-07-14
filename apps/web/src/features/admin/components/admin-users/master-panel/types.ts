@@ -67,7 +67,7 @@ export interface MasterPanelProfileFormData {
 }
 
 export interface MasterPanelAccountFormData {
-  cargo_rol: string
+  platform_role: string
   email_verified: boolean
 }
 

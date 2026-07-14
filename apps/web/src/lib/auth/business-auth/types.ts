@@ -32,7 +32,7 @@ export type AuthResult<T> =
 export interface AuthenticatedBusinessUser {
   id: string
   email: string | null
-  cargo_rol: string | null
+  platform_role: string | null
   isPlatformAdmin: boolean
 }
 

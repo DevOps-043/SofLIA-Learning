@@ -24,7 +24,7 @@ async function handlePost(
       return apiError('UNAUTHENTICATED', 'No autenticado', 401)
     }
 
-    if (!canCreateNotifications(user.cargo_rol)) {
+    if (!canCreateNotifications(user.platform_role)) {
       return apiError(
         'NOTIFICATION_CREATE_FORBIDDEN',
         'No autorizado para crear notificaciones',

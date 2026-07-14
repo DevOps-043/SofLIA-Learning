@@ -5,7 +5,7 @@ export async function getInstructors(): Promise<Array<{ id: string, name: string
   const { data, error } = await supabase
     .from('users')
     .select('id, display_name, first_name, last_name')
-    .in('cargo_rol', ['Instructor', 'Administrador'])
+    .in('platform_role', ['Instructor', 'Administrador'])
     .order('display_name')
 
   if (error) throw error

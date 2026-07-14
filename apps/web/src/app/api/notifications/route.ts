@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
 
-    if (!canCreateNotifications(user.cargo_rol)) {
+    if (!canCreateNotifications(user.platform_role)) {
       return NextResponse.json(
         {
           success: false,

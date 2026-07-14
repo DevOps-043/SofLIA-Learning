@@ -51,7 +51,7 @@ export function requireOrganizationAccess(
       const [userResult, membershipResult] = await Promise.all([
         client
           .from('users')
-          .select('cargo_rol, is_banned')
+          .select('platform_role, is_banned')
           .eq('id', req.user.id)
           .maybeSingle(),
         client
@@ -89,7 +89,7 @@ export function requireOrganizationAccess(
       }
 
       const isPlatformRoleAllowed = allowedPlatformRoles.has(
-        normalizeRole(userResult.data.cargo_rol),
+        normalizeRole(userResult.data.platform_role),
       )
 
       if (membershipResult.data || isPlatformRoleAllowed) {

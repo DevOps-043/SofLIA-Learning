@@ -9,7 +9,7 @@ export async function getPlatformAdminIds(): Promise<string[]> {
   const { data, error } = await supabase
     .from('users')
     .select('id')
-    .ilike('cargo_rol', 'administrador')
+    .ilike('platform_role', 'administrador')
 
   if (error) {
     logger.error('status.alerting.admins_query_failed', { error: error.message })

@@ -32,7 +32,7 @@ export function buildAdminUserUpdatePayload(input: AdminUserUpdateInput): UserUp
 
 export function buildAdminUserRolePayload(input: AdminUserRoleUpdateInput): UserUpdatePayload {
   const payload: UserUpdatePayload = {
-    cargo_rol: input.role,
+    platform_role: input.role,
     updated_at: new Date().toISOString(),
   }
 

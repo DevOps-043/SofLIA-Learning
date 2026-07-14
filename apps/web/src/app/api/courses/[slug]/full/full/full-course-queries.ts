@@ -46,7 +46,7 @@ export async function runCourseFullQueries(
             .from('users')
             .select(`
               id, first_name, last_name, display_name, username, email,
-              profile_picture_url, bio, cargo_rol, location
+              profile_picture_url, bio, platform_role, location
             `)
             .eq('id', courseData.instructor_id)
             .maybeSingle()

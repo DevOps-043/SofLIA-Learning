@@ -293,7 +293,7 @@ function OrganizationStylesProviderInner({
     orgSlug,
     pathname,
     syncStyles,
-    user?.cargo_rol,
+    user?.platform_role,
     user?.organization_id,
   ]);
 

@@ -26,7 +26,7 @@ async function handlePost(request: NextRequest, body: DeleteAccountBody) {
   if (!expectedValues.includes(confirmation)) {
     recordSecurityEvent('privacy-deletion-requested', {
       actorId: user.id,
-      actorRole: user.cargo_rol,
+      actorRole: user.platform_role,
       result: 'denied',
       metadata: { reason: 'confirmation_mismatch' },
     })
@@ -76,7 +76,7 @@ async function handlePost(request: NextRequest, body: DeleteAccountBody) {
   await revokeUserSessions(user.id)
   recordSecurityEvent('privacy-deletion-requested', {
     actorId: user.id,
-    actorRole: user.cargo_rol,
+    actorRole: user.platform_role,
     resourceType: 'user',
     resourceId: user.id,
   })

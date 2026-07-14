@@ -7,7 +7,7 @@ export interface AdminUser {
   first_name: string | null
   last_name: string | null
   display_name: string | null
-  cargo_rol: string | null
+  platform_role: string | null
   email_verified: boolean
   email_verified_at?: string | null
   phone?: string | null
@@ -22,8 +22,6 @@ export interface AdminUser {
   updated_at: string | null
   last_login_at: string | null
   last_activity_at?: string | null
-  oauth_provider?: string | null
-  oauth_provider_id?: string | null
   is_banned?: boolean
   banned_at?: string | null
   ban_reason?: string | null
@@ -64,7 +62,7 @@ export interface AdminUserCreateInput {
   first_name?: string | null
   last_name?: string | null
   display_name?: string | null
-  cargo_rol: string
+  platform_role: string
   phone?: string | null
   bio?: string | null
   location?: string | null

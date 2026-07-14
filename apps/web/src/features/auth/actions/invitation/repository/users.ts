@@ -14,13 +14,13 @@ export function createUserMethods(supabase: unknown): UserMethods {
       }
 
       const { data } = await usersTable(supabase)
-        .select('id, cargo_rol')
+        .select('id, platform_role')
         .ilike('email', escapeIlikePattern(normalized))
         .maybeSingle()
 
       return data
         ? {
-            cargoRol: data.cargo_rol ?? null,
+            cargoRol: data.platform_role ?? null,
             id: data.id,
           }
         : null
@@ -28,13 +28,13 @@ export function createUserMethods(supabase: unknown): UserMethods {
 
     async findUserById(userId: string): Promise<UserRecord | null> {
       const { data } = await usersTable(supabase)
-        .select('id, cargo_rol')
+        .select('id, platform_role')
         .eq('id', userId)
         .single()
 
       return data
         ? {
-            cargoRol: data.cargo_rol ?? null,
+            cargoRol: data.platform_role ?? null,
             id: data.id,
           }
         : null

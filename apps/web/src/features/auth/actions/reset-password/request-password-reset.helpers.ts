@@ -22,7 +22,7 @@ export async function findPasswordResetUser(
 
   const { data: user, error } = await supabase
     .from('users')
-    .select('id, email, username, first_name, last_name, display_name, profile_picture_url, cargo_rol, email_verified, password_hash')
+    .select('id, email, username, first_name, last_name, display_name, profile_picture_url, platform_role, email_verified')
     .ilike('email', escapeIlikePattern(normalized))
     .maybeSingle();
 

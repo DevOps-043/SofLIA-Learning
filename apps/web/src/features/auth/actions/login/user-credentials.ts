@@ -1,4 +1,3 @@
-import bcrypt from 'bcryptjs'
 import { headers } from 'next/headers'
 
 import { logger } from '@/lib/logger'
@@ -6,8 +5,11 @@ import { escapeIlikePattern } from '@/lib/supabase/ilike-escape'
 
 import type { LoginSupabaseClient, LoginUserRecord } from './types'
 
+// La contraseña ya no vive en `public.users`: la verifica Supabase Auth contra
+// `auth.users`. La columna `password_hash` (y la validación bcrypt legacy que
+// la usaba) se han eliminado — los 30 usuarios tienen credenciales nativas.
 const LOGIN_USER_COLUMNS =
-  'id, username, email, password_hash, email_verified, cargo_rol, is_banned, ban_reason, first_name, last_name, display_name, profile_picture_url'
+  'id, username, email, email_verified, platform_role, is_banned, ban_reason, first_name, last_name, display_name, profile_picture_url'
 
 /**
  * Cota de filas por búsqueda. Existen cuentas cuyo username solo difiere en
@@ -164,9 +166,8 @@ export function mapNativeAuthFailure(reason: string): {
     }
   }
 
-  // Estos SÍ son problemas de configuración reales: la cuenta no tiene forma
-  // alguna de autenticarse (sin email, o sin usuario en Auth y sin hash legacy
-  // que migrar). Aquí el mensaje de soporte es el correcto.
+  // Estos SÍ son problemas de configuración reales: la cuenta no puede
+  // autenticarse de ninguna forma. Aquí el mensaje de soporte es el correcto.
   if (normalized.includes('missing_email')) {
     return {
       debugCode: 'MISSING_EMAIL',
@@ -175,9 +176,9 @@ export function mapNativeAuthFailure(reason: string): {
     }
   }
 
-  if (normalized.includes('missing_password_hash')) {
+  if (normalized.includes('auth_user_not_found')) {
     return {
-      debugCode: 'MISSING_PASSWORD_HASH',
+      debugCode: 'AUTH_USER_NOT_FOUND',
       error:
         'Error en la configuracion de la cuenta. Por favor, contacta al soporte.',
     }
@@ -190,38 +191,15 @@ export function mapNativeAuthFailure(reason: string): {
   }
 }
 
-/** `true` si la contraseña de la cuenta vive solo en Supabase Auth. */
-export function isNativeAuthOnlyAccount(user: LoginUserRecord): boolean {
-  return !user.password_hash
-}
-
-export async function validateLoginPassword(
-  user: LoginUserRecord,
-  password: string
-) {
-  if (user.is_banned) {
-    return {
-      banned: true,
-      error: `Tu cuenta ha sido suspendida por violaciones de las reglas de la comunidad. ${user.ban_reason || ''}`,
-    }
-  }
-
-  if (!user.password_hash) {
-    return {
-      error: 'Error en la configuracion de la cuenta. Por favor, contacta al soporte.',
-    }
-  }
-
-  const passwordValid = await bcrypt.compare(password, user.password_hash)
-  if (passwordValid) {
-    return null
-  }
-
-  await notifyFailedLogin(user.id)
-  return { error: 'Credenciales invalidas' }
-}
-
-async function notifyFailedLogin(userId: string): Promise<void> {
+/**
+ * Notifica al usuario un intento de acceso fallido.
+ *
+ * Antes vivía dentro de la validación bcrypt legacy, que ya no existe: la
+ * contraseña se verifica exclusivamente contra Supabase Auth, así que la
+ * notificación se dispara desde el flujo de login cuando el proveedor rechaza
+ * las credenciales.
+ */
+export async function notifyFailedLogin(userId: string): Promise<void> {
   try {
     const { AutoNotificationsService } = await import(
       '@/features/notifications/services/auto-notifications.service'

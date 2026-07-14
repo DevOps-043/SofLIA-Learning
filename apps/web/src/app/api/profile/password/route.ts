@@ -27,7 +27,7 @@ async function handlePasswordChange(
     const adminSupabase = createAdminClient();
     const { data: userData, error: fetchError } = await adminSupabase
       .from('users')
-      .select('id, username, email, password_hash, email_verified, cargo_rol, first_name, last_name, display_name, profile_picture_url')
+      .select('id, username, email, email_verified, platform_role, first_name, last_name, display_name, profile_picture_url')
       .eq('id', user.id)
       .single();
 
@@ -69,9 +69,11 @@ async function handlePasswordChange(
       return apiError('PASSWORD_UPDATE_FAILED', 'Error al cambiar contrasena.', 500);
     }
 
+    // La contraseña la guarda Supabase Auth. Antes se ponía a NULL el hash
+    // legacy de `users.password_hash` para invalidarlo; esa columna ya no existe.
     await adminSupabase
       .from('users')
-      .update({ password_hash: null, updated_at: new Date().toISOString() })
+      .update({ updated_at: new Date().toISOString() })
       .eq('id', user.id);
     await revokeSupabaseAuthSessions(user.id);
     await revokeLegacySessionsAfterPasswordChange(adminSupabase, user.id);

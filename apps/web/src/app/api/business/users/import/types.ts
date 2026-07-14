@@ -15,7 +15,7 @@ export interface UserInsertData {
   first_name: string | null
   last_name: string | null
   display_name: string | null
-  cargo_rol: string
+  platform_role: string
   date_of_birth: string | null
   gender: UserGender | null
 }

@@ -20,7 +20,7 @@ export type AuthenticatedRouteHandler<TContext = RouteContext> = (
   context: TContext,
 ) => Promise<Response>;
 
-type UserProfileRow = Pick<Tables<'users'>, 'cargo_rol' | 'email' | 'id'>;
+type UserProfileRow = Pick<Tables<'users'>, 'platform_role' | 'email' | 'id'>;
 
 const ROLE_ALIASES: Record<string, AuthRole> = {
   admin: 'Admin',
@@ -62,7 +62,7 @@ export function withAuth<TContext = RouteContext>(
 
     const { data: profile, error: profileError } = await supabase
       .from('users')
-      .select('id, email, cargo_rol')
+      .select('id, email, platform_role')
       .eq('id', user.id)
       .single<UserProfileRow>();
 
@@ -70,7 +70,7 @@ export function withAuth<TContext = RouteContext>(
       return apiError('PROFILE_NOT_FOUND', 'No se encontro el perfil del usuario autenticado.', 403);
     }
 
-    const role = normalizeAuthRole(profile.cargo_rol);
+    const role = normalizeAuthRole(profile.platform_role);
 
     if (!role) {
       return apiError('FORBIDDEN', 'El rol del usuario no permite acceder a este recurso.', 403);

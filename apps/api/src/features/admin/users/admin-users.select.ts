@@ -5,7 +5,7 @@ export const ADMIN_USER_SELECT_FIELDS = `
   first_name,
   last_name,
   display_name,
-  cargo_rol,
+  platform_role,
   type_rol,
   email_verified,
   email_verified_at,

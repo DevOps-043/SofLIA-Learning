@@ -60,20 +60,82 @@ WHERE s.schemaname = 'public'
 ORDER BY c.reltuples DESC, s.tablename, s.attname;
 
 
--- ── 4. ÍNDICES QUE NADIE HA USADO NUNCA ─────────────────────────────────────
--- idx_scan = 0 -> ocupan espacio y encarecen cada INSERT/UPDATE sin dar nada.
--- NOTA: los 119 índices de FK recién creados aparecerán aquí (aún no se han
--- usado). Ignóralos: son nuevos. Los relevantes son los ANTIGUOS con 0 usos.
+-- ── 4. ÍNDICES DUPLICADOS (basura a CUALQUIER escala) ───────────────────────
+-- YA EJECUTADA la de `idx_scan = 0`: salieron ~230 índices con 0 usos, pero eso
+-- NO significa que sobren. Con tablas de 16 kB el planificador nunca usa un
+-- índice (el Seq Scan de 30 filas gana siempre), así que ese dato solo es útil
+-- cuando las tablas son grandes. Repetirla cuando haya 100k+ filas.
+--
+-- 4a. YA EJECUTADA: agrupa por columnas indexadas. Salieron 38 grupos, PERO ese
+--     resultado NO basta para borrar: dos índices sobre las mismas columnas NO
+--     son equivalentes si uno es PARCIAL (tiene un WHERE). Un índice parcial es
+--     más pequeño y más rápido que el completo; borrarlo sería quitar el bueno.
+--
+-- 4b. ESTA es la que decide: muestra la DEFINICIÓN COMPLETA de cada índice de
+--     esos grupos, con su predicado. Solo son duplicados reales los que tengan
+--     definición idéntica salvo el nombre.
 SELECT
-  s.relname                                      AS tabla,
-  s.indexrelname                                 AS indice,
-  s.idx_scan                                     AS veces_usado,
-  pg_size_pretty(pg_relation_size(s.indexrelid)) AS tamano
-FROM pg_stat_user_indexes s
-JOIN pg_index i ON i.indexrelid = s.indexrelid
-WHERE s.schemaname = 'public'
-  AND s.idx_scan = 0
-  AND NOT i.indisunique
-  AND NOT i.indisprimary
-  AND s.indexrelname NOT LIKE 'idx_%_id'          -- excluye los de FK recién creados
-ORDER BY pg_relation_size(s.indexrelid) DESC;
+  t.relname                      AS tabla,
+  i.relname                      AS indice,
+  pg_get_indexdef(ix.indexrelid) AS definicion,
+  pg_size_pretty(pg_relation_size(ix.indexrelid)) AS tamano
+FROM pg_index ix
+JOIN pg_class     i ON i.oid = ix.indexrelid
+JOIN pg_class     t ON t.oid = ix.indrelid
+JOIN pg_namespace n ON n.oid = t.relnamespace AND n.nspname = 'public'
+WHERE NOT ix.indisprimary
+  AND NOT ix.indisunique
+  AND (t.relname, (
+        SELECT string_agg(a.attname, ',' ORDER BY k.ord)
+        FROM unnest(ix.indkey) WITH ORDINALITY AS k(attnum, ord)
+        JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = k.attnum
+      )) IN (
+        -- Solo los grupos con más de un índice sobre las mismas columnas.
+        SELECT tabla, columnas
+        FROM (
+          SELECT
+            t2.relname AS tabla,
+            (SELECT string_agg(a2.attname, ',' ORDER BY k2.ord)
+             FROM unnest(ix2.indkey) WITH ORDINALITY AS k2(attnum, ord)
+             JOIN pg_attribute a2 ON a2.attrelid = t2.oid AND a2.attnum = k2.attnum
+            ) AS columnas
+          FROM pg_index ix2
+          JOIN pg_class     t2 ON t2.oid = ix2.indrelid
+          JOIN pg_namespace n2 ON n2.oid = t2.relnamespace AND n2.nspname = 'public'
+          WHERE NOT ix2.indisprimary AND NOT ix2.indisunique
+        ) y
+        WHERE columnas IS NOT NULL
+        GROUP BY tabla, columnas
+        HAVING count(*) > 1
+      )
+ORDER BY t.relname, i.relname;
+
+
+-- ── 5. ¿ALGUIEN USA LA BÚSQUEDA DE TEXTO COMPLETO? ──────────────────────────
+-- El código TypeScript NO hace ninguna búsqueda full-text ni filtra por el JSONB
+-- de notificaciones (verificado con grep). Si tampoco lo usa ninguna función de
+-- la base, estos índices GIN son peso muerto: 1056 kB + 408 kB + 288 kB que
+-- encarecen cada INSERT de lecciones y notificaciones sin que nadie los use.
+-- (El de transcript pesa MÁS que la tabla entera: 1056 kB vs 296 kB.)
+SELECT p.proname AS funcion_que_usa_fulltext
+FROM pg_proc p
+JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public'
+  AND (p.prosrc ILIKE '%tsquery%' OR p.prosrc ILIKE '%tsvector%');
+
+-- Definición exacta de los índices grandes candidatos a borrar.
+SELECT
+  indexname,
+  pg_size_pretty(pg_relation_size(indexname::regclass)) AS tamano,
+  indexdef
+FROM pg_indexes
+WHERE schemaname = 'public'
+  AND indexname IN (
+    'idx_course_lessons_transcript_search',
+    'idx_course_lessons_summary_search',
+    'idx_course_lessons_title_search',
+    'idx_notifications_metadata',
+    'idx_content_translations_jsonb',
+    'idx_preguntas_dimension_gin'
+  )
+ORDER BY pg_relation_size(indexname::regclass) DESC;

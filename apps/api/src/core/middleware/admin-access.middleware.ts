@@ -27,7 +27,7 @@ export function requireDatabaseRoles(...allowedRoles: string[]) {
     try {
       const { data, error } = await getServiceClient()
         .from('users')
-        .select('cargo_rol, is_banned')
+        .select('platform_role, is_banned')
         .eq('id', req.user.id)
         .maybeSingle()
 
@@ -52,7 +52,7 @@ export function requireDatabaseRoles(...allowedRoles: string[]) {
         return
       }
 
-      if (!normalizedAllowedRoles.has(normalizeRole(data.cargo_rol) ?? '')) {
+      if (!normalizedAllowedRoles.has(normalizeRole(data.platform_role) ?? '')) {
         next(new ForbiddenError())
         return
       }

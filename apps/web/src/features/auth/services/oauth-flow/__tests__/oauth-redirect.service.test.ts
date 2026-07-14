@@ -68,7 +68,7 @@ describe('oauth-redirect.service', () => {
     await expect(
       resolveOAuthDashboardDestination(
         createSupabaseStub({
-          users: { cargo_rol: 'Administrador' },
+          users: { platform_role: 'Administrador' },
         }),
         'user-1'
       )
@@ -77,7 +77,7 @@ describe('oauth-redirect.service', () => {
     await expect(
       resolveOAuthDashboardDestination(
         createSupabaseStub({
-          users: { cargo_rol: 'Instructor' },
+          users: { platform_role: 'Instructor' },
         }),
         'user-1'
       )
@@ -94,7 +94,7 @@ describe('oauth-redirect.service', () => {
               role: 'owner',
             },
           ],
-          users: { cargo_rol: 'Business' },
+          users: { platform_role: 'Business' },
         }),
         'user-1'
       )
@@ -115,7 +115,7 @@ describe('oauth-redirect.service', () => {
               role: 'member',
             },
           ],
-          users: { cargo_rol: 'Business' },
+          users: { platform_role: 'Business' },
         }),
         'user-1'
       )
@@ -135,7 +135,7 @@ describe('oauth-redirect.service', () => {
                 role: 'member',
               },
             ],
-            users: { cargo_rol: 'Usuario' },
+            users: { platform_role: 'Usuario' },
           },
           updates
         ),
@@ -145,7 +145,7 @@ describe('oauth-redirect.service', () => {
 
     expect(updates).toEqual([
       {
-        payload: { cargo_rol: 'Business' },
+        payload: { platform_role: 'Business' },
         tableName: 'users',
       },
     ]);
@@ -156,7 +156,7 @@ describe('oauth-redirect.service', () => {
       resolveOAuthDashboardDestination(
         createSupabaseStub({
           organization_users: [],
-          users: { cargo_rol: 'Business User' },
+          users: { platform_role: 'Business User' },
         }),
         'user-1'
       )

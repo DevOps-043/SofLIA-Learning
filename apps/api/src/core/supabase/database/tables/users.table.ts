@@ -6,7 +6,7 @@ export type UsersTable = {
     first_name: string | null
     last_name: string | null
     display_name: string | null
-    cargo_rol: string | null
+    platform_role: string | null
     type_rol: string | null
     email_verified: boolean
     email_verified_at: string | null
@@ -29,7 +29,7 @@ export type UsersTable = {
     first_name?: string | null
     last_name?: string | null
     display_name?: string | null
-    cargo_rol?: string | null
+    platform_role?: string | null
     type_rol?: string | null
     email_verified?: boolean
     email_verified_at?: string | null
@@ -51,7 +51,7 @@ export type UsersTable = {
     first_name?: string | null
     last_name?: string | null
     display_name?: string | null
-    cargo_rol?: string | null
+    platform_role?: string | null
     type_rol?: string | null
     email_verified?: boolean
     email_verified_at?: string | null

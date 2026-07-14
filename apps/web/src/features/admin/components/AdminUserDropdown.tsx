@@ -22,7 +22,7 @@ interface AdminUserDropdownProps {
     last_name: string
     email: string
     profile_picture_url?: string
-    cargo_rol: string
+    platform_role: string
     organization?: {
       name: string
       slug: string
@@ -184,7 +184,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
               {/* Menu Items */}
               <div className="py-1.5 space-y-0.5">
                 {/* Panel de Administración */}
-                {user.cargo_rol?.toLowerCase() === 'administrador' && (
+                {user.platform_role?.toLowerCase() === 'administrador' && (
                   <DropdownMenuItem
                     icon={Shield}
                     label={t('common:menu.adminPanel')}

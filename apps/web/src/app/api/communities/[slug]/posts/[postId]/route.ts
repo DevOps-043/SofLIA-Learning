@@ -42,8 +42,8 @@ export async function DELETE(
     }
 
     const isAuthor = post.user_id === user.id || post.author_id === user.id
-    const isAdmin = user.cargo_rol?.toLowerCase() === 'administrador'
-    const isInstructor = user.cargo_rol?.toLowerCase() === 'instructor'
+    const isAdmin = user.platform_role?.toLowerCase() === 'administrador'
+    const isInstructor = user.platform_role?.toLowerCase() === 'instructor'
 
     let isModerator = false
     if (isInstructor || isAdmin) {

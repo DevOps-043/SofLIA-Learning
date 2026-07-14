@@ -20,7 +20,7 @@ export const CreateUserSchema = z.object({
   password: z.string()
     .min(6, 'La contraseña debe tener al menos 6 caracteres')
     .max(100, 'La contraseña no puede exceder 100 caracteres'),
-  cargo_rol: UserRoleEnumSchema.default('Usuario'),
+  platform_role: UserRoleEnumSchema.default('Usuario'),
   phone: z.string().optional().nullable(),
   location: z.string().optional().nullable(),
   country_code: z.string().optional().nullable(),

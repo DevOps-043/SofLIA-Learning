@@ -206,7 +206,7 @@ export class SessionService {
           const { data: user, error: userError } = await profileClient
             .from('users')
             .select(
-              'id, username, email, first_name, last_name, display_name, cargo_rol, profile_picture_url, is_banned, signature_url, signature_name'
+              'id, username, email, first_name, last_name, display_name, platform_role, profile_picture_url, is_banned, signature_url, signature_name'
             )
             .eq('id', userId)
             .single();
@@ -245,7 +245,7 @@ export class SessionService {
         userId: sessionUser.id,
         username: sessionUser.username,
         email: sessionUser.email,
-        cargo_rol: sessionUser.cargo_rol,
+        platform_role: sessionUser.platform_role,
       });
 
       const sessionToken = cookieStore.get(this.SESSION_COOKIE_NAME)?.value;

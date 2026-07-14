@@ -21,7 +21,7 @@ export function getAdminUserDisplayConfig(user: AdminUser): AdminUserDisplayConf
   return {
     displayName,
     email: user.email ?? '',
-    role: user.cargo_rol || 'Usuario',
+    role: user.platform_role || 'Usuario',
   }
 }
 

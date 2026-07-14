@@ -6,7 +6,6 @@ vi.mock('@/lib/logger', () => ({
 
 import {
   findLoginUser,
-  isNativeAuthOnlyAccount,
   mapNativeAuthFailure,
 } from '../user-credentials'
 import type { LoginSupabaseClient, LoginUserRecord } from '../types'
@@ -14,7 +13,7 @@ import type { LoginSupabaseClient, LoginUserRecord } from '../types'
 function buildUser(overrides: Partial<LoginUserRecord> = {}): LoginUserRecord {
   return {
     ban_reason: null,
-    cargo_rol: 'Usuario',
+    platform_role: 'Usuario',
     display_name: null,
     email: 'aidee@empresa.com',
     email_verified: true,
@@ -22,7 +21,6 @@ function buildUser(overrides: Partial<LoginUserRecord> = {}): LoginUserRecord {
     id: 'user-1',
     is_banned: false,
     last_name: null,
-    password_hash: null,
     profile_picture_url: null,
     username: 'Aidee',
     ...overrides,
@@ -119,8 +117,10 @@ describe('mapNativeAuthFailure', () => {
   })
 
   it('mantiene el mensaje de soporte solo para cuentas realmente inutilizables', () => {
+    // Una cuenta sin email, o sin su usuario en Supabase Auth, no puede
+    // autenticarse de ninguna forma: ahí el aviso a soporte sí procede.
     expect(mapNativeAuthFailure('MISSING_EMAIL').error).toContain('soporte')
-    expect(mapNativeAuthFailure('MISSING_PASSWORD_HASH').error).toContain('soporte')
+    expect(mapNativeAuthFailure('AUTH_USER_NOT_FOUND').error).toContain('soporte')
   })
 
   it('ante un fallo desconocido del servicio pide reintentar, sin culpar a la cuenta', () => {
@@ -128,14 +128,5 @@ describe('mapNativeAuthFailure', () => {
 
     expect(result.debugCode).toBe('AUTH_SERVICE_ERROR')
     expect(result.error).not.toContain('soporte')
-  })
-})
-
-describe('isNativeAuthOnlyAccount', () => {
-  it('detecta las cuentas cuya contraseña vive solo en Supabase Auth', () => {
-    expect(isNativeAuthOnlyAccount(buildUser({ password_hash: null }))).toBe(true)
-    expect(isNativeAuthOnlyAccount(buildUser({ password_hash: '$2a$12$x' }))).toBe(
-      false,
-    )
   })
 })

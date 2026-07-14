@@ -57,7 +57,7 @@ export default async function OrganizationLayout({
   const [userResult, organizationResult, membershipResult] = await Promise.all([
     supabase
       .from('users')
-      .select('cargo_rol')
+      .select('platform_role')
       .eq('id', authUser.id)
       .single(),
     supabase
@@ -75,7 +75,7 @@ export default async function OrganizationLayout({
       .maybeSingle(),
   ]);
 
-  const isPlatformAdmin = userResult.data?.cargo_rol?.toLowerCase().trim() === 'administrador';
+  const isPlatformAdmin = userResult.data?.platform_role?.toLowerCase().trim() === 'administrador';
   const { data: organization, error: orgError } = organizationResult;
 
   // Organization not found

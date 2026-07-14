@@ -84,7 +84,7 @@ function buildBusinessUser(overrides: Partial<BusinessUser>): BusinessUser {
     id: 'user-id',
     username: 'user',
     email: 'user@example.com',
-    cargo_rol: 'Business',
+    platform_role: 'Business',
     email_verified: true,
     points: 0,
     created_at: '2026-06-06T00:00:00.000Z',

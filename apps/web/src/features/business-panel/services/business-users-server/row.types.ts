@@ -7,7 +7,7 @@ export interface BusinessUserProfileRow {
   first_name: string | null
   last_name: string | null
   display_name: string | null
-  cargo_rol: string | null
+  platform_role: string | null
   email_verified: boolean | null
   profile_picture_url: string | null
   bio: string | null
@@ -38,7 +38,7 @@ export interface UserInsertRow {
   first_name: string | null
   last_name: string | null
   display_name: string | null
-  cargo_rol: string
+  platform_role: string
   date_of_birth?: string | null
   gender?: UserGender | null
 }
@@ -48,7 +48,7 @@ export interface UserUpdateRow {
   last_name?: string
   display_name?: string
   email?: string
-  cargo_rol?: string
+  platform_role?: string
   profile_picture_url?: string
   bio?: string
   location?: string

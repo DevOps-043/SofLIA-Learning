@@ -43,7 +43,7 @@ export async function upsertProvisionedProfile(input: ProvisionedProfileInput) {
     .from('users')
     .upsert(
       {
-        cargo_rol: input.cargoRol,
+        platform_role: input.cargoRol,
         country_code: input.countryCode ?? null,
         date_of_birth: input.dateOfBirth ?? null,
         display_name: input.displayName,

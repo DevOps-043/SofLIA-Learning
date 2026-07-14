@@ -34,7 +34,7 @@ describe('business-users-server.helpers', () => {
         first_name: 'Ada',
         last_name: 'Lovelace',
         display_name: null,
-        cargo_rol: null,
+        platform_role: null,
         email_verified: true,
         profile_picture_url: null,
         bio: null,
@@ -54,7 +54,7 @@ describe('business-users-server.helpers', () => {
       expect.objectContaining({
         id: 'user-1',
         organization_id: 'org-1',
-        cargo_rol: 'Business',
+        platform_role: 'Business',
         job_title: 'Ventas',
         points: 0,
         date_of_birth: '1990-05-10',
@@ -113,7 +113,7 @@ describe('business-users-server.helpers', () => {
       display_name: 'Ada',
       date_of_birth: null,
       gender: null,
-      cargo_rol: 'Business',
+      platform_role: 'Business',
     })
 
     expect(

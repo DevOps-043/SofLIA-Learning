@@ -52,7 +52,7 @@ export async function resolveInstructorReassignmentUserId(
     .from('users')
     .select('id')
     .neq('id', targetUserId)
-    .in('cargo_rol', ['Administrador', 'Instructor'])
+    .in('platform_role', ['Administrador', 'Instructor'])
     .order('created_at', { ascending: true })
     .limit(1)
     .maybeSingle<UserIdRow>()

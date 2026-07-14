@@ -74,7 +74,7 @@ export interface ListOrganizationInvitationsResult {
 
 export interface UserRow {
   id: string
-  cargo_rol?: string | null
+  platform_role?: string | null
 }
 
 export interface OrganizationRow {

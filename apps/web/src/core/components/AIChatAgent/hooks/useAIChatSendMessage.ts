@@ -231,7 +231,7 @@ export function useAIChatSendMessage(params: SendMessageParams) {
               first_name: user.first_name,
               last_name: typeof user.last_name === 'string' ? user.last_name : undefined,
               username: user.username,
-              type_rol: typeof user.type_rol === 'string' ? user.type_rol : typeof user.cargo_rol === 'string' ? user.cargo_rol : undefined,
+              type_rol: typeof user.type_rol === 'string' ? user.type_rol : typeof user.platform_role === 'string' ? user.platform_role : undefined,
               job_title: typeof user.job_title === 'string' ? user.job_title : undefined,
               job_description: typeof user.job_description === 'string' ? user.job_description : undefined,
             } : undefined,

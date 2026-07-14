@@ -12,7 +12,7 @@ export const BUSINESS_USER_SELECT = `
     first_name,
     last_name,
     display_name,
-    cargo_rol,
+    platform_role,
     email_verified,
     profile_picture_url,
     bio,

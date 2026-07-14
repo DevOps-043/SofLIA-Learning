@@ -17,7 +17,7 @@ export async function findUsers(filters: NormalizedAdminUserListQuery) {
   })
 
   if (filters.search) query = query.or(buildAdminUsersSearchFilter(filters.search))
-  if (filters.role) query = query.eq('cargo_rol', filters.role)
+  if (filters.role) query = query.eq('platform_role', filters.role)
 
   if (filters.status === 'banned') {
     query = query.eq('is_banned', true)

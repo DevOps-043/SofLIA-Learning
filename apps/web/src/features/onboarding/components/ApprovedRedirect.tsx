@@ -15,7 +15,7 @@ export function ApprovedRedirect({ organizationSlug }: ApprovedRedirectProps) {
   const { t } = useTranslation('common')
 
   useEffect(() => {
-    // Clear auth cache so it picks up updated cargo_rol
+    // Clear auth cache so it picks up updated platform_role
     try {
       localStorage.removeItem('user-auth-cache')
     } catch { /* ignore */ }

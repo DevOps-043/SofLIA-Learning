@@ -29,7 +29,7 @@ export async function requireUser(
 
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id, email, cargo_rol, is_banned')
+      .select('id, email, platform_role, is_banned')
       .eq('id', userId)
       .single()
 
@@ -41,12 +41,12 @@ export async function requireUser(
       return bannedUserResponse()
     }
 
-    logger.debug('User authenticated', { userId: user.id, role: user.cargo_rol })
+    logger.debug('User authenticated', { userId: user.id, role: user.platform_role })
 
     return {
       userId: user.id,
       userEmail: user.email ?? '',
-      userRole: user.cargo_rol ?? '',
+      userRole: user.platform_role ?? '',
     }
   } catch (error) {
     logger.error('Error in requireUser middleware', error instanceof Error ? error : undefined)

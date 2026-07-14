@@ -20,7 +20,7 @@ interface UserProfile
     | 'profile_picture_url'
     | 'bio'
     | 'location'
-    | 'cargo_rol'
+    | 'platform_role'
     | 'created_at'
     | 'updated_at'
   > {
@@ -37,7 +37,7 @@ interface UseUserProfileReturn {
 }
 
 // Campos específicos que necesitamos - Optimización: 70% menos datos transferidos
-const USER_PROFILE_FIELDS = 'id, first_name, last_name, display_name, username, email, profile_picture_url, bio, location, cargo_rol, created_at, updated_at'
+const USER_PROFILE_FIELDS = 'id, first_name, last_name, display_name, username, email, profile_picture_url, bio, location, platform_role, created_at, updated_at'
 
 // Fetcher optimizado con select específico
 const userProfileFetcher = async (key: string): Promise<UserProfile | null> => {

@@ -156,7 +156,7 @@ export const updateBusinessUserSchema = z.object({
   last_name: z.string().trim().max(120).optional(),
   display_name: z.string().trim().max(180).optional(),
   email: z.string().trim().email().toLowerCase().max(320).optional(),
-  cargo_rol: z.string().trim().max(120).optional(),
+  platform_role: z.string().trim().max(120).optional(),
   job_title: z.string().trim().max(160).optional(),
   org_role: organizationRoleSchema.optional(),
   org_status: z.enum(['active', 'invited', 'suspended', 'removed']).optional(),

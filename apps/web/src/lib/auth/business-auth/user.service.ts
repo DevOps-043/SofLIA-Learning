@@ -41,7 +41,7 @@ export async function loadAuthenticatedBusinessUser(
 ): Promise<AuthResult<AuthenticatedBusinessUser>> {
   const { data: user, error: userError } = await supabase
     .from('users')
-    .select('id, email, cargo_rol')
+    .select('id, email, platform_role')
     .eq('id', userId)
     .single()
 
@@ -53,23 +53,23 @@ export async function loadAuthenticatedBusinessUser(
     return authFailure(401, 'Usuario no encontrado.')
   }
 
-  if (!isAllowedBusinessRole(user.cargo_rol, mode)) {
+  if (!isAllowedBusinessRole(user.platform_role, mode)) {
     logger.warn('Unauthorized access attempt - invalid role', {
       userId: user.id,
-      role: user.cargo_rol,
-      normalizedRole: normalizeRole(user.cargo_rol),
+      role: user.platform_role,
+      normalizedRole: normalizeRole(user.platform_role),
       mode,
     })
     return authFailure(
       403,
       `Permisos insuficientes. Se requiere rol permitido para ${mode}. Rol actual: ${
-        user.cargo_rol || 'sin rol'
+        user.platform_role || 'sin rol'
       }`,
     )
   }
 
   return authSuccess({
     ...user,
-    isPlatformAdmin: isPlatformAdminRole(user.cargo_rol),
+    isPlatformAdmin: isPlatformAdminRole(user.platform_role),
   })
 }

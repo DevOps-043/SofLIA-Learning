@@ -9,7 +9,7 @@ export interface UserFormData {
   last_name: string
   display_name: string
   email: string
-  cargo_rol: string
+  platform_role: string
   job_title: string
   org_role: 'owner' | 'admin' | 'member'
   org_status: 'active' | 'invited' | 'suspended' | 'removed'
@@ -34,7 +34,7 @@ export function useUserFormState(
     last_name: '',
     display_name: '',
     email: '',
-    cargo_rol: '',
+    platform_role: '',
     job_title: '',
     org_role: 'member',
     org_status: 'active',
@@ -57,7 +57,7 @@ export function useUserFormState(
         last_name: user.last_name || '',
         display_name: user.display_name || '',
         email: user.email || '',
-        cargo_rol: user.cargo_rol || '',
+        platform_role: user.platform_role || '',
         job_title: user.job_title || '',
         org_role: user.org_role || 'member',
         org_status: user.org_status || 'active',

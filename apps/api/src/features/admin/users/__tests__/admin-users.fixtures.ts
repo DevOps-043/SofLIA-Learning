@@ -44,7 +44,7 @@ export function createAdminUser(overrides: Partial<AdminUser> = {}): AdminUser {
     first_name: 'Ada',
     last_name: 'Lovelace',
     display_name: 'Ada Lovelace',
-    cargo_rol: 'Administrador',
+    platform_role: 'Administrador',
     type_rol: 'Admin',
     email_verified: true,
     email_verified_at: now,

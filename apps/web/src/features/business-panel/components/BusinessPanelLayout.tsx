@@ -119,7 +119,7 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
     }
 
     if (isLoading === false && user) {
-      const normalizedRole = user.cargo_rol?.toLowerCase().trim()
+      const normalizedRole = user.platform_role?.toLowerCase().trim()
 
       if (normalizedRole !== 'business' && normalizedRole !== 'administrador') {
         router.push('/dashboard')
@@ -185,7 +185,7 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
     return <PremiumLoadingScreen />
   }
 
-  const normalizedRole = user?.cargo_rol?.toLowerCase().trim()
+  const normalizedRole = user?.platform_role?.toLowerCase().trim()
 
   if (!user || (normalizedRole !== 'business' && normalizedRole !== 'administrador')) {
     return null

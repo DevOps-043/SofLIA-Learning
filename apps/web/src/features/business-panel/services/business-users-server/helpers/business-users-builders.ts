@@ -20,7 +20,7 @@ export function buildUserInsertData(
     display_name: userData.display_name ?? null,
     date_of_birth: normalizeDateOfBirthForStorage(userData.date_of_birth),
     gender: normalizeGenderForStorage(userData.gender),
-    cargo_rol: 'Business',
+    platform_role: 'Business',
   }
 }
 
@@ -52,7 +52,7 @@ export function buildUserUpdateData(
   if (userData.last_name !== undefined) updateData.last_name = userData.last_name
   if (userData.display_name !== undefined) updateData.display_name = userData.display_name
   if (userData.email !== undefined) updateData.email = userData.email
-  if (userData.cargo_rol !== undefined) updateData.cargo_rol = userData.cargo_rol
+  if (userData.platform_role !== undefined) updateData.platform_role = userData.platform_role
   if (userData.profile_picture_url !== undefined) updateData.profile_picture_url = userData.profile_picture_url
   if (userData.bio !== undefined) updateData.bio = userData.bio
   if (userData.location !== undefined) updateData.location = userData.location

@@ -25,7 +25,7 @@ export interface ModernNavbarUser {
   display_name?: string | null;
   username?: string | null;
   email?: string | null;
-  cargo_rol?: string | null;
+  platform_role?: string | null;
 }
 
 export interface ModernNavbarProps {

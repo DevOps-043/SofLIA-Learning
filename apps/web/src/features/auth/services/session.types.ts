@@ -15,7 +15,7 @@ export interface LegacySessionLookupRow {
 }
 
 export interface SessionUserRecord {
-  cargo_rol: string | null;
+  platform_role: string | null;
   display_name: string | null;
   email: string | null;
   first_name: string | null;

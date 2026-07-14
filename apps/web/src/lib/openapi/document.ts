@@ -50,7 +50,7 @@ const ProfileUpdateRequestSchema = registry.register(
     phone: z.string().max(20).nullable().optional(),
     bio: z.string().max(500).nullable().optional(),
     location: z.string().max(100).nullable().optional(),
-    cargo_rol: z.string().nullable().optional(),
+    platform_role: z.string().nullable().optional(),
     type_rol: z.string().nullable().optional(),
     job_title: z.string().max(100).nullable().optional(),
     job_description: z.string().max(1000).nullable().optional(),

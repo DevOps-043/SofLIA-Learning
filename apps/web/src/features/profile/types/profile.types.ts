@@ -11,7 +11,7 @@ export interface UserProfile {
   phone: string
   bio: string
   location: string
-  cargo_rol: string
+  platform_role: string
   job_title: string
   job_description: string
   profile_picture_url: string
@@ -35,7 +35,7 @@ export interface UpdateProfileRequest {
   phone?: string
   bio?: string
   location?: string
-  cargo_rol?: string
+  platform_role?: string
   job_title?: string
   job_description?: string
   profile_picture_url?: string

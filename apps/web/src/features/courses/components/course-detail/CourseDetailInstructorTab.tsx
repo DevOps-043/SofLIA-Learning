@@ -26,8 +26,8 @@ export function CourseDetailInstructorTab({ course, instructor }: CourseDetailIn
 
         <div className="flex-1 min-w-0">
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{instructorName}</h3>
-          {instructor?.cargo_rol && (
-            <p className="text-gray-600 dark:text-slate-300 text-lg mb-3">{instructor.cargo_rol}</p>
+          {instructor?.platform_role && (
+            <p className="text-gray-600 dark:text-slate-300 text-lg mb-3">{instructor.platform_role}</p>
           )}
           {instructor?.location && <p className="text-gray-600 dark:text-slate-300 mb-4">{instructor.location}</p>}
         </div>

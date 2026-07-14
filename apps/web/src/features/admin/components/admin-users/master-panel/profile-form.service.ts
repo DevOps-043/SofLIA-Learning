@@ -25,7 +25,7 @@ export function createProfileFormData(user?: AdminUser | null): MasterPanelProfi
 
 export function createAccountFormData(user?: AdminUser | null): MasterPanelAccountFormData {
   return {
-    cargo_rol: user?.cargo_rol || 'Usuario',
+    platform_role: user?.platform_role || 'Usuario',
     email_verified: user?.email_verified || false,
   }
 }

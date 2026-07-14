@@ -31,7 +31,7 @@ export async function GET(
       community.creator_id
         ? supabase
             .from('users')
-            .select('id, display_name, first_name, last_name, profile_picture_url, cargo_rol')
+            .select('id, display_name, first_name, last_name, profile_picture_url, platform_role')
             .eq('id', community.creator_id)
             .single()
         : Promise.resolve({ data: null, error: null }),

@@ -1,12 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { createAdminClientMock, headersMock } = vi.hoisted(() => ({
-  createAdminClientMock: vi.fn(),
-  headersMock: vi.fn(),
-}))
+const { createAdminClientMock, headersMock, signInWithPasswordMock } = vi.hoisted(
+  () => ({
+    createAdminClientMock: vi.fn(),
+    headersMock: vi.fn(),
+    signInWithPasswordMock: vi.fn(),
+  }),
+)
 
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: createAdminClientMock,
+}))
+
+// Supabase Auth es la única autoridad de credenciales (ya no hay bcrypt legacy).
+vi.mock('@/lib/supabase/auth-server', () => ({
+  createAuthActionClient: vi.fn(async () => ({
+    auth: {
+      signInWithPassword: signInWithPasswordMock,
+      signOut: vi.fn(async () => ({ error: null })),
+    },
+  })),
 }))
 
 vi.mock('server-only', () => ({}))
@@ -14,12 +27,6 @@ vi.mock('server-only', () => ({}))
 vi.mock('next/headers', () => ({
   cookies: vi.fn(),
   headers: headersMock,
-}))
-
-vi.mock('bcryptjs', () => ({
-  default: {
-    compare: vi.fn(),
-  },
 }))
 
 vi.mock('@/lib/auth/mfa/mfa.service', () => ({
@@ -58,10 +65,14 @@ function matchesIlike(
 
 function createSupabaseMock(params: {
   user?: Record<string, unknown> | null
+  /** Usuario correspondiente en `auth.users`. Si falta, la cuenta no puede autenticar. */
+  authUser?: Record<string, unknown> | null
+  /** Error que devuelve Supabase Auth al validar la contraseña. */
+  signInError?: { message: string } | null
 }) {
   const user = params.user ?? {
     ban_reason: null,
-    cargo_rol: 'Usuario',
+    platform_role: 'Usuario',
     display_name: 'Ada',
     email: 'ada@example.com',
     email_verified: true,
@@ -69,18 +80,26 @@ function createSupabaseMock(params: {
     id: 'user-1',
     is_banned: false,
     last_name: 'Lovelace',
-    password_hash: null,
     profile_picture_url: null,
     username: 'ada',
   }
 
+  signInWithPasswordMock.mockResolvedValue({
+    data: { user: params.signInError ? null : params.authUser ?? null },
+    error: params.signInError ?? null,
+  })
+
   return {
     auth: {
       admin: {
-        getUserById: vi.fn(async () => ({
-          data: { user: null },
-          error: { message: 'not found', status: 404 },
-        })),
+        getUserById: vi.fn(async () =>
+          params.authUser
+            ? { data: { user: params.authUser }, error: null }
+            : {
+                data: { user: null },
+                error: { message: 'not found', status: 404 },
+              },
+        ),
       },
     },
     from: vi.fn((tableName: string) => {
@@ -114,9 +133,10 @@ describe('loginAction', () => {
     headersMock.mockResolvedValue(new Headers())
   })
 
-  // Cuenta sin usuario en Supabase Auth Y sin password_hash: no hay ninguna
-  // credencial contra la que autenticar. Aquí el mensaje de soporte SÍ procede.
-  it('returns the legacy account configuration error when no Supabase Auth user or password hash exists', async () => {
+  // El perfil existe en `public.users` pero no tiene usuario en Supabase Auth:
+  // no hay ninguna credencial contra la que autenticar. Aquí sí procede avisar
+  // a soporte, porque es una inconsistencia real de la cuenta.
+  it('returns the account configuration error when the profile has no Supabase Auth user', async () => {
     createAdminClientMock.mockReturnValue(createSupabaseMock({}))
 
     const { loginAction } = await import('../login')
@@ -127,21 +147,24 @@ describe('loginAction', () => {
     })
   })
 
-  it('returns invalid credentials when legacy password validation fails', async () => {
-    const bcrypt = await import('bcryptjs')
-    vi.mocked(bcrypt.default.compare).mockResolvedValue(false as never)
+  // Ya no existe validación bcrypt legacy: Supabase Auth es la única autoridad
+  // de credenciales. Cuando rechaza la contraseña, el usuario ve "Credenciales
+  // invalidas", NO el antiguo mensaje de soporte que hacía parecer corrupta una
+  // cuenta sana.
+  it('returns invalid credentials when Supabase Auth rejects the password', async () => {
     createAdminClientMock.mockReturnValue(
       createSupabaseMock({
         user: {
           ban_reason: null,
-          cargo_rol: 'Usuario',
+          platform_role: 'Usuario',
           email: 'ada@example.com',
           email_verified: true,
           id: 'user-1',
           is_banned: false,
-          password_hash: '$2a$12$valid-bcrypt-like-value',
           username: 'ada',
         },
+        authUser: { id: 'user-1', email: 'ada@example.com' },
+        signInError: { message: 'Invalid login credentials' },
       }),
     )
 

@@ -19,7 +19,7 @@ export const updateProfileSchema = z
     phone: z.string().max(20).optional().nullable(),
     bio: z.string().max(500).optional().nullable(),
     location: z.string().max(100).optional().nullable(),
-    cargo_rol: z.string().max(200).optional().nullable(),
+    platform_role: z.string().max(200).optional().nullable(),
     job_title: z.string().max(100).optional().nullable(),
     job_description: z.string().max(1_000).optional().nullable(),
     profile_picture_url: z

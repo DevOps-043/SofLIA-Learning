@@ -183,7 +183,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    const isAdmin = user.cargo_rol?.toLowerCase().trim() === 'administrador';
+    const isAdmin = user.platform_role?.toLowerCase().trim() === 'administrador';
 
     let query = supabase
       .from('reportes_con_usuario')

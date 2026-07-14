@@ -40,10 +40,10 @@ export function AccountInfoSection({ user }: AccountInfoSectionProps) {
     { label: t('users.masterPanel.account.info.createdAt'), value: formatDate(user.created_at, i18n.language) },
     { label: t('users.masterPanel.account.info.lastLogin'), value: formatDate(user.last_login_at, i18n.language) },
     { label: t('users.masterPanel.account.info.lastActivity'), value: formatDate(user.last_activity_at, i18n.language) },
-    {
-      label: t('users.masterPanel.account.info.provider'),
-      value: user.oauth_provider || t('users.masterPanel.account.info.providerLocal'),
-    },
+    // El proveedor de acceso (Google/Microsoft/local) lo gestiona Supabase Auth
+    // en `auth.identities`. Las columnas `users.oauth_provider(_id)` quedaron
+    // vacías y se eliminaron: mostrarlas siempre decía "local", incluso para
+    // quien entraba con Google.
   ]
 
   return (

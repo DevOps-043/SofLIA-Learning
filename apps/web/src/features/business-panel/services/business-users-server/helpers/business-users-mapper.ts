@@ -28,7 +28,7 @@ export function mapOrganizationUserRecord(
     first_name: profile.first_name,
     last_name: profile.last_name,
     display_name: profile.display_name,
-    cargo_rol: profile.cargo_rol ?? 'Business',
+    platform_role: profile.platform_role ?? 'Business',
     job_title: record.job_title,
     organization_id: record.organization_id,
     email_verified: Boolean(profile.email_verified),

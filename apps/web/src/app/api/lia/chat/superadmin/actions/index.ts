@@ -46,7 +46,7 @@ export async function authorizeAdminActions(
   return authorizePlatformSuperadmin({
     capability: 'admin-actions',
     sessionUserId: params.sessionUser.id,
-    sessionUserRole: params.sessionUser.cargo_rol,
+    sessionUserRole: params.sessionUser.platform_role,
     currentPage: params.currentPage,
     promptRiskAction: params.promptRiskAction,
   })

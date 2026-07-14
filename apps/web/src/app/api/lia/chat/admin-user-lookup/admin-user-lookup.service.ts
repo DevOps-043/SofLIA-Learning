@@ -30,7 +30,7 @@ import type {
  */
 
 const USER_PROFILE_COLUMNS =
-  'id, username, email, first_name, last_name, display_name, cargo_rol, is_banned, ban_reason, email_verified, created_at, last_login_at, last_activity_at'
+  'id, username, email, first_name, last_name, display_name, platform_role, is_banned, ban_reason, email_verified, created_at, last_login_at, last_activity_at'
 
 const MAX_ENROLLMENTS = 20
 const MAX_LESSON_ROWS = 500
@@ -44,7 +44,7 @@ interface UserProfileRow {
   first_name: string | null
   last_name: string | null
   display_name: string | null
-  cargo_rol: string | null
+  platform_role: string | null
   is_banned: boolean | null
   ban_reason: string | null
   email_verified: boolean | null
@@ -109,7 +109,7 @@ function mapProfileRow(row: UserProfileRow): AdminUserProfile {
     firstName: row.first_name,
     lastName: row.last_name,
     displayName: row.display_name,
-    platformRole: row.cargo_rol,
+    platformRole: row.platform_role,
     isBanned: row.is_banned === true,
     banReason: row.ban_reason,
     emailVerified: row.email_verified === true,

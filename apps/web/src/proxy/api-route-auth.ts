@@ -283,7 +283,7 @@ export async function validateApiRouteAccess(
 
   const { data: userData, error: userError } = await supabase
     .from('users')
-    .select('id, cargo_rol, email')
+    .select('id, platform_role, email')
     .eq('id', resolvedUser.userId)
     .single()
 
@@ -296,11 +296,11 @@ export async function validateApiRouteAccess(
     return createApiAuthFailureResponse(403, 'PROFILE_NOT_FOUND')
   }
 
-  const role = normalizeRole(userData.cargo_rol)
+  const role = normalizeRole(userData.platform_role)
   if (!role || !requirement.roles.includes(role)) {
     await logSecurityEvent('INSUFFICIENT_PERMISSIONS', {
       userId: resolvedUser.userId,
-      role: userData.cargo_rol ?? undefined,
+      role: userData.platform_role ?? undefined,
       path: pathname,
       ip: clientIp,
     })

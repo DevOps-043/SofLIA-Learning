@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 
 /**
- * Roles globales del sistema (cargo_rol en tabla users)
+ * Roles globales del sistema (platform_role en tabla users)
  *
- * NOTA: 'Business User' ya no existe - todos los usuarios de empresa tienen cargo_rol='Business'.
+ * NOTA: 'Business User' ya no existe - todos los usuarios de empresa tienen platform_role='Business'.
  * La diferenciación entre admin/owner y member se hace en organization_users.role
  */
 const ROLES = {
@@ -17,7 +17,7 @@ const ROLES = {
 } as const
 
 /**
- * Hook para verificar el rol global del usuario (cargo_rol)
+ * Hook para verificar el rol global del usuario (platform_role)
  *
  * Para verificar permisos dentro de una organización específica,
  * usa el rol de organization_users.role (owner/admin/member)
@@ -32,11 +32,11 @@ export function useUserRole() {
   useEffect(() => {
     if (user && !loading) {
       // Normalizar con toLowerCase() y trim() para evitar bugs con espacios
-      const role = user.cargo_rol?.toLowerCase().trim()
+      const role = user.platform_role?.toLowerCase().trim()
 
       setIsAdmin(role === ROLES.ADMIN)
       setIsInstructor(role === ROLES.INSTRUCTOR)
-      // Todos los usuarios de empresa tienen cargo_rol='Business'
+      // Todos los usuarios de empresa tienen platform_role='Business'
       // La diferenciación owner/admin/member se hace en organization_users.role
       setIsBusiness(role === ROLES.BUSINESS)
       setIsUser(role === ROLES.USER)
@@ -55,6 +55,6 @@ export function useUserRole() {
     isInstructor,
     isBusiness,
     isUser,
-    role: user?.cargo_rol || null
+    role: user?.platform_role || null
   }
 }
