@@ -9,6 +9,46 @@ import type { LoginSupabaseClient, LoginUserRecord } from './types'
 const LOGIN_USER_COLUMNS =
   'id, username, email, password_hash, email_verified, cargo_rol, is_banned, ban_reason, first_name, last_name, display_name, profile_picture_url'
 
+/**
+ * Cota de filas por búsqueda. Existen cuentas cuyo username solo difiere en
+ * mayúsculas (p. ej. "TobiasZorro" y "tobiaszorro"), así que la búsqueda
+ * case-insensitive puede devolver más de una fila.
+ */
+const LOGIN_LOOKUP_LIMIT = 10
+
+/**
+ * Elige la fila correcta cuando la búsqueda case-insensitive devuelve varias.
+ * Prioriza la coincidencia EXACTA (respetando mayúsculas) sobre la primera fila,
+ * que es arbitraria; si no hay exacta y hay ambigüedad real, no adivina.
+ */
+function pickExactMatch(
+  rows: LoginUserRecord[],
+  field: 'username' | 'email',
+  identifier: string,
+): LoginUserRecord | null {
+  if (rows.length === 0) return null
+  if (rows.length === 1) return rows[0]
+
+  const exact = rows.find((row) => row[field] === identifier)
+  if (exact) return exact
+
+  // Varias coincidencias que solo difieren en mayúsculas y ninguna exacta:
+  // elegir una al azar podría autenticar contra la cuenta equivocada.
+  logger.warn('Login lookup ambiguo: varias cuentas coinciden sin match exacto', {
+    field,
+    matches: rows.length,
+  })
+  return null
+}
+
+/**
+ * Busca al usuario por username o email (case-insensitive).
+ *
+ * NO usa `.maybeSingle()`: PostgREST lo trata como error cuando hay más de una
+ * fila, y con usernames que solo difieren en mayúsculas eso devolvía `null`
+ * (es decir, "usuario no encontrado" y "Credenciales inválidas") para cuentas
+ * perfectamente válidas.
+ */
 export async function findLoginUser(
   supabase: LoginSupabaseClient,
   emailOrUsername: string
@@ -25,12 +65,14 @@ export async function findLoginUser(
       .from('users')
       .select(LOGIN_USER_COLUMNS)
       .ilike('username', pattern)
-      .maybeSingle<LoginUserRecord>(),
+      .limit(LOGIN_LOOKUP_LIMIT)
+      .returns<LoginUserRecord[]>(),
     supabase
       .from('users')
       .select(LOGIN_USER_COLUMNS)
       .ilike('email', pattern)
-      .maybeSingle<LoginUserRecord>(),
+      .limit(LOGIN_LOOKUP_LIMIT)
+      .returns<LoginUserRecord[]>(),
   ])
 
   if (byUsername.error) {
@@ -46,7 +88,14 @@ export async function findLoginUser(
     })
   }
 
-  return byUsername.data ?? byEmail.data ?? null
+  const usernameMatch = pickExactMatch(
+    byUsername.data ?? [],
+    'username',
+    normalized,
+  )
+  if (usernameMatch) return usernameMatch
+
+  return pickExactMatch(byEmail.data ?? [], 'email', normalized)
 }
 
 export async function findLoginUserById(
@@ -67,6 +116,83 @@ export async function findLoginUserById(
   }
 
   return data ?? null
+}
+
+/**
+ * Traduce un fallo de Supabase Auth a un mensaje correcto para el usuario.
+ *
+ * Contexto: tras la migración, las cuentas nativas NO tienen `password_hash` en
+ * `public.users` (la contraseña vive solo en `auth.users`). Antes, cualquier
+ * fallo del login nativo caía en la validación legacy, que al no encontrar hash
+ * respondía "Error en la configuración de la cuenta. Contacta al soporte."
+ * Resultado: una simple contraseña mal escrita —o un rate limit de Supabase—
+ * se presentaba como una cuenta corrupta. Aquí cada causa dice lo que es.
+ */
+export function mapNativeAuthFailure(reason: string): {
+  debugCode: string
+  error: string
+} {
+  const normalized = reason.toLowerCase()
+
+  if (
+    normalized.includes('invalid login credentials') ||
+    normalized.includes('invalid_credentials')
+  ) {
+    return {
+      debugCode: 'SUPABASE_AUTH_PASSWORD_MISMATCH',
+      error: 'Credenciales invalidas',
+    }
+  }
+
+  if (
+    normalized.includes('rate limit') ||
+    normalized.includes('too many requests') ||
+    normalized.includes('over_request_rate_limit')
+  ) {
+    return {
+      debugCode: 'AUTH_RATE_LIMITED',
+      error:
+        'Demasiados intentos de inicio de sesion. Espera unos minutos e intenta de nuevo.',
+    }
+  }
+
+  if (normalized.includes('email not confirmed')) {
+    return {
+      debugCode: 'AUTH_EMAIL_NOT_CONFIRMED',
+      error:
+        'Tu correo aun no esta confirmado. Revisa tu bandeja de entrada para activarlo.',
+    }
+  }
+
+  // Estos SÍ son problemas de configuración reales: la cuenta no tiene forma
+  // alguna de autenticarse (sin email, o sin usuario en Auth y sin hash legacy
+  // que migrar). Aquí el mensaje de soporte es el correcto.
+  if (normalized.includes('missing_email')) {
+    return {
+      debugCode: 'MISSING_EMAIL',
+      error:
+        'Tu cuenta no tiene un correo asociado. Por favor, contacta al soporte.',
+    }
+  }
+
+  if (normalized.includes('missing_password_hash')) {
+    return {
+      debugCode: 'MISSING_PASSWORD_HASH',
+      error:
+        'Error en la configuracion de la cuenta. Por favor, contacta al soporte.',
+    }
+  }
+
+  return {
+    debugCode: 'AUTH_SERVICE_ERROR',
+    error:
+      'No se pudo iniciar sesion en este momento. Por favor, intenta de nuevo en unos minutos.',
+  }
+}
+
+/** `true` si la contraseña de la cuenta vive solo en Supabase Auth. */
+export function isNativeAuthOnlyAccount(user: LoginUserRecord): boolean {
+  return !user.password_hash
 }
 
 export async function validateLoginPassword(

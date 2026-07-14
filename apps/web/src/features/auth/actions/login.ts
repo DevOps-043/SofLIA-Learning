@@ -40,7 +40,12 @@ import {
 } from './login/mfa-login-challenge'
 import { validateCustomOrganizationLogin } from './login/organization-context'
 import { resolveLoginRedirect } from './login/redirect'
-import { findLoginUser, validateLoginPassword } from './login/user-credentials'
+import {
+  findLoginUser,
+  isNativeAuthOnlyAccount,
+  mapNativeAuthFailure,
+  validateLoginPassword,
+} from './login/user-credentials'
 import { notifyLoginSuccess } from './login/login-notifications'
 import type { LoginUserRecord } from './login/types'
 
@@ -185,21 +190,54 @@ export async function loginAction(formData: FormData) {
       user,
     })
     if (!nativeLoginResult.success) {
-      const passwordResult = await validateLoginPassword(user, parsed.password)
-      if (passwordResult) {
-        const debugCode = !user.password_hash
-          ? 'NO_PASSWORD_HASH'
-          : 'PASSWORD_MISMATCH'
-        logger.warn('Login failed: password validation failed', {
+      // Cuenta nativa (sin password_hash): la contraseña vive solo en Supabase
+      // Auth, así que NO hay validación legacy a la que recurrir. El motivo del
+      // fallo nativo se traduce a un mensaje real (credenciales, rate limit,
+      // servicio caído) en lugar del antiguo "contacta al soporte", que hacía
+      // parecer corrupta una cuenta sana.
+      const nativeOnlyFailure = isNativeAuthOnlyAccount(user)
+        ? mapNativeAuthFailure(nativeLoginResult.reason)
+        : null
+
+      if (nativeOnlyFailure) {
+        logger.warn('Login failed: native auth rejected a native-only account', {
+          debugCode: nativeOnlyFailure.debugCode,
           nativeReason: nativeLoginResult.reason,
           userId: user.id,
-          debugCode,
         })
 
         recordSecurityEvent('login-failure', {
           actorId: user.id,
           actorRole: user.cargo_rol,
-          metadata: { reason: debugCode, nativeReason: nativeLoginResult.reason },
+          metadata: {
+            nativeReason: nativeLoginResult.reason,
+            reason: nativeOnlyFailure.debugCode,
+          },
+        })
+
+        const failedAttempt = await recordFailedLoginAttempt(loginAttemptContext)
+        if (failedAttempt.isLocked) {
+          return { error: buildLockoutErrorMessage(failedAttempt) }
+        }
+
+        return { error: nativeOnlyFailure.error }
+      }
+
+      const passwordResult = await validateLoginPassword(user, parsed.password)
+      if (passwordResult) {
+        logger.warn('Login failed: password validation failed', {
+          debugCode: 'PASSWORD_MISMATCH',
+          nativeReason: nativeLoginResult.reason,
+          userId: user.id,
+        })
+
+        recordSecurityEvent('login-failure', {
+          actorId: user.id,
+          actorRole: user.cargo_rol,
+          metadata: {
+            nativeReason: nativeLoginResult.reason,
+            reason: 'PASSWORD_MISMATCH',
+          },
         })
 
         const failedAttempt = await recordFailedLoginAttempt(loginAttemptContext)

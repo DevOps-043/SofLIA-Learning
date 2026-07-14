@@ -26,7 +26,7 @@ export function OrganizationLoginOptionsRow(props: OrganizationLoginOptionsProps
           {t('auth.login.rememberMe')}
         </span>
       </motion.label>
-      <button type="button" onClick={() => props.router.push('/auth/forgot-password')} className="text-xs font-medium transition-colors hover:opacity-80" style={{ color: props.palette.primaryColor }}>
+      <button type="button" onClick={() => props.router.push('/auth/forgot-password')} className="text-xs font-medium transition-colors hover:opacity-80" style={{ color: props.palette.linkColor }}>
         {t('auth.login.forgotPassword')}
       </button>
     </motion.div>

@@ -11,6 +11,14 @@ export interface OrganizationAuthPalette {
   primaryColor: string
   secondaryColor: string
   focusColor: string
+  /**
+   * Color para enlaces de texto sobre la tarjeta (p. ej. "¿Olvidaste tu
+   * contraseña?"). NO usar `primaryColor` para esto: es el color del BOTÓN de
+   * marca, pensado para ir de fondo con texto encima. Cuando la marca es oscura
+   * (azul marino) y la tarjeta también lo es, el enlace se volvía ilegible.
+   * El acento sí está diseñado para leerse sobre ambas superficies.
+   */
+  linkColor: string
   isDark: boolean
 }
 
@@ -33,6 +41,7 @@ export function buildOrganizationAuthPalette(
     primaryColor: loginStyles?.primary_button_color || 'var(--color-info)',
     secondaryColor: loginStyles?.secondary_button_color || 'var(--color-success)',
     focusColor: 'var(--color-accent)',
+    linkColor: 'var(--color-accent)',
     isDark,
   }
 }

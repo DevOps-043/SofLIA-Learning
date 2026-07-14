@@ -43,6 +43,19 @@ function createLoginFormData(overrides: Record<string, string> = {}) {
   return formData
 }
 
+/** Emula el filtro ilike de PostgREST sobre la fila simulada. */
+function matchesIlike(
+  user: Record<string, unknown>,
+  column: string,
+  pattern: string,
+): boolean {
+  const value = user[column]
+  return (
+    typeof value === 'string' &&
+    value.toLowerCase() === pattern.toLowerCase()
+  )
+}
+
 function createSupabaseMock(params: {
   user?: Record<string, unknown> | null
 }) {
@@ -74,8 +87,16 @@ function createSupabaseMock(params: {
       if (tableName === 'users') {
         return {
           select: vi.fn(() => ({
-            ilike: vi.fn(() => ({
-              maybeSingle: vi.fn().mockResolvedValue({ data: user, error: null }),
+            // findLoginUser lista filas (`.limit().returns()`) en vez de
+            // `.maybeSingle()`, porque varias cuentas pueden coincidir de forma
+            // case-insensitive y maybeSingle trata eso como error.
+            ilike: vi.fn((column: string, pattern: string) => ({
+              limit: vi.fn(() => ({
+                returns: vi.fn().mockResolvedValue({
+                  data: matchesIlike(user, column, pattern) ? [user] : [],
+                  error: null,
+                }),
+              })),
             })),
           })),
         }
@@ -93,6 +114,8 @@ describe('loginAction', () => {
     headersMock.mockResolvedValue(new Headers())
   })
 
+  // Cuenta sin usuario en Supabase Auth Y sin password_hash: no hay ninguna
+  // credencial contra la que autenticar. Aquí el mensaje de soporte SÍ procede.
   it('returns the legacy account configuration error when no Supabase Auth user or password hash exists', async () => {
     createAdminClientMock.mockReturnValue(createSupabaseMock({}))
 

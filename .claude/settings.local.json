@@ -328,7 +328,12 @@
       "PowerShell(cd \"C:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\\\\apps\\\\web\"; $env:NODE_OPTIONS='--max-old-space-size=6144'; npm run type-check:features; npx tsc --noEmit -p tsconfig.typecheck.scratch.json; npm run type-check:core)",
       "PowerShell(cd \"C:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\\\\apps\\\\web\"; $env:NODE_OPTIONS='--max-old-space-size=6144'; npm run type-check:features)",
       "Bash(cd \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\PulseHub\\\\Soflia-Learning\\\\SofLIA-Learning\\\\apps\\\\web\" && echo \"=== prompt injection detector API ===\" && grep -rn \"export\" src/lib/security/prompt-injection-detector.ts | head -15 && echo \"=== how lesson-auto-note calls injection detection \\(untrustedText\\) ===\" && grep -n \"detectPromptInjection\\\\|injection\\\\|untrustedText\\\\|assessPrompt\\\\|scanPrompt\" src/lib/ai/structured-generation.server.ts | head && echo \"=== resolveNotebookAuth shape ===\" && sed -n '19,44p' src/app/api/[orgSlug]/business-user/notebook/_shared.ts)",
-      "Bash(NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit -p tsconfig.json)"
+      "Bash(NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit -p tsconfig.json)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/auth/forgot-password)",
+      "Bash(node \"C:/Users/fysg5/AppData/Local/Temp/claude/c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning/6f5c0f1e-8aa6-4680-8ae8-792f2c3ecf08/scratchpad/probe-input-color.mjs\")",
+      "Bash(cp \"C:/Users/fysg5/AppData/Local/Temp/claude/c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning/6f5c0f1e-8aa6-4680-8ae8-792f2c3ecf08/scratchpad/probe-input-color.mjs\" ./probe-input-color.mjs)",
+      "Bash(node ./probe-input-color.mjs)",
+      "Bash(npx playwright *)"
     ],
     "deny": [],
     "ask": [],

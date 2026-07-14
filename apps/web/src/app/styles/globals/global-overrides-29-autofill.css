@@ -25,15 +25,24 @@ select:-webkit-autofill {
   transition: background-color 9999s ease-in-out 0s;
 }
 
-/* Superficies claras: el campo es blanco con texto oscuro. */
+/* Superficies claras: el campo es blanco con texto oscuro.
+
+   OJO con los tokens de gris: en el tema claro la escala está INVERTIDA a
+   propósito (`--color-gray-900` vale blanco, porque ahí se usa como fondo de
+   tarjeta). Usarlo como color de texto pintaba el autofill de blanco sobre
+   blanco y el usuario no veía lo que pegaba o autocompletaba.
+
+   Por eso el texto se ancla a `--color-primary` (azul marino en los tres
+   temas), que además es el mismo color que usan los inputs al teclear
+   (`text-primary`): pegar y teclear se ven idénticos. */
 :root {
-  --autofill-bg: #ffffff;
-  --autofill-text: var(--color-gray-900);
+  --autofill-bg: var(--color-bg-light);
+  --autofill-text: var(--color-primary);
 }
 
 /* Superficies oscuras (modo oscuro o tarjetas de login con branding). */
 .dark,
 [data-auth-surface='dark'] {
   --autofill-bg: transparent;
-  --autofill-text: #ffffff;
+  --autofill-text: var(--color-bg-light);
 }
