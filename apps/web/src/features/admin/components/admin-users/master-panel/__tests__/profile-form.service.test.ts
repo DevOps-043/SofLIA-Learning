@@ -16,7 +16,6 @@ describe('master-panel/profile-form.service', () => {
       last_name: 'User',
       display_name: null,
       cargo_rol: 'Administrador',
-      type_rol: 'admin',
       email_verified: true,
       phone: null,
       bio: null,
@@ -37,17 +36,16 @@ describe('master-panel/profile-form.service', () => {
   it('normaliza el formulario de cuenta con defaults seguros', () => {
     expect(createAccountFormData(null)).toEqual({
       cargo_rol: 'Usuario',
-      type_rol: '',
       email_verified: false,
     })
 
     expect(
       createAccountFormData({
         cargo_rol: 'Business',
-        type_rol: 'ops',
+        
         email_verified: true,
       } as never),
-    ).toEqual({ cargo_rol: 'Business', type_rol: 'ops', email_verified: true })
+    ).toEqual({ cargo_rol: 'Business',  email_verified: true })
   })
 
   it('actualiza campos del perfil sin romper el shape', () => {

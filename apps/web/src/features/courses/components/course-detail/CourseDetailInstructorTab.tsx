@@ -26,28 +26,10 @@ export function CourseDetailInstructorTab({ course, instructor }: CourseDetailIn
 
         <div className="flex-1 min-w-0">
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{instructorName}</h3>
-          {(instructor?.cargo_rol || instructor?.type_rol) && (
-            <p className="text-gray-600 dark:text-slate-300 text-lg mb-3">{instructor.cargo_rol || instructor.type_rol}</p>
+          {instructor?.cargo_rol && (
+            <p className="text-gray-600 dark:text-slate-300 text-lg mb-3">{instructor.cargo_rol}</p>
           )}
           {instructor?.location && <p className="text-gray-600 dark:text-slate-300 mb-4">{instructor.location}</p>}
-
-          <div className="flex items-center gap-3 flex-wrap">
-            {instructor?.linkedin_url && (
-              <a href={instructor.linkedin_url} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg border border-blue-600/30 transition-colors text-sm font-medium">
-                LinkedIn
-              </a>
-            )}
-            {instructor?.github_url && (
-              <a href={instructor.github_url} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gray-700/20 hover:bg-gray-700/30 text-gray-300 rounded-lg border border-gray-600/30 transition-colors text-sm font-medium">
-                GitHub
-              </a>
-            )}
-            {instructor?.website_url && (
-              <a href={instructor.website_url} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg border border-primary/30 transition-colors text-sm font-medium">
-                Portafolio
-              </a>
-            )}
-          </div>
         </div>
       </div>
 

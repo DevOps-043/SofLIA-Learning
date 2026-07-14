@@ -12,7 +12,6 @@ export interface UserProfile {
   bio: string
   location: string
   cargo_rol: string
-  type_rol: string
   job_title: string
   job_description: string
   profile_picture_url: string
@@ -37,7 +36,6 @@ export interface UpdateProfileRequest {
   bio?: string
   location?: string
   cargo_rol?: string
-  type_rol?: string
   job_title?: string
   job_description?: string
   profile_picture_url?: string

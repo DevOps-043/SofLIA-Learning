@@ -128,17 +128,10 @@ async function handlePost(
         return apiError('PROFILE_UPDATE_FAILED', 'Error al actualizar el perfil', 500);
       }
 
-      const { error: userError } = await supabase
-        .from('users')
-        .update({
-          type_rol: cargo_titulo,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
-
-      if (userError) {
-        logger.error('Error updating user type_rol:', userError);
-      }
+      // El cargo del usuario ya queda guardado en `user_perfil.cargo_titulo`
+      // (y, dentro de una organización, en `organization_users.job_title`).
+      // Antes se replicaba en `users.type_rol`, columna que fue eliminada de la
+      // base: ese UPDATE fallaba en cada guardado de perfil.
 
       result = data;
     } else {
@@ -175,18 +168,7 @@ async function handlePost(
         return apiError('PROFILE_CREATE_FAILED', 'Error al crear el perfil', 500);
       }
 
-      const { error: userError } = await supabase
-        .from('users')
-        .update({
-          type_rol: cargo_titulo,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
-
-      if (userError) {
-        logger.error('Error updating user type_rol:', userError);
-      }
-
+      // Ver nota de arriba: `users.type_rol` ya no existe.
       result = data;
     }
 

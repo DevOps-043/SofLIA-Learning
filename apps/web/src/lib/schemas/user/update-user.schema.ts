@@ -18,7 +18,6 @@ export const UpdateUserSchema = z.object({
   display_name: z.string().optional().nullable(),
   username: UserNameSchema.optional(),
   cargo_rol: UserRoleEnumSchema.optional(),
-  type_rol: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
   location: z.string().optional().nullable(),
   country_code: z.string().optional().nullable(),

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Github, Globe, GraduationCap, Linkedin, Mail } from 'lucide-react'
+import { GraduationCap, Mail } from 'lucide-react'
 import type { BusinessCourseDetail } from '../../types/business-course-detail.types'
 
 interface BusinessCourseInstructorTabProps {
@@ -66,41 +66,6 @@ export function BusinessCourseInstructorTab({
                   Instructor
                 </p>
               )}
-              <div className="flex flex-wrap items-center gap-3">
-                {course.instructor.linkedin_url ? (
-                  <a
-                    href={course.instructor.linkedin_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
-                    style={{ backgroundColor: `color-mix(in srgb, ${accentColor} 12.5%, transparent)`, color: accentColor }}
-                  >
-                    <Linkedin className="h-5 w-5" />
-                  </a>
-                ) : null}
-                {course.instructor.github_url ? (
-                  <a
-                    href={course.instructor.github_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
-                    style={{ backgroundColor: `color-mix(in srgb, ${textColor} 7.1%, transparent)`, color: textColor }}
-                  >
-                    <Github className="h-5 w-5" />
-                  </a>
-                ) : null}
-                {course.instructor.website_url ? (
-                  <a
-                    href={course.instructor.website_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
-                    style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 12.5%, transparent)`, color: primaryColor }}
-                  >
-                    <Globe className="h-5 w-5" />
-                  </a>
-                ) : null}
-              </div>
             </div>
           </div>
 

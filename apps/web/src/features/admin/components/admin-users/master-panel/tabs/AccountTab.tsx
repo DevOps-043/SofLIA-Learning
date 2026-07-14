@@ -45,15 +45,6 @@ export function AccountTab(props: AccountTabProps) {
               icon={<ShieldCheck className="h-4 w-4" />}
             />
           </div>
-          <div>
-            <label className={FIELD_LABEL_CLASS}>{t('admin:users.demographics.roleType')}</label>
-            <input
-              type="text"
-              value={props.formData.type_rol}
-              onChange={(e) => props.setField('type_rol', e.target.value)}
-              className={FIELD_INPUT_CLASS}
-            />
-          </div>
         </div>
 
         <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-gray-200/50 p-4 dark:border-gray-500/30 dark:bg-carbon-950">

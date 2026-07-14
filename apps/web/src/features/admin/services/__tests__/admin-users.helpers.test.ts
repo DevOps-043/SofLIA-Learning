@@ -38,7 +38,6 @@ describe('admin-users.helpers', () => {
       email: 'ada@example.com',
       cargo_rol: 'Administrador',
       first_name: null,
-      type_rol: null,
       date_of_birth: '1990-05-10',
       gender: 'female',
       email_verified: true,

@@ -26,7 +26,7 @@ export async function GET() {
   ] = await Promise.all([
     supabase
       .from('users')
-      .select('id, username, email, first_name, last_name, display_name, phone, bio, location, country_code, date_of_birth, gender, cargo_rol, type_rol, profile_picture_url, notification_email, notification_push, notification_marketing, notification_course_updates, notification_community_updates, created_at, updated_at, last_login_at')
+      .select('id, username, email, first_name, last_name, display_name, phone, bio, location, country_code, date_of_birth, gender, cargo_rol, profile_picture_url, notification_email, notification_push, notification_marketing, notification_course_updates, notification_community_updates, created_at, updated_at, last_login_at')
       .eq('id', user.id)
       .maybeSingle(),
     supabase

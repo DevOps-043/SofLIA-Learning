@@ -28,7 +28,10 @@ describe('profile.shared', () => {
     })
   })
 
-  it('filters profile updates to the allowed fields', () => {
+  // `type_rol` fue eliminada de la tabla `users` (el cargo vive ahora en
+  // `organization_users.job_title`), así que ya no puede colarse en el UPDATE:
+  // PostgREST rechazaba la consulta entera con "column does not exist".
+  it('filters profile updates to the allowed fields and drops the removed type_rol', () => {
     expect(
       pickAllowedProfileUpdates({
         first_name: 'Ada',
@@ -37,11 +40,10 @@ describe('profile.shared', () => {
         type_rol: 'Data Lead',
         date_of_birth: '1990-05-10',
         gender: 'female'
-      })
+      } as Parameters<typeof pickAllowedProfileUpdates>[0])
     ).toEqual({
       first_name: 'Ada',
       bio: 'Engineer',
-      type_rol: 'Data Lead',
       date_of_birth: '1990-05-10',
       gender: 'female'
     })
@@ -58,11 +60,10 @@ describe('profile.shared', () => {
         {
           first_name: 'Ada',
           last_name: 'Byron',
-          bio: 'Engineer',
-          type_rol: 'Data Lead'
+          bio: 'Engineer'
         }
       )
-    ).toEqual(['last_name', 'type_rol'])
+    ).toEqual(['last_name'])
   })
 
   it('forces readable light-mode colors when dashboard styles are white', () => {

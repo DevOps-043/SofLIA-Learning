@@ -17,7 +17,6 @@ export type ChatUserInfo = Pick<
   | 'first_name'
   | 'last_name'
   | 'profile_picture_url'
-  | 'type_rol'
 > & {
   job_title?: string | null
   job_description?: string | null
@@ -110,7 +109,7 @@ async function loadChatUserInfo(
   const { data, error } = await supabase
     .from('users')
     .select(
-      'display_name, username, first_name, last_name, profile_picture_url, type_rol',
+      'display_name, username, first_name, last_name, profile_picture_url',
     )
     .eq('id', authenticatedUser.id)
     .single()
@@ -162,7 +161,6 @@ export async function resolveChatUserContext({
           databaseUserInfo?.profile_picture_url,
           requestInfo?.profile_picture_url,
         ),
-        type_rol: preferTruthy(databaseUserInfo?.type_rol, requestInfo?.type_rol),
         job_title: preferTruthy(
           organizationAiContext?.userJobTitle,
           databaseUserInfo?.job_title,
@@ -186,8 +184,10 @@ export async function resolveChatUserContext({
       userName,
     ) || 'usuario'
 
+  // El cargo del usuario vive en `organization_users.job_title` (la antigua
+  // `users.type_rol` fue eliminada de la base).
   const userRole =
-    userInfo?.job_title || userInfo?.type_rol || courseContext?.userRole || undefined
+    userInfo?.job_title || courseContext?.userRole || undefined
   const userRoleDescription = userInfo?.job_description || undefined
   const normalizedCourseContext =
     courseContext && userRole && !courseContext.userRole

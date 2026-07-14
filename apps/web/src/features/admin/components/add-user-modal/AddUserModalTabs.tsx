@@ -214,14 +214,6 @@ export function AddUserModalTabs({ activeTab, formData, onChange, onRoleChange, 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                {t('admin:users.demographics.roleType')}
-              </label>
-              <input type="text" name="type_rol" value={formData.type_rol} onChange={onChange}
-                className="w-full px-4 py-2.5 bg-white dark:bg-carbon-950 border border-gray-200 dark:border-gray-500/30 rounded-xl text-primary dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-accent/40 focus:border-transparent transition-all duration-200" />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">
                 {t('admin:users.demographics.profilePictureUrl')}
               </label>
               <input type="url" name="profile_picture_url" value={formData.profile_picture_url} onChange={onChange} placeholder="https://..."

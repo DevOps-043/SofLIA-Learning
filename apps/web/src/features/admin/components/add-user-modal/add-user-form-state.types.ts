@@ -10,7 +10,6 @@ export interface NewAdminUserData {
   last_name: string
   display_name: string
   cargo_rol: string
-  type_rol: string
   phone: string
   date_of_birth: string
   gender: UserGender | ''
@@ -18,8 +17,6 @@ export interface NewAdminUserData {
   location: string
   profile_picture_url: string
   curriculum_url: string
-  linkedin_url: string
-  github_url: string
   website_url: string
   points: number
   country_code: string

@@ -176,7 +176,7 @@ export async function GET(
     if (instructorId) {
       const { data: instructorData, error: instructorError } = await supabase
         .from('users')
-        .select('id, first_name, last_name, display_name, username, email, profile_picture_url, bio, linkedin_url, github_url, website_url, location, cargo_rol, type_rol')
+        .select('id, first_name, last_name, display_name, username, email, profile_picture_url, bio, location, cargo_rol')
         .eq('id', instructorId)
         .single()
 
@@ -192,12 +192,8 @@ export async function GET(
           email: instructorData.email || '',
           profile_picture_url: instructorData.profile_picture_url,
           bio: instructorData.bio,
-          linkedin_url: instructorData.linkedin_url,
-          github_url: instructorData.github_url,
-          website_url: instructorData.website_url,
           location: instructorData.location,
-          cargo_rol: instructorData.cargo_rol,
-          type_rol: instructorData.type_rol
+          cargo_rol: instructorData.cargo_rol
         }
         logger.info(`✅ Instructor loaded: ${name}`)
       } else {

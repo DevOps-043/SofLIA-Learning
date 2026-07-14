@@ -6,7 +6,7 @@ import type {
 } from './business-course-detail.server.types'
 
 const INSTRUCTOR_SELECT =
-  'id, first_name, last_name, display_name, username, email, profile_picture_url, bio, linkedin_url, github_url, website_url, location, cargo_rol, type_rol'
+  'id, first_name, last_name, display_name, username, email, profile_picture_url, bio, location, cargo_rol'
 
 export function mapInstructor(
   instructor: InstructorRow | null,
@@ -23,12 +23,8 @@ export function mapInstructor(
     email: instructor.email || '',
     profile_picture_url: instructor.profile_picture_url,
     bio: instructor.bio,
-    linkedin_url: instructor.linkedin_url,
-    github_url: instructor.github_url,
-    website_url: instructor.website_url,
     location: instructor.location,
     cargo_rol: instructor.cargo_rol,
-    type_rol: instructor.type_rol,
   }
 }
 
