@@ -1,4 +1,0 @@
-
-> @aprende-y-aplica/web@1.0.0 type-check
-> tsc --noEmit -p tsconfig.typecheck.json
-

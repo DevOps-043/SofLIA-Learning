@@ -1,9 +1,0 @@
-{
-  "extends": "../apps/web/tsconfig.json",
-  "include": [
-    "../apps/web/src/app/api/study-planner/sessions/update/study-planner-session-update.types.ts",
-    "../apps/web/src/app/api/study-planner/sessions/update/study-planner-session-update.utils.ts",
-    "../apps/web/src/app/api/study-planner/sessions/update/study-planner-session-update.db.ts",
-    "../apps/web/src/app/api/study-planner/sessions/update/study-planner-session-update.server.service.ts"
-  ]
-}
