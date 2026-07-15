@@ -16,10 +16,6 @@ export function finalizeUserDetails(context: BuildContext): ReportsAnalyticsUser
         calculateAverage(stats.sofliaQualityScores),
         calculateAverage(stats.notesQualityScores),
       ])
-      stats.detail.plannerAdherenceRate = calculatePercentage(
-        stats.detail.completedSessions,
-        stats.detail.plannedSessions,
-      )
       stats.detail.lastActivityAt = getLatestDate(stats.lastActivityDates)
       return stats.detail
     })

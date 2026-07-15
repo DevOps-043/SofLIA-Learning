@@ -39,7 +39,6 @@ const PUBLIC_EXACT_PATHS = new Set([
   '/api/security/automation-signal',
   '/api/security/csp-report',
   '/api/security/verify-human',
-  '/api/study-planner/calendar/callback',
   '/api/youtube/video-info',
 ])
 
@@ -58,8 +57,6 @@ const AUTHENTICATED_PREFIXES = [
   '/api/my-courses',
   '/api/notifications',
   '/api/profile',
-  '/api/study-planner',
-  '/api/study-planner-chat',
   '/api/tours',
   '/api/upload',
   '/api/users',

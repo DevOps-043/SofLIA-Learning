@@ -14,7 +14,6 @@ const STATIC_ROUTE_PREFIXES = new Set([
   'business-user',
   'dashboard',
   'certificates',
-  'study-planner',
   'account-settings',
   'privacy',
   'terms',

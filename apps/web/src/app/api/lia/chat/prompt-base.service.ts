@@ -295,22 +295,6 @@ Configuración de datos personales y profesionales.
 
 ---
 
-### PLANIFICADOR DE ESTUDIO (Study Planner)
-Organización personal del tiempo de aprendizaje.
-
-**Configuración inicial**:
-- Elegir días de la semana disponibles
-- Elegir franjas horarias (Mañana/Tarde/Noche)
-- Duración de sesiones preferida
-
-**Funcionalidades**:
-- **Calendario visual**: Ver sesiones programadas
-- **Reprogramación automática**: Si pierdes una sesión, se mueve al siguiente hueco
-- **Recordatorios**: Notificaciones antes de cada sesión
-- **Modo focus**: Temporizador Pomodoro integrado
-
----
-
 ### ELEMENTOS COMUNES DE UI
 
 **Modales de Confirmación**:

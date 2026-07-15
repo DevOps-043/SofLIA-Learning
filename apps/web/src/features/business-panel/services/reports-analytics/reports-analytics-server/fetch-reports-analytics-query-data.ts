@@ -12,7 +12,6 @@ import { fetchOrganizationTeams } from './fetch-organization-teams'
 import { fetchOrganizationUsers } from './fetch-organization-users'
 import { fetchOrganizationZones } from './fetch-organization-zones'
 import { fetchQuizSubmissionRecords } from './fetch-quiz-submission-records'
-import { fetchStudySessionRecords } from './fetch-study-session-records'
 import { uniqueValues } from './unique-values'
 import type { AnalyticsQueryData } from './analytics-query-data'
 import type { ReportsAnalyticsSupabaseClient } from './reports-analytics-supabase-client'
@@ -41,7 +40,6 @@ export async function fetchReportsAnalyticsQueryData(
     lessonNotes,
     liaConversations,
     quizSubmissions,
-    studySessions,
   ] = await Promise.all([
     fetchOrganizationRegions(hierarchySupabase, organizationId),
     fetchOrganizationZones(hierarchySupabase, organizationId),
@@ -54,7 +52,6 @@ export async function fetchReportsAnalyticsQueryData(
     fetchLessonNoteRecords(supabase, organizationUserIds, dateRange),
     fetchLiaConversationRecords(supabase, organizationUserIds, dateRange),
     fetchQuizSubmissionRecords(supabase, organizationUserIds, dateRange),
-    fetchStudySessionRecords(supabase, organizationUserIds, dateRange),
   ])
 
   const [liaMessages, activityEvaluations] = await Promise.all([
@@ -77,6 +74,5 @@ export async function fetchReportsAnalyticsQueryData(
     liaConversations,
     liaMessages,
     quizSubmissions,
-    studySessions,
   }
 }

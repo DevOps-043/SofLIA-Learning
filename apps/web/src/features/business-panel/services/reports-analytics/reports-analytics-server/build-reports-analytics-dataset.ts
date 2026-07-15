@@ -8,7 +8,6 @@ import { buildFilterOptions } from './build-filter-options'
 import { buildLearning } from './build-learning'
 import { buildNotes } from './build-notes'
 import { buildOverviewMetrics } from './build-overview-metrics'
-import { buildPlanner } from './build-planner'
 import { buildQuality } from './build-quality'
 import { buildRankings } from './build-rankings'
 import { buildSegments } from './build-segments'
@@ -40,7 +39,6 @@ export function buildReportsAnalyticsDataset(
     queryData.quizSubmissions,
   )
   const notes = buildNotes(context, queryData.lessonNotes, totalUsers)
-  const planner = buildPlanner(context, queryData.studySessions)
   const quality = buildQuality(
     context,
     queryData.activityCompletions,
@@ -73,7 +71,6 @@ export function buildReportsAnalyticsDataset(
     activities,
     quality,
     notes,
-    planner,
     loginHeatmap: buildLoginHeatmap(context.dimensions.map((dimension) => dimension.lastConnectionAt)),
     connectionCalendar: buildConnectionCalendar(
       context.dimensions.map((dimension) => dimension.lastConnectionAt),

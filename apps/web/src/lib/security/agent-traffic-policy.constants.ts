@@ -34,7 +34,6 @@ export const SENSITIVE_PATH_PATTERNS = [
   /^\/dashboard(?:\/|$)/,
   /^\/profile(?:\/|$)/,
   /^\/account-settings(?:\/|$)/,
-  /^\/study-planner(?:\/|$)/,
   /^\/certificates(?:\/|$)/,
   /^\/business-panel(?:\/|$)/,
   /^\/business-user(?:\/|$)/,

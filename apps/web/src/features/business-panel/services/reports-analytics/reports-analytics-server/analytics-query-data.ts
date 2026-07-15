@@ -12,7 +12,6 @@ import type { OrganizationTeamRecord } from './organization-team-record'
 import type { OrganizationUserRecord } from './organization-user-record'
 import type { OrganizationZoneRecord } from './organization-zone-record'
 import type { QuizSubmissionRecord } from './quiz-submission-record'
-import type { StudySessionRecord } from './study-session-record'
 
 export interface AnalyticsQueryData {
   organizationUsers: OrganizationUserRecord[]
@@ -29,5 +28,4 @@ export interface AnalyticsQueryData {
   liaConversations: LiaConversationRecord[]
   liaMessages: LiaMessageRecord[]
   quizSubmissions: QuizSubmissionRecord[]
-  studySessions: StudySessionRecord[]
 }

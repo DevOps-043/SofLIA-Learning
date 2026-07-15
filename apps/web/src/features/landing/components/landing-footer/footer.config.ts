@@ -4,7 +4,6 @@ export const footerSections = [
     links: [
       { key: 'features', href: '#capabilities' },
       { key: 'lia', href: '#platform' },
-      { key: 'studyPlanner', href: '#platform' },
       { key: 'analytics', href: '#platform' },
       { key: 'downloads', href: '/downloads' },
       { key: 'certificates', href: '#platform' },

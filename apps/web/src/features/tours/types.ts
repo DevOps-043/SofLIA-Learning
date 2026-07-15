@@ -11,7 +11,6 @@ export type TourId =
   | 'business-panel-analytics'
   | 'business-panel-learning-paths'
   | 'business-user-analytics'
-  | 'study-planner-dashboard'
   | 'course-learn'
   | 'admin-dashboard'
   | 'admin-users'

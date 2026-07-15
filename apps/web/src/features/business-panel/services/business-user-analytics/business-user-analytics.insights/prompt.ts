@@ -14,7 +14,6 @@ export function buildSystemPrompt(locale: BusinessUserAnalyticsLocale): string {
     '- learning.courses: per-course progress (0–100), lessons completed, has_certificate, last_activity_at',
     '- learning.progressDistribution: breakdown of learners by progress bucket (Not started / In progress / Completed)',
     '- aiAdoption: SofLIA conversation count, messages, question quality score, adoption score, off-topic rate, redirect rate, context breakdown',
-    '- planning: planned vs completed vs missed sessions, adherence rate, rescheduled sessions',
     '- notes: total notes, manual vs auto-generated, lessons with notes, notes score, average length',
     '- activities: submissions, pass rate, average quality score, average response length, with SofLIA feedback',
     '- quizzes: quizzes taken vs passed, pass rate, first-try pass rate, average score, retries',

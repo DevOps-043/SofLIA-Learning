@@ -10,8 +10,6 @@ import { assertOrganizationUserMembership } from './query.service'
 import type {
   CertificateRow,
   DeleteTarget,
-  ScormAttemptRow,
-  UserPerfilRow,
 } from './types'
 
 type BusinessUsersAdminClient = ReturnType<typeof createBusinessUsersAdminClient>
@@ -66,53 +64,6 @@ async function deleteCertificateDependencies(
   await deleteFromTable(supabase, { tableName: 'user_course_certificates' }, userId)
 }
 
-async function deleteScormDependencies(
-  supabase: BusinessUsersAdminClient,
-  userId: string,
-) {
-  const { data: scormAttempts } = await fromLoose<ScormAttemptRow>(
-    supabase,
-    'scorm_attempts',
-  )
-    .select('id')
-    .eq('user_id', userId)
-
-  if (scormAttempts?.length) {
-    const attemptIds = scormAttempts.map((attempt) => attempt.id)
-
-    await Promise.all([
-      fromLoose(supabase, 'scorm_interactions')
-        .delete()
-        .in('attempt_id', attemptIds),
-      fromLoose(supabase, 'scorm_objectives')
-        .delete()
-        .in('attempt_id', attemptIds),
-    ])
-  }
-
-  await deleteFromTable(supabase, { tableName: 'scorm_attempts' }, userId)
-}
-
-async function deleteUserPerfilDependencies(
-  supabase: BusinessUsersAdminClient,
-  userId: string,
-) {
-  const { data: profiles } = await fromLoose<UserPerfilRow>(supabase, 'user_perfil')
-    .select('id')
-    .eq('user_id', userId)
-
-  if (profiles?.length) {
-    await fromLoose(supabase, 'respuestas')
-      .delete()
-      .in(
-        'user_perfil_id',
-        profiles.map((profile) => profile.id),
-      )
-  }
-
-  await deleteFromTable(supabase, { tableName: 'user_perfil' }, userId)
-}
-
 async function clearOwnershipReferences(
   supabase: BusinessUsersAdminClient,
   userId: string,
@@ -145,8 +96,6 @@ export async function deleteOrganizationUser(
 
   await Promise.all([
     deleteCertificateDependencies(supabase, userId),
-    deleteScormDependencies(supabase, userId),
-    deleteUserPerfilDependencies(supabase, userId),
     clearOwnershipReferences(supabase, userId),
   ])
 

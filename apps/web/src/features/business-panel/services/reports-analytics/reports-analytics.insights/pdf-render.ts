@@ -55,7 +55,6 @@ function addOperationalSnapshot(ctx: ReturnType<typeof createInsightsPdfContext>
     { label: labels.users, value: dataset.overview.totalUsers, detail: labels.activeUsers + ': ' + dataset.overview.activeLearners + ' (' + dataset.overview.activeLearnerRate + '%)' },
     { label: labels.learning, value: dataset.learning.completedCourses + '/' + dataset.learning.assignedCourses, detail: labels.averageCompletionDays + ': ' + dataset.learning.averageCompletionDays },
     { label: labels.notes, value: dataset.overview.notesAdoptionRate + '%', detail: dataset.notes.totalNotes + ' ' + labels.notesCreated },
-    { label: labels.planner, value: dataset.overview.plannerAdherenceRate + '%', detail: dataset.planner.completedSessions + '/' + dataset.planner.plannedSessions },
   ], header)
 }
 

@@ -5,9 +5,8 @@ import { motion, useInView, type Variants } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import { 
-  Bot, 
-  CalendarDays, 
-  LineChart, 
+  Bot,
+  LineChart,
   GraduationCap,
   Shield,
   ArrowRight,
@@ -24,11 +23,6 @@ const platformFeatures = [
     key: 'liaAssistant',
     icon: Sparkles,
     color: 'var(--color-secondary)',
-  },
-  {
-    key: 'studyPlanner',
-    icon: CalendarDays,
-    color: 'var(--color-warning)',
   },
   {
     key: 'analytics',

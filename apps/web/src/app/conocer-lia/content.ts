@@ -11,7 +11,6 @@ import {
   Users,
   Clock,
   TrendingUp,
-  Calendar,
   Cpu,
   Network,
 } from 'lucide-react';
@@ -101,77 +100,6 @@ export const liaCapabilities: LiaHighlightCard[] = [
       'Estudia con SofLIA de tu propia manera, de forma personalizada. Pregunta lo que consideres necesario y profundiza en el conocimiento.',
     color: 'var(--color-primary)',
     examples: ['Adaptado a tu nivel', 'Respuestas contextualizadas', 'Aprendizaje personalizado'],
-  },
-];
-
-export const liaStudyPlannerFeatures: LiaHighlightCard[] = [
-  {
-    icon: Target,
-    title: 'Generación Automática con IA',
-    description:
-      'LIA crea tu plan de estudios considerando tu rol profesional, perfil completo, cursos adquiridos y progreso actual. Todo adaptado a tu disponibilidad y preferencias.',
-    color: 'var(--color-accent)',
-    features: [
-      'Análisis de tu perfil profesional',
-      'Cálculo de disponibilidad granular',
-      'Distribución inteligente de lecciones',
-      'Ajuste según tu progreso',
-    ],
-  },
-  {
-    icon: Clock,
-    title: 'Gestión Inteligente de Tiempo',
-    description:
-      'LIA calcula tiempos mínimos por lección, considera duración de videos, actividades y materiales. Valida que tu plan sea realista y alcanzable.',
-    color: 'var(--color-success)',
-    features: [
-      'Cálculo preciso de tiempos',
-      'Validación de tiempos mínimos',
-      'Sesiones cortas, medianas o largas',
-      'Optimización de tu tiempo',
-    ],
-  },
-  {
-    icon: Navigation,
-    title: 'Rutas Personalizadas',
-    description:
-      'LIA propone rutas de aprendizaje basadas en tu nivel, área profesional y objetivos. Te sugiere el siguiente paso más adecuado para ti.',
-    color: 'var(--color-warning)',
-    features: [
-      'Rutas adaptadas a tu nivel',
-      'Secuencias optimizadas',
-      'Recomendaciones contextuales',
-      'Progresión natural',
-    ],
-  },
-  {
-    icon: TrendingUp,
-    title: 'Seguimiento de Progreso',
-    description:
-      'LIA monitorea tu avance, detecta patrones de estudio y ajusta tu plan dinámicamente. Te ayuda a mantener rachas y cumplir objetivos.',
-    color: 'var(--color-primary)',
-    features: ['Monitoreo continuo', 'Ajustes automáticos', 'Sistema de rachas', 'Métricas de progreso'],
-  },
-  {
-    icon: Calendar,
-    title: 'Integración con Calendarios',
-    description:
-      'LIA sincroniza tu plan de estudios con tus calendarios externos. Respeta tus compromisos y encuentra los mejores momentos para estudiar.',
-    color: 'var(--color-accent)',
-    features: [
-      'Sincronización automática',
-      'Detección de conflictos',
-      'Reagendamiento inteligente',
-      'Recordatorios personalizados',
-    ],
-  },
-  {
-    icon: Brain,
-    title: 'Mejores Prácticas de Estudio',
-    description:
-      'LIA aplica técnicas comprobadas como repetición espaciada, práctica distribuida y recall activo para maximizar tu retención y aprendizaje.',
-    color: 'var(--color-success)',
-    features: ['Repetición espaciada', 'Práctica distribuida', 'Técnica Pomodoro', 'Recall activo'],
   },
 ];
 

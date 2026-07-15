@@ -121,10 +121,6 @@ Esto te servirá para responder preguntas técnicas o sobre disponibilidad de da
 
 ### OTRAS TABLAS IMPORTANTES
 
-**study_plans** (Planificador de estudios)
-- user_id, goal_hours_per_week
-- preferred_days, preferred_time_blocks
-
 **user_streaks** (Rachas de estudio)
 - user_id, current_streak, longest_streak
 - total_study_minutes

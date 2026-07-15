@@ -16,7 +16,6 @@ import { createBusinessAnalyticsRouter } from '@/features/business/analytics/ana
 import { createCoursesRouter } from '@/features/courses/courses.routes'
 import { createNotificationsRouter } from '@/features/notifications/notifications.routes'
 import { createProfileRouter } from '@/features/profile/profile.routes'
-import { createStudyPlannerRouter } from '@/features/study-planner/study-planner.routes'
 import {
   secureCorsMiddleware,
   validateCORSConfiguration,
@@ -89,7 +88,6 @@ export function createApp() {
   app.use(`/api/${apiVersion}/business`, createBusinessAnalyticsRouter())
   app.use(`/api/${apiVersion}/courses`, createCoursesRouter())
   app.use(`/api/${apiVersion}/profile`, createProfileRouter())
-  app.use(`/api/${apiVersion}/study-planner`, createStudyPlannerRouter())
 
   app.use(notFoundHandler)
   app.use(errorHandler)

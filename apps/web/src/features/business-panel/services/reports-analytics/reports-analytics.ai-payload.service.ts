@@ -17,7 +17,6 @@ export function buildReportsAnalyticsAiPayload(dataset: ReportsAnalyticsDataset)
     quality: dataset.quality,
     soflia: dataset.soflia,
     notes: dataset.notes,
-    planner: dataset.planner,
     courses: dataset.courses.slice(0, 20),
     dataQuality: dataset.dataQuality,
     connectionCalendar: dataset.connectionCalendar

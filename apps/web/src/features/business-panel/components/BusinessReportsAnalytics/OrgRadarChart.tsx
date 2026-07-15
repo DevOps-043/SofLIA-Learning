@@ -50,11 +50,6 @@ function buildRadarData(
       value: Math.round(overview.sofliaAdoptionRate),
       benchmark: BENCHMARK,
     },
-    {
-      axis: t('reportsAnalytics.radar.planner'),
-      value: Math.round(overview.plannerAdherenceRate),
-      benchmark: BENCHMARK,
-    },
   ]
 }
 

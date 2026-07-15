@@ -52,8 +52,7 @@ const criticalPages = [
   '/[orgSlug]/business-panel/courses',
   '/[orgSlug]/business-panel/users',
   '/[orgSlug]/business-user/dashboard',
-  '/courses/[slug]/learn',
-  '/study-planner/dashboard'
+  '/courses/[slug]/learn'
 ];
 
 criticalPages.forEach(page => {

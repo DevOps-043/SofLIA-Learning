@@ -11,7 +11,6 @@ import { buildCourseTitleMap } from './build-course-title-map'
 import { buildLatestEvaluationBySubmission } from './build-latest-evaluation-by-submission'
 import { buildLearningSummary } from './build-learning-summary'
 import { buildNotes } from './build-notes'
-import { buildPlanning } from './build-planning'
 import { buildQuality } from './build-quality'
 import { buildQuizzes } from './build-quizzes'
 import { collectContributionDates } from './collect-contribution-dates'
@@ -41,7 +40,6 @@ export async function fetchBusinessUserAnalyticsDataset({
   const completedCourseIds = buildCompletedCourseIds(data.assignments, data.enrollments)
 
   const aiAdoption = buildAiAdoption(data, period)
-  const planning = buildPlanning(data, period)
   const notes = buildNotes(data, period, courseSummary.lessonsCompleted)
   const activities = buildActivities(data, period, evaluationsBySubmission, completedCourseIds)
   const quizzes = buildQuizzes(data, period)
@@ -68,7 +66,6 @@ export async function fetchBusinessUserAnalyticsDataset({
     }),
     learning: buildLearningSummary(data, period, courseRows),
     aiAdoption,
-    planning,
     notes,
     activities,
     quizzes,

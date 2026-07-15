@@ -34,12 +34,10 @@ export interface GenerateAiChatResponseResult {
 }
 
 function resolveAssistantLanguage(
-  context: string,
+  _context: string,
   language: SupportedLanguage,
 ): SupportedLanguage {
-  return context === 'study-planner' || context === 'study-planner-availability'
-    ? 'es'
-    : language
+  return language
 }
 
 export function shouldUseGeminiForContext(

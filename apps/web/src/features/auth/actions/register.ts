@@ -150,7 +150,6 @@ export async function registerAction(formData: FormData) {
       }
     }
 
-    await createOptionalInitialProfile(provisioned.userId, parsed.cargo_titulo)
     recordSecurityEvent('registration-success', {
       actorId: provisioned.userId,
       actorRole: cargoRol,
@@ -350,21 +349,3 @@ async function consumeRegistrationInvitation(input: {
     : { error: result.error || 'Error al consumir la invitacion' }
 }
 
-async function createOptionalInitialProfile(
-  userId: string,
-  cargoTitulo?: string,
-) {
-  if (!cargoTitulo?.trim()) return
-
-  try {
-    const adminSupabase = createAdminClient()
-    await adminSupabase.from('user_perfil').insert({
-      actualizado_en: new Date().toISOString(),
-      cargo_titulo: cargoTitulo.trim(),
-      creado_en: new Date().toISOString(),
-      user_id: userId,
-    })
-  } catch {
-    // Questionnaire/profile completion can repair this later.
-  }
-}

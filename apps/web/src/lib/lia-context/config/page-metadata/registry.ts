@@ -6,7 +6,6 @@ import { businessUserAnalyticsMetadata } from './routes/business-user-analytics/
 import { businessUserNotebookMetadata } from './routes/business-user-notebook/metadata';
 import { businessUserNotebookEditorMetadata } from './routes/business-user-notebook-editor/metadata';
 import { courseLearnMetadata } from './routes/course-learn/metadata';
-import { studyPlannerDashboardMetadata } from './routes/study-planner-dashboard/metadata';
 import { businessPanelDashboardMetadata } from './routes/business-panel-dashboard/metadata';
 import { businessPanelProgressMetadata } from './routes/business-panel-progress/metadata';
 import { businessPanelReportsMetadata } from './routes/business-panel-reports/metadata';
@@ -37,8 +36,6 @@ import { instructorCoursesMetadata } from './routes/instructor-courses/metadata'
 import { instructorNewCourseMetadata } from './routes/instructor-new-course/metadata';
 import { appsDirectoryMetadata } from './routes/apps-directory/metadata';
 import { promptDirectoryMetadata } from './routes/prompt-directory/metadata';
-import { studyPlannerCreateMetadata } from './routes/study-planner-create/metadata';
-import { studyPlannerCalendarMetadata } from './routes/study-planner-calendar/metadata';
 import { onboardingWelcomeMetadata } from './routes/onboarding-welcome/metadata';
 import { liaLandingMetadata } from './routes/lia-landing/metadata';
 
@@ -50,7 +47,6 @@ export const PAGE_METADATA_BY_ROUTE = {
   '/[orgSlug]/business-user/notebook': businessUserNotebookMetadata,
   '/[orgSlug]/business-user/notebook/[noteId]': businessUserNotebookEditorMetadata,
   '/courses/[slug]/learn': courseLearnMetadata,
-  '/study-planner/dashboard': studyPlannerDashboardMetadata,
   '/[orgSlug]/business-panel/dashboard': businessPanelDashboardMetadata,
   '/[orgSlug]/business-panel/progress': businessPanelProgressMetadata,
   '/[orgSlug]/business-panel/reports': businessPanelReportsMetadata,
@@ -81,8 +77,6 @@ export const PAGE_METADATA_BY_ROUTE = {
   '/instructor/courses/new': instructorNewCourseMetadata,
   '/apps-directory': appsDirectoryMetadata,
   '/prompt-directory': promptDirectoryMetadata,
-  '/study-planner/create': studyPlannerCreateMetadata,
-  '/study-planner/calendar': studyPlannerCalendarMetadata,
   '/welcome': onboardingWelcomeMetadata,
   '/conocer-lia': liaLandingMetadata,
 } satisfies Record<string, PageMetadata>;

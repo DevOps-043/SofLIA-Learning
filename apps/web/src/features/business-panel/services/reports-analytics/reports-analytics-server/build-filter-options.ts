@@ -16,7 +16,6 @@ export function buildFilterOptions(
   queryData.assignments.forEach((record) => addCourseOption(courseOptions, record.course_id, unwrapRelation(record.courses)?.title))
   queryData.enrollments.forEach((record) => addCourseOption(courseOptions, record.course_id, unwrapRelation(record.courses)?.title))
   queryData.liaConversations.forEach((record) => addCourseOption(courseOptions, record.course_id, unwrapRelation(record.courses)?.title))
-  queryData.studySessions.forEach((record) => addCourseOption(courseOptions, record.course_id, unwrapRelation(record.courses)?.title))
 
   return {
     courses: toOptions(courseOptions),

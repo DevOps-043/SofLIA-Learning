@@ -21,7 +21,6 @@ import { fetchLiaMessages } from './fetch-lia-messages'
 import { fetchQuizSubmissions } from './fetch-quiz-submissions'
 import { fetchQuizAttempts } from './fetch-quiz-attempts'
 import { fetchQuizLessonIds } from './fetch-quiz-lessons'
-import { fetchStudySessions } from './fetch-study-sessions'
 import { fetchUserSessions } from './fetch-user-sessions'
 import { QueryData } from './query-data'
 
@@ -70,7 +69,6 @@ export async function fetchQueryData(
     dialogueResults,
     dialogueSessions,
     liaConversations,
-    studySessions,
     lessonNotes,
     quizSubmissions,
     quizAttempts,
@@ -83,7 +81,6 @@ export async function fetchQueryData(
     dialogueClient ? fetchDialogueResults(dialogueClient, userId, scope) : Promise.resolve([]),
     dialogueClient ? fetchDialogueSessions(dialogueClient, userId, scope) : Promise.resolve([]),
     fetchLiaConversations(supabase, userId, organizationId, scope),
-    fetchStudySessions(supabase, userId, organizationId, scope),
     fetchLessonNotes(supabase, userId, organizationId, scope),
     fetchQuizSubmissions(supabase, userId, scope),
     fetchQuizAttempts(supabase, userId, scope),
@@ -119,7 +116,6 @@ export async function fetchQueryData(
     dialogueTurns,
     liaConversations,
     liaMessages,
-    studySessions,
     lessonNotes,
     quizSubmissions,
     quizAttempts,

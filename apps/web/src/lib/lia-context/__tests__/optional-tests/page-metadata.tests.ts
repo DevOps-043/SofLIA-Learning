@@ -14,7 +14,6 @@ export function testNewPageMetadata(options: { includeSpecificPages?: boolean } 
   counter.check(hasPageMetadata('/certificates'), 'Pagina /certificates tiene metadata', 'Pagina /certificates no tiene metadata')
   counter.check(hasPageMetadata('/communities/[slug]'), 'Pagina /communities/[slug] tiene metadata', 'Pagina /communities/[slug] no tiene metadata')
   counter.check(routes.filter((route) => route.includes('/instructor')).length >= 3, 'Paginas de Instructor registradas', 'Faltan paginas de Instructor')
-  counter.check(routes.filter((route) => route.includes('/study-planner')).length >= 3, 'Paginas de Study Planner registradas', 'Faltan paginas de Study Planner')
   counter.check(Boolean(PAGE_METADATA['/auth']?.userFlows?.length), '/auth tiene flujos de usuario', '/auth no tiene flujos de usuario')
   counter.check(hasPageMetadata('/dashboard'), 'Pagina /dashboard tiene metadata', 'Pagina /dashboard no tiene metadata')
   logRouteDistribution(routes)

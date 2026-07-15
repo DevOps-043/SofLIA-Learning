@@ -10,7 +10,6 @@ const STATIC_TOP_LEVEL_ROUTES = new Set([
   'downloads',
   'instructor',
   'profile',
-  'study-planner',
 ])
 
 const DEFAULT_PUBLIC_PREFETCH_ROUTES = ['/dashboard', '/communities']

@@ -31,7 +31,7 @@ export function buildSystemPrompt(locale: ReportsAnalyticsLocale): string {
 
     'MANDATORY COVERAGE — you MUST analyze all 10 dimensions:',
     '1. LEARNING PROGRESS: progressDistribution bands, completion rate, overdue assignments, atRiskUsersCount',
-    '2. ENGAGEMENT: activeLearnerRate, SofLIA conversations, notes adoptionRate, planner adherenceRate',
+    '2. ENGAGEMENT: activeLearnerRate, SofLIA conversations, notes adoptionRate',
     '3. ACADEMIC QUALITY: quizPassRate, quizAverageScore, activityCompletionRate, quality.overallScore',
     '4. SOFLIA QUALITY: helpRate, redirectRate, offTopicRate, averageSentiment, contextBreakdown',
     '5. HIERARCHY: best and worst teams/regions/zones by completionRate and overdueAssignments',

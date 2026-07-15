@@ -23,7 +23,6 @@ export const getContextPrompt = (
   userRole?: string,
   language: SupportedLanguage = 'es',
   _isFirstMessage = false,
-  studyPlannerContextString?: string,
   userRoleDescription?: string,
   organizationAiContext?: ResolvedOrganizationAiContext | null
 ) => {
@@ -53,7 +52,6 @@ export const getContextPrompt = (
     role,
     userName,
     workshopContext,
-    studyPlannerContextString,
   })
 
   return contexts[context] || contexts.general

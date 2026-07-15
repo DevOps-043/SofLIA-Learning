@@ -4,7 +4,6 @@ import { createAdminClient } from './process-inactive-lessons/client'
 import { PROCESSING_BATCH_SIZE } from './process-inactive-lessons/constants'
 import { processTracking } from './process-inactive-lessons/process-tracking'
 import { errorMessage, jsonResponse } from './process-inactive-lessons/responses'
-import { checkAndCloseSession } from './process-inactive-lessons/session-close'
 import type { LessonTracking } from './process-inactive-lessons/types'
 
 const handler: Handler = async () => {
@@ -60,9 +59,6 @@ async function processTrackings(
     if (result.completed) {
       completed += 1
       console.log(`Tracking ${tracking.id} completado: ${result.reason}`)
-      if (tracking.session_id && result.reason) {
-        await checkAndCloseSession(supabase, tracking.session_id, result.reason)
-      }
     } else {
       rescheduled += 1
     }

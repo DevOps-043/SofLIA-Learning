@@ -1,4 +1,4 @@
-import { Calendar, Newspaper, Route, Video } from 'lucide-react'
+import { Newspaper, Route, Video } from 'lucide-react'
 import type { PlatformFeature } from './types'
 
 export const platformFeatures: PlatformFeature[] = [
@@ -31,15 +31,5 @@ export const platformFeatures: PlatformFeature[] = [
     link: '/learning-paths',
     color: 'var(--color-primary)',
     gradient: 'from-primary to-primary/80',
-  },
-  {
-    id: 'study-planner',
-    icon: Calendar,
-    title: 'Planificador de Estudios',
-    description:
-      'Organiza tu tiempo y optimiza tu aprendizaje con un planificador inteligente.',
-    link: '/study-planner',
-    color: 'var(--color-warning)',
-    gradient: 'from-warning to-warning/80',
   },
 ]

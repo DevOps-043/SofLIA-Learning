@@ -16,7 +16,6 @@ import { LiaConversationRecord } from './lia-conversation-record'
 import { LiaMessageRecord } from './lia-message-record'
 import { QuizAttemptRecord } from './quiz-attempt-record'
 import { QuizSubmissionRecord } from './quiz-submission-record'
-import { StudySessionRecord } from './study-session-record'
 import { UserSessionRecord } from './user-session-record'
 
 export interface QueryData {
@@ -33,7 +32,6 @@ export interface QueryData {
   dialogueTurns: DialogueTurnRecord[]
   liaConversations: LiaConversationRecord[]
   liaMessages: LiaMessageRecord[]
-  studySessions: StudySessionRecord[]
   lessonNotes: LessonNoteRecord[]
   quizSubmissions: QuizSubmissionRecord[]
   quizAttempts: QuizAttemptRecord[]

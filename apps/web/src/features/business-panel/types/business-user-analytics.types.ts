@@ -16,7 +16,6 @@ export type {
   BusinessUserAnalyticsAiAdoption,
   BusinessUserAnalyticsAiSample,
   BusinessUserAnalyticsNotes,
-  BusinessUserAnalyticsPlanning,
   BusinessUserAnalyticsQuality,
   BusinessUserAnalyticsQuizzes,
 } from './business-user-analytics/engagement.types'

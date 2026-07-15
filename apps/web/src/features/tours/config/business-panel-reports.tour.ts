@@ -123,14 +123,6 @@ export const businessPanelReportsTour: TourConfig = {
       optional: true,
     },
     {
-      target: '#tour-reports-planner',
-      titleKey: 'tours.businessPanelReports.planner.title',
-      contentKey: 'tours.businessPanelReports.planner.content',
-      placement: 'top',
-      disableBeacon: true,
-      optional: true,
-    },
-    {
       target: '#tour-reports-notes',
       titleKey: 'tours.businessPanelReports.notes.title',
       contentKey: 'tours.businessPanelReports.notes.content',

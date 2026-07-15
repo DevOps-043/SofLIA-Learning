@@ -13,7 +13,6 @@ import type {
   ReportsAnalyticsConnectionCalendarCell,
   ReportsAnalyticsLoginHeatmapCell,
   ReportsAnalyticsNotes,
-  ReportsAnalyticsPlanner,
   ReportsAnalyticsQuality,
 } from './quality.types'
 import type {
@@ -36,7 +35,6 @@ export interface ReportsAnalyticsResponse {
   activities: ReportsAnalyticsActivities
   quality: ReportsAnalyticsQuality
   notes: ReportsAnalyticsNotes
-  planner: ReportsAnalyticsPlanner
   loginHeatmap: ReportsAnalyticsLoginHeatmapCell[]
   connectionCalendar: ReportsAnalyticsConnectionCalendarCell[]
   segments: ReportsAnalyticsSegments
@@ -78,10 +76,6 @@ export interface ReportsAnalyticsUserDetailRow {
   activityAttempts: number
   quizAttempts: number
   quizAverageScore: number
-  plannedSessions: number
-  completedSessions: number
-  missedSessions: number
-  plannerAdherenceRate: number
   lastActivityAt: string | null
   qualityScore: number
 }

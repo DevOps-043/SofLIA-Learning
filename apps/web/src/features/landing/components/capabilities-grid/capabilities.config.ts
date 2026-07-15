@@ -2,7 +2,6 @@ import {
   Award,
   BarChart3,
   Bot,
-  Calendar,
   Palette,
   Users2,
   type LucideIcon,
@@ -16,7 +15,6 @@ export interface CapabilityItem {
 
 export const capabilities: CapabilityItem[] = [
   { key: 'lia', icon: Bot, iconClassName: 'bg-accent/15 text-accent' },
-  { key: 'studyPlanner', icon: Calendar, iconClassName: 'bg-primary/15 text-primary' },
   { key: 'analytics', icon: BarChart3, iconClassName: 'bg-warning/15 text-warning' },
   { key: 'teams', icon: Users2, iconClassName: 'bg-success/15 text-success' },
   { key: 'certificates', icon: Award, iconClassName: 'bg-violet-500/15 text-violet-500' },

@@ -31,11 +31,6 @@ export function buildFallbackInsights(
         value: `${dataset.aiAdoption.adoptionScore}%`,
         detail: text.aiDetail(dataset.aiAdoption.totalConversations, dataset.aiAdoption.questionQualityScore),
       },
-      {
-        label: text.planningMetric,
-        value: `${dataset.planning.adherenceRate}%`,
-        detail: text.planningDetail(dataset.planning.completedSessions, dataset.planning.plannedSessions),
-      },
     ],
     strengths: [
       strongestCourse ? text.strongCourse(strongestCourse.courseTitle, strongestCourse.progress) : text.noCourseStrength,
@@ -46,7 +41,7 @@ export function buildFallbackInsights(
       text.notesOpportunity(dataset.notes.adoptionRate),
       text.activitiesOpportunity(dataset.activities.averageQualityScore),
     ],
-    recommendations: [text.recommendPlanning, text.recommendSoflia, text.recommendNotes],
+    recommendations: [text.recommendSoflia, text.recommendNotes],
     nextSteps: [{
       title: text.nextStepsTitle,
       points: [text.nextStepCourse, text.nextStepQuestions, text.nextStepReview],

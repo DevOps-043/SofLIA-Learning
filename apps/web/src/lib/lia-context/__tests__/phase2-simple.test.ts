@@ -113,7 +113,6 @@ const dynamicRouteTests = [
   { input: '/company-xyz/business-panel/users', expected: 'business_panel_users' },
   { input: '/org123/business-user/dashboard', expected: 'business_user_dashboard' },
   { input: '/courses/react-fundamentals/learn', expected: 'course_learn' },
-  { input: '/study-planner/dashboard', expected: 'study_planner_dashboard' },
 ];
 
 dynamicRouteTests.forEach(({ input, expected }) => {

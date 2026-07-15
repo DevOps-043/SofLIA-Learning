@@ -9,9 +9,18 @@ export async function applyUserLearningContext(
   userId: string,
   organizationId: string | null,
 ): Promise<void> {
-  context.userCourses = await loadUserCourses(supabase, userId, organizationId)
-  context.userLessonProgress = await loadUserLessonProgress(supabase, userId, organizationId)
-  context.userName = await loadUserDisplayName(supabase, userId)
+  // Las tres cargas son independientes entre sí. En serie sumaban 3 viajes de
+  // ida y vuelta a la base en CADA mensaje de chat de SofLIA; en paralelo el
+  // coste es el de la consulta más lenta. Es una ruta caliente por excelencia.
+  const [userCourses, userLessonProgress, userName] = await Promise.all([
+    loadUserCourses(supabase, userId, organizationId),
+    loadUserLessonProgress(supabase, userId, organizationId),
+    loadUserDisplayName(supabase, userId),
+  ])
+
+  context.userCourses = userCourses
+  context.userLessonProgress = userLessonProgress
+  context.userName = userName
 }
 
 async function loadUserCourses(

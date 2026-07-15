@@ -73,13 +73,6 @@ export interface AdminUserLiaUsage {
   lastConversationAt: string | null
 }
 
-export interface AdminUserStudyPlanSummary {
-  name: string | null
-  startDate: string | null
-  endDate: string | null
-  createdAt: string | null
-}
-
 export interface AdminUserDossier {
   profile: AdminUserProfile
   organizations: AdminUserOrganizationMembership[]
@@ -87,7 +80,6 @@ export interface AdminUserDossier {
   lessonStats: AdminUserLessonStats
   learningPaths: AdminUserLearningPathProgress[]
   liaUsage: AdminUserLiaUsage
-  studyPlans: AdminUserStudyPlanSummary[]
 }
 
 /**

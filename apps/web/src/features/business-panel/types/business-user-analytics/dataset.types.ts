@@ -8,7 +8,6 @@ import type {
   BusinessUserAnalyticsAiAdoption,
   BusinessUserAnalyticsAiSample,
   BusinessUserAnalyticsNotes,
-  BusinessUserAnalyticsPlanning,
   BusinessUserAnalyticsQuality,
   BusinessUserAnalyticsQuizzes,
 } from './engagement.types'
@@ -21,7 +20,6 @@ export interface BusinessUserAnalyticsDataset {
   overview: BusinessUserAnalyticsOverview
   learning: BusinessUserAnalyticsLearning
   aiAdoption: BusinessUserAnalyticsAiAdoption
-  planning: BusinessUserAnalyticsPlanning
   notes: BusinessUserAnalyticsNotes
   activities: BusinessUserAnalyticsActivities
   quizzes: BusinessUserAnalyticsQuizzes

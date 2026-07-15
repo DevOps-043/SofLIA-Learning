@@ -92,15 +92,12 @@ describe('getApiRouteAuthRequirement', () => {
     expect(getApiRouteAuthRequirement('/api/courses/some-course/enroll', 'POST')).toMatchObject({
       kind: 'authenticated',
     })
-    expect(getApiRouteAuthRequirement('/api/statistics/profile', 'POST')).toMatchObject({
+    expect(getApiRouteAuthRequirement('/api/profile', 'POST')).toMatchObject({
       kind: 'authenticated',
     })
   })
 
-  it('keeps OAuth callback redirects route-owned while protecting org self-service APIs', () => {
-    expect(getApiRouteAuthRequirement('/api/study-planner/calendar/callback')).toMatchObject({
-      kind: 'public',
-    })
+  it('protects org self-service APIs', () => {
     expect(getApiRouteAuthRequirement('/api/organizations/create', 'POST')).toMatchObject({
       kind: 'authenticated',
     })

@@ -19,18 +19,6 @@ export interface BusinessUserAnalyticsAiAdoption {
   messagesTrend: BusinessUserAnalyticsTrendPoint[]
 }
 
-export interface BusinessUserAnalyticsPlanning {
-  plannedSessions: number
-  completedSessions: number
-  missedSessions: number
-  rescheduledSessions: number
-  adherenceRate: number
-  averagePlannedMinutes: number
-  averageActualMinutes: number
-  byStatus: BusinessUserAnalyticsBreakdownItem[]
-  sessionsTrend: BusinessUserAnalyticsTrendPoint[]
-}
-
 export interface BusinessUserAnalyticsNotes {
   totalNotes: number
   manualNotes: number

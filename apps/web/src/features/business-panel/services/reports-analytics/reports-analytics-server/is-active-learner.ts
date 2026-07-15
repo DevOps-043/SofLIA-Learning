@@ -8,7 +8,6 @@ export function isActiveLearner(user: ReportsAnalyticsUserDetailRow): boolean {
       user.sofliaConversations > 0 ||
       user.notesCreated > 0 ||
       user.activitiesCompleted > 0 ||
-      user.quizAttempts > 0 ||
-      user.plannedSessions > 0,
+      user.quizAttempts > 0,
   )
 }

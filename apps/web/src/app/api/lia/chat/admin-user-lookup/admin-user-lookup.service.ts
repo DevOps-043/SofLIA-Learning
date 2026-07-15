@@ -35,7 +35,6 @@ const USER_PROFILE_COLUMNS =
 const MAX_ENROLLMENTS = 20
 const MAX_LESSON_ROWS = 500
 const MAX_RECENT_COMPLETED_LESSONS = 8
-const MAX_STUDY_PLANS = 3
 
 interface UserProfileRow {
   id: string
@@ -92,13 +91,6 @@ interface LearningPathProgressRow {
 interface CertificateRow {
   course_id: string
   issued_at: string | null
-}
-
-interface StudyPlanRow {
-  name: string | null
-  start_date: string | null
-  end_date: string | null
-  created_at: string | null
 }
 
 function mapProfileRow(row: UserProfileRow): AdminUserProfile {
@@ -402,7 +394,6 @@ export async function buildAdminUserDossier(
     certificatesRes,
     conversationCountRes,
     lastConversationRes,
-    studyPlansRes,
   ] = await Promise.all([
     supabase
       .from('organization_users')
@@ -443,12 +434,6 @@ export async function buildAdminUserDossier(
       .eq('user_id', userId)
       .order('started_at', { ascending: false })
       .limit(1),
-    supabase
-      .from('study_plans')
-      .select('name, start_date, end_date, created_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(MAX_STUDY_PLANS),
   ])
 
   const queryErrors = [
@@ -459,7 +444,6 @@ export async function buildAdminUserDossier(
     certificatesRes.error,
     conversationCountRes.error,
     lastConversationRes.error,
-    studyPlansRes.error,
   ].filter(Boolean)
   if (queryErrors.length > 0) {
     // Degradación parcial: se registra sin PII y se continúa con lo disponible.
@@ -477,7 +461,6 @@ export async function buildAdminUserDossier(
     []) as unknown as LearningPathProgressRow[]
   const certificateRows = (certificatesRes.data ||
     []) as unknown as CertificateRow[]
-  const studyPlanRows = (studyPlansRes.data || []) as unknown as StudyPlanRow[]
   const lastConversationRow = (lastConversationRes.data?.[0] ?? null) as {
     started_at: string | null
   } | null
@@ -505,11 +488,5 @@ export async function buildAdminUserDossier(
       conversationCount: conversationCountRes.count ?? 0,
       lastConversationAt: lastConversationRow?.started_at ?? null,
     },
-    studyPlans: studyPlanRows.map((row) => ({
-      name: row.name,
-      startDate: row.start_date,
-      endDate: row.end_date,
-      createdAt: row.created_at,
-    })),
   }
 }

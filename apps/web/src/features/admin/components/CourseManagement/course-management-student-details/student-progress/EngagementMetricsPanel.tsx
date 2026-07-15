@@ -1,4 +1,4 @@
-import { Book, Clock, FileText, LayoutDashboard, Users2 } from 'lucide-react';
+import { Book, FileText, Users2 } from 'lucide-react';
 import {
   COURSE_MANAGEMENT_ACCENT_ICON_CLASS,
   COURSE_MANAGEMENT_MUTED_TEXT_CLASS,
@@ -11,8 +11,6 @@ import type { StudentData } from './types';
 
 export function EngagementMetricsPanel({ data }: { data: StudentData }) {
   const metrics = [
-    { label: 'Sesiones Totales', value: `${data.studySessions?.totalSessions || 0}`, icon: LayoutDashboard },
-    { label: 'Promedio Diario', value: `${data.engagement?.avgDailyTime || 0} hrs`, icon: Clock },
     { label: 'Lecciones Vistas', value: `${data.engagement?.lessonsViewed || 0}`, icon: Book },
     { label: 'Notas Creadas', value: `${data.engagement?.notesCreated || 0}`, icon: FileText },
   ];

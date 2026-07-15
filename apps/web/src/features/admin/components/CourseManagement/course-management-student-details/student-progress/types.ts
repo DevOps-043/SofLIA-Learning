@@ -31,7 +31,6 @@ export type StudentData = Record<string, unknown> & {
   enrollment?: { progressPercentage?: number };
   engagement?: {
     activitiesCompleted?: number;
-    avgDailyTime?: number;
     lessonsViewed?: number;
     notesCreated?: number;
   };
@@ -44,19 +43,6 @@ export type StudentData = Record<string, unknown> & {
     positiveFeedbackRate?: number;
     totalConversations?: number;
     totalMessages?: number;
-  };
-  studySessions?: {
-    activeDays?: ChartRow[];
-    avgSessionDuration?: number;
-    dailyStudyTime?: ChartRow[];
-    lastSession?: { hoursAgo?: number };
-    preferredTimeSlots?: TimeSlot[];
-    studyStreak?: number;
-    totalCourseStudyTime?: number;
-    totalSessions?: number;
-    totalStudyTime?: number;
-    weeklyFrequency?: number;
-    weeklyProgress?: ChartRow[];
   };
 };
 

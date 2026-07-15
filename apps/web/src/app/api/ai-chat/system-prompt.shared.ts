@@ -129,31 +129,6 @@ export function buildPageInfo(pageContext?: PageContext): string {
     pageInfo += `\n- Descripcion meta: "${pageContext.metaDescription}"`
   }
 
-  if (pageContext.detectedArea === 'study-planner' && pageContext.userContext) {
-    const userContext = pageContext.userContext
-
-    if (userContext.calendarConnected) {
-      pageInfo += `\n- ESTADO DEL CALENDARIO: CONECTADO (${userContext.calendarProvider || 'desconocido'})`
-    } else {
-      pageInfo += '\n- ESTADO DEL CALENDARIO: NO CONECTADO'
-    }
-
-    if (userContext.hasCalendarAnalyzed) {
-      pageInfo +=
-        '\n- El calendario ya fue analizado y se dieron recomendaciones de horarios'
-    }
-
-    if (userContext.hasRecommendedSchedules) {
-      pageInfo += '\n- Ya se proporcionaron metas semanales y horarios recomendados'
-    }
-
-    if (userContext.targetDate) {
-      pageInfo += `\n- FECHA LIMITE ESTABLECIDA: ${userContext.targetDate}`
-      pageInfo +=
-        '\n- REGLA ABSOLUTA: NUNCA generar horarios despues de esta fecha'
-    }
-  }
-
   if (pageContext.headings?.length) {
     pageInfo += `\n- Encabezados principales: ${pageContext.headings
       .map((heading) => `"${heading}"`)

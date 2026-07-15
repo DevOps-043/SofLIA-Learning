@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { cacheGet, cacheSet } from '@/lib/cache/ttlCache'
 import { cacheHeaders } from '@/lib/utils/cache-headers'
 import { logger } from '@/lib/utils/logger'
 import {
@@ -41,10 +42,27 @@ type CourseLessonWithCourseRow = CourseLessonTimeRow & {
   course_modules?: { course_id?: string | null } | null
 }
 
+// Métricas agregadas de aprendizaje del dashboard: mismo resultado para todos
+// los admins, sin frescura al segundo. Se cachea el resultado en servidor para
+// no recalcular la consulta analítica pesada en cada carga. Auth por request.
+const LEARNING_CACHE_KEY = 'admin-user-stats:learning'
+const LEARNING_CACHE_TTL_MS = 60_000
+
 export async function GET() {
   try {
     const auth = await requireAdmin()
     if (auth instanceof NextResponse) return auth
+
+    const cached = cacheGet<Record<string, unknown>>(LEARNING_CACHE_KEY)
+    if (cached) {
+      return NextResponse.json(cached, { headers: cacheHeaders.privateShort })
+    }
+
+    // Cachea el payload y responde (usado en el camino RPC y en el fallback).
+    const respond = (payload: Record<string, unknown>) => {
+      cacheSet(LEARNING_CACHE_KEY, payload, LEARNING_CACHE_TTL_MS)
+      return NextResponse.json(payload, { headers: cacheHeaders.privateShort })
+    }
 
     const supabase = createAdminClient()
     const { data: rpcLearning, error: rpcError } = await (
@@ -52,7 +70,7 @@ export async function GET() {
     ).rpc('get_admin_user_stats_learning', {})
 
     if (!rpcError && rpcLearning) {
-      return NextResponse.json(rpcLearning, { headers: cacheHeaders.privateShort })
+      return respond(rpcLearning as unknown as Record<string, unknown>)
     }
 
     if (rpcError) {
@@ -62,18 +80,15 @@ export async function GET() {
     }
 
     const now = new Date()
-    const fourWeeksAgo = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000).toISOString()
 
     const [
       lessonProgressRes,
-      sessionsRes,
       trackingRes,
       dailyProgressRes,
       courseLessonsRes,
       coursesRes,
     ] = await Promise.all([
       supabase.from('user_lesson_progress').select('user_id, lesson_id, time_spent_minutes, is_completed, lesson_status, completed_at, quiz_completed, quiz_passed'),
-      supabase.from('study_sessions').select('id, user_id, status, start_time, completed_at, actual_duration_minutes').gte('start_time', fourWeeksAgo),
       supabase.from('lesson_tracking').select('user_id, lesson_id, status, started_at, completed_at, t_lesson_minutes, t_video_minutes, t_materials_minutes'),
       supabase.from('daily_progress').select('streak_count, user_id').gt('streak_count', 0),
       supabase.from('course_lessons').select('lesson_id, module_id, duration_seconds, total_duration_minutes, course_modules(course_id)'),
@@ -81,7 +96,6 @@ export async function GET() {
     ])
 
     const lessonProgress = (lessonProgressRes.data || []) as LearningLessonProgressRow[]
-    const sessions = sessionsRes.data || []
     const courseLessons = (courseLessonsRes.data || []) as CourseLessonWithCourseRow[]
     const studyMinutesByUserLesson = buildStudyMinutesByUserLesson({
       courseLessons,
@@ -100,9 +114,8 @@ export async function GET() {
     const quizPassed = quizCompleted.filter(lp => lp.quiz_passed)
     const quizPassRate = quizCompleted.length > 0 ? Math.round((quizPassed.length / quizCompleted.length) * 100) : 0
 
-    // Avg sessions per user per week
-    const distinctUsers = new Set(sessions.map(s => s.user_id)).size
-    const avgSessionsPerWeek = distinctUsers > 0 ? Math.round((sessions.length / 4 / distinctUsers) * 10) / 10 : 0
+    // Métrica de sesiones de estudio retirada junto con el StudyPlanner.
+    const avgSessionsPerWeek = 0
 
     // Top courses by study time — build lesson→course map
     const coursesMap = new Map((coursesRes.data || []).map(c => [c.id, c.title]))
@@ -124,18 +137,8 @@ export async function GET() {
       .sort((a, b) => b.minutes - a.minutes)
       .slice(0, 10)
 
-    // Sessions planned vs completed by week
-    const weekMap = new Map<string, { planned: number; completed: number }>()
-    for (const s of sessions) {
-      const weekStart = getWeekStart(new Date(s.start_time))
-      const entry = weekMap.get(weekStart) || { planned: 0, completed: 0 }
-      entry.planned++
-      if (s.status === 'completed' || s.completed_at) entry.completed++
-      weekMap.set(weekStart, entry)
-    }
-    const sessionsPlannedVsCompleted = Array.from(weekMap.entries())
-      .map(([week, data]) => ({ week, ...data }))
-      .sort((a, b) => a.week.localeCompare(b.week))
+    // Serie de sesiones planificadas vs completadas retirada con el StudyPlanner.
+    const sessionsPlannedVsCompleted: Array<{ week: string; planned: number; completed: number }> = []
 
     // Time by content type
     const tracking = trackingRes.data || []
@@ -165,18 +168,15 @@ export async function GET() {
       count: Array.from(userStreaks.values()).filter(s => s >= bucket.min && s <= bucket.max).length
     }))
 
-    return NextResponse.json(
-      {
-        avgTimePerLesson,
-        quizPassRate,
-        avgSessionsPerWeek,
-        topCoursesByTime,
-        sessionsPlannedVsCompleted,
-        timeByContentType,
-        streakDistribution,
-      },
-      { headers: cacheHeaders.privateShort },
-    )
+    return respond({
+      avgTimePerLesson,
+      quizPassRate,
+      avgSessionsPerWeek,
+      topCoursesByTime,
+      sessionsPlannedVsCompleted,
+      timeByContentType,
+      streakDistribution,
+    })
   } catch (error) {
     logger.error('Unexpected error in admin user stats learning route', { error })
     return NextResponse.json(
@@ -184,10 +184,4 @@ export async function GET() {
       { status: 500 }
     )
   }
-}
-
-function getWeekStart(date: Date): string {
-  const d = new Date(date)
-  d.setDate(d.getDate() - d.getDay())
-  return d.toISOString().split('T')[0]
 }

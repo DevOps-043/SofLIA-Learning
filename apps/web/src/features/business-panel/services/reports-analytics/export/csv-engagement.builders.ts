@@ -39,18 +39,6 @@ export function buildNotesCsv(dataset: ReportsAnalyticsDataset, copy: ExportCopy
   ], getMetricColumns(copy))
 }
 
-export function buildPlannerCsv(dataset: ReportsAnalyticsDataset, copy: ExportCopy): string {
-  return toCsv([
-    { metric: copy.metrics.plannedSessions, value: dataset.planner.plannedSessions, detail: '' },
-    { metric: copy.metrics.completedSessions, value: dataset.planner.completedSessions, detail: '' },
-    { metric: copy.metrics.missedSessions, value: dataset.planner.missedSessions, detail: '' },
-    { metric: copy.metrics.rescheduledSessions, value: dataset.planner.rescheduledSessions, detail: '' },
-    { metric: copy.metrics.adherenceRate, value: `${dataset.planner.adherenceRate}%`, detail: '' },
-    { metric: copy.metrics.averagePlannedMinutes, value: dataset.planner.averagePlannedMinutes, detail: '' },
-    { metric: copy.metrics.averageActualMinutes, value: dataset.planner.averageActualMinutes, detail: '' },
-  ], getMetricColumns(copy))
-}
-
 export function buildQualityCsv(dataset: ReportsAnalyticsDataset, copy: ExportCopy): string {
   return toCsv(buildQualityRows(dataset, copy), getMetricColumns(copy))
 }

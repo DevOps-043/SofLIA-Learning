@@ -9,7 +9,6 @@ export interface ReportsAnalyticsOverview {
   sofliaAdoptionRate: number
   notesAdoptionRate: number
   activityCompletionRate: number
-  plannerAdherenceRate: number
   quizAverageScore: number
   qualityScore: number
   assignedUsersCount: number

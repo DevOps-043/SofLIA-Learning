@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { cacheGet, cacheSet } from '@/lib/cache/ttlCache'
 import { cacheHeaders } from '@/lib/utils/cache-headers'
 import { logger } from '@/lib/utils/logger'
+
+// Métricas agregadas de engagement del dashboard: mismo resultado para todos
+// los admins, sin frescura al segundo. Se cachea en servidor para no recalcular
+// la consulta analítica pesada en cada carga. Auth por request.
+const ENGAGEMENT_CACHE_KEY = 'admin-user-stats:engagement'
+const ENGAGEMENT_CACHE_TTL_MS = 60_000
 
 interface EngagementStats {
   activationRate: number
@@ -30,13 +37,24 @@ export async function GET() {
     const auth = await requireAdmin()
     if (auth instanceof NextResponse) return auth
 
+    const cached = cacheGet<Record<string, unknown>>(ENGAGEMENT_CACHE_KEY)
+    if (cached) {
+      return NextResponse.json(cached, { headers: cacheHeaders.privateShort })
+    }
+
+    // Cachea el payload y responde (usado en el camino RPC y en el fallback).
+    const respond = (payload: Record<string, unknown>) => {
+      cacheSet(ENGAGEMENT_CACHE_KEY, payload, ENGAGEMENT_CACHE_TTL_MS)
+      return NextResponse.json(payload, { headers: cacheHeaders.privateShort })
+    }
+
     const supabase = createAdminClient()
     const { data: rpcEngagement, error: rpcError } = await (
       supabase as unknown as UserStatsEngagementRpcClient
     ).rpc('get_admin_user_stats_engagement', {})
 
     if (!rpcError && rpcEngagement) {
-      return NextResponse.json(rpcEngagement, { headers: cacheHeaders.privateShort })
+      return respond(rpcEngagement as unknown as Record<string, unknown>)
     }
 
     if (rpcError) {
@@ -155,19 +173,16 @@ export async function GET() {
       .map(([country, count]) => ({ country, count }))
       .sort((a, b) => b.count - a.count)
 
-    return NextResponse.json(
-      {
-        activationRate,
-        weeklyReturn,
-        avgSatisfaction,
-        inactiveUsers30d,
-        newVsRecurring,
-        ratingDistribution: ratingDist,
-        engagementByOrg,
-        usersByCountry,
-      },
-      { headers: cacheHeaders.privateShort },
-    )
+    return respond({
+      activationRate,
+      weeklyReturn,
+      avgSatisfaction,
+      inactiveUsers30d,
+      newVsRecurring,
+      ratingDistribution: ratingDist,
+      engagementByOrg,
+      usersByCountry,
+    })
   } catch (error) {
     logger.error('Unexpected error in admin user stats engagement route', { error })
     return NextResponse.json(

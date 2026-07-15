@@ -60,7 +60,6 @@ export function buildLlmsPolicy(baseUrl = resolveAppBaseUrl()) {
     `- ${baseUrl}/dashboard`,
     `- ${baseUrl}/profile`,
     `- ${baseUrl}/account-settings`,
-    `- ${baseUrl}/study-planner`,
     `- ${baseUrl}/certificates`,
     `- ${baseUrl}/business-panel`,
     `- ${baseUrl}/*/business-panel`,

@@ -38,14 +38,12 @@ export function ReportsSummaryGrid({
         ]}
       />
       <SummaryCard
-        title={t('reportsAnalytics.sections.notesPlanner')}
+        title={t('reportsAnalytics.sections.notes')}
         icon={StickyNote}
         theme={theme}
         rows={[
           [t('reportsAnalytics.metrics.totalNotes'), data.notes.totalNotes],
           [t('reportsAnalytics.metrics.notesAdoptionRate'), `${data.notes.adoptionRate}%`],
-          [t('reportsAnalytics.metrics.plannedSessions'), data.planner.plannedSessions],
-          [t('reportsAnalytics.metrics.plannerAdherenceRate'), `${data.planner.adherenceRate}%`],
         ]}
       />
     </div>

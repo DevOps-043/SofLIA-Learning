@@ -15,7 +15,6 @@ import {
 import {
   buildActivitiesCsv,
   buildNotesCsv,
-  buildPlannerCsv,
   buildQualityCsv,
   buildSofliaCsv,
 } from './csv-engagement.builders'
@@ -63,7 +62,6 @@ export async function generateReportsAnalyticsZip(
   ))
   zip.file(`${copy.files.activities}.csv`, buildActivitiesCsv(dataset, copy))
   zip.file(`${copy.files.notes}.csv`, buildNotesCsv(dataset, copy))
-  zip.file(`${copy.files.planner}.csv`, buildPlannerCsv(dataset, copy))
   zip.file(`${copy.files.heatmap}.csv`, buildLoginHeatmapCsv(dataset, copy))
   zip.file(`${copy.files.calendar}.csv`, buildConnectionCalendarCsv(dataset, copy))
   zip.file(`${copy.files.segments}.csv`, buildSegmentAnalysisCsv(dataset, copy))

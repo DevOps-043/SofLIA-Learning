@@ -16,7 +16,6 @@ export default function robots(): MetadataRoute.Robots {
           '/dashboard',
           '/profile',
           '/account-settings',
-          '/study-planner',
           '/certificates',
           '/business-panel/',
           '/business-user/',

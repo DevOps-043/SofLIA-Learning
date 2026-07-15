@@ -2,7 +2,6 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
-import { SELECT_COLUMNS } from '@/lib/supabase/select-types'
 import { fromLoose } from '@/lib/supabase/looseQuery'
 
 interface StudentUserSummary {
@@ -31,15 +30,6 @@ interface LiaConversationRow {
   course_id?: string | null
   lesson_id?: string | null
   activity_id?: string | null
-}
-
-interface StudySessionRow {
-  course_id: string | null
-  lesson_id: string | null
-  start_time: string
-  end_time: string | null
-  duration_minutes: number | null
-  progress_made?: number | null
 }
 
 interface LiaMessageRow {
@@ -228,21 +218,6 @@ export async function GET(
           .in('conversation_id', conversationIds)
       : { data: [], error: null }
 
-    // 5. Sesiones de Estudio - Incluye sesiones del curso y del planificador
-    let studySessionsQuery = fromLoose<StudySessionRow>(supabase, 'study_sessions')
-      .select(SELECT_COLUMNS.study_sessions)
-      .eq('user_id', userId)
-    
-    // Construir la condición OR de manera segura
-    if (lessonIds.length > 0) {
-      studySessionsQuery = studySessionsQuery.or(`course_id.eq.${courseId},course_id.is.null,lesson_id.in.(${lessonIds.join(',')})`)
-    } else {
-      studySessionsQuery = studySessionsQuery.or(`course_id.eq.${courseId},course_id.is.null`)
-    }
-    
-    const { data: studySessions, error: sessionsError } = await studySessionsQuery
-      .order('start_time', { ascending: false })
-
     // 6. Actividades Completadas del curso
     const { data: completedActivities, error: activitiesError } = activityIds.length > 0
       ? await fromLoose<CompletedActivityRow>(supabase, 'user_activity_progress')
@@ -308,51 +283,6 @@ export async function GET(
       return date >= weekStart
     }).length || 0
 
-    // Calcular estadísticas de sesiones de estudio
-    // Filtrar sesiones del curso específico para métricas del curso
-    const courseSessions = studySessions?.filter(s => 
-      s.course_id === courseId || 
-      (s.lesson_id && lessonIds.includes(s.lesson_id))
-    ) || studySessions || []
-    
-    const totalSessions = courseSessions.length
-
-    const totalStudyTime = courseSessions.reduce((acc, s) => {
-      if (s.duration_minutes) {
-        return acc + s.duration_minutes
-      } else if (s.end_time && s.start_time) {
-        const duration = new Date(s.end_time).getTime() - new Date(s.start_time).getTime()
-        return acc + duration / 1000 / 60 // convertir a minutos
-      }
-      return acc
-    }, 0)
-
-    const avgSessionDuration = totalSessions > 0 ? totalStudyTime / totalSessions : 0
-    const lastSession = courseSessions[0]
-    
-    // Tiempo desde la última sesión
-    const lastSessionTime = lastSession?.start_time 
-      ? Math.round((new Date().getTime() - new Date(lastSession.start_time).getTime()) / (1000 * 60 * 60))
-      : null
-
-    // Horarios preferidos
-    const preferredTimeSlots = calculatePreferredTimeSlots(studySessions || [])
-
-    // Días más activos
-    const activeDays = calculateActiveDays(studySessions || [])
-
-    // Frecuencia semanal
-    const weeklyFrequency = calculateWeeklyFrequency(studySessions || [])
-
-    // Progreso semanal
-    const weeklyProgress = calculateWeeklyProgress(studySessions || [], 7)
-
-    // Tiempo de estudio por día
-    const dailyStudyTime = calculateDailyStudyTime(studySessions || [], 7)
-
-    // Racha de días
-    const studyStreak = calculateStudyStreak(studySessions || [])
-
     // Total de actividades completadas del curso
     const totalActivitiesCompleted = completedActivities?.length || 0
 
@@ -365,11 +295,6 @@ export async function GET(
     
     // Progreso total del curso (del enrollment)
     const progressPercentage = enrollment?.overall_progress_percentage || enrollment?.progress_percentage || 0
-    
-    // Tiempo total de estudio en el curso (suma de time_spent_minutes de lecciones)
-    const totalCourseStudyTime = lessonProgress?.reduce((acc, l) => {
-      return acc + (l.time_spent_minutes || 0)
-    }, 0) || 0
 
     return NextResponse.json({
       success: true,
@@ -397,30 +322,8 @@ export async function GET(
           conversationTopics
         },
 
-        // Estadísticas de sesiones de estudio del curso
-        studySessions: {
-          totalSessions,
-          lastSession: lastSession ? {
-            startTime: lastSession.start_time,
-            endTime: lastSession.end_time,
-            duration: lastSession.duration_minutes,
-            hoursAgo: lastSessionTime
-          } : null,
-          avgSessionDuration: Math.round(avgSessionDuration),
-          totalStudyTime: Math.round(totalStudyTime / 60), // convertir a horas
-          totalCourseStudyTime: Math.round(totalCourseStudyTime / 60), // tiempo total en el curso
-          weeklyFrequency: weeklyFrequency.toFixed(1),
-          preferredTimeSlots,
-          activeDays,
-          weeklyProgress,
-          dailyStudyTime,
-          studyStreak
-        },
-
         // Métricas de engagement del curso
         engagement: {
-          totalSessions,
-          avgDailyTime: weeklyFrequency > 0 ? (totalStudyTime / 60 / 7).toFixed(1) : 0,
           lessonsViewed: totalLessonsViewed,
           lessonsCompleted: completedLessons,
           notesCreated: totalNotes,
@@ -490,154 +393,4 @@ function groupByContextType(conversations: LiaConversationRow[]) {
     { tema: 'Explicaciones Extra', count: topics.general, color: 'var(--color-success)' },
     { tema: 'Motivación', count: topics.motivation, color: 'var(--color-warning)' }
   ]
-}
-
-function calculatePreferredTimeSlots(sessions: StudySessionRow[]) {
-  const slots = {
-    morning: 0,    // 6-12
-    afternoon: 0,  // 12-18
-    evening: 0,    // 18-24
-    night: 0       // 0-6
-  }
-
-  sessions.forEach(s => {
-    const hour = new Date(s.start_time).getHours()
-    if (hour >= 6 && hour < 12) slots.morning++
-    else if (hour >= 12 && hour < 18) slots.afternoon++
-    else if (hour >= 18 && hour < 24) slots.evening++
-    else slots.night++
-  })
-
-  const total = sessions.length || 1
-  return [
-    { periodo: 'Mañana (6am-12pm)', porcentaje: Math.round((slots.morning / total) * 100), color: 'var(--color-warning)' },
-    { periodo: 'Tarde (12pm-6pm)', porcentaje: Math.round((slots.afternoon / total) * 100), color: 'var(--color-accent)' },
-    { periodo: 'Noche (6pm-12am)', porcentaje: Math.round((slots.evening / total) * 100), color: 'var(--color-success)' },
-    { periodo: 'Madrugada (12am-6am)', porcentaje: Math.round((slots.night / total) * 100), color: 'var(--color-gray-500)' }
-  ]
-}
-
-function calculateActiveDays(sessions: StudySessionRow[]) {
-  const days = ['D', 'L', 'M', 'X', 'J', 'V', 'S']
-  const dayCounts = [0, 0, 0, 0, 0, 0, 0]
-
-  sessions.forEach(s => {
-    const dayIndex = new Date(s.start_time).getDay()
-    dayCounts[dayIndex]++
-  })
-
-  return days.map((dia, index) => ({
-    dia,
-    sesiones: dayCounts[index]
-  }))
-}
-
-function calculateWeeklyFrequency(sessions: StudySessionRow[]) {
-  if (sessions.length === 0) return 0
-
-  const uniqueDays = new Set<string>()
-  sessions.forEach(s => {
-    const date = new Date(s.start_time).toDateString()
-    uniqueDays.add(date)
-  })
-
-  const oldestSession = new Date(sessions[sessions.length - 1].start_time)
-  const newestSession = new Date(sessions[0].start_time)
-  const weeks = Math.max(1, (newestSession.getTime() - oldestSession.getTime()) / (1000 * 60 * 60 * 24 * 7))
-
-  return uniqueDays.size / weeks
-}
-
-function calculateWeeklyProgress(sessions: StudySessionRow[], days: number) {
-  const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-  const progress: Array<{ dia: string; progreso: number }> = []
-  const now = new Date()
-
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(now)
-    date.setDate(now.getDate() - i)
-    const dayName = dayNames[date.getDay()]
-
-    const sessionsOnDay = sessions.filter(s => {
-      const sessionDate = new Date(s.start_time)
-      return sessionDate.toDateString() === date.toDateString()
-    })
-
-    const totalProgress = sessionsOnDay.reduce((acc, s) => {
-      return acc + (s.progress_made || 0)
-    }, 0)
-
-    progress.push({
-      dia: dayName,
-      progreso: Math.round(totalProgress)
-    })
-  }
-
-  return progress
-}
-
-function calculateDailyStudyTime(sessions: StudySessionRow[], days: number) {
-  const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-  const studyTime: Array<{ dia: string; horas: number }> = []
-  const now = new Date()
-
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(now)
-    date.setDate(now.getDate() - i)
-    const dayName = dayNames[date.getDay()]
-
-    const sessionsOnDay = sessions.filter(s => {
-      const sessionDate = new Date(s.start_time)
-      return sessionDate.toDateString() === date.toDateString()
-    })
-
-    const totalMinutes = sessionsOnDay.reduce((acc, s) => {
-      if (s.end_time && s.start_time) {
-        const duration = new Date(s.end_time).getTime() - new Date(s.start_time).getTime()
-        return acc + duration / 1000 / 60
-      }
-      return acc
-    }, 0)
-
-    studyTime.push({
-      dia: dayName,
-      horas: parseFloat((totalMinutes / 60).toFixed(1))
-    })
-  }
-
-  return studyTime
-}
-
-function calculateStudyStreak(sessions: StudySessionRow[]) {
-  if (sessions.length === 0) return 0
-
-  const uniqueDates = new Set<string>()
-  sessions.forEach(s => {
-    const date = new Date(s.start_time).toDateString()
-    uniqueDates.add(date)
-  })
-
-  const sortedDates = Array.from(uniqueDates).sort((a, b) => 
-    new Date(b).getTime() - new Date(a).getTime()
-  )
-
-  let streak = 0
-  let currentDate = new Date()
-  currentDate.setHours(0, 0, 0, 0)
-
-  for (const dateStr of sortedDates) {
-    const date = new Date(dateStr)
-    date.setHours(0, 0, 0, 0)
-
-    const diffDays = Math.floor((currentDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-
-    if (diffDays === streak || (streak === 0 && diffDays <= 1)) {
-      streak++
-      currentDate = date
-    } else {
-      break
-    }
-  }
-
-  return streak
 }

@@ -28,17 +28,6 @@ export interface ReportsAnalyticsNotes {
   byCourse: ReportsAnalyticsBreakdownItem[]
 }
 
-export interface ReportsAnalyticsPlanner {
-  plannedSessions: number
-  completedSessions: number
-  missedSessions: number
-  rescheduledSessions: number
-  adherenceRate: number
-  averagePlannedMinutes: number
-  averageActualMinutes: number
-  byStatus: ReportsAnalyticsBreakdownItem[]
-}
-
 export interface ReportsAnalyticsLoginHeatmapCell {
   dayKey: string
   dayIndex: number

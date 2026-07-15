@@ -14,12 +14,6 @@ export function collectContributionDates(data: QueryData, period: BusinessUserAn
       progress.completed_at,
       progress.updated_at,
     ]),
-    ...data.studySessions.flatMap((session) => [
-      session.started_at,
-      session.completed_at,
-      session.start_time,
-      session.updated_at,
-    ]),
     ...data.lessonNotes.flatMap((note) => [note.created_at, note.updated_at]),
     ...data.liaConversations.flatMap((conversation) => [
       conversation.started_at,

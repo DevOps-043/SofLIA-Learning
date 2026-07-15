@@ -1,9 +1,5 @@
 import type { CourseLessonContext } from '../../../core/types/lia.types'
 import {
-  generateAvailabilityPrompt,
-  generateStudyPlannerPrompt,
-} from '../../../features/study-planner/prompts/study-planner.prompt'
-import {
   buildActivitiesInfo,
   buildBehaviorInfo,
   buildDifficultyInfo,
@@ -25,7 +21,6 @@ interface BuildContextPromptsParams {
   role?: string
   userName?: string
   workshopContext?: CourseLessonContext
-  studyPlannerContextString?: string
 }
 
 function buildWorkshopMetadataInfo(workshopContext?: CourseLessonContext): string {
@@ -81,9 +76,7 @@ export function buildContextPrompts({
   organizationInfo,
   pageInfo,
   role,
-  userName,
   workshopContext,
-  studyPlannerContextString,
 }: BuildContextPromptsParams): Record<string, string> {
   const languageNote = buildLanguageNote(language)
   const workshopMetadataInfo = buildWorkshopMetadataInfo(workshopContext)
@@ -185,18 +178,5 @@ CONTEXTO ESPECIAL - CONVERSACIÓN POR VOZ:
 ${CONTENT_RESTRICTIONS}
 
 FORMATO DE RESPUESTA: Escribe SOLO texto plano. Como es conversación por voz, evita símbolos y enfócate en claridad verbal.${FORMAT_INSTRUCTIONS}`,
-
-    'study-planner': generateStudyPlannerPrompt({
-      userName,
-      studyPlannerContextString,
-      currentDate: new Date().toLocaleDateString('es-ES', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }),
-    }),
-
-    'study-planner-availability': generateAvailabilityPrompt(),
   }
 }

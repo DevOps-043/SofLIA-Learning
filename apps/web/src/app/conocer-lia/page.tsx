@@ -10,7 +10,6 @@ import {
   LiaLandingCta,
   LiaMetaphorsSection,
   LiaPersonalitySection,
-  LiaStudyPlannerSection,
 } from './components';
 
 export default function ConocerLiaPage() {
@@ -33,7 +32,6 @@ export default function ConocerLiaPage() {
       <LiaHeroSection heroRef={heroRef} heroInView={heroInView} />
       <LiaMetaphorsSection sectionRef={metaphorsRef} />
       <LiaCapabilitiesSection sectionRef={capabilitiesRef} capabilitiesY={capabilitiesY} />
-      <LiaStudyPlannerSection />
       <LiaPersonalitySection sectionRef={featuresRef} />
       <LiaLandingCta />
     </main>

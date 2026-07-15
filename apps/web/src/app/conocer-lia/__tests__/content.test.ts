@@ -3,14 +3,12 @@ import {
   liaCapabilities,
   liaMetaphors,
   liaPersonalityFeatures,
-  liaStudyPlannerFeatures,
 } from '../content';
 
 describe('conocer-lia content', () => {
   it('keeps all landing sections populated', () => {
     expect(liaMetaphors).toHaveLength(5);
     expect(liaCapabilities.length).toBeGreaterThanOrEqual(4);
-    expect(liaStudyPlannerFeatures).toHaveLength(6);
     expect(liaPersonalityFeatures).toHaveLength(4);
   });
 
@@ -20,7 +18,6 @@ describe('conocer-lia content', () => {
 
     assertUnique(getTitles(liaMetaphors));
     assertUnique(getTitles(liaCapabilities));
-    assertUnique(getTitles(liaStudyPlannerFeatures));
     assertUnique(getTitles(liaPersonalityFeatures));
   });
 });

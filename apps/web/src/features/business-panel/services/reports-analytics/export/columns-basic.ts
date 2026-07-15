@@ -36,10 +36,6 @@ export function getUserColumns(copy: ExportCopy): ExportColumn[] {
     'evaluations',
     'score',
     'quality',
-    'planned',
-    'plannerDone',
-    'plannerMissed',
-    'plannerRate',
     'lastConnection',
     'lastActivity',
   ].map((key) => ({ key, header: copy.columns[key] || key }))

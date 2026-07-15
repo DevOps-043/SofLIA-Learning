@@ -7,7 +7,6 @@ import { DataQualityPanel } from './DataQualityPanel'
 import { ExecutiveKpiGrid } from './ExecutiveKpiGrid'
 import { LearningFunnelChart } from './LearningFunnelChart'
 import { NotesCompositionPanel } from './NotesCompositionPanel'
-import { PlannerInsightsPanel } from './PlannerInsightsPanel'
 import { RankingTablesPanel } from './RankingTablesPanel'
 import { RiskPrioritiesTable } from './RiskPrioritiesTable'
 import { SegmentPerformancePanel } from './SegmentPerformancePanel'
@@ -129,9 +128,6 @@ export function ReportsLoadedContent({
       </div>
 
       {/* 14. Planificador de estudio */}
-      <div id="tour-reports-planner">
-        <PlannerInsightsPanel data={data} theme={theme} t={t} />
-      </div>
 
       {/* 15. Notas y apuntes */}
       <div id="tour-reports-notes">

@@ -10,8 +10,6 @@ export interface MutableUserStats {
   activityQualityScores: number[]
   sofliaQualityScores: number[]
   notesQualityScores: number[]
-  plannedMinutes: number[]
-  actualMinutes: number[]
   lastActivityDates: string[]
   completedTrendCourseIds: Set<string>
 }

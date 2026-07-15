@@ -74,37 +74,6 @@ const ProfileResponseSchema = registry.register(
   }).passthrough(),
 )
 
-const StudyPlannerSessionSchema = registry.register(
-  'StudyPlannerSession',
-  z.object({
-    id: z.string().uuid(),
-    title: z.string().nullable(),
-    description: z.string().nullable(),
-    start_time: z.string().datetime(),
-    end_time: z.string().datetime(),
-    status: z.string().nullable(),
-    course_id: z.string().uuid().nullable(),
-    lesson_id: z.string().uuid().nullable(),
-    is_ai_generated: z.boolean().nullable(),
-    session_type: z.string().nullable(),
-    external_event_id: z.string().nullable(),
-    calendar_provider: z.string().nullable(),
-    metrics: z.unknown().nullable(),
-    plan_id: z.string().uuid().nullable(),
-  }),
-)
-
-const StudyPlannerSessionsResponseSchema = registry.register(
-  'StudyPlannerSessionsResponse',
-  z.object({
-    sessions: z.array(StudyPlannerSessionSchema),
-    startDate: z.string().datetime(),
-    endDate: z.string().datetime(),
-    totalSessions: z.number().int().nonnegative(),
-    hasActivePlan: z.boolean(),
-  }),
-)
-
 const PerformanceMetricsResponseSchema = registry.register(
   'PerformanceMetricsResponse',
   z.object({
@@ -189,26 +158,6 @@ registry.registerPath({
   },
 })
 
-registry.registerPath({
-  method: 'get',
-  path: '/api/study-planner/sessions',
-  tags: ['Study Planner'],
-  summary: 'List study sessions for the authenticated user.',
-  security: [{ SupabaseAuth: [] }],
-  request: {
-    query: z.object({
-      startDate: z.string().datetime(),
-      endDate: z.string().datetime(),
-      planId: z.string().uuid().optional(),
-    }),
-  },
-  responses: {
-    200: jsonResponse(StudyPlannerSessionsResponseSchema, 'Study sessions for the date range.'),
-    400: validationErrorResponse,
-    401: unauthorizedResponse,
-    500: internalErrorResponse,
-  },
-})
 
 registry.registerPath({
   method: 'get',

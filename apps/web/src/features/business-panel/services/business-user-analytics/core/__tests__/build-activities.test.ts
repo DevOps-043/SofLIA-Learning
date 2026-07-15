@@ -79,7 +79,6 @@ function queryData(overrides: Partial<QueryData> = {}): QueryData {
     dialogueTurns: [],
     liaConversations: [],
     liaMessages: [],
-    studySessions: [],
     lessonNotes: [],
     quizSubmissions: [],
     quizAttempts: [],

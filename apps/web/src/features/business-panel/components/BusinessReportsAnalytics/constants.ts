@@ -2,7 +2,6 @@ import {
   AlertTriangle,
   BookOpenCheck,
   Brain,
-  CalendarCheck2,
   ShieldCheck,
   Target,
   Users,
@@ -22,6 +21,5 @@ export const overviewMetricKeys: Array<{
   { key: 'completionRate', icon: BookOpenCheck, valueKey: 'completionRate', isPercent: true },
   { key: 'qualityScore', icon: ShieldCheck, valueKey: 'qualityScore', isPercent: true },
   { key: 'sofliaAdoptionRate', icon: Brain, valueKey: 'sofliaAdoptionRate', isPercent: true },
-  { key: 'plannerAdherenceRate', icon: CalendarCheck2, valueKey: 'plannerAdherenceRate', isPercent: true },
   { key: 'overdueAssignments', icon: AlertTriangle, valueKey: 'overdueAssignments' },
 ] as const

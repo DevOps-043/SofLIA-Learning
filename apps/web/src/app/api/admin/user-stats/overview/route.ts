@@ -1,8 +1,17 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { cacheGet, cacheSet } from '@/lib/cache/ttlCache'
 import { cacheHeaders } from '@/lib/utils/cache-headers'
 import { logger } from '@/lib/utils/logger'
+
+// Métricas AGREGADAS del dashboard: iguales para todos los admins y sin
+// necesidad de frescura al segundo. La consulta subyacente es analítica y
+// pesada (escanea varias tablas con filtros de fecha). Cachear el RESULTADO en
+// servidor hace que la consulta corra a lo sumo una vez por ventana, en vez de
+// en cada carga de cada admin. La autorización se sigue validando por request.
+const OVERVIEW_CACHE_KEY = 'admin-user-stats:overview'
+const OVERVIEW_CACHE_TTL_MS = 60_000
 import {
   buildStudyMinutesByUser,
   type CourseLessonTimeRow,
@@ -36,13 +45,31 @@ export async function GET() {
     const auth = await requireAdmin()
     if (auth instanceof NextResponse) return auth
 
+    const cached = cacheGet<OverviewStats>(OVERVIEW_CACHE_KEY)
+    if (cached) {
+      return NextResponse.json(cached, { headers: cacheHeaders.privateShort })
+    }
+
+    const overview = await computeOverviewStats()
+    cacheSet(OVERVIEW_CACHE_KEY, overview, OVERVIEW_CACHE_TTL_MS)
+    return NextResponse.json(overview, { headers: cacheHeaders.privateShort })
+  } catch (error) {
+    logger.error('Unexpected error in admin user stats overview route', { error })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+async function computeOverviewStats(): Promise<OverviewStats> {
     const supabase = createAdminClient()
     const { data: rpcOverview, error: rpcError } = await (
       supabase as unknown as UserStatsOverviewRpcClient
     ).rpc('get_admin_user_stats_overview', {})
 
     if (!rpcError && rpcOverview) {
-      return NextResponse.json(rpcOverview, { headers: cacheHeaders.privateShort })
+      return rpcOverview
     }
 
     if (rpcError) {
@@ -162,24 +189,14 @@ export async function GET() {
       .map(([role, count]) => ({ role, count }))
       .sort((a, b) => b.count - a.count)
 
-    return NextResponse.json(
-      {
-        activeUsers30d,
-        completionRate,
-        studyHoursMonth,
-        certificatesMonth,
-        usersByOrganization,
-        dailyActivity,
-        progressDistribution,
-        roleDistribution,
-      },
-      { headers: cacheHeaders.privateShort },
-    )
-  } catch (error) {
-    logger.error('Unexpected error in admin user stats overview route', { error })
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
+    return {
+      activeUsers30d,
+      completionRate,
+      studyHoursMonth,
+      certificatesMonth,
+      usersByOrganization,
+      dailyActivity,
+      progressDistribution,
+      roleDistribution,
+    }
 }

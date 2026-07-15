@@ -11,14 +11,12 @@ export function testNewPageMetadata() {
     auth: routes.filter((route) => route.includes('/auth')).length,
     admin: routes.filter((route) => route.startsWith('/admin')).length,
     instructor: routes.filter((route) => route.includes('/instructor')).length,
-    studyPlanner: routes.filter((route) => route.includes('/study-planner')).length,
   }
 
   check(result, routes.length >= 30, 'Hay ' + routes.length + ' paginas registradas', 'Solo hay ' + routes.length + ' paginas')
   check(result, counts.auth >= 5, counts.auth + ' paginas de Auth registradas', 'Solo ' + counts.auth + ' paginas de Auth')
   check(result, counts.admin >= 10, counts.admin + ' paginas de Admin registradas', 'Solo ' + counts.admin + ' paginas de Admin')
   check(result, counts.instructor >= 3, counts.instructor + ' paginas de Instructor registradas', 'Solo ' + counts.instructor + ' paginas de Instructor')
-  check(result, counts.studyPlanner >= 3, counts.studyPlanner + ' paginas de Study Planner', 'Solo ' + counts.studyPlanner + ' paginas de Study Planner')
 
   ;['/profile', '/certificates', '/communities/[slug]', '/dashboard', '/admin/workshops', '/admin/skills', '/admin/apps', '/admin/reels', '/auth/forgot-password']
     .forEach((page) => check(result, hasPageMetadata(page), page + ' tiene metadata', page + ' no tiene metadata'))

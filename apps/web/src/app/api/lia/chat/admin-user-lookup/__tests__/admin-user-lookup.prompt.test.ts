@@ -69,14 +69,6 @@ function buildDossier(): AdminUserDossier {
       },
     ],
     liaUsage: { conversationCount: 12, lastConversationAt: '2026-07-12T15:00:00.000Z' },
-    studyPlans: [
-      {
-        name: 'Plan Q3',
-        startDate: '2026-07-01',
-        endDate: '2026-09-30',
-        createdAt: '2026-06-28T00:00:00.000Z',
-      },
-    ],
   }
 }
 

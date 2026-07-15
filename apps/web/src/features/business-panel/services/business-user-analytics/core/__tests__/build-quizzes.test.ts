@@ -49,7 +49,7 @@ function queryData(overrides: Partial<QueryData> = {}): QueryData {
     assignments: [], enrollments: [], courseLessons: [], lessonActivities: [],
     lessonProgress: [], activitySubmissions: [], activityCompletions: [], activityEvaluations: [],
     dialogueResults: [], dialogueSessions: [], dialogueTurns: [], liaConversations: [], liaMessages: [],
-    studySessions: [], lessonNotes: [], quizSubmissions: [], quizAttempts: [], quizLessonIds: [],
+    lessonNotes: [], quizSubmissions: [], quizAttempts: [], quizLessonIds: [],
     certificates: [], userSessions: [], lessonTracking: [],
     ...overrides,
   }

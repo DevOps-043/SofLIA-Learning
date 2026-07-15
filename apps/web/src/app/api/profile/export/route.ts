@@ -19,8 +19,6 @@ export async function GET() {
     enrollments,
     lessonProgress,
     certificates,
-    studyPlans,
-    studySessions,
     conversations,
     notifications,
   ] = await Promise.all([
@@ -44,14 +42,6 @@ export async function GET() {
     supabase
       .from('user_course_certificates')
       .select('certificate_id, course_id, enrollment_id, organization_id, certificate_url, issued_at, expires_at, created_at')
-      .eq('user_id', user.id),
-    supabase
-      .from('study_plans')
-      .select('id, organization_id, name, description, start_date, end_date, timezone, goal_hours_per_week, preferred_days, preferred_time_blocks, preferred_session_type, created_at, updated_at')
-      .eq('user_id', user.id),
-    supabase
-      .from('study_sessions')
-      .select('id, plan_id, organization_id, course_id, lesson_id, title, description, start_time, end_time, status, duration_minutes, actual_duration_minutes, completed_at, created_at, updated_at')
       .eq('user_id', user.id),
     supabase
       .from('lia_conversations')
@@ -98,10 +88,6 @@ export async function GET() {
         enrollments: enrollments.data ?? [],
         lessonProgress: lessonProgress.data ?? [],
         certificates: certificates.data ?? [],
-      },
-      studyPlanner: {
-        plans: studyPlans.data ?? [],
-        sessions: studySessions.data ?? [],
       },
       assistant: {
         conversations: conversations.data ?? [],

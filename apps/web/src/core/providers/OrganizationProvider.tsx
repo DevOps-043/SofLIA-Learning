@@ -259,7 +259,6 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
       'business-user', // Legacy route
       'dashboard',
       'certificates',
-      'study-planner',
       'account-settings',
     ];
 

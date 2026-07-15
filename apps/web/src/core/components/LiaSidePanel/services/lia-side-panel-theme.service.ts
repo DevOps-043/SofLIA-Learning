@@ -12,7 +12,6 @@ interface LiaPanelStylePalette {
 export function isLiaDashboardRoute(pathname?: string | null): boolean {
   return (
     pathname?.includes('/business-user') === true ||
-    pathname?.includes('/study-planner') === true ||
     pathname === '/dashboard'
   );
 }

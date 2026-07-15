@@ -1,50 +1,8 @@
 import type {
-  CourseStudentStudySessions,
   EnrollmentStatus,
-  StudentActiveDayPoint,
   StudentConversationTopic,
   StudentConversationWeek,
-  StudentDailyStudyTimePoint,
-  StudentPreferredTimeSlot,
-  StudentWeeklyProgressPoint,
 } from './types'
-
-export const DEFAULT_WEEKLY_PROGRESS: StudentWeeklyProgressPoint[] = [
-  { dia: 'Lun', progreso: 0 },
-  { dia: 'Mar', progreso: 0 },
-  { dia: 'Mie', progreso: 0 },
-  { dia: 'Jue', progreso: 0 },
-  { dia: 'Vie', progreso: 0 },
-  { dia: 'Sab', progreso: 0 },
-  { dia: 'Dom', progreso: 0 },
-]
-
-export const DEFAULT_DAILY_STUDY_TIME: StudentDailyStudyTimePoint[] = [
-  { dia: 'Lun', horas: 0 },
-  { dia: 'Mar', horas: 0 },
-  { dia: 'Mie', horas: 0 },
-  { dia: 'Jue', horas: 0 },
-  { dia: 'Vie', horas: 0 },
-  { dia: 'Sab', horas: 0 },
-  { dia: 'Dom', horas: 0 },
-]
-
-export const DEFAULT_PREFERRED_TIME_SLOTS: StudentPreferredTimeSlot[] = [
-  { periodo: 'Mañana (6am-12pm)', porcentaje: 0, color: 'var(--color-warning)' },
-  { periodo: 'Tarde (12pm-6pm)', porcentaje: 0, color: 'var(--color-accent)' },
-  { periodo: 'Noche (6pm-12am)', porcentaje: 0, color: 'var(--color-success)' },
-  { periodo: 'Madrugada (12am-6am)', porcentaje: 0, color: 'var(--color-gray-500)' },
-]
-
-export const DEFAULT_ACTIVE_DAYS: StudentActiveDayPoint[] = [
-  { dia: 'L', sesiones: 0 },
-  { dia: 'M', sesiones: 0 },
-  { dia: 'X', sesiones: 0 },
-  { dia: 'J', sesiones: 0 },
-  { dia: 'V', sesiones: 0 },
-  { dia: 'S', sesiones: 0 },
-  { dia: 'D', sesiones: 0 },
-]
 
 export const DEFAULT_CONVERSATIONS_BY_WEEK: StudentConversationWeek[] = [
   { week: 'S1', count: 0 },
@@ -104,37 +62,3 @@ export function getCourseManagementEnrollmentStatusDotTone(
   }
 }
 
-export function getDominantStudyPeriod(
-  preferredTimeSlots: StudentPreferredTimeSlot[] | null | undefined,
-): string | null {
-  if (!preferredTimeSlots || preferredTimeSlots.length === 0) {
-    return null
-  }
-
-  const dominantSlot = preferredTimeSlots.reduce((current, candidate) =>
-    candidate.porcentaje > current.porcentaje ? candidate : current,
-  )
-
-  return dominantSlot.periodo.toLowerCase()
-}
-
-export function buildCourseManagementStudentInsight(
-  studySessions: CourseStudentStudySessions | null | undefined,
-): string {
-  if (!studySessions) {
-    return 'Aun no hay suficientes datos para generar insights personalizados.'
-  }
-
-  const dominantPeriod = getDominantStudyPeriod(studySessions.preferredTimeSlots)
-
-  if (!dominantPeriod) {
-    return 'Aun no hay suficientes datos para generar insights personalizados.'
-  }
-
-  const streak =
-    studySessions.studyStreak > 0
-      ? ` Racha actual: ${studySessions.studyStreak} dias consecutivos.`
-      : ''
-
-  return `Este estudiante muestra un patron de estudio ${dominantPeriod}. Frecuencia semanal: ${studySessions.weeklyFrequency} dias. Duracion promedio: ${studySessions.avgSessionDuration} minutos por sesion.${streak}`
-}

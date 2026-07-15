@@ -17,11 +17,6 @@ const PLATFORM_MODULES = {
     description: 'Sistema de cursos con lecciones en video, actividades interactivas y certificados',
     features: ['Videos', 'Actividades', 'Quizzes', 'Certificados', 'Progreso automático']
   },
-  studyPlanner: {
-    name: 'Planificador de Estudio',
-    description: 'Herramienta de planificación de estudio con IA',
-    features: ['Generación de planes con IA', 'Integración con calendario', 'Recordatorios']
-  },
   communities: {
     name: 'Comunidades',
     description: 'Red social interna para interacción entre usuarios',
@@ -40,7 +35,7 @@ const PLATFORM_MODULES = {
   lia: {
     name: 'SofLIA - Asistente de IA',
     description: 'Asistente inteligente integrado en toda la plataforma',
-    features: ['Chat contextual', 'Ayuda en cursos', 'Planificación de estudio', 'Reporte de bugs']
+    features: ['Chat contextual', 'Ayuda en cursos', 'Reporte de bugs']
   },
   workshops: {
     name: 'Talleres',
@@ -143,7 +138,7 @@ export class PlatformContextProvider extends BaseContextProvider {
   private getRelevantModules(currentPage?: string): string[] {
     if (!currentPage) {
       // Si no hay página, devolver los más importantes
-      return ['courses', 'lia', 'studyPlanner', 'communities'];
+      return ['courses', 'lia', 'communities'];
     }
 
     const page = currentPage.toLowerCase();
@@ -151,9 +146,6 @@ export class PlatformContextProvider extends BaseContextProvider {
     // Mapear página a módulos relevantes
     if (page.includes('course') || page.includes('learn')) {
       return ['courses', 'lia', 'certificates'];
-    }
-    if (page.includes('study-planner')) {
-      return ['studyPlanner', 'lia', 'courses'];
     }
     if (page.includes('communit')) {
       return ['communities', 'lia'];
@@ -184,6 +176,6 @@ export class PlatformContextProvider extends BaseContextProvider {
     }
 
     // Default
-    return ['courses', 'lia', 'studyPlanner', 'communities'];
+    return ['courses', 'lia', 'communities'];
   }
 }

@@ -118,7 +118,6 @@ function isGenericApiSegment(segment: string): boolean {
     'lia',
     'observability',
     'performance',
-    'study-planner',
   ].includes(segment)
 }
 
@@ -133,7 +132,6 @@ function isGenericPageSegment(segment: string): boolean {
     'downloads',
     'login',
     'profile',
-    'study-planner',
   ].includes(segment)
 }
 

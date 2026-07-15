@@ -28,7 +28,7 @@ describe('gemini-request.service', () => {
 
     const result = await generateAiChatResponse({
       message: 'hola',
-      context: 'study-planner',
+      context: 'general',
       language: 'es',
       contextPrompt: 'prompt',
       conversationHistory: [],
@@ -83,9 +83,9 @@ describe('gemini-request.service', () => {
   })
 
   it('uses Gemini for every context when an API key exists', () => {
-    expect(shouldUseGeminiForContext('study-planner', 'google-key')).toBe(true)
+    expect(shouldUseGeminiForContext('course_lesson', 'google-key')).toBe(true)
     expect(shouldUseGeminiForContext('onboarding', 'google-key')).toBe(true)
     expect(shouldUseGeminiForContext('general', 'google-key')).toBe(true)
-    expect(shouldUseGeminiForContext('study-planner', '')).toBe(false)
+    expect(shouldUseGeminiForContext('course_lesson', '')).toBe(false)
   })
 })

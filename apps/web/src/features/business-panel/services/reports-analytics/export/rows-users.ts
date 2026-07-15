@@ -29,10 +29,6 @@ export function buildUserDetailRows(dataset: ReportsAnalyticsDataset): ExportRow
     evaluations: user.quizAttempts,
     score: user.quizAverageScore,
     quality: user.qualityScore,
-    planned: user.plannedSessions,
-    plannerDone: user.completedSessions,
-    plannerMissed: user.missedSessions,
-    plannerRate: user.plannerAdherenceRate,
     lastConnection: user.lastConnectionAt || '',
     lastActivity: user.lastActivityAt || '',
   }))

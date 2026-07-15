@@ -1,6 +1,5 @@
 import {
   Brain,
-  Calendar,
   Globe,
   HelpCircle,
   Lightbulb,
@@ -12,7 +11,6 @@ import {
 export const liaCapabilities = [
   { icon: MessageSquare, titleKey: 'conversation', descKey: 'conversationDesc' },
   { icon: Brain, titleKey: 'context', descKey: 'contextDesc' },
-  { icon: Calendar, titleKey: 'studyPlanner', descKey: 'studyPlannerDesc' },
   { icon: UserCog, titleKey: 'rolePersonalization', descKey: 'rolePersonalizationDesc' },
   { icon: MapPin, titleKey: 'anywhere', descKey: 'anywhereDesc' },
   { icon: Globe, titleKey: 'multilingual', descKey: 'multilingualDesc' },

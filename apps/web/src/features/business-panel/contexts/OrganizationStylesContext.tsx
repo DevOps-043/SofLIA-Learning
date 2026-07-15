@@ -42,7 +42,6 @@ const NON_ORG_ROUTE_SEGMENTS = new Set([
   'business-user',
   'dashboard',
   'certificates',
-  'study-planner',
   'account-settings',
 ]);
 

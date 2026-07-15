@@ -1,7 +1,4 @@
-import {
-  deleteEnrollmentDependencies,
-  deleteScormDependencies,
-} from './delete-user.dependencies'
+import { deleteEnrollmentDependencies } from './delete-user.dependencies'
 import {
   executeNullUpdates,
   executeSimpleDeletes,
@@ -13,7 +10,6 @@ export async function deleteUserManually(
   userId: string,
 ) {
   await deleteEnrollmentDependencies(adminSupabase, userId)
-  await deleteScormDependencies(adminSupabase, userId)
   await executeNullUpdates(adminSupabase, userId)
   await executeSimpleDeletes(adminSupabase, userId)
 

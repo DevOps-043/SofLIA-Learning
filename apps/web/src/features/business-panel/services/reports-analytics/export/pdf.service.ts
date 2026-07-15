@@ -36,7 +36,6 @@ export async function generateReportsAnalyticsPdf(
   renderPdfProgressBar(layout, copy.metrics.averageProgress, dataset.overview.averageProgress)
   renderPdfProgressBar(layout, copy.metrics.completionRate, dataset.overview.completionRate)
   renderPdfProgressBar(layout, copy.metrics.activityCompletionRate, dataset.activities.completionRate)
-  renderPdfProgressBar(layout, copy.metrics.plannerAdherenceRate, dataset.overview.plannerAdherenceRate)
 
   layout.section(copy.activities)
   renderPdfMetricGrid(layout, [

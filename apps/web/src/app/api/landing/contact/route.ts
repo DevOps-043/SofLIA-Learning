@@ -5,8 +5,29 @@ import nodemailer from 'nodemailer';
 
 import { apiError } from '@/lib/api/errors';
 import { withZodBody } from '@/lib/api/with-validation';
+import { fromLoose } from '@/lib/supabase/looseQuery';
 
 import { landingContactSchema, type LandingContactBody } from './schema';
+
+// `landing_contacts` es una tabla nueva aún no reflejada en los tipos generados
+// (lib/supabase/types.ts). Se usa `fromLoose` —el patrón ya establecido en el
+// repo para tablas fuera del tipo Database (p. ej. bulk_invite_links)— en vez de
+// un cast improvisado. Al regenerar los tipos, se puede migrar a `.from()`.
+interface LandingContactRow {
+  id: string
+}
+interface LandingContactInsert {
+  name: string
+  email: string
+  company?: string | null
+  phone?: string | null
+  company_size?: string | null
+  interest?: string | null
+  message?: string | null
+  source: string
+  created_at: string
+  status: string
+}
 
 // Configuración del transportador de correo
 const createTransporter = () => {
@@ -49,12 +70,14 @@ async function handlePost(_request: NextRequest, body: LandingContactBody) {
     // Guardar el lead COMPLETO. Antes solo se guardaba name/email/company y el
     // resto (teléfono, tamaño, interés, mensaje) se perdía aunque el formulario
     // lo enviara: solo viajaba en el correo de aviso, sin quedar consultable.
-    const { data, error: dbError } = await supabase
-      .from('landing_contacts')
+    const { data, error: dbError } = await fromLoose<
+      LandingContactRow,
+      LandingContactInsert
+    >(supabase, 'landing_contacts')
       .insert({
         name,
         email,
-        company,
+        company: company || null,
         phone: phone || null,
         company_size: companySize || null,
         interest: interest || null,
@@ -63,7 +86,7 @@ async function handlePost(_request: NextRequest, body: LandingContactBody) {
         created_at: timestamp || new Date().toISOString(),
         status: 'pending',
       })
-      .select()
+      .select('id')
       .single();
 
     if (dbError) {

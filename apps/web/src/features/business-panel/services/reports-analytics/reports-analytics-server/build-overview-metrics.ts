@@ -22,8 +22,6 @@ export function buildOverviewMetrics(
   const completedCourses = userDetails.reduce((sum, user) => sum + user.coursesCompleted, 0)
   const activityTotal = countIncludedActivities(context, queryData)
   const activityCompleted = userDetails.reduce((sum, user) => sum + user.activitiesCompleted, 0)
-  const plannerPlanned = userDetails.reduce((sum, user) => sum + user.plannedSessions, 0)
-  const plannerCompleted = userDetails.reduce((sum, user) => sum + user.completedSessions, 0)
   const usersWithSoflia = userDetails.filter((user) => user.sofliaConversations > 0).length
   const usersWithNotes = userDetails.filter((user) => user.notesCreated > 0).length
 
@@ -58,7 +56,6 @@ export function buildOverviewMetrics(
     sofliaAdoptionRate: calculatePercentage(usersWithSoflia, totalUsers),
     notesAdoptionRate: calculatePercentage(usersWithNotes, totalUsers),
     activityCompletionRate: calculatePercentage(activityCompleted, activityTotal),
-    plannerAdherenceRate: calculatePercentage(plannerCompleted, plannerPlanned),
     quizAverageScore: calculateAverage(userDetails.map((user) => user.quizAverageScore)),
     qualityScore: quality.overallScore,
     assignedUsersCount,

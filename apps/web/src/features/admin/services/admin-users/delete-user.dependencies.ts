@@ -33,34 +33,3 @@ export async function deleteEnrollmentDependencies(
     .delete()
     .in('enrollment_id', enrollmentIds)
 }
-
-export async function deleteScormDependencies(
-  adminSupabase: AdminSupabaseClient,
-  userId: string,
-) {
-  const { data: scormAttempts } = await adminSupabase
-    .from('scorm_attempts')
-    .select('id')
-    .eq('user_id', userId)
-
-  if (!scormAttempts?.length) {
-    return
-  }
-
-  const attemptIds = scormAttempts.map((a: { id: string }) => a.id)
-
-  await adminSupabase
-    .from('scorm_interactions')
-    .delete()
-    .in('attempt_id', attemptIds)
-
-  await adminSupabase
-    .from('scorm_objectives')
-    .delete()
-    .in('attempt_id', attemptIds)
-
-  await adminSupabase
-    .from('scorm_attempts')
-    .delete()
-    .eq('user_id', userId)
-}

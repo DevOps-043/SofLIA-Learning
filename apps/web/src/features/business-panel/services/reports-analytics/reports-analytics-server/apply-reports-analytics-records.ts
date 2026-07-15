@@ -6,7 +6,6 @@ import { applyLessonNotes } from './apply-lesson-notes'
 import { applyLessonProgress } from './apply-lesson-progress'
 import { applyLiaConversations } from './apply-lia-conversations'
 import { applyQuizSubmissions } from './apply-quiz-submissions'
-import { applyStudySessions } from './apply-study-sessions'
 import type { AnalyticsQueryData } from './analytics-query-data'
 import type { BuildContext } from './build-context'
 
@@ -22,5 +21,4 @@ export function applyReportsAnalyticsRecords(
   applyLessonNotes(context, queryData.lessonNotes)
   applyLiaConversations(context, queryData.liaConversations, queryData.liaMessages)
   applyQuizSubmissions(context, queryData.quizSubmissions)
-  applyStudySessions(context, queryData.studySessions)
 }

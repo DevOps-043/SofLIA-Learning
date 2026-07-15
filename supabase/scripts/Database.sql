@@ -46,12 +46,10 @@ CREATE TABLE public.users (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   username text NOT NULL UNIQUE CHECK (username ~* '^[A-Za-z0-9_-]+$'::text),
   email text UNIQUE CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'::text),
-  password_hash text CHECK (password_hash IS NULL OR password_hash ~* '^\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}$'::text),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   last_login_at timestamp with time zone,
-  cargo_rol text CHECK (cargo_rol = ANY (ARRAY['Usuario'::text, 'Instructor'::text, 'Administrador'::text, 'Business'::text, 'Business User'::text])),
-  type_rol text,
+  platform_role text CHECK (platform_role = ANY (ARRAY['Usuario'::text, 'Instructor'::text, 'Administrador'::text, 'Business'::text, 'Business User'::text])),
   first_name text,
   last_name text,
   display_name text,
@@ -62,8 +60,6 @@ CREATE TABLE public.users (
   email_verified boolean NOT NULL DEFAULT false,
   email_verified_at timestamp with time zone,
   country_code text,
-  oauth_provider character varying,
-  oauth_provider_id character varying,
   is_banned boolean NOT NULL DEFAULT false,
   banned_at timestamp with time zone,
   ban_reason text,
@@ -76,6 +72,7 @@ CREATE TABLE public.users (
   notification_community_updates boolean DEFAULT false,
   date_of_birth date CHECK (date_of_birth IS NULL OR date_of_birth >= '1900-01-01'::date AND date_of_birth <= CURRENT_DATE),
   gender text CHECK (gender IS NULL OR (gender = ANY (ARRAY['female'::text, 'male'::text, 'non_binary'::text, 'other'::text, 'prefer_not_to_say'::text]))),
+  last_activity_at timestamp with time zone,
   CONSTRAINT users_pkey PRIMARY KEY (id),
   CONSTRAINT users_auth_user_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
 );
@@ -295,16 +292,16 @@ CREATE TABLE public.course_questions (
   edited_at timestamp with time zone,
   is_hidden boolean DEFAULT false,
   is_resolved boolean DEFAULT false,
-  lesson_id uuid,
   tags ARRAY DEFAULT '{}'::text[],
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   organization_id uuid,
+  lesson_id uuid,
   CONSTRAINT course_questions_pkey PRIMARY KEY (id),
   CONSTRAINT course_questions_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id),
-  CONSTRAINT course_questions_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.course_lessons(lesson_id) ON DELETE SET NULL,
   CONSTRAINT course_questions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
-  CONSTRAINT course_questions_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
+  CONSTRAINT course_questions_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
+  CONSTRAINT course_questions_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.course_lessons(lesson_id)
 );
 CREATE TABLE public.course_reviews (
   review_id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -486,11 +483,11 @@ CREATE TABLE public.lesson_tracking (
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   organization_id uuid,
-  enrollment_id uuid,
   video_checkpoint_seconds integer DEFAULT 0,
   video_max_seconds integer DEFAULT 0,
   video_total_duration_seconds integer DEFAULT 0,
   video_playback_rate numeric DEFAULT 1.0,
+  enrollment_id uuid,
   CONSTRAINT lesson_tracking_pkey PRIMARY KEY (id),
   CONSTRAINT lesson_tracking_enrollment_id_fkey FOREIGN KEY (enrollment_id) REFERENCES public.user_course_enrollments(enrollment_id),
   CONSTRAINT lesson_tracking_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.course_lessons(lesson_id),
@@ -518,10 +515,12 @@ CREATE TABLE public.lia_activity_completions (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   organization_id uuid,
+  enrollment_id uuid,
   CONSTRAINT lia_activity_completions_pkey PRIMARY KEY (completion_id),
   CONSTRAINT lia_activity_completions_activity_id_fkey FOREIGN KEY (activity_id) REFERENCES public.lesson_activities(activity_id),
   CONSTRAINT lia_activity_completions_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES public.lia_conversations(conversation_id),
   CONSTRAINT lia_activity_completions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT lia_activity_completions_enrollment_id_fkey FOREIGN KEY (enrollment_id) REFERENCES public.user_course_enrollments(enrollment_id),
   CONSTRAINT lia_activity_completions_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
 CREATE TABLE public.lia_conversations (
@@ -547,7 +546,9 @@ CREATE TABLE public.lia_conversations (
   updated_at timestamp with time zone DEFAULT now(),
   conversation_title character varying,
   organization_id uuid,
+  enrollment_id uuid,
   CONSTRAINT lia_conversations_pkey PRIMARY KEY (conversation_id),
+  CONSTRAINT lia_conversations_enrollment_id_fkey FOREIGN KEY (enrollment_id) REFERENCES public.user_course_enrollments(enrollment_id),
   CONSTRAINT lia_conversations_activity_id_fkey FOREIGN KEY (activity_id) REFERENCES public.lesson_activities(activity_id),
   CONSTRAINT lia_conversations_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id),
   CONSTRAINT lia_conversations_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.course_lessons(lesson_id),
@@ -691,8 +692,8 @@ CREATE TABLE public.notification_stats (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT notification_stats_pkey PRIMARY KEY (stat_id),
-  CONSTRAINT notification_stats_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
-  CONSTRAINT notification_stats_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+  CONSTRAINT notification_stats_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT notification_stats_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
 CREATE TABLE public.oauth_accounts (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -759,11 +760,16 @@ CREATE TABLE public.organization_course_assignments (
   policy_snapshot jsonb,
   planning_window_start date,
   planning_window_end date,
+  assignment_source text NOT NULL DEFAULT 'manual'::text CHECK (assignment_source = ANY (ARRAY['manual'::text, 'bulk'::text, 'default_rule'::text])),
+  default_rule_id uuid,
+  source_learning_path_id uuid,
   CONSTRAINT organization_course_assignments_pkey PRIMARY KEY (id),
+  CONSTRAINT organization_course_assignments_source_learning_path_id_fkey FOREIGN KEY (source_learning_path_id) REFERENCES public.learning_paths(id),
   CONSTRAINT organization_course_assignments_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.users(id),
   CONSTRAINT organization_course_assignments_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id),
-  CONSTRAINT organization_course_assignments_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
   CONSTRAINT organization_course_assignments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT organization_course_assignments_default_rule_id_fkey FOREIGN KEY (default_rule_id) REFERENCES public.organization_course_default_rules(id),
+  CONSTRAINT organization_course_assignments_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
   CONSTRAINT organization_course_assignments_hierarchy_assignment_id_fkey FOREIGN KEY (hierarchy_assignment_id) REFERENCES public.hierarchy_course_assignments(id),
   CONSTRAINT organization_course_assignments_exempted_by_fkey FOREIGN KEY (exempted_by) REFERENCES auth.users(id)
 );
@@ -796,10 +802,10 @@ CREATE TABLE public.organization_course_purchases (
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT organization_course_purchases_pkey PRIMARY KEY (purchase_id),
   CONSTRAINT organization_course_purchases_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id),
-  CONSTRAINT organization_course_purchases_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
   CONSTRAINT organization_course_purchases_payment_method_id_fkey FOREIGN KEY (payment_method_id) REFERENCES public.payment_methods(payment_method_id),
   CONSTRAINT organization_course_purchases_purchased_by_fkey FOREIGN KEY (purchased_by) REFERENCES public.users(id),
-  CONSTRAINT organization_course_purchases_transaction_id_fkey FOREIGN KEY (transaction_id) REFERENCES public.transactions(transaction_id)
+  CONSTRAINT organization_course_purchases_transaction_id_fkey FOREIGN KEY (transaction_id) REFERENCES public.transactions(transaction_id),
+  CONSTRAINT organization_course_purchases_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
 CREATE TABLE public.organization_notification_preferences (
   preference_id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -832,11 +838,11 @@ CREATE TABLE public.organization_users (
   job_description text,
   CONSTRAINT organization_users_pkey PRIMARY KEY (id),
   CONSTRAINT organization_users_invited_by_fkey FOREIGN KEY (invited_by) REFERENCES public.users(id),
-  CONSTRAINT organization_users_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
   CONSTRAINT organization_users_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
   CONSTRAINT organization_users_team_id_fkey FOREIGN KEY (team_id) REFERENCES public.organization_teams(id),
   CONSTRAINT organization_users_zone_id_fkey FOREIGN KEY (zone_id) REFERENCES public.organization_zones(id),
-  CONSTRAINT organization_users_region_id_fkey FOREIGN KEY (region_id) REFERENCES public.organization_regions(id)
+  CONSTRAINT organization_users_region_id_fkey FOREIGN KEY (region_id) REFERENCES public.organization_regions(id),
+  CONSTRAINT organization_users_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
 CREATE TABLE public.organizations (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -877,6 +883,7 @@ CREATE TABLE public.organizations (
   company_type text,
   company_mission text,
   company_country text,
+  branding_enabled boolean NOT NULL DEFAULT false,
   CONSTRAINT organizations_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.password_reset_tokens (
@@ -1094,8 +1101,8 @@ CREATE TABLE public.study_plans (
   organization_id uuid,
   course_ids ARRAY DEFAULT '{}'::uuid[],
   CONSTRAINT study_plans_pkey PRIMARY KEY (id),
-  CONSTRAINT study_plans_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
-  CONSTRAINT study_plans_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+  CONSTRAINT study_plans_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT study_plans_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
 CREATE TABLE public.study_sessions (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -1137,7 +1144,9 @@ CREATE TABLE public.study_sessions (
   organization_id uuid,
   obligation_id uuid,
   course_id_uuid uuid,
+  enrollment_id uuid,
   CONSTRAINT study_sessions_pkey PRIMARY KEY (id),
+  CONSTRAINT study_sessions_enrollment_id_fkey FOREIGN KEY (enrollment_id) REFERENCES public.user_course_enrollments(enrollment_id),
   CONSTRAINT study_sessions_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.course_lessons(lesson_id),
   CONSTRAINT study_sessions_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.study_plans(id),
   CONSTRAINT study_sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
@@ -1254,41 +1263,6 @@ CREATE TABLE public.user_course_enrollments (
   CONSTRAINT user_course_enrollments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
   CONSTRAINT user_course_enrollments_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
-CREATE TABLE public.course_legacy_progress_claims (
-  claim_id uuid NOT NULL DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
-  course_id uuid NOT NULL,
-  source_enrollment_id uuid,
-  target_enrollment_id uuid NOT NULL,
-  target_organization_id uuid NOT NULL,
-  claimed_by uuid NOT NULL,
-  claim_source text NOT NULL DEFAULT 'user_selection'::text,
-  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
-  claimed_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT course_legacy_progress_claims_pkey PRIMARY KEY (claim_id),
-  CONSTRAINT course_legacy_progress_claims_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE,
-  CONSTRAINT course_legacy_progress_claims_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id) ON DELETE CASCADE,
-  CONSTRAINT course_legacy_progress_claims_target_enrollment_id_fkey FOREIGN KEY (target_enrollment_id) REFERENCES public.user_course_enrollments(enrollment_id) ON DELETE CASCADE,
-  CONSTRAINT course_legacy_progress_claims_target_organization_id_fkey FOREIGN KEY (target_organization_id) REFERENCES public.organizations(id) ON DELETE CASCADE,
-  CONSTRAINT course_legacy_progress_claims_claimed_by_fkey FOREIGN KEY (claimed_by) REFERENCES public.users(id) ON DELETE CASCADE
-);
-CREATE TABLE public.course_scope_consolidation_runs (
-  run_id uuid NOT NULL DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
-  target_organization_id uuid NOT NULL,
-  course_id uuid,
-  migrated_by uuid,
-  source_enrollment_ids uuid[] NOT NULL DEFAULT '{}'::uuid[],
-  target_enrollment_id uuid,
-  moved_counts jsonb NOT NULL DEFAULT '{}'::jsonb,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT course_scope_consolidation_runs_pkey PRIMARY KEY (run_id),
-  CONSTRAINT course_scope_consolidation_runs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE,
-  CONSTRAINT course_scope_consolidation_runs_target_organization_id_fkey FOREIGN KEY (target_organization_id) REFERENCES public.organizations(id) ON DELETE CASCADE,
-  CONSTRAINT course_scope_consolidation_runs_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id) ON DELETE CASCADE,
-  CONSTRAINT course_scope_consolidation_runs_migrated_by_fkey FOREIGN KEY (migrated_by) REFERENCES public.users(id) ON DELETE SET NULL,
-  CONSTRAINT course_scope_consolidation_runs_target_enrollment_id_fkey FOREIGN KEY (target_enrollment_id) REFERENCES public.user_course_enrollments(enrollment_id) ON DELETE SET NULL
-);
 CREATE TABLE public.user_invitations (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   email text NOT NULL,
@@ -1311,14 +1285,17 @@ CREATE TABLE public.user_lesson_notes (
   note_content text NOT NULL,
   note_tags jsonb DEFAULT '[]'::jsonb,
   is_auto_generated boolean DEFAULT false,
-  source_type character varying DEFAULT 'manual'::character varying CHECK (source_type::text = ANY (ARRAY['manual'::character varying::text, 'chat'::character varying::text, 'import'::character varying::text])),
+  source_type character varying DEFAULT 'manual'::character varying CHECK (source_type::text = ANY (ARRAY['manual'::text, 'chat'::text, 'import'::text, 'lesson_auto_note'::text, 'course_compendium'::text])),
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   user_id uuid NOT NULL,
-  lesson_id uuid NOT NULL,
+  lesson_id uuid,
   organization_id uuid,
   enrollment_id uuid,
+  course_id uuid,
+  is_user_edited boolean NOT NULL DEFAULT false,
   CONSTRAINT user_lesson_notes_pkey PRIMARY KEY (note_id),
+  CONSTRAINT user_lesson_notes_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id),
   CONSTRAINT user_lesson_notes_enrollment_id_fkey FOREIGN KEY (enrollment_id) REFERENCES public.user_course_enrollments(enrollment_id),
   CONSTRAINT user_lesson_notes_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.course_lessons(lesson_id),
   CONSTRAINT user_lesson_notes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
@@ -1367,6 +1344,7 @@ CREATE TABLE public.user_notification_preferences (
   timezone character varying DEFAULT 'UTC'::character varying,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  whatsapp_enabled boolean DEFAULT false,
   CONSTRAINT user_notification_preferences_pkey PRIMARY KEY (preference_id),
   CONSTRAINT user_notification_preferences_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
@@ -1387,9 +1365,10 @@ CREATE TABLE public.user_notifications (
   group_id uuid,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  dedup_key text,
   CONSTRAINT user_notifications_pkey PRIMARY KEY (notification_id),
-  CONSTRAINT user_notifications_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
-  CONSTRAINT user_notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+  CONSTRAINT user_notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT user_notifications_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
 CREATE TABLE public.user_perfil (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -1521,8 +1500,8 @@ CREATE TABLE public.bulk_invite_links (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT bulk_invite_links_pkey PRIMARY KEY (id),
-  CONSTRAINT bulk_invite_links_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
-  CONSTRAINT bulk_invite_links_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id)
+  CONSTRAINT bulk_invite_links_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
+  CONSTRAINT bulk_invite_links_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
 CREATE TABLE public.bulk_invite_registrations (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -1572,9 +1551,9 @@ CREATE TABLE public.organization_regions (
   logo_url text,
   banner_url text,
   CONSTRAINT organization_regions_pkey PRIMARY KEY (id),
-  CONSTRAINT organization_regions_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
   CONSTRAINT organization_regions_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
-  CONSTRAINT organization_regions_manager_id_fkey FOREIGN KEY (manager_id) REFERENCES public.users(id)
+  CONSTRAINT organization_regions_manager_id_fkey FOREIGN KEY (manager_id) REFERENCES public.users(id),
+  CONSTRAINT organization_regions_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
 CREATE TABLE public.organization_zones (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -1601,10 +1580,10 @@ CREATE TABLE public.organization_zones (
   logo_url text,
   banner_url text,
   CONSTRAINT organization_zones_pkey PRIMARY KEY (id),
-  CONSTRAINT organization_zones_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
-  CONSTRAINT organization_zones_region_id_fkey FOREIGN KEY (region_id) REFERENCES public.organization_regions(id),
   CONSTRAINT organization_zones_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
-  CONSTRAINT organization_zones_manager_id_fkey FOREIGN KEY (manager_id) REFERENCES public.users(id)
+  CONSTRAINT organization_zones_manager_id_fkey FOREIGN KEY (manager_id) REFERENCES public.users(id),
+  CONSTRAINT organization_zones_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
+  CONSTRAINT organization_zones_region_id_fkey FOREIGN KEY (region_id) REFERENCES public.organization_regions(id)
 );
 CREATE TABLE public.organization_teams (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -1634,10 +1613,10 @@ CREATE TABLE public.organization_teams (
   logo_url text,
   banner_url text,
   CONSTRAINT organization_teams_pkey PRIMARY KEY (id),
-  CONSTRAINT organization_teams_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
-  CONSTRAINT organization_teams_zone_id_fkey FOREIGN KEY (zone_id) REFERENCES public.organization_zones(id),
   CONSTRAINT organization_teams_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
-  CONSTRAINT organization_teams_leader_id_fkey FOREIGN KEY (leader_id) REFERENCES public.users(id)
+  CONSTRAINT organization_teams_leader_id_fkey FOREIGN KEY (leader_id) REFERENCES public.users(id),
+  CONSTRAINT organization_teams_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
+  CONSTRAINT organization_teams_zone_id_fkey FOREIGN KEY (zone_id) REFERENCES public.organization_zones(id)
 );
 CREATE TABLE public.hierarchy_chats (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -1671,8 +1650,8 @@ CREATE TABLE public.hierarchy_chat_messages (
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT hierarchy_chat_messages_pkey PRIMARY KEY (id),
   CONSTRAINT hierarchy_chat_messages_chat_id_fkey FOREIGN KEY (chat_id) REFERENCES public.hierarchy_chats(id),
-  CONSTRAINT hierarchy_chat_messages_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
-  CONSTRAINT hierarchy_chat_messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.users(id)
+  CONSTRAINT hierarchy_chat_messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.users(id),
+  CONSTRAINT hierarchy_chat_messages_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
 CREATE TABLE public.hierarchy_chat_participants (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -1708,9 +1687,9 @@ CREATE TABLE public.hierarchy_course_assignments (
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT hierarchy_course_assignments_pkey PRIMARY KEY (id),
-  CONSTRAINT hierarchy_course_assignments_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
   CONSTRAINT hierarchy_course_assignments_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id),
-  CONSTRAINT hierarchy_course_assignments_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.users(id)
+  CONSTRAINT hierarchy_course_assignments_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.users(id),
+  CONSTRAINT hierarchy_course_assignments_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
 CREATE TABLE public.region_course_assignments (
   hierarchy_assignment_id uuid NOT NULL,
@@ -1743,7 +1722,12 @@ CREATE TABLE public.organization_structures (
   is_default boolean DEFAULT false,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  description text,
+  template text CHECK (template = ANY (ARRAY['regions_zones_teams'::text, 'regions_only'::text, 'zones_only'::text, 'flat'::text, 'custom'::text])),
+  metadata jsonb,
+  created_by uuid,
   CONSTRAINT organization_structures_pkey PRIMARY KEY (id),
+  CONSTRAINT organization_structures_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
   CONSTRAINT organization_structures_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
 CREATE TABLE public.organization_nodes (
@@ -1763,9 +1747,9 @@ CREATE TABLE public.organization_nodes (
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT organization_nodes_pkey PRIMARY KEY (id),
   CONSTRAINT organization_nodes_structure_id_fkey FOREIGN KEY (structure_id) REFERENCES public.organization_structures(id),
-  CONSTRAINT organization_nodes_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
   CONSTRAINT organization_nodes_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.organization_nodes(id),
-  CONSTRAINT organization_nodes_manager_id_fkey FOREIGN KEY (manager_id) REFERENCES public.users(id)
+  CONSTRAINT organization_nodes_manager_id_fkey FOREIGN KEY (manager_id) REFERENCES public.users(id),
+  CONSTRAINT organization_nodes_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
 CREATE TABLE public.organization_node_users (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -1810,23 +1794,6 @@ CREATE TABLE public.organization_node_objectives (
   CONSTRAINT organization_node_objectives_pkey PRIMARY KEY (id),
   CONSTRAINT organization_node_objectives_node_id_fkey FOREIGN KEY (node_id) REFERENCES public.organization_nodes(id)
 );
-CREATE TABLE public.skills (
-  skill_id uuid NOT NULL DEFAULT gen_random_uuid(),
-  name text NOT NULL,
-  slug text NOT NULL UNIQUE,
-  description text,
-  category text NOT NULL,
-  icon_url text,
-  icon_type text,
-  icon_name text,
-  color text,
-  level text,
-  is_active boolean DEFAULT true,
-  display_order integer DEFAULT 0,
-  created_at timestamp with time zone DEFAULT now(),
-  updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT skills_pkey PRIMARY KEY (skill_id)
-);
 CREATE TABLE public.course_skills (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   course_id uuid NOT NULL,
@@ -1837,36 +1804,43 @@ CREATE TABLE public.course_skills (
   display_order integer DEFAULT 0,
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT course_skills_pkey PRIMARY KEY (id),
-  CONSTRAINT course_skills_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id),
-  CONSTRAINT course_skills_skill_id_fkey FOREIGN KEY (skill_id) REFERENCES public.skills(skill_id)
+  CONSTRAINT course_skills_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id)
 );
-CREATE TABLE public.skill_badges (
+CREATE TABLE public.user_favorite_tools (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  skill_id uuid NOT NULL,
-  level text NOT NULL,
-  badge_url text NOT NULL,
+  user_id uuid NOT NULL,
+  tool_id uuid NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT skill_badges_pkey PRIMARY KEY (id),
-  CONSTRAINT skill_badges_skill_id_fkey FOREIGN KEY (skill_id) REFERENCES public.skills(skill_id)
+  CONSTRAINT user_favorite_tools_pkey PRIMARY KEY (id),
+  CONSTRAINT user_favorite_tools_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
-CREATE TABLE public.tools (
+CREATE TABLE public.organization_join_requests (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  author_id uuid,
-  name text NOT NULL,
-  description text NOT NULL,
-  icon text DEFAULT '🔧'::text,
-  category USER-DEFINED NOT NULL,
-  system_prompt text NOT NULL,
-  starter_prompts jsonb DEFAULT '[]'::jsonb,
-  status USER-DEFINED DEFAULT 'pending'::tool_status,
+  user_id uuid NOT NULL,
+  organization_id uuid NOT NULL,
+  status text NOT NULL DEFAULT 'pending'::text CHECK (status = ANY (ARRAY['pending'::text, 'approved'::text, 'rejected'::text])),
+  message text,
+  job_title text,
   reviewed_by uuid,
   reviewed_at timestamp with time zone,
-  rejection_reason text,
-  usage_count integer DEFAULT 0,
-  is_featured boolean DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT organization_join_requests_pkey PRIMARY KEY (id),
+  CONSTRAINT organization_join_requests_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT organization_join_requests_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
+  CONSTRAINT organization_join_requests_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES public.users(id)
+);
+CREATE TABLE public.monitoring_sessions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  started_at timestamp with time zone NOT NULL DEFAULT now(),
+  ended_at timestamp with time zone,
+  trigger_type text NOT NULL DEFAULT 'manual'::text,
+  calendar_event_title text,
+  total_active_seconds integer DEFAULT 0,
+  total_idle_seconds integer DEFAULT 0,
+  summary_text text,
+  status text NOT NULL DEFAULT 'active'::text,
   created_at timestamp with time zone DEFAULT now(),
-  updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT tools_pkey PRIMARY KEY (id),
-  CONSTRAINT tools_author_id_fkey FOREIGN KEY (author_id) REFERENCES auth.users(id),
-  CONSTRAINT tools_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES auth.users(id)
+  CONSTRAINT monitoring_sessions_pkey PRIMARY KEY (id)
 );

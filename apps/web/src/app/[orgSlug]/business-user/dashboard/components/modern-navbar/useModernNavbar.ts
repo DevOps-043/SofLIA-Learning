@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { fetchStudyPlanStatus, getModernNavbarColors } from './service';
+import { getModernNavbarColors } from './service';
 import type { ModernNavbarStyleConfig } from './types';
 
 export function useModernNavbar(
@@ -13,7 +13,6 @@ export function useModernNavbar(
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
-  const [hasStudyPlan, setHasStudyPlan] = useState<boolean | null>(null);
   const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -47,22 +46,6 @@ export function useModernNavbar(
     };
   }, []);
 
-  useEffect(() => {
-    if (!(userDropdownOpen || mobileMenuOpen) || hasStudyPlan !== null) {
-      return;
-    }
-
-    const loadStudyPlan = async () => {
-      setHasStudyPlan(await fetchStudyPlanStatus(fetch, organizationSlug));
-    };
-
-    void loadStudyPlan();
-  }, [hasStudyPlan, mobileMenuOpen, organizationSlug, userDropdownOpen]);
-
-  useEffect(() => {
-    setHasStudyPlan(null);
-  }, [organizationSlug]);
-
   const closeDesktopMenu = () => {
     setUserDropdownOpen(false);
     setActiveSubmenu(null);
@@ -79,7 +62,6 @@ export function useModernNavbar(
     closeDesktopMenu,
     closeMobileMenu,
     dropdownRef,
-    hasStudyPlan,
     mounted,
     mobileMenuOpen,
     setActiveSubmenu,

@@ -121,16 +121,12 @@ export function buildFallbackInsights(
   if (ov.overdueAssignments > 0) {
     risks.push(language.riskOverdue(ov.overdueAssignments))
   }
-  if (dataset.planner.plannedSessions > 0 && ov.plannerAdherenceRate < 60) {
-    risks.push(language.riskLowPlanner(ov.plannerAdherenceRate))
-  }
 
   // ─── Recommendations (5) ──────────────────────────────────────────────────
   const recommendations = [
     language.recommendSoflia,
     language.recommendHierarchy,
     language.recommendQuality,
-    language.recommendPlanner,
     language.recommendInactive,
   ]
 
@@ -147,7 +143,6 @@ export function buildFallbackInsights(
     {
       title: language.actionPlanAtRiskTitle,
       points: [
-        language.actionPlanPlannerLow,
         language.actionPlanData,
       ],
     },

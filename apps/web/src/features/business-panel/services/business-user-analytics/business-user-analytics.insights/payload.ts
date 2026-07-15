@@ -10,7 +10,6 @@ export function buildInsightPayload(dataset: BusinessUserAnalyticsDataset) {
       completionsTrend: dataset.learning.completionsTrend,
     },
     aiAdoption: dataset.aiAdoption,
-    planning: dataset.planning,
     notes: dataset.notes,
     activities: dataset.activities,
     quizzes: dataset.quizzes,
