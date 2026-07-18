@@ -1,5 +1,18 @@
 import type { AdminLessonsSupabaseClient } from './shared'
 
+type DeleteResult = { error: { message?: string } | null }
+
+// Un borrado de dependencia fallido no puede ignorarse: deja filas huérfanas
+// que hacen reventar por foreign key el DELETE final de course_lessons, con un
+// error genérico imposible de diagnosticar. Fail fast con la tabla culpable.
+function assertDeleteSucceeded(tableName: string, result: DeleteResult) {
+  if (result.error) {
+    throw new Error(
+      `No se pudo borrar dependencias de la leccion en "${tableName}": ${result.error.message || 'error desconocido'}`,
+    )
+  }
+}
+
 const DIRECT_LESSON_DEPENDENCY_TABLES = [
   'lesson_materials',
   'lesson_checkpoints',
@@ -28,9 +41,18 @@ export async function deleteLessonActivityDependencies(
   const activityIds = (activities || []).map((activity) => activity.activity_id)
   if (!activityIds.length) return
 
-  await supabase.from('lia_activity_completions').delete().in('activity_id', activityIds)
-  await supabase.from('lia_common_questions').delete().in('activity_id', activityIds)
-  await supabase.from('lesson_activities').delete().in('activity_id', activityIds)
+  assertDeleteSucceeded(
+    'lia_activity_completions',
+    await supabase.from('lia_activity_completions').delete().in('activity_id', activityIds),
+  )
+  assertDeleteSucceeded(
+    'lia_common_questions',
+    await supabase.from('lia_common_questions').delete().in('activity_id', activityIds),
+  )
+  assertDeleteSucceeded(
+    'lesson_activities',
+    await supabase.from('lesson_activities').delete().in('activity_id', activityIds),
+  )
 }
 
 export async function deleteLessonConversationDependencies(
@@ -47,29 +69,47 @@ export async function deleteLessonConversationDependencies(
   )
   if (!conversationIds.length) return
 
-  await supabase.from('lia_messages').delete().in('conversation_id', conversationIds)
-  await supabase
-    .from('lia_activity_completions')
-    .delete()
-    .in('conversation_id', conversationIds)
-  await supabase.from('lia_conversations').delete().in('conversation_id', conversationIds)
+  assertDeleteSucceeded(
+    'lia_messages',
+    await supabase.from('lia_messages').delete().in('conversation_id', conversationIds),
+  )
+  assertDeleteSucceeded(
+    'lia_activity_completions',
+    await supabase
+      .from('lia_activity_completions')
+      .delete()
+      .in('conversation_id', conversationIds),
+  )
+  assertDeleteSucceeded(
+    'lia_conversations',
+    await supabase.from('lia_conversations').delete().in('conversation_id', conversationIds),
+  )
 }
 
 export async function deleteDirectLessonDependencies(
   supabase: AdminLessonsSupabaseClient,
   lessonId: string,
 ) {
-  await Promise.all(
-    DIRECT_LESSON_DEPENDENCY_TABLES.map((tableName) =>
-      supabase.from(tableName as never).delete().eq('lesson_id' as never, lessonId),
-    ),
+  const results = await Promise.all(
+    DIRECT_LESSON_DEPENDENCY_TABLES.map(async (tableName) => ({
+      result: (await supabase
+        .from(tableName as never)
+        .delete()
+        .eq('lesson_id' as never, lessonId)) as DeleteResult,
+      tableName,
+    })),
   )
 
-  await supabase
-    .from('content_translations')
-    .delete()
-    .eq('entity_type', 'lesson')
-    .eq('entity_id', lessonId)
+  results.forEach(({ result, tableName }) => assertDeleteSucceeded(tableName, result))
+
+  assertDeleteSucceeded(
+    'content_translations',
+    await supabase
+      .from('content_translations')
+      .delete()
+      .eq('entity_type', 'lesson')
+      .eq('entity_id', lessonId),
+  )
 }
 
 export async function deleteLocalizedLessonRows(

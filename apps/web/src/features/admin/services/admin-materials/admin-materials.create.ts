@@ -9,7 +9,7 @@ async function getNextMaterialOrderIndex(lessonId: string) {
   const supabase = await createAdminMaterialsClient()
   const { count } = await supabase
     .from('lesson_materials')
-    .select('id', { count: 'exact', head: true })
+    .select('material_id', { count: 'exact', head: true })
     .eq('lesson_id', lessonId)
 
   return (count || 0) + 1

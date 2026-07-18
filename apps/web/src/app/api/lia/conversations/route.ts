@@ -64,9 +64,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Construir query base para contar total (necesario para paginación)
+    // lia_conversations no tiene columna `id`; su PK es conversation_id (42703 si se pide)
     let countQuery = supabase
       .from('lia_conversations')
-      .select('id', { count: 'exact', head: true })
+      .select('conversation_id', { count: 'exact', head: true })
       .eq('user_id', user.id);
 
     // Construir query base para obtener conversaciones

@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { ensureCourseEnrollmentScope } from '@/features/courses/services/course-enrollment.server.service'
 import { SessionService } from '@/features/auth/services/session.service'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/utils/logger'
+import type { TablesUpdate } from '@/lib/supabase/types'
 
 function normalizeOrganizationId(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0
@@ -67,8 +70,15 @@ export async function POST(
       )
     }
 
+    // Las escrituras usan el cliente admin (patrón de las demás rutas de
+    // progreso): la sesión puede venir del sistema propio de la app sin sesión
+    // de Supabase Auth, y con el cliente user-scoped la RLS de
+    // user_lesson_progress rechaza el INSERT (42501) y filtra el SELECT previo,
+    // por lo que el progreso jamás se guardaba. La autorización ya quedó
+    // validada arriba (SessionService + ensureCourseEnrollmentScope).
+    const writeClient = createAdminClient()
     const now = new Date().toISOString()
-    const { data: existingProgress } = await supabase
+    const { data: existingProgress } = await writeClient
       .from('user_lesson_progress')
       .select('progress_id, lesson_status')
       .eq('enrollment_id', enrollment.enrollment_id)
@@ -76,7 +86,7 @@ export async function POST(
       .maybeSingle()
 
     if (existingProgress) {
-      const updateData: Record<string, unknown> = {
+      const updateData: TablesUpdate<'user_lesson_progress'> = {
         last_accessed_at: now,
         updated_at: now,
       }
@@ -86,32 +96,45 @@ export async function POST(
         updateData.started_at = now
       }
 
-      await supabase
+      await writeClient
         .from('user_lesson_progress')
         .update(updateData)
         .eq('progress_id', existingProgress.progress_id)
     } else {
-      await supabase.from('user_lesson_progress').insert({
-        current_time_seconds: 0,
-        enrollment_id: enrollment.enrollment_id,
-        is_completed: false,
-        last_accessed_at: now,
-        lesson_id: lessonId,
-        lesson_status: 'in_progress',
-        organization_id: enrollment.organization_id,
-        started_at: now,
-        user_id: currentUser.id,
-        video_progress_percentage: 0,
-      })
+      const { error: insertError } = await writeClient
+        .from('user_lesson_progress')
+        .insert({
+          current_time_seconds: 0,
+          enrollment_id: enrollment.enrollment_id,
+          is_completed: false,
+          last_accessed_at: now,
+          lesson_id: lessonId,
+          lesson_status: 'in_progress',
+          organization_id: enrollment.organization_id,
+          started_at: now,
+          user_id: currentUser.id,
+          video_progress_percentage: 0,
+        })
+
+      if (insertError) {
+        logger.error('[LessonAccess] Error creando progreso de leccion:', {
+          enrollmentId: enrollment.enrollment_id,
+          error: insertError,
+          lessonId,
+        })
+      }
     }
 
-    await supabase
+    await writeClient
       .from('user_course_enrollments')
       .update({ last_accessed_at: now })
       .eq('enrollment_id', enrollment.enrollment_id)
 
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    // El tracking de acceso no debe romper la carga de la lección, pero el
+    // fallo tampoco debe ser invisible en producción.
+    logger.error('[LessonAccess] Error registrando acceso a leccion:', error)
     return NextResponse.json({ success: true })
   }
 }

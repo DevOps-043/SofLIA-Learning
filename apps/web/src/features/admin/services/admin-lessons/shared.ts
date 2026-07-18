@@ -1,10 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
+import type { createAdminClient } from '@/lib/supabase/admin'
 import type {
   AdminLesson,
   LessonInstructorRecord,
 } from './types'
 
-export type AdminLessonsSupabaseClient = Awaited<ReturnType<typeof createClient>>
+// Acepta también el cliente admin (service role): las operaciones destructivas
+// del panel admin deben ejecutarse con service role porque la RLS de tablas de
+// actividad de usuario (user_lesson_progress, lia_conversations, etc.) solo
+// permite tocar filas propias y silenciosamente omite las del resto.
+export type AdminLessonsSupabaseClient =
+  | Awaited<ReturnType<typeof createClient>>
+  | ReturnType<typeof createAdminClient>
 
 export const ADMIN_LESSON_SELECT_FIELDS = `
   lesson_id,

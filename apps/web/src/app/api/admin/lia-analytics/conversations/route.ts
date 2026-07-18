@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     // ✅ DEBUG: Verificar total de conversaciones sin filtros
     const { count: totalWithoutFilters, error: countError } = await supabase
       .from('lia_conversations')
-      .select('id', { count: 'exact', head: true });
+      .select('conversation_id', { count: 'exact', head: true });
     
     if (countError) {
       techDebtLogger.error('[LIA Analytics Conversations] Error counting total:', countError);

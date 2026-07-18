@@ -43,7 +43,20 @@ function AdminWorkshopIconButton(props: {
   const { disableHeavy } = useMotionSafe()
   const Icon = props.icon
   return (
-    <motion.button whileHover={disableHeavy ? undefined : { scale: 1.2, y: -2 }} whileTap={disableHeavy ? undefined : { scale: 0.9 }} onClick={props.onClick} className="rounded-lg p-2.5 transition-all duration-300" style={{ color: props.color }} title={props.label} type="button">
+    <motion.button
+      whileHover={disableHeavy ? undefined : { scale: 1.2, y: -2 }}
+      whileTap={disableHeavy ? undefined : { scale: 0.9 }}
+      onClick={(event) => {
+        // La tarjeta contenedora navega a la gestión del curso en su onClick;
+        // sin stopPropagation, editar/eliminar también disparaban esa navegación.
+        event.stopPropagation()
+        props.onClick()
+      }}
+      className="rounded-lg p-2.5 transition-all duration-300"
+      style={{ color: props.color }}
+      title={props.label}
+      type="button"
+    >
       <Icon className="h-4 w-4" />
     </motion.button>
   )

@@ -53,12 +53,14 @@ export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialM
     <AnimatePresence>
       {true && (
         <>
+          {/* z-[1000]: el AdminHeader es sticky con z-[999]; con menos z-index
+              el topbar tapa el encabezado del modal. */}
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[1000] bg-black/60 dark:bg-black/80 backdrop-blur-sm"
             onClick={onClose}
           />
-          <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="fixed inset-0 z-[1000] overflow-y-auto">
             <div className="flex min-h-screen items-center justify-center p-4">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}

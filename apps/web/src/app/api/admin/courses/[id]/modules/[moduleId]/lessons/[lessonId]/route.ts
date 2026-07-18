@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AdminLessonsService } from '@/features/admin/services/adminLessons.service'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
+import { logger } from '@/lib/utils/logger'
 
 import {
   updateLessonSchema,
@@ -45,7 +46,8 @@ async function handlePut(
 
     const lesson = await AdminLessonsService.updateLesson(lessonId, body)
     return lessonRouteSuccess({ lesson })
-  } catch {
+  } catch (error) {
+    logger.error('[AdminLessons] Error actualizando leccion:', error)
     return apiError('UPDATE_LESSON_FAILED', 'Error al actualizar lección', 500)
   }
 }
@@ -62,7 +64,8 @@ export async function DELETE(
 
     await AdminLessonsService.deleteLesson(lessonId)
     return lessonRouteSuccess({ message: 'Lección eliminada correctamente' })
-  } catch {
+  } catch (error) {
+    logger.error('[AdminLessons] Error eliminando leccion:', error)
     return apiError('DELETE_LESSON_FAILED', 'Error al eliminar lección', 500)
   }
 }

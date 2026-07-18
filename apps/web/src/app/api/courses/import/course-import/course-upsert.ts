@@ -51,7 +51,7 @@ async function clearExistingCourseModules(
 ) {
   const { count } = await supabase
     .from('course_modules')
-    .select('id', { count: 'exact', head: true })
+    .select('module_id', { count: 'exact', head: true })
     .eq('course_id', courseId)
 
   if (!count || count <= 0) {

@@ -12,9 +12,11 @@ export async function getSummaryMetrics(
   supabase: LiaAnalyticsSupabaseClient,
   input: { nowISO: string; provider: string; startDate: Date }
 ) {
+  // Conteos con la PK real: estas tablas no tienen columna `id` y PostgREST
+  // rechaza la consulta entera si se pide (42703).
   const { count: totalConversations } = await supabase
     .from('lia_conversations')
-    .select('id', { count: 'exact', head: true })
+    .select('conversation_id', { count: 'exact', head: true })
     .gte('started_at', input.startDate.toISOString())
     .lte('started_at', input.nowISO)
 
@@ -41,7 +43,7 @@ export async function getSummaryMetrics(
 
   const { count: completedActivities } = await supabase
     .from('lia_activity_completions')
-    .select('id', { count: 'exact', head: true })
+    .select('completion_id', { count: 'exact', head: true })
     .eq('status', 'completed')
     .gte('completed_at', input.startDate.toISOString())
     .lte('completed_at', input.nowISO)
