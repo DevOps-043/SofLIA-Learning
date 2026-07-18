@@ -2,6 +2,7 @@
 
 import type { ComponentProps, JSX } from 'react'
 import dynamic from 'next/dynamic'
+import { FormProvider } from 'react-hook-form'
 import { ToastNotification } from '../../../../core/components/ToastNotification'
 import { HumanVerificationField } from '../HumanVerificationField'
 import {
@@ -35,7 +36,6 @@ export function OrganizationRegisterForm(
     dialCode,
     error,
     form,
-    invitedRoleTranslationKey,
     isPending,
     onCountryChange,
     onSubmit,
@@ -56,43 +56,44 @@ export function OrganizationRegisterForm(
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-        <OrganizationRegisterIdentityFields
-          register={register}
-          errors={errors}
-          palette={palette}
-          invitedEmail={props.invitedEmail}
-          invitedRole={props.invitedRole}
-          invitedRoleTranslationKey={invitedRoleTranslationKey}
-          bulkInviteToken={bulkInviteToken}
-          success={success}
-        />
+      <FormProvider {...form}>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <OrganizationRegisterIdentityFields
+            register={register}
+            errors={errors}
+            palette={palette}
+            invitedEmail={props.invitedEmail}
+            invitedRole={props.invitedRole}
+            bulkInviteToken={bulkInviteToken}
+            success={success}
+          />
 
-        <OrganizationRegisterCredentialsFields
-          register={register}
-          errors={errors}
-          palette={palette}
-          selectedCountryCode={selectedCountryCode}
-          dialCode={dialCode}
-          onCountryChange={onCountryChange}
-        />
+          <OrganizationRegisterCredentialsFields
+            register={register}
+            errors={errors}
+            palette={palette}
+            selectedCountryCode={selectedCountryCode}
+            dialCode={dialCode}
+            onCountryChange={onCountryChange}
+          />
 
-        <HumanVerificationField onTokenChange={setCaptchaToken} />
+          <HumanVerificationField onTokenChange={setCaptchaToken} />
 
-        <OrganizationRegisterActions
-          register={register}
-          errors={errors}
-          palette={palette}
-          isPending={isPending}
-          organizationId={props.organizationId}
-          organizationSlug={props.organizationSlug}
-          invitationToken={props.invitationToken}
-          bulkInviteToken={props.bulkInviteToken}
-          googleLoginEnabled={props.googleLoginEnabled}
-          microsoftLoginEnabled={props.microsoftLoginEnabled}
-          onOpenLegalModal={() => setShowLegalModal(true)}
-        />
-      </form>
+          <OrganizationRegisterActions
+            register={register}
+            errors={errors}
+            palette={palette}
+            isPending={isPending}
+            organizationId={props.organizationId}
+            organizationSlug={props.organizationSlug}
+            invitationToken={props.invitationToken}
+            bulkInviteToken={props.bulkInviteToken}
+            googleLoginEnabled={props.googleLoginEnabled}
+            microsoftLoginEnabled={props.microsoftLoginEnabled}
+            onOpenLegalModal={() => setShowLegalModal(true)}
+          />
+        </form>
+      </FormProvider>
 
       <SafeLegalDocumentsModal
         isOpen={showLegalModal}

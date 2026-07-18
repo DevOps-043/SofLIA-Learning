@@ -13,7 +13,7 @@
  * // Query with organization filter
  * let query = supabase
  *   .from('user_course_enrollments')
- *   .select('id, organization_id')
+ *   .select('enrollment_id, organization_id')
  *   .eq('user_id', userId);
  *
  * query = withOrganizationFilter(query, orgContext.organizationId);

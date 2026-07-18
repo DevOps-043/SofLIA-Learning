@@ -9,9 +9,8 @@ export async function listHierarchyNodeOptions(
 ): Promise<LearningPathHierarchyNodeOption[]> {
   const supabase = createAdminClient()
   const { data, error } = await fromLoose<OrganizationNodeRow>(supabase, 'organization_nodes')
-    .select('id, organization_id, name, type, path, parent_id, is_active')
+    .select('id, organization_id, name, type, path, parent_id')
     .eq('organization_id', organizationId)
-    .eq('is_active', true)
     .order('path', { ascending: true })
 
   if (error) {

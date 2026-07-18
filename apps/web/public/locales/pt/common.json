@@ -175,6 +175,8 @@
       "passwordPlaceholder": "Mínimo 12 caracteres",
       "confirmPasswordLabel": "Confirmar Senha",
       "confirmPasswordPlaceholder": "Repita sua senha",
+      "jobTitleLabel": "Cargo Profissional",
+      "jobTitlePlaceholder": "Ex: Marketing, Vendas, Desenvolvimento...",
       "acceptTerms": "Aceito os <0>termos e condições</0> e a <1>política de privacidade</1>",
       "creating": "Criando conta...",
       "create": "Criar conta",
@@ -254,7 +256,9 @@
         "passwordLowercase": "Deve conter pelo menos uma letra minúscula",
         "passwordNumber": "Deve conter pelo menos um número",
         "passwordSpecial": "Deve conter pelo menos um caractere especial",
-        "passwordsDoNotMatch": "As senhas não coincidem"
+        "passwordsDoNotMatch": "As senhas não coincidem",
+        "invalidToken": "O link de recuperação não é válido ou já foi utilizado. Solicite um novo para continuar.",
+        "expiredToken": "O link de recuperação expirou. Solicite um novo para continuar."
       }
     },
     "social": {
@@ -286,6 +290,7 @@
       "alreadyHaveAccount": "Já tenho uma conta",
       "termsNotice": "Ao entrar, você aceita os termos de uso da plataforma",
       "registerManualFallback": "{{error}}. Você pode se registrar manualmente se tiver um convite pendente.",
+      "registerManualFallbackHint": "Você pode continuar com o cadastro manual se tiver um convite pendente.",
       "errors": {
         "acceptConnection": "Erro de conexão ao aceitar o convite",
         "connection": "Erro de conexão. Tente novamente.",
@@ -324,6 +329,7 @@
       "signingIn": "Entrando...",
       "joinOrg": "Junte-se à organização",
       "registeredAs": "Você será registrado como:",
+      "platformRoleLabel": "Seu papel na plataforma da organização é:",
       "viaInviteLink": "(via link de convite)",
       "emailAssociatedInvite": "Este e-mail está associado ao seu convite",
       "googleButton": "Continuar com Google",
@@ -1318,7 +1324,10 @@
   "datePicker": {
     "placeholder": "Selecionar data",
     "clear": "Limpar",
-    "today": "Hoje"
+    "today": "Hoje",
+    "previousMonth": "Mês anterior",
+    "nextMonth": "Próximo mês",
+    "birthDateHint": "Mês e ano editáveis"
   },
   "actions": {
     "cancel": "Cancelar",

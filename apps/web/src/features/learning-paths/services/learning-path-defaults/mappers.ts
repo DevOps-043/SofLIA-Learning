@@ -32,5 +32,5 @@ export function mapRule(
 export const mapDefaultRule = mapRule
 
 export function optionToNodeRow(node: { id: string; name: string; type: string; path: string; parent_id: string | null }, organizationId: string): OrganizationNodeRow {
-  return { id: node.id, organization_id: organizationId, name: node.name, type: node.type, path: node.path, parent_id: node.parent_id, is_active: true }
+  return { id: node.id, organization_id: organizationId, name: node.name, type: node.type, path: node.path, parent_id: node.parent_id }
 }

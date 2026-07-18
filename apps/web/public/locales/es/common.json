@@ -175,6 +175,8 @@
       "passwordPlaceholder": "Mínimo 12 caracteres",
       "confirmPasswordLabel": "Confirmar Contraseña",
       "confirmPasswordPlaceholder": "Repite tu contraseña",
+      "jobTitleLabel": "Rol Profesional",
+      "jobTitlePlaceholder": "Ej: Marketing, Ventas, Desarrollo...",
       "acceptTerms": "Acepto los <0>términos y condiciones</0> y la <1>política de privacidad</1>",
       "creating": "Creando cuenta...",
       "create": "Crear cuenta",
@@ -254,7 +256,9 @@
         "passwordLowercase": "Debe contener al menos una minúscula",
         "passwordNumber": "Debe contener al menos un número",
         "passwordSpecial": "Debe contener al menos un carácter especial",
-        "passwordsDoNotMatch": "Las contraseñas no coinciden"
+        "passwordsDoNotMatch": "Las contraseñas no coinciden",
+        "invalidToken": "El enlace de recuperación no es válido o ya fue utilizado. Solicita uno nuevo para continuar.",
+        "expiredToken": "El enlace de recuperación expiró. Solicita uno nuevo para continuar."
       }
     },
     "social": {
@@ -286,6 +290,7 @@
       "alreadyHaveAccount": "Ya tengo cuenta",
       "termsNotice": "Al unirte, aceptas los términos de uso de la plataforma",
       "registerManualFallback": "{{error}}. Puedes registrarte manualmente si tienes una invitación pendiente.",
+      "registerManualFallbackHint": "Puedes continuar con el registro manual si tienes una invitación pendiente.",
       "errors": {
         "acceptConnection": "Error de conexión al aceptar la invitación",
         "connection": "Error de conexión. Intenta nuevamente.",
@@ -324,6 +329,7 @@
       "signingIn": "Ingresando...",
       "joinOrg": "Únete a la organización",
       "registeredAs": "Serás registrado como:",
+      "platformRoleLabel": "Tu rol en la plataforma de la organización es:",
       "viaInviteLink": "(vía enlace de invitación)",
       "emailAssociatedInvite": "Este email está asociado a tu invitación",
       "googleButton": "Continuar con Google",
@@ -1318,7 +1324,10 @@
   "datePicker": {
     "placeholder": "Seleccionar fecha",
     "clear": "Limpiar",
-    "today": "Hoy"
+    "today": "Hoy",
+    "previousMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "birthDateHint": "Mes y año editables"
   },
   "actions": {
     "cancel": "Cancelar",

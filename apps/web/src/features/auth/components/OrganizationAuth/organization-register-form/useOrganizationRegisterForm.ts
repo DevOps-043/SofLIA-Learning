@@ -15,7 +15,6 @@ import {
   buildOrganizationRegisterActionFormData,
   createOrganizationRegisterDefaultValues,
   getOrganizationRegisterRedirectPath,
-  getOrganizationRegisterRoleTranslationKey,
 } from './service'
 
 export function useOrganizationRegisterForm({
@@ -116,7 +115,6 @@ export function useOrganizationRegisterForm({
     dialCode,
     error,
     form,
-    invitedRoleTranslationKey: getOrganizationRegisterRoleTranslationKey(invitedRole),
     isPending,
     onCountryChange,
     onSubmit,

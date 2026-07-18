@@ -46,19 +46,19 @@ function stripEnumPrefix(text: string): string {
   return text.replace(/^\s*\(?[A-Za-z0-9]{1,2}\)?[).\-:]\s+/, '').trim()
 }
 
-function normalizeForCompare(text: string): string {
+export function normalizeForCompare(text: string): string {
   return stripEnumPrefix(text).replace(/\s+/g, ' ').trim().toLowerCase()
 }
 
 // Convierte un token de letra suelto ("B", "(B)", "C)") a índice base-0; null si no aplica.
-function bareLetterToIndex(value: string): number | null {
+export function bareLetterToIndex(value: string): number | null {
   const match = value.trim().match(/^\(?([A-Za-z])\)?[).\-:]?$/)
   if (!match) return null
   return match[1].toUpperCase().charCodeAt(0) - 65
 }
 
 // Letra del prefijo de una opción ("B) Riesgo" -> "B"); null si no tiene prefijo.
-function optionPrefixLetter(option: string): string | null {
+export function optionPrefixLetter(option: string): string | null {
   const match = option.trim().match(/^\(?([A-Za-z])\)?[).\-:]\s+/)
   return match ? match[1].toUpperCase() : null
 }

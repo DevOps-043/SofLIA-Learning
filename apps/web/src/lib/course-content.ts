@@ -17,3 +17,7 @@ export {
   type NormalizedQuizQuestion,
   type RawQuizQuestion,
 } from './course-content/quiz-normalize'
+export {
+  findQuizAnswerKeyConflict,
+  type QuizAnswerKeyConflict,
+} from './course-content/quiz-consistency'

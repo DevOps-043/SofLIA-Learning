@@ -23,12 +23,12 @@ export async function loadHierarchyAutoAssignConfig(
       return { enabled: false, defaultTeamId: null }
     }
 
+    // organization_nodes no tiene columna is_active — pedirla rompe la consulta (42703)
     const { data: defaultTeam } = await supabase
       .from('organization_nodes')
       .select('id')
       .eq('organization_id', organizationId)
       .eq('type', 'team')
-      .eq('is_active', true)
       .order('created_at', { ascending: true })
       .limit(1)
       .single()

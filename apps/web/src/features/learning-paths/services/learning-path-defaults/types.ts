@@ -7,6 +7,8 @@ export type LearningPathAssignmentSource = 'manual' | 'bulk' | 'default_rule'
 export interface LooseRow { [key: string]: unknown }
 export interface OrganizationUserRow extends LooseRow { user_id: string; status: string | null }
 
+// Nota: organization_nodes NO tiene columna is_active (ver select-types.ts).
+// Pedirla en un SELECT hace que PostgREST rechace la consulta entera (42703).
 export interface OrganizationNodeRow extends LooseRow {
   id: string
   organization_id: string
@@ -14,7 +16,6 @@ export interface OrganizationNodeRow extends LooseRow {
   type: string
   path: string
   parent_id: string | null
-  is_active: boolean | null
 }
 
 export interface OrganizationNodeUserRow extends LooseRow { node_id: string; user_id: string }

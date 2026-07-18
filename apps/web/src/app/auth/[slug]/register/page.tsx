@@ -10,6 +10,7 @@ import { validateInvitationAction } from '@/features/auth/actions/invitation';
 import { getExistingAccountInvitationLoginPath } from '@/features/auth/services/invitation-auth-routing.service';
 import { getInvitationErrorTranslationKey } from '@/features/auth/services/invitation-i18n.service';
 import Link from 'next/link';
+import { AlertTriangle } from 'lucide-react';
 
 interface Organization {
   id: string;
@@ -192,16 +193,22 @@ export default function OrganizationRegisterPage() {
     : null;
 
   return (
-    <OrganizationAuthLayout organization={organization} error={invitationErrorMessage}>
-      <div className="space-y-6">
+    <OrganizationAuthLayout organization={organization} variant="registration">
+      <div className="space-y-4">
         {/* Si hay error de invitación pero la organización existe, mostrar mensaje */}
         {invitationErrorMessage && (
-          <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
-            <p className="text-amber-600 dark:text-amber-400 text-sm">
-              {t('auth.invitation.registerManualFallback', {
-                error: invitationErrorMessage,
-              })}
-            </p>
+          <div className="flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3">
+            <div className="mt-0.5 rounded-lg bg-amber-500/15 p-1.5 text-amber-500">
+              <AlertTriangle className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-amber-600 dark:text-amber-300">
+                {invitationErrorMessage}
+              </p>
+              <p className="mt-0.5 text-xs leading-relaxed text-amber-700/80 dark:text-amber-200/70">
+                {t('auth.invitation.registerManualFallbackHint')}
+              </p>
+            </div>
           </div>
         )}
 

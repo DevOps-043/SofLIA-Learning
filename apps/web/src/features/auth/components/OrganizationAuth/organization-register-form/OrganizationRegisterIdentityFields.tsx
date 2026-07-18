@@ -1,10 +1,15 @@
 'use client'
 
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { CheckCircle, Mail, Shield, User } from 'lucide-react'
+import { Briefcase, CheckCircle, Mail, ShieldCheck, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useFormContext } from 'react-hook-form'
 import { USER_GENDER_VALUES } from '../../../../../lib/schemas/user-demographics.schema'
+import type { RegisterFormData } from '../../../types/auth.types'
+import { OrganizationRegisterDatePicker } from './OrganizationRegisterDatePicker'
 import { OrganizationRegisterField } from './OrganizationRegisterField'
+import { OrganizationRegisterDropdown } from './OrganizationRegisterDropdown'
 import type { OrganizationRegisterIdentityFieldsProps } from './types'
 
 export function OrganizationRegisterIdentityFields({
@@ -13,44 +18,79 @@ export function OrganizationRegisterIdentityFields({
   palette,
   invitedEmail,
   invitedRole,
-  invitedRoleTranslationKey,
   bulkInviteToken,
   success,
 }: OrganizationRegisterIdentityFieldsProps) {
+  const showJobTitleField = !!invitedRole || !!bulkInviteToken
   const { t } = useTranslation('common')
-  const maxDateOfBirth = new Date().toISOString().slice(0, 10)
+  const maxDateOfBirth = useMemo(() => new Date(), [])
+
+  const genderOptions = useMemo(
+    () =>
+      USER_GENDER_VALUES.map((gender) => ({
+        value: gender,
+        label: t(`demographics.gender.options.${gender}`),
+      })),
+    [t],
+  )
+
+  const { watch, setValue } = useFormContext<RegisterFormData>()
+  const genderValue = watch('gender')
+  const dateOfBirthValue = watch('dateOfBirth')
 
   return (
     <>
-      <motion.div
-        className="text-center space-y-2"
+      <motion.header
+        className="flex flex-col gap-3"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
       >
-        <motion.h2
-          className="text-2xl lg:text-3xl font-bold"
-          style={{ color: palette.textColor }}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.5, ease: 'easeOut' }}
+        <div>
+          <motion.h2
+            className="text-2xl font-bold tracking-tight lg:text-[28px]"
+            style={{ color: palette.textColor }}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.5, ease: 'easeOut' }}
+          >
+            {t('auth.register.title')}
+          </motion.h2>
+          <motion.p
+            className="mt-1 text-sm font-normal opacity-60"
+            style={{ color: palette.textColor }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            {t('auth.register.subtitle')}
+          </motion.p>
+        </div>
+
+      </motion.header>
+
+      {invitedRole ? (
+        <div
+          className="flex items-center gap-2 rounded-xl border px-3.5 py-2 text-sm"
+          style={{
+            backgroundColor: `color-mix(in srgb, ${palette.focusColor} 8%, transparent)`,
+            borderColor: `color-mix(in srgb, ${palette.focusColor} 20%, transparent)`,
+            color: palette.textColor,
+          }}
         >
-          {t('auth.register.title')}
-        </motion.h2>
-        <motion.p
-          className="text-base font-normal opacity-70"
-          style={{ color: palette.textColor }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-        >
-          {t('auth.org.joinOrg')}
-        </motion.p>
-      </motion.div>
+          <ShieldCheck className="h-4 w-4 shrink-0" style={{ color: palette.focusColor }} />
+          <span>
+            {t('auth.org.platformRoleLabel')}{' '}
+            <strong style={{ color: palette.focusColor }}>
+              {t(`auth.roles.${invitedRole}`, { defaultValue: invitedRole })}
+            </strong>
+          </span>
+        </div>
+      ) : null}
 
       {success ? (
         <motion.div
-          className="p-4 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm"
+          className="p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
@@ -59,7 +99,7 @@ export function OrganizationRegisterIdentityFields({
         </motion.div>
       ) : null}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-x-4 gap-y-3 md:grid-cols-2">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -92,103 +132,88 @@ export function OrganizationRegisterIdentityFields({
             icon={User}
           />
         </motion.div>
-      </div>
+        <motion.div
+          className={showJobTitleField ? undefined : 'md:col-span-2'}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          <OrganizationRegisterField
+            id="username"
+            label={t('auth.register.usernameLabel')}
+            type="text"
+            placeholder={t('auth.register.usernamePlaceholder')}
+            registration={register('username')}
+            palette={palette}
+            error={errors.username?.message}
+          />
+        </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-      >
-        <OrganizationRegisterField
-          id="username"
-          label={t('auth.register.usernameLabel')}
-          type="text"
-          placeholder={t('auth.register.usernamePlaceholder')}
-          registration={register('username')}
-          palette={palette}
-          error={errors.username?.message}
-        />
-      </motion.div>
-
-      <div className="space-y-3">
-        <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: palette.textColor }}>
-          {t('demographics.sectionTitle')}
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {showJobTitleField ? (
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.35, duration: 0.5 }}
           >
             <OrganizationRegisterField
-              id="dateOfBirth"
-              label={t('demographics.dateOfBirth')}
-              type="date"
-              placeholder=""
-              registration={register('dateOfBirth')}
+              id="cargo_titulo"
+              label={t('auth.register.jobTitleLabel')}
+              type="text"
+              placeholder={t('auth.register.jobTitlePlaceholder')}
+              registration={register('cargo_titulo')}
               palette={palette}
-              error={errors.dateOfBirth?.message}
-              max={maxDateOfBirth}
+              error={errors.cargo_titulo?.message}
+              icon={Briefcase}
             />
           </motion.div>
+        ) : null}
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-            className="space-y-1.5"
-          >
-            <label
-              htmlFor="gender"
-              className="block text-xs font-medium uppercase tracking-wider mb-1.5"
-              style={{ color: palette.textColor }}
-            >
-              {t('demographics.gender.label')}
-            </label>
-            <div className="relative rounded-xl border overflow-hidden" style={{ backgroundColor: palette.inputBgColor, borderColor: palette.borderColor }}>
-              <select
-                id="gender"
-                className="w-full bg-transparent px-4 py-3 text-sm outline-none"
-                style={{ color: palette.textColor }}
-                {...register('gender')}
-              >
-                <option value="">{t('demographics.gender.placeholder')}</option>
-                {USER_GENDER_VALUES.map((gender) => (
-                  <option key={gender} value={gender}>
-                    {t(`demographics.gender.options.${gender}`)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {errors.gender ? <p className="auth-error">{errors.gender.message}</p> : null}
-          </motion.div>
-        </div>
-      </div>
-
-      {invitedRole && invitedRoleTranslationKey ? (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.35, duration: 0.5 }}
-          className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700"
         >
-          <div className="flex items-center gap-3">
-            <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            <p className="text-sm text-blue-700 dark:text-blue-300">
-              {t('auth.org.registeredAs')}{' '}
-              <strong>{t(invitedRoleTranslationKey)}</strong>
-              {bulkInviteToken ? (
-                <span className="ml-1 text-xs opacity-70">
-                  {t('auth.org.viaInviteLink')}
-                </span>
-              ) : null}
-            </p>
-          </div>
+          <OrganizationRegisterDatePicker
+            id="dateOfBirth"
+            label={t('demographics.dateOfBirth')}
+            value={dateOfBirthValue}
+            onChange={(date) =>
+              setValue('dateOfBirth', date, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+            registration={register('dateOfBirth')}
+            palette={palette}
+            error={errors.dateOfBirth?.message}
+            maxDate={maxDateOfBirth}
+          />
         </motion.div>
-      ) : null}
 
-      <div className={`grid grid-cols-1 ${invitedEmail ? '' : 'md:grid-cols-2'} gap-4`}>
         <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+        >
+          <OrganizationRegisterDropdown
+            id="gender"
+            label={t('demographics.gender.label')}
+            options={genderOptions}
+            placeholder={t('demographics.gender.placeholder')}
+            value={genderValue}
+            onChange={(val) =>
+              setValue('gender', val as RegisterFormData['gender'], {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+            palette={palette}
+            error={errors.gender?.message}
+          />
+        </motion.div>
+
+        <motion.div
+          className={invitedEmail ? 'md:col-span-2' : undefined}
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4, duration: 0.5 }}

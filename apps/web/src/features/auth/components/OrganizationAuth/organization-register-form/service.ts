@@ -21,6 +21,7 @@ export function createOrganizationRegisterDefaultValues(
     confirmEmail: invitedEmail || '',
     password: '',
     confirmPassword: '',
+    cargo_titulo: '',
     acceptTerms: false,
   }
 }

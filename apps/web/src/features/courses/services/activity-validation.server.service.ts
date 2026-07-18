@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
+import { extractVisibleGeminiText } from '@/lib/gemini/client'
 import {
   activityEvaluationFeedbackSchema,
   type ActivityConfig,
@@ -162,7 +163,9 @@ export async function evaluateActivitySubmissionWithSoflia(input: {
       }),
     )
 
-    const feedback = parseGeminiJsonResponse(result.response.text())
+    // extractVisibleGeminiText descarta partes de razonamiento interno del
+    // modelo que romperian el parseo JSON o filtrarian texto no destinado al usuario.
+    const feedback = parseGeminiJsonResponse(extractVisibleGeminiText(result.response))
     return {
       feedback,
       modelName,

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { OrganizationRegisterFieldProps } from './types'
 
@@ -19,6 +20,8 @@ export function OrganizationRegisterField({
   helperText,
   max,
 }: OrganizationRegisterFieldProps) {
+  const [isFocused, setIsFocused] = useState(false)
+
   return (
     <div className="space-y-1.5">
       <label
@@ -33,15 +36,26 @@ export function OrganizationRegisterField({
           className="relative rounded-xl border transition-all duration-300 overflow-hidden"
           style={{
             backgroundColor: palette.inputBgColor,
-            borderColor: palette.borderColor,
-            borderWidth: '1px',
+            borderColor: isFocused
+              ? palette.focusColor
+              : error
+                ? 'var(--color-error)'
+                : palette.borderColor,
+            boxShadow: isFocused
+              ? `0 0 0 3px color-mix(in srgb, ${palette.focusColor} 13%, transparent)`
+              : 'none',
           }}
+          animate={{ scale: isFocused ? 1.003 : 1 }}
         >
           <div className="flex items-center px-4 py-3">
             {Icon ? (
               <Icon
                 className="w-4 h-4 flex-shrink-0 mr-3 transition-colors duration-200"
-                style={{ color: `color-mix(in srgb, ${palette.textColor} 31.4%, transparent)` }}
+                style={{
+                  color: isFocused
+                    ? palette.focusColor
+                    : `color-mix(in srgb, ${palette.textColor} 38%, transparent)`,
+                }}
               />
             ) : null}
             <input
@@ -57,6 +71,11 @@ export function OrganizationRegisterField({
               }`}
               style={{ color: palette.textColor }}
               {...registration}
+              onFocus={() => setIsFocused(true)}
+              onBlur={(event) => {
+                setIsFocused(false)
+                registration.onBlur(event)
+              }}
             />
             {rightAdornment}
           </div>

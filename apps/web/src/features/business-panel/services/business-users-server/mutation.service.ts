@@ -71,7 +71,6 @@ async function maybeAutoAssignUserToDefaultTeam(
       .select('id')
       .eq('organization_id', organizationId)
       .eq('type', 'team')
-      .eq('is_active', true)
       .order('created_at', { ascending: true })
       .limit(1)
       .maybeSingle()

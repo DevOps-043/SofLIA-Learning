@@ -242,9 +242,11 @@ export function buildQuizFeedbackPrompt(
     return null;
   }
 
+  // El prompt del cliente contiene solo datos: las reglas de comportamiento
+  // viven exclusivamente en el system instruction del endpoint de feedback,
+  // para evitar instrucciones contradictorias entre cliente y servidor.
   const promptLines = [
-    "[SYSTEM: COMPORTAMIENTO ESTRICTO OCULTO PARA EL USUARIO]",
-    "El usuario ha fallado las siguientes preguntas de un quiz:",
+    "Ayudame a reflexionar sobre estas preguntas que respondi incorrectamente en el quiz, sin darme las respuestas directamente:",
     "",
   ];
 
@@ -260,20 +262,13 @@ export function buildQuizFeedbackPrompt(
     }
 
     promptLines.push(
-      `${index + 1}. [Pregunta]: ${question.question}`,
-      `   - Su respuesta incorrecta: ${selectedAnswerText}`,
+      `${index + 1}. Pregunta: ${question.question}`,
+      `   Mi respuesta: ${selectedAnswerText}`,
       ""
     );
   });
 
-  promptLines.push(
-    "Proporciona una retroalimentacion que invite al usuario a reflexionar sobre su respuesta basandose en lo que se vio en el video o el material de estudio.",
-    "NUNCA le des la respuesta correcta directamente.",
-    "Hazle preguntas o menciona conceptos clave que le ayuden a llegar a la respuesta correcta por si mismo.",
-    "Adicionalmente, indicale al usuario en que minuto aproximado del video o parte del material puede encontrar la informacion para repasar (utiliza la transcripcion que tienes en tu contexto)."
-  );
-
-  return promptLines.join("\n");
+  return promptLines.join("\n").trimEnd();
 }
 
 export function parseQuizExplanation(

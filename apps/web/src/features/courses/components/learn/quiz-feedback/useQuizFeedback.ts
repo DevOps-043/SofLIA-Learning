@@ -37,11 +37,13 @@ type StoredQuizFeedbackEntry = {
 type StoredQuizFeedbackState = {
   entries: Record<string, StoredQuizFeedbackEntry>;
   lessonId: string;
-  version: 1;
+  version: 2;
 };
 
-const STORAGE_VERSION = 1;
-const STORAGE_PREFIX = "soflia:quiz-feedback:v1";
+// v2: invalida entradas v1 que pudieron cachear retroalimentacion con
+// razonamiento interno filtrado del modelo (fuga corregida en el endpoint).
+const STORAGE_VERSION = 2;
+const STORAGE_PREFIX = "soflia:quiz-feedback:v2";
 
 function buildStorageKey(lessonId: string): string {
   return `${STORAGE_PREFIX}:${lessonId}`;

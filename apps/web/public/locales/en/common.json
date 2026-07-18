@@ -175,6 +175,8 @@
       "passwordPlaceholder": "Minimum 12 characters",
       "confirmPasswordLabel": "Confirm Password",
       "confirmPasswordPlaceholder": "Repeat your password",
+      "jobTitleLabel": "Professional Role",
+      "jobTitlePlaceholder": "E.g.: Marketing, Sales, Development...",
       "acceptTerms": "I accept the <0>terms and conditions</0> and the <1>privacy policy</1>",
       "creating": "Creating account...",
       "create": "Create account",
@@ -254,7 +256,9 @@
         "passwordLowercase": "Must contain at least one lowercase letter",
         "passwordNumber": "Must contain at least one number",
         "passwordSpecial": "Must contain at least one special character",
-        "passwordsDoNotMatch": "Passwords do not match"
+        "passwordsDoNotMatch": "Passwords do not match",
+        "invalidToken": "The recovery link is not valid or has already been used. Request a new one to continue.",
+        "expiredToken": "The recovery link has expired. Request a new one to continue."
       }
     },
     "social": {
@@ -286,6 +290,7 @@
       "alreadyHaveAccount": "I already have an account",
       "termsNotice": "By joining, you accept the platform terms of use",
       "registerManualFallback": "{{error}}. You can register manually if you have a pending invitation.",
+      "registerManualFallbackHint": "You can continue with manual registration if you have a pending invitation.",
       "errors": {
         "acceptConnection": "Connection error while accepting the invitation",
         "connection": "Connection error. Please try again.",
@@ -324,6 +329,7 @@
       "signingIn": "Signing in...",
       "joinOrg": "Join the organization",
       "registeredAs": "You will be registered as:",
+      "platformRoleLabel": "Your role on the organization's platform is:",
       "viaInviteLink": "(via invitation link)",
       "emailAssociatedInvite": "This email is associated with your invitation",
       "googleButton": "Continue with Google",
@@ -1318,7 +1324,10 @@
   "datePicker": {
     "placeholder": "Select date",
     "clear": "Clear",
-    "today": "Today"
+    "today": "Today",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "birthDateHint": "Month and year are editable"
   },
   "actions": {
     "cancel": "Cancel",

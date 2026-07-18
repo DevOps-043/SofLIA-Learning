@@ -65,6 +65,37 @@ export function resolveGeminiModel(
   return GEMINI_MODEL_ALIASES[normalizedModel] || configuredModel
 }
 
+interface GeminiVisibleTextResponse {
+  text: () => string
+  candidates?: Array<{
+    content?: {
+      parts?: Array<Part & { thought?: boolean }>
+    }
+  }>
+}
+
+/**
+ * Extrae SOLO el texto visible de una respuesta de Gemini, descartando las
+ * partes de razonamiento interno (`thought: true`) que los modelos con
+ * "thinking" pueden incluir. El SDK `@google/generative-ai` es anterior a ese
+ * campo y su `response.text()` concatena TODAS las partes, lo que puede filtrar
+ * el chain-of-thought del modelo al usuario. Usar siempre este helper en lugar
+ * de `response.text()`.
+ */
+export function extractVisibleGeminiText(response: GeminiVisibleTextResponse): string {
+  const parts = response.candidates?.[0]?.content?.parts
+
+  if (!parts || parts.length === 0) {
+    return response.text().trim()
+  }
+
+  return parts
+    .filter((part) => typeof part.text === 'string' && part.thought !== true)
+    .map((part) => part.text)
+    .join('')
+    .trim()
+}
+
 export function normalizeGeminiUsage(
   usage?: {
     promptTokenCount?: number
@@ -140,7 +171,7 @@ export async function generateGeminiText({
   )
 
   return {
-    text: result.response.text().trim(),
+    text: extractVisibleGeminiText(result.response),
     model: modelName,
     usage: normalizeGeminiUsage(result.response.usageMetadata),
   }

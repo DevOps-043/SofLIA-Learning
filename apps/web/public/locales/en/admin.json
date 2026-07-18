@@ -1018,6 +1018,7 @@
     "activitiesWithCount": "Activities ({{count}})",
     "materialsWithCount": "Materials ({{count}})",
     "invalidQuiz": "Invalid quiz data",
+    "answerKeyConflict": "The explanation points to \"{{declared}}\" as the correct option, but \"{{stored}}\" is marked as correct. Fix this question before publishing the course.",
     "invalidScript": "Invalid script data",
     "passingScore": "Passing score: {{score}}%",
     "questionCount": "{{count}} questions",

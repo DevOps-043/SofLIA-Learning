@@ -1018,6 +1018,7 @@
     "activitiesWithCount": "Actividades ({{count}})",
     "materialsWithCount": "Materiales ({{count}})",
     "invalidQuiz": "Datos de quiz invalidos",
+    "answerKeyConflict": "La explicación señala como correcta la opción «{{declared}}», pero la opción marcada como correcta es «{{stored}}». Corrige esta pregunta antes de publicar el curso.",
     "invalidScript": "Datos de script invalidos",
     "passingScore": "Passing Score: {{score}}%",
     "questionCount": "{{count}} preguntas",

@@ -31,9 +31,8 @@ async function loadOrganizationNodes(organizationId: string) {
     createAdminClient(),
     'organization_nodes',
   )
-    .select('id, organization_id, name, type, path, parent_id, is_active')
+    .select('id, organization_id, name, type, path, parent_id')
     .eq('organization_id', organizationId)
-    .eq('is_active', true)
 
   if (!error) return data || []
   logger.error('Error loading organization nodes for learning path bulk assign:', error)

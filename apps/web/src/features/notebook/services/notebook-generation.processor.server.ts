@@ -131,12 +131,13 @@ async function collectLessonEvidence(
         .returns<LiaMessageRow[]>()
     : { data: [] as LiaMessageRow[] }
 
+  // soflia_dialogue_sessions no tiene created_at; su columna temporal es started_at
   const { data: sessions } = await flexibleFrom(client, 'soflia_dialogue_sessions')
     .select('session_id')
     .eq('user_id', job.userId)
     .eq('enrollment_id', job.enrollmentId)
     .eq('lesson_id', job.lessonId)
-    .order('created_at', { ascending: true })
+    .order('started_at', { ascending: true })
     .returns<DialogueSessionRow[]>()
   const sessionIds = (sessions || []).map((row) => row.session_id)
 

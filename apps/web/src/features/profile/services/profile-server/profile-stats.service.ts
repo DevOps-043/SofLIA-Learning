@@ -74,7 +74,7 @@ export async function getOrganizationUserStats(
         .eq('organization_id', organizationId),
       supabase
         .from('user_course_certificates')
-        .select('id', { count: 'exact', head: true })
+        .select('certificate_id', { count: 'exact', head: true })
         .eq('user_id', userId)
         .eq('organization_id', organizationId),
     ])
@@ -115,24 +115,26 @@ async function getGlobalUserStats(
     }
   }
 
+  // Los conteos usan la PK real de cada tabla: ninguna de estas tablas tiene
+  // columna `id`, y PostgREST rechaza la consulta entera si se pide (42703).
   const [completedCourses, completedLessons, certificates, coursesInProgress] = await Promise.all([
     supabase
       .from('user_course_enrollments')
-      .select('id', { count: 'exact', head: true })
+      .select('enrollment_id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('enrollment_status', 'completed'),
     supabase
       .from('user_lesson_progress')
-      .select('id', { count: 'exact', head: true })
+      .select('progress_id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('is_completed', true),
     supabase
       .from('user_course_certificates')
-      .select('id', { count: 'exact', head: true })
+      .select('certificate_id', { count: 'exact', head: true })
       .eq('user_id', userId),
     supabase
       .from('user_course_enrollments')
-      .select('id', { count: 'exact', head: true })
+      .select('enrollment_id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('enrollment_status', 'active'),
   ])
@@ -170,7 +172,7 @@ async function countCompletedLessonsForCourses(
 
   const { count } = await supabase
     .from('user_lesson_progress')
-    .select('id', { count: 'exact', head: true })
+    .select('progress_id', { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('is_completed', true)
     .in('lesson_id', lessonIds)

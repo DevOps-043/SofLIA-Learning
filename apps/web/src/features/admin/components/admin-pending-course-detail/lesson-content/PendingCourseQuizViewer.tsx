@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { CheckCircleIcon } from "@heroicons/react/24/outline";
-import type { QuizData } from "./types";
+import { CheckCircleIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { findQuizAnswerKeyConflict } from "@/lib/course-content";
+import type { QuizData, QuizQuestion } from "./types";
 
 export function PendingCourseQuizViewer({ data }: { data: QuizData | null }) {
   const { t } = useTranslation("admin");
@@ -40,8 +41,39 @@ export function PendingCourseQuizViewer({ data }: { data: QuizData | null }) {
               <span className="font-bold">{t("lessonContent.explanation")}:</span> {item.explanation}
             </div>
           )}
+          <QuizAnswerKeyConflictWarning item={item} />
         </div>
       ))}
+    </div>
+  );
+}
+
+/**
+ * Advierte al admin cuando la explicación de la pregunta declara como correcta
+ * una opción distinta de la marcada en el answer key (error frecuente del
+ * generador de contenido). Debe corregirse antes de publicar el curso.
+ */
+function QuizAnswerKeyConflictWarning({ item }: { item: QuizQuestion }) {
+  const { t } = useTranslation("admin");
+  const conflict = findQuizAnswerKeyConflict({
+    correctAnswer: item.correct_answer ?? item.correctAnswer,
+    explanation: item.explanation,
+    options: item.options,
+  });
+
+  if (!conflict) {
+    return null;
+  }
+
+  return (
+    <div className="mt-2 flex items-start gap-2 rounded border border-amber-300 bg-amber-50 p-2 text-xs text-amber-700 dark:border-amber-500/40 dark:bg-amber-900/10 dark:text-amber-400">
+      <ExclamationTriangleIcon className="h-4 w-4 shrink-0" />
+      <span>
+        {t("lessonContent.answerKeyConflict", {
+          declared: conflict.declaredCorrectOption,
+          stored: conflict.storedCorrectAnswer,
+        })}
+      </span>
     </div>
   );
 }

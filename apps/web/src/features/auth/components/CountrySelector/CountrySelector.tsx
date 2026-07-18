@@ -7,8 +7,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface CountrySelectorStyles {
   bgColor?: string;
+  menuBgColor?: string;
   borderColor?: string;
   textColor?: string;
+  primaryColor?: string;
+  focusColor?: string;
 }
 
 interface CountrySelectorProps {
@@ -45,9 +48,9 @@ export function CountrySelector({
   };
 
   // Default color fallbacks (if no custom styles provided)
-  const buttonClassName = customStyles 
-    ? "flex items-center gap-2 h-[46px] px-3 rounded-xl transition-all outline-none min-w-[100px] border" 
-    : "flex items-center gap-2 h-[46px] px-3 bg-white dark:bg-carbon-800 border border-gray-200 dark:border-gray-500/30 rounded-xl hover:border-accent hover:ring-1 hover:ring-accent/20 transition-all outline-none min-w-[100px]";
+  const buttonClassName = customStyles
+    ? "flex items-center gap-2 h-[46px] px-3 rounded-xl transition-all outline-none min-w-[104px] border"
+    : "flex items-center gap-2 h-[46px] px-3 bg-white dark:bg-carbon-800 border border-gray-200 dark:border-gray-500/30 rounded-xl hover:border-accent hover:ring-1 hover:ring-accent/20 transition-all outline-none min-w-[104px]";
 
   const dropdownClassName = customStyles
     ? "absolute top-full left-0 z-50 mt-1 w-64 max-h-60 overflow-y-auto rounded-xl shadow-xl scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700 border backdrop-blur-xl"
@@ -57,11 +60,17 @@ export function CountrySelector({
     <div className="relative" ref={containerRef}>
       <button
         type="button"
+        aria-controls="country-selector-options"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
         onClick={() => setIsOpen(!isOpen)}
         className={buttonClassName}
         style={customStyles ? {
           backgroundColor: customStyles.bgColor,
-          borderColor: customStyles.borderColor,
+          borderColor: isOpen ? (customStyles.focusColor || customStyles.primaryColor || customStyles.borderColor) : customStyles.borderColor,
+          boxShadow: isOpen
+            ? `0 0 0 3px color-mix(in srgb, ${customStyles.focusColor || customStyles.primaryColor} 13%, transparent)`
+            : 'none',
           color: customStyles.textColor,
         } : undefined}
       >
@@ -69,45 +78,63 @@ export function CountrySelector({
         <span className="text-sm font-medium" style={customStyles ? { color: customStyles.textColor } : undefined}>
           {selectedCountry.dialCode}
         </span>
-        <ChevronDown 
-          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
-          style={customStyles ? { color: `color-mix(in srgb, ${customStyles.textColor} 50.2%, transparent)` } : undefined}
-        />
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronDown
+            className="w-4 h-4"
+            style={customStyles ? { color: `color-mix(in srgb, ${customStyles.textColor} 50.2%, transparent)` } : undefined}
+          />
+        </motion.div>
       </button>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 5 }}
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
             className={dropdownClassName}
             style={customStyles ? {
-              backgroundColor: customStyles.bgColor,
-              borderColor: customStyles.borderColor,
+              backgroundColor: customStyles.menuBgColor || customStyles.bgColor,
+              borderColor: `color-mix(in srgb, ${customStyles.textColor} 15%, transparent)`,
+              boxShadow: `0 20px 48px -18px rgba(0,0,0,.7), 0 0 0 1px color-mix(in srgb, ${customStyles.primaryColor} 12%, transparent)`,
             } : undefined}
+            id="country-selector-options"
+            role="listbox"
           >
             <div className="p-1">
               {COUNTRIES.map((country) => (
                 <button
                   key={country.code}
                   type="button"
+                  role="option"
+                  aria-selected={country.code === selectedCountryCode}
                   onClick={() => handleSelect(country)}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                     country.code === selectedCountryCode
-                      ? 'bg-accent/10 text-accent'
+                      ? customStyles ? '' : 'bg-accent/10 text-accent'
                       : customStyles 
-                        ? 'hover:bg-white/5' 
+                        ? 'hover:opacity-80'
                         : 'hover:bg-gray-50 dark:hover:bg-white/5 text-primary dark:text-gray-300'
                   }`}
-                  style={customStyles && country.code !== selectedCountryCode ? { color: customStyles.textColor } : undefined}
+                  style={customStyles ? {
+                    backgroundColor: country.code === selectedCountryCode && customStyles.primaryColor
+                      ? `color-mix(in srgb, ${customStyles.primaryColor} 20%, transparent)`
+                      : 'transparent',
+                    color: country.code === selectedCountryCode
+                      ? (customStyles.focusColor || customStyles.primaryColor || customStyles.textColor)
+                      : customStyles.textColor,
+                  } : undefined}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">{country.flag}</span>
                     <span className="font-medium">{country.name}</span>
                   </div>
                   {country.code === selectedCountryCode && (
-                    <Check className="w-4 h-4" />
+                    <Check className="w-4 h-4" style={customStyles ? { color: customStyles.primaryColor } : undefined} />
                   )}
                 </button>
               ))}

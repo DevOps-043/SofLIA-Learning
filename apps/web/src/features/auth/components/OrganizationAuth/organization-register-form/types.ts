@@ -38,7 +38,6 @@ export interface OrganizationRegisterIdentityFieldsProps {
   palette: OrganizationAuthPalette
   invitedEmail?: string | null
   invitedRole?: string | null
-  invitedRoleTranslationKey?: string | null
   bulkInviteToken?: string | null
   success?: string | null
 }

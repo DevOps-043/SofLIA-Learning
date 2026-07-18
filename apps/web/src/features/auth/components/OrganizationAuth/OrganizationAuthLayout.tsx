@@ -50,6 +50,7 @@ interface OrganizationAuthLayoutProps {
   children: React.ReactNode;
   isLoading?: boolean;
   error?: string | null;
+  variant?: 'default' | 'registration';
 }
 
 export function OrganizationAuthLayout({
@@ -57,6 +58,7 @@ export function OrganizationAuthLayout({
   children,
   isLoading = false,
   error = null,
+  variant = 'default',
 }: OrganizationAuthLayoutProps) {
   const { t } = useTranslation('common');
   const organizationSlug = organization.slug || '';
@@ -142,7 +144,7 @@ export function OrganizationAuthLayout({
         style={pageStyle}
       >
       {/* Animated Gradient Orbs */}
-      {!loginStyles?.background_type && !disableHeavyEffects && (
+      {!loginStyles?.background_type && !disableHeavyEffects && variant === 'default' && (
         <>
           <motion.div
             className="absolute inset-0 z-0 fixed"
@@ -188,23 +190,51 @@ export function OrganizationAuthLayout({
         </>
       )}
 
-      {/* Layout: form first (top on mobile), logo second (bottom on mobile / left on desktop) */}
-      <div className="relative z-10 w-full min-h-screen flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-12 p-4 sm:p-6 lg:p-8 py-8 lg:py-12">
+      {/* Layout: el registro usa el patrón split-panel; el resto de auth conserva su composición. */}
+      <div
+        data-auth-layout={variant}
+        className={`relative z-10 w-full flex flex-col lg:flex-row items-center justify-center transition-all duration-500 ${
+          variant === 'registration'
+            ? 'max-w-[1240px] min-h-0 lg:h-[calc(100vh-32px)] lg:max-h-[820px] gap-0 m-4 sm:m-6 rounded-3xl border overflow-hidden shadow-2xl'
+            : 'min-h-screen gap-6 lg:gap-12 p-4 sm:p-6 lg:p-8 py-8 lg:py-12'
+        }`}
+        style={
+          variant === 'registration'
+            ? {
+                backgroundColor: cardBackgroundColor,
+                borderColor,
+                boxShadow: `0 30px 80px -28px rgba(0, 0, 0, 0.72), 0 0 0 1px color-mix(in srgb, ${borderColor} 15%, transparent)`,
+              }
+            : undefined
+        }
+      >
 
           {/* FORM — always rendered first: top on mobile, right on desktop */}
           <motion.div
-            className="w-full max-w-md lg:max-w-xl lg:order-2 shrink-0"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+            className={`w-full lg:order-2 shrink-0 ${
+              variant === 'registration'
+                ? 'lg:flex-1 lg:min-w-0 lg:self-stretch lg:h-full flex flex-col-reverse lg:block'
+                : 'max-w-md lg:max-w-2xl'
+            }`}
+            initial={variant === 'registration' ? false : { opacity: 0, x: 50 }}
+            animate={variant === 'registration' ? undefined : { opacity: 1, x: 0 }}
+            transition={variant === 'registration' ? undefined : { duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
           >
             {/* Login Card */}
             <div 
-              className="relative backdrop-blur-xl p-5 sm:p-6 lg:p-8 shadow-2xl rounded-3xl border overflow-hidden min-h-0 sm:min-h-[300px] flex flex-col justify-center"
+              className={`relative backdrop-blur-xl p-5 sm:p-6 flex flex-col ${
+                variant === 'registration'
+                  ? 'justify-start lg:h-full lg:p-7 min-h-0 lg:overflow-y-auto'
+                  : 'justify-center lg:p-8 shadow-2xl rounded-3xl border overflow-hidden min-h-0 sm:min-h-[300px]'
+              }`}
               style={{
-                backgroundColor: cardBackgroundColor,
-                borderColor: borderColor,
-                boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px color-mix(in srgb, ${borderColor} 12.5%, transparent)`,
+                backgroundColor:
+                  variant === 'registration' ? 'transparent' : cardBackgroundColor,
+                borderColor: variant === 'registration' ? 'transparent' : borderColor,
+                boxShadow:
+                  variant === 'registration'
+                    ? 'none'
+                    : `0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px color-mix(in srgb, ${borderColor} 12.5%, transparent)`,
               }}
             >
               {/* Inner gradient overlay */}
@@ -237,15 +267,15 @@ export function OrganizationAuthLayout({
               {/* Content */}
               <div className="relative z-10 w-full">
                 {/* Organization Info */}
-                {!isLoading && (
+                {!isLoading && variant === 'default' && (
                   <motion.div
-                    className="text-center mb-6"
+                    className="mb-4 text-center"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4, duration: 0.6 }}
                   >
                     <motion.h1 
-                      className="text-2xl lg:text-3xl font-bold mb-2 tracking-tight"
+                      className="text-xl lg:text-2xl font-bold mb-1 tracking-tight"
                       style={{
                         fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
                         color: textColor,
@@ -315,9 +345,17 @@ export function OrganizationAuthLayout({
               </div>
             </div>
             {/* Mobile logo — below card, hidden on desktop */}
-            <div className="lg:hidden flex justify-center mt-6 pb-2">
+            <div
+              className={`lg:hidden flex justify-center ${
+                variant === 'registration' ? 'pt-5 pb-0' : 'mt-6 pb-2'
+              }`}
+            >
               <motion.div
-                animate={disableHeavyEffects ? undefined : { y: [-8, 8, -8] }}
+                animate={
+                  disableHeavyEffects || variant === 'registration'
+                    ? undefined
+                    : { y: [-8, 8, -8] }
+                }
                 transition={
                   disableHeavyEffects
                     ? undefined
@@ -339,24 +377,44 @@ export function OrganizationAuthLayout({
 
           {/* LOGO — desktop only, left column */}
           <motion.div
-            className="hidden lg:flex lg:order-1 flex-1 items-center justify-center"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className={`hidden lg:flex lg:order-1 items-center justify-center ${
+              variant === 'registration'
+                ? 'relative self-stretch w-[300px] xl:w-[320px] shrink-0 flex-col px-8 py-10 overflow-hidden'
+                : 'flex-1'
+            }`}
+            style={
+              variant === 'registration'
+                ? {
+                    background: `linear-gradient(155deg, color-mix(in srgb, ${finalPrimaryColor} 18%, transparent), color-mix(in srgb, ${finalSecondaryColor} 8%, transparent))`,
+                    borderRight: `1px solid color-mix(in srgb, ${borderColor} 72%, transparent)`,
+                  }
+                : undefined
+            }
+            initial={variant === 'registration' ? false : { opacity: 0, x: -50 }}
+            animate={variant === 'registration' ? undefined : { opacity: 1, x: 0 }}
+            transition={variant === 'registration' ? undefined : { duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
             <motion.div
-              className="relative"
-              animate={disableHeavyEffects ? undefined : { y: [-10, 10, -10] }}
+              className={`relative ${variant === 'registration' ? 'z-10 flex w-full flex-col items-center text-center' : ''}`}
+              animate={
+                disableHeavyEffects || variant === 'registration'
+                  ? undefined
+                  : { y: [-10, 10, -10] }
+              }
               transition={
                 disableHeavyEffects
                   ? undefined
                   : { duration: 6, repeat: Infinity, ease: 'easeInOut' }
               }
             >
-              <div className="relative w-[280px] h-[280px] flex items-center justify-center">
+              <div
+                className={`relative flex items-center justify-center ${
+                  variant === 'registration' ? 'w-[190px] h-[190px]' : 'w-[280px] h-[280px]'
+                }`}
+              >
                 <motion.div
                   className="relative w-full h-full flex items-center justify-center"
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={variant === 'registration' ? undefined : { scale: 1.05 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                 >
                   <Image
@@ -364,14 +422,14 @@ export function OrganizationAuthLayout({
                     alt={`${organization.name} Logo`}
                     fill
                     className="object-contain drop-shadow-2xl"
-                    sizes="280px"
+                    sizes={variant === 'registration' ? '190px' : '280px'}
                     priority
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/icono.png';
                     }}
                   />
                 </motion.div>
-                {!disableHeavyEffects && (
+                {!disableHeavyEffects && variant === 'default' && (
                   <motion.div
                     className="absolute inset-0 rounded-full pointer-events-none -z-10 blur-[60px]"
                     style={{ background: `radial-gradient(circle, color-mix(in srgb, ${finalPrimaryColor} 25.1%, transparent), transparent 70%)` }}

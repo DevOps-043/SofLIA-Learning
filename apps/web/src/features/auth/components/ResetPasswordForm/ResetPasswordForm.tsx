@@ -12,6 +12,10 @@ import {
   resetSupabaseRecoveryPasswordAction,
   validateResetTokenAction,
 } from '../../actions/reset-password';
+import {
+  establishSupabaseRecoverySession,
+  parseRecoveryUrlError,
+} from './recovery-session.helpers';
 import { getResetPasswordSchema, type ResetPasswordFormData } from './ResetPasswordForm.schema';
 import { Loader2, Lock, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { PasswordInput } from '../PasswordInput';
@@ -53,33 +57,40 @@ export function ResetPasswordForm() {
   useEffect(() => {
     const validateToken = async () => {
       if (!token) {
+        // Supabase adjunta el motivo del fallo a la URL de redirección
+        // (p. ej. error_code=otp_expired cuando el enlace venció o ya se usó).
+        const urlError = parseRecoveryUrlError(
+          window.location.search,
+          window.location.hash,
+        );
+
+        if (urlError) {
+          setTokenError(
+            urlError === 'expired'
+              ? t('auth.resetPassword.validation.expiredToken')
+              : t('auth.resetPassword.validation.invalidToken'),
+          );
+          setIsValidatingToken(false);
+          return;
+        }
+
         const hasSupabaseRecovery =
           recoveryMode === 'supabase' ||
           Boolean(recoveryCode) ||
           window.location.hash.includes('access_token');
 
         if (!hasSupabaseRecovery) {
-          setTokenError('Token no proporcionado');
+          setTokenError(t('auth.resetPassword.validation.invalidToken'));
           setIsValidatingToken(false);
           return;
         }
 
+        // establishSupabaseRecoverySession tolera que detectSessionInUrl ya
+        // haya canjeado el código de un solo uso (ver recovery-session.helpers).
         const supabase = createBrowserSupabaseClient();
-        if (recoveryCode) {
-          const { error } = await supabase.auth.exchangeCodeForSession(recoveryCode);
-          if (error) {
-            setTokenError(t('auth.resetPassword.validation.invalidToken'));
-            setIsValidatingToken(false);
-            return;
-          }
-        }
+        const hasSession = await establishSupabaseRecoverySession(supabase, recoveryCode);
 
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
-
-        if (error || !session?.user) {
+        if (!hasSession) {
           setTokenError(t('auth.resetPassword.validation.invalidToken'));
           setIsValidatingToken(false);
           return;

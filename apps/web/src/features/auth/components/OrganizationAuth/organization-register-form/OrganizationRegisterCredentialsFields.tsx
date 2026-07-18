@@ -23,12 +23,12 @@ export function OrganizationRegisterCredentialsFields({
 }: OrganizationRegisterCredentialsFieldsProps) {
   const { t } = useTranslation('common')
   return (
-    <>
+    <div className="grid grid-cols-1 gap-x-4 gap-y-3 md:grid-cols-2">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6, duration: 0.5 }}
-        className="space-y-1.5"
+        className="space-y-1.5 md:col-span-2"
       >
         <label
           htmlFor="phoneNumber"
@@ -44,8 +44,11 @@ export function OrganizationRegisterCredentialsFields({
             onCountryChange={onCountryChange}
             customStyles={{
               bgColor: palette.inputBgColor,
+              menuBgColor: palette.cardBg,
               borderColor: palette.borderColor,
               textColor: palette.textColor,
+              primaryColor: palette.primaryColor,
+              focusColor: palette.focusColor,
             }}
           />
           <div className="flex-1">
@@ -63,7 +66,6 @@ export function OrganizationRegisterCredentialsFields({
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -85,6 +87,7 @@ export function OrganizationRegisterCredentialsFields({
               bgColor: palette.inputBgColor,
               borderColor: palette.borderColor,
               textColor: palette.textColor,
+              focusColor: palette.focusColor,
             }}
             {...register('password')}
           />
@@ -111,11 +114,11 @@ export function OrganizationRegisterCredentialsFields({
               bgColor: palette.inputBgColor,
               borderColor: palette.borderColor,
               textColor: palette.textColor,
+              focusColor: palette.focusColor,
             }}
             {...register('confirmPassword')}
           />
         </motion.div>
-      </div>
-    </>
+    </div>
   )
 }

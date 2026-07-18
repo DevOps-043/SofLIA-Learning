@@ -25,54 +25,50 @@ export function OrganizationRegisterActions({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.9, duration: 0.5 }}
-        className="flex items-start gap-3"
+        className="grid gap-4 pt-1 md:grid-cols-2 md:items-center"
       >
-        <input
-          id="acceptTerms"
-          type="checkbox"
-          {...register('acceptTerms')}
-          className="auth-checkbox mt-1"
-        />
-        <label
-          htmlFor="acceptTerms"
-          className="text-sm cursor-pointer"
-          style={{ color: palette.textColor }}
-        >
-          <Trans
-            i18nKey="auth.register.acceptTerms"
-            t={t}
-            components={{
-              terms: (
-                <button
-                  type="button"
-                  onClick={onOpenLegalModal}
-                  className="font-semibold hover:underline transition-all"
-                  style={{ color: 'var(--color-legacy-60a5fa)' }}
-                />
-              ),
-              privacy: (
-                <button
-                  type="button"
-                  onClick={onOpenLegalModal}
-                  className="font-semibold hover:underline transition-all"
-                  style={{ color: 'var(--color-legacy-60a5fa)' }}
-                />
-              ),
-            }}
-          />
-        </label>
-      </motion.div>
+        <div>
+          <div className="flex items-start gap-3">
+            <input
+              id="acceptTerms"
+              type="checkbox"
+              {...register('acceptTerms')}
+              className="auth-checkbox mt-1"
+            />
+            <label
+              htmlFor="acceptTerms"
+              className="cursor-pointer text-sm leading-relaxed"
+              style={{ color: palette.textColor }}
+            >
+              <Trans
+                i18nKey="auth.register.acceptTerms"
+                t={t}
+                components={{
+                  terms: (
+                    <button
+                      type="button"
+                      onClick={onOpenLegalModal}
+                      className="font-semibold hover:underline transition-all"
+                      style={{ color: palette.linkColor }}
+                    />
+                  ),
+                  privacy: (
+                    <button
+                      type="button"
+                      onClick={onOpenLegalModal}
+                      className="font-semibold hover:underline transition-all"
+                      style={{ color: palette.linkColor }}
+                    />
+                  ),
+                }}
+              />
+            </label>
+          </div>
+          {errors.acceptTerms ? (
+            <p className="auth-error mt-1">{errors.acceptTerms.message}</p>
+          ) : null}
+        </div>
 
-      {errors.acceptTerms ? (
-        <p className="auth-error">{errors.acceptTerms.message}</p>
-      ) : null}
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.9, duration: 0.5 }}
-        className="pt-2"
-      >
         <motion.button
           type="submit"
           disabled={isPending}
