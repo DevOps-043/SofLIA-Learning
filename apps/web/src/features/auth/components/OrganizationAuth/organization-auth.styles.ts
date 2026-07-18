@@ -1,7 +1,37 @@
 import { hexToRgb } from '../../../business-panel/utils/styles'
 import type { StyleConfig } from '../../../business-panel/hooks/useOrganizationStyles'
+import { generateOrganizationBrandingTheme } from '@/core/theme/organization-branding-theme'
 
 export type OrganizationAuthStyles = Partial<StyleConfig>
+
+/**
+ * Los estilos de login almacenados representan la variante oscura histórica.
+ * En modo claro generamos la superficie equivalente a partir de los colores
+ * interactivos de la organización, conservando su branding sin dejar el modal
+ * atrapado en fondos y textos oscuros.
+ */
+export function resolveOrganizationAuthStylesForMode(
+  loginStyles: OrganizationAuthStyles | null,
+  isDark: boolean,
+): OrganizationAuthStyles | null {
+  if (isDark) return loginStyles
+
+  const lightLoginStyles = generateOrganizationBrandingTheme({
+    color_primary: loginStyles?.primary_button_color,
+    color_secondary: loginStyles?.secondary_button_color,
+    color_accent: loginStyles?.accent_color,
+  }).lightMode.login
+
+  return {
+    ...loginStyles,
+    ...lightLoginStyles,
+    primary_button_color:
+      loginStyles?.primary_button_color || lightLoginStyles.primary_button_color,
+    secondary_button_color:
+      loginStyles?.secondary_button_color || lightLoginStyles.secondary_button_color,
+    accent_color: loginStyles?.accent_color || lightLoginStyles.accent_color,
+  }
+}
 
 export interface OrganizationAuthPalette {
   cardBg: string

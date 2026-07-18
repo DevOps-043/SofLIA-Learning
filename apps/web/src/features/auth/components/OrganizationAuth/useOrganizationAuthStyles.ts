@@ -11,6 +11,7 @@ import {
 import { useThemeStore } from '../../../../core/stores/themeStore'
 import {
   buildOrganizationAuthPalette,
+  resolveOrganizationAuthStylesForMode,
   type OrganizationAuthPalette,
   type OrganizationAuthStyles,
 } from './organization-auth.styles'
@@ -107,11 +108,16 @@ export function useOrganizationAuthStyles(
     return activeContextStyles
   }
 
+  const effectiveLoginStyles = resolveOrganizationAuthStylesForMode(
+    loginStyles,
+    isDark,
+  )
+
   return {
     isDark,
-    loginStyles,
+    loginStyles: effectiveLoginStyles,
     mounted,
     organizationSlug,
-    palette: buildOrganizationAuthPalette(loginStyles, isDark),
+    palette: buildOrganizationAuthPalette(effectiveLoginStyles, isDark),
   }
 }
