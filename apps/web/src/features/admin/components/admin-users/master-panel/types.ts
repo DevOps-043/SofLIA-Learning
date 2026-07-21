@@ -21,6 +21,7 @@ export type MasterPanelTab =
   | 'courses'
   | 'learningPaths'
   | 'stats'
+  | 'audit'
 
 export const MASTER_PANEL_TABS: MasterPanelTab[] = [
   'profile',
@@ -29,6 +30,7 @@ export const MASTER_PANEL_TABS: MasterPanelTab[] = [
   'courses',
   'learningPaths',
   'stats',
+  'audit',
 ]
 
 export type OrganizationRole = 'member' | 'admin' | 'owner'

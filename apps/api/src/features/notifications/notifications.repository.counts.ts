@@ -52,7 +52,7 @@ export async function getUnreadCount(
 
   try {
     const { data, error } = await rpcClient
-      .rpc('get_unread_notifications_count', { p_user_id: userId })
+      .rpc('get_unread_notification_counts', { p_user_id: userId })
       .single()
 
     if (!error) {
@@ -63,9 +63,9 @@ export async function getUnreadCount(
       }
     }
 
-    logger.warn('RPC get_unread_notifications_count no disponible', { error })
+    logger.warn('RPC get_unread_notification_counts no disponible', { error })
   } catch (error) {
-    logger.warn('Fallo la RPC get_unread_notifications_count', { error })
+    logger.warn('Fallo la RPC get_unread_notification_counts', { error })
   }
 
   return getUnreadCountFallback(client, userId)

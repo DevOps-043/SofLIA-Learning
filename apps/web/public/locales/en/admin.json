@@ -303,7 +303,145 @@
         "organizations": "Organizations",
         "courses": "Courses",
         "learningPaths": "Paths",
-        "stats": "Statistics"
+        "stats": "Statistics",
+        "audit": "Audit"
+      },
+      "audit": {
+        "title": "Forensic audit",
+        "subtitle": "{{total}} recorded events for this user",
+        "export": "Export CSV",
+        "retry": "Retry",
+        "report": {
+          "generate": "Forensic report (PDF)",
+          "generating": "Generating report…"
+        },
+        "truncated": "Some domains hit the row cap; data may be truncated.",
+        "flags": {
+          "title": "Alert signals",
+          "videosSpedUp": "Watched {{count}} video(s) sped up (up to {{rate}}x)",
+          "videosBarelyWatched": "{{count}} video(s) barely watched",
+          "manyQuizAttempts": "A quiz with {{count}} attempts (possible brute force)",
+          "dialoguesAbandoned": "{{count}} SofLIA dialogue(s) abandoned without completing",
+          "dialoguesSkipped": "Completed courses but only did {{done}} of {{available}} available SofLIA dialogues (possible skipping)",
+          "concurrentSessions": "{{count}} concurrent access(es) from different IPs at nearly the same time (possible shared account)",
+          "liaAbandoned": "{{count}} LIA conversation(s) abandoned"
+        },
+        "agg": {
+          "title": "Summary by section",
+          "access": {
+            "title": "Access & devices",
+            "summary": "{{logins}} logins from {{ips}} IP(s) and {{devices}} device(s)."
+          },
+          "courses": {
+            "title": "Courses",
+            "summary": "Enrolled in {{enrolled}} course(s), completed {{completed}}, earned {{certificates}} certificate(s)."
+          },
+          "lessons": {
+            "title": "Lessons & videos",
+            "summary": "Started {{started}} lesson(s), completed {{completed}}; {{minutes}} min of video.",
+            "videos": "Videos: {{watched}} fully watched, {{spedUp}} sped up, {{barely}} barely watched."
+          },
+          "dialogues": {
+            "title": "SofLIA dialogues",
+            "summary": "{{total}} of {{available}} available dialogues: {{completed}} completed, {{abandoned}} abandoned, avg {{avg}}."
+          },
+          "quizzes": {
+            "title": "Quizzes",
+            "summary": "{{attempts}} attempt(s) across {{quizzes}} quiz(zes), {{passed}} passed; up to {{max}} attempts on one."
+          },
+          "activities": {
+            "title": "Activities",
+            "summary": "{{submitted}} submitted, {{validated}} validated."
+          },
+          "notes": {
+            "title": "Notes",
+            "summary": "{{total}} note(s): {{written}} written by the student, {{auto}} auto-generated."
+          },
+          "lia": {
+            "title": "LIA assistant",
+            "summary": "{{conversations}} conversation(s), {{messages}} messages, {{abandoned}} abandoned."
+          }
+        },
+        "notes": {
+          "title": "Student notes",
+          "empty": "No notes recorded.",
+          "untitled": "(untitled)",
+          "auto": "Auto",
+          "written": "Written"
+        },
+        "summary": {
+          "realLastActivity": "Real last activity",
+          "firstActivity": "First activity",
+          "lastLogin": "Last login",
+          "storedLastActivity": "last_activity_at (15 min throttle)",
+          "banned": "Suspended on {{date}}",
+          "note": "All timestamps are shown in the selected time zone (UTC matches the database). \"Real last activity\" is derived from the latest recorded event, not from the throttled field."
+        },
+        "sessions": {
+          "title": "Sessions & logins (IP / device)",
+          "empty": "No sessions recorded.",
+          "detectedIps": "Detected IPs:",
+          "noLoginRows": "No login session rows (persistent native session), but activity IPs were detected.",
+          "ip": "IP",
+          "device": "Device / browser",
+          "createdAt": "Login",
+          "lastUsedAt": "Last used",
+          "status": "Status",
+          "revoked": "Revoked",
+          "active": "Active"
+        },
+        "timeline": {
+          "title": "Timeline",
+          "all": "All ({{n}})",
+          "empty": "No events for this filter."
+        },
+        "dialogue": {
+          "state": "State: {{state}}",
+          "attempt": "Attempt {{n}}",
+          "turns": "Turns: {{n}}",
+          "activeSeconds": "{{n}}s active",
+          "soflia": "SofLIA",
+          "system": "System",
+          "student": "Student",
+          "evaluations": "Evaluations",
+          "result": "Result",
+          "score": "Score {{n}}",
+          "error": "Could not load the transcript."
+        },
+        "soflia": {
+          "title": "SofLIA interactions",
+          "empty": "No SofLIA dialogues.",
+          "session": "SofLIA dialogue"
+        },
+        "lia": {
+          "assistant": "LIA",
+          "student": "Student",
+          "system": "System",
+          "offTopic": "off-topic",
+          "empty": "No messages in this conversation.",
+          "error": "Could not load the conversation."
+        },
+        "eventTypes": {
+          "login": "Login",
+          "courseAssigned": "Course assigned",
+          "learningPathAssigned": "Path assigned",
+          "courseEnrolled": "Enrollment",
+          "lessonStarted": "Lesson started",
+          "lessonCompleted": "Lesson completed",
+          "videoWatched": "Lesson video",
+          "noteCreated": "Note",
+          "liaConversation": "LIA conversation",
+          "dialogueStarted": "SofLIA dialogue",
+          "dialogueEvaluation": "Dialogue evaluation",
+          "dialogueResult": "Dialogue result",
+          "dialogueEvent": "Dialogue event",
+          "quizAttempt": "Quiz attempt",
+          "activitySubmission": "Activity submission",
+          "liaMessage": "LIA message",
+          "certificateIssued": "Certificate issued",
+          "lessonFeedback": "Lesson feedback",
+          "unknown": "Event"
+        }
       },
       "profile": {
         "saved": "Profile updated successfully"

@@ -52,9 +52,9 @@ export async function GET(
       .select('feedback_type')
       .eq('lesson_id', lessonId)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       return NextResponse.json(
         { error: 'Error al obtener feedback' },
         { status: 500 }

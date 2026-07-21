@@ -13,6 +13,7 @@ import {
   type DialogueActivityConfig,
   type DialogueEvaluationResult,
 } from '../../types/dialogue-runtime'
+import { SOFLIA_DIALOGUE_APPROVAL_MINIMUM } from './dialogue-approval.constants'
 import { DialogueRuntimeError } from './dialogue-runtime.errors'
 import type { DialogueEvaluationRow, DialogueTurnRow } from './dialogue-tables'
 
@@ -196,7 +197,7 @@ ${stringify({
   expectedEvidence: config.expectedEvidence,
   commonMistakes: config.commonMistakes,
   rubric: config.rubric,
-  approvalMinimum: config.policy.approvalMinimum,
+  approvalMinimum: SOFLIA_DIALOGUE_APPROVAL_MINIMUM,
 })}
 
 ${organizationContext}

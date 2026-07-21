@@ -57,7 +57,9 @@ export function buildActivities(
     if (evaluation) return scoreEvaluationStatus(evaluation.result_status)
     if (submission.status === 'validated') return 100
     if (submission.status === 'needs_revision') return 55
-    return 100
+    // Entregada pero SIN validar aún: no asumir calidad perfecta (antes 100, lo que
+    // inflaba el score cuando la mayoría no estaban validadas).
+    return 60
   })
 
   const statusCounts = new Map<string, number>()

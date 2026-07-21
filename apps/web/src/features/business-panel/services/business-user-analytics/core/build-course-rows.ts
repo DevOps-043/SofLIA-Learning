@@ -57,6 +57,7 @@ export function buildCourseRows(
       lessonsCompleted: status === 'completed' && publishedLessons > completedFromProgress
         ? publishedLessons
         : completedFromProgress,
+      lessonsTotal: publishedLessons,
       timeSpentMinutes: calculateStudyMinutes(
         lessonProgress,
         lessonTracking,

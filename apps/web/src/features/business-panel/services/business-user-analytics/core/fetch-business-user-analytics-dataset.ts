@@ -48,7 +48,7 @@ export async function fetchBusinessUserAnalyticsDataset({
     activitiesScore: activities.averageQualityScore,
     sofliaScore: aiAdoption.questionQualityScore,
     notesScore: notes.notesScore,
-    quizScore: quizzes.averageScore,
+    quizScore: quizzes.qualityScore,
     evidenceCount: countEvidenceRecords(data),
   })
 

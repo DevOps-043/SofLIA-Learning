@@ -252,6 +252,13 @@
       "pointsEarned": "{{earned}} de {{total}} puntos",
       "requiredScore": "{{percentage}}% | Requerido: {{threshold}}%",
       "bestScore": "Mejor puntaje guardado: {{percentage}}%",
+      "attemptsRemaining": "Te queda {{count}} intento",
+      "attemptsRemaining_plural": "Te quedan {{count}} intentos",
+      "locked": {
+        "title": "Límite de intentos alcanzado",
+        "description": "Alcanzaste el máximo de intentos. Podrás volver a intentarlo más tarde.",
+        "retryAt": "Alcanzaste el máximo de intentos. Podrás volver a intentarlo el {{date}}."
+      },
       "empty": "Este quiz no tiene preguntas disponibles.",
       "errors": {
         "unanswered": "Por favor responde todas las preguntas ({{count}} sin responder).",

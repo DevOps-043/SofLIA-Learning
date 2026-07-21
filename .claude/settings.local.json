@@ -333,7 +333,12 @@
       "Bash(node \"C:/Users/fysg5/AppData/Local/Temp/claude/c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning/6f5c0f1e-8aa6-4680-8ae8-792f2c3ecf08/scratchpad/probe-input-color.mjs\")",
       "Bash(cp \"C:/Users/fysg5/AppData/Local/Temp/claude/c--Users-fysg5-OneDrive-Escritorio-PulseHub-Soflia-Learning-SofLIA-Learning/6f5c0f1e-8aa6-4680-8ae8-792f2c3ecf08/scratchpad/probe-input-color.mjs\" ./probe-input-color.mjs)",
       "Bash(node ./probe-input-color.mjs)",
-      "Bash(npx playwright *)"
+      "Bash(npx playwright *)",
+      "Bash(xargs grep -l \"POLICY\" -i)",
+      "Bash(xargs grep -liE \"user_lesson_progress|lesson_tracking|user_course_enrollments|user_activity_submissions|user_quiz_submissions|user_quiz_attempts\")",
+      "Bash(xargs grep -l \"lesson_tracking\\\\b\")",
+      "Bash(xargs grep -l \"material_content\\\\|activity_config\")",
+      "Bash(xargs grep -ln \"material_content\")"
     ],
     "deny": [],
     "ask": [],

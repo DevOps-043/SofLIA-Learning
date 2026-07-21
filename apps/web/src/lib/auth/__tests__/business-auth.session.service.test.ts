@@ -15,7 +15,7 @@ function createQueryBuilder(result: { data: unknown; error: { message: string } 
     select: vi.fn(() => builder),
     eq: vi.fn(() => builder),
     gt: vi.fn(() => builder),
-    single: vi.fn(async () => result),
+    maybeSingle: vi.fn(async () => result),
   }
 
   return builder
@@ -97,7 +97,7 @@ describe('resolveAuthenticatedUserId', () => {
     })
 
     expect(result).toEqual({ ok: true, value: 'user-refresh' })
-    expect(userSession.single).not.toHaveBeenCalled()
+    expect(userSession.maybeSingle).not.toHaveBeenCalled()
   })
 
   it('uses the native Supabase Auth session before legacy session fallbacks', async () => {
@@ -128,15 +128,15 @@ describe('resolveAuthenticatedUserId', () => {
     })
 
     expect(result).toEqual({ ok: true, value: 'native-user' })
-    expect(refreshTokens.single).not.toHaveBeenCalled()
-    expect(userSession.single).not.toHaveBeenCalled()
+    expect(refreshTokens.maybeSingle).not.toHaveBeenCalled()
+    expect(userSession.maybeSingle).not.toHaveBeenCalled()
   })
 
   it('falls back to the legacy session and rejects expired sessions', async () => {
-    const { client } = createSupabaseStub({
+    const { client, refreshTokens } = createSupabaseStub({
       refreshTokens: {
         data: null,
-        error: { message: 'not found' },
+        error: null,
       },
       userSession: {
         data: {
@@ -166,5 +166,6 @@ describe('resolveAuthenticatedUserId', () => {
       ok: false,
       error: { status: 401, message: 'Sesión expirada' },
     })
+    expect(refreshTokens.maybeSingle).toHaveBeenCalledOnce()
   })
 })

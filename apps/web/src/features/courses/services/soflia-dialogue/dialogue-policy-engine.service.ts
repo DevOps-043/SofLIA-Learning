@@ -4,6 +4,7 @@ import type {
   DialoguePolicyDecision,
   DialogueState,
 } from '../../types/dialogue-runtime'
+import { SOFLIA_DIALOGUE_APPROVAL_MINIMUM } from './dialogue-approval.constants'
 
 type DialoguePolicyInput = {
   accumulatedCriteriaMet: string[]
@@ -84,7 +85,9 @@ export function decideDialogueNextState(
   }
 
   // Complete when:
-  //   - Score reaches the approval threshold
+  //   - Score reaches the approval threshold (fijo en 60%, autoritativo — ver
+  //     SOFLIA_DIALOGUE_APPROVAL_MINIMUM; NO se usa config.policy.approvalMinimum para
+  //     que una config legacy/manipulada no pueda bajar la barra)
   //   - All required criteria are met (union of accumulated + current turn)
   //   - The evaluator hasn't flagged this as low-evidence, a failure, or a security issue
   // Note: we intentionally do NOT require evaluation.decision === 'complete' because the
@@ -92,7 +95,7 @@ export function decideDialogueNextState(
   // answers across multiple turns would never produce a single 'complete' decision even though
   // all criteria are covered.
   if (
-    evaluation.overallScore >= policy.approvalMinimum &&
+    evaluation.overallScore >= SOFLIA_DIALOGUE_APPROVAL_MINIMUM &&
     requiredCriteriaMet &&
     evaluation.decision !== 'low_evidence' &&
     evaluation.decision !== 'fail_or_retry' &&

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import type {
   ActivityChecklistItem,
   ActivityField,
@@ -17,7 +17,7 @@ export function useActivityEditorState() {
   const [error, setError] = useState<string | null>(null)
   const [aiPrompts, setAiPrompts] = useState<string[]>([''])
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([])
-  const [interactionType, setInteractionType] =
+  const [interactionType, setInteractionTypeState] =
     useState<ActivityInteractionType>('long_text')
   const [responsePlaceholder, setResponsePlaceholder] = useState('')
   const [evidencePlaceholder, setEvidencePlaceholder] = useState('')
@@ -34,6 +34,18 @@ export function useActivityEditorState() {
   const [validationEnabled, setValidationEnabled] = useState(false)
   const [requiredForCompletion, setRequiredForCompletion] = useState(false)
   const [rubricText, setRubricText] = useState('')
+
+  // Al elegir SofLIA Dialogue, marcar la actividad como requerida por defecto: estas
+  // actividades gatean el avance (evaluación >= 60%). El admin puede desmarcarlo, pero
+  // el runtime igualmente las trata como requeridas por diseño.
+  const setInteractionType = useCallback((next: ActivityInteractionType) => {
+    setInteractionTypeState(next)
+    if (next === 'soflia_dialogue') {
+      setForm((current) =>
+        current.is_required ? current : { ...current, is_required: true },
+      )
+    }
+  }, [])
 
   return {
     activeTab,

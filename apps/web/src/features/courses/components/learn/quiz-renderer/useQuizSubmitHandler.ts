@@ -3,11 +3,14 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import {
   buildQuizFeedbackPrompt,
-  calculateQuizResults,
   type QuizQuestion,
   type SelectedQuizAnswers,
 } from "@/features/courses/components/learn/quiz.utils";
 import { submitQuizResults } from "./quiz-submit.service";
+import type {
+  QuizAnswerKeyMap,
+  QuizAttemptState,
+} from "./quiz-renderer.types";
 
 interface UseQuizSubmitHandlerParams {
   activityId?: string;
@@ -18,10 +21,12 @@ interface UseQuizSubmitHandlerParams {
     prompt: string,
     source?: { activityId?: string | null; materialId?: string | null },
   ) => void;
-  onQuizSubmitted?: () => void;
+  onQuizSubmitted?: () => void | Promise<void>;
   onTriggerLiaFeedback?: (prompt: string) => void;
   organizationId?: string | null;
   selectedAnswers: SelectedQuizAnswers;
+  setAnswerKey: (answerKey: QuizAnswerKeyMap) => void;
+  setAttemptState: (state: QuizAttemptState) => void;
   setIsSubmitting: (value: boolean) => void;
   setPointsEarned: (value: number) => void;
   setScore: (value: number) => void;
@@ -29,7 +34,21 @@ interface UseQuizSubmitHandlerParams {
   setShowResults: (value: boolean) => void;
   setSubmitError: (error: string | null) => void;
   slug?: string;
-  totalPoints?: number;
+}
+
+function mergeAnswerKey(
+  questions: QuizQuestion[],
+  answerKey: QuizAnswerKeyMap,
+): QuizQuestion[] {
+  return questions.map((question) => {
+    const entry = answerKey[question.id];
+    if (!entry) return question;
+    return {
+      ...question,
+      correctAnswer: entry.correctAnswer,
+      explanation: entry.explanation ?? question.explanation,
+    };
+  });
 }
 
 export function useQuizSubmitHandler({
@@ -42,6 +61,8 @@ export function useQuizSubmitHandler({
   onTriggerLiaFeedback,
   organizationId,
   selectedAnswers,
+  setAnswerKey,
+  setAttemptState,
   setIsSubmitting,
   setPointsEarned,
   setScore,
@@ -49,13 +70,16 @@ export function useQuizSubmitHandler({
   setShowResults,
   setSubmitError,
   slug,
-  totalPoints,
 }: UseQuizSubmitHandlerParams) {
   return async (durationSeconds?: number) => {
-    const unansweredQuestions = normalizedQuizData.filter(question => selectedAnswers[question.id] === undefined);
+    const unansweredQuestions = normalizedQuizData.filter(
+      (question) => selectedAnswers[question.id] === undefined,
+    );
 
     if (unansweredQuestions.length > 0) {
-      setSubmitError(`Por favor responde todas las preguntas (${unansweredQuestions.length} sin responder)`);
+      setSubmitError(
+        `Por favor responde todas las preguntas (${unansweredQuestions.length} sin responder)`,
+      );
       return;
     }
 
@@ -63,30 +87,65 @@ export function useQuizSubmitHandler({
     setIsSubmitting(true);
 
     try {
-      const results = calculateQuizResults(normalizedQuizData, selectedAnswers);
-      if (lessonId && slug) {
-        await submitQuizResults({
-          activityId,
-          lessonId,
-          materialId,
-          normalizedQuizData,
-          organizationId,
-          onQuizSubmitted,
-          selectedAnswers,
-          setServerMessage,
-          setSubmitError,
-          slug,
-          totalPoints,
-          durationSeconds,
-        });
+      if (!lessonId || !slug) {
+        return;
       }
 
-      setScore(results.correctCount);
-      setPointsEarned(results.pointsEarned);
+      const outcome = await submitQuizResults({
+        activityId,
+        lessonId,
+        materialId,
+        organizationId,
+        selectedAnswers,
+        slug,
+        durationSeconds,
+      });
+
+      if (outcome.status === "locked") {
+        setAttemptState({
+          attemptsRemaining: 0,
+          maxAttempts: null,
+          isLocked: true,
+          retryAfter: outcome.retryAfter,
+        });
+        setServerMessage(outcome.message);
+        setSubmitError(outcome.message);
+        return;
+      }
+
+      if (outcome.status === "error") {
+        setSubmitError(outcome.message ?? "Error al guardar las respuestas");
+        return;
+      }
+
+      const { result } = outcome;
+      const answerKey: QuizAnswerKeyMap = Object.fromEntries(
+        result.perQuestion.map((perQuestion) => [
+          perQuestion.questionId,
+          {
+            correctAnswer: perQuestion.correctAnswer,
+            explanation: perQuestion.explanation,
+          },
+        ]),
+      );
+
+      setAnswerKey(answerKey);
+      setScore(result.score);
+      setPointsEarned(result.pointsEarned);
+      setServerMessage(outcome.message);
+      setAttemptState({
+        attemptsRemaining: result.attemptsRemaining,
+        maxAttempts: result.maxAttempts,
+        isLocked: false,
+        retryAfter: null,
+      });
       setShowResults(true);
 
-      if (results.correctCount < normalizedQuizData.length) {
-        const prompt = buildQuizFeedbackPrompt(normalizedQuizData, selectedAnswers);
+      await onQuizSubmitted?.();
+
+      if (result.score < normalizedQuizData.length) {
+        const merged = mergeAnswerKey(normalizedQuizData, answerKey);
+        const prompt = buildQuizFeedbackPrompt(merged, selectedAnswers);
         if (prompt) {
           if (onRequestQuizFeedback) {
             onRequestQuizFeedback(prompt, { activityId, materialId });

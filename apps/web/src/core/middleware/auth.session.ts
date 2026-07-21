@@ -49,7 +49,7 @@ async function resolveLegacySessionUserId(params: {
     .from('user_session')
     .select('user_id, expires_at, revoked')
     .eq('jwt_id', sessionCookie)
-    .single();
+    .maybeSingle();
 
   if (sessionData && !sessionData.revoked && new Date(sessionData.expires_at) > new Date()) {
     return { userId: sessionData.user_id };
@@ -91,7 +91,7 @@ async function resolveRefreshTokenUserId(
     .eq('token_hash', tokenHash)
     .eq('is_revoked', false)
     .gt('expires_at', new Date().toISOString())
-    .single();
+    .maybeSingle();
 
   return tokenData?.user_id || null;
 }

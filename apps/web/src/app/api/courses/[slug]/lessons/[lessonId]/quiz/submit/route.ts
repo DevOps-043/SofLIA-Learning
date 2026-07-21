@@ -5,6 +5,14 @@ import { quizSubmitSchema, type QuizSubmitBody } from '@/app/api/courses/_schema
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
 import { enqueueLessonAutoNoteJob } from '@/features/notebook/services/notebook-generation.server.service'
 import { recordQuizAttempt } from '@/features/courses/services/quiz/record-quiz-attempt.service'
+import {
+  gradeQuiz,
+  resolveGradableQuizQuestions,
+} from '@/features/courses/services/quiz/grade-quiz.service'
+import {
+  resolveQuizAttempt,
+  MAX_QUIZ_ATTEMPTS,
+} from '@/features/courses/services/quiz/quiz-attempt-limit.service'
 import { fetchRequiredLessonQuizStatus } from '@/features/courses/services/quiz/required-quiz-status.service'
 import { SessionService } from '@/features/auth/services/session.service'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -18,101 +26,38 @@ interface ExistingQuizSubmissionRow {
   submission_id: string
 }
 
-interface QuizQuestionRow {
-  correctAnswer?: string | number
-  id?: string
-  options?: string[]
-  points?: number
-  question_id?: string
-  questionType?: string
-}
+/**
+ * Carga el contenido crudo del quiz (con la clave de respuestas) desde la BD.
+ * SEGURIDAD: esta es la ÚNICA fuente de verdad para calificar; el body del cliente
+ * nunca contiene la clave.
+ */
+async function loadQuizAnswerKeyContent(
+  supabase: ReturnType<typeof createAdminClient>,
+  input: { lessonId: string; materialId: string | null; activityId: string | null },
+): Promise<unknown> {
+  if (input.materialId) {
+    const { data } = await supabase
+      .from('lesson_materials')
+      .select('content_data')
+      .eq('material_id', input.materialId)
+      .eq('lesson_id', input.lessonId)
+      .maybeSingle()
 
-function normalizeOption(text: string): string {
-  return text
-    .trim()
-    .replace(/\s+/g, ' ')
-    .toLowerCase()
-}
-
-function normalizeTrueFalse(value: string): string {
-  const normalized = normalizeOption(value)
-
-  if (normalized === 'true' || normalized === 'verdadero') {
-    return 'verdadero'
+    return (data as { content_data?: unknown } | null)?.content_data ?? null
   }
 
-  if (normalized === 'false' || normalized === 'falso') {
-    return 'falso'
+  if (input.activityId) {
+    const { data } = await supabase
+      .from('lesson_activities')
+      .select('activity_content')
+      .eq('activity_id', input.activityId)
+      .eq('lesson_id', input.lessonId)
+      .maybeSingle()
+
+    return (data as { activity_content?: unknown } | null)?.activity_content ?? null
   }
 
-  return normalized
-}
-
-function isAnswerCorrect(
-  question: QuizQuestionRow,
-  selectedAnswer: string | number,
-): boolean {
-  const correctAnswer = question.correctAnswer
-  const options = question.options || []
-
-  if (question.questionType === 'true_false') {
-    if (typeof selectedAnswer === 'number') {
-      const selectedOption = options[selectedAnswer]
-
-      if (typeof correctAnswer === 'string') {
-        return (
-          normalizeTrueFalse(selectedOption) === normalizeTrueFalse(correctAnswer)
-        )
-      }
-
-      if (typeof correctAnswer === 'number') {
-        return selectedAnswer === correctAnswer
-      }
-    }
-
-    if (typeof selectedAnswer === 'string') {
-      if (typeof correctAnswer === 'string') {
-        return (
-          normalizeTrueFalse(selectedAnswer) === normalizeTrueFalse(correctAnswer)
-        )
-      }
-
-      if (typeof correctAnswer === 'number') {
-        return (
-          normalizeTrueFalse(selectedAnswer) ===
-          normalizeTrueFalse(options[correctAnswer])
-        )
-      }
-    }
-
-    return false
-  }
-
-  if (typeof selectedAnswer === 'number') {
-    if (typeof correctAnswer === 'number') {
-      return selectedAnswer === correctAnswer
-    }
-
-    if (typeof correctAnswer === 'string') {
-      const selectedOption = options[selectedAnswer]
-      return normalizeOption(selectedOption) === normalizeOption(correctAnswer)
-    }
-  }
-
-  if (typeof selectedAnswer === 'string') {
-    if (typeof correctAnswer === 'string') {
-      return normalizeOption(selectedAnswer) === normalizeOption(correctAnswer)
-    }
-
-    if (typeof correctAnswer === 'number') {
-      return (
-        normalizeOption(selectedAnswer) ===
-        normalizeOption(options[correctAnswer])
-      )
-    }
-  }
-
-  return false
+  return null
 }
 
 async function handlePost(
@@ -169,73 +114,42 @@ async function handlePost(
 
     const enrollmentId = enrollment.enrollment_id
     const resolvedOrganizationId = enrollment.organization_id || organizationId
-    const {
-      answers,
-      quizData,
-      materialId,
-      activityId,
-      totalPoints,
-      durationSeconds,
-    } = body
+    const { answers, materialId, activityId, durationSeconds } = body
+    const normalizedMaterialId = materialId || null
+    const normalizedActivityId = activityId || null
 
-    const questions = Array.isArray(quizData)
-      ? quizData
-      : Array.isArray(quizData.questions)
-        ? quizData.questions
-        : []
-    const totalQuestions = questions.length
+    // --- Calificación autoritativa en el servidor (clave desde BD) ---
+    // Se lee con el cliente service-role (writeClient): el usuario ya está autenticado
+    // y autorizado (enrollment), y así el grader siempre obtiene la clave sin depender
+    // de la RLS de las tablas de contenido.
+    const storedQuizContent = await loadQuizAnswerKeyContent(writeClient, {
+      lessonId,
+      materialId: normalizedMaterialId,
+      activityId: normalizedActivityId,
+    })
+    const gradableQuestions = resolveGradableQuizQuestions(storedQuizContent)
 
-    let correctAnswers = 0
-    let pointsEarned = 0
-
-    for (const question of questions) {
-      const questionId = question.id || question.question_id
-
-      if (!questionId) {
-        continue
-      }
-
-      const selectedAnswer = answers[questionId]
-
-      if (
-        selectedAnswer !== undefined &&
-        isAnswerCorrect(question, selectedAnswer)
-      ) {
-        correctAnswers += 1
-        pointsEarned += question.points || 1
-      }
+    if (gradableQuestions.length === 0) {
+      return apiError(
+        'QUIZ_CONTENT_NOT_FOUND',
+        'No se encontro el contenido del quiz para calificar.',
+        404,
+      )
     }
 
-    const percentageScore =
-      totalQuestions > 0
-        ? Math.round((correctAnswers / totalQuestions) * 100 * 100) / 100
-        : 0
-    const isPassed = percentageScore >= 80
-    const calculatedTotalPoints =
-      totalPoints ||
-      questions.reduce(
-        (sum: number, question: QuizQuestionRow) => sum + (question.points || 1),
-        0,
-      )
-    const now = new Date().toISOString()
-
-    // Look up an existing submission by (user, lesson, material/activity).
-    // enrollment_id is deliberately excluded: after the B2B enrollment-scope
-    // migrations (20260611) enrollment IDs may have changed, so filtering on
-    // it here causes a false "not found" → INSERT → unique-constraint failure.
-    // We self-heal the stale enrollment_id in the UPDATE path below.
+    // Estado previo (para "ya aprobado" y para decidir persistencia del mejor puntaje).
     let existingSubmissionQuery = writeClient
       .from('user_quiz_submissions')
       .select('submission_id, percentage_score, is_passed')
       .eq('user_id', currentUser.id)
       .eq('lesson_id', lessonId)
 
-    if (materialId) {
-      existingSubmissionQuery = existingSubmissionQuery.eq('material_id', materialId)
+    if (normalizedMaterialId) {
+      existingSubmissionQuery = existingSubmissionQuery.eq('material_id', normalizedMaterialId)
     }
 
-    if (activityId) {
-      existingSubmissionQuery = existingSubmissionQuery.eq('activity_id', activityId)
+    if (normalizedActivityId) {
+      existingSubmissionQuery = existingSubmissionQuery.eq('activity_id', normalizedActivityId)
     }
 
     const { data: existingSubmission } = await existingSubmissionQuery
@@ -245,6 +159,48 @@ async function handlePost(
 
     const previousScore = existingSubmission?.percentage_score || 0
     const previousPassed = existingSubmission?.is_passed || false
+
+    // --- Límite de intentos + cooldown (no aplica si ya aprobó) ---
+    const attemptDecision = await resolveQuizAttempt(writeClient, {
+      userId: currentUser.id,
+      lessonId,
+      enrollmentId,
+      materialId: normalizedMaterialId,
+      activityId: normalizedActivityId,
+      alreadyPassed: previousPassed,
+    })
+
+    if (attemptDecision.kind === 'limit_reached') {
+      const retryAfterSeconds = Math.max(
+        0,
+        Math.ceil(
+          (new Date(attemptDecision.retryAfter).getTime() - Date.now()) / 1000,
+        ),
+      )
+
+      return apiError(
+        'QUIZ_ATTEMPT_LIMIT_REACHED',
+        `Alcanzaste el maximo de ${MAX_QUIZ_ATTEMPTS} intentos. Podras volver a intentarlo mas tarde.`,
+        429,
+        {
+          details: { retryAfter: attemptDecision.retryAfter },
+          headers: { 'Retry-After': String(retryAfterSeconds) },
+        },
+      )
+    }
+
+    const graded = gradeQuiz(gradableQuestions, answers)
+    const {
+      correctAnswers,
+      pointsEarned,
+      totalQuestions,
+      totalPoints: calculatedTotalPoints,
+      percentageScore,
+      isPassed,
+      perQuestion,
+    } = graded
+    const now = new Date().toISOString()
+
     const shouldPersistAttempt =
       !existingSubmission || isPassed || !previousPassed
     const didImproveBestScore = percentageScore > previousScore
@@ -295,8 +251,8 @@ async function handlePost(
           user_id: currentUser.id,
           lesson_id: lessonId,
           enrollment_id: enrollmentId,
-          material_id: materialId || null,
-          activity_id: activityId || null,
+          material_id: normalizedMaterialId,
+          activity_id: normalizedActivityId,
           organization_id: resolvedOrganizationId,
           user_answers: answers,
           score: correctAnswers,
@@ -322,22 +278,25 @@ async function handlePost(
       submissionResult = data
     }
 
-    // Historial append-only: registra ESTE intento (cada envío). Best-effort, no
-    // bloquea el flujo principal (fire-and-forget: COUNT + INSERT ~2 RTTs ahorradas).
-    void recordQuizAttempt(writeClient, {
-      userId: currentUser.id,
-      lessonId,
-      enrollmentId,
-      materialId: materialId || null,
-      activityId: activityId || null,
-      organizationId: resolvedOrganizationId,
-      score: correctAnswers,
-      totalPoints: calculatedTotalPoints,
-      percentageScore,
-      isPassed,
-      durationSeconds: durationSeconds ?? null,
-      completedAt: now,
-    })
+    // Historial append-only: registra ESTE intento (cada envío). Se ESPERA (await)
+    // porque el conteo de intentos del cooldown depende de que la fila exista antes
+    // del siguiente envío. Si ya estaba aprobado, no consume/registra intento nuevo.
+    if (attemptDecision.kind !== 'already_passed') {
+      await recordQuizAttempt(writeClient, {
+        userId: currentUser.id,
+        lessonId,
+        enrollmentId,
+        materialId: normalizedMaterialId,
+        activityId: normalizedActivityId,
+        organizationId: resolvedOrganizationId,
+        score: correctAnswers,
+        totalPoints: calculatedTotalPoints,
+        percentageScore,
+        isPassed,
+        durationSeconds: durationSeconds ?? null,
+        completedAt: now,
+      })
+    }
 
     const quizStatus = await fetchRequiredLessonQuizStatus(supabase, {
       enrollmentId,
@@ -438,6 +397,11 @@ async function handlePost(
       }
     }
 
+    const attemptsRemaining =
+      attemptDecision.kind === 'can_attempt'
+        ? Math.max(0, attemptDecision.attemptsRemaining - (isPassed ? 0 : 1))
+        : null
+
     let message = ''
     if (!shouldPersistAttempt && existingSubmission) {
       message = `Ya habias aprobado este quiz con ${previousScore}%. Este intento no reemplazo tu intento aprobado.`
@@ -468,6 +432,9 @@ async function handlePost(
         isPassed,
         submission: submissionResult,
         bestScore,
+        perQuestion,
+        attemptsRemaining,
+        maxAttempts: MAX_QUIZ_ATTEMPTS,
       },
     })
   } catch (error) {

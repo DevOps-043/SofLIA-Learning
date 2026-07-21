@@ -70,18 +70,14 @@ export class SofLIAPersonalizationService {
     const { data, error } = await personalizationSettingsTable(adminSupabase)
       .select(SELECT_COLUMNS.lia_personalization_settings)
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      // Si no existe registro, retornar null (no es un error)
-      if (error.code === 'PGRST116') {
-        return null;
-      }
       techDebtLogger.error('Error obteniendo configuración de personalización:', error);
       throw new Error(`Error al obtener configuración: ${error.message}`);
     }
 
-    return data as SofLIAPersonalizationSettings;
+    return data ? data as SofLIAPersonalizationSettings : null;
   }
 
   /**

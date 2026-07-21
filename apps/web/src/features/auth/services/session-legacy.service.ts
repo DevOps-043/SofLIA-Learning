@@ -74,7 +74,7 @@ export async function findActiveLegacySession(
     .eq('jwt_id', sessionToken)
     .eq('revoked', false)
     .gt('expires_at', new Date().toISOString())
-    .single();
+    .maybeSingle();
 
   if (error) {
     logger.warn('⚠️ Error buscando sesión legacy:', {
@@ -147,7 +147,7 @@ export async function revokeLegacySession(
     .from('user_session')
     .select('user_id')
     .eq('jwt_id', sessionToken)
-    .single();
+    .maybeSingle();
 
   await supabase
     .from('user_session')

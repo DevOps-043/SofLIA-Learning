@@ -169,11 +169,17 @@ export function estimateTotalLessons(data: BusinessUserAnalyticsResponse): numbe
   const courses = data.learning.courses
   if (courses.length === 0) return 0
 
+  // Total REAL de lecciones publicadas sumando TODOS los cursos (incluidos los de 0%
+  // de progreso). Antes se estimaba dividiendo lessonsCompleted/progreso, lo que dejaba
+  // fuera del total los cursos sin progreso. Se conserva la estimación como respaldo
+  // solo si un curso no trae `lessonsTotal`.
   let total = 0
   for (const c of courses) {
-    if (c.progress > 0 && c.lessonsCompleted > 0) {
+    if (c.lessonsTotal > 0) {
+      total += c.lessonsTotal
+    } else if (c.progress > 0 && c.lessonsCompleted > 0) {
       total += Math.round(c.lessonsCompleted / (c.progress / 100))
-    } else if (c.progress === 100) {
+    } else {
       total += c.lessonsCompleted
     }
   }

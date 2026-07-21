@@ -1,4 +1,9 @@
-import { resolveActivityConfigFromRecord } from '../activity-content-compatibility.service'
+import { logger } from '@/lib/utils/logger'
+
+import {
+  isInteractiveLessonActivity,
+  resolveActivityConfigFromRecord,
+} from '../activity-content-compatibility.service'
 
 import { buildActivitySubmissionSummaryMap } from './summary-map'
 import type {
@@ -37,14 +42,56 @@ export async function computeLessonActivityProgress(
     .eq('lesson_id', context.lessonId)
     .order('activity_order_index', { ascending: true })
 
-  const interactiveActivities = ((activities || []) as ActivityLikeRecord[]).filter(
-    (activity) => Boolean(resolveActivityConfigFromRecord(activity)),
-  )
-  const requiredActivities = interactiveActivities.filter((activity) =>
-    Boolean(activity.is_required),
-  )
+  const activityRecords = (activities || []) as ActivityLikeRecord[]
+  const resolvedActivities = activityRecords.map((activity) => ({
+    activity,
+    config: resolveActivityConfigFromRecord(activity),
+  }))
 
-  if (interactiveActivities.length === 0) {
+  const interactiveActivities = resolvedActivities
+    .filter((entry) => Boolean(entry.config))
+    .map((entry) => entry.activity)
+  // Las actividades SofLIA Dialogue gatean el avance POR DISEÑO: completarlas exige
+  // una evaluación >= 60% del modelo (ver SOFLIA_DIALOGUE_APPROVAL_MINIMUM). Se tratan
+  // como requeridas aunque `is_required` sea false, para que "solo iniciarlas" no
+  // permita continuar a la siguiente lección.
+  const requiredActivities = resolvedActivities
+    .filter(
+      (entry) =>
+        Boolean(entry.config) &&
+        (Boolean(entry.activity.is_required) ||
+          entry.config?.interactionType === 'soflia_dialogue'),
+    )
+    .map((entry) => entry.activity)
+
+  // FAIL-CLOSED: una actividad interactiva REQUERIDA (p.ej. SofLIA Dialogue) cuya
+  // config NO se puede resolver no debe excluirse silenciosamente del gate — eso
+  // permitiría avanzar sin completarla. La contamos como requerida-no-completada y
+  // lo registramos. Lectura/reflexión/quiz/ai_chat no son interactivas por diseño y
+  // se gatean por otras rutas (o no aplican), por lo que quedan fuera de esta regla.
+  const unresolvedRequiredGatedActivities = resolvedActivities
+    .filter(
+      (entry) =>
+        !entry.config &&
+        Boolean(entry.activity.is_required) &&
+        isInteractiveLessonActivity(entry.activity.activity_type),
+    )
+    .map((entry) => entry.activity)
+
+  for (const activity of unresolvedRequiredGatedActivities) {
+    logger.error(
+      'computeLessonActivityProgress: actividad interactiva requerida con config no resoluble; se bloquea el avance (fail-closed)',
+      {
+        activityId: activity.activity_id,
+        activityType: activity.activity_type,
+        lessonId: context.lessonId,
+      },
+    )
+  }
+
+  const blockedRequiredCount = unresolvedRequiredGatedActivities.length
+
+  if (interactiveActivities.length === 0 && blockedRequiredCount === 0) {
     return {
       activityProgressPercentage: 100,
       lastActivitySubmissionAt: null,
@@ -69,7 +116,8 @@ export async function computeLessonActivityProgress(
     .eq('lesson_id', context.lessonId)
     .eq('enrollment_id', context.enrollmentId)
 
-  const requiredActivitiesTotal = requiredActivities.length
+  // Las bloqueadas suman al total pero nunca a las completadas (nunca fail-open).
+  const requiredActivitiesTotal = requiredActivities.length + blockedRequiredCount
   const activityProgressPercentage =
     requiredActivitiesTotal === 0
       ? 100

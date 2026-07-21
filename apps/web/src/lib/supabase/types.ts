@@ -10549,6 +10549,14 @@ export type Database = {
           total_notes: number
         }[]
       }
+      get_unread_notification_counts: {
+        Args: { p_user_id: string }
+        Returns: {
+          critical: number
+          high: number
+          total: number
+        }[]
+      }
       get_unread_notifications_count: {
         Args: { p_user_id: string }
         Returns: {

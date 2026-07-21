@@ -1,5 +1,5 @@
 import type { BusinessUserAnalyticsPeriod } from '../../../types/business-user-analytics.types'
-import { buildBreakdown, calculateAverage, calculatePercentage, clampPercentage, incrementMap } from '../../reports-analytics/reports-analytics.helpers'
+import { buildBreakdown, calculateAverage, calculatePercentage, calculateQualityScore, clampPercentage, incrementMap } from '../../reports-analytics/reports-analytics.helpers'
 import { buildDerivedResponseTimes } from './build-derived-response-times'
 import { buildTrend } from './build-trend'
 import { hasQuestionSignal } from './has-question-signal'
@@ -49,9 +49,20 @@ export function buildAiAdoption(data: QueryData, period: BusinessUserAnalyticsPe
   // porque las señales finas (preguntas, off-topic, sentimiento) solo existen en
   // `lia_messages`. Sin esas señales, la fórmula cae a su línea base neutral en
   // lugar de un 0 engañoso.
-  const questionQualityScore = totalUserMessages > 0
+  const baseQuestionQuality = totalUserMessages > 0
     ? clampPercentage(60 + questionRate * 0.25 - offTopicRate * 0.45 - redirectRate * 0.2 + sentimentScore * 0.25)
     : 0
+  // CALIDAD SofLIA: además de la calidad de las preguntas, se penaliza NO COMPLETAR los
+  // diálogos guiados. Abandonar la mayoría de los diálogos (abrir sin terminar) debe
+  // bajar el score, en línea con la auditoría forense. Si no hay diálogos guiados, se
+  // usa solo la calidad de preguntas.
+  const totalDialogues = data.dialogueSessions.length
+  const completedDialogues = data.dialogueResults.filter(
+    (result) => result.activity_result === 'completed',
+  ).length
+  const questionQualityScore = totalDialogues > 0
+    ? calculateQualityScore([baseQuestionQuality, calculatePercentage(completedDialogues, totalDialogues)])
+    : baseQuestionQuality
   const contextCounts = new Map<string, number>()
   data.liaConversations.forEach((conversation) => incrementMap(contextCounts, conversation.context_type || 'general'))
 

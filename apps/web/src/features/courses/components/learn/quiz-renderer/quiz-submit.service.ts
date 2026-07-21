@@ -1,53 +1,62 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import type { SubmitQuizResultsParams } from "./quiz-renderer.types";
+import type {
+  QuizServerResult,
+  QuizSubmitOutcome,
+  SubmitQuizResultsParams,
+} from "./quiz-renderer.types";
 
+interface QuizSubmitResponseBody {
+  error?: string;
+  message?: string;
+  details?: { retryAfter?: string } | null;
+  result?: QuizServerResult;
+}
+
+/**
+ * Envía las respuestas del alumno al endpoint de calificación autoritativa.
+ * El body ya NO incluye la clave de respuestas (`quizData`); el servidor califica
+ * contra el contenido almacenado en BD y devuelve el resultado por pregunta.
+ */
 export async function submitQuizResults({
   activityId,
   lessonId,
   materialId,
-  normalizedQuizData,
   organizationId,
-  onQuizSubmitted,
   selectedAnswers,
-  setServerMessage,
-  setSubmitError,
   slug,
-  totalPoints,
   durationSeconds,
-}: SubmitQuizResultsParams): Promise<void> {
+}: SubmitQuizResultsParams): Promise<QuizSubmitOutcome> {
   try {
     const response = await fetch(`/api/courses/${slug}/lessons/${lessonId}/quiz/submit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         answers: selectedAnswers,
-        quizData: normalizedQuizData,
         materialId: materialId || null,
         activityId: activityId || null,
         organizationId,
-        totalPoints,
         durationSeconds,
       }),
     });
 
-    const result = (await response.json()) as {
-      error?: string;
-      message?: string;
-    };
+    const body = (await response.json()) as QuizSubmitResponseBody;
 
-    if (!response.ok) {
-      techDebtLogger.error("Error guardando quiz:", result.error);
-      setSubmitError(result.error || "Error al guardar las respuestas");
-      return;
+    if (response.status === 429) {
+      return {
+        status: "locked",
+        message: body.message ?? null,
+        retryAfter: body.details?.retryAfter ?? null,
+      };
     }
 
-    if (result.message) {
-      setServerMessage(result.message);
+    if (!response.ok || !body.result) {
+      techDebtLogger.error("Error guardando quiz:", body.error);
+      return { status: "error", message: body.message ?? body.error ?? null };
     }
 
-    await onQuizSubmitted?.();
+    return { status: "ok", message: body.message ?? null, result: body.result };
   } catch (error) {
     techDebtLogger.error("Error al enviar quiz:", error);
-    setSubmitError("Error al guardar las respuestas");
+    return { status: "error", message: null };
   }
 }

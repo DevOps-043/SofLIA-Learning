@@ -75,7 +75,7 @@ async function getAuthenticatedUserId(): Promise<string | null> {
       .eq('jwt_id', sessionCookie.value)
       .eq('revoked', false)
       .gt('expires_at', new Date().toISOString())
-      .single()
+      .maybeSingle()
     if (session?.user_id) return session.user_id
   }
 
@@ -94,7 +94,7 @@ async function getAuthenticatedUserId(): Promise<string | null> {
       .eq('token_hash', tokenHash)
       .eq('is_revoked', false)
       .gt('expires_at', new Date().toISOString())
-      .single()
+      .maybeSingle()
     if (tokenData?.user_id) return tokenData.user_id
   }
 

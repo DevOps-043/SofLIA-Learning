@@ -12,10 +12,21 @@ export function buildNotes(data: QueryData, period: BusinessUserAnalyticsPeriod,
   data.lessonNotes.forEach((note) => incrementMap(sourceCounts, note.source_type || 'manual'))
   const averageLength = calculateAverage(data.lessonNotes.map((note) => note.note_content?.length || 0))
   const contentCompleteness = calculatePercentage(data.lessonNotes.filter((note) => Boolean(note.note_content?.trim())).length, data.lessonNotes.length)
+
+  // CALIDAD de notas: SOLO las escritas por el alumno (no las auto-generadas por IA,
+  // que son largas y de alta calidad y falseaban el score a ~100). Un usuario que no
+  // toma notas propias no debe puntuar alto en esta dimensión.
+  const userNotes = data.lessonNotes.filter((note) => !note.is_auto_generated)
+  const lessonsWithUserNotes = new Set(userNotes.map((note) => note.lesson_id)).size
+  const userContentCompleteness = calculatePercentage(
+    userNotes.filter((note) => Boolean(note.note_content?.trim())).length,
+    userNotes.length,
+  )
+  const userAverageLength = calculateAverage(userNotes.map((note) => note.note_content?.length || 0))
   const notesScore = calculateQualityScore([
-    calculatePercentage(lessonsWithNotes, Math.max(lessonsCompleted, lessonsWithNotes)),
-    contentCompleteness,
-    clampPercentage(averageLength / 4),
+    calculatePercentage(lessonsWithUserNotes, Math.max(lessonsCompleted, lessonsWithUserNotes)),
+    userContentCompleteness,
+    clampPercentage(userAverageLength / 4),
   ])
 
   return {

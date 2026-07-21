@@ -11,12 +11,16 @@ interface AccountInfoSectionProps {
 
 function formatDate(value: string | null | undefined, locale: string): string {
   if (!value) return '—'
+  // Se etiqueta la zona horaria (timeZoneName) para no dar la impresión de que la
+  // hora local es UTC: sin la etiqueta, cruzar contra la BD (UTC) inducía a pensar
+  // que la actividad ocurrió después de la última conexión.
   return new Date(value).toLocaleString(locale, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    timeZoneName: 'short',
   })
 }
 

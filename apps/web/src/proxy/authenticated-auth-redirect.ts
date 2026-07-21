@@ -35,6 +35,6 @@ async function getAuthenticatedUserId(request: NextRequest, supabase: ReturnType
 
   const sessionCookie = request.cookies.get('aprende-y-aplica-session')
   if (!sessionCookie?.value) return null
-  const { data: sessionData } = await supabase.from('user_session').select('user_id').eq('jwt_id', sessionCookie.value).eq('revoked', false).gt('expires_at', new Date().toISOString()).single()
+  const { data: sessionData } = await supabase.from('user_session').select('user_id').eq('jwt_id', sessionCookie.value).eq('revoked', false).gt('expires_at', new Date().toISOString()).maybeSingle()
   return sessionData?.user_id || null
 }

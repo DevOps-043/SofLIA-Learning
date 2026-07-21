@@ -1,5 +1,5 @@
 import type { BusinessUserAnalyticsPeriod } from '../../../types/business-user-analytics.types'
-import { calculateAverage, calculatePercentage, clampPercentage } from '../../reports-analytics/reports-analytics.helpers'
+import { calculateAverage, calculatePercentage, calculateQualityScore, clampPercentage } from '../../reports-analytics/reports-analytics.helpers'
 import { buildTrendWithValues } from './build-trend-with-values'
 import { normalizeQuizScore } from './normalize-quiz-score'
 import { QueryData } from './query-data'
@@ -37,6 +37,13 @@ export function buildQuizzes(data: QueryData, period: BusinessUserAnalyticsPerio
   const firstAttempts = data.quizAttempts.filter((attempt) => Number(attempt.attempt_number) === 1)
   const firstAttemptsPassed = firstAttempts.filter((attempt) => attempt.is_passed === true).length
 
+  const averageScore = calculateAverage(completedScores)
+  const firstTryPassRate = calculatePercentage(firstAttemptsPassed, firstAttempts.length)
+  // CALIDAD de quizzes: no basta el promedio (que es alto aunque se apruebe por fuerza
+  // bruta). Se mezcla con la tasa de acierto al PRIMER intento, de modo que muchos
+  // reintentos para aprobar bajan la calidad, en línea con la auditoría forense.
+  const qualityScore = calculateQualityScore([averageScore, firstTryPassRate])
+
   return {
     lessonsWithQuiz: data.quizLessonIds.length,
     quizzesTaken,
@@ -44,9 +51,10 @@ export function buildQuizzes(data: QueryData, period: BusinessUserAnalyticsPerio
     passRate: calculatePercentage(quizzesPassed, quizzesTaken),
     totalAttempts,
     retries,
-    firstTryPassRate: calculatePercentage(firstAttemptsPassed, firstAttempts.length),
+    firstTryPassRate,
     scoredCount: data.quizSubmissions.length,
-    averageScore: calculateAverage(completedScores),
+    averageScore,
+    qualityScore,
     bestScore: completedScores.length > 0 ? Math.max(...completedScores) : 0,
     latestScore: latestProgress ? clampPercentage(Number(latestProgress.quiz_progress_percentage)) : 0,
     trend: buildTrendWithValues(data.quizSubmissions, period, normalizeQuizScore),

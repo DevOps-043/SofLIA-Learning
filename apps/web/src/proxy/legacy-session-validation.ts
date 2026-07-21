@@ -28,7 +28,7 @@ export async function validateLegacySessionAndQuestionnaire(
       return { response: NextResponse.redirect(new URL('/auth', request.url)), shouldReturn: true }
     }
 
-    const { data: sessionData, error: sessionError } = await supabase.from('user_session').select('user_id').eq('jwt_id', sessionCookie.value).eq('revoked', false).gt('expires_at', new Date().toISOString()).single()
+    const { data: sessionData, error: sessionError } = await supabase.from('user_session').select('user_id').eq('jwt_id', sessionCookie.value).eq('revoked', false).gt('expires_at', new Date().toISOString()).maybeSingle()
     logger.log('???? Sesi??n en DB:', sessionData ? 'V??lida' : 'No v??lida')
     logger.log('??? Error de sesi??n:', sessionError?.message || 'Ninguno')
     if (sessionError || !sessionData) {

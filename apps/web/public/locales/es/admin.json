@@ -303,7 +303,145 @@
         "organizations": "Organizaciones",
         "courses": "Cursos",
         "learningPaths": "Rutas",
-        "stats": "Estadísticas"
+        "stats": "Estadísticas",
+        "audit": "Auditoría"
+      },
+      "audit": {
+        "title": "Auditoría forense",
+        "subtitle": "{{total}} eventos registrados de este usuario",
+        "export": "Exportar CSV",
+        "retry": "Reintentar",
+        "report": {
+          "generate": "Dictamen forense (PDF)",
+          "generating": "Generando dictamen…"
+        },
+        "truncated": "Algunos dominios alcanzaron el tope de filas; los datos podrían estar truncados.",
+        "flags": {
+          "title": "Señales de alerta",
+          "videosSpedUp": "Vio {{count}} video(s) acelerados (hasta {{rate}}x)",
+          "videosBarelyWatched": "{{count}} video(s) prácticamente sin ver",
+          "manyQuizAttempts": "Un quiz con {{count}} intentos (posible fuerza bruta)",
+          "dialoguesAbandoned": "{{count}} diálogo(s) con SofLIA abandonados sin completar",
+          "dialoguesSkipped": "Completó cursos pero solo hizo {{done}} de {{available}} diálogos SofLIA disponibles (posible salto de actividades)",
+          "concurrentSessions": "{{count}} acceso(s) concurrente(s) desde IPs distintas casi al mismo tiempo (posible cuenta compartida)",
+          "liaAbandoned": "{{count}} conversación(es) con LIA abandonadas"
+        },
+        "agg": {
+          "title": "Resumen por sección",
+          "access": {
+            "title": "Accesos y dispositivos",
+            "summary": "{{logins}} inicios de sesión desde {{ips}} IP(s) y {{devices}} dispositivo(s)."
+          },
+          "courses": {
+            "title": "Cursos",
+            "summary": "Inscrito en {{enrolled}} curso(s), completó {{completed}} y obtuvo {{certificates}} certificado(s)."
+          },
+          "lessons": {
+            "title": "Lecciones y videos",
+            "summary": "Inició {{started}} lección(es), completó {{completed}}; {{minutes}} min de video.",
+            "videos": "Videos: {{watched}} vistos completos, {{spedUp}} acelerados, {{barely}} casi sin ver."
+          },
+          "dialogues": {
+            "title": "Diálogos con SofLIA",
+            "summary": "{{total}} de {{available}} diálogos disponibles: {{completed}} completados, {{abandoned}} abandonados, promedio {{avg}}."
+          },
+          "quizzes": {
+            "title": "Quizzes",
+            "summary": "{{attempts}} intento(s) en {{quizzes}} quiz(zes), {{passed}} aprobados; máximo {{max}} intentos en uno."
+          },
+          "activities": {
+            "title": "Actividades",
+            "summary": "{{submitted}} enviada(s), {{validated}} validada(s)."
+          },
+          "notes": {
+            "title": "Notas",
+            "summary": "{{total}} nota(s): {{written}} escritas por el alumno, {{auto}} automáticas."
+          },
+          "lia": {
+            "title": "Asistente LIA",
+            "summary": "{{conversations}} conversación(es), {{messages}} mensajes, {{abandoned}} abandonadas."
+          }
+        },
+        "notes": {
+          "title": "Notas del alumno",
+          "empty": "Sin notas registradas.",
+          "untitled": "(sin título)",
+          "auto": "Automática",
+          "written": "Escrita"
+        },
+        "summary": {
+          "realLastActivity": "Última actividad real",
+          "firstActivity": "Primera actividad",
+          "lastLogin": "Último acceso (login)",
+          "storedLastActivity": "last_activity_at (throttle 15 min)",
+          "banned": "Suspendido el {{date}}",
+          "note": "Todas las marcas de tiempo se muestran en la zona seleccionada (UTC coincide con la base de datos). La \"última actividad real\" se deriva del último evento registrado, no del campo throttleado."
+        },
+        "sessions": {
+          "title": "Sesiones y accesos (IP / dispositivo)",
+          "empty": "Sin sesiones registradas.",
+          "detectedIps": "IPs detectadas:",
+          "noLoginRows": "Sin sesiones de login registradas (sesión nativa persistente), pero se detectaron IPs de actividad.",
+          "ip": "IP",
+          "device": "Dispositivo / navegador",
+          "createdAt": "Inicio de sesión",
+          "lastUsedAt": "Último uso",
+          "status": "Estado",
+          "revoked": "Revocada",
+          "active": "Activa"
+        },
+        "timeline": {
+          "title": "Línea de tiempo",
+          "all": "Todos ({{n}})",
+          "empty": "Sin eventos para este filtro."
+        },
+        "dialogue": {
+          "state": "Estado: {{state}}",
+          "attempt": "Intento {{n}}",
+          "turns": "Turnos: {{n}}",
+          "activeSeconds": "{{n}}s activos",
+          "soflia": "SofLIA",
+          "system": "Sistema",
+          "student": "Alumno",
+          "evaluations": "Evaluaciones",
+          "result": "Resultado",
+          "score": "Score {{n}}",
+          "error": "No se pudo cargar la transcripción."
+        },
+        "soflia": {
+          "title": "Interacciones con SofLIA",
+          "empty": "Sin diálogos con SofLIA.",
+          "session": "Diálogo con SofLIA"
+        },
+        "lia": {
+          "assistant": "LIA",
+          "student": "Alumno",
+          "system": "Sistema",
+          "offTopic": "fuera de tema",
+          "empty": "Sin mensajes en esta conversación.",
+          "error": "No se pudo cargar la conversación."
+        },
+        "eventTypes": {
+          "login": "Inicio de sesión",
+          "courseAssigned": "Curso asignado",
+          "learningPathAssigned": "Ruta asignada",
+          "courseEnrolled": "Inscripción",
+          "lessonStarted": "Lección iniciada",
+          "lessonCompleted": "Lección completada",
+          "videoWatched": "Video de lección",
+          "noteCreated": "Nota",
+          "liaConversation": "Conversación con LIA",
+          "dialogueStarted": "Diálogo SofLIA",
+          "dialogueEvaluation": "Evaluación de diálogo",
+          "dialogueResult": "Resultado de diálogo",
+          "dialogueEvent": "Evento de diálogo",
+          "quizAttempt": "Intento de quiz",
+          "activitySubmission": "Envío de actividad",
+          "liaMessage": "Mensaje LIA",
+          "certificateIssued": "Certificado emitido",
+          "lessonFeedback": "Feedback de lección",
+          "unknown": "Evento"
+        }
       },
       "profile": {
         "saved": "Perfil actualizado correctamente"

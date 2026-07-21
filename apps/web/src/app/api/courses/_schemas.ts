@@ -158,19 +158,10 @@ const quizAnswersSchema = z
     message: 'MAX_QUIZ_ANSWERS_EXCEEDED',
   })
 
-const quizQuestionSchema = z
-  .object({
-    correctAnswer: quizAnswerValueSchema.optional(),
-    id: z.string().trim().min(1).max(200).optional(),
-    options: z.array(z.string().max(2000)).max(100).optional(),
-    points: z.number().finite().nonnegative().max(1000).optional(),
-    question_id: z.string().trim().min(1).max(200).optional(),
-    questionType: z.string().trim().max(80).optional(),
-  })
-  .passthrough()
-
-const quizQuestionListSchema = z.array(quizQuestionSchema).max(300)
-
+// SEGURIDAD: el body NO acepta la clave de respuestas (`quizData`/`correctAnswer`).
+// El servidor deriva las preguntas y su respuesta correcta desde el contenido
+// almacenado en BD y califica ahí; confiar en datos del cliente permitía forjar un
+// 100% en el primer intento. El cliente solo envía sus respuestas y el quiz objetivo.
 export const quizSubmitSchema = z
   .object({
     activityId: z.string().trim().min(1).max(120).optional().nullable(),
@@ -178,11 +169,6 @@ export const quizSubmitSchema = z
     durationSeconds: z.number().int().nonnegative().optional().nullable(),
     materialId: z.string().trim().min(1).max(120).optional().nullable(),
     organizationId: z.string().uuid().optional().nullable(),
-    quizData: z.union([
-      quizQuestionListSchema,
-      z.object({ questions: quizQuestionListSchema.optional() }).passthrough(),
-    ]),
-    totalPoints: z.number().finite().nonnegative().max(100_000).optional(),
   })
   .refine((body) => Boolean(body.materialId || body.activityId), {
     message: 'QUIZ_TARGET_REQUIRED',

@@ -29,7 +29,10 @@ export const dialogueActivityConfigSchema = z
     rubric: z.array(dialogueRubricDimensionSchema).min(1).max(12),
     policy: z
       .object({
-        approvalMinimum: z.number().min(0).max(100).default(75),
+        // El gate de aprobación es autoritativo y fijo en 60% (ver
+        // SOFLIA_DIALOGUE_APPROVAL_MINIMUM). Este default solo mantiene la config
+        // consistente para nuevas actividades; el runtime no baja de 60.
+        approvalMinimum: z.number().min(0).max(100).default(60),
         maxTurns: z.number().int().min(1).max(30).default(8),
         maxHints: z.number().int().min(0).max(6).default(2),
         rescueAfterLowEvidenceTurns: z.number().int().min(1).max(10).default(2),

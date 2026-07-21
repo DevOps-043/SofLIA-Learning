@@ -75,9 +75,9 @@ async function handlePost(
       .select('id, feedback_type')
       .eq('lesson_id', lessonId)
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (existingError && existingError.code !== 'PGRST116') {
+    if (existingError) {
       return apiError('FEEDBACK_LOOKUP_FAILED', 'Error al verificar feedback.', 500)
     }
 

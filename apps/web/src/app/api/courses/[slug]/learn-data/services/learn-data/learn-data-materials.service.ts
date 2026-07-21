@@ -2,6 +2,10 @@ import type { createClient as createSupabaseClient } from '@/lib/supabase/server
 import type { createAdminClient } from '@/lib/supabase/admin'
 import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 import {
+  normalizeLessonActivityRecord,
+  normalizeLessonMaterialRecord,
+} from '@/lib/course-content'
+import {
   resolveCourseLessonByLanguage,
   type TranslationContext,
 } from '@/app/api/courses/_services/lesson-language-resolution.service'
@@ -57,12 +61,22 @@ export async function loadLessonData(
     missingPieces.push('materials')
   }
 
+  // SEGURIDAD: normalizamos para el cliente en el borde de salida. Además de
+  // unificar la forma del contenido con los demás endpoints de aprendizaje, esto
+  // elimina la clave de respuestas del quiz (`correctAnswer`) del payload.
+  const activities = (activitiesResult.data || []).map((activity) =>
+    normalizeLessonActivityRecord(activity as Record<string, unknown>),
+  )
+  const materials = (materialsResult.data || []).map((material) =>
+    normalizeLessonMaterialRecord(material as Record<string, unknown>),
+  )
+
   return {
     lesson_id: resolvedLesson.baseLessonId,
     transcript: resolvedLesson.lesson.transcript_content || null,
     summary: resolvedLesson.lesson.summary_content || null,
-    activities: activitiesResult.data || [],
-    materials: materialsResult.data || [],
+    activities,
+    materials,
     translationContext: {
       ...resolvedLesson.translationContext,
       usedFallback:

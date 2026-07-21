@@ -130,6 +130,43 @@ describe('decideDialogueNextState', () => {
     expect(decision.nextState).not.toBe('COMPLETE')
   })
 
+  it('enforces a fixed 60% approval bar, ignoring config.policy.approvalMinimum', () => {
+    // La config declara 75, pero el gate autoritativo es 60: un 65 debe completar
+    // y un 59 no, sin importar lo que diga la config.
+    const passingAt65 = decideDialogueNextState({
+      accumulatedCriteriaMet: ['risk', 'mitigation'],
+      config, // config.policy.approvalMinimum === 75
+      currentState: 'CHALLENGE_OR_PROBE',
+      evaluation: evaluation({
+        overallScore: 65,
+        decision: 'partial_continue',
+        criteriaMet: ['risk', 'mitigation'],
+        criteriaMissing: [],
+      }),
+      hintsUsed: 0,
+      lowEvidenceTurns: 0,
+      turnsCount: 3,
+    })
+    expect(passingAt65.nextState).toBe('COMPLETE')
+    expect(passingAt65.shouldComplete).toBe(true)
+
+    const failingAt59 = decideDialogueNextState({
+      accumulatedCriteriaMet: ['risk', 'mitigation'],
+      config,
+      currentState: 'CHALLENGE_OR_PROBE',
+      evaluation: evaluation({
+        overallScore: 59,
+        decision: 'partial_continue',
+        criteriaMet: ['risk', 'mitigation'],
+        criteriaMissing: [],
+      }),
+      hintsUsed: 0,
+      lowEvidenceTurns: 0,
+      turnsCount: 3,
+    })
+    expect(failingAt59.nextState).not.toBe('COMPLETE')
+  })
+
   it('does not complete when current evaluation is low_evidence even if accumulated criteria are full', () => {
     const decision = decideDialogueNextState({
       accumulatedCriteriaMet: ['risk', 'mitigation'],

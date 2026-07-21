@@ -143,7 +143,7 @@ export class SessionService {
             .eq('token_hash', tokenHash)
             .eq('is_revoked', false)
             .gt('expires_at', new Date().toISOString())
-            .single();
+            .maybeSingle();
 
           if (tokenError || !token) {
             logger.debug('Refresh token no encontrado o expirado');
@@ -209,7 +209,7 @@ export class SessionService {
               'id, username, email, first_name, last_name, display_name, platform_role, profile_picture_url, is_banned, signature_url, signature_name'
             )
             .eq('id', userId)
-            .single();
+            .maybeSingle();
 
           if (userError) {
             logger.error('Error obteniendo usuario de la DB:', {
@@ -306,7 +306,7 @@ export class SessionService {
             .from('refresh_tokens')
             .select('user_id')
             .eq('token_hash', tokenHash)
-            .single();
+            .maybeSingle();
 
           if (token) {
             userId = token.user_id;
@@ -372,7 +372,7 @@ export class SessionService {
         .eq('jwt_id', sessionToken)
         .eq('revoked', false)
         .gt('expires_at', new Date().toISOString())
-        .single();
+        .maybeSingle();
 
       return !error && !!session;
     } catch {

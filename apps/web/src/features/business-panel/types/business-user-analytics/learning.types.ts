@@ -13,6 +13,8 @@ export interface BusinessUserAnalyticsCourseProgressRow {
   completedAt: string | null
   lastAccessedAt: string | null
   lessonsCompleted: number
+  /** Total de lecciones publicadas del curso (real, no estimado). */
+  lessonsTotal: number
   timeSpentMinutes: number
   hasCertificate: boolean
 }

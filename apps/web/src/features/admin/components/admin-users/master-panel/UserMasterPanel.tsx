@@ -22,6 +22,7 @@ import { OrgLearningPathsTab } from './tabs/OrgLearningPathsTab'
 import { OrganizationsTab } from './tabs/OrganizationsTab'
 import { ProfileTab } from './tabs/ProfileTab'
 import { StatsTab } from './tabs/StatsTab'
+import { AuditTab } from './tabs/audit/AuditTab'
 import type {
   MasterPanelTab,
   ShowToast,
@@ -178,6 +179,8 @@ interface TabContentProps {
 function TabContent({ tab, ...props }: TabContentProps & { tab: MasterPanelTab }) {
   if (tab === 'profile') return <ProfileTabView {...props} />
   if (tab === 'account') return <AccountTabView {...props} />
+  // Auditoría tiene su propio fetch forense: no depende del agregado org-scoped.
+  if (tab === 'audit') return <AuditTab user={props.user} active />
 
   if (props.isLoading) {
     return (

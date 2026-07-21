@@ -2,9 +2,10 @@
 
 import { useState, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BarChart3, ChevronRight, Download, Loader2, Mail, Sparkles, User, X } from 'lucide-react'
+import { BarChart3, ChevronRight, Download, FileText, Loader2, Mail, Sparkles, User, X } from 'lucide-react'
 import Image from 'next/image'
 import { useOrganizationStore } from '@/core/stores/organizationStore'
+import { useForensicReport } from '@/features/admin/components/admin-users/master-panel/hooks/useForensicReport'
 import type { BusinessUser } from '../services/businessUsers.service'
 import { useBusinessUserStatsModalLogic } from '../hooks/useBusinessUserStatsModalLogic'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
@@ -70,6 +71,15 @@ export function BusinessUserStatsModal({
       setIsPdfExporting(false)
     }
   }, [analyticsData, analyticsInsights, displayName, language, organizationName])
+
+  // Dictamen forense (auditoría con SofLIA) — usa la ruta org-autorizada del panel de
+  // organización. El botón solo aparece si hay orgSlug (contexto de organización).
+  const forensicReport = useForensicReport(
+    user?.id ?? '',
+    displayName,
+    user?.email ?? null,
+    orgSlug && user ? `/api/${orgSlug}/business/users/${user.id}/forensics/analysis` : undefined,
+  )
 
   if (!isOpen || !user) return null
 
@@ -228,6 +238,21 @@ export function BusinessUserStatsModal({
                     }
                     PDF
                   </button>
+                  {orgSlug ? (
+                    <button
+                      onClick={() => void forensicReport.generate()}
+                      disabled={forensicReport.isGenerating}
+                      className="flex items-center justify-center gap-2 rounded-2xl border px-6 py-4 text-[10px] font-black uppercase tracking-widest transition-all disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none"
+                      style={{ color: mutedText, backgroundColor: inputBg, borderColor: modalBorder }}
+                      title={t('common.forensicReport', 'Dictamen forense (PDF)')}
+                    >
+                      {forensicReport.isGenerating
+                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                        : <FileText className="h-4 w-4" />
+                      }
+                      {t('common.forensicReportShort', 'Dictamen')}
+                    </button>
+                  ) : null}
                   <button
                     onClick={onClose}
                     className="flex flex-[2] items-center justify-center gap-3 rounded-2xl px-10 py-4 text-[10px] font-black uppercase tracking-widest shadow-2xl sm:flex-none"

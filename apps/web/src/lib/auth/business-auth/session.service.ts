@@ -72,7 +72,7 @@ export async function resolveAuthenticatedUserId(
       .eq('token_hash', tokenHash)
       .eq('is_revoked', false)
       .gt('expires_at', now().toISOString())
-      .single()
+      .maybeSingle()
 
     if (!tokenError && token) {
       logger.debug(`${logPrefix}: Sesión validada via refresh token`, {
@@ -93,7 +93,7 @@ export async function resolveAuthenticatedUserId(
     .from('user_session')
     .select('user_id, expires_at, revoked')
     .eq('jwt_id', sessionCookie.value)
-    .single()
+    .maybeSingle()
 
   if (sessionError || !session) {
     logger.warn(`${logPrefix}: invalid session token`, {

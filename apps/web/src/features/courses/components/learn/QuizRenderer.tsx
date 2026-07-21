@@ -64,15 +64,18 @@ function ConfettiEffect() {
 export function QuizRenderer(props: QuizRendererProps) {
   const { t } = useTranslation("learn");
   const {
+    attemptsRemaining,
     handleAnswerSelect,
     handleRetry,
     handleSubmit,
+    isLocked,
     isSubmitting,
     normalizedQuizData,
     passed,
     passingThreshold,
     percentage,
     pointsEarned,
+    retryAfter,
     score,
     selectedAnswers,
     serverMessage,
@@ -80,6 +83,16 @@ export function QuizRenderer(props: QuizRendererProps) {
     submitError,
     totalQuestions,
   } = useQuizRendererState(props);
+
+  const retryAfterLabel = useMemo(() => {
+    if (!retryAfter) return null;
+    const date = new Date(retryAfter);
+    if (Number.isNaN(date.getTime())) return null;
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(date);
+  }, [retryAfter]);
 
   const feedbackPrompt = useMemo(
     () => buildQuizFeedbackPrompt(normalizedQuizData, selectedAnswers),
@@ -489,19 +502,39 @@ export function QuizRenderer(props: QuizRendererProps) {
             </div>
           )}
 
-          {submitError && (
+          {submitError && !isLocked && (
             <div className="px-3 py-2 rounded-md bg-red-500/10 border border-red-500/20">
               <p className="text-red-400 text-xs">{submitError}</p>
             </div>
           )}
 
-          {!showResults && (
-            <QuizSubmitButton
-              isSubmitting={isSubmitting}
-              onSubmit={handleSubmit}
-              selectedAnswerCount={Object.keys(selectedAnswers).length}
-              totalQuestions={totalQuestions}
-            />
+          {isLocked && (
+            <div className="px-3 py-2.5 rounded-md bg-amber-50 border border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20">
+              <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">
+                {t("activities.quiz.locked.title")}
+              </p>
+              <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-200/80">
+                {retryAfterLabel
+                  ? t("activities.quiz.locked.retryAt", { date: retryAfterLabel })
+                  : t("activities.quiz.locked.description")}
+              </p>
+            </div>
+          )}
+
+          {!showResults && !isLocked && (
+            <div className="space-y-2">
+              {typeof attemptsRemaining === "number" && (
+                <p className="text-right text-xs text-gray-500 dark:text-white/50">
+                  {t("activities.quiz.attemptsRemaining", { count: attemptsRemaining })}
+                </p>
+              )}
+              <QuizSubmitButton
+                isSubmitting={isSubmitting}
+                onSubmit={handleSubmit}
+                selectedAnswerCount={Object.keys(selectedAnswers).length}
+                totalQuestions={totalQuestions}
+              />
+            </div>
           )}
 
           {showResults && (

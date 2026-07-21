@@ -27,17 +27,52 @@ export type HydratedQuizState = {
   showResults: boolean;
 };
 
+/** Resultado por pregunta que el servidor revela SOLO después del envío. */
+export type QuizPerQuestionResult = {
+  questionId: string;
+  isCorrect: boolean;
+  correctAnswer: string | number;
+  explanation: string | null;
+  points: number;
+};
+
+export type QuizServerResult = {
+  score: number;
+  totalQuestions: number;
+  totalPoints: number;
+  pointsEarned: number;
+  percentage: number;
+  isPassed: boolean;
+  perQuestion: QuizPerQuestionResult[];
+  attemptsRemaining: number | null;
+  maxAttempts: number;
+};
+
+export type QuizSubmitOutcome =
+  | { status: "ok"; message: string | null; result: QuizServerResult }
+  | { status: "locked"; message: string | null; retryAfter: string | null }
+  | { status: "error"; message: string | null };
+
+/** Clave de respuestas revelada tras el envío, para renderizar el repaso. */
+export type QuizAnswerKeyMap = Record<
+  string,
+  { correctAnswer: string | number; explanation: string | null }
+>;
+
+/** Estado del límite de intentos con cooldown. */
+export type QuizAttemptState = {
+  attemptsRemaining: number | null;
+  maxAttempts: number | null;
+  isLocked: boolean;
+  retryAfter: string | null;
+};
+
 export type SubmitQuizResultsParams = {
   activityId?: string;
   lessonId: string;
   materialId?: string;
-  normalizedQuizData: QuizQuestion[];
   organizationId?: string | null;
-  onQuizSubmitted?: () => void | Promise<void>;
   selectedAnswers: SelectedQuizAnswers;
-  setServerMessage: (message: string | null) => void;
-  setSubmitError: (error: string | null) => void;
   slug: string;
-  totalPoints?: number;
   durationSeconds?: number;
 };

@@ -1,6 +1,6 @@
 'use client'
 
-import { BarChart3, BookOpen, Building2, Route, ShieldCheck, User } from 'lucide-react'
+import { BarChart3, BookOpen, Building2, Fingerprint, Route, ShieldCheck, User } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import type { AdminPanelThemeTokens } from '../../../hooks/useAdminPanelTheme'
@@ -13,6 +13,7 @@ const TAB_ICONS: Record<MasterPanelTab, typeof User> = {
   courses: BookOpen,
   learningPaths: Route,
   stats: BarChart3,
+  audit: Fingerprint,
 }
 
 interface MasterPanelTabsProps {

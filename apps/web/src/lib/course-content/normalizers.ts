@@ -1,5 +1,6 @@
 import { deepParseJsonValue } from './json'
 import { isQuizLikeContent } from './quiz'
+import { stripQuizAnswerKey } from './quiz-sanitize'
 import { extractDisplayContent } from './display-content'
 import { isDisplayablePlainString } from './normalizer-utils'
 
@@ -31,7 +32,9 @@ export function normalizeActivityContentForClient(
   rawContent: unknown,
 ): unknown {
   const parsed = deepParseJsonValue(rawContent)
-  if (activityType === 'quiz' || activityType === 'ai_chat') return parsed
+  // SEGURIDAD: nunca enviar la clave de respuestas del quiz al cliente.
+  if (activityType === 'quiz') return stripQuizAnswerKey(parsed)
+  if (activityType === 'ai_chat') return parsed
 
   const displayContent = extractDisplayContent(parsed)
   if (displayContent) return displayContent
@@ -44,7 +47,8 @@ export function normalizeMaterialContentForClient(
   fallbackDescription?: unknown,
 ): unknown {
   const parsed = deepParseJsonValue(rawContent)
-  if (materialType === 'quiz') return parsed
+  // SEGURIDAD: nunca enviar la clave de respuestas del quiz al cliente.
+  if (materialType === 'quiz') return stripQuizAnswerKey(parsed)
 
   const displayContent = extractDisplayContent(parsed) ?? extractDisplayContent(fallbackDescription)
   if (displayContent) return displayContent

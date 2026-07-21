@@ -296,7 +296,7 @@ describe('notification query service', () => {
     })
   })
 
-  it('uses get_unread_notifications_count RPC for unread counters', async () => {
+  it('uses get_unread_notification_counts RPC for unread counters', async () => {
     const rpcChain = createUnreadCountRpcChain({
       data: { total: 4, critical: 1, high: 2 },
       error: null,
@@ -309,7 +309,7 @@ describe('notification query service', () => {
 
     const result = await getUnreadCount('user-1')
 
-    expect(rpc).toHaveBeenCalledWith('get_unread_notifications_count', {
+    expect(rpc).toHaveBeenCalledWith('get_unread_notification_counts', {
       p_user_id: 'user-1',
     })
     expect(result).toEqual({ total: 4, critical: 1, high: 2 })

@@ -206,7 +206,7 @@ export async function getUnreadCount(
 
   try {
     const { data, error } = await rpcClient
-      .rpc('get_unread_notifications_count', { p_user_id: userId })
+      .rpc('get_unread_notification_counts', { p_user_id: userId })
       .single()
 
     if (error) {

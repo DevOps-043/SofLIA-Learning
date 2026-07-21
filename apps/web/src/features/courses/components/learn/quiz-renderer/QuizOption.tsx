@@ -11,6 +11,12 @@ type QuizOptionProps = {
   showResults: boolean;
 };
 
+// La clave de respuestas se conoce solo tras enviar (el payload de carga ya no la
+// incluye). Sin ella, no marcamos correcto/incorrecto para evitar falsos negativos.
+function isAnswerKeyKnown(question: QuizQuestion): boolean {
+  return question.correctAnswer !== undefined && question.correctAnswer !== "";
+}
+
 export function QuizOption({
   onAnswerSelect,
   option,
@@ -22,11 +28,13 @@ export function QuizOption({
   const { t } = useTranslation("learn");
   const optionLetter = String.fromCharCode(65 + optionIndex);
   const isSelected = selectedAnswer === optionIndex || selectedAnswer === option;
-  const isCorrectOption = isQuizAnswerCorrect(question, optionIndex);
+  const answerKeyKnown = isAnswerKeyKnown(question);
+  const isCorrectOption = answerKeyKnown && isQuizAnswerCorrect(question, optionIndex);
+  const showGrading = showResults && answerKeyKnown;
 
   return (
     <label className={`flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-all ${
-      showResults
+      showGrading
         ? isSelected && isCorrectOption
           ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
           : isSelected && !isCorrectOption
@@ -37,7 +45,7 @@ export function QuizOption({
           : "bg-transparent text-gray-600 dark:text-white/60 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white/80"
     }`}>
       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-        showResults
+        showGrading
           ? isSelected && isCorrectOption
             ? "border-emerald-500 dark:border-emerald-400 bg-emerald-500 dark:bg-emerald-400"
             : isSelected && !isCorrectOption
@@ -47,20 +55,20 @@ export function QuizOption({
             ? "border-gray-900 dark:border-white bg-gray-900 dark:bg-white"
             : "border-gray-300 dark:border-white/20"
       }`}>
-        {((showResults && (isCorrectOption || (isSelected && !isCorrectOption))) || (!showResults && isSelected)) && (
+        {((showGrading && (isCorrectOption || (isSelected && !isCorrectOption))) || (!showGrading && isSelected)) && (
           <div className="w-1.5 h-1.5 rounded-full bg-white dark:bg-black" />
         )}
       </div>
       <input type="radio" name={`question-${question.id}`} value={optionIndex} checked={isSelected} onChange={() => onAnswerSelect(question.id, optionIndex)} disabled={showResults} className="hidden" />
       <span className="text-xs font-medium opacity-60 dark:opacity-50 mr-1">({optionLetter})</span>
       <span className="text-sm flex-1">{option}</span>
-      {showResults && isSelected && isCorrectOption && (
+      {showGrading && isSelected && isCorrectOption && (
         <CheckCircle
           aria-label={t("activities.quiz.correct")}
           className="w-4 h-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0"
         />
       )}
-      {showResults && isSelected && !isCorrectOption && (
+      {showGrading && isSelected && !isCorrectOption && (
         <X
           aria-label={t("activities.quiz.incorrect")}
           className="w-4 h-4 text-red-500 dark:text-red-400 flex-shrink-0"

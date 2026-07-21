@@ -16,12 +16,15 @@ export function QuizQuestionCard({
   selectedAnswer,
   showResults,
 }: QuizQuestionCardProps) {
-  const isCorrect = selectedAnswer !== undefined && isQuizAnswerCorrect(question, selectedAnswer);
-  const showExplanation = showResults && selectedAnswer !== undefined;
+  // Sin clave de respuestas (carga inicial / hidratación) mostramos estado neutro.
+  const answerKeyKnown = question.correctAnswer !== undefined && question.correctAnswer !== "";
+  const isCorrect = answerKeyKnown && selectedAnswer !== undefined && isQuizAnswerCorrect(question, selectedAnswer);
+  const showGrading = showResults && answerKeyKnown;
+  const showExplanation = showGrading && selectedAnswer !== undefined;
 
   return (
     <div className={`relative rounded-lg border transition-colors ${
-      showResults
+      showGrading
         ? isCorrect
           ? "border-emerald-500/30 bg-emerald-500/5"
           : "border-red-500/30 bg-red-500/5"

@@ -62,6 +62,9 @@ export interface BusinessUserAnalyticsQuizzes {
   /** Nº de quizzes con calificación detallada registrada (submissions). */
   scoredCount: number
   averageScore: number
+  /** Calidad de quiz para el radar: mezcla promedio con acierto al primer intento
+   * (penaliza aprobar por fuerza bruta). */
+  qualityScore: number
   bestScore: number
   latestScore: number
   trend: BusinessUserAnalyticsTrendPoint[]
