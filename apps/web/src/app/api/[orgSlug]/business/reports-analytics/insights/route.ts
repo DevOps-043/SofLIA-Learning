@@ -20,6 +20,11 @@ import {
   type ReportsAnalyticsInsightsBody,
 } from '../../_schemas'
 
+// El análisis con Gemini puede tardar decenas de segundos; sin esto la función se
+// corta con el timeout por defecto de la plataforma (~10s) y devuelve 502. Se combina
+// con el timeout interno de Gemini (~22s) que cae al análisis de respaldo.
+export const maxDuration = 60
+
 type RouteContext = {
   params: Promise<{ orgSlug: string }>
 }

@@ -22,6 +22,24 @@ interface GenerateReportsAnalyticsInsightsParams {
 export { buildReportsAnalyticsInsightsFilename } from './reports-analytics-insights/filename'
 export { generateReportsAnalyticsInsightsPdf } from './reports-analytics-insights/pdf'
 
+/**
+ * Tope de espera para Gemini. La llamada al SDK NO tiene timeout propio: si Gemini se
+ * cuelga (modelo saturado, payload grande), la FUNCIÓN SERVERLESS supera su límite de
+ * ejecución y la plataforma la mata con un 502 antes de que podamos responder. Con este
+ * timeout abortamos a tiempo y devolvemos el análisis de respaldo (200) en vez de 502.
+ * Configurable por si el límite de la plataforma es mayor/menor.
+ */
+const GEMINI_TIMEOUT_MS = Number(process.env.REPORTS_INSIGHTS_GEMINI_TIMEOUT_MS) || 22_000
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('gemini-timeout')), ms),
+    ),
+  ])
+}
+
 export async function generateReportsAnalyticsInsights({
   dataset,
   locale,
@@ -39,14 +57,17 @@ export async function generateReportsAnalyticsInsights({
       model,
       systemInstruction: buildSystemPrompt(locale),
     })
-    const result = await generativeModel.generateContent({
-      contents: [{ role: 'user', parts: [{ text: JSON.stringify(buildReportsAnalyticsAiPayload(dataset)) }] }],
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 4000,
-        responseMimeType: 'application/json',
-      },
-    })
+    const result = await withTimeout(
+      generativeModel.generateContent({
+        contents: [{ role: 'user', parts: [{ text: JSON.stringify(buildReportsAnalyticsAiPayload(dataset)) }] }],
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: 4000,
+          responseMimeType: 'application/json',
+        },
+      }),
+      GEMINI_TIMEOUT_MS,
+    )
 
     const parsed = parseInsights(result.response.text(), model)
     if (parsed) return parsed
