@@ -1,3 +1,5 @@
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
+import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config'
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import {
   GoogleGenerativeAI,
@@ -15,8 +17,6 @@ import {
 } from './lesson-suggestions.types'
 
 const GEMINI_TIMEOUT_MS = 20_000
-const GEMINI_TEMPERATURE = 0.6
-const GEMINI_MAX_OUTPUT_TOKENS = 2048
 
 export class LessonSuggestionsGenerationError extends Error {
   readonly cause?: unknown
@@ -158,9 +158,10 @@ export async function generateLessonSuggestions(
   const { snapshot, contentHash, apiKey, modelName } = args
 
   const prompt = buildLessonSuggestionsPrompt(snapshot)
+  const settings = await getAiModelSettings('lia_lesson_suggestions')
   const genAI = new GoogleGenerativeAI(apiKey)
   const model = genAI.getGenerativeModel({
-    model: modelName || process.env.GEMINI_MODEL || 'gemini-3.5-flash',
+    model: modelName || settings.model,
     safetySettings: [
       {
         category: HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -179,11 +180,10 @@ export async function generateLessonSuggestions(
         threshold: HarmBlockThreshold.BLOCK_NONE,
       },
     ],
-    generationConfig: {
-      temperature: GEMINI_TEMPERATURE,
-      maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS,
+    generationConfig: buildManagedGenerationConfig(settings, {
+      // No administrable: la respuesta se parsea como JSON obligatoriamente.
       responseMimeType: 'application/json',
-    },
+    }),
   })
 
   const result = await withTimeout(

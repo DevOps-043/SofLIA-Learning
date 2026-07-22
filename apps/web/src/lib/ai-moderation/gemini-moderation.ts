@@ -1,6 +1,6 @@
 import { generateGeminiText } from '@/lib/gemini/client'
 
-import { AI_MODERATION_ENABLED, AI_MODERATION_MODEL } from './config'
+import { AI_MODERATION_ENABLED } from './config'
 import { parseAIAnalysis } from './ai-analysis'
 import { buildAIModerationUserPrompt } from './ai-user-prompt'
 import { AI_MODERATION_SYSTEM_PROMPT } from './ai-system-prompt'
@@ -24,12 +24,8 @@ export async function analyzeContentWithGemini(
   try {
     const result = await generateGeminiText({
       circuitBreakerName: 'gemini-content-moderation',
-      generationConfig: {
-        maxOutputTokens: 500,
-        temperature: 0.1,
-      },
-      model: AI_MODERATION_MODEL,
       prompt: buildAIModerationUserPrompt(content, context),
+      purpose: 'ai_moderation',
       systemInstruction: AI_MODERATION_SYSTEM_PROMPT,
     })
 

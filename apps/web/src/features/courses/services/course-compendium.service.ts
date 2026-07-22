@@ -14,6 +14,7 @@
 
 import { z } from 'zod'
 
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
 import { generateStructuredContent } from '@/lib/ai/structured-generation.server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { Json } from '@/lib/supabase/types'
@@ -55,7 +56,6 @@ export interface GenerateCourseCompendiumInput {
 }
 
 const COMPENDIUM_TAGS = ['SofLIA', 'Compendio', 'Curso']
-const FALLBACK_MODEL = 'gemini-3.5-flash'
 const MAX_NOTE_CONTENT = 50_000
 // The AI synthesis gets a smaller cap so the compiled notes fit below it.
 const AI_SYNTHESIS_MAX = 30_000
@@ -182,6 +182,7 @@ async function generateSynthesisHtml(input: {
   prompt: string
   untrustedText: string
 }): Promise<string> {
+  const settings = await getAiModelSettings('course_compendium')
   const result = await generateStructuredContent({
     audit: {
       action: 'notebook_course_compendium_generated',
@@ -191,12 +192,13 @@ async function generateSynthesisHtml(input: {
       resourceType: 'course',
     },
     jsonSchema: COURSE_SYNTHESIS_JSON_SCHEMA,
-    maxOutputTokens: 8_192,
-    model: process.env.GEMINI_MODEL || FALLBACK_MODEL,
+    maxOutputTokens: settings.maxOutputTokens ?? 8_192,
+    model: settings.model,
     operation: 'course_compendium',
     prompt: input.prompt,
     schema: courseSynthesisSchema,
-    temperature: 0.25,
+    temperature: settings.temperature ?? 0.25,
+    thinkingLevel: settings.thinkingLevel,
     untrustedText: input.untrustedText,
   })
   const generatedHtml = buildCourseSynthesisHtmlFromModel(

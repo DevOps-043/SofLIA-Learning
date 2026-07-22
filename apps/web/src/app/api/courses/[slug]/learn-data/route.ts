@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { cacheHeaders, withCacheHeaders } from '@/lib/utils/cache-headers'
 import { resolveLearningPathAccessForCourse } from '@/features/learning-paths/services/learning-path-access.server'
+import { resolveQuestionsOrgScope } from '@/app/api/courses/_lib/question-org-scope'
 import { buildLearnDataResponse } from './services/learn-data-response.service'
 import { loadLearnDataPayload, loadCourseBySlug } from './services/learn-data-query.service'
 
@@ -26,12 +27,18 @@ export async function GET(
     // avoiding the sequential LP check that previously ran after the full data load.
     const course = await loadCourseBySlug(supabase, slug)
 
+    // Las preguntas de la comunidad se acotan a la organización del usuario
+    // resuelta desde la sesión: `orgId` llega por query string y no es fiable
+    // como control de acceso, además de que aquí se usa el cliente admin.
+    const questionsOrgScope = await resolveQuestionsOrgScope(supabase, currentUser)
+
     const [payload, learningPathState] = await Promise.all([
       loadLearnDataPayload(
         supabase,
         slug,
         lessonId,
         language,
+        questionsOrgScope,
         currentUser?.id,
         organizationId,
         includeLessonData,

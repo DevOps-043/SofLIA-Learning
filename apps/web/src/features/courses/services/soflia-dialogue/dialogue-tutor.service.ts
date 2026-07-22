@@ -2,10 +2,10 @@ import {
   buildOrganizationAiContextPromptSection,
   type ResolvedOrganizationAiContext,
 } from '@/lib/lia-context/services/organization-ai-context.service'
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
 import {
   generateGeminiText,
   getGeminiApiKey,
-  resolveGeminiModel,
 } from '@/lib/gemini/client'
 
 import type {
@@ -233,9 +233,22 @@ function clampTutorMaxOutputTokens(rawValue: number): number {
   return Math.max(1100, Math.min(Math.trunc(rawValue), 3200))
 }
 
+/**
+ * Presupuesto de salida del tutor.
+ *
+ * Precedencia: override administrado del propósito `soflia_dialogue_tutor` →
+ * variable de entorno legacy → derivación a partir del número máximo de frases
+ * de la actividad. Sea cual sea el origen, el valor se acota al rango seguro:
+ * por debajo del mínimo el mensaje llega cortado a media frase.
+ */
 export function resolveDialogueTutorMaxOutputTokens(
   config: DialogueActivityConfig,
+  managedMaxOutputTokens?: number | null,
 ) {
+  if (managedMaxOutputTokens) {
+    return clampTutorMaxOutputTokens(managedMaxOutputTokens)
+  }
+
   const envValue = Number(process.env.SOFLIA_DIALOGUE_TUTOR_MAX_OUTPUT_TOKENS)
   if (Number.isFinite(envValue) && envValue > 0) {
     return clampTutorMaxOutputTokens(envValue)
@@ -303,6 +316,7 @@ Maximo ${input.config.tutor.maxResponseSentences} frases.
 Cierra siempre con una frase completa. Prioriza un mensaje breve y completo sobre detalles extensos.
 No termines con conectores, dos puntos, comas, listas abiertas ni ideas a medio cerrar.
 No repitas, cites ni parafrasees preguntas que ya hiciste en el historial reciente; si necesitas insistir en un criterio pendiente, formula UNA pregunta nueva con palabras distintas.
+Si hay CONTEXTO EMPRESARIAL VERIFICADO, cada ejemplo, analogia y pregunta debe nacer del cargo y de la empresa del estudiante: nada de casos genericos de "una empresa" cuando conoces su sector, su escala o su puesto.
 
 Contexto visible:
 - Objetivo: ${input.config.visibleGoal}
@@ -324,24 +338,26 @@ ${input.recentTurns
 `.trim()
 }
 
-function resolveDialogueTutorModel() {
-  return resolveGeminiModel(
-    process.env.SOFLIA_DIALOGUE_MODEL ||
-      process.env.GEMINI_MODEL,
-    'gemini-3.5-flash',
-  )
-}
-
 function resolveDialogueTutorTimeoutMs() {
   const rawTimeout = Number(process.env.SOFLIA_DIALOGUE_TUTOR_TIMEOUT_MS)
   return Number.isFinite(rawTimeout) && rawTimeout > 0 ? rawTimeout : 8000
 }
 
+/**
+ * El tutor genera sus mensajes con Gemini por defecto: es la única forma de que
+ * adapte ejemplos y preguntas al cargo del estudiante y a la realidad de su
+ * empresa (ver `buildTutorPrompt`). Antes estaba apagado por defecto y todo el
+ * alumnado recibía las mismas plantillas literales.
+ *
+ * `SOFLIA_DIALOGUE_TUTOR_USE_MODEL=false` queda como interruptor de emergencia
+ * para volver a las plantillas sin desplegar (incidencia de cuota, latencia o
+ * calidad). Cualquier otro valor —o su ausencia— mantiene el modelo activo.
+ */
 function shouldUseDialogueTutorModel() {
   const rawValue = process.env.SOFLIA_DIALOGUE_TUTOR_USE_MODEL
-  if (!rawValue) return false
+  if (!rawValue) return true
 
-  return ['1', 'true', 'yes'].includes(rawValue.trim().toLowerCase())
+  return !['0', 'false', 'no'].includes(rawValue.trim().toLowerCase())
 }
 
 export async function generateDialogueTutorMessage(input: {
@@ -375,14 +391,22 @@ export async function generateDialogueTutorMessage(input: {
   }
 
   try {
+    // Propósito `soflia_dialogue_tutor`: modelo y parámetros independientes de
+    // SofLIA general, administrables desde el panel de superadmin.
+    const settings = await getAiModelSettings('soflia_dialogue_tutor')
+
     const response = await generateGeminiText({
       circuitBreakerName: 'gemini-dialogue-tutor',
       generationConfig: {
-        maxOutputTokens: resolveDialogueTutorMaxOutputTokens(input.config),
-        temperature: 0.35,
+        maxOutputTokens: resolveDialogueTutorMaxOutputTokens(
+          input.config,
+          settings.maxOutputTokens,
+        ),
+        ...(settings.temperature === null ? {} : { temperature: settings.temperature }),
       },
-      model: resolveDialogueTutorModel(),
+      model: settings.model,
       prompt: buildTutorPrompt(input),
+      thinkingLevel: settings.thinkingLevel,
       systemInstruction:
         'Eres SofLIA. Genera solo el mensaje visible para el estudiante, sin JSON ni instrucciones internas.',
       timeoutMs: resolveDialogueTutorTimeoutMs(),

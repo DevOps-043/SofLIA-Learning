@@ -8,6 +8,10 @@ import { SessionService } from '@/features/auth/services/session.service'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { createClient } from '@/lib/supabase/server'
+import {
+  isQuestionInOrgScope,
+  resolveQuestionsOrgScope,
+} from '@/app/api/courses/_lib/question-org-scope'
 
 async function handlePost(
   _request: NextRequest,
@@ -35,12 +39,15 @@ async function handlePost(
 
     const { data: question, error: questionError } = await supabase
       .from('course_questions')
-      .select('id')
+      .select('id, organization_id')
       .eq('id', questionId)
       .eq('course_id', course.id)
       .single()
 
-    if (questionError || !question) {
+    // Sólo se reacciona a preguntas de la propia organización.
+    const orgScope = await resolveQuestionsOrgScope(supabase, user)
+
+    if (questionError || !question || !isQuestionInOrgScope(question, orgScope)) {
       return apiError('QUESTION_NOT_FOUND', 'Pregunta no encontrada.', 404)
     }
 

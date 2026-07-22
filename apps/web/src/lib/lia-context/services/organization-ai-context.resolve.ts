@@ -66,3 +66,36 @@ export async function resolveStrictOrganizationAiContext(params: {
   const repository = await resolveRepository(params.repository)
   return repository.findMembershipByOrganizationId(userId, organizationId)
 }
+
+/**
+ * Contexto empresarial para las actividades del curso.
+ *
+ * Se prefiere la organización de la inscripción, pero si esa inscripción es
+ * antigua y no tiene organización (o la membresía no coincide) se recurre a la
+ * membresía activa del usuario. Sin ese respaldo SofLIA perdía por completo el
+ * cargo y la empresa, y respondía con ejemplos genéricos.
+ *
+ * Este contexto SOLO alimenta el prompt: no concede acceso a nada, así que
+ * degradar a la membresía activa no abre ninguna vía de escalación.
+ */
+export async function resolveCourseOrganizationAiContext(params: {
+  organizationId?: string | null
+  repository?: OrganizationAiContextRepository
+  userId?: string
+}): Promise<ResolvedOrganizationAiContext | null> {
+  const { organizationId, userId } = params
+  if (!userId) return null
+
+  const repository = await resolveRepository(params.repository)
+
+  if (organizationId) {
+    const scopedContext = await repository.findMembershipByOrganizationId(
+      userId,
+      organizationId,
+    )
+
+    if (scopedContext) return scopedContext
+  }
+
+  return repository.findLatestMembership(userId)
+}

@@ -422,6 +422,8 @@ USER_JWT_SECRET=
 ## Key Files
 
 - `lib/supabase/types.ts` — Database schema TypeScript types (SINGLE source of truth in web; regenerate with `npm run gen:types --workspace=apps/web`; the old `lib/supabase/schema/` tree was removed — never recreate parallel type copies; apps/api keeps its own minimal table types on purpose)
+- `supabase/scripts/Database.sql` — Schema dump of the real database (100 tables, context only, not runnable). **This is the reference when `types.ts` drifts.** A table missing from `types.ts` makes `.from('x')` resolve to `never`, which cascades into `not assignable to 'never'` + `No overload matches this call` + `Property X does not exist` — three symptoms of one problem. Note `supabase.storage.from('avatars'|'certificates')` targets Storage buckets, not tables.
+- `lib/ai/model-settings/` — Per-purpose Gemini configuration (model, tokens, temperature, thinking level) resolved from DB → env → defaults; see "AI Model Settings"
 - `apps/web/src/app/layout.tsx` — Root layout with all providers
 - `core/services/api.ts` — Axios client with interceptors and token refresh
 - `core/theme/color-tokens.ts` — Design system hex constants (`DESIGN_HEX_COLOR`)
@@ -658,12 +660,48 @@ The `BusinessUser` dashboard uses Three.js for atmospheric 3D backgrounds:
 - LearningPathView: Rich horizontal scroll view of assigned LP courses with hover previews — organized in `components/LearningPathView/` (28 sub-files)
 - ModernNavbar: Glassmorphism navbar with org branding — `components/modern-navbar/`
 
+## AI Model Settings (Gemini)
+
+Model, max output tokens, temperature and **thinking level** are configured **per purpose in the database**, not in `.env`. Super-admins change them at `/admin/ai-settings` with no redeploy.
+
+**Precedence (per purpose):** database override → legacy env var → code default.
+Absence of a DB row means "inherit", so deploying changes nothing until an admin overrides something.
+
+**Key files:**
+- `lib/ai/model-settings/purposes.ts` — catalog of purposes (source of truth; add a purpose here and it appears in the panel)
+- `lib/ai/model-settings/ai-model-settings.server.service.ts` — resolver with 60s in-process cache; **degrades to env/defaults if the DB read fails** (never breaks SofLIA)
+- `lib/ai/model-settings/generation-config.ts` — `buildManagedGenerationConfig()` for raw-SDK call sites
+- `lib/ai/model-settings/thinking.ts` — thinking level → `thinkingConfig.thinkingBudget`
+- API: `GET /api/admin/ai-settings`, `PUT|DELETE /api/admin/ai-settings/[purpose]` (`requireAdmin`)
+- UI: `features/admin/components/AdminAiSettings/`, i18n under `admin.aiSettings.*`
+- DB: `ai_model_settings` (+ `ai_model_settings_audit`, written by trigger) — service-role only, RLS with no client policies. Migration `20260722140000`
+
+**Separate models per purpose** — notably `lia_general` (SofLIA chat) vs `soflia_dialogue_tutor` / `soflia_dialogue_evaluator` (SofLIA inside course activities).
+
+**Usage:**
+```typescript
+// Via generateGeminiText — resolves model, tokens, temperature and thinking automatically
+await generateGeminiText({ circuitBreakerName: '...', prompt, purpose: 'lia_general' })
+
+// Raw SDK call sites
+const settings = await getAiModelSettings('reports_analytics_insights')
+model = genAI.getGenerativeModel({
+  model: settings.model,
+  generationConfig: buildManagedGenerationConfig(settings, { responseMimeType: 'application/json' }),
+})
+```
+
+**Rules:**
+- Never read `process.env.GEMINI_MODEL` (or `*_GEMINI_MODEL`) in new code — declare a purpose instead
+- Values a call site must control (e.g. `responseMimeType: 'application/json'`) go in the overrides argument, not the DB
+- Exception: `GEMINI_TTS_MODEL` stays env-only on purpose — it is part of the audio cache key and is derived synchronously
+
 ## SofLIA AI Assistant
 
 AI-powered chat using Google Gemini:
 - Feature: `features/lia/components/` (chat UI and history)
 - Config: `lib/lia/`, `lib/lia-config.ts`, `lib/lia-context/`, `lib/gemini/`
-- Model settings: `GEMINI_MODEL`, `GEMINI_MAX_TOKENS`, `GEMINI_TEMPERATURE`
+- Model settings: **database-driven**, not env vars — see "AI Model Settings" below (purpose `lia_general`)
 - Multilingual (ES, EN, PT) with automatic language detection
 - Context-aware: course lessons, study planner, dashboard, general
 - Persistent conversation history with editable titles

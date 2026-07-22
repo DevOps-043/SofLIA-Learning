@@ -6,6 +6,10 @@ import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
 import { withCacheHeaders, cacheHeaders } from '@/lib/utils/cache-headers';
+import {
+  applyQuestionsOrgScope,
+  resolveQuestionsOrgScope,
+} from '@/app/api/courses/_lib/question-org-scope';
 
 interface CourseQuestionUserRow {
   id: string;
@@ -82,22 +86,31 @@ export async function GET(
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
+    // La comunidad de preguntas es interna de cada organización: se resuelve el
+    // alcance del usuario actual ANTES de consultar para no traer nunca filas
+    // de otras empresas (ver `_lib/question-org-scope.ts`).
+    const currentUser = await SessionService.getCurrentUser();
+    const orgScope = await resolveQuestionsOrgScope(supabase, currentUser);
+
     // Construir query base
-    let query = supabase
-      .from('course_questions')
-      .select(`
-        *,
-        user:users!course_questions_user_id_fkey(
-          id,
-          username,
-          display_name,
-          first_name,
-          last_name,
-          profile_picture_url
-        )
-      `)
-      .eq('course_id', course.id)
-      .eq('is_hidden', false)
+    let query = applyQuestionsOrgScope(
+      supabase
+        .from('course_questions')
+        .select(`
+          *,
+          user:users!course_questions_user_id_fkey(
+            id,
+            username,
+            display_name,
+            first_name,
+            last_name,
+            profile_picture_url
+          )
+        `)
+        .eq('course_id', course.id)
+        .eq('is_hidden', false),
+      orgScope,
+    )
       .order('is_pinned', { ascending: false })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
@@ -134,9 +147,6 @@ export async function GET(
     if (questions && questions.length > 0) {
       const questionList = questions as CourseQuestionRow[];
       const questionIds = questionList.map((question) => question.id);
-
-      // Obtener usuario actual primero
-      const currentUser = await SessionService.getCurrentUser();
 
       // Solo conteos sin transferir datos
       const countPromises = questionIds.map((qid) =>
@@ -261,11 +271,24 @@ async function handlePost(
       return apiError('LESSON_NOT_FOUND', 'Lección no encontrada para este curso.', 404);
     }
 
+    // La pregunta se sella con la organización del autor: es la clave con la que
+    // el resto de endpoints filtra la comunidad. Sin organización activa no hay
+    // comunidad a la que publicar.
+    const orgScope = await resolveQuestionsOrgScope(supabase, user);
+    if (!orgScope.organizationId) {
+      return apiError(
+        'ORGANIZATION_REQUIRED',
+        'Necesitas pertenecer a una organización para publicar preguntas.',
+        403,
+      );
+    }
+
     // Crear la pregunta
     const { data: question, error: questionError } = await supabase
       .from('course_questions')
       .insert({
         course_id: course.id,
+        organization_id: orgScope.organizationId,
         lesson_id,
         user_id: user.id,
         content: sanitizedContent,

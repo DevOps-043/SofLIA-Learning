@@ -100,7 +100,7 @@ export function QuestionsSection({ lessonId, slug }: QuestionsSectionProps) {
           </div>
           <div className="min-w-0">
             <h2 className="text-base font-semibold text-gray-900 dark:text-white leading-tight">
-              Preguntas
+              {t("questions.title")}
             </h2>
             <p className="text-xs text-gray-500 dark:text-white/35 truncate">
               {questionCountLabel}

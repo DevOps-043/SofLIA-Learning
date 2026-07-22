@@ -1,8 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
+import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config'
 import { logger } from '@/lib/utils/logger'
 import {
   buildReportsAnalyticsAiPayload,
-  resolveReportsAnalyticsGeminiModel,
   withReportsAnalyticsAiTimeout,
 } from '../reports-analytics.ai-payload.service'
 import { buildFallbackReportsAnalyticsBlueprint } from './fallback'
@@ -17,7 +18,8 @@ export async function generateReportsAnalyticsReportBlueprint({
   format,
 }: GenerateReportsAnalyticsReportBlueprintParams) {
   const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY
-  const model = resolveReportsAnalyticsGeminiModel()
+  const settings = await getAiModelSettings('reports_analytics_blueprint')
+  const model = settings.model
 
   if (!apiKey) {
     return buildFallbackReportsAnalyticsBlueprint(dataset, locale, model, format)
@@ -35,11 +37,10 @@ export async function generateReportsAnalyticsReportBlueprint({
           role: 'user',
           parts: [{ text: JSON.stringify(buildReportsAnalyticsAiPayload(dataset)) }],
         }],
-        generationConfig: {
-          temperature: 0.15,
-          maxOutputTokens: parsePositiveInt(process.env.REPORTS_ANALYTICS_AI_MAX_OUTPUT_TOKENS, 3200),
+        generationConfig: buildManagedGenerationConfig(settings, {
+          // No administrable: la respuesta se parsea como JSON obligatoriamente.
           responseMimeType: 'application/json',
-        },
+        }),
       }),
       parsePositiveInt(process.env.REPORTS_ANALYTICS_AI_TIMEOUT_MS, 12_000),
     )

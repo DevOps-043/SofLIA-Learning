@@ -75,7 +75,7 @@
     "transcript": "Transcript",
     "summary": "Summary",
     "activities": "Activities",
-    "questions": "Questions"
+    "questions": "Community questions"
   },
   "lesson": {
     "duration": "duration",
@@ -452,7 +452,7 @@
     "serverResponseError": "Error processing server response"
   },
   "questions": {
-    "title": "Questions",
+    "title": "Community questions",
     "askQuestion": "Ask a question",
     "yourQuestion": "Your question",
     "questionPlaceholder": "Write your question about the course...",

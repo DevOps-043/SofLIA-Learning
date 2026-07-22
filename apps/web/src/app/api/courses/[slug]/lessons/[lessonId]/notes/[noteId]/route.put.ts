@@ -17,6 +17,7 @@ import {
   NoteService,
 } from '@/features/courses/services/note.service'
 import { enqueueNoteEnrichment } from '@/features/notebook/services/notebook-enrichment.server.service'
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { normalizeNoteContentHtml } from '@/lib/notes/generated-note-html'
@@ -25,12 +26,12 @@ import { createAdminClient } from '@/lib/supabase/admin'
 async function generateNoteTitle(noteContent: string): Promise<string> {
   try {
     const googleApiKey = process.env.GOOGLE_API_KEY
-    const geminiModel = process.env.GEMINI_MODEL || 'gemini-3.5-flash'
 
     if (!googleApiKey) {
       return 'Nota de estudio'
     }
 
+    const { model: geminiModel } = await getAiModelSettings('lesson_auto_note')
     const genAI = new GoogleGenerativeAI(googleApiKey)
     const model = genAI.getGenerativeModel({ model: geminiModel })
     const plainContent = noteContent.replace(/<[^>]*>?/gm, '').substring(0, 1500)

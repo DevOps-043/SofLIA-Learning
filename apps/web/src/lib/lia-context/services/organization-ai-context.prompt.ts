@@ -66,6 +66,17 @@ export function buildOrganizationAiContextPromptSection(
     '- Regla de adaptacion: evita ejemplos genericos cuando haya sector, escala o cargo disponibles; ajusta complejidad, riesgos, procesos y vocabulario al contexto anterior.',
   )
 
+  if (context.userJobTitle) {
+    lines.push(
+      `- Regla de rol: calibra cada ejemplo, pregunta y recomendacion al alcance de decision real de un ${context.userJobTitle}. Un cargo directivo razona sobre portafolio, presupuesto, riesgo y decisiones de negocio; una jefatura o mando medio, sobre coordinacion de equipo, procesos y prioridades; un rol operativo o de soporte, sobre tareas concretas de su dia a dia y las herramientas que ya usa.`,
+      '- No nombres el cargo ni la empresa en cada mensaje ni felicites por el puesto: el contexto sirve para ELEGIR el ejemplo, no para mencionarlo.',
+    )
+  }
+
+  lines.push(
+    '- Regla de veracidad: no inventes datos de la empresa que no aparezcan en esta seccion. Si falta el sector o el tamano, apoyate solo en lo disponible y, si hace falta, pregunta al estudiante por su realidad concreta en lugar de suponerla.',
+  )
+
   const focusLine = formatFocus(options.focus)
   if (focusLine) {
     lines.push(focusLine.trimEnd())

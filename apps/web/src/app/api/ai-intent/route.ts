@@ -8,7 +8,7 @@ import {
   calculateGeminiMetadata,
   trackAICall,
 } from '../../../lib/ai/usage-monitor';
-import { generateGeminiText, resolveGeminiModel } from '../../../lib/gemini/client';
+import { generateGeminiText } from '../../../lib/gemini/client';
 import {
   aiIntentRequestSchema,
   aiIntentResultSchema,
@@ -31,14 +31,9 @@ async function handlePost(
 
     const { message } = body;
     const startTime = Date.now();
-    const model = resolveGeminiModel(process.env.AI_INTENT_GEMINI_MODEL, 'gemini-3.5-flash');
     const result = await generateGeminiText({
       circuitBreakerName: 'gemini-ai-intent',
-      generationConfig: {
-        maxOutputTokens: 200,
-        temperature: 0.2,
-      },
-      model,
+      purpose: 'lia_intent',
       prompt: `Mensaje del usuario:
 ${message}
 

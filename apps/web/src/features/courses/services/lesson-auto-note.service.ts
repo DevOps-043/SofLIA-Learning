@@ -192,7 +192,6 @@ export interface LessonAutoNotePersistenceDecision {
 }
 
 const AUTO_NOTE_TAGS = ['SofLIA', 'Apunte automatico', 'Leccion']
-const FALLBACK_MODEL = 'gemini-3.5-flash'
 const MAX_NOTE_CONTENT = 50_000
 // The AI summary gets a smaller cap so the remaining budget (~30k) can hold
 // the verbatim dialogue transcript appended after it.
@@ -623,6 +622,10 @@ async function generateNoteHtml(input: {
   const { generateStructuredContent } = await import(
     '@/lib/ai/structured-generation.server'
   )
+  const { getAiModelSettings } = await import(
+    '@/lib/ai/model-settings/ai-model-settings.server.service'
+  )
+  const settings = await getAiModelSettings('lesson_auto_note')
   const result = await generateStructuredContent({
     audit: {
       action: 'notebook_lesson_note_generated',
@@ -632,12 +635,13 @@ async function generateNoteHtml(input: {
       resourceType: 'course_lesson',
     },
     jsonSchema: LESSON_AUTO_NOTE_JSON_SCHEMA,
-    maxOutputTokens: 4_096,
-    model: process.env.GEMINI_MODEL || FALLBACK_MODEL,
+    maxOutputTokens: settings.maxOutputTokens ?? 4_096,
+    model: settings.model,
     operation: 'lesson_auto_note',
     prompt: input.prompt,
     schema: lessonAutoNoteDocumentSchema,
-    temperature: 0.25,
+    temperature: settings.temperature ?? 0.25,
+    thinkingLevel: settings.thinkingLevel,
     untrustedText: input.untrustedText,
   })
   const generatedHtml = buildLessonAutoNoteHtmlFromModel(

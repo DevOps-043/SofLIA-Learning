@@ -41,7 +41,21 @@ export function normalizeLearnLanguage(value?: string | null): LearnLanguage {
   return 'es'
 }
 
-export function getLessonsTableNameForLanguage(language: LearnLanguage): string {
+/**
+ * Nombre de la tabla de lecciones para un idioma.
+ *
+ * El tipo de retorno es la union literal de las tablas reales (no `string`): asi
+ * `supabase.from(...)` conserva el tipado de la fila. Devolver `string` colapsa
+ * la sobrecarga de `.from()` a `never` y rompe todo el encadenamiento de la query.
+ */
+export type LessonsTableName =
+  | 'course_lessons'
+  | 'course_lessons_en'
+  | 'course_lessons_pt'
+
+export function getLessonsTableNameForLanguage(
+  language: LearnLanguage,
+): LessonsTableName {
   switch (language) {
     case 'en':
       return 'course_lessons_en'

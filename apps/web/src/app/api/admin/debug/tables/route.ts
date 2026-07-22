@@ -9,9 +9,30 @@ export async function GET() {
     if (auth instanceof NextResponse) return auth
     
     const supabase = await createClient()
-    
-    // Intentar obtener información de las tablas
-    const { data: tables, error } = await supabase
+
+    // `information_schema.tables` es un catálogo interno de Postgres, no una tabla
+    // del esquema `public`, por lo que queda deliberadamente fuera de los tipos
+    // generados. Se accede a través de un cliente sin tipar acotado SOLO a esta
+    // consulta de metadatos; la fila devuelta se estrecha a la forma que usamos.
+    const metadataClient = supabase as unknown as {
+      from: (relation: string) => {
+        select: (columns: string) => {
+          eq: (
+            column: string,
+            value: string,
+          ) => {
+            order: (
+              column: string,
+            ) => Promise<{
+              data: Array<{ table_name: string }> | null
+              error: { message: string } | null
+            }>
+          }
+        }
+      }
+    }
+
+    const { data: tables, error } = await metadataClient
       .from('information_schema.tables')
       .select('table_name')
       .eq('table_schema', 'public')

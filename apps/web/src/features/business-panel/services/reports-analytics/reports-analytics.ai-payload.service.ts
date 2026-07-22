@@ -64,10 +64,6 @@ export function extractJsonObject(value: string): string {
   return trimmed
 }
 
-export function resolveReportsAnalyticsGeminiModel(): string {
-  return process.env.REPORTS_ANALYTICS_GEMINI_MODEL || process.env.GEMINI_MODEL || 'gemini-3.5-flash'
-}
-
 export async function withReportsAnalyticsAiTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,

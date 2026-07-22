@@ -4,7 +4,7 @@ import {
   ReportsAnalyticsLocale,
   ReportsAnalyticsReportBlueprint,
 } from '../../../types/reports-analytics.types'
-import { resolveReportsAnalyticsGeminiModel } from '../reports-analytics.ai-payload.service'
+import { PLATFORM_DEFAULT_GEMINI_MODEL } from '@/lib/ai/model-settings/purposes'
 import { getBlueprintCopy } from './copy'
 import { buildDefaultArtifactPlan, buildDefaultSections } from './defaults'
 import { buildFallbackFeaturedMetrics } from './fallback-metrics'
@@ -13,7 +13,9 @@ import { normalizeBlueprint } from './normalize'
 export function buildFallbackReportsAnalyticsBlueprint(
   dataset: ReportsAnalyticsDataset,
   locale: ReportsAnalyticsLocale,
-  model = resolveReportsAnalyticsGeminiModel(),
+  // Los llamadores de producción siempre pasan el modelo efectivo; este default
+  // solo etiqueta el blueprint cuando se construye sin contexto de modelo.
+  model = PLATFORM_DEFAULT_GEMINI_MODEL,
   format: ReportsAnalyticsExportFormat = 'xlsx',
 ): ReportsAnalyticsReportBlueprint {
   const copy = getBlueprintCopy(locale)

@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 
 import { useLanguage } from "@/core/providers/I18nProvider";
 import { useThemeStore } from "@/core/stores/themeStore";
+import { VOICE_INPUT_ACCENT_FALLBACK } from "@/core/theme/voice-input-colors";
+import { useOptionalOrganizationStylesContext } from "@/features/business-panel/contexts/OrganizationStylesContext";
 import { CourseLiaInputBar } from "@/features/courses/components/CourseLia/components/CourseLiaInputBar";
 import { VoiceErrorBanner } from "@/features/courses/components/CourseLia/components/VoiceErrorBanner";
 import { useCourseLiaSpeechInput } from "@/features/courses/components/CourseLia/hooks/useCourseLiaSpeechInput";
@@ -40,10 +42,15 @@ export function DialogueComposer({
   // `course-theme-css-base.ts`). `--color-contrast` es el token de texto estable
   // de la app (oscuro sobre claro) y `--color-bg-light` es blanco en ambos modos.
   const inputTextColor = isLightTheme ? "var(--color-contrast)" : "var(--color-bg-light)";
+  // Acento de la organización (branding personalizado) con el acento de la
+  // plataforma como respaldo. Lo usa, entre otros, el botón de micrófono.
+  const organizationStyles = useOptionalOrganizationStylesContext();
+  const accentColor =
+    organizationStyles?.effectiveStyles?.panel?.accent_color || VOICE_INPUT_ACCENT_FALLBACK;
   const themeColors = useMemo<CourseLiaThemeColors>(
     () => ({
-      accentColor: "var(--color-accent)",
-      assistantLinkColor: "var(--color-accent)",
+      accentColor,
+      assistantLinkColor: accentColor,
       borderColor: isLightTheme ? "var(--color-gray-200)" : "rgba(255,255,255,0.1)",
       headerBg: "transparent",
       inputBg: isLightTheme ? "var(--color-bg-light)" : "rgba(255,255,255,0.06)",
@@ -51,11 +58,11 @@ export function DialogueComposer({
       messageBubbleAssistant: "transparent",
       messageBubbleUser: "transparent",
       panelBg: "transparent",
-      primaryAction: "var(--color-accent)",
+      primaryAction: accentColor,
       textPrimary: inputTextColor,
       textSecondary: "var(--color-gray-500)",
     }),
-    [isLightTheme, inputTextColor],
+    [accentColor, isLightTheme, inputTextColor],
   );
   const {
     isListening,

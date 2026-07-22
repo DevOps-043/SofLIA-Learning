@@ -16,6 +16,7 @@ export {
   createOrganizationAiContextRepository,
   extractOrganizationSlugFromPage,
   resolveActiveOrganizationAiContext,
+  resolveCourseOrganizationAiContext,
   resolveStrictOrganizationAiContext,
 } from './organization-ai-context.service';
 export type {

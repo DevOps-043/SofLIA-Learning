@@ -1,3 +1,4 @@
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { translateCourseOnCreate } from '../../../core/services/courseTranslation.service'
@@ -150,7 +151,7 @@ export async function GET(request: NextRequest) {
       },
       environment: {
         hasGeminiKey: !!(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY),
-        geminiModel: process.env.GEMINI_MODEL || 'gemini-3.5-flash'
+        geminiModel: (await getAiModelSettings('auto_translation')).model
       }
     })
   } catch (error) {

@@ -48,8 +48,15 @@ export async function fetchQuestionById({
   slug: string;
 }) {
   const response = await fetch(`/api/courses/${slug}/questions/${questionId}`);
-  if (!response.ok) {
+
+  // 404 = la pregunta no pertenece a la comunidad del usuario (otra organización)
+  // o fue eliminada: no es un error recuperable, simplemente no es visible.
+  if (response.status === 404) {
     return null;
+  }
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch course question");
   }
 
   return (await response.json()) as CourseQuestion;

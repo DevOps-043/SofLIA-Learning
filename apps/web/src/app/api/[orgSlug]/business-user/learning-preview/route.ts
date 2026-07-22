@@ -1,6 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextRequest, NextResponse } from 'next/server'
 
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
+import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { requireBusinessUser } from '@/lib/auth/requireBusiness'
@@ -225,7 +227,8 @@ async function generatePreviewWithGemini(input: {
   locale?: string
 }) {
   const apiKey = getGeminiApiKey()
-  const modelName = process.env.LEARNING_PREVIEW_GEMINI_MODEL || process.env.GEMINI_MODEL || 'gemini-3.5-flash'
+  const settings = await getAiModelSettings('learning_preview')
+  const modelName = settings.model
 
   if (!apiKey) {
     return {
@@ -266,11 +269,10 @@ async function generatePreviewWithGemini(input: {
           parts: [{ text: JSON.stringify(prompt) }],
         },
       ],
-      generationConfig: {
-        temperature: 0.25,
-        maxOutputTokens: 600,
+      generationConfig: buildManagedGenerationConfig(settings, {
+        // No administrable: la respuesta se parsea como JSON obligatoriamente.
         responseMimeType: 'application/json',
-      },
+      }),
     })
 
     const parsed = parseGeminiPreview(result.response.text())
@@ -362,10 +364,11 @@ async function getPreviewResult(input: {
     logger.error('Failed to read learning preview from legacy cache table', error)
   }
 
+  const { model: configuredPreviewModel } = await getAiModelSettings('learning_preview')
   const fallback = {
     ...buildFallbackPreview(input),
     source: 'fallback' as const,
-    model: `${process.env.LEARNING_PREVIEW_GEMINI_MODEL || process.env.GEMINI_MODEL || 'gemini-3.5-flash'}:timeout-fallback`,
+    model: `${configuredPreviewModel}:timeout-fallback`,
   }
 
   const generated = await withTimeout(

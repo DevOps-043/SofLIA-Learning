@@ -38,6 +38,13 @@ function getGeminiApiKey() {
   return process.env.GEMINI_TTS_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || null;
 }
 
+/**
+ * Modelo de TTS. Deliberadamente NO administrable desde el panel: este
+ * identificador forma parte de la clave del caché de audio y se deriva también
+ * en rutas síncronas de construcción de trabajos. Hacerlo configurable en
+ * caliente invalidaría el audio ya cacheado y obligaría a volver asíncrona la
+ * derivación de la clave. Se cambia por entorno + redeploy, a propósito.
+ */
 function getGeminiTTSModelId() {
   return process.env.GEMINI_TTS_MODEL || DEFAULT_GEMINI_TTS_MODEL_ID;
 }

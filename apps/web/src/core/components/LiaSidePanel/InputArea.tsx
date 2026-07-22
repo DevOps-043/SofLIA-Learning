@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Mic, Loader2 } from 'lucide-react';
+import { buildVoiceInputColors } from '../../theme/voice-input-colors';
 import { LiaThemeColors } from './types';
 
 const MAX_TEXTAREA_HEIGHT = 120; // ~5 rows
@@ -133,6 +134,10 @@ export function InputArea({
 
   const disabledBg = isLightTheme ? 'var(--color-gray-200)' : 'var(--color-gray-800)';
 
+  // El micrófono usa el color de la organización (acento de plataforma si no hay
+  // branding) en lugar del gris neutro, que resultaba invisible para el usuario.
+  const voiceColors = buildVoiceInputColors(themeColors.accentColor);
+
   const buttonBackgroundColor =
     buttonMode === 'stop'
       ? 'var(--color-error)'
@@ -142,7 +147,7 @@ export function InputArea({
       ? canSendMessage
         ? themeColors.accentColor
         : disabledBg
-      : 'transparent';
+      : voiceColors.background;
 
   const buttonTitle =
     buttonMode === 'stop'
@@ -247,7 +252,7 @@ export function InputArea({
             backgroundColor: buttonBackgroundColor,
             border:
               buttonMode === 'mic'
-                ? `1px solid ${themeColors.inputBorder}`
+                ? `1px solid ${voiceColors.border}`
                 : buttonMode === 'stop'
                 ? '1px solid var(--color-error)'
                 : 'none',
@@ -281,7 +286,7 @@ export function InputArea({
             />
           ) : (
             <Mic
-              style={{ width: '15px', height: '15px', color: themeColors.textSecondary }}
+              style={{ width: '15px', height: '15px', color: voiceColors.icon }}
             />
           )}
         </button>

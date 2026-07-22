@@ -14,7 +14,8 @@
     "companies": "Companies",
     "reports": "Reports",
     "reviews": "Reviews",
-    "systemStatus": "System Status"
+    "systemStatus": "System Status",
+    "aiSettings": "AI models"
   },
   "systemStatus": {
     "title": "System Status",
@@ -1765,5 +1766,131 @@
     "noUserAssignments": "No individual assignments registered.",
     "confirmRevokeOrg": "Revoke access to this course for the ENTIRE organization?",
     "confirmRevokeUser": "Revoke this individual assignment?"
+  },
+  "aiSettings": {
+    "title": "AI models",
+    "subtitle": "Configure the Gemini model, token limit, temperature and thinking level for each AI use across the platform. General SofLIA and SofLIA inside course activities are configured separately.",
+    "propagationNotice": "Changes apply without a redeploy. They may take up to a minute to propagate to every server instance.",
+    "loadError": "The AI model configuration could not be loaded.",
+    "groups": {
+      "soflia": "SofLIA (general assistant)",
+      "courses": "SofLIA in courses and activities",
+      "analytics": "Analytics and reports",
+      "content": "Content and translation",
+      "platform": "Platform"
+    },
+    "fields": {
+      "model": "Model",
+      "maxOutputTokens": "Max output tokens",
+      "temperature": "Temperature",
+      "thinkingLevel": "Thinking level",
+      "inheritedPlaceholder": "Inherited"
+    },
+    "thinkingLevels": {
+      "default": "Provider default",
+      "off": "Off",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "dynamic": "Dynamic"
+    },
+    "source": {
+      "database": "Configured",
+      "environment": "Inherited from environment",
+      "default": "Default value"
+    },
+    "actions": {
+      "save": "Save",
+      "saving": "Saving...",
+      "reset": "Reset"
+    },
+    "feedback": {
+      "saved": "Configuration updated.",
+      "saveError": "The configuration could not be saved.",
+      "reset": "Inherited value restored.",
+      "resetError": "The configuration could not be reset."
+    },
+    "purposes": {
+      "liaGeneral": {
+        "label": "General SofLIA",
+        "description": "Main SofLIA chat across the dashboard, lessons and planner."
+      },
+      "liaIntent": {
+        "label": "Intent detection",
+        "description": "Classifies what the user is asking for before answering."
+      },
+      "liaDictation": {
+        "label": "Voice dictation",
+        "description": "Transcribes the audio the user dictates to SofLIA."
+      },
+      "liaLessonSuggestions": {
+        "label": "Lesson suggestions",
+        "description": "Generates suggested questions inside a lesson."
+      },
+      "dialogueTutor": {
+        "label": "Activity tutor",
+        "description": "Messages SofLIA shows the student during a conversational activity."
+      },
+      "dialogueEvaluator": {
+        "label": "Activity evaluator",
+        "description": "Scores student answers against the rubric. A low token budget truncates the JSON and makes the activity fail."
+      },
+      "activityValidation": {
+        "label": "Activity validation",
+        "description": "Reviews activity submissions and produces feedback."
+      },
+      "lessonAutoNote": {
+        "label": "Lesson auto-notes",
+        "description": "Generates the automatic lesson note and note titles."
+      },
+      "courseCompendium": {
+        "label": "Course compendium",
+        "description": "Synthesises a whole course into a single document."
+      },
+      "courseTimeEstimation": {
+        "label": "Duration estimation",
+        "description": "Reviews the estimated duration of lessons and modules."
+      },
+      "reportsInsights": {
+        "label": "Report insights",
+        "description": "AI conclusions in the organization reports panel."
+      },
+      "reportsBlueprint": {
+        "label": "Report structure",
+        "description": "Designs the structure of exportable reports."
+      },
+      "businessUserAnalytics": {
+        "label": "Employee analytics",
+        "description": "Personal insights in each employee analytics view."
+      },
+      "learningPreview": {
+        "label": "Course and path previews",
+        "description": "Generated descriptions for courses and learning paths."
+      },
+      "notebookEnrichment": {
+        "label": "Notebook enrichment",
+        "description": "Summarises notes, extracts key concepts and detects tasks."
+      },
+      "autoTranslation": {
+        "label": "Automatic translation",
+        "description": "Translates content between Spanish, English and Portuguese."
+      },
+      "languageDetection": {
+        "label": "Language detection",
+        "description": "Identifies the language of a text."
+      },
+      "videoProcessing": {
+        "label": "Video processing",
+        "description": "Transcribes and analyses videos uploaded by administrators."
+      },
+      "moderation": {
+        "label": "Content moderation",
+        "description": "Analyses published content looking for inappropriate material."
+      },
+      "structuredFallback": {
+        "label": "Structured generation (fallback)",
+        "description": "Model used by JSON-schema generations that do not declare their own purpose."
+      }
+    }
   }
 }

@@ -15,6 +15,7 @@
 
 import 'server-only'
 
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
 import { generateStructuredContent } from '@/lib/ai/structured-generation.server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { evaluatePromptInjectionRisk } from '@/lib/security/prompt-injection-detector'
@@ -34,7 +35,6 @@ import {
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
-const FALLBACK_MODEL = 'gemini-3.5-flash'
 const MODEL_TIMEOUT_MS = 25_000
 const MAX_PROMPT_TEXT_CHARS = 12_000
 const PROCESSING_STALE_MINUTES = 15
@@ -79,6 +79,7 @@ async function generateEnrichment(input: {
   noteText: string
   prompt: string
 }): Promise<NormalizedEnrichment> {
+  const settings = await getAiModelSettings('notebook_enrichment')
   const result = await generateStructuredContent({
     audit: {
       action: 'notebook_enrichment_model_completed',
@@ -88,12 +89,13 @@ async function generateEnrichment(input: {
       resourceType: 'notebook_note',
     },
     jsonSchema: AI_ENRICHMENT_JSON_SCHEMA,
-    maxOutputTokens: 1_024,
-    model: process.env.GEMINI_MODEL || FALLBACK_MODEL,
+    maxOutputTokens: settings.maxOutputTokens ?? 1_024,
+    model: settings.model,
     operation: 'notebook_enrichment',
     prompt: input.prompt,
     schema: structuredAiEnrichmentOutputSchema,
-    temperature: 0.2,
+    temperature: settings.temperature ?? 0.2,
+    thinkingLevel: settings.thinkingLevel,
     timeoutMs: MODEL_TIMEOUT_MS,
     untrustedText: input.noteText,
   })

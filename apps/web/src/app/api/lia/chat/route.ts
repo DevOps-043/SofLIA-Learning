@@ -36,6 +36,8 @@ import {
   executeWithCircuitBreaker,
 } from '@/lib/resilience/circuit-breaker';
 import { resolveGeminiModel } from '@/lib/gemini/client';
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service';
+import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config';
 import { logger } from '@/lib/logger';
 import {
   buildPendingBugReportPromptSection,
@@ -477,12 +479,11 @@ async function handlePost(
 
     // Initialize Gemini
     const genAI = new GoogleGenerativeAI(googleApiKey);
-    // Modelo general de SofLIA: usa override dedicado y normaliza aliases viejos.
-    // Si no hay configuracion, usa Gemini 3.5 Flash como fallback estable.
-    const modelName = resolveGeminiModel(
-      process.env.LIA_CHAT_GEMINI_MODEL || 'gemini-3.5-flash',
-      'gemini-3.5-flash',
-    );
+    // Modelo general de SofLIA: configurado desde el panel de superadmin bajo el
+    // propósito `lia_general` (independiente del modelo de las actividades de curso).
+    const liaSettings = await getAiModelSettings('lia_general');
+    const modelName = resolveGeminiModel(liaSettings.model);
+    const liaGenerationConfig = buildManagedGenerationConfig(liaSettings);
 
     const model = genAI.getGenerativeModel({
       model: modelName,
@@ -492,7 +493,7 @@ async function handlePost(
         { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
         { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
       ],
-      generationConfig: { maxOutputTokens: 8192, temperature: 0.7 },
+      generationConfig: liaGenerationConfig,
     });
 
     const cleanHistory = buildCleanHistory(sanitizedMessages);
@@ -500,7 +501,7 @@ async function handlePost(
 
     const chatSession = model.startChat({
       history: cleanHistory,
-      generationConfig: { maxOutputTokens: 8192, temperature: 0.7 },
+      generationConfig: liaGenerationConfig,
     });
 
     const messageParts = buildCurrentMessageParts(messageWithContext, lastMessage.attachments);

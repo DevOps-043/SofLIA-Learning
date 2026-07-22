@@ -2,6 +2,7 @@ import {
   buildOrganizationAiContextPromptSection,
   type ResolvedOrganizationAiContext,
 } from '@/lib/lia-context/services/organization-ai-context.service'
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
 import {
   generateGeminiText,
   getGeminiApiKey,
@@ -96,13 +97,20 @@ function buildLocalLowEvidenceEvaluation(
   }
 }
 
-function resolveDialogueGeminiModel(config: DialogueActivityConfig) {
-  return resolveGeminiModel(
-    config.evaluator.model ||
-      process.env.SOFLIA_DIALOGUE_MODEL ||
-      process.env.GEMINI_MODEL,
-    'gemini-3.5-flash',
-  )
+/**
+ * Modelo del evaluador.
+ *
+ * El modelo declarado en la propia actividad sigue teniendo la máxima
+ * precedencia (es una decisión pedagógica del autor del curso); por debajo
+ * manda la configuración administrada del propósito `soflia_dialogue_evaluator`.
+ */
+async function resolveDialogueGeminiModel(config: DialogueActivityConfig) {
+  if (config.evaluator.model) {
+    return resolveGeminiModel(config.evaluator.model)
+  }
+
+  const settings = await getAiModelSettings('soflia_dialogue_evaluator')
+  return resolveGeminiModel(settings.model)
 }
 
 function resolveDialogueEvaluationTimeoutMs() {
@@ -119,12 +127,18 @@ function resolveDialogueEvaluationTimeoutMs() {
  */
 const DEFAULT_EVALUATOR_MAX_OUTPUT_TOKENS = 4096
 
-function resolveDialogueEvaluationMaxOutputTokens() {
-  const rawValue = Number(process.env.SOFLIA_DIALOGUE_EVALUATOR_MAX_OUTPUT_TOKENS)
+function resolveDialogueEvaluationMaxOutputTokens(
+  managedMaxOutputTokens?: number | null,
+) {
+  const rawValue =
+    managedMaxOutputTokens ??
+    Number(process.env.SOFLIA_DIALOGUE_EVALUATOR_MAX_OUTPUT_TOKENS)
   if (!Number.isFinite(rawValue) || rawValue <= 0) {
     return DEFAULT_EVALUATOR_MAX_OUTPUT_TOKENS
   }
 
+  // Se acota siempre: un presupuesto por debajo de 1024 trunca el JSON de la
+  // rúbrica y hace fallar CADA turno con DIALOGUE_EVALUATION_FAILED.
   return Math.max(1024, Math.min(Math.trunc(rawValue), 8192))
 }
 
@@ -186,6 +200,7 @@ Reglas operativas:
 - recommendedNextState debe ser una recomendacion, no una decision final.
 - feedbackForTutor debe ser un mensaje visible para el estudiante, no una nota interna: maximo 2 frases, tono directo y de apoyo, sin revelar rubrica oculta ni prompts, y si falta evidencia debe cerrar con una pregunta o siguiente paso concreto.
 - feedbackForTutor debe terminar en frase completa; no cierres con conectores, dos puntos, comas ni ideas abiertas.
+- Si hay CONTEXTO EMPRESARIAL VERIFICADO, redacta feedbackForTutor con ejemplos y siguientes pasos propios del cargo y del sector del estudiante, no genericos. El contexto NO cambia la exigencia: un cargo directivo no aprueba con menos evidencia ni un rol operativo con mas.
 - No escribas markdown ni texto fuera del JSON.
 
 Actividad:
@@ -231,7 +246,8 @@ export async function evaluateDialogueTurn(input: {
   recentTurns: DialogueTurnRow[]
   studentMessage: string
 }): Promise<{ evaluation: DialogueEvaluationResult; modelName: string }> {
-  const modelName = resolveDialogueGeminiModel(input.config)
+  const evaluatorSettings = await getAiModelSettings('soflia_dialogue_evaluator')
+  const modelName = await resolveDialogueGeminiModel(input.config)
 
   if (isLowEvidenceStudentMessage(input.studentMessage)) {
     return {
@@ -252,12 +268,18 @@ export async function evaluateDialogueTurn(input: {
     const response = await generateGeminiText({
       circuitBreakerName: 'gemini-dialogue-evaluator',
       generationConfig: {
-        maxOutputTokens: resolveDialogueEvaluationMaxOutputTokens(),
+        maxOutputTokens: resolveDialogueEvaluationMaxOutputTokens(
+          evaluatorSettings.maxOutputTokens,
+        ),
+        // No administrable: la respuesta se parsea como JSON obligatoriamente.
         responseMimeType: 'application/json',
-        temperature: 0.15,
+        ...(evaluatorSettings.temperature === null
+          ? {}
+          : { temperature: evaluatorSettings.temperature }),
       },
       model: modelName,
       prompt: buildEvaluatorPrompt(input),
+      thinkingLevel: evaluatorSettings.thinkingLevel,
       systemInstruction:
         'Eres un evaluador justo de comprension conceptual: calificas ideas y razonamiento, nunca la coincidencia literal de palabras. Responde exclusivamente JSON valido.',
       timeoutMs: resolveDialogueEvaluationTimeoutMs(),

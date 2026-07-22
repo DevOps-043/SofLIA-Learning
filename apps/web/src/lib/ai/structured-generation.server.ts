@@ -1,6 +1,9 @@
 import { GoogleGenAI } from '@google/genai'
 import type { ZodType } from 'zod'
 
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
+import { buildThinkingConfig, type AiThinkingLevel } from '@/lib/ai/model-settings/thinking'
+
 import { evaluatePromptInjectionRisk } from '@/lib/security/prompt-injection-detector'
 import { writeSecurityAuditLogAsync } from '@/lib/security/security-audit-log'
 import { logger } from '@/lib/utils/logger'
@@ -34,6 +37,8 @@ export interface StructuredGenerationInput<T> {
   prompt: string
   schema: ZodType<T>
   temperature?: number
+  /** Nivel de razonamiento; normalmente proviene del propósito administrado. */
+  thinkingLevel?: AiThinkingLevel
   timeoutMs?: number
   /** Only user-authored text belongs here. It is scanned, never logged. */
   untrustedText?: string
@@ -136,7 +141,15 @@ export async function generateStructuredContent<T>(
   const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY
   if (!apiKey) throw new Error('GEMINI_API_KEY no esta configurada.')
 
-  const model = input.model || process.env.GEMINI_MODEL || DEFAULT_MODEL
+  // El propósito administrado del punto de llamada tiene precedencia; el
+  // propósito de respaldo cubre a quien no declare uno explícito.
+  const fallbackSettings = input.model
+    ? null
+    : await getAiModelSettings('structured_generation_fallback')
+  const model = input.model || fallbackSettings?.model || DEFAULT_MODEL
+  const thinkingConfig = buildThinkingConfig(
+    input.thinkingLevel ?? fallbackSettings?.thinkingLevel ?? 'default',
+  )
   const controller = new AbortController()
   const timeoutMs = input.timeoutMs ?? DEFAULT_TIMEOUT_MS
   const timeout = setTimeout(() => controller.abort(), timeoutMs)
@@ -155,6 +168,7 @@ export async function generateStructuredContent<T>(
         responseJsonSchema: input.jsonSchema,
         responseMimeType: 'application/json',
         temperature: input.temperature ?? 0.2,
+        ...(thinkingConfig ? { thinkingConfig } : {}),
       },
     })
 

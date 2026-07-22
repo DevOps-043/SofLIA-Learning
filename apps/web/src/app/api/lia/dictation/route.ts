@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { SessionService } from '@/features/auth/services/session.service'
-import { generateGeminiText, resolveGeminiModel } from '@/lib/gemini/client'
+import { generateGeminiText } from '@/lib/gemini/client'
 import { logger } from '@/lib/utils/logger'
 
 export const runtime = 'nodejs'
@@ -95,14 +95,7 @@ export async function POST(request: NextRequest) {
 
     const transcription = await generateGeminiText({
       circuitBreakerName: 'gemini-lia-dictation',
-      generationConfig: {
-        maxOutputTokens: 1200,
-        temperature: 0.1,
-      },
-      model: resolveGeminiModel(
-        process.env.GEMINI_TRANSCRIPTION_MODEL,
-        'gemini-3.5-flash',
-      ),
+      purpose: 'lia_dictation',
       prompt: [
         {
           text:

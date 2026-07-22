@@ -1,5 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
+import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config'
 import { extractVisibleGeminiText } from '@/lib/gemini/client'
 import {
   activityEvaluationFeedbackSchema,
@@ -145,14 +147,14 @@ export async function evaluateActivitySubmissionWithSoflia(input: {
   }
 
   const genAI = new GoogleGenerativeAI(googleApiKey)
-  const modelName = process.env.GEMINI_MODEL || 'gemini-3.5-flash'
+  const settings = await getAiModelSettings('activity_validation')
+  const modelName = settings.model
   const model = genAI.getGenerativeModel({
     model: modelName,
-    generationConfig: {
-      maxOutputTokens: 1200,
-      temperature: 0.2,
+    generationConfig: buildManagedGenerationConfig(settings, {
+      // No administrable: la respuesta se parsea como JSON obligatoriamente.
       responseMimeType: 'application/json',
-    },
+    }),
   })
 
   try {

@@ -75,7 +75,7 @@
     "transcript": "Transcrição",
     "summary": "Resumo",
     "activities": "Atividades",
-    "questions": "Perguntas"
+    "questions": "Perguntas da comunidade"
   },
   "lesson": {
     "duration": "duração",
@@ -452,7 +452,7 @@
     "serverResponseError": "Erro ao processar resposta do servidor"
   },
   "questions": {
-    "title": "Perguntas",
+    "title": "Perguntas da comunidade",
     "askQuestion": "Fazer uma pergunta",
     "yourQuestion": "Sua pergunta",
     "questionPlaceholder": "Escreva sua pergunta sobre o curso...",

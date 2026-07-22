@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger'
 import { analyzeTimeEstimationTarget } from '../courseTimeEstimation.rules'
-import { AI_BATCH_SIZE, DEFAULT_MODEL, getGeminiApiKey } from './config'
+import { AI_BATCH_SIZE, getGeminiApiKey } from './config'
 import { buildFallbackResult } from './fallback'
 import { reviewChunkWithGemini } from './gemini-review'
 import { chunkArray } from './utils'
@@ -75,7 +75,7 @@ async function reviewChunk(
     logger.error(
       'Falling back to deterministic course time estimates after Gemini review failure',
       error,
-      { courseTitle, targetCount: chunk.length, model: DEFAULT_MODEL },
+      { courseTitle, purpose: 'course_time_estimation', targetCount: chunk.length },
     )
 
     chunk.forEach((analysis) => {

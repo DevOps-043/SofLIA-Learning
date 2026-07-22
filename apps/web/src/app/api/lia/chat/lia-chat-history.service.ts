@@ -1,15 +1,22 @@
 import 'server-only'
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { resolveGeminiModel } from '@/lib/gemini/client'
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../lib/supabase/types';
 import type { ChatMessage, ChatRequest } from './platform-context.service';
 import { enqueueLessonAutoNoteJob } from '@/features/notebook/services/notebook-generation.server.service';
 
-const LIA_CHAT_MODEL = resolveGeminiModel(
-  process.env.LIA_CHAT_GEMINI_MODEL || 'gemini-3.5-flash',
-  'gemini-3.5-flash',
-);
+/**
+ * El modelo se resuelve por llamada, no como constante de módulo: la
+ * configuración es administrable en caliente desde el panel de superadmin y una
+ * constante evaluada al cargar el módulo dejaría el histórico registrando un
+ * modelo obsoleto hasta el siguiente reinicio del proceso.
+ */
+async function resolveLiaChatModel(): Promise<string> {
+  const settings = await getAiModelSettings('lia_general');
+  return resolveGeminiModel(settings.model);
+}
 
 interface PersistConversationTurnParams {
   conversationId?: string;
@@ -285,7 +292,7 @@ export async function persistConversationTurn({
         conversation_id: conversationId,
         role: 'assistant',
         content: assistantContent,
-        model_used: LIA_CHAT_MODEL,
+        model_used: await resolveLiaChatModel(),
         tokens_used: 0,
         message_sequence: nextSequence + 1,
       })

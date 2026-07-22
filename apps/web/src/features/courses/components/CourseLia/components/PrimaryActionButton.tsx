@@ -1,6 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Mic, Send, Square } from 'lucide-react';
 
+import { buildVoiceInputColors } from '@/core/theme/voice-input-colors';
+
 import { COURSE_LIA_COLORS } from '../constants';
 import type { CourseLiaThemeColors, PrimaryActionMode } from '../types';
 
@@ -25,13 +27,17 @@ export function PrimaryActionButton({
   onClick,
   themeColors,
 }: PrimaryActionButtonProps) {
+  // El micrófono se pinta con el color de la organización (o el acento de la
+  // plataforma si no hay branding) para que sea visible: en gris pasaba
+  // desapercibido y los usuarios no descubrían el dictado.
+  const voiceColors = buildVoiceInputColors(themeColors.accentColor);
   const backgroundColor = mode === 'stop'
     ? 'var(--color-error)'
     : mode === 'send'
       ? themeColors.primaryAction
       : isListening
         ? 'rgba(16,185,129,0.16)'
-        : isLightTheme ? 'var(--color-gray-300)' : 'var(--color-gray-700)';
+        : voiceColors.background;
 
   return (
     <motion.button
@@ -42,7 +48,7 @@ export function PrimaryActionButton({
       whileTap={{ scale: 0.95 }}
       title={label}
       aria-label={label}
-      style={{ width: '34px', height: '34px', borderRadius: '50%', backgroundColor, border: 'none', cursor: disabled ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 180ms ease' }}
+      style={{ width: '34px', height: '34px', borderRadius: '50%', backgroundColor, border: mode === 'voice' && !isListening ? `1px solid ${voiceColors.border}` : 'none', cursor: disabled ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 180ms ease' }}
     >
       <AnimatePresence mode="wait">
         {mode === 'stop' ? (
@@ -59,7 +65,7 @@ export function PrimaryActionButton({
           </motion.span>
         ) : (
           <motion.span key="mic" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.15 }}>
-            <Mic style={{ width: '16px', height: '16px', color: isLightTheme ? 'var(--color-gray-500)' : 'var(--color-gray-400)' }} />
+            <Mic style={{ width: '16px', height: '16px', color: voiceColors.icon }} />
           </motion.span>
         )}
       </AnimatePresence>

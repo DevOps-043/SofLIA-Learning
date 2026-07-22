@@ -1,14 +1,13 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
+import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config'
 import { logger } from '@/lib/utils/logger'
 import type {
   ReportsAnalyticsAiInsights,
   ReportsAnalyticsDataset,
   ReportsAnalyticsLocale,
 } from '../../types/reports-analytics.types'
-import {
-  buildReportsAnalyticsAiPayload,
-  resolveReportsAnalyticsGeminiModel,
-} from './reports-analytics.ai-payload.service'
+import { buildReportsAnalyticsAiPayload } from './reports-analytics.ai-payload.service'
 import { buildFallbackInsights } from './reports-analytics-insights/fallback'
 import { parseInsights } from './reports-analytics-insights/parse'
 import { buildSystemPrompt } from './reports-analytics-insights/prompt'
@@ -45,7 +44,8 @@ export async function generateReportsAnalyticsInsights({
   locale,
 }: GenerateReportsAnalyticsInsightsParams): Promise<ReportsAnalyticsAiInsights> {
   const apiKey = process.env.GOOGLE_API_KEY
-  const model = resolveReportsAnalyticsGeminiModel()
+  const settings = await getAiModelSettings('reports_analytics_insights')
+  const model = settings.model
 
   if (!apiKey) {
     return buildFallbackInsights(dataset, locale, model)
@@ -60,11 +60,10 @@ export async function generateReportsAnalyticsInsights({
     const result = await withTimeout(
       generativeModel.generateContent({
         contents: [{ role: 'user', parts: [{ text: JSON.stringify(buildReportsAnalyticsAiPayload(dataset)) }] }],
-        generationConfig: {
-          temperature: 0.2,
-          maxOutputTokens: 4000,
+        generationConfig: buildManagedGenerationConfig(settings, {
+          // No administrable: la respuesta se parsea como JSON obligatoriamente.
           responseMimeType: 'application/json',
-        },
+        }),
       }),
       GEMINI_TIMEOUT_MS,
     )

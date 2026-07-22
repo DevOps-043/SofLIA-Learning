@@ -19,6 +19,7 @@ import { loadLessonData, type LessonDataResult } from './learn-data/learn-data-m
 import { loadNotesStats, type NotesStats } from './learn-data/learn-data-progress.service'
 import type { ModulesWithProgressResult } from './learn-data/learn-data-lessons.service'
 import type { LearningPathAccessState } from '@/features/learning-paths/services/learning-path-access.server'
+import type { QuestionsOrgScope } from '@/app/api/courses/_lib/question-org-scope'
 
 export interface CourseRow {
   id: string
@@ -55,6 +56,10 @@ export async function loadLearnDataPayload(
   slug: string,
   lessonId: string | null,
   language: string,
+  // Alcance de la comunidad de preguntas, resuelto desde la sesión por el
+  // llamador. No se deriva de `organizationId` porque ese valor llega en la
+  // query string y el cliente podría falsearlo.
+  questionsOrgScope: QuestionsOrgScope,
   userId?: string,
   organizationId?: string | null,
   includeLessonData = false,
@@ -77,7 +82,7 @@ export async function loadLearnDataPayload(
         language,
         organizationId,
       ),
-      loadCourseQuestions(supabase, course.id, userId),
+      loadCourseQuestions(supabase, course.id, userId, questionsOrgScope),
       includeLessonData && lessonId
         ? loadLessonData(supabase, course.id, lessonId, language)
         : Promise.resolve(null),

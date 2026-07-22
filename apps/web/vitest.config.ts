@@ -12,6 +12,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      // `server-only` lanza al importarse fuera de un Server Component, lo que
+      // rompe la recoleccion de cualquier test que alcance un modulo de
+      // servidor. En Vitest esa frontera no existe: se sustituye por un stub.
+      'server-only': path.resolve(__dirname, './src/test/server-only-stub.ts'),
       '@': path.resolve(__dirname, './src'),
       '@/features': path.resolve(__dirname, './src/features'),
       '@/core': path.resolve(__dirname, './src/core'),

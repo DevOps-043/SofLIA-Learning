@@ -5,7 +5,6 @@ import { calculateGeminiMetadata, trackAICall } from '../../lib/ai/usage-monitor
 import {
   generateGeminiText,
   getGeminiApiKey,
-  resolveGeminiModel,
 } from '../../lib/gemini/client'
 
 type TargetLanguage = SupportedLanguage
@@ -25,7 +24,6 @@ export class AutoTranslationService {
       techDebtLogger.error('[AutoTranslationService] GEMINI_API_KEY no esta configurada.')
       techDebtLogger.error('[AutoTranslationService] Variables de entorno disponibles:', {
         hasGeminiKey: Boolean(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY),
-        hasGeminiModel: Boolean(process.env.GEMINI_MODEL),
         nodeEnv: process.env.NODE_ENV,
       })
     }
@@ -89,18 +87,15 @@ Traduccion:`
 
     try {
       const startTime = Date.now()
-      const model = resolveGeminiModel(
-        process.env.AUTO_TRANSLATION_GEMINI_MODEL,
-        'gemini-3.5-flash',
-      )
       const result = await generateGeminiText({
         circuitBreakerName: 'gemini-auto-translation',
         generationConfig: {
+          // No administrable: el presupuesto se dimensiona por longitud del texto
+          // a traducir; fijarlo desde el panel truncaría traducciones largas.
           maxOutputTokens: Math.min(4000, Math.ceil(text.length * 2)),
-          temperature: 0.3,
         },
-        model,
         prompt: userPrompt,
+        purpose: 'auto_translation',
         systemInstruction: systemPrompt,
       })
       const responseTime = Date.now() - startTime

@@ -4,9 +4,13 @@ import {
   GoogleGenerativeAI,
   HarmBlockThreshold,
   HarmCategory,
+  type GenerationConfig,
   type Part,
 } from '@google/generative-ai'
 
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
+import type { AiModelPurposeId } from '@/lib/ai/model-settings/purposes'
+import { buildThinkingConfig, type AiThinkingLevel } from '@/lib/ai/model-settings/thinking'
 import {
   CIRCUIT_BREAKER_DEFAULTS,
   executeWithCircuitBreaker,
@@ -26,6 +30,11 @@ export interface GeminiTextResult {
 
 interface GenerateGeminiTextParams {
   circuitBreakerName: string
+  /**
+   * Ajustes explícitos. Tienen precedencia sobre lo resuelto por `purpose`, de
+   * modo que un punto de llamada pueda fijar un valor que no debe ser
+   * administrable (p. ej. `responseMimeType`).
+   */
   generationConfig?: {
     maxOutputTokens?: number
     responseMimeType?: string
@@ -36,8 +45,24 @@ interface GenerateGeminiTextParams {
   history?: Array<{ role: 'user' | 'model'; parts: Part[] }>
   model?: string
   prompt: string | Part[]
+  /**
+   * Propósito de IA del que heredar modelo, presupuesto de tokens, temperatura y
+   * nivel de razonamiento configurados desde el panel de superadmin.
+   * Omitirlo mantiene el comportamiento histórico (entorno + defaults del cliente).
+   */
+  purpose?: AiModelPurposeId
   systemInstruction?: string
+  thinkingLevel?: AiThinkingLevel
   timeoutMs?: number
+}
+
+/**
+ * `thinkingConfig` existe en la API REST de Gemini pero el SDK
+ * `@google/generative-ai` (v0.24) es anterior a ese campo y no lo tipa. Se envía
+ * por passthrough: los modelos que no lo soportan lo ignoran.
+ */
+type GeminiGenerationConfigWithThinking = Record<string, unknown> & {
+  thinkingConfig?: { thinkingBudget: number }
 }
 
 export function getGeminiApiKey(): string | null {
@@ -120,7 +145,9 @@ export async function generateGeminiText({
   history,
   model,
   prompt,
+  purpose,
   systemInstruction,
+  thinkingLevel,
   timeoutMs,
 }: GenerateGeminiTextParams): Promise<GeminiTextResult> {
   const apiKey = getGeminiApiKey()
@@ -128,7 +155,8 @@ export async function generateGeminiText({
     throw new Error('GEMINI_API_KEY no esta configurada')
   }
 
-  const modelName = resolveGeminiModel(model)
+  const settings = purpose ? await getAiModelSettings(purpose) : null
+  const modelName = resolveGeminiModel(model ?? settings?.model)
   const genAI = new GoogleGenerativeAI(apiKey)
   const geminiModel = genAI.getGenerativeModel({
     model: modelName,
@@ -141,27 +169,47 @@ export async function generateGeminiText({
     ],
   })
 
-  const config = {
+  // Precedencia: ajustes explícitos del punto de llamada → configuración
+  // administrada del propósito → defaults del cliente.
+  const config: GeminiGenerationConfigWithThinking = {
     maxOutputTokens: 8192,
     temperature: 0.7,
     topK: 40,
     topP: 0.95,
+    ...(settings?.maxOutputTokens !== null && settings?.maxOutputTokens !== undefined
+      ? { maxOutputTokens: settings.maxOutputTokens }
+      : {}),
+    ...(settings?.temperature !== null && settings?.temperature !== undefined
+      ? { temperature: settings.temperature }
+      : {}),
     ...generationConfig,
   }
+
+  const effectiveThinkingLevel = thinkingLevel ?? settings?.thinkingLevel
+  const thinkingConfig = effectiveThinkingLevel
+    ? buildThinkingConfig(effectiveThinkingLevel)
+    : undefined
+  if (thinkingConfig) {
+    config.thinkingConfig = thinkingConfig
+  }
+
+  // El SDK no tipa `thinkingConfig` (ver GeminiGenerationConfigWithThinking):
+  // se adapta al tipo del SDK en la frontera, no en toda la función.
+  const sdkGenerationConfig = config as GenerationConfig
 
   const result = await executeWithCircuitBreaker(
     circuitBreakerName,
     () => {
       if (history) {
         return geminiModel.startChat({
-          generationConfig: config,
+          generationConfig: sdkGenerationConfig,
           history,
         }).sendMessage(prompt)
       }
 
       return geminiModel.generateContent({
         contents: [{ role: 'user', parts: typeof prompt === 'string' ? [{ text: prompt }] : prompt }],
-        generationConfig: config,
+        generationConfig: sdkGenerationConfig,
       })
     },
     {

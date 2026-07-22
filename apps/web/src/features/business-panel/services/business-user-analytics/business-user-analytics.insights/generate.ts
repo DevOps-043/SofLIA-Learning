@@ -1,4 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
+import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config'
 import { logger } from '@/lib/utils/logger'
 import type {
   BusinessUserAnalyticsDataset,
@@ -21,7 +23,8 @@ export async function generateBusinessUserAnalyticsInsights({
   locale,
 }: GenerateBusinessUserAnalyticsInsightsParams): Promise<BusinessUserAnalyticsInsights> {
   const apiKey = process.env.GOOGLE_API_KEY
-  const model = process.env.REPORTS_ANALYTICS_GEMINI_MODEL || process.env.GEMINI_MODEL || 'gemini-3.5-flash'
+  const settings = await getAiModelSettings('business_user_analytics')
+  const model = settings.model
 
   if (!apiKey) {
     return buildUnavailableInsights(locale, model)
@@ -38,11 +41,10 @@ export async function generateBusinessUserAnalyticsInsights({
         role: 'user',
         parts: [{ text: JSON.stringify(buildInsightPayload(dataset)) }],
       }],
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 1800,
+      generationConfig: buildManagedGenerationConfig(settings, {
+        // No administrable: la respuesta se parsea como JSON obligatoriamente.
         responseMimeType: 'application/json',
-      },
+      }),
     })
 
     const parsed = parseInsights(result.response.text(), model)

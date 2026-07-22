@@ -5,7 +5,6 @@ import {
 import {
   generateGeminiText,
   getGeminiApiKey,
-  resolveGeminiModel,
 } from '@/lib/gemini/client'
 import { logger } from '../../../lib/utils/logger'
 import {
@@ -36,7 +35,6 @@ export async function callGemini(
     throw new Error('Gemini API key not configured')
   }
 
-  const modelName = resolveGeminiModel(process.env.GEMINI_MODEL, 'gemini-3.5-flash')
   const history = conversationHistory
     .filter((msg) => msg.role !== 'system')
     .map((msg) => ({
@@ -48,21 +46,21 @@ export async function callGemini(
     ? `Instruccion interna de SofLIA:\n${message}`
     : message
 
-  logger.info('[Gemini] Enviando mensaje de SofLIA', {
-    model: modelName,
-    messageLength: message.length,
-  })
-
+  // Modelo, tokens, temperatura y nivel de razonamiento provienen del propósito
+  // `lia_general`, administrable desde el panel de superadmin.
   const result = await generateGeminiText({
     circuitBreakerName: 'gemini-ai-chat',
-    generationConfig: {
-      maxOutputTokens: Number.parseInt(process.env.GEMINI_MAX_TOKENS || '8192', 10),
-      temperature: Number.parseFloat(process.env.GEMINI_TEMPERATURE || '0.7'),
-    },
     history,
-    model: modelName,
     prompt,
+    purpose: 'lia_general',
     systemInstruction: systemPrompt,
+  })
+
+  const modelName = result.model
+
+  logger.info('[Gemini] Mensaje de SofLIA procesado', {
+    messageLength: message.length,
+    model: modelName,
   })
 
   const promptTokens = result.usage?.promptTokenCount || 0

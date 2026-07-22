@@ -5,6 +5,10 @@ import type { SupportedLanguage } from '@/core/i18n/i18n'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
 import { resolveHlsUrlsForSources } from '@/lib/media/server/hls-source-resolver.server'
 import {
+  applyQuestionsOrgScope,
+  type QuestionsOrgScope,
+} from '@/app/api/courses/_lib/question-org-scope'
+import {
   getLessonsTableNameForLanguage,
   mergeTranslationContexts,
   normalizeLearnLanguage,
@@ -478,33 +482,44 @@ export async function loadModulesWithProgress(
   }
 }
 
+/**
+ * Preguntas de la comunidad del curso, acotadas a la organización del usuario.
+ *
+ * IMPORTANTE: esta ruta usa el cliente admin (sin RLS), así que el alcance debe
+ * venir resuelto desde la sesión (`resolveQuestionsOrgScope`) y nunca de un
+ * parámetro de la petición.
+ */
 export async function loadCourseQuestions(
   supabase: SupabaseServerClient,
   courseId: string,
   userId: string | undefined,
+  orgScope: QuestionsOrgScope,
 ) {
   interface QuestionRow extends Record<string, unknown> {
     id: string
     response_count?: number | null
   }
 
-  const { data: questions, error } = await supabase
-    .from('course_questions')
-    .select(
-      `
-      *,
-      user:users!course_questions_user_id_fkey(
-        id,
-        username,
-        display_name,
-        first_name,
-        last_name,
-        profile_picture_url
+  const { data: questions, error } = await applyQuestionsOrgScope(
+    supabase
+      .from('course_questions')
+      .select(
+        `
+        *,
+        user:users!course_questions_user_id_fkey(
+          id,
+          username,
+          display_name,
+          first_name,
+          last_name,
+          profile_picture_url
+        )
+      `,
       )
-    `,
-    )
-    .eq('course_id', courseId)
-    .eq('is_hidden', false)
+      .eq('course_id', courseId)
+      .eq('is_hidden', false),
+    orgScope,
+  )
     .order('is_pinned', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(50)

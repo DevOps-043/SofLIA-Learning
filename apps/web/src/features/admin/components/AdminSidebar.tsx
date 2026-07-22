@@ -16,6 +16,7 @@ import {
   LayoutDashboard,
   Library,
   MapPin,
+  Sliders,
   Users,
   X,
 } from 'lucide-react'
@@ -54,6 +55,7 @@ const navigation = [
   { section: 'reports', labelKey: 'navigation.reports', fallbackLabel: 'Reportes', href: '/admin/reportes', icon: FileText },
   { section: 'reviews', labelKey: 'navigation.reviews', fallbackLabel: 'Revisiones', href: '/admin/courses/pending', icon: ClipboardCheck },
   { section: 'system-status', labelKey: 'navigation.systemStatus', fallbackLabel: 'Estado del Sistema', href: '/admin/system-status', icon: Activity },
+  { section: 'ai-settings', labelKey: 'navigation.aiSettings', fallbackLabel: 'Modelos de IA', href: '/admin/ai-settings', icon: Sliders },
 ]
 
 export function AdminSidebar({

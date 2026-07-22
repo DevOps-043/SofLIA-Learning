@@ -3,6 +3,7 @@
 import type { RefObject } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, Mic, MicOff, Send } from 'lucide-react';
+import { buildVoiceInputColors } from '../../../theme/voice-input-colors';
 import type { EmbeddedLiaColors } from './types';
 
 interface EmbeddedLiaComposerProps {
@@ -26,6 +27,10 @@ export function EmbeddedLiaComposer({
   onToggleRecording,
   messageInputRef,
 }: EmbeddedLiaComposerProps) {
+  // El micrófono usa el acento de la organización (o el de la plataforma si no
+  // hay branding) para que se distinga del fondo neutro del compositor.
+  const voiceColors = buildVoiceInputColors(colors.accent);
+
   return (
     <div className="px-3 pb-3 pt-2 bg-transparent">
       <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="flex items-center gap-3">
@@ -70,8 +75,9 @@ export function EmbeddedLiaComposer({
           disabled={isLoading && !!message.trim()}
           className={`flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 shadow-sm ${isLoading && message.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
           style={{
-            backgroundColor: message.trim() ? colors.primary : isRecording ? 'var(--color-error)' : 'rgba(255, 255, 255, 0.05)',
-            color: message.trim() || isRecording ? 'var(--color-bg-light)' : colors.primary,
+            backgroundColor: message.trim() ? colors.primary : isRecording ? 'var(--color-error)' : voiceColors.background,
+            border: message.trim() || isRecording ? 'none' : `1px solid ${voiceColors.border}`,
+            color: message.trim() || isRecording ? 'var(--color-bg-light)' : voiceColors.icon,
           }}
           title={message.trim() ? 'Enviar mensaje' : isRecording ? 'Detener grabacion' : 'Grabar audio'}
         >

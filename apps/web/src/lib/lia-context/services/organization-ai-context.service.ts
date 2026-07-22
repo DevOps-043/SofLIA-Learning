@@ -5,6 +5,7 @@ export {
 export {
   extractOrganizationSlugFromPage,
   resolveActiveOrganizationAiContext,
+  resolveCourseOrganizationAiContext,
   resolveStrictOrganizationAiContext,
 } from './organization-ai-context.resolve'
 export { buildOrganizationAiContextPromptSection } from './organization-ai-context.prompt'

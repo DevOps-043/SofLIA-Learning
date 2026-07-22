@@ -213,11 +213,65 @@ describe('dialogue organization context prompts', () => {
     expect(resolveDialogueTutorMaxOutputTokens(config)).toBeGreaterThan(500)
   })
 
-  it('uses the evaluator feedback locally by default instead of calling the tutor model', async () => {
+  it('calibra los ejemplos al cargo del estudiante', () => {
+    const prompt = buildTutorPrompt({
+      config,
+      evaluation,
+      organizationAiContext,
+      policy,
+      recentTurns: [],
+    })
+
+    expect(prompt).toContain('Regla de rol')
+    expect(prompt).toContain('alcance de decision real de un Marketing Manager')
+    // El contexto elige el ejemplo; no se menciona el cargo en cada mensaje.
+    expect(prompt).toContain('No nombres el cargo ni la empresa en cada mensaje')
+  })
+
+  it('prohibe inventar datos de empresa que no esten en el contexto', () => {
+    const prompt = buildEvaluatorPrompt({
+      config,
+      organizationAiContext: {
+        organizationId: 'org-2',
+        organizationName: 'Pulse Hub',
+        organizationSlug: 'pulse-hub',
+        userJobTitle: 'COO',
+      },
+      previousEvaluations: [],
+      recentTurns: [],
+      studentMessage: 'Delegaria la busqueda de informacion.',
+    })
+
+    expect(prompt).toContain('Regla de veracidad')
+    expect(prompt).toContain('no inventes datos de la empresa')
+    // Sin datos de empresa cargados, el cargo sigue disponible para adaptar.
+    expect(prompt).toContain('alcance de decision real de un COO')
+  })
+
+  it('omite las reglas de rol cuando la membresia no tiene cargo', () => {
+    const prompt = buildTutorPrompt({
+      config,
+      evaluation,
+      organizationAiContext: {
+        organizationId: 'org-3',
+        organizationName: 'Sin Cargos',
+        organizationSlug: 'sin-cargos',
+      },
+      policy,
+      recentTurns: [],
+    })
+
+    expect(prompt).toContain('CONTEXTO EMPRESARIAL VERIFICADO')
+    expect(prompt).not.toContain('Regla de rol')
+  })
+
+  it('genera el mensaje del tutor con el modelo salvo que se apague explicitamente', async () => {
     const previousFlag = process.env.SOFLIA_DIALOGUE_TUTOR_USE_MODEL
-    delete process.env.SOFLIA_DIALOGUE_TUTOR_USE_MODEL
 
     try {
+      // Interruptor de emergencia: vuelve a las plantillas locales.
+      process.env.SOFLIA_DIALOGUE_TUTOR_USE_MODEL = 'false'
+
       await expect(
         generateDialogueTutorMessage({
           config,

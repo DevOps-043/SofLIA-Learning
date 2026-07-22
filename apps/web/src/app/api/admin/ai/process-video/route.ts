@@ -5,6 +5,8 @@ import { writeFile, unlink } from 'fs/promises'
 import { join } from 'path'
 import os from 'os'
 
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
+import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
@@ -81,10 +83,14 @@ async function handlePost(_request: NextRequest, body: ProcessVideoBody) {
       )
     }
 
+    const videoSettings = await getAiModelSettings('video_processing')
     const genAI = new GoogleGenerativeAI(googleApiKey)
     const model = genAI.getGenerativeModel({
-      model: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
-      generationConfig: { responseMimeType: 'application/json' },
+      model: videoSettings.model,
+      generationConfig: buildManagedGenerationConfig(videoSettings, {
+        // No administrable: la respuesta se parsea como JSON obligatoriamente.
+        responseMimeType: 'application/json',
+      }),
     })
 
     const prompt = `

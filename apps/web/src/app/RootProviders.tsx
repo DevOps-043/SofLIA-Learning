@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { AutomationSignalsReporter } from '../components/security/AutomationSignalsReporter'
+import { AutomationSignalsReporter } from '@/components/security/AutomationSignalsReporter'
 import { ContentWrapper } from '../core/components/ContentWrapper'
 import { MotionGuardProvider } from '../core/components/MotionGuardProvider'
 import { OnboardingAgent } from '../core/components/OnboardingAgent'

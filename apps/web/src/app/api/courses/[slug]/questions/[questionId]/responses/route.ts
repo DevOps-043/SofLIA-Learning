@@ -5,6 +5,10 @@ import { withZodBody } from '@/lib/api/with-validation';
 import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import {
+  isQuestionInOrgScope,
+  resolveQuestionsOrgScope,
+} from '@/app/api/courses/_lib/question-org-scope';
 
 interface ResponseUserRow {
   id: string;
@@ -73,15 +77,18 @@ export async function GET(
       );
     }
 
-    // Verificar que la pregunta existe
+    // Verificar que la pregunta existe y pertenece a la comunidad del usuario
     const { data: question, error: questionError } = await supabase
       .from('course_questions')
-      .select('id')
+      .select('id, organization_id')
       .eq('id', questionId)
       .eq('course_id', course.id)
       .single();
 
-    if (questionError || !question) {
+    const currentUser = await SessionService.getCurrentUser();
+    const orgScope = await resolveQuestionsOrgScope(supabase, currentUser);
+
+    if (questionError || !question || !isQuestionInOrgScope(question, orgScope)) {
       return NextResponse.json(
         { error: 'Pregunta no encontrada' },
         { status: 404 }
@@ -116,9 +123,6 @@ export async function GET(
     if (allResponses && allResponses.length > 0) {
       const responseIds = allResponses.map((response) => response.id);
 
-      // Obtener usuario actual para cargar sus reacciones
-      const user = await SessionService.getCurrentUser();
-
       // Solo conteos sin transferir datos
       const reactionCountPromises = responseIds.map((rid) =>
         supabase
@@ -129,11 +133,11 @@ export async function GET(
 
       // Si hay usuario, query para sus reacciones
       let userReactionsPromise: Promise<{ data: ResponseUserReactionRow[] | null; error: any }> | null = null;
-      if (user) {
+      if (currentUser) {
         userReactionsPromise = supabase
           .from('course_question_reactions')
           .select('response_id, reaction_type')
-          .eq('user_id', user.id)
+          .eq('user_id', currentUser.id)
           .in('response_id', responseIds)
           .returns<ResponseUserReactionRow[]>();
       }
@@ -272,15 +276,18 @@ async function handlePost(
       return apiError('COURSE_NOT_FOUND', 'Curso no encontrado.', 404);
     }
 
-    // Verificar que la pregunta existe
+    // Verificar que la pregunta existe y que el usuario pertenece a su comunidad:
+    // sólo se responde dentro de la propia organización.
     const { data: question, error: questionError } = await supabase
       .from('course_questions')
-      .select('id')
+      .select('id, organization_id')
       .eq('id', questionId)
       .eq('course_id', course.id)
       .single();
 
-    if (questionError || !question) {
+    const orgScope = await resolveQuestionsOrgScope(supabase, user);
+
+    if (questionError || !question || !isQuestionInOrgScope(question, orgScope)) {
       return apiError('QUESTION_NOT_FOUND', 'Pregunta no encontrada.', 404);
     }
 

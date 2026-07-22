@@ -5,6 +5,10 @@ import { withZodBody } from '@/lib/api/with-validation';
 import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import {
+  isQuestionInOrgScope,
+  resolveQuestionsOrgScope,
+} from '@/app/api/courses/_lib/question-org-scope';
 
 interface ResponseUserRow {
   id: string;
@@ -94,6 +98,17 @@ export async function GET(
       );
     }
 
+    // Límite organizacional: una pregunta de otra empresa no existe para este
+    // usuario (404 en lugar de 403 para no revelar su existencia).
+    const currentUser = await SessionService.getCurrentUser();
+    const orgScope = await resolveQuestionsOrgScope(supabase, currentUser);
+    if (!isQuestionInOrgScope(question, orgScope)) {
+      return NextResponse.json(
+        { error: 'Pregunta no encontrada' },
+        { status: 404 }
+      );
+    }
+
     // Incrementar contador de visualizaciones de forma atómica en background (fire-and-forget)
     void (async () => {
       try {
@@ -143,7 +158,6 @@ export async function GET(
 
       if (!responsesError && allResponses && allResponses.length > 0) {
         const responseIds = allResponses.map((r) => r.id);
-        const user = await SessionService.getCurrentUser();
 
         // Solo conteos sin transferir datos
         const reactionCountPromises = responseIds.map((rid) =>
@@ -155,11 +169,11 @@ export async function GET(
 
         // Si hay usuario, query para sus reacciones
         let userReactionsPromise: Promise<{ data: ResponseUserReactionRow[] | null; error: any }> | null = null;
-        if (user) {
+        if (currentUser) {
           userReactionsPromise = supabase
             .from('course_question_reactions')
             .select('response_id, reaction_type')
-            .eq('user_id', user.id)
+            .eq('user_id', currentUser.id)
             .in('response_id', responseIds)
             .returns<ResponseUserReactionRow[]>();
         }
@@ -292,11 +306,16 @@ async function handlePut(
     // Verificar que la pregunta existe y pertenece al usuario o es instructor
     const { data: question, error: questionError } = await supabase
       .from('course_questions')
-      .select('user_id, course_id')
+      .select('user_id, course_id, organization_id')
       .eq('id', questionId)
       .single();
 
     if (questionError || !question) {
+      return apiError('QUESTION_NOT_FOUND', 'Pregunta no encontrada.', 404);
+    }
+
+    const orgScope = await resolveQuestionsOrgScope(supabase, user);
+    if (!isQuestionInOrgScope(question, orgScope)) {
       return apiError('QUESTION_NOT_FOUND', 'Pregunta no encontrada.', 404);
     }
 
@@ -408,11 +427,19 @@ export async function DELETE(
     // Verificar que la pregunta existe
     const { data: question, error: questionError } = await supabase
       .from('course_questions')
-      .select('user_id, course_id')
+      .select('user_id, course_id, organization_id')
       .eq('id', questionId)
       .single();
 
     if (questionError || !question) {
+      return NextResponse.json(
+        { error: 'Pregunta no encontrada' },
+        { status: 404 }
+      );
+    }
+
+    const orgScope = await resolveQuestionsOrgScope(supabase, user);
+    if (!isQuestionInOrgScope(question, orgScope)) {
       return NextResponse.json(
         { error: 'Pregunta no encontrada' },
         { status: 404 }

@@ -14,7 +14,8 @@
     "companies": "Empresas",
     "reports": "Reportes",
     "reviews": "Revisiones",
-    "systemStatus": "Estado del Sistema"
+    "systemStatus": "Estado del Sistema",
+    "aiSettings": "Modelos de IA"
   },
   "systemStatus": {
     "title": "Estado del Sistema",
@@ -1765,5 +1766,131 @@
     "noUserAssignments": "No hay asignaciones individuales registradas.",
     "confirmRevokeOrg": "¿Revocar el acceso a este curso para TODA la organización?",
     "confirmRevokeUser": "¿Revocar esta asignación individual?"
+  },
+  "aiSettings": {
+    "title": "Modelos de IA",
+    "subtitle": "Configura el modelo de Gemini, el límite de tokens, la temperatura y el nivel de razonamiento de cada uso de IA de la plataforma. SofLIA general y SofLIA dentro de las actividades de un curso se configuran por separado.",
+    "propagationNotice": "Los cambios se aplican sin necesidad de redesplegar. Pueden tardar hasta un minuto en propagarse a todas las instancias del servidor.",
+    "loadError": "No se pudo cargar la configuración de modelos de IA.",
+    "groups": {
+      "soflia": "SofLIA (asistente general)",
+      "courses": "SofLIA en cursos y actividades",
+      "analytics": "Analítica e informes",
+      "content": "Contenido y traducción",
+      "platform": "Plataforma"
+    },
+    "fields": {
+      "model": "Modelo",
+      "maxOutputTokens": "Máximo de tokens de salida",
+      "temperature": "Temperatura",
+      "thinkingLevel": "Nivel de razonamiento",
+      "inheritedPlaceholder": "Heredado"
+    },
+    "thinkingLevels": {
+      "default": "Por defecto del proveedor",
+      "off": "Desactivado",
+      "low": "Bajo",
+      "medium": "Medio",
+      "high": "Alto",
+      "dynamic": "Dinámico"
+    },
+    "source": {
+      "database": "Configurado",
+      "environment": "Heredado del entorno",
+      "default": "Valor por defecto"
+    },
+    "actions": {
+      "save": "Guardar",
+      "saving": "Guardando...",
+      "reset": "Restablecer"
+    },
+    "feedback": {
+      "saved": "Configuración actualizada.",
+      "saveError": "No se pudo guardar la configuración.",
+      "reset": "Se restablecio el valor heredado.",
+      "resetError": "No se pudo restablecer la configuración."
+    },
+    "purposes": {
+      "liaGeneral": {
+        "label": "SofLIA general",
+        "description": "Chat principal de SofLIA en dashboard, lecciónes y planificador."
+      },
+      "liaIntent": {
+        "label": "Detección de intención",
+        "description": "Clasifica lo que pide el usuario antes de responder."
+      },
+      "liaDictation": {
+        "label": "Dictado por voz",
+        "description": "Transcribe el audio que el usuario dicta a SofLIA."
+      },
+      "liaLessonSuggestions": {
+        "label": "Sugerencias de lección",
+        "description": "Genera preguntas sugeridas dentro de una lección."
+      },
+      "dialogueTutor": {
+        "label": "Tutor de actividades",
+        "description": "Mensajes que SofLIA muestra al estudiante durante una actividad conversacional."
+      },
+      "dialogueEvaluator": {
+        "label": "Evaluador de actividades",
+        "description": "Evalúa las respuestas del estudiante contra la rúbrica. Un presupuesto de tokens bajo trunca el JSON y hace fallar la actividad."
+      },
+      "activityValidation": {
+        "label": "Validación de actividades",
+        "description": "Revisa las entregas de actividades y genera retroalimentación."
+      },
+      "lessonAutoNote": {
+        "label": "Notas automáticas de lección",
+        "description": "Genera el apunte automático y el título de las notas de una lección."
+      },
+      "courseCompendium": {
+        "label": "Compendio de curso",
+        "description": "Sintetiza el contenido completo de un curso en un documento."
+      },
+      "courseTimeEstimation": {
+        "label": "Estimación de duración",
+        "description": "Revisa las duraciónes estimadas de lecciónes y módulos."
+      },
+      "reportsInsights": {
+        "label": "Insights de informes",
+        "description": "Conclusiones de IA en el panel de informes de la organización."
+      },
+      "reportsBlueprint": {
+        "label": "Estructura de informes",
+        "description": "Diseña la estructura de los informes exportables."
+      },
+      "businessUserAnalytics": {
+        "label": "Analítica del empleado",
+        "description": "Insights personales en la analítica de cada empleado."
+      },
+      "learningPreview": {
+        "label": "Vista previa de cursos y rutas",
+        "description": "Descripciones generadas para cursos y rutas de aprendizaje."
+      },
+      "notebookEnrichment": {
+        "label": "Enriquecimiento del cuaderno",
+        "description": "Resume notas, extrae conceptos clave y detecta tareas."
+      },
+      "autoTranslation": {
+        "label": "Traducción automática",
+        "description": "Traduce contenido entre español, inglés y portugués."
+      },
+      "languageDetection": {
+        "label": "Detección de idioma",
+        "description": "Identifica el idioma de un texto."
+      },
+      "videoProcessing": {
+        "label": "Procesamiento de vídeo",
+        "description": "Transcribe y analiza los vídeos subidos por administradores."
+      },
+      "moderation": {
+        "label": "Moderación de contenido",
+        "description": "Analiza el contenido publicado en busca de material inapropiado."
+      },
+      "structuredFallback": {
+        "label": "Generación estructurada (respaldo)",
+        "description": "Modelo usado por generaciones con esquema JSON que no declaran un propósito propio."
+      }
+    }
   }
 }

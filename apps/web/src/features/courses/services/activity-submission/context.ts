@@ -1,6 +1,6 @@
 import {
   createOrganizationAiContextRepository,
-  resolveStrictOrganizationAiContext,
+  resolveCourseOrganizationAiContext,
 } from '@/lib/lia-context/services/organization-ai-context.service'
 import type { SupabaseOrganizationAiContextClient } from '@/lib/lia-context/services/organization-ai-context.types'
 
@@ -88,7 +88,9 @@ export async function resolveCourseActivityContext(
   return {
     ...lessonContext,
     activity: activity as ActivityLikeRecord,
-    organizationAiContext: await resolveStrictOrganizationAiContext({
+    // Cargo del usuario + datos de su empresa: alimentan los prompts del tutor y
+    // del evaluador para que los ejemplos encajen con su rol y su sector.
+    organizationAiContext: await resolveCourseOrganizationAiContext({
       organizationId: lessonContext.organizationId,
       repository: createOrganizationAiContextRepository(
         supabase as unknown as SupabaseOrganizationAiContextClient,

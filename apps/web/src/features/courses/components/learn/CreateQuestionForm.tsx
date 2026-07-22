@@ -116,8 +116,10 @@ export function CreateQuestionForm({
         return;
       }
 
-      const errorData = (await response.json()) as { error?: string };
-      setSubmitError(errorData.error || "No se pudo crear la pregunta");
+      // `apiError` devuelve `{ error: <código>, message: <texto legible> }`:
+      // se prioriza `message` para no mostrarle al usuario un código interno.
+      const errorData = (await response.json()) as { error?: string; message?: string };
+      setSubmitError(errorData.message || errorData.error || "No se pudo crear la pregunta");
     } catch {
       setSubmitError("Error al crear la pregunta");
     } finally {

@@ -129,8 +129,9 @@ export function useCourseQuestions({ lessonId, slug }: UseCourseQuestionsOptions
               slug,
               questionId: newQuestionId,
             });
+            // `null` = pregunta de otra organizacion (el canal realtime sólo
+            // filtra por lección): se ignora en lugar de recargar la lista.
             if (!newQuestion) {
-              await reloadQuestions();
               return;
             }
             setQuestions((currentQuestions) => {

@@ -1,7 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { logger } from '@/lib/logger'
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
+import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config'
 import {
-  DEFAULT_MODEL,
   GLOBAL_MAX_MINUTES,
   GLOBAL_MIN_MINUTES,
   getGeminiApiKey,
@@ -25,9 +26,13 @@ export async function reviewChunkWithGemini(
     return new Map()
   }
 
+  const settings = await getAiModelSettings('course_time_estimation')
   const model = new GoogleGenerativeAI(apiKey).getGenerativeModel({
-    model: DEFAULT_MODEL,
-    generationConfig: { temperature: 0.2, responseMimeType: 'application/json' },
+    model: settings.model,
+    generationConfig: buildManagedGenerationConfig(settings, {
+      // No administrable: la respuesta se parsea como JSON obligatoriamente.
+      responseMimeType: 'application/json',
+    }),
   })
   const result = await model.generateContent([
     { text: buildSystemPrompt() },
@@ -36,7 +41,7 @@ export async function reviewChunkWithGemini(
 
   logger.info('Gemini reviewed course time estimation batch', {
     courseTitle,
-    model: DEFAULT_MODEL,
+    model: settings.model,
     targetCount: analyses.length,
     userId,
   })

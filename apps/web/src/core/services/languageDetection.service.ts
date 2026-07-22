@@ -35,20 +35,12 @@ Responde UNICAMENTE con el codigo del idioma: es, en o pt.`
 Texto:
 ${text.substring(0, 1000)}${text.length > 1000 ? '...' : ''}`
 
-      const { generateGeminiText, resolveGeminiModel } = await import('../../lib/gemini/client')
+      const { generateGeminiText } = await import('../../lib/gemini/client')
       const startTime = Date.now()
-      const model = resolveGeminiModel(
-        process.env.LANGUAGE_DETECTION_GEMINI_MODEL,
-        'gemini-3.5-flash',
-      )
       const result = await generateGeminiText({
         circuitBreakerName: 'gemini-language-detection',
-        generationConfig: {
-          maxOutputTokens: 10,
-          temperature: 0.1,
-        },
-        model,
         prompt: userPrompt,
+        purpose: 'language_detection',
         systemInstruction: systemPrompt,
       })
       const responseTime = Date.now() - startTime
