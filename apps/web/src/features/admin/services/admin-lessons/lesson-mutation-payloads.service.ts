@@ -33,6 +33,7 @@ export function buildCreateLessonPayload(
     video_provider: lessonData.video_provider,
     duration_seconds: normalizeDuration(lessonData.duration_seconds),
     transcript_content: lessonData.transcript_content,
+    transcript_segments: lessonData.transcript_segments ?? undefined,
     summary_content: lessonData.summary_content,
     is_published: lessonData.is_published ?? false,
     instructor_id: lessonData.instructor_id,
@@ -60,6 +61,7 @@ export function buildUpdateLessonPayload(lessonData: UpdateLessonData): TablesUp
     updateData.duration_seconds = normalizeDuration(lessonData.duration_seconds)
   }
   if (lessonData.transcript_content !== undefined) updateData.transcript_content = lessonData.transcript_content
+  if (lessonData.transcript_segments !== undefined) updateData.transcript_segments = lessonData.transcript_segments
   if (lessonData.summary_content !== undefined) updateData.summary_content = lessonData.summary_content
   if (lessonData.is_published !== undefined) updateData.is_published = lessonData.is_published
   if (lessonData.instructor_id !== undefined) updateData.instructor_id = lessonData.instructor_id

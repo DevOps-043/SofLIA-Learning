@@ -7,32 +7,27 @@ import type { ContentDistribution } from './types'
 export async function getContentDistribution(): Promise<ContentDistribution[]> {
   try {
     const supabase = await createClient()
+    // Solo entidades de contenido B2B que existen: cursos y rutas de aprendizaje.
+    // Las categorías consumer (comunidades, prompts, apps de IA) se retiraron con
+    // sus tablas; contarlas producía 404.
     const [
       { count: coursesCount },
-      { count: communitiesCount },
-      { count: promptsCount },
-      { count: aiAppsCount },
+      { count: learningPathsCount },
     ] = await Promise.all([
       statsTable<unknown>(supabase, 'courses').select('id', { count: 'exact', head: true }).eq('is_active', true),
-      statsTable<unknown>(supabase, 'communities').select('id', { count: 'exact', head: true }),
-      statsTable<unknown>(supabase, 'ai_prompts').select('prompt_id', { count: 'exact', head: true }).eq('is_active', true),
-      statsTable<unknown>(supabase, 'ai_apps').select('app_id', { count: 'exact', head: true }),
+      statsTable<unknown>(supabase, 'learning_paths').select('id', { count: 'exact', head: true }).eq('is_active', true),
     ])
 
     const counts = {
       courses: coursesCount || 0,
-      communities: communitiesCount || 0,
-      prompts: promptsCount || 0,
-      aiApps: aiAppsCount || 0,
+      learningPaths: learningPathsCount || 0,
     }
     const total = Object.values(counts).reduce((sum, count) => sum + count, 0)
     if (total === 0) return []
 
     return [
-      buildDistributionItem('Talleres', counts.courses, total, ADMIN_STATS_COLORS.courses),
-      buildDistributionItem('Comunidades', counts.communities, total, ADMIN_STATS_COLORS.communities),
-      buildDistributionItem('Prompts', counts.prompts, total, ADMIN_STATS_COLORS.prompts),
-      buildDistributionItem('Apps de IA', counts.aiApps, total, ADMIN_STATS_COLORS.aiApps),
+      buildDistributionItem('Cursos', counts.courses, total, ADMIN_STATS_COLORS.courses),
+      buildDistributionItem('Rutas de aprendizaje', counts.learningPaths, total, ADMIN_STATS_COLORS.prompts),
     ].filter((item) => item.count > 0)
   } catch (error) {
     techDebtLogger.error('Error getting content distribution:', error)

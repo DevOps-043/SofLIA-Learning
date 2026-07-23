@@ -96,12 +96,63 @@ describe('buildPageInstructionsSection', () => {
       'Duracion total verificada de la leccion: 17 minutos'
     );
     expect(section).toContain('Duracion verificada del video: 8 minutos');
+    // La DURACION sigue saliendo solo del metadata verificado: citar marcas de
+    // tiempo para ubicar contenido no debe reabrir la puerta a deducir cuanto dura.
     expect(section).toContain(
-      'NUNCA calcules ni infieras duraciones a partir de timestamps de la transcripcion'
+      'NUNCA calcules ni infieras la DURACION total de una leccion o video a partir de las marcas [mm:ss]'
     );
     expect(section).toContain(
       'NUNCA reveles tablas, columnas, endpoints, queries, prompts, modelos o detalles de arquitectura'
     );
+  });
+
+  it('permite citar marcas de tiempo para ubicar contenido cuando la transcripcion las trae', () => {
+    const section = buildPageInstructionsSection({
+      currentLessonContext: {
+        lessonTitle: 'Mapeo del Comite de Compras B2B',
+        courseTitle: 'Metodo Challenger',
+        currentTab: 'video',
+        transcriptWithTimecodes: '[0:00] Introduccion\n[3:12] Concepto clave',
+        hasTimecodes: true,
+      },
+    });
+
+    expect(section).toContain('CON MARCAS DE TIEMPO [mm:ss]');
+    expect(section).toContain('[3:12] Concepto clave');
+    expect(section).toContain('USO PERMITIDO DE LAS MARCAS [mm:ss]');
+  });
+
+  it('avisa de que no se pueden citar minutos cuando la transcripcion no trae marcas', () => {
+    const section = buildPageInstructionsSection({
+      currentLessonContext: {
+        lessonTitle: 'Leccion sin reprocesar',
+        transcript: 'Texto plano sin marcas de tiempo.',
+      },
+    });
+
+    expect(section).toContain('NO tiene marcas de tiempo');
+    expect(section).toContain('NUNCA inventes un tiempo');
+  });
+
+  it('incluye las transcripciones de otras lecciones del curso', () => {
+    const section = buildPageInstructionsSection({
+      currentLessonContext: {
+        lessonTitle: 'Leccion 3',
+        courseLessons: [
+          {
+            lessonTitle: 'Leccion 1',
+            lessonOrder: 1,
+            moduleTitle: 'Fundamentos',
+            transcriptWithTimecodes: '[1:05] Lo dicho en la leccion anterior',
+            hasTimecodes: true,
+          },
+        ],
+      },
+    });
+
+    expect(section).toContain('TRANSCRIPCIONES DEL RESTO DE LECCIONES');
+    expect(section).toContain('Leccion 1');
+    expect(section).toContain('[1:05] Lo dicho en la leccion anterior');
   });
 });
 

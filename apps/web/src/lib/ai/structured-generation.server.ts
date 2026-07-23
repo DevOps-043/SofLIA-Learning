@@ -3,6 +3,7 @@ import type { ZodType } from 'zod'
 
 import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
 import { buildThinkingConfig, type AiThinkingLevel } from '@/lib/ai/model-settings/thinking'
+import { describeGeminiError } from '@/lib/ai/gemini-error'
 
 import { evaluatePromptInjectionRisk } from '@/lib/security/prompt-injection-detector'
 import { writeSecurityAuditLogAsync } from '@/lib/security/security-audit-log'
@@ -197,13 +198,23 @@ export async function generateStructuredContent<T>(
     return { model, promptTokens, responseTokens, value }
   } catch (error) {
     recordFailure(input.operation)
-    const message = error instanceof Error ? error.message : 'Unknown AI error'
+    // Se registra el detalle completo del error de la API (código HTTP, estado
+    // canónico y motivo), no solo el mensaje: un 400 opaco no permite distinguir
+    // un esquema inválido de un límite de tokens o de una clave sin permisos.
+    const details = describeGeminiError(error)
     logger.warn('Structured AI generation failed', {
-      error: message,
+      apiStatus: details.apiStatus,
+      error: details.message,
+      httpStatus: details.httpStatus,
+      maxOutputTokens: input.maxOutputTokens,
+      model,
       operation: input.operation,
+      reason: details.reason,
     })
     audit(input.audit, 'error', {
-      errorCode: message.slice(0, 160),
+      apiStatus: details.apiStatus,
+      errorCode: details.message.slice(0, 160),
+      httpStatus: details.httpStatus,
       operation: input.operation,
     })
     throw error

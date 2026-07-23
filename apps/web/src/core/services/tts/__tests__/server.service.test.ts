@@ -1,12 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
-  getConfiguredTTSProvider,
-  isConfiguredTTSProviderAvailable,
   isElevenLabsConfigured,
-  resolveTTSCacheDescriptor,
   synthesizeSpeechWithElevenLabs,
-  synthesizeSpeechWithConfiguredProvider,
 } from '../server.service'
 
 const originalApiKey = process.env.ELEVENLABS_API_KEY
@@ -14,11 +10,6 @@ const originalPublicApiKey = process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY
 const originalVoiceId = process.env.ELEVENLABS_VOICE_ID
 const originalModelId = process.env.ELEVENLABS_MODEL_ID
 const originalTTSProvider = process.env.TTS_PROVIDER
-const originalGeminiTTSApiKey = process.env.GEMINI_TTS_API_KEY
-const originalGoogleApiKey = process.env.GOOGLE_API_KEY
-const originalGeminiApiKey = process.env.GEMINI_API_KEY
-const originalGeminiModel = process.env.GEMINI_TTS_MODEL
-const originalGeminiVoice = process.env.GEMINI_TTS_VOICE
 const originalFetch = global.fetch
 
 afterEach(() => {
@@ -53,36 +44,6 @@ afterEach(() => {
     process.env.TTS_PROVIDER = originalTTSProvider
   } else {
     delete process.env.TTS_PROVIDER
-  }
-
-  if (originalGoogleApiKey) {
-    process.env.GOOGLE_API_KEY = originalGoogleApiKey
-  } else {
-    delete process.env.GOOGLE_API_KEY
-  }
-
-  if (originalGeminiTTSApiKey) {
-    process.env.GEMINI_TTS_API_KEY = originalGeminiTTSApiKey
-  } else {
-    delete process.env.GEMINI_TTS_API_KEY
-  }
-
-  if (originalGeminiApiKey) {
-    process.env.GEMINI_API_KEY = originalGeminiApiKey
-  } else {
-    delete process.env.GEMINI_API_KEY
-  }
-
-  if (originalGeminiModel) {
-    process.env.GEMINI_TTS_MODEL = originalGeminiModel
-  } else {
-    delete process.env.GEMINI_TTS_MODEL
-  }
-
-  if (originalGeminiVoice) {
-    process.env.GEMINI_TTS_VOICE = originalGeminiVoice
-  } else {
-    delete process.env.GEMINI_TTS_VOICE
   }
 })
 
@@ -139,88 +100,4 @@ describe('tts server service', () => {
     })
   })
 
-  it('selects Gemini when configured as the TTS provider', () => {
-    delete process.env.ELEVENLABS_API_KEY
-    process.env.TTS_PROVIDER = ' gemini '
-    process.env.GOOGLE_API_KEY = 'google-key'
-
-    expect(getConfiguredTTSProvider()).toBe('gemini')
-    expect(isConfiguredTTSProviderAvailable()).toBe(true)
-  })
-
-  it('selects Gemini when only the dedicated TTS key is configured', () => {
-    delete process.env.ELEVENLABS_API_KEY
-    delete process.env.TTS_PROVIDER
-    process.env.GEMINI_TTS_API_KEY = 'tts-google-key'
-
-    expect(getConfiguredTTSProvider()).toBe('gemini')
-    expect(isConfiguredTTSProviderAvailable()).toBe(true)
-  })
-
-  it('passes Gemini speech config and returns playable wav audio', async () => {
-    process.env.TTS_PROVIDER = 'gemini'
-    process.env.GEMINI_TTS_API_KEY = 'tts-google-key'
-    process.env.GOOGLE_API_KEY = 'chat-google-key'
-    process.env.GEMINI_TTS_MODEL = 'gemini-3.1-flash-tts-preview'
-    process.env.GEMINI_TTS_VOICE = 'Sulafat'
-    global.fetch = vi.fn().mockResolvedValue(
-      Response.json({
-        candidates: [
-          {
-            content: {
-              parts: [
-                {
-                  inlineData: {
-                    mimeType: 'audio/pcm',
-                    data: Buffer.from([1, 2, 3, 4]).toString('base64'),
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      })
-    ) as typeof fetch
-
-    const { provider, response } = await synthesizeSpeechWithConfiguredProvider({
-      text: 'Hola SofLIA',
-      modelId: 'eleven_turbo_v2_5',
-      voiceId: 'eleven-voice-id',
-    })
-    const audio = new Uint8Array(await response.arrayBuffer())
-    const [url, init] = vi.mocked(global.fetch).mock.calls[0]
-    const requestUrl = new URL(String(url))
-    const body = JSON.parse(String(init?.body))
-
-    expect(provider).toBe('gemini')
-    expect(response.status).toBe(200)
-    expect(response.headers.get('Content-Type')).toBe('audio/wav')
-    expect(String.fromCharCode(...audio.slice(0, 4))).toBe('RIFF')
-    expect(requestUrl.pathname).toBe('/v1beta/models/gemini-3.1-flash-tts-preview:generateContent')
-    expect(requestUrl.searchParams.get('key')).toBe('tts-google-key')
-    expect(body.generationConfig.responseModalities).toEqual(['AUDIO'])
-    expect(
-      body.generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName
-    ).toBe('Sulafat')
-    expect(body.contents[0].parts[0].text).toContain('Hola SofLIA')
-  })
-
-  it('resolves the Gemini reading voice/model for reading contexts', () => {
-    process.env.TTS_PROVIDER = 'gemini'
-    process.env.GEMINI_TTS_API_KEY = 'tts-google-key'
-    delete process.env.GEMINI_TTS_MODEL
-    delete process.env.GEMINI_TTS_VOICE
-    delete process.env.GEMINI_TTS_READING_VOICE
-
-    const reading = resolveTTSCacheDescriptor({ text: 'Hola', context: 'reading' })
-    const chat = resolveTTSCacheDescriptor({ text: 'Hola', context: 'chat' })
-
-    expect(reading.provider).toBe('gemini')
-    expect(reading.context).toBe('reading')
-    expect(reading.model).toBe('gemini-3.1-flash-tts-preview')
-    // La voz de lectura difiere de la voz de chat → claves de cache distintas.
-    expect(reading.voice).toBe('Zephyr')
-    expect(chat.voice).toBe('Sulafat')
-    expect(reading.voice).not.toBe(chat.voice)
-  })
 })

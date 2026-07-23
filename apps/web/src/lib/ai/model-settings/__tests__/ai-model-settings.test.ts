@@ -227,6 +227,18 @@ describe('validación de la actualización', () => {
     expect(result.success).toBe(true)
   })
 
+  it('acepta presupuestos pequeños de clasificadores (regresión: min era 256)', () => {
+    // language_detection usa 10, lia_intent usa 200: ambos < 256. Un mínimo
+    // global de 256 los rechazaba con 400 "Configuración inválida" al guardar.
+    expect(aiModelSettingsUpdateSchema.safeParse({ maxOutputTokens: 10 }).success).toBe(true)
+    expect(aiModelSettingsUpdateSchema.safeParse({ maxOutputTokens: 200 }).success).toBe(true)
+  })
+
+  it('sigue rechazando maxOutputTokens no positivo o fuera del máximo', () => {
+    expect(aiModelSettingsUpdateSchema.safeParse({ maxOutputTokens: 0 }).success).toBe(false)
+    expect(aiModelSettingsUpdateSchema.safeParse({ maxOutputTokens: 70_000 }).success).toBe(false)
+  })
+
   it('rechaza un cuerpo vacío', () => {
     expect(aiModelSettingsUpdateSchema.safeParse({}).success).toBe(false)
   })

@@ -1,5 +1,9 @@
+import type { Json } from '@/lib/supabase/types'
+
 export interface AdminLesson {
   lesson_id: string
+  /** Segmentos con marcas de tiempo del video, si ya fue procesado. */
+  transcript_segments?: Json | null
   lesson_title: string
   lesson_description: string | null
   lesson_order_index: number
@@ -24,6 +28,8 @@ export interface CreateLessonData {
   video_provider: 'youtube' | 'vimeo' | 'direct' | 'custom'
   duration_seconds: number
   transcript_content?: string
+  /** Segmentos con marcas de tiempo del video ([{start,end,text}]). */
+  transcript_segments?: Json | null
   summary_content?: string
   is_published?: boolean
   instructor_id: string
@@ -37,6 +43,8 @@ export interface UpdateLessonData {
   video_provider?: 'youtube' | 'vimeo' | 'direct' | 'custom'
   duration_seconds?: number
   transcript_content?: string
+  /** Segmentos con marcas de tiempo del video ([{start,end,text}]). */
+  transcript_segments?: Json | null
   summary_content?: string
   is_published?: boolean
   instructor_id?: string

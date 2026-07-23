@@ -26,8 +26,12 @@ export const PLATFORM_DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash'
  * Deben permanecer alineados con los CHECK constraints de la migración
  * `20260722140000_create_ai_model_settings.sql`.
  */
+// El mínimo de tokens es 1, no un valor "seguro" alto: el presupuesto adecuado
+// depende del propósito. Un clasificador legítimamente usa poquísimos tokens
+// (detección de idioma: ~10, devuelve "es"/"en"/"pt"; intención: ~200, un JSON
+// corto). Un mínimo global alto rechazaría esos defaults al guardarlos.
 export const AI_MODEL_SETTINGS_LIMITS = {
-  maxOutputTokens: { max: 65_536, min: 256 },
+  maxOutputTokens: { max: 65_536, min: 1 },
   modelPattern: /^[a-zA-Z0-9][a-zA-Z0-9._-]{2,119}$/,
   temperature: { max: 2, min: 0 },
 } as const
@@ -336,10 +340,6 @@ export const AI_MODEL_PURPOSES = [
     labelKey: 'aiSettings.purposes.moderation.label',
     legacyModelEnvVars: ['AI_MODERATION_GEMINI_MODEL', 'GEMINI_MODEL'],
   },
-  // NOTA: el modelo de TTS (`GEMINI_TTS_MODEL`) queda deliberadamente fuera de
-  // este catálogo. Participa en la clave del caché de audio y se deriva en rutas
-  // síncronas; hacerlo administrable en caliente invalidaría el audio ya
-  // cacheado. Ver `core/services/tts/gemini.service.ts`.
   {
     capabilities: {
       maxOutputTokens: false,

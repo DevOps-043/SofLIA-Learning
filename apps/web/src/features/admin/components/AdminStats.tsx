@@ -1,12 +1,9 @@
 'use client'
 
-import { 
-  UsersIcon, 
-  BookOpenIcon, 
-  UserGroupIcon, 
-  CpuChipIcon,
-  NewspaperIcon,
-  PlayIcon,
+import {
+  UsersIcon,
+  BookOpenIcon,
+  UserGroupIcon,
   ChartBarIcon
 } from '@heroicons/react/24/outline'
 import { useAdminStats } from '../hooks/useAdminStats'
@@ -15,8 +12,8 @@ interface StatCard {
   id: string
   name: string
   value: string
-  change: string
-  changeType: 'increase' | 'decrease'
+  change?: string
+  changeType?: 'increase' | 'decrease'
   icon: typeof UsersIcon
   color: string
 }
@@ -45,44 +42,24 @@ export function AdminStats() {
       color: 'green'
     },
     {
-      id: 'ai-apps',
-      name: 'Apps de IA',
-      value: dbStats.totalAIApps.toLocaleString(),
-      change: `${dbStats.aiAppGrowth >= 0 ? '+' : ''}${dbStats.aiAppGrowth}%`,
-      changeType: dbStats.aiAppGrowth >= 0 ? 'increase' : 'decrease',
-      icon: CpuChipIcon,
+      id: 'organizations',
+      name: 'Organizaciones',
+      value: (dbStats.totalOrganizations ?? 0).toLocaleString(),
+      change: `${(dbStats.organizationGrowth ?? 0) >= 0 ? '+' : ''}${dbStats.organizationGrowth ?? 0}%`,
+      changeType: (dbStats.organizationGrowth ?? 0) >= 0 ? 'increase' : 'decrease',
+      icon: UserGroupIcon,
       color: 'orange'
-    },
-    {
-      id: 'news',
-      name: 'Noticias',
-      value: dbStats.totalNews.toLocaleString(),
-      change: `${dbStats.newsGrowth >= 0 ? '+' : ''}${dbStats.newsGrowth}%`,
-      changeType: dbStats.newsGrowth >= 0 ? 'increase' : 'decrease',
-      icon: NewspaperIcon,
-      color: 'red'
-    },
-    {
-      id: 'reels',
-      name: 'Reels',
-      value: dbStats.totalReels.toLocaleString(),
-      change: `${dbStats.reelsGrowth >= 0 ? '+' : ''}${dbStats.reelsGrowth}%`,
-      changeType: dbStats.reelsGrowth >= 0 ? 'increase' : 'decrease',
-      icon: PlayIcon,
-      color: 'purple'
     },
     {
       id: 'engagement',
       name: 'Engagement',
       value: `${dbStats.engagementRate}%`,
-      change: `${dbStats.engagementGrowth >= 0 ? '+' : ''}${dbStats.engagementGrowth}%`,
-      changeType: dbStats.engagementGrowth >= 0 ? 'increase' : 'decrease',
       icon: ChartBarIcon,
       color: 'indigo'
     }
   ] : []
 
-  const getColorClasses = (color: string, changeType: string) => {
+  const getColorClasses = (color: string, changeType?: string) => {
     const colorMap = {
       blue: {
         bg: 'bg-blue-50 dark:bg-blue-900/20',
@@ -170,9 +147,11 @@ export function AdminStats() {
                   <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                     {stat.value}
                   </p>
-                  <p className={`ml-2 text-sm font-medium ${colors.change}`}>
-                    {stat.change}
-                  </p>
+                  {stat.change ? (
+                    <p className={`ml-2 text-sm font-medium ${colors.change}`}>
+                      {stat.change}
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </div>

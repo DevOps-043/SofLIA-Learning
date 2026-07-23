@@ -39,23 +39,17 @@ describe('AdminStatsService', () => {
     vi.clearAllMocks()
   })
 
-  it('uses head count queries for dashboard totals and growth', async () => {
+  it('uses head count queries for real B2B totals and growth (no phantom tables)', async () => {
     const chains: MockChain[] = []
+    // Orden de queries: users total, users growth, courses total, courses growth,
+    // orgs total, orgs growth, active sessions. Sin ai_apps / news / reels / favorites.
     const results: QueryResult[] = [
-      { count: 10, error: null },
-      { count: 2, error: null },
-      { count: 8, error: null },
-      { count: 1, error: null },
-      { count: 4, error: null },
-      { count: 1, error: null },
-      { count: 12, error: null },
-      { count: 3, error: null },
-      { count: 6, error: null },
-      { count: 2, error: null },
-      { count: 5, error: null },
-      { count: 1, error: null },
-      { count: 20, error: null },
-      { count: 5, error: null },
+      { count: 10, error: null }, // users total
+      { count: 2, error: null }, // users growth 30d
+      { count: 8, error: null }, // courses total
+      { count: 1, error: null }, // courses growth 30d
+      { count: 4, error: null }, // orgs total
+      { count: 1, error: null }, // orgs growth 30d
       {
         data: [
           { user_id: 'user-1' },
@@ -63,7 +57,7 @@ describe('AdminStatsService', () => {
           { user_id: 'user-2' },
         ],
         error: null,
-      },
+      }, // active sessions → 2 usuarios únicos
     ]
 
     vi.mocked(createClient).mockResolvedValue({
@@ -81,15 +75,15 @@ describe('AdminStatsService', () => {
       totalUsers: 10,
       activeCourses: 8,
       totalOrganizations: 4,
-      totalAIApps: 12,
-      totalNews: 6,
-      totalReels: 5,
-      engagementRate: 20,
-      userGrowth: 25,
-      engagementGrowth: 33,
+      engagementRate: 20, // 2 activos / 10 usuarios
+      userGrowth: 25, // crecimiento 2 sobre previo 8
+      courseGrowth: 14, // crecimiento 1 sobre previo 7
     })
+    // Las métricas de features eliminadas ya no existen en el resultado.
+    expect(stats).not.toHaveProperty('totalAIApps')
+    expect(stats).not.toHaveProperty('totalReels')
 
-    const countChains = chains.slice(0, 14)
+    const countChains = chains.slice(0, 6)
     countChains.forEach((chain) => {
       expect(chain.select).toHaveBeenCalledWith(
         expect.not.stringContaining('created_at'),
@@ -97,7 +91,7 @@ describe('AdminStatsService', () => {
       )
     })
 
-    const activeSessionChain = chains[14]
+    const activeSessionChain = chains[6]
     expect(activeSessionChain.select).toHaveBeenCalledWith('user_id', { head: false })
     expect(activeSessionChain.gte).toHaveBeenCalledWith('issued_at', expect.any(String))
     expect(activeSessionChain.eq).toHaveBeenCalledWith('revoked', false)

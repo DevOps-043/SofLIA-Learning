@@ -4,9 +4,6 @@ export interface MonthlyGrowthData {
   year: number
   users: number
   courses: number
-  communities: number
-  prompts: number
-  aiApps: number
 }
 
 export interface ContentDistribution {
@@ -18,12 +15,7 @@ export interface ContentDistribution {
 
 export interface RecentActivity {
   id: string
-  type:
-    | 'user_registered'
-    | 'course_created'
-    | 'community_created'
-    | 'prompt_added'
-    | 'ai_app_added'
+  type: 'user_registered' | 'course_created'
   description: string
   timestamp: string
   timeAgo: string

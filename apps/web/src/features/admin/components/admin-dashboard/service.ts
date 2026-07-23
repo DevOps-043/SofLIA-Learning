@@ -132,7 +132,9 @@ export function buildAdminDashboardStatsData(
       value: stats.totalOrganizations || 0,
     },
     {
-      change: stats.engagementGrowth,
+      // El engagement ya no lleva variación: se calculaba sobre user_favorites,
+      // tabla retirada con las features de consumidor.
+      change: 0,
       href: '/admin/lia-analytics',
       iconKey: 'engagement',
       iconColor: DEFAULT_PURPLE,

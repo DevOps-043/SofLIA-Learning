@@ -1,22 +1,5 @@
-import {
-  computeLessonActivityProgress,
-  type LessonActivityProgressSummary,
-} from './progress-compute'
+import { computeLessonActivityProgress } from './progress-compute'
 import type { CourseLessonContext, SupabaseServerClient } from './types'
-
-function buildProgressUpdate(
-  summary: LessonActivityProgressSummary,
-  now: string,
-) {
-  return {
-    activity_progress_percentage: summary.activityProgressPercentage,
-    last_activity_submission_at: summary.lastActivitySubmissionAt,
-    last_accessed_at: now,
-    required_activities_completed: summary.requiredActivitiesCompleted,
-    required_activities_total: summary.requiredActivitiesTotal,
-    updated_at: now,
-  }
-}
 
 export async function recalculateLessonActivityProgress(
   supabase: SupabaseServerClient,
@@ -24,34 +7,40 @@ export async function recalculateLessonActivityProgress(
 ) {
   const summary = await computeLessonActivityProgress(supabase, context)
   const now = new Date().toISOString()
+
+  // La lectura se hace por la clave única REAL de la tabla, `(user_id, lesson_id)`,
+  // no por `enrollment_id`: buscar por enrollment no encontraba el progreso que el
+  // mismo usuario ya tuviera de esa lección bajo OTRO enrollment, se intentaba
+  // insertar y se violaba `user_lesson_progress_user_id_lesson_id_key`.
   const { data: existingProgress } = await supabase
     .from('user_lesson_progress')
-    .select('progress_id')
-    .eq('enrollment_id', context.enrollmentId)
+    .select('started_at')
+    .eq('user_id', context.userId)
     .eq('lesson_id', context.lessonId)
     .maybeSingle()
 
-  if (existingProgress?.progress_id) {
-    await supabase
-      .from('user_lesson_progress')
-      .update(buildProgressUpdate(summary, now))
-      .eq('progress_id', existingProgress.progress_id)
-
-    return summary
-  }
-
-  await supabase.from('user_lesson_progress').insert({
-    activity_progress_percentage: summary.activityProgressPercentage,
-    enrollment_id: context.enrollmentId,
-    last_activity_submission_at: summary.lastActivitySubmissionAt,
-    last_accessed_at: now,
-    lesson_id: context.lessonId,
-    organization_id: context.organizationId,
-    required_activities_completed: summary.requiredActivitiesCompleted,
-    required_activities_total: summary.requiredActivitiesTotal,
-    started_at: now,
-    user_id: context.userId,
-  })
+  // La escritura es un upsert sobre esa misma clave: al ser una sola sentencia
+  // atómica, dos peticiones concurrentes ya no pueden insertar ambas (el otro
+  // camino por el que se producía el duplicate key).
+  //
+  // `started_at` conserva el valor original si ya existía: marca cuándo empezó
+  // la lección y sobrescribirlo en cada recálculo falsearía el dato.
+  await supabase.from('user_lesson_progress').upsert(
+    {
+      activity_progress_percentage: summary.activityProgressPercentage,
+      enrollment_id: context.enrollmentId,
+      last_accessed_at: now,
+      last_activity_submission_at: summary.lastActivitySubmissionAt,
+      lesson_id: context.lessonId,
+      organization_id: context.organizationId,
+      required_activities_completed: summary.requiredActivitiesCompleted,
+      required_activities_total: summary.requiredActivitiesTotal,
+      started_at: existingProgress?.started_at ?? now,
+      updated_at: now,
+      user_id: context.userId,
+    },
+    { onConflict: 'user_id,lesson_id' },
+  )
 
   return summary
 }

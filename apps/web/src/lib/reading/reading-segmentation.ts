@@ -30,7 +30,7 @@ export interface ReadingSegment {
   text: string;
 }
 
-/** Contexto de síntesis por segmento (define el prompt/voz, ver gemini-tts-prompts). */
+/** Contexto de síntesis por segmento (define la voz de lectura del proveedor TTS). */
 export type ReadingSegmentContext = 'reading' | 'reading_continuation';
 
 export interface ReadingSpeechRequest extends ReadingSegment {

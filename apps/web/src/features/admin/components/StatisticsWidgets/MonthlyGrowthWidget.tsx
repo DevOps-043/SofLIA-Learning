@@ -19,9 +19,6 @@ interface MonthlyGrowthData {
   year: number
   users: number
   courses: number
-  communities: number
-  prompts: number
-  aiApps: number
 }
 
 interface MonthlyGrowthWidgetProps {
@@ -30,10 +27,7 @@ interface MonthlyGrowthWidgetProps {
 }
 
 const metricConfig: Record<string, { color: string; label: string }> = {
-  aiApps: { color: 'var(--color-error)', label: 'Apps de IA' },
-  communities: { color: 'var(--color-accent)', label: 'Comunidades' },
-  courses: { color: 'var(--color-success)', label: 'Talleres' },
-  prompts: { color: 'var(--color-warning)', label: 'Prompts' },
+  courses: { color: 'var(--color-success)', label: 'Cursos' },
   users: { color: 'var(--color-primary)', label: 'Usuarios' },
 }
 

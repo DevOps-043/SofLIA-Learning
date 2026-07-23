@@ -7,6 +7,10 @@ import os from 'os'
 
 import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
 import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config'
+import {
+  buildPlainTranscript,
+  parseTranscriptSegments,
+} from '@/lib/course-content/transcript-segments'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
@@ -47,7 +51,15 @@ async function handlePost(_request: NextRequest, body: ProcessVideoBody) {
       body.videoUrl,
       { cache: 'no-store' },
       {
-        allowedHosts: getSafeFetchSupabaseHosts(),
+        // Se permite descargar de CUALQUIER proyecto Supabase (`*.supabase.co`),
+        // no solo del principal. Los vídeos de las lecciones pueden vivir en otro
+        // proyecto (p. ej. SofLIA Engine), y exigir declarar cada project-ref a
+        // mano en SAFE_FETCH_ALLOWED_HOSTS era frágil: esos identificadores usan
+        // caracteres indistinguibles a la vista (l/1, I/O) y un error de una letra
+        // bloquea la descarga entera. `safeFetch` sigue protegiendo lo que importa
+        // (bloquea IPs privadas/reservadas), el endpoint es admin-only, y el destino
+        // queda limitado al dominio de Supabase: no a un host arbitrario.
+        allowedHosts: [...getSafeFetchSupabaseHosts(), 'supabase.co'],
         provider: 'external-video-download',
         requireHostAllowlist: true,
       },
@@ -98,12 +110,16 @@ async function handlePost(_request: NextRequest, body: ProcessVideoBody) {
 
       Analiza el video y la pista de audio proporcionada EXHAUSTIVAMENTE.
 
-      Debes generar un objeto JSON con dos campos obligatorios:
+      Debes generar un objeto JSON con tres campos obligatorios:
 
-      1. "transcript": La transcripción COMPLETA de todo lo que se dice en el video.
-         - IMPORTANTE: No devuelvas un solo bloque masivo de texto.
-         - Divide el texto en párrafos lógicos y legibles usando doble salto de línea (\\n\\n).
-         - La lectura debe ser fluida y natural visualmente.
+      1. "segments": La transcripción COMPLETA dividida en tramos CON MARCAS DE TIEMPO.
+         - Cada tramo: { "start": <segundos>, "end": <segundos>, "text": "<lo que se dice>" }
+         - "start" y "end" son NÚMEROS en SEGUNDOS desde el inicio del video (no texto, no "mm:ss").
+         - Corta en unidades naturales de habla (una idea por tramo), de 10 a 30 segundos.
+         - Los tramos van EN ORDEN y cubren el video completo, sin huecos ni solapamientos.
+         - CRÍTICO: los tiempos deben ser REALES, tomados del audio. Nunca los estimes,
+           inventes ni los repartas de forma uniforme: se usan para llevar al alumno al
+           punto exacto del video y un tiempo inventado lo manda a otra parte.
 
       2. "summary": Un resumen educativo, rico y MUY BIEN ESTRUCTURADO.
          - EL FORMATO ES CRÍTICO: Usa Markdown para dar estructura visual.
@@ -112,10 +128,18 @@ async function handlePost(_request: NextRequest, body: ProcessVideoBody) {
          - Usa listas con viñetas (-) para enumerar características o pasos.
          - Debe ser un material de estudio listo para leer, no solo texto plano.
 
+      3. "transcript": La transcripción completa como texto corrido, en párrafos
+         separados por doble salto de línea (\\n\\n). Debe decir exactamente lo mismo
+         que "segments", sin las marcas de tiempo.
+
       Respuesta JSON esperada:
       {
-        "transcript": "Párrafo 1...\\n\\nPárrafo 2...",
-        "summary": "### Introducción\\nTexto...\\n\\n### Puntos Clave\\n- Item 1\\n- Item 2"
+        "segments": [
+          { "start": 0, "end": 14.2, "text": "Bienvenidos a esta leccion..." },
+          { "start": 14.2, "end": 31.8, "text": "El primer concepto clave es..." }
+        ],
+        "summary": "### Introducción\\nTexto...\\n\\n### Puntos Clave\\n- Item 1\\n- Item 2",
+        "transcript": "Párrafo 1...\\n\\nPárrafo 2..."
       }
     `
 
@@ -135,9 +159,19 @@ async function handlePost(_request: NextRequest, body: ProcessVideoBody) {
     await fileManager.deleteFile(uploadName)
     await unlink(filePath)
 
+    // Los segmentos se validan antes de devolverse: vienen de un modelo y un
+    // `start` mal formado llevaría al alumno a un punto equivocado del video.
+    const segments = parseTranscriptSegments(data.segments)
+
     return NextResponse.json({
       success: true,
-      transcript: data.transcript,
+      // Si el modelo no devolvió texto corrido utilizable, se reconstruye desde
+      // los segmentos para que ambos campos digan siempre lo mismo.
+      transcript:
+        typeof data.transcript === 'string' && data.transcript.trim()
+          ? data.transcript
+          : buildPlainTranscript(segments),
+      segments,
       summary: data.summary,
     })
   } catch (error) {

@@ -2556,6 +2556,7 @@ export type Database = {
           summary_content: string | null
           total_duration_minutes: number | null
           transcript_content: string | null
+          transcript_segments: Json | null
           updated_at: string | null
           video_provider: string
           video_provider_id: string
@@ -2573,6 +2574,7 @@ export type Database = {
           summary_content?: string | null
           total_duration_minutes?: number | null
           transcript_content?: string | null
+          transcript_segments?: Json | null
           updated_at?: string | null
           video_provider: string
           video_provider_id: string
@@ -2590,6 +2592,7 @@ export type Database = {
           summary_content?: string | null
           total_duration_minutes?: number | null
           transcript_content?: string | null
+          transcript_segments?: Json | null
           updated_at?: string | null
           video_provider?: string
           video_provider_id?: string
@@ -2645,6 +2648,7 @@ export type Database = {
           module_id: string
           summary_content: string | null
           transcript_content: string | null
+          transcript_segments: Json | null
           updated_at: string | null
           video_provider: string
           video_provider_id: string
@@ -2661,6 +2665,7 @@ export type Database = {
           module_id: string
           summary_content?: string | null
           transcript_content?: string | null
+          transcript_segments?: Json | null
           updated_at?: string | null
           video_provider: string
           video_provider_id: string
@@ -2677,6 +2682,7 @@ export type Database = {
           module_id?: string
           summary_content?: string | null
           transcript_content?: string | null
+          transcript_segments?: Json | null
           updated_at?: string | null
           video_provider?: string
           video_provider_id?: string
@@ -2732,6 +2738,7 @@ export type Database = {
           module_id: string
           summary_content: string | null
           transcript_content: string | null
+          transcript_segments: Json | null
           updated_at: string | null
           video_provider: string
           video_provider_id: string
@@ -2748,6 +2755,7 @@ export type Database = {
           module_id: string
           summary_content?: string | null
           transcript_content?: string | null
+          transcript_segments?: Json | null
           updated_at?: string | null
           video_provider: string
           video_provider_id: string
@@ -2764,6 +2772,7 @@ export type Database = {
           module_id?: string
           summary_content?: string | null
           transcript_content?: string | null
+          transcript_segments?: Json | null
           updated_at?: string | null
           video_provider?: string
           video_provider_id?: string

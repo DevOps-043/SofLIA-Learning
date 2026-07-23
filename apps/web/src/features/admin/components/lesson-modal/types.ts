@@ -1,3 +1,5 @@
+import type { Json } from '@/lib/supabase/types'
+
 import type { AdminLesson } from '../../services/adminLessons.service'
 
 export type LessonVideoProvider = 'youtube' | 'vimeo' | 'direct' | 'custom'
@@ -15,6 +17,8 @@ export interface LessonFormData {
   video_provider: LessonVideoProvider
   duration_seconds: number
   transcript_content: string
+  /** Segmentos con marcas de tiempo generados al procesar el video. */
+  transcript_segments?: Json | null
   summary_content: string
   is_published: boolean
   instructor_id: string

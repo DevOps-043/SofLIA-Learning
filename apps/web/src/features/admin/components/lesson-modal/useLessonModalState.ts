@@ -1,3 +1,4 @@
+import type { Json } from '@/lib/supabase/types';
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
@@ -38,9 +39,15 @@ export function useLessonModalState({ instructors = [], lesson, onClose, onSave,
         headers: { 'Content-Type': 'application/json' },
         method: 'POST',
       });
-      const data = (await response.json()) as { error?: string; summary?: string; transcript?: string };
+      const data = (await response.json()) as { error?: string; summary?: string; transcript?: string; segments?: Json | null };
       if (!response.ok) throw new Error(data.error || t('workshops.errors.processVideo'));
-      setFormData((current) => ({ ...current, summary_content: data.summary || '', transcript_content: data.transcript || '' }));
+      setFormData((current) => ({
+        ...current,
+        summary_content: data.summary || '',
+        transcript_content: data.transcript || '',
+        // Sin esto los tiempos se perderian al guardar y SofLIA no podria citar minutos.
+        transcript_segments: data.segments ?? null,
+      }));
     } catch (generationError) {
       setError(generationError instanceof Error ? generationError.message : t('workshops.errors.generateContent'));
     } finally {

@@ -23,6 +23,23 @@ export interface LessonQuizContextItem {
   percentage: number
 }
 
+/**
+ * Transcripción de una lección del curso distinta de la actual. Permite que
+ * SofLIA responda sobre el vídeo de una lección anterior sin que el usuario
+ * tenga que volver a ella.
+ */
+export interface CourseLessonTranscriptContext {
+  lessonId?: string
+  lessonTitle?: string
+  moduleTitle?: string
+  lessonOrder?: number
+  summary?: string | null
+  /** Transcripción con marcas de tiempo ya formateada para el prompt. */
+  transcriptWithTimecodes?: string | null
+  /** `false` cuando la lección aún no tiene segmentos y no se pueden citar tiempos. */
+  hasTimecodes?: boolean
+}
+
 export interface CurrentLessonContext {
   contextType?: 'course' | 'workshop'
   courseId?: string
@@ -36,6 +53,11 @@ export interface CurrentLessonContext {
   lessonId?: string
   lessonTitle?: string
   transcript?: string | null
+  /** Transcripción de ESTA lección con marcas `[mm:ss]`, si el vídeo fue procesado con segmentos. */
+  transcriptWithTimecodes?: string | null
+  hasTimecodes?: boolean
+  /** Transcripciones del resto de lecciones del curso, para preguntas sobre vídeos anteriores. */
+  courseLessons?: CourseLessonTranscriptContext[]
   summary?: string | null
   description?: string | null
   durationSeconds?: number

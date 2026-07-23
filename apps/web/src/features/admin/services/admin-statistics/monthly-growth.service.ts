@@ -8,7 +8,7 @@ interface CreatedAtRow {
   created_at: string
 }
 
-type GrowthMetricKey = 'users' | 'courses' | 'communities' | 'prompts' | 'aiApps'
+type GrowthMetricKey = 'users' | 'courses'
 
 export async function getMonthlyGrowth(
   period: number = 8,
@@ -18,20 +18,16 @@ export async function getMonthlyGrowth(
     const startDate = new Date()
     startDate.setMonth(startDate.getMonth() - period)
 
-    const [users, courses, communities, prompts, aiApps] = await Promise.all([
+    // Solo métricas B2B reales. Las series de features consumer (communities,
+    // ai_prompts, ai_apps) se retiraron con sus tablas; consultarlas daba 404.
+    const [users, courses] = await Promise.all([
       statsTable<CreatedAtRow>(supabase, 'users').select('created_at').gte('created_at', startDate.toISOString()),
       statsTable<CreatedAtRow>(supabase, 'courses').select('created_at').gte('created_at', startDate.toISOString()).eq('is_active', true),
-      statsTable<CreatedAtRow>(supabase, 'communities').select('created_at').gte('created_at', startDate.toISOString()),
-      statsTable<CreatedAtRow>(supabase, 'ai_prompts').select('created_at').gte('created_at', startDate.toISOString()).eq('is_active', true),
-      statsTable<CreatedAtRow>(supabase, 'ai_apps').select('created_at').gte('created_at', startDate.toISOString()),
     ])
 
     const monthMap = buildEmptyMonthMap(period)
     incrementMonthlyMetric(monthMap, users.data, 'users')
     incrementMonthlyMetric(monthMap, courses.data, 'courses')
-    incrementMonthlyMetric(monthMap, communities.data, 'communities')
-    incrementMonthlyMetric(monthMap, prompts.data, 'prompts')
-    incrementMonthlyMetric(monthMap, aiApps.data, 'aiApps')
 
     return Array.from(monthMap.values()).sort((a, b) =>
       a.year !== b.year ? a.year - b.year : a.monthNumber - b.monthNumber,
@@ -56,9 +52,6 @@ function buildEmptyMonthMap(period: number): Map<string, MonthlyGrowthData> {
       year: date.getFullYear(),
       users: 0,
       courses: 0,
-      communities: 0,
-      prompts: 0,
-      aiApps: 0,
     })
   }
 

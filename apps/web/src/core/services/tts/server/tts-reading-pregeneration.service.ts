@@ -10,8 +10,7 @@ import {
   segmentReadingContent,
 } from '@/lib/reading/reading-segmentation';
 import { getTTSSynthesisTimeoutMs, TTS_PROMPT_VERSION } from '../shared';
-import { createWavFromPcm } from '../audio-format.service';
-import { resolveProviderForContext, resolveTTSCacheDescriptor } from '../server.service';
+import { resolveTTSCacheDescriptor } from '../server.service';
 import { normalizeTextForSpeech } from '../tts-text-normalization';
 import {
   buildTTSCacheKey,
@@ -534,72 +533,13 @@ function buildFullReadingSpeechText(content: unknown): string {
     .trim();
 }
 
-// Gemini TTS latency scales steeply with input length: ~230 chars ≈ 11s, but a
-// full ~2500-char reading hangs past 120s and times out. We split long readings
-// into chunks the model can synthesize quickly, then concatenate the PCM audio.
-const MAX_TTS_CHUNK_CHARS = 450;
-const WAV_HEADER_BYTES = 44;
-// Gemini enforces a requests-per-minute limit. Chunked synthesis fires many calls,
-// so we pace them (delay between chunks) and back off + retry on 429/503/502 rather
-// than failing the whole job on a transient rate-limit hit.
-const INTER_CHUNK_DELAY_MS = 1500;
+// El proveedor TTS puede devolver un 429/503/502 transitorio bajo carga. En vez
+// de fallar el job entero, se reintenta con backoff creciente.
 const CHUNK_RETRY_BACKOFFS_MS = [8000, 20000, 45000, 60000];
 const RETRYABLE_TTS_STATUSES = new Set([429, 502, 503]);
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-/**
- * Splits reading text into chunks of at most maxChars, preferring to break on
- * paragraph then sentence boundaries so each chunk is a natural speech unit.
- * A single sentence longer than maxChars is hard-split as a last resort.
- */
-function chunkReadingText(fullText: string, maxChars: number): string[] {
-  const trimmed = fullText.trim();
-  if (trimmed.length <= maxChars) return [trimmed];
-
-  // Split into sentence-ish units, keeping the delimiter with its sentence.
-  const units = trimmed
-    .split(/(?<=[.!?…])\s+|\n+/)
-    .map((unit) => unit.trim())
-    .filter(Boolean);
-
-  const chunks: string[] = [];
-  let current = '';
-
-  const pushHardSplit = (unit: string) => {
-    for (let index = 0; index < unit.length; index += maxChars) {
-      chunks.push(unit.slice(index, index + maxChars));
-    }
-  };
-
-  for (const unit of units) {
-    if (unit.length > maxChars) {
-      if (current) { chunks.push(current); current = ''; }
-      pushHardSplit(unit);
-      continue;
-    }
-    const candidate = current ? `${current} ${unit}` : unit;
-    if (candidate.length > maxChars) {
-      if (current) chunks.push(current);
-      current = unit;
-    } else {
-      current = candidate;
-    }
-  }
-  if (current) chunks.push(current);
-
-  return chunks;
-}
-
-/** Extracts raw PCM from a chunk's audio bytes (strips the WAV header if present). */
-function extractPcm(bytes: ArrayBuffer): Uint8Array {
-  const view = new Uint8Array(bytes);
-  const isWav =
-    view.length > WAV_HEADER_BYTES &&
-    view[0] === 0x52 && view[1] === 0x49 && view[2] === 0x46 && view[3] === 0x46; // "RIFF"
-  return isWav ? view.subarray(WAV_HEADER_BYTES) : view;
 }
 
 type ChunkedSynthesisResult =
@@ -652,64 +592,15 @@ async function synthesizeChunkWithRetry(
 }
 
 async function synthesizeReadingAudio(fullText: string): Promise<ChunkedSynthesisResult> {
-  // ElevenLabs synthesizes the whole reading in one request (handles long text and
-  // returns MP3, which can't be PCM-concatenated). Chunking is a Gemini-only
-  // workaround for its steep latency on long input.
-  const provider = resolveProviderForContext('reading');
-  if (provider !== 'gemini') {
-    const single = await synthesizeChunkWithRetry(fullText);
-    if (single.kind === 'error') {
-      return { kind: 'error', status: single.status, detail: JSON.stringify(single.body).slice(0, 300) };
-    }
-    return { kind: 'audio', bytes: single.bytes, contentType: single.contentType };
+  // Los proveedores activos (ElevenLabs, Google Cloud) sintetizan la lectura
+  // completa en una sola petición y devuelven MP3. El chunking por PCM que había
+  // aquí era un workaround para la latencia de Gemini TTS en texto largo, retirado
+  // junto con el proveedor Gemini.
+  const single = await synthesizeChunkWithRetry(fullText);
+  if (single.kind === 'error') {
+    return { kind: 'error', status: single.status, detail: JSON.stringify(single.body).slice(0, 300) };
   }
-
-  const chunks = chunkReadingText(fullText, MAX_TTS_CHUNK_CHARS);
-
-  if (chunks.length === 1) {
-    const single = await synthesizeChunkWithRetry(chunks[0]);
-    if (single.kind === 'error') {
-      return { kind: 'error', status: single.status, detail: JSON.stringify(single.body).slice(0, 300) };
-    }
-    return { kind: 'audio', bytes: single.bytes, contentType: single.contentType };
-  }
-
-  const pcmParts: Uint8Array[] = [];
-  let totalPcmLength = 0;
-
-  for (let index = 0; index < chunks.length; index += 1) {
-    if (index > 0) await sleep(INTER_CHUNK_DELAY_MS);
-
-    const chunkResult = await synthesizeChunkWithRetry(chunks[index]);
-    if (chunkResult.kind === 'error') {
-      return {
-        kind: 'error',
-        status: chunkResult.status,
-        detail: `chunk ${index + 1}/${chunks.length} fallo: ${JSON.stringify(chunkResult.body).slice(0, 200)}`,
-      };
-    }
-    const pcm = extractPcm(chunkResult.bytes);
-    pcmParts.push(pcm);
-    totalPcmLength += pcm.byteLength;
-    logger.debug('[tts-reading-pregen] chunk sintetizado', {
-      chunk: index + 1,
-      total: chunks.length,
-      chars: chunks[index].length,
-      pcmBytes: pcm.byteLength,
-    });
-  }
-
-  const combinedPcm = new Uint8Array(totalPcmLength);
-  let offset = 0;
-  for (const part of pcmParts) {
-    combinedPcm.set(part, offset);
-    offset += part.byteLength;
-  }
-
-  const wav = createWavFromPcm(combinedPcm);
-  const out = new ArrayBuffer(wav.byteLength);
-  new Uint8Array(out).set(wav);
-  return { kind: 'audio', bytes: out, contentType: 'audio/wav' };
+  return { kind: 'audio', bytes: single.bytes, contentType: single.contentType };
 }
 
 async function processClaimedJob(

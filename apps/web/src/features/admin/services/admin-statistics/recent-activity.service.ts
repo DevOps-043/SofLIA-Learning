@@ -14,21 +14,16 @@ export async function getRecentActivity(
   try {
     const supabase = await createClient()
     const startDateISO = getActivityStartDate(period as ActivityPeriod).toISOString()
-    const [newUsers, newCourses, newCommunities, newPrompts, newApps] =
-      await Promise.all([
-        statsTable<ActivityRow>(supabase, 'users').select('id, created_at').gte('created_at', startDateISO).order('created_at', { ascending: false }).limit(100),
-        statsTable<ActivityRow>(supabase, 'courses').select('id, created_at').gte('created_at', startDateISO).eq('is_active', true).order('created_at', { ascending: false }).limit(100),
-        statsTable<ActivityRow>(supabase, 'communities').select('id, created_at').gte('created_at', startDateISO).order('created_at', { ascending: false }).limit(100),
-        statsTable<ActivityRow>(supabase, 'ai_prompts').select('prompt_id, created_at').gte('created_at', startDateISO).eq('is_active', true).order('created_at', { ascending: false }).limit(100),
-        statsTable<ActivityRow>(supabase, 'ai_apps').select('app_id, created_at').gte('created_at', startDateISO).order('created_at', { ascending: false }).limit(100),
-      ])
+    // Solo actividad sobre entidades B2B reales. Las de features consumer
+    // (communities, ai_prompts, ai_apps) se retiraron con sus tablas (404).
+    const [newUsers, newCourses] = await Promise.all([
+      statsTable<ActivityRow>(supabase, 'users').select('id, created_at').gte('created_at', startDateISO).order('created_at', { ascending: false }).limit(100),
+      statsTable<ActivityRow>(supabase, 'courses').select('id, created_at').gte('created_at', startDateISO).eq('is_active', true).order('created_at', { ascending: false }).limit(100),
+    ])
 
     return [
       buildActivity('users', newUsers.data, 'id', 'user_registered'),
       buildActivity('courses', newCourses.data, 'id', 'course_created'),
-      buildActivity('communities', newCommunities.data, 'id', 'community_created'),
-      buildActivity('prompts', newPrompts.data, 'prompt_id', 'prompt_added'),
-      buildActivity('apps', newApps.data, 'app_id', 'ai_app_added'),
     ]
       .filter((activity): activity is RecentActivity => Boolean(activity))
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
@@ -50,7 +45,7 @@ function getActivityStartDate(period: ActivityPeriod): Date {
 }
 
 function buildActivity(
-  scope: 'users' | 'courses' | 'communities' | 'prompts' | 'apps',
+  scope: 'users' | 'courses',
   rows: ActivityRow[] | null,
   idKey: string,
   type: RecentActivity['type'],
@@ -71,8 +66,5 @@ function buildActivity(
 
 const ACTIVITY_COPY = {
   users: { singular: 'nuevo usuario registrado', plural: 'nuevos usuarios registrados', color: ADMIN_STATS_COLORS.users },
-  courses: { singular: 'nuevo taller creado', plural: 'nuevos talleres creados', color: ADMIN_STATS_COLORS.courses },
-  communities: { singular: 'nueva comunidad creada', plural: 'nuevas comunidades creadas', color: ADMIN_STATS_COLORS.prompts },
-  prompts: { singular: 'nuevo prompt agregado', plural: 'nuevos prompts agregados', color: ADMIN_STATS_COLORS.aiApps },
-  apps: { singular: 'nueva app de IA agregada', plural: 'nuevas apps de IA agregadas', color: ADMIN_STATS_COLORS.appsActivity },
+  courses: { singular: 'nuevo curso creado', plural: 'nuevos cursos creados', color: ADMIN_STATS_COLORS.courses },
 } as const

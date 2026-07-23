@@ -1,6 +1,6 @@
 import type { ElevenLabsVoiceSettings, WebSpeechVoiceSettings } from '../../utils/tts-voice-settings';
 
-export type TextToSpeechProvider = 'elevenlabs' | 'gemini' | 'google-cloud';
+export type TextToSpeechProvider = 'elevenlabs' | 'google-cloud';
 
 export interface TextToSpeechRequestPayload {
   text: string;

@@ -8,11 +8,6 @@ import {
   getTTSSynthesisTimeoutMs,
 } from './shared';
 import {
-  isGeminiConfigured,
-  resolveGeminiVoiceAndModel,
-  synthesizeSpeechWithGemini,
-} from './gemini.service';
-import {
   isGoogleCloudTTSConfigured,
   resolveGoogleCloudVoiceAndModel,
   synthesizeSpeechWithGoogleCloud,
@@ -30,14 +25,14 @@ const CHAT_CONTEXTS = new Set(['chat', 'chat_continuation']);
 
 /**
  * Proveedor para la voz del chat. Configurable con `CHAT_TTS_PROVIDER`
- * (`elevenlabs` | `google-cloud` | `gemini`). Por defecto prefiere ElevenLabs si
- * está configurado y, si no, cae al proveedor global. Permite, p. ej., usar
- * Google Cloud TTS (Neural2/Chirp3: barato, baja latencia, free tier) solo con
- * cambiar la variable de entorno.
+ * (`elevenlabs` | `google-cloud`). Por defecto prefiere ElevenLabs si está
+ * configurado y, si no, cae al proveedor global. Permite, p. ej., usar Google
+ * Cloud TTS (Neural2/Chirp3: barato, baja latencia, free tier) solo con cambiar
+ * la variable de entorno.
  */
 function getChatTTSProvider(): TextToSpeechProvider {
   const explicit = (process.env.CHAT_TTS_PROVIDER || '').trim().toLowerCase();
-  if (explicit === 'elevenlabs' || explicit === 'google-cloud' || explicit === 'gemini') {
+  if (explicit === 'elevenlabs' || explicit === 'google-cloud') {
     return explicit;
   }
   if (isElevenLabsConfigured()) {
@@ -69,13 +64,8 @@ function getElevenLabsModelId(modelId?: string) {
 export function getConfiguredTTSProvider(): TextToSpeechProvider {
   const provider = (process.env.TTS_PROVIDER || '').trim().toLowerCase();
 
-  if (provider === 'gemini' || provider === 'elevenlabs' || provider === 'google-cloud') {
+  if (provider === 'elevenlabs' || provider === 'google-cloud') {
     return provider;
-  }
-
-  // Auto-detect Gemini: accept any of the three key env vars the project uses
-  if (process.env.GEMINI_TTS_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY) {
-    return 'gemini';
   }
 
   return DEFAULT_TTS_PROVIDER;
@@ -102,10 +92,6 @@ export function isElevenLabsConfigured() {
 
 export function isConfiguredTTSProviderAvailable(context?: string) {
   const provider = resolveProviderForContext(context);
-
-  if (provider === 'gemini') {
-    return isGeminiConfigured();
-  }
 
   if (provider === 'google-cloud') {
     return isGoogleCloudTTSConfigured();
@@ -163,11 +149,6 @@ export function resolveTTSCacheDescriptor(
   const context = payload.context ?? 'chat';
   const provider = resolveProviderForContext(context);
 
-  if (provider === 'gemini') {
-    const { voice, model } = resolveGeminiVoiceAndModel(context);
-    return { provider, voice, model, context };
-  }
-
   if (provider === 'google-cloud') {
     const { voice, model } = resolveGoogleCloudVoiceAndModel();
     return { provider, voice, model, context };
@@ -183,13 +164,6 @@ export function resolveTTSCacheDescriptor(
 
 export async function synthesizeSpeechWithConfiguredProvider(payload: TextToSpeechRequestPayload) {
   const provider = resolveProviderForContext(payload.context);
-
-  if (provider === 'gemini') {
-    return {
-      provider,
-      response: await synthesizeSpeechWithGemini(payload),
-    };
-  }
 
   if (provider === 'google-cloud') {
     return {

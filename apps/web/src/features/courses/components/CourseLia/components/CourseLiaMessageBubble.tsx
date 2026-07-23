@@ -1,3 +1,4 @@
+import { useVideoPlayerOptional } from '@/app/courses/[slug]/learn/VideoPlayerContext';
 import type { LiaImageAttachment } from '@/core/reporting/report-problem.contract';
 import type { SofLIAMessage } from '@/core/types/lia.types';
 import type { NormalizedLiaLink } from '../lia-link.utils';
@@ -35,6 +36,15 @@ export function CourseLiaMessageBubble({
   ...props
 }: CourseLiaMessageBubbleProps) {
   const isUser = message.role === 'user';
+  // El chat vive dentro del VideoPlayerProvider en la página de la lección. Fuera
+  // de un curso (dashboard, etc.) el contexto no existe y `seekTo` queda como
+  // undefined: los timestamps se muestran como texto, no como botones muertos.
+  const videoPlayer = useVideoPlayerOptional();
+  const onTimestampClick = videoPlayer
+    ? (seconds: number) => {
+        videoPlayer.seekTo(seconds);
+      }
+    : undefined;
 
   return (
     <div style={{ maxWidth: '85%', padding: '12px 16px', borderRadius: '16px', backgroundColor: isUser ? themeColors.messageBubbleUser : themeColors.messageBubbleAssistant }}>
@@ -52,7 +62,7 @@ export function CourseLiaMessageBubble({
       ) : (
         <p className={isUser ? 'lia-msg-user-text' : 'lia-msg-assistant-text'} style={{ fontSize: '14px', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap', color: isUser ? 'var(--color-bg-light)' : themeColors.textPrimary }}>
           {message.role === 'assistant'
-            ? parseMarkdownContent(message.content, props.onLinkClick, themeColors.assistantLinkColor)
+            ? parseMarkdownContent(message.content, props.onLinkClick, themeColors.assistantLinkColor, onTimestampClick)
             : message.content}
         </p>
       )}

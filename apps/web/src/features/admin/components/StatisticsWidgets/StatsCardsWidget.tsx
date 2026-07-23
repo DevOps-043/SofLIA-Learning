@@ -6,9 +6,7 @@ import {
   UsersIcon,
   BookOpenIcon,
   UserGroupIcon,
-  ChatBubbleLeftRightIcon,
-  CpuChipIcon,
-  NewspaperIcon,
+  ChartBarIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon
 } from '@heroicons/react/24/outline'
@@ -17,8 +15,8 @@ interface StatCardData {
   id: string
   title: string
   value: string
-  change: string
-  changeType: 'increase' | 'decrease'
+  change?: string
+  changeType?: 'increase' | 'decrease'
   icon: typeof UsersIcon
   gradient: string
   shadow: string
@@ -50,44 +48,22 @@ export function StatsCardsWidget() {
           shadow: 'shadow-emerald-500/20'
         },
         {
-          id: 'communities',
-          title: 'Comunidades',
-          value: '0',
-          change: '+0%',
-          changeType: 'increase',
+          id: 'organizations',
+          title: 'Organizaciones',
+          value: (dbStats.totalOrganizations ?? 0).toLocaleString(),
+          change: `${(dbStats.organizationGrowth ?? 0) >= 0 ? '+' : ''}${dbStats.organizationGrowth ?? 0}%`,
+          changeType: (dbStats.organizationGrowth ?? 0) >= 0 ? 'increase' : 'decrease',
           icon: UserGroupIcon,
           gradient: 'from-purple-500 to-indigo-600',
           shadow: 'shadow-purple-500/20'
         },
         {
-          id: 'ai-apps',
-          title: 'Apps de IA',
-          value: dbStats.totalAIApps.toLocaleString(),
-          change: `${dbStats.aiAppGrowth >= 0 ? '+' : ''}${dbStats.aiAppGrowth}%`,
-          changeType: dbStats.aiAppGrowth >= 0 ? 'increase' : 'decrease',
-          icon: CpuChipIcon,
+          id: 'engagement',
+          title: 'Engagement',
+          value: `${dbStats.engagementRate}%`,
+          icon: ChartBarIcon,
           gradient: 'from-amber-500 to-orange-600',
           shadow: 'shadow-amber-500/20'
-        },
-        {
-          id: 'prompts',
-          title: 'Prompts',
-          value: '0',
-          change: '+0%',
-          changeType: 'increase',
-          icon: ChatBubbleLeftRightIcon,
-          gradient: 'from-red-500 to-rose-600',
-          shadow: 'shadow-red-500/20'
-        },
-        {
-          id: 'news',
-          title: 'Noticias',
-          value: dbStats.totalNews.toLocaleString(),
-          change: `${dbStats.newsGrowth >= 0 ? '+' : ''}${dbStats.newsGrowth}%`,
-          changeType: dbStats.newsGrowth >= 0 ? 'increase' : 'decrease',
-          icon: NewspaperIcon,
-          gradient: 'from-indigo-500 to-blue-700',
-          shadow: 'shadow-indigo-500/20'
         }
       ]
     : []
@@ -123,20 +99,22 @@ export function StatsCardsWidget() {
                     <stat.icon className="h-6 w-6" />
                   </div>
                   
-                  <div 
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
-                      stat.changeType === 'increase' 
-                        ? 'bg-emerald-500/10 text-emerald-500' 
-                        : 'bg-red-500/10 text-red-500'
-                    }`}
-                  >
-                    {stat.changeType === 'increase' ? (
-                      <ArrowTrendingUpIcon className="h-3.5 w-3.5" />
-                    ) : (
-                      <ArrowTrendingDownIcon className="h-3.5 w-3.5" />
-                    )}
-                    {stat.change}
-                  </div>
+                  {stat.change ? (
+                    <div
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
+                        stat.changeType === 'increase'
+                          ? 'bg-emerald-500/10 text-emerald-500'
+                          : 'bg-red-500/10 text-red-500'
+                      }`}
+                    >
+                      {stat.changeType === 'increase' ? (
+                        <ArrowTrendingUpIcon className="h-3.5 w-3.5" />
+                      ) : (
+                        <ArrowTrendingDownIcon className="h-3.5 w-3.5" />
+                      )}
+                      {stat.change}
+                    </div>
+                  ) : null}
                 </div>
 
                 <p className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-white/60 mb-1">

@@ -15,6 +15,12 @@ interface VideoPlayerContextType {
   getVideoProgress: (lessonId: string) => number;
   saveVideoProgress: (lessonId: string, time: number) => void;
   pauseAllVideos: () => void;
+  /**
+   * Lleva el vídeo de la lección al segundo indicado y lo reproduce. Devuelve
+   * `true` si encontró un elemento `<video>` al que saltar. Lo usan las marcas de
+   * tiempo del chat de SofLIA para posicionar el vídeo en el punto exacto.
+   */
+  seekTo: (seconds: number) => boolean;
   // Ref-based flag for immediate reading (not subject to React state batching)
   shouldAutoPlayRef: React.MutableRefObject<boolean>;
 }
@@ -129,6 +135,29 @@ export function VideoPlayerProvider({ children }: { children: React.ReactNode })
     setShouldAutoPlay(value);
   }, []);
 
+  // Posiciona el vídeo en un segundo concreto. Opera sobre el <video> del DOM,
+  // igual que el resto de este contexto (PiP, pauseAllVideos). Solo aplica a
+  // vídeos HTML nativos (Storage/direct); YouTube/Vimeo van por iframe y no
+  // exponen currentTime, así que ahí devuelve false y el llamador lo ignora.
+  const seekTo = useCallback((seconds: number): boolean => {
+    if (!Number.isFinite(seconds) || seconds < 0) return false;
+
+    const videoElement = document.querySelector('video');
+    if (!videoElement) return false;
+
+    const target =
+      Number.isFinite(videoElement.duration) && videoElement.duration > 0
+        ? Math.min(seconds, videoElement.duration)
+        : seconds;
+
+    videoElement.currentTime = target;
+    void videoElement.play().catch(() => {
+      // La reproducción puede rechazarse por política de autoplay; el salto de
+      // tiempo ya se aplicó, así que no es un error que deba propagarse.
+    });
+    return true;
+  }, []);
+
   return (
     <VideoPlayerContext.Provider
       value={{
@@ -143,6 +172,7 @@ export function VideoPlayerProvider({ children }: { children: React.ReactNode })
         getVideoProgress,
         saveVideoProgress,
         pauseAllVideos,
+        seekTo,
         shouldAutoPlayRef,
       }}
     >

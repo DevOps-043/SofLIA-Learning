@@ -10,6 +10,13 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { createClient } from '../../../../lib/supabase/server';
 import type { PlatformContext, ChatRequest } from './platform-context.service';
 import type { CourseWithContent } from './platform-context/context.types';
+import {
+  loadCourseLessonTranscripts,
+  loadLessonTranscriptWithTimecodes,
+} from './platform-context/course-transcripts';
+
+/** Debe coincidir con el presupuesto que aplica el prompt a la lección actual. */
+const CURRENT_LESSON_TRANSCRIPT_CHARS = 30_000;
 import { extractOrganizationSlugFromPage } from './organization-context.service';
 import { detectTechnicalBugReportIntent } from './bug-report-intent.service';
 
@@ -63,6 +70,33 @@ export async function buildFullContext(
       ...fullContext.currentLessonContext,
       userRole: resolvedUserJobTitle,
     };
+  }
+
+  // Transcripciones del curso, resueltas SIEMPRE en servidor desde la base.
+  //
+  // Antes al prompt solo llegaba la lección abierta, así que una pregunta sobre
+  // el vídeo de una lección anterior no tenía respuesta posible. Se cargan aquí
+  // (y no desde el cliente) por dos motivos: el cliente no debe poder inyectar
+  // material de curso falso, y el contenido debe salir de la base, no del DOM.
+  if (fullContext.currentLessonContext?.courseId) {
+    const { courseId, lessonId } = fullContext.currentLessonContext;
+
+    const [courseLessons, currentLessonTranscript] = await Promise.all([
+      loadCourseLessonTranscripts({ courseId, currentLessonId: lessonId }),
+      // La lección abierta también necesita sus marcas de tiempo: el contexto que
+      // manda el cliente trae la transcripción en texto plano, sin segmentos.
+      lessonId
+        ? loadLessonTranscriptWithTimecodes(lessonId, CURRENT_LESSON_TRANSCRIPT_CHARS)
+        : Promise.resolve(null),
+    ]);
+
+    if (courseLessons.length > 0 || currentLessonTranscript) {
+      fullContext.currentLessonContext = {
+        ...fullContext.currentLessonContext,
+        ...(courseLessons.length > 0 ? { courseLessons } : {}),
+        ...(currentLessonTranscript ?? {}),
+      };
+    }
   }
 
   // Fallback: extract organizationSlug from pathname only when DB resolution returned nothing

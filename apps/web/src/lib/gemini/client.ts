@@ -8,6 +8,8 @@ import {
   type Part,
 } from '@google/generative-ai'
 
+import { describeGeminiError } from '@/lib/ai/gemini-error'
+import { logger } from '@/lib/utils/logger'
 import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
 import type { AiModelPurposeId } from '@/lib/ai/model-settings/purposes'
 import { buildThinkingConfig, type AiThinkingLevel } from '@/lib/ai/model-settings/thinking'
@@ -197,26 +199,47 @@ export async function generateGeminiText({
   // se adapta al tipo del SDK en la frontera, no en toda la función.
   const sdkGenerationConfig = config as GenerationConfig
 
-  const result = await executeWithCircuitBreaker(
-    circuitBreakerName,
-    () => {
-      if (history) {
-        return geminiModel.startChat({
-          generationConfig: sdkGenerationConfig,
-          history,
-        }).sendMessage(prompt)
-      }
+  let result: Awaited<ReturnType<typeof geminiModel.generateContent>>
+  try {
+    result = await executeWithCircuitBreaker(
+      circuitBreakerName,
+      () => {
+        if (history) {
+          return geminiModel.startChat({
+            generationConfig: sdkGenerationConfig,
+            history,
+          }).sendMessage(prompt)
+        }
 
-      return geminiModel.generateContent({
-        contents: [{ role: 'user', parts: typeof prompt === 'string' ? [{ text: prompt }] : prompt }],
-        generationConfig: sdkGenerationConfig,
-      })
-    },
-    {
-      ...CIRCUIT_BREAKER_DEFAULTS.gemini,
-      ...(timeoutMs ? { timeoutMs } : {}),
-    },
-  )
+        return geminiModel.generateContent({
+          contents: [{ role: 'user', parts: typeof prompt === 'string' ? [{ text: prompt }] : prompt }],
+          generationConfig: sdkGenerationConfig,
+        })
+      },
+      {
+        ...CIRCUIT_BREAKER_DEFAULTS.gemini,
+        ...(timeoutMs ? { timeoutMs } : {}),
+      },
+    )
+  } catch (error) {
+    // Punto único de observabilidad para los ~15 puntos de llamada: sin esto un
+    // 4xx del proveedor llega al call site como un mensaje opaco y no se puede
+    // distinguir la causa (petición inválida, cuota, modelo inexistente).
+    // Solo metadatos: nunca el prompt ni contenido del usuario.
+    const details = describeGeminiError(error)
+    logger.warn('Gemini request failed', {
+      apiStatus: details.apiStatus,
+      circuitBreakerName,
+      error: details.message,
+      httpStatus: details.httpStatus,
+      maxOutputTokens: config.maxOutputTokens,
+      model: modelName,
+      purpose: purpose ?? null,
+      reason: details.reason,
+      thinkingLevel: effectiveThinkingLevel ?? null,
+    })
+    throw error
+  }
 
   return {
     text: extractVisibleGeminiText(result.response),

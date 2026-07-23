@@ -3,11 +3,6 @@ export const TTS_API_PATH = '/api/tts';
 export const DEFAULT_TTS_PROVIDER = 'elevenlabs';
 export const DEFAULT_ELEVENLABS_VOICE_ID = 'ay4iqk10DLwc8KGSrf2t';
 export const DEFAULT_ELEVENLABS_MODEL_ID = 'eleven_turbo_v2_5';
-// Modelo TTS de Gemini. Override con GEMINI_TTS_MODEL si el id de API difiere.
-export const DEFAULT_GEMINI_TTS_MODEL_ID = 'gemini-3.1-flash-tts-preview';
-export const DEFAULT_GEMINI_TTS_VOICE_NAME = 'Sulafat';
-// Zephyr (Bright) — female voice, high-pitched, clear and sweet, ideal for educational narration
-export const DEFAULT_GEMINI_TTS_READING_VOICE_NAME = 'Zephyr';
 // Google Cloud Text-to-Speech (distinto del "Gemini TTS preview"): API REST
 // `texttospeech.googleapis.com`, voces Neural2/Chirp3, MP3 comprimido, baja
 // latencia y free tier mensual. `es-US` es el español latinoamericano de Google.

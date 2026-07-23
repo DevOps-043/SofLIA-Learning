@@ -20,8 +20,6 @@ describe('POST /api/tts', () => {
   const originalApiKey = process.env.ELEVENLABS_API_KEY;
   const originalPublicApiKey = process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY;
   const originalTTSProvider = process.env.TTS_PROVIDER;
-  const originalGeminiTTSApiKey = process.env.GEMINI_TTS_API_KEY;
-  const originalGoogleApiKey = process.env.GOOGLE_API_KEY;
 
   beforeEach(() => {
     clearAllRateLimits();
@@ -29,8 +27,6 @@ describe('POST /api/tts', () => {
     delete process.env.ELEVENLABS_API_KEY;
     delete process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY;
     delete process.env.TTS_PROVIDER;
-    delete process.env.GEMINI_TTS_API_KEY;
-    delete process.env.GOOGLE_API_KEY;
   });
 
   afterEach(() => {
@@ -53,18 +49,6 @@ describe('POST /api/tts', () => {
       process.env.TTS_PROVIDER = originalTTSProvider;
     } else {
       delete process.env.TTS_PROVIDER;
-    }
-
-    if (originalGoogleApiKey) {
-      process.env.GOOGLE_API_KEY = originalGoogleApiKey;
-    } else {
-      delete process.env.GOOGLE_API_KEY;
-    }
-
-    if (originalGeminiTTSApiKey) {
-      process.env.GEMINI_TTS_API_KEY = originalGeminiTTSApiKey;
-    } else {
-      delete process.env.GEMINI_TTS_API_KEY;
     }
   });
 
@@ -105,40 +89,8 @@ describe('POST /api/tts', () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
-  it('proxies synthesized audio when Gemini responds correctly', async () => {
-    process.env.TTS_PROVIDER = 'gemini';
-    process.env.GEMINI_TTS_API_KEY = 'test-google-key';
-    global.fetch = vi.fn().mockResolvedValue(
-      Response.json({
-        candidates: [
-          {
-            content: {
-              parts: [
-                {
-                  inlineData: {
-                    mimeType: 'audio/pcm',
-                    data: Buffer.from([1, 2, 3]).toString('base64'),
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      })
-    ) as typeof fetch;
-
-    const response = await POST(createRequest({ text: 'Hola SofLIA' }));
-    const audio = new Uint8Array(await response.arrayBuffer());
-
-    expect(response.status).toBe(200);
-    expect(response.headers.get('Content-Type')).toBe('audio/wav');
-    expect(String.fromCharCode(...audio.slice(0, 4))).toBe('RIFF');
-    expect(global.fetch).toHaveBeenCalledTimes(1);
-  });
-
   it('returns 204 so the browser can fallback when the provider fails', async () => {
-    process.env.TTS_PROVIDER = 'gemini';
-    process.env.GEMINI_TTS_API_KEY = 'test-google-key';
+    process.env.ELEVENLABS_API_KEY = 'test-server-key';
     global.fetch = vi.fn().mockResolvedValue(
       Response.json(
         {
@@ -152,6 +104,6 @@ describe('POST /api/tts', () => {
 
     expect(response.status).toBe(204);
     expect(response.headers.get('X-TTS-Fallback')).toBe('browser');
-    expect(response.headers.get('X-TTS-Provider')).toBe('gemini');
+    expect(response.headers.get('X-TTS-Provider')).toBe('elevenlabs');
   });
 });
