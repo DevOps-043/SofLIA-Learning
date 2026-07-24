@@ -32,8 +32,8 @@ export const courseLearnComponents: ComponentInfo[] = [
         ]
       },
       {
-        name: 'EmbeddedSofLIAPanel',
-        path: 'apps/web/src/core/components/EmbeddedLiaPanel/EmbeddedLiaPanel.tsx',
+        name: 'CourseLia',
+        path: 'apps/web/src/features/courses/components/CourseLia.tsx',
         description: 'Panel de SofLIA integrado para ayuda contextual',
         props: ['lessonContext', 'transcript'],
         commonErrors: [

@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { requireUser } from '@/lib/auth/requireUser';
 import { addRateLimitHeaders, checkRateLimit } from '../../../core/lib/rate-limit';
-import {
-  DEFAULT_TTS_OPTIMIZE_STREAMING_LATENCY,
-  DEFAULT_TTS_OUTPUT_FORMAT,
-  MAX_TTS_TEXT_LENGTH,
-} from '../../../core/services/tts/shared';
+import { MAX_TTS_TEXT_LENGTH } from '../../../core/services/tts/shared';
 import { resolveTTSAudio } from '../../../core/services/tts/server/tts-synthesis.service';
 
+// La voz, el modelo y el formato de salida los decide el SERVIDOR: no son parte
+// del contrato. Si el cliente pudiera elegirlos, cualquiera podría sintetizar con
+// voces o modelos arbitrarios a cargo de la cuota de pago de la plataforma, y la
+// identidad sonora de SofLIA dejaría de ser consistente entre superficies.
 const textToSpeechSchema = z.object({
   text: z.string().trim().min(1).max(MAX_TTS_TEXT_LENGTH),
-  voiceId: z.string().trim().min(1).max(128).optional(),
-  modelId: z.string().trim().min(1).max(128).optional(),
   voiceSettings: z.object({
     stability: z.number().min(0).max(1),
     similarity_boost: z.number().min(0).max(1),
@@ -19,8 +18,6 @@ const textToSpeechSchema = z.object({
     use_speaker_boost: z.boolean(),
   }).optional(),
   speed: z.number().min(0.5).max(2).optional(),
-  optimizeStreamingLatency: z.number().int().min(0).max(4).optional().default(DEFAULT_TTS_OPTIMIZE_STREAMING_LATENCY),
-  outputFormat: z.string().trim().min(1).max(32).optional().default(DEFAULT_TTS_OUTPUT_FORMAT),
   context: z.enum(['chat', 'chat_continuation', 'reading', 'reading_continuation']).optional(),
 });
 
@@ -60,6 +57,16 @@ export async function POST(request: NextRequest) {
       rateLimitResult.remaining,
       rateLimitResult.reset
     );
+
+  // Autenticacion DESPUES del rate limit: cada sintesis consume cuota de un
+  // proveedor de pago, asi que la voz solo esta disponible para usuarios con
+  // sesion. Todas las superficies que locutan (panel lateral, SofLIA en cursos y
+  // el onboarding en /dashboard) viven en rutas autenticadas, de modo que el
+  // gate no degrada ningun flujo existente.
+  const auth = await requireUser();
+  if (auth instanceof NextResponse) {
+    return withRateHeaders(auth);
+  }
 
   try {
     const payload = textToSpeechSchema.parse(await request.json());

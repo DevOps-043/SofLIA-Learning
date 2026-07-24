@@ -2,11 +2,14 @@ import type { TextToSpeechRequestPayload } from '../types'
 import { TTS_API_PATH } from '../shared'
 import { TTSQuotaExceededError } from './tts-error.utils'
 
-// 502 = Gemini upstream error (transient). Retry once with small backoff.
+// 502 = provider upstream error (transient). Retry once with small backoff.
 // 503 = provider not configured at all — do NOT retry, return null.
+// 401/403 = sesión ausente o expirada: la voz del proveedor no está disponible
+//   para esta petición. Se degrada a Web Speech igual que un fallo de proveedor,
+//   en lugar de lanzar y dejar al usuario en silencio a mitad de una respuesta.
 // Other 4xx/5xx = unrecoverable, throw.
 const RETRYABLE_STATUS = new Set([502, 504])
-const FALLBACK_STATUS = new Set([502, 503, 504])
+const FALLBACK_STATUS = new Set([401, 403, 502, 503, 504])
 const RETRY_DELAY_MS = 500
 
 async function fetchOnce(

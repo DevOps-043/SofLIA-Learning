@@ -4,9 +4,9 @@ import { buildTTSCacheKey } from '../server/tts-cache-key'
 import type { TTSCacheDescriptor } from '../server.service'
 
 const baseDescriptor: TTSCacheDescriptor = {
-  provider: 'gemini',
-  voice: 'Zephyr',
-  model: 'gemini-3.1-flash-tts-preview',
+  provider: 'elevenlabs',
+  voice: 'imFXYz8XIletRKLZZQaA',
+  model: 'eleven_turbo_v2_5',
   context: 'reading',
 }
 
@@ -45,11 +45,11 @@ describe('buildTTSCacheKey', () => {
   })
 
   it('changes when the provider or model changes', () => {
-    const gemini = buildTTSCacheKey(baseDescriptor, 'Texto')
-    const provider = buildTTSCacheKey({ ...baseDescriptor, provider: 'elevenlabs' }, 'Texto')
+    const base = buildTTSCacheKey(baseDescriptor, 'Texto')
+    const provider = buildTTSCacheKey({ ...baseDescriptor, provider: 'other-provider' }, 'Texto')
     const model = buildTTSCacheKey({ ...baseDescriptor, model: 'other-model' }, 'Texto')
 
-    expect(provider).not.toBe(gemini)
-    expect(model).not.toBe(gemini)
+    expect(provider).not.toBe(base)
+    expect(model).not.toBe(base)
   })
 })

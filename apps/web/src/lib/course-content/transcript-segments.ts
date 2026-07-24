@@ -29,10 +29,20 @@ function isFiniteNumber(value: unknown): value is number {
  * El contenido proviene de un modelo y de una columna JSONB sin esquema, así que
  * NUNCA se asume su forma: se descarta cualquier elemento mal formado en lugar de
  * dejar que un `start` inválido acabe mostrándose al usuario como un tiempo real.
+ *
+ * `maxDurationSeconds` (la duración REAL del vídeo) es la red de seguridad clave:
+ * el modelo a veces estima los tiempos en vez de leerlos del audio y devuelve un
+ * `start` posterior al final del vídeo (p. ej. 3:32 en un vídeo de 3:08). Esos
+ * tramos se descartan, y los `end` que se pasan se recortan a la duración, para
+ * que SofLIA jamás cite un momento que no existe.
  */
-export function parseTranscriptSegments(rawValue: unknown): TranscriptSegment[] {
+export function parseTranscriptSegments(
+  rawValue: unknown,
+  maxDurationSeconds?: number,
+): TranscriptSegment[] {
   if (!Array.isArray(rawValue)) return []
 
+  const hasDurationLimit = isFiniteNumber(maxDurationSeconds) && maxDurationSeconds > 0
   const segments: TranscriptSegment[] = []
 
   for (const entry of rawValue.slice(0, MAX_SEGMENTS)) {
@@ -44,9 +54,14 @@ export function parseTranscriptSegments(rawValue: unknown): TranscriptSegment[] 
 
     if (!isFiniteNumber(start) || !text) continue
 
+    // Un tramo que empieza en o después del final del vídeo es una alucinación
+    // del modelo: se descarta antes que llevar al alumno a un punto inexistente.
+    if (hasDurationLimit && start >= (maxDurationSeconds as number)) continue
+
     // `end` es opcional en la práctica: si falta o es incoherente, se iguala al
     // inicio antes que descartar un tramo cuyo texto sí es válido.
-    const end = isFiniteNumber(candidate.end) && candidate.end >= start ? candidate.end : start
+    let end = isFiniteNumber(candidate.end) && candidate.end >= start ? candidate.end : start
+    if (hasDurationLimit) end = Math.min(end, maxDurationSeconds as number)
 
     segments.push({ end, start, text })
   }

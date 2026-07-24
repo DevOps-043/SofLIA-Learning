@@ -6,7 +6,9 @@ function buildContentSecurityPolicy() {
     "font-src 'self' data: https://fonts.gstatic.com https://r2cdn.perplexity.ai",
     "img-src 'self' data: blob: https:",
     "media-src 'self' blob: https://*.supabase.co",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.elevenlabs.io https://generativelanguage.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://challenges.cloudflare.com https://hcaptcha.com https://*.hcaptcha.com",
+    // api.elevenlabs.io NO va aqui: el navegador nunca llama al proveedor TTS
+    // directamente, siempre pasa por /api/tts (que es quien custodia la API key).
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://challenges.cloudflare.com https://hcaptcha.com https://*.hcaptcha.com",
     "frame-src 'self' https://accounts.google.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://*.supabase.co https://challenges.cloudflare.com https://hcaptcha.com https://*.hcaptcha.com",
     "object-src 'none'",
     "base-uri 'self'",

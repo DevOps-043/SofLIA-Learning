@@ -34,6 +34,7 @@ interface CourseLessonRow {
   lesson_id: string
   lesson_title: string | null
   lesson_order_index: number | null
+  duration_seconds: number | null
   summary_content: string | null
   transcript_content: string | null
   transcript_segments: unknown
@@ -56,7 +57,7 @@ export async function loadCourseLessonTranscripts(params: {
     const { data, error } = await supabase
       .from('course_lessons')
       .select(
-        'lesson_id, lesson_title, lesson_order_index, summary_content, transcript_content, transcript_segments, course_modules!inner(module_title, module_order, course_id)',
+        'lesson_id, lesson_title, lesson_order_index, duration_seconds, summary_content, transcript_content, transcript_segments, course_modules!inner(module_title, module_order, course_id)',
       )
       .eq('course_modules.course_id', courseId)
       .eq('is_published', true)
@@ -101,13 +102,16 @@ export async function loadLessonTranscriptWithTimecodes(
     const supabase = createAdminClient()
     const { data, error } = await supabase
       .from('course_lessons')
-      .select('transcript_segments')
+      .select('transcript_segments, duration_seconds')
       .eq('lesson_id', lessonId)
       .maybeSingle()
 
     if (error || !data) return null
 
-    const segments = parseTranscriptSegments(data.transcript_segments)
+    const segments = parseTranscriptSegments(
+      data.transcript_segments,
+      data.duration_seconds ?? undefined,
+    )
     if (segments.length === 0) return null
 
     return {
@@ -134,7 +138,10 @@ function buildContextFromRows(
     if (currentLessonId && row.lesson_id === currentLessonId) continue
     if (remainingBudget <= 0) break
 
-    const segments = parseTranscriptSegments(row.transcript_segments)
+    const segments = parseTranscriptSegments(
+      row.transcript_segments,
+      row.duration_seconds ?? undefined,
+    )
     const perLessonBudget = Math.min(PER_LESSON_BUDGET, remainingBudget)
 
     // Con segmentos se envía la versión con marcas de tiempo; sin ellos, el texto

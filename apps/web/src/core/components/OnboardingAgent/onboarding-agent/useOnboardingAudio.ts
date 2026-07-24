@@ -2,10 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  DEFAULT_ELEVENLABS_MODEL_ID,
-  DEFAULT_ELEVENLABS_VOICE_ID,
-  DEFAULT_TTS_OPTIMIZE_STREAMING_LATENCY,
-  DEFAULT_TTS_OUTPUT_FORMAT,
   isTTSAbortError,
   playAudioBlob,
   requestTTSAudio,
@@ -58,11 +54,8 @@ export function useOnboardingAudio(isAudioEnabled: boolean) {
         const blob = await requestTTSAudio(
           {
             text,
-            voiceId: process.env.NEXT_PUBLIC_ELEVENLABS_VOICE_ID || DEFAULT_ELEVENLABS_VOICE_ID,
-            modelId: DEFAULT_ELEVENLABS_MODEL_ID,
             voiceSettings: ONBOARDING_VOICE_SETTINGS,
-            optimizeStreamingLatency: DEFAULT_TTS_OPTIMIZE_STREAMING_LATENCY,
-            outputFormat: DEFAULT_TTS_OUTPUT_FORMAT,
+            context: 'chat',
           },
           controller.signal
         );

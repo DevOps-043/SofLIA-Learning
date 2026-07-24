@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/utils/logger'
+import { parseTranscriptSegments } from '@/lib/course-content/transcript-segments'
 
 // Cada lección implica subir y analizar un vídeo completo (1-3 min). Un lote de
 // varias supera de largo el timeout por defecto de una función serverless, así
@@ -35,6 +36,7 @@ const DEFAULT_BATCH_SIZE = 3
 interface PendingLessonRow {
   lesson_id: string
   lesson_title: string | null
+  duration_seconds: number | null
   video_provider: string | null
   video_provider_id: string | null
 }
@@ -169,7 +171,7 @@ export async function POST(request: Request) {
     // el siguiente lote de la cola general.
     let query = supabase
       .from('course_lessons')
-      .select('lesson_id, lesson_title, video_provider, video_provider_id')
+      .select('lesson_id, lesson_title, duration_seconds, video_provider, video_provider_id')
       .is('transcript_segments', null)
 
     if (options.lessonId) {
@@ -317,12 +319,23 @@ async function reprocessLesson(
       return { ...base, ok: false, reason: 'El modelo no devolvio segmentos con tiempos' }
     }
 
+    // Se validan contra la duración REAL del vídeo antes de guardar: el modelo a
+    // veces devuelve tiempos posteriores al final del vídeo (alucinación), y
+    // guardarlos haría que SofLIA citara un momento inexistente.
+    const validatedSegments = parseTranscriptSegments(
+      result.segments,
+      lesson.duration_seconds ?? undefined,
+    )
+    if (validatedSegments.length === 0) {
+      return { ...base, ok: false, reason: 'Los segmentos devueltos no eran validos para la duracion del video' }
+    }
+
     const supabase = createAdminClient()
     const { error } = await supabase
       .from('course_lessons')
       .update({
         transcript_content: result.transcript ?? undefined,
-        transcript_segments: result.segments as never,
+        transcript_segments: validatedSegments as never,
       })
       .eq('lesson_id', lesson.lesson_id)
 

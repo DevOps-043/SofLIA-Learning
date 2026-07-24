@@ -48,6 +48,38 @@ describe('parseTranscriptSegments', () => {
     expect(parseTranscriptSegments('texto')).toEqual([])
     expect(parseTranscriptSegments(undefined)).toEqual([])
   })
+
+  it('descarta segmentos posteriores al final del video (regresion: 3:32 en video de 3:08)', () => {
+    // duracion 188s = 3:08. El tramo que empieza en 212s = 3:32 es una alucinacion.
+    const segments = parseTranscriptSegments(
+      [
+        { start: 31, end: 60, text: 'valido al inicio' },
+        { start: 212, end: 230, text: 'inventado tras el final' },
+      ],
+      188,
+    )
+
+    expect(segments).toHaveLength(1)
+    expect(segments[0].text).toBe('valido al inicio')
+  })
+
+  it('recorta el end a la duracion del video', () => {
+    const [segment] = parseTranscriptSegments(
+      [{ start: 180, end: 999, text: 'ultimo tramo' }],
+      188,
+    )
+
+    expect(segment.start).toBe(180)
+    expect(segment.end).toBe(188)
+  })
+
+  it('sin limite de duracion no descarta nada (comportamiento previo intacto)', () => {
+    const segments = parseTranscriptSegments([
+      { start: 500, end: 520, text: 'sin limite' },
+    ])
+
+    expect(segments).toHaveLength(1)
+  })
 })
 
 describe('formatTimecode', () => {

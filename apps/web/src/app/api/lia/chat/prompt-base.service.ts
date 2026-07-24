@@ -335,7 +335,7 @@ Configuración de datos personales y profesionales.
 **Dónde aparezco**:
 - Panel lateral derecho (LiaSidePanel)
 - Botón flotante en esquina inferior derecha (LiaFloatingButton)
-- Dentro de lecciones como mentor contextual (EmbeddedLiaPanel)
+- Dentro de lecciones como mentor contextual (CourseLia)
 - En Business Panel para ayuda administrativa
 
 ---

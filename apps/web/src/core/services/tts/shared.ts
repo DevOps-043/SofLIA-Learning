@@ -1,18 +1,14 @@
 export const TTS_API_PATH = '/api/tts';
 
-export const DEFAULT_TTS_PROVIDER = 'elevenlabs';
-export const DEFAULT_ELEVENLABS_VOICE_ID = 'ay4iqk10DLwc8KGSrf2t';
+// Identidad sonora ÚNICA de SofLIA: la misma voz locuta el chat y las lecturas
+// (reflexiones), para que el usuario perciba un solo personaje en toda la
+// plataforma. El valor por defecto es deliberadamente el de producción: si la
+// variable de entorno falta, la voz —y por tanto la clave del caché de audio— no
+// cambia, y el audio ya pregenerado sigue siendo válido.
+export const DEFAULT_ELEVENLABS_VOICE_ID = 'imFXYz8XIletRKLZZQaA';
 export const DEFAULT_ELEVENLABS_MODEL_ID = 'eleven_turbo_v2_5';
-// Google Cloud Text-to-Speech (distinto del "Gemini TTS preview"): API REST
-// `texttospeech.googleapis.com`, voces Neural2/Chirp3, MP3 comprimido, baja
-// latencia y free tier mensual. `es-US` es el español latinoamericano de Google.
-// Override con GOOGLE_CLOUD_TTS_VOICE / GOOGLE_CLOUD_TTS_LANGUAGE. Para máxima
-// naturalidad puede usarse una voz Chirp3-HD, p. ej. 'es-US-Chirp3-HD-Aoede'.
-export const DEFAULT_GOOGLE_CLOUD_TTS_LANGUAGE = 'es-US';
-export const DEFAULT_GOOGLE_CLOUD_TTS_VOICE = 'es-US-Neural2-A';
 
 export const DEFAULT_TTS_OUTPUT_FORMAT = 'mp3_22050_32';
-export const DEFAULT_TTS_OPTIMIZE_STREAMING_LATENCY = 4;
 export const DEFAULT_TTS_VOLUME = 0.8;
 export const MAX_TTS_TEXT_LENGTH = 4000;
 export const DEFAULT_TTS_SYNTHESIS_TIMEOUT_MS = 20_000;
