@@ -1,13 +1,27 @@
-import { Inter, Montserrat } from 'next/font/google'
+import {
+  IBM_Plex_Sans,
+  Inter_Tight,
+  Newsreader,
+} from 'next/font/google'
 
-export const inter = Inter({
+// Display headlines across public pages and application panels.
+export const newsreader = Newsreader({
   subsets: ['latin'],
-  variable: '--font-inter',
-  weight: ['400', '500', '700'],
+  variable: '--font-newsreader',
+  weight: ['300', '400'],
+  style: ['normal', 'italic'],
 })
 
-export const montserrat = Montserrat({
+// Body copy, navigation, controls and buttons.
+export const interTight = Inter_Tight({
   subsets: ['latin'],
-  variable: '--font-montserrat',
-  weight: ['400', '500', '700', '800'],
+  variable: '--font-inter-tight',
+  weight: ['400', '500', '600', '700'],
+})
+
+// Labels, tables, data and numeric details.
+export const ibmPlexSans = IBM_Plex_Sans({
+  subsets: ['latin'],
+  variable: '--font-ibm-plex',
+  weight: ['400', '500', '600'],
 })

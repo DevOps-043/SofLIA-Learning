@@ -32,7 +32,7 @@ export function RegisterTermsField({
 
   return (
     <>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6, duration: 0.4 }} className="flex items-start gap-2.5 pt-1">
+      <motion.div data-auth-terms initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6, duration: 0.4 }} className="flex items-start gap-2.5 pt-1">
         <input type="checkbox" id="acceptTerms" {...register('acceptTerms')} className="sr-only" />
         <label htmlFor="acceptTerms" className="flex items-start gap-2.5 cursor-pointer group">
           <motion.div

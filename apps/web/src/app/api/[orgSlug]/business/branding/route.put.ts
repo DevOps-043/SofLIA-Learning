@@ -153,7 +153,7 @@ async function handlePut(
         color_primary: updatedOrg.brand_color_primary || DESIGN_HEX_COLOR.info,
         color_secondary: updatedOrg.brand_color_secondary || DESIGN_HEX_COLOR.success,
         color_accent: updatedOrg.brand_color_accent || DESIGN_HEX_COLOR.secondary,
-        font_family: updatedOrg.brand_font_family || 'Inter',
+        font_family: updatedOrg.brand_font_family || 'Inter Tight',
         branding_enabled: updatedOrg.branding_enabled ?? false,
       },
       styles: buildOrganizationStylesPayload(updatedOrg),

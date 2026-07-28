@@ -13,7 +13,7 @@ export function AdminLoadingSpinner() {
         </div>
         <p 
           className="mt-4 text-sm text-primary dark:text-white"
-          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+          style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
         >
           Cargando panel de administración...
         </p>

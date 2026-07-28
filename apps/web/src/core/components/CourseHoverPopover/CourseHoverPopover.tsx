@@ -30,7 +30,7 @@ export function CourseHoverPopover({
           style={{
             top: `${popover.position.top}px`,
             left: `${popover.position.left}px`,
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'var(--font-system-ui)',
           }}
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}

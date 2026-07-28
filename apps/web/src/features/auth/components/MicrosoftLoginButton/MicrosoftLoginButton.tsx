@@ -60,6 +60,7 @@ export function MicrosoftLoginButton({
 
   return (
     <motion.button
+      data-auth-provider
       type="button"
       onClick={handleLogin}
       disabled={isLoading}

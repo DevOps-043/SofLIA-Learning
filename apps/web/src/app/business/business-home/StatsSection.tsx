@@ -22,8 +22,8 @@ export function BusinessStatsSection() {
                     <IconComponent className="w-8 h-8 text-white" strokeWidth={2.5} />
                   </div>
                 </div>
-                <div className="text-4xl font-bold text-primary dark:text-white mb-2" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>{stat.value}</div>
-                <div className="text-lg text-gray-500 dark:text-white/70" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>{stat.label}</div>
+                <div className="text-4xl font-bold text-primary dark:text-white mb-2" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 700 }}>{stat.value}</div>
+                <div className="text-lg text-gray-500 dark:text-white/70" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}>{stat.label}</div>
               </motion.div>
             )
           })}

@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { SocialLoginButtons } from '../SocialLoginButtons/SocialLoginButtons'
 import { HumanVerificationField } from '../HumanVerificationField'
 import { MfaChallengeForm } from '../LoginForm/MfaChallengeForm'
+import { authExperienceStyles } from '../AuthExperience'
 import { useOrganizationAuthStyles } from './useOrganizationAuthStyles'
 import {
   formatRedirectCountdownMessage,
@@ -62,12 +63,12 @@ export function OrganizationLoginForm(props: OrganizationLoginFormProps) {
 
   return (
     <>
-      <form onSubmit={handleSubmit(login.onSubmit)} className="space-y-5" aria-busy={login.isPending}>
-        <motion.div className="text-center space-y-2 mb-7" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
-          <h2 className="text-2xl font-semibold tracking-tight" style={{ color: palette.textColor }}>
+      <form onSubmit={handleSubmit(login.onSubmit)} className={`${authExperienceStyles.form} space-y-5`} aria-busy={login.isPending}>
+        <motion.div className={authExperienceStyles.header} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
+          <h2 className={authExperienceStyles.title} style={{ color: palette.textColor }}>
             {t('auth.org.welcomeBack')}
           </h2>
-          <p className="text-sm opacity-70 font-normal" style={{ color: palette.textColor }}>
+          <p className={authExperienceStyles.subtitle} style={{ color: palette.textColor }}>
             {t('auth.org.signInToContinue')}
           </p>
         </motion.div>

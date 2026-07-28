@@ -1,51 +1,42 @@
 import Link from 'next/link';
+import { Ban, LifeBuoy } from 'lucide-react';
+import {
+  AuthExperience,
+  authExperienceStyles,
+} from '@/features/auth/components/AuthExperience';
 
 export default function BannedPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-        <div className="mb-6">
-          <svg
-            className="mx-auto h-16 w-16 text-red-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
-            />
-          </svg>
-        </div>
-        
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
-          Cuenta Suspendida
-        </h1>
-        
-        <p className="text-gray-600 mb-6">
-          Tu cuenta ha sido suspendida debido a múltiples violaciones de las reglas 
-          de la comunidad. Esta suspensión es permanente.
-        </p>
-        
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-red-800">
-            <strong>Motivo:</strong> Contenido inapropiado reiterado después de 3 advertencias.
+    <AuthExperience>
+      <div className={authExperienceStyles.content}>
+        <header className={authExperienceStyles.header}>
+          <span className={authExperienceStyles.iconBadge}>
+            <Ban className="h-6 w-6" aria-hidden="true" />
+          </span>
+          <h1 className={authExperienceStyles.title}>Cuenta suspendida</h1>
+          <p className={authExperienceStyles.subtitle}>
+            El acceso a esta cuenta se encuentra suspendido de forma permanente
+            por incumplimientos reiterados de las reglas de la comunidad.
+          </p>
+        </header>
+
+        <div className={authExperienceStyles.status}>
+          <LifeBuoy className="h-5 w-5 flex-none" aria-hidden="true" />
+          <p>
+            Si consideras que se trata de un error, contacta al equipo de soporte
+            para solicitar una revisión del caso.
           </p>
         </div>
-        
-        <p className="text-sm text-gray-500 mb-6">
-          Si crees que esto es un error, por favor contacta a nuestro equipo de soporte.
-        </p>
-        
-        <Link
-          href="/"
-          className="inline-block bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
-        >
-          Volver al Inicio
-        </Link>
+
+        <div className={authExperienceStyles.actions}>
+          <Link href="/contact" className={authExperienceStyles.primaryButton}>
+            Contactar a soporte
+          </Link>
+          <Link href="/" className={authExperienceStyles.backLink}>
+            Volver al inicio
+          </Link>
+        </div>
       </div>
-    </div>
+    </AuthExperience>
   );
 }

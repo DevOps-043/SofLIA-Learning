@@ -72,7 +72,7 @@ export function ModuleAccordion({
 
           <h3
             className="pr-4 text-sm font-semibold leading-tight text-gray-900 dark:text-white/90"
-            style={{ fontFamily: "Inter, sans-serif" }}
+            style={{ fontFamily: "var(--font-system-ui)" }}
           >
             {module.module_title}
           </h3>
@@ -108,7 +108,7 @@ export function ModuleAccordion({
             >
               <span
                 className="rounded-full border px-3 py-1 text-xs font-medium"
-                style={{ borderColor: 'color-mix(in srgb, var(--learn-accent) 30%, transparent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)', color: 'var(--learn-accent)', fontFamily: "Inter, sans-serif", fontWeight: 500 }}
+                style={{ borderColor: 'color-mix(in srgb, var(--learn-accent) 30%, transparent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)', color: 'var(--learn-accent)', fontFamily: "var(--font-system-ui)", fontWeight: 500 }}
               >
                 {completedLessons}/{totalLessons} {t("leftPanel.completed")}
               </span>

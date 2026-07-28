@@ -1,0 +1,399 @@
+{
+  "nav": {
+    "homeLabel": "Ir al inicio de SofLIA",
+    "primaryLabel": "Navegación principal",
+    "mobileLabel": "Navegación móvil",
+    "system": "El sistema",
+    "method": "Metodología",
+    "services": "Capacidades",
+    "clientAccess": "Acceso clientes",
+    "downloadHub": "Descargar Pulse Hub",
+    "language": "Cambiar idioma",
+    "toggleTheme": "Cambiar tema",
+    "switchToLight": "Cambiar a modo claro",
+    "switchToDark": "Cambiar a modo oscuro",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú"
+  },
+  "hero": {
+    "eyebrow": "Sistema de evolución del talento",
+    "titleStart": "Evoluciona tu talento",
+    "titleHighlight": "al ritmo de la tecnología.",
+    "description": "SofLIA garantiza la relevancia de tu equipo en la era de la IA mediante un sistema de adopción diseñado para el upskilling y reskilling organizacional medible.",
+    "primaryCta": "Agenda un diagnóstico de adopción",
+    "secondaryCta": "Conoce el sistema SofLIA",
+    "stagesLabel": "Etapas clave del sistema SofLIA",
+    "stages": {
+      "diagnosis": "Diagnóstico",
+      "adoption": "Adopción",
+      "impact": "Impacto medible"
+    },
+    "logoAlt": "Logotipo 3D de SofLIA"
+  },
+  "showcase": {
+    "eyebrow": "SofLIA en acción",
+    "title": "La evolución se entiende mejor cuando se ve.",
+    "description": "Conoce cómo convertimos aprendizaje, práctica y acompañamiento en capacidades que llegan al trabajo real.",
+    "closingKicker": "De la intención a la aplicación",
+    "closingTitle": "Aprender es el inicio. Evolucionar es convertirlo en capacidad.",
+    "videoLabel": "Experiencia SofLIA",
+    "pauseVideo": "Pausar video de presentación",
+    "playVideo": "Reproducir video de presentación",
+    "pauseVideoShort": "Pausar",
+    "playVideoShort": "Reproducir"
+  },
+  "narrative": {
+    "eyebrow": "La brecha",
+    "navigationLabel": "Navegación de la historia",
+    "goToSlide": "Ir a la etapa {{number}}",
+    "slides": [
+      {
+        "kicker": "01 · El riesgo",
+        "title": "La brecha de habilidades ya está creciendo.",
+        "description": "La tecnología avanza más rápido que la capacidad de los equipos para convertirla en una forma nueva y relevante de trabajar.",
+        "points": [
+          "Obsolescencia acelerada de las habilidades actuales.",
+          "Incertidumbre sobre cómo mantener la relevancia del equipo."
+        ]
+      },
+      {
+        "kicker": "02 · La fricción",
+        "title": "Hay pilotos. Falta un sistema.",
+        "description": "La experimentación aislada genera entusiasmo, pero no crea adopción sostenible ni transforma la operación diaria.",
+        "points": [
+          "Falta un método para cerrar la brecha de capacidades.",
+          "Hay entusiasmo, pero falta escalamiento y medición."
+        ]
+      },
+      {
+        "kicker": "03 · La respuesta",
+        "title": "Arquitectura de capacidades, no capacitación aislada.",
+        "description": "Implementamos una arquitectura que utiliza la IA como habilitador estratégico para evolucionar habilidades, decisiones y formas de operar.",
+        "points": [
+          "Upskilling conectado con prioridades reales del negocio.",
+          "Reskilling personalizado para mantener la relevancia del talento."
+        ]
+      },
+      {
+        "kicker": "04 · El resultado",
+        "title": "Evolución constante. Impacto visible.",
+        "description": "SofLIA conecta diagnóstico, aprendizaje, práctica, acompañamiento y medición en un solo sistema de evolución organizacional.",
+        "points": [
+          "Casos de uso concretos aplicados al trabajo diario.",
+          "Cierre medible y continuo de la brecha de habilidades."
+        ]
+      }
+    ]
+  },
+  "ecosystem": {
+    "eyebrow": "Ecosistema SofLIA",
+    "title": "Aprender, aplicar y medir en un mismo sistema.",
+    "description": "Cuatro componentes coordinados convierten la evolución del talento en una capacidad permanente de la organización.",
+    "selectItem": "Explorar {{name}}",
+    "poweredBy": "Powered by SofLIA",
+    "brand": "SofLIA",
+    "defaultRole": "Ecosistema",
+    "selectHint": "Selecciona una herramienta para conocer su rol dentro del ecosistema.",
+    "items": [
+      {
+        "id": "engine",
+        "name": "SofLIA Engine",
+        "role": "Inteligencia y orquestación",
+        "description": "Integra contexto, diagnóstico y señales de avance para convertir prioridades estratégicas en rutas de evolución accionables."
+      },
+      {
+        "id": "learning",
+        "name": "SofLIA Learning",
+        "role": "Aprendizaje aplicado",
+        "description": "Despliega experiencias de aprendizaje, práctica guiada y rutas personalizadas conectadas con el trabajo real."
+      },
+      {
+        "id": "agent",
+        "name": "Pulse-Hub",
+        "role": "Acompañamiento continuo",
+        "description": "Acompaña a cada persona durante la aplicación, responde en contexto y ayuda a convertir conocimiento en desempeño."
+      },
+      {
+        "id": "skills",
+        "name": "SofLIA Skills",
+        "role": "Capacidades reutilizables",
+        "description": "Reúne playbooks, prácticas y capacidades aplicadas para acelerar la adopción y conservar el conocimiento organizacional."
+      }
+    ],
+    "messageStart": "La tecnología es el habilitador;",
+    "messageHighlight": "el resultado es cerrar de forma permanente la brecha de capacidades."
+  },
+  "services": {
+    "eyebrow": "Capacidades",
+    "title": "Todo lo necesario para pasar de intención a adopción.",
+    "description": "Intervenciones modulares que pueden iniciar con un diagnóstico y escalar hasta un sistema enterprise de evolución continua.",
+    "dragHint": "Arrastra para explorar",
+    "previous": "Ver capacidad anterior",
+    "next": "Ver capacidad siguiente",
+    "listLabel": "Capacidades y servicios de SofLIA",
+    "items": [
+      {
+        "id": "diagnosis",
+        "title": "Diagnóstico de madurez en IA",
+        "description": "Identificamos brechas, riesgos, oportunidades y prioridades de evolución por rol, área y operación.",
+        "outcome": "Roadmap priorizado"
+      },
+      {
+        "id": "adoption",
+        "title": "Programas de adopción",
+        "description": "Diseñamos programas que conectan liderazgo, capacidades, práctica y gestión del cambio.",
+        "outcome": "Adopción sostenible"
+      },
+      {
+        "id": "ai-first",
+        "title": "Capacitación AI-First",
+        "description": "Desarrollamos habilidades estratégicas, operativas y funcionales para trabajar con IA de forma relevante.",
+        "outcome": "Talento vigente"
+      },
+      {
+        "id": "production",
+        "title": "Producción de aprendizaje",
+        "description": "Creamos cursos, rutas, actividades y recursos instruccionales para SofLIA o el LMS del cliente.",
+        "outcome": "Contenido aplicable"
+      },
+      {
+        "id": "learning",
+        "title": "Despliegue en SofLIA Learning",
+        "description": "Activamos rutas personalizadas, seguimiento, práctica y medición dentro del entorno SofLIA.",
+        "outcome": "Ejecución a escala"
+      },
+      {
+        "id": "agent",
+        "title": "Acompañamiento con SofLIA Agent",
+        "description": "Extendemos el aprendizaje al flujo de trabajo con orientación contextual y soporte continuo.",
+        "outcome": "Transferencia operativa"
+      },
+      {
+        "id": "playbooks",
+        "title": "Playbooks y SofLIA Skills",
+        "description": "Convertimos mejores prácticas y casos de uso en capacidades reutilizables por toda la organización.",
+        "outcome": "Conocimiento vivo"
+      },
+      {
+        "id": "consulting",
+        "title": "Consultoría de casos de uso",
+        "description": "Priorizamos oportunidades y diseñamos formas seguras y medibles de aplicar IA en procesos clave.",
+        "outcome": "Impacto de negocio"
+      }
+    ]
+  },
+  "method": {
+    "eyebrow": "Metodología SofLIA",
+    "title": "Del diagnóstico al escalamiento.",
+    "description": "Un ciclo completo que alinea la evolución del talento con el desempeño, la relevancia y los objetivos de negocio.",
+    "formulaLead": "Diagnóstico + práctica + acompañamiento + medición",
+    "formulaResult": "Evolución organizacional medible",
+    "phases": [
+      {
+        "name": "Diagnóstico",
+        "description": "Mapeamos la brecha de habilidades y la madurez actual.",
+        "points": [
+          "Mapa de brecha de habilidades por rol y área.",
+          "Evaluación de madurez en IA y casos de uso potenciales."
+        ],
+        "outcome": "Entrega: roadmap priorizado"
+      },
+      {
+        "name": "Priorización",
+        "description": "Conectamos capacidades con retos y oportunidades de negocio.",
+        "points": [
+          "Selección de capacidades con mayor impacto en el negocio.",
+          "Definición de métricas y línea base por iniciativa."
+        ],
+        "outcome": "Entrega: plan de evolución"
+      },
+      {
+        "name": "Diseño",
+        "description": "Construimos la arquitectura y las rutas de evolución.",
+        "points": [
+          "Arquitectura de capacidades y rutas por perfil.",
+          "Experiencias, actividades y recursos instruccionales."
+        ],
+        "outcome": "Entrega: rutas de evolución"
+      },
+      {
+        "name": "Capacitación",
+        "description": "Desarrollamos conocimiento relevante y contextual.",
+        "points": [
+          "Programas AI-First por nivel estratégico, operativo y funcional.",
+          "Aprendizaje contextual conectado al trabajo real."
+        ],
+        "outcome": "Resultado: conocimiento aplicable"
+      },
+      {
+        "name": "Práctica",
+        "description": "Aplicamos lo aprendido en situaciones reales de trabajo.",
+        "points": [
+          "Casos de uso reales guiados dentro de la operación.",
+          "Retos y simulaciones con acompañamiento de SofLIA."
+        ],
+        "outcome": "Resultado: transferencia operativa"
+      },
+      {
+        "name": "Acompañamiento",
+        "description": "Sostenemos el cambio con guía humana y asistencia de IA.",
+        "points": [
+          "Guía humana y asistencia de IA en el flujo de trabajo.",
+          "Resolución contextual de dudas y refuerzo continuo."
+        ],
+        "outcome": "Resultado: adopción sostenida"
+      },
+      {
+        "name": "Medición",
+        "description": "Observamos relevancia, adopción y desempeño.",
+        "points": [
+          "Tablero de relevancia, adopción y desempeño.",
+          "Evidencia del cierre de brecha por equipo y capacidad."
+        ],
+        "outcome": "Entrega: métricas de impacto"
+      },
+      {
+        "name": "Optimización",
+        "description": "Ajustamos rutas e intervenciones con evidencia.",
+        "points": [
+          "Ajuste de rutas e intervenciones con base en evidencia.",
+          "Iteración sobre los casos de uso de mayor retorno."
+        ],
+        "outcome": "Resultado: mejora continua"
+      },
+      {
+        "name": "Escalamiento",
+        "description": "Extendemos capacidades probadas a toda la organización.",
+        "points": [
+          "Extensión de capacidades probadas a toda la organización.",
+          "Playbooks y estándares reutilizables con SofLIA Skills."
+        ],
+        "outcome": "Resultado: evolución permanente"
+      }
+    ]
+  },
+  "radar": {
+    "eyebrow": "Radar de capacidades",
+    "title": "La brecha, medida. La evolución, visible.",
+    "description": "Un mismo equipo, dos perfiles de capacidad: el punto de partida y el resultado tras operar con el sistema SofLIA.",
+    "chartLabel": "Radar comparativo de capacidades: hoy frente a con SofLIA",
+    "legendLabel": "Series del radar",
+    "tableAxis": "Capacidad",
+    "series": {
+      "now": "Hoy",
+      "soflia": "Con SofLIA"
+    },
+    "axes": {
+      "strategy": "Estrategia IA",
+      "adoption": "Adopción",
+      "productivity": "Productividad",
+      "skills": "Habilidades",
+      "measurement": "Medición",
+      "culture": "Cultura"
+    },
+    "note": "Perfil ilustrativo sobre una escala de capacidad 0–100, construido a partir del diagnóstico y la medición continua del sistema."
+  },
+  "impact": {
+    "eyebrow": "Relevancia organizacional",
+    "title": "Una evolución que conecta a toda la empresa.",
+    "description": "SofLIA alinea a quienes definen la estrategia con quienes convierten la IA en desempeño cotidiano.",
+    "audienceLabel": "Diseñado para",
+    "benefitsLabel": "Impacto esperado",
+    "networkLabel": "Red de áreas conectadas por el sistema SofLIA",
+    "stageLabel": "Señal de impacto",
+    "progressLabel": "Progreso de las señales de impacto",
+    "audiences": [
+      "Dirección General",
+      "Recursos Humanos",
+      "Capacitación",
+      "Transformación Digital",
+      "Tecnología",
+      "Innovación",
+      "Ventas",
+      "Operaciones"
+    ],
+    "benefits": [
+      {
+        "title": "Talento relevante",
+        "description": "Reduce el riesgo de obsolescencia y fortalece la vigencia de las capacidades."
+      },
+      {
+        "title": "Brecha visible",
+        "description": "Hace medible el cierre del skill gap y orienta la siguiente decisión."
+      },
+      {
+        "title": "Adopción real",
+        "description": "Acelera la práctica, reduce resistencia y lleva la IA a casos de uso concretos."
+      },
+      {
+        "title": "Impacto demostrable",
+        "description": "Conecta evolución, tiempo, desempeño y métricas relevantes para el negocio."
+      }
+    ]
+  },
+  "packages": {
+    "eyebrow": "Rutas de entrada",
+    "title": "Empieza donde estás. Escala hasta donde necesitas.",
+    "description": "Cada modalidad construye evidencia para avanzar al siguiente nivel sin imponer una transformación sobredimensionada.",
+    "tabsLabel": "Paquetes de evolución SofLIA",
+    "cta": "Explorar esta ruta",
+    "stageLabel": "Nivel de evolución",
+    "progressLabel": "Progreso de la ruta de evolución",
+    "previous": "Ver nivel anterior",
+    "next": "Ver siguiente nivel",
+    "items": [
+      {
+        "id": "diagnosis",
+        "name": "Diagnóstico",
+        "scope": "Punto de partida",
+        "description": "Una lectura ejecutiva de brechas, madurez y oportunidades para construir un roadmap de evolución del talento."
+      },
+      {
+        "id": "pilot",
+        "name": "Piloto",
+        "scope": "Prueba enfocada",
+        "description": "Una intervención acotada para validar adopción, aprendizaje aplicado y métricas antes de escalar."
+      },
+      {
+        "id": "basic",
+        "name": "Programa básico",
+        "scope": "Capacidad inicial",
+        "description": "Desarrollo de capacidades prioritarias para un equipo o reto concreto con práctica y seguimiento."
+      },
+      {
+        "id": "intermediate",
+        "name": "Programa intermedio",
+        "scope": "Adopción por área",
+        "description": "Arquitectura de capacidades, rutas y acompañamiento para transformar una función completa."
+      },
+      {
+        "id": "premium",
+        "name": "Programa premium",
+        "scope": "Transformación integral",
+        "description": "Evolución coordinada de liderazgo, talento y operación con medición continua del impacto."
+      },
+      {
+        "id": "enterprise",
+        "name": "Enterprise",
+        "scope": "Evolución continua",
+        "description": "Un sistema permanente de upskilling y reskilling para mantener la relevancia de toda la organización."
+      }
+    ]
+  },
+  "final": {
+    "eyebrow": "El siguiente movimiento",
+    "title": "Asegura hoy la evolución de tu equipo.",
+    "description": "Comienza con un diagnóstico de brecha de habilidades y traza el roadmap hacia la relevancia de tu talento.",
+    "primaryCta": "Agendar diagnóstico",
+    "secondaryCta": "Hablar con SofLIA",
+    "note": "Una conversación ejecutiva, concreta y sin compromiso."
+  },
+  "footer": {
+    "copyright": "© {{year}} SofLIA. Evolución del talento con impacto medible.",
+    "legalLabel": "Información legal y acceso",
+    "privacy": "Privacidad",
+    "terms": "Términos",
+    "contact": "Contacto",
+    "clientAccess": "Acceso clientes"
+  }
+}

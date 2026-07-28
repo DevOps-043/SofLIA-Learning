@@ -1,0 +1,104 @@
+{
+  "hero": {
+    "eyebrow": "Pulse Hub · Aplicación de escritorio",
+    "titleStart": "Todo tu ecosistema,",
+    "titleHighlight": "a un pulso de distancia.",
+    "description": "Pulse Hub lleva SofLIA a tu escritorio: tu asistente de IA, cursos y herramientas de productividad integradas con tu sistema operativo, sin abrir el navegador.",
+    "versionBadge": "Versión {{version}} disponible",
+    "downloadFor": "Descargar para {{platform}}",
+    "goToPlatforms": "Ver todas las plataformas",
+    "changelogCta": "Ver novedades"
+  },
+  "state": {
+    "loading": "Buscando la última versión…",
+    "error": "No pudimos obtener la última versión.",
+    "retry": "Reintentar"
+  },
+  "platforms": {
+    "eyebrow": "Plataformas",
+    "title": "Elige tu sistema. El resto es automático.",
+    "description": "Instaladores oficiales firmados, con actualizaciones automáticas integradas.",
+    "recommended": "Detectado en tu equipo",
+    "download": "Descargar",
+    "comingSoon": "Próximamente",
+    "comingSoonNote": "Estamos llevando Pulse Hub a macOS. Muy pronto estará disponible.",
+    "sizeLabel": "Tamaño",
+    "ram": "4 GB de RAM (8 GB recomendado)",
+    "disk": "~300 MB de espacio en disco",
+    "items": {
+      "windows": {
+        "name": "Windows",
+        "compat": "Windows 10 y 11 (64-bit)"
+      },
+      "mac": {
+        "name": "macOS",
+        "compat": "macOS 12 Monterey o posterior"
+      },
+      "linux": {
+        "name": "Linux",
+        "compat": "Ubuntu 20.04+ / Debian 11+ (64-bit)"
+      }
+    }
+  },
+  "features": {
+    "eyebrow": "Qué incluye",
+    "title": "Un hub que trabaja contigo.",
+    "description": "Seis capacidades que convierten tu escritorio en un espacio de operaciones inteligente.",
+    "items": [
+      {
+        "title": "Tu asistente personal de IA",
+        "description": "LIA se convierte en tu asistente en el escritorio: automatiza flujos, investiga a fondo y responde al instante."
+      },
+      {
+        "title": "Ecosistema completo",
+        "description": "Interactúa con todo el ecosistema SofLIA y comparte chats, proyectos, carpetas y prompts con tu equipo."
+      },
+      {
+        "title": "Integraciones potentes",
+        "description": "Conexión fluida con WhatsApp, Google Workspace y Microsoft 365, todo centralizado en un solo lugar."
+      },
+      {
+        "title": "Control de tu computadora",
+        "description": "Busca dentro de tus archivos locales y ejecuta comandos del sistema de forma inteligente y segura."
+      },
+      {
+        "title": "Área de productividad",
+        "description": "Monitorea tu actividad, optimiza tu tiempo de concentración y gestiona tus tareas diarias."
+      },
+      {
+        "title": "Configuración profunda",
+        "description": "Personaliza la interacción, gestiona integraciones y decide exactamente cómo trabaja SofLIA para ti."
+      }
+    ]
+  },
+  "steps": {
+    "eyebrow": "En tres pasos",
+    "title": "De la descarga al flujo diario.",
+    "items": [
+      {
+        "title": "Descarga",
+        "description": "Elige tu plataforma y descarga el instalador oficial."
+      },
+      {
+        "title": "Instalación",
+        "description": "Ejecuta el asistente y sigue los pasos en pantalla."
+      },
+      {
+        "title": "Sincronización",
+        "description": "Inicia sesión y disfruta de Pulse Hub en tu flujo diario."
+      }
+    ]
+  },
+  "safety": {
+    "official": "Instalador oficial y firmado",
+    "source": "Distribuido desde nuestro repositorio verificado",
+    "updates": "Actualizaciones automáticas integradas"
+  },
+  "changelog": {
+    "title": "Novedades de Pulse Hub",
+    "subtitle": "Historial de versiones y mejoras.",
+    "close": "Cerrar",
+    "empty": "Sin historial disponible por ahora.",
+    "toggleVersion": "Mostrar u ocultar detalles de la versión {{version}}"
+  }
+}

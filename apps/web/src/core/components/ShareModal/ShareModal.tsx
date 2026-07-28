@@ -157,7 +157,7 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                     className="text-xl sm:text-2xl font-bold text-center text-primary dark:text-white mb-2"
-                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
+                    style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 700 }}
                   >
                     Compartir
                   </motion.h3>
@@ -168,7 +168,7 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
                       className="text-center text-gray-500 dark:text-white/80 text-sm"
-                      style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+                      style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
                     >
                       {title}
                     </motion.p>
@@ -199,7 +199,7 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
                       </div>
                       <span 
                         className="text-primary dark:text-white font-medium flex-1"
-                        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
+                        style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}
                       >
                         {option.name}
                       </span>
@@ -225,13 +225,13 @@ export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
                 >
                   <p 
                     className="text-xs text-gray-500 dark:text-white/60 mb-1.5"
-                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
+                    style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}
                   >
                     Enlace:
                   </p>
                   <p 
                     className="text-sm text-primary dark:text-white break-all font-mono"
-                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+                    style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
                   >
                     {url}
                   </p>

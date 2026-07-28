@@ -24,13 +24,13 @@ export function LiaCapabilitiesSection({ sectionRef, capabilitiesY }: LiaCapabil
         >
           <h2
             className="text-4xl lg:text-6xl font-bold mb-6 text-primary dark:text-white"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 900 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 900 }}
           >
             ¿Qué puede hacer <span className="text-accent">SofLIA</span> por ti?
           </h2>
           <p
             className="text-xl lg:text-2xl max-w-3xl mx-auto text-gray-500 dark:text-white/80"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
           >
             Explora todas las capacidades que SofLIA tiene para ayudarte en tu aprendizaje
           </p>
@@ -58,13 +58,13 @@ export function LiaCapabilitiesSection({ sectionRef, capabilitiesY }: LiaCapabil
 
                   <h3
                     className="text-xl font-bold mb-3 text-primary dark:text-white"
-                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
+                    style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 700 }}
                   >
                     {capability.title}
                   </h3>
                   <p
                     className="text-gray-500 dark:text-white/70 leading-relaxed mb-4"
-                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+                    style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
                   >
                     {capability.description}
                   </p>

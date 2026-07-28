@@ -101,14 +101,15 @@
 
 ## 2. Tipografía
 
-### Familia Principal: Inter
+### Familias del sistema
 
-**Características**:
+- **Newsreader**: títulos editoriales y encabezados de página.
+- **Inter Tight**: navegación, botones, formularios, párrafos y contenido de interfaz.
+- **IBM Plex Sans**: etiquetas, tablas, métricas, fechas y datos.
+- **Monoespaciada del sistema**: código, identificadores técnicos y claves.
 
-- Sans serif moderna
-- Legible en pantalla
-- Buena variedad de pesos
-- Diseñada para interfaces digitales
+Esta jerarquía aplica a la página pública, autenticación, Business, Super Admin,
+cursos, usuarios, certificados, estadísticas y cualquier panel nuevo.
 
 ### Escala Tipográfica
 
@@ -116,23 +117,34 @@
 
 **H1 - Título Principal**
 
-- **Peso**: Bold (700)
+- **Familia**: Newsreader
+- **Peso**: Light (300)
 - **Tamaño**: 40px (2.5rem)
-- **Line Height**: 1.2
-- **Tracking**: Ligeramente abierto
-- **Uso**: Títulos principales de página, hero sections
+- **Line Height**: 1.1
+- **Tracking**: -0.025em
+- **Uso**: Títulos principales de página y encabezados de panel
 
 **H2 - Título de Sección**
 
-- **Peso**: Semibold (600) o Bold (700)
+- **Familia**: Newsreader
+- **Peso**: Light (300)
 - **Tamaño**: 28px (1.75rem)
-- **Line Height**: 1.3
+- **Line Height**: 1.2
+- **Tracking**: -0.025em
 - **Uso**: Títulos de secciones principales
+
+**H3–H6 - Títulos de Contenido**
+
+- **Familia**: Newsreader
+- **Peso**: Regular (400)
+- **Tracking**: -0.015em
+- **Uso**: Tarjetas, modales y agrupaciones internas
 
 #### Subtítulos
 
 **Subtítulo / Secciones**
 
+- **Familia**: Inter Tight
 - **Peso**: Medium (500)
 - **Tamaño**: 20px (1.25rem)
 - **Line Height**: 1.4
@@ -142,6 +154,7 @@
 
 **Body - Texto Principal**
 
+- **Familia**: Inter Tight
 - **Peso**: Regular (400)
 - **Tamaño**: 16px (1rem)
 - **Line Height**: 1.5
@@ -149,6 +162,7 @@
 
 **Body Small - Texto Secundario**
 
+- **Familia**: Inter Tight
 - **Peso**: Regular (400)
 - **Tamaño**: 14px (0.875rem)
 - **Line Height**: 1.5
@@ -158,17 +172,19 @@
 
 **UI - Elementos de Interfaz**
 
+- **Familia**: Inter Tight
 - **Peso**: Medium (500)
 - **Tamaño**: 14px (0.875rem)
 - **Line Height**: 1.4
-- **Uso**: Botones, labels, elementos interactivos
+- **Uso**: Botones, navegación y elementos interactivos
 
-**UI Small - Elementos Pequeños**
+**Labels y Datos**
 
+- **Familia**: IBM Plex Sans
 - **Peso**: Medium (500)
 - **Tamaño**: 12px (0.75rem)
 - **Line Height**: 1.4
-- **Uso**: Badges, tags, textos de ayuda
+- **Uso**: Labels, badges, tablas, métricas, fechas y metadatos
 
 ## 3. Iconografía
 
@@ -380,7 +396,7 @@
   - Diferenciación clara entre emisor y receptor
 
 - **Características del espacio**:
-  - Tipografía muy legible (Inter, 16px mínimo)
+  - Tipografía muy legible (Inter Tight, 16px mínimo)
   - Líneas de tiempo organizadas
   - Opciones rápidas: chips y botones accesibles
   - "Lugar seguro y claro" para interacción

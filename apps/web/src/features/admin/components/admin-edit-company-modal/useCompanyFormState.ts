@@ -29,7 +29,7 @@ export function useCompanyFormState(company: AdminCompany) {
     brand_color_primary: normalizeBrandHexColor(company.brand_color_primary, DEFAULT_BRAND_PRIMARY),
     brand_color_secondary: normalizeBrandHexColor(company.brand_color_secondary, DEFAULT_BRAND_SECONDARY),
     brand_color_accent: normalizeBrandHexColor(company.brand_color_accent, DEFAULT_BRAND_ACCENT),
-    brand_font_family: company.brand_font_family || 'Inter',
+    brand_font_family: company.brand_font_family || 'Inter Tight',
   })
   const [isPlanOpen, setIsPlanOpen] = useState(false)
   const uploadState = useCompanyImageUpload({

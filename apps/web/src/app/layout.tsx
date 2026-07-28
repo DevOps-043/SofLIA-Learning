@@ -5,9 +5,20 @@ import './styles/globals/index.css'
 import { AgentTrapLink } from './AgentTrapLink'
 import { RootHead } from './RootHead'
 import { RootProviders } from './RootProviders'
-import { inter, montserrat } from './root-fonts'
+import {
+  ibmPlexSans,
+  interTight,
+  newsreader,
+} from './root-fonts'
+
+const deploymentUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  process.env.URL ??
+  process.env.DEPLOY_PRIME_URL ??
+  'http://localhost:3000'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(deploymentUrl),
   title: 'SofLIA',
   description: 'Plataforma educativa de inteligencia artificial con asistente virtual LIA. Capacitacion, comunidad y adopcion de IA en el entorno laboral.',
   keywords: ['educacion', 'inteligencia artificial', 'chatbot', 'capacitacion', 'IA', 'LIA'],
@@ -38,12 +49,16 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="es" className={`${inter.variable} ${montserrat.variable}`} suppressHydrationWarning>
+    <html
+      lang="es"
+      className={`${newsreader.variable} ${interTight.variable} ${ibmPlexSans.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <RootHead />
       </head>
       <body
-        className={`${inter.className} antialiased bg-[var(--color-bg-dark)] text-[var(--color-contrast)] transition-colors duration-300`}
+        className={`${interTight.className} antialiased bg-[var(--color-bg-dark)] text-[var(--color-contrast)] transition-colors duration-300`}
         suppressHydrationWarning
       >
         <AgentTrapLink />

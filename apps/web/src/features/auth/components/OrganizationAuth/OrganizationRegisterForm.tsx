@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { FormProvider } from 'react-hook-form'
 import { ToastNotification } from '../../../../core/components/ToastNotification'
 import { HumanVerificationField } from '../HumanVerificationField'
+import { authExperienceStyles } from '../AuthExperience'
 import {
   OrganizationRegisterActions,
   OrganizationRegisterCredentialsFields,
@@ -57,7 +58,7 @@ export function OrganizationRegisterForm(
   return (
     <>
       <FormProvider {...form}>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className={`${authExperienceStyles.form} space-y-4`}>
           <OrganizationRegisterIdentityFields
             register={register}
             errors={errors}

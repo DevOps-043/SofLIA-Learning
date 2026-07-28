@@ -1,16 +1,26 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  ArrowLeft,
+  CheckCircle,
+  Loader2,
+  Mail,
+  XCircle,
+} from 'lucide-react';
+import Link from 'next/link';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { requestPasswordResetAction } from '../../actions/reset-password';
-import { getForgotPasswordSchema, type ForgotPasswordFormData } from './ForgotPasswordForm.schema';
-import { Mail, CheckCircle, XCircle, Loader2, ArrowLeft } from 'lucide-react';
-import { TextInput } from '../TextInput';
+import { AuthExperience, authExperienceStyles } from '../AuthExperience';
 import { HumanVerificationField } from '../HumanVerificationField';
-import Link from 'next/link';
+import { TextInput } from '../TextInput';
+import {
+  getForgotPasswordSchema,
+  type ForgotPasswordFormData,
+} from './ForgotPasswordForm.schema';
 
 function getPasswordResetError(
   response: Awaited<ReturnType<typeof requestPasswordResetAction>>,
@@ -49,7 +59,6 @@ export function ForgotPasswordForm() {
   } | null>(null);
 
   const forgotPasswordSchema = useMemo(() => getForgotPasswordSchema(t), [t]);
-
   const {
     register,
     handleSubmit,
@@ -75,10 +84,12 @@ export function ForgotPasswordForm() {
       } else {
         setResult({
           type: 'success',
-          message: getPasswordResetMessage(response) || t('auth.forgotPassword.success'),
+          message:
+            getPasswordResetMessage(response) ||
+            t('auth.forgotPassword.success'),
         });
       }
-    } catch (error) {
+    } catch {
       setResult({
         type: 'error',
         message: t('auth.forgotPassword.error'),
@@ -89,65 +100,34 @@ export function ForgotPasswordForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-white via-gray-50 to-white dark:from-carbon-900 dark:via-carbon-950 dark:to-carbon-900">
-      {/* Fondo animado con formas geométricas (Consistent with Auth Page) */}
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute top-20 left-10 w-72 h-72 bg-accent/5 dark:bg-accent/10 rounded-full blur-3xl"
-          animate={{
-            x: [0, 100, 0],
-            y: [0, 50, 0],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-primary/5 dark:bg-primary/10 rounded-full blur-3xl"
-          animate={{
-            x: [0, -80, 0],
-            y: [0, -60, 0],
-            scale: [1, 1.3, 1],
-          }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <div 
-          className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03] bg-[linear-gradient(var(--color-primary)_1px,transparent_1px),linear-gradient(90deg,var(--color-primary)_1px,transparent_1px)] bg-[length:50px_50px]"
-        />
-      </div>
-
+    <AuthExperience>
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-lg z-10"
+        transition={{ duration: 0.45 }}
+        className={authExperienceStyles.content}
       >
-        <div className="bg-white/80 dark:bg-carbon-800/90 backdrop-blur-xl rounded-2xl shadow-xl dark:shadow-2xl border border-gray-200 dark:border-gray-500/30 p-8 sm:p-10">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
+        <motion.header
+          initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.4 }}
-          className="text-center mb-8"
+          transition={{ delay: 0.08, duration: 0.4 }}
+          className={authExperienceStyles.header}
         >
-          <div className="flex justify-center mb-6">
-            <motion.div 
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              className="w-16 h-16 bg-accent/10 dark:bg-accent/20 rounded-full flex items-center justify-center text-accent"
-            >
-              <Mail className="w-8 h-8" />
-            </motion.div>
+          <div className={authExperienceStyles.iconBadge}>
+            <Mail className="h-6 w-6" aria-hidden="true" />
           </div>
-          <h1 className="text-3xl font-bold text-primary dark:text-white mb-3">
+          <h1 className={authExperienceStyles.title}>
             {t('auth.forgotPassword.title')}
           </h1>
-          <p className="text-sm sm:text-base text-gray-500 dark:text-white/60">
+          <p className={authExperienceStyles.subtitle}>
             {t('auth.forgotPassword.subtitle')}
           </p>
-        </motion.div>
+        </motion.header>
 
-        {/* Formulario */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className={authExperienceStyles.form}
+        >
           <TextInput
             id="email"
             type="email"
@@ -161,25 +141,25 @@ export function ForgotPasswordForm() {
           />
 
           <AnimatePresence>
-            {result && (
+            {result ? (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className={`p-4 rounded-xl border flex items-start gap-3 ${
+                className={`${authExperienceStyles.status} ${
                   result.type === 'success'
-                    ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800/30 text-green-800 dark:text-green-400'
-                    : 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800/30 text-red-800 dark:text-red-400'
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
                 }`}
               >
                 {result.type === 'success' ? (
-                  <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                  <CheckCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
                 ) : (
-                  <XCircle className="w-5 h-5 flex-shrink-0" />
+                  <XCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
                 )}
-                <p className="text-sm font-medium">{result.message}</p>
+                <p>{result.message}</p>
               </motion.div>
-            )}
+            ) : null}
           </AnimatePresence>
 
           <HumanVerificationField onTokenChange={setCaptchaToken} />
@@ -187,13 +167,13 @@ export function ForgotPasswordForm() {
           <motion.button
             type="submit"
             disabled={isLoading || result?.type === 'success'}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full bg-primary hover:bg-primary text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            className={authExperienceStyles.primaryButton}
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
                 <span>{t('auth.forgotPassword.sending')}</span>
               </>
             ) : (
@@ -201,18 +181,12 @@ export function ForgotPasswordForm() {
             )}
           </motion.button>
 
-          <div className="text-center pt-2">
-            <Link
-              href="/auth"
-              className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-accent dark:text-white/60 dark:hover:text-accent transition-colors group"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              <span>{t('auth.forgotPassword.backToLogin')}</span>
-            </Link>
-          </div>
+          <Link href="/auth" className={authExperienceStyles.backLink}>
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            <span>{t('auth.forgotPassword.backToLogin')}</span>
+          </Link>
         </form>
-        </div>
       </motion.div>
-    </div>
+    </AuthExperience>
   );
 }

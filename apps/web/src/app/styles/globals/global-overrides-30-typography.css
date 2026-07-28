@@ -1,0 +1,195 @@
+/*
+ * Sistema tipográfico global SofLIA
+ *
+ * Display: Newsreader
+ * Interfaz y lectura: Inter Tight
+ * Etiquetas y datos: IBM Plex Sans
+ */
+
+:root {
+  --font-system-display:
+    var(--font-newsreader), Newsreader, Georgia, 'Times New Roman', serif;
+  --font-system-ui:
+    var(--font-inter-tight), 'Inter Tight', Inter, Arial, Helvetica, sans-serif;
+  --font-system-label:
+    var(--font-ibm-plex), 'IBM Plex Sans', Arial, Helvetica, sans-serif;
+  --font-system-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+
+  /* Alias compartidos para vistas públicas, paneles y módulos heredados. */
+  --font-display: var(--font-system-display);
+  --font-heading: var(--font-system-display);
+  --font-body: var(--font-system-ui);
+  --font-ui: var(--font-system-ui);
+  --font-label: var(--font-system-label);
+  --font-data: var(--font-system-label);
+}
+
+html,
+body {
+  font-family: var(--font-system-ui);
+  font-optical-sizing: auto;
+  font-synthesis: none;
+}
+
+/*
+ * Los selectores semánticos fijan la jerarquía base. Las reglas de atributo
+ * sustituyen más abajo los estilos inline heredados que fijaban Inter o Segoe
+ * UI en paneles antiguos. Las utilidades explícitas para código y contenido
+ * editable se restauran al final de este archivo.
+ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+[data-typography='display'],
+.font-heading,
+.font-display,
+.font-serif {
+  font-family: var(--font-system-display) !important;
+  font-optical-sizing: auto;
+  font-style: normal;
+  text-wrap: balance;
+}
+
+h1,
+h2 {
+  font-weight: 300 !important;
+  letter-spacing: -0.025em;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 400 !important;
+  letter-spacing: -0.015em;
+}
+
+p,
+li,
+blockquote,
+a,
+[data-typography='ui'],
+.font-body,
+.font-ui,
+.font-sans {
+  font-family: var(--font-system-ui);
+}
+
+/*
+ * Los controles forman una sola voz de producto: compacta, clara y estable.
+ * La especificidad intencional evita que utilidades heredadas como
+ * .font-heading o pesos inline devuelvan Newsreader/Inter a los botones.
+ */
+button:not([data-typography='display']),
+input,
+textarea,
+select,
+option,
+[role='button']:not([data-typography='display']),
+[role='tab'],
+[role='menuitem'],
+[role='option'],
+nav a {
+  font-family: var(--font-system-ui) !important;
+  font-optical-sizing: auto;
+}
+
+button:not([data-typography='display']),
+input[type='button'],
+input[type='submit'],
+input[type='reset'],
+[role='button']:not([data-typography='display']),
+[role='tab'],
+[role='menuitem'],
+nav a {
+  font-weight: 500 !important;
+  letter-spacing: -0.01em;
+}
+
+label,
+legend,
+caption,
+th,
+dt,
+dd,
+data,
+time,
+output,
+.tabular-nums,
+.uppercase,
+.tracking-wider,
+.tracking-widest,
+[role='columnheader'],
+[role='rowheader'],
+[data-typography='label'],
+[data-typography='data'],
+.font-label,
+.font-data {
+  font-family: var(--font-system-label) !important;
+  font-optical-sizing: auto;
+}
+
+label,
+legend,
+caption,
+th,
+dt,
+.uppercase,
+.tracking-wider,
+.tracking-widest,
+[role='columnheader'],
+[role='rowheader'],
+[data-typography='label'],
+.font-label {
+  font-weight: 500 !important;
+}
+
+table {
+  font-family: var(--font-system-label);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * React serializa las familias antiguas en el atributo style. Estas reglas
+ * migran únicamente Inter/Segoe UI, sin interferir con tipografías de firma,
+ * editores de notas o fuentes personalizadas elegidas por una organización.
+ */
+[style*='font-family: Inter'],
+[style*='font-family: "Inter'],
+[style*="font-family: 'Inter"],
+[style*='font-family: Segoe UI'],
+[style*='font-family: "Segoe UI'],
+[style*="font-family: 'Segoe UI"] {
+  font-family: var(--font-system-ui) !important;
+}
+
+code,
+pre,
+kbd,
+samp,
+.font-mono,
+p.font-mono,
+span.font-mono,
+div.font-mono {
+  font-family: var(--font-system-mono) !important;
+  font-variant-ligatures: none;
+}
+
+/* Utilidades semánticas disponibles para componentes nuevos. */
+.font-display {
+  font-family: var(--font-system-display) !important;
+}
+
+.font-ui {
+  font-family: var(--font-system-ui) !important;
+}
+
+.font-label,
+.font-data {
+  font-family: var(--font-system-label) !important;
+}

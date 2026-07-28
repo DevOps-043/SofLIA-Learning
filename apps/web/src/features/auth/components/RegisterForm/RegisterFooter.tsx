@@ -11,10 +11,10 @@ interface RegisterFooterProps {
 export function RegisterFooter({ t, onLoginClick }: RegisterFooterProps) {
   return (
     <>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.4 }} className="mt-5">
+      <motion.div data-auth-social initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.4 }} className="mt-5">
         <SocialLoginButtons showLoginLink={false} />
       </motion.div>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.75, duration: 0.4 }} className="mt-5 text-center">
+      <motion.div data-auth-switch initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.75, duration: 0.4 }} className="mt-5 text-center">
         <p className="text-xs sm:text-sm text-gray-500 dark:text-white/60">
           {t('auth.register.hasAccount')}{' '}
           <button

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { logger as techDebtLogger } from '@/lib/utils/logger';
 
 export interface LandingContactFormData {
@@ -37,12 +37,10 @@ export function useLandingContactForm(initialData: Partial<LandingContactFormDat
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const updateField = (field: keyof LandingContactFormData, value: string) => {
+  const updateField = useCallback((field: keyof LandingContactFormData, value: string) => {
     setFormData((current) => ({ ...current, [field]: value }));
-    if (submitError) {
-      setSubmitError(null);
-    }
-  };
+    setSubmitError((current) => (current ? null : current));
+  }, []);
 
   const submitContact = async ({ data, source }: SubmitContactParams) => {
     setIsSubmitting(true);

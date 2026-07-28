@@ -1,0 +1,451 @@
+.contactPage {
+  --contact-line: rgb(var(--home-fg-rgb) / 0.11);
+}
+
+.contactHero {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  padding-block: 8.5rem 4rem;
+}
+
+.contactBackdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.contactBackdrop::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  opacity: 0.32;
+  background-image:
+    linear-gradient(var(--contact-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--contact-line) 1px, transparent 1px);
+  background-size: 4.5rem 4.5rem;
+  mask-image: linear-gradient(90deg, black, transparent 78%);
+}
+
+.contactBackdrop i {
+  position: absolute;
+  border: 1px solid rgb(var(--color-accent-rgb) / 0.14);
+  border-radius: 50%;
+}
+
+.contactBackdrop i:nth-child(1) {
+  top: -14rem;
+  right: -9rem;
+  width: 36rem;
+  height: 36rem;
+  box-shadow:
+    inset 0 0 0 5rem rgb(var(--color-accent-rgb) / 0.018),
+    0 0 10rem rgb(var(--color-accent-rgb) / 0.1);
+}
+
+.contactBackdrop i:nth-child(2) {
+  top: 18%;
+  left: -16rem;
+  width: 30rem;
+  height: 30rem;
+  background: rgb(var(--color-accent-rgb) / 0.04);
+  filter: blur(2rem);
+}
+
+.contactBackdrop i:nth-child(3) {
+  right: 26%;
+  bottom: -8rem;
+  width: 18rem;
+  height: 18rem;
+  border-style: dashed;
+  opacity: 0.6;
+}
+
+.contactGrid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-items: start;
+  gap: clamp(3rem, 7vw, 6rem);
+}
+
+.contactCopy {
+  padding-top: clamp(0rem, 4vw, 3.5rem);
+}
+
+.contactEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 1.35rem;
+  color: var(--color-accent);
+  font-family: var(--home-label);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.contactEyebrow span {
+  width: 1.7rem;
+  height: 1px;
+  background: currentColor;
+}
+
+.contactCopy > h1 {
+  max-width: 12ch;
+  margin: 0;
+  font-family: var(--home-display);
+  font-size: clamp(3.25rem, 7vw, 6.8rem);
+  font-weight: 300;
+  letter-spacing: -0.035em;
+  line-height: 0.96;
+  text-wrap: balance;
+}
+
+.contactSubtitle {
+  max-width: 42rem;
+  margin: 1.6rem 0 0;
+  color: rgb(var(--home-fg-rgb) / 0.66);
+  font-size: clamp(1rem, 1.6vw, 1.14rem);
+  line-height: 1.7;
+}
+
+.contactActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.7rem;
+}
+
+.contactActions a {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border: 1px solid var(--contact-line);
+  border-radius: 0.85rem;
+  padding: 0.75rem 1rem;
+  color: var(--home-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.contactActions a:first-child {
+  border-color: rgb(var(--color-accent-rgb) / 0.3);
+  background: rgb(var(--color-accent-rgb) / 0.1);
+  box-shadow: 0 0.8rem 2.4rem rgb(var(--color-accent-rgb) / 0.1);
+}
+
+.contactActions a:hover,
+.contactActions a:focus-visible {
+  border-color: rgb(var(--color-accent-rgb) / 0.58);
+  background: rgb(var(--color-accent-rgb) / 0.08);
+  transform: translateY(-2px);
+}
+
+.contactJourney {
+  display: grid;
+  gap: 0;
+  margin-top: 2.6rem;
+}
+
+.journeyItem {
+  display: grid;
+  grid-template-columns: 2.4rem 2.5rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.8rem;
+  min-width: 0;
+  padding-block: 0.7rem;
+}
+
+.journeyIndex {
+  display: grid;
+  min-height: 100%;
+  justify-items: center;
+  gap: 0.4rem;
+  color: var(--color-accent);
+  font-family: var(--home-label);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.journeyIndex i {
+  width: 1px;
+  min-height: 2.8rem;
+  background: linear-gradient(var(--color-accent), transparent);
+}
+
+.journeyItem:last-child .journeyIndex i {
+  display: none;
+}
+
+.journeyIcon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border: 1px solid rgb(var(--color-accent-rgb) / 0.3);
+  border-radius: 0.8rem;
+  background: rgb(var(--color-accent-rgb) / 0.08);
+  color: var(--color-accent);
+}
+
+.journeyItem h2 {
+  margin: 0.1rem 0 0.25rem;
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
+.journeyItem p {
+  max-width: 30rem;
+  margin: 0;
+  color: rgb(var(--home-fg-rgb) / 0.54);
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+
+.formCard {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgb(var(--home-fg-rgb) / 0.13);
+  border-radius: clamp(1.4rem, 3vw, 2rem);
+  padding: clamp(1.2rem, 3vw, 2rem);
+  background:
+    radial-gradient(circle at 100% 0%, rgb(var(--color-accent-rgb) / 0.13), transparent 18rem),
+    color-mix(in srgb, var(--home-surface) 88%, transparent);
+  box-shadow:
+    0 2.5rem 8rem rgb(var(--home-shadow-rgb) / 0.25),
+    inset 0 1px rgb(var(--home-fg-rgb) / 0.07);
+  backdrop-filter: blur(1.5rem) saturate(135%);
+}
+
+.formCard::before {
+  position: absolute;
+  top: 0;
+  left: 12%;
+  width: 35%;
+  height: 1px;
+  content: '';
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  box-shadow: 0 0 1.4rem rgb(var(--color-accent-rgb) / 0.8);
+}
+
+.formCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--contact-line);
+  color: rgb(var(--home-fg-rgb) / 0.42);
+  font-family: var(--home-label);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.formHeading {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.9rem;
+  padding-block: 1.35rem 1.2rem;
+}
+
+.formHeading > div {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border: 1px solid rgb(var(--color-accent-rgb) / 0.34);
+  border-radius: 0.9rem;
+  background: rgb(var(--color-accent-rgb) / 0.09);
+  color: var(--color-accent);
+}
+
+.formHeading h2 {
+  margin: 0;
+  font-family: var(--home-display);
+  font-size: clamp(1.8rem, 3.4vw, 2.45rem);
+  font-weight: 350;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.formHeading p {
+  margin: 0.45rem 0 0;
+  color: rgb(var(--home-fg-rgb) / 0.58);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.formResponse {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.85rem 0 0;
+  color: rgb(var(--home-fg-rgb) / 0.45);
+  font-size: 0.66rem;
+}
+
+.formResponse svg {
+  color: var(--color-accent);
+}
+
+.assuranceSection {
+  padding-block: clamp(4rem, 8vw, 7rem);
+}
+
+.assuranceHeading {
+  display: grid;
+  grid-template-columns: auto minmax(2rem, 1fr);
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+  color: rgb(var(--home-fg-rgb) / 0.48);
+  font-family: var(--home-label);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.assuranceHeading i {
+  height: 1px;
+  background: var(--contact-line);
+}
+
+.assuranceHeading span:last-child {
+  grid-column: 1 / -1;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.assuranceGrid {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--contact-line);
+  border-radius: 1.5rem;
+  background: rgb(var(--home-fg-rgb) / 0.025);
+}
+
+.assuranceCard {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  min-height: 14rem;
+  align-content: end;
+  gap: 0.7rem;
+  padding: 1.5rem;
+}
+
+.assuranceCard + .assuranceCard {
+  border-top: 1px solid var(--contact-line);
+}
+
+.assuranceCard > span {
+  color: rgb(var(--home-fg-rgb) / 0.33);
+  font-family: var(--home-label);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.assuranceCard > svg {
+  color: var(--color-accent);
+}
+
+.assuranceCard h2,
+.assuranceCard p {
+  grid-column: 1 / -1;
+}
+
+.assuranceCard h2 {
+  margin: 1.7rem 0 0;
+  font-family: var(--home-display);
+  font-size: clamp(1.75rem, 3vw, 2.4rem);
+  font-weight: 350;
+  letter-spacing: -0.02em;
+}
+
+.assuranceCard p {
+  max-width: 27rem;
+  margin: 0;
+  color: rgb(var(--home-fg-rgb) / 0.56);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+@media (min-width: 760px) {
+  .assuranceHeading {
+    grid-template-columns: auto minmax(2rem, 1fr) auto;
+  }
+
+  .assuranceHeading span:last-child {
+    grid-column: auto;
+  }
+
+  .assuranceGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .assuranceCard + .assuranceCard {
+    border-top: 0;
+    border-left: 1px solid var(--contact-line);
+  }
+}
+
+@media (min-width: 1040px) {
+  .contactHero {
+    display: grid;
+    align-items: center;
+    padding-block: 8rem 3rem;
+  }
+
+  .contactGrid {
+    grid-template-columns: minmax(0, 0.88fr) minmax(34rem, 1.12fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .contactHero {
+    padding-top: 7.2rem;
+  }
+
+  .contactCopy > h1 {
+    font-size: clamp(2.9rem, 15vw, 4rem);
+  }
+
+  .contactActions {
+    flex-direction: column;
+  }
+
+  .contactActions a {
+    width: 100%;
+  }
+
+  .journeyItem {
+    grid-template-columns: 2rem 2.35rem minmax(0, 1fr);
+    gap: 0.55rem;
+  }
+
+  .formHeading {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contactActions a {
+    transition: none;
+  }
+}

@@ -22,13 +22,13 @@ export function LiaPersonalitySection({ sectionRef }: LiaPersonalitySectionProps
         >
           <h2
             className="text-4xl lg:text-6xl font-bold mb-6 text-primary dark:text-white"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 900 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 900 }}
           >
             La <span className="text-accent">Personalidad</span> de LIA
           </h2>
           <p
             className="text-xl lg:text-2xl max-w-3xl mx-auto text-gray-500 dark:text-white/80"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
           >
             LIA no es solo tecnología, es tu compañero de aprendizaje con una personalidad única
           </p>
@@ -57,13 +57,13 @@ export function LiaPersonalitySection({ sectionRef }: LiaPersonalitySectionProps
                     <div>
                       <h3
                         className="text-xl font-bold mb-2 text-primary dark:text-white"
-                        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
+                        style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 700 }}
                       >
                         {feature.title}
                       </h3>
                       <p
                         className="text-gray-500 dark:text-white/70 leading-relaxed"
-                        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+                        style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
                       >
                         {feature.description}
                       </p>

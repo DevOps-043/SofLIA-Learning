@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Autenticación - SOFLIA',
-  description: 'Inicia sesión o crea una cuenta en SOFLIA',
+  title: 'Acceso seguro | SofLIA',
+  description:
+    'Inicia sesión o crea tu cuenta para continuar tu experiencia en SofLIA.',
 };
 
 export default function AuthLayout({
@@ -10,9 +11,5 @@ export default function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen">
-      {children}
-    </div>
-  );
+  return <div className="min-h-screen">{children}</div>;
 }

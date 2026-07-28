@@ -1,0 +1,399 @@
+{
+  "nav": {
+    "homeLabel": "Ir para o início da SofLIA",
+    "primaryLabel": "Navegação principal",
+    "mobileLabel": "Navegação móvel",
+    "system": "O sistema",
+    "method": "Metodologia",
+    "services": "Capacidades",
+    "clientAccess": "Acesso de clientes",
+    "downloadHub": "Baixar Pulse Hub",
+    "language": "Mudar idioma",
+    "toggleTheme": "Alternar tema",
+    "switchToLight": "Mudar para modo claro",
+    "switchToDark": "Mudar para modo escuro",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu"
+  },
+  "hero": {
+    "eyebrow": "Sistema de evolução de talentos",
+    "titleStart": "Evolua seu talento",
+    "titleHighlight": "no ritmo da tecnologia.",
+    "description": "A SofLIA mantém sua equipe relevante na era da IA por meio de um sistema de adoção projetado para upskilling e reskilling organizacional mensurável.",
+    "primaryCta": "Agendar diagnóstico de adoção",
+    "secondaryCta": "Conhecer o sistema SofLIA",
+    "stagesLabel": "Etapas principais do sistema SofLIA",
+    "stages": {
+      "diagnosis": "Diagnóstico",
+      "adoption": "Adoção",
+      "impact": "Impacto mensurável"
+    },
+    "logoAlt": "Logotipo 3D da SofLIA"
+  },
+  "showcase": {
+    "eyebrow": "SofLIA em ação",
+    "title": "A evolução fica mais clara quando pode ser vista.",
+    "description": "Veja como transformamos aprendizagem, prática e acompanhamento em capacidades que chegam ao trabalho real.",
+    "closingKicker": "Da intenção à aplicação",
+    "closingTitle": "Aprender é o começo. Evoluir é transformar isso em capacidade.",
+    "videoLabel": "Experiência SofLIA",
+    "pauseVideo": "Pausar vídeo de apresentação",
+    "playVideo": "Reproduzir vídeo de apresentação",
+    "pauseVideoShort": "Pausar",
+    "playVideoShort": "Reproduzir"
+  },
+  "narrative": {
+    "eyebrow": "A lacuna",
+    "navigationLabel": "Navegação da história",
+    "goToSlide": "Ir para a etapa {{number}}",
+    "slides": [
+      {
+        "kicker": "01 · O risco",
+        "title": "A lacuna de habilidades já está crescendo.",
+        "description": "A tecnologia avança mais rápido do que a capacidade das equipes de transformá-la em uma nova e relevante forma de trabalhar.",
+        "points": [
+          "Obsolescência acelerada das habilidades atuais.",
+          "Incerteza sobre como manter a relevância da equipe."
+        ]
+      },
+      {
+        "kicker": "02 · A fricção",
+        "title": "Existem pilotos. Falta um sistema.",
+        "description": "A experimentação isolada gera entusiasmo, mas não cria adoção sustentável nem transforma a operação diária.",
+        "points": [
+          "Falta um método para fechar a lacuna de capacidades.",
+          "Há entusiasmo, mas faltam escala e mensuração."
+        ]
+      },
+      {
+        "kicker": "03 · A resposta",
+        "title": "Arquitetura de capacidades, não treinamento isolado.",
+        "description": "Implementamos uma arquitetura que usa a IA como habilitador estratégico para evoluir habilidades, decisões e formas de operar.",
+        "points": [
+          "Upskilling conectado às prioridades reais do negócio.",
+          "Reskilling personalizado para preservar a relevância do talento."
+        ]
+      },
+      {
+        "kicker": "04 · O resultado",
+        "title": "Evolução constante. Impacto visível.",
+        "description": "A SofLIA conecta diagnóstico, aprendizagem, prática, acompanhamento e mensuração em um único sistema de evolução organizacional.",
+        "points": [
+          "Casos de uso concretos aplicados ao trabalho diário.",
+          "Fechamento mensurável e contínuo da lacuna de habilidades."
+        ]
+      }
+    ]
+  },
+  "ecosystem": {
+    "eyebrow": "Ecossistema SofLIA",
+    "title": "Aprender, aplicar e medir em um único sistema.",
+    "description": "Quatro componentes coordenados transformam a evolução do talento em uma capacidade permanente da organização.",
+    "selectItem": "Explorar {{name}}",
+    "poweredBy": "Powered by SofLIA",
+    "brand": "SofLIA",
+    "defaultRole": "Ecossistema",
+    "selectHint": "Selecione uma ferramenta para conhecer seu papel no ecossistema.",
+    "items": [
+      {
+        "id": "engine",
+        "name": "SofLIA Engine",
+        "role": "Inteligência e orquestração",
+        "description": "Integra contexto, diagnóstico e sinais de avanço para transformar prioridades estratégicas em rotas de evolução acionáveis."
+      },
+      {
+        "id": "learning",
+        "name": "SofLIA Learning",
+        "role": "Aprendizagem aplicada",
+        "description": "Entrega experiências de aprendizagem, prática orientada e rotas personalizadas conectadas ao trabalho real."
+      },
+      {
+        "id": "agent",
+        "name": "Pulse-Hub",
+        "role": "Acompanhamento contínuo",
+        "description": "Acompanha cada pessoa durante a aplicação, responde em contexto e ajuda a transformar conhecimento em desempenho."
+      },
+      {
+        "id": "skills",
+        "name": "SofLIA Skills",
+        "role": "Capacidades reutilizáveis",
+        "description": "Reúne playbooks, práticas e capacidades aplicadas para acelerar a adoção e preservar o conhecimento organizacional."
+      }
+    ],
+    "messageStart": "A tecnologia é o habilitador;",
+    "messageHighlight": "o resultado é fechar permanentemente a lacuna de capacidades."
+  },
+  "services": {
+    "eyebrow": "Capacidades",
+    "title": "Tudo o que é necessário para passar da intenção à adoção.",
+    "description": "Intervenções modulares que podem começar com um diagnóstico e escalar até um sistema enterprise de evolução contínua.",
+    "dragHint": "Arraste para explorar",
+    "previous": "Ver capacidade anterior",
+    "next": "Ver próxima capacidade",
+    "listLabel": "Capacidades e serviços da SofLIA",
+    "items": [
+      {
+        "id": "diagnosis",
+        "title": "Diagnóstico de maturidade em IA",
+        "description": "Identificamos lacunas, riscos, oportunidades e prioridades de evolução por função, área e operação.",
+        "outcome": "Roadmap priorizado"
+      },
+      {
+        "id": "adoption",
+        "title": "Programas de adoção",
+        "description": "Desenhamos programas que conectam liderança, capacidades, prática e gestão da mudança.",
+        "outcome": "Adoção sustentável"
+      },
+      {
+        "id": "ai-first",
+        "title": "Capacitação AI-First",
+        "description": "Desenvolvemos habilidades estratégicas, operacionais e funcionais para trabalhar com IA de forma relevante.",
+        "outcome": "Talento atual"
+      },
+      {
+        "id": "production",
+        "title": "Produção de aprendizagem",
+        "description": "Criamos cursos, rotas, atividades e recursos instrucionais para a SofLIA ou o LMS do cliente.",
+        "outcome": "Conteúdo aplicável"
+      },
+      {
+        "id": "learning",
+        "title": "Implementação no SofLIA Learning",
+        "description": "Ativamos rotas personalizadas, acompanhamento, prática e mensuração dentro do ambiente SofLIA.",
+        "outcome": "Execução em escala"
+      },
+      {
+        "id": "agent",
+        "title": "Acompanhamento com SofLIA Agent",
+        "description": "Estendemos a aprendizagem ao fluxo de trabalho com orientação contextual e suporte contínuo.",
+        "outcome": "Transferência operacional"
+      },
+      {
+        "id": "playbooks",
+        "title": "Playbooks e SofLIA Skills",
+        "description": "Transformamos melhores práticas e casos de uso em capacidades reutilizáveis por toda a organização.",
+        "outcome": "Conhecimento vivo"
+      },
+      {
+        "id": "consulting",
+        "title": "Consultoria de casos de uso",
+        "description": "Priorizamos oportunidades e desenhamos formas seguras e mensuráveis de aplicar IA em processos essenciais.",
+        "outcome": "Impacto no negócio"
+      }
+    ]
+  },
+  "method": {
+    "eyebrow": "Metodologia SofLIA",
+    "title": "Do diagnóstico à escala.",
+    "description": "Um ciclo completo que alinha a evolução do talento ao desempenho, à relevância e aos objetivos do negócio.",
+    "formulaLead": "Diagnóstico + prática + acompanhamento + mensuração",
+    "formulaResult": "Evolução organizacional mensurável",
+    "phases": [
+      {
+        "name": "Diagnóstico",
+        "description": "Mapeamos a lacuna de habilidades e a maturidade atual.",
+        "points": [
+          "Mapa da lacuna de habilidades por cargo e área.",
+          "Avaliação de maturidade em IA e casos de uso potenciais."
+        ],
+        "outcome": "Entrega: roadmap priorizado"
+      },
+      {
+        "name": "Priorização",
+        "description": "Conectamos capacidades a desafios e oportunidades do negócio.",
+        "points": [
+          "Seleção das capacidades com maior impacto no negócio.",
+          "Definição de métricas e linha de base por iniciativa."
+        ],
+        "outcome": "Entrega: plano de evolução"
+      },
+      {
+        "name": "Desenho",
+        "description": "Construímos a arquitetura e as rotas de evolução.",
+        "points": [
+          "Arquitetura de capacidades e rotas por perfil.",
+          "Experiências, atividades e recursos instrucionais."
+        ],
+        "outcome": "Entrega: rotas de evolução"
+      },
+      {
+        "name": "Capacitação",
+        "description": "Desenvolvemos conhecimento relevante e contextual.",
+        "points": [
+          "Programas AI-First nos níveis estratégico, operacional e funcional.",
+          "Aprendizado contextual conectado ao trabalho real."
+        ],
+        "outcome": "Resultado: conhecimento aplicável"
+      },
+      {
+        "name": "Prática",
+        "description": "Aplicamos o aprendizado em situações reais de trabalho.",
+        "points": [
+          "Casos de uso reais guiados dentro da operação.",
+          "Desafios e simulações com acompanhamento da SofLIA."
+        ],
+        "outcome": "Resultado: transferência operacional"
+      },
+      {
+        "name": "Acompanhamento",
+        "description": "Sustentamos a mudança com orientação humana e assistência de IA.",
+        "points": [
+          "Orientação humana e assistência de IA no fluxo de trabalho.",
+          "Resolução contextual de dúvidas e reforço contínuo."
+        ],
+        "outcome": "Resultado: adoção sustentada"
+      },
+      {
+        "name": "Mensuração",
+        "description": "Observamos relevância, adoção e desempenho.",
+        "points": [
+          "Painel de relevância, adoção e desempenho.",
+          "Evidência do fechamento da lacuna por equipe e capacidade."
+        ],
+        "outcome": "Entrega: métricas de impacto"
+      },
+      {
+        "name": "Otimização",
+        "description": "Ajustamos rotas e intervenções com evidências.",
+        "points": [
+          "Ajuste de rotas e intervenções com base em evidências.",
+          "Iteração sobre os casos de uso de maior retorno."
+        ],
+        "outcome": "Resultado: melhoria contínua"
+      },
+      {
+        "name": "Escala",
+        "description": "Expandimos capacidades comprovadas para toda a organização.",
+        "points": [
+          "Extensão de capacidades comprovadas para toda a organização.",
+          "Playbooks e padrões reutilizáveis com SofLIA Skills."
+        ],
+        "outcome": "Resultado: evolução permanente"
+      }
+    ]
+  },
+  "radar": {
+    "eyebrow": "Radar de capacidades",
+    "title": "A lacuna, medida. A evolução, visível.",
+    "description": "Uma mesma equipe, dois perfis de capacidade: o ponto de partida e o resultado após operar com o sistema SofLIA.",
+    "chartLabel": "Radar comparativo de capacidades: hoje versus com a SofLIA",
+    "legendLabel": "Séries do radar",
+    "tableAxis": "Capacidade",
+    "series": {
+      "now": "Hoje",
+      "soflia": "Com a SofLIA"
+    },
+    "axes": {
+      "strategy": "Estratégia de IA",
+      "adoption": "Adoção",
+      "productivity": "Produtividade",
+      "skills": "Habilidades",
+      "measurement": "Medição",
+      "culture": "Cultura"
+    },
+    "note": "Perfil ilustrativo em uma escala de capacidade 0–100, construído a partir do diagnóstico e da medição contínua do sistema."
+  },
+  "impact": {
+    "eyebrow": "Relevância organizacional",
+    "title": "Uma evolução que conecta toda a empresa.",
+    "description": "A SofLIA alinha quem define a estratégia com quem transforma a IA em desempenho diário.",
+    "audienceLabel": "Desenhado para",
+    "benefitsLabel": "Impacto esperado",
+    "networkLabel": "Rede de áreas conectadas pelo sistema SofLIA",
+    "stageLabel": "Sinal de impacto",
+    "progressLabel": "Progresso dos sinais de impacto",
+    "audiences": [
+      "Direção Geral",
+      "Recursos Humanos",
+      "Treinamento",
+      "Transformação Digital",
+      "Tecnologia",
+      "Inovação",
+      "Vendas",
+      "Operações"
+    ],
+    "benefits": [
+      {
+        "title": "Talento relevante",
+        "description": "Reduz o risco de obsolescência e fortalece a atualidade das capacidades."
+      },
+      {
+        "title": "Lacuna visível",
+        "description": "Torna mensurável o fechamento do skill gap e orienta a próxima decisão."
+      },
+      {
+        "title": "Adoção real",
+        "description": "Acelera a prática, reduz a resistência e leva a IA a casos de uso concretos."
+      },
+      {
+        "title": "Impacto demonstrável",
+        "description": "Conecta evolução, tempo, desempenho e métricas relevantes para o negócio."
+      }
+    ]
+  },
+  "packages": {
+    "eyebrow": "Rotas de entrada",
+    "title": "Comece de onde está. Escale até onde precisa.",
+    "description": "Cada modalidade constrói evidências para avançar ao próximo nível sem impor uma transformação superdimensionada.",
+    "tabsLabel": "Pacotes de evolução SofLIA",
+    "cta": "Explorar esta rota",
+    "stageLabel": "Nível de evolução",
+    "progressLabel": "Progresso da rota de evolução",
+    "previous": "Ver nível anterior",
+    "next": "Ver próximo nível",
+    "items": [
+      {
+        "id": "diagnosis",
+        "name": "Diagnóstico",
+        "scope": "Ponto de partida",
+        "description": "Uma leitura executiva de lacunas, maturidade e oportunidades para construir um roadmap de evolução de talentos."
+      },
+      {
+        "id": "pilot",
+        "name": "Piloto",
+        "scope": "Teste focado",
+        "description": "Uma intervenção delimitada para validar adoção, aprendizagem aplicada e métricas antes de escalar."
+      },
+      {
+        "id": "basic",
+        "name": "Programa básico",
+        "scope": "Capacidade inicial",
+        "description": "Desenvolvimento de capacidades prioritárias para uma equipe ou desafio, com prática e acompanhamento."
+      },
+      {
+        "id": "intermediate",
+        "name": "Programa intermediário",
+        "scope": "Adoção por área",
+        "description": "Arquitetura de capacidades, rotas e acompanhamento para transformar uma função completa."
+      },
+      {
+        "id": "premium",
+        "name": "Programa premium",
+        "scope": "Transformação integral",
+        "description": "Evolução coordenada de liderança, talento e operação com mensuração contínua do impacto."
+      },
+      {
+        "id": "enterprise",
+        "name": "Enterprise",
+        "scope": "Evolução contínua",
+        "description": "Um sistema permanente de upskilling e reskilling para manter a relevância de toda a organização."
+      }
+    ]
+  },
+  "final": {
+    "eyebrow": "O próximo movimento",
+    "title": "Garanta hoje a evolução da sua equipe.",
+    "description": "Comece com um diagnóstico da lacuna de habilidades e trace o roadmap para a relevância duradoura do seu talento.",
+    "primaryCta": "Agendar diagnóstico",
+    "secondaryCta": "Falar com a SofLIA",
+    "note": "Uma conversa executiva, objetiva e sem compromisso."
+  },
+  "footer": {
+    "copyright": "© {{year}} SofLIA. Evolução de talentos com impacto mensurável.",
+    "legalLabel": "Informações legais e acesso",
+    "privacy": "Privacidade",
+    "terms": "Termos",
+    "contact": "Contato",
+    "clientAccess": "Acesso de clientes"
+  }
+}

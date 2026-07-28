@@ -1,7 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { createContext, useContext, useState } from 'react';
 import { AuthTab } from '../../types/auth.types';
 
 interface AuthTabContextType {
@@ -18,21 +17,9 @@ export function AuthTabProvider({
   children: React.ReactNode;
   initialTab?: AuthTab;
 }) {
-  const searchParams = useSearchParams();
-  const tabParam = searchParams?.get('tab');
-  
-  const [activeTab, setActiveTabState] = useState<AuthTab>(
-    initialTab || (tabParam === 'register' ? 'register' : 'login')
-  );
-
-  // Sincronizar con URL cuando cambia
-  useEffect(() => {
-    if (tabParam === 'register') {
-      setActiveTabState('register');
-    } else if (tabParam === 'login' || !tabParam) {
-      setActiveTabState('login');
-    }
-  }, [tabParam]);
+  // AuthTabs already resolves the URL once. Keeping a second search-param
+  // subscription here caused a duplicate render before the form became usable.
+  const [activeTab, setActiveTabState] = useState<AuthTab>(initialTab ?? 'login');
 
   const setActiveTab = (tab: AuthTab) => {
     setActiveTabState(tab);
@@ -55,4 +42,3 @@ export function useAuthTab() {
   }
   return context;
 }
-

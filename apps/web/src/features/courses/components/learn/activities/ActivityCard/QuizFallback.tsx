@@ -19,7 +19,7 @@ export function QuizFallback({
       <p className={`${colorClasses} mb-2`}>{message}</p>
       <div
         className="whitespace-pre-wrap text-primary dark:text-white"
-        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+        style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
       >
         {typeof rawContent === 'string'
           ? rawContent

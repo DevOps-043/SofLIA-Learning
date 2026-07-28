@@ -1,10 +1,18 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { motion, AnimatePresence } from 'framer-motion';
+import {
+  ArrowLeft,
+  CheckCircle,
+  Loader2,
+  Lock,
+  XCircle,
+} from 'lucide-react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { createClient as createBrowserSupabaseClient } from '@/lib/supabase/client';
 import {
@@ -12,14 +20,16 @@ import {
   resetSupabaseRecoveryPasswordAction,
   validateResetTokenAction,
 } from '../../actions/reset-password';
+import { AuthExperience, authExperienceStyles } from '../AuthExperience';
+import { PasswordInput } from '../PasswordInput';
 import {
   establishSupabaseRecoverySession,
   parseRecoveryUrlError,
 } from './recovery-session.helpers';
-import { getResetPasswordSchema, type ResetPasswordFormData } from './ResetPasswordForm.schema';
-import { Loader2, Lock, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
-import { PasswordInput } from '../PasswordInput';
-import Link from 'next/link';
+import {
+  getResetPasswordSchema,
+  type ResetPasswordFormData,
+} from './ResetPasswordForm.schema';
 
 export function ResetPasswordForm() {
   const { t } = useTranslation('common');
@@ -41,7 +51,6 @@ export function ResetPasswordForm() {
   } | null>(null);
 
   const resetPasswordSchema = useMemo(() => getResetPasswordSchema(t), [t]);
-
   const {
     register,
     handleSubmit,
@@ -50,15 +59,11 @@ export function ResetPasswordForm() {
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
   });
-
   const newPassword = watch('newPassword', '');
 
-  // Validar token al cargar
   useEffect(() => {
     const validateToken = async () => {
       if (!token) {
-        // Supabase adjunta el motivo del fallo a la URL de redirección
-        // (p. ej. error_code=otp_expired cuando el enlace venció o ya se usó).
         const urlError = parseRecoveryUrlError(
           window.location.search,
           window.location.hash,
@@ -85,10 +90,11 @@ export function ResetPasswordForm() {
           return;
         }
 
-        // establishSupabaseRecoverySession tolera que detectSessionInUrl ya
-        // haya canjeado el código de un solo uso (ver recovery-session.helpers).
         const supabase = createBrowserSupabaseClient();
-        const hasSession = await establishSupabaseRecoverySession(supabase, recoveryCode);
+        const hasSession = await establishSupabaseRecoverySession(
+          supabase,
+          recoveryCode,
+        );
 
         if (!hasSession) {
           setTokenError(t('auth.resetPassword.validation.invalidToken'));
@@ -103,39 +109,47 @@ export function ResetPasswordForm() {
       }
 
       setResetMode('legacy');
-      const result = await validateResetTokenAction(token);
-
-      if (result.valid) {
+      const validation = await validateResetTokenAction(token);
+      if (validation.valid) {
         setTokenValid(true);
       } else {
-        setTokenError(result.error || t('auth.resetPassword.validation.invalidToken'));
+        setTokenError(
+          validation.error ||
+            t('auth.resetPassword.validation.invalidToken'),
+        );
       }
-
       setIsValidatingToken(false);
     };
 
     validateToken();
   }, [recoveryCode, recoveryMode, token, t]);
 
-  // Calcular fortaleza de contraseña
-  const getPasswordStrength = () => {
+  const passwordStrength = useMemo(() => {
     if (!newPassword) return { strength: 0, label: '', color: '' };
 
     let strength = 0;
-    if (newPassword.length >= 8) strength++;
-    if (/[A-Z]/.test(newPassword)) strength++;
-    if (/[a-z]/.test(newPassword)) strength++;
-    if (/[0-9]/.test(newPassword)) strength++;
+    if (newPassword.length >= 8) strength += 1;
+    if (/[A-Z]/.test(newPassword)) strength += 1;
+    if (/[a-z]/.test(newPassword)) strength += 1;
+    if (/[0-9]/.test(newPassword)) strength += 1;
 
-    const labels = ['', t('auth.resetPassword.strengthLabels.weak'), t('auth.resetPassword.strengthLabels.medium'), t('auth.resetPassword.strengthLabels.good'), t('auth.resetPassword.strengthLabels.strong')];
-    const colors = ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-accent'];
+    const labels = [
+      '',
+      t('auth.resetPassword.strengthLabels.weak'),
+      t('auth.resetPassword.strengthLabels.medium'),
+      t('auth.resetPassword.strengthLabels.good'),
+      t('auth.resetPassword.strengthLabels.strong'),
+    ];
+    const colors = [
+      '',
+      'bg-red-500',
+      'bg-orange-500',
+      'bg-yellow-500',
+      'bg-accent',
+    ];
 
-    return {
-      strength,
-      label: labels[strength],
-      color: colors[strength],
-    };
-  };
+    return { strength, label: labels[strength], color: colors[strength] };
+  }, [newPassword, t]);
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     if (resetMode === 'legacy' && !token) return;
@@ -146,14 +160,12 @@ export function ResetPasswordForm() {
     try {
       const formData = new FormData();
       formData.append('newPassword', data.newPassword);
-      if (token) {
-        formData.append('token', token);
-      }
+      if (token) formData.append('token', token);
 
-      const response = resetMode === 'supabase'
-        ? await resetSupabaseRecoveryPasswordAction(formData)
-        : await resetPasswordAction(formData);
-
+      const response =
+        resetMode === 'supabase'
+          ? await resetSupabaseRecoveryPasswordAction(formData)
+          : await resetPasswordAction(formData);
       const responseError =
         'error' in response && typeof response.error === 'string'
           ? response.error
@@ -170,13 +182,11 @@ export function ResetPasswordForm() {
           type: 'success',
           message: responseMessage || t('auth.resetPassword.success'),
         });
-
-        // Redirigir al login después de 2 segundos
-        setTimeout(() => {
+        window.setTimeout(() => {
           router.push('/auth?message=password-reset-success');
         }, 2000);
       }
-    } catch (error) {
+    } catch {
       setResult({
         type: 'error',
         message: t('auth.resetPassword.error'),
@@ -186,107 +196,93 @@ export function ResetPasswordForm() {
     }
   };
 
-  const passwordStrength = getPasswordStrength();
-
-  // ESTADO: Validando token
   if (isValidatingToken) {
     return (
-      <div className="w-full max-w-md mx-auto p-12 text-center">
-        <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-accent" />
-        <p className="text-gray-500 dark:text-white/60 font-medium">{t('auth.resetPassword.verifying')}</p>
-      </div>
+      <AuthExperience>
+        <div className="flex min-h-64 flex-col items-center justify-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-accent" aria-hidden="true" />
+          <p className="text-sm font-medium opacity-60">
+            {t('auth.resetPassword.verifying')}
+          </p>
+        </div>
+      </AuthExperience>
     );
   }
 
-  // ESTADO: Token inválido
   if (!tokenValid) {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full"
-      >
-        <div className="bg-white dark:bg-carbon-800 rounded-2xl shadow-xl dark:shadow-2xl border border-gray-200 dark:border-gray-500/30 p-8 sm:p-10 text-center">
-          <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-red-50 dark:bg-red-900/10 rounded-full flex items-center justify-center text-red-500">
-              <XCircle className="w-8 h-8" />
+      <AuthExperience>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className={authExperienceStyles.content}
+        >
+          <header className={authExperienceStyles.header}>
+            <div className={`${authExperienceStyles.iconBadge} text-red-500`}>
+              <XCircle className="h-6 w-6" aria-hidden="true" />
             </div>
-          </div>
-          <h1 className="text-2xl font-bold text-primary dark:text-white mb-3">{t('auth.resetPassword.invalidTokenTitle')}</h1>
-          <p className="text-gray-500 dark:text-white/60 mb-8">{tokenError}</p>
+            <h1 className={authExperienceStyles.title}>
+              {t('auth.resetPassword.invalidTokenTitle')}
+            </h1>
+            <p className={authExperienceStyles.subtitle}>{tokenError}</p>
+          </header>
           <button
+            type="button"
             onClick={() => router.push('/auth/forgot-password')}
-            className="w-full px-6 py-3.5 rounded-xl bg-primary hover:bg-primary text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+            className={`${authExperienceStyles.primaryButton} w-full`}
           >
             {t('auth.resetPassword.requestNewLink')}
           </button>
-        </div>
-      </motion.div>
+        </motion.div>
+      </AuthExperience>
     );
   }
 
-  // ESTADO: Formulario principal
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-white via-gray-50 to-white dark:from-carbon-900 dark:via-carbon-950 dark:to-carbon-900">
-      {/* Fondo animado con formas geométricas (Consistent with Auth Page) */}
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute top-20 left-10 w-72 h-72 bg-accent/5 dark:bg-accent/10 rounded-full blur-3xl"
-          animate={{
-            x: [0, 100, 0],
-            y: [0, 50, 0],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-primary/5 dark:bg-primary/10 rounded-full blur-3xl"
-          animate={{
-            x: [0, -80, 0],
-            y: [0, -60, 0],
-            scale: [1, 1.3, 1],
-          }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <div 
-          className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03] bg-[linear-gradient(var(--color-primary)_1px,transparent_1px),linear-gradient(90deg,var(--color-primary)_1px,transparent_1px)] bg-[length:50px_50px]"
-        />
-      </div>
+  const requirements = [
+    {
+      label: t('auth.resetPassword.requirements.minChars'),
+      test: newPassword.length >= 8,
+    },
+    {
+      label: t('auth.resetPassword.requirements.uppercase'),
+      test: /[A-Z]/.test(newPassword),
+    },
+    {
+      label: t('auth.resetPassword.requirements.lowercase'),
+      test: /[a-z]/.test(newPassword),
+    },
+    {
+      label: t('auth.resetPassword.requirements.number'),
+      test: /[0-9]/.test(newPassword),
+    },
+  ];
 
+  return (
+    <AuthExperience>
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-lg z-10"
+        transition={{ duration: 0.45 }}
+        className={authExperienceStyles.content}
       >
-        <div className="bg-white/80 dark:bg-carbon-800/90 backdrop-blur-xl rounded-2xl shadow-xl dark:shadow-2xl border border-gray-200 dark:border-gray-500/30 p-8 sm:p-10">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.4 }}
-          className="text-center mb-8"
-        >
-          <div className="flex justify-center mb-6">
-            <motion.div 
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              className="w-16 h-16 bg-accent/10 dark:bg-accent/20 rounded-full flex items-center justify-center text-accent"
-            >
-              <Lock className="w-8 h-8" />
-            </motion.div>
+        <header className={authExperienceStyles.header}>
+          <div className={authExperienceStyles.iconBadge}>
+            <Lock className="h-6 w-6" aria-hidden="true" />
           </div>
-          <h1 className="text-3xl font-bold text-primary dark:text-white mb-3">{t('auth.resetPassword.title')}</h1>
-          <p className="text-sm sm:text-base text-gray-500 dark:text-white/60">
+          <h1 className={authExperienceStyles.title}>
+            {t('auth.resetPassword.title')}
+          </h1>
+          <p className={authExperienceStyles.subtitle}>
             {t('auth.resetPassword.subtitle')}
           </p>
-        </motion.div>
+        </header>
 
-        {/* Formulario */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Nueva Contraseña */}
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-primary dark:text-white/90">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className={authExperienceStyles.form}
+        >
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold uppercase tracking-wider opacity-70">
               {t('auth.resetPassword.newPasswordLabel')}
             </label>
             <PasswordInput
@@ -298,53 +294,50 @@ export function ResetPasswordForm() {
               {...register('newPassword')}
             />
 
-            {/* Indicador de fortaleza */}
             <AnimatePresence>
-              {newPassword && (
-                <motion.div 
+              {newPassword ? (
+                <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="space-y-2 mt-2"
+                  className="space-y-2 pt-1"
                 >
                   <div className="flex gap-1.5">
                     {[1, 2, 3, 4].map((level) => (
-                      <div
+                      <span
                         key={level}
-                        className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
+                        className={`h-1.5 flex-1 rounded-full ${
                           level <= passwordStrength.strength
                             ? passwordStrength.color
-                            : 'bg-gray-200 dark:bg-gray-500/20'
+                            : 'bg-gray-500/20'
                         }`}
                       />
                     ))}
                   </div>
-                  <p className="text-xs font-medium text-gray-500 dark:text-white/60">
-                    {t('auth.resetPassword.strength')}: <span className={passwordStrength.strength > 2 ? 'text-accent' : ''}>{passwordStrength.label}</span>
+                  <p className="text-xs opacity-60">
+                    {t('auth.resetPassword.strength')}: {passwordStrength.label}
                   </p>
                 </motion.div>
-              )}
+              ) : null}
             </AnimatePresence>
 
-            {/* Requisitos */}
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-2">
-              {[
-                { label: t('auth.resetPassword.requirements.minChars'), test: newPassword.length >= 8 },
-                { label: t('auth.resetPassword.requirements.uppercase'), test: /[A-Z]/.test(newPassword) },
-                { label: t('auth.resetPassword.requirements.lowercase'), test: /[a-z]/.test(newPassword) },
-                { label: t('auth.resetPassword.requirements.number'), test: /[0-9]/.test(newPassword) },
-              ].map((req, i) => (
-                <div key={i} className={`flex items-center gap-2 text-xs font-medium transition-colors ${req.test ? 'text-accent' : 'text-gray-500 dark:text-white/40'}`}>
-                  <CheckCircle className={`w-3 h-3 ${req.test ? 'opacity-100' : 'opacity-30'}`} />
-                  <span>{req.label}</span>
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              {requirements.map((requirement) => (
+                <div
+                  key={requirement.label}
+                  className={`flex items-center gap-2 text-xs ${
+                    requirement.test ? 'text-accent' : 'opacity-40'
+                  }`}
+                >
+                  <CheckCircle className="h-3 w-3" aria-hidden="true" />
+                  <span>{requirement.label}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Confirmar Contraseña */}
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-primary dark:text-white/90">
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold uppercase tracking-wider opacity-70">
               {t('auth.resetPassword.confirmPasswordLabel')}
             </label>
             <PasswordInput
@@ -357,59 +350,51 @@ export function ResetPasswordForm() {
             />
           </div>
 
-          {/* Mensaje de resultado */}
           <AnimatePresence>
-            {result && (
+            {result ? (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className={`p-4 rounded-xl border flex items-start gap-3 ${
+                className={`${authExperienceStyles.status} ${
                   result.type === 'success'
-                    ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800/30 text-green-800 dark:text-green-400'
-                    : 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800/30 text-red-800 dark:text-red-400'
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
                 }`}
               >
                 {result.type === 'success' ? (
-                  <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                  <CheckCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
                 ) : (
-                  <XCircle className="w-5 h-5 flex-shrink-0" />
+                  <XCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
                 )}
-                <p className="text-sm font-medium">{result.message}</p>
+                <p>{result.message}</p>
               </motion.div>
-            )}
+            ) : null}
           </AnimatePresence>
 
-          {/* Botón Submit */}
           <motion.button
             type="submit"
             disabled={isLoading || result?.type === 'success'}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full bg-primary hover:bg-primary text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            className={authExperienceStyles.primaryButton}
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
                 <span>{t('auth.resetPassword.updating')}</span>
               </>
             ) : (
               <span>{t('auth.resetPassword.update')}</span>
             )}
           </motion.button>
-          
-          <div className="text-center pt-2">
-            <Link
-              href="/auth"
-              className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-accent dark:text-white/60 dark:hover:text-accent transition-colors group"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              <span>{t('auth.resetPassword.backToLogin')}</span>
-            </Link>
-          </div>
+
+          <Link href="/auth" className={authExperienceStyles.backLink}>
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            <span>{t('auth.resetPassword.backToLogin')}</span>
+          </Link>
         </form>
-        </div>
       </motion.div>
-    </div>
+    </AuthExperience>
   );
 }

@@ -63,7 +63,7 @@ export function CourseContentTree({
       <div className="mb-4 flex items-center justify-between gap-2">
         <h3
           className="flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-white/40"
-          style={{ fontFamily: "Inter, sans-serif" }}
+          style={{ fontFamily: "var(--font-system-ui)" }}
         >
           <Layers className="h-3 w-3 shrink-0" style={{ color: 'var(--learn-accent)' }} />
           <span className="truncate">{t("leftPanel.content")}</span>

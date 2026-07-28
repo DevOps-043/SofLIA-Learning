@@ -59,7 +59,7 @@ export async function GET(
         color_primary: organization.brand_color_primary || DESIGN_HEX_COLOR.info,
         color_secondary: organization.brand_color_secondary || DESIGN_HEX_COLOR.success,
         color_accent: organization.brand_color_accent || DESIGN_HEX_COLOR.secondary,
-        font_family: organization.brand_font_family || 'Inter',
+        font_family: organization.brand_font_family || 'Inter Tight',
         branding_enabled: organization.branding_enabled ?? false,
       }
     })

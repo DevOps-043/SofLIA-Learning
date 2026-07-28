@@ -21,7 +21,7 @@ export function LiaHeroSection({ heroRef, heroInView }: LiaHeroSectionProps) {
         >
           <motion.h1
             className="text-5xl lg:text-7xl xl:text-8xl font-bold mb-6 text-primary dark:text-white leading-tight"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 900 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 900 }}
             initial={{ opacity: 0, scale: 0.5 }}
             animate={heroInView ? { opacity: 1, scale: 1 } : {}}
             transition={{ duration: 0.8, type: 'spring', stiffness: 100 }}
@@ -31,7 +31,7 @@ export function LiaHeroSection({ heroRef, heroInView }: LiaHeroSectionProps) {
 
           <motion.p
             className="text-xl lg:text-2xl max-w-3xl mx-auto text-gray-500 dark:text-white/80 leading-relaxed mb-4"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
             initial={{ opacity: 0, y: 20 }}
             animate={heroInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.3, duration: 0.6 }}
@@ -42,7 +42,7 @@ export function LiaHeroSection({ heroRef, heroInView }: LiaHeroSectionProps) {
 
           <motion.p
             className="text-lg lg:text-xl max-w-2xl mx-auto text-accent font-semibold"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 600 }}
             initial={{ opacity: 0 }}
             animate={heroInView ? { opacity: 1 } : {}}
             transition={{ delay: 0.5, duration: 0.6 }}

@@ -27,7 +27,7 @@ export function LessonDetailsPanel({
     <div data-tour-id="course-learn--lesson-details" className="rounded-xl border p-6" style={{ background: 'var(--learn-card-bg)', borderColor: 'var(--learn-card-border)' }}>
       <div className="space-y-4">
         <div>
-          <h2 className="text-2xl font-bold text-primary dark:text-white" style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}>
+          <h2 className="text-2xl font-bold text-primary dark:text-white" style={{ fontFamily: "var(--font-system-ui)", fontWeight: 700 }}>
             {lesson.lesson_title}
           </h2>
           {lesson.lesson_description && (

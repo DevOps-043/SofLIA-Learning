@@ -1,15 +1,18 @@
 'use client'
 
-import { LandingFooter } from '../../features/landing/components/LandingFooter'
-import { LandingHeader } from '../../features/landing/components/LandingHeader'
+import { useState } from 'react'
+import { HomeFooter } from '@/features/landing/components/home/HomeFooter'
+import { HomeHeader } from '@/features/landing/components/home/HomeHeader'
+import { ClickSpark } from '@/features/landing/components/home/react-bits/ClickSpark'
+import homeStyles from '@/features/landing/components/home/SofliaHome.module.css'
 import {
-  DownloadsPageChangelog,
-  DownloadsPageFeatures,
-  DownloadsPageHero,
-  DownloadsPageRequirements,
-  DownloadsPageSafety,
-  DownloadsPageSteps,
-} from './components'
+  PulseHubChangelogModal,
+  PulseHubFeatures,
+  PulseHubHero,
+  PulseHubPlatforms,
+  PulseHubSteps,
+  usePlatformDetection,
+} from './components/hub'
 import { useDownloadsPageData } from './hooks/useDownloadsPageData'
 
 export function DownloadsPageClient() {
@@ -18,41 +21,38 @@ export function DownloadsPageClient() {
     changelogs,
     loading,
     error,
-    expandedSections,
     expandedVersions,
-    toggleSection,
     toggleVersion,
     refetchRelease,
   } = useDownloadsPageData()
+  const detectedPlatform = usePlatformDetection()
+  const [isChangelogOpen, setIsChangelogOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-500 overflow-x-hidden">
-      <LandingHeader />
-
-      <main className="pt-32 pb-20 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <DownloadsPageHero
-            release={release}
-            loading={loading}
-            error={error}
-            onRetry={refetchRelease}
-          />
-          <DownloadsPageChangelog
-            changelogs={changelogs}
-            expandedSections={expandedSections}
-            expandedVersions={expandedVersions}
-            onToggleSection={toggleSection}
-            onToggleVersion={toggleVersion}
-            loading={loading}
-          />
-          <DownloadsPageFeatures />
-          <DownloadsPageSteps />
-          <DownloadsPageRequirements />
-          <DownloadsPageSafety />
-        </div>
-      </main>
-
-      <LandingFooter />
-    </div>
+    <main className={homeStyles.page}>
+      <div className={homeStyles.noise} aria-hidden="true" />
+      <ClickSpark>
+        <HomeHeader />
+        <PulseHubHero
+          release={release}
+          loading={loading}
+          error={error}
+          detectedPlatform={detectedPlatform}
+          onRetry={refetchRelease}
+          onOpenChangelog={() => setIsChangelogOpen(true)}
+        />
+        <PulseHubPlatforms release={release} detectedPlatform={detectedPlatform} />
+        <PulseHubFeatures />
+        <PulseHubSteps />
+        <HomeFooter />
+      </ClickSpark>
+      <PulseHubChangelogModal
+        isOpen={isChangelogOpen}
+        changelogs={changelogs}
+        expandedVersions={expandedVersions}
+        onToggleVersion={toggleVersion}
+        onClose={() => setIsChangelogOpen(false)}
+      />
+    </main>
   )
 }

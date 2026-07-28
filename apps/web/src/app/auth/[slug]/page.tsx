@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { OrganizationAuthLayout } from '@/features/auth/components/OrganizationAuth/OrganizationAuthLayout';
 import { OrganizationLoginForm } from '@/features/auth/components/OrganizationAuth/OrganizationLoginForm';
+import { AuthExperience } from '@/features/auth/components/AuthExperience';
 import type { OrganizationAuthStyles } from '@/features/auth/components/OrganizationAuth/organization-auth.styles';
 import Link from 'next/link';
+import { Loader2 } from 'lucide-react';
 
 interface Organization {
   id: string;
@@ -67,17 +69,12 @@ export default function OrganizationLoginPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative w-12 h-12">
-            <div className="absolute inset-0 border-4 border-white/10 rounded-full" />
-            <div 
-              className="absolute inset-0 border-4 border-transparent border-t-blue-500 rounded-full animate-spin"
-            />
-          </div>
-          <p className="text-white/60 text-sm font-medium">Cargando...</p>
+      <AuthExperience>
+        <div className="flex min-h-64 flex-col items-center justify-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-accent" aria-hidden="true" />
+          <p className="text-sm font-medium opacity-60">Cargando...</p>
         </div>
-      </div>
+      </AuthExperience>
     );
   }
 

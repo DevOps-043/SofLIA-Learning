@@ -26,7 +26,7 @@ function formatText(text: string): React.ReactNode {
         formattedElements.push(
           <ol key={`list-${formattedElements.length}`} className="list-decimal list-inside space-y-1 my-2 ml-4">
             {currentList.map((item, idx) => (
-              <li key={idx} className="text-primary dark:text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
+              <li key={idx} className="text-primary dark:text-white" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}>
                 {item.trim()}
               </li>
             ))}
@@ -36,7 +36,7 @@ function formatText(text: string): React.ReactNode {
         formattedElements.push(
           <ul key={`list-${formattedElements.length}`} className="list-disc list-inside space-y-1 my-2 ml-4">
             {currentList.map((item, idx) => (
-              <li key={idx} className="text-primary dark:text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
+              <li key={idx} className="text-primary dark:text-white" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}>
                 {item.trim()}
               </li>
             ))}
@@ -85,7 +85,7 @@ function formatText(text: string): React.ReactNode {
     // Detectar títulos/secciones (líneas que terminan con :)
     if (trimmedLine.endsWith(':')) {
       formattedElements.push(
-        <p key={`p-${index}`} className="font-semibold text-primary dark:text-white mt-3 mb-1" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
+        <p key={`p-${index}`} className="font-semibold text-primary dark:text-white mt-3 mb-1" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 600 }}>
           {trimmedLine}
         </p>
       );
@@ -94,7 +94,7 @@ function formatText(text: string): React.ReactNode {
     
     // Párrafo normal
     formattedElements.push(
-      <p key={`p-${index}`} className="text-primary dark:text-white mb-2" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
+      <p key={`p-${index}`} className="text-primary dark:text-white mb-2" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}>
         {trimmedLine}
       </p>
     );
@@ -121,7 +121,7 @@ export function ExpandableText({
 
   if (!needsTruncation) {
     return (
-      <div className={`text-primary dark:text-white leading-relaxed ${className}`} style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
+      <div className={`text-primary dark:text-white leading-relaxed ${className}`} style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}>
         {formatText(text)}
       </div>
     );
@@ -130,14 +130,14 @@ export function ExpandableText({
   return (
     <div className={className}>
       {isExpanded ? (
-        <div className="text-primary dark:text-white leading-relaxed" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
+        <div className="text-primary dark:text-white leading-relaxed" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}>
           {formatText(text)}
         </div>
       ) : (
         <div
           className="text-primary dark:text-white leading-relaxed overflow-hidden"
           style={{
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'var(--font-system-ui)',
             fontWeight: 400,
             display: '-webkit-box',
             WebkitLineClamp: maxLines,
@@ -160,7 +160,7 @@ export function ExpandableText({
           hover:shadow-md hover:shadow-accent/20 dark:hover:shadow-accent/30
           hover:scale-[1.02] active:scale-[0.98]
           backdrop-blur-sm overflow-hidden"
-        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
+        style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}
       >
         {/* Efecto de brillo sutil en hover */}
         <span className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-shimmer transition-opacity duration-500" />

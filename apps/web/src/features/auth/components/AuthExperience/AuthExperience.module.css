@@ -1,0 +1,324 @@
+.page {
+  --auth-experience-line: rgb(var(--home-fg-rgb) / 0.12);
+  --auth-experience-panel: color-mix(in srgb, var(--home-surface) 88%, transparent);
+  --auth-experience-field: rgb(var(--home-fg-rgb) / 0.045);
+  --auth-experience-muted: rgb(var(--home-fg-rgb) / 0.58);
+  display: grid;
+  min-height: 100svh;
+  overflow: visible;
+  background: var(--home-bg);
+}
+
+:global(.dark) .page {
+  --auth-experience-panel: color-mix(in srgb, var(--home-surface) 91%, transparent);
+  --auth-experience-field: rgb(var(--home-fg-rgb) / 0.055);
+}
+
+.shell {
+  display: grid;
+  width: min(100% - 2rem, 76rem);
+  min-height: 100svh;
+  grid-template-columns: minmax(23rem, 0.9fr) minmax(30rem, 1.1fr);
+  align-items: center;
+  gap: clamp(2.5rem, 6vw, 6rem);
+  margin-inline: auto;
+  padding-block: 2rem;
+}
+
+.shellRegistration {
+  width: min(100% - 2rem, 88rem);
+  grid-template-columns: minmax(19rem, 0.72fr) minmax(42rem, 1.28fr);
+  gap: clamp(2rem, 4vw, 4.5rem);
+}
+
+.shellWide {
+  width: min(100% - 2rem, 84rem);
+  grid-template-columns: minmax(20rem, 0.75fr) minmax(38rem, 1.25fr);
+}
+
+.brandPanel {
+  position: relative;
+  min-height: clamp(26rem, 42vw, 40rem);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.canvas:active {
+  cursor: grabbing;
+}
+
+.organizationLogo {
+  position: absolute;
+  inset: 18%;
+  filter: drop-shadow(0 1.8rem 3.5rem rgb(var(--home-shadow-rgb) / 0.22));
+}
+
+.organizationLogoImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.panel {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--auth-experience-line);
+  border-radius: 1.75rem;
+  padding: clamp(1.75rem, 3vw, 2.5rem);
+  background: var(--auth-experience-panel);
+  box-shadow:
+    0 2.5rem 7rem rgb(var(--home-shadow-rgb) / 0.25),
+    inset 0 1px rgb(var(--home-fg-rgb) / 0.1);
+  backdrop-filter: blur(1.4rem) saturate(130%);
+}
+
+.panel::before {
+  position: absolute;
+  top: 0;
+  left: 25%;
+  width: 50%;
+  height: 1px;
+  content: '';
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--auth-experience-brand),
+    transparent
+  );
+  box-shadow: 0 0 1.4rem var(--auth-experience-brand);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+.header {
+  margin-bottom: 1.8rem;
+  text-align: center;
+}
+
+.iconBadge {
+  display: grid;
+  width: 3.4rem;
+  height: 3.4rem;
+  place-items: center;
+  margin: 0 auto 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--auth-experience-brand) 38%, transparent);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--auth-experience-brand) 10%, transparent);
+  color: var(--auth-experience-brand);
+}
+
+.title {
+  margin: 0;
+  color: var(--home-text);
+  font-family: var(--home-display);
+  font-size: clamp(2.35rem, 4vw, 3.35rem);
+  font-weight: 300;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  text-wrap: balance;
+}
+
+.subtitle {
+  max-width: 32rem;
+  margin: 0.7rem auto 0;
+  color: var(--auth-experience-muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+}
+
+.primaryButton,
+.secondaryButton,
+.backLink {
+  display: inline-flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.9rem;
+  padding: 0.75rem 1rem;
+  font-family: var(--home-body);
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.primaryButton {
+  border: 1px solid color-mix(in srgb, var(--auth-experience-brand) 62%, transparent);
+  background: var(--auth-experience-brand);
+  box-shadow: 0 1rem 2.6rem color-mix(in srgb, var(--auth-experience-brand) 20%, transparent);
+  color: var(--color-primary);
+}
+
+.secondaryButton,
+.backLink {
+  border: 1px solid var(--auth-experience-line);
+  background: var(--auth-experience-field);
+  color: var(--home-text);
+}
+
+.primaryButton:hover,
+.primaryButton:focus-visible,
+.secondaryButton:hover,
+.secondaryButton:focus-visible,
+.backLink:hover,
+.backLink:focus-visible {
+  border-color: color-mix(in srgb, var(--auth-experience-brand) 62%, transparent);
+  transform: translateY(-2px);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
+.backLink {
+  width: fit-content;
+  min-height: 2.75rem;
+  margin-inline: auto;
+  color: var(--auth-experience-muted);
+}
+
+.status {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  border: 1px solid var(--auth-experience-line);
+  border-radius: 0.9rem;
+  padding: 0.85rem;
+  background: var(--auth-experience-field);
+  color: var(--auth-experience-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.details {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid var(--auth-experience-line);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: var(--auth-experience-field);
+}
+
+.detailsRow {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: rgb(var(--home-fg-rgb) / 0.68);
+  font-size: 0.82rem;
+}
+
+.detailsRow svg {
+  flex: 0 0 auto;
+  color: var(--auth-experience-brand);
+}
+
+.actions {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.panel :global([data-auth-control]) {
+  border-color: var(--auth-experience-line) !important;
+  background: var(--auth-experience-field) !important;
+  box-shadow: inset 0 1px rgb(var(--home-fg-rgb) / 0.04) !important;
+}
+
+.panel :global([data-auth-control]:focus-within) {
+  border-color: color-mix(in srgb, var(--auth-experience-brand) 72%, transparent) !important;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--auth-experience-brand) 10%, transparent),
+    0 0 2rem color-mix(in srgb, var(--auth-experience-brand) 8%, transparent) !important;
+}
+
+@media (max-width: 959px) {
+  .shell,
+  .shellRegistration,
+  .shellWide {
+    width: min(100% - 1.25rem, 42rem);
+    min-height: 100svh;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding-block: 1.2rem;
+  }
+
+  .brandPanel {
+    min-height: clamp(11rem, 38vw, 16rem);
+  }
+
+  .canvas {
+    inset: -18% 14%;
+  }
+
+  .organizationLogo {
+    inset: 8% 31%;
+  }
+
+  .panel {
+    border-radius: 1.4rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .shell,
+  .shellRegistration,
+  .shellWide {
+    width: calc(100% - 0.75rem);
+    padding-block: 0.75rem;
+  }
+
+  .brandPanel {
+    min-height: 9rem;
+  }
+
+  .canvas {
+    inset: -25% 14%;
+  }
+
+  .organizationLogo {
+    inset: 5% 33%;
+  }
+
+  .panel {
+    border-radius: 1.2rem;
+    padding: 1.25rem 0.85rem;
+  }
+
+  .title {
+    font-size: 2.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primaryButton,
+  .secondaryButton,
+  .backLink {
+    transition: none;
+  }
+}

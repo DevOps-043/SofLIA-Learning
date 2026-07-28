@@ -12,6 +12,7 @@ export function RegisterSubmitButton({
 }) {
   return (
     <motion.button
+      data-auth-primary
       type="submit"
       disabled={isPending}
       initial={{ opacity: 0, y: 10 }}

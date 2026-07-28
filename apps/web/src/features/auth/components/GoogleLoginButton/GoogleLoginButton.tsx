@@ -87,6 +87,7 @@ export function GoogleLoginButton({
 
   return (
     <motion.button
+      data-auth-provider
       type="button"
       onClick={handleGoogleLogin}
       disabled={isLoading}

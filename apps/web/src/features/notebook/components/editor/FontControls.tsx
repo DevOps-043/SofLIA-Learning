@@ -11,7 +11,7 @@ interface FontControlsProps {
 }
 
 const FONT_FAMILIES = [
-  { label: 'Sans', value: 'Inter, ui-sans-serif, system-ui, sans-serif' },
+  { label: 'Sans', value: '"Inter Tight", ui-sans-serif, system-ui, sans-serif' },
   { label: 'Serif', value: 'Georgia, Cambria, "Times New Roman", serif' },
   { label: 'Mono', value: 'ui-monospace, SFMono-Regular, Menlo, monospace' },
 ]

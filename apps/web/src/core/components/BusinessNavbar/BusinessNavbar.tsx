@@ -60,7 +60,7 @@ export function BusinessNavbar() {
                       ? 'text-primary dark:text-accent'
                       : 'text-gray-500 dark:text-white/70 hover:text-primary dark:hover:text-accent'
                   }`}
-                  style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
+                  style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}
                 >
                   {link.label}
                   {pathname === link.href && (
@@ -79,7 +79,7 @@ export function BusinessNavbar() {
           {/* Right Actions */}
           <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
             <Link href="/auth?tab=register">
-              <Button variant="primary" size="sm" className="bg-primary hover:bg-primary text-white shadow-lg whitespace-nowrap" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+              <Button variant="primary" size="sm" className="bg-primary hover:bg-primary text-white shadow-lg whitespace-nowrap" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}>
                 Comenzar
               </Button>
             </Link>
@@ -113,14 +113,14 @@ export function BusinessNavbar() {
                     className={`text-sm font-medium transition-colors ${
                       pathname === link.href ? 'text-primary dark:text-accent' : 'text-gray-500 dark:text-white/70'
                     }`}
-                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
+                    style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}
                   >
                     {link.label}
                   </Link>
                 ))}
                 <div className="flex flex-col gap-2 pt-4 border-t">
                   <Link href="/auth?tab=register" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="primary" className="w-full bg-primary hover:bg-primary text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+                    <Button variant="primary" className="w-full bg-primary hover:bg-primary text-white" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}>
                       Comenzar
                     </Button>
                   </Link>

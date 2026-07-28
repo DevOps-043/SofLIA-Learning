@@ -29,9 +29,9 @@ export function BusinessUseCasesSection() {
                         <IconComponent className="w-8 h-8 text-white" strokeWidth={2.5} />
                       </div>
                     </div>
-                    <h3 className="text-xl font-bold mb-3 text-primary dark:text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>{useCase.title}</h3>
-                    <p className="text-gray-500 dark:text-white/70 text-sm mb-4" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>{useCase.description}</p>
-                    <div className="flex items-center text-accent text-sm font-medium group-hover:gap-2 transition-all" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+                    <h3 className="text-xl font-bold mb-3 text-primary dark:text-white" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 700 }}>{useCase.title}</h3>
+                    <p className="text-gray-500 dark:text-white/70 text-sm mb-4" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}>{useCase.description}</p>
+                    <div className="flex items-center text-accent text-sm font-medium group-hover:gap-2 transition-all" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}>
                       Ver más <ArrowRight className="w-4 h-4" />
                     </div>
                   </div>

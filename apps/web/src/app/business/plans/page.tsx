@@ -88,14 +88,14 @@ export default function PlansPage() {
             viewport={{ once: true }}
             variants={fadeIn}
           >
-            <h2 className="text-4xl font-bold mb-6 text-primary dark:text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>
+            <h2 className="text-4xl font-bold mb-6 text-primary dark:text-white" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 700 }}>
               ¿Necesitas algo personalizado?
             </h2>
-            <p className="text-xl mb-8 text-gray-500 dark:text-white/70" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
+            <p className="text-xl mb-8 text-gray-500 dark:text-white/70" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}>
               Contacta con nuestro equipo para un plan Enterprise a medida
             </p>
             <Link href="/auth">
-              <Button variant="primary" size="lg" className="group shadow-lg bg-primary hover:bg-primary text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+              <Button variant="primary" size="lg" className="group shadow-lg bg-primary hover:bg-primary text-white" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}>
                 <span className="flex items-center gap-2">
                   Hablar con Ventas
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

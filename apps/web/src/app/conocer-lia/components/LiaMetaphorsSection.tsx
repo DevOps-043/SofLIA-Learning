@@ -19,13 +19,13 @@ export function LiaMetaphorsSection({ sectionRef }: LiaMetaphorsSectionProps) {
         >
           <h2
             className="text-4xl lg:text-6xl font-bold mb-6 text-primary dark:text-white"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 900 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 900 }}
           >
             SofLIA: Tu <span className="text-accent">Sabiduría Aumentada</span>
           </h2>
           <p
             className="text-xl lg:text-2xl max-w-3xl mx-auto text-gray-500 dark:text-white/80"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
           >
             SofLIA es más que un asistente. Es la interfaz humana que traduce la inteligencia de SofLIA en
             conversaciones, acciones y decisiones cotidianas.
@@ -62,13 +62,13 @@ export function LiaMetaphorsSection({ sectionRef }: LiaMetaphorsSectionProps) {
                   <div className="relative z-10">
                     <h3
                       className="text-2xl font-bold mb-4 text-primary dark:text-white"
-                      style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
+                      style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 700 }}
                     >
                       {metaphor.title}
                     </h3>
                     <p
                       className="text-gray-500 dark:text-white/70 leading-relaxed"
-                      style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+                      style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
                     >
                       {metaphor.description}
                     </p>

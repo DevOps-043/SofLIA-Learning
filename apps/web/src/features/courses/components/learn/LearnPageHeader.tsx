@@ -56,7 +56,7 @@ export function LearnPageHeader({
           <div className="min-w-0 flex-1">
             <h1
               className="text-sm md:text-base font-bold text-primary dark:text-white truncate"
-              style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}
+              style={{ fontFamily: "var(--font-system-ui)", fontWeight: 700 }}
             >
               {courseTitle}
             </h1>
@@ -84,7 +84,7 @@ export function LearnPageHeader({
           <span
             data-tour-id="course-learn--progress"
             className="text-xs font-medium px-2 py-0.5 rounded-full min-w-[2.5rem] text-center shrink-0"
-            style={{ fontFamily: "Inter, sans-serif", fontWeight: 500, color: 'var(--learn-accent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)' }}
+            style={{ fontFamily: "var(--font-system-ui)", fontWeight: 500, color: 'var(--learn-accent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)' }}
           >
             {courseProgress}%
           </span>

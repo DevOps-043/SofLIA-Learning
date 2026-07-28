@@ -43,7 +43,7 @@ export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(({
   const inputProps = props;
   
   return (
-    <div className="w-full">
+    <div data-auth-field className="w-full">
       {label && (
         <label
           htmlFor={id}
@@ -53,6 +53,7 @@ export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(({
         </label>
       )}
       <motion.div
+        data-auth-control
         className={`relative rounded-xl border transition-all duration-300 overflow-hidden ${
           isFocused
             ? 'bg-white dark:bg-carbon-800 border-accent shadow-lg shadow-accent/10'

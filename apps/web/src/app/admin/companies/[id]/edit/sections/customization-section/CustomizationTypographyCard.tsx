@@ -6,7 +6,7 @@ import { VALID_FONTS } from './constants'
 import type { CustomizationSectionProps } from './types'
 
 export function CustomizationTypographyCard({ company, setCompany }: CustomizationSectionProps) {
-  const fontFamily = company.brand_font_family || 'Inter'
+  const fontFamily = company.brand_font_family || 'Inter Tight'
 
   return (
     <Card title="Tipografía" description="Selecciona la fuente de la marca" icon={PaintBrushIcon} iconColor={colors.purple}>

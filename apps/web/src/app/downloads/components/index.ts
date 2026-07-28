@@ -1,6 +1,0 @@
-export { DownloadsPageChangelog } from './DownloadsPageChangelog'
-export { DownloadsPageFeatures } from './DownloadsPageFeatures'
-export { DownloadsPageHero } from './DownloadsPageHero'
-export { DownloadsPageRequirements } from './DownloadsPageRequirements'
-export { DownloadsPageSafety } from './DownloadsPageSafety'
-export { DownloadsPageSteps } from './DownloadsPageSteps'

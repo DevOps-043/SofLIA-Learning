@@ -281,9 +281,13 @@ export function LoginForm() {
         className="w-full"
       >
         {/* Tarjeta principal con bordes redondeados */}
-        <div className="bg-white dark:bg-carbon-800 rounded-2xl shadow-xl dark:shadow-2xl border border-gray-200 dark:border-gray-500/30 p-8 sm:p-10">
+        <div
+          data-auth-card
+          className="bg-white dark:bg-carbon-800 rounded-2xl shadow-xl dark:shadow-2xl border border-gray-200 dark:border-gray-500/30 p-8 sm:p-10"
+        >
           {/* Header */}
           <motion.div
+            data-auth-header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.4 }}
@@ -309,7 +313,7 @@ export function LoginForm() {
           ) : (
             <>
           {/* Formulario */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form data-auth-form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Campo Email/Usuario */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -353,6 +357,7 @@ export function LoginForm() {
 
             {/* Recordar y Olvidaste tu contraseña */}
             <motion.div
+              data-auth-options
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.4 }}
@@ -413,6 +418,7 @@ export function LoginForm() {
 
             {/* Botón de Login */}
             <motion.button
+              data-auth-primary
               type="submit"
               disabled={isPending}
               aria-disabled={isPending}
@@ -439,6 +445,7 @@ export function LoginForm() {
 
           {/* Divisor y Social Login */}
           <motion.div
+            data-auth-social
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.4 }}
@@ -449,6 +456,7 @@ export function LoginForm() {
 
           {/* Link a Registro */}
           <motion.div
+            data-auth-switch
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7, duration: 0.4 }}

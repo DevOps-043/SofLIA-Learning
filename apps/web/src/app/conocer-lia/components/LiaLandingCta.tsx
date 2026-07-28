@@ -16,7 +16,7 @@ export function LiaLandingCta() {
         >
           <motion.h2
             className="text-4xl lg:text-6xl font-bold mb-6 text-white"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 900 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 900 }}
             animate={disableHeavy ? {} : { scale: [1, 1.02, 1] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           >
@@ -24,14 +24,14 @@ export function LiaLandingCta() {
           </motion.h2>
           <p
             className="text-xl lg:text-2xl mb-12 text-white/90"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
           >
             Únete a miles de estudiantes que ya están transformando su aprendizaje con inteligencia artificial
           </p>
           <Link href="/auth">
             <motion.button
               className="px-12 py-5 bg-white text-primary rounded-xl font-bold text-lg shadow-2xl"
-              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
+              style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 700 }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
             >

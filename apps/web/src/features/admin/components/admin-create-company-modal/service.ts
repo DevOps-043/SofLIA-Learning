@@ -47,7 +47,7 @@ export function createInitialCompanyData(): CreateCompanyData {
     brand_color_primary: DEFAULT_BRAND_PRIMARY,
     brand_color_secondary: DEFAULT_BRAND_SECONDARY,
     brand_color_accent: DEFAULT_BRAND_ACCENT,
-    brand_font_family: 'Inter',
+    brand_font_family: 'Inter Tight',
     google_login_enabled: false,
     microsoft_login_enabled: false,
     owner_email: '',

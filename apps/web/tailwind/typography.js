@@ -1,7 +1,57 @@
 const fontFamily = {
-  heading: ['Inter', 'Arial', 'Helvetica', 'sans-serif'],
-  body: ['Inter', 'Arial', 'Helvetica', 'sans-serif'],
-  sans: ['Inter', 'Arial', 'Helvetica', 'sans-serif'],
+  heading: [
+    'var(--font-newsreader)',
+    'Newsreader',
+    'Georgia',
+    'serif',
+  ],
+  display: [
+    'var(--font-newsreader)',
+    'Newsreader',
+    'Georgia',
+    'serif',
+  ],
+  serif: [
+    'var(--font-newsreader)',
+    'Newsreader',
+    'Georgia',
+    'serif',
+  ],
+  body: [
+    'var(--font-inter-tight)',
+    'Inter Tight',
+    'Arial',
+    'Helvetica',
+    'sans-serif',
+  ],
+  ui: [
+    'var(--font-inter-tight)',
+    'Inter Tight',
+    'Arial',
+    'Helvetica',
+    'sans-serif',
+  ],
+  sans: [
+    'var(--font-inter-tight)',
+    'Inter Tight',
+    'Arial',
+    'Helvetica',
+    'sans-serif',
+  ],
+  label: [
+    'var(--font-ibm-plex)',
+    'IBM Plex Sans',
+    'Arial',
+    'Helvetica',
+    'sans-serif',
+  ],
+  data: [
+    'var(--font-ibm-plex)',
+    'IBM Plex Sans',
+    'Arial',
+    'Helvetica',
+    'sans-serif',
+  ],
 }
 
 const fontSize = {

@@ -1,11 +1,7 @@
 'use client'
 
-import { LandingHeader } from '../features/landing/components/LandingHeader'
+import { SofliaHome } from '../features/landing/components/home/SofliaHome'
 
 export function HomePageClient() {
-  return (
-    <main className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
-      <LandingHeader />
-    </main>
-  )
+  return <SofliaHome />
 }

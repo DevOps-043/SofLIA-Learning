@@ -62,7 +62,7 @@ export const DEFAULT_ORGANIZATION_BRANDING_COLORS = {
   color_primary: DESIGN_HEX_COLOR.info,
   color_secondary: DESIGN_HEX_COLOR.success,
   color_accent: DESIGN_HEX_COLOR.secondary,
-  font_family: 'Inter',
+  font_family: 'Inter Tight',
 } as const satisfies NormalizedOrganizationBrandingColors
 
 export function normalizeOrganizationBrandingColors(

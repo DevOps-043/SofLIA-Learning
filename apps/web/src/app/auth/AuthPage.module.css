@@ -1,0 +1,341 @@
+.authPage {
+  --auth-line: rgb(var(--home-fg-rgb) / 0.12);
+  --auth-panel: color-mix(in srgb, var(--home-surface) 86%, transparent);
+  --auth-field: rgb(var(--home-fg-rgb) / 0.045);
+  --auth-muted: rgb(var(--home-fg-rgb) / 0.58);
+  display: grid;
+  min-height: 100svh;
+  overflow: visible;
+  background: var(--home-bg);
+}
+
+:global(.dark) .authPage {
+  --auth-panel: color-mix(in srgb, var(--home-surface) 90%, transparent);
+  --auth-field: rgb(var(--home-fg-rgb) / 0.055);
+}
+
+.authShell {
+  display: grid;
+  width: min(100% - 2rem, 76rem);
+  min-height: 100svh;
+  grid-template-columns: minmax(23rem, 0.9fr) minmax(30rem, 1.1fr);
+  align-items: center;
+  gap: clamp(2.5rem, 6vw, 6rem);
+  margin-inline: auto;
+  padding-block: 2rem;
+}
+
+.logoPanel {
+  position: relative;
+  min-height: clamp(28rem, 43vw, 40rem);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.canvas:active {
+  cursor: grabbing;
+}
+
+.formColumn {
+  --auth-field: var(--auth-experience-field);
+  --auth-line: var(--auth-experience-line);
+  --auth-muted: var(--auth-experience-muted);
+  min-width: 0;
+}
+
+.formFrame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--auth-line);
+  border-radius: 1.75rem;
+  padding: 0 clamp(1.25rem, 3vw, 2.2rem);
+  background: var(--auth-panel);
+  box-shadow:
+    0 2.5rem 7rem rgb(var(--home-shadow-rgb) / 0.25),
+    inset 0 1px rgb(var(--home-fg-rgb) / 0.1);
+  backdrop-filter: blur(1.4rem) saturate(130%);
+}
+
+.formFrame::before {
+  position: absolute;
+  top: 0;
+  left: 25%;
+  width: 50%;
+  height: 1px;
+  content: '';
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  box-shadow: 0 0 1.4rem var(--color-accent);
+}
+
+.formFallback {
+  display: grid;
+  min-height: 34rem;
+  align-content: center;
+  gap: 0.7rem;
+}
+
+.formFallback span {
+  display: block;
+  height: 3.3rem;
+  border-radius: 0.9rem;
+  background: linear-gradient(
+    90deg,
+    var(--auth-field),
+    rgb(var(--home-fg-rgb) / 0.09),
+    var(--auth-field)
+  );
+  background-size: 200% 100%;
+  animation: form-shimmer 1.4s linear infinite;
+}
+
+.formFallback span:first-child {
+  width: 62%;
+  height: 5rem;
+  margin: 0 auto 1.5rem;
+}
+
+.formColumn :global([data-auth-card]) {
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: clamp(2.1rem, 4vw, 3rem) 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.formColumn :global([data-auth-header]) {
+  margin-bottom: 1.8rem !important;
+  text-align: center !important;
+}
+
+.formColumn :global([data-auth-header] h1) {
+  margin-bottom: 0.45rem !important;
+  color: var(--home-text) !important;
+  font-family: var(--home-display) !important;
+  font-size: clamp(2.45rem, 4vw, 3.5rem) !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1 !important;
+  text-align: center !important;
+}
+
+.formColumn :global([data-auth-header] p) {
+  color: var(--auth-muted) !important;
+  font-family: var(--home-body) !important;
+  font-size: 0.9rem !important;
+  text-align: center !important;
+}
+
+.formColumn :global([data-auth-form]) {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.formColumn :global([data-auth-form] > * + *) {
+  margin-top: 0 !important;
+}
+
+.formColumn :global([data-auth-field] > label),
+.formColumn :global([data-auth-inline-label]),
+.formColumn :global([data-auth-section-title]) {
+  margin-bottom: 0.45rem !important;
+  color: rgb(var(--home-fg-rgb) / 0.62) !important;
+  font-family: var(--home-label) !important;
+  font-size: 0.61rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase;
+}
+
+.formColumn :global([data-auth-section-title]) {
+  border-top: 1px solid var(--auth-line);
+  padding-top: 0.9rem;
+}
+
+.formColumn :global([data-auth-control]) {
+  border-color: var(--auth-line) !important;
+  border-radius: 0.9rem !important;
+  background: var(--auth-field) !important;
+  box-shadow: inset 0 1px rgb(var(--home-fg-rgb) / 0.04) !important;
+}
+
+.formColumn :global([data-auth-control]:focus-within) {
+  border-color: rgb(var(--color-accent-rgb) / 0.72) !important;
+  box-shadow:
+    0 0 0 3px rgb(var(--color-accent-rgb) / 0.1),
+    0 0 2rem rgb(var(--color-accent-rgb) / 0.08) !important;
+}
+
+.formColumn :global([data-auth-control] input) {
+  color: var(--home-text) !important;
+  font-family: var(--home-body) !important;
+}
+
+.formColumn :global([data-auth-control] input::placeholder) {
+  color: rgb(var(--home-fg-rgb) / 0.36) !important;
+}
+
+.formColumn :global([data-auth-options]) {
+  gap: 0.8rem;
+}
+
+.formColumn :global([data-auth-options] span),
+.formColumn :global([data-auth-options] a) {
+  font-family: var(--home-body);
+  font-size: 0.78rem !important;
+}
+
+.formColumn :global([data-auth-primary]) {
+  position: relative;
+  min-height: 3.35rem;
+  overflow: hidden;
+  border: 1px solid rgb(var(--color-accent-rgb) / 0.5) !important;
+  border-radius: 0.92rem !important;
+  background: var(--color-accent) !important;
+  box-shadow: 0 1rem 2.6rem rgb(var(--color-accent-rgb) / 0.19) !important;
+  color: var(--color-primary) !important;
+  font-family: var(--home-body);
+  font-size: 0.86rem;
+  font-weight: 600 !important;
+}
+
+.formColumn :global([data-auth-primary])::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: linear-gradient(
+    108deg,
+    transparent 38%,
+    rgb(var(--color-bg-light-rgb) / 0.42) 50%,
+    transparent 62%
+  );
+  transform: translateX(-160%);
+  transition: transform 700ms ease;
+}
+
+.formColumn :global([data-auth-primary]:hover)::after {
+  transform: translateX(160%);
+}
+
+.formColumn :global([data-auth-social]) {
+  margin-top: 1rem !important;
+}
+
+.formColumn :global([data-auth-social] > div > div:first-child span) {
+  color: rgb(var(--home-fg-rgb) / 0.42) !important;
+  font-family: var(--home-label);
+  font-size: 0.58rem !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.formColumn :global([data-auth-provider]) {
+  width: 3.15rem !important;
+  height: 3.15rem !important;
+  border-color: var(--auth-line) !important;
+  border-radius: 0.85rem !important;
+  background: var(--auth-field) !important;
+  box-shadow: none !important;
+}
+
+.formColumn :global([data-auth-provider]:hover) {
+  border-color: rgb(var(--color-accent-rgb) / 0.58) !important;
+  background: rgb(var(--color-accent-rgb) / 0.07) !important;
+}
+
+.formColumn :global([data-auth-switch]) {
+  margin-top: 1.15rem !important;
+}
+
+.formColumn :global([data-auth-switch] p) {
+  color: var(--auth-muted) !important;
+  font-family: var(--home-body);
+  font-size: 0.78rem !important;
+}
+
+.formColumn :global([data-auth-switch] button) {
+  color: var(--color-accent) !important;
+}
+
+.formColumn :global([data-auth-terms]) {
+  color: var(--auth-muted);
+  font-family: var(--home-body);
+}
+
+@keyframes form-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 959px) {
+  .authShell {
+    width: min(100% - 1.25rem, 38rem);
+    min-height: 100svh;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding-block: 1.2rem;
+  }
+
+  .logoPanel {
+    min-height: clamp(12rem, 42vw, 18rem);
+  }
+
+  .canvas {
+    inset: -17% 14%;
+  }
+
+  .formFrame {
+    border-radius: 1.4rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .authShell {
+    width: calc(100% - 0.75rem);
+    padding-block: 0.75rem;
+  }
+
+  .logoPanel {
+    min-height: 10rem;
+  }
+
+  .canvas {
+    inset: -25% 14%;
+  }
+
+  .formFrame {
+    border-radius: 1.2rem;
+    padding-inline: 0.85rem;
+  }
+
+  .formColumn :global([data-auth-card]) {
+    padding-block: 1.7rem !important;
+  }
+
+  .formColumn :global([data-auth-header] h1) {
+    font-size: 2.5rem !important;
+  }
+
+  .formColumn :global([data-auth-options]) {
+    align-items: flex-start !important;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .formFallback span {
+    animation: none;
+  }
+
+  .formColumn :global([data-auth-primary])::after {
+    transition: none;
+  }
+}

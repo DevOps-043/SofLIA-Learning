@@ -52,7 +52,7 @@ function HtmlContentRenderer({ html }: { html: string }) {
           "dark:[&_th]:border-white/20 dark:[&_th]:bg-white/10",
         ].join(" ")}
         dangerouslySetInnerHTML={{ __html: sanitized }}
-        style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+        style={{ fontFamily: "var(--font-system-ui)", fontWeight: 400 }}
       />
     </div>
   );
@@ -63,7 +63,7 @@ function renderFormattedItem(item: FormattedItem): ReactNode {
     return (
       <h1
         className="border-b pb-3 text-3xl font-bold text-primary dark:text-white"
-        style={{ borderBottomColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)', fontFamily: "Inter, sans-serif", fontWeight: 700 }}
+        style={{ borderBottomColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)', fontFamily: "var(--font-system-ui)", fontWeight: 700 }}
       >
         {item.content}
       </h1>
@@ -74,7 +74,7 @@ function renderFormattedItem(item: FormattedItem): ReactNode {
     return (
       <h2
         className="text-2xl font-bold text-primary dark:text-white"
-        style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}
+        style={{ fontFamily: "var(--font-system-ui)", fontWeight: 700 }}
       >
         {item.content}
       </h2>
@@ -141,7 +141,7 @@ function renderFormattedItem(item: FormattedItem): ReactNode {
   return (
     <p
       className="text-base leading-[1.9] text-primary dark:text-white"
-      style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+      style={{ fontFamily: "var(--font-system-ui)", fontWeight: 400 }}
     >
       {item.content}
     </p>

@@ -10,6 +10,7 @@ import type { RegisterFormData } from '../../../types/auth.types'
 import { OrganizationRegisterDatePicker } from './OrganizationRegisterDatePicker'
 import { OrganizationRegisterField } from './OrganizationRegisterField'
 import { OrganizationRegisterDropdown } from './OrganizationRegisterDropdown'
+import { authExperienceStyles } from '../../AuthExperience'
 import type { OrganizationRegisterIdentityFieldsProps } from './types'
 
 export function OrganizationRegisterIdentityFields({
@@ -41,14 +42,14 @@ export function OrganizationRegisterIdentityFields({
   return (
     <>
       <motion.header
-        className="flex flex-col gap-3"
+        className={authExperienceStyles.header}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
       >
         <div>
           <motion.h2
-            className="text-2xl font-bold tracking-tight lg:text-[28px]"
+            className={authExperienceStyles.title}
             style={{ color: palette.textColor }}
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -57,7 +58,7 @@ export function OrganizationRegisterIdentityFields({
             {t('auth.register.title')}
           </motion.h2>
           <motion.p
-            className="mt-1 text-sm font-normal opacity-60"
+            className={authExperienceStyles.subtitle}
             style={{ color: palette.textColor }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

@@ -62,7 +62,7 @@ export function SelectField({
   }, [isOpen, searchable]);
 
   return (
-    <div className={cn('w-full', className)}>
+    <div data-auth-field className={cn('w-full', className)}>
       {label && (
         <label className="block text-xs font-medium uppercase tracking-wider mb-1.5 text-text-secondary transition-all duration-200">
           {label} {required && <span className="text-red-500 dark:text-red-400">*</span>}
@@ -82,6 +82,7 @@ export function SelectField({
         disabled={disabled}
       >
         <Select.Trigger
+          data-auth-control
           className={cn(
             'w-full px-4 py-3 bg-white dark:bg-carbon-800',
             'border border-gray-200 dark:border-gray-500/30',
@@ -222,4 +223,3 @@ export function SelectField({
     </div>
   );
 }
-

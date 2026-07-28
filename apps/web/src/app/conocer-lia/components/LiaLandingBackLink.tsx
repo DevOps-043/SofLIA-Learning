@@ -9,7 +9,7 @@ export function LiaLandingBackLink() {
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-gray-500 dark:text-white/70 hover:text-primary dark:hover:text-white transition-colors"
-          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
+          style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Volver al inicio</span>

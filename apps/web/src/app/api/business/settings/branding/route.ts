@@ -103,7 +103,7 @@ export async function GET() {
         color_primary: organization.brand_color_primary || DESIGN_HEX_COLOR.info,
         color_secondary: organization.brand_color_secondary || DESIGN_HEX_COLOR.success,
         color_accent: organization.brand_color_accent || DESIGN_HEX_COLOR.secondary,
-        font_family: organization.brand_font_family || 'Inter'
+        font_family: organization.brand_font_family || 'Inter Tight'
       }
     })
   } catch (error) {
@@ -153,7 +153,7 @@ async function handlePut(
     }
 
     // Validar fuente (permitir fuentes comunes de Google Fonts o web-safe)
-    const validFonts = ['Inter', 'Montserrat', 'Roboto', 'Open Sans', 'Lato', 'Poppins', 'Raleway', 'Source Sans Pro', 'Arial', 'Helvetica', 'Times New Roman', 'Georgia']
+    const validFonts = ['Inter Tight', 'Inter', 'Montserrat', 'Roboto', 'Open Sans', 'Lato', 'Poppins', 'Raleway', 'Source Sans Pro', 'Arial', 'Helvetica', 'Times New Roman', 'Georgia']
     if (font_family && !validFonts.includes(font_family) && !font_family.match(/^[a-zA-Z\s]+$/)) {
       return apiError('INVALID_FONT_FAMILY', 'La fuente debe ser una fuente válida', 400)
     }
@@ -251,7 +251,7 @@ async function handlePut(
         color_primary: updatedOrg.brand_color_primary || DESIGN_HEX_COLOR.info,
         color_secondary: updatedOrg.brand_color_secondary || DESIGN_HEX_COLOR.success,
         color_accent: updatedOrg.brand_color_accent || DESIGN_HEX_COLOR.secondary,
-        font_family: updatedOrg.brand_font_family || 'Inter'
+        font_family: updatedOrg.brand_font_family || 'Inter Tight'
       },
       styles: buildOrganizationStylesPayload(updatedOrg),
     })

@@ -85,7 +85,7 @@ export function Navbar() {
             <span
               className="font-bold text-xl hidden sm:block text-primary dark:text-white uppercase tracking-tight"
               style={{
-                fontFamily: 'Inter, sans-serif',
+                fontFamily: 'var(--font-system-ui)',
                 fontWeight: 800,
                 letterSpacing: '-0.02em'
               }}

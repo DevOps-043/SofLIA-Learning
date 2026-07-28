@@ -275,7 +275,7 @@ export async function createAdminCompany(data: CompanyCreatePayload): Promise<Ad
     brand_color_primary: normalizeBrandHexColor(data.brand_color_primary, DEFAULT_BRAND_PRIMARY),
     brand_color_secondary: normalizeBrandHexColor(data.brand_color_secondary, DEFAULT_BRAND_SECONDARY),
     brand_color_accent: normalizeBrandHexColor(data.brand_color_accent, DEFAULT_BRAND_ACCENT),
-    brand_font_family: data.brand_font_family || 'Inter',
+    brand_font_family: data.brand_font_family || 'Inter Tight',
     branding_enabled: data.branding_enabled ?? false,
     google_login_enabled: data.google_login_enabled ?? false,
     microsoft_login_enabled: data.microsoft_login_enabled ?? false,

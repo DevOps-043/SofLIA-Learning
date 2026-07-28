@@ -119,7 +119,7 @@ export function BusinessDeleteUserModal({ user, isOpen, onClose, onConfirm }: Bu
                   i18nKey="users.modals.delete.confirmQuestion"
                   t={t}
                   values={{ name: displayName }}
-                  components={{ 1: <span className="font-heading font-bold text-red-600 dark:text-red-400" /> }}
+                  components={{ 1: <span className="font-ui font-semibold text-red-600 dark:text-red-400" /> }}
                 />
               </p>
               <p className="text-body text-red-500/80 dark:text-slate-400 text-sm">
@@ -157,7 +157,7 @@ export function BusinessDeleteUserModal({ user, isOpen, onClose, onConfirm }: Bu
                   variant="secondary"
                   onClick={onClose}
                   disabled={isLoading}
-                  className="font-heading text-sm transition-all duration-200"
+                  className="font-ui text-sm transition-all duration-200"
                 >
                   {t('users.buttons.cancel')}
                 </Button>
@@ -168,7 +168,7 @@ export function BusinessDeleteUserModal({ user, isOpen, onClose, onConfirm }: Bu
                   variant="gradient"
                   onClick={handleConfirm}
                   disabled={isLoading}
-                  className="bg-red-600 hover:bg-red-700 font-heading text-sm transition-all duration-200"
+                  className="bg-red-600 hover:bg-red-700 font-ui text-sm transition-all duration-200"
                 >
                   {isLoading ? (
                     <span className="flex items-center gap-2">

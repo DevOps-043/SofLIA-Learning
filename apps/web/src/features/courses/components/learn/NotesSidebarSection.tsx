@@ -39,7 +39,7 @@ export function NotesSidebarSection({
       <div className="flex items-center justify-between mb-4">
         <h3
           className="text-primary dark:text-white font-semibold text-sm"
-          style={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}
+          style={{ fontFamily: "var(--font-system-ui)", fontWeight: 600 }}
         >
           {t("leftPanel.notesSection.myNotes")}
         </h3>
@@ -83,7 +83,7 @@ export function NotesSidebarSection({
             <div className="space-y-3 mb-6">
               <h3
                 className="text-primary dark:text-white font-semibold text-sm"
-                style={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}
+                style={{ fontFamily: "var(--font-system-ui)", fontWeight: 600 }}
               >
                 {t("leftPanel.notesSection.savedNotes")}
               </h3>
@@ -93,13 +93,13 @@ export function NotesSidebarSection({
                   <div className="bg-white dark:bg-carbon-800 rounded-xl p-4 border border-gray-200 dark:border-gray-500/30 text-center">
                     <p
                       className="text-sm text-primary dark:text-white"
-                      style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                      style={{ fontFamily: "var(--font-system-ui)", fontWeight: 400 }}
                     >
                       {t("leftPanel.notesSection.noSavedNotes")}
                     </p>
                     <p
                       className="text-xs text-gray-500 dark:text-white/60 mt-1"
-                      style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                      style={{ fontFamily: "var(--font-system-ui)", fontWeight: 400 }}
                     >
                       {t("leftPanel.notesSection.saveFirstNote")}
                     </p>

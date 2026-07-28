@@ -1,21 +1,34 @@
 import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
 import { ResetPasswordForm } from '../../../features/auth/components/ResetPasswordForm';
+import {
+  AuthExperience,
+  authExperienceStyles,
+} from '@/features/auth/components/AuthExperience';
 
 export const metadata = {
-  title: 'Restablecer Contraseña | SofLIA',
+  title: 'Restablecer contraseña | SofLIA',
   description: 'Crea una nueva contraseña segura para tu cuenta',
 };
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-          <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-        </div>
-      }
-    >
+    <Suspense fallback={<AuthFallback />}>
       <ResetPasswordForm />
     </Suspense>
+  );
+}
+
+function AuthFallback() {
+  return (
+    <AuthExperience>
+      <div className={authExperienceStyles.content}>
+        <div className={authExperienceStyles.header}>
+          <span className={authExperienceStyles.iconBadge}>
+            <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
+          </span>
+        </div>
+      </div>
+    </AuthExperience>
   );
 }

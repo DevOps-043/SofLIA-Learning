@@ -66,8 +66,8 @@ export async function GET(request: NextRequest) {
             background: 'var(--color-bg-light)'
           },
           fonts: {
-            title: 'Inter',
-            body: 'Inter'
+            title: 'Inter Tight',
+            body: 'Inter Tight'
           },
           elements: {
             show_logo: true,

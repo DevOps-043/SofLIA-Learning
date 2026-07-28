@@ -47,14 +47,14 @@ export function DeleteNoteConfirmModal({
 
               <h3
                 className="text-xl font-bold text-primary dark:text-white mb-2"
-                style={{ fontFamily: "Inter, sans-serif" }}
+                style={{ fontFamily: "var(--font-system-ui)" }}
               >
                 Eliminar nota
               </h3>
 
               <p
                 className="text-gray-500 dark:text-white/60 text-sm mb-6"
-                style={{ fontFamily: "Inter, sans-serif" }}
+                style={{ fontFamily: "var(--font-system-ui)" }}
               >
                 Esta accion no se puede deshacer. La nota se eliminara
                 permanentemente de tu estudio.
@@ -65,7 +65,7 @@ export function DeleteNoteConfirmModal({
                   onClick={onConfirm}
                   disabled={isDeleting}
                   className="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl transition-all shadow-lg shadow-red-500/25 flex items-center justify-center gap-2"
-                  style={{ fontFamily: "Inter, sans-serif" }}
+                  style={{ fontFamily: "var(--font-system-ui)" }}
                 >
                   {isDeleting ? (
                     <>
@@ -81,7 +81,7 @@ export function DeleteNoteConfirmModal({
                   onClick={onClose}
                   disabled={isDeleting}
                   className="w-full py-3 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-white/80 font-medium rounded-xl transition-all"
-                  style={{ fontFamily: "Inter, sans-serif" }}
+                  style={{ fontFamily: "var(--font-system-ui)" }}
                 >
                   Cancelar
                 </button>

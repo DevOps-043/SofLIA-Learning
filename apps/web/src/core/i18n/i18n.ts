@@ -21,12 +21,15 @@ import adminEs from '../../../public/locales/es/admin.json';
 import toursEs from '../../../public/locales/es/tours.json';
 import legalEs from '../../../public/locales/es/legal.json';
 import notebookEs from '../../../public/locales/es/notebook.json';
+import homeEs from '../../../public/locales/es/home.json';
+import hubEs from '../../../public/locales/es/hub.json';
 
 export type SupportedLanguage = 'es' | 'en' | 'pt';
 
 export const ALL_NAMESPACES = [
   'common', 'dashboard', 'content', 'learn', 'my-courses',
   'statistics-results', 'communities', 'news', 'business', 'instructor', 'admin', 'tours', 'legal', 'notebook',
+  'home', 'hub',
 ] as const;
 
 type Namespace = (typeof ALL_NAMESPACES)[number];
@@ -46,6 +49,8 @@ const esResources: Record<Namespace, ResourceKey> = {
   tours: toursEs,
   legal: legalEs,
   notebook: notebookEs,
+  home: homeEs,
+  hub: hubEs,
 };
 
 let initialized = false;
@@ -92,6 +97,8 @@ export const loadLanguageAsync = async (lang: SupportedLanguage): Promise<void> 
       import('../../../public/locales/en/tours.json'),
       import('../../../public/locales/en/legal.json'),
       import('../../../public/locales/en/notebook.json'),
+      import('../../../public/locales/en/home.json'),
+      import('../../../public/locales/en/hub.json'),
     ]);
   } else if (lang === 'pt') {
     modules = await Promise.all([
@@ -109,6 +116,8 @@ export const loadLanguageAsync = async (lang: SupportedLanguage): Promise<void> 
       import('../../../public/locales/pt/tours.json'),
       import('../../../public/locales/pt/legal.json'),
       import('../../../public/locales/pt/notebook.json'),
+      import('../../../public/locales/pt/home.json'),
+      import('../../../public/locales/pt/hub.json'),
     ]);
   } else {
     return;

@@ -1,0 +1,229 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  min-height: 12rem;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  border: 1px solid var(--auth-experience-line);
+  border-radius: 1.15rem;
+  padding: 1rem;
+  background: var(--auth-experience-field);
+  color: var(--home-text);
+  text-align: left;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    opacity 180ms ease;
+}
+
+.card::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  content: '';
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgb(var(--home-fg-rgb) / 0.055) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  transition: transform 650ms ease;
+}
+
+.card:hover,
+.card:focus-visible,
+.cardSelected {
+  border-color: color-mix(
+    in srgb,
+    var(--auth-experience-brand) 58%,
+    transparent
+  );
+  background: color-mix(
+    in srgb,
+    var(--auth-experience-brand) 7%,
+    var(--auth-experience-field)
+  );
+  transform: translateY(-3px);
+}
+
+.card:hover::after,
+.card:focus-visible::after {
+  transform: translateX(120%);
+}
+
+.card:disabled {
+  cursor: wait;
+}
+
+.cardDimmed {
+  opacity: 0.42;
+  transform: scale(0.985);
+}
+
+.cardTop,
+.meta {
+  display: flex;
+  align-items: center;
+}
+
+.cardTop {
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.logoFrame {
+  display: grid;
+  width: min(9rem, 70%);
+  height: 4.5rem;
+  place-items: center;
+}
+
+.logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.fallbackLogo {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  place-items: center;
+  justify-self: start;
+  border: 1px solid var(--auth-experience-line);
+  border-radius: 1rem;
+  background: rgb(var(--home-fg-rgb) / 0.04);
+  color: var(--auth-experience-brand);
+  font-family: var(--home-display);
+  font-size: 2rem;
+}
+
+.action {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--auth-experience-line);
+  border-radius: 50%;
+  color: var(--auth-experience-muted);
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.card:hover .action,
+.card:focus-visible .action,
+.cardSelected .action {
+  border-color: var(--auth-experience-brand);
+  color: var(--auth-experience-brand);
+  transform: translateX(2px);
+}
+
+.cardBody {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.cardTitle {
+  overflow: hidden;
+  font-family: var(--home-body);
+  font-size: 1.05rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  min-width: 0;
+  gap: 0.5rem;
+}
+
+.role {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid var(--auth-experience-line);
+  border-radius: 999px;
+  padding: 0.3rem 0.55rem;
+  font-family: var(--home-label);
+  font-size: 0.59rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.roleOwner {
+  border-color: rgb(217 119 6 / 0.22);
+  color: rgb(180 83 9);
+}
+
+.roleAdmin {
+  border-color: rgb(37 99 235 / 0.22);
+  color: rgb(37 99 235);
+}
+
+.roleMember {
+  border-color: color-mix(
+    in srgb,
+    var(--auth-experience-brand) 30%,
+    transparent
+  );
+  color: var(--auth-experience-brand);
+}
+
+:global(.dark) .roleOwner {
+  color: rgb(251 191 36);
+}
+
+:global(.dark) .roleAdmin {
+  color: rgb(96 165 250);
+}
+
+.slug {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--auth-experience-muted);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.footer {
+  margin: 1.4rem 0 0;
+  color: var(--auth-experience-muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+@media (max-width: 639px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card {
+    min-height: 10.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card::after,
+  .action {
+    transition: none;
+  }
+}

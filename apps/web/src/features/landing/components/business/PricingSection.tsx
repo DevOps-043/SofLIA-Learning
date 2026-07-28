@@ -49,14 +49,14 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
         >
           <motion.h2
             className="text-3xl lg:text-4xl font-bold mb-4 text-primary dark:text-white"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 700 }}
             variants={slideUp}
           >
             {title}
           </motion.h2>
           <motion.p
             className="text-lg max-w-3xl mx-auto mb-8 text-gray-500 dark:text-white/70"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
             variants={fadeIn}
           >
             {subtitle}
@@ -69,7 +69,7 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
           >
             <span
               className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-primary dark:text-white' : 'text-gray-500 dark:text-white/70'}`}
-              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
+              style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}
             >
               Mensual
             </span>
@@ -99,14 +99,14 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                   >
                     <span
                       className="text-xs font-bold text-white px-1"
-                      style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
+                      style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 700 }}
                     >
                       20%
                     </span>
                   </div>
                   <span
                     className="text-xs font-semibold whitespace-nowrap"
-                    style={{ color: 'var(--color-accent)', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
+                    style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-system-ui)', fontWeight: 600 }}
                   >
                     OFF
                   </span>
@@ -115,7 +115,7 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
             </motion.button>
             <span
               className={`text-sm font-medium transition-colors ${isAnnual ? 'text-primary dark:text-white' : 'text-gray-500 dark:text-white/70'}`}
-              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
+              style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}
             >
               Anual
             </span>
@@ -151,7 +151,7 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                   >
                     <div
                       className="px-4 py-1.5 rounded-full shadow-lg text-white text-xs font-semibold flex items-center gap-1.5"
-                      style={{ backgroundColor: 'var(--color-accent)', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
+                      style={{ backgroundColor: 'var(--color-accent)', fontFamily: 'var(--font-system-ui)', fontWeight: 600 }}
                     >
                       <Sparkles className="w-3 h-3" />
                       Más Popular
@@ -188,14 +188,14 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                       <div className="flex items-center justify-between mb-3">
                         <h3
                           className="text-2xl font-bold text-primary dark:text-white"
-                          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
+                          style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 700 }}
                         >
                           {tier.name}
                         </h3>
                         {isPopular && (
                           <motion.div
                             className="px-2.5 py-1 rounded-md text-[10px] font-bold text-white uppercase tracking-wide"
-                            style={{ backgroundColor: 'var(--color-primary)', fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
+                            style={{ backgroundColor: 'var(--color-primary)', fontFamily: 'var(--font-system-ui)', fontWeight: 700 }}
                             animate={disableHeavy ? {} : { scale: [1, 1.05, 1] }}
                             transition={{ duration: 2, repeat: Infinity }}
                           >
@@ -205,7 +205,7 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                       </div>
                       <p
                         className="text-sm text-gray-500 dark:text-white/70 mb-6"
-                        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+                        style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
                       >
                         {tier.description}
                       </p>
@@ -218,7 +218,7 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                             className={`font-bold text-primary dark:text-white ${
                               isEnterprise ? 'text-3xl lg:text-4xl' : 'text-4xl lg:text-5xl'
                             }`}
-                            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
+                            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 700 }}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.3 }}
@@ -228,7 +228,7 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                           {!isEnterprise && tier.period && (
                             <span
                               className="text-lg text-gray-500 dark:text-white/70"
-                              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+                              style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
                             >
                               {isAnnual ? '/año' : '/mes'}
                             </span>
@@ -237,7 +237,7 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                         {!isEnterprise && tier.price !== 'Personalizado' && (
                           <div
                             className="text-xs mt-2 text-gray-500 dark:text-white/60"
-                            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+                            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
                           >
                             {isAnnual
                               ? `$${Math.round(parseFloat(tier.price.replace(/[^0-9.]/g, '')) * 12 * 0.8 / 12)}/mes facturado anualmente`
@@ -268,7 +268,7 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                             </div>
                             <span
                               className="text-sm text-primary dark:text-white/90 leading-relaxed"
-                              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+                              style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
                             >
                               {feature}
                             </span>
@@ -303,7 +303,7 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                           }`}
                           style={{
                             borderColor: isPopular ? 'transparent' : 'var(--color-accent)',
-                            fontFamily: 'Inter, sans-serif',
+                            fontFamily: 'var(--font-system-ui)',
                             fontWeight: 600,
                             boxShadow: isPopular
                               ? '0 10px 40px -10px rgba(0, 212, 179, 0.4)'

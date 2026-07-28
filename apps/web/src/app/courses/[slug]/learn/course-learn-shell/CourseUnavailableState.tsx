@@ -11,8 +11,8 @@ export function CourseUnavailableState({ logic }: { logic: LearnPageLogicResult 
   return (
     <div className="flex min-h-screen items-center justify-center bg-white dark:bg-gray-900">
       <div className="text-center">
-        <h1 className="mb-4 text-3xl font-bold text-primary dark:text-white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>{logic.t('errors.courseNotFound')}</h1>
-        <p className="mb-8 text-gray-500 dark:text-white/80" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>{logic.t('errors.courseNotFoundMessage')}</p>
+        <h1 className="mb-4 text-3xl font-bold text-primary dark:text-white" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 700 }}>{logic.t('errors.courseNotFound')}</h1>
+        <p className="mb-8 text-gray-500 dark:text-white/80" style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}>{logic.t('errors.courseNotFoundMessage')}</p>
         <button onClick={() => logic.router.push(dashboardPath)} className="rounded-lg bg-primary px-6 py-3 text-white transition-colors hover:bg-primary">{logic.t('navigation.backToCourses')}</button>
       </div>
     </div>

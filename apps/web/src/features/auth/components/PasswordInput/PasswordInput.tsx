@@ -57,8 +57,9 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
   // If custom colors are used, we rely on inline styles for structure
   if (customColors) {
     return (
-      <div className="w-full relative group">
+      <div data-auth-field className="w-full relative group">
         <motion.div
+           data-auth-control
            className="relative rounded-xl border transition-all duration-300 overflow-hidden"
            style={{
              backgroundColor: bgColor,
@@ -122,8 +123,9 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
 
   // Fallback to original implementation for other uses
   return (
-    <div className="w-full">
+    <div data-auth-field className="w-full">
       <motion.div
+        data-auth-control
         className={`relative rounded-xl border transition-all duration-300 overflow-hidden ${
           isFocused
             ? 'bg-white dark:bg-carbon-800 border-accent shadow-lg shadow-accent/10'

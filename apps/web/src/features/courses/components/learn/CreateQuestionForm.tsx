@@ -178,7 +178,7 @@ export function CreateQuestionForm({
               <h3
                 id="create-question-title"
                 className="text-gray-900 dark:text-white font-semibold text-base sm:text-lg leading-none"
-                style={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}
+                style={{ fontFamily: "var(--font-system-ui)", fontWeight: 600 }}
               >
                 Nueva pregunta
               </h3>

@@ -68,7 +68,7 @@ describe('admin-companies.mapper', () => {
     })
 
     expect(company.brand_color_primary).toBe(DEFAULT_BRAND_PRIMARY)
-    expect(company.brand_font_family).toBe('Inter')
+    expect(company.brand_font_family).toBe('Inter Tight')
     expect(company.active_users).toBe(1)
     expect(company.invited_users).toBe(3)
     expect(company.total_users).toBe(2)

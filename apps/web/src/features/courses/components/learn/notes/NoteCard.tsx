@@ -68,14 +68,14 @@ export function NoteCard({
       <div className="flex items-center justify-between mb-2">
         <span
           className="text-sm text-primary dark:text-white font-medium"
-          style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
+          style={{ fontFamily: "var(--font-system-ui)", fontWeight: 500 }}
         >
           {note.title}
         </span>
         <div className="flex items-center gap-2">
           <span
             className="text-xs text-gray-500 dark:text-white/60"
-            style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+            style={{ fontFamily: "var(--font-system-ui)", fontWeight: 400 }}
           >
             {note.timestamp}
           </span>

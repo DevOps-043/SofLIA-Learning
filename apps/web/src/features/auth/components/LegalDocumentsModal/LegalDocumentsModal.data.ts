@@ -11,6 +11,7 @@ export interface LegalDocumentSection {
 
 export interface LegalDocument {
   title: string;
+  summary?: string;
   sections: LegalDocumentSection[];
 }
 

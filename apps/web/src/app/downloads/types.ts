@@ -1,5 +1,3 @@
-import type { LucideIcon } from 'lucide-react'
-
 export interface DownloadAsset {
   url: string
   size: string
@@ -32,27 +30,6 @@ export interface ParsedReleaseNotesSection {
 export interface ParsedReleaseNotes {
   releaseTitle: string
   sections: ParsedReleaseNotesSection[]
-}
-
-export interface DownloadsRequirement {
-  os: string
-  min: string
-  ram: string
-  disk: string
-  icon: LucideIcon
-  color: string
-}
-
-export interface DownloadsStep {
-  title: string
-  desc: string
-  icon: LucideIcon
-}
-
-export interface DownloadsFeature {
-  title: string
-  desc: string
-  icon: LucideIcon
 }
 
 export interface GithubReleaseAssetPayload {

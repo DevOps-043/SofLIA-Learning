@@ -23,7 +23,7 @@ export function OrganizationRegisterField({
   const [isFocused, setIsFocused] = useState(false)
 
   return (
-    <div className="space-y-1.5">
+    <div data-auth-field className="space-y-1.5">
       <label
         htmlFor={id}
         className="block text-xs font-medium uppercase tracking-wider mb-1.5"
@@ -33,6 +33,7 @@ export function OrganizationRegisterField({
       </label>
       <div className="relative group">
         <motion.div
+          data-auth-control
           className="relative rounded-xl border transition-all duration-300 overflow-hidden"
           style={{
             backgroundColor: palette.inputBgColor,

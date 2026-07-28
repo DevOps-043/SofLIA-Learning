@@ -26,7 +26,7 @@ export function FeatureContent({
         <motion.h3
           animate={isHovered ? { scale: 1.05 } : { scale: 1 }}
           className="text-3xl lg:text-4xl xl:text-5xl font-bold"
-          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800, color: feature.color }}
+          style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 800, color: feature.color }}
           transition={{ duration: 0.3 }}
         >
           {feature.title}
@@ -34,7 +34,7 @@ export function FeatureContent({
         <motion.p
           animate={isHovered ? { opacity: 1 } : { opacity: 0.8 }}
           className="text-lg lg:text-xl text-gray-500 dark:text-white/70 leading-relaxed"
-          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+          style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
           transition={{ duration: 0.3 }}
         >
           {feature.description}

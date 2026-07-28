@@ -72,7 +72,7 @@ export function FeaturesSection({ title, subtitle, cards }: FeaturesSectionProps
         >
           <motion.h2 
             className="text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 text-primary dark:text-white"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 800 }}
             initial={{ opacity: 0, scale: 0.5 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
@@ -86,7 +86,7 @@ export function FeaturesSection({ title, subtitle, cards }: FeaturesSectionProps
           </motion.h2>
           <motion.p 
             className="text-xl lg:text-2xl max-w-3xl mx-auto text-gray-500 dark:text-white/80 leading-relaxed"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -202,7 +202,7 @@ export function FeaturesSection({ title, subtitle, cards }: FeaturesSectionProps
                     <div className="space-y-4">
                       <motion.h3
                         className="text-3xl lg:text-4xl xl:text-5xl font-bold text-primary dark:text-white"
-                        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 800 }}
+                        style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 800 }}
                         animate={isHovered ? { scale: 1.05 } : { scale: 1 }}
                         transition={{ duration: 0.3 }}
                       >
@@ -211,7 +211,7 @@ export function FeaturesSection({ title, subtitle, cards }: FeaturesSectionProps
                       
                       <motion.p
                         className="text-lg lg:text-xl text-gray-500 dark:text-white/70 leading-relaxed"
-                        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+                        style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
                         animate={isHovered ? { opacity: 1 } : { opacity: 0.8 }}
                         transition={{ duration: 0.3 }}
                     >

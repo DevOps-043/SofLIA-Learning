@@ -1,0 +1,399 @@
+{
+  "nav": {
+    "homeLabel": "Go to SofLIA home",
+    "primaryLabel": "Primary navigation",
+    "mobileLabel": "Mobile navigation",
+    "system": "The system",
+    "method": "Method",
+    "services": "Capabilities",
+    "clientAccess": "Client access",
+    "downloadHub": "Download Pulse Hub",
+    "language": "Change language",
+    "toggleTheme": "Toggle theme",
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "hero": {
+    "eyebrow": "Talent evolution system",
+    "titleStart": "Evolve your talent",
+    "titleHighlight": "at the pace of technology.",
+    "description": "SofLIA keeps your team relevant in the AI era through an adoption system designed for measurable organizational upskilling and reskilling.",
+    "primaryCta": "Schedule an adoption assessment",
+    "secondaryCta": "Discover the SofLIA system",
+    "stagesLabel": "Key stages of the SofLIA system",
+    "stages": {
+      "diagnosis": "Assessment",
+      "adoption": "Adoption",
+      "impact": "Measurable impact"
+    },
+    "logoAlt": "SofLIA 3D logo"
+  },
+  "showcase": {
+    "eyebrow": "SofLIA in action",
+    "title": "Evolution makes more sense when you can see it.",
+    "description": "See how we turn learning, practice and guidance into capabilities that reach real work.",
+    "closingKicker": "From intent to application",
+    "closingTitle": "Learning is the beginning. Evolution turns it into capability.",
+    "videoLabel": "The SofLIA experience",
+    "pauseVideo": "Pause presentation video",
+    "playVideo": "Play presentation video",
+    "pauseVideoShort": "Pause",
+    "playVideoShort": "Play"
+  },
+  "narrative": {
+    "eyebrow": "The gap",
+    "navigationLabel": "Story navigation",
+    "goToSlide": "Go to stage {{number}}",
+    "slides": [
+      {
+        "kicker": "01 · The risk",
+        "title": "The skills gap is already widening.",
+        "description": "Technology is moving faster than teams can turn it into a new and relevant way of working.",
+        "points": [
+          "Current skills are becoming obsolete at an accelerating rate.",
+          "Uncertainty about how to keep the team relevant."
+        ]
+      },
+      {
+        "kicker": "02 · The friction",
+        "title": "There are pilots. What is missing is a system.",
+        "description": "Isolated experiments create excitement, but they do not build sustainable adoption or transform daily operations.",
+        "points": [
+          "No method to close the capability gap.",
+          "There is enthusiasm, but not enough scaling or measurement."
+        ]
+      },
+      {
+        "kicker": "03 · The answer",
+        "title": "Capability architecture, not isolated training.",
+        "description": "We implement an architecture that uses AI as a strategic enabler to evolve skills, decisions and ways of operating.",
+        "points": [
+          "Upskilling tied to real business priorities.",
+          "Personalized reskilling to preserve talent relevance."
+        ]
+      },
+      {
+        "kicker": "04 · The outcome",
+        "title": "Continuous evolution. Visible impact.",
+        "description": "SofLIA connects assessment, learning, practice, guidance and measurement in one organizational evolution system.",
+        "points": [
+          "Concrete use cases applied to everyday work.",
+          "Measurable, continuous closure of the skills gap."
+        ]
+      }
+    ]
+  },
+  "ecosystem": {
+    "eyebrow": "SofLIA ecosystem",
+    "title": "Learn, apply and measure in one system.",
+    "description": "Four coordinated components turn talent evolution into a permanent organizational capability.",
+    "selectItem": "Explore {{name}}",
+    "poweredBy": "Powered by SofLIA",
+    "brand": "SofLIA",
+    "defaultRole": "Ecosystem",
+    "selectHint": "Select a tool to explore its role within the ecosystem.",
+    "items": [
+      {
+        "id": "engine",
+        "name": "SofLIA Engine",
+        "role": "Intelligence and orchestration",
+        "description": "Combines context, assessment and progress signals to turn strategic priorities into actionable evolution paths."
+      },
+      {
+        "id": "learning",
+        "name": "SofLIA Learning",
+        "role": "Applied learning",
+        "description": "Delivers learning experiences, guided practice and personalized paths connected to real work."
+      },
+      {
+        "id": "agent",
+        "name": "Pulse-Hub",
+        "role": "Continuous guidance",
+        "description": "Supports each person during application, responds in context and helps turn knowledge into performance."
+      },
+      {
+        "id": "skills",
+        "name": "SofLIA Skills",
+        "role": "Reusable capabilities",
+        "description": "Brings together playbooks, practices and applied capabilities to accelerate adoption and retain organizational knowledge."
+      }
+    ],
+    "messageStart": "Technology is the enabler;",
+    "messageHighlight": "the outcome is permanently closing the capability gap."
+  },
+  "services": {
+    "eyebrow": "Capabilities",
+    "title": "Everything required to move from intent to adoption.",
+    "description": "Modular interventions that can begin with an assessment and scale into an enterprise system for continuous evolution.",
+    "dragHint": "Drag to explore",
+    "previous": "View previous capability",
+    "next": "View next capability",
+    "listLabel": "SofLIA capabilities and services",
+    "items": [
+      {
+        "id": "diagnosis",
+        "title": "AI maturity assessment",
+        "description": "We identify gaps, risks, opportunities and evolution priorities by role, area and operation.",
+        "outcome": "Prioritized roadmap"
+      },
+      {
+        "id": "adoption",
+        "title": "Adoption programs",
+        "description": "We design programs that connect leadership, capabilities, practice and change management.",
+        "outcome": "Sustainable adoption"
+      },
+      {
+        "id": "ai-first",
+        "title": "AI-First training",
+        "description": "We build strategic, operational and functional skills for relevant work with AI.",
+        "outcome": "Future-relevant talent"
+      },
+      {
+        "id": "production",
+        "title": "Learning production",
+        "description": "We create courses, paths, activities and instructional resources for SofLIA or the client's LMS.",
+        "outcome": "Applicable content"
+      },
+      {
+        "id": "learning",
+        "title": "SofLIA Learning deployment",
+        "description": "We activate personalized paths, tracking, practice and measurement inside the SofLIA environment.",
+        "outcome": "Execution at scale"
+      },
+      {
+        "id": "agent",
+        "title": "Guidance with SofLIA Agent",
+        "description": "We extend learning into the flow of work through contextual guidance and continuous support.",
+        "outcome": "Operational transfer"
+      },
+      {
+        "id": "playbooks",
+        "title": "Playbooks and SofLIA Skills",
+        "description": "We turn best practices and use cases into capabilities that can be reused across the organization.",
+        "outcome": "Living knowledge"
+      },
+      {
+        "id": "consulting",
+        "title": "Use-case consulting",
+        "description": "We prioritize opportunities and design safe, measurable ways to apply AI in critical processes.",
+        "outcome": "Business impact"
+      }
+    ]
+  },
+  "method": {
+    "eyebrow": "SofLIA method",
+    "title": "From assessment to scale.",
+    "description": "A complete cycle that aligns talent evolution with performance, relevance and business goals.",
+    "formulaLead": "Assessment + practice + guidance + measurement",
+    "formulaResult": "Measurable organizational evolution",
+    "phases": [
+      {
+        "name": "Assessment",
+        "description": "We map the skills gap and current maturity.",
+        "points": [
+          "Skills-gap map by role and area.",
+          "AI maturity evaluation and potential use cases."
+        ],
+        "outcome": "Deliverable: prioritized roadmap"
+      },
+      {
+        "name": "Prioritization",
+        "description": "We connect capabilities with business challenges and opportunities.",
+        "points": [
+          "Selection of the capabilities with the highest business impact.",
+          "Metrics and baseline definition per initiative."
+        ],
+        "outcome": "Deliverable: evolution plan"
+      },
+      {
+        "name": "Design",
+        "description": "We build the architecture and evolution paths.",
+        "points": [
+          "Capability architecture and paths per profile.",
+          "Experiences, activities and instructional resources."
+        ],
+        "outcome": "Deliverable: evolution paths"
+      },
+      {
+        "name": "Training",
+        "description": "We develop relevant, contextual knowledge.",
+        "points": [
+          "AI-First programs at strategic, operational and functional levels.",
+          "Contextual learning connected to real work."
+        ],
+        "outcome": "Result: applicable knowledge"
+      },
+      {
+        "name": "Practice",
+        "description": "We apply learning to real work situations.",
+        "points": [
+          "Guided real use cases inside the operation.",
+          "Challenges and simulations with SofLIA guidance."
+        ],
+        "outcome": "Result: operational transfer"
+      },
+      {
+        "name": "Guidance",
+        "description": "We sustain change with human guidance and AI assistance.",
+        "points": [
+          "Human guidance plus AI assistance in the workflow.",
+          "Contextual question-solving and continuous reinforcement."
+        ],
+        "outcome": "Result: sustained adoption"
+      },
+      {
+        "name": "Measurement",
+        "description": "We observe relevance, adoption and performance.",
+        "points": [
+          "Relevance, adoption and performance dashboard.",
+          "Evidence of gap closure per team and capability."
+        ],
+        "outcome": "Deliverable: impact metrics"
+      },
+      {
+        "name": "Optimization",
+        "description": "We adjust paths and interventions with evidence.",
+        "points": [
+          "Evidence-based adjustment of paths and interventions.",
+          "Iteration on the highest-return use cases."
+        ],
+        "outcome": "Result: continuous improvement"
+      },
+      {
+        "name": "Scaling",
+        "description": "We expand proven capabilities across the organization.",
+        "points": [
+          "Extension of proven capabilities across the organization.",
+          "Reusable playbooks and standards with SofLIA Skills."
+        ],
+        "outcome": "Result: permanent evolution"
+      }
+    ]
+  },
+  "radar": {
+    "eyebrow": "Capability radar",
+    "title": "The gap, measured. The evolution, visible.",
+    "description": "One team, two capability profiles: the starting point and the outcome after operating with the SofLIA system.",
+    "chartLabel": "Capability comparison radar: today versus with SofLIA",
+    "legendLabel": "Radar series",
+    "tableAxis": "Capability",
+    "series": {
+      "now": "Today",
+      "soflia": "With SofLIA"
+    },
+    "axes": {
+      "strategy": "AI strategy",
+      "adoption": "Adoption",
+      "productivity": "Productivity",
+      "skills": "Skills",
+      "measurement": "Measurement",
+      "culture": "Culture"
+    },
+    "note": "Illustrative profile on a 0–100 capability scale, built from the system's assessment and continuous measurement."
+  },
+  "impact": {
+    "eyebrow": "Organizational relevance",
+    "title": "An evolution that connects the whole company.",
+    "description": "SofLIA aligns those who define the strategy with those who turn AI into daily performance.",
+    "audienceLabel": "Designed for",
+    "benefitsLabel": "Expected impact",
+    "networkLabel": "Network of areas connected by the SofLIA system",
+    "stageLabel": "Impact signal",
+    "progressLabel": "Impact signal progress",
+    "audiences": [
+      "Executive Leadership",
+      "Human Resources",
+      "Learning and Development",
+      "Digital Transformation",
+      "Technology",
+      "Innovation",
+      "Sales",
+      "Operations"
+    ],
+    "benefits": [
+      {
+        "title": "Relevant talent",
+        "description": "Reduces obsolescence risk and strengthens capability relevance."
+      },
+      {
+        "title": "Visible gap",
+        "description": "Makes skills-gap closure measurable and guides the next decision."
+      },
+      {
+        "title": "Real adoption",
+        "description": "Accelerates practice, reduces resistance and brings AI into concrete use cases."
+      },
+      {
+        "title": "Demonstrable impact",
+        "description": "Connects evolution, time, performance and business-relevant metrics."
+      }
+    ]
+  },
+  "packages": {
+    "eyebrow": "Entry paths",
+    "title": "Start where you are. Scale as far as you need.",
+    "description": "Each option builds evidence for the next level without forcing an oversized transformation.",
+    "tabsLabel": "SofLIA evolution packages",
+    "cta": "Explore this path",
+    "stageLabel": "Evolution level",
+    "progressLabel": "Evolution path progress",
+    "previous": "View previous level",
+    "next": "View next level",
+    "items": [
+      {
+        "id": "diagnosis",
+        "name": "Assessment",
+        "scope": "Starting point",
+        "description": "An executive view of gaps, maturity and opportunities to build a talent-evolution roadmap."
+      },
+      {
+        "id": "pilot",
+        "name": "Pilot",
+        "scope": "Focused test",
+        "description": "A bounded intervention to validate adoption, applied learning and metrics before scaling."
+      },
+      {
+        "id": "basic",
+        "name": "Core program",
+        "scope": "Initial capability",
+        "description": "Development of priority capabilities for one team or challenge, with practice and follow-up."
+      },
+      {
+        "id": "intermediate",
+        "name": "Advanced program",
+        "scope": "Area-wide adoption",
+        "description": "Capability architecture, paths and guidance to transform a complete function."
+      },
+      {
+        "id": "premium",
+        "name": "Premium program",
+        "scope": "Integrated transformation",
+        "description": "Coordinated evolution of leadership, talent and operations with continuous impact measurement."
+      },
+      {
+        "id": "enterprise",
+        "name": "Enterprise",
+        "scope": "Continuous evolution",
+        "description": "A permanent upskilling and reskilling system that keeps the entire organization relevant."
+      }
+    ]
+  },
+  "final": {
+    "eyebrow": "The next move",
+    "title": "Secure your team's evolution today.",
+    "description": "Begin with a skills-gap assessment and chart the roadmap toward lasting talent relevance.",
+    "primaryCta": "Schedule an assessment",
+    "secondaryCta": "Talk to SofLIA",
+    "note": "A focused, executive conversation with no commitment."
+  },
+  "footer": {
+    "copyright": "© {{year}} SofLIA. Talent evolution with measurable impact.",
+    "legalLabel": "Legal information and access",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "contact": "Contact",
+    "clientAccess": "Client access"
+  }
+}

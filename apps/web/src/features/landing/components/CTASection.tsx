@@ -88,7 +88,7 @@ export function CTASection() {
           {/* Main Title */}
           <motion.h2
             className="text-5xl lg:text-7xl xl:text-8xl font-bold mb-4 text-primary dark:text-white leading-tight"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 900 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 900 }}
             initial={{ opacity: 0, scale: 0.5, y: 50 }}
             whileInView={{ opacity: 1, scale: 1, y: 0 }}
             viewport={{ once: true }}
@@ -108,7 +108,7 @@ export function CTASection() {
           {/* Subtitle */}
           <motion.p
             className="text-xl lg:text-2xl xl:text-3xl mb-8 max-w-3xl mx-auto leading-relaxed text-gray-500 dark:text-white/80 font-medium"
-            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
+            style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -128,7 +128,7 @@ export function CTASection() {
               <motion.button
                 className="group relative px-12 py-5 lg:px-16 lg:py-6 bg-gradient-to-r from-primary via-primary to-accent text-white rounded-2xl font-bold text-lg lg:text-xl overflow-hidden shadow-2xl shadow-accent/30"
                 style={{
-                  fontFamily: 'Inter, sans-serif',
+                  fontFamily: 'var(--font-system-ui)',
                   fontWeight: 700,
                   boxShadow: '0 20px 60px rgba(0, 212, 179, 0.35)',
                 }}

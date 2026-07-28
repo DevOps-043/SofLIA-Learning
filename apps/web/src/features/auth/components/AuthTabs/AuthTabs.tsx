@@ -12,6 +12,11 @@ const RegisterForm = dynamic(
   () => import('../RegisterForm').then(mod => ({ default: mod.RegisterForm })),
   {
     ssr: false,
+    loading: () => (
+      <div className="grid min-h-[32rem] place-items-center" aria-label="Cargando registro">
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-accent/20 border-t-accent" />
+      </div>
+    ),
   }
 );
 
@@ -43,7 +48,7 @@ function AuthTabsWithProvider() {
       <AuthTabsContent />
     </AuthTabProvider>
   );
-    }
+}
 
 export function AuthTabs() {
   return (

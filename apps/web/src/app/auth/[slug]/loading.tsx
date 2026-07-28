@@ -1,9 +1,22 @@
-import { RouteLoadingSpinner } from '@/core/components/Skeletons/RouteLoadingSpinner'
+import { Loader2 } from 'lucide-react';
+import {
+  AuthExperience,
+  authExperienceStyles,
+} from '@/features/auth/components/AuthExperience';
 
-// Without this file Next.js keeps the previous page (landing) frozen while the
-// org-specific auth page's JS loads and hydrates.  With it, the router wraps
-// the segment in a Suspense boundary and shows this spinner immediately on
-// navigation — giving instant visual feedback before any JS runs on the client.
 export default function Loading() {
-  return <RouteLoadingSpinner />
+  return (
+    <AuthExperience>
+      <div className={authExperienceStyles.content}>
+        <div className={authExperienceStyles.header}>
+          <span className={authExperienceStyles.iconBadge}>
+            <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
+          </span>
+          <p className={authExperienceStyles.subtitle}>
+            Preparando el acceso de tu organización…
+          </p>
+        </div>
+      </div>
+    </AuthExperience>
+  );
 }

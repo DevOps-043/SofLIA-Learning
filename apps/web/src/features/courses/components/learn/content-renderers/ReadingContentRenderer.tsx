@@ -77,7 +77,7 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
         {fontSizeControls}
         <article
           className={`prose prose-slate ${fontSize.proseClassName} dark:prose-invert max-w-none text-gray-900 dark:text-white leading-relaxed overflow-x-auto [&_table]:w-full [&_table]:border-collapse [&_table]:my-6 [&_table]:text-sm [&_th]:border [&_th]:border-gray-300 dark:[&_th]:border-white/20 [&_th]:bg-gray-100 dark:[&_th]:bg-white/10 [&_th]:p-3 [&_th]:font-semibold [&_th]:text-left [&_td]:border [&_td]:border-gray-200 dark:[&_td]:border-white/10 [&_td]:p-3`}
-          style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+          style={{ fontFamily: "var(--font-system-ui)", fontWeight: 400 }}
           dangerouslySetInnerHTML={{ __html: sanitizedReadingContent }}
         />
       </div>

@@ -61,13 +61,13 @@ export function LearnPageValidationModal({
             </div>
             <h3
               className="text-2xl font-bold text-primary dark:text-white text-center mb-2"
-              style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}
+              style={{ fontFamily: "var(--font-system-ui)", fontWeight: 700 }}
             >
               {title}
             </h3>
             <p
               className="text-gray-500 dark:text-white/80 text-center mb-4"
-              style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+              style={{ fontFamily: "var(--font-system-ui)", fontWeight: 400 }}
             >
               {message}
             </p>
@@ -75,7 +75,7 @@ export function LearnPageValidationModal({
               <div className="mb-6 p-3 bg-gray-200/30 dark:bg-carbon-900 rounded-lg border border-gray-200 dark:border-gray-500/30">
                 <p
                   className="text-primary dark:text-white text-sm text-center font-medium"
-                  style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
+                  style={{ fontFamily: "var(--font-system-ui)", fontWeight: 500 }}
                 >
                   {details}
                 </p>
@@ -84,7 +84,7 @@ export function LearnPageValidationModal({
             <button
               onClick={onClose}
               className="w-full px-6 py-3 bg-primary hover:bg-primary text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-primary/25"
-              style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
+              style={{ fontFamily: "var(--font-system-ui)", fontWeight: 500 }}
             >
               Entendido
             </button>

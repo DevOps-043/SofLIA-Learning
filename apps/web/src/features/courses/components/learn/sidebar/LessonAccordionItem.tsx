@@ -99,7 +99,7 @@ export function LessonAccordionItem({
                   ? "font-medium text-blue-800 dark:text-white"
                   : "font-normal text-gray-600 group-hover:text-gray-900 dark:text-white/60 dark:group-hover:text-white/90"
               }`}
-              style={{ fontFamily: "Inter, sans-serif" }}
+              style={{ fontFamily: "var(--font-system-ui)" }}
             >
               {lesson.lesson_title}
             </p>
