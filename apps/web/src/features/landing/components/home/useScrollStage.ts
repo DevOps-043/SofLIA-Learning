@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useState, type RefObject } from "react";
 
 const STICKY_STAGE_QUERY =
-  '(min-width: 1024px) and (min-height: 680px) and (prefers-reduced-motion: no-preference)';
+  "(min-width: 1024px) and (min-height: 900px) and (prefers-reduced-motion: no-preference)";
 
 function getPageScroller() {
   const body = document.body;
@@ -44,7 +44,10 @@ export function useScrollStage<T extends HTMLElement>(
 
         const { scrollTop, viewportHeight } = getScrollMetrics(scroller);
         const sectionTop = section.getBoundingClientRect().top + scrollTop;
-        const scrollableDistance = Math.max(section.offsetHeight - viewportHeight, 1);
+        const scrollableDistance = Math.max(
+          section.offsetHeight - viewportHeight,
+          1,
+        );
         const progress = Math.min(
           1,
           Math.max(0, (scrollTop - sectionTop) / scrollableDistance),
@@ -54,44 +57,57 @@ export function useScrollStage<T extends HTMLElement>(
           Math.floor(progress * stageCount),
         );
 
-        setActiveStage((current) => (current === nextStage ? current : nextStage));
+        setActiveStage((current) =>
+          current === nextStage ? current : nextStage,
+        );
       });
     };
 
     updateStage();
-    scrollTarget.addEventListener('scroll', updateStage, { passive: true });
-    window.addEventListener('resize', updateStage, { passive: true });
-    mediaQuery.addEventListener('change', updateStage);
+    scrollTarget.addEventListener("scroll", updateStage, { passive: true });
+    window.addEventListener("resize", updateStage, { passive: true });
+    mediaQuery.addEventListener("change", updateStage);
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
-      scrollTarget.removeEventListener('scroll', updateStage);
-      window.removeEventListener('resize', updateStage);
-      mediaQuery.removeEventListener('change', updateStage);
+      scrollTarget.removeEventListener("scroll", updateStage);
+      window.removeEventListener("resize", updateStage);
+      mediaQuery.removeEventListener("change", updateStage);
     };
   }, [sectionRef, stageCount]);
 
   const goToStage = useCallback(
     (index: number) => {
       const section = sectionRef.current;
-      const safeIndex = Math.min(Math.max(index, 0), Math.max(stageCount - 1, 0));
+      const safeIndex = Math.min(
+        Math.max(index, 0),
+        Math.max(stageCount - 1, 0),
+      );
 
       setActiveStage(safeIndex);
-      if (!section || stageCount < 2 || !window.matchMedia(STICKY_STAGE_QUERY).matches) {
+      if (
+        !section ||
+        stageCount < 2 ||
+        !window.matchMedia(STICKY_STAGE_QUERY).matches
+      ) {
         return;
       }
 
       const scroller = getPageScroller();
-      const { scrollTop, viewportHeight, usesDocument } = getScrollMetrics(scroller);
+      const { scrollTop, viewportHeight, usesDocument } =
+        getScrollMetrics(scroller);
       const sectionTop = section.getBoundingClientRect().top + scrollTop;
-      const scrollableDistance = Math.max(section.offsetHeight - viewportHeight, 1);
+      const scrollableDistance = Math.max(
+        section.offsetHeight - viewportHeight,
+        1,
+      );
       const segmentCenter = (safeIndex + 0.5) / stageCount;
       const target = sectionTop + segmentCenter * scrollableDistance;
 
       if (usesDocument) {
-        window.scrollTo({ top: target, behavior: 'smooth' });
+        window.scrollTo({ top: target, behavior: "smooth" });
       } else {
-        scroller.scrollTo({ top: target, behavior: 'smooth' });
+        scroller.scrollTo({ top: target, behavior: "smooth" });
       }
     },
     [sectionRef, stageCount],

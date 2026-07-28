@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 import styles from "./SofliaHome.module.css";
 
 const VIDEO_STORY_QUERY =
-  "(min-width: 1024px) and (min-height: 680px) and (prefers-reduced-motion: no-preference)";
+  "(min-width: 1024px) and (min-height: 900px) and (prefers-reduced-motion: no-preference)";
 
 function useVideoStoryProgress(sectionRef: RefObject<HTMLElement>) {
   const progress = useMotionValue(0);
@@ -89,28 +89,56 @@ export function VideoShowcase() {
     restDelta: 0.0005,
   });
 
-  const frameTop = useTransform(progress, [0, 0.52], ["24%", "1.5%"]);
-  const frameRight = useTransform(progress, [0, 0.52], ["7%", "1.5%"]);
-  const frameBottom = useTransform(progress, [0, 0.52], ["9%", "1.5%"]);
-  const frameLeft = useTransform(progress, [0, 0.52], ["28%", "1.5%"]);
-  const frameRadius = useTransform(progress, [0, 0.52], ["2.75rem", "1.25rem"]);
-  const frameRotateX = useTransform(progress, [0, 0.52], [2.4, 0]);
-  const videoScale = useTransform(progress, [0, 0.55, 1], [1.09, 1.025, 1]);
+  const frameTop = useTransform(
+    progress,
+    [0, 0.24, 0.64],
+    ["24%", "24%", "1.5%"],
+  );
+  const frameRight = useTransform(
+    progress,
+    [0, 0.24, 0.64],
+    ["7%", "7%", "1.5%"],
+  );
+  const frameBottom = useTransform(
+    progress,
+    [0, 0.24, 0.64],
+    ["18%", "18%", "1.5%"],
+  );
+  const frameLeft = useTransform(
+    progress,
+    [0, 0.24, 0.64],
+    ["50%", "50%", "1.5%"],
+  );
+  const frameRadius = useTransform(
+    progress,
+    [0, 0.24, 0.64],
+    ["3rem", "3rem", "1.25rem"],
+  );
+  const frameRotateX = useTransform(progress, [0, 0.24, 0.64], [3.2, 3.2, 0]);
+  const videoScale = useTransform(
+    progress,
+    [0, 0.24, 0.64, 1],
+    [1.06, 1.06, 1.01, 1],
+  );
+  const videoFilter = useTransform(
+    progress,
+    [0, 0.24, 0.64],
+    [
+      "saturate(0.86) contrast(0.96) brightness(0.9)",
+      "saturate(0.86) contrast(0.96) brightness(0.9)",
+      "saturate(1) contrast(1.02) brightness(0.98)",
+    ],
+  );
   const overlayOpacity = useTransform(
     progress,
-    [0, 0.42, 0.72],
-    [0.68, 0.74, 0.82],
+    [0, 0.24, 0.64],
+    [0.28, 0.24, 0.1],
   );
-  const introScrimOpacity = useTransform(
-    progress,
-    [0, 0.18, 0.34],
-    [1, 0.88, 0],
-  );
-  const introOpacity = useTransform(progress, [0, 0.18, 0.34], [1, 0.92, 0]);
-  const introY = useTransform(progress, [0, 0.34], [0, -28]);
-  const chromeOpacity = useTransform(progress, [0, 0.28, 0.5], [1, 0.72, 0]);
-  const finalOpacity = useTransform(progress, [0, 0.54, 0.74], [0, 0, 1]);
-  const finalY = useTransform(progress, [0, 0.54, 0.78], [42, 42, 0]);
+  const introOpacity = useTransform(progress, [0, 0.08, 0.18], [1, 1, 0]);
+  const introY = useTransform(progress, [0, 0.18], [0, -24]);
+  const chromeOpacity = useTransform(progress, [0, 0.38, 0.64], [1, 0.7, 0]);
+  const finalOpacity = useTransform(progress, [0, 0.64, 0.82], [0, 0, 1]);
+  const finalY = useTransform(progress, [0, 0.64, 0.86], [36, 36, 0]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -190,16 +218,11 @@ export function VideoShowcase() {
             preload="metadata"
             aria-hidden="true"
             tabIndex={-1}
-            style={{ scale: videoScale }}
+            style={{ scale: videoScale, filter: videoFilter }}
           />
           <motion.div
             className={styles.videoShowcaseOverlay}
             style={{ opacity: overlayOpacity }}
-            aria-hidden="true"
-          />
-          <motion.div
-            className={styles.videoShowcaseIntroScrim}
-            style={{ opacity: introScrimOpacity }}
             aria-hidden="true"
           />
 
@@ -207,21 +230,7 @@ export function VideoShowcase() {
             className={styles.videoShowcaseChrome}
             style={{ opacity: chromeOpacity }}
             aria-hidden="true"
-          >
-            <span>
-              <i />
-              {t("showcase.videoLabel")}
-            </span>
-            <small>SOFLIA / FILM 01</small>
-          </motion.div>
-
-          <motion.div
-            className={styles.videoShowcaseFinal}
-            style={{ opacity: finalOpacity, y: finalY }}
-          >
-            <span>{t("showcase.closingKicker")}</span>
-            <p>{t("showcase.closingTitle")}</p>
-          </motion.div>
+          />
 
           <button
             type="button"
@@ -248,6 +257,16 @@ export function VideoShowcase() {
           <span className={styles.videoShowcaseProgress} aria-hidden="true">
             <motion.i style={{ scaleX: progress }} />
           </span>
+        </motion.div>
+
+        <motion.div
+          className={styles.videoShowcaseFinal}
+          style={{ opacity: finalOpacity, y: finalY }}
+        >
+          <span>{t("showcase.closingKicker")}</span>
+          <h2 id="video-showcase-closing-title">
+            {t("showcase.closingTitle")}
+          </h2>
         </motion.div>
       </div>
     </section>

@@ -1206,7 +1206,7 @@
   font-size: 0.95rem;
 }
 
-@media (min-width: 1024px) and (min-height: 680px) and (prefers-reduced-motion: no-preference) {
+@media (min-width: 1024px) and (min-height: 900px) and (prefers-reduced-motion: no-preference) {
   .narrative {
     height: 360svh;
     padding-block: 0;
@@ -1245,7 +1245,6 @@
 /* Cinematic brand story: a calm card-to-screen reveal between the strategic
    narrative and the product ecosystem. */
 .videoShowcase {
-  --video-accent: rgb(75 255 224);
   --video-deep: rgb(5 19 32);
   --video-deep-rgb: 5 19 32;
   --video-text: rgb(248 250 252);
@@ -1286,13 +1285,13 @@
   position: relative;
   z-index: 5;
   margin-bottom: clamp(2rem, 6vw, 4rem);
-  text-shadow: 0 0.2rem 2rem rgb(var(--color-primary-rgb) / 0.6);
   will-change: transform, opacity;
 }
 
 .videoShowcaseIntro h2 {
   max-width: 12ch;
   margin: 0;
+  color: rgb(var(--home-fg-rgb) / 0.98);
   font-family: var(--home-display);
   font-size: clamp(2.6rem, 7vw, 6.3rem);
   font-weight: 300;
@@ -1304,7 +1303,7 @@
 .videoShowcaseIntro > p:last-child {
   max-width: 38rem;
   margin: 1.2rem 0 0;
-  color: rgb(var(--home-fg-rgb) / 0.72);
+  color: rgb(var(--home-fg-rgb) / 0.82);
   font-size: clamp(0.95rem, 1.5vw, 1.08rem);
   line-height: 1.65;
 }
@@ -1337,10 +1336,13 @@
 
 .videoShowcaseMedia {
   position: absolute;
-  inset: 0;
+  top: -5.5%;
+  right: 0;
+  bottom: auto;
+  left: 0;
   z-index: 1;
   width: 100%;
-  height: 100%;
+  height: 105.5%;
   object-fit: cover;
   object-position: center 42%;
   will-change: transform;
@@ -1351,38 +1353,13 @@
   inset: 0;
   z-index: 2;
   background:
-    linear-gradient(
-      90deg,
-      rgb(var(--video-deep-rgb) / 0.98) 0%,
-      rgb(var(--video-deep-rgb) / 0.88) 46%,
-      rgb(var(--video-deep-rgb) / 0.46) 74%,
-      rgb(var(--video-deep-rgb) / 0.22) 100%
+    radial-gradient(
+      circle at 50% 42%,
+      transparent 46%,
+      rgb(var(--video-deep-rgb) / 0.42) 100%
     ),
-    linear-gradient(0deg, rgb(var(--video-deep-rgb) / 0.88), transparent 58%);
+    linear-gradient(0deg, rgb(var(--video-deep-rgb) / 0.5), transparent 38%);
   pointer-events: none;
-}
-
-.videoShowcaseIntroScrim {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  background: linear-gradient(
-    90deg,
-    rgb(248 250 252 / 0.98) 0%,
-    rgb(248 250 252 / 0.9) 36%,
-    rgb(248 250 252 / 0.48) 54%,
-    transparent 72%
-  );
-  pointer-events: none;
-}
-
-:global(.dark) .videoShowcaseIntroScrim {
-  background: linear-gradient(
-    90deg,
-    rgb(var(--video-deep-rgb) / 0.94) 0%,
-    rgb(var(--video-deep-rgb) / 0.72) 46%,
-    transparent 74%
-  );
 }
 
 .videoShowcaseChrome {
@@ -1416,54 +1393,11 @@
   border-width: 0 1px 1px 0;
 }
 
-.videoShowcaseChrome span,
-.videoShowcaseChrome small {
-  position: absolute;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  border-radius: 999px;
-  padding: 0.46rem 0.65rem;
-  background: rgb(var(--video-deep-rgb) / 0.76);
-  box-shadow: 0 0.45rem 1.5rem rgb(var(--video-deep-rgb) / 0.24);
-  font-size: 0.56rem;
-  font-weight: 600;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  backdrop-filter: blur(0.8rem);
-}
-
-.videoShowcaseChrome span {
-  top: clamp(1.2rem, 2.4vw, 1.9rem);
-  left: clamp(1.2rem, 2.4vw, 1.9rem);
-}
-
-.videoShowcaseChrome span i {
-  width: 0.38rem;
-  height: 0.38rem;
-  border-radius: 50%;
-  background: var(--color-accent);
-  box-shadow: 0 0 0.75rem var(--color-accent);
-  animation: video-recording-pulse 1.8s ease-in-out infinite;
-}
-
-.videoShowcaseChrome small {
-  top: clamp(1.2rem, 2.4vw, 1.9rem);
-  right: clamp(1.2rem, 2.4vw, 1.9rem);
-  color: rgb(var(--video-text-rgb) / 0.78);
-}
-
 .videoShowcaseFinal {
-  position: absolute;
-  right: clamp(1.25rem, 7vw, 8rem);
-  bottom: clamp(4.5rem, 10vh, 7.5rem);
-  left: clamp(1.25rem, 7vw, 8rem);
+  position: relative;
   z-index: 4;
-  max-width: 48rem;
-  color: var(--video-text);
-  text-shadow:
-    0 0.15rem 0.4rem rgb(var(--video-deep-rgb) / 0.9),
-    0 0.35rem 2.5rem rgb(var(--video-deep-rgb) / 0.9);
+  width: min(calc(100% - 2rem), 88rem);
+  margin: clamp(1.5rem, 5vw, 3rem) auto 0;
   will-change: transform, opacity;
 }
 
@@ -1471,7 +1405,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
-  color: var(--video-accent);
+  color: var(--color-accent);
   font-family: var(--home-label);
   font-size: 0.64rem;
   font-weight: 600;
@@ -1486,11 +1420,11 @@
   background: currentColor;
 }
 
-.videoShowcaseFinal p {
-  max-width: 14ch;
+.videoShowcaseFinal h2 {
+  max-width: 15ch;
   margin: 0.75rem 0 0;
   font-family: var(--home-display);
-  font-size: clamp(2.35rem, 6vw, 6rem);
+  font-size: clamp(2.2rem, 6vw, 4.5rem);
   font-weight: 300;
   letter-spacing: -0.02em;
   line-height: 0.98;
@@ -1503,17 +1437,17 @@
   bottom: clamp(1rem, 2vw, 1.6rem);
   z-index: 7;
   display: inline-flex;
-  min-height: 2.7rem;
+  min-height: 2.25rem;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   border: 1px solid rgb(var(--video-text-rgb) / 0.48);
   border-radius: 999px;
-  padding: 0 0.9rem;
+  padding: 0 0.72rem;
   background: rgb(var(--video-deep-rgb) / 0.88);
   box-shadow: 0 0.9rem 2.5rem rgb(var(--color-black-rgb) / 0.28);
   color: var(--video-text);
   font-family: var(--home-body);
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 500;
   cursor: pointer;
   backdrop-filter: blur(0.9rem);
@@ -1521,6 +1455,12 @@
     border-color 180ms ease,
     background-color 180ms ease,
     transform 180ms ease;
+}
+
+.videoShowcaseControl::after {
+  position: absolute;
+  inset: -0.28rem;
+  content: "";
 }
 
 .videoShowcaseControl:hover,
@@ -1554,20 +1494,7 @@
   transform-origin: left;
 }
 
-@keyframes video-recording-pulse {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: scale(0.86);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@media (min-width: 1024px) and (min-height: 680px) and (prefers-reduced-motion: no-preference) {
+@media (min-width: 1024px) and (min-height: 900px) and (prefers-reduced-motion: no-preference) {
   .videoShowcase {
     height: 230svh;
     padding-block: 0;
@@ -1598,6 +1525,29 @@
     max-width: 27rem;
   }
 
+  .videoShowcaseFinal {
+    position: absolute;
+    right: clamp(1.25rem, 7vw, 8rem);
+    bottom: clamp(4.5rem, 10vh, 7.5rem);
+    left: clamp(1.25rem, 7vw, 8rem);
+    width: auto;
+    max-width: 48rem;
+    margin: 0;
+    color: var(--video-text);
+    text-shadow:
+      0 0.15rem 0.4rem rgb(var(--video-deep-rgb) / 0.9),
+      0 0.35rem 2.5rem rgb(var(--video-deep-rgb) / 0.9);
+  }
+
+  .videoShowcaseFinal span {
+    color: rgb(75 255 224);
+  }
+
+  .videoShowcaseFinal h2 {
+    max-width: 14ch;
+    font-size: clamp(2.35rem, 6vw, 6rem);
+  }
+
   .videoShowcaseFrame {
     position: absolute;
     width: auto;
@@ -1609,7 +1559,7 @@
 }
 
 @media (max-width: 1023px),
-  (max-height: 679px),
+  (max-height: 899px),
   (prefers-reduced-motion: reduce) {
   .videoShowcaseFrame {
     inset: auto !important;
@@ -1617,34 +1567,20 @@
     transform: none !important;
   }
 
-  .videoShowcaseOverlay {
-    opacity: 0.88 !important;
+  .videoShowcaseMedia {
+    filter: none !important;
+    transform: none !important;
   }
 
-  .videoShowcaseIntroScrim {
-    display: none;
+  .videoShowcaseOverlay {
+    opacity: 0.1 !important;
   }
 
   .videoShowcaseFinal {
-    right: 1.25rem;
-    bottom: 4.4rem;
-    left: 1.25rem;
     opacity: 1 !important;
     transform: none !important;
   }
 
-  .videoShowcaseFinal span {
-    font-size: 0.56rem;
-  }
-
-  .videoShowcaseFinal p {
-    max-width: 16ch;
-    margin-top: 0.45rem;
-    font-size: clamp(1.55rem, 6vw, 3.2rem);
-  }
-
-  .videoShowcaseChrome span,
-  .videoShowcaseChrome small,
   .videoShowcaseProgress {
     display: none;
   }
@@ -1653,17 +1589,6 @@
 @media (min-width: 600px) and (max-width: 1023px) {
   .videoShowcaseFrame {
     width: min(calc(100% - 3rem), 56rem);
-  }
-
-  .videoShowcaseFinal {
-    right: 2.25rem;
-    bottom: 5rem;
-    left: 2.25rem;
-  }
-
-  .videoShowcaseFinal p {
-    max-width: 13ch;
-    font-size: clamp(2.25rem, 5vw, 3.25rem);
   }
 
   .videoShowcaseControl {
@@ -1687,23 +1612,19 @@
     border-radius: 1.25rem !important;
   }
 
-  .videoShowcaseFinal {
-    right: 1.15rem;
-    bottom: 4.15rem;
-    left: 1.15rem;
-  }
-
-  .videoShowcaseFinal p {
-    max-width: 15ch;
-    font-size: clamp(1.45rem, 7vw, 1.9rem);
-    line-height: 1;
-  }
-
   .videoShowcaseControl {
     right: 0.9rem;
     bottom: 0.9rem;
-    min-height: 2.75rem;
-    padding-inline: 0.8rem;
+    min-height: 2.3rem;
+    padding-inline: 0.7rem;
+  }
+
+  .videoShowcaseFinal {
+    width: calc(100% - 2rem);
+  }
+
+  .videoShowcaseFinal h2 {
+    font-size: clamp(2rem, 11vw, 3rem);
   }
 }
 
@@ -4273,7 +4194,51 @@
   }
 }
 
-@media (min-width: 1024px) and (min-height: 680px) and (prefers-reduced-motion: no-preference) {
+@media (min-width: 1024px) and (max-height: 899px) {
+  .impactStory,
+  .packagesStory {
+    padding-block: clamp(4rem, 10vh, 6rem);
+  }
+
+  .impactSticky .sectionHeader,
+  .packagesSticky .sectionHeader {
+    gap: 0.65rem;
+    margin-bottom: 2rem;
+  }
+
+  .impactSticky .sectionTitle,
+  .packagesSticky .sectionTitle {
+    font-size: clamp(2.5rem, 4.2vw, 3.6rem);
+  }
+
+  .impactSticky .sectionDescription,
+  .packagesSticky .sectionDescription {
+    max-width: 50rem;
+    line-height: 1.5;
+  }
+
+  .audiencePanel {
+    min-height: min(30rem, 70svh);
+  }
+
+  .audienceNetwork {
+    min-height: min(25rem, 62svh);
+  }
+
+  .benefitStage {
+    min-height: min(23rem, 58svh);
+  }
+
+  .benefitFeature {
+    min-height: 100%;
+  }
+
+  .packageCard {
+    min-height: min(31rem, 72svh);
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 900px) and (prefers-reduced-motion: no-preference) {
   .impactStory {
     min-height: 260svh;
     padding-block: 0;
